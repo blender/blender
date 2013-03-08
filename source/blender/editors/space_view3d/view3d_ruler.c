@@ -52,6 +52,54 @@
 
 #include "view3d_intern.h"  /* own include */
 
+
+/* -------------------------------------------------------------------- */
+/* Snapping (could be own function) */
+/* NOTE - this is not very nice use of transform snapping */
+#include "ED_transform.h"
+#include "../transform/transform.h"
+
+static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2],
+                              bool use_vert, bool use_edge, bool use_face)
+{
+	TransInfo t = {0};
+	int dist = 12;  /* snap dist */
+	float r_no_dummy[3];
+	bool ret = false;
+	char  backup_snap_mode;
+	Base *backup_baseact;
+
+	t.scene  = CTX_data_scene(C);
+	t.view   = CTX_wm_view3d(C);
+	t.ar     = CTX_wm_region(C);
+	t.obedit = CTX_data_edit_object(C);
+
+	backup_snap_mode = t.scene->toolsettings->snap_mode;
+	backup_baseact = t.scene->basact;
+	t.scene->basact = NULL;
+
+	/* try snap edge, then face if it fails */
+	if (use_vert) {
+		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_VERTEX;
+		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+	}
+	if (use_edge && (ret == false)) {
+		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_EDGE;
+		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+	}
+	if (use_face && (ret == false)) {
+		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_FACE;
+		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+	}
+
+	t.scene->toolsettings->snap_mode = backup_snap_mode;
+	t.scene->basact = backup_baseact;
+
+	return ret;
+}
+/* done snapping */
+
+
 /* -------------------------------------------------------------------- */
 /* Ruler Item (we can have many) */
 enum {
@@ -522,7 +570,12 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 
 	if (ruler_item) {
-		view3d_ruler_item_project(C, ruler_info, ruler_item->co[ruler_item->co_index], event->mval);
+		float *co = ruler_item->co[ruler_item->co_index];
+		view3d_ruler_item_project(C, ruler_info, co, event->mval);
+		if (event->ctrl) {
+			const float mval_fl[2] = {UNPACK2(event->mval)};
+			ED_view3d_snap_co(C, co, mval_fl, true, true, true);
+		}
 		return true;
 	}
 	else {
@@ -658,6 +711,12 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			break;
+		case RIGHTCTRLKEY:
+		case LEFTCTRLKEY:
+		{
+			WM_event_add_mousemove(C);
+			break;
+		}
 		case MOUSEMOVE:
 		{
 			if (ruler_info->state == RULER_STATE_DRAG) {
