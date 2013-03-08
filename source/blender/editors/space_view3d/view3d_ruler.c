@@ -158,13 +158,11 @@ static RulerItem *ruler_item_add(RulerInfo *ruler_info)
 	return ruler_item;
 }
 
-#if 0
 static void ruler_item_remove(RulerInfo *ruler_info, RulerItem *ruler_item)
 {
 	BLI_remlink(&ruler_info->items, ruler_item);
 	MEM_freeN(ruler_item);
 }
-#endif
 
 static RulerItem *ruler_item_active_get(RulerInfo *ruler_info)
 {
@@ -726,11 +724,24 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			break;
 		}
-
 		case ESCKEY:
 		{
 			do_draw = true;
 			exit_code = OPERATOR_CANCELLED;
+			break;
+		}
+		case DELKEY:
+		{
+			if (event->val == KM_PRESS) {
+				if (ruler_info->state == RULER_STATE_NORMAL) {
+					RulerItem *ruler_item = ruler_item_active_get(ruler_info);
+					if (ruler_item) {
+						ruler_item_remove(ruler_info, ruler_item);
+						ruler_info->item_active = -1;
+						do_draw = true;
+					}
+				}
+			}
 			break;
 		}
 		default:
