@@ -1623,17 +1623,21 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			success += insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
 		else {
-			if (G.debug & G_DEBUG)
-				printf("Button Insert-Key: no path to property\n");
-			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property, try using a keying set instead");
+			BKE_report(op->reports, RPT_WARNING, 
+			           "Failed to resolve path to property, try manually specifying this using a Keying Set instead");
 		}
 	}
-	else if (G.debug & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
-		if (prop)
-			printf("animatable = %d\n", RNA_property_animateable(&ptr, prop));
-		else
-			printf("animatable = NULL\n");
+	else {
+		if (prop && !RNA_property_animateable(&ptr, prop)) {
+			BKE_reportf(op->reports, RPT_WARNING, 
+			           "\"%s\" property cannot be animated",
+			           RNA_property_identifier(prop));
+		}
+		else {
+			BKE_reportf(op->reports, RPT_WARNING,
+			            "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)",
+						(void *)ptr.data, (void *)prop);
+		}
 	}
 	
 	if (success) {

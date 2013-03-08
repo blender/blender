@@ -879,7 +879,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 		if (ksi == NULL)
 			return MODIFYKEY_MISSING_TYPEINFO;
 		/* TODO: check for missing callbacks! */
-
+		
 		/* check if it can be used in the current context */
 		if (ksi->poll(ksi, C)) {
 			/* if a list of data sources are provided, run a special iterator over them,
