@@ -216,7 +216,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 	/* rotate counter-clockwise for now (assumes left-to-right language)*/
 	xofs += height;
 	yofs = BLF_width(fs->uifont_id, str) + 5;
-	angle = 90.0f;
+	angle = M_PI / 2.0f;
 
 	/* translate rect to vertical */
 	txtrect.xmin = rect->xmin - BLI_rcti_size_y(rect);
