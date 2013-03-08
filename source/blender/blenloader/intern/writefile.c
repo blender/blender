@@ -470,6 +470,9 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 {
 	FModifier *fcm;
 	
+	/* Write all modifiers first (for faster reloading) */
+	writelist(wd, DATA, "FModifier", fmodifiers);
+	
 	/* Modifiers */
 	for (fcm= fmodifiers->first; fcm; fcm= fcm->next) {
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -510,9 +513,6 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 					break;
 			}
 		}
-		
-		/* Write the modifier */
-		writestruct(wd, DATA, "FModifier", 1, fcm);
 	}
 }
 
@@ -520,10 +520,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 {
 	FCurve *fcu;
 	
+	writelist(wd, DATA, "FCurve", fcurves);
 	for (fcu=fcurves->first; fcu; fcu=fcu->next) {
-		/* F-Curve */
-		writestruct(wd, DATA, "FCurve", 1, fcu);
-		
 		/* curve data */
 		if (fcu->bezt)
 			writestruct(wd, DATA, "BezTriple", fcu->totvert, fcu->bezt);
@@ -541,9 +539,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
 			/* variables */
-			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
-				writestruct(wd, DATA, "DriverVar", 1, dvar);
-				
+			writelist(wd, DATA, "DriverVar", &driver->variables);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {				
 				DRIVER_TARGETS_USED_LOOPER(dvar)
 				{
 					if (dtar->rna_path)
@@ -609,10 +606,8 @@ static void write_nlastrips(WriteData *wd, ListBase *strips)
 {
 	NlaStrip *strip;
 	
+	writelist(wd, DATA, "NlaStrip", strips);
 	for (strip= strips->first; strip; strip= strip->next) {
-		/* write the strip first */
-		writestruct(wd, DATA, "NlaStrip", 1, strip);
-		
 		/* write the strip's F-Curves and modifiers */
 		write_fcurves(wd, &strip->fcurves);
 		write_fmodifiers(wd, &strip->modifiers);
