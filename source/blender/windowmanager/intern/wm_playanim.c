@@ -91,7 +91,7 @@ typedef struct PlayState {
 	short wait2;
 	short stopped;
 	short go;
-
+	
 	int fstep;
 
 	/* current picture */
@@ -103,6 +103,9 @@ typedef struct PlayState {
 
 	/* saves passing args */
 	struct ImBuf *curframe_ibuf;
+	
+	/* restarts player for file drop */
+	char dropped_file[FILE_MAX];
 } PlayState;
 
 /* for debugging */
@@ -735,6 +738,23 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			ps->go = FALSE;
 			break;
 		}
+		case GHOST_kEventDraggingDropDone:
+		{
+			GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
+			
+			if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
+				GHOST_TStringArray *stra = ddd->data;
+				int a;
+				
+				for (a = 0; a < stra->count; a++) {
+					BLI_strncpy(ps->dropped_file, (char *)stra->strings[a], sizeof(ps->dropped_file));
+					ps->go = FALSE;
+					printf("drop file %s\n", stra->strings[a]);
+					break; /* only one drop element supported now */
+				}
+			}
+			break;
+		}
 		default:
 			/* quiet warnings */
 			break;
@@ -785,12 +805,12 @@ static void playanim_window_zoom(const PlayState *ps, const float zoom_offset)
 	GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
 }
 
-void WM_main_playanim(int argc, const char **argv)
+/* return path for restart */
+static char *wm_main_playanim_intern(int argc, const char **argv)
 {
 	struct ImBuf *ibuf = NULL;
-	char filepath[FILE_MAX];
+	static char filepath[FILE_MAX];	/* abused to return dropped file path */
 	GHOST_TUns32 maxwinx, maxwiny;
-	/* short c233 = FALSE, yuvx = FALSE; */ /* UNUSED */
 	int i;
 	/* This was done to disambiguate the name for use under c++. */
 	struct anim *anim = NULL;
@@ -798,7 +818,7 @@ void WM_main_playanim(int argc, const char **argv)
 	int sfra = -1;
 	int efra = -1;
 	int totblock;
-
+	
 	PlayState ps = {0};
 
 	/* ps.doubleb   = TRUE;*/ /* UNUSED */
@@ -813,6 +833,7 @@ void WM_main_playanim(int argc, const char **argv)
 	ps.wait2     = FALSE;
 	ps.stopped   = FALSE;
 	ps.picture   = NULL;
+	ps.dropped_file[0] = 0;
 	/* resetmap = FALSE */
 
 	ps.fstep     = 1;
@@ -1142,11 +1163,19 @@ void WM_main_playanim(int argc, const char **argv)
 #else
 	/* we still miss freeing a lot!,
 	 * but many areas could skip initialization too for anim play */
-	IMB_exit();
-	BKE_images_exit();
+	
 	BLF_exit();
 #endif
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
+
+	/* early exit, IMB and BKE should be exited only in end */
+	if (ps.dropped_file) {
+		BLI_strncpy(filepath, ps.dropped_file, sizeof(filepath));
+		return filepath;
+	}
+	
+	IMB_exit();
+	BKE_images_exit();
 
 	totblock = MEM_get_memory_blocks_in_use();
 	if (totblock != 0) {
@@ -1155,5 +1184,24 @@ void WM_main_playanim(int argc, const char **argv)
 		printf("Error Totblock: %d\n", totblock);
 		MEM_printmemlist();
 #endif
+	}
+	
+	return NULL;
+}
+
+
+void WM_main_playanim(int argc, const char **argv)
+{
+	int looping = TRUE;
+	
+	while (looping) {
+		char *filepath = wm_main_playanim_intern(argc, argv);
+		
+		if (filepath) {	/* use simple args */
+			argv[1] = "-a";
+			argv[2] = filepath;
+			argc = 3;
+		}
+		else looping = 0;
 	}
 }
