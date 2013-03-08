@@ -103,7 +103,7 @@ static float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 /****************** IMPLEMENTATIONS *********************/
 
-static int snapNodeTest(View2D *v2d, bNode *node, SnapMode mode);
+static bool snapNodeTest(View2D *v2d, bNode *node, SnapMode mode);
 static NodeBorder snapNodeBorder(int snap_node_mode);
 
 #if 0
@@ -818,7 +818,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		float loc[3];
 		float no[3];
 		float mval[2];
-		int found = 0;
+		bool found = false;
 		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 		
 		mval[0] = t->mval[0];
@@ -901,7 +901,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 				no[0] = 0.0;
 				no[1] = 0.0;
 				no[2] = 1.0;
-				found = 1;
+				found = true;
 			}
 			
 			BLI_freelistN(&depth_peels);
@@ -910,7 +910,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			found = snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect);
 		}
 		
-		if (found == 1) {
+		if (found == true) {
 			float tangent[3];
 			
 			sub_v3_v3v3(tangent, loc, t->tsnap.snapPoint);
@@ -1144,13 +1144,13 @@ static void TargetSnapClosest(TransInfo *t)
 	}
 }
 
-static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2no[3], float obmat[4][4], float timat[3][3],
-                    const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval[2],
-                    float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
+static bool snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2no[3], float obmat[4][4], float timat[3][3],
+                     const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval[2],
+                     float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
 	float intersect[3] = {0, 0, 0}, ray_end[3], dvec[3];
 	int result;
-	int retval = 0;
+	bool retval = false;
 	
 	copy_v3_v3(ray_end, ray_normal_local);
 	mul_v3_fl(ray_end, 2000);
@@ -1206,7 +1206,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 				float n1[3], n2[3];
 				
 				*r_depth = new_depth;
-				retval = 1;
+				retval = true;
 				
 				sub_v3_v3v3(edge_loc, v1co, v2co);
 				sub_v3_v3v3(vec, intersect, v2co);
@@ -1231,11 +1231,11 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 	return retval;
 }
 
-static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[4][4], float timat[3][3],
-                      const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval[2],
-                      float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
+static bool snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[4][4], float timat[3][3],
+                       const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval[2],
+                       float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
-	int retval = 0;
+	bool retval = false;
 	float dvec[3];
 	
 	sub_v3_v3v3(dvec, vco, ray_start_local);
@@ -1262,7 +1262,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[4][4]
 		
 		if (new_dist <= *r_dist && new_depth < *r_depth) {
 			*r_depth = new_depth;
-			retval = 1;
+			retval = true;
 			
 			copy_v3_v3(r_loc, location);
 			
@@ -1279,13 +1279,13 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[4][4]
 	return retval;
 }
 
-static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
-                        const float ray_start[3], const float ray_normal[3], const float mval[2],
-                        float r_loc[3], float *UNUSED(r_no), int *r_dist, float *r_depth)
+static bool snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
+                         const float ray_start[3], const float ray_normal[3], const float mval[2],
+                         float r_loc[3], float *UNUSED(r_no), int *r_dist, float *r_depth)
 {
 	float imat[4][4];
 	float ray_start_local[3], ray_normal_local[3];
-	int retval = 0;
+	bool retval = false;
 
 	invert_m4_m4(imat, obmat);
 
@@ -1342,11 +1342,11 @@ static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm
 	return retval;
 }
 
-static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
-                           const float ray_start[3], const float ray_normal[3], const float mval[2],
-                           float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
+static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
+                            const float ray_start[3], const float ray_normal[3], const float mval[2],
+                            float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
-	int retval = 0;
+	bool retval = false;
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumTessFaces(dm);
 
@@ -1514,12 +1514,12 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 	return retval;
 } 
 
-static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obmat[4][4],
-                      const float ray_start[3], const float ray_normal[3], const float mval[2],
-                      float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
+static bool snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obmat[4][4],
+                       const float ray_start[3], const float ray_normal[3], const float mval[2],
+                       float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
 	ToolSettings *ts = scene->toolsettings;
-	int retval = 0;
+	bool retval = false;
 	
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
@@ -1546,12 +1546,12 @@ static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, flo
 	return retval;
 }
 
-static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, const float mval[2],
-                       int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
+static bool snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, const float mval[2],
+                        int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	Base *base;
 	float depth = (FLT_MAX / 2.0f);  /* use half of flt-max so we can scale up without an exception */
-	int retval = 0;
+	bool retval = false;
 	float ray_start[3], ray_normal[3];
 	
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
@@ -1602,12 +1602,12 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 	return retval;
 }
 
-int snapObjectsTransform(TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
+bool snapObjectsTransform(TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	return snapObjects(t->scene, t->view, t->ar, t->obedit, mval, r_dist, r_loc, r_no, mode);
 }
 
-int snapObjectsContext(bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
+bool snapObjectsContext(bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1667,11 +1667,11 @@ static void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float n
 	peel->flag = 0;
 }
 
-static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
-                           const float ray_start[3], const float ray_normal[3], const float UNUSED(mval[2]),
-                           ListBase *depth_peels)
+static bool peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
+                            const float ray_start[3], const float ray_normal[3], const float UNUSED(mval[2]),
+                            ListBase *depth_peels)
 {
-	int retval = 0;
+	bool retval = false;
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumTessFaces(dm);
 	
@@ -1776,10 +1776,11 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
 	return retval;
 } 
 
-static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, ListBase *depth_peels, const float mval[2], SnapMode mode)
+static bool peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
+                        ListBase *depth_peels, const float mval[2], SnapMode mode)
 {
 	Base *base;
-	int retval = 0;
+	bool retval = false;
 	float ray_start[3], ray_normal[3];
 	
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
@@ -1798,7 +1799,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 					if (dob->type == OB_MESH) {
 						BMEditMesh *em;
 						DerivedMesh *dm = NULL;
-						int val;
+						bool val;
 
 						if (dob != obedit) {
 							dm = mesh_get_derived_final(scene, dob, CD_MASK_BAREMESH);
@@ -1822,7 +1823,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 			}
 			
 			if (ob->type == OB_MESH) {
-				int val = 0;
+				bool val = false;
 
 				if (ob != obedit && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT | BA_WAS_SEL)) == 0) || ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT))) {
 					DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -1850,12 +1851,12 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 	return retval;
 }
 
-int peelObjectsTransForm(TransInfo *t, ListBase *depth_peels, const float mval[2], SnapMode mode)
+bool peelObjectsTransForm(TransInfo *t, ListBase *depth_peels, const float mval[2], SnapMode mode)
 {
 	return peelObjects(t->scene, t->view, t->ar, t->obedit, depth_peels, mval, mode);
 }
 
-int peelObjectsContext(bContext *C, ListBase *depth_peels, const float mval[2], SnapMode mode)
+bool peelObjectsContext(bContext *C, ListBase *depth_peels, const float mval[2], SnapMode mode)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1865,7 +1866,7 @@ int peelObjectsContext(bContext *C, ListBase *depth_peels, const float mval[2], 
 
 /******************** NODES ***********************************/
 
-static int snapNodeTest(View2D *v2d, bNode *node, SnapMode mode)
+static bool snapNodeTest(View2D *v2d, bNode *node, SnapMode mode)
 {
 	/* node is use for snapping only if a) snap mode matches and b) node is inside the view */
 	return ((mode == SNAP_NOT_SELECTED && !(node->flag & NODE_SELECT)) ||
@@ -1887,12 +1888,12 @@ static NodeBorder snapNodeBorder(int snap_node_mode)
 	return 0;
 }
 
-static int snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bNode *node, const int mval[2],
-                    float r_loc[2], int *r_dist, char *r_node_border)
+static bool snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bNode *node, const int mval[2],
+                     float r_loc[2], int *r_dist, char *r_node_border)
 {
 	View2D *v2d = &ar->v2d;
 	NodeBorder border = snapNodeBorder(ts->snap_node_mode);
-	int retval = 0;
+	bool retval = false;
 	rcti totr;
 	int new_dist;
 	
@@ -1905,7 +1906,7 @@ static int snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bNo
 			UI_view2d_region_to_view(v2d, totr.xmin, mval[1], &r_loc[0], &r_loc[1]);
 			*r_dist = new_dist;
 			*r_node_border = NODE_LEFT;
-			retval = 1;
+			retval = true;
 		}
 	}
 	
@@ -1915,7 +1916,7 @@ static int snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bNo
 			UI_view2d_region_to_view(v2d, totr.xmax, mval[1], &r_loc[0], &r_loc[1]);
 			*r_dist = new_dist;
 			*r_node_border = NODE_RIGHT;
-			retval = 1;
+			retval = true;
 		}
 	}
 	
@@ -1925,7 +1926,7 @@ static int snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bNo
 			UI_view2d_region_to_view(v2d, mval[0], totr.ymin, &r_loc[0], &r_loc[1]);
 			*r_dist = new_dist;
 			*r_node_border = NODE_BOTTOM;
-			retval = 1;
+			retval = true;
 		}
 	}
 	
@@ -1935,19 +1936,19 @@ static int snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bNo
 			UI_view2d_region_to_view(v2d, mval[0], totr.ymax, &r_loc[0], &r_loc[1]);
 			*r_dist = new_dist;
 			*r_node_border = NODE_TOP;
-			retval = 1;
+			retval = true;
 		}
 	}
 	
 	return retval;
 }
 
-static int snapNodes(ToolSettings *ts, SpaceNode *snode, ARegion *ar, const int mval[2],
+static bool snapNodes(ToolSettings *ts, SpaceNode *snode, ARegion *ar, const int mval[2],
                      int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode)
 {
 	bNodeTree *ntree = snode->edittree;
 	bNode *node;
-	int retval = 0;
+	bool retval = false;
 	
 	*r_node_border = 0;
 	
@@ -1959,12 +1960,12 @@ static int snapNodes(ToolSettings *ts, SpaceNode *snode, ARegion *ar, const int 
 	return retval;
 }
 
-int snapNodesTransform(TransInfo *t, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode)
+bool snapNodesTransform(TransInfo *t, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode)
 {
 	return snapNodes(t->settings, t->sa->spacedata.first, t->ar, mval, r_dist, r_loc, r_node_border, mode);
 }
 
-int snapNodesContext(bContext *C, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode)
+bool snapNodesContext(bContext *C, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode)
 {
 	Scene *scene = CTX_data_scene(C);
 	return snapNodes(scene->toolsettings, CTX_wm_space_node(C), CTX_wm_region(C), mval, r_dist, r_loc, r_node_border, mode);
