@@ -1560,11 +1560,7 @@ static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView
 
 float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
 {
-	return (rv3d->persmat[3][3] + (
-	            rv3d->persmat[0][3] * co[0] +
-	            rv3d->persmat[1][3] * co[1] +
-	            rv3d->persmat[2][3] * co[2])
-	        ) * rv3d->pixsize * U.pixelsize;
+	return mul_project_m4_v3_zfac(rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
 }
 
 float ED_view3d_radius_to_persp_dist(const float angle, const float radius)

@@ -276,9 +276,7 @@ eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], fl
  */
 float ED_view3d_calc_zfac(RegionView3D *rv3d, const float co[3], bool *r_flip)
 {
-	float zfac = (rv3d->persmat[0][3] * co[0]) +
-	             (rv3d->persmat[1][3] * co[1]) +
-	             (rv3d->persmat[2][3] * co[2]) + rv3d->persmat[3][3];
+	float zfac = mul_project_m4_v3_zfac(rv3d->persmat, co);
 
 	if (r_flip) {
 		*r_flip = (zfac < 0.0f);
