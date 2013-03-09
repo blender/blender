@@ -1143,7 +1143,7 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 		}
 
 		if (found) {
-			BMEdge *ed_pair[3] = {NULL};
+			BMEdge *ed_pair[3];
 			if (
 			    ((edbm_add_edge_face_exec__vert_edge_lookup(v, NULL, ed_pair, 3, BM_edge_is_wire) == 2) &&
 			     (BM_edge_share_face_check(ed_pair[0], ed_pair[1]) == false)) ||
@@ -1152,8 +1152,13 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 			     (BM_edge_share_face_check(ed_pair[0], ed_pair[1]) == false))
 			    )
 			{
+				BMEdge *e_other = BM_edge_exists(BM_edge_other_vert(ed_pair[0], v),
+				                                 BM_edge_other_vert(ed_pair[1], v));
 				BM_edge_select_set(bm, ed_pair[0], true);
 				BM_edge_select_set(bm, ed_pair[1], true);
+				if (e_other) {
+					BM_edge_select_set(bm, e_other, true);
+				}
 				return (BMElem *)v;
 			}
 		}
@@ -1169,22 +1174,27 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 			}
 		}
 		if (found) {
-			BMEdge *ed_pair_a[2] = {NULL};
-			BMEdge *ed_pair_b[2] = {NULL};
+			BMEdge *ed_pair_v1[2];
+			BMEdge *ed_pair_v2[2];
 			if (
-			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_a, 2, BM_edge_is_wire) == 1) &&
-			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_b, 2, BM_edge_is_wire) == 1) &&
-			     (BM_edge_share_face_check(e, ed_pair_a[0]) == false) &&
-			     (BM_edge_share_face_check(e, ed_pair_b[0]) == false)) ||
+			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_wire) == 1) &&
+			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_v2, 2, BM_edge_is_wire) == 1) &&
+			     (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
+			     (BM_edge_share_face_check(e, ed_pair_v2[0]) == false)) ||
 
-			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_a, 2, BM_edge_is_boundary) == 1) &&
-			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_b, 2, BM_edge_is_boundary) == 1) &&
-			     (BM_edge_share_face_check(e, ed_pair_a[0]) == false) &&
-			     (BM_edge_share_face_check(e, ed_pair_b[0]) == false))
+			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_boundary) == 1) &&
+			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_v2, 2, BM_edge_is_boundary) == 1) &&
+			     (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
+			     (BM_edge_share_face_check(e, ed_pair_v2[0]) == false))
 			    )
 			{
-				BM_edge_select_set(bm, ed_pair_a[0], true);
-				BM_edge_select_set(bm, ed_pair_b[0], true);
+				BMEdge *e_other = BM_edge_exists(BM_edge_other_vert(ed_pair_v1[0], e->v1),
+				                                 BM_edge_other_vert(ed_pair_v2[0], e->v2));
+				BM_edge_select_set(bm, ed_pair_v1[0], true);
+				BM_edge_select_set(bm, ed_pair_v2[0], true);
+				if (e_other) {
+					BM_edge_select_set(bm, e_other, true);
+				}
 				return (BMElem *)e;
 			}
 		}
