@@ -66,9 +66,9 @@ void BKE_curve_type_test(struct Object *ob);
 void BKE_curve_curve_dimension_update(struct Curve *cu);
 void BKE_curve_texspace_calc(struct Curve *cu);
 
-int BKE_curve_minmax(struct Curve *cu, float min[3], float max[3]);
-int BKE_curve_center_median(struct Curve *cu, float cent[3]);
-int BKE_curve_center_bounds(struct Curve *cu, float cent[3]);
+bool BKE_curve_minmax(struct Curve *cu, float min[3], float max[3]);
+bool BKE_curve_center_median(struct Curve *cu, float cent[3]);
+bool BKE_curve_center_bounds(struct Curve *cu, float cent[3]);
 void BKE_curve_translate(struct Curve *cu, float offset[3], int do_keys);
 void BKE_curve_delete_material_index(struct Curve *cu, int index);
 
@@ -118,11 +118,11 @@ void BKE_nurb_knot_calc_u(struct Nurb *nu);
 void BKE_nurb_knot_calc_v(struct Nurb *nu);
 
 /* nurb checks if they can be drawn, also clamp order func */
-int BKE_nurb_check_valid_u(struct Nurb *nu);
-int BKE_nurb_check_valid_v(struct Nurb *nu);
+bool BKE_nurb_check_valid_u(struct Nurb *nu);
+bool BKE_nurb_check_valid_v(struct Nurb *nu);
 
-int BKE_nurb_order_clamp_u(struct Nurb *nu);
-int BKE_nurb_order_clamp_v(struct Nurb *nu);
+bool BKE_nurb_order_clamp_u(struct Nurb *nu);
+bool BKE_nurb_order_clamp_v(struct Nurb *nu);
 
 void BKE_nurb_direction_switch(struct Nurb *nu);
 
@@ -135,4 +135,4 @@ void BKE_nurb_handles_calc(struct Nurb *nu);
 void BKE_nurb_handles_autocalc(struct Nurb *nu, int flag);
 void BKE_nurb_handles_test(struct Nurb *nu);
 
-#endif
+#endif  /* __BKE_CURVE_H__ */

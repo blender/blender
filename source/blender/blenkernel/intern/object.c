@@ -185,7 +185,7 @@ void BKE_object_free_modifiers(Object *ob)
 	BKE_object_free_softbody(ob);
 }
 
-int BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
+bool BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 {
 	ModifierTypeInfo *mti;
 
@@ -194,10 +194,10 @@ int BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 	if (!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
 	      (ob->type == OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
@@ -773,61 +773,61 @@ void BKE_object_unlink(Object *ob)
 }
 
 /* actual check for internal data, not context or flags */
-int BKE_object_is_in_editmode(Object *ob)
+bool BKE_object_is_in_editmode(Object *ob)
 {
 	if (ob->data == NULL)
-		return 0;
+		return false;
 	
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 		if (me->edit_btmesh)
-			return 1;
+			return true;
 	}
 	else if (ob->type == OB_ARMATURE) {
 		bArmature *arm = ob->data;
 		
 		if (arm->edbo)
-			return 1;
+			return true;
 	}
 	else if (ob->type == OB_FONT) {
 		Curve *cu = ob->data;
 		
 		if (cu->editfont)
-			return 1;
+			return true;
 	}
 	else if (ob->type == OB_MBALL) {
 		MetaBall *mb = ob->data;
 		
 		if (mb->editelems)
-			return 1;
+			return true;
 	}
 	else if (ob->type == OB_LATTICE) {
 		Lattice *lt = ob->data;
 		
 		if (lt->editlatt)
-			return 1;
+			return true;
 	}
 	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
 		Curve *cu = ob->data;
 
 		if (cu->editnurb)
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
-int BKE_object_exists_check(Object *obtest)
+bool BKE_object_exists_check(Object *obtest)
 {
 	Object *ob;
 	
-	if (obtest == NULL) return 0;
+	if (obtest == NULL) return false;
 	
 	ob = G.main->object.first;
 	while (ob) {
-		if (ob == obtest) return 1;
+		if (ob == obtest) return true;
 		ob = ob->id.next;
 	}
-	return 0;
+	return false;
 }
 
 /* *************************************************** */
@@ -1394,24 +1394,24 @@ void BKE_object_make_local(Object *ob)
 /*
  * Returns true if the Object is a from an external blend file (libdata)
  */
-int BKE_object_is_libdata(Object *ob)
+bool BKE_object_is_libdata(Object *ob)
 {
-	if (!ob) return 0;
-	if (ob->proxy) return 0;
-	if (ob->id.lib) return 1;
-	return 0;
+	if (!ob) return false;
+	if (ob->proxy) return false;
+	if (ob->id.lib) return true;
+	return false;
 }
 
 /* Returns true if the Object data is a from an external blend file (libdata) */
-int BKE_object_obdata_is_libdata(Object *ob)
+bool BKE_object_obdata_is_libdata(Object *ob)
 {
-	if (!ob) return 0;
-	if (ob->proxy && (ob->data == NULL || ((ID *)ob->data)->lib == NULL)) return 0;
-	if (ob->id.lib) return 1;
-	if (ob->data == NULL) return 0;
-	if (((ID *)ob->data)->lib) return 1;
+	if (!ob) return false;
+	if (ob->proxy && (ob->data == NULL || ((ID *)ob->data)->lib == NULL)) return false;
+	if (ob->id.lib) return true;
+	if (ob->data == NULL) return false;
+	if (((ID *)ob->data)->lib) return true;
 
-	return 0;
+	return false;
 }
 
 /* *************** PROXY **************** */
@@ -2623,11 +2623,11 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
 	copy_m4_m4(ob->imat, obtfm->imat);
 }
 
-int BKE_object_parent_loop_check(const Object *par, const Object *ob)
+bool BKE_object_parent_loop_check(const Object *par, const Object *ob)
 {
 	/* test if 'ob' is a parent somewhere in par's parents */
-	if (par == NULL) return 0;
-	if (ob == par) return 1;
+	if (par == NULL) return false;
+	if (ob == par) return true;
 	return BKE_object_parent_loop_check(par->parent, ob);
 }
 
@@ -3192,7 +3192,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 }
 
 /* See if an object is using an animated modifier */
-int BKE_object_is_animated(Scene *scene, Object *ob)
+bool BKE_object_is_animated(Scene *scene, Object *ob)
 {
 	ModifierData *md;
 
@@ -3201,9 +3201,9 @@ int BKE_object_is_animated(Scene *scene, Object *ob)
 		    (modifier_isEnabled(scene, md, eModifierMode_Realtime) ||
 		     modifier_isEnabled(scene, md, eModifierMode_Render)))
 		{
-			return 1;
+			return true;
 		}
-	return 0;
+	return false;
 }
 
 static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin)

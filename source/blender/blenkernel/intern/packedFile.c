@@ -617,7 +617,7 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
 }
 
 /* ID should be not NULL, return 1 if there's a packed file */
-int BKE_pack_check(ID *id)
+bool BKE_pack_check(ID *id)
 {
 	if (GS(id->name) == ID_IM) {
 		Image *ima = (Image *)id;
@@ -635,7 +635,7 @@ int BKE_pack_check(ID *id)
 		Library *li = (Library *)id;
 		return li->packedfile != NULL;
 	}
-	return 0;
+	return false;
 }
 
 /* ID should be not NULL */

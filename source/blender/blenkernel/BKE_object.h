@@ -68,7 +68,7 @@ void BKE_object_update_base_layer(struct Scene *scene, struct Object *ob);
 void BKE_object_free(struct Object *ob);
 void BKE_object_free_display(struct Object *ob);
 
-int  BKE_object_support_modifier_type_check(struct Object *ob, int modifier_type);
+bool BKE_object_support_modifier_type_check(struct Object *ob, int modifier_type);
 
 void BKE_object_link_modifiers(struct Object *ob, struct Object *from);
 void BKE_object_free_modifiers(struct Object *ob);
@@ -77,8 +77,8 @@ void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Obje
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 void BKE_object_unlink(struct Object *ob);
-int  BKE_object_exists_check(struct Object *obtest);
-int BKE_object_is_in_editmode(struct Object *ob);
+bool BKE_object_exists_check(struct Object *obtest);
+bool BKE_object_is_in_editmode(struct Object *ob);
 
 struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name);
 struct Object *BKE_object_add(struct Scene *scene, int type);
@@ -87,8 +87,8 @@ void *BKE_object_obdata_add_from_type(int type);
 struct Object *BKE_object_copy_ex(struct Main *bmain, struct Object *ob, int copy_caches);
 struct Object *BKE_object_copy(struct Object *ob);
 void BKE_object_make_local(struct Object *ob);
-int  BKE_object_is_libdata(struct Object *ob);
-int  BKE_object_obdata_is_libdata(struct Object *ob);
+bool BKE_object_is_libdata(struct Object *ob);
+bool BKE_object_obdata_is_libdata(struct Object *ob);
 
 void BKE_object_scale_to_mat3(struct Object *ob, float mat[3][3]);
 void BKE_object_rot_to_mat3(struct Object *ob, float mat[3][3], short use_drot);
@@ -128,7 +128,7 @@ void BKE_scene_foreach_display_point(struct Scene *scene,
                                      const short flag,
                                      void (*func_cb)(const float[3], void *), void *user_data);
 
-int BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
+bool BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
 
 void *BKE_object_tfm_backup(struct Object *ob);
 void  BKE_object_tfm_restore(struct Object *ob, void *obtfm_pt);
@@ -161,9 +161,11 @@ int BKE_object_insert_ptcache(struct Object *ob);
 struct KeyBlock *BKE_object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, int from_mix);
 
 bool BKE_object_is_child_recursive(struct Object *ob_parent, struct Object *ob_child);
+bool BKE_object_is_animated(struct Scene *scene, struct Object *ob);
+
+/* return ModifierMode flag */
 int BKE_object_is_modified(struct Scene *scene, struct Object *ob);
 int BKE_object_is_deform_modified(struct Scene *scene, struct Object *ob);
-int BKE_object_is_animated(struct Scene *scene, struct Object *ob);
 
 void BKE_object_relink(struct Object *ob);
 

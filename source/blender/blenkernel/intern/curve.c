@@ -3319,76 +3319,76 @@ void BKE_curve_keyVertexTilts_apply(Curve *UNUSED(cu), ListBase *lb, float *key)
 	}
 }
 
-int BKE_nurb_check_valid_u(struct Nurb *nu)
+bool BKE_nurb_check_valid_u(struct Nurb *nu)
 {
 	if (nu == NULL)
-		return 0;
+		return false;
 	if (nu->pntsu <= 1)
-		return 0;
+		return false;
 	if (nu->type != CU_NURBS)
-		return 1;           /* not a nurb, lets assume its valid */
+		return true;           /* not a nurb, lets assume its valid */
 
-	if (nu->pntsu < nu->orderu) return 0;
+	if (nu->pntsu < nu->orderu) return false;
 	if (((nu->flag & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) { /* Bezier U Endpoints */
 		if (nu->orderu == 4) {
 			if (nu->pntsu < 5)
-				return 0;          /* bezier with 4 orderu needs 5 points */
+				return false;  /* bezier with 4 orderu needs 5 points */
 		}
 		else {
 			if (nu->orderu != 3)
-				return 0;       /* order must be 3 or 4 */
+				return false;  /* order must be 3 or 4 */
 		}
 	}
-	return 1;
+	return true;
 }
-int BKE_nurb_check_valid_v(struct Nurb *nu)
+bool BKE_nurb_check_valid_v(struct Nurb *nu)
 {
 	if (nu == NULL)
-		return 0;
+		return false;
 	if (nu->pntsv <= 1)
-		return 0;
+		return false;
 	if (nu->type != CU_NURBS)
-		return 1;           /* not a nurb, lets assume its valid */
+		return true;           /* not a nurb, lets assume its valid */
 
 	if (nu->pntsv < nu->orderv)
-		return 0;
+		return false;
 	if (((nu->flag & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) { /* Bezier V Endpoints */
 		if (nu->orderv == 4) {
 			if (nu->pntsv < 5)
-				return 0;          /* bezier with 4 orderu needs 5 points */
+				return false;  /* bezier with 4 orderu needs 5 points */
 		}
 		else {
 			if (nu->orderv != 3)
-				return 0;       /* order must be 3 or 4 */
+				return false;  /* order must be 3 or 4 */
 		}
 	}
-	return 1;
+	return true;
 }
 
-int BKE_nurb_order_clamp_u(struct Nurb *nu)
+bool BKE_nurb_order_clamp_u(struct Nurb *nu)
 {
-	int change = 0;
+	bool change = false;
 	if (nu->pntsu < nu->orderu) {
 		nu->orderu = nu->pntsu;
-		change = 1;
+		change = true;
 	}
 	if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) {
 		CLAMP(nu->orderu, 3, 4);
-		change = 1;
+		change = true;
 	}
 	return change;
 }
 
-int BKE_nurb_order_clamp_v(struct Nurb *nu)
+bool BKE_nurb_order_clamp_v(struct Nurb *nu)
 {
-	int change = 0;
+	bool change = false;
 	if (nu->pntsv < nu->orderv) {
 		nu->orderv = nu->pntsv;
-		change = 1;
+		change = true;
 	}
 	if (((nu->flagv & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) {
 		CLAMP(nu->orderv, 3, 4);
-		change = 1;
+		change = true;
 	}
 	return change;
 }
@@ -3405,7 +3405,7 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
 
 
 /* basic vertex data functions */
-int BKE_curve_minmax(Curve *cu, float min[3], float max[3])
+bool BKE_curve_minmax(Curve *cu, float min[3], float max[3])
 {
 	ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
 	Nurb *nu;
@@ -3416,7 +3416,7 @@ int BKE_curve_minmax(Curve *cu, float min[3], float max[3])
 	return (nurb_lb->first != NULL);
 }
 
-int BKE_curve_center_median(Curve *cu, float cent[3])
+bool BKE_curve_center_median(Curve *cu, float cent[3])
 {
 	ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
 	Nurb *nu;
@@ -3454,16 +3454,16 @@ int BKE_curve_center_median(Curve *cu, float cent[3])
 	return (total != 0);
 }
 
-int BKE_curve_center_bounds(Curve *cu, float cent[3])
+bool BKE_curve_center_bounds(Curve *cu, float cent[3])
 {
 	float min[3], max[3];
 	INIT_MINMAX(min, max);
 	if (BKE_curve_minmax(cu, min, max)) {
 		mid_v3_v3v3(cent, min, max);
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 void BKE_curve_translate(Curve *cu, float offset[3], int do_keys)

@@ -32,6 +32,8 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 #include "BLI_gsqueue.h"
 
 typedef struct _GSQueueElem GSQueueElem;
@@ -54,7 +56,7 @@ GSQueue *BLI_gsqueue_new(int elem_size)
 	return gq;
 }
 
-int BLI_gsqueue_is_empty(GSQueue *gq)
+bool BLI_gsqueue_is_empty(GSQueue *gq)
 {
 	return (gq->head == NULL);
 }

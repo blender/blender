@@ -1700,7 +1700,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int 
 {
 	ImBuf *colormanaged_ibuf = ibuf;
 	int do_colormanagement;
-	int is_movie = BKE_imtype_is_movie(image_format_data->imtype);
+	bool is_movie = BKE_imtype_is_movie(image_format_data->imtype);
 	int requires_linear_float = BKE_imtype_requires_linear_float(image_format_data->imtype);
 	int do_alpha_under = image_format_data->planes != R_IMF_PLANES_RGBA;
 

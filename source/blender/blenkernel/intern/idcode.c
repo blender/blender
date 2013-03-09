@@ -30,11 +30,12 @@
  *  \ingroup bke
  */
 
- 
 #include <stdlib.h>
 #include <string.h>
 
 #include "DNA_ID.h"
+
+#include "BLI_utildefines.h"
 
 #include "BKE_idcode.h"
 
@@ -105,15 +106,15 @@ static IDType *idtype_from_code(int code)
 	return NULL;
 }
 
-int BKE_idcode_is_valid(int code) 
+bool BKE_idcode_is_valid(int code)
 {
-	return idtype_from_code(code) ? 1 : 0;
+	return idtype_from_code(code) ? true : false;
 }
 
-int BKE_idcode_is_linkable(int code)
+bool BKE_idcode_is_linkable(int code)
 {
 	IDType *idt = idtype_from_code(code);
-	return idt ? (idt->flags & IDTYPE_FLAGS_ISLINKABLE) : 0;
+	return idt ? ((idt->flags & IDTYPE_FLAGS_ISLINKABLE) != 0) : false;
 }
 
 const char *BKE_idcode_to_name(int code) 

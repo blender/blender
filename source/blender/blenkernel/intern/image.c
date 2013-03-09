@@ -1042,7 +1042,7 @@ char BKE_ftype_to_imtype(const int ftype)
 }
 
 
-int BKE_imtype_is_movie(const char imtype)
+bool BKE_imtype_is_movie(const char imtype)
 {
 	switch (imtype) {
 		case R_IMF_IMTYPE_AVIRAW:
@@ -1053,9 +1053,9 @@ int BKE_imtype_is_movie(const char imtype)
 		case R_IMF_IMTYPE_THEORA:
 		case R_IMF_IMTYPE_XVID:
 		case R_IMF_IMTYPE_FRAMESERVER:
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 int BKE_imtype_supports_zbuf(const char imtype)

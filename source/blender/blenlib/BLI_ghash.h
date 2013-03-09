@@ -130,7 +130,7 @@ void            BLI_ghashIterator_step(GHashIterator *ghi);
  * \param ghi The iterator.
  * \return True if done, False otherwise.
  */
-int             BLI_ghashIterator_notDone(GHashIterator *ghi);
+bool            BLI_ghashIterator_notDone(GHashIterator *ghi);
 
 #define GHASH_ITER(gh_iter_, ghash_)                                          \
 	for (BLI_ghashIterator_init(&gh_iter_, ghash_);                           \

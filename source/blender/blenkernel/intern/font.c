@@ -101,7 +101,7 @@ void BKE_vfont_free(struct VFont *vf)
 static void *builtin_font_data = NULL;
 static int builtin_font_size = 0;
 
-int  BKE_vfont_is_builtin(struct VFont *vfont)
+bool BKE_vfont_is_builtin(struct VFont *vfont)
 {
 	return (strcmp(vfont->name, FO_BUILTIN_NAME) == 0);
 }

@@ -38,6 +38,8 @@
 #include "DNA_space_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_math.h"
+
 #include "BKE_context.h"
 #include "BKE_brush.h"
 #include "BKE_main.h"
@@ -46,8 +48,6 @@
 #include "BKE_report.h"
 
 #include "ED_screen.h"
-
-#include "BLI_math.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

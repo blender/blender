@@ -47,7 +47,7 @@ GSQueue    *BLI_gsqueue_new(int elem_size);
 /**
  * Query if the queue is empty
  */
-int         BLI_gsqueue_is_empty(GSQueue *gq);
+bool        BLI_gsqueue_is_empty(GSQueue *gq);
 
 /**
  * Query number elements in the queue

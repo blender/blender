@@ -33,9 +33,10 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 #include "BLI_memarena.h"
 #include "BLI_heap.h"
-#include "BLI_utildefines.h"
 
 /***/
 
@@ -183,7 +184,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 	return node;
 }
 
-int BLI_heap_is_empty(Heap *heap)
+bool BLI_heap_is_empty(Heap *heap)
 {
 	return (heap->size == 0);
 }

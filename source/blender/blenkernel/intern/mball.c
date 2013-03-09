@@ -439,18 +439,15 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
  * It test last character of Object ID name. If last character
  * is digit it return 0, else it return 1.
  */
-int BKE_mball_is_basis(Object *ob)
+bool BKE_mball_is_basis(Object *ob)
 {
-	int len;
-	
 	/* just a quick test */
-	len = strlen(ob->id.name);
-	if (isdigit(ob->id.name[len - 1]) ) return 0;
-	return 1;
+	const int len = strlen(ob->id.name);
+	return (!isdigit(ob->id.name[len - 1]));
 }
 
 /* return nonzero if ob1 is a basis mball for ob */
-int BKE_mball_is_basis_for(Object *ob1, Object *ob2)
+bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 {
 	int basis1nr, basis2nr;
 	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
@@ -458,8 +455,12 @@ int BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 	BLI_split_name_num(basis1name, &basis1nr, ob1->id.name + 2, '.');
 	BLI_split_name_num(basis2name, &basis2nr, ob2->id.name + 2, '.');
 
-	if (!strcmp(basis1name, basis2name)) return BKE_mball_is_basis(ob1);
-	else return 0;
+	if (!strcmp(basis1name, basis2name)) {
+		return BKE_mball_is_basis(ob1);
+	}
+	else {
+		return false;
+	}
 }
 
 /* \brief copy some properties from object to other metaball object with same base name

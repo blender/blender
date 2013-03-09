@@ -53,9 +53,9 @@ void BLI_lasso_boundbox(rcti *rect, const int mcords[][2], const short moves)
 }
 
 
-int BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
-                              const int sx, const int sy,
-                              const int error_value)
+bool BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
+                               const int sx, const int sy,
+                               const int error_value)
 {
 	/* we do the angle rule, define that all added angles should be about zero or (2 * PI) */
 	float angletot = 0.0, dot, ang, cross, fp1[2], fp2[2];
@@ -63,7 +63,7 @@ int BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
 	const int *p1, *p2;
 
 	if (sx == error_value) {
-		return 0;
+		return false;
 	}
 
 	p1 = mcords[moves - 1];
@@ -95,35 +95,35 @@ int BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
 		p2 = mcords[a + 1];
 	}
 
-	if (fabsf(angletot) > 4.0f) return 1;
-	return 0;
+	if (fabsf(angletot) > 4.0f) return true;
+	return false;
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
-int BLI_lasso_is_edge_inside(const int mcords[][2], const short moves,
-                             int x0, int y0, int x1, int y1,
-                             const int error_value)
+bool BLI_lasso_is_edge_inside(const int mcords[][2], const short moves,
+                              int x0, int y0, int x1, int y1,
+                              const int error_value)
 {
 	int v1[2], v2[2];
 	int a;
 
 	if (x0 == error_value || x1 == error_value) {
-		return 0;
+		return false;
 	}
 
 	v1[0] = x0, v1[1] = y0;
 	v2[0] = x1, v2[1] = y1;
 
 	/* check points in lasso */
-	if (BLI_lasso_is_point_inside(mcords, moves, v1[0], v1[1], error_value)) return 1;
-	if (BLI_lasso_is_point_inside(mcords, moves, v2[0], v2[1], error_value)) return 1;
+	if (BLI_lasso_is_point_inside(mcords, moves, v1[0], v1[1], error_value)) return true;
+	if (BLI_lasso_is_point_inside(mcords, moves, v2[0], v2[1], error_value)) return true;
 
 	/* no points in lasso, so we have to intersect with lasso edge */
 
-	if (isect_line_line_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) return 1;
+	if (isect_line_line_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) return true;
 	for (a = 0; a < moves - 1; a++) {
-		if (isect_line_line_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) return 1;
+		if (isect_line_line_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) return true;
 	}
 
-	return 0;
+	return false;
 }
