@@ -222,12 +222,12 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
 		TreeStoreElem *tselem = TREESTORE(te);
 		
-		/* name and first icon */
-		if (mval[0] > te->xs + UI_UNIT_X && mval[0] < te->xend) {
-			
+		/* click on name */
+		if (mval[0] > te->xs + UI_UNIT_X * 2 && mval[0] < te->xend) {
 			do_item_rename(ar, te, tselem, reports);
+			return 1;
 		}
-		return 1;
+		return 0;
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
@@ -242,14 +242,18 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
+	int any_renamed = FALSE;
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_item_rename(C, ar, soops, te, fmval)) break;
+		if (do_outliner_item_rename(C, ar, soops, te, fmval)) {
+			any_renamed = TRUE;
+			break;
+		}
 	}
 	
-	return OPERATOR_FINISHED;
+	return any_renamed ? OPERATOR_FINISHED : OPERATOR_PASS_THROUGH;
 }
 
 

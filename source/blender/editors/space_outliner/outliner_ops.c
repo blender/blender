@@ -88,9 +88,21 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, 0, 0);
+	RNA_boolean_set(kmi->ptr, "recursive", FALSE);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "recursive", FALSE);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "recursive", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "recursive", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	

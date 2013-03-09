@@ -47,6 +47,8 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
@@ -140,7 +142,35 @@ static int tree_element_active_renderlayer(bContext *C, TreeElement *te, TreeSto
 	return 0;
 }
 
-static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
+/* 
+	Select object tree:
+	CTRL+LMB: Select/Deselect object and all cildren
+	CTRL+SHIFT+LMB: Add/Remove object and all children
+*/
+static void set_select_recursive(bContext *C, Scene *scene, Object *ob_parent, bool select, short extend)
+{
+	Main *bmain = CTX_data_main(C);
+	Object *ob;
+	if(!extend) {
+		BKE_scene_base_deselect_all(scene);
+	}
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		Base *base = BKE_scene_base_find(scene, ob);
+		bool is_visible = !(ob->restrictflag & OB_RESTRICT_VIEW);
+		bool is_child_recursive = BKE_object_is_child_recursive(ob_parent, ob);
+		if ( (is_visible && is_child_recursive) || ob==ob_parent)
+		{
+			if (select) {
+				ED_base_object_select(base, BA_SELECT);
+			}
+			else {
+				ED_base_object_select(base, BA_DESELECT);
+			}
+		}
+	}
+}
+
+static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set, int recursive)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	Scene *sce;
@@ -166,7 +196,16 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	base = BKE_scene_base_find(scene, ob);
 
 	if (base) {
-		if (set == 2) {
+
+		if (recursive) {
+			/* Recursive select/deselect */
+			set_select_recursive(C,
+				scene,
+				ob,
+				(ob->flag & SELECT) == 0,
+				set == 2);
+		}
+		else if (set == 2) {
 			/* swap select */
 			if (base->flag & SELECT)
 				ED_base_object_select(base, BA_DESELECT);
@@ -691,7 +730,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 		case TSE_MODIFIER:
 			return tree_element_active_modifier(C, te, tselem, set);
 		case TSE_LINKED_OB:
-			if (set) tree_element_set_active_object(C, scene, soops, te, set);
+			if (set) tree_element_set_active_object(C, scene, soops, te, set, FALSE);
 			else if (tselem->id == (ID *)OBACT) return 1;
 			break;
 		case TSE_LINKED_PSYS:
@@ -720,7 +759,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 /* ================================================ */
 
 static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
-                                     TreeElement *te, int extend, const float mval[2])
+                                     TreeElement *te, int extend, int recursive, const float mval[2])
 {
 	
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
@@ -752,7 +791,7 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 			
 			/* always makes active object */
 			if (tselem->type != TSE_SEQUENCE && tselem->type != TSE_SEQ_STRIP && tselem->type != TSE_SEQUENCE_DUP)
-				tree_element_set_active_object(C, scene, soops, te, 1 + (extend != 0 && tselem->type == 0));
+				tree_element_set_active_object(C, scene, soops, te, 1 + (extend != 0 && tselem->type == 0), recursive);
 			
 			if (tselem->type == 0) { // the lib blocks
 				/* editmode? */
@@ -806,7 +845,7 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
-		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, mval)) return 1;
+		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, recursive, mval)) return 1;
 	}
 	return 0;
 }
@@ -819,7 +858,8 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	int extend    = RNA_boolean_get(op->ptr, "extend");
+	int recursive = RNA_boolean_get(op->ptr, "recursive");
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 
@@ -831,7 +871,7 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, fmval)) break;
+		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, recursive, fmval)) break;
 	}
 	
 	if (te) {
@@ -872,6 +912,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 	
 	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation");
+	RNA_def_boolean(ot->srna, "recursive", 1, "Recursive", "Select Objects and their children");
 }
 
 /* ****************************************************** */
