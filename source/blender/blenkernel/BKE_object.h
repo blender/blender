@@ -160,6 +160,7 @@ int BKE_object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *BKE_object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, int from_mix);
 
+bool BKE_object_is_child_recursive(struct Object *ob_parent, struct Object *ob_child);
 int BKE_object_is_modified(struct Scene *scene, struct Object *ob);
 int BKE_object_is_deform_modified(struct Scene *scene, struct Object *ob);
 int BKE_object_is_animated(struct Scene *scene, struct Object *ob);

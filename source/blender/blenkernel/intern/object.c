@@ -3126,6 +3126,17 @@ KeyBlock *BKE_object_insert_shape_key(Scene *scene, Object *ob, const char *name
 
 }
 
+bool BKE_object_is_child_recursive(Object *ob_parent, Object *ob_child)
+{
+	Object *ob_test;
+	for (ob_test = ob_child->parent; ob_test; ob_test = ob_test->parent) {
+		if (ob_test == ob_parent) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* most important if this is modified it should _always_ return True, in certain
  * cases false positives are hard to avoid (shape keys for example) */
 int BKE_object_is_modified(Scene *scene, Object *ob)
@@ -3275,18 +3286,6 @@ static Object *obrel_armature_find(Object *ob)
 	return ob_arm;
 }
 
-static int obrel_is_recursive_child(Object *ob, Object *child)
-{
-	Object *par;
-	for (par = child->parent; par; par = par->parent) {
-		if (par == ob) {
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-
 static int obrel_list_test(Object *ob)
 {
 	return ob && !(ob->id.flag & LIB_DOIT);
@@ -3359,7 +3358,7 @@ LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectS
 
 							Object *child = local_base->object;
 							if (obrel_list_test(child)) {
-								if ((includeFilter & OB_REL_CHILDREN_RECURSIVE && obrel_is_recursive_child(ob, child)) ||
+								if ((includeFilter & OB_REL_CHILDREN_RECURSIVE && BKE_object_is_child_recursive(ob, child)) ||
 								    (includeFilter & OB_REL_CHILDREN && child->parent && child->parent == ob))
 								{
 									obrel_list_add(&links, child);
