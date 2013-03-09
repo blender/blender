@@ -922,17 +922,18 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	float fp[3] = {0, 0, 0};
 	float dvec[3];
 	float mval_f[2];
+	float zfac;
 
 	if (last != NULL) {
 		copy_v3_v3(fp, last->p);
 	}
 
-	initgrabz(ar->regiondata, fp[0], fp[1], fp[2]);
+	zfac = ED_view3d_calc_zfac(ar->regiondata, fp, NULL);
 
 	/* method taken from editview.c - mouse_cursor() */
 	if (ED_view3d_project_short_global(ar, fp, cval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		VECSUB2D(mval_f, cval, dd->mval);
-		ED_view3d_win_to_delta(ar, mval_f, dvec);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
 		sub_v3_v3v3(vec, fp, dvec);
 	}
 	else {

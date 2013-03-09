@@ -271,28 +271,32 @@ eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], fl
 /* More Generic Window/Ray/Vector projection functions
  * *************************************************** */
 
-/* odd function, need to document better */
-int initgrabz(RegionView3D *rv3d, float x, float y, float z)
+/**
+ * Caculate a depth value from \a co, use with #ED_view3d_win_to_delta
+ */
+float ED_view3d_calc_zfac(RegionView3D *rv3d, const float co[3], bool *r_flip)
 {
-	int flip = FALSE;
-	if (rv3d == NULL) return flip;
-	rv3d->zfac = rv3d->persmat[0][3] * x + rv3d->persmat[1][3] * y + rv3d->persmat[2][3] * z + rv3d->persmat[3][3];
-	if (rv3d->zfac < 0.0f)
-		flip = TRUE;
+	float zfac = (rv3d->persmat[0][3] * co[0]) +
+	             (rv3d->persmat[1][3] * co[1]) +
+	             (rv3d->persmat[2][3] * co[2]) + rv3d->persmat[3][3];
+
+	if (r_flip) {
+		*r_flip = (zfac < 0.0f);
+	}
+
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that
-	 * (accounting for near zero values)
-	 */
-	if (rv3d->zfac < 1.e-6f && rv3d->zfac > -1.e-6f) rv3d->zfac = 1.0f;
+	 * (accounting for near zero values) */
+	if (zfac < 1.e-6f && zfac > -1.e-6f) {
+		zfac = 1.0f;
+	}
 
 	/* Negative zfac means x, y, z was behind the camera (in perspective).
-	 * This gives flipped directions, so revert back to ok default case.
-	 */
-	/* NOTE: I've changed this to flip zfac to be positive again for now so that GPencil draws ok
-	 * Aligorith, 2009Aug31 */
-	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
-	if (rv3d->zfac < 0.0f) rv3d->zfac = -rv3d->zfac;
+	 * This gives flipped directions, so revert back to ok default case. */
+	if (zfac < 0.0f) {
+		zfac = -zfac;
+	}
 
-	return flip;
+	return zfac;
 }
 
 /**
@@ -384,19 +388,19 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[
 
 /**
  * Calculate a 3d difference vector from 2d window offset.
- * note that initgrabz() must be called first to determine
+ * note that ED_view3d_calc_zfac() must be called first to determine
  * the depth used to calculate the delta.
  * \param ar The region (used for the window width and height).
  * \param mval The area relative 2d difference (such as event->mval[0] - other_x).
  * \param out The resulting world-space delta.
  */
-void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
+void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3], const float zfac)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	float dx, dy;
 	
-	dx = 2.0f * mval[0] * rv3d->zfac / ar->winx;
-	dy = 2.0f * mval[1] * rv3d->zfac / ar->winy;
+	dx = 2.0f * mval[0] * zfac / ar->winx;
+	dy = 2.0f * mval[1] * zfac / ar->winy;
 	
 	out[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy);
 	out[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy);
@@ -408,7 +412,7 @@ void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
  * This direction vector starts and the view in the direction of the 2d window coordinates.
  * In orthographic view all window coordinates yield the same vector.
  *
- * \note doesn't rely on initgrabz
+ * \note doesn't rely on ED_view3d_calc_zfac
  * for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector.
  *

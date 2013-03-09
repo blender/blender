@@ -1705,10 +1705,12 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				float tvec[3];
 				float sco[2];
 				const float mval_f[2] = {1.0f, 0.0f};
+				const float co_zero[3] = {0};
+				float zfac;
 
 				/* calc window coord */
-				initgrabz(rv3d, 0.0, 0.0, 0.0);
-				ED_view3d_win_to_delta(ar, mval_f, tvec);
+				zfac = ED_view3d_calc_zfac(rv3d, co_zero, NULL);
+				ED_view3d_win_to_delta(ar, mval_f, tvec, zfac);
 				fac = max_ff(fabsf(tvec[0]), max_ff(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
 				fac = 1.0f / fac;
 

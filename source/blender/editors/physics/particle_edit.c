@@ -3476,6 +3476,7 @@ typedef struct BrushEdit {
 
 	int first;
 	int lastmouse[2];
+	float zfac;
 
 	/* optional cached view settings to avoid setting on every mousemove */
 	PEData data;
@@ -3498,7 +3499,6 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 	INIT_MINMAX(min, max);
 	PE_minmax(scene, min, max);
 	mid_v3_v3v3(min, min, max);
-	initgrabz(ar->regiondata, min[0], min[1], min[2]);
 
 	bedit= MEM_callocN(sizeof(BrushEdit), "BrushEdit");
 	bedit->first= 1;
@@ -3507,6 +3507,8 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 	bedit->scene= scene;
 	bedit->ob= ob;
 	bedit->edit= edit;
+
+	bedit->zfac = ED_view3d_calc_zfac(ar->regiondata, min, NULL);
 
 	/* cache view depths and settings for re-use */
 	PE_set_view3d_data(C, &bedit->data);
@@ -3587,7 +3589,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 					invert_m4_m4(ob->imat, ob->obmat);
 
-					ED_view3d_win_to_delta(ar, mval_f, vec);
+					ED_view3d_win_to_delta(ar, mval_f, vec, bedit->zfac);
 					data.dvec= vec;
 
 					foreach_mouse_hit_key(&data, brush_comb, selected);

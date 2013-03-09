@@ -354,6 +354,7 @@ typedef struct TransInfo {
 	struct wmTimer *animtimer;
 	struct wmKeyMap *keymap;  /* so we can do lookups for header text */
 	int         mval[2];        /* current mouse position               */
+	float       zfac;           /* use for 3d view */
 	struct Object   *obedit;
 	void		*draw_handle_apply;
 	void		*draw_handle_view;

@@ -367,7 +367,9 @@ void mul_mat3_m4_v3(float mat[4][4], float vec[3])
 
 void mul_project_m4_v3(float mat[4][4], float vec[3])
 {
-	const float w = vec[0] * mat[0][3] + vec[1] * mat[1][3] + vec[2] * mat[2][3] + mat[3][3];
+	const float w = (mat[0][3] * vec[0]) +
+	                (mat[1][3] * vec[1]) +
+	                (mat[2][3] * vec[2]) + mat[3][3];
 	mul_m4_v3(mat, vec);
 
 	vec[0] /= w;

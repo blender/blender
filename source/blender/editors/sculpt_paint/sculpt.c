@@ -1235,11 +1235,12 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
 {
 	Object *ob = vc->obact;
 	float loc[3], mval_f[2] = {0.0f, 1.0f};
+	float zfac;
 
 	mul_v3_m4v3(loc, ob->imat, center);
-	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
+	zfac = ED_view3d_calc_zfac(vc->rv3d, loc, NULL);
 
-	ED_view3d_win_to_delta(vc->ar, mval_f, y);
+	ED_view3d_win_to_delta(vc->ar, mval_f, y, zfac);
 	normalize_v3(y);
 
 	add_v3_v3(y, ob->loc);
@@ -3850,8 +3851,6 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
 		/* compute 3d coordinate at same z from original location + mouse */
 		mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
-		initgrabz(cache->vc->rv3d, loc[0], loc[1], loc[2]);
-
 		ED_view3d_win_to_3d(cache->vc->ar, loc, mouse, grab_location);
 
 		/* compute delta to move verts by */

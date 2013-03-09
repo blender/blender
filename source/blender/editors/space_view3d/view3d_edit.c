@@ -368,6 +368,7 @@ typedef struct ViewOpsData {
 	float reverse, dist0, camzoom0;
 	float grid, far;
 	short axis_snap; /* view rotate only */
+	float zfac;
 
 	/* use for orbit selection and auto-dist */
 	float ofs[3], dyn_ofs[3];
@@ -504,7 +505,11 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 	calctrackballvec(&vod->ar->winrct, event->x, event->y, vod->trackvec);
 
-	initgrabz(rv3d, -rv3d->ofs[0], -rv3d->ofs[1], -rv3d->ofs[2]);
+	{
+		float tvec[3];
+		negate_v3_v3(tvec, rv3d->ofs);
+		vod->zfac = ED_view3d_calc_zfac(rv3d, tvec, NULL);
+	}
 
 	vod->reverse = 1.0f;
 	if (rv3d->persmat[2][1] < 0.0f)
@@ -1508,7 +1513,7 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 
 		mval_f[0] = x - vod->oldx;
 		mval_f[1] = y - vod->oldy;
-		ED_view3d_win_to_delta(vod->ar, mval_f, dvec);
+		ED_view3d_win_to_delta(vod->ar, mval_f, dvec, vod->zfac);
 
 		add_v3_v3(vod->rv3d->ofs, dvec);
 
@@ -1665,15 +1670,16 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 		float tpos[3];
 		float mval_f[2];
 		float new_dist;
+		float zfac;
 
 		negate_v3_v3(tpos, rv3d->ofs);
 
-		/* Project cursor position into 3D space */
-		initgrabz(rv3d, tpos[0], tpos[1], tpos[2]);
-
 		mval_f[0] = (float)(((mx - ar->winrct.xmin) * 2) - ar->winx) / 2.0f;
 		mval_f[1] = (float)(((my - ar->winrct.ymin) * 2) - ar->winy) / 2.0f;
-		ED_view3d_win_to_delta(ar, mval_f, dvec);
+
+		/* Project cursor position into 3D space */
+		zfac = ED_view3d_calc_zfac(rv3d, tpos, NULL);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
 
 		/* Calculate view target position for dolly */
 		add_v3_v3v3(tvec, tpos, dvec);
@@ -2957,14 +2963,20 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			float mval_f[2];
+			float zfac;
+
 			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
 			copy_v3_v3(new_ofs, rv3d->ofs);
 
-			initgrabz(rv3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
+			{
+				float tvec[3];
+				negate_v3_v3(tvec, new_ofs);
+				zfac = ED_view3d_calc_zfac(rv3d, tvec, NULL);
+			}
 
 			mval_f[0] = (rect.xmin + rect.xmax - vb[0]) / 2.0f;
 			mval_f[1] = (rect.ymin + rect.ymax - vb[1]) / 2.0f;
-			ED_view3d_win_to_delta(ar, mval_f, dvec);
+			ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
 			/* center the view to the center of the rectangle */
 			sub_v3_v3(new_ofs, dvec);
 		}
@@ -3415,16 +3427,19 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	float vec[3];
+	const float co_zero[3] = {0.0f};
 	float mval_f[2] = {0.0f, 0.0f};
+	float zfac;
 	int pandir;
 
 	pandir = RNA_enum_get(op->ptr, "type");
 
-	initgrabz(rv3d, 0.0, 0.0, 0.0);
-	if      (pandir == V3D_VIEW_PANRIGHT)  { mval_f[0] = -32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
-	else if (pandir == V3D_VIEW_PANLEFT)   { mval_f[0] =  32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
-	else if (pandir == V3D_VIEW_PANUP)     { mval_f[1] = -25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
-	else if (pandir == V3D_VIEW_PANDOWN)   { mval_f[1] =  25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	zfac = ED_view3d_calc_zfac(rv3d, co_zero, NULL);
+	if      (pandir == V3D_VIEW_PANRIGHT)  { mval_f[0] = -32.0f; }
+	else if (pandir == V3D_VIEW_PANLEFT)   { mval_f[0] =  32.0f; }
+	else if (pandir == V3D_VIEW_PANUP)     { mval_f[1] = -25.0f; }
+	else if (pandir == V3D_VIEW_PANDOWN)   { mval_f[1] =  25.0f; }
+	ED_view3d_win_to_delta(ar, mval_f, vec, zfac);
 	add_v3_v3(rv3d->ofs, vec);
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)
@@ -3713,15 +3728,16 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	float mval_fl[2];
-	int flip;
+	float zfac;
+	bool flip;
 	
-	flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
+	zfac = ED_view3d_calc_zfac(rv3d, fp, &flip);
 	
 	/* reset the depth based on the view offset (we _know_ the offset is infront of us) */
 	if (flip) {
 		negate_v3_v3(fp, rv3d->ofs);
 		/* re initialize, no need to check flip again */
-		/* flip = */ initgrabz(rv3d, fp[0], fp[1], fp[2]);
+		zfac = ED_view3d_calc_zfac(rv3d, fp, NULL /* &flip */ );
 	}
 
 	if (ED_view3d_project_float_global(ar, fp, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
@@ -3736,17 +3752,17 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 		if (depth_used == FALSE) {
 			float dvec[3];
 			VECSUB2D(mval_fl, mval_fl, mval);
-			ED_view3d_win_to_delta(ar, mval_fl, dvec);
+			ED_view3d_win_to_delta(ar, mval_fl, dvec, zfac);
 			sub_v3_v3(fp, dvec);
 		}
 	}
 	else {
-		const float dx = ((float)(mval[0] - (ar->winx / 2))) * rv3d->zfac / (ar->winx / 2);
-		const float dy = ((float)(mval[1] - (ar->winy / 2))) * rv3d->zfac / (ar->winy / 2);
+		const float dx = ((float)(mval[0] - (ar->winx / 2))) * zfac / (ar->winx / 2);
+		const float dy = ((float)(mval[1] - (ar->winy / 2))) * zfac / (ar->winy / 2);
 		const float fz = (rv3d->persmat[0][3] * fp[0] +
 		                  rv3d->persmat[1][3] * fp[1] +
 		                  rv3d->persmat[2][3] * fp[2] +
-		                  rv3d->persmat[3][3]) / rv3d->zfac;
+		                  rv3d->persmat[3][3]) / zfac;
 
 		fp[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy + rv3d->persinv[2][0] * fz) - rv3d->ofs[0];
 		fp[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy + rv3d->persinv[2][1] * fz) - rv3d->ofs[1];

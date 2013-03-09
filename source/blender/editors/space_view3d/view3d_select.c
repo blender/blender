@@ -120,12 +120,11 @@ bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval
 
 	ret = ED_view3d_project_int_global(ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
 
-	initgrabz(rv3d, fp[0], fp[1], fp[2]);
-
 	if (ret == V3D_PROJ_RET_OK) {
 		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
 		                         (float)(mval_cpy[1] - mval[1])};
-		ED_view3d_win_to_delta(ar, mval_f, dvec);
+		const float zfac = ED_view3d_calc_zfac(rv3d, fp, NULL);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
 		sub_v3_v3(fp, dvec);
 
 		return TRUE;
