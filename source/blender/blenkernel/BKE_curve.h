@@ -38,7 +38,6 @@ struct BezTriple;
 struct Curve;
 struct EditNurb;
 struct ListBase;
-struct ListBase;
 struct Main;
 struct Nurb;
 struct Object;
