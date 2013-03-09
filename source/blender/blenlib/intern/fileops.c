@@ -282,6 +282,7 @@ int BLI_delete(const char *file, bool dir, bool recursive)
 	return err;
 }
 
+/* Not used anywhere! */
 int BLI_move(const char *file, const char *to)
 {
 	int err;
@@ -401,8 +402,9 @@ int BLI_rename(const char *from, const char *to)
 
 #else /* The UNIX world */
 
+/* results from recursive_operation and its callbacks */
 enum {
-	/* operation succeeded succeeded */
+	/* operation succeeded */
 	RecursiveOp_Callback_OK = 0,
 
 	/* operation requested not to perform recursive digging for current path */
@@ -437,120 +439,122 @@ static char *strip_last_slash(const char *dir)
 	return result;
 }
 
-static int recursive_operation(const char *startfrom, const char *startto, RecursiveOp_Callback callback_dir_pre,
+
+
+/**
+ * Scans \a startfrom, generating a corresponding destination name for each item found by
+ * prefixing it with startto, recursively scanning subdirectories, and invoking the specified
+ * callbacks for files and subdirectories found as appropriate.
+ *
+ * \param startfrom  Top-level source path.
+ * \param startto  Top-level destination path.
+ * \param callback_dir_pre  Optional, to be invoked before entering a subdirectory, can return
+ *                          RecursiveOp_Callback_StopRecurs to skip the subdirectory.
+ * \param callback_file  Optional, to be invoked on each file found.
+ * \param callback_dir_post  optional, to be invoked after leaving a subdirectory.
+ * \return
+ */
+static int recursive_operation(const char *startfrom, const char *startto,
+                               RecursiveOp_Callback callback_dir_pre,
                                RecursiveOp_Callback callback_file, RecursiveOp_Callback callback_dir_post)
 {
-	struct dirent **dirlist;
 	struct stat st;
 	char *from = NULL, *to = NULL;
 	char *from_path = NULL, *to_path = NULL;
+	struct dirent **dirlist = NULL;
 	size_t from_alloc_len = -1, to_alloc_len = -1;
 	int i, n, ret = 0;
 
-	/* ensure there's no trailing slash in file path */
-	from = strip_last_slash(startfrom);
-	if (startto)
-		to = strip_last_slash(startto);
+	do {  /* once */
+		/* ensure there's no trailing slash in file path */
+		from = strip_last_slash(startfrom);
+		if (startto)
+			to = strip_last_slash(startto);
 
-	ret = lstat(from, &st);
-	if (ret < 0) {
-		/* source wasn't found, nothing to operate with */
-		return ret;
-	}
+		ret = lstat(from, &st);
+		if (ret < 0)
+			/* source wasn't found, nothing to operate with */
+			break;
 
-	if (!S_ISDIR(st.st_mode)) {
-		/* source isn't a directory, can't do recursive walking for it,
-		 * so just call file callback and leave */
-		if (callback_file) {
-			ret = callback_file(from, to);
-
-			if (ret != RecursiveOp_Callback_OK)
-				ret = -1;
-		}
-
-		MEM_freeN(from);
-		if (to) MEM_freeN(to);
-
-		return ret;
-	}
-
-
-	n = scandir(startfrom, &dirlist, 0, alphasort);
-	if (n < 0) {
-		/* error opening directory for listing */
-		perror("scandir");
-
-		MEM_freeN(from);
-		if (to) MEM_freeN(to);
-
-		return -1;
-	}
-
-	if (callback_dir_pre) {
-		/* call pre-recursive walking directory callback */
-		ret = callback_dir_pre(from, to);
-
-		if (ret != RecursiveOp_Callback_OK) {
-			MEM_freeN(from);
-			if (to) free(to);
-
-			if (ret == RecursiveOp_Callback_StopRecurs) {
-				/* callback requested not to perform recursive walking, not an error */
-				return 0;
-			}
-
-			return -1;
-		}
-	}
-
-	for (i = 0; i < n; i++) {
-		struct dirent *dirent = dirlist[i];
-
-		if (!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, "..")) {
-			free(dirent);
-			continue;
-		}
-
-		join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
-
-		if (to)
-			join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
-
-		if (dirent->d_type == DT_DIR) {
-			/* recursively dig into a folder */
-			ret = recursive_operation(from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
-		}
-		else if (callback_file) {
-			/* call file callback for current path */
-			ret = callback_file(from_path, to_path);
-			if (ret != RecursiveOp_Callback_OK)
-				ret = -1;
-		}
-
-		if (ret != 0) {
-			while (i < n) {
-				free(dirlist[i++]);
+		if (!S_ISDIR(st.st_mode)) {
+			/* source isn't a directory, can't do recursive walking for it,
+			 * so just call file callback and leave */
+			if (callback_file != NULL) {
+				ret = callback_file(from, to);
+				if (ret != RecursiveOp_Callback_OK)
+					ret = -1;
 			}
 			break;
 		}
-	}
 
-	free(dirlist);
+		n = scandir(startfrom, &dirlist, 0, alphasort);
+		if (n < 0) {
+			/* error opening directory for listing */
+			perror("scandir");
+			ret = -1;
+			break;
+		}
 
-	if (ret == 0) {
-		if (callback_dir_post) {
-			/* call post-recursive directory callback */
+		if (callback_dir_pre != NULL) {
+			ret = callback_dir_pre(from, to);
+			if (ret != RecursiveOp_Callback_OK) {
+				if (ret == RecursiveOp_Callback_StopRecurs)
+					/* callback requested not to perform recursive walking, not an error */
+					ret = 0;
+				else
+					ret = -1;
+				break;
+			}
+		}
+
+		for (i = 0; i < n; i++) {
+			const struct dirent * const dirent = dirlist[i];
+
+			if (!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, ".."))
+				continue;
+
+			join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
+			if (to)
+				join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
+
+			if (dirent->d_type == DT_DIR) {
+				/* recursively dig into a subfolder */
+				ret = recursive_operation(from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
+			}
+			else if (callback_file != NULL) {
+				ret = callback_file(from_path, to_path);
+				if (ret != RecursiveOp_Callback_OK)
+					ret = -1;
+			}
+
+			if (ret != 0)
+				break;
+		}
+		if (ret != 0)
+			break;
+
+		if (callback_dir_post != NULL) {
 			ret = callback_dir_post(from, to);
 			if (ret != RecursiveOp_Callback_OK)
 				ret = -1;
 		}
 	}
+	while (false);
 
-	if (from_path) MEM_freeN(from_path);
-	if (to_path) MEM_freeN(to_path);
-
-	MEM_freeN(from);
-	if (to) MEM_freeN(to);
+	if (dirlist != NULL) {
+		for (i = 0; i < n; i++) {
+			free(dirlist[i]);
+		}
+		free(dirlist);
+	}
+	if (from_path != NULL)
+		MEM_freeN(from_path);
+	if (to_path != NULL)
+		MEM_freeN(to_path);
+	if (from != NULL)
+		MEM_freeN(from);
+	if (to != NULL)
+		MEM_freeN(to);
 
 	return ret;
 }
@@ -802,6 +806,9 @@ static int move_single_file(const char *from, const char *to)
 	return RecursiveOp_Callback_OK;
 }
 
+/* if *file represents a directory, moves all its contents into *to, else renames
+ * file itself to *to. */
+/* Not used anywhere! */
 int BLI_move(const char *file, const char *to)
 {
 	int ret = recursive_operation(file, to, move_callback_pre, move_single_file, NULL);
