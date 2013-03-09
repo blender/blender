@@ -50,6 +50,7 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_object.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -129,11 +130,31 @@ static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int start
 
 /* ****************************************************** */
 
+static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob_parent, char flag,
+                                           bool state, bool deselect)
+{
+	Main *bmain = CTX_data_main(C);
+	Object *ob;
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (BKE_object_is_child_recursive(ob_parent, ob)) {
+			if (state) {
+				ob->restrictflag |= flag;
+				if (deselect) {
+					ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
+				}
+			}
+			else {
+				ob->restrictflag &= ~flag;
+			}
+		}
+	}
+}
+
 static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 {
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
-
+	
 	if (!common_restrict_check(C, ob)) return;
 	
 	/* deselect objects that are invisible */
@@ -142,6 +163,12 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 		 * so have to do loop to find it. */
 		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
 	}
+
+	if (CTX_wm_window(C)->eventstate->ctrl) {
+		restrictbutton_recursive_child(C, scene, ob, OB_RESTRICT_VIEW,
+		                               (ob->restrictflag & OB_RESTRICT_VIEW) != 0, true);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
 }
@@ -159,12 +186,25 @@ static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 		 * so have to do loop to find it. */
 		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
 	}
+
+	if (CTX_wm_window(C)->eventstate->ctrl) {
+		restrictbutton_recursive_child(C, scene, ob, OB_RESTRICT_SELECT,
+		                               (ob->restrictflag & OB_RESTRICT_SELECT) != 0, true);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
 }
 
-static void restrictbutton_rend_cb(bContext *C, void *poin, void *UNUSED(poin2))
+static void restrictbutton_rend_cb(bContext *C, void *poin, void *poin2)
 {
+	Object *ob = (Object *)poin2;
+
+	if (CTX_wm_window(C)->eventstate->ctrl) {
+		restrictbutton_recursive_child(C, (Scene *)poin, ob, OB_RESTRICT_RENDER,
+		                               (ob->restrictflag & OB_RESTRICT_RENDER) != 0, false);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, poin);
 }
 
@@ -422,17 +462,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
 				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide", -1, 0, 0, -1, -1, NULL);
+				                   &ptr, "hide", -1, 0, 0, -1, -1, "Restrict viewport visibility (Ctrl - Recursive)");
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
 				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide_select", -1, 0, 0, -1, -1, NULL);
+				                   &ptr, "hide_select", -1, 0, 0, -1, -1, "Restrict viewport selection (Ctrl - Recursive)");
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
 				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide_render", -1, 0, 0, -1, -1, NULL);
+				                   &ptr, "hide_render", -1, 0, 0, -1, -1, "Restrict rendering (Ctrl - Recursive)");
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
