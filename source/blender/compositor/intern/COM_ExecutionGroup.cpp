@@ -591,7 +591,7 @@ void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float y
 {
 	NodeOperation *operation = this->getOutputNodeOperation();
 
-	if (operation->isViewerOperation()) {
+	if (operation->isViewerOperation() || operation->isPreviewOperation()) {
 		BLI_rcti_init(&this->m_viewerBorder, xmin * this->m_width, xmax * this->m_width,
 		              ymin * this->m_height, ymax * this->m_height);
 	}
