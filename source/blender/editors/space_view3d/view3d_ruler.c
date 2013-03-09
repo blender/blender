@@ -657,10 +657,10 @@ static void view3d_ruler_free(RulerInfo *ruler_info)
 	MEM_freeN(ruler_info);
 }
 
-static void view3d_ruler_item_project(bContext *C, RulerInfo *UNUSED(ruler_info), float r_co[3],
+static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3],
                                       const int xy[2])
 {
-	ED_view3d_cursor3d_position(C, r_co, xy);
+	view3d_get_view_aligned_coordinate(ruler_info->ar, r_co, xy, true);
 }
 
 /* use for mousemove events */
@@ -670,7 +670,7 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 
 	if (ruler_item) {
 		float *co = ruler_item->co[ruler_item->co_index];
-		view3d_ruler_item_project(C, ruler_info, co, event->mval);
+		view3d_ruler_item_project(ruler_info, co, event->mval);
 		if (event->ctrl) {
 			const float mval_fl[2] = {UNPACK2(event->mval)};
 			ED_view3d_snap_co(C, co, mval_fl, true, true, true);
@@ -761,7 +761,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 						ruler_item->co_index = 2;
 
 						negate_v3_v3(ruler_item->co[0], rv3d->ofs);
-						view3d_ruler_item_project(C, ruler_info, ruler_item->co[0], event->mval);
+						view3d_ruler_item_project(ruler_info, ruler_item->co[0], event->mval);
 						copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
 
 						do_draw = true;

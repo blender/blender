@@ -862,7 +862,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		copy_v3_v3(min, cent);
 
 		mul_m4_v3(vc.obedit->obmat, min);  /* view space */
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval, TRUE);
+		view3d_get_view_aligned_coordinate(vc.ar, min, event->mval, true);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 
 		sub_v3_v3(min, cent);
@@ -911,7 +911,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		BMOIter oiter;
 		
 		copy_v3_v3(min, curs);
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval, FALSE);
+		view3d_get_view_aligned_coordinate(vc.ar, min, event->mval, false);
 
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space

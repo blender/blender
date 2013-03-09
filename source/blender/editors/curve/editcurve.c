@@ -4785,7 +4785,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			copy_v3_v3(location, give_cursor(vc.scene, vc.v3d));
 		}
 
-		view3d_get_view_aligned_coordinate(&vc, location, event->mval, TRUE);
+		view3d_get_view_aligned_coordinate(vc.ar, location, event->mval, true);
 		RNA_float_set_array(op->ptr, "location", location);
 	}
 

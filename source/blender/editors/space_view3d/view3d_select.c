@@ -108,23 +108,24 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->obedit = CTX_data_edit_object(C);
 }
 
-int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int mval[2], const short do_fallback)
+/**
+ * Re-project \a fp so it stays on the same view-plane but is under \a mval (normally the cursor location).
+ */
+bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval[2], const bool do_fallback)
 {
+	RegionView3D *rv3d = ar->regiondata;
 	float dvec[3];
 	int mval_cpy[2];
 	eV3DProjStatus ret;
 
-	mval_cpy[0] = mval[0];
-	mval_cpy[1] = mval[1];
+	ret = ED_view3d_project_int_global(ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
 
-	ret = ED_view3d_project_int_global(vc->ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
-
-	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
+	initgrabz(rv3d, fp[0], fp[1], fp[2]);
 
 	if (ret == V3D_PROJ_RET_OK) {
 		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
 		                         (float)(mval_cpy[1] - mval[1])};
-		ED_view3d_win_to_delta(vc->ar, mval_f, dvec);
+		ED_view3d_win_to_delta(ar, mval_f, dvec);
 		sub_v3_v3(fp, dvec);
 
 		return TRUE;
@@ -132,11 +133,11 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 	else {
 		/* fallback to the view center */
 		if (do_fallback) {
-			negate_v3_v3(fp, vc->rv3d->ofs);
-			return view3d_get_view_aligned_coordinate(vc, fp, mval, FALSE);
+			negate_v3_v3(fp, rv3d->ofs);
+			return view3d_get_view_aligned_coordinate(ar, fp, mval, false);
 		}
 		else {
-			return FALSE;
+			return false;
 		}
 	}
 }

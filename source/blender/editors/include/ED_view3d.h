@@ -255,7 +255,7 @@ short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigne
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_region_operator_needs_opengl(struct wmWindow *win, struct ARegion *ar);
-int view3d_get_view_aligned_coordinate(struct ViewContext *vc, float fp[3], const int mval[2], const short do_fallback);
+bool view3d_get_view_aligned_coordinate(struct ARegion *ar, float fp[3], const int mval[2], const bool do_fallback);
 void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to BLI_math */
