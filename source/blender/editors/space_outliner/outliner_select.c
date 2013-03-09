@@ -142,35 +142,25 @@ static int tree_element_active_renderlayer(bContext *C, TreeElement *te, TreeSto
 	return 0;
 }
 
-/* 
-	Select object tree:
-	CTRL+LMB: Select/Deselect object and all cildren
-	CTRL+SHIFT+LMB: Add/Remove object and all children
-*/
-static void set_select_recursive(bContext *C, Scene *scene, Object *ob_parent, bool select, short extend)
+/**
+ * Select object tree:
+ * CTRL+LMB: Select/Deselect object and all cildren
+ * CTRL+SHIFT+LMB: Add/Remove object and all children
+ */
+static void set_select_recursive(Scene *scene, Object *ob_parent, bool select)
 {
-	Main *bmain = CTX_data_main(C);
-	Object *ob;
-	if(!extend) {
-		BKE_scene_base_deselect_all(scene);
-	}
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		Base *base = BKE_scene_base_find(scene, ob);
-		bool is_visible = !(ob->restrictflag & OB_RESTRICT_VIEW);
-		bool is_child_recursive = BKE_object_is_child_recursive(ob_parent, ob);
-		if ( (is_visible && is_child_recursive) || ob==ob_parent)
-		{
-			if (select) {
-				ED_base_object_select(base, BA_SELECT);
-			}
-			else {
-				ED_base_object_select(base, BA_DESELECT);
-			}
+	Base *base;
+
+	for (base = FIRSTBASE; base; base = base->next) {
+		Object *ob = base->object;
+		if ((((ob->restrictflag & OB_RESTRICT_VIEW) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
+			ED_base_object_select(base, select ? BA_SELECT : BA_DESELECT);
 		}
 	}
 }
 
-static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set, int recursive)
+static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops,
+                                           TreeElement *te, int set, bool recursive)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	Scene *sce;
@@ -196,16 +186,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	base = BKE_scene_base_find(scene, ob);
 
 	if (base) {
-
-		if (recursive) {
-			/* Recursive select/deselect */
-			set_select_recursive(C,
-				scene,
-				ob,
-				(ob->flag & SELECT) == 0,
-				set == 2);
-		}
-		else if (set == 2) {
+		if (set == 2) {
 			/* swap select */
 			if (base->flag & SELECT)
 				ED_base_object_select(base, BA_DESELECT);
@@ -217,6 +198,12 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 			BKE_scene_base_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
+
+		if (recursive) {
+			/* Recursive select/deselect */
+			set_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
+		}
+
 		if (C) {
 			ED_base_object_activate(C, base); /* adds notifier */
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -759,7 +746,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 /* ================================================ */
 
 static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
-                                     TreeElement *te, int extend, int recursive, const float mval[2])
+                                     TreeElement *te, bool extend, bool recursive, const float mval[2])
 {
 	
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
@@ -858,8 +845,8 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	int extend    = RNA_boolean_get(op->ptr, "extend");
-	int recursive = RNA_boolean_get(op->ptr, "recursive");
+	bool extend    = RNA_boolean_get(op->ptr, "extend");
+	bool recursive = RNA_boolean_get(op->ptr, "recursive");
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 
@@ -911,8 +898,8 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 	
 	ot->poll = ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation");
-	RNA_def_boolean(ot->srna, "recursive", 1, "Recursive", "Select Objects and their children");
+	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
+	RNA_def_boolean(ot->srna, "recursive", false, "Recursive", "Select Objects and their children");
 }
 
 /* ****************************************************** */
