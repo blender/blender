@@ -312,9 +312,9 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 {
 	char datum[100];
-	char buf[512];
+//	char buf[512];  // UNUSED
 	char size[250];
-	static const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
+	const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	/* symbolic display, indexed by mode field value */
 	int num, mode;
 #ifdef WIN32
@@ -338,7 +338,7 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 
 		BLI_strncpy(file->mode1, types[(mode & 0700) >> 6], sizeof(file->mode1));
 		BLI_strncpy(file->mode2, types[(mode & 0070) >> 3], sizeof(file->mode2));
-		BLI_strncpy(file->mode3, types[(mode & 0007)], sizeof(file->mode3));
+		BLI_strncpy(file->mode3, types[(mode & 0007)],      sizeof(file->mode3));
 		
 		if (((mode & S_ISGID) == S_ISGID) && (file->mode2[2] == '-')) file->mode2[2] = 'l';
 
@@ -419,9 +419,11 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 			BLI_snprintf(size, sizeof(size), "%10d", (int) st_size);
 		}
 
+#if 0
 		BLI_snprintf(buf, sizeof(buf), "%s %s %s %7s %s %s %10s %s",
 		             file->mode1, file->mode2, file->mode3, file->owner,
 		             file->date, file->time, size, file->relname);
+#endif
 	}
 }
 
