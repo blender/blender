@@ -451,7 +451,7 @@ typedef struct BMOIter {
 	char restrictmask; /* bitwise '&' with BMHeader.htype */
 } BMOIter;
 
-void *BMO_slot_buffer_elem_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
+void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 
 void *BMO_iter_new(BMOIter *iter,
                    BMOpSlot slot_args[BMO_OP_MAX_SLOTS],  const char *slot_name,

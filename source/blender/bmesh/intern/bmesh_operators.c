@@ -1355,7 +1355,7 @@ static void bmo_flag_layer_clear(BMesh *bm)
 	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
-void *BMO_slot_buffer_elem_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
+void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	
