@@ -3512,7 +3512,9 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 			}
 		}
 	}
-	else free_sculptsession_deformMats(ss);
+	else {
+		free_sculptsession_deformMats(ss);
+	}
 
 	/* if pbvh is deformed, key block is already applied to it */
 	if (ss->kb && !BKE_pbvh_isDeformed(ss->pbvh)) {
@@ -3780,7 +3782,9 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 				ss->layer_co = MEM_mallocN(sizeof(float) * 3 * ss->totvert,
 				                           "sculpt mesh vertices copy");
 
-			if (ss->deform_cos) memcpy(ss->layer_co, ss->deform_cos, ss->totvert);
+			if (ss->deform_cos) {
+				memcpy(ss->layer_co, ss->deform_cos, ss->totvert);
+			}
 			else {
 				for (i = 0; i < ss->totvert; ++i) {
 					copy_v3_v3(ss->layer_co[i], ss->mvert[i].co);

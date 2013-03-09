@@ -2293,7 +2293,9 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	}
 
 	/* width is size per polygonize cube */
-	if (G.is_rendering) width = mb->rendersize;
+	if (G.is_rendering) {
+		width = mb->rendersize;
+	}
 	else {
 		width = mb->wiresize;
 		if (G.moving && mb->flag == MB_UPDATE_HALFRES) width *= 2;

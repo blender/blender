@@ -890,9 +890,13 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 				else tselem->flag |= TSE_CLOSED;
 			}
 		}
-		else tselem->flag |= TSE_CLOSED;
-		
-		if (TSELEM_OPEN(tselem, soops)) tree_element_show_hierarchy(scene, soops, &te->subtree);
+		else {
+			tselem->flag |= TSE_CLOSED;
+		}
+
+		if (TSELEM_OPEN(tselem, soops)) {
+			tree_element_show_hierarchy(scene, soops, &te->subtree);
+		}
 	}
 }
 

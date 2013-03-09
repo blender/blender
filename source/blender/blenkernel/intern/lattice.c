@@ -404,9 +404,11 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 		if (w != 0.0f) {
 			if (ww > 0) {
 				if (ww < lt->pntsw) idx_w = ww * lt->pntsu * lt->pntsv;
-				else idx_w = (lt->pntsw - 1) * lt->pntsu * lt->pntsv;
+				else                idx_w = (lt->pntsw - 1) * lt->pntsu * lt->pntsv;
 			}
-			else idx_w = 0;
+			else {
+				idx_w = 0;
+			}
 
 			for (vv = vi - 1; vv <= vi + 2; vv++) {
 				v = w * tv[vv - vi + 1];
@@ -414,9 +416,11 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 				if (v != 0.0f) {
 					if (vv > 0) {
 						if (vv < lt->pntsv) idx_v = idx_w + vv * lt->pntsu;
-						else idx_v = idx_w + (lt->pntsv - 1) * lt->pntsu;
+						else                idx_v = idx_w + (lt->pntsv - 1) * lt->pntsu;
 					}
-					else idx_v = idx_w;
+					else {
+						idx_v = idx_w;
+					}
 
 					for (uu = ui - 1; uu <= ui + 2; uu++) {
 						u = weight * v * tu[uu - ui + 1];
@@ -424,9 +428,11 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 						if (u != 0.0f) {
 							if (uu > 0) {
 								if (uu < lt->pntsu) idx_u = idx_v + uu;
-								else idx_u = idx_v + (lt->pntsu - 1);
+								else                idx_u = idx_v + (lt->pntsu - 1);
 							}
-							else idx_u = idx_v;
+							else {
+								idx_u = idx_v;
+							}
 
 							madd_v3_v3fl(co, &lt->latticedata[idx_u * 3], u);
 
@@ -492,7 +498,9 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 	if (cycl == 0) {
 		ctime1 = CLAMPIS(ctime, 0.0f, 1.0f);
 	}
-	else ctime1 = ctime;
+	else {
+		ctime1 = ctime;
+	}
 	
 	/* vec needs 4 items */
 	if (where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {

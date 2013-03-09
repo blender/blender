@@ -856,7 +856,7 @@ static void axis_sort_v3(const float axis_values[3], int r_axis_order[3])
 	}
 	else {
 		if (v[1] < v[2]) { SWAP_AXIS(0, 1); }
-		else { SWAP_AXIS(0, 2); }
+		else             { SWAP_AXIS(0, 2); }
 	}
 	if (v[2] < v[1])     { SWAP_AXIS(1, 2); }
 
@@ -1293,7 +1293,9 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 
 		dz = 1.0;
 	}
-	else dz = 1.0f - 4.0f * cusize;
+	else {
+		dz = 1.0f - 4.0f * cusize;
+	}
 
 	if (moving) {
 		float matt[4][4];
@@ -1739,8 +1741,12 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 			dep = buffer[4 * a + 1];
 			val = buffer[4 * a + 3];
 
-			if (val == MAN_TRANS_C) return MAN_TRANS_C;
-			else if (val == MAN_SCALE_C) return MAN_SCALE_C;
+			if (val == MAN_TRANS_C) {
+				return MAN_TRANS_C;
+			}
+			else if (val == MAN_SCALE_C) {
+				return MAN_SCALE_C;
+			}
 			else {
 				if (val & MAN_ROT_C) {
 					if (minvalrot == 0 || dep < mindeprot) {

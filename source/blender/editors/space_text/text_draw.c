@@ -678,7 +678,9 @@ int text_get_visible_lines(SpaceText *st, ARegion *ar, const char *str)
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
 			if (i - start >= max) {
@@ -712,7 +714,9 @@ int text_get_span_wrap(SpaceText *st, ARegion *ar, TextLine *from, TextLine *to)
 
 		return ret;
 	}
-	else return txt_get_span(from, to);
+	else {
+		return txt_get_span(from, to);
+	}
 }
 
 int text_get_total_lines(SpaceText *st, ARegion *ar)

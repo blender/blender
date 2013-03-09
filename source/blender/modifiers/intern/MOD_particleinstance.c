@@ -209,7 +209,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if (psys == NULL || psys->totpart == 0)
 			return derivedData;
 	}
-	else return derivedData;
+	else {
+		return derivedData;
+	}
 
 	if (pimd->flag & eParticleInstanceFlag_Parents)
 		totpart += psys->totpart;

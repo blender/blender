@@ -148,7 +148,9 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	Object *ob = NULL;
 	
 	/* if id is not object, we search back */
-	if (te->idcode == ID_OB) ob = (Object *)tselem->id;
+	if (te->idcode == ID_OB) {
+		ob = (Object *)tselem->id;
+	}
 	else {
 		ob = (Object *)outliner_search_back(soops, te, ID_OB);
 		if (ob == OBACT) return 0;
@@ -312,7 +314,9 @@ static int tree_element_active_lamp(bContext *UNUSED(C), Scene *scene, SpaceOops
 	if (set) {
 // XXX		extern_set_butspace(F5KEY, 0);
 	}
-	else return 1;
+	else {
+		return 1;
+	}
 	
 	return 0;
 }
@@ -791,9 +795,11 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 				else {  // rest of types
 					tree_element_active(C, scene, soops, te, 1);
 				}
-				
+
 			}
-			else tree_element_type_active(C, scene, soops, te, tselem, 1 + (extend != 0));
+			else {
+				tree_element_type_active(C, scene, soops, te, tselem, 1 + (extend != 0));
+			}
 			
 			return 1;
 		}

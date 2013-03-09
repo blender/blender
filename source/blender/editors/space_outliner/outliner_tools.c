@@ -190,8 +190,10 @@ static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEle
 		World *wrld = (World *)tsep->id;
 		mtex = wrld->mtex;
 	}
-	else return;
-	
+	else {
+		return;
+	}
+
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (a == te->index && mtex[a]) {
 			if (mtex[a]->tex) {
@@ -1259,7 +1261,9 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 			WM_operator_name_call(C, "OUTLINER_OT_object_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 		}
 		else if (idlevel) {
-			if (idlevel == -1 || datalevel) BKE_report(reports, RPT_WARNING, "Mixed selection");
+			if (idlevel == -1 || datalevel) {
+				BKE_report(reports, RPT_WARNING, "Mixed selection");
+			}
 			else {
 				if (idlevel == ID_GR)
 					WM_operator_name_call(C, "OUTLINER_OT_group_operation", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -1268,7 +1272,9 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 			}
 		}
 		else if (datalevel) {
-			if (datalevel == -1) BKE_report(reports, RPT_WARNING, "Mixed selection");
+			if (datalevel == -1) {
+				BKE_report(reports, RPT_WARNING, "Mixed selection");
+			}
 			else {
 				if (datalevel == TSE_ANIM_DATA)
 					WM_operator_name_call(C, "OUTLINER_OT_animdata_operation", WM_OP_INVOKE_REGION_WIN, NULL);

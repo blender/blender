@@ -191,7 +191,9 @@ double BLI_dir_free_space(const char *dir)
 		slash = strrchr(name, '/');
 		if (slash) slash[1] = 0;
 	}
-	else strcpy(name, "/");
+	else {
+		strcpy(name, "/");
+	}
 
 #if defined(__FreeBSD__) || defined(linux) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
 	if (statfs(name, &disk)) return(-1);

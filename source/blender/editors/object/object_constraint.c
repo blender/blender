@@ -435,7 +435,9 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 								curcon->flag |= CONSTRAINT_DISABLE;
 						}
 					}
-					else curcon->flag |= CONSTRAINT_DISABLE;
+					else {
+						curcon->flag |= CONSTRAINT_DISABLE;
+					}
 				}
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {

@@ -791,7 +791,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 
 #define QUATSET(a, b, c, d, e) { a[0] = b; a[1] = c; a[2] = d; a[3] = e; } (void)0
 
-int ED_view3d_lock(RegionView3D *rv3d)
+bool ED_view3d_lock(RegionView3D *rv3d)
 {
 	switch (rv3d->view) {
 		case RV3D_VIEW_BOTTOM:
@@ -818,10 +818,10 @@ int ED_view3d_lock(RegionView3D *rv3d)
 			QUATSET(rv3d->viewquat, 0.5, -0.5, -0.5, -0.5);
 			break;
 		default:
-			return FALSE;
+			return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /* don't set windows active in here, is used by renderwin too */
@@ -863,7 +863,9 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			copy_v3_v3(vec, give_cursor(scene, v3d));
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
 		}
-		else translate_m4(rv3d->viewmat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+		else {
+			translate_m4(rv3d->viewmat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+		}
 	}
 }
 

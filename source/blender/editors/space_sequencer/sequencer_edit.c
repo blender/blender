@@ -520,7 +520,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				return 0;
 			}
 			if ((seq != activeseq) && (seq != seq2)) {
-				if (seq2 == NULL) seq2 = seq;
+				if      (seq2 == NULL) seq2 = seq;
 				else if (seq1 == NULL) seq1 = seq;
 				else if (seq3 == NULL) seq3 = seq;
 				else {

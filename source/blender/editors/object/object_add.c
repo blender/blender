@@ -662,7 +662,9 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	else {
+		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	}
 
 	if (obedit == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature");

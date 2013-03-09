@@ -200,7 +200,9 @@ static void make_dmats(bPoseChannel *pchan)
 		invert_m4_m4(iR_parmat, pchan->parent->pose_mat);
 		mult_m4_m4m4(pchan->chan_mat, iR_parmat,  pchan->pose_mat); // delta mat
 	}
-	else copy_m4_m4(pchan->chan_mat, pchan->pose_mat);
+	else {
+		copy_m4_m4(pchan->chan_mat, pchan->pose_mat);
+	}
 }
 
 /* applies IK matrix to pchan, IK is done separated */

@@ -231,7 +231,9 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 			nextcol = 1;
 			col++;
 		}
-		else nextcol = 0;
+		else {
+			nextcol = 0;
+		}
 		
 		bt->rect.xmin = x1addval;
 		bt->rect.xmax = bt->rect.xmin + i + block->bounds;
@@ -2555,7 +2557,9 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 					else
 						flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT;
 				}
-				else flag = UI_BUT_ALIGN_TOP;
+				else {
+					flag = UI_BUT_ALIGN_TOP;
+				}
 			}
 		}
 		else if (buts_are_horiz(but, next)) {
@@ -2575,7 +2579,9 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 					if (bt == NULL || bt->alignnr != nr) flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
 				}
 			}
-			else flag |= UI_BUT_ALIGN_LEFT;
+			else {
+				flag |= UI_BUT_ALIGN_LEFT;
+			}
 		}
 		else {
 			if (cols == 0) {

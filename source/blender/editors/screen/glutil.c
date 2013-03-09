@@ -807,7 +807,9 @@ void bglBegin(int mode)
 			pointhack = floor(value[0] + 0.5f);
 			if (pointhack > 4) pointhack = 4;
 		}
-		else glBegin(mode);
+		else {
+			glBegin(mode);
+		}
 	}
 }
 
@@ -835,7 +837,9 @@ void bglVertex3fv(const float vec[3])
 				glRasterPos3fv(vec);
 				glBitmap(pointhack, pointhack, (float)pointhack / 2.0f, (float)pointhack / 2.0f, 0.0, 0.0, Squaredot);
 			}
-			else glVertex3fv(vec);
+			else {
+				glVertex3fv(vec);
+			}
 			break;
 	}
 }
@@ -848,7 +852,9 @@ void bglVertex3f(float x, float y, float z)
 				glRasterPos3f(x, y, z);
 				glBitmap(pointhack, pointhack, (float)pointhack / 2.0f, (float)pointhack / 2.0f, 0.0, 0.0, Squaredot);
 			}
-			else glVertex3f(x, y, z);
+			else {
+				glVertex3f(x, y, z);
+			}
 			break;
 	}
 }
@@ -861,7 +867,9 @@ void bglVertex2fv(const float vec[2])
 				glRasterPos2fv(vec);
 				glBitmap(pointhack, pointhack, (float)pointhack / 2, pointhack / 2, 0.0, 0.0, Squaredot);
 			}
-			else glVertex2fv(vec);
+			else {
+				glVertex2fv(vec);
+			}
 			break;
 	}
 }

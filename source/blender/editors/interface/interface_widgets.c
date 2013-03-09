@@ -1292,7 +1292,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
 		ui_text_clip_left(fstyle, but, rect);
 	}
-	else but->ofs = 0;
+	else {
+		but->ofs = 0;
+	}
 
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {

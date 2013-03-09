@@ -2563,7 +2563,9 @@ void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const 
 		r_uv[0] = (float)((d * x[0] - b * x[1]) / det);
 		r_uv[1] = (float)(((-c) * x[0] + a * x[1]) / det);
 	}
-	else zero_v2(r_uv);
+	else {
+		zero_v2(r_uv);
+	}
 }
 
 /* bilinear reverse */
@@ -3062,7 +3064,9 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, fl
 				add_v3_v3(accu_com, v);
 				accu_weight += weight[a];
 			}
-			else add_v3_v3(accu_com, pos[a]);
+			else {
+				add_v3_v3(accu_com, pos[a]);
+			}
 
 			if (rweight) {
 				float v[3];
@@ -3071,8 +3075,9 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, fl
 				add_v3_v3(accu_rcom, v);
 				accu_rweight += rweight[a];
 			}
-			else add_v3_v3(accu_rcom, rpos[a]);
-
+			else {
+				add_v3_v3(accu_rcom, rpos[a]);
+			}
 		}
 		if (!weight || !rweight) {
 			accu_weight = accu_rweight = list_size;

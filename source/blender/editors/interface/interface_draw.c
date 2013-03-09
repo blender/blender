@@ -97,7 +97,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(maxx, miny + rad);
 	}
-	else glVertex2f(maxx, miny);
+	else {
+		glVertex2f(maxx, miny);
+	}
 	
 	/* corner right-top */
 	if (roundboxtype & UI_CNR_TOP_RIGHT) {
@@ -107,7 +109,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(maxx - rad, maxy);
 	}
-	else glVertex2f(maxx, maxy);
+	else {
+		glVertex2f(maxx, maxy);
+	}
 	
 	/* corner left-top */
 	if (roundboxtype & UI_CNR_TOP_LEFT) {
@@ -117,7 +121,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(minx, maxy - rad);
 	}
-	else glVertex2f(minx, maxy);
+	else {
+		glVertex2f(minx, maxy);
+	}
 	
 	/* corner left-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
@@ -127,7 +133,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(minx + rad, miny);
 	}
-	else glVertex2f(minx, miny);
+	else {
+		glVertex2f(minx, miny);
+	}
 	
 	glEnd();
 }
@@ -1292,8 +1300,10 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		
 		glEndList();
 	}
-	else glCallList(displist);
-	
+	else {
+		glCallList(displist);
+	}
+
 	/* restore */
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);

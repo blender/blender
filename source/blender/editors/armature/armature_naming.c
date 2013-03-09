@@ -152,7 +152,9 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 				unique_editbone_name(arm->edbo, newname, NULL);
 				BLI_strncpy(eBone->name, newname, MAXBONENAME);
 			}
-			else return;
+			else {
+				return;
+			}
 		}
 		else {
 			Bone *bone = BKE_armature_find_bone_name(arm, oldname);
@@ -161,7 +163,9 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 				unique_bone_name(arm, newname);
 				BLI_strncpy(bone->name, newname, MAXBONENAME);
 			}
-			else return;
+			else {
+				return;
+			}
 		}
 		
 		/* do entire dbase - objects */

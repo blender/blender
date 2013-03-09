@@ -261,7 +261,9 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking, MovieTrackingOb
 		invert_m4_m4(imat, camera->mat);
 		mult_m4_m4m4(mat, winmat, imat);
 	}
-	else copy_m4_m4(mat, winmat);
+	else {
+		copy_m4_m4(mat, winmat);
+	}
 }
 
 /* **** space transformation functions  **** */

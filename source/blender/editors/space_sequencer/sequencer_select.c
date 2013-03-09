@@ -552,8 +552,6 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 }
 
 
-
-
 /* run recursively to select linked */
 static int select_more_less_seq__internal(Scene *scene, int sel, int linked)
 {

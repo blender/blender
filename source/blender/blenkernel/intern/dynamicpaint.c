@@ -473,7 +473,9 @@ static float mixColors(float a_color[3], float a_weight, float b_color[3], float
 		}
 		weight_ratio = b_weight / (a_weight + b_weight);
 	}
-	else return a_weight * (1.0f - ratio);
+	else {
+		return a_weight * (1.0f - ratio);
+	}
 
 	/* calculate final interpolation factor */
 	if (ratio <= 0.5f) {
@@ -2606,7 +2608,9 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 				if (!f_data->uv_p || !f_data->barycentricWeights) error = 1;
 			}
-			else error = 1;
+			else {
+				error = 1;
+			}
 
 			sData->total_points = active_points;
 			
@@ -2859,7 +2863,9 @@ static void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], fl
 			mat = bMats->ob_mats[mat_nr];
 			if (mat == NULL) return;    /* No material assigned */
 		}
-		else return;
+		else {
+			return;
+		}
 	}
 
 	RE_sample_material_color(mat, color, alpha, volume_co, surface_co, faceIndex, isQuad, orcoDm, brushOb);
@@ -3924,7 +3930,9 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 			strength = 1.0f - distance / brush_radius;
 			CLAMP(strength, 0.0f, 1.0f);
 		}
-		else strength = 1.0f;
+		else {
+			strength = 1.0f;
+		}
 
 		if (strength >= 0.001f) {
 			float paintColor[3] = {0.0f};

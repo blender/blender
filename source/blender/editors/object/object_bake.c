@@ -138,7 +138,9 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else ok = 0;
+		else {
+			ok = 0;
+		}
 
 		if (!ok) {
 			BKE_report(op->reports, RPT_ERROR, "Multires data baking requires multi-resolution object");

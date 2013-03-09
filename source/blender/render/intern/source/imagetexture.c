@@ -274,14 +274,18 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 				ibuf_get_color(col, ibuf, x+1, y);
 				val2= (col[0]+col[1]+col[2]);
 			}
-			else val2= val1;
+			else {
+				val2= val1;
+			}
 
 			if (y<ibuf->y-1) {
 				float col[4];
 				ibuf_get_color(col, ibuf, x, y+1);
-				val3= (col[0]+col[1]+col[2]);
+				val3 = (col[0]+col[1]+col[2]);
 			}
-			else val3= val1;
+			else {
+				val3 = val1;
+			}
 
 			/* do not mix up x and y here! */
 			texres->nor[0]= (val1-val2);
@@ -289,13 +293,19 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		}
 	}
 
-	if (texres->talpha) texres->tin= texres->ta;
+	if (texres->talpha) {
+		texres->tin = texres->ta;
+	}
 	else if (tex->imaflag & TEX_CALCALPHA) {
 		texres->ta = texres->tin = max_fff(texres->tr, texres->tg, texres->tb);
 	}
-	else texres->ta= texres->tin= 1.0;
+	else {
+		texres->ta = texres->tin = 1.0;
+	}
 	
-	if (tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
+	if (tex->flag & TEX_NEGALPHA) {
+		texres->ta = 1.0f - texres->ta;
+	}
 
 	/* de-premul, this is being premulled in shade_input_do_shade() */
 	if (texres->ta!=1.0f && texres->ta>1e-4f) {
@@ -1838,7 +1848,9 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (tex->imaflag & TEX_CALCALPHA) {
 		texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
 	}
-	else texres->tin= texres->ta;
+	else {
+		texres->tin = texres->ta;
+	}
 
 	if (tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
 	

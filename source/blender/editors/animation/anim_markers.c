@@ -276,7 +276,9 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
 				ce->sel = marker->flag;
 			return;
 		}
-		else if (ce->cfra > marker->frame) break;
+		else if (ce->cfra > marker->frame) {
+			break;
+		}
 	}
 	
 	cen = MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");

@@ -470,7 +470,9 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		Py_XDECREF(keys);
 		Py_XDECREF(vals);
 	}
-	else return "invalid property value";
+	else {
+		return "invalid property value";
+	}
 
 	if (group->type == IDP_IDPARRAY) {
 		IDP_AppendArray(group, prop);

@@ -4357,7 +4357,9 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, c
 	if (brush_painter_2d_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
 		return 1;
 	}
-	else return 0;
+	else {
+		return 0;
+	}
 }
 
 

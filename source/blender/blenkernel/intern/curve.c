@@ -793,7 +793,9 @@ static void makeknots(Nurb *nu, short uv)
 					calcknots(nu->knotsv, nu->pntsv, nu->orderv, nu->flagv);
 				}
 			}
-			else nu->knotsv = NULL;
+			else {
+				nu->knotsv = NULL;
+			}
 		}
 	}
 }

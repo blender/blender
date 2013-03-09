@@ -2284,7 +2284,9 @@ struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Objec
 	{
 		return createDomainGeometry(smd->domain, ob);
 	}
-	else return CDDM_copy(dm);
+	else {
+		return CDDM_copy(dm);
+	}
 }
 
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct)

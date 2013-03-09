@@ -138,7 +138,9 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 		if (readsize > 0) {
 			size += readsize;
 		}
-		else break;
+		else {
+			break;
+		}
 	}
 	
 	gzclose(gzfile);

@@ -199,7 +199,9 @@ int curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
 			cmp[b] = cuma->curve[a];
 			b++;
 		}
-		else removed++;
+		else {
+			removed++;
+		}
 	}
 	
 	MEM_freeN(cuma->curve);
@@ -221,7 +223,9 @@ void curvemap_remove(CurveMap *cuma, const short flag)
 			cmp[b] = cuma->curve[a];
 			b++;
 		}
-		else removed++;
+		else {
+			removed++;
+		}
 	}
 	cmp[b] = cuma->curve[a];
 	

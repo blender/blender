@@ -1555,7 +1555,9 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 			if (itA->node->lasttime != curtime) {
 				itA->lay = flush_layer_node(sce, itA->node, curtime);  /* lay is only set once for each relation */
 			}
-			else itA->lay = itA->node->lay;
+			else {
+				itA->lay = itA->node->lay;
+			}
 			
 			node->lay |= itA->lay;
 		}

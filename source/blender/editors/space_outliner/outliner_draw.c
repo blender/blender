@@ -1236,12 +1236,20 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 
 			/* active blocks get white circle */
 			if (tselem->type == 0) {
-				if (te->idcode == ID_OB) active = (OBACT == (Object *)tselem->id);
-				else if (scene->obedit && scene->obedit->data == tselem->id) active = 1;  // XXX use context?
-				else active = tree_element_active(C, scene, soops, te, 0);
+				if (te->idcode == ID_OB) {
+					active = (OBACT == (Object *)tselem->id);
+				}
+				else if (scene->obedit && scene->obedit->data == tselem->id) {
+					active = 1;  // XXX use context?
+				}
+				else {
+					active = tree_element_active(C, scene, soops, te, 0);
+				}
 			}
-			else active = tree_element_type_active(NULL, scene, soops, te, tselem, 0);
-			
+			else {
+				active = tree_element_type_active(NULL, scene, soops, te, tselem, 0);
+			}
+
 			if (active) {
 				float ufac = UI_UNIT_X / 20.0f;
 

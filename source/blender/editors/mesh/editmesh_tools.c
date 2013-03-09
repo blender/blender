@@ -2292,8 +2292,12 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
 				continue;
 
-			if (svert == NULL) svert = eve;
-			else if (evert == NULL) evert = eve;
+			if (svert == NULL) {
+				svert = eve;
+			}
+			else if (evert == NULL) {
+				evert = eve;
+			}
 			else {
 				/* more than two vertices are selected,
 				 * show warning message and cancel operator */

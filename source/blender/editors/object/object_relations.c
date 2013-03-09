@@ -215,7 +215,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if (v4 || !((v1 && v2 == 0 && v3 == 0) || (v1 && v2 && v3)) ) {
+	if (v4 || !((v1 && v2 == 0 && v3 == 0) || (v1 && v2 && v3))) {
 		BKE_report(op->reports, RPT_ERROR, "Select either 1 or 3 vertices to parent to");
 		return OPERATOR_CANCELLED;
 	}
@@ -608,8 +608,10 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				cu->flag |= CU_PATH | CU_FOLLOW;
 				BKE_displist_make_curveTypes(scene, par, 0);  /* force creation of path data */
 			}
-			else cu->flag |= CU_FOLLOW;
-			
+			else {
+				cu->flag |= CU_FOLLOW;
+			}
+
 			/* if follow, add F-Curve for ctime (i.e. "eval_time") so that path-follow works */
 			if (partype == PAR_FOLLOW) {
 				/* get or create F-Curve */

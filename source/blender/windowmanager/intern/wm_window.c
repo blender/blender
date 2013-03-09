@@ -1252,7 +1252,9 @@ void WM_clipboard_text_set(char *buf, int selection)
 			if (*p == '\n') {
 				*(p2++) = '\r'; *p2 = '\n';
 			}
-			else *p2 = *p;
+			else {
+				*p2 = *p;
+			}
 		}
 		*p2 = '\0';
 	

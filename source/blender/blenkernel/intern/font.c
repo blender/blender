@@ -943,10 +943,13 @@ makebreak:
 			ct = chartransdata;
 			for (i = 0; i < slen; i++) {
 				if (ct->linenr == lnr) {
-					if (ct->charnr == cnr) break;
-					if ( (ct + 1)->charnr == 0) break;
+					if ((ct->charnr == cnr) || ((ct + 1)->charnr == 0)) {
+						break;
+					}
 				}
-				else if (ct->linenr > lnr) break;
+				else if (ct->linenr > lnr) {
+					break;
+				}
 				cu->pos++;
 				ct++;
 			}

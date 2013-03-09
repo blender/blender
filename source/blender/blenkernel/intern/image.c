@@ -1567,7 +1567,9 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		if (camera && camera->type == OB_CAMERA) {
 			BLI_snprintf(text, sizeof(text), "%.2f", ((Camera *)camera->data)->lens);
 		}
-		else BLI_strncpy(text, "<none>", sizeof(text));
+		else {
+			BLI_strncpy(text, "<none>", sizeof(text));
+		}
 
 		BLI_snprintf(stamp_data->cameralens, sizeof(stamp_data->cameralens), do_prefix ? "Lens %s" : "%s", text);
 	}

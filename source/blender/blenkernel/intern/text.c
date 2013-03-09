@@ -930,7 +930,9 @@ void txt_move_right(Text *text, short sel)
 				tabsize++;
 			(*charp) = i;
 		}
-		else (*charp) += BLI_str_utf8_size((*linep)->line + *charp);
+		else {
+			(*charp) += BLI_str_utf8_size((*linep)->line + *charp);
+		}
 	}
 	
 	if (!sel) txt_pop_sel(text);

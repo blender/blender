@@ -194,7 +194,9 @@ void removenotused_scrverts(bScreen *sc)
 			BLI_remlink(&sc->vertbase, sv);
 			MEM_freeN(sv);
 		}
-		else sv->flag = 0;
+		else {
+			sv->flag = 0;
+		}
 		sv = svn;
 	}
 }
@@ -250,7 +252,9 @@ void removenotused_scredges(bScreen *sc)
 			BLI_remlink(&sc->edgebase, se);
 			MEM_freeN(se);
 		}
-		else se->flag = 0;
+		else {
+			se->flag = 0;
+		}
 		se = sen;
 	}
 }

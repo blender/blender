@@ -1413,7 +1413,9 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
 			if (rell == 0 && i - start == relc) {
@@ -1591,7 +1593,9 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
 			if (i - start >= max) {
@@ -1657,7 +1661,9 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
 			if (i - start >= max) {
@@ -1716,7 +1722,9 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 			visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
 			*charp = text_get_cursor_rel(st, ar, *linep, visible_lines - 1, col);
 		}
-		else *charp = 0;
+		else {
+			*charp = 0;
+		}
 	}
 
 	if (!sel) txt_pop_sel(text);
@@ -1745,7 +1753,9 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 			*linep = (*linep)->next;
 			*charp = text_get_cursor_rel(st, ar, *linep, 0, col);
 		}
-		else *charp = (*linep)->len;
+		else {
+			*charp = (*linep)->len;
+		}
 	}
 
 	if (!sel) txt_pop_sel(text);
@@ -2350,7 +2360,9 @@ static int flatten_len(SpaceText *st, const char *str)
 		if (str[i] == '\t') {
 			total += st->tabnumber - total % st->tabnumber;
 		}
-		else total++;
+		else {
+			total++;
+		}
 	}
 	
 	return total;
@@ -2412,7 +2424,9 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 				chars = st->tabnumber - i % st->tabnumber;
 				ch = ' ';
 			}
-			else chars = 1;
+			else {
+				chars = 1;
+			}
 			
 			while (chars--) {
 				/* Gone too far, go back to last wrap point */

@@ -3879,7 +3879,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			if (draw_as == PART_DRAW_AXIS) {
 				copy_v3_v3(vec2, state->co);
 			}
-			else sub_v3_v3v3(vec2, state->co, vec);
+			else {
+				sub_v3_v3v3(vec2, state->co, vec);
+			}
 
 			add_v3_v3(vec, state->co);
 			copy_v3_v3(pdd->vd, vec); pdd->vd += 3;
@@ -3891,7 +3893,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			if (draw_as == PART_DRAW_AXIS) {
 				copy_v3_v3(vec2, state->co);
 			}
-			else sub_v3_v3v3(vec2, state->co, vec);
+			else {
+				sub_v3_v3v3(vec2, state->co, vec);
+			}
 
 			add_v3_v3(vec, state->co);
 
@@ -5966,8 +5970,10 @@ static void drawtexspace(Object *ob)
 		copy_v3_v3(size, mb->size);
 		copy_v3_v3(loc, mb->loc);
 	}
-	else return;
-	
+	else {
+		return;
+	}
+
 	vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = loc[0] - size[0];
 	vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = loc[0] + size[0];
 	

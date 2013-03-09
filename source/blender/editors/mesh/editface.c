@@ -525,7 +525,9 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 		else
 			mpoly_sel->flag |= ME_FACE_SEL;
 	}
-	else mpoly_sel->flag |= ME_FACE_SEL;
+	else {
+		mpoly_sel->flag |= ME_FACE_SEL;
+	}
 	
 	/* image window redraw */
 	

@@ -1547,7 +1547,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 						else if (sbuts->mainb == BUTS_EDIT) {
 							sbuts->mainb = CONTEXT_EDITING;
 						}
-						else sbuts->mainb = CONTEXT_SCENE;
+						else {
+							sbuts->mainb = CONTEXT_SCENE;
+						}
 					}
 				}
 			}

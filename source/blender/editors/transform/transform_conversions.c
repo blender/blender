@@ -223,7 +223,9 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 						tob->rdist = dist;
 					}
 				}
-				else break;  // by definition transdata has selected items in beginning
+				else {
+					break;  /* by definition transdata has selected items in beginning */
+				}
 			}
 			if (with_dist) {
 				tob->dist = tob->rdist;
@@ -2048,7 +2050,9 @@ static void createTransEditVerts(TransInfo *t)
 		if (propmode & T_PROP_CONNECTED)
 			dists = MEM_mallocN(em->bm->totvert * sizeof(float), "scratch nears");
 	}
-	else t->total = countsel;
+	else {
+		t->total = countsel;
+	}
 
 	tob = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Mesh EditMode)");
 	if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
@@ -3584,7 +3588,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 					/* for 'normal' pivots - just include anything that is selected.
 					 * this works a bit differently in translation modes */
-					if (sel2) count++;
+					if (sel2) {
+						count++;
+					}
 					else {
 						if (sel1) count++;
 						if (sel3) count++;

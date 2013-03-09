@@ -1298,7 +1298,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_AUTOIK) {
 					transform_autoik_update(t, 1);
 				}
-				else view_editmove(event->type);
+				else {
+					view_editmove(event->type);
+				}
 				t->redraw = 1;
 				break;
 			case PADMINUS:
@@ -1313,7 +1315,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_AUTOIK) {
 					transform_autoik_update(t, -1);
 				}
-				else view_editmove(event->type);
+				else {
+					view_editmove(event->type);
+				}
 				t->redraw = 1;
 				break;
 			case LEFTALTKEY:

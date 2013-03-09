@@ -760,7 +760,9 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 			else {
 				if (*base && fase != F_DUPLI) {
 					*base = (*base)->next;
-					if (*base) *ob = (*base)->object;
+					if (*base) {
+						*ob = (*base)->object;
+					}
 					else {
 						if (fase == F_SCENE) {
 							/* (*scene) is finished, now do the set */
@@ -777,7 +779,9 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 				}
 			}
 			
-			if (*base == NULL) fase = F_START;
+			if (*base == NULL) {
+				fase = F_START;
+			}
 			else {
 				if (fase != F_DUPLI) {
 					if ( (*base)->object->transflag & OB_DUPLI) {

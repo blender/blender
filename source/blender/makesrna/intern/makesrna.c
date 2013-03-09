@@ -3173,7 +3173,9 @@ static void rna_generate_struct(BlenderRNA *UNUSED(brna), StructRNA *srna, FILE 
 
 		fprintf(f, "\t(PropertyRNA *)&rna_%s_%s, ", base->identifier, prop->identifier);
 	}
-	else fprintf(f, "\tNULL, ");
+	else {
+		fprintf(f, "\tNULL, ");
+	}
 
 	prop = srna->iteratorproperty;
 	base = srna;

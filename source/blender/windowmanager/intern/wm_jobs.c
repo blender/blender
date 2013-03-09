@@ -363,7 +363,9 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 			if (G.debug & G_DEBUG_JOBS)
 				wm_job->start_time = PIL_check_seconds_timer();
 		}
-		else printf("job fails, not initialized\n");
+		else {
+			printf("job fails, not initialized\n");
+		}
 	}
 }
 

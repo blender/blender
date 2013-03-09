@@ -813,7 +813,9 @@ static void UNUSED_FUNCTION(set_special_seq_update) (int val)
 	if (val) {
 // XXX		special_seq_update = find_nearest_seq(&x);
 	}
-	else special_seq_update = NULL;
+	else {
+		special_seq_update = NULL;
+	}
 }
 
 ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int cfra, int frame_ofs)

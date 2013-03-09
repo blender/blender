@@ -2196,8 +2196,9 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 		
 		/* add F-Modifier of specified type to active F-Curve, and make it the active one */
 		fcm = add_fmodifier(&fcu->modifiers, type);
-		if (fcm)
+		if (fcm) {
 			set_active_fmodifier(&fcu->modifiers, fcm);
+		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "Modifier could not be added (see console for details)");
 			break;

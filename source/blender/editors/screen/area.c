@@ -1071,7 +1071,9 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 				if (G.debug & G_DEBUG)
 					printf("region quadsplit failed\n");
 			}
-			else quad = 1;
+			else {
+				quad = 1;
+			}
 		}
 		if (quad) {
 			if (quad == 1) { /* left bottom */
@@ -1746,7 +1748,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			/* uiScalePanels(ar, BLI_rctf_size_x(&v2d->cur));
 			   break; */
 		}
-		else break;
+		else {
+			break;
+		}
 	}
 	
 	

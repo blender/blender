@@ -404,7 +404,9 @@ int AVI_is_avi(const char *name)
 			}
 			if (j > 0) fseek(movie.fp, j, SEEK_CUR);
 		}
-		else fseek(movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
+		else {
+			fseek(movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
+		}
 
 		/* Walk to the next LIST */
 		while (GET_FCC(movie.fp) != FCC("LIST")) {
@@ -595,8 +597,10 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 			}
 			if (j > 0) fseek(movie->fp, j, SEEK_CUR);
 		}
-		else fseek(movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
-		
+		else {
+			fseek(movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
+		}
+
 		/* Walk to the next LIST */
 		while (GET_FCC(movie->fp) != FCC("LIST")) {
 			temp = GET_FCC(movie->fp);

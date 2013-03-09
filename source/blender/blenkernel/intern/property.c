@@ -74,8 +74,10 @@ bProperty *BKE_bproperty_copy(bProperty *prop)
 	if (prop->poin && prop->poin != &prop->data) {
 		propn->poin = MEM_dupallocN(prop->poin);
 	}
-	else propn->poin = &propn->data;
-	
+	else {
+		propn->poin = &propn->data;
+	}
+
 	return propn;
 }
 

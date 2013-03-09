@@ -1257,19 +1257,23 @@ static int treesort_obtype_alpha(const void *v1, const void *v2)
 	const tTreeSort *x1 = v1, *x2 = v2;
 	
 	/* first put objects last (hierarchy) */
-	if (x1->idcode == ID_OB && x2->idcode != ID_OB) return 1;
-	else if (x2->idcode == ID_OB && x1->idcode != ID_OB) return -1;
+	if (x1->idcode == ID_OB && x2->idcode != ID_OB) {
+		return 1;
+	}
+	else if (x2->idcode == ID_OB && x1->idcode != ID_OB) {
+		return -1;
+	}
 	else {
 		/* 2nd we check ob type */
 		if (x1->idcode == ID_OB && x2->idcode == ID_OB) {
-			if (((Object *)x1->id)->type > ((Object *)x2->id)->type) return 1;
+			if      (((Object *)x1->id)->type > ((Object *)x2->id)->type) return  1;
 			else if (((Object *)x1->id)->type > ((Object *)x2->id)->type) return -1;
 			else return 0;
 		}
 		else {
 			int comp = strcmp(x1->name, x2->name);
 			
-			if (comp > 0) return 1;
+			if      (comp > 0) return  1;
 			else if (comp < 0) return -1;
 			return 0;
 		}

@@ -319,7 +319,9 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 				putc((unsigned char)(128 + cnt), file);
 				putc(rgbe_scan[beg][i], file);
 			}
-			else cnt = 0;
+			else {
+				cnt = 0;
+			}
 		}
 	}
 	MEM_freeN(rgbe_scan);

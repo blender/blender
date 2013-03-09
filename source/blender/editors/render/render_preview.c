@@ -671,8 +671,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		if (first) sizex = sp->sizex / 2;
 		else sizex = sp->sizex - sp->sizex / 2;
 	}
-	else sizex = sp->sizex;
-	
+	else {
+		sizex = sp->sizex;
+	}
+
 	/* we have to set preview variables first */
 	sce = preview_get_scene(pr_main);
 	if (sce) {

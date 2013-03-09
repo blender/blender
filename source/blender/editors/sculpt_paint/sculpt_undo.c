@@ -131,7 +131,9 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			vertCos = BKE_key_convert_to_vertcos(ob, ss->kb);
 
 			for (i = 0; i < unode->totvert; i++) {
-				if (ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+				if (ss->modifiers_active) {
+					sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+				}
 				else {
 					if (unode->orig_co) swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
 					else swap_v3_v3(vertCos[index[i]], unode->co[i]);
@@ -149,7 +151,9 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 		}
 		else {
 			for (i = 0; i < unode->totvert; i++) {
-				if (ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
+				if (ss->modifiers_active) {
+					sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
+				}
 				else {
 					if (unode->orig_co) swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
 					else swap_v3_v3(mvert[index[i]].co, unode->co[i]);

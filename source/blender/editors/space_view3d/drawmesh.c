@@ -428,7 +428,9 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (!has_mcol) {
-		if (tface) glColor3f(1.0, 1.0, 1.0);
+		if (tface) {
+			glColor3f(1.0, 1.0, 1.0);
+		}
 		else {
 			if (ma) {
 				float col[3];
@@ -437,7 +439,9 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int
 				
 				glColor3fv(col);
 			}
-			else glColor3f(1.0, 1.0, 1.0);
+			else {
+				glColor3f(1.0, 1.0, 1.0);
+			}
 		}
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}

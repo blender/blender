@@ -1600,7 +1600,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					if (scene->camera)
 						clip = BKE_object_movieclip_get(scene, scene->camera, 1);
 				}
-				else clip = bgpic->clip;
+				else {
+					clip = bgpic->clip;
+				}
 
 				if (clip == NULL)
 					continue;

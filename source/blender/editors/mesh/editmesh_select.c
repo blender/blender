@@ -307,8 +307,10 @@ int EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 			return 0;
 		}
 	}
-	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) return 0;
-	
+	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) {
+		return 0;
+	}
+
 	xmin = xs - rads; xmax = xs + rads;
 	ymin = ys - rads; ymax = ys + rads;
 	buf = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);

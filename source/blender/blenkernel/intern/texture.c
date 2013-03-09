@@ -256,7 +256,9 @@ int do_colorband(const ColorBand *coba, float in, float out[4])
 				left.pos = 0.0f;
 				cbd2 = &left;
 			}
-			else cbd2 = cbd1 - 1;
+			else {
+				cbd2 = cbd1 - 1;
+			}
 			
 			if (in >= cbd1->pos && coba->ipotype < 2) {
 				out[0] = cbd1->r;
@@ -916,9 +918,13 @@ void autotexname(Tex *tex)
 				strcat(di, fi);
 				new_id(&bmain->tex, (ID *)tex, di);
 			}
-			else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+			else {
+				new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+			}
 		}
-		else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+		else {
+			new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+		}
 	}
 }
 #endif

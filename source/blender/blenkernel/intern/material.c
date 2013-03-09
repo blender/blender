@@ -1794,7 +1794,9 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 			ma->game.flag = -flag;
 			id_us_min((ID *)ma);
 		}
-		else printf("Error: Unable to create Material \"%s\" for Mesh \"%s\".", idname + 2, me->id.name + 2);
+		else {
+			printf("Error: Unable to create Material \"%s\" for Mesh \"%s\".", idname + 2, me->id.name + 2);
+		}
 	}
 
 	/* set as converted, no need to go bad to this face */

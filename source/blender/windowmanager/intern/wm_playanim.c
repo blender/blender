@@ -590,7 +590,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyPeriod:
 				case GHOST_kKeyNumpadPeriod:
 					if (val) {
-						if (ps->sstep) ps->wait2 = FALSE;
+						if (ps->sstep) {
+							ps->wait2 = FALSE;
+						}
 						else {
 							ps->sstep = TRUE;
 							ps->wait2 = !ps->wait2;
@@ -1192,16 +1194,18 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 void WM_main_playanim(int argc, const char **argv)
 {
-	int looping = TRUE;
-	
+	bool looping = true;
+
 	while (looping) {
 		char *filepath = wm_main_playanim_intern(argc, argv);
-		
+
 		if (filepath) {	/* use simple args */
 			argv[1] = "-a";
 			argv[2] = filepath;
 			argc = 3;
 		}
-		else looping = 0;
+		else {
+			looping = false;
+		}
 	}
 }

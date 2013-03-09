@@ -281,7 +281,9 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 				if (id->flag & LIB_FAKEUSER) id_us_plus(id);
 				else id_us_min(id);
 			}
-			else return;
+			else {
+				return;
+			}
 			break;
 		case UI_ID_LOCAL:
 			if (id) {
