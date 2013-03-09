@@ -177,10 +177,9 @@ static void edbm_backbuf_check_and_select_verts(BMEditMesh *em, int select)
 {
 	BMVert *eve;
 	BMIter iter;
-	int index = bm_wireoffs;
+	unsigned int index = bm_wireoffs;
 
-	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (; eve; eve = BM_iter_step(&iter), index++) {
+	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter), index++) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if (EDBM_backbuf_check(index)) {
 				BM_vert_select_set(em->bm, eve, select);
@@ -209,7 +208,7 @@ static void edbm_backbuf_check_and_select_faces(BMEditMesh *em, int select)
 {
 	BMFace *efa;
 	BMIter iter;
-	int index = 1;
+	unsigned int index = 1;
 
 	efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 	for (; efa; efa = BM_iter_step(&iter), index++) {
@@ -226,11 +225,11 @@ static void edbm_backbuf_check_and_select_faces(BMEditMesh *em, int select)
 static void edbm_backbuf_check_and_select_verts_obmode(Mesh *me, int select)
 {
 	MVert *mv = me->mvert;
-	int a;
+	unsigned int index;
 
 	if (mv) {
-		for (a = 1; a <= me->totvert; a++, mv++) {
-			if (EDBM_backbuf_check(a)) {
+		for (index = 1; index <= me->totvert; index++, mv++) {
+			if (EDBM_backbuf_check(index)) {
 				if (!(mv->flag & ME_HIDE)) {
 					mv->flag = select ? (mv->flag | SELECT) : (mv->flag & ~SELECT);
 				}
@@ -243,11 +242,11 @@ static void edbm_backbuf_check_and_select_verts_obmode(Mesh *me, int select)
 static void edbm_backbuf_check_and_select_tfaces(Mesh *me, int select)
 {
 	MPoly *mpoly = me->mpoly;
-	int a;
+	unsigned int index;
 
 	if (mpoly) {
-		for (a = 1; a <= me->totpoly; a++, mpoly++) {
-			if (EDBM_backbuf_check(a)) {
+		for (index = 1; index <= me->totpoly; index++, mpoly++) {
+			if (EDBM_backbuf_check(index)) {
 				mpoly->flag = select ? (mpoly->flag | ME_FACE_SEL) : (mpoly->flag & ~ME_FACE_SEL);
 			}
 		}

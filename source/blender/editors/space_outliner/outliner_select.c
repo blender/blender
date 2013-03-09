@@ -147,7 +147,7 @@ static int tree_element_active_renderlayer(bContext *C, TreeElement *te, TreeSto
  * CTRL+LMB: Select/Deselect object and all cildren
  * CTRL+SHIFT+LMB: Add/Remove object and all children
  */
-static void set_select_recursive(Scene *scene, Object *ob_parent, bool select)
+static void do_outliner_object_select_recursive(Scene *scene, Object *ob_parent, bool select)
 {
 	Base *base;
 
@@ -201,7 +201,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 
 		if (recursive) {
 			/* Recursive select/deselect */
-			set_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
+			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
 		}
 
 		if (C) {

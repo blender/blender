@@ -44,10 +44,10 @@
 void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
-	BMFace *f, *nf;
+	BMFace *f, *f_new;
 	BMLoop *(*loops_split)[2] = NULL;
 	BLI_array_declare(loops_split);
-	BMLoop *l, *nl, *lastl = NULL;
+	BMLoop *l, *l_new;
 	BMVert *(*verts_pair)[2] = NULL;
 	BLI_array_declare(verts_pair);
 	int i;
@@ -56,7 +56,8 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 
 	/* BMESH_TODO, loop over vert faces:
 	 * faster then looping over all faces, then searching each for flagged verts*/
-	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+		BMLoop *l_last;
 		BLI_array_empty(loops_split);
 		BLI_array_empty(verts_pair);
 		
@@ -64,22 +65,21 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
-		lastl = NULL;
-		for ( ; l; l = BM_iter_step(&liter)) {
+		l_last = NULL;
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			if (BMO_elem_flag_test(bm, l->v, VERT_INPUT)) {
-				if (!lastl) {
-					lastl = l;
+				if (!l_last) {
+					l_last = l;
 					continue;
 				}
 
-				if (lastl != l->prev && lastl != l->next) {
+				if (l_last != l->prev && l_last != l->next) {
 					BLI_array_grow_one(loops_split);
-					loops_split[BLI_array_count(loops_split) - 1][0] = lastl;
+					loops_split[BLI_array_count(loops_split) - 1][0] = l_last;
 					loops_split[BLI_array_count(loops_split) - 1][1] = l;
 
 				}
-				lastl = l;
+				l_last = l;
 			}
 		}
 
@@ -106,16 +106,16 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		for (i = 0; i < BLI_array_count(verts_pair); i++) {
-			nf = BM_face_split(bm, f, verts_pair[i][0], verts_pair[i][1], &nl, NULL, false);
-			f = nf;
+			f_new = BM_face_split(bm, f, verts_pair[i][0], verts_pair[i][1], &l_new, NULL, false);
+			f = f_new;
 			
-			if (!nl || !nf) {
+			if (!l_new || !f_new) {
 				BMO_error_raise(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
 				BLI_array_free(loops_split);
 				return;
 			}
-			BMO_elem_flag_enable(bm, nf, FACE_NEW);
-			BMO_elem_flag_enable(bm, nl->e, EDGE_OUT);
+			BMO_elem_flag_enable(bm, f_new, FACE_NEW);
+			BMO_elem_flag_enable(bm, l_new->e, EDGE_OUT);
 		}
 	}
 

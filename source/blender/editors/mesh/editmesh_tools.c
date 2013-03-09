@@ -334,10 +334,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 					mult_m4_m4m4(mtx, imtx, obedit->obmat);
 				}
 
-				for (edge = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
-				     edge;
-				     edge = BM_iter_step(&iter))
-				{
+				BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
 					if (BM_elem_flag_test(edge, hflag) &&
 					    BM_edge_is_boundary(edge) &&
 					    BM_elem_flag_test(edge->l->f, hflag))
@@ -3920,9 +3917,10 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	/* find two vertices with valence count == 1, more or less is wrong */
 	v1 = NULL;
 	v2 = NULL;
-	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter)) {
+
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		valence = 0;
-		for (eed = BM_iter_new(&eiter, em->bm, BM_EDGES_OF_VERT, eve); eed; eed = BM_iter_step(&eiter)) {
+		BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				valence++;
 			}
