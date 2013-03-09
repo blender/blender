@@ -71,29 +71,29 @@
 
 /* connects face with smallest len, which I think should always be correct for
  * edge subdivision */
-static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_nf)
+static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f_new)
 {
 	BMIter iter, iter2;
 	BMVert *v;
-	BMLoop *nl;
-	BMFace *face, *curf = NULL;
+	BMLoop *l_new;
+	BMFace *f, *f_cur = NULL;
 
 	/* this isn't the best thing in the world.  it doesn't handle cases where there's
 	 * multiple faces yet.  that might require a convexity test to figure out which
 	 * face is "best" and who knows what for non-manifold conditions. */
-	for (face = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); face; face = BM_iter_step(&iter)) {
-		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, face); v; v = BM_iter_step(&iter2)) {
+	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); f; f = BM_iter_step(&iter)) {
+		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&iter2)) {
 			if (v == v2) {
-				if (!curf || face->len < curf->len) curf = face;
+				if (!f_cur || f->len < f_cur->len) f_cur = f;
 			}
 		}
 	}
 
-	if (curf) {
-		face = BM_face_split(bm, curf, v1, v2, &nl, NULL, false);
+	if (f_cur) {
+		f = BM_face_split(bm, f_cur, v1, v2, &l_new, NULL, false);
 		
-		if (r_nf) *r_nf = face;
-		return nl ? nl->e : NULL;
+		if (r_f_new) *r_f_new = f;
+		return l_new ? l_new->e : NULL;
 	}
 
 	return NULL;
@@ -242,31 +242,31 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *params,
                                   BMVert *vsta, BMVert *vend)
 {
-	BMEdge *eed = edge, *newe, temp = *edge;
-	BMVert *v, ov1 = *edge->v1, ov2 = *edge->v2, *v1 = edge->v1, *v2 = edge->v2;
+	BMEdge *eed = edge, *e_new, e_tmp = *edge;
+	BMVert *v, v1_tmp = *edge->v1, v2_tmp = *edge->v2, *v1 = edge->v1, *v2 = edge->v2;
 	int i, numcuts = params->numcuts;
 
-	temp.v1 = &ov1;
-	temp.v2 = &ov2;
+	e_tmp.v1 = &v1_tmp;
+	e_tmp.v2 = &v2_tmp;
 	
 	for (i = 0; i < numcuts; i++) {
-		v = subdivideedgenum(bm, eed, &temp, i, params->numcuts, params, &newe, vsta, vend);
+		v = subdivideedgenum(bm, eed, &e_tmp, i, params->numcuts, params, &e_new, vsta, vend);
 
 		BMO_elem_flag_enable(bm, v, SUBD_SPLIT);
 		BMO_elem_flag_enable(bm, eed, SUBD_SPLIT);
-		BMO_elem_flag_enable(bm, newe, SUBD_SPLIT);
+		BMO_elem_flag_enable(bm, e_new, SUBD_SPLIT);
 
 		BMO_elem_flag_enable(bm, v, ELE_SPLIT);
 		BMO_elem_flag_enable(bm, eed, ELE_SPLIT);
-		BMO_elem_flag_enable(bm, newe, SUBD_SPLIT);
+		BMO_elem_flag_enable(bm, e_new, SUBD_SPLIT);
 
 		BM_CHECK_ELEMENT(v);
 		if (v->e) BM_CHECK_ELEMENT(v->e);
 		if (v->e && v->e->l) BM_CHECK_ELEMENT(v->e->l->f);
 	}
 	
-	alter_co(bm, v1, &temp, params, 0, &ov1, &ov2);
-	alter_co(bm, v2, &temp, params, 1.0, &ov1, &ov2);
+	alter_co(bm, v1, &e_tmp, params, 0, &v1_tmp, &v2_tmp);
+	alter_co(bm, v2, &e_tmp, params, 1.0, &v1_tmp, &v2_tmp);
 }
 
 /* note: the patterns are rotated as necessary to
@@ -286,7 +286,7 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *par
 static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
                              BMVert **verts, const SubDParams *params)
 {
-	BMFace *nf;
+	BMFace *f_new;
 	int i, add, numcuts = params->numcuts;
 
 	/* if it's odd, the middle face is a quad, otherwise it's a triangle */
@@ -296,16 +296,16 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 			if (i == numcuts / 2) {
 				add -= 1;
 			}
-			connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
+			connect_smallest_face(bm, verts[i], verts[numcuts + add], &f_new);
 		}
 	}
 	else {
 		add = 2;
 		for (i = 0; i < numcuts; i++) {
-			connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
+			connect_smallest_face(bm, verts[i], verts[numcuts + add], &f_new);
 			if (i == numcuts / 2) {
 				add -= 1;
-				connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
+				connect_smallest_face(bm, verts[i], verts[numcuts + add], &f_new);
 			}
 		}
 
@@ -332,13 +332,13 @@ static const SubDPattern quad_1edge = {
 static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                   const SubDParams *params)
 {
-	BMFace *nf;
+	BMFace *f_new;
 	int i, numcuts = params->numcuts;
 	
 	for (i = 0; i < numcuts; i++) {
-		connect_smallest_face(bm, verts[i], verts[numcuts + (numcuts - i)], &nf);
+		connect_smallest_face(bm, verts[i], verts[numcuts + (numcuts - i)], &f_new);
 	}
-	connect_smallest_face(bm, verts[numcuts * 2 + 3], verts[numcuts * 2 + 1], &nf);
+	connect_smallest_face(bm, verts[numcuts * 2 + 3], verts[numcuts * 2 + 1], &f_new);
 }
 
 static const SubDPattern quad_2edge_path = {
@@ -360,27 +360,27 @@ static const SubDPattern quad_2edge_path = {
 static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                        const SubDParams *params)
 {
-	BMFace *nf;
-	BMVert *v, *lastv;
-	BMEdge *e, *ne, olde;
+	BMFace *f_new;
+	BMVert *v, *v_last;
+	BMEdge *e, *e_new, e_tmp;
 	int i, numcuts = params->numcuts;
 	
-	lastv = verts[numcuts];
+	v_last = verts[numcuts];
 
 	for (i = numcuts - 1; i >= 0; i--) {
-		e = connect_smallest_face(bm, verts[i], verts[numcuts + (numcuts - i)], &nf);
+		e = connect_smallest_face(bm, verts[i], verts[numcuts + (numcuts - i)], &f_new);
 
-		olde = *e;
-		v = bm_subdivide_edge_addvert(bm, e, &olde, params, 0.5f, 0.5f, &ne, e->v1, e->v2);
+		e_tmp = *e;
+		v = bm_subdivide_edge_addvert(bm, e, &e_tmp, params, 0.5f, 0.5f, &e_new, e->v1, e->v2);
 
 		if (i != numcuts - 1) {
-			connect_smallest_face(bm, lastv, v, &nf);
+			connect_smallest_face(bm, v_last, v, &f_new);
 		}
 
-		lastv = v;
+		v_last = v;
 	}
 
-	connect_smallest_face(bm, lastv, verts[numcuts * 2 + 2], &nf);
+	connect_smallest_face(bm, v_last, verts[numcuts * 2 + 2], &f_new);
 }
 
 static const SubDPattern quad_2edge_innervert = {
@@ -402,15 +402,15 @@ static const SubDPattern quad_2edge_innervert = {
 static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                  const SubDParams *params)
 {
-	BMFace *nf;
+	BMFace *f_new;
 	/* BMVert *v; */               /* UNUSED */
-	/* BMVert *lastv = verts[2]; */ /* UNUSED */
-	/* BMEdge *e, *ne; */          /* UNUSED */
+	/* BMVert *v_last = verts[2]; */ /* UNUSED */
+	/* BMEdge *e, *e_new; */          /* UNUSED */
 	int i, numcuts = params->numcuts;
 
 	for (i = 0; i < numcuts; i++) {
-		connect_smallest_face(bm, verts[i], verts[numcuts * 2 + 2], &nf);
-		connect_smallest_face(bm, verts[numcuts + (numcuts - i)], verts[numcuts * 2 + 2], &nf);
+		connect_smallest_face(bm, verts[i], verts[numcuts * 2 + 2], &f_new);
+		connect_smallest_face(bm, verts[numcuts + (numcuts - i)], verts[numcuts * 2 + 2], &f_new);
 	}
 }
 
@@ -435,21 +435,21 @@ static const SubDPattern quad_2edge_fan = {
 static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                              const SubDParams *params)
 {
-	BMFace *nf;
+	BMFace *f_new;
 	int i, add = 0, numcuts = params->numcuts;
 	
 	for (i = 0; i < numcuts; i++) {
 		if (i == numcuts / 2) {
 			if (numcuts % 2 != 0) {
-				connect_smallest_face(bm, verts[numcuts - i - 1 + add], verts[i + numcuts + 1], &nf);
+				connect_smallest_face(bm, verts[numcuts - i - 1 + add], verts[i + numcuts + 1], &f_new);
 			}
 			add = numcuts * 2 + 2;
 		}
-		connect_smallest_face(bm, verts[numcuts - i - 1 + add], verts[i + numcuts + 1], &nf);
+		connect_smallest_face(bm, verts[numcuts - i - 1 + add], verts[i + numcuts + 1], &f_new);
 	}
 
 	for (i = 0; i < numcuts / 2 + 1; i++) {
-		connect_smallest_face(bm, verts[i], verts[(numcuts - i) + numcuts * 2 + 1], &nf);
+		connect_smallest_face(bm, verts[i], verts[(numcuts - i) + numcuts * 2 + 1], &f_new);
 	}
 }
 
@@ -474,9 +474,9 @@ static const SubDPattern quad_3edge = {
 static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                  const SubDParams *params)
 {
-	BMFace *nf;
+	BMFace *f_new;
 	BMVert *v, *v1, *v2;
-	BMEdge *e, *ne, temp;
+	BMEdge *e, *e_new, e_tmp;
 	BMVert **lines;
 	int numcuts = params->numcuts;
 	int i, j, a, b, s = numcuts + 2 /* , totv = numcuts * 4 + 4 */;
@@ -501,25 +501,25 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		a = i;
 		b = numcuts + 1 + numcuts + 1 + (numcuts - i - 1);
 		
-		e = connect_smallest_face(bm, verts[a], verts[b], &nf);
+		e = connect_smallest_face(bm, verts[a], verts[b], &f_new);
 		if (!e)
 			continue;
 
 		BMO_elem_flag_enable(bm, e, ELE_INNER);
-		BMO_elem_flag_enable(bm, nf, ELE_INNER);
+		BMO_elem_flag_enable(bm, f_new, ELE_INNER);
 
 		
 		v1 = lines[(i + 1) * s] = verts[a];
 		v2 = lines[(i + 1) * s + s - 1] = verts[b];
 		
-		temp = *e;
+		e_tmp = *e;
 		for (a = 0; a < numcuts; a++) {
-			v = subdivideedgenum(bm, e, &temp, a, numcuts, params, &ne,
+			v = subdivideedgenum(bm, e, &e_tmp, a, numcuts, params, &e_new,
 			                     v1, v2);
 
 			BMESH_ASSERT(v != NULL);
 
-			BMO_elem_flag_enable(bm, ne, ELE_INNER);
+			BMO_elem_flag_enable(bm, e_new, ELE_INNER);
 			lines[(i + 1) * s + a + 1] = v;
 		}
 	}
@@ -528,12 +528,12 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		for (j = 1; j < numcuts + 1; j++) {
 			a = i * s + j;
 			b = (i - 1) * s + j;
-			e = connect_smallest_face(bm, lines[a], lines[b], &nf);
+			e = connect_smallest_face(bm, lines[a], lines[b], &f_new);
 			if (!e)
 				continue;
 
 			BMO_elem_flag_enable(bm, e, ELE_INNER);
-			BMO_elem_flag_enable(bm, nf, ELE_INNER);
+			BMO_elem_flag_enable(bm, f_new, ELE_INNER);
 		}
 	}
 
@@ -555,11 +555,11 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                             const SubDParams *params)
 {
-	BMFace *nf;
+	BMFace *f_new;
 	int i, numcuts = params->numcuts;
 	
 	for (i = 0; i < numcuts; i++) {
-		connect_smallest_face(bm, verts[i], verts[numcuts + 1], &nf);
+		connect_smallest_face(bm, verts[i], verts[numcuts + 1], &f_new);
 	}
 }
 
@@ -584,9 +584,9 @@ static const SubDPattern tri_1edge = {
 static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                 const SubDParams *params)
 {
-	BMFace *nf;
-	BMEdge *e, *ne, temp;
-	BMVert ***lines, *v, ov1, ov2;
+	BMFace *f_new;
+	BMEdge *e, *e_new, e_tmp;
+	BMVert ***lines, *v, v1_tmp, v2_tmp;
 	void *stackarr[1];
 	int i, j, a, b, numcuts = params->numcuts;
 	
@@ -607,26 +607,26 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		lines[i + 1] = MEM_callocN(sizeof(void *) * (2 + i), "triangle vert table row");
 		a = numcuts * 2 + 2 + i;
 		b = numcuts + numcuts - i;
-		e = connect_smallest_face(bm, verts[a], verts[b], &nf);
+		e = connect_smallest_face(bm, verts[a], verts[b], &f_new);
 		if (!e) goto cleanup;
 
 		BMO_elem_flag_enable(bm, e, ELE_INNER);
-		BMO_elem_flag_enable(bm, nf, ELE_INNER);
+		BMO_elem_flag_enable(bm, f_new, ELE_INNER);
 
 		lines[i + 1][0] = verts[a];
 		lines[i + 1][i + 1] = verts[b];
 		
-		temp = *e;
-		ov1 = *verts[a];
-		ov2 = *verts[b];
-		temp.v1 = &ov1;
-		temp.v2 = &ov2;
+		e_tmp = *e;
+		v1_tmp = *verts[a];
+		v2_tmp = *verts[b];
+		e_tmp.v1 = &v1_tmp;
+		e_tmp.v2 = &v2_tmp;
 		for (j = 0; j < i; j++) {
-			v = subdivideedgenum(bm, e, &temp, j, i, params, &ne,
+			v = subdivideedgenum(bm, e, &e_tmp, j, i, params, &e_new,
 			                     verts[a], verts[b]);
 			lines[i + 1][j + 1] = v;
 
-			BMO_elem_flag_enable(bm, ne, ELE_INNER);
+			BMO_elem_flag_enable(bm, e_new, ELE_INNER);
 		}
 	}
 	
@@ -644,15 +644,15 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	 */
 	for (i = 1; i < numcuts + 1; i++) {
 		for (j = 0; j < i; j++) {
-			e = connect_smallest_face(bm, lines[i][j], lines[i + 1][j + 1], &nf);
+			e = connect_smallest_face(bm, lines[i][j], lines[i + 1][j + 1], &f_new);
 
 			BMO_elem_flag_enable(bm, e, ELE_INNER);
-			BMO_elem_flag_enable(bm, nf, ELE_INNER);
+			BMO_elem_flag_enable(bm, f_new, ELE_INNER);
 
-			e = connect_smallest_face(bm, lines[i][j + 1], lines[i + 1][j + 1], &nf);
+			e = connect_smallest_face(bm, lines[i][j + 1], lines[i + 1][j + 1], &f_new);
 
 			BMO_elem_flag_enable(bm, e, ELE_INNER);
-			BMO_elem_flag_enable(bm, nf, ELE_INNER);
+			BMO_elem_flag_enable(bm, f_new, ELE_INNER);
 		}
 	}
 
@@ -711,7 +711,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(loops_split);
 	BMLoop **loops = NULL;
 	BLI_array_declare(loops);
-	BMLoop *nl, *l;
+	BMLoop *l_new, *l;
 	BMFace *face;
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
@@ -820,9 +820,9 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		matched = 0;
 
 		totesel = 0;
-		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, i) {
-			edges[i] = nl->e;
-			verts[i] = nl->v;
+		BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, i) {
+			edges[i] = l_new->e;
+			verts[i] = l_new->v;
 
 			if (BMO_elem_flag_test(bm, edges[i], SUBD_SPLIT)) {
 				if (!e1) e1 = edges[i];
@@ -1042,8 +1042,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				if (loops_split[j][0]) {
 					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == NULL);
 
-					/* BMFace *nf = */ /* UNUSED */
-					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &nl, NULL, false);
+					/* BMFace *f_new = */ /* UNUSED */
+					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &l_new, NULL, false);
 				}
 			}
 
@@ -1054,8 +1054,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		}
 
 		a = 0;
-		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, j) {
-			if (nl->v == facedata[i].start) {
+		BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, j) {
+			if (l_new->v == facedata[i].start) {
 				a = j + 1;
 				break;
 			}
@@ -1063,9 +1063,9 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 		BLI_array_grow_items(verts, face->len);
 
-		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, j) {
+		BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, j) {
 			b = (j - a + face->len) % face->len;
-			verts[b] = nl->v;
+			verts[b] = l_new->v;
 		}
 
 		BM_CHECK_ELEMENT(face);

@@ -163,7 +163,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 static void *bmw_ShellWalker_step(BMWalker *walker)
 {
 	BMEdge *curedge, *next = NULL;
-	BMVert *ov = NULL;
+	BMVert *v_old = NULL;
 	bool restrictpass = true;
 	BMwShellWalker shellWalk = *((BMwShellWalker *)BMW_current_state(walker));
 	
@@ -183,7 +183,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 			{
 				BMwShellWalker *newstate;
 
-				ov = BM_edge_other_vert(curedge, shellWalk.base);
+				v_old = BM_edge_other_vert(curedge, shellWalk.base);
 				
 				/* push a new state onto the stac */
 				newState = BMW_state_add(walker);
@@ -191,7 +191,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 				
 				/* populate the new stat */
 
-				newState->base = ov;
+				newState->base = v_old;
 				newState->curedge = curedge;
 			}
 		}

@@ -126,7 +126,7 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 {
 	void *src[2];
 	float w[2];
-	BMLoop *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
+	BMLoop *l_v1 = NULL, *l_v = NULL, *l_v2 = NULL;
 	BMLoop *l_iter = NULL;
 
 	if (!e1->l) {
@@ -139,23 +139,23 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 	l_iter = e1->l;
 	do {
 		if (l_iter->v == v1) {
-			v1loop = l_iter;
-			vloop = v1loop->next;
-			v2loop = vloop->next;
+			l_v1 = l_iter;
+			l_v = l_v1->next;
+			l_v2 = l_v->next;
 		}
 		else if (l_iter->v == v) {
-			v1loop = l_iter->next;
-			vloop = l_iter;
-			v2loop = l_iter->prev;
+			l_v1 = l_iter->next;
+			l_v = l_iter;
+			l_v2 = l_iter->prev;
 		}
 		
-		if (!v1loop || !v2loop)
+		if (!l_v1 || !l_v2)
 			return;
 		
-		src[0] = v1loop->head.data;
-		src[1] = v2loop->head.data;
+		src[0] = l_v1->head.data;
+		src[1] = l_v2->head.data;
 
-		CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, vloop->head.data);
+		CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_v->head.data);
 	} while ((l_iter = l_iter->radial_next) != e1->l);
 }
 

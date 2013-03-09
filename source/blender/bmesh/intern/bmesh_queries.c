@@ -680,7 +680,7 @@ bool BM_edge_is_wire(BMEdge *e)
  */
 bool BM_vert_is_manifold(BMVert *v)
 {
-	BMEdge *e, *oe;
+	BMEdge *e, *e_old;
 	BMLoop *l;
 	int len, count, flag;
 
@@ -691,7 +691,7 @@ bool BM_vert_is_manifold(BMVert *v)
 
 	/* count edges while looking for non-manifold edges */
 	len = 0;
-	oe = e = v->e;
+	e_old = e = v->e;
 	do {
 		/* loose edge or edge shared by more than two faces,
 		 * edges with 1 face user are OK, otherwise we could
@@ -700,14 +700,14 @@ bool BM_vert_is_manifold(BMVert *v)
 			return false;
 		}
 		len++;
-	} while ((e = bmesh_disk_edge_next(e, v)) != oe);
+	} while ((e = bmesh_disk_edge_next(e, v)) != e_old);
 
 	count = 1;
 	flag = 1;
 	e = NULL;
-	oe = v->e;
-	l = oe->l;
-	while (e != oe) {
+	e_old = v->e;
+	l = e_old->l;
+	while (e != e_old) {
 		l = (l->v == v) ? l->prev : l->next;
 		e = l->e;
 		count++; /* count the edges */
@@ -716,13 +716,13 @@ bool BM_vert_is_manifold(BMVert *v)
 			/* we've hit the edge of an open mesh, reset once */
 			flag = 0;
 			count = 1;
-			oe = e;
+			e_old = e;
 			e = NULL;
-			l = oe->l;
+			l = e_old->l;
 		}
 		else if (l->radial_next == l) {
 			/* break the loop */
-			e = oe;
+			e = e_old;
 		}
 		else {
 			l = l->radial_next;

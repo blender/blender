@@ -228,8 +228,8 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_DONE)) {
-			BMVert *v, *ov;
-			/* BMEdge *e2, *e3, *oe = e; */ /* UNUSED */
+			BMVert *v, *v_old;
+			/* BMEdge *e2, *e3, *e_old = e; */ /* UNUSED */
 			BMEdge *e2, *e3;
 			
 			if (c > 2) {
@@ -265,7 +265,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				e2 = e;
 
 			e = e2;
-			ov = v;
+			v_old = v;
 			do {
 				if (c == 0) {
 					BLI_array_append(ee1, e2);
@@ -301,7 +301,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 			
 			/* test for connected loops, and set cl1 or cl2 if so */
-			if (v == ov) {
+			if (v == v_old) {
 				if (c == 0) {
 					cl1 = 1;
 				}

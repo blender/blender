@@ -40,7 +40,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 {
 	BMIter liter;
 	BMLoop *l;
-	BMVert *v2, *doub;
+	BMVert *v2, *v_double;
 	bool split = false;
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
@@ -51,15 +51,15 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 		    (v2 != l->prev->v) &&
 		    (v2 != l->next->v))
 		{
-			doub = l->v;
+			v_double = l->v;
 			split = true;
 			break;
 		}
 	}
 
-	if (split && doub != v2) {
-		BMLoop *nl;
-		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, false);
+	if (split && v_double != v2) {
+		BMLoop *l_new;
+		BMFace *f2 = BM_face_split(bm, f, v_double, v2, &l_new, NULL, false);
 
 		remdoubles_splitface(f, bm, op, slot_targetmap);
 		remdoubles_splitface(f2, bm, op, slot_targetmap);

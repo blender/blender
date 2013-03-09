@@ -104,7 +104,7 @@ typedef struct KnifeEdge {
 	ListBase faces;
 	int draw;
 
-	BMEdge *e, *oe; /* non-NULL if this is an original edge */
+	BMEdge *e /* , *e_old */; /* non-NULL if this is an original edge */
 } KnifeEdge;
 
 typedef struct BMEdgeHit {
@@ -1994,14 +1994,14 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 		i++;
 
 		if (kfe->e && kfe->v1->v == kfe->e->v1 && kfe->v2->v == kfe->e->v2) {
-			kfe->oe = kfe->e;
+			kfe->e_old = kfe->e;
 			continue;
 		}
 
 		j++;
 
 		if (kfe->e) {
-			kfe->oe = kfe->e;
+			kfe->e_old = kfe->e;
 
 			BMO_elem_flag_enable(bm, kfe->e, DEL);
 			BMO_elem_flag_disable(bm, kfe->e, BOUNDARY);
@@ -2027,13 +2027,13 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 
 		if (!kfe->v1 || !kfe->v2 || kfe->v1->inspace || kfe->v2->inspace)
 			continue;
-		if (!(kfe->oe && kfe->v1->v == kfe->oe->v1 && kfe->v2->v == kfe->oe->v2))
+		if (!(kfe->e_old && kfe->v1->v == kfe->e_old->v1 && kfe->v2->v == kfe->e_old->v2))
 			continue;
 
 		k++;
 
 		BMO_elem_flag_enable(bm, kfe->e, BOUNDARY);
-		kfe->oe = kfe->e;
+		kfe->e_old = kfe->e;
 
 		for (ref = kfe->faces.first; ref; ref = ref->next) {
 			f = ref->ref;
@@ -2096,7 +2096,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			if (sf_vert->poly_nr > 1 && sf_vert_last->poly_nr > 1) {
 				ScanFillEdge *sf_edge;
 				sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
-				if (entry->kfe->oe)
+				if (entry->kfe->e_old)
 					sf_edge->f = SF_EDGE_BOUNDARY;  /* mark as original boundary edge */
 
 				BMO_elem_flag_disable(bm, entry->kfe->e->v1, DEL);
