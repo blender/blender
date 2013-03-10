@@ -74,19 +74,6 @@ void BKE_brush_sample_tex_2D(const struct Scene *scene, struct Brush *brush, con
 void BKE_brush_imbuf_new(const struct Scene *scene, struct Brush *brush, short flt, short texfalloff, int size,
                          struct ImBuf **imbuf, int use_color_correction);
 
-/* painting */
-struct BrushPainter;
-typedef struct BrushPainter BrushPainter;
-typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, const float lastpos[2], const float pos[2]);
-
-BrushPainter *brush_painter_2d_new(struct Scene *scene, struct Brush *brush);
-void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt,
-                                     short texonly, int size);
-int brush_painter_2d_paint(BrushPainter *painter, BrushFunc func, const float pos[2],
-                            double time, float pressure, void *user, int use_color_correction);
-void brush_painter_2d_break_stroke(BrushPainter *painter);
-void brush_painter_2d_free(BrushPainter *painter);
-
 /* texture */
 unsigned int *BKE_brush_gen_texture_cache(struct Brush *br, int half_side);
 
