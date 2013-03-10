@@ -57,6 +57,18 @@ else:
     scons_cmd = ['python', 'scons/scons.py']
     scons_options = ['BF_FANCY=False']
 
+    # We're using the same rules as release builder, so tweak
+    # build and install dirs
+    build_dir = os.path.join('..', 'build', builder)
+    install_dir = os.path.join('..', 'install', builder)
+
+    # Clean install directory so we'll be sure there's no
+    if os.path.isdir(install_dir):
+        shutil.rmtree(install_dir)
+
+    buildbot_dir = os.path.dirname(os.path.realpath(__file__))
+    config_dir = os.path.join(buildbot_dir, 'config')
+
     if builder.find('linux') != -1:
         import shutil
 
@@ -81,19 +93,7 @@ else:
         prog_scons_cmd = ['schroot', '-c', chroot_name, '--'] + scons_cmd
         cuda_scons_cmd = ['schroot', '-c', cuda_chroot, '--'] + scons_cmd
 
-        # We're using the same rules as release builder, so tweak
-        # build and install dirs
-        build_dir = os.path.join('..', 'build', builder)
-        install_dir = os.path.join('..', 'install', builder)
-
         common_options = ['BF_INSTALLDIR=' + install_dir] + scons_options
-
-        # Clean install directory so we'll be sure there's no
-        if os.path.isdir(install_dir):
-            shutil.rmtree(install_dir)
-
-        buildbot_dir = os.path.dirname(os.path.realpath(__file__))
-        config_dir = os.path.join(buildbot_dir, 'config')
 
         for config in configs:
             config_fpath = os.path.join(config_dir, config)
@@ -142,6 +142,14 @@ else:
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             if builder.find('mingw') != -1:
                 scons_options.append('BF_TOOLSET=mingw')
+
+        elif builder.find('mac') != -1:
+            if builder.find('x86_64') != -1:
+                config = 'user-config-mac-x86_64.py'
+            else:
+                config = 'user-config-mac-i386.py'
+
+            scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
 
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
         sys.exit(retcode)
