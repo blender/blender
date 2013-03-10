@@ -465,7 +465,6 @@ void ED_operatortypes_paint(void)
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);
 	WM_operatortype_append(PAINT_OT_image_paint);
-	WM_operatortype_append(PAINT_OT_image_paint_proj);
 	WM_operatortype_append(PAINT_OT_sample_color);
 	WM_operatortype_append(PAINT_OT_grab_clone);
 	WM_operatortype_append(PAINT_OT_clone_cursor_set);
@@ -534,7 +533,7 @@ static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *UNUSED(path
 typedef enum {
 	RC_COLOR = 1,
 	RC_ROTATION = 2,
-	RC_ZOOM = 4,
+	RC_ZOOM = 4
 } RCFlags;
 
 static void set_brush_rc_path(PointerRNA *ptr, const char *brush_path,
@@ -760,8 +759,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Image Paint", 0, 0);
 	keymap->poll = image_texture_paint_poll;
 
-//	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_image_paint_proj", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_clone_cursor_set", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);

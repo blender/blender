@@ -206,6 +206,7 @@ typedef struct ProjPaintState {
 
 	Brush *brush;
 	short tool, blend;
+	int orig_brush_size;
 	Object *ob;
 	/* end similarities with ImagePaintState */
 
@@ -339,117 +340,6 @@ static const float proj_pixel_soften_v2[PROJ_PIXEL_SOFTEN_TOT][2] = {
 };
 
 /* Finish projection painting structs */
-
-typedef struct UndoImageTile {
-	struct UndoImageTile *next, *prev;
-
-	char idname[MAX_ID_NAME];  /* name instead of pointer*/
-	char ibufname[IB_FILENAME_SIZE];
-
-	union {
-		float        *fp;
-		unsigned int *uint;
-		void         *pt;
-	} rect;
-	int x, y;
-
-	short source, use_float;
-	char gen_type;
-} UndoImageTile;
-
-/* UNDO */
-
-static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int restore)
-{
-	/* copy or swap contents of tile->rect and region in ibuf->rect */
-	IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x * IMAPAINT_TILE_SIZE,
-	            tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
-
-	if (ibuf->rect_float) {
-		SWAP(float *, tmpibuf->rect_float, tile->rect.fp);
-	}
-	else {
-		SWAP(unsigned int *, tmpibuf->rect, tile->rect.uint);
-	}
-
-	if (restore)
-		IMB_rectcpy(ibuf, tmpibuf, tile->x * IMAPAINT_TILE_SIZE,
-		            tile->y * IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
-}
-
-static void image_undo_restore(bContext *C, ListBase *lb)
-{
-	Main *bmain = CTX_data_main(C);
-	Image *ima = NULL;
-	ImBuf *ibuf, *tmpibuf;
-	UndoImageTile *tile;
-
-	tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
-	                         IB_rectfloat | IB_rect);
-
-	for (tile = lb->first; tile; tile = tile->next) {
-		short use_float;
-
-		/* find image based on name, pointer becomes invalid with global undo */
-		if (ima && strcmp(tile->idname, ima->id.name) == 0) {
-			/* ima is valid */
-		}
-		else {
-			ima = BLI_findstring(&bmain->image, tile->idname, offsetof(ID, name));
-		}
-
-		ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-
-		if (ima && ibuf && strcmp(tile->ibufname, ibuf->name) != 0) {
-			/* current ImBuf filename was changed, probably current frame
-			 * was changed when paiting on image sequence, rather than storing
-			 * full image user (which isn't so obvious, btw) try to find ImBuf with
-			 * matched file name in list of already loaded images */
-
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-
-			ibuf = BLI_findstring(&ima->ibufs, tile->ibufname, offsetof(ImBuf, name));
-		}
-
-		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-			continue;
-		}
-
-		if (ima->gen_type != tile->gen_type || ima->source != tile->source) {
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-			continue;
-		}
-
-		use_float = ibuf->rect_float ? 1 : 0;
-
-		if (use_float != tile->use_float) {
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-			continue;
-		}
-
-		undo_copy_tile(tile, tmpibuf, ibuf, 1);
-
-		GPU_free_image(ima); /* force OpenGL reload */
-		if (ibuf->rect_float)
-			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
-		if (ibuf->mipmap[0])
-			ibuf->userflags |= IB_MIPMAP_INVALID;  /* force mipmap recreatiom */
-		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
-		BKE_image_release_ibuf(ima, ibuf, NULL);
-	}
-
-	IMB_freeImBuf(tmpibuf);
-}
-
-static void image_undo_free(ListBase *lb)
-{
-	UndoImageTile *tile;
-
-	for (tile = lb->first; tile; tile = tile->next)
-		MEM_freeN(tile->rect.pt);
-}
 
 static Image *project_paint_face_image(const ProjPaintState *ps, MTFace *dm_mtface, int face_index)
 {
@@ -3341,7 +3231,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	BLI_linklist_free(image_LinkList, NULL);
 }
 
-static void project_paint_begin_clone(ProjPaintState *ps, int mouse[2])
+static void paint_proj_begin_clone(ProjPaintState *ps, int mouse[2])
 {
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
@@ -4224,8 +4114,9 @@ static int project_paint_op(void *state, const float lastpos[2], const float pos
 }
 
 
-static int project_paint_stroke(ProjPaintState *ps, const int prevmval_i[2], const int mval_i[2])
+int paint_proj_stroke(void *pps, const int prevmval_i[2], const int mval_i[2])
 {
+	ProjPaintState *ps = pps;
 	int a, redraw;
 	float pos[2], prev_pos[2];
 
@@ -4246,81 +4137,6 @@ static int project_paint_stroke(ProjPaintState *ps, const int prevmval_i[2], con
 	return 0;
 }
 
-/* Imagepaint Partial Redraw & Dirty Region */
-
-
-/************************ image paint poll ************************/
-
-static Brush *image_paint_brush(bContext *C)
-{
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *settings = scene->toolsettings;
-
-	return paint_brush(&settings->imapaint.paint);
-}
-
-static int image_paint_poll(bContext *C)
-{
-	Object *obact = CTX_data_active_object(C);
-
-	if (!image_paint_brush(C))
-		return 0;
-
-	if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
-		return 1;
-	}
-	else {
-		SpaceImage *sima = CTX_wm_space_image(C);
-
-		if (sima) {
-			ARegion *ar = CTX_wm_region(C);
-
-			if ((sima->mode == SI_MODE_PAINT) && ar->regiontype == RGN_TYPE_WINDOW) {
-				return 1;
-			}
-		}
-	}
-
-	return 0;
-}
-
-/************************ paint operator ************************/
-
-typedef enum TexPaintMode {
-	PAINT_MODE_2D,
-	PAINT_MODE_3D_PROJECT
-} TexPaintMode;
-
-typedef struct PaintOperation {
-	TexPaintMode mode;
-
-	void *custom_paint;
-	ProjPaintState ps;
-
-	int first;
-	int prevmouse[2];
-	int orig_brush_size;
-	double starttime;
-
-	ViewContext vc;
-	wmTimer *timer;
-} PaintOperation;
-
-static void paint_redraw(const bContext *C, PaintOperation *pop, int final)
-{
-	if (pop->mode == PAINT_MODE_2D) {
-		paint_2d_redraw(C, pop->custom_paint, final);
-	}
-	else {
-		if (final) {
-			/* compositor listener deals with updating */
-			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, NULL);
-		}
-		else {
-			ED_region_tag_redraw(CTX_wm_region(C));
-		}
-	}
-}
 
 /* initialize project paint settings from context */
 static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
@@ -4389,215 +4205,249 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 
 	if (ps->normal_angle_range <= 0.0f)
 		ps->do_mask_normal = FALSE;  /* no need to do blending */
+
+	return;
 }
 
-static PaintOperation * texture_paint_init(bContext *C, wmOperator *op)
+void *paint_proj_new_stroke(bContext *C, Object *ob, int mouse[2]) {
+	ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
+	project_state_init(C, ob, ps);
+
+	/* needed so multiple threads don't try to initialize the brush at once (can leak memory) */
+	curvemapping_initialize(ps->brush->curve);
+
+	paint_brush_init_tex(ps->brush);
+
+	ps->source = PROJ_SRC_VIEW;
+
+	if (ps->ob == NULL || !(ps->ob->lay & ps->v3d->lay)) {
+		MEM_freeN(ps);
+		return NULL;
+	}
+
+	ps->orig_brush_size = BKE_brush_size_get(ps->scene, ps->brush);
+
+	/* Don't allow brush size below 2 */
+	if (BKE_brush_size_get(ps->scene, ps->brush) < 2)
+		BKE_brush_size_set(ps->scene, ps->brush, 2);
+
+	/* allocate and initialize spatial data structures */
+	project_paint_begin(ps);
+
+	if (ps->dm == NULL) {
+		MEM_freeN(ps);
+		return NULL;
+	}
+
+	paint_proj_begin_clone(ps, mouse);
+
+	return ps;
+}
+
+void paint_proj_stroke_done(void *pps)
 {
+	ProjPaintState *ps = pps;
+	BKE_brush_size_set(ps->scene, ps->brush, ps->orig_brush_size);
+	paint_brush_exit_tex(ps->brush);
+
+	project_paint_end(ps);
+	MEM_freeN(ps);
+}
+/* use project paint to re-apply an image */
+static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
+{
+	Image *image = BLI_findlink(&CTX_data_main(C)->image, RNA_enum_get(op->ptr, "image"));
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *settings = scene->toolsettings;
-	Brush *brush = paint_brush(&settings->imapaint.paint);
-	PaintOperation *pop = MEM_callocN(sizeof(PaintOperation), "PaintOperation"); /* caller frees */
+	ProjPaintState ps = {NULL};
+	int orig_brush_size;
+	IDProperty *idgroup;
+	IDProperty *view_data = NULL;
 
-	pop->first = 1;
+	project_state_init(C, OBACT, &ps);
 
-	view3d_set_viewcontext(C, &pop->vc);
-
-	/* initialize from context */
-	if (CTX_wm_region_view3d(C)) {
-		pop->mode = PAINT_MODE_3D_PROJECT;
-	}
-	else {
-		pop->mode = PAINT_MODE_2D;
-		pop->custom_paint = paint_2d_new_stroke(C, op);
-		if (!pop->custom_paint) {
-			MEM_freeN(pop);
-			return NULL;
-		}
-	}
-
-	pop->orig_brush_size = BKE_brush_size_get(scene, brush);
-
-	/* note, if we have no UVs on the derived mesh, then we must return here */
-	if (pop->mode == PAINT_MODE_3D_PROJECT) {
-
-		/* initialize all data from the context */
-		project_state_init(C, OBACT, &pop->ps);
-
-		/* needed so multiple threads don't try to initialize the brush at once (can leak memory) */
-		curvemapping_initialize(pop->ps.brush->curve);
-
-		paint_brush_init_tex(pop->ps.brush);
-
-		pop->ps.source = PROJ_SRC_VIEW;
-
-		if (pop->ps.ob == NULL || !(pop->ps.ob->lay & pop->ps.v3d->lay)) {
-			MEM_freeN(pop);
-			return NULL;
-		}
-
-		/* Don't allow brush size below 2 */
-		if (BKE_brush_size_get(scene, brush) < 2)
-			BKE_brush_size_set(scene, brush, 2);
-
-		/* allocate and initialize spatial data structures */
-		project_paint_begin(&pop->ps);
-
-		if (pop->ps.dm == NULL) {
-			MEM_freeN(pop);
-			return NULL;
-		}
-	}
-
-	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
-	                      image_undo_restore, image_undo_free);
-
-	{
-		UnifiedPaintSettings *ups = &settings->unified_paint_settings;
-		ups->draw_pressure = true;
-	}
-
-	return pop;
-}
-
-static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
-{
-	PaintOperation *pop = paint_stroke_mode_data(stroke);
-	Scene *scene = CTX_data_scene(C);
-	Brush *brush = paint_brush(&scene->toolsettings->imapaint.paint);
-
-	/* initial brush values. Maybe it should be considered moving these to stroke system */
-	float startsize = BKE_brush_size_get(scene, brush);
-	float startalpha = BKE_brush_alpha_get(scene, brush);
-
-	float mousef[2];
-	float pressure;
-	int mouse[2], redraw, eraser;
-
-	RNA_float_get_array(itemptr, "mouse", mousef);
-	mouse[0] = (int)(mousef[0]);
-	mouse[1] = (int)(mousef[1]);
-	pressure = RNA_float_get(itemptr, "pressure");
-	eraser = RNA_boolean_get(itemptr, "pen_flip");
-
-	if (BKE_brush_use_alpha_pressure(scene, brush))
-		BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * pressure));
-	if (BKE_brush_use_size_pressure(scene, brush))
-		BKE_brush_size_set(scene, brush, max_ff(1.0f, startsize * pressure));
-
-	if (pop->mode == PAINT_MODE_3D_PROJECT) {
-		if (pop->first)
-			project_paint_begin_clone(&pop->ps, mouse);
-
-		redraw = project_paint_stroke(&pop->ps, pop->prevmouse, mouse);
-		pop->prevmouse[0] = mouse[0];
-		pop->prevmouse[1] = mouse[1];
-
-	}
-	else {
-		redraw = paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser);
-		pop->prevmouse[0] = mouse[0];
-		pop->prevmouse[1] = mouse[1];
-	}
-
-	/* restore brush values */
-	BKE_brush_alpha_set(scene, brush, startalpha);
-	BKE_brush_size_set(scene, brush, startsize);
-
-
-	if (redraw)
-		paint_redraw(C, pop, 0);
-
-	pop->first = 0;
-}
-
-static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
-{
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *settings = scene->toolsettings;
-	PaintOperation *pop = paint_stroke_mode_data(stroke);
-
-	if (pop->timer)
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), pop->timer);
-
-	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-
-	if (pop->mode == PAINT_MODE_3D_PROJECT) {
-		BKE_brush_size_set(scene, pop->ps.brush, pop->orig_brush_size);
-		paint_brush_exit_tex(pop->ps.brush);
-
-		project_paint_end(&pop->ps);
-	}
-	else {
-		paint_2d_stroke_done(pop->custom_paint);
-	}
-
-	paint_redraw(C, pop, 1);
-	undo_paint_push_end(UNDO_PAINT_IMAGE);
-
-	/* duplicate warning, see texpaint_init
-	if (pop->s.warnmultifile)
-		BKE_reportf(op->reports, RPT_WARNING, "Image requires 4 color channels to paint: %s", pop->s.warnmultifile);
-	if (pop->s.warnpackedfile)
-		BKE_reportf(op->reports, RPT_WARNING, "Packed MultiLayer files cannot be painted: %s", pop->s.warnpackedfile);
-	*/
-	MEM_freeN(pop);
-
-	{
-		UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-		ups->draw_pressure = false;
-	}
-}
-
-static int paint_stroke_test_start(bContext *UNUSED(C), wmOperator *UNUSED(op), const float UNUSED(mouse[2]))
-{
-	return true;
-}
-
-
-static int paint_invoke_proj(bContext *C, wmOperator *op, wmEvent *event)
-{
-	PaintOperation *pop;
-	struct PaintStroke *stroke;
-	int retval;
-
-	if (!(pop = texture_paint_init(C, op))) {
+	if (ps.ob == NULL || ps.ob->type != OB_MESH) {
+		BKE_report(op->reports, RPT_ERROR, "No active mesh object");
 		return OPERATOR_CANCELLED;
 	}
 
-	stroke = op->customdata = paint_stroke_new(C, NULL, paint_stroke_test_start,
-	                                  paint_stroke_update_step,
-	                                  paint_stroke_done, event->type);
-	paint_stroke_set_mode_data(stroke, pop);
-	/* add modal handler */
-	WM_event_add_modal_handler(C, op);
+	if (image == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Image could not be found");
+		return OPERATOR_CANCELLED;
+	}
 
-	retval = op->type->modal(C, op, event);
-	OPERATOR_RETVAL_CHECK(retval);
-	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
+	ps.reproject_image = image;
+	ps.reproject_ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
-	return OPERATOR_RUNNING_MODAL;
+	if (ps.reproject_ibuf == NULL || ps.reproject_ibuf->rect == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Image data could not be found");
+		return OPERATOR_CANCELLED;
+	}
+
+	idgroup = IDP_GetProperties(&image->id, 0);
+
+	if (idgroup) {
+		view_data = IDP_GetPropertyTypeFromGroup(idgroup, PROJ_VIEW_DATA_ID, IDP_ARRAY);
+
+		/* type check to make sure its ok */
+		if (view_data->len != PROJ_VIEW_DATA_SIZE || view_data->subtype != IDP_FLOAT) {
+			BKE_report(op->reports, RPT_ERROR, "Image project data invalid");
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (view_data) {
+		/* image has stored view projection info */
+		ps.source = PROJ_SRC_IMAGE_VIEW;
+	}
+	else {
+		ps.source = PROJ_SRC_IMAGE_CAM;
+
+		if (scene->camera == NULL) {
+			BKE_report(op->reports, RPT_ERROR, "No active camera set");
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* override */
+	ps.is_texbrush = 0;
+	ps.do_masking = false;
+	orig_brush_size = BKE_brush_size_get(scene, ps.brush);
+	BKE_brush_size_set(scene, ps.brush, 32); /* cover the whole image */
+
+	ps.tool = PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
+
+	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
+
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
+	                      image_undo_restore, image_undo_free);
+
+	/* allocate and initialize spatial data structures */
+	project_paint_begin(&ps);
+
+	if (ps.dm == NULL) {
+		BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		float pos[2] = {0.0, 0.0};
+		float lastpos[2] = {0.0, 0.0};
+		int a;
+
+		for (a = 0; a < ps.image_tot; a++)
+			partial_redraw_array_init(ps.projImages[a].partRedrawRect);
+
+		project_paint_op(&ps, lastpos, pos);
+
+		project_image_refresh_tagged(&ps);
+
+		for (a = 0; a < ps.image_tot; a++) {
+			GPU_free_image(ps.projImages[a].ima);
+			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ps.projImages[a].ima);
+		}
+	}
+
+	project_paint_end(&ps);
+
+	scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
+	BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+
+	return OPERATOR_FINISHED;
 }
 
-
-void PAINT_OT_image_paint_proj(wmOperatorType *ot)
+void PAINT_OT_project_image(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Image Paint";
-	ot->idname = "PAINT_OT_image_paint_proj";
-	ot->description = "Paint a stroke into the image";
+	ot->name = "Project Image";
+	ot->idname = "PAINT_OT_project_image";
+	ot->description = "Project an edited render from the active camera back onto the object";
 
 	/* api callbacks */
-	ot->invoke = paint_invoke_proj;
-	ot->modal = paint_stroke_modal;
-	/* ot->exec = paint_exec; <-- needs stroke property */
-	ot->poll = image_paint_poll;
-	ot->cancel = paint_stroke_cancel;
+	ot->invoke = WM_enum_search_invoke;
+	ot->exec = texture_paint_camera_project_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	prop = RNA_def_enum(ot->srna, "image", DummyRNA_NULL_items, 0, "Image", "");
+	RNA_def_enum_funcs(prop, RNA_image_itemf);
+	ot->prop = prop;
 }
 
+static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
+{
+	Image *image;
+	ImBuf *ibuf;
+	char filename[FILE_MAX];
+
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *settings = scene->toolsettings;
+	int w = settings->imapaint.screen_grab_size[0];
+	int h = settings->imapaint.screen_grab_size[1];
+	int maxsize;
+	char err_out[256] = "unknown";
+
+	RNA_string_get(op->ptr, "filepath", filename);
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxsize);
+
+	if (w > maxsize) w = maxsize;
+	if (h > maxsize) h = maxsize;
+
+	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, FALSE, R_ALPHAPREMUL, err_out);
+	if (!ibuf) {
+		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
+		/* but could be other reasons. Should be handled in the future. nazgul */
+		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer: %s", err_out);
+		return OPERATOR_CANCELLED;
+	}
+
+	image = BKE_image_add_from_imbuf(ibuf);
+
+	if (image) {
+		/* now for the trickyness. store the view projection here!
+		 * re-projection will reuse this */
+		View3D *v3d = CTX_wm_view3d(C);
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+		IDPropertyTemplate val;
+		IDProperty *idgroup = IDP_GetProperties(&image->id, 1);
+		IDProperty *view_data;
+		int orth;
+		float *array;
+
+		val.array.len = PROJ_VIEW_DATA_SIZE;
+		val.array.type = IDP_FLOAT;
+		view_data = IDP_New(IDP_ARRAY, &val, PROJ_VIEW_DATA_ID);
+
+		array = (float *)IDP_Array(view_data);
+		memcpy(array, rv3d->winmat, sizeof(rv3d->winmat)); array += sizeof(rv3d->winmat) / sizeof(float);
+		memcpy(array, rv3d->viewmat, sizeof(rv3d->viewmat)); array += sizeof(rv3d->viewmat) / sizeof(float);
+		orth = project_paint_view_clip(v3d, rv3d, &array[0], &array[1]);
+		array[2] = orth ? 1.0f : 0.0f; /* using float for a bool is dodgy but since its an extra member in the array... easier then adding a single bool prop */
+
+		IDP_AddToGroup(idgroup, view_data);
+
+		rename_id(&image->id, "image_view");
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_image_from_view(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Image from View";
+	ot->idname = "PAINT_OT_image_from_view";
+	ot->description = "Make an image from the current 3D view for re-projection";
+
+	/* api callbacks */
+	ot->exec = texture_paint_image_from_view_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER;
+
+	RNA_def_string_file_name(ot->srna, "filepath", "", FILE_MAX, "File Path", "Name of the file");
+}

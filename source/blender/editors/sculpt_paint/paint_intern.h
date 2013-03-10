@@ -119,6 +119,8 @@ typedef struct ImagePaintPartialRedraw {
 
 int image_texture_paint_poll(struct bContext *C);
 void *image_undo_push_tile(struct Image *ima, struct ImBuf *ibuf, struct ImBuf **tmpibuf, int x_tile, int y_tile);
+void image_undo_restore(struct bContext *C, struct ListBase *lb);
+void image_undo_free(struct ListBase *lb);
 void imapaint_image_update(struct SpaceImage *sima, struct Image *image, struct ImBuf *ibuf, short texpaint);
 struct ImagePaintPartialRedraw *get_imapaintpartial(void);
 void set_imapaintpartial(struct ImagePaintPartialRedraw * ippr);
@@ -128,6 +130,9 @@ void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
 void paint_2d_redraw(const bContext *C, void *ps, int final);
 void paint_2d_stroke_done(void *ps);
 int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser);
+void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, int mouse[2]);
+int paint_proj_stroke(void *ps, const int prevmval_i[2], const int mval_i[2]);
+void paint_proj_stroke_done(void *ps);
 void paint_brush_init_tex(struct Brush *brush);
 void paint_brush_exit_tex(struct Brush *brush);
 
@@ -140,7 +145,7 @@ void PAINT_OT_project_image(struct wmOperatorType *ot);
 void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 
 /* new texture painting */
-void PAINT_OT_image_paint_proj(struct wmOperatorType *ot);
+void PAINT_OT_image_paint(struct wmOperatorType *ot);
 
 /* uv sculpting */
 int uv_sculpt_poll(struct bContext *C);
