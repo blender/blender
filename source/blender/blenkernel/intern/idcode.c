@@ -89,9 +89,11 @@ static IDType *idtype_from_name(const char *str)
 {
 	int i = nidtypes;
 	
-	while (i--)
-		if (strcmp(str, idtypes[i].name) == 0)
+	while (i--) {
+		if (STREQ(str, idtypes[i].name)) {
 			return &idtypes[i];
+		}
+	}
 
 	return NULL;
 }

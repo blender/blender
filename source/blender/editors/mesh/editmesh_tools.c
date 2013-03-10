@@ -4664,7 +4664,7 @@ static int edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop
 	int action = RNA_enum_get(ptr, "type");
 
 	/* Only show seed for randomize action! */
-	if (strcmp(prop_id, "seed") == 0) {
+	if (STREQ(prop_id, "seed")) {
 		if (action == SRT_RANDOMIZE)
 			return TRUE;
 		else
@@ -4672,7 +4672,7 @@ static int edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop
 	}
 
 	/* Hide seed for reverse and randomize actions! */
-	if (strcmp(prop_id, "reverse") == 0) {
+	if (STREQ(prop_id, "reverse")) {
 		if (ELEM(action, SRT_RANDOMIZE, SRT_REVERSE))
 			return FALSE;
 		else

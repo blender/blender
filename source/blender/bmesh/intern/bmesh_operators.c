@@ -1521,7 +1521,7 @@ static int bmo_name_to_slotcode(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char
 	int i = 0;
 
 	while (slot_args->slot_name) {
-		if (strncmp(identifier, slot_args->slot_name, MAX_SLOTNAME) == 0) {
+		if (STREQLEN(identifier, slot_args->slot_name, MAX_SLOTNAME)) {
 			return i;
 		}
 		slot_args++;
@@ -1546,7 +1546,7 @@ static int bmo_opname_to_opcode(const char *opname)
 	int i;
 
 	for (i = 0; i < bmo_opdefines_total; i++) {
-		if (!strcmp(opname, bmo_opdefines[i]->opname)) {
+		if (STREQ(opname, bmo_opdefines[i]->opname)) {
 			return i;
 		}
 	}

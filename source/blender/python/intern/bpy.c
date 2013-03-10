@@ -153,10 +153,10 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 	
 	/* stupid string compare */
-	if      (!strcmp(type, "DATAFILES")) folder_id = BLENDER_USER_DATAFILES;
-	else if (!strcmp(type, "CONFIG"))    folder_id = BLENDER_USER_CONFIG;
-	else if (!strcmp(type, "SCRIPTS"))   folder_id = BLENDER_USER_SCRIPTS;
-	else if (!strcmp(type, "AUTOSAVE"))  folder_id = BLENDER_USER_AUTOSAVE;
+	if      (STREQ(type, "DATAFILES")) folder_id = BLENDER_USER_DATAFILES;
+	else if (STREQ(type, "CONFIG"))    folder_id = BLENDER_USER_CONFIG;
+	else if (STREQ(type, "SCRIPTS"))   folder_id = BLENDER_USER_SCRIPTS;
+	else if (STREQ(type, "AUTOSAVE"))  folder_id = BLENDER_USER_AUTOSAVE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;
@@ -197,9 +197,9 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 
 	/* stupid string compare */
-	if      (!strcmp(type, "USER"))    folder_id = BLENDER_RESOURCE_PATH_USER;
-	else if (!strcmp(type, "LOCAL"))   folder_id = BLENDER_RESOURCE_PATH_LOCAL;
-	else if (!strcmp(type, "SYSTEM"))  folder_id = BLENDER_RESOURCE_PATH_SYSTEM;
+	if      (STREQ(type, "USER"))    folder_id = BLENDER_RESOURCE_PATH_USER;
+	else if (STREQ(type, "LOCAL"))   folder_id = BLENDER_RESOURCE_PATH_LOCAL;
+	else if (STREQ(type, "SYSTEM"))  folder_id = BLENDER_RESOURCE_PATH_SYSTEM;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;

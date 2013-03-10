@@ -1427,7 +1427,9 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const cha
 	{
 		arg_name = RNA_property_identifier(prop);
 
-		if (strcmp(arg_name, "rna_type") == 0) continue;
+		if (STREQ(arg_name, "rna_type")) {
+			continue;
+		}
 
 		if (kw == NULL) {
 			PyErr_Format(PyExc_TypeError,
@@ -2223,7 +2225,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
 		RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop)
 		{
 			ID *id = itemptr.data; /* always an ID */
-			if (id->lib == lib && (strncmp(keyname, id->name + 2, sizeof(id->name) - 2) == 0)) {
+			if (id->lib == lib && (STREQLEN(keyname, id->name + 2, sizeof(id->name) - 2))) {
 				found = true;
 				if (r_ptr) {
 					*r_ptr = itemptr;
@@ -3463,7 +3465,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 	}
 	else if (name[0] == '_') {  /* rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups */
 		/* annoying exception, maybe we need to have different types for this... */
-		if ((strcmp(name, "__getitem__") == 0 || strcmp(name, "__setitem__") == 0) && !RNA_struct_idprops_check(self->ptr.type)) {
+		if ((STREQ(name, "__getitem__") || STREQ(name, "__setitem__")) && !RNA_struct_idprops_check(self->ptr.type)) {
 			PyErr_SetString(PyExc_AttributeError, "bpy_struct: no __getitem__ support for this type");
 			ret = NULL;
 		}
@@ -4939,7 +4941,7 @@ static PyObject *small_dict_get_item_string(PyObject *dict, const char *key_look
 
 	while (PyDict_Next(dict, &pos, &key, &value)) {
 		if (PyUnicode_Check(key)) {
-			if (strcmp(key_lookup, _PyUnicode_AsString(key)) == 0) {
+			if (STREQ(key_lookup, _PyUnicode_AsString(key))) {
 				return value;
 			}
 		}
@@ -5139,7 +5141,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 				RNA_parameter_list_begin(&parms, &iter);
 				for (; iter.valid; RNA_parameter_list_next(&iter)) {
 					parm = iter.parm;
-					if (strcmp(arg_name, RNA_property_identifier(parm)) == 0) {
+					if (STREQ(arg_name, RNA_property_identifier(parm))) {
 						found = true;
 						break;
 					}
@@ -6937,7 +6939,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			/* Sneaky workaround to use the class name as the bl_idname */
 
 #define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
-	(strcmp(identifier, rna_attr) == 0) {                                     \
+	(STREQ(identifier, rna_attr)) {                                           \
 		item = PyObject_GetAttr(py_class, py_attr);                           \
 		if (item && item != Py_None) {                                        \
 			if (pyrna_py_to_prop(dummyptr, prop, NULL,                        \

@@ -326,6 +326,22 @@ typedef bool _BLI_Bool;
 #define STRINGIFY_APPEND(a, b) "" a #b
 #define STRINGIFY(x) STRINGIFY_APPEND("", x)
 
+/* generic strcmp macros */
+#define STREQ(a, b) (strcmp(a, b) == 0)
+#define STRNEQ(a, b) (!STREQ(a, b))
+
+#define STRCASEEQ(a, b) (strcasecmp(a, b) == 0)
+#define STRCASENEQ(a, b) (!STRCASEEQ(a, b))
+
+#define STREQLEN(a, b, n) (strncmp(a, b, n) == 0)
+#define STRNEQLEN(a, b, n) (!STREQLEN(a, b, n))
+
+#define STRCASEEQLEN(a, b, n) (strncasecmp(a, b, n) == 0)
+#define STRCASENEQLEN(a, b, n) (!STRCASEEQLEN(a, b, n))
+
+#define STRPREFIX(a, b) (strncmp((a), (b), strlen(b)) == 0)
+
+
 /* useful for debugging */
 #define AT __FILE__ ":" STRINGIFY(__LINE__)
 

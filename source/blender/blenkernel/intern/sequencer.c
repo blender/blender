@@ -856,7 +856,7 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
 	Sequence *seq;
 	for (seq = seqbasep->first; seq; seq = seq->next) {
-		if (sui->seq != seq && strcmp(sui->name_dest, seq->name + 2) == 0) {
+		if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
 			/* SEQ_NAME_MAXSTR - 2 for prefix, -1 for \0, -4 for the number */
 			BLI_snprintf(sui->name_dest, sizeof(sui->name_dest), "%.59s.%03d",  sui->name_src, sui->count++);
 			sui->match = 1; /* be sure to re-scan */
@@ -3861,7 +3861,7 @@ Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, int recu
 	Sequence *rseq = NULL;
 
 	for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-		if (strcmp(name, iseq->name + 2) == 0)
+		if (STREQ(name, iseq->name + 2))
 			return iseq;
 		else if (recursive && (iseq->seqbase.first) && (rseq = BKE_sequence_get_by_name(&iseq->seqbase, name, 1))) {
 			return rseq;

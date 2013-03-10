@@ -451,7 +451,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 	IDProperty *loop, *prop;
 	for (prop = src->data.group.first; prop; prop = prop->next) {
 		for (loop = dest->data.group.first; loop; loop = loop->next) {
-			if (strcmp(loop->name, prop->name) == 0) {
+			if (STREQ(loop->name, prop->name)) {
 				IDProperty *copy = IDP_CopyProperty(prop);
 
 				BLI_insertlinkafter(&dest->data.group, loop, copy);

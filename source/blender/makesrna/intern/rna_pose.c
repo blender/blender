@@ -444,7 +444,7 @@ static void rna_pose_bgroup_name_index_set(PointerRNA *ptr, const char *value, s
 	int a;
 	
 	for (a = 1, grp = pose->agroups.first; grp; grp = grp->next, a++) {
-		if (strcmp(grp->name, value) == 0) {
+		if (STREQ(grp->name, value)) {
 			*index = a;
 			return;
 		}
@@ -459,7 +459,7 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 	bActionGroup *grp;
 	
 	for (grp = pose->agroups.first; grp; grp = grp->next) {
-		if (strcmp(grp->name, value) == 0) {
+		if (STREQ(grp->name, value)) {
 			BLI_strncpy(result, value, maxlen);
 			return;
 		}

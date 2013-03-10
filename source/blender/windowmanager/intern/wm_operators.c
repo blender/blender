@@ -1704,7 +1704,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	uiItemStringO(col, IFACE_("User Community"), ICON_URL, "WM_OT_url_open", "url",
 	              "http://www.blender.org/community/user-community");
-	if (strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release") == 0) {
+	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
 		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d"
 		                               STRINGIFY(BLENDER_VERSION_CHAR) "_release",
 		             BLENDER_VERSION / 100, BLENDER_VERSION % 100);
