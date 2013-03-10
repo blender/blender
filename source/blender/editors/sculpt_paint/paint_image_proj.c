@@ -4463,6 +4463,13 @@ static PaintOperation * texture_paint_init(bContext *C, wmOperator *op)
 static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
 	PaintOperation *pop = paint_stroke_mode_data(stroke);
+	Scene *scene = CTX_data_scene(C);
+	Brush *brush = paint_brush(&scene->toolsettings->imapaint.paint);
+
+	/* initial brush values. Maybe it should be considered moving these to stroke system */
+	float startsize = BKE_brush_size_get(scene, brush);
+	float startalpha = BKE_brush_alpha_get(scene, brush);
+
 	float mousef[2];
 	float pressure;
 	int mouse[2], redraw, eraser;
@@ -4472,6 +4479,11 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 	mouse[1] = (int)(mousef[1]);
 	pressure = RNA_float_get(itemptr, "pressure");
 	eraser = RNA_boolean_get(itemptr, "pen_flip");
+
+	if (BKE_brush_use_alpha_pressure(scene, brush))
+		BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * pressure));
+	if (BKE_brush_use_size_pressure(scene, brush))
+		BKE_brush_size_set(scene, brush, max_ff(1.0f, startsize * pressure));
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
 		if (pop->first)
@@ -4483,10 +4495,15 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 
 	}
 	else {
-		redraw = paint_2d_stroke(pop->custom_paint, mouse, pressure, eraser);
+		redraw = paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser);
 		pop->prevmouse[0] = mouse[0];
 		pop->prevmouse[1] = mouse[1];
 	}
+
+	/* restore brush values */
+	BKE_brush_alpha_set(scene, brush, startalpha);
+	BKE_brush_size_set(scene, brush, startsize);
+
 
 	if (redraw)
 		paint_redraw(C, pop, 0);

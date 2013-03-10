@@ -179,10 +179,6 @@ static void brush_pressure_apply(BrushPainter *painter, Brush *brush, float pres
 		BKE_brush_alpha_set(painter->scene, brush, max_ff(0.0f, painter->startalpha * pressure));
 	if (BKE_brush_use_size_pressure(painter->scene, brush))
 		BKE_brush_size_set(painter->scene, brush, max_ff(1.0f, painter->startsize * pressure));
-	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = max_ff(0.0f, painter->startjitter * pressure);
-	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = max_ff(1.0f, painter->startspacing * (1.5f - pressure));
 }
 
 
@@ -892,51 +888,57 @@ static void paint_2d_canvas_free(ImagePaintState *s)
 	BKE_image_release_ibuf(s->brush->clone.image, s->clonecanvas, NULL);
 }
 
-static int paint_2d_sub_stroke(ImagePaintState *s, BrushPainter *painter, Image *image, float *uv, int update, float pressure)
+int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser)
 {
-	ImBuf *ibuf = BKE_image_acquire_ibuf(image, s->sima ? &s->sima->iuser : NULL, NULL);
-	float pos[2];
-	int is_data;
-
-	if (!ibuf)
-		return 0;
-
-	is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
-
-	pos[0] = uv[0] * ibuf->x;
-	pos[1] = uv[1] * ibuf->y;
-
-	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
-
-	/* OCIO_TODO: float buffers are now always linear, so always use color correction
-	 *            this should probably be changed when texture painting color space is supported
-	 */
-	if (brush_painter_2d_paint(painter, paint_2d_op, pos, 0, pressure, s, is_data == FALSE)) {
-		if (update)
-			imapaint_image_update(s->sima, image, ibuf, false);
-		BKE_image_release_ibuf(image, ibuf, NULL);
-		return 1;
-	}
-	else {
-		BKE_image_release_ibuf(image, ibuf, NULL);
-		return 0;
-	}
-}
-
-int paint_2d_stroke(void *ps, const int mval[2], float pressure, int eraser)
-{
-	float newuv[2];
+	float newuv[2], olduv[2];
 	int redraw = 0;
 	ImagePaintState *s = ps;
 	BrushPainter *painter = s->painter;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
+	int	is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
+
+	if (!ibuf)
+		return 0;
 
 	s->blend = s->brush->blend;
 	if (eraser)
 		s->blend = IMB_BLEND_ERASE_ALPHA;
 
 	UI_view2d_region_to_view(s->v2d, mval[0], mval[1], &newuv[0], &newuv[1]);
-	redraw |= paint_2d_sub_stroke(s, painter, s->image, newuv,
-		                                    1, pressure);
+	UI_view2d_region_to_view(s->v2d, prev_mval[0], prev_mval[1], &olduv[0], &olduv[1]);
+
+	newuv[0] *= ibuf->x;
+	newuv[1] *= ibuf->y;
+
+	olduv[0] *= ibuf->x;
+	olduv[1] *= ibuf->y;
+
+	if (painter->firsttouch) {
+		/* paint exactly once on first touch */
+		painter->startpaintpos[0] = newuv[0];
+		painter->startpaintpos[1] = newuv[1];
+
+		painter->firsttouch = 0;
+		copy_v2_v2(painter->lastpaintpos, newuv);
+	} else {
+		copy_v2_v2(painter->lastpaintpos, olduv);
+	}
+	/* OCIO_TODO: float buffers are now always linear, so always use color correction
+	 *            this should probably be changed when texture painting color space is supported
+	 */
+	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
+
+	if (painter->cache.enabled)
+		brush_painter_2d_refresh_cache(painter, newuv, is_data == FALSE);
+
+	if (paint_2d_op(s, painter->cache.ibuf, olduv, newuv)) {
+		imapaint_image_update(s->sima, s->image, ibuf, false);
+		BKE_image_release_ibuf(s->image, ibuf, NULL);
+		redraw |= 1;
+	}
+	else {
+		BKE_image_release_ibuf(s->image, ibuf, NULL);
+	}
 
 	if (redraw)
 		imapaint_clear_partial_redraw();

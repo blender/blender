@@ -127,7 +127,7 @@ void imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, 
 void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
 void paint_2d_redraw(const bContext *C, void *ps, int final);
 void paint_2d_stroke_done(void *ps);
-int paint_2d_stroke(void *ps, const int mval[2], float pressure, int eraser);
+int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser);
 void paint_brush_init_tex(struct Brush *brush);
 void paint_brush_exit_tex(struct Brush *brush);
 

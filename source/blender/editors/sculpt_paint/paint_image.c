@@ -5058,8 +5058,7 @@ void paint_brush_init_tex(Brush *brush)
 		MTex *mtex = &brush->mtex;
 		if (mtex->tex && mtex->tex->nodetree)
 			ntreeTexBeginExecTree(mtex->tex->nodetree, 1);  /* has internal flag to detect it only does it once */
-	}
-	
+	}	
 }
 
 static int texture_paint_init(bContext *C, wmOperator *op)
