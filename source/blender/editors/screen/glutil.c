@@ -560,10 +560,10 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 			glEnable(GL_TEXTURE_2D);
 			glBegin(GL_QUADS);
 			glTexCoord2f((float)(0 + offset_left) / tex_w, (float)(0 + offset_bot) / tex_h);
-			glVertex2f(rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * xzoom);
+			glVertex2f(rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * yzoom);
 
 			glTexCoord2f((float)(subpart_w - offset_right) / tex_w, (float)(0 + offset_bot) / tex_h);
-			glVertex2f(rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX, rast_y + (float)offset_bot * xzoom);
+			glVertex2f(rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX, rast_y + (float)offset_bot * yzoom);
 
 			glTexCoord2f((float)(subpart_w - offset_right) / tex_w, (float)(subpart_h - offset_top) / tex_h);
 			glVertex2f(rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX, rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY);
