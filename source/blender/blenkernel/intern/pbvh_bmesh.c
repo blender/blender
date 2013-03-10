@@ -83,8 +83,8 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 	}
 
 	BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] &&
-			   n->vb.bmin[1] <= n->vb.bmax[1] &&
-			   n->vb.bmin[2] <= n->vb.bmax[2]);
+	           n->vb.bmin[1] <= n->vb.bmax[1] &&
+	           n->vb.bmin[2] <= n->vb.bmax[2]);
 
 	n->orig_vb = n->vb;
 
@@ -275,8 +275,8 @@ static PBVHNode *pbvh_bmesh_node_lookup(PBVH *bvh, GHash *map, void *key)
 }
 
 static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
-									  const float co[3],
-									  const BMVert *example)
+                                      const float co[3],
+                                      const BMVert *example)
 {
 	BMVert *v = BM_vert_create(bvh->bm, co, example, 0);
 	void *val = SET_INT_IN_POINTER(node_index);
@@ -355,7 +355,7 @@ static PBVHNode *pbvh_bmesh_vert_other_node_find(PBVH *bvh, BMVert *v)
 }
 
 static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
-											   BMVert *v)
+                                               BMVert *v)
 {
 	PBVHNode *current_owner;
 
@@ -368,7 +368,7 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 
 	/* Set new ownership */
 	BLI_ghash_insert(bvh->bm_vert_to_node, v,
-					 SET_INT_IN_POINTER(new_owner - bvh->nodes));
+	                 SET_INT_IN_POINTER(new_owner - bvh->nodes));
 	BLI_ghash_insert(new_owner->bm_unique_verts, v, NULL);
 	BLI_ghash_remove(new_owner->bm_other_verts, v, NULL, NULL);
 	BLI_assert(!BLI_ghash_haskey(new_owner->bm_other_verts, v));
@@ -491,7 +491,7 @@ static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 }
 
 static void edge_queue_insert(EdgeQueue *q, BLI_mempool *pool, BMEdge *e,
-							  float priority)
+                              float priority)
 {
 	BMVert **pair;
 
@@ -502,7 +502,7 @@ static void edge_queue_insert(EdgeQueue *q, BLI_mempool *pool, BMEdge *e,
 }
 
 static void long_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
-									 BMEdge *e)
+                                     BMEdge *e)
 {
 	const float len_sq = BM_edge_calc_length_squared(e);
 	if (len_sq > q->limit_len_squared)
@@ -510,7 +510,7 @@ static void long_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
 }
 
 static void short_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
-									  BMEdge *e)
+                                      BMEdge *e)
 {
 	const float len_sq = BM_edge_calc_length_squared(e);
 	if (len_sq < q->limit_len_squared)
@@ -557,8 +557,8 @@ static void short_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
  * The highest priority (lowest number) is given to the longest edge.
  */
 static void long_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
-								   PBVH *bvh, const float center[3],
-								   float radius)
+                                   PBVH *bvh, const float center[3],
+                                   float radius)
 {
 	int n;
 
@@ -596,8 +596,8 @@ static void long_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
  * The highest priority (lowest number) is given to the shortest edge.
  */
 static void short_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
-									PBVH *bvh, const float center[3],
-									float radius)
+                                    PBVH *bvh, const float center[3],
+                                    float radius)
 {
 	int n;
 
@@ -930,8 +930,8 @@ static int pbvh_bmesh_collapse_short_edges(PBVH *bvh, EdgeQueue *q,
 /************************* Called from pbvh.c *************************/
 
 int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
-							const float ray_normal[3], float *dist,
-							int use_original)
+                            const float ray_normal[3], float *dist,
+                            int use_original)
 {
 	GHashIterator gh_iter;
 	int hit = 0;
@@ -941,10 +941,10 @@ int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
 		for (i = 0; i < node->bm_tot_ortri; i++) {
 			const int *t = node->bm_ortri[i];
 			hit |= ray_face_intersection(ray_start, ray_normal,
-										 node->bm_orco[t[0]],
-										 node->bm_orco[t[1]],
-										 node->bm_orco[t[2]],
-										 NULL, dist);
+			                             node->bm_orco[t[0]],
+			                             node->bm_orco[t[1]],
+			                             node->bm_orco[t[2]],
+			                             NULL, dist);
 		}
 	}
 	else {
@@ -989,7 +989,7 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
-						  BMLog *log)
+                          BMLog *log)
 {
 	BMIter iter;
 	BMFace *f;
@@ -1099,7 +1099,7 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 		return;
 
 	totvert = (BLI_ghash_size(node->bm_unique_verts) +
-			   BLI_ghash_size(node->bm_other_verts));
+	           BLI_ghash_size(node->bm_other_verts));
 
 	tottri = BLI_ghash_size(node->bm_faces);
 
@@ -1215,31 +1215,31 @@ void bmesh_print(BMesh *bm)
 	BMLoop *l;
 
 	fprintf(stderr, "\nbm=%p, totvert=%d, totedge=%d, "
-			"totloop=%d, totface=%d\n",
-			bm, bm->totvert, bm->totedge,
-			bm->totloop, bm->totface);
+	        "totloop=%d, totface=%d\n",
+	        bm, bm->totvert, bm->totedge,
+	        bm->totloop, bm->totface);
 
 	fprintf(stderr, "vertices:\n");
 	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
 		fprintf(stderr, "  %d co=(%.3f %.3f %.3f) oflag=%x\n",
-				BM_elem_index_get(v), v->co[0], v->co[1], v->co[2],
-				v->oflags[bm->stackdepth - 1].f);
+		        BM_elem_index_get(v), v->co[0], v->co[1], v->co[2],
+		        v->oflags[bm->stackdepth - 1].f);
 	}
 
 	fprintf(stderr, "edges:\n");
 	BM_ITER_MESH(e, &iter, bm, BM_EDGES_OF_MESH) {
 		fprintf(stderr, "  %d v1=%d, v2=%d, oflag=%x\n",
-				BM_elem_index_get(e),
-				BM_elem_index_get(e->v1),
-				BM_elem_index_get(e->v2),
-				e->oflags[bm->stackdepth - 1].f);
+		        BM_elem_index_get(e),
+		        BM_elem_index_get(e->v1),
+		        BM_elem_index_get(e->v2),
+		        e->oflags[bm->stackdepth - 1].f);
 	}
 
 	fprintf(stderr, "faces:\n");
 	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
 		fprintf(stderr, "  %d len=%d, oflag=%x\n",
-				BM_elem_index_get(f), f->len,
-				f->oflags[bm->stackdepth - 1].f);
+		        BM_elem_index_get(f), f->len,
+		        f->oflags[bm->stackdepth - 1].f);
 
 		fprintf(stderr, "    v: ");
 		BM_ITER_ELEM(v, &siter, f, BM_VERTS_OF_FACE) {
@@ -1256,9 +1256,9 @@ void bmesh_print(BMesh *bm)
 		fprintf(stderr, "    l: ");
 		BM_ITER_ELEM(l, &siter, f, BM_LOOPS_OF_FACE) {
 			fprintf(stderr, "%d(v=%d, e=%d) ",
-					BM_elem_index_get(l),
-					BM_elem_index_get(l->v),
-					BM_elem_index_get(l->e));
+			        BM_elem_index_get(l),
+			        BM_elem_index_get(l->v),
+			        BM_elem_index_get(l->e));
 		}
 		fprintf(stderr, "\n");
 	}	
@@ -1273,15 +1273,15 @@ void pbvh_bmesh_print(PBVH *bvh)
 	fprintf(stderr, "bm_face_to_node:\n");
 	GHASH_ITER (gh_iter, bvh->bm_face_to_node) {
 		fprintf(stderr, "  %d -> %d\n",
-				BM_elem_index_get((BMFace*)BLI_ghashIterator_getKey(&gh_iter)),
-				GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
+		        BM_elem_index_get((BMFace*)BLI_ghashIterator_getKey(&gh_iter)),
+		        GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
 	}
 
 	fprintf(stderr, "bm_vert_to_node:\n");
 	GHASH_ITER (gh_iter, bvh->bm_vert_to_node) {
 		fprintf(stderr, "  %d -> %d\n",
-				BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)),
-				GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
+		        BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)),
+		        GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
 	}
 
 	for (n = 0; n < bvh->totnode; n++) {
@@ -1292,15 +1292,15 @@ void pbvh_bmesh_print(PBVH *bvh)
 		fprintf(stderr, "node %d\n  faces:\n", n);
 		GHASH_ITER (gh_iter, node->bm_faces)
 			fprintf(stderr, "    %d\n",
-					BM_elem_index_get((BMFace*)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMFace*)BLI_ghashIterator_getKey(&gh_iter)));
 		fprintf(stderr, "  unique verts:\n");
 		GHASH_ITER (gh_iter, node->bm_unique_verts)
 			fprintf(stderr, "    %d\n",
-					BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)));
 		fprintf(stderr, "  other verts:\n");
 		GHASH_ITER (gh_iter, node->bm_other_verts)
 			fprintf(stderr, "    %d\n",
-					BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)));
 	}
 }
 

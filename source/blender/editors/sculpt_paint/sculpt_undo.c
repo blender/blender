@@ -267,8 +267,8 @@ static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode
 }
 
 static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode,
-											  Object *ob,
-											  SculptSession *ss)
+                                              Object *ob,
+                                              SculptSession *ss)
 {
 	if (unode->applied) {
 		BM_log_undo(ss->bm, ss->bm_log);
@@ -286,7 +286,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode,
 
 /* Create empty sculpt BMesh and enable logging */
 static void sculpt_undo_bmesh_enable(Object *ob,
-									 SculptUndoNode *unode)
+                                     SculptUndoNode *unode)
 {
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
@@ -300,13 +300,13 @@ static void sculpt_undo_bmesh_enable(Object *ob,
 
 	/* Restore the BMLog using saved entries */
 	ss->bm_log = BM_log_from_existing_entries_create(ss->bm,
-													 unode->bm_entry);
+	                                                 unode->bm_entry);
 }
 
 static void sculpt_undo_bmesh_restore_begin(bContext *C,
-											SculptUndoNode *unode,
-											Object *ob,
-											SculptSession *ss)
+                                            SculptUndoNode *unode,
+                                            Object *ob,
+                                            SculptSession *ss)
 {
 	if (unode->applied) {
 		sculpt_dynamic_topology_disable(C, unode);
@@ -323,9 +323,9 @@ static void sculpt_undo_bmesh_restore_begin(bContext *C,
 }
 
 static void sculpt_undo_bmesh_restore_end(bContext *C,
-										  SculptUndoNode *unode,
-										  Object *ob,
-										  SculptSession *ss)
+                                          SculptUndoNode *unode,
+                                          Object *ob,
+                                          SculptSession *ss)
 {
 	if (unode->applied) {
 		sculpt_undo_bmesh_enable(ob, unode);
@@ -347,9 +347,9 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
  * Returns TRUE if this was a dynamic-topology undo step, otherwise
  * returns FALSE to indicate the non-dyntopo code should run. */
 static int sculpt_undo_bmesh_restore(bContext *C,
-									 SculptUndoNode *unode,
-									 Object *ob,
-									 SculptSession *ss)
+                                     SculptUndoNode *unode,
+                                     Object *ob,
+                                     SculptSession *ss)
 {
 	switch (unode->type) {
 		case SCULPT_UNDO_DYNTOPO_BEGIN:
@@ -567,7 +567,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 	if (node) {
 		BKE_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
 		BKE_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
-								&maxgrid, &gridsize, NULL, NULL);
+		                        &maxgrid, &gridsize, NULL, NULL);
 
 		unode->totvert = totvert;
 	}
@@ -677,8 +677,8 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
 }
 
 static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
-											  PBVHNode *node,
-											  SculptUndoType type)
+                                              PBVHNode *node,
+                                              SculptUndoType type)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_MESH);
 	SculptUndoNode *unode = lb->first;
@@ -705,13 +705,13 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 			 * (converting polys to triangles) that the BMLog can't
 			 * fully restore from */
 			CustomData_copy(&me->vdata, &unode->bm_enter_vdata, CD_MASK_MESH,
-							CD_DUPLICATE, me->totvert);
+			                CD_DUPLICATE, me->totvert);
 			CustomData_copy(&me->edata, &unode->bm_enter_edata, CD_MASK_MESH,
-							CD_DUPLICATE, me->totedge);
+			                CD_DUPLICATE, me->totedge);
 			CustomData_copy(&me->ldata, &unode->bm_enter_ldata, CD_MASK_MESH,
-							CD_DUPLICATE, me->totloop);
+			                CD_DUPLICATE, me->totloop);
 			CustomData_copy(&me->pdata, &unode->bm_enter_pdata, CD_MASK_MESH,
-							CD_DUPLICATE, me->totpoly);
+			                CD_DUPLICATE, me->totpoly);
 			unode->bm_enter_totvert = me->totvert;
 			unode->bm_enter_totedge = me->totedge;
 			unode->bm_enter_totloop = me->totloop;
