@@ -162,42 +162,41 @@ void BLI_stringenc(char *string, const char *head, const char *tail, unsigned sh
  * Returns the length of *left.
  *
  * Foo.001 -> "Foo", 1
- * Returns the length of "Foo"
+ * Returning the length of "Foo"
  *
  * \param left  Where to return copy of part preceding delim
  * \param nr  Where to return value of numeric suffix
  * \param name  String to split
  * \param delim  Delimiter character
+ * \return  Length of \a left
  */
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 {
-	int a;
+	const int name_len = strlen(name);
 
 	*nr = 0;
-	a = strlen(name);
-	memcpy(left, name, (a + 1) * sizeof(char));
+	memcpy(left, name, (name_len + 1) * sizeof(char));
 
-	if (a > 1 && name[a - 1] == delim) return a;
-	
-	while (a--) {
-		if (name[a] == delim) {
-			left[a] = 0;
-			*nr = atol(name + a + 1);
-			/* casting down to an int, can overflow for large numbers */
-			if (*nr < 0)
-				*nr = 0;
-			return a;
+	/* name doesn't end with a delimiter "foo." */
+	if ((name_len > 1 && name[name_len - 1] == delim) == 0) {
+		int a = name_len;
+		while (a--) {
+			if (name[a] == delim) {
+				left[a] = '\0';  /* truncate left part here */
+				*nr = atol(name + a + 1);
+				/* casting down to an int, can overflow for large numbers */
+				if (*nr < 0)
+					*nr = 0;
+				return a;
+			}
+			else if (isdigit(name[a]) == 0) {
+				/* non-numeric suffix - give up */
+				break;
+			}
 		}
-		/* non-numeric suffix--give up */
-		if (isdigit(name[a]) == 0) break;
-		
-		left[a] = 0;
 	}
 
-	for (a = 0; name[a]; a++)
-		left[a] = name[a];
-
-	return a;
+	return name_len;
 }
 
 /**
