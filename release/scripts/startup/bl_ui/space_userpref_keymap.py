@@ -230,11 +230,15 @@ class InputKeyMapPanel:
 
                 del enum
                 self._EVENT_TYPE_MAP.update({
+                    "`": 'ACCENT_GRAVE',
                     "*": 'NUMPAD_ASTERIX',
                     "/": 'NUMPAD_SLASH',
                     "RMB": 'RIGHTMOUSE',
                     "LMB": 'LEFTMOUSE',
                     "MMB": 'MIDDLEMOUSE',
+                    })
+                self._EVENT_TYPE_MAP.update({
+                    "%d" % i: "NUMPAD_%d" % i for i in range(9)
                     })
             # done with once off init
 
@@ -365,8 +369,8 @@ class InputKeyMapPanel:
         col.separator()
         display_keymaps = keyconfig_utils.keyconfig_merge(kc, kc)
         filter_type = spref.filter_type
-        filter_text = spref.filter_text
-        if filter_text != "":
+        filter_text = spref.filter_text.strip()
+        if filter_text:
             filter_text = filter_text.lower()
             ok = self.draw_filtered(display_keymaps, filter_type, filter_text, col)
         else:
@@ -377,7 +381,7 @@ class InputKeyMapPanel:
         rowsub.prop(spref, "filter_type", text="")
         rowsubsub = rowsub.row(align=True)
         if not ok:
-	        rowsubsub.alert = True
+            rowsubsub.alert = True
         rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
 
 

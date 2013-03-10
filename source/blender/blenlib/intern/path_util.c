@@ -83,9 +83,6 @@ static char bprogname[FILE_MAX];    /* full path to program executable */
 static char bprogdir[FILE_MAX];     /* full path to directory in which executable is located */
 static char btempdir[FILE_MAX];     /* temporary directory */
 
-static int add_win32_extension(char *name);
-static char *blender_version_decimal(const int ver);
-
 /* implementation */
 
 /**
