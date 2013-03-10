@@ -743,6 +743,7 @@ class USERPREF_PT_theme(Panel):
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
+            colsub.active = False
             colsub.row().prop(ui, "icon_file")
 
             subsplit = row.split(percentage=0.85)
