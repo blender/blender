@@ -698,8 +698,13 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
-            row.prop(brush, "jitter", slider=True)
+            if(brush.use_absolute_jitter):
+                row.prop(brush, "jitter_absolute", slider=True)
+            else:
+                row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+            
+            col.prop(brush, "use_absolute_jitter")
 
             col.prop(brush, "blend", text="Blend")
 

@@ -637,6 +637,12 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Jitter", "Jitter the position of the brush while painting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+	prop = RNA_def_property(srna, "jitter_absolute", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "jitter_absolute");
+	RNA_def_property_range(prop, 0, 1000000);
+	RNA_def_property_ui_text(prop, "Absolute Jitter", "Jitter the position of the brush while painting in pixels");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
 	prop = RNA_def_property(srna, "spacing", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 1, 1000);
@@ -791,6 +797,11 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_rake", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
 	RNA_def_property_ui_text(prop, "Rake", "Rotate the brush texture to match the stroke direction");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "use_absolute_jitter", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ABSOLUTE_JITTER);
+	RNA_def_property_ui_text(prop, "Absolute Jitter", "Jittering happens in screen space, not relative to brush size");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_random_rotation", PROP_BOOLEAN, PROP_NONE);

@@ -169,6 +169,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 		return;
 #endif
 
+	/* copy last position -before- jittering, or space fill code
+	 * will create too many dabs */
+	copy_v2_v2(stroke->last_mouse_position, mouse_in);
+
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * separation will go away */
 	if (paint_supports_jitter(mode)) {
@@ -202,8 +206,6 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	RNA_float_set_array(&itemptr, "mouse", mouse_out);
 	RNA_boolean_set(&itemptr, "pen_flip", pen_flip);
 	RNA_float_set(&itemptr, "pressure", pressure);
-
-	copy_v2_v2(stroke->last_mouse_position, mouse_out);
 
 	stroke->update_step(C, stroke, &itemptr);
 }

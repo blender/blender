@@ -791,7 +791,8 @@ void BKE_brush_scale_size(int *r_brush_size,
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
 {
-	int use_jitter = brush->jitter != 0;
+	int use_jitter = (brush->flag & BRUSH_ABSOLUTE_JITTER) ?
+		(brush->jitter_absolute != 0) : (brush->jitter != 0);
 
 	/* jitter-ed brush gives weird and unpredictable result for this
 	 * kinds of stroke, so manually disable jitter usage (sergey) */
@@ -799,17 +800,26 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 
 	if (use_jitter) {
 		float rand_pos[2];
-		const int radius = BKE_brush_size_get(scene, brush);
-		const int diameter = 2 * radius;
+		float spread;
+		int diameter;
 
-		/* find random position within a circle of diameter 1 */
 		do {
 			rand_pos[0] = BLI_frand() - 0.5f;
 			rand_pos[1] = BLI_frand() - 0.5f;
 		} while (len_v2(rand_pos) > 0.5f);
 
-		jitterpos[0] = pos[0] + 2 * rand_pos[0] * diameter * brush->jitter;
-		jitterpos[1] = pos[1] + 2 * rand_pos[1] * diameter * brush->jitter;
+
+		if (brush->flag & BRUSH_ABSOLUTE_JITTER) {
+			diameter = 2 * brush->jitter_absolute;
+			spread = 1.0;
+		}
+		else {
+			diameter = 2 * BKE_brush_size_get(scene, brush);
+			spread = brush->jitter;
+		}
+		/* find random position within a circle of diameter 1 */
+		jitterpos[0] = pos[0] + 2 * rand_pos[0] * diameter * spread;
+		jitterpos[1] = pos[1] + 2 * rand_pos[1] * diameter * spread;
 	}
 	else {
 		copy_v2_v2(jitterpos, pos);

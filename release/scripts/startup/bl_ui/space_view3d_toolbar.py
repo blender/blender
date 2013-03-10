@@ -678,8 +678,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
-            row.prop(brush, "jitter", slider=True)
+            if(brush.use_absolute_jitter):
+                row.prop(brush, "jitter_absolute")
+            else:
+                row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+           
+            col.prop(brush, "use_absolute_jitter")
 
             col.prop(brush, "blend", text="Blend")
 
@@ -706,8 +711,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
-            row.prop(brush, "jitter", slider=True)
+            if(brush.use_absolute_jitter):
+                row.prop(brush, "jitter_absolute")
+            else:
+                row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+            
+            col.prop(brush, "use_absolute_jitter")
 
             col.prop(brush, "vertex_tool", text="Blend")
 
@@ -828,8 +838,13 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 col.separator()
 
                 row = col.row(align=True)
-                row.prop(brush, "jitter", slider=True)
+                if(brush.use_absolute_jitter):
+                    row.prop(brush, "jitter_absolute")
+                else:
+                    row.prop(brush, "jitter", slider=True)
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+          
+                col.prop(brush, "use_absolute_jitter")
 
         else:
             col.prop(brush, "use_airbrush")
