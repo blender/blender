@@ -302,7 +302,7 @@ static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(t
 	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
 		/* if the ID type has no special local function,
 		 * just clear the lib */
-		if (id_make_local(tselem->id, FALSE) == FALSE) {
+		if (id_make_local(tselem->id, false) == false) {
 			Main *bmain = CTX_data_main(C);
 			id_clear_lib_data(bmain, tselem->id);
 		}

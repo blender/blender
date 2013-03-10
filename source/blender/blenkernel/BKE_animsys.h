@@ -63,10 +63,10 @@ short BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct 
 void BKE_free_animdata(struct ID *id);
 
 /* Copy AnimData */
-struct AnimData *BKE_copy_animdata(struct AnimData *adt, const short do_action);
+struct AnimData *BKE_copy_animdata(struct AnimData *adt, const bool do_action);
 
 /* Copy AnimData */
-int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const short do_action);
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const bool do_action);
 
 /* Copy AnimData Actions */
 void BKE_copy_animdata_id_action(struct ID *id);

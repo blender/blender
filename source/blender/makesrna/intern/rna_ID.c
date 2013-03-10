@@ -261,7 +261,7 @@ static ID *rna_ID_copy(ID *id)
 {
 	ID *newid;
 
-	if (id_copy(id, &newid, 0)) {
+	if (id_copy(id, &newid, false)) {
 		if (newid) id_us_min(newid);
 		return newid;
 	}

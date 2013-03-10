@@ -242,7 +242,7 @@ void BKE_free_animdata(ID *id)
 /* Freeing -------------------------------------------- */
 
 /* Make a copy of the given AnimData - to be used when copying datablocks */
-AnimData *BKE_copy_animdata(AnimData *adt, const short do_action)
+AnimData *BKE_copy_animdata(AnimData *adt, const bool do_action)
 {
 	AnimData *dadt;
 	
@@ -274,7 +274,7 @@ AnimData *BKE_copy_animdata(AnimData *adt, const short do_action)
 	return dadt;
 }
 
-int BKE_copy_animdata_id(ID *id_to, ID *id_from, const short do_action)
+int BKE_copy_animdata_id(ID *id_to, ID *id_from, const bool do_action)
 {
 	AnimData *adt;
 

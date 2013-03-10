@@ -411,7 +411,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 
 			/* append, rather than linking */
 			if ((self->flag & FILE_LINK) == 0) {
-				BKE_library_make_local(bmain, lib, 1);
+				BKE_library_make_local(bmain, lib, true);
 			}
 		}
 

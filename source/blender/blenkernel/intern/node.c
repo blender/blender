@@ -716,7 +716,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 	}
 	else {
 		newtree = MEM_dupallocN(ntree);
-		BKE_libblock_copy_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
+		BKE_libblock_copy_data(&newtree->id, &ntree->id, true); /* copy animdata and ID props */
 	}
 
 	id_us_plus((ID *)newtree->gpd);

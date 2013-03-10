@@ -995,7 +995,7 @@ int BKE_copybuffer_paste(bContext *C, char *libname, ReportList *reports)
 	
 	/* append, rather than linking */
 	lib = BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
-	BKE_library_make_local(bmain, lib, 1);
+	BKE_library_make_local(bmain, lib, true);
 	
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */

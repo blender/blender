@@ -4057,7 +4057,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	ups->special_rotation = cache->special_rotation;
 }
 
-/* Returns true iff any of the smoothing modes are active (currently
+/* Returns true if any of the smoothing modes are active (currently
  * one of smooth brush, autosmooth, mask smooth, or shift-key
  * smooth) */
 static int sculpt_any_smooth_mode(const Brush *brush,

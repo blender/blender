@@ -1930,11 +1930,11 @@ static void make_local_makelocalmaterial(Material *ma)
 	AnimData *adt;
 	int b;
 	
-	id_make_local(&ma->id, 0);
+	id_make_local(&ma->id, false);
 	
 	for (b = 0; b < MAX_MTEX; b++)
 		if (ma->mtex[b] && ma->mtex[b]->tex)
-			id_make_local(&ma->mtex[b]->tex->id, 0);
+			id_make_local(&ma->mtex[b]->tex->id, false);
 	
 	adt = BKE_animdata_from_id(&ma->id);
 	if (adt) BKE_animdata_make_local(adt);
@@ -1960,7 +1960,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	int a, b, mode = RNA_enum_get(op->ptr, "type");
 	
 	if (mode == MAKE_LOCAL_ALL) {
-		BKE_library_make_local(bmain, NULL, 0); /* NULL is all libs */
+		BKE_library_make_local(bmain, NULL, false); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
 	}
@@ -1970,7 +1970,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		if (ob->id.lib)
-			id_make_local(&ob->id, 0);
+			id_make_local(&ob->id, false);
 	}
 	CTX_DATA_END;
 	
@@ -1988,7 +1988,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 		id = ob->data;
 			
 		if (id && (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL))) {
-			id_make_local(id, 0);
+			id_make_local(id, false);
 			adt = BKE_animdata_from_id(id);
 			if (adt) BKE_animdata_make_local(adt);
 			
@@ -2004,7 +2004,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 		}
 
 		for (psys = ob->particlesystem.first; psys; psys = psys->next)
-			id_make_local(&psys->part->id, 0);
+			id_make_local(&psys->part->id, false);
 
 		adt = BKE_animdata_from_id(&ob->id);
 		if (adt) BKE_animdata_make_local(adt);
@@ -2019,7 +2019,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 				for (b = 0; b < MAX_MTEX; b++)
 					if (la->mtex[b] && la->mtex[b]->tex)
-						id_make_local(&la->mtex[b]->tex->id, 0);
+						id_make_local(&la->mtex[b]->tex->id, false);
 			}
 			else {
 				for (a = 0; a < ob->totcol; a++) {

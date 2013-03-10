@@ -2168,7 +2168,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
 		Library *lib = BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
-		if (lib) BKE_library_make_local(bmain, lib, 1);
+		if (lib) BKE_library_make_local(bmain, lib, true);
 		else BLI_assert(!"cant find name of just added library!");
 	}
 

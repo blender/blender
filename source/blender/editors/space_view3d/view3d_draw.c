@@ -1791,7 +1791,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 			if (freeibuf)
-					IMB_freeImBuf(freeibuf);
+				IMB_freeImBuf(freeibuf);
 			if (releaseibuf)
 				BKE_image_release_ibuf(ima, releaseibuf, NULL);
 		}
