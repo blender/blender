@@ -717,6 +717,7 @@ static void view3d_ruler_header_update(ScrArea *sa)
 
 static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 //	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -737,6 +738,7 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_ruler_header_update(sa);
 
+	WM_cursor_modal(win, BC_CROSSCURSOR);
 	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -931,7 +933,10 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+		wmWindow *win = CTX_wm_window(C);
 		ScrArea *sa = CTX_wm_area(C);
+
+		WM_cursor_restore(win);
 
 		view3d_ruler_end(C, ruler_info);
 		view3d_ruler_free(ruler_info);
