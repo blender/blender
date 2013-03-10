@@ -29,6 +29,8 @@ from bpy.props import (StringProperty,
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
+from bpy.app.translations import pgettext_tip as tip_
+
 
 class MESH_OT_delete_edgeloop(Operator):
     """Delete an edge loop by merging the faces on each side """ \
@@ -1838,7 +1840,7 @@ class WM_OT_addon_install(Operator):
         bpy.utils.refresh_script_paths()
 
         # print message
-        msg = "Modules Installed from %r into %r (%s)" % (pyfile, path_addons, ", ".join(sorted(addons_new)))
+        msg = tip_("Modules Installed from %r into %r (%s)") % (pyfile, path_addons, ", ".join(sorted(addons_new)))
         print(msg)
         self.report({'INFO'}, msg)
 

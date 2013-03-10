@@ -503,6 +503,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                 ),
         "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                  ),
+        "message": (),
     }
 
     context_kw_set = {}
@@ -538,6 +539,12 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                 for msgid, msgctxts in context_kw_set.items():
                     if arg_kw in msgctxts:
                         func_translate_args[func_id][msgid][1][arg_kw] = arg_pos
+    # The report() func of operators.
+    for func_id, func in bpy.types.Operator.bl_rna.functions.items():
+        # check it has one or more arguments as defined in translate_kw
+        for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
+            if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
+                func_translate_args.setdefault(func_id, {})[arg_kw] = (arg_pos, {})
     # We manually add funcs from bpy.app.translations
     for func_id, func_ids in pgettext_variants:
         func_translate_args[func_id] = pgettext_variants_args
