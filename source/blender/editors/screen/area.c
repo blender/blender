@@ -590,7 +590,7 @@ static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
-#define AZONEPAD_EDGE   (0.2f * U.widget_unit)
+#define AZONEPAD_EDGE   (0.1f * U.widget_unit)
 #define AZONEPAD_ICON   (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
@@ -599,22 +599,22 @@ static void region_azone_edge(AZone *az, ARegion *ar)
 			az->x1 = ar->winrct.xmin;
 			az->y1 = ar->winrct.ymax - AZONEPAD_EDGE;
 			az->x2 = ar->winrct.xmax;
-			az->y2 = ar->winrct.ymax;
+			az->y2 = ar->winrct.ymax + AZONEPAD_EDGE;
 			break;
 		case AE_BOTTOM_TO_TOPLEFT:
 			az->x1 = ar->winrct.xmin;
 			az->y1 = ar->winrct.ymin + AZONEPAD_EDGE;
 			az->x2 = ar->winrct.xmax;
-			az->y2 = ar->winrct.ymin;
+			az->y2 = ar->winrct.ymin - AZONEPAD_EDGE;
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
-			az->x1 = ar->winrct.xmin;
+			az->x1 = ar->winrct.xmin - AZONEPAD_EDGE;
 			az->y1 = ar->winrct.ymin;
 			az->x2 = ar->winrct.xmin + AZONEPAD_EDGE;
 			az->y2 = ar->winrct.ymax;
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
-			az->x1 = ar->winrct.xmax;
+			az->x1 = ar->winrct.xmax + AZONEPAD_EDGE;
 			az->y1 = ar->winrct.ymin;
 			az->x2 = ar->winrct.xmax - AZONEPAD_EDGE;
 			az->y2 = ar->winrct.ymax;
