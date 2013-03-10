@@ -1776,6 +1776,8 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 							dy = gy - sds->res_min[1];
 							dz = gz - sds->res_min[2];
 							d_index = smoke_get_index(dx, sds->res[0], dy, sds->res[1], dz);
+							/* make sure emission cell is inside the new domain boundary */
+							if (dx < 0 || dy < 0 || dz < 0 || dx >= sds->res[0] || dy >= sds->res[1] || dz >= sds->res[2]) continue;
 
 							if (sfs->type == MOD_SMOKE_FLOW_TYPE_OUTFLOW) { // outflow
 								apply_outflow_fields(d_index, density, heat, fuel, react, color_r, color_g, color_b);
