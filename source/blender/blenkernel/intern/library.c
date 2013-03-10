@@ -1200,7 +1200,7 @@ void id_sort_by_name(ListBase *lb, ID *id)
 	
 }
 
-/*
+/**
  * Check to see if there is an ID with the same name as 'name'.
  * Returns the ID if so, if not, returns NULL
  */
@@ -1222,7 +1222,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 	return idtest;
 }
 
-/* 
+/**
  * Check to see if an ID name is already used, and find a new one if so.
  * Return true if created a new name (returned in name).
  *
@@ -1238,7 +1238,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 	int nr = 0, nrtest, a, left_len;
 #define MAX_IN_USE 64
 	bool in_use[MAX_IN_USE];
-	  /* to speed up finding unused numbers within [1 .. MAX_IN_USE - 1] (in_use[0] not used) */
+	/* to speed up finding unused numbers within [1 .. MAX_IN_USE - 1] */
 
 	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
 
@@ -1279,31 +1279,43 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 			     (BLI_split_name_num(leftest, &nrtest, idtest->name + 2, '.') == left_len)
 			     )
 			{
+				/* will get here at least once, otherwise is_dupid call above would have returned NULL */
 				if (nrtest < MAX_IN_USE)
 					in_use[nrtest] = true;  /* mark as used */
 				if (nr <= nrtest)
 					nr = nrtest + 1;    /* track largest unused */
 			}
 		}
+		/* At this point, nr will be at least 1. */
+		BLI_assert(nr >= 1);
 
 		/* decide which value of nr to use */
 		for (a = 0; a < MAX_IN_USE; a++) {
 			if (a >= nr) break;  /* stop when we've checked up to biggest */  /* redundant check */
 			if (!in_use[a]) { /* found an unused value */
 				nr = a;
+				/* can only be zero if all potential duplicate names had
+				 * nonzero numeric suffixes, which means name itself has
+				 * nonzero numeric suffix (else no name conflict and wouldn't
+				 * have got here), which means name[left_len] is not a null */
 				break;
 			}
 		}
-	  /* At this point, nr is either the lowest unused number within [0 .. MAX_IN_USE - 1],
-		or 1 greater than the largest used number if all those low ones are taken.
-		We can't be bothered to look for the lowest unused number beyond (MAX_IN_USE - 1). */
+		/* At this point, nr is either the lowest unused number within [0 .. MAX_IN_USE - 1],
+		 * or 1 greater than the largest used number if all those low ones are taken.
+		 * We can't be bothered to look for the lowest unused number beyond (MAX_IN_USE - 1). */
 
 		/* If the original name has no numeric suffix, 
 		 * rather than just chopping and adding numbers, 
 		 * shave off the end chars until we have a unique name.
 		 * Check the null terminators match as well so we don't get Cube.000 -> Cube.00 */
 		if (nr == 0 && name[left_len] == '\0') {
-			int len = left_len - 1;
+			int len;
+			/* FIXME: this code will never be executed, because either nr will be
+			 * at least 1, or name will not end at left_len! */
+			BLI_assert(0);
+
+			len = left_len - 1;
 			idtest = is_dupid(lb, id, name);
 			
 			while (idtest && len > 1) {
