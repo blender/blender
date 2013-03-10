@@ -126,6 +126,7 @@ struct ImagePaintPartialRedraw *get_imapaintpartial(void);
 void set_imapaintpartial(struct ImagePaintPartialRedraw * ippr);
 void imapaint_clear_partial_redraw(void);
 void imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
+int get_imapaint_zoom(struct bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
 void paint_2d_redraw(const bContext *C, void *ps, int final);
 void paint_2d_stroke_done(void *ps);

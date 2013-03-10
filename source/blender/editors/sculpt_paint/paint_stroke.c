@@ -269,13 +269,20 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 				size_pressure = pressure;
 			
 			if (size_pressure > FLT_EPSILON) {
+				float zoomx, zoomy;
 				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
 				 * causing very high step sizes, hanging blender [#32381] */
 				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
 				float spacing = stroke->brush->spacing;
 
+				/* stroke system is used for 2d paint too, so we need to account for
+				 * the fact that brush can be scaled there. */
+				get_imapaint_zoom(C, &zoomx, &zoomy);
+
 				if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
 					spacing = max_ff(1.0f, spacing * (1.5f - pressure));
+
+				spacing *= max_ff(zoomx, zoomy);
 
 				scale = (size_clamp * spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
@@ -360,7 +367,7 @@ bool paint_supports_dynamic_size(Brush *br)
 
 bool paint_supports_jitter(PaintMode mode)
 {
-	return ELEM(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE);
+	return ELEM3(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
 }
 
 #define PAINT_STROKE_MODAL_CANCEL 1

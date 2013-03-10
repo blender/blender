@@ -623,7 +623,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 }
 
 
-static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
+int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
