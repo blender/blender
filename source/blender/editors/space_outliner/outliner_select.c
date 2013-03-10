@@ -837,18 +837,15 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 	return 0;
 }
 
-/* event can enterkey, then it opens/closes */
-static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
+int outliner_item_do_activate(bContext *C, int x, int y, bool extend, bool recursive)
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	bool extend    = RNA_boolean_get(op->ptr, "extend");
-	bool recursive = RNA_boolean_get(op->ptr, "recursive");
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
+	UI_view2d_region_to_view(&ar->v2d, x, y, fmval, fmval + 1);
 
 	if (!ELEM3(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF, SO_KEYMAP) &&
 	    !(soops->flag & SO_HIDE_RESTRICTCOLS) &&
@@ -886,6 +883,16 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
+}
+
+/* event can enterkey, then it opens/closes */
+static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bool extend    = RNA_boolean_get(op->ptr, "extend");
+	bool recursive = RNA_boolean_get(op->ptr, "recursive");
+	int x = event->mval[0];
+	int y = event->mval[1];
+	return outliner_item_do_activate(C, x, y, extend, recursive);
 }
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
