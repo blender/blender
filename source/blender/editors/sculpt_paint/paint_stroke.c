@@ -247,17 +247,23 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			const Scene *scene = CTX_data_scene(C);
 			int steps;
 			int i;
-			float pressure = 1.0f;
+			float size_pressure = 1.0f;
+			float pressure = event_tablet_data(event, NULL);
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
 			if (BKE_brush_use_size_pressure(scene, stroke->brush))
-				pressure = event_tablet_data(event, NULL);
+				size_pressure = pressure;
 			
-			if (pressure > FLT_EPSILON) {
+			if (size_pressure > FLT_EPSILON) {
 				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
 				 * causing very high step sizes, hanging blender [#32381] */
-				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * pressure);
-				scale = (size_clamp * stroke->brush->spacing / 50.0f) / length;
+				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
+				float spacing = stroke->brush->spacing;
+
+				if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
+					spacing = max_ff(1.0f, spacing * (1.5f - pressure));
+
+				scale = (size_clamp * spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 

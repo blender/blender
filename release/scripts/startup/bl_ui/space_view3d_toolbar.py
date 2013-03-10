@@ -808,9 +808,10 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
 
             if brush.use_space:
                 col.separator()
-                row = col.row()
+                row = col.row(align=True)
                 row.active = brush.use_space
                 row.prop(brush, "spacing", text="Spacing")
+                row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
             if brush.sculpt_capabilities.has_smooth_stroke:
                 col = layout.column()
@@ -853,9 +854,10 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             col.active = brush.sculpt_capabilities.has_spacing
             col.prop(brush, "use_space")
 
-            row = col.row()
+            row = col.row(align=True)
             row.active = brush.use_space
             row.prop(brush, "spacing", text="Spacing")
+            row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
