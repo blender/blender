@@ -422,7 +422,7 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 {
 	if (name)
-		BLI_strncpy(name, "DopeSheet Summary", ANIM_CHAN_NAME_SIZE);
+		BLI_strncpy(name, IFACE_("DopeSheet Summary"), ANIM_CHAN_NAME_SIZE);
 }
 
 // FIXME: this is really a temp icon I think
@@ -1088,7 +1088,7 @@ static int acf_filldrivers_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
 {
-	BLI_strncpy(name, "Drivers", ANIM_CHAN_NAME_SIZE);
+	BLI_strncpy(name, IFACE_("Drivers"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -2277,7 +2277,7 @@ static void acf_shapekey_name(bAnimListElem *ale, char *name)
 		if (kb->name[0])
 			BLI_strncpy(name, kb->name, ANIM_CHAN_NAME_SIZE);
 		else
-			BLI_snprintf(name, ANIM_CHAN_NAME_SIZE, "Key %d", ale->index);
+			BLI_snprintf(name, ANIM_CHAN_NAME_SIZE, IFACE_("Key %d"), ale->index);
 	}
 }
 

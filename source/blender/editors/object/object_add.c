@@ -55,6 +55,8 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -874,6 +876,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	RNA_def_property_translation_context(ot->prop, BLF_I18NCONTEXT_ID_LAMP);
 
 	ED_object_add_generic_props(ot, FALSE);
 }
