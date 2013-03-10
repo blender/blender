@@ -682,15 +682,15 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3],
 }
 
 /* use for mousemove events */
-static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const wmEvent *event)
+static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const int mval[2], const bool do_snap)
 {
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 
 	if (ruler_item) {
 		float *co = ruler_item->co[ruler_item->co_index];
-		view3d_ruler_item_project(ruler_info, co, event->mval);
-		if (event->ctrl) {
-			const float mval_fl[2] = {UNPACK2(event->mval)};
+		view3d_ruler_item_project(ruler_info, co, mval);
+		if (do_snap) {
+			const float mval_fl[2] = {UNPACK2(mval)};
 			ED_view3d_snap_co(C, co, mval_fl, true, true, true);
 		}
 		return true;
@@ -700,11 +700,24 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 	}
 }
 
+static void view3d_ruler_header_update(ScrArea *sa)
+{
+	const char *text = "Ctrl+LMB: Add, "
+	                   "Del: Remove, "
+	                   "Ctrl+Drag: Snap, "
+	                   "Ctrl+C: Copy Value, "
+	                   "Enter: Store,  "
+	                   "Esc: Cancel";
+
+	ED_area_headerprint(sa, text);
+}
+
 /* -------------------------------------------------------------------- */
 /* Operator callbacks */
 
 static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 //	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	RulerInfo *ruler_info;
@@ -720,6 +733,8 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	ruler_info->ar = ar;
 	ruler_info->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ruler_info_draw_pixel, ruler_info, REGION_DRAW_POST_PIXEL);
+
+	view3d_ruler_header_update(sa);
 
 	WM_event_add_modal_handler(C, op);
 
@@ -776,11 +791,18 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 						ruler_item = ruler_item_add(ruler_info);
 						ruler_item_active_set(ruler_info, ruler_item);
-						ruler_item->co_index = 2;
 
 						negate_v3_v3(ruler_item->co[0], rv3d->ofs);
 						view3d_ruler_item_project(ruler_info, ruler_item->co[0], event->mval);
 						copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
+
+						/* snap the first point added, not essential but handy */
+						{
+							ruler_item->co_index = 0;
+							view3d_ruler_item_mousemove(C, ruler_info, event->mval, true);
+						}
+
+						ruler_item->co_index = 2;
 
 						do_draw = true;
 					}
@@ -816,7 +838,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 									}
 
 									/* update the new location */
-									view3d_ruler_item_mousemove(C, ruler_info, event);
+									view3d_ruler_item_mousemove(C, ruler_info, event->mval, event->ctrl != 0);
 									do_draw = true;
 								}
 							}
@@ -859,7 +881,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 		{
 			if (ruler_info->state == RULER_STATE_DRAG) {
-				if (view3d_ruler_item_mousemove(C, ruler_info, event)) {
+				if (view3d_ruler_item_mousemove(C, ruler_info, event->mval, event->ctrl != 0)) {
 					do_draw = true;
 				}
 			}
@@ -900,15 +922,8 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (do_draw) {
 		ScrArea *sa = CTX_wm_area(C);
-		const char *text = "Ctrl+LMB: Add, "
-		                   "Del: Remove, "
-		                   "Ctrl+Drag: Snap, "
-		                   "Ctrl+C: Copy Value, "
-		                   "Enter: Store,  "
-		                   "Esc: Cancel";
 
-		// ED_region_tag_redraw(ar);
-		ED_area_headerprint(sa, text);
+		view3d_ruler_header_update(sa);
 
 		/* all 3d views draw rulers */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
