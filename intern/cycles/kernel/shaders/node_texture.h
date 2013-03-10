@@ -172,26 +172,24 @@ float safe_noise(point p, int type)
 
 float noise_basis(point p, string basis)
 {
-	float result = 0.0;
-
 	if (basis == "Perlin")
-		result = safe_noise(p, 1);
+		return safe_noise(p, 1);
 	if (basis == "Voronoi F1")
-		result = voronoi_F1S(p);
+		return voronoi_F1S(p);
 	if (basis == "Voronoi F2")
-		result = voronoi_F2S(p);
+		return voronoi_F2S(p);
 	if (basis == "Voronoi F3")
-		result = voronoi_F3S(p);
+		return voronoi_F3S(p);
 	if (basis == "Voronoi F4")
-		result = voronoi_F4S(p);
+		return voronoi_F4S(p);
 	if (basis == "Voronoi F2-F1")
-		result = voronoi_F1F2S(p);
+		return voronoi_F1F2S(p);
 	if (basis == "Voronoi Crackle")
-		result = voronoi_CrS(p);
+		return voronoi_CrS(p);
 	if (basis == "Cell Noise")
-		result = cellnoise(p);
+		return cellnoise(p);
 	
-	return result;
+	return 0.0;
 }
 
 /* Soft/Hard Noise */
