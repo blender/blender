@@ -1510,7 +1510,7 @@ void tag_main(struct Main *mainvar, const short tag)
  * bmain is almost certainly G.main */
 void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
 {
-	ListBase *lbarray[MAX_LIBARRAY], tempbase = {NULL, NULL};
+	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id, *idn;
 	int a;
 
@@ -1545,17 +1545,8 @@ void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
 			}
 			id = idn;
 		}
-		
-		/* patch2: make it aphabetically */
-		/* FIXME: but nothing is ever put into tempbase! */
-		while ( (id = tempbase.first) ) {
-			BLI_remlink(&tempbase, id);
-			BLI_addtail(lbarray[a], id);
-			new_id(lbarray[a], id, NULL);
-		}
 	}
 
-	/* patch 3: make sure library data isn't indirect falsely... */
 	a = set_listbasepointers(bmain, lbarray);
 	while (a--) {
 		for (id = lbarray[a]->first; id; id = id->next)
@@ -1571,40 +1562,14 @@ void test_idbutton(char *name)
 	ID *idtest;
 	
 
-	lb = which_libbase(G.main, GS(name - 2) );
+	lb = which_libbase(G.main, GS(name) );
 	if (lb == NULL) return;
 	
 	/* search for id */
-	idtest = BLI_findstring(lb, name, offsetof(ID, name) + 2);
+	idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);
 
-	if (idtest && !new_id(lb, idtest, name)) {
+	if (idtest && !new_id(lb, idtest, name + 2)) {
 		id_sort_by_name(lb, idtest);
-	}
-}
-
-/**
- * Puts into *text a descriptive block type prefix to be displayed before the block name.
- */
-/* Not actually used anywhere any more. */
-void text_idbutton(const struct ID *id, char *text)
-{
-	if (id) {
-		if (GS(id->name) == ID_SCE)
-			strcpy(text, "SCE: ");
-		else if (GS(id->name) == ID_SCR)
-			strcpy(text, "SCR: ");
-		else if (GS(id->name) == ID_MA && ((Material *)id)->use_nodes)
-			strcpy(text, "NT: ");
-		else {
-			text[0] = id->name[0];
-			text[1] = id->name[1];
-			text[2] = ':';
-			text[3] = ' ';
-			text[4] = 0;
-		}
-	}
-	else {
-		text[0] = '\0';
 	}
 }
 

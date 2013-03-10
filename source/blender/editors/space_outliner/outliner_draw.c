@@ -337,7 +337,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 		TreeElement *te = outliner_find_tse(soops, tselem);
 		
 		if (tselem->type == 0) {
-			test_idbutton(tselem->id->name + 2);  // library.c, unique name and alpha sort
+			test_idbutton(tselem->id->name);  // library.c, unique name and alpha sort
 			
 			switch (GS(tselem->id->name)) {
 				case ID_MA:
@@ -372,7 +372,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					defgroup_unique_name(te->directdata, (Object *)tselem->id); //	id = object
 					break;
 				case TSE_NLA_ACTION:
-					test_idbutton(tselem->id->name + 2);
+					test_idbutton(tselem->id->name);
 					break;
 				case TSE_EBONE:
 				{

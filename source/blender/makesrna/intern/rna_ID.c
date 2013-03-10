@@ -103,7 +103,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
 	ID *id = (ID *)ptr->data;
 	BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
-	test_idbutton(id->name + 2);
+	test_idbutton(id->name);
 }
 
 static int rna_ID_name_editable(PointerRNA *ptr)

@@ -98,7 +98,6 @@ void tag_main(struct Main *mainvar, const short tag);
 void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, const struct ID *id);
 void test_idbutton(char *name);
-void text_idbutton(const struct ID *id, char *text);
 void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagged_only);
 struct ID *BKE_libblock_find_name(const short type, const char *name)
 #ifdef __GNUC__
