@@ -1307,7 +1307,7 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 		uiLayout *layout;
 		
 		/* call the menu, which will call this operator again, hence the canceled */
-		pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+		pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 		layout = uiPupMenuLayout(pup);
 		uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
 		uiPupMenuEnd(C, pup);

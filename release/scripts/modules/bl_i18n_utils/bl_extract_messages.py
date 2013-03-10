@@ -356,6 +356,8 @@ def dump_messages_rna(msgs, reports, settings):
 
         if bl_rna.description:
             process_msg(msgs, default_context, bl_rna.description, msgsrc, reports, check_ctxt_rna_tip, settings)
+        elif cls.__doc__:  # XXX Some classes (like KeyingSetInfo subclasses) have void description... :(
+            process_msg(msgs, default_context, cls.__doc__, msgsrc, reports, check_ctxt_rna_tip, settings)
 
         if hasattr(bl_rna, 'bl_label') and  bl_rna.bl_label:
             process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
