@@ -104,18 +104,16 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = customdata;
 
-	glColor4ubv(paint->paint_cursor_col);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
-
 	if (stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
-		ARegion *ar = CTX_wm_region(C);
-		sdrawline(x, y, (int)stroke->last_mouse_position[0] - ar->winrct.xmin,
-		          (int)stroke->last_mouse_position[1] - ar->winrct.ymin);
-	}
+		glColor4ubv(paint->paint_cursor_col);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
 
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+		sdrawline(x, y, (int)stroke->last_mouse_position[0],
+		          (int)stroke->last_mouse_position[1]);
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+	}
 }
 
 /* if this is a tablet event, return tablet pressure and set *pen_flip
