@@ -29,23 +29,23 @@ shader node_vector_math(
 		Vector = Vector1 + Vector2;
 		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
 	}
-	if (type == "Subtract") {
+	else if (type == "Subtract") {
 		Vector = Vector1 - Vector2;
 		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
 	}
-	if (type == "Average") {
+	else if (type == "Average") {
 		Value = length(Vector1 + Vector2);
 		Vector = normalize(Vector1 + Vector2);
 	}
-	if (type == "Dot Product") {
+	else if (type == "Dot Product") {
 		Value = dot(Vector1, Vector2);
 	}
-	if (type == "Cross Product") {
+	else if (type == "Cross Product") {
 		vector c = cross(Vector1, Vector2);
 		Value = length(c);
 		Vector = normalize(c);
 	}
-	if (type == "Normalize") {
+	else if (type == "Normalize") {
 		Value = length(Vector1);
 		Vector = normalize(Vector1);
 	}
