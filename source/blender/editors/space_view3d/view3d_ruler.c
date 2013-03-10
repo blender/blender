@@ -176,6 +176,41 @@ static void ruler_item_active_set(RulerInfo *ruler_info, RulerItem *ruler_item)
 	ruler_info->item_active = BLI_findindex(&ruler_info->items, ruler_item);
 }
 
+static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
+                                 char *numstr, size_t numstr_size, int prec)
+{
+	const int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
+
+	if (ruler_item->flag & RULERITEM_USE_ANGLE) {
+		const float ruler_angle = angle_v3v3v3(ruler_item->co[0],
+		                                       ruler_item->co[1],
+		                                       ruler_item->co[2]);
+
+		if (unit->system == USER_UNIT_NONE) {
+			BLI_snprintf(numstr, numstr_size, "%.*f°", prec, RAD2DEGF(ruler_angle));
+		}
+		else {
+			bUnit_AsString(numstr, numstr_size,
+			               (double)ruler_angle,
+			               prec, unit->system, B_UNIT_ROTATION, do_split, false);
+		}
+	}
+	else {
+		const float ruler_len = len_v3v3(ruler_item->co[0],
+		                                 ruler_item->co[2]);
+
+		if (unit->system == USER_UNIT_NONE) {
+			BLI_snprintf(numstr, numstr_size, "%.*f", prec, ruler_len);
+		}
+		else {
+			bUnit_AsString(numstr, numstr_size,
+			               (double)(ruler_len * unit->scale_length),
+			               prec, unit->system, B_UNIT_LENGTH, do_split, false);
+		}
+	}
+
+}
+
 static bool view3d_ruler_pick(RulerInfo *ruler_info, const float mval[2],
                               RulerItem **r_ruler_item, int *r_co_index)
 {
@@ -354,7 +389,6 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 {
 	Scene *scene = CTX_data_scene(C);
 	UnitSettings *unit = &scene->unit;
-	const int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
 	RulerItem *ruler_item;
 	RulerInfo *ruler_info = arg;
 	RegionView3D *rv3d = ruler_info->ar->regiondata;
@@ -398,9 +432,6 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 		cpack(is_act ? color_act : color_base);
 
 		if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-			const float ruler_angle = angle_v3v3v3(ruler_item->co[0],
-			                                       ruler_item->co[1],
-			                                       ruler_item->co[2]);
 			glBegin(GL_LINE_STRIP);
 			for (j = 0; j < 3; j++) {
 				glVertex2fv(co_ss[j]);
@@ -465,14 +496,8 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				float pos[2];
 				const int prec = 2;  /* XXX, todo, make optional */
 
-				if (unit->system == USER_UNIT_NONE) {
-					BLI_snprintf(numstr, sizeof(numstr), "%.*f°", prec, RAD2DEGF(ruler_angle));
-				}
-				else {
-					bUnit_AsString(numstr, sizeof(numstr),
-					               (double)ruler_angle,
-					               prec, unit->system, B_UNIT_ROTATION, do_split, false);
-				}
+				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+
 				BLF_width_and_height(blf_mono_font, numstr, &numstr_size[0], &numstr_size[1]);
 
 				pos[0] = co_ss[1][0] + (cap_size * 2.0f);
@@ -534,7 +559,6 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			}
 		}
 		else {
-			const float ruler_len = len_v3v3(ruler_item->co[0], ruler_item->co[2]);
 			glBegin(GL_LINE_STRIP);
 			for (j = 0; j < 3; j += 2) {
 				glVertex2fv(co_ss[j]);
@@ -578,14 +602,8 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 					flip_text = false;
 				}
 
-				if (unit->system == USER_UNIT_NONE) {
-					BLI_snprintf(numstr, sizeof(numstr), "%.*f", prec, ruler_len);
-				}
-				else {
-					bUnit_AsString(numstr, sizeof(numstr),
-					               (double)(ruler_len * unit->scale_length),
-					               prec, unit->system, B_UNIT_LENGTH, do_split, false);
-				}
+				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+
 				BLF_width_and_height(blf_mono_font, numstr, &numstr_size[0], &numstr_size[1]);
 
 				mid_v2_v2v2(pos, co_ss[0], co_ss[2]);
@@ -817,6 +835,21 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			break;
+		case CKEY:
+		{
+			if (event->ctrl) {
+				RulerItem *ruler_item = ruler_item_active_get(ruler_info);
+				if (ruler_item) {
+					const int prec = 8;
+					char numstr[256];
+					Scene *scene = CTX_data_scene(C);
+					UnitSettings *unit = &scene->unit;
+
+					ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+					WM_clipboard_text_set((void *) numstr, false);
+				}
+			}
+		}
 		case RIGHTCTRLKEY:
 		case LEFTCTRLKEY:
 		{
@@ -866,16 +899,29 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (do_draw) {
+		ScrArea *sa = CTX_wm_area(C);
+		const char *text = "Ctrl+LMB: Add, "
+		                   "Del: Remove, "
+		                   "Ctrl+Drag: Snap, "
+		                   "Ctrl+C: Copy Value, "
+		                   "Enter: Store,  "
+		                   "Esc: Cancel";
+
 		// ED_region_tag_redraw(ar);
+		ED_area_headerprint(sa, text);
 
 		/* all 3d views draw rulers */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	}
 
 	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+		ScrArea *sa = CTX_wm_area(C);
+
 		view3d_ruler_end(C, ruler_info);
 		view3d_ruler_free(ruler_info);
 		op->customdata = NULL;
+
+		ED_area_headerprint(sa, NULL);
 	}
 
 	return exit_code;
