@@ -147,10 +147,7 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
  */
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic)
 {
-	char fmtstr[16] = "";
-	if (pic < 0) pic = 0;
-	sprintf(fmtstr, "%%s%%.%dd%%s", numlen);
-	sprintf(string, fmtstr, head, pic, tail);
+	sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
 /**
