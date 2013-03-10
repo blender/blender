@@ -55,6 +55,8 @@
 #include "BLI_rand.h"
 #include "BLI_callbacks.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"  /* <------ should this be here?, needed for sequencer update */
 #include "BKE_camera.h"
 #include "BKE_global.h"
@@ -155,22 +157,23 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
 	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
-	fprintf(stdout, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
+	fprintf(stdout, IFACE_("Fra:%d Mem:%.2fM (%.2fM, Peak %.2fM) "), rs->cfra,
 	        megs_used_memory, mmap_used_memory, megs_peak_memory);
 
 	if (rs->curfield)
-		fprintf(stdout, "Field %d ", rs->curfield);
+		fprintf(stdout, IFACE_("Field %d "), rs->curfield);
 	if (rs->curblur)
-		fprintf(stdout, "Blur %d ", rs->curblur);
+		fprintf(stdout, IFACE_("Blur %d "), rs->curblur);
 
 	if (rs->infostr) {
 		fprintf(stdout, "| %s", rs->infostr);
 	}
 	else {
 		if (rs->tothalo)
-			fprintf(stdout, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scene_name, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			fprintf(stdout, IFACE_("Sce: %s Ve:%d Fa:%d Ha:%d La:%d"),
+			        rs->scene_name, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
 		else
-			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scene_name, rs->totvert, rs->totface, rs->totlamp);
+			fprintf(stdout, IFACE_("Sce: %s Ve:%d Fa:%d La:%d"), rs->scene_name, rs->totvert, rs->totface, rs->totlamp);
 	}
 
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
@@ -821,7 +824,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 {
 	char str[64];
 	
-	BLI_snprintf(str, sizeof(str), "%s, Part %d-%d", re->scene->id.name + 2, pa->nr, re->i.totpart);
+	BLI_snprintf(str, sizeof(str), IFACE_("%s, Part %d-%d"), re->scene->id.name + 2, pa->nr, re->i.totpart);
 	re->i.infostr = str;
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;

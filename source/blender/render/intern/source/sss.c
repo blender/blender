@@ -55,6 +55,8 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "DNA_material_types.h"
@@ -994,7 +996,7 @@ void make_sss_tree(Render *re)
 	
 	re->sss_hash= BLI_ghash_ptr_new("make_sss_tree gh");
 
-	re->i.infostr= "SSS preprocessing";
+	re->i.infostr = IFACE_("SSS preprocessing");
 	re->stats_draw(re->sdh, &re->i);
 	
 	for (mat= re->main->mat.first; mat; mat= mat->id.next)

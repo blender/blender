@@ -38,6 +38,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
 
@@ -512,7 +514,7 @@ void make_envmaps(Render *re)
 	trace = (re->r.mode & R_RAYTRACE);
 	re->r.mode &= ~R_RAYTRACE;
 
-	re->i.infostr = "Creating Environment maps";
+	re->i.infostr = IFACE_("Creating Environment maps");
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* 5 = hardcoded max recursion level */

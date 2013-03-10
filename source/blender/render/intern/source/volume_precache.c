@@ -43,6 +43,8 @@
 #include "BLI_voxel.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "RE_shader_ext.h"
@@ -400,10 +402,11 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 					/* Displays progress every second */
 					if (time-lasttime>1.0) {
 						char str[64];
-						BLI_snprintf(str, sizeof(str), "Simulating multiple scattering: %d%%", (int)(100.0f * (c / total)));
-						re->i.infostr= str;
+						BLI_snprintf(str, sizeof(str), IFACE_("Simulating multiple scattering: %d%%"),
+						             (int)(100.0f * (c / total)));
+						re->i.infostr = str;
 						re->stats_draw(re->sdh, &re->i);
-						re->i.infostr= NULL;
+						re->i.infostr = NULL;
 						lasttime= time;
 					}
 				}
@@ -742,11 +745,12 @@ static void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *o
 		time= PIL_check_seconds_timer();
 		if (time-lasttime>1.0) {
 			char str[64];
-			BLI_snprintf(str, sizeof(str), "Precaching volume: %d%%", (int)(100.0f * ((float)counter / (float)totparts)));
-			re->i.infostr= str;
+			BLI_snprintf(str, sizeof(str), IFACE_("Precaching volume: %d%%"),
+			             (int)(100.0f * ((float)counter / (float)totparts)));
+			re->i.infostr = str;
 			re->stats_draw(re->sdh, &re->i);
-			re->i.infostr= NULL;
-			lasttime= time;
+			re->i.infostr = NULL;
+			lasttime = time;
 		}
 	}
 	
@@ -784,7 +788,7 @@ void volume_precache(Render *re)
 	ObjectInstanceRen *obi;
 	VolumeOb *vo;
 
-	re->i.infostr= "Volume preprocessing";
+	re->i.infostr = IFACE_("Volume preprocessing");
 	re->stats_draw(re->sdh, &re->i);
 
 	for (vo= re->volumes.first; vo; vo= vo->next) {
@@ -803,7 +807,7 @@ void volume_precache(Render *re)
 		}
 	}
 	
-	re->i.infostr= NULL;
+	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
 

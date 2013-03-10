@@ -39,6 +39,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
@@ -281,38 +283,39 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
 	if (scene->lay & 0xFF000000)
-		spos += sprintf(spos, "Localview | ");
+		spos += sprintf(spos, IFACE_("Localview | "));
 	else if (scene->r.scemode & R_SINGLE_LAYER)
-		spos += sprintf(spos, "Single Layer | ");
+		spos += sprintf(spos, IFACE_("Single Layer | "));
 
-	spos += sprintf(spos, "Frame:%d ", (scene->r.cfra));
+	spos += sprintf(spos, IFACE_("Frame:%d "), (scene->r.cfra));
 
 	if (rs->statstr) {
 		spos += sprintf(spos, "| %s ", rs->statstr);
 	}
 	else {
-		if (rs->totvert) spos += sprintf(spos, "Ve:%d ", rs->totvert);
-		if (rs->totface) spos += sprintf(spos, "Fa:%d ", rs->totface);
-		if (rs->tothalo) spos += sprintf(spos, "Ha:%d ", rs->tothalo);
-		if (rs->totstrand) spos += sprintf(spos, "St:%d ", rs->totstrand);
-		if (rs->totlamp) spos += sprintf(spos, "La:%d ", rs->totlamp);
+		if (rs->totvert) spos += sprintf(spos, IFACE_("Ve:%d "), rs->totvert);
+		if (rs->totface) spos += sprintf(spos, IFACE_("Fa:%d "), rs->totface);
+		if (rs->tothalo) spos += sprintf(spos, IFACE_("Ha:%d "), rs->tothalo);
+		if (rs->totstrand) spos += sprintf(spos, IFACE_("St:%d "), rs->totstrand);
+		if (rs->totlamp) spos += sprintf(spos, IFACE_("La:%d "), rs->totlamp);
 
 		if (rs->mem_peak == 0.0f)
-			spos += sprintf(spos, "Mem:%.2fM (%.2fM, peak %.2fM) ", megs_used_memory, mmap_used_memory, megs_peak_memory);
+			spos += sprintf(spos, IFACE_("Mem:%.2fM (%.2fM, Peak %.2fM) "),
+			                megs_used_memory, mmap_used_memory, megs_peak_memory);
 		else
-			spos += sprintf(spos, "Mem:%.2fM, Peak: %.2fM ", rs->mem_used, rs->mem_peak);
+			spos += sprintf(spos, IFACE_("Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
 
 		if (rs->curfield)
-			spos += sprintf(spos, "Field %d ", rs->curfield);
+			spos += sprintf(spos, IFACE_("Field %d "), rs->curfield);
 		if (rs->curblur)
-			spos += sprintf(spos, "Blur %d ", rs->curblur);
+			spos += sprintf(spos, IFACE_("Blur %d "), rs->curblur);
 	}
 
 	BLI_timestr(rs->lastframetime, info_time_str);
-	spos += sprintf(spos, "Time:%s ", info_time_str);
+	spos += sprintf(spos, IFACE_("Time:%s "), info_time_str);
 
 	if (rs->curfsa)
-		spos += sprintf(spos, "| Full Sample %d ", rs->curfsa);
+		spos += sprintf(spos, IFACE_("| Full Sample %d "), rs->curfsa);
 	
 	if (rs->infostr && rs->infostr[0])
 		spos += sprintf(spos, "| %s ", rs->infostr);

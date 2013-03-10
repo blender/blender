@@ -47,6 +47,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_global.h"
 #include "BKE_node.h"
 
@@ -400,7 +402,7 @@ static void makeraytree_single(Render *re)
 	}
 	
 	if (!test_break(re)) {
-		re->i.infostr= "Raytree.. building";
+		re->i.infostr = IFACE_("Raytree.. building");
 		re->stats_draw(re->sdh, &re->i);
 
 		RE_rayobject_done(raytree);
@@ -412,7 +414,7 @@ void makeraytree(Render *re)
 	float min[3], max[3], sub[3];
 	int i;
 	
-	re->i.infostr= "Raytree.. preparing";
+	re->i.infostr = IFACE_("Raytree.. preparing");
 	re->stats_draw(re->sdh, &re->i);
 
 	/* disable options not yet supported by octree,
@@ -425,7 +427,7 @@ void makeraytree(Render *re)
 	if (test_break(re)) {
 		freeraytree(re);
 
-		re->i.infostr= "Raytree building canceled";
+		re->i.infostr = IFACE_("Raytree building canceled");
 		re->stats_draw(re->sdh, &re->i);
 	}
 	else {
@@ -446,7 +448,7 @@ void makeraytree(Render *re)
 
 		re->maxdist = len_v3(sub);
 
-		re->i.infostr= "Raytree finished";
+		re->i.infostr = IFACE_("Raytree finished");
 		re->stats_draw(re->sdh, &re->i);
 	}
 

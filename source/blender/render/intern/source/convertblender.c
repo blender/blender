@@ -43,6 +43,8 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"
@@ -5119,7 +5121,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		tothalo= re->tothalo;
 		if (!re->test_break(re->tbh)) {
 			if (re->wrld.mode & WO_STARS) {
-				re->i.infostr= "Creating Starfield";
+				re->i.infostr = IFACE_("Creating Starfield");
 				re->stats_draw(re->sdh, &re->i);
 				RE_make_stars(re, NULL, NULL, NULL, NULL);
 			}
@@ -5128,7 +5130,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		
 		init_camera_inside_volumes(re);
 		
-		re->i.infostr= "Creating Shadowbuffers";
+		re->i.infostr = IFACE_("Creating Shadowbuffers");
 		re->stats_draw(re->sdh, &re->i);
 
 		/* SHADOW BUFFER */
@@ -5178,7 +5180,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	else
 		re->i.convertdone = TRUE;
 	
-	re->i.infostr= NULL;
+	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
 
@@ -5591,7 +5593,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	ListBase strandsurface;
 	int step;
 	
-	re->i.infostr= "Calculating previous frame vectors";
+	re->i.infostr = IFACE_("Calculating previous frame vectors");
 	re->r.mode |= R_SPEED;
 	
 	speedvector_project(re, NULL, NULL, NULL);	/* initializes projection code */
@@ -5610,7 +5612,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	
 	if (!re->test_break(re->tbh)) {
 		/* creates entire dbase */
-		re->i.infostr= "Calculating next frame vectors";
+		re->i.infostr = IFACE_("Calculating next frame vectors");
 		
 		database_fromscene_vectors(re, sce, lay, +1);
 	}
@@ -5696,7 +5698,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 		}
 	}
 	
-	re->i.infostr= NULL;
+	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
 
