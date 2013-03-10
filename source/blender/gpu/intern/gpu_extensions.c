@@ -44,6 +44,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_simple_shader.h"
 #include "gpu_codegen.h"
 
 #include <stdlib.h>
@@ -206,14 +207,14 @@ void GPU_extensions_init(void)
 	GG.os = GPU_OS_UNIX;
 #endif
 
-	GPU_fixed_materials_init();
+	GPU_simple_shaders_init();
 }
 
 void GPU_extensions_exit(void)
 {
 	gpu_extensions_init = 0;
 	GPU_codegen_exit();
-	GPU_fixed_materials_exit();
+	GPU_simple_shaders_exit();
 }
 
 int GPU_glsl_support(void)

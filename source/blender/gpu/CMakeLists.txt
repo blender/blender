@@ -50,21 +50,22 @@ set(SRC
 	intern/gpu_codegen.c
 	intern/gpu_draw.c
 	intern/gpu_extensions.c
-	intern/gpu_fixed_material.c
 	intern/gpu_material.c
+	intern/gpu_simple_shader.c
 
 	GPU_buffers.h
 	GPU_draw.h
 	GPU_extensions.h
 	GPU_material.h
+	GPU_simple_shader.h
 	intern/gpu_codegen.h
 )
 
-data_to_c_simple(shaders/gpu_shader_fixed_fragment.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fixed_vertex.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_material.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_simple_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_simple_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vertex.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_vert.glsl SRC)
