@@ -362,7 +362,7 @@ void BLI_cleanup_path(const char *relabase, char *path)
 			if (path[2] == '\0') {
 				return; /* path is "//" - cant clean it */
 			}
-			path = path + 2; /* skip the first // */
+			path = path + 2;  /* leave the initial "//" untouched */
 		}
 	}
 	
@@ -414,25 +414,27 @@ void BLI_cleanup_path(const char *relabase, char *path)
 		return;
 	}
 
-	/* support for odd paths: eg /../home/me --> /home/me
-	 * this is a valid path in blender but we cant handle this the usual way below
-	 * simply strip this prefix then evaluate the path as usual. pythons os.path.normpath() does this */
-	while ((strncmp(path, "/../", 4) == 0)) {
-		memmove(path, path + 4, strlen(path + 4) + 1);
-	}
-
 	while ( (start = strstr(path, "/../")) ) {
-		eind = start + (4 - 1) /* strlen("/../") - 1 */;
 		a = start - path - 1;
-		while (a > 0) {
-			if (path[a] == '/') break;
-			a--;
-		}
-		if (a < 0) {
-			break;
+		if (a > 0) {
+			/* <prefix>/<parent>/../<postfix> => <prefix>/<postfix> */
+			eind = start + (4 - 1) /* strlen("/../") - 1 */; /* strip "/.." and keep last "/" */
+			while (a > 0 && path[a] != '/') { /* find start of <parent> */
+				a--;
+			}
+			memmove(path + a, eind, strlen(eind) + 1);
 		}
 		else {
-			memmove(path + a, eind, strlen(eind) + 1);
+			/* support for odd paths: eg /../home/me --> /home/me
+			 * this is a valid path in blender but we cant handle this the usual way below
+			 * simply strip this prefix then evaluate the path as usual.
+			 * pythons os.path.normpath() does this */
+
+			/* Note: previous version of following call used an offset of 3 instead of 4,
+			 * which meant that the "/../home/me" example actually became "home/me".
+			 * Using offset of 3 gives behaviour consistent with the abovementioned
+			 * Python routine. */
+			memmove(path, path + 3, strlen(path + 3) + 1);
 		}
 	}
 
@@ -1417,7 +1419,6 @@ void BLI_make_exist(char *dir)
 void BLI_make_existing_file(const char *name)
 {
 	char di[FILE_MAX];
-	BLI_strncpy(di, name, sizeof(di));
 	BLI_split_dir_part(name, di, sizeof(di));
 
 	/* make if if the dir doesn't exist */
