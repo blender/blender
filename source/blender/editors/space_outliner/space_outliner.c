@@ -316,6 +316,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					/* all modifier actions now */
 					ED_region_tag_redraw(ar);
 					break;
+				default:
+					/* Trigger update for NC_OBJECT itself */
+					ED_region_tag_redraw(ar);
+					break;
 			}
 			break;
 		case NC_GROUP:

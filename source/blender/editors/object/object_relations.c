@@ -1543,6 +1543,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_OBJECT, NULL);
 
 	return OPERATOR_FINISHED;
 }
