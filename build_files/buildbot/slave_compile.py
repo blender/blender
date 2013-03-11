@@ -21,6 +21,7 @@
 import os
 import subprocess
 import sys
+import shutil
 
 # get builder name
 if len(sys.argv) < 2:
@@ -70,8 +71,6 @@ else:
     config_dir = os.path.join(buildbot_dir, 'config')
 
     if builder.find('linux') != -1:
-        import shutil
-
         configs = []
         if builder.endswith('linux_glibc211_x86_64_scons'):
             configs = ['user-config-player-glibc211-x86_64.py',
