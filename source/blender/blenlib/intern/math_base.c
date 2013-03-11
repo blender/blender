@@ -57,7 +57,14 @@ double round(double x)
 	return copysign(y, x);
 }
 #else /* OpenSuse 11.1 seems to need this. */
+#  ifdef __GNUC__
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wredundant-decls"
+#  endif
 double round(double x);
+#  ifdef __GNUC__
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 /* from python 3.1 floatobject.c

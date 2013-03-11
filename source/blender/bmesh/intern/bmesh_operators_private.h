@@ -30,9 +30,6 @@
 struct BMesh;
 struct BMOperator;
 
-void BMO_push(BMesh *bm, BMOperator *op);
-void BMO_pop(BMesh *bm);
-
 void bmo_automerge_exec(BMesh *bm, BMOperator *op);
 void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op);
 void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op);

@@ -67,6 +67,8 @@
 
 #include "screen_intern.h"
 
+extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
+
 /* general area and region code */
 
 static void region_draw_emboss(ARegion *ar, rcti *scirct)
@@ -245,8 +247,6 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 
 static void region_draw_azone_tab_plus(AZone *az)
 {
-	extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
-	
 	glEnable(GL_BLEND);
 	
 	/* add code to draw region hidden as 'too small' */
@@ -321,8 +321,6 @@ static void region_draw_azone_tab(AZone *az)
 
 static void region_draw_azone_tria(AZone *az)
 {
-	extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
-	
 	glEnable(GL_BLEND);
 	//UI_GetThemeColor3fv(TH_HEADER, col);
 	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);

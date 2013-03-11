@@ -137,7 +137,6 @@ void paint_proj_stroke_done(void *ps);
 void paint_brush_init_tex(struct Brush *brush);
 void paint_brush_exit_tex(struct Brush *brush);
 
-void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);
 void PAINT_OT_sample_color(struct wmOperatorType *ot);
 void PAINT_OT_clone_cursor_set(struct wmOperatorType *ot);

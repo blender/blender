@@ -172,17 +172,10 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* renam
 
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-
 /* mesh_ops.c */
 void        ED_operatortypes_mesh(void);
 void        ED_operatormacros_mesh(void);
 void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
-void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
-
-
-/* spacetypes.c */
-void        ED_spacetypes_init(void);
-
 
 /* editmesh_tools.c (could be moved) */
 void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEditMesh *em);

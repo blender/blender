@@ -116,9 +116,6 @@ void IMB_indexer_close(struct anim_index * idx);
 
 void IMB_free_indices(struct anim * anim);
 
-int IMB_anim_index_get_frame_index(
-	struct anim *anim, IMB_Timecode_Type tc, int position);
-
 struct anim *IMB_anim_open_proxy(
 	struct anim *anim, IMB_Proxy_Size preview_size);
 struct anim_index * IMB_anim_open_index(

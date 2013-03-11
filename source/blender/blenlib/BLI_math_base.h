@@ -179,6 +179,11 @@
 #include "intern/math_base_inline.c"
 #endif
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
+
 /******************************* Float ******************************/
 
 MINLINE float sqrt3f(float f);
@@ -216,6 +221,10 @@ extern double round(double x);
 #endif
 
 double double_round(double x, int ndigits);
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
 /* asserts, some math functions expect normalized inputs
  * check the vector is unit length, or zero length (which can't be helped in some cases).

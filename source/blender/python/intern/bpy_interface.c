@@ -931,11 +931,7 @@ static void bpy_module_free(void *UNUSED(mod))
 
 
 /* EVIL, define text.c functions here... */
-extern int text_check_identifier_unicode(const unsigned int ch);
-extern int text_check_identifier_nodigit_unicode(const unsigned int ch);
-extern int text_check_identifier(const char ch);
-extern int text_check_identifier_nodigit(const char ch);
-
+/* BKE_text.h */
 int text_check_identifier_unicode(const unsigned int ch)
 {
 	return (ch < 255 && text_check_identifier((char)ch)) || Py_UNICODE_ISALNUM(ch);
