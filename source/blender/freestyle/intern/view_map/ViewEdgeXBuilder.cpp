@@ -203,8 +203,8 @@ ViewEdge *ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
 		ViewVertex *vva = MakeViewVertex(fefirst->vertexA());
 		ViewVertex *vvb = MakeViewVertex(fe->vertexB());
 
-		((NonTVertex*)vva)->AddOutgoingViewEdge(newVEdge);
-		((NonTVertex*)vvb)->AddIncomingViewEdge(newVEdge);
+		((NonTVertex *)vva)->AddOutgoingViewEdge(newVEdge);
+		((NonTVertex *)vvb)->AddIncomingViewEdge(newVEdge);
 
 		newVEdge->setA(vva);
 		newVEdge->setB(vvb);
@@ -284,8 +284,8 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge)
 		ViewVertex *vva = MakeViewVertex(fefirst->vertexA());
 		ViewVertex *vvb = MakeViewVertex(fe->vertexB());
 
-		((NonTVertex*)vva)->AddOutgoingViewEdge(newVEdge);
-		((NonTVertex*)vvb)->AddIncomingViewEdge(newVEdge);
+		((NonTVertex *)vva)->AddOutgoingViewEdge(newVEdge);
+		((NonTVertex *)vvb)->AddIncomingViewEdge(newVEdge);
 
 		newVEdge->setA(vva);
 		newVEdge->setB(vvb);
@@ -345,7 +345,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer& iFaceLayer)
 			return OWXFaceLayer(NULL, true);
 		// if the next face layer has either no smooth edge or no smooth edge of same nature, no next face
 		if (!nextFace->hasSmoothEdges())
-			return OWXFaceLayer(NULL,true);
+			return OWXFaceLayer(NULL, true);
 		vector<WXFaceLayer*> sameNatureLayers;
 		nextFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
 		// don't know how to deal with several edges of same nature on a single face
@@ -394,7 +394,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer& iFaceLa
 		WVertex::face_iterator fend = previousVertex->faces_end();
 		for (; (!found) && (f != fend); ++f) {
 			previousFace = dynamic_cast<WXFace*>(*f);
-			if ((0 != previousFace) && (previousFace!=iFaceLayer.fl->getFace())) {
+			if ((0 != previousFace) && (previousFace != iFaceLayer.fl->getFace())) {
 				vector<WXFaceLayer*> sameNatureLayers;
 				previousFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
 				// don't know... Maybe should test whether this face has also a vertex_edge configuration
@@ -562,7 +562,7 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge& iEdge)
 	else
 		v = iEdge.e->GetaVertex();
 
-	if (((WXVertex*)v)->isFeature())
+	if (((WXVertex *)v)->isFeature())
 		return 0; /* XXX eeek? NULL? OWXEdge(NULL, true/false)?*/
 
 	int faceMarks = retrieveFaceMarks(iEdge.e);
@@ -605,13 +605,13 @@ OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge& iEdge)
 	else
 		v = iEdge.e->GetbVertex();
 
-	if (((WXVertex*)v)->isFeature())
+	if (((WXVertex *)v)->isFeature())
 		return 0;
 
 	int faceMarks = retrieveFaceMarks(iEdge.e);
-	vector<WEdge*>& vEdges = (v)->GetEdges();
-	for (vector<WEdge*>::iterator ve = vEdges.begin(), veend = vEdges.end(); ve != veend; ve++) {
-		WXEdge *wxe = dynamic_cast<WXEdge*>(*ve);
+	vector<WEdge *>& vEdges = (v)->GetEdges();
+	for (vector<WEdge *>::iterator ve = vEdges.begin(), veend = vEdges.end(); ve != veend; ve++) {
+		WXEdge *wxe = dynamic_cast<WXEdge *>(*ve);
 		if (wxe == iEdge.e)
 			continue; // same edge as the one processed
 

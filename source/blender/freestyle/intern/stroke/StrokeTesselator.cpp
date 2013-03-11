@@ -44,10 +44,10 @@ LineRep *StrokeTesselator::Tesselate(Stroke *iStroke)
 	if (0 == iStroke)
 		return 0;
 
-	LineRep* line;
+	LineRep *line;
 	line = new OrientedLineRep();
 
-	Stroke::vertex_iterator v,vend;
+	Stroke::vertex_iterator v, vend;
 	if (2 == iStroke->vertices_size()) {
 		line->setStyle(LineRep::LINES);
 		v = iStroke->vertices_begin();

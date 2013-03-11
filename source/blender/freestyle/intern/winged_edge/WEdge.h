@@ -235,7 +235,7 @@ public:
 
 		virtual bool operator==(const incoming_edge_iterator& b) const
 		{
-			return ((_current)== (b._current));
+			return ((_current) == (b._current));
 		}
 
 		// dereferencing
@@ -311,7 +311,7 @@ public:
 
 		virtual bool operator==(const face_iterator& b) const
 		{
-			return ((_edge_it)== (b._edge_it));
+			return ((_edge_it) == (b._edge_it));
 		}
 
 		// dereferencing
@@ -973,7 +973,7 @@ public:
 	/*! For triangles, returns the edge opposite to the vertex in e.
 	 *  returns flase if the face is not a triangle or if the vertex is not found
 	 */
-	bool getOppositeEdge (const WVertex *v, WOEdge* &e);
+	bool getOppositeEdge (const WVertex *v, WOEdge *&e);
 
 	/*! compute the area of the face */
 	real getArea ();

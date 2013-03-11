@@ -70,7 +70,7 @@ public:
 		// N.B. We could, of course, store face in poly's userdata member, like the old ViewMapBuilder code does.
 		// However, code comments make it clear that userdata is deprecated, so we avoid the temptation
 		// to save 4 or 8 bytes.
-		WFace* face;
+		WFace *face;
 	};
 
 private:
@@ -194,21 +194,21 @@ inline void BoxGrid::Iterator::initBeforeTarget()
 inline void BoxGrid::Iterator::initAfterTarget()
 {
 	if (_foundOccludee) {
-		#if BOX_GRID_LOGGING
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				std::cout << "\tStarting occludee search from occludeeCandidate at depth "
-				          << _occludeeDepth << std::endl;
-			}
-		#endif
+#if BOX_GRID_LOGGING
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			std::cout << "\tStarting occludee search from occludeeCandidate at depth " <<
+			             _occludeeDepth << std::endl;
+		}
+#endif
 		_current = _occludeeCandidate;
 		return;
 	}
 
-	#if BOX_GRID_LOGGING
-		if (G.debug & G_DEBUG_FREESTYLE) {
-			std::cout << "\tStarting occludee search from current position" << std::endl;
-		}
-	#endif
+#if BOX_GRID_LOGGING
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		std::cout << "\tStarting occludee search from current position" << std::endl;
+	}
+#endif
 
 	while (_current != _cell->faces.end() && !testOccluder(true)) {
 		++_current;
@@ -223,23 +223,23 @@ inline bool BoxGrid::Iterator::testOccluder(bool wantOccludee)
 		// and _current = _cell->face.end() will make the calling routine give up.
 		return true;
 	}
-	#if BOX_GRID_LOGGING
-		if (G.debug & G_DEBUG_FREESTYLE) {
-			std::cout << "\tTesting occluder " << (*_current)->poly.getVertices()[0];
-			for (unsigned int i = 1; i < (*_current)->poly.getVertices().size(); ++i) {
-				std::cout << ", " << (*_current)->poly.getVertices()[i];
-			}
-			std::cout << " from shape " << (*_current)->face->GetVertex(0)->shape()->GetId() << std::endl;
+#if BOX_GRID_LOGGING
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		std::cout << "\tTesting occluder " << (*_current)->poly.getVertices()[0];
+		for (unsigned int i = 1; i < (*_current)->poly.getVertices().size(); ++i) {
+			std::cout << ", " << (*_current)->poly.getVertices()[i];
 		}
-	#endif
+		std::cout << " from shape " << (*_current)->face->GetVertex(0)->shape()->GetId() << std::endl;
+	}
+#endif
 
 	// If we have an occluder candidate and we are unambiguously after it, abort
 	if (_foundOccludee && (*_current)->shallowest > _occludeeDepth) {
-		#if BOX_GRID_LOGGING
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				std::cout << "\t\tAborting: shallowest > occludeeCandidate->deepest" << std::endl;
-			}
-		#endif
+#if BOX_GRID_LOGGING
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			std::cout << "\t\tAborting: shallowest > occludeeCandidate->deepest" << std::endl;
+		}
+#endif
 		_current = _cell->faces.end();
 
 		// See note above
@@ -249,21 +249,21 @@ inline bool BoxGrid::Iterator::testOccluder(bool wantOccludee)
 	// Specific continue or stop conditions when searching for each type
 	if (wantOccludee) {
 		if ((*_current)->deepest < _target[2]) {
-			#if BOX_GRID_LOGGING
-				if (G.debug & G_DEBUG_FREESTYLE) {
-					std::cout << "\t\tSkipping: shallower than target while looking for occludee" << std::endl;
-				}
-			#endif
+#if BOX_GRID_LOGGING
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				std::cout << "\t\tSkipping: shallower than target while looking for occludee" << std::endl;
+			}
+#endif
 			return false;
 		}
 	}
 	else {
 		if ((*_current)->shallowest > _target[2]) {
-			#if BOX_GRID_LOGGING
-				if (G.debug & G_DEBUG_FREESTYLE) {
-					std::cout << "\t\tStopping: deeper than target while looking for occluder" << std::endl;
-				}
-			#endif
+#if BOX_GRID_LOGGING
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				std::cout << "\t\tStopping: deeper than target while looking for occluder" << std::endl;
+			}
+#endif
 			return true;
 		}
 	}
@@ -274,11 +274,11 @@ inline bool BoxGrid::Iterator::testOccluder(bool wantOccludee)
 	Vec3r bbMin, bbMax;
 	(*_current)->poly.getBBox(bbMin, bbMax);
 	if (_target[0] < bbMin[0] || _target[0] > bbMax[0] || _target[1] < bbMin[1] || _target[1] > bbMax[1]) {
-		#if BOX_GRID_LOGGING
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				std::cout << "\t\tSkipping: bounding box violation" << std::endl;
-			}
-		#endif
+#if BOX_GRID_LOGGING
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			std::cout << "\t\tSkipping: bounding box violation" << std::endl;
+		}
+#endif
 		return false;
 	}
 
@@ -298,22 +298,22 @@ inline void BoxGrid::Iterator::reportDepth(Vec3r origin, Vec3r u, real t)
 		}
 	#endif
 	if (depth > _target[2]) {
-		#if BOX_GRID_LOGGING
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				std::cout << " is deeper than target" << std::endl;
-			}
-		#endif
+#if BOX_GRID_LOGGING
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			std::cout << " is deeper than target" << std::endl;
+		}
+#endif
 		// If the current occluder is the best occludee so far, save it.
 		if (! _foundOccludee || _occludeeDepth > depth) {
 			markCurrentOccludeeCandidate(depth);
 		}
 	}
 	else {
-		#if BOX_GRID_LOGGING
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				std::cout << std::endl;
-			}
-		#endif
+#if BOX_GRID_LOGGING
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			std::cout << std::endl;
+		}
+#endif
 	}
 }
 
@@ -347,22 +347,22 @@ inline bool BoxGrid::Iterator::validAfterTarget()
 
 inline void BoxGrid::Iterator::markCurrentOccludeeCandidate(real depth)
 {
-	#if BOX_GRID_LOGGING
-		if (G.debug & G_DEBUG_FREESTYLE) {
-			std::cout << "\t\tFound occludeeCandidate at depth " << depth << std::endl;
-		}
-	#endif
+#if BOX_GRID_LOGGING
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		std::cout << "\t\tFound occludeeCandidate at depth " << depth << std::endl;
+	}
+#endif
 	_occludeeCandidate = _current;
 	_occludeeDepth = depth;
 	_foundOccludee = true;
 }
 
-inline WFace* BoxGrid::Iterator::getWFace() const
+inline WFace *BoxGrid::Iterator::getWFace() const
 {
 	return (*_current)->face;
 }
 
-inline Polygon3r* BoxGrid::Iterator::getCameraSpacePolygon()
+inline Polygon3r *BoxGrid::Iterator::getCameraSpacePolygon()
 {
 	return &((*_current)->cameraSpacePolygon);
 }

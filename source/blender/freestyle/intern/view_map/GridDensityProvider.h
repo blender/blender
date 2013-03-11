@@ -93,8 +93,8 @@ public:
 			}
 		}
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2]
-			     << ", " << proscenium[3] << ")" << endl;
+			cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] <<
+			        ", " << proscenium[3] << ")" << endl;
 		}
 	}
 
@@ -118,8 +118,8 @@ public:
 		proscenium[3] = std::max(minPoint[1], maxPoint[1]);
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "Bounding box: " << minPoint << " to " << maxPoint << endl;
-			cout << "Proscenium  : " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
-			     << proscenium[3] << endl;
+			cout << "Proscenium  : " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", " <<
+			        proscenium[3] << endl;
 		}
 	}
 
@@ -133,8 +133,8 @@ protected:
 class GridDensityProviderFactory
 {
 	// Disallow copying and assignment
-	GridDensityProviderFactory (const GridDensityProviderFactory& other);
-	GridDensityProviderFactory& operator= (const GridDensityProviderFactory& other);
+	GridDensityProviderFactory(const GridDensityProviderFactory& other);
+	GridDensityProviderFactory& operator=(const GridDensityProviderFactory& other);
 
 public:
 	GridDensityProviderFactory() {}

@@ -50,7 +50,7 @@
 class LIB_STROKE_EXPORT TextStrokeRenderer : public StrokeRenderer
 {
 public:
-  TextStrokeRenderer(const char * iFileName = 0);
+  TextStrokeRenderer(const char *iFileName = NULL);
   virtual ~TextStrokeRenderer();
 
   /*! Renders a stroke rep */

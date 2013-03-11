@@ -124,7 +124,7 @@ public: // Implementation of Interface0D
 		return Vec2f((float)_Point2d.x(), (float)_Point2d.y());
 	}
 
-	virtual FEdge* getFEdge(Interface0D& inter);
+	virtual FEdge *getFEdge(Interface0D& inter);
 
 	/*! Returns the CurvePoint's Id */
 	virtual Id getId() const
@@ -149,7 +149,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Cast the Interface0D in SVertex if it can be. */
-	virtual SVertex * castToSVertex()
+	virtual SVertex *castToSVertex()
 	{
 		if (_t2d == 0)
 			return __A;
@@ -159,7 +159,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Cast the Interface0D in ViewVertex if it can be. */
-	virtual ViewVertex * castToViewVertex()
+	virtual ViewVertex *castToViewVertex()
 	{
 		if (_t2d == 0)
 			return __A->castToViewVertex();
@@ -169,7 +169,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Cast the Interface0D in NonTVertex if it can be. */
-	virtual NonTVertex * castToNonTVertex()
+	virtual NonTVertex *castToNonTVertex()
 	{
 		if (_t2d == 0)
 			return __A->castToNonTVertex();
@@ -179,7 +179,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Cast the Interface0D in TVertex if it can be. */
-	virtual TVertex * castToTVertex()
+	virtual TVertex *castToTVertex()
 	{
 		if (_t2d == 0)
 			return __A->castToTVertex();

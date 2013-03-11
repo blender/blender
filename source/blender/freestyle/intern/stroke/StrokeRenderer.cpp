@@ -70,7 +70,7 @@ bool StrokeRenderer::loadTextures()
 
 
 LIB_STROKE_EXPORT
-TextureManager* TextureManager::_pInstance = 0;
+TextureManager *TextureManager::_pInstance = 0;
 
 LIB_STROKE_EXPORT
 string TextureManager::_patterns_path;
@@ -102,7 +102,7 @@ void TextureManager::load()
 
 unsigned TextureManager::getBrushTextureIndex(string name, Stroke::MediumType loadingMode)
 {
-	BrushTexture bt(name,loadingMode);
+	BrushTexture bt(name, loadingMode);
 	brushesMap::iterator b = _brushesMap.find(bt);
 	if (b == _brushesMap.end()) {
 		unsigned texId = loadBrush(name, loadingMode);

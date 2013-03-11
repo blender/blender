@@ -77,7 +77,7 @@ public:
 };
 
 template<class Traits>
-class edge_iterator_base : public IteratorBase<Traits,InputIteratorTag_Traits>
+class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits>
 {
 public:
 	typedef typename Traits::value_type value_type;
@@ -117,7 +117,7 @@ protected:
 	edges_container_iterator _end;
 	edges_container_iterator _nontvertex_iter;
 
-	typedef IteratorBase<Traits,InputIteratorTag_Traits> parent_class;
+	typedef IteratorBase<Traits, InputIteratorTag_Traits> parent_class;
 
 public:
 	inline edge_iterator_base() : parent_class() {}
@@ -357,7 +357,7 @@ namespace ViewEdgeInternal {
 /*! Iterators definition */
 /*!----------------------*/
 template<class Traits>
-class edge_iterator_base : public IteratorBase<Traits,BidirectionalIteratorTag_Traits>
+class edge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_Traits>
 {
 public:
 	typedef typename Traits::value_type value_type;
@@ -372,7 +372,7 @@ public:
 	//friend class edge_iterator_base<Const_traits<ViewEdge*> >;
 	value_type _first;
 	bool _orientation;
-	typedef IteratorBase<Traits,BidirectionalIteratorTag_Traits> parent_class;
+	typedef IteratorBase<Traits, BidirectionalIteratorTag_Traits> parent_class;
 
 public:
 	friend class ViewEdge;
@@ -510,7 +510,7 @@ protected:
 };
 
 template<class Traits>
-class fedge_iterator_base : public IteratorBase<Traits,BidirectionalIteratorTag_Traits>
+class fedge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_Traits>
 {
 public:
 	typedef typename Traits::value_type value_type;
@@ -520,7 +520,7 @@ public:
 	typedef fedge_iterator_base<Traits> Self;
 
 public:
-	typedef IteratorBase<Traits,BidirectionalIteratorTag_Traits> parent_class;
+	typedef IteratorBase<Traits, BidirectionalIteratorTag_Traits> parent_class;
 	mutable value_type _FEdge;
 	value_type _first;
 	value_type _FEdgeB; // last fedge of the view edge
@@ -640,7 +640,7 @@ protected:
 };
 
 template<class Traits>
-class vertex_iterator_base : public IteratorBase<Traits,BidirectionalIteratorTag_Traits>
+class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_Traits>
 {
 public:
 	typedef typename Traits::value_type value_type;
@@ -650,7 +650,7 @@ public:
 	typedef vertex_iterator_base<Traits> Self;
 
 protected:
-	typedef IteratorBase<Traits,BidirectionalIteratorTag_Traits> parent_class;
+	typedef IteratorBase<Traits, BidirectionalIteratorTag_Traits> parent_class;
 
 public:
 	mutable value_type _SVertex;

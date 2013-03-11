@@ -41,9 +41,9 @@
 namespace CurveInternal {
 
 /*! iterator on a curve. Allows an iterating outside 
-*  initial vertices. A CurvePoint is instanciated an returned 
-*  when the iterator is dereferenced.
-*/
+ *  initial vertices. A CurvePoint is instanciated an returned 
+ *  when the iterator is dereferenced.
+ */
 
 class CurvePointIterator : public Interface0DIteratorNested
 { 
@@ -128,7 +128,7 @@ protected:
 	}
 
 public:
-	virtual CurvePointIterator* copy() const
+	virtual CurvePointIterator *copy() const
 	{
 		return new CurvePointIterator(*this);
 	}
@@ -160,7 +160,7 @@ public:
 	// comparibility
 	virtual bool operator==(const Interface0DIteratorNested& b) const
 	{
-		const CurvePointIterator* it_exact = dynamic_cast<const CurvePointIterator*>(&b);
+		const CurvePointIterator *it_exact = dynamic_cast<const CurvePointIterator*>(&b);
 		if (!it_exact)
 			return false;
 		return ((__A == it_exact->__A) && (__B == it_exact->__B) && (_t == it_exact->_t));
@@ -172,7 +172,7 @@ public:
 		return (_Point = CurvePoint(*__A, *__B, _t));
 	}
 
-	virtual CurvePoint* operator->()
+	virtual CurvePoint *operator->()
 	{
 		return &(operator*());
 	}

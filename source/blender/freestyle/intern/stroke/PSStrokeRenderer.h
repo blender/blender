@@ -52,7 +52,7 @@
 class LIB_STROKE_EXPORT PSStrokeRenderer : public StrokeRenderer
 {
 public:
-	PSStrokeRenderer(const char * iFileName = 0);
+	PSStrokeRenderer(const char *iFileName = NULL);
 	virtual ~PSStrokeRenderer();
 
 	/*! Renders a stroke rep */

@@ -342,8 +342,7 @@ public:
 	int operator()(Interface1D& inter)
 	{
 		ViewEdge *edge = dynamic_cast<ViewEdge*>(&inter);
-		if (!edge)
-		{
+		if (!edge) {
 			result = false;
 			return 0;
 		}

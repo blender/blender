@@ -182,7 +182,7 @@ void Canvas::Erase()
 
 void Canvas::PushBackStyleModule(StyleModule *iStyleModule)
 {
-	StrokeLayer* layer = new StrokeLayer();
+	StrokeLayer *layer = new StrokeLayer();
 	_StyleModules.push_back(iStyleModule);
 	_Layers.push_back(layer);
 }
@@ -313,7 +313,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 		mapsMap::iterator m = _maps.find(iMapName);
 		if (m != _maps.end()) {
 			// lazy check for size changes
-			ImagePyramid * pyramid = (*m).second;
+			ImagePyramid *pyramid = (*m).second;
 			if ((pyramid->width() != width()) || (pyramid->height() != height())) {
 				delete pyramid;
 			}
@@ -389,7 +389,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 
 	for (y = 0; y < h; ++y) {
 		for (x = 0; x < w; ++x) {
-			pix = (char*)qimg->rect + y * rowbytes + x * 4;
+			pix = (char *)qimg->rect + y * rowbytes + x * 4;
 			float c = (pix[0] * 11 + pix[1] * 16 + pix[2] * 5) / 32;
 			tmp.setPixel(x, y, c);
 		}
@@ -426,8 +426,8 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 			for (x = 0; x < ow; ++x) {
 				int c = pyramid->pixel(x, y, i); // 255 * pyramid->pixel(x, y, i);
 				//soc qtmp.setPixel(x, y, qRgb(c, c, c));
-				pix = (char*)qtmp->rect + y * rowbytes + x * 4;
-				pix[0] = pix [1] = pix[2] = c;
+				pix = (char *)qtmp->rect + y * rowbytes + x * 4;
+				pix[0] = pix[1] = pix[2] = c;
 			}
 		}
 		//soc qtmp.save(base + QString::number(i) + ".bmp", "BMP");

@@ -59,7 +59,7 @@ unsigned int WXFaceLayer::GetSmoothEdgeIndex() const
 	int i = 0;
 	int nEdges = _pWXFace->numberOfEdges();
 	for (i = 0; i < nEdges; ++i) {
-		if ((_DotP[i] == 0) && (_DotP[(i+1)%nEdges] == 0)) {
+		if ((_DotP[i] == 0) && (_DotP[(i + 1) % nEdges] == 0)) {
 			return i;
 		}
 	}

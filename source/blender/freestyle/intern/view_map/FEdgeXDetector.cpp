@@ -129,7 +129,7 @@ void FEdgeXDetector::preProcessShape(WXShape *iWShape)
 	vector<WFace*>::iterator f, fend;
 	// view dependant stuff
 	for (f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
-		preProcessFace((WXFace*)(*f));
+		preProcessFace((WXFace *)(*f));
 	}
 
 	if (_computeRidgesAndValleys || _computeSuggestiveContours) {
@@ -257,14 +257,14 @@ void FEdgeXDetector::processSilhouetteShape(WXShape *iWShape)
 	vector<WFace*>& wfaces = iWShape->GetFaceList();
 	vector<WFace*>::iterator f, fend;
 	for (f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
-		ProcessSilhouetteFace((WXFace*)(*f));
+		ProcessSilhouetteFace((WXFace *)(*f));
 	}
 
 	// Make a pass on the edges to detect the silhouette edges that are not smooth
 	vector<WEdge*>::iterator we, weend;
 	vector<WEdge*> &wedges = iWShape->getEdgeList();
 	for (we = wedges.begin(), weend = wedges.end(); we != weend; ++we) {
-		ProcessSilhouetteEdge((WXEdge*)(*we));
+		ProcessSilhouetteEdge((WXEdge *)(*we));
 	}
 }
 
@@ -321,8 +321,8 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
 	WXFace *fB = (WXFace *)iEdge->GetaOEdge()->GetbFace();
 
 	if ((fA->front()) ^ (fB->front())) { // fA->visible XOR fB->visible (true if one is 0 and the other is 1)
-		// The only edges we want to set as silhouette edges in this way are the ones with 2 different normals for 1 vertex
-		// for these two faces
+		// The only edges we want to set as silhouette edges in this way are the ones with 2 different normals
+		// for 1 vertex for these two faces
 		//--------------------
 		// In reality we only test the normals for 1 of the 2 vertices.
 		if (fA->GetVertexNormal(iEdge->GetaVertex()) == fB->GetVertexNormal(iEdge->GetaVertex()))
@@ -403,7 +403,7 @@ void FEdgeXDetector::processRidgesAndValleysShape(WXShape *iWShape)
 	vector<WFace*>& wfaces = iWShape->GetFaceList();
 	vector<WFace*>::iterator f, fend;
 	for (f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
-		ProcessRidgeFace((WXFace*)(*f));
+		ProcessRidgeFace((WXFace *)(*f));
 	}
 }
 
@@ -412,7 +412,7 @@ void FEdgeXDetector::processRidgesAndValleysShape(WXShape *iWShape)
 /////////
 void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
 {
-	WXFaceLayer *flayer = new WXFaceLayer(iFace, Nature::RIDGE|Nature::VALLEY, false);
+	WXFaceLayer *flayer = new WXFaceLayer(iFace, Nature::RIDGE | Nature::VALLEY, false);
 	iFace->AddSmoothLayer(flayer);
 
 	unsigned int numVertices = iFace->numberOfVertices();
@@ -549,7 +549,7 @@ void FEdgeXDetector::processSuggestiveContourShape(WXShape *iWShape)
 	vector<WFace*>& wfaces = iWShape->GetFaceList();
 	vector<WFace*>::iterator f, fend;
 	for (f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
-		ProcessSuggestiveContourFace((WXFace*)(*f));
+		ProcessSuggestiveContourFace((WXFace *)(*f));
 	}
 }
 
@@ -583,13 +583,14 @@ void FEdgeXDetector::postProcessSuggestiveContourShape(WXShape *iShape)
 	vector<WFace*>& wfaces = iShape->GetFaceList();
 	vector<WFace*>::iterator f, fend;
 	for (f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
-		postProcessSuggestiveContourFace((WXFace*)(*f));
+		postProcessSuggestiveContourFace((WXFace *)(*f));
 	}
 }
 
 void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
 {
-	// Compute the derivative of the radial curvature in the radial direction, at the two extremities of the smooth edge.
+	// Compute the derivative of the radial curvature in the radial direction, at the two extremities
+	// of the smooth edge.
 	// If the derivative is smaller than a given threshold _kr_derivative_epsilon, discard the edge.
 
 	// Find the suggestive contour layer of the face (zero or one edge).
@@ -613,7 +614,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
 	real kr(0), kr1(0), kr2(0), t;
 
 	for (unsigned int i = 0; i < vertices_nb; ++i) {
-		v = (WXVertex*)(iFace->GetVertex(i));
+		v = (WXVertex *)(iFace->GetVertex(i));
 
 		// v is a singular vertex, skip it.
 		if (v->isBoundary()) {
@@ -695,7 +696,7 @@ void FEdgeXDetector::processMaterialBoundaryShape(WXShape *iWShape)
 	vector<WEdge*>::iterator we, weend;
 	vector<WEdge*> &wedges = iWShape->getEdgeList();
 	for (we = wedges.begin(), weend = wedges.end(); we != weend; ++we) {
-		ProcessMaterialBoundaryEdge((WXEdge*)(*we));
+		ProcessMaterialBoundaryEdge((WXEdge *)(*we));
 	}
 }
 
@@ -717,7 +718,7 @@ void FEdgeXDetector::processEdgeMarksShape(WXShape *iShape)
 	vector<WEdge*>::iterator we, weend;
 	vector<WEdge*> &wedges = iShape->getEdgeList();
 	for (we = wedges.begin(), weend = wedges.end(); we != weend; ++we) {
-		ProcessEdgeMarks((WXEdge*)(*we));
+		ProcessEdgeMarks((WXEdge *)(*we));
 	}
 }
 
@@ -737,9 +738,9 @@ void FEdgeXDetector::buildSmoothEdges(WXShape *iShape)
 	// Make a last pass to build smooth edges from the previous stored values:
 	//--------------------------------------------------------------------------
 	vector<WFace*>& wfaces = iShape->GetFaceList();
-	for (vector<WFace*>::iterator f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
-		vector<WXFaceLayer*>& faceLayers = ((WXFace*)(*f))->getSmoothLayers();
-		for (vector<WXFaceLayer*>::iterator wxfl = faceLayers.begin(), wxflend = faceLayers.end();
+	for (vector<WFace *>::iterator f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
+		vector<WXFaceLayer *>& faceLayers = ((WXFace *)(*f))->getSmoothLayers();
+		for (vector<WXFaceLayer *>::iterator wxfl = faceLayers.begin(), wxflend = faceLayers.end();
 		     wxfl != wxflend;
 		     ++wxfl)
 		{
@@ -749,10 +750,10 @@ void FEdgeXDetector::buildSmoothEdges(WXShape *iShape)
 	}
 
 	if (hasSmoothEdges && !_computeRidgesAndValleys && !_computeSuggestiveContours) {
-		vector<WVertex*>& wvertices = iShape->getVertexList();
+		vector<WVertex *>& wvertices = iShape->getVertexList();
 		for (vector<WVertex*>::iterator wv = wvertices.begin(), wvend = wvertices.end(); wv != wvend; ++wv) {
 			// Compute curvatures
-			WXVertex *wxv = dynamic_cast<WXVertex*>(*wv);
+			WXVertex *wxv = dynamic_cast<WXVertex *>(*wv);
 			computeCurvatures(wxv);
 		}
 		_meanK1 /= (real)(_nPoints);

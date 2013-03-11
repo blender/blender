@@ -92,7 +92,7 @@ protected:
 	virtual void loadStandardBrushes() = 0;
 	virtual unsigned loadBrush(string fileName, Stroke::MediumType = Stroke::OPAQUE_MEDIUM) = 0;
 
-	typedef std::pair<string,Stroke::MediumType> BrushTexture;
+	typedef std::pair<string, Stroke::MediumType> BrushTexture;
 	struct cmpBrushTexture
 	{
 		bool operator()(const BrushTexture& bt1, const BrushTexture& bt2) const

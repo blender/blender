@@ -57,7 +57,7 @@ public:
 		_BBox = iBrother.bbox();
 	}
 
-	virtual ~Node(){}
+	virtual ~Node() {}
 
 	/*! Accept the corresponding visitor
 	 *  Each inherited node must overload this method
@@ -85,10 +85,10 @@ public:
 	/*! Makes the union of _BBox and iBox */
 	virtual void AddBBox(const BBox<Vec3r>& iBox)
 	{
-		if(iBox.empty())
+		if (iBox.empty())
 			return;
 
-		if(_BBox.empty())
+		if (_BBox.empty())
 			_BBox = iBox;
 		else
 			_BBox += iBox;

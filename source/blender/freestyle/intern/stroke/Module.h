@@ -72,7 +72,7 @@ public:
 	}
 
 private:
-	static StyleModule* getCurrentStyleModule()
+	static StyleModule *getCurrentStyleModule()
 	{
 		Canvas *canvas = Canvas::getInstance();
 		return canvas->getCurrentStyleModule();

@@ -86,7 +86,7 @@ struct epsilonEquals
 
 
 // typedef hash_map<Vec3r, SVertex*, SVertexHasher, epsilonEquals> SVertexMap;
-typedef map<Vec3r , SVertex*> SVertexMap;
+typedef map<Vec3r, SVertex *> SVertexMap;
 
 class WXFaceLayer;
 

@@ -76,7 +76,8 @@ void OccluderSource::begin()
 	}
 }
 
-bool OccluderSource::next() {
+bool OccluderSource::next()
+{
 	if (valid) {
 		++currentFace;
 		while (currentFace == facesEnd) {
@@ -130,8 +131,8 @@ void OccluderSource::getOccluderProscenium(real proscenium[4])
 		next();
 	}
 	if (G.debug & G_DEBUG_FREESTYLE) {
-		cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
-		     << proscenium[3] << ")" << endl;
+		cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", " <<
+		        proscenium[3] << ")" << endl;
 	}
 }
 

@@ -28,7 +28,7 @@
 #ifndef __FREESTYLE_RENDER_MONITOR_H__
 #define __FREESTYLE_RENDER_MONITOR_H__
 
-/** \file blender/freestyle/intern/system/BaseIterator.h
+/** \file blender/freestyle/intern/system/RenderMonitor.h
  *  \ingroup freestyle
  *  \brief Classes defining the basic "Iterator" design pattern
  *  \author Stephane Grabli

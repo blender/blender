@@ -133,7 +133,7 @@ public:
 	}
 
 	/*! Returns the FEdge that lies between this Interface0D and the Interface0D given as argument. */
-	virtual FEdge* getFEdge(Interface0D&)
+	virtual FEdge *getFEdge(Interface0D&)
 	{
 		PyErr_SetString(PyExc_TypeError, "method getFEdge() not properly overridden");
 		return 0;
@@ -162,7 +162,7 @@ public:
 	}
 
 	/*! Cast the Interface0D in ViewVertex if it can be. */
-	virtual ViewVertex * castToViewVertex()
+	virtual ViewVertex *castToViewVertex()
 	{
 		PyErr_SetString(PyExc_TypeError, "method castToViewVertex() not properly overridden");
 		return 0;
@@ -201,7 +201,7 @@ public:
 
 	virtual Interface0D& operator*() = 0;
 
-	virtual Interface0D* operator->()
+	virtual Interface0D *operator->()
 	{
 		return &(operator*());
 	}
@@ -227,7 +227,7 @@ public:
 	/*! Returns the point parameter 0<u<1 */
 	virtual float u() const = 0;
 
-	virtual Interface0DIteratorNested* copy() const = 0;
+	virtual Interface0DIteratorNested *copy() const = 0;
 };
 
 
@@ -245,7 +245,7 @@ public:
 class Interface0DIterator : public Iterator
 {
 public:
-	Interface0DIterator(Interface0DIteratorNested* it = NULL)
+	Interface0DIterator(Interface0DIteratorNested *it = NULL)
 	{
 		_iterator = it;
 	}
@@ -270,7 +270,7 @@ public:
 	 */
 	Interface0DIterator& operator=(const Interface0DIterator& it)
 	{
-		if(_iterator)
+		if (_iterator)
 			delete _iterator;
 		_iterator = it._iterator->copy();
 		return *this;

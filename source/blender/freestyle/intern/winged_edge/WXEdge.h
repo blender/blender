@@ -765,13 +765,13 @@ public:
 		// Reset Edges
 		vector<WEdge *>& wedges = getEdgeList();
 		for (vector<WEdge *>::iterator we = wedges.begin(), weend = wedges.end(); we != weend; ++we) {
-			((WXEdge*)(*we))->Reset();
+			((WXEdge *)(*we))->Reset();
 		}
 
 		//Reset faces:
 		vector<WFace *>& wfaces = GetFaceList();
 		for (vector<WFace *>::iterator wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; ++wf) {
-			((WXFace*)(*wf))->Reset();
+			((WXFace *)(*wf))->Reset();
 		}
 	}
 	/*! accessors */

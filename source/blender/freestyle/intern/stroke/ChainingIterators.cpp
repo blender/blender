@@ -36,7 +36,7 @@
 
 #include "../system/TimeStamp.h"
 
-ViewEdge* AdjacencyIterator::operator*()
+ViewEdge *AdjacencyIterator::operator*()
 {
 	return (*_internalIterator).first;
 }
@@ -49,12 +49,12 @@ bool AdjacencyIterator::isIncoming() const
 int AdjacencyIterator::increment()
 {
 	++_internalIterator;
-	while((!_internalIterator.isEnd()) && (!isValid((*_internalIterator).first)))
+	while ((!_internalIterator.isEnd()) && (!isValid((*_internalIterator).first)))
 		++_internalIterator;
 	return 0;
 }
 
-bool AdjacencyIterator::isValid(ViewEdge* edge)
+bool AdjacencyIterator::isValid(ViewEdge *edge)
 {
 	if (_restrictToSelection) {
 		if (edge->getTimeStamp() != TimeStamp::instance()->getTimeStamp())
@@ -70,7 +70,7 @@ bool AdjacencyIterator::isValid(ViewEdge* edge)
 int ChainingIterator::increment()
 {
 	_increment = true;
-	ViewVertex * vertex = getVertex();
+	ViewVertex *vertex = getVertex();
 	if (!vertex) {
 		_edge = 0;
 		return 0;
@@ -83,9 +83,9 @@ int ChainingIterator::increment()
 	if (traverse(it) < 0)
 		return -1;
 	_edge = result;
-	if(_edge == 0)
+	if (_edge == 0)
 		return 0;
-	if(_edge->A() == vertex)
+	if (_edge->A() == vertex)
 		_orientation = true;
 	else
 		_orientation = false;
@@ -95,7 +95,7 @@ int ChainingIterator::increment()
 int ChainingIterator::decrement()
 {
 	_increment = false;
-	ViewVertex * vertex = getVertex();
+	ViewVertex *vertex = getVertex();
 	if (!vertex) {
 		_edge = 0;
 		return 0;
@@ -108,9 +108,9 @@ int ChainingIterator::decrement()
 	if (traverse(it) < 0)
 		return -1;
 	_edge = result;
-	if(_edge == 0)
+	if (_edge == 0)
 		return 0;
-	if(_edge->B() == vertex)
+	if (_edge->B() == vertex)
 		_orientation = true;
 	else
 		_orientation = false;
@@ -125,10 +125,10 @@ int ChainingIterator::decrement()
 int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 {
 	AdjacencyIterator it(ait);
-	ViewVertex* nextVertex = getVertex();
+	ViewVertex *nextVertex = getVertex();
 	// we can't get a NULL nextVertex here, it was intercepted before
 	if (nextVertex->getNature() & Nature::T_VERTEX) {
-		TVertex * tvertex = (TVertex*)nextVertex;
+		TVertex *tvertex = (TVertex *)nextVertex;
 		ViewEdge *mate = (tvertex)->mate(getCurrentEdge());
 		while (!it.isEnd()) {
 			ViewEdge *ve = *it;
@@ -142,8 +142,8 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 		return 0;
 	}
 	if (nextVertex->getNature() & Nature::NON_T_VERTEX) {
-		//soc NonTVertex * nontvertex = (NonTVertex*)nextVertex;
-		ViewEdge * newEdge(0);
+		//soc NonTVertex *nontvertex = (NonTVertex*)nextVertex;
+		ViewEdge *newEdge(0);
 		// we'll try to chain the edges by keeping the same nature...
 		// the preseance order is : SILHOUETTE, BORDER, CREASE, SUGGESTIVE, VALLEY, RIDGE
 		Nature::EdgeNature natures[6] = {
@@ -159,7 +159,7 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 				int n = 0;
 				while (!it.isEnd()) {
 					ViewEdge *ve = *it;
-					if(ve->getNature() & natures[i]) {
+					if (ve->getNature() & natures[i]) {
 						++n;
 						newEdge = ve;
 					}

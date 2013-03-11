@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/freestyle/intern/stroke/Chain.h
+/** \file blender/freestyle/intern/stroke/Chain.cpp
  *  \ingroup freestyle
  *  \brief Class to define a chain of viewedges.
  *  \author Stephane Grabli

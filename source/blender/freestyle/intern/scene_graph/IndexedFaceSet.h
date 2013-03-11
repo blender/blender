@@ -185,12 +185,12 @@ public:
 	}
 
 	/*! Accessors */
-	virtual const real * vertices() const
+	virtual const real *vertices() const
 	{
 		return _Vertices;
 	}
 
-	virtual const real * normals() const
+	virtual const real *normals() const
 	{
 		return _Normals;
 	}
@@ -200,7 +200,7 @@ public:
 		return _FrsMaterials;
 	}
 
-	virtual const real* texCoords() const
+	virtual const real *texCoords() const
 	{
 		return _TexCoords;
 	}
@@ -230,37 +230,37 @@ public:
 		return _NumFaces;
 	}
 
-	virtual const unsigned * numVertexPerFaces() const
+	virtual const unsigned *numVertexPerFaces() const
 	{
 		return _NumVertexPerFace;
 	}
 
-	virtual const TRIANGLES_STYLE * trianglesStyle() const
+	virtual const TRIANGLES_STYLE *trianglesStyle() const
 	{
 		return _FaceStyle;
 	}
 
-	virtual const unsigned char * faceEdgeMarks() const
+	virtual const unsigned char *faceEdgeMarks() const
 	{
 		return _FaceEdgeMarks;
 	}
 
-	virtual const unsigned* vindices() const
+	virtual const unsigned *vindices() const
 	{
 		return _VIndices;
 	}
 
-	virtual const unsigned* nindices() const
+	virtual const unsigned *nindices() const
 	{
 		return _NIndices;
 	}
 
-	virtual const unsigned* mindices() const
+	virtual const unsigned *mindices() const
 	{
 		return _MIndices;
 	}
 
-	virtual const unsigned* tindices() const
+	virtual const unsigned *tindices() const
 	{
 		return _TIndices;
 	}

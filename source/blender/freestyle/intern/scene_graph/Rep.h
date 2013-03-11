@@ -70,10 +70,10 @@ public:
 
 	inline void swap(Rep& ioOther)
 	{
-		std::swap(_BBox,ioOther._BBox);
+		std::swap(_BBox, ioOther._BBox);
 		std::swap(_Id, ioOther._Id);
 		std::swap(_Name, ioOther._Name);
-		std::swap(_FrsMaterial,ioOther._FrsMaterial);
+		std::swap(_FrsMaterial, ioOther._FrsMaterial);
 	}
 
 	Rep& operator=(const Rep& iBrother)
@@ -137,7 +137,7 @@ public:
 		return _Name;
 	}
 
-	inline const FrsMaterial * frs_material() const
+	inline const FrsMaterial *frs_material() const
 	{
 		return _FrsMaterial;
 	}

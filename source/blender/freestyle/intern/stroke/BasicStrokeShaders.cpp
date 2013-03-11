@@ -79,7 +79,7 @@ static void convert(ImBuf *imBuf, float **oArray, unsigned &oSize)
 
 	char *pix;
 	for (unsigned int i = 0; i < oSize; ++i) {
-		pix = (char*) imBuf->rect + i * 4;
+		pix = (char *) imBuf->rect + i * 4;
 		(*oArray)[i] = ((float) pix[2]) / 255.0f;
 	}
 }
@@ -146,7 +146,7 @@ int IncreasingThicknessShader::shade(Stroke& stroke) const
 int ConstrainedIncreasingThicknessShader::shade(Stroke& stroke) const
 {
 	float slength = stroke.getLength2D();
-	float maxT = min(_ratio*slength,_ThicknessMax);
+	float maxT = min(_ratio * slength, _ThicknessMax);
 	int n = stroke.strokeVerticesSize() - 1, i;
 	StrokeInternal::StrokeVertexIterator v, vend;
 	for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd();
@@ -233,7 +233,7 @@ int ThicknessVariationPatternShader::shade(Stroke& stroke) const
 	int vert_size = stroke.strokeVerticesSize();
 	int sig = 0;
 	unsigned index;
-	const float* originalThickness;
+	const float *originalThickness;
 	for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
 		originalThickness = v->attribute().getThickness();
 		if (_stretch) {
@@ -248,13 +248,13 @@ int ThicknessVariationPatternShader::shade(Stroke& stroke) const
 		index %= _size;
 		float thicknessR = array[index] * originalThickness[0];
 		float thicknessL = array[index] * originalThickness[1];
-		if (thicknessR+thicknessL < _minThickness) {
-			thicknessL = _minThickness/2.0f;
-			thicknessR = _minThickness/2.0f;
+		if (thicknessR + thicknessL < _minThickness) {
+			thicknessL = _minThickness / 2.0f;
+			thicknessR = _minThickness / 2.0f;
 		}
-		if (thicknessR+thicknessL > _maxThickness) {
-			thicknessL = _maxThickness/2.0f;
-			thicknessR = _maxThickness/2.0f;
+		if (thicknessR + thicknessL > _maxThickness) {
+			thicknessL = _maxThickness / 2.0f;
+			thicknessR = _maxThickness / 2.0f;
 		}
 		if ((sig == 0) || (sig == vert_size - 1))
 			v->attribute().setThickness(1, 1);
@@ -564,9 +564,9 @@ int BackboneStretcherShader::shade(Stroke& stroke) const
 	Vec2d first((v0)->x(), (v0)->y());
 	Vec2d last((vn)->x(), (vn)->y());
 
-	Vec2d d1(first-Vec2d((v1)->x(), (v1)->y()));
+	Vec2d d1(first - Vec2d((v1)->x(), (v1)->y()));
 	d1.normalize();
-	Vec2d dn(last-Vec2d((vn_1)->x(), (vn_1)->y()));
+	Vec2d dn(last - Vec2d((vn_1)->x(), (vn_1)->y()));
 	dn.normalize();
 
 	Vec2d newFirst(first + _amount * d1);
@@ -590,7 +590,7 @@ int ExternalContourStretcherShader::shade(Stroke& stroke) const
 	//float l = stroke.getLength2D();
 	Interface0DIterator it;
 	Functions0D::Normal2DF0D fun;
-	StrokeVertex* sv;
+	StrokeVertex *sv;
 	for (it = stroke.verticesBegin(); !it.isEnd(); ++it) {
 		if (fun(it) < 0)
 			return -1;
@@ -900,7 +900,7 @@ int InflateShader::shade(Stroke& stroke) const
 		if (norm_fun(stroke) < 0)
 			return -1;
 		Vec2f strokeN(norm_fun.result);
-		if (n*strokeN < 0) {
+		if (n * strokeN < 0) {
 			n[0] = -n[0];
 			n[1] = -n[1];
 		}

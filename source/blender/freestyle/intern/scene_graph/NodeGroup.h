@@ -48,7 +48,7 @@ class LIB_SCENE_GRAPH_EXPORT NodeGroup : public Node
 {
 public:
 	inline NodeGroup(): Node() {}
-	virtual ~NodeGroup(){}
+	virtual ~NodeGroup() {}
 
 	/*! Adds a child. Makes a addRef on the iChild reference counter */
 	virtual void AddChild(Node *iChild);

@@ -64,8 +64,8 @@ static bool angle_obtuse(WVertex *v, WFace *f)
 	WOEdge *e;
 	f->getOppositeEdge(v, e);
 
-	Vec3r vec1(e->GetaVertex()->GetVertex()-v->GetVertex());
-	Vec3r vec2(e->GetbVertex()->GetVertex()-v->GetVertex());
+	Vec3r vec1(e->GetaVertex()->GetVertex() - v->GetVertex());
+	Vec3r vec2(e->GetbVertex()->GetVertex() - v->GetVertex());
 	return ((vec1 * vec2) < 0);
 }
 
@@ -147,12 +147,12 @@ bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
 
 	WVertex::incoming_edge_iterator itE;
 
-	for (itE=v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++)
+	for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++)
 		area += (*itE)->GetaFace()->getArea();
 
 	Kh = Vec3r(0.0, 0.0, 0.0);
 
-	for (itE=v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++) {
+	for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++) {
 		WOEdge *e = (*itE)->getPrevOnFace();
 #if 0
 		if ((e->GetaVertex() == v) || (e->GetbVertex() == v))
@@ -348,12 +348,12 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 
 	aterm_da = bterm_da = cterm_da = const_da = 0.0;
 	aterm_db = bterm_db = cterm_db = const_db = 0.0;
-	int nb_edges=v->GetEdges().size();
+	int nb_edges = v->GetEdges().size();
 
-	weights = (real *)malloc(sizeof (real) * nb_edges);
-	kappas = (real *)malloc(sizeof (real) * nb_edges);
-	d1s = (real *)malloc(sizeof (real) * nb_edges);
-	d2s = (real *)malloc(sizeof (real) * nb_edges);
+	weights = (real *)malloc(sizeof(real) * nb_edges);
+	kappas = (real *)malloc(sizeof(real) * nb_edges);
+	d1s = (real *)malloc(sizeof(real) * nb_edges);
+	d2s = (real *)malloc(sizeof(real) * nb_edges);
 	edge_count = 0;
 
 	for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++) {

@@ -63,7 +63,7 @@ namespace ViewMapIO {
 
 namespace Internal {
 
-ViewMap* g_vm;
+ViewMap *g_vm;
 
 //////////////////// 'load' Functions ////////////////////
 
@@ -1073,7 +1073,7 @@ int load(istream& in, ViewMap *vm, ProgressBar *pb)
 	// Read the shape id to index mapping
 	unsigned map_s;
 	READ(map_s);
-	unsigned id,index;
+	unsigned id, index;
 	for (unsigned int i4 = 0; i4 < map_s; ++i4) {
 		READ(id);
 		READ(index);

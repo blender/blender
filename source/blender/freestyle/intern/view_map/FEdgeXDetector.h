@@ -174,7 +174,7 @@ public:
 	{
 		if (b != _faceSmoothness) {
 			_faceSmoothness = b;
-			_changes=true;
+			_changes = true;
 		}
 	}
 
@@ -182,7 +182,7 @@ public:
 	{
 		if (b != _faceMarks) {
 			_faceMarks = b;
-			_changes=true;
+			_changes = true;
 		}
 	}
 
@@ -194,7 +194,7 @@ public:
 	{
 		if (r != _sphereRadius) {
 			_sphereRadius = r;
-			_changes=true;
+			_changes = true;
 		}
 	}
 

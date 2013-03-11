@@ -49,7 +49,7 @@ public:
 	 *  v2
 	 *    second vertex
 	 */
-	inline OrientedLineRep(const Vec3r& v1, const Vec3r& v2) : LineRep(v1,v2) {}
+	inline OrientedLineRep(const Vec3r& v1, const Vec3r& v2) : LineRep(v1, v2) {}
 
 	/*! Builds a line rep from a vertex chain */
 	inline OrientedLineRep(const vector<Vec3r>& vertices) : LineRep(vertices) {}

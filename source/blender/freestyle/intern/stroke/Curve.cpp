@@ -204,7 +204,7 @@ FEdge *CurvePoint::fedge()
 
 FEdge *CurvePoint::getFEdge(Interface0D& inter)
 {
-	CurvePoint* iVertexB = dynamic_cast<CurvePoint*>(&inter);
+	CurvePoint *iVertexB = dynamic_cast<CurvePoint*>(&inter);
 	if (!iVertexB) {
 		cerr << "Warning: CurvePoint::getFEdge() failed to cast the given 0D element to CurvePoint." << endl;
 		return 0;
@@ -261,7 +261,8 @@ FEdge *CurvePoint::getFEdge(Interface0D& inter)
 		printf("iVertexB->B() 0x%p p (%f, %f)\n", iVertexB->B(), iVertexB->B()->getPoint2D().x(),
 		                                          iVertexB->B()->getPoint2D().y());
 		printf("_t2d            %f p (%f, %f)\n", _t2d, getPoint2D().x(), getPoint2D().y());
-		printf("iVertexB->t2d() %f p (%f, %f)\n", iVertexB->t2d(), iVertexB->getPoint2D().x(), iVertexB->getPoint2D().y());
+		printf("iVertexB->t2d() %f p (%f, %f)\n", iVertexB->t2d(), iVertexB->getPoint2D().x(),
+		       iVertexB->getPoint2D().y());
 	}
 #endif
 	cerr << "Warning: CurvePoint::getFEdge() failed." << endl;

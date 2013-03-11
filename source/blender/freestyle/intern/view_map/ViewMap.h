@@ -276,7 +276,7 @@ public: // Implementation of Interface0D
 
 public:
 	friend class ViewShape;
-	typedef pair<ViewEdge*, bool> directedViewEdge; // if bool = true, the ViewEdge is incoming
+	typedef pair<ViewEdge *, bool> directedViewEdge; // if bool = true, the ViewEdge is incoming
 
 	typedef vector<directedViewEdge> edges_container;
 
@@ -744,7 +744,7 @@ public:
 	}
 
 	/*! Builds a NonTVertex from a SVertex. */
-	inline NonTVertex(SVertex* iSVertex) : ViewVertex(Nature::NON_T_VERTEX)
+	inline NonTVertex(SVertex *iSVertex) : ViewVertex(Nature::NON_T_VERTEX)
 	{
 		_SVertex = iSVertex;
 		_SVertex->setViewVertex(this);
@@ -1401,8 +1401,8 @@ public:
 	inline ViewShape(ViewShape& iBrother)
 	{
 		userdata = NULL;
-		vector<ViewVertex*>::iterator vv,vvend;
-		vector<ViewEdge*>::iterator ve, veend;
+		vector<ViewVertex *>::iterator vv, vvend;
+		vector<ViewEdge *>::iterator ve, veend;
 
 		_SShape = iBrother._SShape;
 
@@ -1427,11 +1427,11 @@ public:
 			switch ((*vv)->getNature()) {
 				case Nature::T_VERTEX:
 					{
-						TVertex *v = (TVertex*)(*vv);
-						ViewEdge *veFrontA = (ViewEdge*)(v)->frontEdgeA().first->userdata;
-						ViewEdge *veFrontB = (ViewEdge*)(v)->frontEdgeB().first->userdata;
-						ViewEdge *veBackA = (ViewEdge*)(v)->backEdgeA().first->userdata;
-						ViewEdge *veBackB = (ViewEdge*)(v)->backEdgeB().first->userdata;
+						TVertex *v = (TVertex *)(*vv);
+						ViewEdge *veFrontA = (ViewEdge *)(v)->frontEdgeA().first->userdata;
+						ViewEdge *veFrontB = (ViewEdge *)(v)->frontEdgeB().first->userdata;
+						ViewEdge *veBackA = (ViewEdge *)(v)->backEdgeA().first->userdata;
+						ViewEdge *veBackB = (ViewEdge *)(v)->backEdgeB().first->userdata;
 
 						v->setFrontEdgeA(veFrontA, v->frontEdgeA().second);
 						v->setFrontEdgeB(veFrontB, v->frontEdgeB().second);
@@ -1441,14 +1441,14 @@ public:
 					break;
 				case Nature::NON_T_VERTEX:
 					{
-						NonTVertex *v = (NonTVertex*)(*vv);
+						NonTVertex *v = (NonTVertex *)(*vv);
 						vector<ViewVertex::directedViewEdge>& vedges = (v)->viewedges();
 						vector<ViewVertex::directedViewEdge> newEdges;
 						for (vector<ViewVertex::directedViewEdge>::iterator ve = vedges.begin(), veend = vedges.end();
 						     ve != veend;
 						     ve++)
 						{
-							ViewEdge *current = (ViewEdge*)((ve)->first)->userdata;
+							ViewEdge *current = (ViewEdge *)((ve)->first)->userdata;
 							newEdges.push_back(ViewVertex::directedViewEdge(current, ve->second));
 						}
 						(v)->setViewEdges(newEdges);
@@ -1463,8 +1463,8 @@ public:
 		// remap vertices in edges:
 		//-------------------------------------
 		for (ve = _Edges.begin(), veend = _Edges.end(); ve != veend; ve++) {
-			(*ve)->setA((ViewVertex*)((*ve)->A()->userdata));
-			(*ve)->setB((ViewVertex*)((*ve)->B()->userdata));
+			(*ve)->setA((ViewVertex *)((*ve)->A()->userdata));
+			(*ve)->setB((ViewVertex *)((*ve)->B()->userdata));
 			//---------------------------------------
 			// Update all embedded FEdges
 			//---------------------------------------
@@ -1757,7 +1757,7 @@ inline real ViewEdge::local_average_density(float sigma, int iCombination) const
 }
 #endif
 
-inline const SShape * ViewEdge::occluded_shape() const
+inline const SShape *ViewEdge::occluded_shape() const
 {
 	if (0 == _aShape)
 		return 0;

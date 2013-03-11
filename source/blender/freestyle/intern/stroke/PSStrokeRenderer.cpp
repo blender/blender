@@ -46,8 +46,8 @@ PSStrokeRenderer::PSStrokeRenderer(const char *iFileName) : StrokeRenderer()
 	}
 	_ofstream << "%!PS-Adobe-2.0 EPSF-2.0" << endl;
 	_ofstream << "%%Creator: Freestyle (http://artis.imag.fr/Software/Freestyle)" << endl;
-	_ofstream << "%%BoundingBox: " << 0 << " "<< 0 << " " << Canvas::getInstance()->width() << " "
-	          << Canvas::getInstance()->height() << endl;
+	_ofstream << "%%BoundingBox: " << 0 << " "<< 0 << " " << Canvas::getInstance()->width() << " " <<
+	             Canvas::getInstance()->height() << endl;
 	_ofstream << "%%EndComments" << endl;
 }
 

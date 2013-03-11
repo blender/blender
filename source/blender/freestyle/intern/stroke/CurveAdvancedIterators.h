@@ -86,7 +86,7 @@ public:
 	typedef CurvePoint<Vertex> Point;
 	typedef Point point_type;
 #endif
-	typedef IteratorBase<Traits,BidirectionalIteratorTag_Traits> parent_class;
+	typedef IteratorBase<Traits, BidirectionalIteratorTag_Traits> parent_class;
 #if 0
 #if defined(__GNUC__) && (__GNUC__ < 3)
 	typedef bidirectional_iterator<CurvePoint<Vertex>, ptrdiff_t> bidirectional_point_iterator;
@@ -294,7 +294,7 @@ protected:
 		if (0 == _step) {  // means we iterate over initial vertices
 			Vec3r vec_tmp((*__B)->point2d() - (*__A)->point2d());
 			_CurvilinearLength += vec_tmp.norm();
-			if (_currentn == _n-1) {
+			if (_currentn == _n - 1) {
 				_t = 1.0f;
 				return;
 			}

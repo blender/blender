@@ -56,13 +56,13 @@ public:
 
 
 template<class Traits>
-class vertex_iterator_base : public IteratorBase<Traits,BidirectionalIteratorTag_Traits>
+class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_Traits>
 {
 public:
 	typedef vertex_iterator_base<Traits>  Self;
 
 protected:
-	typedef IteratorBase<Traits,BidirectionalIteratorTag_Traits> parent_class;
+	typedef IteratorBase<Traits, BidirectionalIteratorTag_Traits> parent_class;
 	typedef typename Traits::vertex_container_iterator vertex_container_iterator;
 	typedef vertex_iterator_base<vertex_nonconst_traits> iterator;
 	typedef vertex_iterator_base<vertex_const_traits> const_iterator;

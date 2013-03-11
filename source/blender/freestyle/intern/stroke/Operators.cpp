@@ -515,7 +515,7 @@ int Operators::sequentialSplit(UnaryPredicate0D& pred, float sampling)
 		point = dynamic_cast<CurvePoint*>(&(*it));
 		new_curve->push_vertex_back(point);
 		++it;
-		for (; it!= end; ++it) {
+		for (; it != end; ++it) {
 			point = dynamic_cast<CurvePoint*>(&(*it));
 			new_curve->push_vertex_back(point);
 			if (pred(it) < 0) {
@@ -623,14 +623,14 @@ int Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D&
 				splitted_chains.push_back(new_curve);
 			}
 			// find next start
-			do{
+			do {
 				++itStart;
 				if (itStart == end)
 					break;
 				if (startingPred(itStart) < 0)
 					goto error;
 			} while (!startingPred.result);
-		} while ((itStart!=end) && (itStart!=last));
+		} while ((itStart != end) && (itStart != last));
 	}
 
 	// Update the current set of chains:

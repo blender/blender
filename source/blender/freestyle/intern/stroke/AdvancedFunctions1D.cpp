@@ -43,7 +43,7 @@ namespace Functions1D {
 
 int GetSteerableViewMapDensityF1D::operator()(Interface1D& inter)
 {
-	SteerableViewMap * svm = Canvas::getInstance()->getSteerableViewMap();
+	SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
 	Interface0DIterator it = inter.pointsBegin(_sampling);
 	Interface0DIterator itnext = it;
 	++itnext;
@@ -56,8 +56,8 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D& inter)
 		Interface0D& i0Dnext = (*itnext);
 		fe = i0D.getFEdge(i0Dnext);
 		if (fe == 0) {
-			cerr << "GetSteerableViewMapDensityF1D warning: no FEdge between " << i0D.getId() << " and "
-			     << i0Dnext.getId() << endl;
+			cerr << "GetSteerableViewMapDensityF1D warning: no FEdge between " << i0D.getId() << " and " <<
+			        i0Dnext.getId() << endl;
 			// compute the direction between these two ???
 			Vec2f dir = i0Dnext.getPoint2D() - i0D.getPoint2D();
 			nSVM = svm->getSVMNumber(dir);

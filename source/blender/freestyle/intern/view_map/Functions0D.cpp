@@ -302,9 +302,9 @@ int MaterialF0D::operator()(Interface0DIterator& iter)
 	if (fe1 == NULL)
 		return -1;
 	if (fe1->isSmooth())
-		result = ((FEdgeSmooth*)fe1)->frs_material();
+		result = ((FEdgeSmooth *)fe1)->frs_material();
 	else
-		result = ((FEdgeSharp*)fe1)->bFrsMaterial();
+		result = ((FEdgeSharp *)fe1)->bFrsMaterial();
 #if 0
 	const SShape *sshape = getShapeF0D(iter);
 	return sshape->material();

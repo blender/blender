@@ -231,8 +231,7 @@ IndexedFaceSet::~IndexedFaceSet()
 		_Vertices = NULL;
 	}
 
-	if (NULL != _Normals)
-	{
+	if (NULL != _Normals) {
 		delete[] _Normals;
 		_Normals = NULL;
 	}

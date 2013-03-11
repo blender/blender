@@ -155,7 +155,7 @@ int IncrementChainingTimeStampF1D::operator()(Interface1D& inter)
 {
 	ViewEdge *ve = dynamic_cast<ViewEdge*>(&inter);
 	if (ve)
-		ve->setChainingTimeStamp(ve->getChainingTimeStamp()+1);
+		ve->setChainingTimeStamp(ve->getChainingTimeStamp() + 1);
 	return 0;
 }
 

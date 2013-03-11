@@ -96,7 +96,7 @@ ostream& write<1>(ostream& out, const char *str)
 }
 
 template<>
-ostream& write<0>(ostream& out, const char*)
+ostream& write<0>(ostream& out, const char *)
 {
 	return out;
 }
@@ -115,7 +115,7 @@ istream& read<1>(istream& in, char *str)
 }
 
 template<>
-istream& read<0>(istream& in, char*)
+istream& read<0>(istream& in, char *)
 {
 	return in;
 }

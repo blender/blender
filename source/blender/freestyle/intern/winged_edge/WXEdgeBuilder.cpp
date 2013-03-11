@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/freestyle/intern/winged_edge/WSBuilder.cpp
+/** \file blender/freestyle/intern/winged_edge/WXEdgeBuilder.cpp
  *  \ingroup freestyle
  *  \brief Class inherited from WingedEdgeBuilder and designed to build a WX (WingedEdge + extended info
  *         (silhouette etc...)) structure from a polygonal model

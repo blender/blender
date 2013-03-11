@@ -58,7 +58,7 @@ unsigned GetCanvasHeightCF()
 
 void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels, float iSigma)
 {
-	return Canvas::getInstance()->loadMap(iFileName, iMapName, iNbLevels,iSigma);
+	return Canvas::getInstance()->loadMap(iFileName, iMapName, iNbLevels, iSigma);
 }
 
 float ReadMapPixelCF(const char *iMapName, int level, unsigned x, unsigned y)
@@ -79,7 +79,7 @@ float ReadDirectionalViewMapPixelCF(int iOrientation, int level, unsigned x, uns
 	return svm->readSteerableViewMapPixel(iOrientation, level, x, y);
 }
 
-FEdge * GetSelectedFEdgeCF()
+FEdge *GetSelectedFEdgeCF()
 {
 	return Canvas::getInstance()->selectedFEdge();
 }

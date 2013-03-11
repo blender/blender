@@ -80,7 +80,7 @@ public:
 	/*! retrieves an instance on the singleton */
 	static SilhouetteGeomEngine *getInstance()
 	{
-		if(0 == _pInstance) {
+		if (_pInstance == NULL) {
 			_pInstance = new SilhouetteGeomEngine;
 		}
 		return _pInstance;

@@ -875,7 +875,7 @@ public:
 	/*! Builds the shader from the output file name */
 	fstreamShader(const char *iFileName) : StrokeShader()
 	{
-		_stream .open(iFileName);
+		_stream.open(iFileName);
 		if (!_stream.is_open()) {
 			cerr << "couldn't open file " << iFileName << endl;
 		}

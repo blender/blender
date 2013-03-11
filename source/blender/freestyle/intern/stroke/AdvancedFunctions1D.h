@@ -64,8 +64,9 @@ public:
 	 *  \param iType
 	 *    The integration method used to compute a single value from a set of values.
 	 *  \param sampling
-	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and the
-	 *    result is obtained by combining the resulting values into a single one, following the method specified by iType.
+	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
+	 *    the result is obtained by combining the resulting values into a single one, following the method specified
+	 *    by iType.
 	 */
 	DensityF1D(double sigma = 2, IntegrationType iType = MEAN, float sampling = 2.0f)
 	: UnaryFunction1D<double>(iType), _fun(sigma)
@@ -187,8 +188,9 @@ public:
 	 *  \param iType
 	 *    The integration method used to compute a single value from a set of values.
 	 *  \param sampling
-	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and the
-	 *    result is obtained by combining the resulting values into a single one, following the method specified by iType.
+	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
+	 *    the result is obtained by combining the resulting values into a single one, following the method specified
+	 *    by iType.
 	 */
 	GetDirectionalViewMapDensityF1D(unsigned iOrientation, unsigned level, IntegrationType iType = MEAN,
 	                                float sampling = 2.0f)
@@ -228,10 +230,11 @@ public:
 	 *  \param iType
 	 *    The integration method used to compute a single value from a set of values.
 	 *  \param sampling
-	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and the
-	 *    result is obtained by combining the resulting values into a single one, following the method specified by iType.
+	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
+	 *    the result is obtained by combining the resulting values into a single one, following the method specified
+	 *    by iType.
 	 */
-	GetSteerableViewMapDensityF1D(int level,IntegrationType iType = MEAN, float sampling = 2.0f)
+	GetSteerableViewMapDensityF1D(int level, IntegrationType iType = MEAN, float sampling = 2.0f)
 	: UnaryFunction1D<real>(iType)
 	{
 		_level = level;
@@ -269,10 +272,11 @@ public:
 	 *  \param iType
 	 *    The integration method used to compute a single value from a set of values.
 	 *  \param sampling
-	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and the
-	 *    result is obtained by combining the resulting values into a single one, following the method specified by iType.
+	 *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
+	 *    the result is obtained by combining the resulting values into a single one, following the method specified
+	 *    by iType.
 	 */
-	GetViewMapGradientNormF1D(int level,IntegrationType iType = MEAN, float sampling = 2.0f)
+	GetViewMapGradientNormF1D(int level, IntegrationType iType = MEAN, float sampling = 2.0f)
 	: UnaryFunction1D<real>(iType), _func(level)
 	{
 		_level = level;

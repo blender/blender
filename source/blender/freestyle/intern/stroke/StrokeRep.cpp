@@ -124,7 +124,7 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	}
 	_averageThickness = 0.0;
 
-	vector<StrokeVertex*>::const_iterator v ,vend, v2, vPrev;
+	vector<StrokeVertex *>::const_iterator v, vend, v2, vPrev;
 	StrokeVertex *sv, *sv2, *svPrev;
 
 	//special case of first vertex
@@ -350,7 +350,7 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 	if (iStrokeVertices.size() < 2)
 		return;
 	int i = 0, j;
-	vector<StrokeVertex*>::const_iterator v ,vend, v2, vPrev;
+	vector<StrokeVertex *>::const_iterator v, vend, v2, vPrev;
 	StrokeVertex *sv, *sv2; //soc unused -  *svPrev;
 
 	bool singu1 = false, singu2 = false;
@@ -367,7 +367,7 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 		sv2 = (*v2);
 		Vec2r p(sv->getPoint()), p2(sv2->getPoint());
 
-		Vec2r dir(p2-p);
+		Vec2r dir(p2 - p);
 		if (dir.norm() > ZERO)
 			dir.normalize();
 		Vec2r dir1, dir2;
@@ -386,7 +386,7 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 				//traverse all the vertices of the singularity and average them
 				Vec2r avP(0.0, 0.0);
 				for (j = i - timeSinceSingu1; j < i + 1; j++)
-					avP=Vec2r(avP + _vertices[2 * j]->point2d());
+					avP = Vec2r(avP + _vertices[2 * j]->point2d());
 				avP = Vec2r( 1.0 / float(timeSinceSingu1 + 1) * avP);
 				for (j = i - timeSinceSingu1; j < i + 1; j++)
 					_vertices[2 * j]->setPoint2d(avP);
@@ -438,7 +438,7 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 			_vertices[2 * j + 1]->setPoint2d(avP);
 	}
 
-	for (k=0; k<sizeStrip; k++) {
+	for (k = 0; k < sizeStrip; k++) {
 		if (notValid(_vertices[k]->point2d())) {
 			cerr << "Warning: strip vertex " << k << " non valid after cleanup" << endl;
 			return;
@@ -450,9 +450,9 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 // Texture coordinates
 ////////////////////////////////
 
-void Strip::computeTexCoord (const vector<StrokeVertex*>& iStrokeVertices)
+void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices)
 {
-	vector<StrokeVertex*>::const_iterator v ,vend;
+	vector<StrokeVertex *>::const_iterator v, vend;
 	StrokeVertex *sv;
 	int i = 0;
 	for (v = iStrokeVertices.begin(), vend = iStrokeVertices.end(); v != vend; v++) {

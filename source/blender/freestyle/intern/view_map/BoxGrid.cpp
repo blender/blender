@@ -83,9 +83,9 @@ BoxGrid::Iterator::Iterator (BoxGrid& grid, Vec3r& center, real epsilon)
 	_cell = grid.findCell(_target);
 	#if BOX_GRID_LOGGING
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Searching for occluders of edge centered at " << _target << " in cell ["
-			     << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2]
-			     << ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+			cout << "Searching for occluders of edge centered at " << _target << " in cell [" <<
+			        1_cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2] <<
+			        ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
 		}
 	#endif
 
@@ -159,7 +159,7 @@ void BoxGrid::assignCells (OccluderSource& source, GridDensityProvider& density,
 				height = _cellSize;
 
 				// Initialize cell
-				Cell* b = _cells[i * _cellsY + j] = new Cell();
+				Cell *b = _cells[i * _cellsY + j] = new Cell();
 				b->setDimensions(x, y, width, height);
 			}
 		}
@@ -211,7 +211,7 @@ void BoxGrid::getCellCoordinates(const Vec3r& point, unsigned& x, unsigned& y)
 	y = min(_cellsY - 1, (unsigned) floor (max((double) 0.0f, point[1] - _cellOrigin[1]) / _cellSize));
 }
 
-BoxGrid::Cell* BoxGrid::findCell(const Vec3r& point)
+BoxGrid::Cell *BoxGrid::findCell(const Vec3r& point)
 {
 	unsigned int x, y;
 	getCellCoordinates(point, x, y);

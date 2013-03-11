@@ -46,7 +46,7 @@ class Chain : public Curve
 {
 protected:
 	// tmp
-	Id * _splittingId;
+	Id *_splittingId;
 	FEdge *_fedgeB; // the last FEdge of the ViewEdge passed to the last call for push_viewedge_back().
 
 public:
@@ -107,7 +107,7 @@ public:
 		_splittingId = sid;
 	}
 
-	inline Id* getSplittingId()
+	inline Id *getSplittingId()
 	{
 		return _splittingId;
 	}

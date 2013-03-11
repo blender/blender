@@ -292,9 +292,9 @@ public:
 	void setAttributeVec3f(const char *iName, const Vec3f& att);
 
 private:
-	typedef std::map<const char*, float, StringUtils::ltstr> realMap;
-	typedef std::map<const char*, Vec2f, StringUtils::ltstr> Vec2fMap;
-	typedef std::map<const char*, Vec3f, StringUtils::ltstr> Vec3fMap;
+	typedef std::map<const char *, float, StringUtils::ltstr> realMap;
+	typedef std::map<const char *, Vec2f, StringUtils::ltstr> Vec2fMap;
+	typedef std::map<const char *, Vec3f, StringUtils::ltstr> Vec3fMap;
 
 	float _color[3];      //! the color
 	float _alpha;         //! alpha

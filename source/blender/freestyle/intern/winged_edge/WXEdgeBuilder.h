@@ -28,7 +28,7 @@
 #ifndef __FREESTYLE_WX_EDGE_BUILDER_H__
 #define __FREESTYLE_WX_EDGE_BUILDER_H__
 
-/** \file blender/freestyle/intern/winged_edge/WSBuilder.h
+/** \file blender/freestyle/intern/winged_edge/WXEdgeBuilder.h
  *  \ingroup freestyle
  *  \brief Class inherited from WingedEdgeBuilder and designed to build a WX (WingedEdge + extended info
  *         (silhouette etc...)) structure from a polygonal model

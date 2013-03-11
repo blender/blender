@@ -199,7 +199,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs)
 				break;
 			}
 		}
-		if (normalsSet.size() !=1 ) {
+		if (normalsSet.size() != 1) {
 			(*wv)->setSmooth(false);
 		}
 	}

@@ -173,7 +173,9 @@ FEdge *SVertex::getFEdge(Interface0D& inter)
 	for (; fe != feend; ++fe) {
 		if ((((*fe)->vertexA() == this) && ((*fe)->vertexB() == iVertexB)) ||
 		    (((*fe)->vertexB() == this) && ((*fe)->vertexA() == iVertexB)))
+		{
 			result = (*fe);
+		}
 	}
 	if ((result == 0) && (getNature() & Nature::T_VERTEX)) {
 		SVertex *brother;
@@ -187,7 +189,9 @@ FEdge *SVertex::getFEdge(Interface0D& inter)
 			for (fe = fedges.begin(), feend = fedges.end(); fe != feend; ++fe) {
 				if ((((*fe)->vertexA() == brother) && ((*fe)->vertexB() == iVertexB)) ||
 				    (((*fe)->vertexB() == brother) && ((*fe)->vertexA() == iVertexB)))
+				{
 					result = (*fe);
+				}
 			}
 		}
 	}
@@ -202,7 +206,9 @@ FEdge *SVertex::getFEdge(Interface0D& inter)
 			for (fe = _FEdges.begin(), feend = _FEdges.end(); fe != feend; ++fe) {
 				if ((((*fe)->vertexA() == this) && ((*fe)->vertexB() == brother)) ||
 				    (((*fe)->vertexB() == this) && ((*fe)->vertexA() == brother)))
+				{
 					result = (*fe);
+				}
 			}
 		}
 	}

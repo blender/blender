@@ -314,7 +314,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
 			// Adds the edge to the face
 			//AddEdge((*it1)->GetaOEdge());
 			AddEdge(woea);
-			(*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges()+1);
+			(*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges() + 1);
 			//sets these vertices as border:
 			v1->setBorder(true);
 			v2->setBorder(true);
@@ -330,7 +330,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
 			// Adds the edge to the face
 			//AddEdge((*it1)->GetaOEdge());
 			AddEdge(woeb);
-			(*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges()+1);
+			(*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges() + 1);
 			//sets these vertices as border:
 			v1->setBorder(true);
 			v2->setBorder(true);
@@ -402,7 +402,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
 }
 
 
-bool WFace::getOppositeEdge (const WVertex *v, WOEdge *&e)
+bool WFace::getOppositeEdge(const WVertex *v, WOEdge *&e)
 {
 	if (_OEdgeList.size() != 3)
 		return false;
@@ -441,7 +441,7 @@ real WFace::getArea ()
 }
 
 
-WOEdge *WFace::GetPrevOEdge(WOEdge* iOEdge)
+WOEdge *WFace::GetPrevOEdge(WOEdge *iOEdge)
 {
 	vector<WOEdge *>::iterator woe, woend, woefirst;
 	woefirst = _OEdgeList.begin();
@@ -645,7 +645,8 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 	if (3 == iVertexList.size()) {
 		if ((iVertexList[0] == iVertexList[1]) ||
 		    (iVertexList[0] == iVertexList[2]) ||
-		    (iVertexList[2] == iVertexList[1])) {
+		    (iVertexList[2] == iVertexList[1]))
+		{
 			cerr << "Warning: degenerated triangle detected, correcting" << endl;
 			return NULL;
 		}

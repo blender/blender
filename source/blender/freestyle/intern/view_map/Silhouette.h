@@ -377,8 +377,8 @@ public:
 	/* replaces edge 1 by edge 2 in the list of edges */
 	inline void Replace(FEdge *e1, FEdge *e2)
 	{
-		vector<FEdge*>::iterator insertedfe;
-		for (vector<FEdge*>::iterator fe = _FEdges.begin(),fend = _FEdges.end(); fe != fend; fe++) {
+		vector<FEdge *>::iterator insertedfe;
+		for (vector<FEdge *>::iterator fe = _FEdges.begin(), fend = _FEdges.end(); fe != fend; fe++) {
 			if ((*fe) == e1) {
 				insertedfe = _FEdges.insert(fe, e2);// inserts e2 before fe.
 				// returns an iterator pointing toward e2. fe is invalidated.
@@ -591,13 +591,13 @@ public:
 	}
 
 	/*! Returns the second SVertex. */
-	inline SVertex* vertexB()
+	inline SVertex *vertexB()
 	{
 		return _VertexB;
 	}
 
 	/*! Returns the first SVertex if i=0, the seccond SVertex if i=1. */
-	inline SVertex* operator[](const unsigned short int& i) const
+	inline SVertex *operator[](const unsigned short int& i) const
 	{
 		return (i % 2 == 0) ? _VertexA : _VertexB;
 	}
@@ -1429,7 +1429,7 @@ public:
 		vector<FEdge*>::iterator fe, fend;
 		vector<FEdge*>& fedges = iBrother.getChains();
 		for (fe = fedges.begin(), fend = fedges.end(); fe != fend; fe++) {
-			_chains.push_back((FEdge*)((*fe)->userdata));
+			_chains.push_back((FEdge *)((*fe)->userdata));
 		}
 
 		//-------------------------
@@ -1443,7 +1443,7 @@ public:
 			     fed++)
 			{
 				FEdge *current = *fed;
-				newfedgelist.push_back((FEdge*)current->userdata);
+				newfedgelist.push_back((FEdge *)current->userdata);
 			}
 			(*sv)->setFEdges(newfedgelist);
 		}
@@ -1452,10 +1452,10 @@ public:
 		// remap vertices and nextedge in edges:
 		//-------------------------------------
 		for (e = _edgesList.begin(), eend = _edgesList.end(); e != eend; e++) {
-			(*e)->setVertexA((SVertex*)((*e)->vertexA()->userdata));
-			(*e)->setVertexB((SVertex*)((*e)->vertexB()->userdata));
-			(*e)->setNextEdge((FEdge*)((*e)->nextEdge()->userdata));
-			(*e)->setPreviousEdge((FEdge*)((*e)->previousEdge()->userdata));
+			(*e)->setVertexA((SVertex *)((*e)->vertexA()->userdata));
+			(*e)->setVertexB((SVertex *)((*e)->vertexB()->userdata));
+			(*e)->setNextEdge((FEdge *)((*e)->nextEdge()->userdata));
+			(*e)->setPreviousEdge((FEdge *)((*e)->previousEdge()->userdata));
 		}
 
 		// reset all brothers userdata to NULL:
@@ -1476,7 +1476,7 @@ public:
 	}
 
 	/*! Cloning method. */
-	virtual SShape * duplicate()
+	virtual SShape *duplicate()
 	{
 		SShape *clone = new SShape(*this);
 		return clone;
@@ -1564,7 +1564,7 @@ public:
 		Vec3r a = ioA->point2D();
 		Vec3r b = ioB->point2D();
 
-		Vec3r newpoint3d,newpoint2d;
+		Vec3r newpoint3d, newpoint2d;
 		vector<SVertex*> intersections;
 		real t, T;
 		for (vector<Vec2r>::const_iterator p = iParameters.begin(), pend = iParameters.end(); p != pend; p++) {
@@ -1709,7 +1709,7 @@ public:
 		ioEdge->setVertexB(ioNewVertex);
 
 		if (ioEdge->isSmooth()) {
-			((FEdgeSmooth*)newEdge)->setFace(((FEdgeSmooth*)ioEdge)->face());
+			((FEdgeSmooth *)newEdge)->setFace(((FEdgeSmooth *)ioEdge)->face());
 		}
 
 		return newEdge;

@@ -371,7 +371,7 @@ StrokeVertex::~StrokeVertex() {}
 
 StrokeVertex& StrokeVertex::operator=(const StrokeVertex& iBrother)
 {
-	((CurvePoint*)this)->operator=(iBrother);
+	((CurvePoint *)this)->operator=(iBrother);
 	_Attribute = iBrother._Attribute;
 
 	_CurvilignAbscissa = 0.0f;
@@ -883,7 +883,7 @@ inline const polygon3d& occludee() const
 }
 #endif
 
-const SShape * Stroke::occluded_shape() const
+const SShape *Stroke::occluded_shape() const
 {
 	const_vertex_iterator v = vertices_begin(), vend = vertices_end();
 	const SShape *sshape = (*v)->occluded_shape();
@@ -905,7 +905,7 @@ const bool Stroke::occludee_empty() const
 	return empty;
 }
 
-const SShape * Stroke::shape() const
+const SShape *Stroke::shape() const
 {
 	const_vertex_iterator v = vertices_begin(), vend = vertices_end();
 	const SShape *sshape = (*v)->shape();

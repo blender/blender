@@ -84,9 +84,9 @@ SphericalGrid::Iterator::Iterator(SphericalGrid& grid, Vec3r& center, real epsil
 	_cell = grid.findCell(_target);
 	#if SPHERICAL_GRID_LOGGING
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Searching for occluders of edge centered at " << _target << " in cell ["
-			     << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2]
-			     << ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+			cout << "Searching for occluders of edge centered at " << _target << " in cell [" <<
+			        _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2] <<
+			        ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
 		}
 	#endif
 
@@ -157,7 +157,7 @@ void SphericalGrid::assignCells(OccluderSource& source, GridDensityProvider& den
 				height = _cellSize;
 
 				// Initialize cell
-				Cell* b = _cells[i * _cellsY + j] = new Cell();
+				Cell *b = _cells[i * _cellsY + j] = new Cell();
 				b->setDimensions(x, y, width, height);
 			}
 		}

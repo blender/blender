@@ -51,7 +51,7 @@ using namespace Geometry;
 
 struct ltstr
 {
-	bool operator()(const char* s1, const char* s2) const
+	bool operator()(const char *s1, const char *s2) const
 	{
 		return strcmp(s1, s2) < 0;
 	}
@@ -81,7 +81,7 @@ public:
 		return _pInstance;
 	}
 
-	typedef std::map<const char*, ImagePyramid*, ltstr> mapsMap;
+	typedef std::map<const char *, ImagePyramid *, ltstr> mapsMap;
 	static const int NB_STEERABLE_VIEWMAP = 5;
 
 protected:
@@ -131,9 +131,9 @@ public:
 	virtual void Erase(); 
 
 	/* Reads a pixel area from the canvas */
-	virtual void readColorPixels(int x, int y,int w, int h, RGBImage& oImage) const = 0;
+	virtual void readColorPixels(int x, int y, int w, int h, RGBImage& oImage) const = 0;
 	/* Reads a depth pixel area from the canvas */
-	virtual void readDepthPixels(int x, int y,int w, int h, GrayImage& oImage) const = 0;
+	virtual void readDepthPixels(int x, int y, int w, int h, GrayImage& oImage) const = 0;
 
 	/* update the canvas (display) */
 	virtual void update() = 0;
@@ -172,13 +172,13 @@ public:
 	float readMapPixel(const char *iMapName, int level, int x, int y);
 
 	/*! Sets the steerable viewmap */
-	void loadSteerableViewMap(SteerableViewMap * iSVM)
+	void loadSteerableViewMap(SteerableViewMap *iSVM)
 	{
 		_steerableViewMap = iSVM;
 	}
 
 	/*! Returns the steerable VM */
-	SteerableViewMap * getSteerableViewMap()
+	SteerableViewMap *getSteerableViewMap()
 	{
 		return _steerableViewMap;
 	}

@@ -162,24 +162,24 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge*>& newVi
 		return vva;
 	// because it is not already a ViewVertex, this SVertex must have only 2 FEdges. The incoming one still belongs
 	// to ioEdge, the outgoing one now belongs to newVEdge
-	const vector<FEdge*>& fedges = iVertex->fedges();
+	const vector<FEdge *>& fedges = iVertex->fedges();
 	if (fedges.size() != 2) {
 		cerr << "ViewMap warning: Can't split the ViewEdge" << endl;
 		return NULL;
 	}
-	FEdge *fend(0), *fbegin(0);
-	for (vector<FEdge*>::const_iterator fe = fedges.begin(), feend = fedges.end(); fe != feend; ++fe) {
+	FEdge *fend(NULL), *fbegin(NULL);
+	for (vector<FEdge *>::const_iterator fe = fedges.begin(), feend = fedges.end(); fe != feend; ++fe) {
 		if ((*fe)->vertexB() == iVertex) {
 			fend = (*fe);
 		}
 		if ((*fe)->vertexA() == iVertex) {
 			fbegin = (*fe);
 		}
-		if ((fbegin!=0) && (fend!=0))
+		if ((fbegin != NULL) && (fend != NULL))
 			break;
 	}
 	ViewEdge *ioEdge = fbegin->viewedge();
-	ViewShape * vshape = ioEdge->viewShape();
+	ViewShape *vshape = ioEdge->viewShape();
 	vva = new NonTVertex(iVertex);
 	// if the ViewEdge is a closed loop, we don't create a new VEdge
 	if (ioEdge->A() == 0) {
@@ -482,7 +482,8 @@ ViewVertexInternal::orientedViewEdgeIterator TVertex::edgesIterator(ViewEdge *iE
 /*                                */
 /**********************************/
 
-void NonTVertex::AddOutgoingViewEdge(ViewEdge *iVEdge){
+void NonTVertex::AddOutgoingViewEdge(ViewEdge *iVEdge)
+{
 	// let's keep the viewedges ordered in CCW order in the 2D image plan
 	directedViewEdge idve(iVEdge, false);
 	if (!_ViewEdges.empty()) {
@@ -597,7 +598,7 @@ ViewEdge::edge_iterator ViewEdge::ViewEdge_iterator()
 
 ViewEdge::const_edge_iterator ViewEdge::ViewEdge_iterator() const
 {
-	return const_edge_iterator((ViewEdge*)this);
+	return const_edge_iterator((ViewEdge *)this);
 }
 
 //! feature edge iterator

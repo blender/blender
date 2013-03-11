@@ -121,7 +121,7 @@ public:
 	/*! Returns a pointer to the pointed StrokeVertex.
 	 * Can't be called in the scripting language.
 	 */
-	virtual StrokeVertex* operator->()
+	virtual StrokeVertex *operator->()
 	{
 		return &(operator*());
 	}
@@ -185,7 +185,7 @@ public:
 	/*! operator == */
 	virtual bool operator==(const Interface0DIteratorNested& it) const
 	{
-		const StrokeVertexIterator* it_exact = dynamic_cast<const StrokeVertexIterator*>(&it);
+		const StrokeVertexIterator *it_exact = dynamic_cast<const StrokeVertexIterator *>(&it);
 		if (!it_exact)
 			return false;
 		return (_it == it_exact->_it);
@@ -204,7 +204,7 @@ public:
 	}
 
 	/*! Cloning method */
-	virtual StrokeVertexIterator* copy() const
+	virtual StrokeVertexIterator *copy() const
 	{
 		return new StrokeVertexIterator(*this);
 	}

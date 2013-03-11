@@ -127,8 +127,8 @@ void CulledOccluderSource::cullViewEdges(ViewMap& viewMap, bool extensiveFEdgeSe
 	prosceniumOrigin[1] = (viewProscenium[3] - viewProscenium[2]) / 2.0;
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Proscenium culling:" << endl;
-		cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", " << viewProscenium[2]
-		     << ", " << viewProscenium[3] << "]"<< endl;
+		cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", " << viewProscenium[2] <<
+		        ", " << viewProscenium[3] << "]"<< endl;
 		cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]"<< endl;
 	}
 

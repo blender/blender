@@ -112,9 +112,9 @@ public:
 	bool isIncoming() const;
 
 	/*! Returns a *pointer* to the pointed ViewEdge. */
-	virtual ViewEdge* operator*();
+	virtual ViewEdge *operator*();
 
-	virtual ViewEdge* operator->()
+	virtual ViewEdge *operator->()
 	{
 		return operator*();
 	}
@@ -141,7 +141,7 @@ public:
 	}
 
 protected:
-	bool isValid(ViewEdge* edge);
+	bool isValid(ViewEdge *edge);
 };
 
 //
@@ -178,14 +178,14 @@ public:
 	 *  \param orientation
 	 *    The direction to follow to explore the graph. If true, the direction indicated by the first ViewEdge is used.
 	 */
-	ChainingIterator(bool iRestrictToSelection = true, bool iRestrictToUnvisited = true, ViewEdge* begin = 0,
+	ChainingIterator(bool iRestrictToSelection = true, bool iRestrictToUnvisited = true, ViewEdge *begin = NULL,
 	                 bool orientation = true)
 	: ViewEdgeIterator(begin, orientation)
 	{
 		_restrictToSelection = iRestrictToSelection;
 		_restrictToUnvisited = iRestrictToUnvisited;
 		_increment = true;
-		py_c_it = 0;
+		py_c_it = NULL;
 	}
 
 	/*! Copy constructor */
@@ -229,7 +229,7 @@ public:
 	//inline bool getOrientation() const {}
 
 	/*! Returns the vertex which is the next crossing */
-	inline ViewVertex * getVertex()
+	inline ViewVertex *getVertex()
 	{
 		if (_increment) {
 			if (_orientation) {
@@ -283,7 +283,7 @@ public:
 	 *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex of begin.
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */
-	ChainSilhouetteIterator(bool iRestrictToSelection = true, ViewEdge* begin = NULL, bool orientation = true)
+	ChainSilhouetteIterator(bool iRestrictToSelection = true, ViewEdge *begin = NULL, bool orientation = true)
 	: ChainingIterator(iRestrictToSelection, true, begin, orientation)
 	{
 	}
@@ -340,7 +340,7 @@ public:
 	 *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex of begin.
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */
-	ChainPredicateIterator(bool iRestrictToSelection = true, bool iRestrictToUnvisited = true, ViewEdge* begin = NULL,
+	ChainPredicateIterator(bool iRestrictToSelection = true, bool iRestrictToUnvisited = true, ViewEdge *begin = NULL,
 	                       bool orientation = true)
 	: ChainingIterator(iRestrictToSelection, iRestrictToUnvisited, begin, orientation)
 	{
@@ -365,7 +365,7 @@ public:
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */
 	ChainPredicateIterator(UnaryPredicate1D& upred, BinaryPredicate1D& bpred, bool iRestrictToSelection = true,
-	                       bool iRestrictToUnvisited = true, ViewEdge* begin = NULL, bool orientation = true)
+	                       bool iRestrictToUnvisited = true, ViewEdge *begin = NULL, bool orientation = true)
 	: ChainingIterator(iRestrictToSelection, iRestrictToUnvisited, begin, orientation)
 	{
 		_unary_predicate = &upred;

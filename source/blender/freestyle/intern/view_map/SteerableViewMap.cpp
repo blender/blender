@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/freestyle/intern/view_map/SteerbaleViewMap.cpp
+/** \file blender/freestyle/intern/view_map/SteerableViewMap.cpp
  *  \ingroup freestyle
  *  \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
  *  \author Stephane Grabli
@@ -57,7 +57,7 @@ using namespace Geometry;
 SteerableViewMap::SteerableViewMap(unsigned int nbOrientations)
 {
 	_nbOrientations = nbOrientations;
-	_bound = cos(M_PI/(float)_nbOrientations);
+	_bound = cos(M_PI / (float)_nbOrientations);
 	for (unsigned int i = 0; i < _nbOrientations; ++i) {
 		_directions.push_back(Vec2d(cos((float)i * M_PI / (float)_nbOrientations),
 		                            sin((float)i * M_PI / (float)_nbOrientations)));
@@ -67,7 +67,7 @@ SteerableViewMap::SteerableViewMap(unsigned int nbOrientations)
 
 void SteerableViewMap::Build()
 {
-	_imagesPyramids = new ImagePyramid * [_nbOrientations + 1]; // one more map to store the complete visible VM
+	_imagesPyramids = new ImagePyramid *[_nbOrientations + 1]; // one more map to store the complete visible VM
 	memset((_imagesPyramids), 0, (_nbOrientations + 1) * sizeof(ImagePyramid *));
 }
 
@@ -78,7 +78,7 @@ SteerableViewMap::SteerableViewMap(const SteerableViewMap& iBrother)
 	_bound = iBrother._bound;
 	_directions = iBrother._directions;
 	_mapping = iBrother._mapping;
-	_imagesPyramids = new ImagePyramid * [_nbOrientations + 1]; // one more map to store the complete visible VM
+	_imagesPyramids = new ImagePyramid *[_nbOrientations + 1]; // one more map to store the complete visible VM
 	for (i = 0; i < _nbOrientations + 1; ++i)
 		_imagesPyramids[i] = new GaussianPyramid(*(dynamic_cast<GaussianPyramid*>(iBrother._imagesPyramids[i])));
 }
@@ -128,7 +128,7 @@ double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
 {
 	unsigned i;
 	unsigned id = iFEdge->getId().getFirst();
-	map<unsigned int, double* >::iterator o = _mapping.find(id);
+	map<unsigned int, double *>::iterator o = _mapping.find(id);
 	if (o != _mapping.end()) {
 		return (*o).second;
 	}
@@ -174,7 +174,7 @@ unsigned SteerableViewMap::getSVMNumber(const Vec2f& orient)
 
 unsigned SteerableViewMap::getSVMNumber(unsigned id)
 {
-	map<unsigned int, double* >::iterator o = _mapping.find(id);
+	map<unsigned int, double *>::iterator o = _mapping.find(id);
 	if (o != _mapping.end()) {
 		double *wvalues = (*o).second;
 		double maxw = 0.0; 
@@ -241,8 +241,8 @@ void SteerableViewMap::saveSteerableViewMap() const
 {
 	for (unsigned int i = 0; i <= _nbOrientations; ++i) {
 		if (_imagesPyramids[i] == 0) {
-			cerr << "SteerableViewMap warning: orientation " << i
-			     << " of steerable View Map whas not been computed yet" << endl;
+			cerr << "SteerableViewMap warning: orientation " << i <<
+			        " of steerable View Map whas not been computed yet" << endl;
 			continue;
 		}
 		int ow = _imagesPyramids[i]->width(0);
@@ -267,8 +267,8 @@ void SteerableViewMap::saveSteerableViewMap() const
 					//int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
 
 					//soc qtmp.setPixel(x, y, qRgb(c, c, c));
-					pix = (char*)ibuf->rect + y * rowbytes + x * 4;
-					pix[0] = pix [1] = pix[2] = c;
+					pix = (char *)ibuf->rect + y * rowbytes + x * 4;
+					pix[0] = pix[1] = pix[2] = c;
 				}
 			}
 
