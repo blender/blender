@@ -92,6 +92,8 @@ if builder.find('scons') != -1:
             if builder.find('win64') != -1:
                 bitness = '64'
 
+            scons_options.append('BF_INSTALLDIR=' + install_dir)
+            scons_options.append('BF_BUILDDIR=' + build_dir)
             scons_options.append('BF_BITNESS=' + bitness)
             scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
