@@ -1322,7 +1322,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 				}
 			}
 			else {
-				active = tree_element_type_active(NULL, scene, soops, te, tselem, 0);
+				active = tree_element_type_active(NULL, scene, soops, te, tselem, 0, false);
 			}
 
 			if (active) {
@@ -1461,7 +1461,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 			}
 		}
 		else {
-			if (tree_element_type_active(NULL, scene, soops, te, tselem, 0) ) active = 2;
+			if (tree_element_type_active(NULL, scene, soops, te, tselem, 0, false) ) active = 2;
 			glColor4ub(220, 220, 255, alpha);
 		}
 		

@@ -165,7 +165,7 @@ void draw_outliner(const struct bContext *C);
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
 
 /* outliner_select.c -------------------------------------------- */
-int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set);
+int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set, bool recursive);
 int tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soops, TreeElement *te, int set);
 int outliner_item_do_activate(struct bContext *C, int x, int y, bool extend, bool recursive);
 
