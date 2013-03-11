@@ -71,7 +71,6 @@
 
 /*********************** Global declarations *************************/
 
-#define MAX_COLORSPACE_NAME     64
 #define DISPLAY_BUFFER_CHANNELS 4
 
 /* ** list of all supported color spaces, displays and views */

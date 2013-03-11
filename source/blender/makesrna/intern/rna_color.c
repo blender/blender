@@ -993,6 +993,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "ColorManagedSequencerColorspaceSettings", "Input color space settings");
 
 	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
 	RNA_def_property_enum_items(prop, color_space_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
 	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",
