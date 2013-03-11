@@ -3751,26 +3751,16 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float rgba[4], float alpha, float mask, int use_color_correction)
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float rgba[4], float alpha, float mask)
 {
 	if (ps->is_texbrush) {
 		/* rgba already holds a texture result here from higher level function */
-		if (use_color_correction) {
-			float rgba_br[3];
-			srgb_to_linearrgb_v3_v3(rgba_br, ps->brush->rgb);
-			mul_v3_v3(rgba, rgba_br);
-		}
-		else {
-			mul_v3_v3(rgba, ps->brush->rgb);
-		}
+		float rgba_br[3];
+		srgb_to_linearrgb_v3_v3(rgba_br, ps->brush->rgb);
+		mul_v3_v3(rgba, rgba_br);
 	}
 	else {
-		if (use_color_correction) {
-			srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
-		}
-		else {
-			copy_v3_v3(rgba, ps->brush->rgb);
-		}
+		srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
 		rgba[3] = 1.0;
 	}
 
@@ -3810,7 +3800,6 @@ static void *do_projectpaint_thread(void *ph_v)
 	float falloff;
 	int bucket_index;
 	int is_floatbuf = 0;
-	int use_color_correction = FALSE;
 	const short tool =  ps->tool;
 	rctf bucket_bounds;
 
@@ -3866,7 +3855,6 @@ static void *do_projectpaint_thread(void *ph_v)
 
 					last_projIma->touch = 1;
 					is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-					use_color_correction = TRUE;
 				}
 				/* end copy */
 
@@ -3962,7 +3950,6 @@ static void *do_projectpaint_thread(void *ph_v)
 
 								last_projIma->touch = 1;
 								is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-								use_color_correction = TRUE;
 							}
 							/* end copy */
 
@@ -3998,7 +3985,7 @@ static void *do_projectpaint_thread(void *ph_v)
 									else do_projectpaint_soften(ps, projPixel, alpha, mask, softenArena, &softenPixels);
 									break;
 								default:
-									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask, use_color_correction);
+									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
 									else do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
 									break;
 							}
@@ -4164,7 +4151,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 		/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
 		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
 		                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
-		ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
+		ps->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? 1 : 0;
 	}
 	else {
 		/* brush may be NULL*/
