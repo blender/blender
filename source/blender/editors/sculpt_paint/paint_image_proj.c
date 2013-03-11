@@ -1379,15 +1379,18 @@ static ProjPixel *project_paint_uvpixel_init(
 					}
 					else { /* from char to float */
 						unsigned char rgba_ub[4];
+						float rgba[4];
 						project_face_pixel(tf_other, ibuf_other, w, side, rgba_ub, NULL);
-						IMAPAINT_CHAR_RGBA_TO_FLOAT(((ProjPixelClone *)projPixel)->clonepx.f, rgba_ub);
+						srgb_to_linearrgb_uchar4(rgba, rgba_ub);
+						straight_to_premul_v4_v4(((ProjPixelClone *)projPixel)->clonepx.f, rgba);
 					}
 				}
 				else {
 					if (ibuf_other->rect_float) { /* float to char */
 						float rgba[4];
 						project_face_pixel(tf_other, ibuf_other, w, side, NULL, rgba);
-						IMAPAINT_FLOAT_RGBA_TO_CHAR(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
+						premul_to_straight_v4(rgba);
+						linearrgb_to_srgb_uchar3(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
 					}
 					else { /* char to char */
 						project_face_pixel(tf_other, ibuf_other, w, side, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL);
