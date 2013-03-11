@@ -837,7 +837,8 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	}
 	if (avformat_write_header(of, NULL) < 0) {
 		BKE_report(reports, RPT_ERROR, "Could not initialize streams, probably unsupported codec combination");
-			av_dict_free(&opts);
+		av_dict_free(&opts);
+		avio_close(of->pb);
 		return 0;
 	}
 
