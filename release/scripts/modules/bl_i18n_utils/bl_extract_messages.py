@@ -242,7 +242,7 @@ def dump_messages_rna(msgs, reports, settings):
     def class_blacklist():
         blacklist_rna_class = [
             # core classes
-            "Context", "Event", "Function", "UILayout", "BlendData", "UnknownType",
+            "Context", "Event", "Function", "UILayout", "UnknownType",
             # registerable classes
             "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
             # window classes

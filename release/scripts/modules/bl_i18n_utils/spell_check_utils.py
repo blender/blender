@@ -69,6 +69,7 @@ class SpellChecker():
         "bandnoise",
         "bindcode",
         "bitrate",
+        "blendfile",
         "blendin",
         "bonesize",
         "boundbox",
