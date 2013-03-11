@@ -160,32 +160,24 @@ static void do_outliner_object_select_recursive(Scene *scene, Object *ob_parent,
 	}
 }
 
-static void do_outliner_bone_select_recursive(Scene *scene, bArmature *arm, Bone *bone_parent, bool select)
+static void do_outliner_bone_select_recursive(bArmature *arm, Bone *bone_parent, bool select)
 {
 	Bone *bone;
 	for (bone = bone_parent->childbase.first; bone; bone = bone->next) {
-		if(select && PBONE_VISIBLE(arm, bone))
+		if (select && PBONE_VISIBLE(arm, bone))
 			bone->flag |= BONE_SELECTED;
 		else
 			bone->flag &= ~BONE_SELECTED;
-		do_outliner_bone_select_recursive(scene, arm, bone, select);
+		do_outliner_bone_select_recursive(arm, bone, select);
 	}
 }
 
-static bool is_child_of(EditBone *ebone, EditBone *ebone_parent) {
-	for (ebone = ebone->parent; ebone; ebone=ebone->parent) {
-		if (ebone == ebone_parent)
-			return true;
-	}
-	return false;
-}
-
-static void do_outliner_ebone_select_recursive(Scene *scene, bArmature *arm, EditBone *ebone_parent, bool select)
+static void do_outliner_ebone_select_recursive(bArmature *arm, EditBone *ebone_parent, bool select)
 {
 	EditBone *ebone;
-	for (ebone = ebone_parent->next; ebone; ebone=ebone->next) {
-		if (is_child_of(ebone, ebone_parent)) {
-			if(select && EBONE_VISIBLE(arm, ebone))
+	for (ebone = ebone_parent->next; ebone; ebone = ebone->next) {
+		if (ED_armature_ebone_is_child_recursive(ebone_parent, ebone)) {
+			if (select && EBONE_VISIBLE(arm, ebone))
 				ebone->flag |= BONE_SELECTED;
 			else
 				ebone->flag &= ~BONE_SELECTED;
@@ -514,7 +506,7 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 
 			if (recursive) {
 				/* Recursive select/deselect */
-				do_outliner_bone_select_recursive(scene, arm, bone, (bone->flag & BONE_SELECTED) != 0);
+				do_outliner_bone_select_recursive(arm, bone, (bone->flag & BONE_SELECTED) != 0);
 			}
 
 			
@@ -578,7 +570,7 @@ static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te,
 
 		if (recursive) {
 			/* Recursive select/deselect */
-			do_outliner_ebone_select_recursive(scene, arm, ebone, (ebone->flag & BONE_SELECTED) != 0);
+			do_outliner_ebone_select_recursive(arm, ebone, (ebone->flag & BONE_SELECTED) != 0);
 		}
 	}
 	else if (ebone->flag & BONE_SELECTED) {

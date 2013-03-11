@@ -131,7 +131,7 @@ void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
 void paint_2d_redraw(const bContext *C, void *ps, int final);
 void paint_2d_stroke_done(void *ps);
 int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser);
-void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, int mouse[2]);
+void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, const int mouse[2]);
 int paint_proj_stroke(void *ps, const int prevmval_i[2], const int mval_i[2]);
 void paint_proj_stroke_done(void *ps);
 void paint_brush_init_tex(struct Brush *brush);

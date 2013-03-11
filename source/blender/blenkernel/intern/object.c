@@ -3128,9 +3128,8 @@ KeyBlock *BKE_object_insert_shape_key(Scene *scene, Object *ob, const char *name
 
 bool BKE_object_is_child_recursive(Object *ob_parent, Object *ob_child)
 {
-	Object *ob_test;
-	for (ob_test = ob_child->parent; ob_test; ob_test = ob_test->parent) {
-		if (ob_test == ob_parent) {
+	for (ob_child = ob_child->parent; ob_child; ob_child = ob_child->parent) {
+		if (ob_child == ob_parent) {
 			return true;
 		}
 	}

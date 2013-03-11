@@ -720,7 +720,8 @@ int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int era
 
 		painter->firsttouch = 0;
 		copy_v2_v2(painter->lastpaintpos, newuv);
-	} else {
+	}
+	else {
 		copy_v2_v2(painter->lastpaintpos, olduv);
 	}
 	/* OCIO_TODO: float buffers are now always linear, so always use color correction

@@ -584,7 +584,7 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 /* **************************************** */
 
 enum {
-	OL_OP_ENDMARKER =0,
+	OL_OP_ENDMARKER = 0,
 	OL_OP_SELECT,
 	OL_OP_DESELECT,
 	OL_OP_SELECT_HIERARCHY,

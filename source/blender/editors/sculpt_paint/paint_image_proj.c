@@ -450,7 +450,7 @@ static float VecZDepthPersp(const float pt[2],
 
 
 /* Return the top-most face index that the screen space coord 'pt' touches (or -1) */
-static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w[3], int *side)
+static int project_paint_PickFace(const ProjPaintState *ps, const float pt[2], float w[3], int *side)
 {
 	LinkNode *node;
 	float w_tmp[3];
@@ -526,7 +526,8 @@ static void uvco_to_wrapped_pxco(float uv[2], int ibuf_x, int ibuf_y, float *x, 
 }
 
 /* Set the top-most face color that the screen space coord 'pt' touches (or return 0 if none touch) */
-static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float *rgba_fp, unsigned char *rgba, const int interp)
+static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
+                                   float *rgba_fp, unsigned char *rgba, const int interp)
 {
 	float w[3], uv[2];
 	int side;
@@ -951,7 +952,8 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 /* Calculate outset UV's, this is not the same as simply scaling the UVs,
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
-static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const float scaler, const int ibuf_x, const int ibuf_y, const int is_quad)
+static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const float scaler,
+                            const int ibuf_x, const int ibuf_y, const int is_quad)
 {
 	float a1, a2, a3, a4 = 0.0f;
 	float puv[4][2]; /* pixelspace uv's */
@@ -1132,7 +1134,8 @@ static void screen_px_from_persp(
 	interp_v3_v3v3v3(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
-static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const float w[3], int side, unsigned char rgba_ub[4], float rgba_f[4])
+static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const float w[3],
+                               int side, unsigned char rgba_ub[4], float rgba_f[4])
 {
 	float *uvCo1, *uvCo2, *uvCo3;
 	float uv_other[2], x, y;
@@ -3231,7 +3234,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	BLI_linklist_free(image_LinkList, NULL);
 }
 
-static void paint_proj_begin_clone(ProjPaintState *ps, int mouse[2])
+static void paint_proj_begin_clone(ProjPaintState *ps, const int mouse[2])
 {
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
@@ -3612,7 +3615,8 @@ static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, fl
  * accumulation of color greater then 'projPixel->mask' however in the case of smear its not
  * really that important to be correct as it is with clone and painting
  */
-static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels, float co[2])
+static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+                                  MemArena *smearArena, LinkNode **smearPixels, const float co[2])
 {
 	unsigned char rgba_ub[4];
 
@@ -3623,7 +3627,8 @@ static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, floa
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 }
 
-static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
+static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+                                    MemArena *smearArena, LinkNode **smearPixels_f, const float co[2])
 {
 	float rgba[4];
 
@@ -3644,7 +3649,8 @@ static float inv_pow2(float f)
 	return 1.0f - f;
 }
 
-static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *softenArena, LinkNode **softenPixels)
+static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+                                     MemArena *softenArena, LinkNode **softenPixels)
 {
 	unsigned int accum_tot = 0;
 	unsigned int i;
@@ -3676,7 +3682,8 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 	}
 }
 
-static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *softenArena, LinkNode **softenPixels)
+static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+                                   MemArena *softenArena, LinkNode **softenPixels)
 {
 	unsigned int accum_tot = 0;
 	unsigned int i;
@@ -4209,7 +4216,8 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	return;
 }
 
-void *paint_proj_new_stroke(bContext *C, Object *ob, int mouse[2]) {
+void *paint_proj_new_stroke(bContext *C, Object *ob, const int mouse[2])
+{
 	ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
 	project_state_init(C, ob, ps);
 

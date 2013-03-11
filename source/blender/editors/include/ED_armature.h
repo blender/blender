@@ -135,6 +135,7 @@ void ED_armature_validate_active(struct bArmature *arm);
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name);
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
+bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child);
 
 void transform_armature_mirror_update(struct Object *obedit);
 void ED_armature_origin_set(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
