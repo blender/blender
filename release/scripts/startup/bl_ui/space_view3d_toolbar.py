@@ -678,14 +678,14 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
-            if(brush.use_absolute_jitter):
-                row.prop(brush, "jitter_absolute")
-            else:
+            if(brush.use_relative_jitter):
+                row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
                 row.prop(brush, "jitter", slider=True)
+            else:
+                row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
+                row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
            
-            col.prop(brush, "use_absolute_jitter")
-
             col.prop(brush, "blend", text="Blend")
 
             col = layout.column()
@@ -711,13 +711,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
-            if(brush.use_absolute_jitter):
-                row.prop(brush, "jitter_absolute")
+            if(brush.use_relative_jitter):
+               row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
+               row.prop(brush, "jitter", slider=True)
             else:
-                row.prop(brush, "jitter", slider=True)
+               row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
+               row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
-            
-            col.prop(brush, "use_absolute_jitter")
 
             col.prop(brush, "vertex_tool", text="Blend")
 
@@ -838,13 +838,13 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 col.separator()
 
                 row = col.row(align=True)
-                if(brush.use_absolute_jitter):
-                    row.prop(brush, "jitter_absolute")
-                else:
+                if(brush.use_relative_jitter):
+                    row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
                     row.prop(brush, "jitter", slider=True)
+                else:
+                    row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
+                    row.prop(brush, "jitter_absolute")
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
-          
-                col.prop(brush, "use_absolute_jitter")
 
         else:
             col.prop(brush, "use_airbrush")
