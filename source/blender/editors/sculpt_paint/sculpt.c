@@ -43,6 +43,8 @@
 #include "BLI_threads.h"
 #include "BLI_rand.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
@@ -4438,8 +4440,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	op->customdata = stroke;
 
 	/* For tablet rotation */
-	ignore_background_click = RNA_boolean_get(op->ptr,
-	                                          "ignore_background_click");
+	ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
 	if (ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
 		paint_stroke_data_free(op);
@@ -4518,8 +4519,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 	/* properties */
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement,
-	                           "Stroke", "");
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 
 	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
 	             "Sculpt Stroke Mode",
@@ -4696,28 +4696,23 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	return OPERATOR_FINISHED;
 }
 
-static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op,
-                                                 wmEvent *UNUSED(event))
+static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = ob->data;
 	SculptSession *ss = ob->sculpt;
-	const char *msg = "Dynamic-topology sculpting will not preserve"
-	                  "vertex colors, UVs, or other customdata";
+	const char *msg = TIP_("Dynamic-topology sculpting will not preserve vertex colors, UVs, or other customdata");
 
 	if (!ss->bm) {
 		int i;
 
 		for (i = 0; i < CD_NUMTYPES; i++) {
-			if (!ELEM7(i, CD_MVERT, CD_MEDGE, CD_MFACE,
-			           CD_MLOOP, CD_MPOLY, CD_PAINT_MASK,
-			           CD_ORIGINDEX) &&
+			if (!ELEM7(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX) &&
 			    (CustomData_has_layer(&me->vdata, i) ||
 			     CustomData_has_layer(&me->edata, i) ||
 			     CustomData_has_layer(&me->fdata, i)))
 			{
-				/* The mesh has customdata that will be lost, let the
-				 * user confirm this is OK */
+				/* The mesh has customdata that will be lost, let the user confirm this is OK */
 				return WM_operator_confirm_message(C, op, msg);
 			}
 		}

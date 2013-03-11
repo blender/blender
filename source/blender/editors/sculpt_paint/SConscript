@@ -31,7 +31,7 @@ sources = env.Glob('*.c')
 
 defs = []
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include'
 incs += ' ../../gpu ../../makesrna ../../blenloader ../../bmesh ../uvedit'
@@ -46,5 +46,8 @@ if env['OURPLATFORM'] == 'linuxcross':
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
 
 env.BlenderLib ( 'bf_editors_sculpt_paint', sources, Split(incs), defines=defs, libtype=['core'], priority=[40] )

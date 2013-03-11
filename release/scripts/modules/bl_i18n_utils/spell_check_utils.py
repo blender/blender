@@ -77,6 +77,7 @@ class SpellChecker():
         "builtin", "builtins",
         "bytecode",
         "chunksize",
+        "customdata",
         "dataset", "datasets",
         "de",
         "defocus",

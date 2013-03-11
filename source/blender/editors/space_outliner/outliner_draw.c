@@ -41,6 +41,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -429,7 +431,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					Object *ob = (Object *)tselem->id; // id = object
 					bActionGroup *grp = te->directdata;
 					
-					BLI_uniquename(&ob->pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
+					BLI_uniquename(&ob->pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name),
+					               sizeof(grp->name));
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 				}
 				break;
@@ -462,17 +465,20 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
 				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide", -1, 0, 0, -1, -1, "Restrict viewport visibility (Ctrl - Recursive)");
+				                   &ptr, "hide", -1, 0, 0, -1, -1,
+				                   TIP_("Restrict viewport visibility (Ctrl - Recursive)"));
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
 				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide_select", -1, 0, 0, -1, -1, "Restrict viewport selection (Ctrl - Recursive)");
+				                   &ptr, "hide_select", -1, 0, 0, -1, -1,
+				                   TIP_("Restrict viewport selection (Ctrl - Recursive)"));
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
 				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide_render", -1, 0, 0, -1, -1, "Restrict rendering (Ctrl - Recursive)");
+				                   &ptr, "hide_render", -1, 0, 0, -1, -1,
+				                   TIP_("Restrict rendering (Ctrl - Recursive)"));
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -487,19 +493,19 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_VIEW);
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF,
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                  NULL, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow visibility in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_SELECT);
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF,
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                  NULL, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow selection in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_RENDER);
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF,
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                  NULL, 0, 0, 0, 0, "Restrict/Allow renderability");
+				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
 
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -509,8 +515,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
 				bt = uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT - 1,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, te->directdata, 0, 0, 0, 0, TIP_("Render this RenderLayer"));
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -523,8 +529,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				
 				bt = uiDefIconButBitI(block, ICONTOG, passflag, 0, ICON_CHECKBOX_HLT - 1,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      layflag, 0, 0, 0, 0, "Render this Pass");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, layflag, 0, 0, 0, 0, TIP_("Render this Pass"));
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				layflag++;  /* is lay_xor */
@@ -532,8 +538,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				          SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
 				{
 					bt = uiDefIconButBitI(block, TOG, passflag, 0, (*layflag & passflag) ? ICON_DOT : ICON_BLANK1,
-					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-					                      layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
+					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X,
+					                      UI_UNIT_Y, layflag, 0, 0, 0, 0, TIP_("Exclude this Pass from Combined"));
 				}
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
@@ -545,13 +551,14 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &(md->mode), 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow visibility in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				
 				bt = uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &(md->mode), 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 			}
 			else if (tselem->type == TSE_POSE_CHANNEL) {
@@ -560,13 +567,15 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow visibility in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, bone);
 				
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow selection in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 			}
 			else if (tselem->type == TSE_EBONE) {
@@ -574,13 +583,15 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow visibility in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, ebone);
 				
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                      &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow selection in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, NULL);
 			}
 		}
@@ -611,7 +622,7 @@ static void outliner_draw_rnacols(ARegion *ar, int sizex)
 }
 
 static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
-{	
+{
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	PointerRNA *ptr;
@@ -626,14 +637,17 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				ptr = &te->rnaptr;
 				prop = te->directdata;
 				
-				if (!(RNA_property_type(prop) == PROP_POINTER && (TSELEM_OPEN(tselem, soops))) )
-					uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, sizex, (int)te->ys, OL_RNA_COL_SIZEX, UI_UNIT_Y - 1);
+				if (!(RNA_property_type(prop) == PROP_POINTER && (TSELEM_OPEN(tselem, soops)))) {
+					uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, sizex, (int)te->ys, OL_RNA_COL_SIZEX,
+					              UI_UNIT_Y - 1);
+				}
 			}
 			else if (tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr = &te->rnaptr;
 				prop = te->directdata;
 				
-				uiDefAutoButR(block, ptr, prop, te->index, "", ICON_NONE, sizex, (int)te->ys, OL_RNA_COL_SIZEX, UI_UNIT_Y - 1);
+				uiDefAutoButR(block, ptr, prop, te->index, "", ICON_NONE, sizex, (int)te->ys, OL_RNA_COL_SIZEX,
+				              UI_UNIT_Y - 1);
 			}
 		}
 		
@@ -846,7 +860,8 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 					/* pass */
 				}
 				else {
-					uiDefBlockBut(block, operator_search_menu, kmi, "", xstart, (int)te->ys + 1, butw1, UI_UNIT_Y - 1, "Assign new Operator");
+					uiDefBlockBut(block, operator_search_menu, kmi, "", xstart, (int)te->ys + 1, butw1, UI_UNIT_Y - 1,
+					              TIP_("Assign new Operator"));
 				}
 				xstart += butw1 + 10;
 				
@@ -854,43 +869,58 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				kmi->maptype = keymap_menu_type(kmi->type);
 				
 				str = keymap_type_menu();
-				but = uiDefButS(block, MENU, 0, str,    xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->maptype, 0, 0, 0, 0, "Event type");
+				but = uiDefButS(block, MENU, 0, str,    xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->maptype,
+				                0, 0, 0, 0, TIP_("Event type"));
 				uiButSetFunc(but, keymap_type_cb, kmi, NULL);
 				xstart += butw2 + 5;
 				
 				/* edit actual event */
 				switch (kmi->maptype) {
 					case OL_KM_KEYBOARD:
-						uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->type, "Key code");
+						uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->type,
+						                TIP_("Key code"));
 						xstart += butw2 + 5;
 						break;
 					case OL_KM_MOUSE:
 						str = keymap_mouse_menu();
-						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->type, 0, 0, 0, 0,  "Mouse button");
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->type,
+						          0, 0, 0, 0, TIP_("Mouse button"));
 						xstart += butw2 + 5;
 						break;
 					case OL_KM_TWEAK:
 						str = keymap_tweak_menu();
-						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->type, 0, 0, 0, 0,  "Tweak gesture");
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->type,
+						          0, 0, 0, 0, TIP_("Tweak gesture"));
 						xstart += butw2 + 5;
 						str = keymap_tweak_dir_menu();
-						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->val, 0, 0, 0, 0,  "Tweak gesture direction");
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, &kmi->val,
+						          0, 0, 0, 0, TIP_("Tweak gesture direction"));
 						xstart += butw2 + 5;
 						break;
 				}
 				
 				/* modifiers */
-				uiDefButS(block, OPTION, 0, "Shift",    xstart, (int)te->ys + 1, butw3 + 5, UI_UNIT_Y - 1, &kmi->shift, 0, 0, 0, 0, "Modifier"); xstart += butw3 + 5;
-				uiDefButS(block, OPTION, 0, "Ctrl", xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->ctrl, 0, 0, 0, 0, "Modifier"); xstart += butw3;
-				uiDefButS(block, OPTION, 0, "Alt",  xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->alt, 0, 0, 0, 0, "Modifier"); xstart += butw3;
-				uiDefButS(block, OPTION, 0, "OS",   xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->oskey, 0, 0, 0, 0, "Modifier"); xstart += butw3;
-				xstart += 5;
-				uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->keymodifier, "Key Modifier code");
+				uiDefButS(block, OPTION, 0, IFACE_("Shift"), xstart, (int)te->ys + 1, butw3 + 5, UI_UNIT_Y - 1,
+				          &kmi->shift, 0, 0, 0, 0, TIP_("Modifier"));
+				xstart += butw3 + 5;
+				uiDefButS(block, OPTION, 0, IFACE_("Ctrl"), xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->ctrl,
+				          0, 0, 0, 0, TIP_("Modifier"));
+				xstart += butw3;
+				uiDefButS(block, OPTION, 0, IFACE_("Alt"), xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->alt,
+				          0, 0, 0, 0, TIP_("Modifier"));
+				xstart += butw3;
+				uiDefButS(block, OPTION, 0, IFACE_("OS"), xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->oskey,
+				          0, 0, 0, 0, TIP_("Modifier"));
+				xstart += butw3 + 5;
+				uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys + 1, butw3, UI_UNIT_Y - 1, &kmi->keymodifier,
+				                TIP_("Key Modifier code"));
 				xstart += butw3 + 5;
 				
 				/* rna property */
 				if (kmi->ptr && kmi->ptr->data) {
-					uiDefBut(block, LABEL, 0, "(RNA property)", xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, ""); xstart += butw2;
+					uiDefBut(block, LABEL, 0, IFACE_("(RNA property)"), xstart, (int)te->ys + 1, butw2, UI_UNIT_Y - 1,
+					         NULL, 0, 0, 0, 0, "");
+					xstart += butw2;
 				}
 
 				(void)xstart;
@@ -918,7 +948,8 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				/* If we add support to rename Sequence.
 				 * need change this.
 				 */
-				if (tselem->type == TSE_POSE_BASE) continue;  // prevent crash when trying to rename 'pose' entry of armature
+				// prevent crash when trying to rename 'pose' entry of armature
+				if (tselem->type == TSE_POSE_BASE) continue;  
 				
 				if (tselem->type == TSE_EBONE) len = sizeof(((EditBone *) 0)->name);
 				else if (tselem->type == TSE_MODIFIER) len = sizeof(((ModifierData *) 0)->name);
@@ -931,7 +962,8 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				spx = te->xs + 2 * UI_UNIT_X - 4;
 				if (spx + dx + 10 > ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax - spx - 10;
 
-				bt = uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (int)te->ys, dx + 10, UI_UNIT_Y - 1, (void *)te->name, 1.0, (float)len, 0, 0, "");
+				bt = uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (int)te->ys, dx + 10, UI_UNIT_Y - 1, (void *)te->name,
+				              1.0, (float)len, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */
@@ -964,7 +996,8 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 		glDisable(GL_BLEND);
 	}
 	else {
-		uiBut *but = uiDefIconBut(arg->block, LABEL, 0, icon, arg->xb, arg->yb, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
+		uiBut *but = uiDefIconBut(arg->block, LABEL, 0, icon, arg->xb, arg->yb, UI_UNIT_X, UI_UNIT_Y, NULL,
+		                          0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		
 		if (arg->id)
 			uiButSetDragID(but, arg->id);
@@ -972,7 +1005,8 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 
 }
 
-static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)
+static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te,
+                             float alpha)
 {
 	struct DrawIconArg arg;
 	float aspect;
@@ -1257,7 +1291,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	}
 }
 
-static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SpaceOops *soops, ListBase *lb, int level, int xmax, int *offsx, int ys)
+static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SpaceOops *soops, ListBase *lb, int level,
+                                  int xmax, int *offsx, int ys)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1334,7 +1369,8 @@ static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, i
 }
 
 
-static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty)
+static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops,
+                                       TreeElement *te, int startx, int *starty)
 {
 	TreeElement *ten;
 	TreeStoreElem *tselem;
@@ -1733,15 +1769,17 @@ void draw_outliner(const bContext *C)
 		sizex_rna = max_ii(OL_RNA_COLX, sizex_rna + OL_RNA_COL_SPACEX);
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
-		if (soops->outlinevis == SO_KEYMAP) 
-			sizex = sizex_rna + OL_RNA_COL_SIZEX * 3 + 50;  // XXX this is only really a quick hack to make this wide enough...
+		if (soops->outlinevis == SO_KEYMAP)
+			// XXX this is only really a quick hack to make this wide enough...
+			sizex = sizex_rna + OL_RNA_COL_SIZEX * 3 + 50;
 		else
 			sizex = sizex_rna + OL_RNA_COL_SIZEX + 50;
 	}
 	else {
 		/* width must take into account restriction columns (if visible) so that entries will still be visible */
 		//outliner_width(soops, &soops->tree, &sizex);
-		outliner_rna_width(soops, &soops->tree, &sizex, 0); // XXX should use outliner_width instead when te->xend will be set correctly...
+		// XXX should use outliner_width instead when te->xend will be set correctly...
+		outliner_rna_width(soops, &soops->tree, &sizex, 0);
 		
 		/* constant offset for restriction columns */
 		// XXX this isn't that great yet...

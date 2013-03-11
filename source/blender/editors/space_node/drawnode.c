@@ -1296,11 +1296,11 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	uiItemR(row, ptr, "scale", 0, "", ICON_NONE);
 	
 	row = uiLayoutRow(layout, TRUE);
-	uiItemR(row, ptr, "use_min", 0, "Min", ICON_NONE);
+	uiItemR(row, ptr, "use_min", 0, IFACE_("Min"), ICON_NONE);
 	uiItemR(row, ptr, "min", 0, "", ICON_NONE);
 	
 	row = uiLayoutRow(layout, TRUE);
-	uiItemR(row, ptr, "use_max", 0, "Max", ICON_NONE);
+	uiItemR(row, ptr, "use_max", 0, IFACE_("Max"), ICON_NONE);
 	uiItemR(row, ptr, "max", 0, "", ICON_NONE);
 }
 
