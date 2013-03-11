@@ -2520,29 +2520,29 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         mesh = context.active_object.data
 
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Overlays:")
         col.prop(mesh, "show_faces", text="Faces")
         col.prop(mesh, "show_edges", text="Edges")
         col.prop(mesh, "show_edge_crease", text="Creases")
-        
+
         col = split.column()
         col.label()
         col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp")
         col.prop(mesh, "show_edge_bevel_weight", text="Weights")
-        
+
         col = layout.column()
 
         col.separator()
         col.label(text="Normals:")
         row = col.row()
-        
+
         sub = row.row(align=True)
         sub.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
         sub.prop(mesh, "show_normal_face", text="", icon='FACESEL')
-        
+
         sub = row.row(align=True)
         sub.active = mesh.show_normal_vertex or mesh.show_normal_face
         sub.prop(context.scene.tool_settings, "normal_size", text="Size")

@@ -715,14 +715,12 @@ static void view3d_ruler_header_update(ScrArea *sa)
 /* -------------------------------------------------------------------- */
 /* Operator callbacks */
 
-static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-//	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	RulerInfo *ruler_info;
-	(void)event;
 
 	ruler_info = MEM_callocN(sizeof(RulerInfo), "RulerInfo");
 

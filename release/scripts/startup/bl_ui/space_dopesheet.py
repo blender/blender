@@ -36,7 +36,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 
     if is_nla:
         row.prop(dopesheet, "show_missing_nla", text="")
-    else: # graph and dopesheet editors - F-Curves and drivers only
+    else:  # graph and dopesheet editors - F-Curves and drivers only
         row.prop(dopesheet, "show_only_errors", text="")
 
     if not genericFiltersOnly:

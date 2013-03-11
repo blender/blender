@@ -111,10 +111,10 @@ def module_list(path):
     else:
         folder_list = []
     #folder_list = glob.glob(os.path.join(path,'*'))
-    folder_list = [p for p in folder_list  \
-       if os.path.exists(os.path.join(path, p, '__init__.py'))\
-           or p[-3:] in ('.py', '.so')\
-           or p[-4:] in ('.pyc', '.pyo', '.pyd')]
+    folder_list = [p for p in folder_list \
+       if os.path.exists(os.path.join(path, p, '__init__.py')) \
+           or p[-3:] in {'.py', '.so'} \
+           or p[-4:] in {'.pyc', '.pyo', '.pyd'}]
 
     folder_list = [os.path.basename(p).split('.')[0] for p in folder_list]
     return folder_list

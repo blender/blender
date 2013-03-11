@@ -699,11 +699,11 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
 
             row = col.row(align=True)
             if(brush.use_relative_jitter):
-               row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
-               row.prop(brush, "jitter", slider=True)
+                row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
+                row.prop(brush, "jitter", slider=True)
             else:
-               row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
-               row.prop(brush, "jitter_absolute")
+                row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
+                row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             col.prop(brush, "blend", text="Blend")
@@ -726,7 +726,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
         col = layout.column()
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
-        
+
         brush_texture_settings(col, brush, 0)
 
 
