@@ -252,7 +252,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 			/* Deal with comments first */
 			if (*str == '/' && *(str + 1) == '/') {
 				/* fill the remaining line */
-				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(str - fs.buf));
+				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
 			}
 			/* C-Style (multi-line) comments */
 			else if (*str == '/' && *(str + 1) == '*') {
