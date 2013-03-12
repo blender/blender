@@ -668,9 +668,9 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		const int *p = codec->supported_samplerates;
 		int best = 0;
 		int best_dist = INT_MAX;
-		for (; *p; p++){
+		for (; *p; p++) {
 			int dist = abs(st->codec->sample_rate - *p);
-			if (dist < best_dist){
+			if (dist < best_dist) {
 				best_dist = dist;
 				best = *p;
 			}

@@ -331,7 +331,7 @@ void uiStyleInit(void)
 	uiFont *font = U.uifonts.first;
 	uiStyle *style = U.uistyles.first;
 	int monofont_size = datatoc_bmonofont_ttf_size;
-	unsigned char *monofont_ttf = (unsigned char*)datatoc_bmonofont_ttf;
+	unsigned char *monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
 	
 	/* recover from uninitialized dpi */
 	if (U.dpi == 0)
@@ -410,7 +410,7 @@ void uiStyleInit(void)
 		if (!monofont_ttf) {
 			/* fall back if not found */
 			monofont_size = datatoc_bmonofont_ttf_size;
-			monofont_ttf = (unsigned char*)datatoc_bmonofont_ttf;
+			monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
 		}
 	}
 

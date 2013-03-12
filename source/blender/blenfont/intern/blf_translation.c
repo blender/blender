@@ -93,14 +93,14 @@ void BLF_free_unifont(void)
 unsigned char *BLF_get_unifont_mono(int *unifont_size_r)
 {
 #ifdef WITH_INTERNATIONAL
-	if(unifont_mono_ttf == NULL) {
+	if (unifont_mono_ttf == NULL) {
 		const char *fontpath = BLI_get_folder(BLENDER_DATAFILES, "fonts");
 		if (fontpath) {
 			char unifont_path[1024];
 
 			BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, unifont_mono_filename);
 
-			unifont_mono_ttf = (unsigned char*)BLI_file_ungzip_to_mem(unifont_path, &unifont_mono_size);
+			unifont_mono_ttf = (unsigned char *)BLI_file_ungzip_to_mem(unifont_path, &unifont_mono_size);
 		}
 		else {
 			printf("%s: 'fonts' data path not found for international monospace font, continuing\n", __func__);
@@ -119,7 +119,7 @@ unsigned char *BLF_get_unifont_mono(int *unifont_size_r)
 void BLF_free_unifont_mono(void)
 {
 #ifdef WITH_INTERNATIONAL
-	if(unifont_mono_ttf)
+	if (unifont_mono_ttf)
 		MEM_freeN(unifont_mono_ttf);
 #else
 #endif

@@ -310,7 +310,7 @@ static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), 
 {
 	EditBone *ebone = (EditBone *)poin2;
 	if (ebone->flag & BONE_HIDDEN_A) {
-			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 	}
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
@@ -359,7 +359,7 @@ static int group_select_flag(Group *gr)
 }
 
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
-{	
+{
 	Scene *scene = (Scene *)poin;
 	GroupObject *gob;
 	Group *gr = (Group *)poin2;

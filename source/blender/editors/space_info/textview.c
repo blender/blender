@@ -74,7 +74,7 @@ BLI_INLINE void console_step_sel(ConsoleDrawContext *cdc, const int step)
 }
 
 static void console_draw_sel(const char *str, const int sel[2], const int xy[2], const int str_len_draw,
-			     int cwidth, int lheight, const unsigned char bg_sel[4])
+                             int cwidth, int lheight, const unsigned char bg_sel[4])
 {
 	if (sel[0] <= str_len_draw && sel[1] >= 0) {
 		const int sta = txt_utf8_offset_to_column(str, max_ii(sel[0], 0));
@@ -99,7 +99,7 @@ static int console_wrap_offsets(const char *str, int len, int width, int *lines,
 	*lines = 1;
 
 	*offsets = MEM_callocN(sizeof(**offsets) * (len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
-			       "console_wrap_offsets");
+	                       "console_wrap_offsets");
 	(*offsets)[0] = 0;
 
 	for (i = 0, end = width, j = 0; j < len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {
@@ -145,7 +145,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 				/* last part */
 				ofs += txt_utf8_column_to_offset(str + ofs,
-								 (int)floor((float)cdc->mval[0] / cdc->cwidth));
+				                                 (int)floor((float)cdc->mval[0] / cdc->cwidth));
 
 				CLAMP(ofs, 0, str_len);
 				*cdc->pos_pick += str_len - ofs;

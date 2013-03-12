@@ -823,8 +823,8 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 			/* always makes active object */
 			if (tselem->type != TSE_SEQUENCE && tselem->type != TSE_SEQ_STRIP && tselem->type != TSE_SEQUENCE_DUP)
 				tree_element_set_active_object(C, scene, soops, te,
-											   1 + (extend != 0 && tselem->type == 0),
-											   recursive && tselem->type == 0 );
+				                               1 + (extend != 0 && tselem->type == 0),
+				                               recursive && tselem->type == 0 );
 			
 			if (tselem->type == 0) { // the lib blocks
 				/* editmode? */
