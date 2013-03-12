@@ -291,7 +291,7 @@ static void restrictbutton_bone_select_cb(bContext *C, void *poin, void *poin2)
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_ebone_select_cb(bContext *C, void *poin, void *poin2)
+static void restrictbutton_ebone_select_cb(bContext *C, void *UNUSED(poin), void *poin2)
 {
 	EditBone *ebone = (EditBone *)poin2;
 
@@ -306,7 +306,7 @@ static void restrictbutton_ebone_select_cb(bContext *C, void *poin, void *poin2)
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_ebone_visibility_cb(bContext *C, void *poin, void *poin2)
+static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), void *poin2)
 {
 	EditBone *ebone = (EditBone *)poin2;
 	if (ebone->flag & BONE_HIDDEN_A) {
