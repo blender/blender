@@ -42,8 +42,6 @@ void TranslateOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 	this->m_inputXOperation = this->getInputSocketReader(1);
 	this->m_inputYOperation = this->getInputSocketReader(2);
-
-	ensureDelta();
 }
 
 void TranslateOperation::deinitExecution()
