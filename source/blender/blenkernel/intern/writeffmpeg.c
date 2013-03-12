@@ -981,7 +981,6 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 	return success;
 }
 
-void BKE_ffmpeg_end(void);
 static void end_ffmpeg_impl(int is_autosplit);
 
 #ifdef WITH_AUDASPACE
