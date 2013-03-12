@@ -38,8 +38,9 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
@@ -58,6 +59,7 @@
 #include "ED_armature.h"
 #include "ED_mesh.h"
 
+#define MAX_INFO_LEN 512
 
 typedef struct SceneStats {
 	int totvert, totvertsel;
@@ -68,7 +70,7 @@ typedef struct SceneStats {
 	int totlamp, totlampsel; 
 	int tottri, totmesh;
 
-	char infostr[512];
+	char infostr[MAX_INFO_LEN];
 } SceneStats;
 
 static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
@@ -357,59 +359,69 @@ static void stats_update(Scene *scene)
 
 static void stats_string(Scene *scene)
 {
+#define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = scene->stats;
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 	uintptr_t mem_in_use, mmap_in_use;
-	char memstr[64];
+	char memstr[MAX_INFO_MEM_LEN];
 	char *s;
+	size_t ofs = 0;
 
 	mem_in_use = MEM_get_memory_in_use();
 	mmap_in_use = MEM_get_mapped_memory_in_use();
 
 	/* get memory statistics */
-	s = memstr + sprintf(memstr, IFACE_(" | Mem:%.2fM"), (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
+	s = memstr;
+	ofs += BLI_snprintf(s + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" | Mem:%.2fM"),
+	                    (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
 	if (mmap_in_use)
-		sprintf(s, IFACE_(" (%.2fM)"), (double)((mmap_in_use) >> 10) / 1024.0);
+		BLI_snprintf(s + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" (%.2fM)"), (double)((mmap_in_use) >> 10) / 1024.0);
 
 	s = stats->infostr;
-	
-	s += sprintf(s, "%s | ", versionstr);
+	ofs = 0;
+
+	ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", versionstr);
 
 	if (scene->obedit) {
 		if (BKE_keyblock_from_object(scene->obedit))
-			s += sprintf(s, IFACE_("(Key) "));
+			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s", IFACE_("(Key) "));
 
 		if (scene->obedit->type == OB_MESH) {
-			s += sprintf(s, IFACE_("Verts:%d/%d | Edges:%d/%d | Faces:%d/%d | Tris:%d"),
-		                 stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel,
-		                 stats->totface, stats->tottri);
+			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
+			                    IFACE_("Verts:%d/%d | Edges:%d/%d | Faces:%d/%d | Tris:%d"),
+		                        stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge,
+		                        stats->totfacesel, stats->totface, stats->tottri);
 		}
 		else if (scene->obedit->type == OB_ARMATURE) {
-			s += sprintf(s, IFACE_("Verts:%d/%d | Bones:%d/%d"), stats->totvertsel, stats->totvert, stats->totbonesel,
-			             stats->totbone);
+			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d/%d | Bones:%d/%d"), stats->totvertsel,
+			                    stats->totvert, stats->totbonesel, stats->totbone);
 		}
 		else {
-			s += sprintf(s, IFACE_("Verts:%d/%d"), stats->totvertsel, stats->totvert);
+			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d/%d"), stats->totvertsel, stats->totvert);
 		}
 
-		strcat(s, memstr);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s", memstr);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		s += sprintf(s, IFACE_("Bones:%d/%d %s"),
-		             stats->totbonesel, stats->totbone, memstr);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%d/%d %s"),
+		                    stats->totbonesel, stats->totbone, memstr);
 	}
 	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
-		s += sprintf(s, IFACE_("Verts:%d | Tris:%d"), stats->totvert, stats->tottri);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d | Tris:%d"), stats->totvert, stats->tottri);
 	}
 	else {
-		s += sprintf(s, IFACE_("Verts:%d | Faces:%d | Tris:%d | Objects:%d/%d | Lamps:%d/%d%s"),
-		             stats->totvert, stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel,
-		             stats->totlamp, memstr);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
+		                    IFACE_("Verts:%d | Faces:%d | Tris:%d | Objects:%d/%d | Lamps:%d/%d%s"), stats->totvert,
+		                    stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel,
+		                    stats->totlamp, memstr);
 	}
 
 	if (ob)
-		sprintf(s, " | %s", ob->id.name + 2);
+		BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", ob->id.name + 2);
+#undef MAX_INFO_MEM_LEN
 }
+
+#undef MAX_INFO_LEN
 
 void ED_info_stats_clear(Scene *scene)
 {
