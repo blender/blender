@@ -53,6 +53,7 @@ void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, in
 void blf_font_size(struct FontBLF *font, int size, int dpi);
 void blf_font_draw(struct FontBLF *font, const char *str, size_t len);
 void blf_font_draw_ascii(struct FontBLF *font, const char *str, size_t len);
+int blf_font_draw_mono(struct FontBLF *font, const char *str, size_t len, int cwidth);
 void blf_font_buffer(struct FontBLF *font, const char *str);
 void blf_font_boundbox(struct FontBLF *font, const char *str, struct rctf *box);
 void blf_font_width_and_height(struct FontBLF *font, const char *str, float *width, float *height);

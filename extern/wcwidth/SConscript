@@ -1,0 +1,9 @@
+#!/usr/bin/python
+
+Import('env')
+
+sources = env.Glob('*.c')
+
+incs = '.'
+
+env.BlenderLib ( 'extern_wcwidth', sources, Split(incs), [], libtype=['extern','player'], priority=[10, 185])

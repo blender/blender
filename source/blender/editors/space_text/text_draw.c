@@ -67,12 +67,14 @@ static void text_font_end(SpaceText *UNUSED(st))
 {
 }
 
-static int text_font_draw(SpaceText *UNUSED(st), int x, int y, const char *str)
+static int text_font_draw(SpaceText *st, int x, int y, const char *str)
 {
-	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, BLF_DRAW_STR_DUMMY_MAX);
+	int columns;
 
-	return BLF_width(mono, str);
+	BLF_position(mono, x, y, 0);
+	columns = BLF_draw_mono(mono, str, BLF_DRAW_STR_DUMMY_MAX, st->cwidth);
+
+	return st->cwidth * columns;
 }
 
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
@@ -85,10 +87,13 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 
 static int text_font_draw_character_utf8(SpaceText *st, int x, int y, const char *c)
 {
+	int columns;
+
 	const size_t len = BLI_str_utf8_size_safe(c);
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, c, len);
-	return st->cwidth;
+	columns = BLF_draw_mono(mono, c, len, st->cwidth);
+
+	return st->cwidth * columns;
 }
 
 #if 0
@@ -216,7 +221,7 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 	}
 
 	max = wrap_width(st, ar);
-	cursin = txt_utf8_offset_to_index(linein->line, cursin);
+	cursin = txt_utf8_offset_to_column(linein->line, cursin);
 
 	while (linep) {
 		start = 0;
@@ -225,6 +230,7 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 		*offc = 0;
 		for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size_safe(linep->line + j)) {
 			int chars;
+			int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
 
 			/* Mimic replacement of tabs */
 			ch = linep->line[j];
@@ -238,7 +244,9 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 			}
 
 			while (chars--) {
-				if (i - start >= max) {
+				if (i + columns - start > max) {
+					end = MIN2(end, i);
+
 					if (chop && linep == linein && i >= cursin) {
 						if (i == cursin) {
 							(*offl)++;
@@ -261,7 +269,7 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 					if (linep == linein && i >= cursin)
 						return;
 				}
-				i++;
+				i += columns;
 			}
 		}
 		if (linep == linein) break;
@@ -286,9 +294,10 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 	end = max;
 	chop = 1;
 	*offc = 0;
-	cursin = txt_utf8_offset_to_index(linein->line, cursin);
+	cursin = txt_utf8_offset_to_column(linein->line, cursin);
 
 	for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size_safe(linein->line + j)) {
+		int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
 
 		/* Mimic replacement of tabs */
 		ch = linein->line[j];
@@ -301,7 +310,9 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 			chars = 1;
 
 		while (chars--) {
-			if (i - start >= max) {
+			if (i + columns - start > max) {
+				end = MIN2(end, i);
+
 				if (chop && i >= cursin) {
 					if (i == cursin) {
 						(*offl)++;
@@ -324,7 +335,7 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 				if (i >= cursin)
 					return;
 			}
-			i++;
+			i += columns;
 		}
 	}
 }
@@ -337,24 +348,35 @@ int text_get_char_pos(SpaceText *st, const char *line, int cur)
 		if (line[i] == '\t')
 			a += st->tabnumber - a % st->tabnumber;
 		else
-			a++;
+			a += BLI_str_utf8_char_width_safe(line + i);
 	}
 	return a;
 }
 
-static const char *txt_utf8_get_nth(const char *str, int n)
+static const char *txt_utf8_forward_columns(const char *str, int columns, int *padding)
 {
-	int pos = 0;
-	while (str[pos] && n--) {
-		pos += BLI_str_utf8_size_safe(str + pos);
+	int col;
+	const char *p = str;
+	while (*p) {
+		col = BLI_str_utf8_char_width(p);
+		if (columns - col < 0)
+			break;
+		columns -= col;
+		p += BLI_str_utf8_size_safe(p);
+		if (columns == 0)
+			break;
 	}
-	return str + pos;
+	if (padding)
+		*padding = *p ? columns : 0;
+	return p;
 }
 
 static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w, const char *format, int skip)
 {
 	FlattenString fs;
-	int basex, i, a, start, end, max, lines; /* view */
+	int basex, lines;
+	int i, wrap, end, max, columns, padding; /* column */
+	int a, fstart, fpos;                     /* utf8 chars */
 	int mi, ma, mstart, mend;                /* mem */
 	char fmt_prev = 0xff;
 	
@@ -365,41 +387,46 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	basex = x;
 	lines = 1;
 	
-	start = 0; mstart = 0;
-	end = max; mend = txt_utf8_get_nth(str, max) - str;
+	fpos = fstart = 0; mstart = 0;
+	mend = txt_utf8_forward_columns(str, max, &padding) - str;
+	end = wrap = max - padding;
 	
-	for (i = 0, mi = 0; str[mi]; i++, mi += BLI_str_utf8_size_safe(str + mi)) {
-		if (i - start >= max) {
+	for (i = 0, mi = 0; str[mi]; i += columns, mi += BLI_str_utf8_size_safe(str + mi)) {
+		columns = BLI_str_utf8_char_width_safe(str + mi);
+		if (i + columns > end) {
 			/* skip hidden part of line */
 			if (skip) {
 				skip--;
-				start = end; mstart = mend;
-				end += max; mend = txt_utf8_get_nth(str + mend, max) - str;
+				fstart = fpos; mstart = mend;
+				mend = txt_utf8_forward_columns(str + mend, max, &padding) - str;
+				end = (wrap += max - padding);
 				continue;
 			}
 
 			/* Draw the visible portion of text on the overshot line */
-			for (a = start, ma = mstart; a < end; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
+			for (a = fstart, ma = mstart; ma < mend; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
 				if (st->showsyntax && format) {
 					if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
 				}
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
+				fpos++;
 			}
 			y -= st->lheight_dpi + TXT_LINE_SPACING;
 			x = basex;
 			lines++;
-			start = end; mstart = mend;
-			end += max; mend = txt_utf8_get_nth(str + mend, max) - str;
+			fstart = fpos; mstart = mend;
+			mend = txt_utf8_forward_columns(str + mend, max, &padding) - str;
+			end = (wrap += max - padding);
 
 			if (y <= 0) break;
 		}
 		else if (str[mi] == ' ' || str[mi] == '-') {
-			end = i + 1; mend = mi + 1;
+			wrap = i + 1; mend = mi + 1;
 		}
 	}
 
 	/* Draw the remaining text */
-	for (a = start, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
+	for (a = fstart, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
 		if (st->showsyntax && format) {
 			if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
 		}
@@ -412,53 +439,55 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	return lines;
 }
 
-static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, const char *format)
+static void text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int x, int y, const char *format)
 {
 	FlattenString fs;
-	int *acc, r = 0;
-	const char *in;
+	int columns, size, n, w = 0, padding, amount = 0;
+	const char *in = NULL;
 
-	int w = flatten_string(st, &fs, str);
-	if (w < cshift) {
-		flatten_string_free(&fs);
-		return 0; /* String is shorter than shift */
-	}
-	
-	in = txt_utf8_get_nth(fs.buf, cshift);
-	acc = fs.accum + cshift;
-	w = w - cshift;
+	for (n = flatten_string(st, &fs, str), str = fs.buf; n > 0; n--) {
+		columns = BLI_str_utf8_char_width_safe(str);
+		size = BLI_str_utf8_size_safe(str);
 
-	if (draw) {
-		int amount = maxwidth ? MIN2(w, maxwidth) : w;
-		
-		if (st->showsyntax && format) {
-			int a, str_shift = 0;
-			char fmt_prev = 0xff;
-			format = format + cshift;
-
-			for (a = 0; a < amount; a++) {
-				if (format[a] != fmt_prev) format_draw_color(fmt_prev = format[a]);
-				x += text_font_draw_character_utf8(st, x, y, in + str_shift);
-				str_shift += BLI_str_utf8_size_safe(in + str_shift);
+		if (!in) {
+			if (w >= cshift) {
+				padding = w - cshift;
+				in = str;
 			}
+			else if (format)
+				format++;
 		}
-		else {
-			text_font_draw(st, x, y, in);
+		if (in) {
+			if (maxwidth && w + columns > cshift + maxwidth)
+				break;
+			amount++;
+		}
+
+		w += columns;
+		str += size;
+	}
+	if (!in) {
+		flatten_string_free(&fs);
+		return; /* String is shorter than shift or ends with a padding */
+	}
+
+	x += st->cwidth * padding;
+
+	if (st->showsyntax && format) {
+		int a, str_shift = 0;
+		char fmt_prev = 0xff;
+
+		for (a = 0; a < amount; a++) {
+			if (format[a] != fmt_prev) format_draw_color(fmt_prev = format[a]);
+			x += text_font_draw_character_utf8(st, x, y, in + str_shift);
+			str_shift += BLI_str_utf8_size_safe(in + str_shift);
 		}
 	}
 	else {
-		while (w-- && *acc++ < maxwidth)
-			r += st->cwidth;
+		text_font_draw(st, x, y, in);
 	}
 
 	flatten_string_free(&fs);
-
-	if (cshift && r == 0)
-		return 0;
-	else if (st->showlinenrs)
-		return r + TXT_OFFSET + TEXTXLOC;
-	else
-		return r + TXT_OFFSET;
 }
 
 /************************ cache utilities *****************************/
@@ -672,6 +701,8 @@ int text_get_visible_lines(SpaceText *st, ARegion *ar, const char *str)
 	start = 0;
 	end = max;
 	for (i = 0, j = 0; str[j]; j += BLI_str_utf8_size_safe(str + j)) {
+		int columns = BLI_str_utf8_char_width_safe(str + j); /* = 1 for tab */
+
 		/* Mimic replacement of tabs */
 		ch = str[j];
 		if (ch == '\t') {
@@ -683,16 +714,16 @@ int text_get_visible_lines(SpaceText *st, ARegion *ar, const char *str)
 		}
 
 		while (chars--) {
-			if (i - start >= max) {
+			if (i + columns - start > max) {
 				lines++;
-				start = end;
+				start = MIN2(end, i);
 				end += max;
 			}
 			else if (ch == ' ' || ch == '-') {
 				end = i + 1;
 			}
 
-			i++;
+			i += columns;
 		}
 	}
 
@@ -931,7 +962,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 			buf[i] = '\0';
 			if (lines >= 0) {
 				y -= st->lheight_dpi;
-				text_draw(st, buf, 0, 0, 1, x + 4, y - 3, NULL);
+				text_draw(st, buf, 0, 0, x + 4, y - 3, NULL);
 			}
 			i = 0; br = DOC_WIDTH; lines++;
 		}
@@ -940,7 +971,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 			buf[br] = '\0';
 			if (lines >= 0) {
 				y -= st->lheight_dpi;
-				text_draw(st, buf, 0, 0, 1, x + 4, y - 3, NULL);
+				text_draw(st, buf, 0, 0, x + 4, y - 3, NULL);
 			}
 			p -= i - br - 1; /* Rewind pointer to last break */
 			i = 0; br = DOC_WIDTH; lines++;
@@ -959,9 +990,9 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 {
 	SuggItem *item, *first, *last, *sel;
-	TextLine *tmp;
-	char str[SUGG_LIST_WIDTH + 1];
-	int w, boxw = 0, boxh, i, l, x, y, *top;
+	char str[SUGG_LIST_WIDTH * BLI_UTF8_MAX + 1];
+	int offl, offc, vcurl, vcurc;
+	int w, boxw = 0, boxh, i, x, y, *top;
 	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
 	const int margin_x = 2;
 	
@@ -977,24 +1008,24 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	sel = texttool_suggest_selected();
 	top = texttool_suggest_top();
 
-	/* Count the visible lines to the cursor */
-	for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++) ;
-	if (l < 0) return;
-	
-	if (st->showlinenrs) {
-		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET + TEXTXLOC - 4;
-	}
-	else {
-		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
-	}
+	wrap_offset(st, ar, st->text->curl, st->text->curc, &offl, &offc);
+	vcurl = txt_get_span(st->text->lines.first, st->text->curl) - st->top + offl;
+	vcurc = text_get_char_pos(st, st->text->curl->line, st->text->curc) - st->left + offc;
+
+	x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+	x += vcurc * st->cwidth - 4;
+	y = ar->winy - (vcurl + 1) * lheight - 2;
+
 	/* offset back so the start of the text lines up with the suggestions,
 	 * not essential but makes suggestions easier to follow */
 	x -= st->cwidth * (st->text->curc - text_find_identifier_start(st->text->curl->line, st->text->curc));
-	y = ar->winy - lheight * l - 2;
 
 	boxw = SUGG_LIST_WIDTH * st->cwidth + 20;
 	boxh = SUGG_LIST_SIZE * lheight + 8;
 	
+	if (x + boxw > ar->winx)
+		x = MAX2(0, ar->winx - boxw);
+
 	/* not needed but stands out nicer */
 	uiDrawBoxShadow(220, x, y - boxh, x + boxw, y);
 
@@ -1007,12 +1038,13 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	for (i = 0, item = first; i < *top && item->next; i++, item = item->next) ;
 
 	for (i = 0; i < SUGG_LIST_SIZE && item; i++, item = item->next) {
+		int len = txt_utf8_forward_columns(item->name, SUGG_LIST_WIDTH, NULL) - item->name;
 
 		y -= lheight;
 
-		BLI_strncpy(str, item->name, SUGG_LIST_WIDTH);
+		BLI_strncpy(str, item->name, len + 1);
 
-		w = BLF_width(mono, str);
+		w = st->cwidth * text_get_char_pos(st, str, len);
 		
 		if (item == sel) {
 			UI_ThemeColor(TH_SHADE2);
@@ -1020,7 +1052,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 		}
 
 		format_draw_color(item->type);
-		text_draw(st, str, 0, 0, 1, x + margin_x, y - 1, NULL);
+		text_draw(st, str, 0, 0, x + margin_x, y - 1, NULL);
 
 		if (item == last) break;
 	}
@@ -1382,7 +1414,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		}
 		else {
 			/* draw unwrapped text */
-			text_draw(st, tmp->line, st->left, ar->winx / st->cwidth, 1, x, y, tmp->format);
+			text_draw(st, tmp->line, st->left, ar->winx / st->cwidth, x, y, tmp->format);
 			y -= st->lheight_dpi + TXT_LINE_SPACING;
 		}
 		
@@ -1439,8 +1471,6 @@ void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 			winx = ar->winx;
 			break;
 		}
-	
-	winx -= TXT_SCROLL_WIDTH;
 
 	text_update_character_width(st);
 
@@ -1458,10 +1488,11 @@ void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 		st->left = 0;
 	}
 	else {
-		x = text_draw(st, text->sell->line, st->left, text->selc, 0, 0, 0, NULL);
+		x = st->cwidth * (text_get_char_pos(st, text->sell->line, text->selc) - st->left);
+		winx -= TXT_OFFSET + (st->showlinenrs ? TEXTXLOC : 0) + TXT_SCROLL_WIDTH;
 
-		if (x == 0 || x > winx)
-			st->left = text->curc - 0.5 * winx / st->cwidth;
+		if (x <= 0 || x > winx)
+			st->left += (x - winx / 2) / st->cwidth;
 	}
 
 	if (st->top < 0) st->top = 0;

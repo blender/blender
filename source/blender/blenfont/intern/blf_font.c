@@ -219,6 +219,40 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
 	}
 }
 
+/* use fixed column width, but an utf8 character may occupy multiple columns */
+int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
+{
+	unsigned int c;
+	GlyphBLF *g;
+	int col, columns = 0;
+	int pen_x = 0, pen_y = 0;
+	size_t i = 0;
+	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
+
+	blf_font_ensure_ascii_table(font);
+
+	while ((i < len) && str[i]) {
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
+
+		if (c == BLI_UTF8_ERR)
+			break;
+		if (g == NULL)
+			continue;
+
+		/* do not return this loop if clipped, we want every character tested */
+		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
+
+		col = BLI_wcwidth((wchar_t)c);
+		if (col < 0)
+			col = 1;
+
+		columns += col;
+		pen_x += cwidth * col;
+	}
+
+	return columns;
+}
+
 /* Sanity checks are done by BLF_draw_buffer() */
 void blf_font_buffer(FontBLF *font, const char *str)
 {

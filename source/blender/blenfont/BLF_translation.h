@@ -68,6 +68,8 @@ struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void);
 
 unsigned char *BLF_get_unifont(int *unifont_size);
 void BLF_free_unifont(void);
+unsigned char *BLF_get_unifont_mono(int *unifont_size);
+void BLF_free_unifont_mono(void);
 
 const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 

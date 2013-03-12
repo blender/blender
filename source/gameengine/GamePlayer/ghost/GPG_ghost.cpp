@@ -1055,6 +1055,7 @@ int main(int argc, char** argv)
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
+	BLF_free_unifont_mono();
 	BLF_lang_free();
 #endif
 

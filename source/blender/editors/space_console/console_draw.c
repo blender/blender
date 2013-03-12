@@ -150,6 +150,26 @@ static int console_textview_line_get(struct TextViewContext *tvc, const char **l
 	return 1;
 }
 
+static void console_cursor_wrap_offset(const char *str, int width, int *row, int *column, const char *end)
+{
+	int col;
+
+	for (; *str; str += BLI_str_utf8_size_safe(str)) {
+		col = BLI_str_utf8_char_width_safe(str);
+
+		if (*column + col > width) {
+			(*row)++;
+			*column = 0;
+		}
+
+		if (end && str >= end)
+			break;
+
+		*column += col;
+	}
+	return;
+}
+
 static int console_textview_line_color(struct TextViewContext *tvc, unsigned char fg[3], unsigned char UNUSED(bg[3]))
 {
 	ConsoleLine *cl_iter = (ConsoleLine *)tvc->iter;
@@ -158,24 +178,18 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 	if (tvc->iter_index == 0) {
 		const SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
 		const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
-		const int prompt_len = BLI_strlen_utf8(sc->prompt);
-		const int cursor_loc = BLI_strnlen_utf8(cl->line, cl->cursor) + prompt_len;
-		const int line_len = BLI_strlen_utf8(cl->line) + prompt_len;
+		int offl = 0, offc = 0;
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
 		int pen[2];
 		xy[1] += tvc->lheight / 6;
 
-		/* account for wrapping */
-		if (line_len < tvc->console_width) {
-			/* simple case, no wrapping */
-			pen[0] = tvc->cwidth * cursor_loc;
-			pen[1] = -2;
-		}
-		else {
-			/* wrap */
-			pen[0] = tvc->cwidth * (cursor_loc % tvc->console_width);
-			pen[1] = -2 + (((line_len / tvc->console_width) - (cursor_loc / tvc->console_width)) * tvc->lheight);
-		}
+		console_cursor_wrap_offset(sc->prompt, tvc->console_width, &offl, &offc, NULL);
+		console_cursor_wrap_offset(cl->line, tvc->console_width, &offl, &offc, cl->line + cl->cursor);
+		pen[0] = tvc->cwidth * offc;
+		pen[1] = -2 - tvc->lheight * offl;
+
+		console_cursor_wrap_offset(cl->line + cl->cursor, tvc->console_width, &offl, &offc, NULL);
+		pen[1] += tvc->lheight * offl;
 
 		/* cursor */
 		UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, fg);

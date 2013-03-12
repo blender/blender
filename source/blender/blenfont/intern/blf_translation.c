@@ -50,6 +50,9 @@
 static const char unifont_filename[] = "droidsans.ttf.gz";
 static unsigned char *unifont_ttf = NULL;
 static int unifont_size = 0;
+static const char unifont_mono_filename[] = "bmonofont-i18n.ttf.gz";
+static unsigned char *unifont_mono_ttf = NULL;
+static int unifont_mono_size = 0;
 #endif  /* WITH_INTERNATIONAL */
 
 unsigned char *BLF_get_unifont(int *unifont_size_r)
@@ -83,6 +86,41 @@ void BLF_free_unifont(void)
 #ifdef WITH_INTERNATIONAL
 	if (unifont_ttf)
 		MEM_freeN(unifont_ttf);
+#else
+#endif
+}
+
+unsigned char *BLF_get_unifont_mono(int *unifont_size_r)
+{
+#ifdef WITH_INTERNATIONAL
+	if(unifont_mono_ttf == NULL) {
+		char *fontpath = BLI_get_folder(BLENDER_DATAFILES, "fonts");
+		if (fontpath) {
+			char unifont_path[1024];
+
+			BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, unifont_mono_filename);
+
+			unifont_mono_ttf = (unsigned char*)BLI_file_ungzip_to_mem(unifont_path, &unifont_mono_size);
+		}
+		else {
+			printf("%s: 'fonts' data path not found for international monospace font, continuing\n", __func__);
+		}
+	}
+
+	*unifont_size_r = unifont_mono_size;
+
+	return unifont_mono_ttf;
+#else
+	(void)unifont_size_r;
+	return NULL;
+#endif
+}
+
+void BLF_free_unifont_mono(void)
+{
+#ifdef WITH_INTERNATIONAL
+	if(unifont_mono_ttf)
+		MEM_freeN(unifont_mono_ttf);
 #else
 #endif
 }

@@ -62,6 +62,8 @@ int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
 int		txt_utf8_offset_to_index(const char *str, int offset);
 int		txt_utf8_index_to_offset(const char *str, int index);
+int		txt_utf8_offset_to_column(const char *str, int offset);
+int		txt_utf8_column_to_offset(const char *str, int column);
 void	txt_move_up			(struct Text *text, short sel);
 void	txt_move_down		(struct Text *text, short sel);
 void	txt_move_left		(struct Text *text, short sel);

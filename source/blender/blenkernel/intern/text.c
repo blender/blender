@@ -791,6 +791,29 @@ int txt_utf8_index_to_offset(const char *str, int index)
 	return offset;
 }
 
+int txt_utf8_offset_to_column(const char *str, int offset)
+{
+	int column = 0, pos = 0;
+	while (pos < offset) {
+		column += BLI_str_utf8_char_width_safe(str + pos);
+		pos += BLI_str_utf8_size_safe(str + pos);
+	}
+	return column;
+}
+
+int txt_utf8_column_to_offset(const char *str, int column)
+{
+	int offset = 0, pos = 0, col;
+	while (pos < column) {
+		col = BLI_str_utf8_char_width_safe(str + offset);
+		if (pos + col > column)
+			break;
+		offset += BLI_str_utf8_size_safe(str + offset);
+		pos += col;
+	}
+	return offset;
+}
+
 /* returns the real number of characters in string */
 /* not the same as BLI_strlen_utf8, which returns length for wide characters */
 static int txt_utf8_len(const char *src)
@@ -804,6 +827,17 @@ static int txt_utf8_len(const char *src)
 	return len;
 }
 
+static int txt_utf8_width(const char *src)
+{
+	int col = 0;
+
+	for (; *src; src += BLI_str_utf8_size(src)) {
+		col += BLI_str_utf8_char_width(src);
+	}
+
+	return col;
+}
+
 void txt_move_up(Text *text, short sel)
 {
 	TextLine **linep;
@@ -815,10 +849,10 @@ void txt_move_up(Text *text, short sel)
 	if (!*linep) return;
 
 	if ((*linep)->prev) {
-		int index = txt_utf8_offset_to_index((*linep)->line, *charp);
+		int column = txt_utf8_offset_to_column((*linep)->line, *charp);
 		*linep = (*linep)->prev;
-		if (index > txt_utf8_len((*linep)->line)) *charp = (*linep)->len;
-		else *charp = txt_utf8_index_to_offset((*linep)->line, index);
+		if (column > txt_utf8_width((*linep)->line)) *charp = (*linep)->len;
+		else *charp = txt_utf8_column_to_offset((*linep)->line, column);
 		
 	}
 	else {
@@ -839,10 +873,10 @@ void txt_move_down(Text *text, short sel)
 	if (!*linep) return;
 
 	if ((*linep)->next) {
-		int index = txt_utf8_offset_to_index((*linep)->line, *charp);
+		int column = txt_utf8_offset_to_column((*linep)->line, *charp);
 		*linep = (*linep)->next;
-		if (index > txt_utf8_len((*linep)->line)) *charp = (*linep)->len;
-		else *charp = txt_utf8_index_to_offset((*linep)->line, index);
+		if (column > txt_utf8_width((*linep)->line)) *charp = (*linep)->len;
+		else *charp = txt_utf8_column_to_offset((*linep)->line, column);
 	}
 	else {
 		txt_move_eol(text, sel);

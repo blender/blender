@@ -77,6 +77,7 @@ void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t l
 /* Draw the string using the current font. */
 void BLF_draw(int fontid, const char *str, size_t len);
 void BLF_draw_ascii(int fontid, const char *str, size_t len);
+int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth);
 
 /* This function return the bounding box of the string
  * and are not multiplied by the aspect.
