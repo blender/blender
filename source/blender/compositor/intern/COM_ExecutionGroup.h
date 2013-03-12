@@ -341,6 +341,11 @@ public:
 	 * @see determineChunkRect
 	 */
 	MemoryBuffer *allocateOutputBuffer(int chunkNumber, rcti *rect);
+
+	/**
+	 * @brief print execution statistics to stdout when running in a background mode
+	 */
+	void printBackgroundStats(void);
 	
 	/**
 	 * @brief after a chunk is executed the needed resources can be freed or unlocked.
