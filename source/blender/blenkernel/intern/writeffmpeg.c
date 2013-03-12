@@ -551,6 +551,12 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		}
 	}
 
+	if (codec_id == CODEC_ID_PNG) {
+		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+			c->pix_fmt = PIX_FMT_ARGB;
+		}
+	}
+
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
 //		|| !strcmp(of->oformat->name, "mp4")
 //	    || !strcmp(of->oformat->name, "mov")
@@ -1491,6 +1497,9 @@ int BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 	int codec = rd->ffcodecdata.codec;
 
 	if (codec == CODEC_ID_QTRLE)
+		return TRUE;
+
+	if (codec == CODEC_ID_PNG)
 		return TRUE;
 
 #ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
