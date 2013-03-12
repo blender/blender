@@ -412,6 +412,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 	BLF_enable(blf_mono_font, BLF_ROTATION);
 	BLF_size(blf_mono_font, 14 * U.pixelsize, U.dpi);
+	BLF_rotation(blf_mono_font, 0.0f);
 
 	UI_GetThemeColor3ubv(TH_TEXT, color_text);
 	UI_GetThemeColor3ubv(TH_WIRE, color_wire);
@@ -506,8 +507,8 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				/* draw text (bg) */
 				glColor4ubv(color_back);
 				uiSetRoundBox(UI_CNR_ALL);
-				uiRoundBox(pos[0] - bg_margin, pos[1] - bg_margin,
-				           pos[0] + numstr_size[0] + bg_margin, pos[1] + numstr_size[1] + bg_margin,
+				uiRoundBox(pos[0] - bg_margin,                  pos[1] - bg_margin,
+				           pos[0] + bg_margin + numstr_size[0], pos[1] + bg_margin + numstr_size[1],
 				           bg_radius);
 				/* draw text */
 				glColor3ubv(color_text);
@@ -580,27 +581,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				char numstr[256];
 				float numstr_size[2];
 				const int prec = 6;  /* XXX, todo, make optional */
-				const float dir_default_x[2] = {1, 0};
 				float pos[2];
-				float numstr_angle;
-				bool flip_text;
-
-
-				/* angle for text */
-				numstr_angle = angle_signed_v2v2(dir_ruler, dir_default_x);
-
-				/* keep text upright */
-				if (numstr_angle >= (float)(M_PI / 2.0)) {
-					numstr_angle -= (float)M_PI;
-					flip_text = true;
-				}
-				else if (numstr_angle <= -(float)(M_PI / 2.0)) {
-					numstr_angle += (float)M_PI;
-					flip_text = true;
-				}
-				else {
-					flip_text = false;
-				}
 
 				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
 
@@ -609,23 +590,18 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				mid_v2_v2v2(pos, co_ss[0], co_ss[2]);
 
 				/* center text */
-				normalize_v2(dir_ruler);
-				madd_v2_v2fl(pos, dir_ruler, numstr_size[0] / (flip_text ? 2.0f : -2.0f));
+				pos[0] -= numstr_size[0] / 2.0f;
+				pos[1] -= numstr_size[1] / 2.0f;
 
 				/* draw text (bg) */
-				glTranslatef(pos[0], pos[1], 0.0f);
-				glRotatef(RAD2DEGF(numstr_angle), 0.0f, 0.0f, 1.0f);
 				glColor4ubv(color_back);
 				uiSetRoundBox(UI_CNR_ALL);
-				uiRoundBox(-bg_margin, -bg_margin,
-				           numstr_size[0] + bg_margin, numstr_size[1] + bg_margin,
+				uiRoundBox(pos[0] - bg_margin,                  pos[1] - bg_margin,
+				           pos[0] + bg_margin + numstr_size[0], pos[1] + bg_margin + numstr_size[1],
 				           bg_radius);
-				glRotatef(-RAD2DEGF(numstr_angle), 0.0f, 0.0f, 1.0f);
-				glTranslatef(-pos[0], -pos[1], 0.0f);
 				/* draw text */
 				glColor3ubv(color_text);
 				BLF_position(blf_mono_font, pos[0], pos[1], 0.0f);
-				BLF_rotation(blf_mono_font, numstr_angle);
 				BLF_draw(blf_mono_font, numstr, sizeof(numstr));
 			}
 
