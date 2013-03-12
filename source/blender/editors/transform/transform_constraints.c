@@ -865,11 +865,11 @@ static void setNearestAxis2d(TransInfo *t)
 	/* no correction needed... just use whichever one is lower */
 	if (abs(t->mval[0] - t->con.imval[0]) < abs(t->mval[1] - t->con.imval[1]) ) {
 		t->con.mode |= CON_AXIS1;
-		BLI_snprintf(t->con.text, sizeof(t->con.text), IFACE_(" along Y axis"));
+		BLI_strncpy(t->con.text, IFACE_(" along Y axis"), sizeof(t->con.text));
 	}
 	else {
 		t->con.mode |= CON_AXIS0;
-		BLI_snprintf(t->con.text, sizeof(t->con.text), IFACE_(" along X axis"));
+		BLI_strncpy(t->con.text, IFACE_(" along X axis"), sizeof(t->con.text));
 	}
 }
 

@@ -3511,7 +3511,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		else if (totframes && cache->totpoint)
 			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%i points found!"), cache->totpoint);
 		else
-			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("No valid data to read!"));
+			BLI_strncpy(cache->info, IFACE_("No valid data to read!"), sizeof(cache->info));
 		return;
 	}
 
