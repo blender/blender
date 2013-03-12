@@ -886,6 +886,8 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 	/* some multilayers have the combined buffer with names A B G R saved */
 	if (name[1] == 0) {
 		echan->chan_id = name[0];
+		layname[0] = '\0';
+		strcpy(passname, "Combined");
 		return 1;
 	}
 
