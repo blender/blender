@@ -70,12 +70,12 @@ static struct {
 
 /* Init / exit */
 
-void GPU_simple_shaders_init()
+void GPU_simple_shaders_init(void)
 {
 	memset(&GPU_MATERIAL_STATE, 0, sizeof(GPU_MATERIAL_STATE));
 }
 
-void GPU_simple_shaders_exit()
+void GPU_simple_shaders_exit(void)
 {
 	int i;
 	
@@ -203,7 +203,7 @@ void GPU_simple_shader_bind(int options)
 	GPU_MATERIAL_STATE.need_normals = (options & GPU_SHADER_LIGHTING);
 }
 
-void GPU_simple_shader_unbind()
+void GPU_simple_shader_unbind(void)
 {
 	if (GPU_glsl_support()) {
 		GPU_shader_unbind();
@@ -234,7 +234,7 @@ void GPU_simple_shader_colors(const float diffuse[3], const float specular[3],
 	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, CLAMPIS(shininess, 1, 128));
 }
 
-bool GPU_simple_shader_need_normals()
+bool GPU_simple_shader_need_normals(void)
 {
 	return GPU_MATERIAL_STATE.need_normals;
 }

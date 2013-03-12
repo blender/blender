@@ -114,14 +114,14 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 			    /* check twice because cumulative effect could dissolve over angle limit */
 			    (BM_edge_calc_face_angle(e) < angle_limit))
 			{
-				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
-				                                e->l->radial_next->f,
-				                                e,
-				                                false); /* join faces */
+				BMFace *f_new = BM_faces_join_pair(bm, e->l->f,
+				                                   e->l->radial_next->f,
+				                                   e,
+				                                   false); /* join faces */
 
 				/* there may be some errors, we don't mind, just move on */
-				if (nf) {
-					BM_face_normal_update(nf);
+				if (f_new) {
+					BM_face_normal_update(f_new);
 				}
 				else {
 					BMO_error_clear(bm);
