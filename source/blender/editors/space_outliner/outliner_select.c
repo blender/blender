@@ -164,10 +164,10 @@ static void do_outliner_bone_select_recursive(bArmature *arm, Bone *bone_parent,
 {
 	Bone *bone;
 	for (bone = bone_parent->childbase.first; bone; bone = bone->next) {
-		if (select && PBONE_VISIBLE(arm, bone))
+		if (select && PBONE_SELECTABLE(arm, bone))
 			bone->flag |= BONE_SELECTED;
 		else
-			bone->flag &= ~BONE_SELECTED;
+			bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
 		do_outliner_bone_select_recursive(arm, bone, select);
 	}
 }
@@ -177,10 +177,10 @@ static void do_outliner_ebone_select_recursive(bArmature *arm, EditBone *ebone_p
 	EditBone *ebone;
 	for (ebone = ebone_parent->next; ebone; ebone = ebone->next) {
 		if (ED_armature_ebone_is_child_recursive(ebone_parent, ebone)) {
-			if (select && EBONE_VISIBLE(arm, ebone))
-				ebone->flag |= BONE_SELECTED;
+			if (select && EBONE_SELECTABLE(arm, ebone))
+				ebone->flag |= BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL;
 			else
-				ebone->flag &= ~BONE_SELECTED;
+				ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
 		}
 	}
 }
@@ -226,7 +226,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 		}
 
 		if (recursive) {
-			/* Recursive select/deselect */
+			/* Recursive select/deselect for Object hierarchies */
 			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
 		}
 
@@ -451,7 +451,7 @@ static int tree_element_active_posegroup(bContext *C, Scene *scene, TreeElement 
 	return 0;
 }
 
-static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set)
+static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set, bool recursive)
 {
 	Object *ob = (Object *)tselem->id;
 	bArmature *arm = ob->data;
@@ -470,7 +470,12 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 				pchan->bone->flag |= BONE_SELECTED;
 				arm->act_bone = pchan->bone;
 			}
-			
+
+			if (recursive) {
+				/* Recursive select/deselect */
+				do_outliner_bone_select_recursive(arm, pchan->bone, (pchan->bone->flag & BONE_SELECTED) != 0);
+			}
+
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
 
 		}
@@ -764,7 +769,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 		case TSE_POSE_BASE:
 			return tree_element_active_pose(C, scene, te, tselem, set);
 		case TSE_POSE_CHANNEL:
-			return tree_element_active_posechannel(C, scene, te, tselem, set);
+			return tree_element_active_posechannel(C, scene, te, tselem, set, recursive);
 		case TSE_CONSTRAINT:
 			return tree_element_active_constraint(C, te, tselem, set);
 		case TSE_R_LAYER:
@@ -817,7 +822,9 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 			
 			/* always makes active object */
 			if (tselem->type != TSE_SEQUENCE && tselem->type != TSE_SEQ_STRIP && tselem->type != TSE_SEQUENCE_DUP)
-				tree_element_set_active_object(C, scene, soops, te, 1 + (extend != 0 && tselem->type == 0), recursive);
+				tree_element_set_active_object(C, scene, soops, te,
+											   1 + (extend != 0 && tselem->type == 0),
+											   recursive && tselem->type == 0 );
 			
 			if (tselem->type == 0) { // the lib blocks
 				/* editmode? */
