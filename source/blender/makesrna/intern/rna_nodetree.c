@@ -1042,6 +1042,16 @@ static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *rep
 	return NULL;
 }
 
+static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
+
+	node->update |= NODE_UPDATE_ID;
+	node_update(bmain, scene, ntree, node);
+	node->update &= ~NODE_UPDATE_ID;
+}
+
 static void rna_Mapping_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -2444,7 +2454,7 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Image_Node_update_id");
 
 	prop = RNA_def_property(srna, "use_straight_alpha_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT);
