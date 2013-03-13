@@ -460,9 +460,13 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 	if (set) {
 		if (!(pchan->bone->flag & BONE_HIDDEN_P)) {
 			
-			if (set == 2) ED_pose_deselectall(ob, 2);  // 2 = clear active tag
-			else ED_pose_deselectall(ob, 0);    // 0 = deselect
-			
+			if (set != 2) {
+				bPoseChannel *pchannel;
+				/* single select forces all other bones to get unselected */
+				for (pchannel = ob->pose->chanbase.first; pchannel; pchannel = pchannel->next)
+					pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+			}
+
 			if (set == 2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
 			}
@@ -497,8 +501,12 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 		if (!(bone->flag & BONE_HIDDEN_P)) {
 			Object *ob = OBACT;
 			if (ob) {
-				if (set == 2) ED_pose_deselectall(ob, 2);  // 2 is clear active tag
-				else ED_pose_deselectall(ob, 0);
+				if (set != 2) {
+					bPoseChannel *pchannel;
+					/* single select forces all other bones to get unselected */
+					for (pchannel = ob->pose->chanbase.first; pchannel; pchannel = pchannel->next)
+						pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+				}
 			}
 			
 			if (set == 2 && (bone->flag & BONE_SELECTED)) {
