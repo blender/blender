@@ -1352,6 +1352,8 @@ BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
 	BMIter iter;
 	BMEdge *e;
 
+	BLI_assert(v1 != v2);
+
 	BM_ITER_ELEM (e, &iter, v1, BM_EDGES_OF_VERT) {
 		if (e->v1 == v2 || e->v2 == v2)
 			return e;

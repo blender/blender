@@ -157,8 +157,8 @@ static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float n[3],
 /**
  * For tools that insist on using triangles, ideally we would cache this data.
  *
- * \param r_loops  Empty array of loops, (f->len)
- * \param r_index  Empty array of loops, ((f->len - 2) * 3)
+ * \param r_loops  Store face loop pointers, (f->len)
+ * \param r_index  Store triangle triples, indicies into \a r_loops,  ((f->len - 2) * 3)
  */
 void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 {

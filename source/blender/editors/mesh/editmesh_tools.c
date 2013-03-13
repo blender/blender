@@ -1185,8 +1185,9 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 			     (BM_edge_share_face_check(e, ed_pair_v2[0]) == false))
 			    )
 			{
-				BMEdge *e_other = BM_edge_exists(BM_edge_other_vert(ed_pair_v1[0], e->v1),
-				                                 BM_edge_other_vert(ed_pair_v2[0], e->v2));
+				BMVert *v1_other = BM_edge_other_vert(ed_pair_v1[0], e->v1);
+				BMVert *v2_other = BM_edge_other_vert(ed_pair_v2[0], e->v2);
+				BMEdge *e_other = (v1_other != v2_other) ? BM_edge_exists(v1_other, v2_other) : NULL;
 				BM_edge_select_set(bm, ed_pair_v1[0], true);
 				BM_edge_select_set(bm, ed_pair_v2[0], true);
 				if (e_other) {
