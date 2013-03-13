@@ -40,7 +40,47 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-#include "bmo_subdivide.h" /* own include */
+typedef struct SubDParams {
+	int numcuts;
+	float smooth;
+	float fractal;
+	float along_normal;
+	//int beauty;
+	bool use_smooth;
+	bool use_sphere;
+	bool use_fractal;
+	int seed;
+	int origkey; /* shapekey holding displaced vertex coordinates for current geometry */
+	BMOperator *op;
+	BMOpSlot *slot_edge_percents;  /* BMO_slot_get(params->op->slots_in, "edge_percents"); */
+	BMOpSlot *slot_custom_patterns;  /* BMO_slot_get(params->op->slots_in, "custom_patterns"); */
+	float fractal_ofs[3];
+} SubDParams;
+
+typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts,
+                                     const SubDParams *params);
+
+/*
+ * note: this is a pattern-based edge subdivider.
+ * it tries to match a pattern to edge selections on faces,
+ * then executes functions to cut them.
+ */
+typedef struct SubDPattern {
+	int seledges[20]; /* selected edges mask, for splitting */
+
+	/* verts starts at the first new vert cut, not the first vert in the face */
+	subd_pattern_fill_fp connectexec;
+	int len; /* total number of verts, before any subdivision */
+} SubDPattern;
+
+/* generic subdivision rules:
+ *
+ * - two selected edges in a face should make a link
+ *   between them.
+ *
+ * - one edge should do, what? make pretty topology, or just
+ *   split the edge only?
+ */
 
 /* flags for all elements share a common bitfield space */
 #define SUBD_SPLIT	1
@@ -151,7 +191,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		mid_v3_v3v3(normal, vsta->no, vend->no);
 		ortho_basis_v3v3_v3(base1, base2, normal);
 
-		add_v3_v3v3(co2, v->co, params->off);
+		add_v3_v3v3(co2, v->co, params->fractal_ofs);
 		mul_v3_fl(co2, 10.0f);
 
 		tvec[0] = fac * (BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 2) - 0.5f);
@@ -731,9 +771,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	use_grid_fill = BMO_slot_bool_get(op->slots_in, "use_grid_fill");
 	use_only_quads = BMO_slot_bool_get(op->slots_in, "use_only_quads");
 	use_sphere = BMO_slot_bool_get(op->slots_in, "use_sphere");
-	
-	BLI_srandom(seed);
-	
+
 	patterns[1] = NULL;
 	/* straight cut is patterns[1] == NULL */
 	switch (cornertype) {
@@ -790,9 +828,14 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.use_fractal = (fractal != 0.0f);
 	params.use_sphere  = use_sphere;
 	params.origkey = skey;
-	params.off[0] = (float)BLI_drand() * 200.0f;
-	params.off[1] = (float)BLI_drand() * 200.0f;
-	params.off[2] = (float)BLI_drand() * 200.0f;
+
+	if (params.use_fractal) {
+		BLI_srandom(seed);
+
+		params.fractal_ofs[0] = (float)BLI_drand() * 200.0f;
+		params.fractal_ofs[1] = (float)BLI_drand() * 200.0f;
+		params.fractal_ofs[2] = (float)BLI_drand() * 200.0f;
+	}
 	
 	BMO_slot_map_to_flag(bm, op->slots_in, "custom_patterns",
 	                     BM_FACE, FACE_CUSTOMFILL);
