@@ -3583,12 +3583,15 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		if ((t->flag & T_V3D_ALIGN) == 0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
 			if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
-				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat(quat, fmat);   // Actual transform
-				
-				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
-				/* this function works on end result */
-				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				/* can be called for texture space translate for example, then opt out */
+				if (td->ext->quat) {
+					mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
+					mat3_to_quat(quat, fmat);   // Actual transform
+					
+					mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
+					/* this function works on end result */
+					protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				}
 			}
 			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
