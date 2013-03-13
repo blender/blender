@@ -88,7 +88,8 @@ typedef enum PropertyUnit {
 	PROP_UNIT_ROTATION = (5 << 16),       /* radians */
 	PROP_UNIT_TIME = (6 << 16),           /* frame */
 	PROP_UNIT_VELOCITY = (7 << 16),       /* m/s */
-	PROP_UNIT_ACCELERATION = (8 << 16)    /* m/(s^2) */
+	PROP_UNIT_ACCELERATION = (8 << 16),   /* m/(s^2) */
+	PROP_UNIT_CAMERA = (9 << 16)       /* mm */
 } PropertyUnit;
 
 #define RNA_SUBTYPE_UNIT(subtype)       ((subtype) &  0x00FF0000)
@@ -122,6 +123,7 @@ typedef enum PropertySubType {
 	PROP_TIME = 17 | PROP_UNIT_TIME,
 	/* distance in 3d space, don't use for pixel distance for eg. */
 	PROP_DISTANCE = 18 | PROP_UNIT_LENGTH,
+	PROP_DISTANCE_CAMERA = 19 | PROP_UNIT_CAMERA,
 
 	/* number arrays */
 	PROP_COLOR = 20,

@@ -2451,6 +2451,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_ANGLE: return "PROP_ANGLE";
 		case PROP_TIME: return "PROP_TIME";
 		case PROP_DISTANCE: return "PROP_DISTANCE";
+		case PROP_DISTANCE_CAMERA: return "PROP_DISTANCE_CAMERA";
 		case PROP_COLOR: return "PROP_COLOR";
 		case PROP_TRANSLATION: return "PROP_TRANSLATION";
 		case PROP_DIRECTION: return "PROP_DIRECTION";
@@ -2491,6 +2492,7 @@ static const char *rna_property_subtype_unit(PropertySubType type)
 		case PROP_UNIT_TIME:         return "PROP_UNIT_TIME";
 		case PROP_UNIT_VELOCITY:     return "PROP_UNIT_VELOCITY";
 		case PROP_UNIT_ACCELERATION: return "PROP_UNIT_ACCELERATION";
+		case PROP_UNIT_CAMERA:       return "PROP_UNIT_CAMERA";
 		default:                     return "PROP_UNIT_UNKNOWN";
 	}
 }

@@ -66,6 +66,7 @@ EnumPropertyItem property_subtype_items[] = {
 	{PROP_ANGLE, "ANGLE", 0, "Angle", ""},
 	{PROP_TIME, "TIME", 0, "Time", ""},
 	{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
+	{PROP_DISTANCE_CAMERA, "DISTANCE_CAMERA", 0, "Camera Distance", ""},
 
 	/* number arrays */
 	{PROP_COLOR, "COLOR", 0, "Color", ""},
@@ -97,6 +98,7 @@ EnumPropertyItem property_unit_items[] = {
 	{PROP_UNIT_TIME, "TIME", 0, "Time", ""},
 	{PROP_UNIT_VELOCITY, "VELOCITY", 0, "Velocity", ""},
 	{PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
+	{PROP_UNIT_CAMERA, "CAMERA", 0, "Camera", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

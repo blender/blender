@@ -1646,6 +1646,9 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	if (unit_type == PROP_UNIT_LENGTH) {
 		return value * (double)unit->scale_length;
 	}
+	else if (unit_type == PROP_UNIT_CAMERA) {
+		return value * (double)unit->scale_length;
+	}
 	else if (unit_type == PROP_UNIT_AREA) {
 		return value * pow(unit->scale_length, 2);
 	}
