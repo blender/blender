@@ -2657,6 +2657,9 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 	MVert *mvert = NULL;
 	MFace *mface;
 	Material *ma;
+#ifdef WITH_FREESTYLE
+	FreestyleFace *ffa;
+#endif
 	/* Curve *cu= ELEM(ob->type, OB_FONT, OB_CURVE) ? ob->data : NULL; */
 
 	mvert= dm->getVertArray(dm);
@@ -2686,6 +2689,9 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 			ma= give_render_material(re, ob, mat_iter+1);
 			end= dm->getNumTessFaces(dm);
 			mface= dm->getTessFaceArray(dm);
+#ifdef WITH_FREESTYLE
+			ffa= dm->getTessFaceDataArray(dm, CD_FREESTYLE_FACE);
+#endif
 
 			for (a=0; a<end; a++, mface++) {
 				int v1, v2, v3, v4, flag;
@@ -2697,11 +2703,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					v2= mface->v2;
 					v3= mface->v3;
 					v4= mface->v4;
-#ifdef WITH_FREESTYLE
-					flag = mface->flag & (ME_SMOOTH | ME_FREESTYLE_FACE);
-#else
 					flag = mface->flag & ME_SMOOTH;
-#endif
 
 					vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 					vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
@@ -2719,6 +2721,9 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					vlr->mat= ma;
 					vlr->flag= flag;
 					vlr->ec= 0; /* mesh edges rendered separately */
+#ifdef WITH_FREESTYLE
+					vlr->freestyle_face_mark= (ffa && (ffa[a].flag & FREESTYLE_FACE_MARK)) ? 1 : 0;
+#endif
 
 					if (len==0) obr->totvlak--;
 					else {
@@ -3227,14 +3232,21 @@ static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 }
 
 #ifdef WITH_FREESTYLE
-static EdgeHash *make_freestyle_edge_mark_hash(MEdge *medge, int totedge)
+static EdgeHash *make_freestyle_edge_mark_hash(DerivedMesh *dm)
 {
 	EdgeHash *edge_hash= BLI_edgehash_new();
-	int a;
+	FreestyleEdge *fed;
+	MEdge *medge;
+	int totedge, a;
 
-	for(a=0; a<totedge; a++) {
-		if(medge[a].flag & ME_FREESTYLE_EDGE)
-			BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+	medge = dm->getEdgeArray(dm);
+	totedge = dm->getNumEdges(dm);
+	fed = dm->getEdgeDataArray(dm, CD_FREESTYLE_EDGE);
+	if (fed) {
+		for (a = 0; a < totedge; a++) {
+			if (fed[a].flag & FREESTYLE_EDGE_MARK)
+				BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+		}
 	}
 	return edge_hash;
 }
@@ -3265,6 +3277,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int use_original_normals = FALSE;
 	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
+#ifdef WITH_FREESTYLE
+	FreestyleFace *ffa;
+#endif
 
 	me= ob->data;
 
@@ -3392,13 +3407,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		if (!timeoffset) {
 #ifdef WITH_FREESTYLE
 			EdgeHash *edge_hash;
-			MEdge *medge;
-			int totedge;
 
 			/* create a hash table of Freestyle edge marks */
-			medge = dm->getEdgeArray(dm);
-			totedge = dm->getNumEdges(dm);
-			edge_hash = make_freestyle_edge_mark_hash(medge, totedge);
+			edge_hash = make_freestyle_edge_mark_hash(dm);
 #endif
 
 			/* store customdata names, because DerivedMesh is freed */
@@ -3437,6 +3448,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				if (ok) {
 					end= dm->getNumTessFaces(dm);
 					mface= dm->getTessFaceArray(dm);
+#ifdef WITH_FREESTYLE
+					ffa= dm->getTessFaceDataArray(dm, CD_FREESTYLE_FACE);
+#endif
 					
 					for (a=0; a<end; a++, mface++) {
 						int v1, v2, v3, v4, flag;
@@ -3449,11 +3463,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							v2= mface->v2;
 							v3= reverse_verts==0 ? mface->v3 : mface->v1;
 							v4= mface->v4;
-#ifdef WITH_FREESTYLE
-							flag = mface->flag & (ME_SMOOTH | ME_FREESTYLE_FACE);
-#else
 							flag = mface->flag & ME_SMOOTH;
-#endif
 
 							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 							vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
@@ -3463,7 +3473,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							else vlr->v4= 0;
 
 #ifdef WITH_FREESTYLE
-							/* Freestyle edge marks */
+							/* Freestyle edge/face marks */
 							{
 								int edge_mark = 0;
 
@@ -3477,6 +3487,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 								}
 								vlr->freestyle_edge_mark= edge_mark;
 							}
+							vlr->freestyle_face_mark= (ffa && (ffa[a].flag & FREESTYLE_FACE_MARK)) ? 1 : 0;
 #endif
 
 							/* render normals are inverted in render */

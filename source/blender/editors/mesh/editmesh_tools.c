@@ -34,6 +34,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -5601,33 +5602,43 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 }
 
 #ifdef WITH_FREESTYLE
+
 static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = ((Mesh *)obedit->data);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	Mesh *me = (Mesh *)obedit->data;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMEdge *eed;
 	BMIter iter;
+	FreestyleEdge *fed;
 	int clear = RNA_boolean_get(op->ptr, "clear");
 
 	if (em == NULL)
 		return OPERATOR_FINISHED;
 
-	/* auto-enable seams drawing */
+	/* auto-enable Freestyle edge mark drawing */
 	if (clear == 0) {
 		me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
 	}
 
+	if (!CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
+		BM_data_layer_add(em->bm, &em->bm->edata, CD_FREESTYLE_EDGE);
+	}
+
 	if (clear) {
 		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
-				BM_elem_flag_disable(eed, BM_ELEM_FREESTYLE);
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+				fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
+				fed->flag &= ~FREESTYLE_EDGE_MARK;
+			}
 		}
 	}
 	else {
 		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
-				BM_elem_flag_enable(eed, BM_ELEM_FREESTYLE);
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+				fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
+				fed->flag |= FREESTYLE_EDGE_MARK;
+			}
 		}
 	}
 
@@ -5657,28 +5668,38 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = ((Mesh *)obedit->data);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	Mesh *me = (Mesh *)obedit->data;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
 	BMIter iter;
+	FreestyleFace *ffa;
 	int clear = RNA_boolean_get(op->ptr, "clear");
 
 	if (em == NULL) return OPERATOR_FINISHED;
 
 	/* auto-enable Freestyle face mark drawing */
-	if(!clear) {
+	if (!clear) {
 		me->drawflag |= ME_DRAW_FREESTYLE_FACE;
 	}
 
-	if(clear) {
+	if (!CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE)) {
+		BM_data_layer_add(em->bm, &em->bm->pdata, CD_FREESTYLE_FACE);
+	}
+
+	if (clear) {
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
-				BM_elem_flag_disable(efa, BM_ELEM_FREESTYLE);
+			if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+				ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
+				ffa->flag &= ~FREESTYLE_FACE_MARK;
+			}
 		}
-	} else {
+	}
+	else {
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
-				BM_elem_flag_enable(efa, BM_ELEM_FREESTYLE);
+			if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+				ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
+				ffa->flag |= FREESTYLE_FACE_MARK;
+			}
 		}
 	}
 
@@ -5704,4 +5725,5 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
+
 #endif

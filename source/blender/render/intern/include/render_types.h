@@ -396,6 +396,7 @@ typedef struct VlakRen {
 	char flag, ec;
 #ifdef WITH_FREESTYLE
 	char freestyle_edge_mark;
+	char freestyle_face_mark;
 #endif
 	int index;
 } VlakRen;

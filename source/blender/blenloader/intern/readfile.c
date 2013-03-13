@@ -9094,6 +9094,64 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				linestyle->rounds = 3;
 		}
 	}
+	/* The code segment below will be removed when the trunk merger is done.
+	   For now it is kept for backward compatibility, giving branch users time
+	   to migrate to the new CustomData-based edge/face marks. */
+	{
+		Mesh *me;
+		MEdge *medge;
+		MPoly *mpoly;
+		int i, found;
+
+		for (me = main->mesh.first; me; me = me->id.next) {
+			/* Freestyle edge marks */
+			found = 0;
+			medge = me->medge;
+			for (i = 0; i < me->totedge; i++) {
+				if (medge->flag & ME_FREESTYLE_EDGE) {
+					found = 1;
+					break;
+				}
+				medge++;
+			}
+			if (found) {
+				FreestyleEdge *fed = CustomData_add_layer(&me->edata, CD_FREESTYLE_EDGE, CD_CALLOC, NULL, me->totedge);
+				medge = me->medge;
+				for (i = 0; i < me->totedge; i++) {
+					if (medge->flag & ME_FREESTYLE_EDGE) {
+						medge->flag &= ~ME_FREESTYLE_EDGE;
+						fed->flag |= FREESTYLE_EDGE_MARK;
+					}
+					medge++;
+					fed++;
+				}
+				printf("Migrated to CustomData-based Freestyle edge marks\n");
+			}
+			/* Freestyle face marks */
+			found = 0;
+			mpoly = me->mpoly;
+			for (i = 0; i < me->totpoly; i++) {
+				if (mpoly->flag & ME_FREESTYLE_FACE) {
+					found = 1;
+					break;
+				}
+				mpoly++;
+			}
+			if (found) {
+				FreestyleFace *ffa = CustomData_add_layer(&me->pdata, CD_FREESTYLE_FACE, CD_CALLOC, NULL, me->totpoly);
+				mpoly = me->mpoly;
+				for (i = 0; i < me->totpoly; i++) {
+					if (mpoly->flag & ME_FREESTYLE_FACE) {
+						mpoly->flag &= ~ME_FREESTYLE_FACE;
+						ffa->flag |= FREESTYLE_FACE_MARK;
+					}
+					mpoly++;
+					ffa++;
+				}
+				printf("Migrated to CustomData-based Freestyle face marks\n");
+			}
+		}
+	}
 #endif
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

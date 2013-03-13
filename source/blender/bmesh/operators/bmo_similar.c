@@ -247,9 +247,16 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 						break;
 #ifdef WITH_FREESTYLE
 					case SIMFACE_FREESTYLE:
-						if (BM_elem_flag_test(fm, BM_ELEM_FREESTYLE) == BM_elem_flag_test(fs, BM_ELEM_FREESTYLE)) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
-							cont = FALSE;
+						if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
+							FreestyleEdge *ffa1, *ffa2;
+
+							ffa1 = CustomData_bmesh_get(&bm->pdata, fs->head.data, CD_FREESTYLE_FACE);
+							ffa2 = CustomData_bmesh_get(&bm->pdata, fm->head.data, CD_FREESTYLE_FACE);
+
+							if (ffa1 && ffa2 && (ffa1->flag & FREESTYLE_FACE_MARK) == (ffa2->flag & FREESTYLE_FACE_MARK)) {
+								BMO_elem_flag_enable(bm, fm, FACE_MARK);
+								cont = false;
+							}
 						}
 						break;
 #endif
@@ -473,9 +480,16 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 						break;
 #ifdef WITH_FREESTYLE
 					case SIMEDGE_FREESTYLE:
-						if (BM_elem_flag_test(e, BM_ELEM_FREESTYLE) == BM_elem_flag_test(es, BM_ELEM_FREESTYLE)) {
-							BMO_elem_flag_enable(bm, e, EDGE_MARK);
-							cont = FALSE;
+						if (CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
+							FreestyleEdge *fed1, *fed2;
+
+							fed1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+							fed2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_FREESTYLE_EDGE);
+
+							if (fed1 && fed2 && (fed1->flag & FREESTYLE_EDGE_MARK) == (fed2->flag & FREESTYLE_EDGE_MARK)) {
+								BMO_elem_flag_enable(bm, e, EDGE_MARK);
+								cont = false;
+							}
 						}
 						break;
 #endif

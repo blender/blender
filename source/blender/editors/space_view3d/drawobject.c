@@ -2307,12 +2307,24 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 }
 
 #ifdef WITH_FREESTYLE
+
+static int draw_dm_test_freestyle_edge_mark(BMEditMesh *em, BMEdge *eed)
+{
+	FreestyleEdge *fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
+	if (!fed)
+		return 0;
+	return (fed->flag & FREESTYLE_EDGE_MARK) != 0;
+}
+
 /* Draw only Freestyle feature edges */
 static DMDrawOption draw_dm_edges_freestyle__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed = EDBM_edge_at_index(userData, index);
 
-	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_FREESTYLE))
+	if (!eed)
+		return DM_DRAW_OPTION_SKIP;
+
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && draw_dm_test_freestyle_edge_mark(userData, eed))
 		return DM_DRAW_OPTION_NORMAL;
 	else
 		return DM_DRAW_OPTION_SKIP;
@@ -2322,6 +2334,15 @@ static void draw_dm_edges_freestyle(BMEditMesh *em, DerivedMesh *dm)
 {
 	dm->drawMappedEdges(dm, draw_dm_edges_freestyle__setDrawOptions, em);
 }
+
+static int draw_dm_test_freestyle_face_mark(BMEditMesh *em, BMFace *efa)
+{
+	FreestyleFace *ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
+	if (!ffa)
+		return 0;
+	return (ffa->flag & FREESTYLE_FACE_MARK) != 0;
+}
+
 #endif
 
 /* Draw faces with color set based on selection
@@ -2342,7 +2363,7 @@ static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 		}
 		else {
 #ifdef WITH_FREESTYLE
-			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : BM_elem_flag_test(efa, BM_ELEM_FREESTYLE) ? 3 : 0];
+			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : draw_dm_test_freestyle_face_mark(data->em, efa) ? 3 : 0];
 #else
 			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : 0];
 #endif
@@ -2377,8 +2398,8 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 		return 0;
 
 #ifdef WITH_FREESTYLE
-	col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : BM_elem_flag_test(efa, BM_ELEM_FREESTYLE) ? 3 : 0];
-	next_col = data->cols[BM_elem_flag_test(next_efa, BM_ELEM_SELECT) ? 1 : BM_elem_flag_test(next_efa, BM_ELEM_FREESTYLE) ? 3 : 0];
+	col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : draw_dm_test_freestyle_face_mark(data->em, efa) ? 3 : 0];
+	next_col = data->cols[BM_elem_flag_test(next_efa, BM_ELEM_SELECT) ? 1 : draw_dm_test_freestyle_face_mark(data->em, efa) ? 3 : 0];
 #else
 	col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : 0];
 	next_col = data->cols[BM_elem_flag_test(next_efa, BM_ELEM_SELECT) ? 1 : 0];
@@ -2969,7 +2990,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			col1[3] = 0;
 
 #ifdef WITH_FREESTYLE
-		if (!(me->drawflag & ME_DRAW_FREESTYLE_FACE))
+		if (!(me->drawflag & ME_DRAW_FREESTYLE_FACE) || !CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE))
 			col4[3] = 0;
 
 		draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
@@ -3033,7 +3054,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		}
 
 #ifdef WITH_FREESTYLE
-		if(me->drawflag & ME_DRAW_FREESTYLE_EDGE) {
+		if (me->drawflag & ME_DRAW_FREESTYLE_EDGE && CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
 			UI_ThemeColor(TH_FREESTYLE_EDGE_MARK);
 			glLineWidth(2);
 	

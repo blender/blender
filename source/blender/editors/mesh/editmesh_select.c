@@ -64,6 +64,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "mesh_intern.h"
 
@@ -1327,17 +1328,29 @@ static void edgetag_context_set(BMesh *bm, Scene *scene, BMEdge *e, int val)
 		case EDGE_MODE_TAG_SHARP:
 			BM_elem_flag_set(e, BM_ELEM_SMOOTH, !val);
 			break;
-#ifdef WITH_FREESTYLE
-		case EDGE_MODE_TAG_FREESTYLE:
-			BM_elem_flag_set(e, BM_ELEM_FREESTYLE, val);
-			break;
-#endif
 		case EDGE_MODE_TAG_CREASE:
 			BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (val) ? 1.0f : 0.0f);
 			break;
 		case EDGE_MODE_TAG_BEVEL:
 			BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (val) ? 1.0f : 0.0f);
 			break;
+#ifdef WITH_FREESTYLE
+		case EDGE_MODE_TAG_FREESTYLE:
+			{
+				FreestyleEdge *fed;
+
+				if (!CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
+					BM_data_layer_add(bm, &bm->pdata, CD_FREESTYLE_FACE);
+				}
+
+				fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+				if (!val)
+					fed->flag &= ~FREESTYLE_EDGE_MARK;
+				else
+					fed->flag |= FREESTYLE_EDGE_MARK;
+			}
+			break;
+#endif
 	}
 }
 
@@ -1350,14 +1363,18 @@ static int edgetag_context_check(Scene *scene, BMesh *bm, BMEdge *e)
 			return BM_elem_flag_test(e, BM_ELEM_SEAM);
 		case EDGE_MODE_TAG_SHARP:
 			return !BM_elem_flag_test(e, BM_ELEM_SMOOTH);
-#ifdef WITH_FREESTYLE
-		case EDGE_MODE_TAG_FREESTYLE:
-			return !BM_elem_flag_test(e, BM_ELEM_FREESTYLE);
-#endif
 		case EDGE_MODE_TAG_CREASE:
 			return BM_elem_float_data_get(&bm->edata, e, CD_CREASE) ? TRUE : FALSE;
 		case EDGE_MODE_TAG_BEVEL:
 			return BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) ? TRUE : FALSE;
+#ifdef WITH_FREESTYLE
+		case EDGE_MODE_TAG_FREESTYLE:
+			{
+				FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+				return (!fed) ? FALSE : (fed->flag & FREESTYLE_EDGE_MARK) ? TRUE : FALSE;
+			}
+			break;
+#endif
 	}
 	return 0;
 }

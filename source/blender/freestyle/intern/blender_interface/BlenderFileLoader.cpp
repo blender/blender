@@ -521,7 +521,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		if (numTris_1 == 0 && numTris_2 == 0)
 			continue;
 		bool fm, em1, em2, em3, em4;
-		fm = (vlr->flag & ME_FREESTYLE_FACE) != 0;
+		fm = (vlr->freestyle_face_mark) != 0;
 		em1 = (vlr->freestyle_edge_mark & R_EDGE_V1V2) != 0;
 		em2 = (vlr->freestyle_edge_mark & R_EDGE_V2V3) != 0;
 		if (!vlr->v4) {
