@@ -73,6 +73,7 @@ void BLI_free_filelist(struct direntry * filelist, unsigned int nrentries);
 FILE  *BLI_fopen(const char *filename, const char *mode);
 void  *BLI_gzopen(const char *filename, const char *mode);
 int    BLI_open(const char *filename, int oflag, int pmode);
+int    BLI_access(const char *filename, int mode);
 
 bool   BLI_file_is_writable(const char *file);
 bool   BLI_file_touch(const char *file);

@@ -167,7 +167,7 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 bool BLI_file_is_writable(const char *filename)
 {
 	bool writable;
-	if (access(filename, W_OK) == 0) {
+	if (BLI_access(filename, W_OK) == 0) {
 		/* file exists and I can write to it */
 		writable = true;
 	}
@@ -179,7 +179,12 @@ bool BLI_file_is_writable(const char *filename)
 		/* file doesn't exist -- check I can create it in parent directory */
 		char parent[FILE_MAX];
 		BLI_split_dirfile(filename, parent, NULL, sizeof(parent), 0);
-		writable = access(parent, X_OK | W_OK) == 0;
+#ifdef WIN32
+		/* windows does not have X_OK */
+		writable = BLI_access(parent, W_OK) == 0;
+#else
+		writable = BLI_access(parent, X_OK | W_OK) == 0;
+#endif
 	}
 	return writable;
 }
@@ -256,6 +261,11 @@ void *BLI_gzopen(const char *filename, const char *mode)
 int   BLI_open(const char *filename, int oflag, int pmode)
 {
 	return uopen(filename, oflag, pmode);
+}
+
+int   BLI_access(const char *filename, int mode)
+{
+	return uaccess(filename, mode);
 }
 
 int BLI_delete(const char *file, bool dir, bool recursive)
@@ -596,6 +606,12 @@ int BLI_open(const char *filename, int oflag, int pmode)
 {
 	return open(filename, oflag, pmode);
 }
+
+int   BLI_access(const char *filename, int mode)
+{
+	return access(filename, mode);
+}
+
 
 /**
  * Deletes the specified file or directory (depending on dir), optionally

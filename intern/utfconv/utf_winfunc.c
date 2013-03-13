@@ -75,6 +75,20 @@ int uopen(const char *filename, int oflag, int pmode)
 	return f;
 }
 
+int uaccess(const char *filename, int mode)
+{
+	int r = -1;
+	UTF16_ENCODE(filename);
+
+	if (filename_16) {
+		r = _waccess(filename_16, mode);
+	}
+
+	UTF16_UN_ENCODE(filename);
+
+	return r;
+}
+
 int urename(const char *oldname, const char *newname )
 {
 	int r = -1;
