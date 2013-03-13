@@ -38,9 +38,14 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
+
 #include "MEM_guardedalloc.h"
 #include "MEM_sys_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 
 #include "AVI_avi.h"

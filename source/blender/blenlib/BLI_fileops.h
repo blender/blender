@@ -33,14 +33,6 @@
 #ifndef __BLI_FILEOPS_H__
 #define __BLI_FILEOPS_H__
 
-/* for 64 bit fseek, ftell, .. */
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
-/* for bool */
-#include "BLI_utildefines.h"
-
 #include <stdio.h>
 #include <sys/stat.h>
 
