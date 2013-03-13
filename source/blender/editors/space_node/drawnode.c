@@ -687,14 +687,14 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *ntree, bNode *gnode,
                               bNodeSocket *sock, bNodeSocket *gsock, int index, int in_out)
 {
-	const float dpi_fac = 1.0f;
+	const float dpi_fac = UI_DPI_FAC;
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeSocketType *stype = ntreeGetSocketType(gsock ? gsock->type : sock->type);
 	uiBut *bt;
 	float offset;
 	int draw_value;
 	const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
-	const float socket_size      = NODE_SOCKSIZE * dpi_fac;
+	const float socket_size      = NODE_SOCKSIZE;
 	const float arrowbutw        = 0.8f * UI_UNIT_X;
 	const short co_text_w = 72 * dpi_fac;
 	const float co_margin = 6.0f * dpi_fac;
@@ -799,12 +799,12 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiLayout *layout;
 		PointerRNA ptr;
 		rctf rect = gnode->totr;
-		const float dpi_fac = 1.0f;
+		const float dpi_fac = UI_DPI_FAC;
 		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
 		const float group_header = 26 * dpi_fac;
 		
 		int index;
-		
+
 		/* backdrop header */
 		glEnable(GL_BLEND);
 		uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
