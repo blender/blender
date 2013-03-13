@@ -40,6 +40,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -299,4 +300,23 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
 	int gridsize = ccg_gridsize(gpm->level);
 	
 	return gpm->data[(y * factor) * gridsize + (x * factor)];
+}
+
+/* threshhold to move before updating the brush rotation */
+#define RAKE_THRESHHOLD 20
+
+void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, const float mouse_pos[2])
+{
+	const float u = 0.5f;
+	const float r = RAKE_THRESHHOLD;
+
+	float dpos[2];
+	sub_v2_v2v2(dpos, ups->last_rake, mouse_pos);
+
+	if (len_squared_v2(dpos) >= r * r) {
+		ups->brush_rotation = atan2(dpos[0], dpos[1]);
+
+		interp_v2_v2v2(ups->last_rake, ups->last_rake,
+		               mouse_pos, u);
+	}
 }

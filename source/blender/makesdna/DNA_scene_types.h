@@ -888,20 +888,25 @@ typedef struct UnifiedPaintSettings {
 	/* rake rotation */
 
 	/* record movement of mouse so that rake can start at an intuitive angle */
-	float last_x, last_y;
-	float last_angle;
+	float last_rake[2];
+	int pad;
 
-	float special_rotation;
+	float brush_rotation;
 
 	// all this below is used to communicate with the cursor drawing routine
 	int draw_anchored;
 	int   anchored_size;
-	float anchored_location[3];
 	float anchored_initial_mouse[2];
 
 	/* drawing pressure */
 	int draw_pressure;
 	float pressure_value;
+
+	/* position of mouse, used to sample the texture */
+	float tex_mouse[2];
+	/* radius of brush, premultiplied with pressure.
+	 * In case of anchored brushes contains that radius */
+	float pixel_radius;
 } UnifiedPaintSettings;
 
 typedef enum {

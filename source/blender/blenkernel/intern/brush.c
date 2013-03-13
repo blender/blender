@@ -513,8 +513,98 @@ void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco
 	}
 }
 
+
+/* Return a multiplier for brush strength on a particular vertex. */
+float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
+                          const float point[3],
+						  float rgba[3],
+                          struct ImagePool *pool)
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	MTex *mtex = &br->mtex;
+	float intensity = 1.0;
+	bool hasrgb = false;
+
+	if (!mtex->tex) {
+		intensity = 1;
+	}
+	else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+		/* Get strength by feeding the vertex
+		 * location directly into a texture */
+		hasrgb = externtex(mtex, point, &intensity,
+		          rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+	}
+	else {
+		float rotation = -mtex->rot;
+		float point_2d[2] = {point[0], point[1]};
+		float x = 0.0f, y = 0.0f; /* Quite warnings */
+		float radius = 1.0f; /* Quite warnings */
+		float co[2];
+
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			/* keep coordinates relative to mouse */
+
+			rotation += ups->brush_rotation;
+
+			point_2d[0] -= ups->tex_mouse[0];
+			point_2d[1] -= ups->tex_mouse[1];
+
+			/* use pressure adjusted size for fixed mode */
+			radius = ups->pixel_radius;
+
+			x = point_2d[0];
+			y = point_2d[1];
+		}
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+			/* leave the coordinates relative to the screen */
+
+			/* use unadjusted size for tiled mode */
+			radius = BKE_brush_size_get(scene, br);
+
+			x = point_2d[0];
+			y = point_2d[1];
+		}
+
+		x /= radius;
+		y /= radius;
+
+		/* it is probably worth optimizing for those cases where
+		 * the texture is not rotated by skipping the calls to
+		 * atan2, sqrtf, sin, and cos. */
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
+			const float flen     = sqrtf(x * x + y * y);
+
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
+		}
+
+		x *= br->mtex.size[0];
+		y *= br->mtex.size[1];
+
+		co[0] = x + br->mtex.ofs[0];
+		co[1] = y + br->mtex.ofs[1];
+		co[2] = 0.0f;
+
+		hasrgb = externtex(mtex, co, &intensity,
+		          rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+	}
+
+	intensity += br->texture_sample_bias;
+
+	if (!hasrgb) {
+		rgba[0] = intensity;
+		rgba[1] = intensity;
+		rgba[2] = intensity;
+		rgba[3] = 1.0f;
+	}
+
+	return intensity;
+}
+
+
 /* Brush Sampling for 2D brushes. when we unify the brush systems this will be necessarily a separate function */
-void BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4], const int thread)
+float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4], struct ImagePool *pool)
 {
 	MTex *mtex = &brush->mtex;
 
@@ -527,7 +617,7 @@ void BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2]
 		co[1] = xy[1] / radius;
 		co[2] = 0.0f;
 
-		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread, NULL);
+		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, 0, pool);
 
 		if (hasrgb) {
 			rgba[0] = tr;
@@ -541,9 +631,11 @@ void BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2]
 			rgba[2] = tin;
 			rgba[3] = 1.0f;
 		}
+		return tin;
 	}
 	else {
 		rgba[0] = rgba[1] = rgba[2] = rgba[3] = 1.0f;
+		return 1.0;
 	}
 }
 

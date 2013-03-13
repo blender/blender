@@ -245,7 +245,6 @@ typedef struct StrokeCache {
 	float pressure;
 	float mouse[2];
 	float bstrength;
-	float tex_mouse[2];
 
 	/* The rest is temporary storage that isn't saved as a property */
 
@@ -259,8 +258,8 @@ typedef struct StrokeCache {
 	Brush *brush;
 
 	float (*face_norms)[3]; /* Copy of the mesh faces' normals */
-	float special_rotation; /* Texture rotation (radians) for anchored and rake modes */
-	int pixel_radius, previous_pixel_radius;
+
+	float special_rotation;
 	float grab_delta[3], grab_delta_symmetry[3];
 	float old_grab_location[3], orig_grab_location[3];
 
@@ -284,8 +283,8 @@ typedef struct StrokeCache {
 	int radial_symmetry_pass;
 	float symm_rot_mat[4][4];
 	float symm_rot_mat_inv[4][4];
-	float last_rake[2]; /* Last location of updating rake rotation */
 	int original;
+	float anchored_location[3];
 
 	float vertex_rotation;
 
@@ -924,25 +923,22 @@ static float tex_strength(SculptSession *ss, Brush *br,
                           const float fno[3],
                           const float mask)
 {
+	const Scene *scene = ss->cache->vc->scene;
 	MTex *mtex = &br->mtex;
 	float avg = 1;
+	float rgba[4];
 
 	if (!mtex->tex) {
 		avg = 1;
 	}
 	else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
-		float jnk;
-
 		/* Get strength by feeding the vertex 
 		 * location directly into a texture */
-		externtex(mtex, point, &avg,
-		          &jnk, &jnk, &jnk, &jnk, 0, ss->tex_pool);
+		avg = BKE_brush_sample_tex_3D(scene, br, point, rgba, ss->tex_pool);
 	}
 	else if (ss->texcache) {
-		float rotation = -mtex->rot;
 		float symm_point[3], point_2d[2];
 		float x = 0.0f, y = 0.0f; /* Quite warnings */
-		float radius = 1.0f; /* Quite warnings */
 
 		/* if the active area is being applied for symmetry, flip it
 		 * across the symmetry axis and rotate it back to the original
@@ -956,76 +952,30 @@ static float tex_strength(SculptSession *ss, Brush *br,
 
 		ED_view3d_project_float_v2_m4(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
 
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
-			/* keep coordinates relative to mouse */
-
-			rotation += ss->cache->special_rotation;
-
-			point_2d[0] -= ss->cache->tex_mouse[0];
-			point_2d[1] -= ss->cache->tex_mouse[1];
-
-			/* use pressure adjusted size for fixed mode */
-			radius = ss->cache->pixel_radius;
-
-			x = point_2d[0];
-			y = point_2d[1];
-		}
-		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
-			/* leave the coordinates relative to the screen */
-
-			/* use unadjusted size for tiled mode */
-			radius = BKE_brush_size_get(ss->cache->vc->scene, br);
-		
-			x = point_2d[0];
-			y = point_2d[1];
-		}
-		else if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
+		/* still no symmetry supported for other paint modes.
+		 * Sculpt does it DIY */
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
 			/* Similar to fixed mode, but projects from brush angle
 			 * rather than view direction */
-
-			/* Rotation is handled by the brush_local_mat */
-			rotation = 0;
 
 			mul_m4_v3(ss->cache->brush_local_mat, symm_point);
 
 			x = symm_point[0];
 			y = symm_point[1];
+
+			x *= br->mtex.size[0];
+			y *= br->mtex.size[1];
+
+			x += br->mtex.ofs[0];
+			y += br->mtex.ofs[1];
+
+			avg = paint_get_tex_pixel(br, x, y, ss->tex_pool);
+
+			avg += br->texture_sample_bias;
+		} else {
+			avg = BKE_brush_sample_tex_3D(scene, br, point_2d, rgba, ss->tex_pool);
 		}
-
-		if (mtex->brush_map_mode != MTEX_MAP_MODE_AREA) {
-			x /= ss->cache->vc->ar->winx;
-			y /= ss->cache->vc->ar->winy;
-
-			if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
-				x -= 0.5f;
-				y -= 0.5f;
-			}
-		
-			x *= ss->cache->vc->ar->winx / radius;
-			y *= ss->cache->vc->ar->winy / radius;
-		}
-
-		/* it is probably worth optimizing for those cases where 
-		 * the texture is not rotated by skipping the calls to
-		 * atan2, sqrtf, sin, and cos. */
-		if (rotation > 0.001f || rotation < -0.001f) {
-			const float angle    = atan2f(y, x) + rotation;
-			const float flen     = sqrtf(x * x + y * y);
-
-			x = flen * cosf(angle);
-			y = flen * sinf(angle);
-		}
-
-		x *= br->mtex.size[0];
-		y *= br->mtex.size[1];
-
-		x += br->mtex.ofs[0];
-		y += br->mtex.ofs[1];
-
-		avg = paint_get_tex_pixel(br, x, y, ss->tex_pool);
 	}
-
-	avg += br->texture_sample_bias;
 
 	/* Falloff curve */
 	avg *= BKE_brush_curve_strength(br, len, ss->cache->radius);
@@ -3716,21 +3666,21 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	ss->cache = cache;
 
 	/* Set scaling adjustment */
-	ss->cache->scale[0] = 1.0f / ob->size[0];
-	ss->cache->scale[1] = 1.0f / ob->size[1];
-	ss->cache->scale[2] = 1.0f / ob->size[2];
+	cache->scale[0] = 1.0f / ob->size[0];
+	cache->scale[1] = 1.0f / ob->size[1];
+	cache->scale[2] = 1.0f / ob->size[2];
 
-	ss->cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
+	cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
 
-	ss->cache->flag = 0;
+	cache->flag = 0;
 
 	sculpt_init_mirror_clipping(ob, ss);
 
 	/* Initial mouse location */
 	if (mouse)
-		copy_v2_v2(ss->cache->initial_mouse, mouse);
+		copy_v2_v2(cache->initial_mouse, mouse);
 	else
-		zero_v2(ss->cache->initial_mouse);
+		zero_v2(cache->initial_mouse);
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	cache->invert = mode == BRUSH_STROKE_INVERT;
@@ -3742,7 +3692,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	else brush->flag &= ~BRUSH_INVERTED;
 
 	/* Alt-Smooth */
-	if (ss->cache->alt_smooth) {
+	if (cache->alt_smooth) {
 		if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
 			cache->saved_mask_brush_tool = brush->mask_tool;
 			brush->mask_tool = BRUSH_MASK_SMOOTH;
@@ -3763,7 +3713,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	}
 
 	copy_v2_v2(cache->mouse, cache->initial_mouse);
-	copy_v2_v2(cache->tex_mouse, cache->initial_mouse);
+	copy_v2_v2(ups->tex_mouse, cache->initial_mouse);
 
 	/* Truly temporary data that isn't stored in properties */
 
@@ -3817,8 +3767,6 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 			cache->original = 1;
 		}
 	}
-
-	cache->special_rotation = (brush->flag & BRUSH_RAKE) ? ups->last_angle : 0;
 
 	cache->first_time = 1;
 
@@ -3890,9 +3838,9 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 		copy_v3_v3(cache->old_grab_location, grab_location);
 
 		if (tool == SCULPT_TOOL_GRAB)
-			copy_v3_v3(ups->anchored_location, cache->true_location);
+			copy_v3_v3(cache->anchored_location, cache->true_location);
 		else if (tool == SCULPT_TOOL_THUMB)
-			copy_v3_v3(ups->anchored_location, cache->orig_grab_location);
+			copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
 
 		if (ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
 			/* location stays the same for finding vertices in brush radius */
@@ -3900,7 +3848,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
 			ups->draw_anchored = 1;
 			copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
-			ups->anchored_size = cache->pixel_radius;
+			ups->anchored_size = ups->pixel_radius;
 		}
 	}
 }
@@ -3935,18 +3883,11 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	 *      brush coord/pressure/etc.
 	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 *      changing events. We should avoid this after events system re-design */
-	if (paint_supports_dynamic_size(brush) || cache->first_time) {
+	if (paint_supports_dynamic_size(brush, PAINT_SCULPT) || cache->first_time) {
 		cache->pressure = RNA_float_get(ptr, "pressure");
 	}
 
 	/* Truly temporary data that isn't stored in properties */
-
-	ups->draw_pressure =  1;
-	ups->pressure_value = cache->pressure;
-
-	cache->previous_pixel_radius = cache->pixel_radius;
-	cache->pixel_radius = BKE_brush_size_get(scene, brush);
-
 	if (cache->first_time) {
 		if (!BKE_brush_use_locked_size(scene, brush)) {
 			cache->initial_radius = paint_calc_object_space_radius(cache->vc,
@@ -3959,8 +3900,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		}
 	}
 
-	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush)) {
-		cache->pixel_radius *= cache->pressure;
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, PAINT_SCULPT)) {
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
 	else {
@@ -3969,77 +3909,25 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 	cache->radius_squared = cache->radius * cache->radius;
 
-	if (!(brush->flag & BRUSH_ANCHORED ||
-	      ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
-	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
-	{
-		copy_v2_v2(cache->tex_mouse, cache->mouse);
-
-		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
-		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
-		    !(brush->flag & BRUSH_RAKE))
-		{
-			cache->special_rotation = 2.0f * (float)M_PI * BLI_frand();
-		}
-	}
-
 	if (brush->flag & BRUSH_ANCHORED) {
-		int hit = 0;
-
-		const float dx = cache->mouse[0] - cache->initial_mouse[0];
-		const float dy = cache->mouse[1] - cache->initial_mouse[1];
-
-		ups->anchored_size = cache->pixel_radius = sqrt(dx * dx + dy * dy);
-
-		cache->special_rotation = atan2(dx, dy) + M_PI;
-
 		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
 			float halfway[2];
 			float out[3];
-
-			halfway[0] = dx * 0.5f + cache->initial_mouse[0];
-			halfway[1] = dy * 0.5f + cache->initial_mouse[1];
+			halfway[0] = 0.5f * (cache->mouse[0] + cache->initial_mouse[0]);
+			halfway[1] = 0.5f * (cache->mouse[1] + cache->initial_mouse[1]);
 
 			if (sculpt_stroke_get_location(C, out, halfway)) {
-				copy_v3_v3(ups->anchored_location, out);
-				copy_v2_v2(ups->anchored_initial_mouse, halfway);
-				copy_v2_v2(cache->tex_mouse, halfway);
-				copy_v3_v3(cache->true_location, ups->anchored_location);
-				ups->anchored_size /= 2.0f;
-				cache->pixel_radius  /= 2.0f;
-				hit = 1;
+				copy_v3_v3(cache->anchored_location, out);
+				copy_v3_v3(cache->true_location, cache->anchored_location);
 			}
 		}
 
-		if (!hit)
-			copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
-
 		cache->radius = paint_calc_object_space_radius(paint_stroke_view_context(stroke),
 		                                               cache->true_location,
-		                                               cache->pixel_radius);
+		                                               ups->pixel_radius);
 		cache->radius_squared = cache->radius * cache->radius;
 
-		copy_v3_v3(ups->anchored_location, cache->true_location);
-
-		ups->draw_anchored = 1;
-	}
-	else if (brush->flag & BRUSH_RAKE) {
-		const float u = 0.5f;
-		const float v = 1 - u;
-		const float r = 20;
-
-		const float dx = cache->last_rake[0] - cache->mouse[0];
-		const float dy = cache->last_rake[1] - cache->mouse[1];
-
-		if (cache->first_time) {
-			copy_v2_v2(cache->last_rake, cache->mouse);
-		}
-		else if (dx * dx + dy * dy >= r * r) {
-			cache->special_rotation = atan2(dx, dy);
-
-			cache->last_rake[0] = u * cache->last_rake[0] + v * cache->mouse[0];
-			cache->last_rake[1] = u * cache->last_rake[1] + v * cache->mouse[1];
-		}
+		copy_v3_v3(cache->anchored_location, cache->true_location);
 	}
 
 	sculpt_update_brush_delta(ups, ob, brush);
@@ -4052,11 +3940,11 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 		ups->draw_anchored = 1;
 		copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
-		copy_v3_v3(ups->anchored_location, cache->true_location);
-		ups->anchored_size = cache->pixel_radius;
+		copy_v3_v3(cache->anchored_location, cache->true_location);
+		ups->anchored_size = ups->pixel_radius;
 	}
 
-	ups->special_rotation = cache->special_rotation;
+	cache->special_rotation = ups->brush_rotation;
 }
 
 /* Returns true if any of the smoothing modes are active (currently
@@ -4312,6 +4200,7 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 
 static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
+	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -4323,7 +4212,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
 	                               (ss->cache->radius /
-	                                (float)ss->cache->pixel_radius) *
+	                                (float)ups->pixel_radius) *
 	                               (float)sd->detail_size);
 
 	if (sculpt_stroke_dynamic_topology(ss, brush)) {
@@ -4368,7 +4257,6 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 	/* reset values used to draw brush after completing the stroke */
 	ups->draw_anchored = 0;
 	ups->draw_pressure = 0;
-	ups->special_rotation = 0;
 
 	/* Finished */
 	if (ss->cache) {

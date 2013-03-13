@@ -64,8 +64,9 @@ struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      StrokeUpdateStep update_step, StrokeDone done, int event_type);
 void paint_stroke_data_free(struct wmOperator *op);
 
-bool paint_space_stroke_enabled(struct Brush *br);
-bool paint_supports_dynamic_size(struct Brush *br);
+bool paint_space_stroke_enabled(struct Brush *br, enum PaintMode mode);
+bool paint_supports_dynamic_size(struct Brush *br, enum PaintMode mode);
+bool paint_supports_moving_texture(struct Brush *br, enum PaintMode mode);
 bool paint_supports_jitter(enum PaintMode mode);
 
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);

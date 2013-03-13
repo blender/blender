@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_rand.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -91,6 +92,10 @@ typedef struct PaintStroke {
 	/* event that started stroke, for modal() return */
 	int event_type;
 	
+	bool brush_init;
+	float initial_mouse[2];
+	float cached_pressure;
+
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
@@ -135,6 +140,98 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 
 	return pressure;
 }
+
+#if 1
+/* Initialize the stroke cache variants from operator properties */
+static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
+                                         struct PaintStroke *stroke,
+                                         float mouse[2], float pressure)
+{
+	Scene *scene = CTX_data_scene(C);
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+	/* XXX: Use pressure value from first brush step for brushes which don't
+	 *      support strokes (grab, thumb). They depends on initial state and
+	 *      brush coord/pressure/etc.
+	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
+	 *      changing events. We should avoid this after events system re-design */
+	if (paint_supports_dynamic_size(brush, mode) || !stroke->brush_init) {
+		copy_v2_v2(stroke->initial_mouse, mouse);
+		copy_v2_v2(ups->tex_mouse, mouse);
+		stroke->cached_pressure = pressure;
+	}
+
+	/* Truly temporary data that isn't stored in properties */
+
+	ups->draw_pressure = TRUE;
+	ups->pressure_value = stroke->cached_pressure;
+
+	ups->pixel_radius = BKE_brush_size_get(scene, brush);
+
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, mode)) {
+		ups->pixel_radius *= stroke->cached_pressure;
+	}
+
+	if (!(brush->flag & BRUSH_ANCHORED ||
+	      ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
+	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
+	{
+		copy_v2_v2(ups->tex_mouse, mouse);
+
+		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
+		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
+		    !(brush->flag & BRUSH_RAKE))
+		{
+			ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
+		}
+	}
+
+	if (brush->flag & BRUSH_ANCHORED) {
+		bool hit = false;
+		float halfway[2];
+
+		const float dx = mouse[0] - stroke->initial_mouse[0];
+		const float dy = mouse[1] - stroke->initial_mouse[1];
+
+		ups->anchored_size = ups->pixel_radius = sqrt(dx * dx + dy * dy);
+
+		ups->brush_rotation = atan2(dx, dy) + M_PI;
+
+		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
+			float out[3];
+
+			halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
+			halfway[1] = dy * 0.5f + stroke->initial_mouse[1];
+
+			if (stroke->get_location) {
+				if(stroke->get_location(C, out, halfway)) {
+					hit = true;
+				}
+			} else {
+				hit = true;
+			}
+		}
+		if(hit) {
+			copy_v2_v2(ups->anchored_initial_mouse, halfway);
+			copy_v2_v2(ups->tex_mouse, halfway);
+			ups->anchored_size /= 2.0f;
+			ups->pixel_radius  /= 2.0f;
+		}
+		else
+			copy_v2_v2(ups->anchored_initial_mouse, stroke->initial_mouse);
+
+		ups->draw_anchored = 1;
+	}
+	else if (brush->flag & BRUSH_RAKE) {
+		if (!stroke->brush_init)
+			copy_v2_v2(ups->last_rake, mouse);
+		else
+			paint_calculate_rake_rotation(ups, mouse);
+	}
+
+	stroke->brush_init = TRUE;
+}
+#endif
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, const float mouse_in[2])
@@ -199,6 +296,8 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	else
 		zero_v3(location);
 
+	paint_brush_update(C, brush, mode, stroke, mouse_out, pressure);
+
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
@@ -247,9 +346,11 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const float final_mouse[2])
 {
 	PaintStroke *stroke = op->customdata;
+	PaintMode mode = paintmode_get_active_from_context(C);
+
 	int cnt = 0;
 
-	if (paint_space_stroke_enabled(stroke->brush)) {
+	if (paint_space_stroke_enabled(stroke->brush, mode)) {
 		float mouse[2];
 		float vec[2];
 		float length, scale;
@@ -355,16 +456,41 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
-bool paint_space_stroke_enabled(Brush *br)
+bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 {
-	return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br);
+	return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br, mode);
 }
 
 /* return true if the brush size can change during paint (normally used for pressure) */
-bool paint_supports_dynamic_size(Brush *br)
+bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 {
-	return !(br->flag & BRUSH_ANCHORED) &&
-	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
+	if(br->flag & BRUSH_ANCHORED)
+		return false;
+
+	switch(mode) {
+		case PAINT_SCULPT:
+	       if(ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
+			return false;
+		default:
+			;
+		}
+	return true;
+}
+
+/* return true if the brush size can change during paint (normally used for pressure) */
+bool paint_supports_moving_texture(Brush *br, PaintMode mode)
+{
+	if(br->flag & BRUSH_ANCHORED)
+		return false;
+
+	switch(mode) {
+		case PAINT_SCULPT:
+	       if(ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
+			return false;
+		default:
+			;
+		}
+	return true;
 }
 
 bool paint_supports_jitter(PaintMode mode)
@@ -439,6 +565,7 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Paint *p = paint_get_active_from_context(C);
+	PaintMode mode = paintmode_get_active_from_context(C);
 	PaintStroke *stroke = op->customdata;
 	PaintSample sample_average;
 	float mouse[2];
@@ -489,7 +616,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	{
 		if (stroke->stroke_started) {
 			if (paint_smooth_stroke(stroke, mouse, &sample_average)) {
-				if (paint_space_stroke_enabled(stroke->brush)) {
+				if (paint_space_stroke_enabled(stroke->brush, mode)) {
 					if (!paint_space_stroke(C, op, event, mouse)) {
 						//ED_region_tag_redraw(ar);
 					}
@@ -508,7 +635,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	 * instead of waiting till we have moved the space distance */
 	if (first &&
 	    stroke->stroke_started &&
-	    paint_space_stroke_enabled(stroke->brush) &&
+	    paint_space_stroke_enabled(stroke->brush, mode) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
 	{
