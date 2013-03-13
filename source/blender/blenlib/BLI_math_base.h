@@ -179,7 +179,7 @@
 #include "intern/math_base_inline.c"
 #endif
 
-#ifdef __GNUC__
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
@@ -222,7 +222,7 @@ extern double round(double x);
 
 double double_round(double x, int ndigits);
 
-#ifdef __GNUC__
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop
 #endif
 

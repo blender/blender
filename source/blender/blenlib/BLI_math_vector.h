@@ -42,7 +42,7 @@ extern "C" {
 
 /************************************* Init ***********************************/
 
-#ifdef __GNUC__
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
@@ -266,7 +266,7 @@ void fill_vn_i(int *array_tar, const int size, const int val);
 void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void fill_vn_fl(float *array_tar, const int size, const float val);
 
-#ifdef __GNUC__
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop
 #endif
 

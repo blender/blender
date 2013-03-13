@@ -40,7 +40,7 @@ extern "C" {
 #include "intern/math_geom_inline.c"
 #endif
 
-#ifdef __GNUC__
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
@@ -286,7 +286,7 @@ MINLINE int min_axis_v3(const float vec[3]);
 
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count);
 
-#ifdef __GNUC__
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop
 #endif
 
