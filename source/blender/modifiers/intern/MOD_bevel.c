@@ -160,7 +160,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	}
 
 	BM_mesh_bevel(bm, bmd->value, bmd->res,
-	              vertex_only, bmd->lim_flags & BME_BEVEL_WEIGHT, dvert, vgroup);
+	              vertex_only, bmd->lim_flags & BME_BEVEL_WEIGHT, true,
+	              dvert, vgroup);
 
 	result = CDDM_from_bmesh(bm, TRUE);
 

@@ -375,8 +375,8 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 	}
 }
 
-/* Like offset_meet, but here f1 and f2 must not be NULL and give the
- * planes in which to run the offset lines.
+/* Like offset_meet, but with a mid edge between them that is used
+ * to calculate the planes in which to run the offset lines.
  * They may not meet exactly: the offsets for the edges may be different
  * or both the planes and the lines may be angled so that they can't meet.
  * In that case, pick a close point on emid, which should be the dividing
@@ -384,15 +384,12 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
  * TODO: should have a global 'offset consistency' prepass to adjust offset
  * widths so that all edges have the same offset at both ends. */
 static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
-                                 BMVert *v, BMFace *f1, BMFace *f2, float meetco[3])
+                                 BMVert *v, float meetco[3])
 {
 	float dir1[3], dir2[3], dirmid[3], norm_perp1[3], norm_perp2[3],
 	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3],
 	      f1no[3], f2no[3];
 	int iret;
-
-	BLI_assert(f1 != NULL && f2 != NULL);
-	(void)f1, (void)f2;  /* UNUSED */
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
@@ -692,8 +689,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 				if (e->prev->prev->is_bev) {
 					BLI_assert(e->prev->prev != e); /* see: edgecount 2, selcount 1 case */
 					/* find meet point between e->prev->prev and e and attach e->prev there */
-					offset_in_two_planes(e->prev->prev, e, e->prev, bv->v,
-					                     e->prev->prev->fnext, e->fprev, co);
+					offset_in_two_planes(e->prev->prev, e, e->prev, bv->v, co);
 					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev->prev;
 					v->elast = v->ebev = e;
@@ -2056,6 +2052,51 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	}
 }
 
+/*
+ * Calculate and return an offset that is the lesser of the current
+ * bp.offset and the maximum possible offset before geometry
+ * collisions happen.
+ * Currently this is a quick and dirty estimate of the max
+ * possible: half the minimum edge length of any vertex involved
+ * in a bevel. This is usually conservative.
+ * The correct calculation is quite complicated.
+ * TODO: implement this correctly.
+ */
+static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
+{
+	BMVert *v;
+	BMEdge *e;
+	BMIter v_iter, e_iter;
+	float limited_offset, half_elen;
+	bool vbeveled;
+
+	limited_offset = bp->offset;
+	BM_ITER_MESH(v, &v_iter, bm, BM_VERTS_OF_MESH) {
+		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+			if (bp->vertex_only) {
+				vbeveled = true;
+			}
+			else {
+				vbeveled = false;
+				BM_ITER_ELEM(e, &e_iter, v, BM_EDGES_OF_VERT) {
+					if (BM_elem_flag_test(BM_edge_other_vert(e, v), BM_ELEM_TAG)) {
+						vbeveled = true;
+						break;
+					}
+				}
+			}
+			if (vbeveled) {
+				BM_ITER_ELEM(e, &e_iter, v, BM_EDGES_OF_VERT) {
+					half_elen = 0.5f * BM_edge_calc_length(e);
+					if (half_elen < limited_offset)
+						limited_offset = half_elen;
+				}
+			}
+		}
+	}
+	return limited_offset;
+}
+
 /**
  * - Currently only bevels BM_ELEM_TAG'd verts and edges.
  *
@@ -2063,10 +2104,13 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
  *   the caller needs to ensure this is cleared before calling
  *   if its going to use this face tag.
  *
+ * - If limit_offset is set, adjusts offset down if necessary
+ *   to avoid geometry collisions.
+ *
  * \warning all tagged edges _must_ be manifold.
  */
 void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
-                   const bool vertex_only, const bool use_weights,
+                   const bool vertex_only, const bool use_weights, const bool limit_offset,
                    const struct MDeformVert *dvert, const int vertex_group)
 {
 	BMIter iter;
@@ -2086,6 +2130,9 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
 		bp.vert_hash = BLI_ghash_ptr_new(__func__);
 		bp.mem_arena = BLI_memarena_new((1 << 16), __func__);
 		BLI_memarena_use_calloc(bp.mem_arena);
+
+		if (limit_offset)
+			bp.offset = bevel_limit_offset(bm, &bp);
 
 		/* The analysis of the input vertices and execution additional constructions */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
