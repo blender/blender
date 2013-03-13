@@ -317,8 +317,8 @@ typedef struct {
 /* Initialize a SculptOrigVertData for accessing original vertex data;
  * handles BMesh, mesh, and multires */
 static void sculpt_orig_vert_data_unode_init(SculptOrigVertData *data,
-											 Object *ob,
-											 SculptUndoNode *unode)
+                                             Object *ob,
+                                             SculptUndoNode *unode)
 {
 	SculptSession *ss = ob->sculpt;
 	BMesh *bm = ss->bm;
@@ -339,19 +339,18 @@ static void sculpt_orig_vert_data_unode_init(SculptOrigVertData *data,
 /* Initialize a SculptOrigVertData for accessing original vertex data;
  * handles BMesh, mesh, and multires */
 static void sculpt_orig_vert_data_init(SculptOrigVertData *data,
-									   Object *ob,
-									   PBVHNode *node)
+                                       Object *ob,
+                                       PBVHNode *node)
 {
 	SculptUndoNode *unode;
 	unode = sculpt_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
 	sculpt_orig_vert_data_unode_init(data, ob, unode);
-									 
 }
 
 /* Update a SculptOrigVertData for a particular vertex from the PBVH
  * iterator */
 static void sculpt_orig_vert_data_update(SculptOrigVertData *orig_data,
-										 PBVHVertexIter *iter)
+                                         PBVHVertexIter *iter)
 {
 	if (orig_data->unode->type == SCULPT_UNDO_COORDS) {
 		if (orig_data->coords) {
@@ -388,30 +387,30 @@ static void sculpt_orig_vert_data_update(SculptOrigVertData *orig_data,
    Others, like smooth, are better without. Same goes for alt-
    key smoothing. */
 static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
-										  const Brush *brush)
+                                          const Brush *brush)
 {
 	return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
 
-			(!ss->cache || (!ss->cache->alt_smooth)) &&
+	        (!ss->cache || (!ss->cache->alt_smooth)) &&
 
-			/* Requires mesh restore, which doesn't work with
-			 * dynamic-topology */
-			!(brush->flag & BRUSH_ANCHORED) &&
-			!(brush->flag & BRUSH_RESTORE_MESH) &&
+	        /* Requires mesh restore, which doesn't work with
+	         * dynamic-topology */
+	        !(brush->flag & BRUSH_ANCHORED) &&
+	        !(brush->flag & BRUSH_RESTORE_MESH) &&
+        
+	        (!ELEM6(brush->sculpt_tool,
+	                /* These brushes, as currently coded, cannot
+	                 * support dynamic topology */
+	                SCULPT_TOOL_GRAB,
+	                SCULPT_TOOL_ROTATE,
+	                SCULPT_TOOL_THUMB,
+	                SCULPT_TOOL_LAYER,
 
-			(!ELEM6(brush->sculpt_tool,
-					/* These brushes, as currently coded, cannot
-					 * support dynamic topology */
-					SCULPT_TOOL_GRAB,
-					SCULPT_TOOL_ROTATE,
-					SCULPT_TOOL_THUMB,
-					SCULPT_TOOL_LAYER,
-
-					/* These brushes could handle dynamic topology,
-					 * but user feedback indicates it's better not
-					 * to */
-					SCULPT_TOOL_SMOOTH,
-					SCULPT_TOOL_MASK)));
+	                /* These brushes could handle dynamic topology,
+	                 * but user feedback indicates it's better not
+	                 * to */
+	                SCULPT_TOOL_SMOOTH,
+	                SCULPT_TOOL_MASK)));
 }
 
 /*** paint mesh ***/
@@ -440,7 +439,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 	for (n = 0; n < totnode; n++) {
 		SculptUndoNode *unode;
 		SculptUndoType type = (brush->sculpt_tool == SCULPT_TOOL_MASK ?
-							   SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
+		                       SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
 
 		if (ss->bm) {
 			unode = sculpt_undo_push_node(ob, nodes[n], type);
@@ -972,7 +971,8 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			avg = paint_get_tex_pixel(br, x, y, ss->tex_pool);
 
 			avg += br->texture_sample_bias;
-		} else {
+		}
+		else {
 			avg = BKE_brush_sample_tex_3D(scene, br, point_2d, rgba, ss->tex_pool);
 		}
 	}

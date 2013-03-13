@@ -516,9 +516,9 @@ void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco
 
 /* Return a multiplier for brush strength on a particular vertex. */
 float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
-                          const float point[3],
-						  float rgba[3],
-                          struct ImagePool *pool)
+                              const float point[3],
+                              float rgba[3],
+                              struct ImagePool *pool)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	MTex *mtex = &br->mtex;

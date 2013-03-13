@@ -204,14 +204,15 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 			halfway[1] = dy * 0.5f + stroke->initial_mouse[1];
 
 			if (stroke->get_location) {
-				if(stroke->get_location(C, out, halfway)) {
+				if (stroke->get_location(C, out, halfway)) {
 					hit = true;
 				}
-			} else {
+			}
+			else {
 				hit = true;
 			}
 		}
-		if(hit) {
+		if (hit) {
 			copy_v2_v2(ups->anchored_initial_mouse, halfway);
 			copy_v2_v2(ups->tex_mouse, halfway);
 			ups->anchored_size /= 2.0f;
@@ -464,12 +465,12 @@ bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 /* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 {
-	if(br->flag & BRUSH_ANCHORED)
+	if (br->flag & BRUSH_ANCHORED)
 		return false;
 
-	switch(mode) {
+	switch (mode) {
 		case PAINT_SCULPT:
-	       if(ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
+			if (ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
 			return false;
 		default:
 			;
@@ -480,13 +481,13 @@ bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 /* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_moving_texture(Brush *br, PaintMode mode)
 {
-	if(br->flag & BRUSH_ANCHORED)
+	if (br->flag & BRUSH_ANCHORED)
 		return false;
 
-	switch(mode) {
+	switch (mode) {
 		case PAINT_SCULPT:
-	       if(ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
-			return false;
+			if (ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
+				return false;
 		default:
 			;
 		}

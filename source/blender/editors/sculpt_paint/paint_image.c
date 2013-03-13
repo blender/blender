@@ -103,10 +103,6 @@
 
 #define IMAPAINT_TILE_BITS          6
 #define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
-#define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
-
-#define PROJ_VIEW_DATA_ID "view_data"
-#define PROJ_VIEW_DATA_SIZE (4 * 4 + 4 * 4 + 3) /* viewmat + winmat + clipsta + clipend + is_ortho */
 
 typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
