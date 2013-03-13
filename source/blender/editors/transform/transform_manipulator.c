@@ -1861,8 +1861,15 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_resize", 0), event, op->ptr, NULL, FALSE);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
-			WM_operator_name_call(C, "TRANSFORM_OT_trackball", WM_OP_INVOKE_DEFAULT, op->ptr);
-			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, op->ptr, NULL, FALSE);
+			/* Do not pass op->ptr!!! trackball has no "constraint" properties!
+			 * See [#34621], it's a miracle it did not cause more problems!!! */
+			/* However, we need to copy the "release_confirm" property... */
+			PointerRNA props_ptr;
+			WM_operator_properties_create(&props_ptr, "TRANSFORM_OT_trackball");
+			RNA_boolean_set(&props_ptr, "release_confirm", RNA_boolean_get(op->ptr, "release_confirm"));
+
+			WM_operator_name_call(C, "TRANSFORM_OT_trackball", WM_OP_INVOKE_DEFAULT, &props_ptr);
+			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, NULL, NULL, FALSE);
 		}
 		else if (drawflags & MAN_ROT_C) {
 			switch (drawflags) {
