@@ -526,7 +526,8 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		}
 
 		if (U.themes.first == NULL) {
-			printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", startstr);
+			if (G.debug & G_DEBUG)
+				printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", startstr);
 			success = 0;
 		}
 	}
