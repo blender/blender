@@ -2648,6 +2648,13 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "thickness_clamp", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "offset_clamp");
+	RNA_def_property_range(prop, 0, 100.0);
+	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 4);
+	RNA_def_property_ui_text(prop, "Clamp", "Offset clamp based on geometry scale");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "thickness_vertex_group", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac_vg");
 	RNA_def_property_range(prop, 0.0, 1.0);

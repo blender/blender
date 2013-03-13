@@ -251,7 +251,8 @@ static DerivedMesh *applyModifier(
 	const float ofs_new  = smd->offset + ofs_orig;
 	const float offset_fac_vg = smd->offset_fac_vg;
 	const float offset_fac_vg_inv = 1.0f - smd->offset_fac_vg;
-	const int do_flip = (smd->flag & MOD_SOLIDIFY_FLIP) != 0;
+	const bool do_flip = (smd->flag & MOD_SOLIDIFY_FLIP) != 0;
+	const bool do_clamp = (smd->offset_clamp != 0.0f);
 
 	/* weights */
 	MDeformVert *dvert, *dv = NULL;
@@ -423,6 +424,20 @@ static DerivedMesh *applyModifier(
 		float scalar_short;
 		float scalar_short_vgroup;
 
+		/* for clamping */
+		float *vert_lens = NULL;
+		const float offset    = fabsf(smd->offset) * smd->offset_clamp;
+		const float offset_sq = offset * offset;
+
+		if (do_clamp) {
+			vert_lens = MEM_callocN(sizeof(float) * numVerts, "vert_lens");
+			fill_vn_fl(vert_lens, numVerts, FLT_MAX);
+			for (i = 0; i < numEdges; i++) {
+				const float ed_len = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
+				vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len);
+				vert_lens[medge[i].v2] = min_ff(vert_lens[medge[i].v2], ed_len);
+			}
+		}
 
 		if (ofs_new != 0.0f) {
 			scalar_short = scalar_short_vgroup = ofs_new / 32767.0f;
@@ -434,6 +449,16 @@ static DerivedMesh *applyModifier(
 					else scalar_short_vgroup = defvert_find_weight(dv, defgrp_index);
 					scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
+				}
+				if (do_clamp) {
+					/* always reset becaise we may have set before */
+					if (dv == NULL) {
+						scalar_short_vgroup = scalar_short;
+					}
+					if (vert_lens[i] < offset_sq) {
+						float scalar = sqrtf(vert_lens[i]) / offset;
+						scalar_short_vgroup *= scalar;
+					}
 				}
 				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
@@ -450,8 +475,22 @@ static DerivedMesh *applyModifier(
 					scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
+				if (do_clamp) {
+					/* always reset becaise we may have set before */
+					if (dv == NULL) {
+						scalar_short_vgroup = scalar_short;
+					}
+					if (vert_lens[i] < offset_sq) {
+						float scalar = sqrtf(vert_lens[i]) / offset;
+						scalar_short_vgroup *= scalar;
+					}
+				}
 				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
+		}
+
+		if (do_clamp) {
+			MEM_freeN(vert_lens);
 		}
 	}
 	else {
@@ -538,6 +577,25 @@ static DerivedMesh *applyModifier(
 					vert_angles[i] *= scalar;
 				}
 			}
+		}
+
+		if (do_clamp) {
+			float *vert_lens = MEM_callocN(sizeof(float) * numVerts, "vert_lens");
+			const float offset    = fabsf(smd->offset) * smd->offset_clamp;
+			const float offset_sq = offset * offset;
+			fill_vn_fl(vert_lens, numVerts, FLT_MAX);
+			for (i = 0; i < numEdges; i++) {
+				const float ed_len = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
+				vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len);
+				vert_lens[medge[i].v2] = min_ff(vert_lens[medge[i].v2], ed_len);
+			}
+			for (i = 0; i < numVerts; i++) {
+				if (vert_lens[i] < offset_sq) {
+					float scalar = sqrtf(vert_lens[i]) / offset;
+					vert_angles[i] *= scalar;
+				}
+			}
+			MEM_freeN(vert_lens);
 		}
 
 		if (ofs_new) {
