@@ -539,7 +539,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		float point_2d[2] = {point[0], point[1]};
 		float x = 0.0f, y = 0.0f; /* Quite warnings */
 		float radius = 1.0f; /* Quite warnings */
-		float co[2];
+		float co[3];
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* keep coordinates relative to mouse */

@@ -2229,7 +2229,7 @@ static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], shor
 /* ****** Mouse Select ****** */
 
 
-static int view3d_select_invoke(bContext *C, wmOperator *op, const const wmEvent *event)
+static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
