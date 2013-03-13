@@ -532,7 +532,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		/* Get strength by feeding the vertex
 		 * location directly into a texture */
 		hasrgb = externtex(mtex, point, &intensity,
-		          rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
 	}
 	else {
 		float rotation = -mtex->rot;
@@ -587,7 +587,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		co[2] = 0.0f;
 
 		hasrgb = externtex(mtex, co, &intensity,
-		          rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
 	}
 
 	intensity += br->texture_sample_bias;

@@ -973,7 +973,8 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			avg += br->texture_sample_bias;
 		}
 		else {
-			avg = BKE_brush_sample_tex_3D(scene, br, point_2d, rgba, ss->tex_pool);
+			const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
+			avg = BKE_brush_sample_tex_3D(scene, br, point_3d, rgba, ss->tex_pool);
 		}
 	}
 

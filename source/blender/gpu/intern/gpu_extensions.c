@@ -1128,7 +1128,7 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 	fprintf(stderr, "%s\n", log);
 }
 
-static const char *gpu_shader_standard_defines()
+static const char *gpu_shader_standard_defines(void)
 {
 	/* some useful defines to detect GPU type */
 	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))

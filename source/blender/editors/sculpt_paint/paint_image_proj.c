@@ -3902,10 +3902,13 @@ static void *do_projectpaint_thread(void *ph_v)
 							sub_v2_v2v2(samplecos, projPixel->projCoSS, pos);
 						}
 						/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
-						else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D)
+						else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
 							copy_v3_v3(samplecos, projPixel->worldCoSS);
-						else
-							copy_v3_v3(samplecos, projPixel->projCoSS);
+						}
+						else {
+							copy_v2_v2(samplecos, projPixel->projCoSS);
+							samplecos[2] = 0.0f;
+						}
 					}
 
 					if (falloff > 0.0f) {

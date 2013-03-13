@@ -145,7 +145,7 @@ static void restrictbutton_recursive_ebone(bContext *C, EditBone *ebone_parent, 
 				ebone->flag |= flag;
 			}
 			else {
-					ebone->flag &= ~flag;
+				ebone->flag &= ~flag;
 			}
 		}
 	}
@@ -160,7 +160,7 @@ static void restrictbutton_recursive_bone(bContext *C, bArmature *arm, Bone *bon
 			bone->flag |= flag;
 		}
 		else {
-				bone->flag &= ~flag;
+			bone->flag &= ~flag;
 		}
 		restrictbutton_recursive_bone(C, arm, bone, flag, set_flag);
 	}
