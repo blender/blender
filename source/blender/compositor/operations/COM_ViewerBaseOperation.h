@@ -25,6 +25,7 @@
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
 #include "BLI_rect.h"
+#include "BKE_global.h"
 
 class ViewerBaseOperation : public NodeOperation {
 protected:
@@ -45,7 +46,7 @@ protected:
 	const ColorManagedDisplaySettings *m_displaySettings;
 
 public:
-	bool isOutputOperation(bool rendering) const { return isActiveViewerOutput(); }
+	bool isOutputOperation(bool rendering) const { if (G.background) return false; return isActiveViewerOutput(); }
 	void initExecution();
 	void deinitExecution();
 	void setImage(Image *image) { this->m_image = image; }

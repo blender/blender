@@ -26,6 +26,7 @@
 #include "DNA_image_types.h"
 #include "DNA_color_types.h"
 #include "BLI_rect.h"
+#include "BKE_global.h"
 
 class PreviewOperation : public NodeOperation {
 protected:
@@ -42,7 +43,7 @@ protected:
 	const ColorManagedDisplaySettings *m_displaySettings;
 public:
 	PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
-	bool isOutputOperation(bool rendering) const { return true; }
+	bool isOutputOperation(bool rendering) const { return !G.background; }
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const;
