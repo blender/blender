@@ -6483,16 +6483,16 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		char c[NUM_STR_REP_LEN];
 		applyNumInput(&t->num, &final);
 		outputNumInput(&(t->num), c);
-		ofs += BLI_snprintf(str, MAX_INFO_LEN - ofs, "%s", &c[0]);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%s", &c[0]);
 	}
 	else {
-		ofs += BLI_snprintf(str, MAX_INFO_LEN - ofs, "%.4f ", final);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%.4f ", final);
 	}
-	ofs += BLI_snprintf(str, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), !is_proportional ? on_str : off_str);
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), !is_proportional ? on_str : off_str);
 	if (!is_proportional) {
-		ofs += BLI_snprintf(str, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), flipped ? on_str : off_str);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), flipped ? on_str : off_str);
 	}
-	ofs += BLI_snprintf(str, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), is_clamp ? on_str : off_str);
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), is_clamp ? on_str : off_str);
 	/* done with header string */
 
 	/*do stuff here*/
