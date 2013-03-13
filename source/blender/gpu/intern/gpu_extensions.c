@@ -1128,6 +1128,19 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 	fprintf(stderr, "%s\n", log);
 }
 
+static const char *gpu_shader_standard_defines()
+{
+	/* some useful defines to detect GPU type */
+	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
+		return "#define GPU_ATI\n";
+	else if(GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
+		return "#define GPU_NVIDIA\n";
+	else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
+		return "#define GPU_INTEL\n";
+	
+	return "";
+}
+
 GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *libcode, const char *defines)
 {
 	GLint status;
@@ -1156,8 +1169,10 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	}
 
 	if (vertexcode) {
-		const char *source[2];
+		const char *source[3];
 		int num_source = 0;
+
+		source[num_source++] = gpu_shader_standard_defines();
 
 		if (defines) source[num_source++] = defines;
 		if (vertexcode) source[num_source++] = vertexcode;
@@ -1178,8 +1193,10 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	}
 
 	if (fragcode) {
-		const char *source[3];
+		const char *source[4];
 		int num_source = 0;
+
+		source[num_source++] = gpu_shader_standard_defines();
 
 		if (defines) source[num_source++] = defines;
 		if (libcode) source[num_source++] = libcode;
