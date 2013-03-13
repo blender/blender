@@ -6302,7 +6302,7 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 {
 	uiHandleButtonData *data = but->active;
-	const uiButtonActivateType state_orig = data->state;
+	const uiHandleButtonState state_orig = data->state;
 	uiBlock *block;
 	ARegion *ar;
 	int retval;
@@ -6474,9 +6474,9 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			 * This is needed to make sure if a button was active,
 			 * it stays active while the mouse is over it.
 			 * This avoids adding mousemoves, see: [#33466] */
-			if (ELEM(state_orig, BUTTON_ACTIVATE, BUTTON_ACTIVATE_OVER)) {
+			if (ELEM(state_orig, BUTTON_STATE_INIT, BUTTON_STATE_HIGHLIGHT)) {
 				if (ui_but_find_mouse_over(ar, event->x, event->y) == but) {
-					button_activate_init(C, ar, but, state_orig);
+					button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 				}
 			}
 		}
