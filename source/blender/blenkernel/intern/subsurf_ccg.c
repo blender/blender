@@ -3304,8 +3304,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		faceFlags->mat_nr = mpoly ? mpoly[origIndex].mat_nr : 0;
 		faceFlags++;
 
-		origIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
-
 		/* set the face base vert */
 		*((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
@@ -3413,7 +3411,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 						faceOrigIndex++;
 					}
 					if (polyOrigIndex) {
-						*polyOrigIndex = origIndex;
+						*polyOrigIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
 						polyOrigIndex++;
 					}
 
