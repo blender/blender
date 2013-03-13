@@ -1911,7 +1911,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static int stitch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int stitch_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (!stitch_init(C, op))
@@ -2001,7 +2001,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static void stitch_select(bContext *C, Scene *scene, wmEvent *event, StitchState *state)
+static void stitch_select(bContext *C, Scene *scene, const wmEvent *event, StitchState *state)
 {
 	/* add uv under mouse to processed uv's */
 	float co[2];
@@ -2035,7 +2035,7 @@ static void stitch_select(bContext *C, Scene *scene, wmEvent *event, StitchState
 	}
 }
 
-static int stitch_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	StitchState *state;
 	Scene *scene = CTX_data_scene(C);

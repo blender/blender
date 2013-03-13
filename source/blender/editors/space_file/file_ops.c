@@ -228,7 +228,7 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	return retval;
 }
 
-static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -311,7 +311,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, 1);
 }
 
-static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -585,7 +585,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	return (params->active_file != origfile);
 }
 
-static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -950,7 +950,7 @@ int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 
 
 /* only meant for timer usage */
-static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -1190,7 +1190,7 @@ static void file_expand_directory(bContext *C)
 	}
 }
 
-static int file_directory_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int file_directory_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 

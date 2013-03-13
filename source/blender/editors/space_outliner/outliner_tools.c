@@ -1266,7 +1266,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 
 
 static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
-                                       TreeElement *te, wmEvent *event, const float mval[2])
+                                       TreeElement *te, const wmEvent *event, const float mval[2])
 {
 	ReportList *reports = CTX_wm_reports(C); // XXX...
 	
@@ -1336,7 +1336,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 }
 
 
-static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);

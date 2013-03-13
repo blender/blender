@@ -62,7 +62,7 @@
 
 /********************** toolbox operator *********************/
 
-static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	bScreen *sc = CTX_wm_screen(C);
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
@@ -165,7 +165,7 @@ static int file_browse_cancel(bContext *UNUSED(C), wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;

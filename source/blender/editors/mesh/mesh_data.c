@@ -571,7 +571,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);

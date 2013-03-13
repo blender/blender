@@ -445,7 +445,7 @@ static void paint_redraw(const bContext *C, PaintOperation *pop, int final)
 	}
 }
 
-static PaintOperation * texture_paint_init(bContext *C, wmOperator *op, wmEvent *event)
+static PaintOperation * texture_paint_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
@@ -572,7 +572,7 @@ static int paint_stroke_test_start(bContext *UNUSED(C), wmOperator *UNUSED(op), 
 }
 
 
-static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	PaintOperation *pop;
 	struct PaintStroke *stroke;
@@ -774,7 +774,7 @@ static int grab_clone_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int grab_clone_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int grab_clone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Brush *brush = image_paint_brush(C);
 	GrabClone *cmv;
@@ -790,7 +790,7 @@ static int grab_clone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int grab_clone_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Brush *brush = image_paint_brush(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -865,7 +865,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sample_color_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RNA_int_set_array(op->ptr, "location", event->mval);
 	sample_color_exec(C, op);
@@ -875,7 +875,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_color_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case LEFTMOUSE:
@@ -945,7 +945,7 @@ static int set_clone_cursor_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int set_clone_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);

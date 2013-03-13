@@ -165,7 +165,7 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -212,7 +212,7 @@ static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int delete_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return delete_orientation_exec(C, op);
 }
@@ -268,7 +268,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int create_orientation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return create_orientation_exec(C, op);
 }
@@ -300,7 +300,7 @@ static void transformops_exit(bContext *C, wmOperator *op)
 	G.moving = 0;
 }
 
-static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
+static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval = 1;
 	if (op->customdata == NULL) {
@@ -334,7 +334,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 	return retval; /* return 0 on error */
 }
 
-static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int exit_code;
 
@@ -401,7 +401,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!transformops_data(C, op, event)) {
 		G.moving = 0;

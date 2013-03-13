@@ -248,7 +248,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 	return wm_macro_end(op, retval);
 }
 
-static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
+static int wm_macro_invoke_internal(bContext *C, wmOperator *op, const wmEvent *event, wmOperator *opm)
 {
 	int retval = OPERATOR_FINISHED;
 
@@ -275,13 +275,13 @@ static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event,
 	return wm_macro_end(op, retval);
 }
 
-static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_macro_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wm_macro_start(op);
 	return wm_macro_invoke_internal(C, op, event, op->macro.first);
 }
 
-static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmOperator *opm = op->opm;
 	int retval = OPERATOR_FINISHED;
@@ -875,7 +875,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 
 /* ************ default op callbacks, exported *********** */
 
-int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *UNUSED(event))
+int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -905,7 +905,7 @@ int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op
 }
 
 /* invoke callback, uses enum property named "type" */
-int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	PropertyRNA *prop = op->type->prop;
 	uiPopupMenu *pup;
@@ -1024,7 +1024,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 }
 
 
-int WM_enum_search_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPupBlock(C, wm_enum_search_menu, op);
 	return OPERATOR_CANCELLED;
@@ -1051,13 +1051,13 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 }
 
 
-int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return WM_operator_confirm_message(C, op, NULL);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
-int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op); /* call exec direct */
@@ -1475,12 +1475,12 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
  * This way - the button values correspond to the result of the operator.
  * Without this, first access to a button will make the result jump,
  * see [#32452] */
-int WM_operator_props_popup_call(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return wm_operator_props_popup_ex(C, op, TRUE);
 }
 
-int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return wm_operator_props_popup_ex(C, op, FALSE);
 }
@@ -1529,7 +1529,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_debug_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	RNA_int_set(op->ptr, "debug_value", G.debug_value);
 	return WM_operator_props_dialog_popup(C, op, 9 * UI_UNIT_X, UI_UNIT_Y);
@@ -1742,7 +1742,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	return block;
 }
 
-static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	uiPupBlock(C, wm_block_create_splash, NULL);
 	
@@ -1796,7 +1796,7 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPupBlock(C, wm_block_search_menu, op);
 	
@@ -1944,7 +1944,7 @@ static void open_set_use_scripts(wmOperator *op)
 	}
 }
 
-static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	const char *openname = G.main->name;
 
@@ -2034,7 +2034,7 @@ static int wm_link_append_poll(bContext *C)
 	return 0;
 }
 
-static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op);
@@ -2289,7 +2289,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char filename[FILE_MAX];
 
@@ -2338,7 +2338,7 @@ static void save_set_compress(wmOperator *op)
 	}
 }
 
-static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char name[FILE_MAX];
 
@@ -2444,7 +2444,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
 /* *************** save file directly ******** */
 
-static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char name[FILE_MAX];
 	int ret;
@@ -2650,7 +2650,7 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 		WM_cursor_restore(CTX_wm_window(C));
 }
 
-int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (ISTWEAK(event->type))
 		op->customdata = WM_gesture_new(C, event, WM_GESTURE_RECT);
@@ -2665,7 +2665,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -2734,7 +2734,7 @@ int WM_border_select_cancel(bContext *C, wmOperator *op)
 int circle_select_size = 25; /* XXX - need some operator memory thing! */
 #endif
 
-int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
 	
@@ -2769,7 +2769,7 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 #endif
 }
 
-int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -2865,7 +2865,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 
 /* **************** Tweak gesture *************** */
 
-static void tweak_gesture_modal(bContext *C, wmEvent *event)
+static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 {
 	wmWindow *window = CTX_wm_window(C);
 	wmGesture *gesture = window->tweak;
@@ -2907,7 +2907,9 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 				WM_gesture_end(C, gesture);
 
 				/* when tweak fails we should give the other keymap entries a chance */
-				event->val = KM_RELEASE;
+
+				/* XXX, assigning to readonly, BAD JUJU! */
+				((wmEvent *)event)->val = KM_RELEASE;
 			}
 			break;
 		default:
@@ -2943,7 +2945,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 
 /* *********************** lasso gesture ****************** */
 
-int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_LASSO);
 	
@@ -2958,7 +2960,7 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_lines_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_LINES);
 	
@@ -3000,7 +3002,7 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 	}
 }
 
-int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	int sx, sy;
@@ -3056,7 +3058,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_lines_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lines_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	return WM_gesture_lasso_modal(C, op, event);
 }
@@ -3175,7 +3177,7 @@ static int straightline_apply(bContext *C, wmOperator *op)
 }
 
 
-int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_STRAIGHTLINE);
 	
@@ -3190,7 +3192,7 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -3282,7 +3284,7 @@ typedef struct {
 	void *cursor;
 } RadialControl;
 
-static void radial_control_set_initial_mouse(RadialControl *rc, wmEvent *event)
+static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
 {
 	float d[2] = {0, 0};
 	float zoom[2] = {1, 1};
@@ -3598,7 +3600,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static int radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmWindowManager *wm;
 	RadialControl *rc;
@@ -3695,7 +3697,7 @@ static int radial_control_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
 	float new_value, dist, zoom[2];

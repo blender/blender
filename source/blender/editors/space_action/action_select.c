@@ -872,7 +872,7 @@ static int actkeys_select_leftright_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	short leftright = RNA_enum_get(op->ptr, "mode");
@@ -1223,7 +1223,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 }
 
 /* handle clicking */
-static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	/* ARegion *ar; */ /* UNUSED */

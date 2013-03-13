@@ -127,7 +127,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int dopesheet_select_channel_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int dopesheet_select_channel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	float location[2];

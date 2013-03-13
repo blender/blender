@@ -2944,7 +2944,7 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 	}
 }
 
-static void knifetool_update_mval(KnifeTool_OpData *kcd, int mval_i[2])
+static void knifetool_update_mval(KnifeTool_OpData *kcd, const int mval_i[2])
 {
 	knife_recalc_projmat(kcd);
 	kcd->vc.mval[0] = mval_i[0];
@@ -3034,7 +3034,7 @@ static int knifetool_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	KnifeTool_OpData *kcd;
 
@@ -3048,7 +3048,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	WM_event_add_modal_handler(C, op);
 
 	kcd = op->customdata;
-	knifetool_update_mval(kcd, evt->mval);
+	knifetool_update_mval(kcd, event->mval);
 
 	knife_update_header(C, kcd);
 
@@ -3119,7 +3119,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	return keymap;
 }
 
-static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	KnifeTool_OpData *kcd = op->customdata;

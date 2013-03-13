@@ -163,7 +163,7 @@ void applyNumInput(NumInput *n, float *vec)
 	}
 }
 
-char handleNumInput(NumInput *n, wmEvent *event)
+char handleNumInput(NumInput *n, const wmEvent *event)
 {
 	float Val = 0;
 	short idx = n->idx, idx_max = n->idx_max;

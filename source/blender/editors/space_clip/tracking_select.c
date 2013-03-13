@@ -290,7 +290,7 @@ static int select_exec(bContext *C, wmOperator *op)
 	return mouse_select(C, co, extend);
 }
 
-static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);

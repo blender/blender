@@ -465,7 +465,7 @@ static void render_drawlock(void *UNUSED(rjv), int lock)
 }
 
 /* catch esc */
-static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_render_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = (Scene *) op->customdata;
 
@@ -484,7 +484,7 @@ static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* using context, starts job */
-static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* new render clears all callbacks */
 	Main *mainp;

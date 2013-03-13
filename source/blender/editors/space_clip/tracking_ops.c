@@ -124,7 +124,7 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int add_marker_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -282,7 +282,7 @@ static void slide_marker_tilt_slider(MovieTrackingMarker *marker, float slider[2
 }
 
 static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
-                                                 MovieTrackingMarker *marker, wmEvent *event,
+                                                 MovieTrackingMarker *marker, const wmEvent *event,
                                                  int area, int corner, int action, int width, int height)
 {
 	SlideMarkerData *data = MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
@@ -524,7 +524,7 @@ static void show_cursor(bContext *C)
 	WM_cursor_set(win, CURSOR_STD);
 }
 
-MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int *area_r, int *action_r, int *corner_r)
+MovieTrackingTrack *tracking_marker_check_slide(bContext *C, const wmEvent *event, int *area_r, int *action_r, int *corner_r)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -623,7 +623,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 	return NULL;
 }
 
-static void *slide_marker_customdata(bContext *C, wmEvent *event)
+static void *slide_marker_customdata(bContext *C, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -652,7 +652,7 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 	return customdata;
 }
 
-static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int slide_marker_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SlideMarkerData *slidedata = slide_marker_customdata(C, event);
 
@@ -703,7 +703,7 @@ static void free_slide_data(SlideMarkerData *data)
 	MEM_freeN(data);
 }
 
-static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1228,7 +1228,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	TrackMarkersJob *tmj;
 	ScrArea *sa = CTX_wm_area(C);
@@ -1286,7 +1286,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	/* no running tracking, remove handler and pass through */
 	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY))
@@ -1457,7 +1457,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SolveCameraJob *scj;
 	ScrArea *sa = CTX_wm_area(C);
@@ -1507,7 +1507,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	/* no running solver, remove handler and pass through */
 	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY))
@@ -2334,7 +2334,7 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 	return do_set_scale(C, op, 0);
 }
 
-static int set_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int set_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -2390,7 +2390,7 @@ static int set_solution_scale_exec(bContext *C, wmOperator *op)
 	return do_set_scale(C, op, 1);
 }
 
-static int set_solution_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int set_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -3295,7 +3295,7 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int clean_tracks_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);

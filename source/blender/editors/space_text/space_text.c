@@ -458,7 +458,7 @@ static void text_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 
 /* ************* dropboxes ************* */
 
-static int text_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+static int text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_PATH)
 		if (ELEM(drag->icon, ICON_FILE_SCRIPT, ICON_FILE_BLANK))    /* rule might not work? */

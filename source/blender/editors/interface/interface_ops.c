@@ -239,7 +239,7 @@ static void eyedropper_color_sample_accum(bContext *C, Eyedropper *eye, int mx, 
 }
 
 /* main modal status check */
-static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Eyedropper *eye = (Eyedropper *)op->customdata;
 	
@@ -285,7 +285,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	/* init */
 	if (eyedropper_init(C, op)) {

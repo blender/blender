@@ -408,7 +408,7 @@ static void calctrackballvec(const rcti *rect, int mx, int my, float vec[3])
 }
 
 
-static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
+static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	static float lastofs[3] = {0, 0, 0};
 	RegionView3D *rv3d;
@@ -841,7 +841,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	ED_region_tag_redraw(vod->ar);
 }
 
-static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod = op->customdata;
 	short event_code = VIEW_PASS;
@@ -890,7 +890,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 	RegionView3D *rv3d;
@@ -1097,7 +1097,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
  * -- zooming
  * -- panning in rotationally-locked views
  */
-static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
 	if (event->type != NDOF_MOTION)
@@ -1179,7 +1179,7 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 }
 
 
-static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
 	if (event->type != NDOF_MOTION)
@@ -1277,7 +1277,7 @@ void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
 /* -- "pan" navigation
  * -- zoom or dolly?
  */
-static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
@@ -1371,7 +1371,7 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 /*
  * this is basically just the pan only code + the rotate only code crammed into one function that does both
  */
-static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
@@ -1530,7 +1530,7 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 }
 
 
-static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 
 	ViewOpsData *vod = op->customdata;
@@ -1573,7 +1573,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 
@@ -1794,7 +1794,7 @@ static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const sho
 }
 
 
-static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod = op->customdata;
 	short event_code = VIEW_PASS;
@@ -1939,7 +1939,7 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 }
 
 /* viewdolly_invoke() copied this function, changes here may apply there */
-static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 
@@ -2059,7 +2059,7 @@ static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_inv
 }
 
 
-static int viewdolly_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod = op->customdata;
 	short event_code = VIEW_PASS;
@@ -2151,7 +2151,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 }
 
 /* copied from viewzoom_invoke(), changes here may apply there */
-static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 
@@ -3009,7 +3009,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -3521,7 +3521,7 @@ static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	Image *ima = NULL;
@@ -3676,7 +3676,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_clipping_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_clipping_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -3771,7 +3771,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 
 }
 
-static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -3810,7 +3810,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 /* ***************** manipulator op ******************* */
 
 
-static int manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int manipulator_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -3846,7 +3846,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 	Transform_Properties(ot, P_CONSTRAINT);
 }
 
-static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int enable_manipulator_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 

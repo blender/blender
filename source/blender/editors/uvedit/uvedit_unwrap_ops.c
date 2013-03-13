@@ -654,7 +654,7 @@ static int minimize_stretch_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int minimize_stretch_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	MinStretch *ms;
 
@@ -670,7 +670,7 @@ static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int minimize_stretch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	MinStretch *ms = op->customdata;
 

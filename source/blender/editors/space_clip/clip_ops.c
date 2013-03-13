@@ -113,7 +113,7 @@ static void sclip_zoom_set_factor(const bContext *C, float zoomfac, float locati
 	sclip_zoom_set(C, sc->zoom * zoomfac, location);
 }
 
-static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor)
+static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float factor)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -230,7 +230,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	char path[FILE_MAX];
@@ -318,7 +318,7 @@ typedef struct ViewPanData {
 	float *vec;
 } ViewPanData;
 
-static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
+static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewPanData *vpd;
@@ -377,7 +377,7 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type == MOUSEPAN) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
@@ -399,7 +399,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewPanData *vpd = op->customdata;
@@ -471,7 +471,7 @@ typedef struct ViewZoomData {
 	float location[2];
 } ViewZoomData;
 
-static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
+static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -514,7 +514,7 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		float delta, factor;
@@ -538,7 +538,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewZoomData *vpd = op->customdata;
 	float delta, factor;
@@ -611,7 +611,7 @@ static int view_zoom_in_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_in_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -654,7 +654,7 @@ static int view_zoom_out_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_out_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -844,7 +844,7 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int frame_from_event(bContext *C, wmEvent *event)
+static int frame_from_event(bContext *C, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -866,7 +866,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 	return framenr;
 }
 
-static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -885,7 +885,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case ESCKEY:
@@ -1134,7 +1134,7 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
  * that explains the negative signs in the code below
  */
 
-static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;

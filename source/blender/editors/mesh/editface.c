@@ -294,7 +294,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	MEM_freeN(linkflag);
 }
 
-void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]), int mode)
+void paintface_select_linked(bContext *UNUSED(C), Object *ob, const int UNUSED(mval[2]), int mode)
 {
 	Mesh *me;
 	unsigned int index = 0;

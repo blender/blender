@@ -286,7 +286,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 /********************** Make Proxy Operator *************************/
 
 /* set the object to proxify */
-static int make_proxy_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
@@ -299,7 +299,7 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	if (ob->dup_group && ob->dup_group->id.lib) {
 		/* gives menu with list of objects in group */
 		//proxy_group_objects_menu(C, op, ob, ob->dup_group);
-		WM_enum_search_invoke(C, op, evt);
+		WM_enum_search_invoke(C, op, event);
 		return OPERATOR_CANCELLED;
 
 	}
@@ -799,7 +799,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 }
 
 
-static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	Object *ob = ED_object_active_context(C);
 	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
@@ -1229,7 +1229,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	return lay;
 }
 
-static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d && v3d->localvd) {
@@ -2133,7 +2133,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
 }
 
-static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;

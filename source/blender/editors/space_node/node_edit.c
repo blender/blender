@@ -837,7 +837,7 @@ typedef struct NodeSizeWidget {
 	int directions;
 } NodeSizeWidget;
 
-static void node_resize_init(bContext *C, wmOperator *op, wmEvent *UNUSED(event), bNode *node, int dir)
+static void node_resize_init(bContext *C, wmOperator *op, const wmEvent *UNUSED(event), bNode *node, int dir)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
@@ -870,7 +870,7 @@ static void node_resize_exit(bContext *C, wmOperator *op, int UNUSED(cancel))
 	op->customdata = NULL;
 }
 
-static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -973,7 +973,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2140,7 +2140,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);

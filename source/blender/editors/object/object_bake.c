@@ -698,7 +698,7 @@ static void bake_freejob(void *bkv)
 }
 
 /* catch esc */
-static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
 	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE_TEXTURE))
@@ -721,7 +721,7 @@ static int is_multires_bake(Scene *scene)
 	return 0;
 }
 
-static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(_event))
+static int objects_bake_render_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(_event))
 {
 	Scene *scene = CTX_data_scene(C);
 	int result = OPERATOR_CANCELLED;

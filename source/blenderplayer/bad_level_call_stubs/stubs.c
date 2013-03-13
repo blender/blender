@@ -196,7 +196,7 @@ void WM_menutype_free(void) {}
 void WM_menutype_freelink(struct MenuType *mt) {}
 int WM_menutype_add(struct MenuType *mt) {return 0;}
 int WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width, int height) {return 0;}
-int WM_operator_confirm(struct bContext *C, struct wmOperator *op, struct wmEvent *event) {return 0;}
+int WM_operator_confirm(struct bContext *C, struct wmOperator *op, const struct wmEvent *event) {return 0;}
 struct MenuType *WM_menutype_find(const char *idname, int quiet) {return (struct MenuType *) NULL;}
 void WM_operator_stack_clear(struct bContext *C) {}
 void WM_operator_handlers_clear(struct bContext *C, struct wmOperatorType *ot) {}

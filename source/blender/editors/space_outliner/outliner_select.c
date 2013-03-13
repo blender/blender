@@ -932,7 +932,7 @@ int outliner_item_do_activate(bContext *C, int x, int y, bool extend, bool recur
 }
 
 /* event can enterkey, then it opens/closes */
-static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
+static int outliner_item_activate(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bool extend    = RNA_boolean_get(op->ptr, "extend");
 	bool recursive = RNA_boolean_get(op->ptr, "recursive");

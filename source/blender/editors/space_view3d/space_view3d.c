@@ -469,7 +469,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
-static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
@@ -479,7 +479,7 @@ static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSE
 	return 0;
 }
 
-static int view3d_group_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+static int view3d_group_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
@@ -489,7 +489,7 @@ static int view3d_group_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UN
 	return 0;
 }
 
-static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
@@ -499,7 +499,7 @@ static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUS
 	return 0;
 }
 
-static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
@@ -513,7 +513,7 @@ static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUS
 	return 0;
 }
 
-static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	if (event->ctrl)
 		return false;
@@ -524,7 +524,7 @@ static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 
@@ -535,7 +535,7 @@ static int view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int view3d_ima_mesh_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ima_mesh_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 

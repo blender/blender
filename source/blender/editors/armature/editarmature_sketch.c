@@ -2232,7 +2232,7 @@ void BDR_drawSketch(const bContext *C)
 	}
 }
 
-static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_delete(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch) {
@@ -2329,7 +2329,7 @@ SK_Sketch *viewcontextSketch(ViewContext *vc, int create)
 	return sketch;
 }
 
-static int sketch_convert(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_convert(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2339,7 +2339,7 @@ static int sketch_convert(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 	return OPERATOR_FINISHED;
 }
 
-static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2350,7 +2350,7 @@ static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int sketch_finish(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_finish(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2362,7 +2362,7 @@ static int sketch_finish(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int sketch_select(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int sketch_select(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch) {
@@ -2382,7 +2382,7 @@ static int sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_stroke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
@@ -2408,7 +2408,7 @@ static int sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_gesture(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
@@ -2426,7 +2426,7 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short gesture, SK_Stroke *stk)
+static int sketch_draw_modal(bContext *C, wmOperator *op, const wmEvent *event, short gesture, SK_Stroke *stk)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd = op->customdata;
@@ -2484,19 +2484,19 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 	return retval;
 }
 
-static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	return sketch_draw_modal(C, op, event, 0, sketch->active_stroke);
 }
 
-static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	return sketch_draw_modal(C, op, event, 1, sketch->gesture);
 }
 
-static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_preview(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_Sketch *sketch = contextSketch(C, 0);

@@ -109,7 +109,7 @@ static int graphview_cursor_exec(bContext *C, wmOperator *op)
 /* ... */
 
 /* set the operator properties from the initial event */
-static void graphview_cursor_setprops(bContext *C, wmOperator *op, wmEvent *event)
+static void graphview_cursor_setprops(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	float viewx, viewy;
@@ -128,7 +128,7 @@ static void graphview_cursor_setprops(bContext *C, wmOperator *op, wmEvent *even
 }
 
 /* Modal Operator init */
-static int graphview_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int graphview_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* Change to frame that mouse is over before adding modal handler,
 	 * as user could click on a single frame (jump to frame) as well as
@@ -145,7 +145,7 @@ static int graphview_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal event handling of cursor changing */
-static int graphview_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int graphview_cursor_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* execute the events */
 	switch (event->type) {

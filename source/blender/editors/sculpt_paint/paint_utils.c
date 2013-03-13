@@ -414,7 +414,7 @@ void PAINT_OT_face_select_linked(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int mode = RNA_boolean_get(op->ptr, "extend") ? 1 : 0;
 	paintface_select_linked(C, CTX_data_active_object(C), event->mval, mode);

@@ -705,7 +705,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int envmap_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	//Scene *scene= CTX_data_scene(C);
 	

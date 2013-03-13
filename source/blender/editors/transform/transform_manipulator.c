@@ -1773,7 +1773,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 
 
 /* return 0; nothing happened */
-int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
+int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;

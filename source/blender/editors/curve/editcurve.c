@@ -4437,7 +4437,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4756,7 +4756,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 	return addvert_Nurb(C, 0, location);
 }
 
-static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -4939,7 +4939,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -5042,7 +5042,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return select_linked_exec(C, op);
 }
@@ -5068,7 +5068,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 
 /***************** select linked pick operator ******************/
 
-static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;
@@ -6097,7 +6097,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int delete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int delete_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	uiPopupMenu *pup;

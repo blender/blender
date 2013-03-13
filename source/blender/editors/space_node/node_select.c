@@ -429,7 +429,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
 	RNA_int_set(op->ptr, "mouse_y", event->mval[1]);
@@ -494,7 +494,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int tweak = RNA_boolean_get(op->ptr, "tweak");
 	

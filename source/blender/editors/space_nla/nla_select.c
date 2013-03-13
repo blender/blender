@@ -451,7 +451,7 @@ static int nlaedit_select_leftright_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	short leftright = RNA_enum_get(op->ptr, "mode");
@@ -613,7 +613,7 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 /* ------------------- */
 
 /* handle clicking */
-static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	/* Scene *scene; */ /* UNUSED */

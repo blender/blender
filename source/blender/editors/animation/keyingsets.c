@@ -468,7 +468,7 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 /* Change Active KeyingSet Operator ------------------------ */
 /* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
 
-static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;

@@ -1555,7 +1555,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RNA_int_set_array(op->ptr, "location", event->mval);
 	return select_linked_exec(C, op);
@@ -3759,7 +3759,7 @@ static int brush_edit_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void brush_edit_apply_event(bContext *C, wmOperator *op, wmEvent *event)
+static void brush_edit_apply_event(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	PointerRNA itemptr;
 	float mouse[2];
@@ -3776,7 +3776,7 @@ static void brush_edit_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	brush_edit_apply(C, op, &itemptr);
 }
 
-static int brush_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int brush_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!brush_edit_init(C, op))
 		return OPERATOR_CANCELLED;
@@ -3788,7 +3788,7 @@ static int brush_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int brush_edit_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int brush_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case LEFTMOUSE:

@@ -866,7 +866,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 	}
 }
 
-int transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, const wmEvent *event)
 {
 	float mati[3][3] = MAT3_UNITY;
 	char cmode = constraintModeToChar(t);
@@ -1860,7 +1860,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 }
 
 /* note: caller needs to free 't' on a 0 return */
-int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
+int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
 {
 	int options = 0;
 	PropertyRNA *prop;
@@ -2665,7 +2665,7 @@ void initWarp(TransInfo *t)
 	t->val = (max[0] - min[0]) / 2.0f; /* t->val is X dimension projected boundbox */
 }
 
-int handleEventWarp(TransInfo *t, wmEvent *event)
+int handleEventWarp(TransInfo *t, const wmEvent *event)
 {
 	int status = 0;
 	
@@ -2806,7 +2806,7 @@ void initShear(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 }
 
-int handleEventShear(TransInfo *t, wmEvent *event)
+int handleEventShear(TransInfo *t, const wmEvent *event)
 {
 	int status = 0;
 	
@@ -4511,7 +4511,7 @@ void initBevel(TransInfo *t)
 	}
 }
 
-int handleEventBevel(TransInfo *t, wmEvent *event)
+int handleEventBevel(TransInfo *t, const wmEvent *event)
 {
 	if (event->val == KM_PRESS) {
 		if (!G.editBMesh) return 0;
@@ -5764,7 +5764,7 @@ void initEdgeSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
+int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
 		EdgeSlideData *sld = t->customData;
@@ -6271,7 +6271,7 @@ void initVertSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
+int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_VERT_SLIDE) {
 		VertSlideData *sld = t->customData;

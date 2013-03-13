@@ -250,7 +250,7 @@ static int sensor_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sensor_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sensor_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_sensor_invoke_properties(C, op))
 		return sensor_remove_exec(C, op);
@@ -355,7 +355,7 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int controller_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int controller_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_controller_invoke_properties(C, op))
 		return controller_remove_exec(C, op);
@@ -473,7 +473,7 @@ static int actuator_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int actuator_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int actuator_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_actuator_invoke_properties(C, op))
 		return actuator_remove_exec(C, op);
@@ -583,7 +583,7 @@ static int sensor_move_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sensor_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sensor_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_sensor_invoke_properties(C, op)) {
 		return sensor_move_exec(C, op);
@@ -628,7 +628,7 @@ static int controller_move_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int controller_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int controller_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_controller_invoke_properties(C, op)) {
 		return controller_move_exec(C, op);
@@ -673,7 +673,7 @@ static int actuator_move_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int actuator_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int actuator_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_actuator_invoke_properties(C, op)) {
 		return actuator_move_exec(C, op);
@@ -711,7 +711,7 @@ static int texface_convert_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int texface_convert_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int texface_convert_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return texface_convert_exec(C, op);
 }

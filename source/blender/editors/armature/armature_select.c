@@ -166,7 +166,7 @@ void *get_nearest_bone(bContext *C, short findunsel, int x, int y)
 
 /* called in space.c */
 /* previously "selectconnected_armature" */
-static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;

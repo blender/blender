@@ -146,7 +146,7 @@ static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement
 }
 
 /* event can enterkey, then it opens/closes */
-static int outliner_item_openclose(bContext *C, wmOperator *op, wmEvent *event)
+static int outliner_item_openclose(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -236,7 +236,7 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 	return 0;
 }
 
-static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -1448,7 +1448,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 }
 
 /* Used for drag and drop parenting */
-TreeElement *outliner_dropzone_parent(bContext *C, wmEvent *event, TreeElement *te, float *fmval)
+TreeElement *outliner_dropzone_parent(bContext *C, const wmEvent *event, TreeElement *te, const float fmval[2])
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeStoreElem *tselem = TREESTORE(te);
@@ -1477,7 +1477,7 @@ TreeElement *outliner_dropzone_parent(bContext *C, wmEvent *event, TreeElement *
 	return NULL;
 }
 
-static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *par = NULL;
 	Object *ob = NULL;
@@ -1651,7 +1651,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
-int outliner_dropzone_parent_clear(bContext *C, wmEvent *event, TreeElement *te, float *fmval)
+int outliner_dropzone_parent_clear(bContext *C, const wmEvent *event, TreeElement *te, const float fmval[2])
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeStoreElem *tselem = TREESTORE(te);
@@ -1689,7 +1689,7 @@ int outliner_dropzone_parent_clear(bContext *C, wmEvent *event, TreeElement *te,
 	return 0;
 }
 
-static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = NULL;
@@ -1738,7 +1738,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
-TreeElement *outliner_dropzone_scene(bContext *C, wmEvent *UNUSED(event), TreeElement *te, float *fmval)
+TreeElement *outliner_dropzone_scene(bContext *C, const wmEvent *UNUSED(event), TreeElement *te, const float fmval[2])
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeStoreElem *tselem = TREESTORE(te);
@@ -1754,7 +1754,7 @@ TreeElement *outliner_dropzone_scene(bContext *C, wmEvent *UNUSED(event), TreeEl
 	return NULL;
 }
 
-static int scene_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = NULL;
 	Object *ob = NULL;
@@ -1830,7 +1830,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "scene", "Scene", MAX_ID_NAME, "Scene", "Target Scene");
 }
 
-static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Material *ma = NULL;
 	Object *ob = NULL;

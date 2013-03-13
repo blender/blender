@@ -260,7 +260,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	}
 }
 
-int  handleSnapping(TransInfo *t, wmEvent *event)
+int  handleSnapping(TransInfo *t, const wmEvent *event)
 {
 	int status = 0;
 

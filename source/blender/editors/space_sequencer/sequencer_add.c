@@ -294,7 +294,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 }
 
 
-static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
@@ -392,7 +392,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
@@ -489,7 +489,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_add_mask_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_add_mask_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
@@ -602,7 +602,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 }
 
 
-static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 
 	if (!ED_operator_sequencer_active(C)) {
@@ -657,7 +657,7 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 	return sequencer_add_generic_strip_exec(C, op, BKE_sequencer_add_sound_strip);
 }
 
-static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 
 	if (!ED_operator_sequencer_active(C)) {
@@ -769,7 +769,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 
 	if (!ED_operator_sequencer_active(C)) {
@@ -921,7 +921,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 
 /* add color */
-static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	short is_type_set = RNA_struct_property_is_set(op->ptr, "type");
 	int type = -1;

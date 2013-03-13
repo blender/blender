@@ -207,7 +207,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 
 /* applies shift and alt, lazy coding or ok? :) */
 /* the local per-keymap-entry keymap will solve it */
-static int view3d_layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->ctrl || event->oskey)
 		return OPERATOR_PASS_THROUGH;

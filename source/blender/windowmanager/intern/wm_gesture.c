@@ -58,7 +58,7 @@
 
 
 /* context checked on having screen, window and area */
-wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
+wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 {
 	wmGesture *gesture = MEM_callocN(sizeof(wmGesture), "new gesture");
 	wmWindow *window = CTX_wm_window(C);

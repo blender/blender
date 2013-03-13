@@ -298,7 +298,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 /* ------------------- */
 
 /* handle clicking */
-static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	SpaceNla *snla;

@@ -127,7 +127,7 @@ static int select_report_pick_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int select_report_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_report_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceInfo *sinfo = CTX_wm_space_info(C);
 	ARegion *ar = CTX_wm_region(C);

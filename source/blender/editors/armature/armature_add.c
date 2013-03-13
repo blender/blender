@@ -214,7 +214,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* TODO most of this code is copied from set3dcursor_invoke,
 	 * it would be better to reuse code in set3dcursor_invoke */

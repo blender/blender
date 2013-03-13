@@ -278,7 +278,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
 	char *path = (text && text->name) ? text->name : G.main->name;
@@ -539,7 +539,7 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
 	char *str;
@@ -1949,7 +1949,7 @@ static int text_jump_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_jump_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_jump_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
 
@@ -2107,7 +2107,7 @@ static int text_scroll_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void text_scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2164,7 +2164,7 @@ static void scroll_exit(bContext *C, wmOperator *op)
 	MEM_freeN(op->customdata);
 }
 
-static int text_scroll_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	TextScroll *tsc = op->customdata;
 	SpaceText *st = CTX_wm_space_text(C);
@@ -2204,7 +2204,7 @@ static int text_scroll_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	TextScroll *tsc;
@@ -2281,7 +2281,7 @@ static int text_region_scroll_poll(bContext *C)
 	return 1;
 }
 
-static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2576,7 +2576,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 	if (!sel) txt_pop_sel(text);
 }
 
-static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void text_cursor_set_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2631,7 +2631,7 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
 	MEM_freeN(ssel);
 }
 
-static int text_set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_set_selection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	SetSelection *ssel;
@@ -2656,7 +2656,7 @@ static int text_set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int text_set_selection_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int text_set_selection_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case LEFTMOUSE:
@@ -2712,7 +2712,7 @@ static int text_cursor_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int text_cursor_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_cursor_set_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 
@@ -2744,7 +2744,7 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 
 /******************* line number operator **********************/
 
-static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
@@ -2834,7 +2834,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int ret;
 
@@ -3137,7 +3137,7 @@ static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
 	uiPopupMenu *pup;

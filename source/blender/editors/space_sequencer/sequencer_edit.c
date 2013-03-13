@@ -1121,7 +1121,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	
@@ -1546,7 +1546,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 }
 
 
-static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_cut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
@@ -1695,7 +1695,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -3105,7 +3105,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	Sequence *seq = BKE_sequencer_active_get(scene);

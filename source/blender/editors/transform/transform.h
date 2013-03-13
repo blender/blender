@@ -288,7 +288,7 @@ typedef struct TransInfo {
 	float       fac;            /* factor for distance based transform  */
 	int       (*transform)(struct TransInfo *, const int *);
 								/* transform function pointer           */
-	int       (*handleEvent)(struct TransInfo *, struct wmEvent *);
+	int       (*handleEvent)(struct TransInfo *, const struct wmEvent *);
 								/* event handler function pointer  RETURN 1 if redraw is needed */
 	int         total;          /* total number of transformed data     */
 	TransData  *data;           /* transformed data (array)             */
@@ -475,9 +475,9 @@ typedef struct TransInfo {
 #define POINT_INIT		4
 #define MULTI_POINTS	8
 
-int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
+int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, const struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
-int  transformEvent(TransInfo *t, struct wmEvent *event);
+int  transformEvent(TransInfo *t, const struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
@@ -492,11 +492,11 @@ void applyAspectRatio(TransInfo *t, float *vec);
 void removeAspectRatio(TransInfo *t, float *vec);
 
 void initWarp(TransInfo *t);
-int handleEventWarp(TransInfo *t, struct wmEvent *event);
+int handleEventWarp(TransInfo *t, const struct wmEvent *event);
 int Warp(TransInfo *t, const int mval[2]);
 
 void initShear(TransInfo *t);
-int handleEventShear(TransInfo *t, struct wmEvent *event);
+int handleEventShear(TransInfo *t, const struct wmEvent *event);
 int Shear(TransInfo *t, const int mval[2]);
 
 void initResize(TransInfo *t);
@@ -533,7 +533,7 @@ void initPushPull(TransInfo *t);
 int PushPull(TransInfo *t, const int mval[2]);
 
 void initBevel(TransInfo *t);
-int handleEventBevel(TransInfo *t, struct wmEvent *event);
+int handleEventBevel(TransInfo *t, const struct wmEvent *event);
 int Bevel(TransInfo *t, const int mval[2]);
 
 void initBevelWeight(TransInfo *t);
@@ -552,11 +552,11 @@ void initBoneRoll(TransInfo *t);
 int BoneRoll(TransInfo *t, const int mval[2]);
 
 void initEdgeSlide(TransInfo *t);
-int handleEventEdgeSlide(TransInfo *t, struct wmEvent *event);
+int handleEventEdgeSlide(TransInfo *t, const struct wmEvent *event);
 int EdgeSlide(TransInfo *t, const int mval[2]);
 
 void initVertSlide(TransInfo *t);
-int handleEventVertSlide(TransInfo *t, struct wmEvent *event);
+int handleEventVertSlide(TransInfo *t, const struct wmEvent *event);
 int VertSlide(TransInfo *t, const int mval[2]);
 
 void initTimeTranslate(TransInfo *t);
@@ -659,7 +659,7 @@ void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
-int  handleSnapping(TransInfo *t, struct wmEvent *event);
+int  handleSnapping(TransInfo *t, const struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
@@ -688,7 +688,7 @@ typedef enum {
 
 void initMouseInput(TransInfo *t, MouseInput *mi, const int center[2], const int mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
+int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, const struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
@@ -696,7 +696,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float val
 
 /*********************** Generics ********************************/
 
-int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
+int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, const struct wmEvent *event);
 void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 

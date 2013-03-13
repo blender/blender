@@ -160,7 +160,7 @@ static int sound_open_exec(bContext *UNUSED(C), wmOperator *op)
 
 #endif
 
-static int sound_open_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sound_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return sound_open_exec(C, op);
@@ -439,7 +439,7 @@ static int sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 
 #endif // WITH_AUDASPACE
 
-static int sound_mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sound_mixdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return sound_mixdown_exec(C, op);
@@ -747,7 +747,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Editing *ed = CTX_data_scene(C)->ed;
 	bSound *sound;

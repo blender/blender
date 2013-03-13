@@ -923,7 +923,7 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int edbm_select_mode_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* detecting these options based on shift/ctrl here is weak, but it's done
 	 * to make this work when clicking buttons or menus */
@@ -1075,7 +1075,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short deselect, short toggle, short ring)
+static void mouse_mesh_loop(bContext *C, const int mval[2], short extend, short deselect, short toggle, short ring)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -1194,7 +1194,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short desele
 	}
 }
 
-static int edbm_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -1715,7 +1715,7 @@ static int mouse_mesh_shortest_path_face(ViewContext *vc)
 
 /* ******************* operator for edge and face tag ****************** */
 
-static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -2213,7 +2213,7 @@ static void linked_limit_default(bContext *C, wmOperator *op)
 	}
 }
 
-static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;

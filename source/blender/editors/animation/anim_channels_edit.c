@@ -2260,7 +2260,7 @@ static void rename_anim_channels(bAnimContext *ac, int channel_index)
 	ED_region_tag_redraw(ac->ar);
 }
 
-static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *evt)
+static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	bAnimContext ac;
 	ARegion *ar;
@@ -2281,7 +2281,7 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */
-	UI_view2d_region_to_view(v2d, evt->mval[0], evt->mval[1], &x, &y);
+	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
 	
 	if (ac.datatype == ANIMCONT_NLA) {
 		SpaceNla *snla = (SpaceNla *)ac.sl;
@@ -2594,7 +2594,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 /* ------------------- */
 
 /* handle clicking */
-static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	ARegion *ar;

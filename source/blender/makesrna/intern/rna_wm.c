@@ -947,7 +947,7 @@ static int operator_check(bContext *C, wmOperator *op)
 	return result;
 }
 
-static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int operator_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	extern FunctionRNA rna_Operator_invoke_func;
 
@@ -974,7 +974,7 @@ static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* same as invoke */
-static int operator_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int operator_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	extern FunctionRNA rna_Operator_modal_func;
 

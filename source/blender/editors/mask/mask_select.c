@@ -361,7 +361,7 @@ static int select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -689,7 +689,7 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
 
-static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);

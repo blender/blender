@@ -115,7 +115,7 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 /* ---- */
 
 /* Get frame from mouse coordinates */
-static int frame_from_event(bContext *C, wmEvent *event)
+static int frame_from_event(bContext *C, const wmEvent *event)
 {
 	ARegion *region = CTX_wm_region(C);
 	float viewx;
@@ -128,7 +128,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* Change to frame that mouse is over before adding modal handler,
 	 * as user could click on a single frame (jump to frame) as well as
@@ -145,7 +145,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal event handling of frame changing */
-static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* execute the events */
 	switch (event->type) {

@@ -126,7 +126,7 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 /* ------------ */
 
 /* invoke callback which presents a list of bone-groups for the user to choose from */
-static int pose_groups_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
+static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;

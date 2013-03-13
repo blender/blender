@@ -272,7 +272,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 #define FLY_CANCEL      1
 #define FLY_CONFIRM     2
 
-static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
+static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
 	float upvec[3]; /* tmp */
@@ -486,7 +486,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	return OPERATOR_CANCELLED;
 }
 
-static void flyEvent(FlyInfo *fly, wmEvent *event)
+static void flyEvent(FlyInfo *fly, const wmEvent *event)
 {
 	if (event->type == TIMER && event->customdata == fly->timer) {
 		fly->redraw = 1;
@@ -1179,7 +1179,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	return OPERATOR_FINISHED;
 }
 
-static int fly_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	FlyInfo *fly;
@@ -1214,7 +1214,7 @@ static int fly_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int exit_code;
 	short do_draw = FALSE;

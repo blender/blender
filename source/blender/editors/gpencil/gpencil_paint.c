@@ -1546,7 +1546,7 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p)
 }
 
 /* handle draw event */
-static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
+static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p = op->customdata;
 	PointerRNA itemptr;
@@ -1684,7 +1684,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 /* ------------------------------- */
 
 /* start of interactive drawing part of operator */
-static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p = NULL;
 	wmWindow *win = CTX_wm_window(C);
@@ -1795,7 +1795,7 @@ static void gpencil_stroke_end(wmOperator *op)
 }
 
 /* events handling during interactive drawing part of operator */
-static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p = op->customdata;
 	int estate = OPERATOR_PASS_THROUGH; /* default exit state - pass through to support MMB view nav, etc. */

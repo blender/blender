@@ -1015,7 +1015,7 @@ static float wpaint_blend(VPaint *wp, float weight, float weight_prev,
 
 /* sets wp->weight to the closest weight value to vertex */
 /* note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewContext vc;
 	Mesh *me;
@@ -2475,7 +2475,7 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 }
 
 
-static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval;
 
@@ -2950,7 +2950,7 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	MEM_freeN(vpd);
 }
 
-static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval;
 
@@ -3156,7 +3156,7 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 	}
 }
 
-static int paint_weight_gradient_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int ret = WM_gesture_straightline_modal(C, op, event);
 
@@ -3264,7 +3264,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int ret;
 

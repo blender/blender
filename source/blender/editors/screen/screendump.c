@@ -204,7 +204,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (screenshot_data_create(C, op)) {
 		if (RNA_struct_property_is_set(op->ptr, "filepath"))

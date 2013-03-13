@@ -740,7 +740,7 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, FALSE);
 }
 
-static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Base *base = NULL;
 	Image *ima = NULL;

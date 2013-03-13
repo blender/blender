@@ -56,7 +56,7 @@
 
 #include "io_collada.h"
 
-static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];

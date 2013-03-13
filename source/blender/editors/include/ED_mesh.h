@@ -186,7 +186,7 @@ void paintface_flush_flags(struct Object *ob);
 int  paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend, int deselect, int toggle);
 int  do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
-void paintface_select_linked(struct bContext *C, struct Object *ob, int mval[2], int mode);
+void paintface_select_linked(struct bContext *C, struct Object *ob, const int mval[2], int mode);
 int  paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
 void paintface_hide(struct Object *ob, const int unselected);

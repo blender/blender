@@ -104,7 +104,7 @@ static int unpack_libraries_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int unpack_libraries_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int unpack_libraries_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return WM_operator_confirm_message(C, op, "Unpack Blender Libraries - creates directories, all new paths should work");
 }
@@ -137,7 +137,7 @@ static int pack_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Main *bmain = CTX_data_main(C);
 	Image *ima;
@@ -203,7 +203,7 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Main *bmain = CTX_data_main(C);
 	uiPopupMenu *pup;
@@ -288,7 +288,7 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int unpack_item_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -429,7 +429,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int find_missing_files_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	/* XXX file open button text "Find Missing Files" */
 	WM_event_add_fileselect(C, op); 
@@ -469,7 +469,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 #define ERROR_TIMEOUT       10.0f
 #define ERROR_COLOR_TIMEOUT 6.0f
 #define COLLAPSE_TIMEOUT    0.25f
-static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	ReportList *reports = CTX_wm_reports(C);

@@ -1012,7 +1012,7 @@ void resetTransRestrictions(TransInfo *t)
 }
 
 /* the *op can be NULL */
-int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);

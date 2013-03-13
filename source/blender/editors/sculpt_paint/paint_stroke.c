@@ -123,7 +123,7 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 
 /* if this is a tablet event, return tablet pressure and set *pen_flip
  * to 1 if the eraser tool is being used, 0 otherwise */
-static float event_tablet_data(wmEvent *event, int *pen_flip)
+static float event_tablet_data(const wmEvent *event, int *pen_flip)
 {
 	int erasor = 0;
 	float pressure = 1;
@@ -235,7 +235,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 #endif
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, const float mouse_in[2])
+static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEvent *event, const float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
@@ -344,7 +344,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
  * towards the final mouse location. */
-static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const float final_mouse[2])
+static int paint_space_stroke(bContext *C, wmOperator *op, const wmEvent *event, const float final_mouse[2])
 {
 	PaintStroke *stroke = op->customdata;
 	PaintMode mode = paintmode_get_active_from_context(C);
@@ -563,7 +563,7 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
 	/*printf("avg=(%f, %f), num=%d\n", average->mouse[0], average->mouse[1], stroke->num_samples);*/
 }
 
-int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
+int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Paint *p = paint_get_active_from_context(C);
 	PaintMode mode = paintmode_get_active_from_context(C);

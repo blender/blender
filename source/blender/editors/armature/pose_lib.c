@@ -389,7 +389,7 @@ static void poselib_add_menu_invoke__replacemenu(bContext *C, uiLayout *layout, 
 	}
 }
 
-static int poselib_add_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
+static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = get_poselib_object(C);
@@ -613,7 +613,7 @@ void POSELIB_OT_pose_remove(wmOperatorType *ot)
 	ot->prop = prop;
 }
 
-static int poselib_rename_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int poselib_rename_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *ob = get_poselib_object(C);
 	bAction *act = (ob) ? ob->poselib : NULL;
@@ -638,7 +638,7 @@ static int poselib_rename_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 	
 	/* part to sync with other similar operators... */
-	return WM_operator_props_popup(C, op, evt);
+	return WM_operator_props_popup(C, op, event);
 }
 
 static int poselib_rename_exec(bContext *C, wmOperator *op)
@@ -1185,7 +1185,7 @@ static void poselib_preview_handle_search(tPoseLib_PreviewData *pld, unsigned sh
 }
 
 /* handle events for poselib_preview_poses */
-static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, wmEvent *event)
+static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, const wmEvent *event)
 {
 	tPoseLib_PreviewData *pld = op->customdata;
 	int ret = OPERATOR_RUNNING_MODAL;
@@ -1539,7 +1539,7 @@ static int poselib_preview_cancel(bContext *C, wmOperator *op)
 }
 
 /* main modal status check */
-static int poselib_preview_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int poselib_preview_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseLib_PreviewData *pld = op->customdata;
 	int ret;
@@ -1559,7 +1559,7 @@ static int poselib_preview_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int poselib_preview_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	tPoseLib_PreviewData *pld;
 	

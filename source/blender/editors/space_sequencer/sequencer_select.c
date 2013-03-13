@@ -315,7 +315,7 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	View2D *v2d = UI_view2d_fromcontext(C);
 	Scene *scene = CTX_data_scene(C);
@@ -668,7 +668,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 
 
 /* select pick linked operator (uses the mouse) */
-static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);

@@ -405,7 +405,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int paste_file_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return paste_file_exec(C, op);
@@ -1221,16 +1221,16 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
 	static int accentcode = 0;
-	uintptr_t ascii = evt->ascii;
-	int alt = evt->alt, shift = evt->shift, ctrl = evt->ctrl;
-	int event = evt->type, val = evt->val;
+	uintptr_t ascii = event->ascii;
+	int alt = event->alt, shift = event->shift, ctrl = event->ctrl;
+	int event_type = event->type, event_val = event->val;
 	wchar_t inserted_text[2] = {0};
 
 	if (RNA_struct_property_is_set(op->ptr, "text"))
@@ -1243,26 +1243,26 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 	
 	/* tab should exit editmode, but we allow it to be typed using modifier keys */
-	if (event == TABKEY) {
+	if (event_type == TABKEY) {
 		if ((alt || ctrl || shift) == 0)
 			return OPERATOR_PASS_THROUGH;
 		else
 			ascii = 9;
 	}
 	
-	if (event == BACKSPACEKEY) {
+	if (event_type == BACKSPACEKEY) {
 		if (alt && cu->len != 0 && cu->pos > 0)
 			accentcode = 1;
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	if (val && (ascii || evt->utf8_buf[0])) {
+	if (event_val && (ascii || event->utf8_buf[0])) {
 		/* handle case like TAB (== 9) */
 		if (     (ascii > 31 && ascii < 254 && ascii != 127) ||
 		         (ascii == 13) ||
 		         (ascii == 10) ||
 		         (ascii == 8)  ||
-		         (evt->utf8_buf[0]))
+		         (event->utf8_buf[0]))
 		{
 
 			if (accentcode) {
@@ -1272,8 +1272,8 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 				}
 				accentcode = 0;
 			}
-			else if (evt->utf8_buf[0]) {
-				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
+			else if (event->utf8_buf[0]) {
+				BLI_strncpy_wchar_from_utf8(inserted_text, event->utf8_buf, 1);
 				ascii = inserted_text[0];
 				insert_into_textbuf(obedit, ascii);
 				accentcode = 0;
@@ -1307,7 +1307,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 
 	/* reset property? */
-	if (val == 0)
+	if (event_val == 0)
 		accentcode = 0;
 	
 	return OPERATOR_FINISHED;
@@ -1643,7 +1643,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	VFont *vfont = NULL;
 	char *path;

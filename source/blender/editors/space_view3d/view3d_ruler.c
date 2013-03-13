@@ -691,7 +691,7 @@ static void view3d_ruler_header_update(ScrArea *sa)
 /* -------------------------------------------------------------------- */
 /* Operator callbacks */
 
-static int view3d_ruler_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -729,7 +729,7 @@ static int view3d_ruler_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bool do_draw = false;
 	int exit_code = OPERATOR_RUNNING_MODAL;

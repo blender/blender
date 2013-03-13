@@ -777,7 +777,7 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
 }
 
 /* *************** add-click-mesh (extrude) operator ************** */
-static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewContext vc;
 	BMVert *v1;
@@ -1509,7 +1509,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int edbm_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int edbm_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	WM_cursor_wait(1);
 	edbm_duplicate_exec(C, op);
@@ -3847,7 +3847,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int edbm_spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -3971,7 +3971,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int edbm_screw_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int edbm_screw_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4963,7 +4963,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* TODO make modal keymap (see fly mode) */
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -5000,7 +5000,7 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
+static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
 	int use_dist = TRUE;
@@ -5039,7 +5039,7 @@ static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 	return factor;
 }
 
-static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
 	int segments = RNA_int_get(op->ptr, "segments");
@@ -5345,7 +5345,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int edbm_inset_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	InsetData *opdata;
@@ -5375,7 +5375,7 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	InsetData *opdata = op->customdata;
 
