@@ -40,6 +40,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BKE_global.h"
 #include "PIL_time.h"
 #include "WM_api.h"
@@ -62,6 +63,7 @@ ExecutionGroup::ExecutionGroup()
 	this->m_singleThreaded = false;
 	this->m_chunksFinished = 0;
 	BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
+	this->m_executionStartTime = 0;
 }
 
 CompositorPriority ExecutionGroup::getRenderPriotrity()
@@ -229,6 +231,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	if (bTree->test_break && bTree->test_break(bTree->tbh)) {return; } /// @note: early break out for blur and preview nodes
 	if (this->m_numberOfChunks == 0) {return; } /// @note: early break out
 	unsigned int chunkNumber;
+
+	this->m_executionStartTime = PIL_check_seconds_timer();
 
 	this->m_chunksFinished = 0;
 	this->m_bTree = bTree;
@@ -415,6 +419,10 @@ void ExecutionGroup::printBackgroundStats(void)
 {
 	uintptr_t mem_in_use, mmap_in_use, peak_memory;
 	float megs_used_memory, mmap_used_memory, megs_peak_memory;
+	double execution_time;
+	char timestr[64];
+
+	execution_time = PIL_check_seconds_timer() - this->m_executionStartTime;
 
 	mem_in_use = MEM_get_memory_in_use();
 	mmap_in_use = MEM_get_mapped_memory_in_use();
@@ -427,6 +435,8 @@ void ExecutionGroup::printBackgroundStats(void)
 	fprintf(stdout, "Mem:%.2fM (%.2fM, Peak %.2fM) ",
 	        megs_used_memory, mmap_used_memory, megs_peak_memory);
 
+	BLI_timestr(execution_time, timestr);
+	printf("| Elapsed %s ", timestr);
 	printf("| Tree %s, Tile %d-%d ", this->m_bTree->id.name + 2,
 	       this->m_chunksFinished, this->m_numberOfChunks);
 

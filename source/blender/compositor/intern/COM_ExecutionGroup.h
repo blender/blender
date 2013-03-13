@@ -167,7 +167,12 @@ private:
 	 * @note measured in pixel space
 	 */
 	rcti m_viewerBorder;
-	
+
+	/**
+	 * @brief start time of execution
+	 */
+	double m_executionStartTime;
+
 	// methods
 	/**
 	 * @brief check whether parameter operation can be added to the execution group
