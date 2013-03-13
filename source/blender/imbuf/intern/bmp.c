@@ -126,6 +126,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 	int x, y, depth, skip, i;
 	unsigned char *bmp, *rect;
 	unsigned short col;
+	double xppm, yppm;
 	
 	(void)size; /* unused */
 
@@ -145,6 +146,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 	x = LITTLE_LONG(bmi.biWidth);
 	y = LITTLE_LONG(bmi.biHeight);
 	depth = LITTLE_SHORT(bmi.biBitCount);
+	xppm = LITTLE_LONG(bmi.biXPelsPerMeter);
+	yppm = LITTLE_LONG(bmi.biYPelsPerMeter);
 
 #if 0
 	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y,
@@ -200,6 +203,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 	}
 
 	if (ibuf) {
+		ibuf->ppm[0] = xppm;
+		ibuf->ppm[1] = yppm;
 		ibuf->ftype = BMP;
 	}
 	
@@ -251,8 +256,8 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	putShortLSB(24, ofile);
 	putIntLSB(0, ofile);
 	putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile);
-	putIntLSB(0, ofile);
-	putIntLSB(0, ofile);
+	putIntLSB((int)(ibuf->ppm[0] + 0.5), ofile);
+	putIntLSB((int)(ibuf->ppm[1] + 0.5), ofile);
 	putIntLSB(0, ofile);
 	putIntLSB(0, ofile);
 

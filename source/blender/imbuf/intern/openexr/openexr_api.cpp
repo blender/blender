@@ -85,6 +85,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include <ImfCompression.h>
 #include <ImfCompressionAttribute.h>
 #include <ImfStringAttribute.h>
+#include <ImfStandardAttributes.h>
 
 using namespace Imf;
 using namespace Imath;
@@ -302,6 +303,9 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 
 	for (info = ibuf->metadata; info; info = info->next)
 		header->insert(info->key, StringAttribute(info->value));
+
+	if (ibuf->ppm[0] > 0.0f)
+		addXDensity(*header, ibuf->ppm[0] / 39.3700787f); /* 1 meter = 39.3700787 inches */
 }
 
 static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags)
@@ -1144,6 +1148,12 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 			const int is_alpha = exr_has_alpha(file);
 
 			ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
+
+			if (hasXDensity(file->header())) {
+				ibuf->ppm[0] = xDensity(file->header()) * 39.3700787f;
+				ibuf->ppm[1] = ibuf->ppm[0] * file->header().pixelAspectRatio();
+			}
+
 			ibuf->ftype = OPENEXR;
 
 			if (!(flags & IB_test)) {
