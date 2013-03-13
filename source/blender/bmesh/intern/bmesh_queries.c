@@ -1652,3 +1652,33 @@ bool BM_face_is_any_edge_flag_test(BMFace *f, const char hflag)
 	} while ((l_iter = l_iter->next) != l_first);
 	return false;
 }
+
+float BM_mesh_calc_volume(BMesh *bm)
+{
+	/* warning, calls own tessellation function, may be slow */
+	float vol = 0.0f;
+	BMFace *f;
+	BMIter fiter;
+
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		const int tottri = f->len - 2;
+		BMLoop **loops = BLI_array_alloca(loops, f->len);
+		int    (*index)[3] = BLI_array_alloca(index, tottri);
+		int j;
+
+		BM_face_calc_tessellation(f, loops, index);
+
+		for (j = 0; j < tottri; j++) {
+			const float *p1 = loops[index[j][0]]->v->co;
+			const float *p2 = loops[index[j][1]]->v->co;
+			const float *p3 = loops[index[j][2]]->v->co;
+
+			/* co1.dot(co2.cross(co3)) / 6.0 */
+			float cross[3];
+			cross_v3_v3v3(cross, p2, p3);
+			vol += (1.0f / 6.0f) * dot_v3v3(p1, cross);
+		}
+	}
+
+	return fabsf(vol);
+}

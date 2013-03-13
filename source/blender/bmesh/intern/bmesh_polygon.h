@@ -27,6 +27,7 @@
  *  \ingroup bmesh
  */
 
+void  BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*r_index)[3]);
 float BM_face_calc_area(BMFace *f);
 float BM_face_calc_perimeter(BMFace *f);
 void  BM_face_calc_center_bounds(BMFace *f, float center[3]);

@@ -110,4 +110,6 @@ bool BM_edge_is_any_vert_flag_test(BMEdge *e, const char hflag);
 bool BM_face_is_any_vert_flag_test(BMFace *f, const char hflag);
 bool BM_face_is_any_edge_flag_test(BMFace *f, const char hflag);
 
+float BM_mesh_calc_volume(BMesh *bm);
+
 #endif /* __BMESH_QUERIES_H__ */

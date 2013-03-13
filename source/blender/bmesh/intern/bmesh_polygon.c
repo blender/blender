@@ -35,12 +35,16 @@
  *    degenerate faces.
  */
 
-#include "BLI_math.h"
-#include "BLI_array.h"
+#include "DNA_listBase.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
+#include "BLI_array.h"
+#include "BLI_scanfill.h"
+
 #include "bmesh.h"
+
 #include "intern/bmesh_private.h"
 
 /**
@@ -147,6 +151,100 @@ static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float n[3],
 
 	if (UNLIKELY(normalize_v3(n) == 0.0f)) {
 		n[2] = 1.0f; /* other axis set to 0.0 */
+	}
+}
+
+/**
+ * For tools that insist on using triangles, ideally we would cache this data.
+ *
+ * \param r_loops  Empty array of loops, (f->len)
+ * \param r_index  Empty array of loops, ((f->len - 2) * 3)
+ */
+void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
+{
+	int *r_index = (int *)_r_index;
+	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+	BMLoop *l_iter;
+
+	if (f->len == 3) {
+		*r_loops++ = (l_iter = l_first);
+		*r_loops++ = (l_iter = l_iter->next);
+		*r_loops++ = (         l_iter->next);
+
+		r_index[0] = 0;
+		r_index[1] = 1;
+		r_index[2] = 2;
+	}
+	else if (f->len == 4) {
+		BMLoop *l_iter;
+		*r_loops++ = (l_iter = l_first);
+		*r_loops++ = (l_iter = l_iter->next);
+		*r_loops++ = (l_iter = l_iter->next);
+		*r_loops++ = (         l_iter->next);
+
+		r_index[0] = 0;
+		r_index[1] = 1;
+		r_index[2] = 2;
+
+		r_index[3] = 0;
+		r_index[4] = 2;
+		r_index[5] = 3;
+	}
+	else {
+		int j;
+
+		ScanFillContext sf_ctx;
+		ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
+		/* ScanFillEdge *e; */ /* UNUSED */
+		ScanFillFace *sf_tri;
+		int totfilltri;
+
+		BLI_scanfill_begin(&sf_ctx);
+
+		j = 0;
+		l_iter = l_first;
+		do {
+			sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
+			sf_vert->tmp.p = l_iter;
+
+			if (sf_vert_last) {
+				/* e = */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
+			}
+
+			sf_vert_last = sf_vert;
+			if (sf_vert_first == NULL) {
+				sf_vert_first = sf_vert;
+			}
+
+			r_loops[j] = l_iter;
+
+			/* mark order */
+			BM_elem_index_set(l_iter, j++); /* set_loop */
+
+		} while ((l_iter = l_iter->next) != l_first);
+
+		/* complete the loop */
+		BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
+
+		totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, f->no);
+		BLI_assert(totfilltri <= f->len - 2);
+		(void)totfilltri;
+
+		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+			int i1 = BM_elem_index_get((BMLoop *)sf_tri->v1->tmp.p);
+			int i2 = BM_elem_index_get((BMLoop *)sf_tri->v2->tmp.p);
+			int i3 = BM_elem_index_get((BMLoop *)sf_tri->v3->tmp.p);
+
+			if (i1 > i2) { SWAP(int, i1, i2); }
+			if (i2 > i3) { SWAP(int, i2, i3); }
+			if (i1 > i2) { SWAP(int, i1, i2); }
+
+			*r_index++ = i1;
+			*r_index++ = i2;
+			*r_index++ = i3;
+		}
+
+		BLI_scanfill_end(&sf_ctx);
 	}
 }
 
