@@ -1586,11 +1586,8 @@ static void appendPolyLineVert(ListBase *lb, unsigned int index)
 	BLI_addtail(lb, vl);
 }
 
-void BKE_mesh_to_curve(Scene *scene, Object *ob)
+void BKE_mesh_to_curve_ex(DerivedMesh *dm, ListBase *nurblist)
 {
-	/* make new mesh data from the original copy */
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_MESH);
-
 	MVert *mverts = dm->getVertArray(dm);
 	MEdge *med, *medge = dm->getEdgeArray(dm);
 	MPoly *mp,  *mpoly = dm->getPolyArray(dm);
@@ -1600,7 +1597,6 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 	int totpoly = dm->getNumPolys(dm);
 	int totedges = 0;
 	int i;
-	bool needsFree = false;
 
 	/* only to detect edge polylines */
 	int *edge_users;
@@ -1632,9 +1628,6 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 	MEM_freeN(edge_users);
 
 	if (edges.first) {
-		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);
-		cu->flag |= CU_3D;
-
 		while (edges.first) {
 			/* each iteration find a polyline and add this as a nurbs poly spline */
 
@@ -1721,10 +1714,27 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 				BLI_freelistN(&polyline);
 
 				/* add nurb to curve */
-				BLI_addtail(&cu->nurb, nu);
+				BLI_addtail(nurblist, nu);
 			}
 			/* --- done with nurbs --- */
 		}
+	}
+}
+
+void BKE_mesh_to_curve(Scene *scene, Object *ob)
+{
+	/* make new mesh data from the original copy */
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_MESH);
+	ListBase nurblist = {NULL, NULL};
+	bool needsFree = false;
+
+	BKE_mesh_to_curve_ex(dm, &nurblist);
+
+	if (nurblist.first) {
+		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);
+		cu->flag |= CU_3D;
+
+		cu->nurb = nurblist;
 
 		((Mesh *)ob->data)->id.us--;
 		ob->data = cu;

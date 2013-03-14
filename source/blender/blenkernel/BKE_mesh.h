@@ -169,6 +169,7 @@ int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob, struct ListBase *dispbas
                                      struct MLoopUV **alluv, int *_totloop, int *_totpoly);
 void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase, int use_orco_uv);
 void BKE_mesh_from_nurbs(struct Object *ob);
+void BKE_mesh_to_curve_ex(struct DerivedMesh *dm, struct ListBase *nurblist);
 void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
 void BKE_mesh_delete_material_index(struct Mesh *me, short index);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
