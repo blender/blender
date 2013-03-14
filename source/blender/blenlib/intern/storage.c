@@ -616,7 +616,7 @@ LinkNode *BLI_file_read_as_lines(const char *name)
  */
 void BLI_file_free_lines(LinkNode *lines)
 {
-	BLI_linklist_free(lines, (void (*)(void *))MEM_freeN);
+	BLI_linklist_freeN(lines);
 }
 
 /** is file1 older then file2 */
