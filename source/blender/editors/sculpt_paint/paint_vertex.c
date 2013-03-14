@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -854,8 +855,8 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 }
 
 /* whats _dl mean? */
-static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float co[3],
-                                 const float mval[2], const float brush_size_pressure)
+static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co[3],
+                                 const float mval[2], const float brush_size_pressure, float rgba[4])
 {
 	float vertco[2];
 
@@ -871,19 +872,26 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float co[3],
 		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
 			Brush *brush = paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_squared);
+			if (brush->mtex.tex) {
+				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D)
+					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
+				else
+					BKE_brush_sample_tex_3D(vc->scene, brush, vertco, rgba, 0, NULL);
+			}
 			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}
 	}
 
+	zero_v4(rgba);
 	return 0.0f;
 }
 
 static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
                               float vpimat[3][3], const DMCoNo *v_co_no,
                               const float mval[2],
-                              const float brush_size_pressure, const float brush_alpha_pressure)
+                              const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
 {
-	float strength = calc_vp_strength_dl(vp, vc, v_co_no->co, mval, brush_size_pressure);
+	float strength = calc_vp_strength_col_dl(vp, vc, v_co_no->co, mval, brush_size_pressure, rgba);
 
 	if (strength > 0.0f) {
 		float alpha = brush_alpha_pressure * strength;
@@ -2307,7 +2315,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 #define WP_BLUR_ACCUM(v_idx_var)  \
 	{ \
 		const unsigned int vidx = v_idx_var; \
-		const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure); \
+		const float fac = calc_vp_strength_col_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
 		if (fac > 0.0f) { \
 			MDeformWeight *dw = dw_func(&me->dvert[vidx], wpi.vgroup_active); \
 			paintweight += dw ? (dw->weight * fac) : 0.0f; \
@@ -2378,7 +2386,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		unsigned int vidx = v_idx_var; \
 		if (me->dvert[vidx].flag) { \
 			alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
-			                         mval, brush_size_pressure, brush_alpha_pressure); \
+			                         mval, brush_size_pressure, brush_alpha_pressure, NULL); \
 			if (alpha) { \
 				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
 			} \
@@ -2662,6 +2670,8 @@ typedef struct VPaintData {
 	/* mpoly -> mface mapping */
 	MemArena *polyfacemap_arena;
 	ListBase *polyfacemap;
+
+	bool is_texbrush;
 } VPaintData;
 
 static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
@@ -2698,6 +2708,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;
 	VPaint *vp = ts->vpaint;
+	Brush *brush = paint_brush(&vp->paint);
 	struct VPaintData *vpd;
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me;
@@ -2727,6 +2738,8 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	vpd->indexar = get_indexarray(me);
 	vpd->paintcol = vpaint_get_current_col(vp);
 
+	vpd->is_texbrush = !(brush->vertexpaint_tool == PAINT_BLEND_BLUR) &&
+	                   brush->mtex.tex;
 
 	/* are we painting onto a modified mesh?,
 	 * if not we can skip face map trickyness */
@@ -2803,12 +2816,24 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 
 	ml = me->mloop + mpoly->loopstart;
 	for (i = 0; i < mpoly->totloop; i++, ml++) {
+		float rgba[4];
+		unsigned int paintcol;
 		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat,
 		                         &vpd->vertexcosnos[ml->v], mval,
-		                         brush_size_pressure, brush_alpha_pressure);
+		                         brush_size_pressure, brush_alpha_pressure, rgba);
+
+		if (vpd->is_texbrush) {
+			float rgba_br[3];
+			rgb_uchar_to_float(rgba_br, (const unsigned char *)&vpd->paintcol);
+			mul_v3_v3(rgba_br, rgba);
+			rgb_float_to_uchar((unsigned char *)&paintcol, rgba_br);
+		}
+		else
+			paintcol = vpd->paintcol;
+
 		if (alpha > 0.0f) {
 			const int alpha_i = (int)(alpha * 255.0f);
-			lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
+			lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], paintcol, alpha_i, brush_alpha_pressure_i);
 		}
 	}
 
