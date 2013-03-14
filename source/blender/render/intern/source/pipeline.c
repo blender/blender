@@ -456,13 +456,43 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	
 	re->i.starttime = PIL_check_seconds_timer();
 	re->r = *rd;     /* hardcopy */
-	
+
+	if (source) {
+		/* reuse border flags from source renderer */
+		re->r.mode &= ~(R_BORDER | R_CROP);
+		re->r.mode |= source->r.mode & (R_BORDER | R_CROP);
+
+		/* dimensions shall be shared between all renderers */
+		re->r.xsch = source->r.xsch;
+		re->r.ysch = source->r.ysch;
+		re->r.size = source->r.size;
+	}
+
 	re->winx = winx;
 	re->winy = winy;
-	if (disprect) {
+	if (source && (source->r.mode & R_BORDER)) {
+		/* eeh, doesn't seem original bordered disprect is storing anywhere
+		 * after insertion on black happening in do_render_fields_blur_3d(),
+		 * so for now simply re-calculate disprect using border from source
+		 * renderer (sergey)
+		 */
+
+		re->disprect.xmin = source->r.border.xmin * winx;
+		re->disprect.xmax = source->r.border.xmax * winx;
+
+		re->disprect.ymin = source->r.border.ymin * winy;
+		re->disprect.ymax = source->r.border.ymax * winy;
+
+		re->rectx = BLI_rcti_size_x(&re->disprect);
+		re->recty = BLI_rcti_size_y(&re->disprect);
+
+		/* copy border itself, since it could be used by external engines */
+		re->r.border = source->r.border;
+	}
+	else if (disprect) {
 		re->disprect = *disprect;
-		re->rectx = BLI_rcti_size_x(disprect);
-		re->recty = BLI_rcti_size_y(disprect);
+		re->rectx = BLI_rcti_size_x(&re->disprect);
+		re->recty = BLI_rcti_size_y(&re->disprect);
 	}
 	else {
 		re->disprect.xmin = re->disprect.ymin = 0;

@@ -33,12 +33,14 @@
 #define __RE_ENGINE_H__
 
 #include "DNA_listBase.h"
+#include "DNA_scene_types.h"
 #include "RNA_types.h"
 
 struct bNode;
 struct bNodeTree;
 struct Object;
 struct Render;
+struct RenderData;
 struct RenderEngine;
 struct RenderEngineType;
 struct RenderLayer;
@@ -134,6 +136,7 @@ void RE_engines_exit(void);
 RenderEngineType *RE_engines_find(const char *idname);
 
 void RE_engine_get_current_tiles(struct Render *re, int *total_tiles_r, rcti **tiles_r);
+struct RenderData *RE_engine_get_render_data(struct Render *re);
 
 #endif /* __RE_ENGINE_H__ */
 

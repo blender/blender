@@ -385,6 +385,11 @@ void RE_engine_get_current_tiles(Render *re, int *total_tiles_r, rcti **tiles_r)
 	*tiles_r = tiles;
 }
 
+RenderData *RE_engine_get_render_data(Render *re)
+{
+	return &re->r;
+}
+
 /* Render */
 
 int RE_engine_render(Render *re, int do_all)
