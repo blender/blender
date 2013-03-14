@@ -446,7 +446,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 					if (ANIMDATA_HAS_NLA(id)) { \
 						nlaOk \
 					} \
-					else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) { \
+					else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) || ANIMDATA_HAS_KEYS(id)) { \
 						nlaOk \
 					} \
 				} \
