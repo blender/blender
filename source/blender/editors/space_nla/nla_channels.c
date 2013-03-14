@@ -265,6 +265,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 		{
 			AnimData *adt = BKE_animdata_from_id(ale->id);
 			
+			/* button area... */
 			if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
 					/* 'push-down' action - only usable when not in TweakMode */
@@ -279,6 +280,30 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				
 				/* changes to NLA-Action occurred */
 				notifierFlags |= ND_NLA_ACTCHANGE;
+			}
+			/* OR rest of name... */
+			else {
+				/* NOTE: rest of NLA-Action name doubles for operating on the AnimData block 
+				 * - this is useful when there's no clear divider, and makes more sense in
+				 *   the case of users trying to use this to change actions
+				 */
+				
+				/* select/deselect */
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this AnimData block only */
+					adt->flag ^= ADT_UI_SELECTED;
+				}
+				else {
+					/* select AnimData block by itself */
+					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					adt->flag |= ADT_UI_SELECTED;
+				}
+				
+				/* set active? */
+				if (adt->flag & ADT_UI_SELECTED)
+					adt->flag |= ADT_UI_ACTIVE;
+				
+				notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			}
 		}
 		break;

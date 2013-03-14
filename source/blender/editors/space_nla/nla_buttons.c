@@ -131,7 +131,6 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 				
 			case ANIMTYPE_SCENE:    /* Top-Level Widgets doubling up as datablocks */
 			case ANIMTYPE_OBJECT:
-			case ANIMTYPE_FILLACTD: /* Action Expander */
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 			case ANIMTYPE_DSLAM:
 			case ANIMTYPE_DSCAM:
@@ -142,6 +141,9 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 			case ANIMTYPE_DSPART:
 			case ANIMTYPE_DSMBALL:
 			case ANIMTYPE_DSARM:
+			case ANIMTYPE_DSMESH:
+			case ANIMTYPE_DSTEX:
+			case ANIMTYPE_DSLAT:
 			case ANIMTYPE_DSSPK:
 			{
 				/* for these channels, we only do AnimData */
