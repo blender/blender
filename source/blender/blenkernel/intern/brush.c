@@ -472,52 +472,10 @@ int BKE_brush_clone_image_delete(Brush *brush)
 	return 0;
 }
 
-/* Brush Sampling for 3d brushes. Currently used for texture painting only, but should be generalized */
-void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco[3], float rgba[4], const int thread, struct ImagePool *pool)
-{
-	MTex *mtex = &brush->mtex;
-
-	if (mtex && mtex->tex) {
-		float tin, tr, tg, tb, ta;
-		int hasrgb;
-		const int radius = BKE_brush_size_get(scene, brush);
-
-		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-			hasrgb = externtex(mtex, sampleco, &tin, &tr, &tg, &tb, &ta, thread, pool);
-		}
-		else {
-			float co[3];
-
-			co[0] = sampleco[0] / radius;
-			co[1] = sampleco[1] / radius;
-			co[2] = 0.0f;
-
-			hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread, pool);
-		}
-
-		if (hasrgb) {
-			rgba[0] = tr;
-			rgba[1] = tg;
-			rgba[2] = tb;
-			rgba[3] = ta;
-		}
-		else {
-			rgba[0] = tin;
-			rgba[1] = tin;
-			rgba[2] = tin;
-			rgba[3] = 1.0f;
-		}
-	}
-	else {
-		rgba[0] = rgba[1] = rgba[2] = rgba[3] = 1.0f;
-	}
-}
-
-
 /* Return a multiplier for brush strength on a particular vertex. */
 float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
                               const float point[3],
-                              float rgba[3],
+                              float rgba[3], const int thread,
                               struct ImagePool *pool)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -532,7 +490,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		/* Get strength by feeding the vertex
 		 * location directly into a texture */
 		hasrgb = externtex(mtex, point, &intensity,
-		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	}
 	else {
 		float rotation = -mtex->rot;
@@ -587,7 +545,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		co[2] = 0.0f;
 
 		hasrgb = externtex(mtex, co, &intensity,
-		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	}
 
 	intensity += br->texture_sample_bias;

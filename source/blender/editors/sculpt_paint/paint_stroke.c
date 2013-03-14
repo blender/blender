@@ -312,19 +312,12 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
 static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
-                               const PaintSample *sample)
+                               const PaintSample *sample, PaintMode mode)
 {
 	output[0] = sample->mouse[0];
 	output[1] = sample->mouse[1];
 
-	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
-	    !ELEM4(stroke->brush->sculpt_tool,
-	           SCULPT_TOOL_GRAB,
-	           SCULPT_TOOL_THUMB,
-	           SCULPT_TOOL_ROTATE,
-	           SCULPT_TOOL_SNAKE_HOOK) &&
-	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
-	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
+	if (paint_supports_smooth_stroke(stroke->brush, mode))
 	{
 		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
@@ -478,8 +471,29 @@ bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 	return true;
 }
 
+bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
+{
+	if(!(br->flag & BRUSH_SMOOTH_STROKE) ||
+	    (br->flag & BRUSH_ANCHORED) ||
+	    (br->flag & BRUSH_RESTORE_MESH))
+		return false;
+
+	switch (mode) {
+		case PAINT_SCULPT:
+			if (ELEM4(br->sculpt_tool,
+	           SCULPT_TOOL_GRAB,
+	           SCULPT_TOOL_THUMB,
+	           SCULPT_TOOL_ROTATE,
+	           SCULPT_TOOL_SNAKE_HOOK))
+				return false;
+		default:
+			;
+		}
+	return true;
+}
+
 /* return true if the brush size can change during paint (normally used for pressure) */
-bool paint_supports_moving_texture(Brush *br, PaintMode mode)
+bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 {
 	if (br->flag & BRUSH_ANCHORED)
 		return false;
@@ -616,7 +630,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	         (event->type == TIMER && (event->customdata == stroke->timer)) )
 	{
 		if (stroke->stroke_started) {
-			if (paint_smooth_stroke(stroke, mouse, &sample_average)) {
+			if (paint_smooth_stroke(stroke, mouse, &sample_average, mode)) {
 				if (paint_space_stroke_enabled(stroke->brush, mode)) {
 					if (!paint_space_stroke(C, op, event, mouse)) {
 						//ED_region_tag_redraw(ar);

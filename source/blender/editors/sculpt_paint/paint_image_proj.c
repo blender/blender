@@ -3898,11 +3898,8 @@ static void *do_projectpaint_thread(void *ph_v)
 
 					if (ps->is_texbrush) {
 						MTex *mtex = &brush->mtex;
-						if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
-							sub_v2_v2v2(samplecos, projPixel->projCoSS, pos);
-						}
 						/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
-						else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+						if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
 							copy_v3_v3(samplecos, projPixel->worldCoSS);
 						}
 						else {
@@ -3914,7 +3911,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex(ps->scene, brush, samplecos, rgba, thread_index, pool);
+							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, rgba, thread_index, pool);
 							alpha = rgba[3];
 						}
 						else {
