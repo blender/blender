@@ -2218,6 +2218,13 @@ void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const flo
 	    len_v2(dirs[3]),
 	};
 
+	/* variable 'area' is just for storage,
+	 * the order its initialized doesn't matter */
+#ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wunsequenced"
+#endif
+
 	/* inline mean_value_half_tan four times here */
 	float t[4] = {
 	    MEAN_VALUE_HALF_TAN_V2(area, 0, 1),
@@ -2225,6 +2232,10 @@ void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const flo
 	    MEAN_VALUE_HALF_TAN_V2(area, 2, 3),
 	    MEAN_VALUE_HALF_TAN_V2(area, 3, 0),
 	};
+
+#ifdef __clang__
+#  pragma clang diagnostic pop
+#endif
 
 #undef MEAN_VALUE_HALF_TAN_V2
 

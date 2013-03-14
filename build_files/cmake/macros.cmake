@@ -504,6 +504,9 @@ macro(remove_strict_flags)
 		remove_cc_flag("-Wunused-variable")
 		remove_cc_flag("-Werror=[^ ]+")
 		remove_cc_flag("-Werror")
+
+		# negate flags implied by '-Wall'
+		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
 	endif()
 
 	if(MSVC)

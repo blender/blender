@@ -30,7 +30,7 @@
 
 class IOCIOImpl {
 public:
-	virtual ~IOCIOImpl() {};
+	virtual ~IOCIOImpl() {}
 
 	virtual OCIO_ConstConfigRcPtr *getCurrentConfig(void) = 0;
 	virtual void setCurrentConfig(const OCIO_ConstConfigRcPtr *config) = 0;
@@ -99,7 +99,7 @@ public:
 
 class FallbackImpl : public IOCIOImpl {
 public:
-	FallbackImpl() {};
+	FallbackImpl() {}
 
 	OCIO_ConstConfigRcPtr *getCurrentConfig(void);
 	void setCurrentConfig(const OCIO_ConstConfigRcPtr *config);
