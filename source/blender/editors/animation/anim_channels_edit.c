@@ -2652,7 +2652,7 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
 	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	/* NOTE: don't save settings, otherwise, can end up with some weird behaviour (sticky extend) */

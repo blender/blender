@@ -380,7 +380,7 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* props */
 	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
