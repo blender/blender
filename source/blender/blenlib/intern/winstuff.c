@@ -140,7 +140,7 @@ void RegisterBlendExtension(void)
 	lresult = RegCreateKeyEx(root, ".blend", 0,
 	                         NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 	if (lresult == ERROR_SUCCESS) {
-		sprintf(buffer, "%s", "blendfile");
+		strcpy(buffer, "blendfile");
 		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
 		RegCloseKey(hkey);
 	}
