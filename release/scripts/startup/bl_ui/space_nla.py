@@ -167,6 +167,9 @@ class NLA_MT_add(Menu):
         layout.separator()
         layout.operator("nla.tracks_add").above_selected = False
         layout.operator("nla.tracks_add", text="Add Tracks Above Selected").above_selected = True
+		
+        layout.separator()
+        layout.operator("nla.selected_objects_add")
 
 
 class NLA_MT_edit_transform(Menu):

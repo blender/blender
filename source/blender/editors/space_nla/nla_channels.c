@@ -507,15 +507,57 @@ static int nlaedit_delete_tracks_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_delete_tracks(wmOperatorType *ot)
+void NLA_OT_tracks_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Tracks";
-	ot->idname = "NLA_OT_delete_tracks";
+	ot->idname = "NLA_OT_tracks_delete";
 	ot->description = "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
 	ot->exec = nlaedit_delete_tracks_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* *********************************************** */
+/* AnimData Related Operators */
+
+/* ******************** Include Objects Operator ***************************** */
+/* Include selected objects in NLA Editor, by giving them AnimData blocks 
+ * NOTE: This doesn't help for non-object AnimData, where we do not have any effective
+ *       selection mechanism in place. Unfortunately, this means that non-object AnimData
+ *       once again becomes a second-class citizen here. However, at least for the most 
+ *       common use case, we now have a nice shortcut again.
+ */
+
+static int nlaedit_objects_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		/* ensure that object has AnimData... that's all */
+		BKE_id_add_animdata(&ob->id);
+	}
+	CTX_DATA_END;
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_selected_objects_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Include Selected Objects";
+	ot->idname = "NLA_OT_selected_objects_add";
+	ot->description = "Make selected objects in NLA Editor by adding Animation Data";
+	
+	/* api callbacks */
+	ot->exec = nlaedit_objects_add_exec;
 	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
