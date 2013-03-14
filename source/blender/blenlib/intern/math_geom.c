@@ -728,6 +728,86 @@ static short IsectLLPt2Df(const float x0, const float y0, const float x1, const 
 	return 1;
 }
 
+/* point in polygon (keep float and int versions in sync) */
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], const int nr)
+{
+	/* we do the angle rule, define that all added angles should be about zero or (2 * PI) */
+	float angletot = 0.0;
+	float fp1[2], fp2[2];
+	int i;
+	const float *p1, *p2;
+
+	p1 = verts[nr - 1];
+	p2 = verts[0];
+
+	/* first vector */
+	fp1[0] = (float)(p1[0] - pt[0]);
+	fp1[1] = (float)(p1[1] - pt[1]);
+	normalize_v2(fp1);
+
+	for (i = 0; i < nr; i++) {
+		float dot, ang, cross;
+		/* second vector */
+		fp2[0] = (float)(p2[0] - pt[0]);
+		fp2[1] = (float)(p2[1] - pt[1]);
+		normalize_v2(fp2);
+
+		/* dot and angle and cross */
+		dot = dot_v2v2(fp1, fp2);
+		ang = fabsf(saacos(dot));
+		cross = (float)((p1[1] - p2[1]) * (p1[0] - pt[0]) + (p2[0] - p1[0]) * (p1[1] - pt[1]));
+
+		if (cross < 0.0f) angletot -= ang;
+		else              angletot += ang;
+
+		/* circulate */
+		copy_v2_v2(fp1, fp2);
+		p1 = p2;
+		p2 = verts[i + 1];
+	}
+
+	return (fabsf(angletot) > 4.0f);
+}
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const int nr)
+{
+	/* we do the angle rule, define that all added angles should be about zero or (2 * PI) */
+	float angletot = 0.0;
+	float fp1[2], fp2[2];
+	int i;
+	const int *p1, *p2;
+
+	p1 = verts[nr - 1];
+	p2 = verts[0];
+
+	/* first vector */
+	fp1[0] = (float)(p1[0] - pt[0]);
+	fp1[1] = (float)(p1[1] - pt[1]);
+	normalize_v2(fp1);
+
+	for (i = 0; i < nr; i++) {
+		float dot, ang, cross;
+		/* second vector */
+		fp2[0] = (float)(p2[0] - pt[0]);
+		fp2[1] = (float)(p2[1] - pt[1]);
+		normalize_v2(fp2);
+
+		/* dot and angle and cross */
+		dot = dot_v2v2(fp1, fp2);
+		ang = fabsf(saacos(dot));
+		cross = (float)((p1[1] - p2[1]) * (p1[0] - pt[0]) + (p2[0] - p1[0]) * (p1[1] - pt[1]));
+
+		if (cross < 0.0f) angletot -= ang;
+		else              angletot += ang;
+
+		/* circulate */
+		copy_v2_v2(fp1, fp2);
+		p1 = p2;
+		p2 = verts[i + 1];
+	}
+
+	return (fabsf(angletot) > 4.0f);
+}
+
 /* point in tri */
 
 /* only single direction */

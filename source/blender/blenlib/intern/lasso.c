@@ -57,46 +57,13 @@ bool BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
                                const int sx, const int sy,
                                const int error_value)
 {
-	/* we do the angle rule, define that all added angles should be about zero or (2 * PI) */
-	float angletot = 0.0, dot, ang, cross, fp1[2], fp2[2];
-	int a;
-	const int *p1, *p2;
-
 	if (sx == error_value) {
 		return false;
 	}
-
-	p1 = mcords[moves - 1];
-	p2 = mcords[0];
-
-	/* first vector */
-	fp1[0] = (float)(p1[0] - sx);
-	fp1[1] = (float)(p1[1] - sy);
-	normalize_v2(fp1);
-
-	for (a = 0; a < moves; a++) {
-		/* second vector */
-		fp2[0] = (float)(p2[0] - sx);
-		fp2[1] = (float)(p2[1] - sy);
-		normalize_v2(fp2);
-
-		/* dot and angle and cross */
-		dot = fp1[0] * fp2[0] + fp1[1] * fp2[1];
-		ang = fabs(saacos(dot));
-
-		cross = (float)((p1[1] - p2[1]) * (p1[0] - sx) + (p2[0] - p1[0]) * (p1[1] - sy));
-
-		if (cross < 0.0f) angletot -= ang;
-		else angletot += ang;
-
-		/* circulate */
-		fp1[0] = fp2[0]; fp1[1] = fp2[1];
-		p1 = p2;
-		p2 = mcords[a + 1];
+	else {
+		int pt[2] = {sx, sy};
+		return isect_point_poly_v2_int(pt, mcords, moves);
 	}
-
-	if (fabsf(angletot) > 4.0f) return true;
-	return false;
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
