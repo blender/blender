@@ -71,13 +71,11 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
-	size_t srclen = strlen(src);
-	size_t cpylen = (srclen > (maxncpy - 1)) ? (maxncpy - 1) : srclen;
+	size_t srclen = BLI_strnlen(src, maxncpy - 1);
 	BLI_assert(maxncpy != 0);
-	
-	memcpy(dst, src, cpylen);
-	dst[cpylen] = '\0';
-	
+
+	memcpy(dst, src, srclen);
+	dst[srclen] = '\0';
 	return dst;
 }
 
