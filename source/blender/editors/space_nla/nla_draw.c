@@ -759,7 +759,6 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				glEnable(GL_BLEND);
 				
 				/* draw backing strip behind channel name */
-				// FIXME: hardcoded colors!!!
 				if (group == 5) {
 					float color[4];
 					

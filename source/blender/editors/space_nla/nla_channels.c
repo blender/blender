@@ -140,7 +140,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				}
 				else {
 					Base *b;
-
+					
 					/* deselect all */
 					/* TODO: should this deselect all other types of channels too? */
 					for (b = sce->base.first; b; b = b->next) {

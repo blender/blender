@@ -381,6 +381,10 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 		case ACHANNEL_SETTING_MUTE:
 			return ((ac) && (ac->spacetype == SPACE_NLA));
 			
+		/* select is ok for most "ds*" channels (e.g. dsmat) */
+		case ACHANNEL_SETTING_SELECT:
+			return 1;
+			
 		/* other flags are never supported */
 		default:
 			return 0;
