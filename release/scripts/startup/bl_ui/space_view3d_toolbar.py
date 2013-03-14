@@ -1141,13 +1141,15 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         ipaint = toolsettings.image_paint
         settings = toolsettings.image_paint
 
+        layout.prop(ipaint, "input_samples")
+
         col = layout.column()
         col.prop(ipaint, "use_occlude")
         col.prop(ipaint, "use_backface_culling")
 
         row = layout.row()
         row.prop(ipaint, "use_normal_falloff")
-
+ 
         sub = row.row()
         sub.active = (ipaint.use_normal_falloff)
         sub.prop(ipaint, "normal_angle", text="")
@@ -1181,7 +1183,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
 
         col.operator("paint.project_image", text="Apply Camera Image")
         col.operator("image.save_dirty", text="Save All Edited")
-
+        
 
 class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
     bl_label = "Options"

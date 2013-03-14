@@ -757,6 +757,8 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
+        
+        layout.prop(toolsettings, "input_samples")
 
         layout.prop(brush, "use_airbrush")
         row = layout.row()
