@@ -473,9 +473,9 @@ class ShapeTransfer(Operator):
 
 
 class JoinUVs(Operator):
-    """Copy UV Layout to objects with matching geometry"""
+    """Transfer UV Layouts from active to selected objects (needs matching geometry)"""
     bl_idname = "object.join_uvs"
-    bl_label = "Join as UVs"
+    bl_label = "Transfer UV Layouts"
 
     @classmethod
     def poll(cls, context):
