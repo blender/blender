@@ -462,6 +462,7 @@ struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, 
 struct RenderResult *RE_AcquireResultRead(struct Render *re) {return (struct RenderResult *) NULL;}
 struct RenderResult *RE_AcquireResultWrite(struct Render *re) {return (struct RenderResult *) NULL;}
 struct RenderStats *RE_GetStats(struct Render *re) {return (struct RenderStats *) NULL;}
+struct RenderData *RE_engine_get_render_data(struct Render *re) {return (struct RenderData *) NULL;}
 void RE_engine_update_result(struct RenderEngine *engine, struct RenderResult *result) {}
 void RE_engine_update_progress(struct RenderEngine *engine, float progress) {}
 void RE_engine_end_result(struct RenderEngine *engine, struct RenderResult *result) {}
