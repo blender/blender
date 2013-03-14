@@ -535,6 +535,20 @@ void NLA_OT_tracks_delete(wmOperatorType *ot)
 
 static int nlaedit_objects_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	bAnimContext ac;
+	SpaceNla *snla;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* ensure that filters are set so that the effect will be immediately visible */
+	snla = (SpaceNla *)ac.sl;
+	if (snla && snla->ads) {
+		snla->ads->filterflag &= ~ADS_FILTER_NLA_NOACT;
+	}
+	
+	/* operate on selected objects... */	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		/* ensure that object has AnimData... that's all */
@@ -554,7 +568,7 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Include Selected Objects";
 	ot->idname = "NLA_OT_selected_objects_add";
-	ot->description = "Make selected objects in NLA Editor by adding Animation Data";
+	ot->description = "Make selected objects appear in NLA Editor by adding Animation Data";
 	
 	/* api callbacks */
 	ot->exec = nlaedit_objects_add_exec;
