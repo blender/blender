@@ -404,7 +404,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	}
 
 	/* create button */
-	BLI_snprintf(name, UI_MAX_NAME_STR, "%s", user->name);
+	BLI_strncpy(name, user->name, UI_MAX_NAME_STR);
 
 	if (user->icon) {
 		but = uiDefIconTextMenuBut(block, template_texture_user_menu, NULL,

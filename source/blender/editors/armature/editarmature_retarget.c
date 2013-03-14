@@ -409,11 +409,11 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 	for (i = 0, j = 0; i < (MAXBONENAME - 1) && j < (MAXBONENAME - 1) && template_name[i] != '\0'; i++) {
 		if (template_name[i] == '&') {
 			if (template_name[i + 1] == 'S' || template_name[i + 1] == 's') {
-				j += sprintf(name + j, "%s", side_string);
+				j += BLI_strncpy_rlen(name + j, side_string, MAXBONENAME);
 				i++;
 			}
 			else if (template_name[i + 1] == 'N' || template_name[i + 1] == 'n') {
-				j += sprintf(name + j, "%s", num_string);
+				j += BLI_strncpy_rlen(name + j, num_string, MAXBONENAME);
 				i++;
 			}
 			else {

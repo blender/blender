@@ -559,7 +559,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 
 #ifdef __APPLE__
 	EnterMoviesOnThread(0);
-	sprintf(theFullPath, "%s", name);
+	strcpy(theFullPath, name);
 
 	/* hack: create an empty file to make FSPathMakeRef() happy */
 	myFile = open(theFullPath, O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRUSR | S_IWUSR);
@@ -575,7 +575,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 #endif
 #ifdef _WIN32
 	qtname = get_valid_qtname(name);
-	sprintf(theFullPath, "%s", qtname);
+	strcpy(theFullPath, qtname);
 	strcpy(name, qtname);
 	MEM_freeN(qtname);
 	

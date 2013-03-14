@@ -384,7 +384,7 @@ static void stats_string(Scene *scene)
 
 	if (scene->obedit) {
 		if (BKE_keyblock_from_object(scene->obedit))
-			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s", IFACE_("(Key) "));
+			ofs += BLI_strncpy_rlen(s + ofs, IFACE_("(Key) "), MAX_INFO_LEN - ofs);
 
 		if (scene->obedit->type == OB_MESH) {
 			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
@@ -400,7 +400,7 @@ static void stats_string(Scene *scene)
 			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d/%d"), stats->totvertsel, stats->totvert);
 		}
 
-		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s", memstr);
+		ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%d/%d %s"),

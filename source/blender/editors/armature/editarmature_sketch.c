@@ -170,16 +170,16 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 	GHashIterator ghi;
 	const char *menu_header = IFACE_("Template %t|None %x0|");
 	char *p;
+	const size_t template_size = (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30);
 
 	if (TEMPLATES_MENU != NULL) {
 		MEM_freeN(TEMPLATES_MENU);
 	}
 
-	TEMPLATES_MENU = MEM_callocN(sizeof(char) * (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30), "skeleton template menu");
+	TEMPLATES_MENU = MEM_callocN(sizeof(char) * template_size, "skeleton template menu");
 
 	p = TEMPLATES_MENU;
-
-	p += sprintf(TEMPLATES_MENU, "%s", menu_header);
+	p += BLI_strncpy_rlen(p, menu_header, template_size);
 
 	BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
 

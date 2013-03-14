@@ -718,7 +718,7 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 
 				/* print the alt_name */
 				if (unit->name_alt)
-					len_name = BLI_snprintf(str, len_max, "%s", unit->name_alt);
+					len_name = BLI_strncpy_rlen(str, unit->name_alt, len_max);
 				else
 					len_name = 0;
 

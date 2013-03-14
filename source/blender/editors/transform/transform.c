@@ -4112,7 +4112,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	applyNumInput(&t->num, &distance);
 
 	/* header print for NumInput */
-	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%s", IFACE_("Shrink/Fatten:"));
+	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Shrink/Fatten:"), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		outputNumInput(&(t->num), c);
@@ -6481,12 +6481,12 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	/* header string */
-	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%s", IFACE_("Vert Slide: "));
+	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Vert Slide: "), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		applyNumInput(&t->num, &final);
 		outputNumInput(&(t->num), c);
-		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%s", &c[0]);
+		ofs += BLI_strncpy_rlen(str + ofs, &c[0], MAX_INFO_LEN - ofs);
 	}
 	else {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%.4f ", final);

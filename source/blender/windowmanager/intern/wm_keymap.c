@@ -836,7 +836,7 @@ int WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
 	}
 
 	strcat(buf, WM_key_event_string(kmi->type));
-	return BLI_snprintf(str, len, "%s", buf);
+	return BLI_strncpy_rlen(str, buf, len);
 }
 
 static wmKeyMapItem *wm_keymap_item_find_handlers(

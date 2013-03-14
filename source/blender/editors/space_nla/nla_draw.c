@@ -695,11 +695,8 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					
 					special = ICON_ACTION;
 					
-					if (act)
-						BLI_snprintf(name, sizeof(name), "%s", act->id.name + 2);
-					else
-						BLI_strncpy(name, "<No Action>", sizeof(name));
-						
+					BLI_strncpy(name, act ? act->id.name + 2 : "<No Action>", sizeof(name));
+
 					/* draw manually still */
 					do_draw = TRUE;
 				}

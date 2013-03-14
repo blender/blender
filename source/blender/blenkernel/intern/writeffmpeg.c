@@ -786,7 +786,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	fmt->audio_codec = ffmpeg_audio_codec;
 
-	BLI_snprintf(of->filename, sizeof(of->filename), "%s", name);
+	BLI_strncpy(of->filename, name, sizeof(of->filename));
 	/* set the codec to the user's selection */
 	switch (ffmpeg_type) {
 		case FFMPEG_AVI:

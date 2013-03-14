@@ -491,7 +491,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 	rv->of = avformat_alloc_context();
 	rv->of->oformat = av_guess_format("avi", NULL, NULL);
 	
-	BLI_snprintf(rv->of->filename, sizeof(rv->of->filename), "%s", fname);
+	BLI_strncpy(rv->of->filename, fname, sizeof(rv->of->filename));
 
 	fprintf(stderr, "Starting work on proxy: %s\n", rv->of->filename);
 
