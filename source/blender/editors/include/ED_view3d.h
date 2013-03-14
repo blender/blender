@@ -39,14 +39,12 @@ struct BMVert;
 struct BPoint;
 struct Base;
 struct BezTriple;
-struct BezTriple;
 struct BoundBox;
 struct EditBone;
 struct ImBuf;
 struct MVert;
 struct Main;
 struct MetaElem;
-struct Nurb;
 struct Nurb;
 struct Object;
 struct RegionView3D;
@@ -174,38 +172,38 @@ void pose_foreachScreenBone(
 
 
 /* view3d_project.c */
-void ED_view3d_project_float_v2_m4(const struct ARegion *a, const float co[3], float r_co[2], float mat[4][4]);
-void ED_view3d_project_float_v3_m4(struct ARegion *a, const float co[3], float r_co[3], float mat[4][4]);
+void ED_view3d_project_float_v2_m4(const struct ARegion *ar, const float co[3], float r_co[2], float mat[4][4]);
+void ED_view3d_project_float_v3_m4(const struct ARegion *ar, const float co[3], float r_co[3], float mat[4][4]);
 
-eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base);
+eV3DProjStatus ED_view3d_project_base(const struct ARegion *ar, struct Base *base);
 
 /* *** short *** */
-eV3DProjStatus ED_view3d_project_short_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+eV3DProjStatus ED_view3d_project_short_ex(const struct ARegion *ar, float perspmat[4][4], const bool is_local,
                                           const float co[3], short r_co[2], const eV3DProjTest flag);
-eV3DProjStatus ED_view3d_project_short_global(struct ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag);
-eV3DProjStatus ED_view3d_project_short_object(struct ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_short_global(const struct ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_short_object(const struct ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag);
 
 /* *** int *** */
-eV3DProjStatus ED_view3d_project_int_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+eV3DProjStatus ED_view3d_project_int_ex(const struct ARegion *ar, float perspmat[4][4], const bool is_local,
                                         const float co[3], int r_co[2], const eV3DProjTest flag);
-eV3DProjStatus ED_view3d_project_int_global(struct ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag);
-eV3DProjStatus ED_view3d_project_int_object(struct ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_int_global(const struct ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_int_object(const struct ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag);
 
 /* *** float *** */
-eV3DProjStatus ED_view3d_project_float_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
-                                        const float co[3], float r_co[2], const eV3DProjTest flag);
-eV3DProjStatus ED_view3d_project_float_global(struct ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag);
-eV3DProjStatus ED_view3d_project_float_object(struct ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_ex(const struct ARegion *ar, float perspmat[4][4], const bool is_local,
+                                          const float co[3], float r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_global(const struct ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_object(const struct ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag);
 
-float ED_view3d_calc_zfac(struct RegionView3D *rv3d, const float co[3], bool *r_flip);
-void ED_view3d_win_to_ray(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
-void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
-void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
-void ED_view3d_win_to_delta(struct ARegion *ar, const float mval[2], float out[3], const float zfac);
-void ED_view3d_win_to_vector(struct ARegion *ar, const float mval[2], float out[3]);
-void ED_view3d_win_to_segment(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
-int  ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
-void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
+float ED_view3d_calc_zfac(const struct RegionView3D *rv3d, const float co[3], bool *r_flip);
+void ED_view3d_win_to_ray(const struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
+void ED_view3d_global_to_vector(const struct RegionView3D *rv3d, const float coord[3], float vec[3]);
+void ED_view3d_win_to_3d(const struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
+void ED_view3d_win_to_delta(const struct ARegion *ar, const float mval[2], float out[3], const float zfac);
+void ED_view3d_win_to_vector(const struct ARegion *ar, const float mval[2], float out[3]);
+void ED_view3d_win_to_segment(const struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+int  ED_view3d_win_to_segment_clip(const struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
 
 /* end */

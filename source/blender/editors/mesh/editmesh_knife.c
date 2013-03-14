@@ -233,9 +233,9 @@ BLI_INLINE int round_ftoi(float x)
 	return x > 0.0f ?  (int)(x + 0.5f) : (int)(x - 0.5f);
 }
 
-static void knife_project_v3(KnifeTool_OpData *kcd, const float co[3], float sco[3])
+static void knife_project_v3(const KnifeTool_OpData *kcd, const float co[3], float sco[3])
 {
-	ED_view3d_project_float_v3_m4(kcd->ar, co, sco, kcd->projmat);
+	ED_view3d_project_float_v3_m4(kcd->ar, co, sco, (float (*)[4])kcd->projmat);
 }
 
 static void knife_pos_data_clear(KnifePosData *kpd)
@@ -890,7 +890,7 @@ static void knife_finish_cut(KnifeTool_OpData *UNUSED(kcd))
 
 }
 
-static void knifetool_draw_angle_snapping(KnifeTool_OpData *kcd)
+static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 {
 	bglMats mats;
 	double u[3], u1[2], u2[2], v1[3], v2[3], dx, dy;
@@ -1006,7 +1006,7 @@ static void knife_init_colors(KnifeColors *colors)
 static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	KnifeTool_OpData *kcd = arg;
+	const KnifeTool_OpData *kcd = arg;
 
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
@@ -2853,10 +2853,8 @@ static void knife_make_cuts(KnifeTool_OpData *kcd)
 #endif
 
 /* called on tool confirmation */
-static void knifetool_finish(wmOperator *op)
+static void knifetool_finish_ex(KnifeTool_OpData *kcd)
 {
-	KnifeTool_OpData *kcd = op->customdata;
-
 #if SCANFILL_CUTS
 	knifenet_fill_faces(kcd);
 #else
@@ -2865,6 +2863,11 @@ static void knifetool_finish(wmOperator *op)
 
 	EDBM_mesh_normals_update(kcd->em);
 	EDBM_update_generic(kcd->em, TRUE, TRUE);
+}
+static void knifetool_finish(wmOperator *op)
+{
+	KnifeTool_OpData *kcd = op->customdata;
+	knifetool_finish_ex(kcd);
 }
 
 static void knife_recalc_projmat(KnifeTool_OpData *kcd)
@@ -2878,10 +2881,8 @@ static void knife_recalc_projmat(KnifeTool_OpData *kcd)
 }
 
 /* called when modal loop selection is done... */
-static void knifetool_exit(bContext *C, wmOperator *op)
+static void knifetool_exit_ex(bContext *C, KnifeTool_OpData *kcd)
 {
-	KnifeTool_OpData *kcd = op->customdata;
-
 	if (!kcd)
 		return;
 
@@ -2913,6 +2914,11 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	/* destroy kcd itself */
 	MEM_freeN(kcd);
+}
+static void knifetool_exit(bContext *C, wmOperator *op)
+{
+	KnifeTool_OpData *kcd = op->customdata;
+	knifetool_exit_ex(C, kcd);
 	op->customdata = NULL;
 }
 
