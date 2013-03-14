@@ -1586,60 +1586,50 @@ static void appendPolyLineVert(ListBase *lb, unsigned int index)
 	BLI_addtail(lb, vl);
 }
 
-void BKE_mesh_from_curve(Scene *scene, Object *ob)
+void BKE_mesh_to_curve(Scene *scene, Object *ob)
 {
 	/* make new mesh data from the original copy */
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_MESH);
 
 	MVert *mverts = dm->getVertArray(dm);
 	MEdge *med, *medge = dm->getEdgeArray(dm);
-	MFace *mf,  *mface = dm->getTessFaceArray(dm);
+	MPoly *mp,  *mpoly = dm->getPolyArray(dm);
+	MLoop       *mloop = dm->getLoopArray(dm);
 
 	int totedge = dm->getNumEdges(dm);
-	int totface = dm->getNumTessFaces(dm);
+	int totpoly = dm->getNumPolys(dm);
 	int totedges = 0;
-	int i, needsFree = 0;
+	int i;
+	bool needsFree = false;
 
 	/* only to detect edge polylines */
-	EdgeHash *eh = BLI_edgehash_new();
-	EdgeHash *eh_edge = BLI_edgehash_new();
-
+	int *edge_users;
 
 	ListBase edges = {NULL, NULL};
 
-	/* create edges from all faces (so as to find edges not in any faces) */
-	mf = mface;
-	for (i = 0; i < totface; i++, mf++) {
-		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
-			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
-		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
-			BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
-
-		if (mf->v4) {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
-				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
-			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
-				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
-		}
-		else {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
-				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+	/* get boundary edges */
+	edge_users = MEM_callocN(sizeof(int) * totedge, __func__);
+	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
+		MLoop *ml = &mloop[mp->loopstart];
+		int j;
+		for (j = 0; j < mp->totloop; j++, ml++) {
+			edge_users[ml->e]++;
 		}
 	}
 
+	/* create edges from all faces (so as to find edges not in any faces) */
 	med = medge;
 	for (i = 0; i < totedge; i++, med++) {
-		if (!BLI_edgehash_haskey(eh, med->v1, med->v2)) {
+		if (edge_users[i] == 0) {
 			EdgeLink *edl = MEM_callocN(sizeof(EdgeLink), "EdgeLink");
 
-			BLI_edgehash_insert(eh_edge, med->v1, med->v2, NULL);
+			// BLI_edgehash_insert(eh_edge, med->v1, med->v2, NULL);
 			edl->edge = med;
 
 			BLI_addtail(&edges, edl);   totedges++;
 		}
 	}
-	BLI_edgehash_free(eh_edge, NULL);
-	BLI_edgehash_free(eh, NULL);
+	MEM_freeN(edge_users);
 
 	if (edges.first) {
 		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);
@@ -1741,7 +1731,7 @@ void BKE_mesh_from_curve(Scene *scene, Object *ob)
 		ob->type = OB_CURVE;
 
 		/* curve objects can't contain DM in usual cases, we could free memory */
-		needsFree = 1;
+		needsFree = true;
 	}
 
 	dm->needsFree = needsFree;
