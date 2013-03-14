@@ -69,19 +69,3 @@ void MixBaseOperation::deinitExecution()
 	this->m_inputColor1Operation = NULL;
 	this->m_inputColor2Operation = NULL;
 }
-
-void MixBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
-{
-	if (this->getInputSocket(1)->isConnected()) {
-		this->setResolutionInputSocketIndex(1);
-	}
-	else {
-		if (this->getInputSocket(2)->isConnected()) {
-			this->setResolutionInputSocketIndex(2);
-		}
-		else {
-			this->setResolutionInputSocketIndex(0);
-		}
-	}
-	NodeOperation::determineResolution(resolution, preferredResolution);
-}

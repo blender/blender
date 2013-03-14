@@ -71,8 +71,6 @@ public:
 	 */
 	void deinitExecution();
 	
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
 	void setUseValueAlphaMultiply(const bool value) { this->m_valueAlphaMultiply = value; }
 	bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
 	void setUseClamp(bool value) { this->m_useClamp = value; }
