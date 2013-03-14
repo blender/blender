@@ -174,9 +174,9 @@ typedef struct KnifeTool_OpData {
 	KnifeColors colors;
 
 	/* operatpr options */
-	char cut_through;    /* preference, can be modified at runtime (that feature may go) */
-	char only_select;    /* set on initialization */
-	char select_result;  /* set on initialization */
+	bool cut_through;    /* preference, can be modified at runtime (that feature may go) */
+	bool only_select;    /* set on initialization */
+	bool select_result;  /* set on initialization */
 
 	short is_ortho;
 	float ortho_extent;
@@ -2867,28 +2867,14 @@ static void knifetool_finish(wmOperator *op)
 	EDBM_update_generic(kcd->em, TRUE, TRUE);
 }
 
-/* copied from paint_image.c */
-static int project_knife_view_clip(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
-{
-	int orth = ED_view3d_clip_range_get(v3d, rv3d, clipsta, clipend);
-
-	if (orth) { /* only needed for ortho */
-		float fac = 2.0f / ((*clipend) - (*clipsta));
-		*clipsta *= fac;
-		*clipend *= fac;
-	}
-
-	return orth;
-}
-
 static void knife_recalc_projmat(KnifeTool_OpData *kcd)
 {
 	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
 	ED_view3d_ob_project_mat_get(kcd->ar->regiondata, kcd->ob, kcd->projmat);
 	//mult_m4_m4m4(kcd->projmat, kcd->vc.rv3d->winmat, kcd->vc.rv3d->viewmat);
 
-	kcd->is_ortho = project_knife_view_clip(kcd->vc.v3d, kcd->vc.rv3d, 
-	                                        &kcd->clipsta, &kcd->clipend);
+	kcd->is_ortho = ED_view3d_clip_range_get(kcd->vc.v3d, kcd->vc.rv3d,
+	                                         &kcd->clipsta, &kcd->clipend, true);
 }
 
 /* called when modal loop selection is done... */
@@ -2956,18 +2942,14 @@ static void knifetool_update_mval(KnifeTool_OpData *kcd, const int mval_i[2])
 }
 
 /* called when modal loop selection gets set up... */
-static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
+static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
+                           const bool only_select, const bool cut_through)
 {
-	KnifeTool_OpData *kcd;
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	DerivedMesh *cage, *final;
 	SmallHash shash;
 	void *data[3];
-	const short only_select = RNA_boolean_get(op->ptr, "only_selected");
-
-	/* alloc new customdata */
-	kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), "knifetool Modal Op Data");
 
 	/* assign the drawing handle for drawing preview line... */
 	kcd->ob = obedit;
@@ -3013,7 +2995,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	kcd->kedgefacemap = BLI_ghash_ptr_new("knife origvertmap");
 
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
-	kcd->cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
+	kcd->cut_through = cut_through;
 	kcd->only_select = only_select;
 
 	/* can't usefully select resulting edges in face mode */
@@ -3023,8 +3005,6 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	knife_pos_data_clear(&kcd->prev);
 
 	knife_init_colors(&kcd->colors);
-
-	return 1;
 }
 
 static int knifetool_cancel(bContext *C, wmOperator *op)
@@ -3036,12 +3016,17 @@ static int knifetool_cancel(bContext *C, wmOperator *op)
 
 static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
+	const bool cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
+
 	KnifeTool_OpData *kcd;
 
 	view3d_operator_needs_opengl(C);
 
-	if (!knifetool_init(C, op, 0))
-		return OPERATOR_CANCELLED;
+	/* alloc new customdata */
+	kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
+
+	knifetool_init(C, kcd, only_select, cut_through);
 
 	/* add a modal handler for this operator - handles loop selection */
 	WM_cursor_modal(CTX_wm_window(C), BC_KNIFECURSOR);

@@ -212,10 +212,16 @@ void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, cons
 
 
 
-int  ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
-int  ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend);
-void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
-void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
+bool ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d,
+                              float *r_clipsta, float *r_clipend, const bool use_ortho_factor);
+bool ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi,
+                             struct rctf *r_viewplane, float *r_clipsta, float *r_clipend);
+void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar,
+                                  struct View3D *v3d, struct RegionView3D *rv3d,
+                                  struct rctf *viewborder_r, const bool no_shift);
+void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar,
+                                       struct View3D *v3d, struct RegionView3D *rv3d,
+                                       float r_size[2]);
 
 void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
 void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[4][4]);

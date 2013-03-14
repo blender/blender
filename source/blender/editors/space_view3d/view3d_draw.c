@@ -968,7 +968,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 }
 
 static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
-                                 rctf *viewborder_r, short no_shift, short no_zoom)
+                                 rctf *r_viewborder, const bool no_shift, const bool no_zoom)
 {
 	CameraParams params;
 	rctf rect_view, rect_camera;
@@ -992,25 +992,25 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	rect_camera = params.viewplane;
 
 	/* get camera border within viewport */
-	viewborder_r->xmin = ((rect_camera.xmin - rect_view.xmin) / BLI_rctf_size_x(&rect_view)) * ar->winx;
-	viewborder_r->xmax = ((rect_camera.xmax - rect_view.xmin) / BLI_rctf_size_x(&rect_view)) * ar->winx;
-	viewborder_r->ymin = ((rect_camera.ymin - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * ar->winy;
-	viewborder_r->ymax = ((rect_camera.ymax - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * ar->winy;
+	r_viewborder->xmin = ((rect_camera.xmin - rect_view.xmin) / BLI_rctf_size_x(&rect_view)) * ar->winx;
+	r_viewborder->xmax = ((rect_camera.xmax - rect_view.xmin) / BLI_rctf_size_x(&rect_view)) * ar->winx;
+	r_viewborder->ymin = ((rect_camera.ymin - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * ar->winy;
+	r_viewborder->ymax = ((rect_camera.ymax - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * ar->winy;
 }
 
-void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, float size_r[2])
+void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, float r_size[2])
 {
 	rctf viewborder;
 
 	view3d_camera_border(scene, ar, v3d, rv3d, &viewborder, TRUE, TRUE);
-	size_r[0] = BLI_rctf_size_x(&viewborder);
-	size_r[1] = BLI_rctf_size_y(&viewborder);
+	r_size[0] = BLI_rctf_size_x(&viewborder);
+	r_size[1] = BLI_rctf_size_y(&viewborder);
 }
 
 void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
-                                  rctf *viewborder_r, short no_shift)
+                                  rctf *viewborder_r, const bool no_shift)
 {
-	view3d_camera_border(scene, ar, v3d, rv3d, viewborder_r, no_shift, FALSE);
+	view3d_camera_border(scene, ar, v3d, rv3d, viewborder_r, no_shift, false);
 }
 
 static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float fac)

@@ -667,22 +667,29 @@ void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
-int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
+bool ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *r_clipsta, float *r_clipend,
+                              const bool use_ortho_factor)
 {
 	CameraParams params;
 
 	BKE_camera_params_init(&params);
 	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 
-	if (clipsta) *clipsta = params.clipsta;
-	if (clipend) *clipend = params.clipend;
+	if (use_ortho_factor && params.is_ortho) {
+		const float fac = 2.0f / (params.clipend - params.clipsta);
+		params.clipsta *= fac;
+		params.clipend *= fac;
+	}
+
+	if (r_clipsta) *r_clipsta = params.clipsta;
+	if (r_clipend) *r_clipend = params.clipend;
 
 	return params.is_ortho;
 }
 
 /* also exposed in previewrender.c */
-int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
-                            rctf *viewplane, float *clipsta, float *clipend)
+bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
+                             rctf *r_viewplane, float *r_clipsta, float *r_clipend)
 {
 	CameraParams params;
 
@@ -690,9 +697,9 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
 	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
-	if (viewplane) *viewplane = params.viewplane;
-	if (clipsta) *clipsta = params.clipsta;
-	if (clipend) *clipend = params.clipend;
+	if (r_viewplane) *r_viewplane = params.viewplane;
+	if (r_clipsta) *r_clipsta = params.clipsta;
+	if (r_clipend) *r_clipend = params.clipend;
 	
 	return params.is_ortho;
 }

@@ -2763,19 +2763,6 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 #endif
 }
 
-static int project_paint_view_clip(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
-{
-	int orth = ED_view3d_clip_range_get(v3d, rv3d, clipsta, clipend);
-
-	if (orth) { /* only needed for ortho */
-		float fac = 2.0f / ((*clipend) - (*clipsta));
-		*clipsta *= fac;
-		*clipend *= fac;
-	}
-
-	return orth;
-}
-
 /* run once per stroke before projection painting */
 static void project_paint_begin(ProjPaintState *ps)
 {
@@ -2906,7 +2893,7 @@ static void project_paint_begin(ProjPaintState *ps)
 
 			ED_view3d_ob_project_mat_get(ps->rv3d, ps->ob, ps->projectMat);
 
-			ps->is_ortho = project_paint_view_clip(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend);
+			ps->is_ortho = ED_view3d_clip_range_get(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
 		}
 		else {
 			/* re-projection */
@@ -4412,7 +4399,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		IDPropertyTemplate val;
 		IDProperty *idgroup = IDP_GetProperties(&image->id, 1);
 		IDProperty *view_data;
-		int orth;
+		bool is_ortho;
 		float *array;
 
 		val.array.len = PROJ_VIEW_DATA_SIZE;
@@ -4422,8 +4409,8 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		array = (float *)IDP_Array(view_data);
 		memcpy(array, rv3d->winmat, sizeof(rv3d->winmat)); array += sizeof(rv3d->winmat) / sizeof(float);
 		memcpy(array, rv3d->viewmat, sizeof(rv3d->viewmat)); array += sizeof(rv3d->viewmat) / sizeof(float);
-		orth = project_paint_view_clip(v3d, rv3d, &array[0], &array[1]);
-		array[2] = orth ? 1.0f : 0.0f; /* using float for a bool is dodgy but since its an extra member in the array... easier then adding a single bool prop */
+		is_ortho = ED_view3d_clip_range_get(v3d, rv3d, &array[0], &array[1], true);
+		array[2] = is_ortho ? 1.0f : 0.0f; /* using float for a bool is dodgy but since its an extra member in the array... easier then adding a single bool prop */
 
 		IDP_AddToGroup(idgroup, view_data);
 
