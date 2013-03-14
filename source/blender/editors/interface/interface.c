@@ -2746,8 +2746,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	but->retval = retval;
 
 	slen = strlen(str);
-	if (slen >= UI_MAX_NAME_STR - 1) {
-		but->str = MEM_mallocN(slen + 2, "ui_def_but str"); /* why +2 ? */
+	if (slen >= UI_MAX_NAME_STR) {
+		but->str = MEM_mallocN(slen + 1, "ui_def_but str");
 	}
 	else {
 		but->str = but->strdata;
