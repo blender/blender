@@ -2861,7 +2861,7 @@ void txt_move_lines(struct Text *text, const int direction)
 	}
 }
 
-int setcurr_tab_spaces(Text *text, int space)
+int txt_setcurr_tab_spaces(Text *text, int space)
 {
 	int i = 0;
 	int test = 0;

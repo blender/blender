@@ -317,8 +317,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 	output[0] = sample->mouse[0];
 	output[1] = sample->mouse[1];
 
-	if (paint_supports_smooth_stroke(stroke->brush, mode))
-	{
+	if (paint_supports_smooth_stroke(stroke->brush, mode)) {
 		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
 		float dy = stroke->last_mouse_position[1] - sample->mouse[1];
@@ -463,11 +462,17 @@ bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 
 	switch (mode) {
 		case PAINT_SCULPT:
-			if (ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
-			return false;
+			if (ELEM4(br->sculpt_tool,
+			          SCULPT_TOOL_GRAB,
+			          SCULPT_TOOL_THUMB,
+			          SCULPT_TOOL_ROTATE,
+			          SCULPT_TOOL_SNAKE_HOOK))
+			{
+				return false;
+			}
 		default:
 			;
-		}
+	}
 	return true;
 }
 
@@ -476,19 +481,23 @@ bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 	if(!(br->flag & BRUSH_SMOOTH_STROKE) ||
 	    (br->flag & BRUSH_ANCHORED) ||
 	    (br->flag & BRUSH_RESTORE_MESH))
+	{
 		return false;
+	}
 
 	switch (mode) {
 		case PAINT_SCULPT:
 			if (ELEM4(br->sculpt_tool,
-	           SCULPT_TOOL_GRAB,
-	           SCULPT_TOOL_THUMB,
-	           SCULPT_TOOL_ROTATE,
-	           SCULPT_TOOL_SNAKE_HOOK))
+			          SCULPT_TOOL_GRAB,
+			          SCULPT_TOOL_THUMB,
+			          SCULPT_TOOL_ROTATE,
+			          SCULPT_TOOL_SNAKE_HOOK))
+			{
 				return false;
+			}
 		default:
 			;
-		}
+	}
 	return true;
 }
 

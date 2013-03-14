@@ -1011,7 +1011,7 @@ static int text_line_break_exec(bContext *C, wmOperator *UNUSED(op))
 	text_drawcache_tag_update(st, 0);
 
 	// double check tabs/spaces before splitting the line
-	curts = setcurr_tab_spaces(text, space);
+	curts = txt_setcurr_tab_spaces(text, space);
 	txt_split_curline(text);
 
 	for (a = 0; a < curts; a++) {
