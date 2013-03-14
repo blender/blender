@@ -858,25 +858,28 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co[3],
                                  const float mval[2], const float brush_size_pressure, float rgba[4])
 {
-	float vertco[2];
+	float co_ss[2];  /* screenspace */
 
 	if (ED_view3d_project_float_object(vc->ar,
-	                                   co, vertco,
+	                                   co, co_ss,
 	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 	{
 		float delta[2];
 		float dist_squared;
 
-		sub_v2_v2v2(delta, mval, vertco);
+		sub_v2_v2v2(delta, mval, co_ss);
 		dist_squared = dot_v2v2(delta, delta); /* len squared */
 		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
 			Brush *brush = paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_squared);
 			if (brush->mtex.tex && rgba) {
-				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D)
+				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
 					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
-				else
-					BKE_brush_sample_tex_3D(vc->scene, brush, vertco, rgba, 0, NULL);
+				}
+				else {
+					const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
+					BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
+				}
 			}
 			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}
