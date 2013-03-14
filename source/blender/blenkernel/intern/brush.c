@@ -472,7 +472,8 @@ int BKE_brush_clone_image_delete(Brush *brush)
 	return 0;
 }
 
-/* Return a multiplier for brush strength on a particular vertex. */
+/* Generic texture sampler for 3D painting systems. point has to be either in
+ * region space mouse coordinates, or 3d world coordinates for 3D mapping */
 float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
                               const float point[3],
                               float rgba[3], const int thread,

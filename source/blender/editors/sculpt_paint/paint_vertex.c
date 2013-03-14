@@ -872,7 +872,7 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
 			Brush *brush = paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_squared);
-			if (brush->mtex.tex) {
+			if (brush->mtex.tex && rgba) {
 				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D)
 					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
 				else
@@ -881,12 +881,12 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}
 	}
-
-	zero_v4(rgba);
+	if(rgba)
+		zero_v4(rgba);
 	return 0.0f;
 }
 
-static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
+static float calc_vp_alpha_col_dl(VPaint *vp, ViewContext *vc,
                               float vpimat[3][3], const DMCoNo *v_co_no,
                               const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
@@ -2385,7 +2385,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	{ \
 		unsigned int vidx = v_idx_var; \
 		if (me->dvert[vidx].flag) { \
-			alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
+			alpha = calc_vp_alpha_col_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
 			                         mval, brush_size_pressure, brush_alpha_pressure, NULL); \
 			if (alpha) { \
 				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
@@ -2818,7 +2818,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	for (i = 0; i < mpoly->totloop; i++, ml++) {
 		float rgba[4];
 		unsigned int paintcol;
-		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat,
+		alpha = calc_vp_alpha_col_dl(vp, vc, vpd->vpimat,
 		                         &vpd->vertexcosnos[ml->v], mval,
 		                         brush_size_pressure, brush_alpha_pressure, rgba);
 
