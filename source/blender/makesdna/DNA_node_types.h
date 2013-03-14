@@ -860,4 +860,7 @@ typedef struct NodeShaderNormalMap {
 /* image */
 #define CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT	1
 
+/* viewer and cmposite output */
+#define CMP_NODE_OUTPUT_IGNORE_ALPHA		1
+
 #endif

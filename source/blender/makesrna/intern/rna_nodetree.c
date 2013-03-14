@@ -4134,7 +4134,7 @@ static void def_cmp_viewer(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", CMP_NODE_OUTPUT_IGNORE_ALPHA);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -4144,7 +4144,7 @@ static void def_cmp_composite(StructRNA *srna)
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", CMP_NODE_OUTPUT_IGNORE_ALPHA);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
