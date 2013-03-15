@@ -143,11 +143,11 @@ static float event_tablet_data(const wmEvent *event, int *pen_flip)
 	return pressure;
 }
 
-#if 1
+
 /* Initialize the stroke cache variants from operator properties */
 static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
                                          struct PaintStroke *stroke,
-                                         float mouse[2], float pressure)
+										 const float mouse[2], float pressure)
 {
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -234,7 +234,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 
 	stroke->brush_init = TRUE;
 }
-#endif
+
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEvent *event, const float mouse_in[2])
@@ -273,6 +273,8 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 	 * will create too many dabs */
 	copy_v2_v2(stroke->last_mouse_position, mouse_in);
 
+	paint_brush_update(C, brush, mode, stroke, mouse_in, pressure);
+
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * separation will go away */
 	if (paint_supports_jitter(mode)) {
@@ -302,8 +304,6 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 		stroke->get_location(C, location, mouse_out);
 	else
 		zero_v3(location);
-
-	paint_brush_update(C, brush, mode, stroke, mouse_out, pressure);
 
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
