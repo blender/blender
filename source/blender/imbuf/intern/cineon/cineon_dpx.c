@@ -70,30 +70,23 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, size_t size, int us
 
 	logImageGetSize(image, &width, &height, &depth);
 
-	if (width == 0 || height == 0) {
-		logImageClose(image);
-		return 0;
-	}
-
 	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags);
 	if (ibuf == 0) {
 		logImageClose(image);
 		return 0;
 	}
 
-	if (logImageGetDataRGBA(image, ibuf->rect_float, 1) != 0) {
-		/* Conversion not possible (probably because the format is unsupported) */
-		logImageClose(image);
-		MEM_freeN(ibuf);
-		return 0;
+	if (!(flags & IB_test)) {
+		if (logImageGetDataRGBA(image, ibuf->rect_float, 1) != 0) {
+			logImageClose(image);
+			IMB_freeImBuf(ibuf);
+			return 0;
+		}
+		IMB_flipy(ibuf);
 	}
 
 	logImageClose(image);
 	ibuf->ftype = use_cineon ? CINEON : DPX;
-	IMB_flipy(ibuf);
-
-	if (flags & IB_rect)
-		IMB_rect_from_float(ibuf);
 
 	if (flags & IB_alphamode_detect)
 		ibuf->flags |= IB_alphamode_premul;

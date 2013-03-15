@@ -196,6 +196,13 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 
 	cineon->width = swap_uint(header.imageHeader.element[0].pixels_per_line, cineon->isMSB);
 	cineon->height = swap_uint(header.imageHeader.element[0].lines_per_image, cineon->isMSB);
+
+	if (cineon->width == 0 || cineon->height == 0) {
+		if (verbose) printf("Cineon: Wrong image dimension: %dx%d\n", cineon->width, cineon->height);
+		logImageClose(cineon);
+		return 0;
+	}
+
 	cineon->depth = header.imageHeader.elements_per_image;
 	cineon->srcFormat = format_Cineon;
 
@@ -205,6 +212,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 		cineon->numElements = header.imageHeader.elements_per_image;
 	else {
 		if (verbose) printf("Cineon: Data interleave not supported: %d\n", header.imageHeader.interleave);
+		logImageClose(cineon);
 		return 0;
 	}
 
@@ -235,6 +243,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 	}
 	else {
 		if (verbose) printf("Cineon: Cineon image depth unsupported: %d\n", cineon->depth);
+		logImageClose(cineon);
 		return 0;
 	}
 
@@ -264,6 +273,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 			default:
 				/* Not supported */
 				if (verbose) printf("Cineon: packing unsupported: %d\n", header.imageHeader.packing);
+				logImageClose(cineon);
 				return 0;
 		}
 

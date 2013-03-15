@@ -192,8 +192,21 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 
 	dpx->srcFormat = format_DPX;
 	dpx->numElements = swap_ushort(header.imageHeader.elements_per_image, dpx->isMSB);
+	if (dpx->numElements == 0) {
+		if (verbose) printf("DPX: Wrong number of elements: %d\n", dpx->numElements);
+		logImageClose(dpx);
+		return 0;
+	}
+
 	dpx->width = swap_uint(header.imageHeader.pixels_per_line, dpx->isMSB);
 	dpx->height = swap_uint(header.imageHeader.lines_per_element, dpx->isMSB);
+
+	if (dpx->width == 0 || dpx->height == 0) {
+		if (verbose) printf("DPX: Wrong image dimension: %dx%d\n", dpx->width, dpx->height);
+		logImageClose(dpx);
+		return 0;
+	}
+
 	dpx->depth = 0;
 
 	for (i = 0; i < dpx->numElements; i++) {
@@ -242,8 +255,23 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		}
 
 		dpx->element[i].bitsPerSample = header.imageHeader.element[i].bits_per_sample;
+		if (dpx->element[i].bitsPerSample != 1 && dpx->element[i].bitsPerSample != 8 &&
+			dpx->element[i].bitsPerSample != 10 && dpx->element[i].bitsPerSample != 12 &&
+			dpx->element[i].bitsPerSample != 16)
+		{
+			if (verbose) printf("DPX: Unsupported bitsPerSample for elements %d: %d\n", i, dpx->element[i].bitsPerSample);
+			logImageClose(dpx);
+			return 0;
+		}
+
 		dpx->element[i].maxValue = powf(2, dpx->element[i].bitsPerSample) - 1.0f;
+
 		dpx->element[i].packing = swap_ushort(header.imageHeader.element[i].packing, dpx->isMSB);
+		if (dpx->element[i].packing > 2) {
+			if (verbose) printf("DPX: Unsupported packing for element %d: %d\n", i, dpx->element[i].packing);
+			logImageClose(dpx);
+			return 0;
+		}
 
 		/* Sometimes, the offset is not set correctly in the header */
 		dpx->element[i].dataOffset = swap_uint(header.imageHeader.element[i].data_offset, dpx->isMSB);
@@ -323,7 +351,6 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	    (dpx->referenceWhite == DPX_UNDEFINED_R32 || dpx->referenceWhite <= dpx->referenceBlack || isnan(dpx->referenceWhite)) ||
 	    (dpx->gamma == DPX_UNDEFINED_R32 || dpx->gamma <= 0 || isnan(dpx->gamma)))
 	{
-
 		dpx->referenceBlack = 95.0f / 1023.0f * dpx->element[0].maxValue;
 		dpx->referenceWhite = 685.0f / 1023.0f * dpx->element[0].maxValue;
 		dpx->gamma = 1.7f;
