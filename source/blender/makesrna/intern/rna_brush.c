@@ -478,7 +478,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	                       "are supported by the current sculpt tool");
 
 #define SCULPT_TOOL_CAPABILITY(prop_name_, ui_name_)                      \
-	prop = RNA_def_property(srna, "sculpt_" #prop_name_,                          \
+	prop = RNA_def_property(srna, #prop_name_,                          \
 	                        PROP_BOOLEAN, PROP_NONE);                   \
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);                   \
 	RNA_def_property_boolean_funcs(prop, "rna_SculptToolCapabilities_"      \
