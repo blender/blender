@@ -1043,8 +1043,9 @@ def process(layer_name, lineset_name):
             selection_criteria.append(upred)
     # prepare selection criteria by image border
     if lineset.select_by_image_border:
-        w = scene.render.resolution_x
-        h = scene.render.resolution_y
+        fac = scene.render.resolution_percentage / 100.0
+        w = scene.render.resolution_x * fac
+        h = scene.render.resolution_y * fac
         if scene.render.use_border:
             xmin = scene.render.border_min_x * w
             xmax = scene.render.border_max_x * w
