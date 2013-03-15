@@ -1270,6 +1270,9 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 	ImBuf *ibuf;
 	MovieClipUser user;
 
+	if (!build_count)
+		return;
+
 	user.framenr = cfra;
 	user.render_flag = 0;
 	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
