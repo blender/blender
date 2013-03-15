@@ -548,7 +548,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	RNAUpdateCb *cb;
 	Image *ima;
 	ImageUser *iuser;
-	ImBuf *ibuf;
 	Scene *scene = CTX_data_scene(C);
 	uiLayout *row, *split, *col;
 	uiBlock *block;
@@ -595,7 +594,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 		uiBlockSetNFunc(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 		if (ima->source == IMA_SRC_VIEWER) {
-			ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 			image_info(scene, iuser, ima, ibuf, str, MAX_INFO_LEN);
 			BKE_image_release_ibuf(ima, ibuf, lock);
 
@@ -665,7 +664,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 			else if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) {
-					ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 					image_info(scene, iuser, ima, ibuf, str, MAX_INFO_LEN);
 					BKE_image_release_ibuf(ima, ibuf, lock);
 					uiItemL(layout, str, ICON_NONE);

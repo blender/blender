@@ -492,6 +492,7 @@ macro(remove_strict_flags)
 		remove_cc_flag("-Wredundant-decls")
 		remove_cc_flag("-Wundef")
 		remove_cc_flag("-Wshadow")
+		remove_cc_flag("-Wold-style-definition")
 		remove_cc_flag("-Werror=[^ ]+")
 		remove_cc_flag("-Werror")
 

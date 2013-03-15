@@ -188,8 +188,8 @@ typedef struct IconPreview {
 
 /* *************************** Preview for buttons *********************** */
 
-static Main *pr_main = NULL;
-static Main *pr_main_cycles = NULL;
+static Main *G_pr_main = NULL;
+static Main *G_pr_main_cycles = NULL;
 
 #ifndef WITH_HEADLESS
 static Main *load_main_from_memory(char *blend, int blend_size)
@@ -214,18 +214,18 @@ static Main *load_main_from_memory(char *blend, int blend_size)
 void ED_preview_init_dbase(void)
 {
 #ifndef WITH_HEADLESS
-	pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
-	pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
+	G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
+	G_pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
 #endif
 }
 
 void ED_preview_free_dbase(void)
 {
-	if (pr_main)
-		free_main(pr_main);
+	if (G_pr_main)
+		free_main(G_pr_main);
 
-	if (pr_main_cycles)
-		free_main(pr_main_cycles);
+	if (G_pr_main_cycles)
+		free_main(G_pr_main_cycles);
 }
 
 static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
@@ -1028,7 +1028,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = PR_ICON_RENDER;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
-		sp->pr_main = pr_main;
+		sp->pr_main = G_pr_main;
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
@@ -1131,9 +1131,9 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	/* hardcoded preview .blend for cycles/internal, this should be solved
 	 * once with custom preview .blend path for external engines */
 	if (BKE_scene_use_new_shading_nodes(scene))
-		sp->pr_main = pr_main_cycles;
+		sp->pr_main = G_pr_main_cycles;
 	else
-		sp->pr_main = pr_main;
+		sp->pr_main = G_pr_main;
 
 	if (ob && ob->totcol) copy_v4_v4(sp->col, ob->col);
 	else sp->col[0] = sp->col[1] = sp->col[2] = sp->col[3] = 1.0f;

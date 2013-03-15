@@ -271,7 +271,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter, fiter, viter;
 	BMEdge *e, *e_new;
-	BMVert *v, *v2;
+	BMVert *v;
 	BMFace *f;
 	bool found, fwd, delorig = false;
 	BMOpSlot *slot_facemap_out;
@@ -441,7 +441,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* link isolated vert */
 	for (v = BMO_iter_new(&siter, dupeop.slots_out, "isovert_map.out", 0); v; v = BMO_iter_step(&siter)) {
-		v2 = *((void **)BMO_iter_map_value(&siter));
+		BMVert *v2 = *((void **)BMO_iter_map_value(&siter));
 		BM_edge_create(bm, v, v2, v->e, BM_CREATE_NO_DOUBLE);
 	}
 

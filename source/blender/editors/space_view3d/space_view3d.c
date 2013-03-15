@@ -471,7 +471,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
-static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
+static void view3d_main_area_exit(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 

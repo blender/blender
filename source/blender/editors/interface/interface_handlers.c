@@ -235,14 +235,13 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 	BLI_assert(*type == MOUSEPAN);
 
 	/* sign differs, reset */
-	if ((dy > 0 && lastdy < 0) || (dy < 0 && lastdy > 0))
+	if ((dy > 0 && lastdy < 0) || (dy < 0 && lastdy > 0)) {
 		lastdy = dy;
+	}
 	else {
 		lastdy += dy;
 		
 		if (ABS(lastdy) > (int)UI_UNIT_Y) {
-			int dy = event->prevy - event->y;
-			
 			if (U.uiflag2 & USER_TRACKPAD_NATURAL)
 				dy = -dy;
 			
@@ -804,8 +803,6 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
 	 */
 	if (drag_info->xy_lock[0] == false && drag_info->xy_lock[1] == false) {
-		ARegion *ar = CTX_wm_region(C);
-
 		/* first store the buttons original coords */
 		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
 		if (but) {
