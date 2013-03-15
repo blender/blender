@@ -64,8 +64,13 @@ void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUs
 void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int clip_flag, struct MovieDistortion *distortion,
                                      int cfra, int *build_sizes, int build_count, int undistorted);
 
+void BKE_movieclip_build_proxy_frame_for_ibuf(struct MovieClip *clip, struct ImBuf *ibuf, struct MovieDistortion *distortion,
+                                              int cfra, int *build_sizes, int build_count, int undistorted);
+
 float BKE_movieclip_remap_scene_to_clip_frame(struct MovieClip *clip, float framenr);
 float BKE_movieclip_remap_clip_to_scene_frame(struct MovieClip *clip, float framenr);
+
+void BKE_movieclip_filename_for_frame(struct MovieClip *clip, int framenr, char *name);
 
 /* cacheing flags */
 #define MOVIECLIP_CACHE_SKIP        (1 << 0)

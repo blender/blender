@@ -1230,7 +1230,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->ok = TRUE;
 }
 
-static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, int proxy_render_size, int undistorted)
+static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, int proxy_render_size, int undistorted, bool threaded)
 {
 	char name[FILE_MAX];
 	int quality, rectx, recty;
@@ -1244,7 +1244,10 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 
 	scaleibuf = IMB_dupImBuf(ibuf);
 
-	IMB_scaleImBuf_threaded(scaleibuf, (short)rectx, (short)recty);
+	if (threaded)
+		IMB_scaleImBuf_threaded(scaleibuf, (short)rectx, (short)recty);
+	else
+		IMB_scaleImBuf(scaleibuf, (short)rectx, (short)recty);
 
 	quality = clip->proxy.quality;
 	scaleibuf->ftype = JPG | quality;
@@ -1253,6 +1256,10 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 	if (scaleibuf->planes == 32)
 		scaleibuf->planes = 24;
 
+	/* TODO: currently the most weak part of multithreaded proxies,
+	 *       could be solved in a way that thread only prepares memory
+	 *       buffer and write to disk happens separately
+	 */
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	BLI_make_existing_file(name);
@@ -1264,6 +1271,9 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 	IMB_freeImBuf(scaleibuf);
 }
 
+/* note: currently used by proxy job for movies, threading happens within single frame
+ * (meaning scaling shall be threaded)
+ */
 void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct MovieDistortion *distortion,
                                      int cfra, int *build_sizes, int build_count, int undistorted)
 {
@@ -1287,9 +1297,33 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 			tmpibuf = get_undistorted_ibuf(clip, distortion, ibuf);
 
 		for (i = 0; i < build_count; i++)
-			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted);
+			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted, true);
 
 		IMB_freeImBuf(ibuf);
+
+		if (tmpibuf != ibuf)
+			IMB_freeImBuf(tmpibuf);
+	}
+}
+
+/* note: currently used by proxy job for sequences, threading happens within sequence
+ * (different threads handles different frames, no threading within frame is needed)
+ */
+void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip, ImBuf *ibuf, struct MovieDistortion *distortion,
+                                              int cfra, int *build_sizes, int build_count, int undistorted)
+{
+	if (!build_count)
+		return;
+
+	if (ibuf) {
+		ImBuf *tmpibuf = ibuf;
+		int i;
+
+		if (undistorted)
+			tmpibuf = get_undistorted_ibuf(clip, distortion, ibuf);
+
+		for (i = 0; i < build_count; i++)
+			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted, false);
 
 		if (tmpibuf != ibuf)
 			IMB_freeImBuf(tmpibuf);
@@ -1383,4 +1417,15 @@ float BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, float framenr)
 float BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, float framenr)
 {
 	return framenr + (float) clip->start_frame - 1.0f;
+}
+
+void BKE_movieclip_filename_for_frame(MovieClip *clip, int framenr, char *name)
+{
+	if (clip->source != MCLIP_SRC_MOVIE) {
+		get_sequence_fname(clip, framenr, name);
+	}
+	else {
+		BLI_strncpy(name, clip->name, FILE_MAX);
+		BLI_path_abs(name, ID_BLEND_PATH(G.main, &clip->id));
+	}
 }
