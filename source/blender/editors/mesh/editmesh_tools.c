@@ -2160,12 +2160,22 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 	BMVert *mergevert;
 	BMEditSelection *ese;
 
+	/* operator could be called directly from shortcut or python,
+	 * so do extra check for data here
+	 */
+
 	/* do sanity check in mergemenu in edit.c ?*/
 	if (first == 0) {
+		if (!em->bm->selected.last || ((BMEditSelection *)em->bm->selected.last)->htype != BM_VERT)
+			return OPERATOR_CANCELLED;
+
 		ese = em->bm->selected.last;
 		mergevert = (BMVert *)ese->ele;
 	}
 	else {
+		if (!em->bm->selected.first || ((BMEditSelection *)em->bm->selected.first)->htype != BM_VERT)
+			return OPERATOR_CANCELLED;
+
 		ese = em->bm->selected.first;
 		mergevert = (BMVert *)ese->ele;
 	}
