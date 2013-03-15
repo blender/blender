@@ -779,9 +779,6 @@ static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], sh
 	}
 	else {
 		LassoSelectUserData data;
-		rcti rect;
-
-		BLI_lasso_boundbox(&rect, mcords, moves);
 
 		view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
