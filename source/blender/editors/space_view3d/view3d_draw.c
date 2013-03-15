@@ -1348,7 +1348,34 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if (multisample_enabled)
 		glDisable(GL_MULTISAMPLE_ARB);
 
-	glScissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		/* for multisample we use an offscreen FBO. multisample drawing can fail
+		 * with color coded selection drawing, and reading back depths from such
+		 * a buffer can also cause a few seconds freeze on OS X / NVidia. */
+		int w = BLI_rcti_size_x(&ar->winrct);
+		int h = BLI_rcti_size_y(&ar->winrct);
+		char error[256];
+
+		if (rv3d->gpuoffscreen) {
+			if (GPU_offscreen_width(rv3d->gpuoffscreen) != w ||
+			    GPU_offscreen_height(rv3d->gpuoffscreen) != h) {
+				GPU_offscreen_free(rv3d->gpuoffscreen);
+				rv3d->gpuoffscreen = NULL;
+			}
+		}
+
+		if (!rv3d->gpuoffscreen) {
+			rv3d->gpuoffscreen = GPU_offscreen_create(w, h, error);
+
+			if (!rv3d->gpuoffscreen)
+				fprintf(stderr, "Failed to create offscreen selection buffer for multisample: %s\n", error);
+		}
+	}
+
+	if (rv3d->gpuoffscreen)
+		GPU_offscreen_bind(rv3d->gpuoffscreen);
+	else
+		glScissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if (v3d->zbuf) {
@@ -1367,9 +1394,13 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	if (base && (base->lay & v3d->lay))
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
+	
+	if (rv3d->gpuoffscreen)
+		GPU_offscreen_unbind(rv3d->gpuoffscreen);
+	else
+		ar->swap = 0; /* mark invalid backbuf for wm draw */
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
-	ar->swap = 0; /* mark invalid backbuf for wm draw */
 
 	G.f &= ~G_BACKBUFSEL;
 	v3d->zbuf = FALSE;
@@ -1384,6 +1415,21 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	/* it is important to end a view in a transform compatible with buttons */
 //	persp(PERSP_WIN);  /* set ortho */
 
+}
+
+void view3d_opengl_read_pixels(ARegion *ar, int x, int y, int w, int h, int format, int type, void *data)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	if (rv3d->gpuoffscreen) {
+		GPU_offscreen_bind(rv3d->gpuoffscreen);
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+		glReadPixels(x, y, w, h, format, type, data);
+		GPU_offscreen_unbind(rv3d->gpuoffscreen);
+	}
+	else {
+		glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
+	}
 }
 
 void view3d_validate_backbuf(ViewContext *vc)
@@ -1401,12 +1447,9 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 		return 0;
 	}
 
-	x += vc->ar->winrct.xmin;
-	y += vc->ar->winrct.ymin;
-	
 	view3d_validate_backbuf(vc);
 
-	glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
+	view3d_opengl_read_pixels(vc->ar, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
 	glReadBuffer(GL_BACK);
 	
 	if (ENDIAN_ORDER == B_ENDIAN) {
@@ -1437,8 +1480,8 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 
 	view3d_validate_backbuf(vc);
 
-	glReadPixels(vc->ar->winrct.xmin + xminc,
-	             vc->ar->winrct.ymin + yminc,
+	view3d_opengl_read_pixels(vc->ar,
+	             xminc, yminc,
 	             (xmaxc - xminc + 1),
 	             (ymaxc - yminc + 1),
 	             GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
@@ -2104,7 +2147,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 	}
 
 	if (d->damaged) {
-		glReadPixels(ar->winrct.xmin + d->x, ar->winrct.ymin + d->y, d->w, d->h, GL_DEPTH_COMPONENT, GL_FLOAT, d->depths);
+		view3d_opengl_read_pixels(ar, d->x, d->y, d->w, d->h, GL_DEPTH_COMPONENT, GL_FLOAT, d->depths);
 		glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
 		d->damaged = FALSE;
 	}
@@ -2132,9 +2175,7 @@ void ED_view3d_depth_update(ARegion *ar)
 		}
 		
 		if (d->damaged) {
-			glReadPixels(ar->winrct.xmin, ar->winrct.ymin, d->w, d->h,
-			             GL_DEPTH_COMPONENT, GL_FLOAT, d->depths);
-			
+			view3d_opengl_read_pixels(ar, 0, 0, d->w, d->h, GL_DEPTH_COMPONENT, GL_FLOAT, d->depths);
 			glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
 			
 			d->damaged = 0;

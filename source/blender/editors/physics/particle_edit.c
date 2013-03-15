@@ -430,15 +430,6 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 	gluProject(co[0], co[1], co[2], data->mats.modelview, data->mats.projection,
 	           (GLint *)data->mats.viewport, &ux, &uy, &uz);
 
-#if 0 /* works well but too slow on some systems [#23118] */
-	screen_co[0] += (short)data->vc.ar->winrct.xmin;
-	screen_co[1] += (short)data->vc.ar->winrct.ymin;
-
-	/* PE_set_view3d_data calls this. no need to call here */
-	/* view3d_validate_backbuf(&data->vc); */
-	glReadPixels(screen_co[0], screen_co[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-#else /* faster to use depths, these are calculated in PE_set_view3d_data */
-
 	/* check if screen_co is within bounds because brush_cut uses out of screen coords */
 	if (screen_co[0] >= 0 && screen_co[0] < vd->w && screen_co[1] >= 0 && screen_co[1] < vd->h) {
 		BLI_assert(vd && vd->depths);
@@ -447,7 +438,6 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 	}
 	else
 		return 0;
-#endif
 
 	if ((float)uz - 0.00001f > depth)
 		return 0;

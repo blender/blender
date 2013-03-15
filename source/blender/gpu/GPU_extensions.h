@@ -157,6 +157,8 @@ void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs);
 void GPU_offscreen_unbind(GPUOffScreen *ofs);
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
+int GPU_offscreen_width(GPUOffScreen *ofs);
+int GPU_offscreen_height(GPUOffScreen *ofs);
 
 /* GPU Shader
  * - only for fragment shaders now

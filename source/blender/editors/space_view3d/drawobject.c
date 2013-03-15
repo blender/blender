@@ -808,17 +808,6 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		}
 		
 		for (vos = strings->first; vos; vos = vos->next) {
-			/* too slow, reading opengl info while drawing is very bad,
-			 * better to see if we can use the zbuffer while in pixel space - campbell */
-#if 0
-			if (v3d->zbuf && (vos->flag & V3D_CACHE_TEXT_ZBUF)) {
-				gluProject(vos->vec[0], vos->vec[1], vos->vec[2], mats.modelview, mats.projection, (GLint *)mats.viewport, &ux, &uy, &uz);
-				glReadPixels(ar->winrct.xmin + vos->mval[0] + vos->xoffs, ar->winrct.ymin + vos->mval[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-
-				if (uz > depth)
-					continue;
-			}
-#endif
 			if (vos->sco[0] != IS_CLIPPED) {
 				const char *str = (char *)(vos + 1);
 

@@ -53,6 +53,7 @@
 #include "ED_screen.h"
 #include "ED_object.h"
 
+#include "GPU_extensions.h"
 #include "GPU_material.h"
 
 #include "BIF_gl.h"
@@ -478,6 +479,11 @@ static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
 		RE_engine_free(rv3d->render_engine);
 		rv3d->render_engine = NULL;
 	}
+
+	if (rv3d->gpuoffscreen) {
+		GPU_offscreen_free(rv3d->gpuoffscreen);
+		rv3d->gpuoffscreen = NULL;
+	}
 }
 
 static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
@@ -626,6 +632,10 @@ static void view3d_main_area_free(ARegion *ar)
 		if (rv3d->sms) {
 			MEM_freeN(rv3d->sms);
 		}
+		if (rv3d->gpuoffscreen) {
+			GPU_offscreen_free(rv3d->gpuoffscreen);
+		}
+
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;
 	}
@@ -644,6 +654,7 @@ static void *view3d_main_area_duplicate(void *poin)
 			new->clipbb = MEM_dupallocN(rv3d->clipbb);
 		
 		new->depths = NULL;
+		new->gpuoffscreen = NULL;
 		new->ri = NULL;
 		new->render_engine = NULL;
 		new->gpd = NULL;

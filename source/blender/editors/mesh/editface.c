@@ -570,7 +570,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 
 	ibuf = IMB_allocImBuf(sx, sy, 32, IB_rect);
 	rt = ibuf->rect;
-	glReadPixels(rect->xmin + vc->ar->winrct.xmin,  rect->ymin + vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+	view3d_opengl_read_pixels(vc->ar, rect->xmin, rect->ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a = sx * sy;

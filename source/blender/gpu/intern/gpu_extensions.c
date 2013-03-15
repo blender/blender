@@ -905,10 +905,8 @@ void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, i
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
-	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();
 }
 
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
@@ -1094,6 +1092,16 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs)
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 {
 	glReadPixels(0, 0, ofs->w, ofs->h, GL_RGBA, type, pixels);
+}
+
+int GPU_offscreen_width(GPUOffScreen *ofs)
+{
+	return ofs->w;
+}
+
+int GPU_offscreen_height(GPUOffScreen *ofs)
+{
+	return ofs->h;
 }
 
 /* GPUShader */

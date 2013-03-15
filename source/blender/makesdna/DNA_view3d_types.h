@@ -107,6 +107,7 @@ typedef struct RegionView3D {
 	struct RenderInfo *ri;
 	struct RenderEngine *render_engine;
 	struct ViewDepths *depths;
+	void *gpuoffscreen;
 
 	/* animated smooth view */
 	struct SmoothView3DStore *sms;
