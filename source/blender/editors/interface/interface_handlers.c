@@ -2335,7 +2335,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 		data->coba = (ColorBand *)but->poin;
 		but->editcoba = data->coba;
 	}
-	else if (ELEM3(but->type, BUT_NORMAL, HSVCUBE, HSVCIRCLE)) {
+	else if (ELEM4(but->type, BUT_NORMAL, HSVCUBE, HSVCIRCLE, COLOR)) {
 		ui_get_but_vectorf(but, data->origvec);
 		copy_v3_v3(data->vec, data->origvec);
 		but->editvec = data->vec;
