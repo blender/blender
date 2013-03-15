@@ -149,6 +149,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_nth);
 	WM_operatortype_append(MESH_OT_vert_connect);
 	WM_operatortype_append(MESH_OT_knife_tool);
+	WM_operatortype_append(MESH_OT_knife_project);
 
 	WM_operatortype_append(MESH_OT_bevel);
 
