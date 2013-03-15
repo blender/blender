@@ -96,6 +96,7 @@ typedef struct BrushPainterCache {
 	int lastsize;
 	float lastalpha;
 	float lastjitter;
+	float last_rotation;
 
 	ImBuf *ibuf;
 	ImBuf *texibuf;
@@ -335,6 +336,7 @@ static void brush_painter_2d_tiled_tex_partial_update(BrushPainter *painter, con
 static void brush_painter_2d_refresh_cache(BrushPainter *painter, const float pos[2], int use_color_correction)
 {
 	const Scene *scene = painter->scene;
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Brush *brush = painter->brush;
 	BrushPainterCache *cache = &painter->cache;
 	MTex *mtex = &brush->mtex;
@@ -343,10 +345,16 @@ static void brush_painter_2d_refresh_cache(BrushPainter *painter, const float po
 	const int diameter = 2 * BKE_brush_size_get(scene, brush);
 	const float alpha = BKE_brush_alpha_get(scene, brush);
 	const bool do_tiled = ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_3D);
+	float rotation = -mtex->rot;
+
+	if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+		rotation += ups->brush_rotation;
+	}
 
 	if (diameter != cache->lastsize ||
 	    alpha != cache->lastalpha ||
-	    brush->jitter != cache->lastjitter)
+	    brush->jitter != cache->lastjitter ||
+	    rotation != cache->last_rotation)
 	{
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);
@@ -370,6 +378,7 @@ static void brush_painter_2d_refresh_cache(BrushPainter *painter, const float po
 		cache->lastsize = diameter;
 		cache->lastalpha = alpha;
 		cache->lastjitter = brush->jitter;
+		cache->last_rotation = rotation;
 	}
 	else if (do_tiled && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];

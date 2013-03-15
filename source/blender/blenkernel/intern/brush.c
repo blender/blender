@@ -565,15 +565,37 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 /* Brush Sampling for 2D brushes. when we unify the brush systems this will be necessarily a separate function */
 float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4], struct ImagePool *pool)
 {
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	MTex *mtex = &brush->mtex;
 
 	if (mtex && mtex->tex) {
 		float co[3], tin, tr, tg, tb, ta;
+		float x = xy[0], y = xy[1];
 		int hasrgb;
-		const int radius = BKE_brush_size_get(scene, brush);
+		int radius = BKE_brush_size_get(scene, brush);
+		float rotation = -mtex->rot;
 
-		co[0] = xy[0] / radius;
-		co[1] = xy[1] / radius;
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			rotation += ups->brush_rotation;
+			radius = ups->pixel_radius;
+		}
+
+		x /= radius;
+		y /= radius;
+
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
+			const float flen     = sqrtf(x * x + y * y);
+
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
+		}
+
+		x *= brush->mtex.size[0];
+		y *= brush->mtex.size[1];
+
+		co[0] = x + brush->mtex.ofs[0];
+		co[1] = y + brush->mtex.ofs[1];
 		co[2] = 0.0f;
 
 		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, 0, pool);
