@@ -512,6 +512,7 @@ typedef struct wmTimer {
 typedef struct wmOperatorType {
 	const char *name;		/* text for ui, undo */
 	const char *idname;		/* unique identifier */
+	const char *translation_context;
 	const char *description;	/* tooltips and python docs */
 
 	/* this callback executes the operator without any interactive input,

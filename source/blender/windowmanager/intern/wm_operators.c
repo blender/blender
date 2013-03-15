@@ -381,7 +381,9 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
-	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
+	/* Use i18n context from ext.srna if possible (py operators). */
+	RNA_def_struct_translation_context(ot->srna, ot->ext.srna ? RNA_struct_translation_context(ot->ext.srna) :
+	                                                            BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 

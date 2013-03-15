@@ -163,9 +163,10 @@ typedef struct ARegionType {
 typedef struct PanelType {
 	struct PanelType *next, *prev;
 	
-	char idname[BKE_ST_MAXNAME];            /* unique name */
-	char label[BKE_ST_MAXNAME];             /* for panel header */
-	char context[BKE_ST_MAXNAME];           /* for buttons window */
+	char idname[BKE_ST_MAXNAME];              /* unique name */
+	char label[BKE_ST_MAXNAME];               /* for panel header */
+	char translation_context[BKE_ST_MAXNAME];
+	char context[BKE_ST_MAXNAME];             /* for buttons window */
 	int space_type;
 	int region_type;
 
@@ -227,7 +228,8 @@ typedef struct MenuType {
 
 	char idname[BKE_ST_MAXNAME];        /* unique name */
 	char label[BKE_ST_MAXNAME];         /* for button text */
-	char       *description;
+	char translation_context[BKE_ST_MAXNAME];
+	char *description;
 
 	/* verify if the menu should draw or not */
 	int (*poll)(const struct bContext *, struct MenuType *);

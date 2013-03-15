@@ -1567,7 +1567,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	}
 
 	if (!name) {
-		name = IFACE_(mt->label);
+		name = CTX_IFACE_(mt->translation_context, mt->label);
 	}
 
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)

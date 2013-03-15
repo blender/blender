@@ -33,6 +33,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -1050,6 +1052,7 @@ void macro_wrapper(wmOperatorType *ot, void *userdata);
 static char _operator_idname[OP_MAX_TYPENAME];
 static char _operator_name[OP_MAX_TYPENAME];
 static char _operator_descr[RNA_DYN_DESCR_MAX];
+static char _operator_ctxt[RNA_DYN_DESCR_MAX];
 static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
                                         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
@@ -1063,10 +1066,11 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	dummyot.idname = _operator_idname; /* only assigne the pointer, string is NULL'd */
 	dummyot.name = _operator_name; /* only assigne the pointer, string is NULL'd */
 	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
+	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = '\0';
+	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = _operator_ctxt[0] = '\0';
 
 	/* validate the python class */
 	if (validate(&dummyotr, data, have_function) != 0)
@@ -1117,9 +1121,10 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			int idlen = strlen(_operator_idname) + 4;
 			int namelen = strlen(_operator_name) + 1;
 			int desclen = strlen(_operator_descr) + 1;
+			int ctxtlen = strlen(_operator_ctxt) + 1;
 			char *ch;
 			/* 2 terminators and 3 to convert a.b -> A_OT_b */
-			ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname");
+			ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen), "_operator_idname");
 			WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
 			dummyot.idname = ch;
 			ch += idlen;
@@ -1128,6 +1133,9 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			ch += namelen;
 			strcpy(ch, _operator_descr);
 			dummyot.description = ch;
+			ch += desclen;
+			strcpy(ch, _operator_ctxt);
+			dummyot.translation_context = ch;
 		}
 	}
 
@@ -1144,6 +1152,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	/* create a new operator type */
 	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
 	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
+	RNA_def_struct_translation_context(dummyot.ext.srna, dummyot.translation_context);
 	dummyot.ext.data = data;
 	dummyot.ext.call = call;
 	dummyot.ext.free = free;
@@ -1182,6 +1191,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	dummyot.idname = _operator_idname; /* only assigne the pointer, string is NULL'd */
 	dummyot.name = _operator_name; /* only assigne the pointer, string is NULL'd */
 	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
+	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
 
 	/* validate the python class */
@@ -1193,9 +1203,10 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 		int idlen = strlen(_operator_idname) + 4;
 		int namelen = strlen(_operator_name) + 1;
 		int desclen = strlen(_operator_descr) + 1;
+		int ctxtlen = strlen(_operator_ctxt) + 1;
 		char *ch;
 		/* 2 terminators and 3 to convert a.b -> A_OT_b */
-		ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname");
+		ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen), "_operator_idname");
 		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
 		dummyot.idname = ch;
 		ch += idlen;
@@ -1204,6 +1215,9 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 		ch += namelen;
 		strcpy(ch, _operator_descr);
 		dummyot.description = ch;
+		ch += desclen;
+		strcpy(ch, _operator_ctxt);
+		dummyot.translation_context = ch;
 	}
 
 	if (strlen(identifier) >= sizeof(dummyop.idname)) {
@@ -1224,6 +1238,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 
 	/* create a new operator type */
 	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
+	RNA_def_struct_translation_context(dummyot.ext.srna, dummyot.translation_context);
 	dummyot.ext.data = data;
 	dummyot.ext.call = call;
 	dummyot.ext.free = free;
@@ -1273,6 +1288,16 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
 		assert(!"setting the bl_label on a non-builtin operator");
 }
 
+static void rna_Operator_bl_translation_context_set(PointerRNA *ptr, const char *value)
+{
+	wmOperator *data = (wmOperator *)(ptr->data);
+	char *str = (char *)data->type->translation_context;
+	if (!str[0])
+		BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_translation_context on a non-builtin operator");
+}
+
 static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
@@ -1303,6 +1328,7 @@ static void rna_def_operator(BlenderRNA *brna)
 #ifdef WITH_PYTHON
 	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister", "rna_Operator_instance");
 #endif
+	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1341,6 +1367,14 @@ static void rna_def_operator(BlenderRNA *brna)
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
+	prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_translation_context_set");
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
+
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
@@ -1377,6 +1411,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister",
 	                              "rna_Operator_instance");
 #endif
+	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1404,6 +1439,14 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_translation_context_set");
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");

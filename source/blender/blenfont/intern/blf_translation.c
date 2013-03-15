@@ -132,7 +132,7 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 
 	if (msgid && msgid[0]) {
 		/*if (msgctxt && !strcmp(msgctxt, BLF_I18NCONTEXT_DEFAULT_BPY_INTERN)) { */
-		if (msgctxt && msgctxt[0] == BLF_I18NCONTEXT_DEFAULT_BPY[0]) {
+		if (msgctxt && (!msgctxt[0] || msgctxt[0] == BLF_I18NCONTEXT_DEFAULT_BPY[0])) {
 			/* BLF_I18NCONTEXT_DEFAULT_BPY context is reserved and considered the same as default NULL one. */
 			msgctxt = BLF_I18NCONTEXT_DEFAULT;
 		}

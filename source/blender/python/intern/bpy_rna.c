@@ -6950,7 +6950,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			}                                                                 \
 		}                                                                     \
 		Py_XDECREF(item);                                                     \
-	}  /* intendionally allow else here */
+	}  /* intentionally allow else here */
 
 			if      BPY_REPLACEMENT_STRING("bl_idname",      bpy_intern_str___name__)
 			else if BPY_REPLACEMENT_STRING("bl_description", bpy_intern_str___doc__)
