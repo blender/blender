@@ -3279,7 +3279,10 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
 
 static bool edbm_mesh_knife_face_isect(ARegion *ar, LinkNode *polys, BMFace *f, float projmat[4][4])
 {
-	float co[3];
+	float co_a[3];
+	float co_b[3];
+	float co_ss_a[2];
+	float co_ss_b[2];
 	float co_ss[2];
 
 	{
@@ -3289,11 +3292,14 @@ static bool edbm_mesh_knife_face_isect(ARegion *ar, LinkNode *polys, BMFace *f, 
 		l = BM_FACE_FIRST_LOOP(f);
 		BM_loop_calc_face_tangent(l, tangent);
 		/* get a point inside the face (tiny offset) - we could be more clever here */
-		mul_v3_fl(tangent, 0.02f);
-		add_v3_v3v3(co, l->v->co, tangent);
+
+		copy_v3_v3(co_a, l->v->co);
+		add_v3_v3v3(co_b, co_a, tangent);
 	}
 
-	ED_view3d_project_float_v3_m4(ar, co, co_ss, projmat);
+	ED_view3d_project_float_v3_m4(ar, co_a, co_ss_a, projmat);
+	ED_view3d_project_float_v3_m4(ar, co_b, co_ss_b, projmat);
+	interp_v2_v2v2(co_ss, co_ss_a, co_ss_b, 0.005f);
 
 	/* check */
 	{
@@ -3413,11 +3419,18 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag)
 						int found = false;
 
 						do {
-							if (BM_elem_flag_test(l_iter, BM_ELEM_TAG) != false) {
-								found = true;
-								break;
+							if (BM_elem_flag_test(l_iter->e, BM_ELEM_TAG) != false) {
+								/* now check if the adjacent faces us tagged */
+								BMLoop *l_radial_iter = l_iter->radial_next;
+								if (l_radial_iter != l_iter) {
+									do {
+										if (BM_elem_flag_test(l_radial_iter->f, BM_ELEM_TAG)) {
+											found = true;
+										}
+									} while ((l_radial_iter = l_radial_iter->radial_next) != l_iter && (found == false));
+								}
 							}
-						} while ((l_iter = l_iter->next) != l_first);
+						} while ((l_iter = l_iter->next) != l_first && (found == false));
 
 						if (found) {
 							// if (edbm_mesh_knife_face_isect(kcd->ar, polys, f, projmat))
