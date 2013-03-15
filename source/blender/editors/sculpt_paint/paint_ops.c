@@ -707,10 +707,16 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_paint_brush_switch(keymap, "vertex_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.vertex_paint.brush.size");
-	ed_keymap_paint_brush_radial_control(keymap, "vertex_paint", RC_COLOR);
+	ed_keymap_paint_brush_radial_control(keymap, "vertex_paint", RC_COLOR | RC_ROTATION);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0); /* mask toggle */
 	RNA_string_set(kmi->ptr, "data_path", "vertex_paint_object.data.use_paint_mask");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.vertex_paint.brush.use_smooth_stroke");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", RKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.vertex_paint.brush.texture_angle_source_random");
 
 	/* Weight Paint mode */
 	keymap = WM_keymap_find(keyconf, "Weight Paint", 0, 0);
@@ -741,7 +747,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_from_bones", WKEY, KM_PRESS, 0, 0);
 
-	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.weight_paint.brush.use_smooth_stroke");
+
 	/*Weight paint's Vertex Selection Mode */
 	keymap = WM_keymap_find(keyconf, "Weight Paint Vertex Selection", 0, 0);
 	keymap->poll = vert_paint_poll;
@@ -766,10 +774,16 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_paint_brush_switch(keymap, "image_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.image_paint.brush.size");
-	ed_keymap_paint_brush_radial_control(keymap, "image_paint", RC_COLOR | RC_ZOOM);
+	ed_keymap_paint_brush_radial_control(keymap, "image_paint", RC_COLOR | RC_ZOOM | RC_ROTATION);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0); /* mask toggle */
 	RNA_string_set(kmi->ptr, "data_path", "image_paint_object.data.use_paint_mask");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.image_paint.brush.use_smooth_stroke");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", RKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.image_paint.brush.texture_angle_source_random");
 
 	/* face-mask mode */
 	keymap = WM_keymap_find(keyconf, "Face Mask", 0, 0);

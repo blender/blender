@@ -6600,7 +6600,7 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (ob && (ob->mode & (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT))) {
+	else if (ob && (ob->mode & (OB_MODE_ALL_PAINT))) {
 		/* sculpt mode and project paint have own undo stack
 		 * transform ops redo clears sculpt/project undo stack.
 		 *
