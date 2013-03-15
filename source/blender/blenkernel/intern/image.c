@@ -1946,7 +1946,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	else if (imtype == R_IMF_IMTYPE_DPX) {
 		ibuf->ftype = DPX;
 		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
-		  ibuf->ftype |= CINEON_LOG;
+			ibuf->ftype |= CINEON_LOG;
 		}
 		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
 			ibuf->ftype |= CINEON_16BIT;

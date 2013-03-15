@@ -200,18 +200,18 @@ static float sb_time_scale(Object *ob)
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	if (sb) {
 		return(sb->physics_speed);
-		/*hrms .. this could be IPO as well :)
-		 estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
-		 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
-		 theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM)
+		/* hrms .. this could be IPO as well :)
+		 * estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
+		 * 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
+		 * theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM)
 		 */
 	}
 	return (1.0f);
 	/*
-	this would be frames/sec independent timing assuming 25 fps is default
-	but does not work very well with NLA
-		return (25.0f/scene->r.frs_sec)
-	*/
+	 * this would be frames/sec independent timing assuming 25 fps is default
+	 * but does not work very well with NLA
+	 * return (25.0f/scene->r.frs_sec)
+	 */
 }
 /*--- frame based timing ---*/
 
@@ -1305,7 +1305,7 @@ static int sb_detect_face_collisionCached(float face_v1[3], float face_v2[3], fl
 						normalize_v3(d_nvect);
 						if (
 							/* isect_line_tri_v3(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-							 we did that edge already */
+							 * we did that edge already */
 							isect_line_tri_v3(nv3, nv4, face_v1, face_v2, face_v3, &t, NULL) ||
 							isect_line_tri_v3(nv4, nv1, face_v1, face_v2, face_v3, &t, NULL) ) {
 							Vec3PlusStVec(force, -0.5f, d_nvect);

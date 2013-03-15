@@ -4072,7 +4072,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	if (sound == NULL || sound->playback_handle == NULL) {
 #if 0
-		 if (op)
+		if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 #endif
 

@@ -54,8 +54,8 @@ struct Scene;
  * both return 1 on success, 0 on error
  */
 int collada_import(bContext *C,
-				   const char *filepath,
-				   int import_units);
+                   const char *filepath,
+                   int import_units);
 
 int collada_export(Scene *sce,
                    const char *filepath,
@@ -68,10 +68,10 @@ int collada_export(Scene *sce,
                    int include_shapekeys,
                    int deform_bones_only,
 
-				   int active_uv_only,
-				   int include_uv_textures,
-				   int include_material_textures,
-				   int use_texture_copies,
+                   int active_uv_only,
+                   int include_uv_textures,
+                   int include_material_textures,
+                   int use_texture_copies,
 
                    int triangulate,
                    int use_object_instantiation,

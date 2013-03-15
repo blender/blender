@@ -1586,7 +1586,7 @@ static void appendPolyLineVert(ListBase *lb, unsigned int index)
 	BLI_addtail(lb, vl);
 }
 
-void BKE_mesh_to_curve_ex(DerivedMesh *dm, ListBase *nurblist)
+void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int edge_users_test)
 {
 	MVert *mverts = dm->getVertArray(dm);
 	MEdge *med, *medge = dm->getEdgeArray(dm);
@@ -1616,10 +1616,8 @@ void BKE_mesh_to_curve_ex(DerivedMesh *dm, ListBase *nurblist)
 	/* create edges from all faces (so as to find edges not in any faces) */
 	med = medge;
 	for (i = 0; i < totedge; i++, med++) {
-		if (edge_users[i] == 0) {
+		if (edge_users[i] == edge_users_test) {
 			EdgeLink *edl = MEM_callocN(sizeof(EdgeLink), "EdgeLink");
-
-			// BLI_edgehash_insert(eh_edge, med->v1, med->v2, NULL);
 			edl->edge = med;
 
 			BLI_addtail(&edges, edl);   totedges++;
@@ -1728,7 +1726,7 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 	ListBase nurblist = {NULL, NULL};
 	bool needsFree = false;
 
-	BKE_mesh_to_curve_ex(dm, &nurblist);
+	BKE_mesh_to_curve_nurblist(dm, &nurblist, 0);
 
 	if (nurblist.first) {
 		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);

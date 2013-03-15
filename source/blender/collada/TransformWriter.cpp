@@ -56,8 +56,9 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 		// XXX Why are joints handled differently ?
 		node.addMatrix("transform", dmat);
 	}
-	else
-	  add_transform(node, loc, rot, scale);
+	else {
+		add_transform(node, loc, rot, scale);
+	}
 }
 
 void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, BC_export_transformation_type transformation_type)

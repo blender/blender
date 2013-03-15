@@ -637,12 +637,12 @@ void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, shor
 						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Z, 0.0f, -1.0f);
 					break;
 				case RBC_TYPE_MOTOR:
-				    rbc->physics_constraint = RB_constraint_new_motor(loc, rot, rb1, rb2);
+					rbc->physics_constraint = RB_constraint_new_motor(loc, rot, rb1, rb2);
 
-				    RB_constraint_set_enable_motor(rbc->physics_constraint, rbc->flag & RBC_FLAG_USE_MOTOR_LIN, rbc->flag & RBC_FLAG_USE_MOTOR_ANG);
+					RB_constraint_set_enable_motor(rbc->physics_constraint, rbc->flag & RBC_FLAG_USE_MOTOR_LIN, rbc->flag & RBC_FLAG_USE_MOTOR_ANG);
 					RB_constraint_set_max_impulse_motor(rbc->physics_constraint, rbc->motor_lin_max_impulse, rbc->motor_ang_max_impulse);
 					RB_constraint_set_target_velocity_motor(rbc->physics_constraint, rbc->motor_lin_target_velocity, rbc->motor_ang_target_velocity);
-				    break;
+					break;
 			}
 		}
 		else { /* can't create constraint without both rigid bodies */

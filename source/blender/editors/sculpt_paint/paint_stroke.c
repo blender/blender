@@ -287,7 +287,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 		/* XXX: meh, this is round about because
 		 * BKE_brush_jitter_pos isn't written in the best way to
 		 * be reused here */
-		if(factor != 1.0) {
+		if(factor != 1.0f) {
 			sub_v2_v2v2(delta, mouse_out, mouse_in);
 			mul_v2_fl(delta, factor);
 			add_v2_v2v2(mouse_out, mouse_in, delta);

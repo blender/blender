@@ -64,7 +64,7 @@ public:
 	}
 
 	KX_EnumInputs ToNative(unsigned short incode) {
-		 return ConvertKeyCode(incode);
+		return ConvertKeyCode(incode);
 	}
 
 	virtual bool	IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)=0;

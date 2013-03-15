@@ -788,7 +788,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						
 						verts->goal  = powf(verts->goal, 4.0f);
 						if ( verts->goal >= SOFTGOALSNAP )
-							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
+							verts->flags |= CLOTH_VERT_FLAG_PINNED;
 					}
 					
 					if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) {

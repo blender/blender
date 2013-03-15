@@ -595,7 +595,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func = RNA_def_function(srna, "label", "rna_uiItemL");
 	RNA_def_function_ui_description(func, "Item. Display text and/or icon in the layout");
-	 api_ui_item_common(func);
+	api_ui_item_common(func);
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(parm, "Icon Value",
 	                         "Override automatic icon of the item "

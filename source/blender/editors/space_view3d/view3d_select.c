@@ -732,7 +732,7 @@ static void do_lasso_select_meta(ViewContext *vc, const int mcords[][2], short m
 	MetaBall *mb = (MetaBall *)vc->obedit->data;
 
 	if (extend == 0 && select)
-		 BKE_mball_deselect_all(mb);
+		BKE_mball_deselect_all(mb);
 
 	BLI_lasso_boundbox(&rect, mcords, moves);
 

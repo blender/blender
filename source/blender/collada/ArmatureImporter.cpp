@@ -134,10 +134,10 @@ void ArmatureImporter::create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBo
 
 	// set parent tail
 	if (parent && totchild == 1) {
-	   copy_v3_v3(parent->tail, bone->head);
+		copy_v3_v3(parent->tail, bone->head);
 
 		// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
-		 bone->flag |= BONE_CONNECTED;
+		bone->flag |= BONE_CONNECTED;
 
 		// XXX increase this to prevent "very" small bones?
 		const float epsilon = 0.000001f;

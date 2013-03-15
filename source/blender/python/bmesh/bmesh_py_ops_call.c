@@ -727,7 +727,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 				return NULL;
 			}
 
-			 slot = BMO_slot_get(bmop.slots_in, slot_name);
+			slot = BMO_slot_get(bmop.slots_in, slot_name);
 
 			/* now assign the value */
 			if (bpy_slot_from_py(bm, &bmop, slot, value,

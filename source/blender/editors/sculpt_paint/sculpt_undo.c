@@ -760,9 +760,9 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 	BLI_lock_thread(LOCK_CUSTOM1);
 
 	if (ss->bm ||
-		ELEM(type,
-			 SCULPT_UNDO_DYNTOPO_BEGIN,
-			 SCULPT_UNDO_DYNTOPO_END))
+	    ELEM(type,
+	         SCULPT_UNDO_DYNTOPO_BEGIN,
+	         SCULPT_UNDO_DYNTOPO_END))
 	{
 		/* Dynamic topology stores only one undo node per stroke,
 		 * regardless of the number of PBVH nodes modified */
