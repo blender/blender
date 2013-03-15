@@ -879,6 +879,7 @@ class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Clip"
+    bl_translation_context = bpy.app.translations.contexts.id_movieclip
 
     def draw(self, context):
         layout = self.layout
@@ -933,6 +934,7 @@ class CLIP_MT_view(Menu):
 
 class CLIP_MT_clip(Menu):
     bl_label = "Clip"
+    bl_translation_context = bpy.app.translations.contexts.id_movieclip
 
     def draw(self, context):
         layout = self.layout
