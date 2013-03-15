@@ -1462,7 +1462,9 @@ MovieDistortion *BKE_tracking_distortion_new(void)
 
 	distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
 
+#ifdef WITH_LIBMV
 	distortion->intrinsics = libmv_CameraIntrinsicsNewEmpty();
+#endif
 
 	return distortion;
 }

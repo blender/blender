@@ -3297,8 +3297,8 @@ static bool edbm_mesh_knife_face_isect(ARegion *ar, LinkNode *polys, BMFace *f, 
 		add_v3_v3v3(co_b, co_a, tangent);
 	}
 
-	ED_view3d_project_float_v3_m4(ar, co_a, co_ss_a, projmat);
-	ED_view3d_project_float_v3_m4(ar, co_b, co_ss_b, projmat);
+	ED_view3d_project_float_v2_m4(ar, co_a, co_ss_a, projmat);
+	ED_view3d_project_float_v2_m4(ar, co_b, co_ss_b, projmat);
 	interp_v2_v2v2(co_ss, co_ss_a, co_ss_b, 0.005f);
 
 	/* check */
