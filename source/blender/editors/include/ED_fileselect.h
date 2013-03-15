@@ -31,10 +31,11 @@
 #ifndef __ED_FILESELECT_H__
 #define __ED_FILESELECT_H__
 
-struct SpaceFile;
 struct ARegion;
 struct FileSelectParams;
+struct SpaceFile;
 struct bContext;
+struct wmWindowManager;
 
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
@@ -99,9 +100,9 @@ void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
 
-void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile);
+void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile);
 
-void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile);
+void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile);
 
 int ED_file_extension_icon(const char *relname);
 

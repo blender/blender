@@ -578,11 +578,12 @@ FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *ar)
 
 void file_change_dir(bContext *C, int checkdir)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile->params) {
 
-		ED_fileselect_clear(C, sfile);
+		ED_fileselect_clear(wm, sfile);
 
 		if (checkdir && !BLI_is_dir(sfile->params->dir)) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
@@ -691,24 +692,24 @@ void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 	}
 }
 
-void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
+void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile)
 {
 	/* only NULL in rare cases - [#29734] */
 	if (sfile->files) {
-		thumbnails_stop(sfile->files, C);
+		thumbnails_stop(wm, sfile->files);
 		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 	}
 
 	sfile->params->active_file = -1;
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+	WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 
-void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
+void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile)
 {
 	if (!sfile) return;
 	if (sfile->op) {
-		WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
+		WM_event_fileselect_event(wm, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
 		sfile->op = NULL;
 	}
 
@@ -716,7 +717,7 @@ void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
 	folderlist_free(sfile->folders_next);
 	
 	if (sfile->files) {
-		ED_fileselect_clear(C, sfile);
+		ED_fileselect_clear(wm, sfile);
 		MEM_freeN(sfile->files);
 		sfile->files = NULL;
 	}

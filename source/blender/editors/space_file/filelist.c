@@ -1337,7 +1337,7 @@ static void thumbnails_free(void *tjv)
 }
 
 
-void thumbnails_start(struct FileList *filelist, const struct bContext *C)
+void thumbnails_start(FileList *filelist, const bContext *C)
 {
 	wmJob *wm_job;
 	ThumbnailJob *tj;
@@ -1349,7 +1349,7 @@ void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 	for (idx = 0; idx < filelist->numfiles; idx++) {
 		if (!filelist->filelist[idx].image) {
 			if ( (filelist->filelist[idx].flags & (IMAGEFILE | MOVIEFILE | BLENDERFILE | BLENDERFILE_BACKUP)) ) {
-				FileImage *limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
+				FileImage *limg = MEM_callocN(sizeof(FileImage), "loadimage");
 				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index = idx;
 				limg->flags = filelist->filelist[idx].flags;
@@ -1371,12 +1371,12 @@ void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 	WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
 
-void thumbnails_stop(struct FileList *filelist, const struct bContext *C)
+void thumbnails_stop(wmWindowManager *wm, FileList *filelist)
 {
-	WM_jobs_kill(CTX_wm_manager(C), filelist, NULL);
+	WM_jobs_kill(wm, filelist, NULL);
 }
 
-int thumbnails_running(struct FileList *filelist, const struct bContext *C)
+int thumbnails_running(wmWindowManager *wm, FileList *filelist)
 {
-	return WM_jobs_test(CTX_wm_manager(C), filelist, WM_JOB_TYPE_FILESEL_THUMBNAIL);
+	return WM_jobs_test(wm, filelist, WM_JOB_TYPE_FILESEL_THUMBNAIL);
 }

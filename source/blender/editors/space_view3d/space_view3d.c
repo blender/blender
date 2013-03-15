@@ -48,6 +48,7 @@
 #include "BKE_object.h"
 #include "BKE_screen.h"
 
+#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -350,7 +351,7 @@ static void view3d_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void view3d_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void view3d_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -467,6 +468,16 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	WM_event_add_dropbox_handler(&ar->handlers, lb);
 	
+}
+
+static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	if (rv3d->render_engine) {
+		RE_engine_free(rv3d->render_engine);
+		rv3d->render_engine = NULL;
+	}
 }
 
 static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
@@ -1216,6 +1227,7 @@ void ED_spacetype_view3d(void)
 	art->keymapflag = ED_KEYMAP_GPENCIL;
 	art->draw = view3d_main_area_draw;
 	art->init = view3d_main_area_init;
+	art->exit = view3d_main_area_exit;
 	art->free = view3d_main_area_free;
 	art->duplicate = view3d_main_area_duplicate;
 	art->listener = view3d_main_area_listener;

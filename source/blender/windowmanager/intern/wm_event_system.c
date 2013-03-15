@@ -2244,12 +2244,12 @@ void wm_event_do_handlers(bContext *C)
 
 /* ********** filesector handling ************ */
 
-void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
+void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval)
 {
 	/* add to all windows! */
 	wmWindow *win;
 	
-	for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
+	for (win = wm->windows.first; win; win = win->next) {
 		wmEvent event = *win->eventstate;
 		
 		event.type = EVT_FILESELECT;
@@ -2271,6 +2271,7 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
 	wmEventHandler *handler, *handlernext;
+	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	int full = 1;    // XXX preset?
 
@@ -2302,7 +2303,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 		op->type->check(C, op); /* ignore return value */
 	}
 
-	WM_event_fileselect_event(C, op, full ? EVT_FILESELECT_FULL_OPEN : EVT_FILESELECT_OPEN);
+	WM_event_fileselect_event(wm, op, full ? EVT_FILESELECT_FULL_OPEN : EVT_FILESELECT_OPEN);
 }
 
 #if 0

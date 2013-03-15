@@ -306,7 +306,7 @@ void		WM_gestures_remove(struct bContext *C);
 
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
-void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval);
+void		WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int eventval);
 #ifndef NDEBUG
 void		WM_event_print(const struct wmEvent *event);
 #endif

@@ -56,6 +56,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -397,6 +398,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 	char newname[FILE_MAX + 12];
 	char orgname[FILE_MAX + 12];
 	char filename[FILE_MAX + 12];
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
 	ARegion *ar = CTX_wm_region(C);
 
@@ -408,7 +410,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
-			ED_fileselect_clear(C, sfile);
+			ED_fileselect_clear(wm, sfile);
 		}
 
 		ED_region_tag_redraw(ar);
