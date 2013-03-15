@@ -133,8 +133,10 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 		EDBM_mesh_knife(C, polys, true);
 
 		/* select only tagged faces */
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 		BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, BM_ELEM_TAG);
+
+		BM_mesh_select_mode_flush(em->bm);
 
 		BLI_linklist_freeN(polys);
 
