@@ -1070,7 +1070,9 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = _operator_ctxt[0] = '\0';
+	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = '\0';
+	/* We have to set default op context! */
+	strcpy(_operator_ctxt, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	/* validate the python class */
 	if (validate(&dummyotr, data, have_function) != 0)
@@ -1193,6 +1195,11 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
 	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
+
+	/* clear in case they are left unset */
+	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = '\0';
+	/* We have to set default op context! */
+	strcpy(_operator_ctxt, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	/* validate the python class */
 	if (validate(&dummyotr, data, have_function) != 0)
