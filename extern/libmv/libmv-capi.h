@@ -132,6 +132,8 @@ void libmv_destroyFeatures(struct libmv_Features *libmv_features);
 /* camera intrinsics */
 struct libmv_CameraIntrinsics *libmv_ReconstructionExtractIntrinsics(struct libmv_Reconstruction *libmv_Reconstruction);
 
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNewEmpty(void);
+
 struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options);
 
 struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmv_intrinsics);
@@ -140,6 +142,8 @@ void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmv_intrinsi
 
 void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmv_intrinsics,
                                   libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options);
+
+void libmv_CameraIntrinsicsSetThreads(struct libmv_CameraIntrinsics *libmv_intrinsics, int threads);
 
 void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmv_intrinsics, double *focal_length,
 			double *principal_x, double *principal_y, double *k1, double *k2, double *k3, int *width, int *height);

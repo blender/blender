@@ -40,6 +40,7 @@
 #include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_threads.h"
 
 #include "BLF_translation.h"
 
@@ -1004,8 +1005,11 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		}
 	}
 
-	if (build_undistort_count)
+	if (build_undistort_count) {
+		int threads = BLI_system_thread_count();
 		distortion = BKE_tracking_distortion_new();
+		BKE_tracking_distortion_set_threads(distortion, threads);
+	}
 
 	for (cfra = sfra; cfra <= efra; cfra++) {
 		if (clip->source != MCLIP_SRC_MOVIE)

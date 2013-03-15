@@ -144,6 +144,7 @@ void BKE_tracking_camera_get_reconstructed_interpolate(struct MovieTracking *tra
 struct MovieDistortion *BKE_tracking_distortion_new(void);
 void BKE_tracking_distortion_update(struct MovieDistortion *distortion, struct MovieTracking *tracking,
                                     int calibration_width, int calibration_height);
+void BKE_tracking_distortion_set_threads(struct MovieDistortion *distortion, int threads);
 struct MovieDistortion *BKE_tracking_distortion_copy(struct MovieDistortion *distortion);
 struct ImBuf *BKE_tracking_distortion_exec(struct MovieDistortion *distortion, struct MovieTracking *tracking,
                                            struct ImBuf *ibuf, int width, int height, float overscan, int undistort);

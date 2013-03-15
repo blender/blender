@@ -68,6 +68,9 @@ class CameraIntrinsics {
 
   void SetTangentialDistortion(double p1, double p2);
 
+  /// Set number of threads using for buffer distortion/undistortion
+  void SetThreads(int threads);
+
   /*!
       Apply camera intrinsics to the normalized point to get image coordinates.
 
@@ -153,6 +156,8 @@ class CameraIntrinsics {
 
   struct Grid *distort_;
   struct Grid *undistort_;
+
+  int threads_;
 };
 
 /// A human-readable representation of the camera intrinsic parameters.

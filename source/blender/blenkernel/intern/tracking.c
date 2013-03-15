@@ -1462,6 +1462,8 @@ MovieDistortion *BKE_tracking_distortion_new(void)
 
 	distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
 
+	distortion->intrinsics = libmv_CameraIntrinsicsNewEmpty();
+
 	return distortion;
 }
 
@@ -1474,17 +1476,22 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking,
 	                                    calibration_width, calibration_height);
 
-	if (!distortion->intrinsics) {
-		distortion->intrinsics = libmv_CameraIntrinsicsNew(&camera_intrinsics_options);
-	}
-	else {
-		libmv_CameraIntrinsicsUpdate(distortion->intrinsics, &camera_intrinsics_options);
-	}
+	libmv_CameraIntrinsicsUpdate(distortion->intrinsics, &camera_intrinsics_options);
 #else
 	(void) distortion;
 	(void) tracking;
 	(void) calibration_width;
 	(void) calibration_height;
+#endif
+}
+
+void BKE_tracking_distortion_set_threads(MovieDistortion *distortion, int threads)
+{
+#ifdef WITH_LIBMV
+	libmv_CameraIntrinsicsSetThreads(distortion->intrinsics, threads);
+#else
+	(void) distortion;
+	(void) threads;
 #endif
 }
 

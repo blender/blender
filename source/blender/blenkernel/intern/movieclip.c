@@ -1244,7 +1244,7 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 
 	scaleibuf = IMB_dupImBuf(ibuf);
 
-	IMB_scaleImBuf(scaleibuf, (short)rectx, (short)recty);
+	IMB_scaleImBuf_threaded(scaleibuf, (short)rectx, (short)recty);
 
 	quality = clip->proxy.quality;
 	scaleibuf->ftype = JPG | quality;
