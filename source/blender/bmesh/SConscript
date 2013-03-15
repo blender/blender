@@ -34,16 +34,16 @@ sources += env.Glob('operators/*.c')
 sources += env.Glob('tools/*.c')
 
 incs = [
-	'./',
-	'../blenfont',
-	'../blenlib',
-	'../makesdna',
-	'../blenkernel',
-	'#/intern/guardedalloc',
-	'#/extern/bullet2/src',
-        '#/extern/rangetree',
-	'#/intern/opennl/extern'
-	]
+    './',
+    '../blenfont',
+    '../blenlib',
+    '../makesdna',
+    '../blenkernel',
+    '#/intern/guardedalloc',
+    '#/extern/bullet2/src',
+    '#/extern/rangetree',
+    '#/intern/opennl/extern'
+    ]
 
 defs = []
 
