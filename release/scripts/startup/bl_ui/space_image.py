@@ -758,20 +758,33 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
         
-        layout.prop(toolsettings, "input_samples")
+        col = layout.column()
+        col.prop(toolsettings, "input_samples")
 
-        layout.prop(brush, "use_airbrush")
-        row = layout.row()
+        col.prop(brush, "use_airbrush")
+        row = col.row()
         row.active = brush.use_airbrush
         row.prop(brush, "rate", slider=True)
 
-        layout.prop(brush, "use_space")
-        row = layout.row(align=True)
+        col.separator()
+
+        col.prop(brush, "use_smooth_stroke")
+
+        col = layout.column()
+        col.active = brush.use_smooth_stroke
+        col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+        col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
+        col.separator()
+
+        col = layout.column()
+        col.prop(brush, "use_space")
+        row = col.row(align=True)
         row.active = brush.use_space
         row.prop(brush, "spacing", text="Distance", slider=True)
         row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
-        layout.prop(brush, "use_wrap")
+        col.prop(brush, "use_wrap")
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):

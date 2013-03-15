@@ -96,6 +96,8 @@ typedef struct PaintStroke {
 	float initial_mouse[2];
 	float cached_pressure;
 
+	float zoom_2d;
+
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
@@ -275,15 +277,19 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 	 * separation will go away */
 	if (paint_supports_jitter(mode)) {
 		float delta[2];
+		float factor = stroke->zoom_2d;
+
+		if (brush->flag & BRUSH_JITTER_PRESSURE)
+			factor *= pressure;
 
 		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse_out);
 
 		/* XXX: meh, this is round about because
 		 * BKE_brush_jitter_pos isn't written in the best way to
 		 * be reused here */
-		if (brush->flag & BRUSH_JITTER_PRESSURE) {
+		if(factor != 1.0) {
 			sub_v2_v2v2(delta, mouse_out, mouse_in);
-			mul_v2_fl(delta, pressure);
+			mul_v2_fl(delta, factor);
 			add_v2_v2v2(mouse_out, mouse_in, delta);
 		}
 	}
@@ -318,13 +324,14 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 	output[1] = sample->mouse[1];
 
 	if (paint_supports_smooth_stroke(stroke->brush, mode)) {
+		float radius = stroke->brush->smooth_stroke_radius*stroke->zoom_2d;
 		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
 		float dy = stroke->last_mouse_position[1] - sample->mouse[1];
 
 		/* If the mouse is moving within the radius of the last move,
 		 * don't update the mouse position. This allows sharp turns. */
-		if (dx * dx + dy * dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
+		if (dx * dx + dy * dy <  radius * radius)
 			return 0;
 
 		output[0] = sample->mouse[0] * v + stroke->last_mouse_position[0] * u;
@@ -365,7 +372,6 @@ static int paint_space_stroke(bContext *C, wmOperator *op, const wmEvent *event,
 				size_pressure = pressure;
 			
 			if (size_pressure > FLT_EPSILON) {
-				float zoomx, zoomy;
 				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
 				 * causing very high step sizes, hanging blender [#32381] */
 				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
@@ -373,12 +379,11 @@ static int paint_space_stroke(bContext *C, wmOperator *op, const wmEvent *event,
 
 				/* stroke system is used for 2d paint too, so we need to account for
 				 * the fact that brush can be scaled there. */
-				get_imapaint_zoom(C, &zoomx, &zoomy);
 
 				if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
 					spacing = max_ff(1.0f, spacing * (1.5f - pressure));
 
-				spacing *= max_ff(zoomx, zoomy);
+				spacing *= stroke->zoom_2d;
 
 				scale = (size_clamp * spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
@@ -594,9 +599,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	PaintSample sample_average;
 	float mouse[2];
 	int first = 0;
+	float zoomx, zoomy;
 
 	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1]);
 	paint_stroke_sample_average(stroke, &sample_average);
+
+	get_imapaint_zoom(C, &zoomx, &zoomy);
+	stroke->zoom_2d = max_ff(zoomx, zoomy);
 
 	/* let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
 	 * this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
