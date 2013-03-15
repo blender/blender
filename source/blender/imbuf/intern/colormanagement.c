@@ -1853,6 +1853,14 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 			applied_view_settings = &default_view_settings;
 		}
 
+		/* early out: no float buffer and byte buffer is already in display space,
+		 * let's just use if
+		 */
+		if (ibuf->rect_float == NULL && ibuf->rect_colorspace) {
+			if (is_ibuf_rect_in_display_space(ibuf, applied_view_settings, display_settings))
+				return (unsigned char *) ibuf->rect;
+		}
+
 		colormanage_view_settings_to_cache(&cache_view_settings, applied_view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
