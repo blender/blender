@@ -176,6 +176,9 @@ typedef struct KnifeTool_OpData {
 
 	KnifeColors colors;
 
+	/* run by the UI or not */
+	bool is_interactive;
+
 	/* operatpr options */
 	bool cut_through;    /* preference, can be modified at runtime (that feature may go) */
 	bool only_select;    /* set on initialization */
@@ -194,7 +197,8 @@ typedef struct KnifeTool_OpData {
 
 	int prevmode;
 	bool snap_midpoints, extend;
-	bool ignore_edge_snapping, ignore_vert_snapping;
+	bool ignore_edge_snapping;
+	bool ignore_vert_snapping;
 
 	enum {
 		ANGLE_FREE,
@@ -1066,7 +1070,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	if (kcd->totlinehit > 0) {
 		const float vthresh4 = kcd->vthresh / 4.0f;
-		const float vthresh4_squared = vthresh4 * vthresh4;
+		const float vthresh4_sq = vthresh4 * vthresh4;
 
 		BMEdgeHit *lh;
 		int i;
@@ -1086,12 +1090,12 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			knife_project_v3(kcd, lh->kfe->v2->cageco, sv2);
 			knife_project_v3(kcd, lh->cagehit, lh->schit);
 
-			if (len_squared_v2v2(lh->schit, sv1) < vthresh4_squared) {
+			if (len_squared_v2v2(lh->schit, sv1) < vthresh4_sq) {
 				copy_v3_v3(lh->cagehit, lh->kfe->v1->cageco);
 				glVertex3fv(lh->cagehit);
 				lh->v = lh->kfe->v1;
 			}
-			else if (len_squared_v2v2(lh->schit, sv2) < vthresh4_squared) {
+			else if (len_squared_v2v2(lh->schit, sv2) < vthresh4_sq) {
 				copy_v3_v3(lh->cagehit, lh->kfe->v2->cageco);
 				glVertex3fv(lh->cagehit);
 				lh->v = lh->kfe->v2;
@@ -1183,7 +1187,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
 	const float depsilon = (FLT_EPSILON / 2.0f) * len_v3_tri_side_max(v1, v2, v3);
-	const float depsilon_squared = depsilon * depsilon;
+	const float depsilon_sq = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);
 	copy_v3_v3(cos + 3, v2);
@@ -1217,14 +1221,14 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 				interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
 
-				if (kcd->curr.vert && len_squared_v3v3(kcd->curr.vert->cageco, p) < depsilon_squared) {
+				if (kcd->curr.vert && len_squared_v3v3(kcd->curr.vert->cageco, p) < depsilon_sq) {
 					continue;
 				}
-				if (kcd->prev.vert && len_squared_v3v3(kcd->prev.vert->cageco, p) < depsilon_squared) {
+				if (kcd->prev.vert && len_squared_v3v3(kcd->prev.vert->cageco, p) < depsilon_sq) {
 					continue;
 				}
-				if (len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
-				    len_squared_v3v3(kcd->curr.cage, p) < depsilon_squared)
+				if (len_squared_v3v3(kcd->prev.cage, p) < depsilon_sq ||
+				    len_squared_v3v3(kcd->curr.cage, p) < depsilon_sq)
 				{
 					continue;
 				}
@@ -1270,8 +1274,8 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 				if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
 					BMEdgeHit hit;
 	
-					if (len_squared_v3v3(p, kcd->curr.co) < depsilon_squared ||
-					    len_squared_v3v3(p, kcd->prev.co) < depsilon_squared)
+					if (len_squared_v3v3(p, kcd->curr.co) < depsilon_sq ||
+					    len_squared_v3v3(p, kcd->prev.co) < depsilon_sq)
 					{
 						continue;
 					}
@@ -1385,7 +1389,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	knife_project_v3(kcd, v1, s1);
 	knife_project_v3(kcd, v2, s2);
 
-	if (len_v2v2(s1, s2) < 1)
+	if (len_squared_v2v2(s1, s2) < 1)
 		return;
 
 	/* unproject screen line */
@@ -1503,13 +1507,15 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 		*is_space = !f;
 
 	if (!f) {
-		/* try to use backbuffer selection method if ray casting failed */
-		f = EDBM_face_find_nearest(&kcd->vc, &dist);
+		if (kcd->is_interactive) {
+			/* try to use backbuffer selection method if ray casting failed */
+			f = EDBM_face_find_nearest(&kcd->vc, &dist);
 
-		/* cheat for now; just put in the origin instead
-		 * of a true coordinate on the face.
-		 * This just puts a point 1.0f infront of the view. */
-		add_v3_v3v3(co, origin, ray);
+			/* cheat for now; just put in the origin instead
+			 * of a true coordinate on the face.
+			 * This just puts a point 1.0f infront of the view. */
+			add_v3_v3v3(co, origin, ray);
+		}
 	}
 
 	return f;
@@ -1517,18 +1523,21 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 
 /* find the 2d screen space density of vertices within a radius.  used to scale snapping
  * distance for picking edges/verts.*/
-static int knife_sample_screen_density(KnifeTool_OpData *kcd, float radius)
+static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius)
 {
 	BMFace *f;
 	bool is_space;
 	float co[3], cageco[3], sco[3];
 
+	BLI_assert(kcd->is_interactive == true);
+
 	f = knife_find_closest_face(kcd, co, cageco, &is_space);
 
 	if (f && !is_space) {
+		const float radius_sq = radius * radius;
 		ListBase *lst;
 		Ref *ref;
-		float dis;
+		float dis_sq;
 		int c = 0;
 
 		knife_project_v3(kcd, cageco, sco);
@@ -1543,8 +1552,8 @@ static int knife_sample_screen_density(KnifeTool_OpData *kcd, float radius)
 
 				knife_project_v3(kcd, kfv->cageco, kfv->sco);
 
-				dis = len_v2v2(kfv->sco, sco);
-				if (dis < radius) {
+				dis_sq = len_squared_v2v2(kfv->sco, sco);
+				if (dis_sq < radius_sq) {
 					if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
 						if (ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, TRUE) == 0) {
 							c++;
@@ -1567,7 +1576,14 @@ static int knife_sample_screen_density(KnifeTool_OpData *kcd, float radius)
  * surrounding mesh (in screen space)*/
 static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 {
-	float density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
+	float density;
+
+	if (kcd->is_interactive) {
+		density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
+	}
+	else {
+		density = 1.0f;
+	}
 
 	if (density < 1.0f)
 		density = 1.0f;
@@ -1688,10 +1704,11 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 	kcd->curr.bmface = f;
 
 	if (f) {
+		const float maxdist_sq = maxdist * maxdist;
 		ListBase *lst;
 		Ref *ref;
 		KnifeVert *curv = NULL;
-		float dis, curdis = FLT_MAX;
+		float dis_sq, curdis_sq = FLT_MAX;
 
 		knife_project_v3(kcd, cageco, sco);
 
@@ -1705,17 +1722,17 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 
 				knife_project_v3(kcd, kfv->cageco, kfv->sco);
 
-				dis = len_v2v2(kfv->sco, sco);
-				if (dis < curdis && dis < maxdist) {
+				dis_sq = len_squared_v2v2(kfv->sco, sco);
+				if (dis_sq < curdis_sq && dis_sq < maxdist_sq) {
 					if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
 						if (ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, TRUE) == 0) {
 							curv = kfv;
-							curdis = dis;
+							curdis_sq = dis_sq;
 						}
 					}
 					else {
 						curv = kfv;
-						curdis = dis;
+						curdis_sq = dis_sq;
 					}
 				}
 			}
@@ -2888,10 +2905,12 @@ static void knifetool_exit_ex(bContext *C, KnifeTool_OpData *kcd)
 	if (!kcd)
 		return;
 
-	WM_cursor_restore(CTX_wm_window(C));
+	if (kcd->is_interactive) {
+		WM_cursor_restore(CTX_wm_window(C));
 
-	/* deactivate the extra drawing stuff in 3D-View */
-	ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
+		/* deactivate the extra drawing stuff in 3D-View */
+		ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
+	}
 
 	/* free the custom data */
 	BLI_mempool_destroy(kcd->refs);
@@ -2956,7 +2975,7 @@ static void knifetool_update_mval_i(KnifeTool_OpData *kcd, const int mval_i[2])
 
 /* called when modal loop selection gets set up... */
 static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
-                           const bool only_select, const bool cut_through)
+                           const bool only_select, const bool cut_through, const bool is_interactive)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -2967,7 +2986,7 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	/* assign the drawing handle for drawing preview line... */
 	kcd->ob = obedit;
 	kcd->ar = CTX_wm_region(C);
-	kcd->draw_handle = ED_region_draw_cb_activate(kcd->ar->type, knifetool_draw, kcd, REGION_DRAW_POST_VIEW);
+
 	em_setup_viewcontext(C, &kcd->vc);
 
 	kcd->em = BMEdit_FromObject(kcd->ob);
@@ -3008,6 +3027,7 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	kcd->kedgefacemap = BLI_ghash_ptr_new("knife origvertmap");
 
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
+	kcd->is_interactive = is_interactive;
 	kcd->cut_through = cut_through;
 	kcd->only_select = only_select;
 
@@ -3017,7 +3037,11 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	knife_pos_data_clear(&kcd->curr);
 	knife_pos_data_clear(&kcd->prev);
 
-	knife_init_colors(&kcd->colors);
+	if (is_interactive) {
+		kcd->draw_handle = ED_region_draw_cb_activate(kcd->ar->type, knifetool_draw, kcd, REGION_DRAW_POST_VIEW);
+
+		knife_init_colors(&kcd->colors);
+	}
 }
 
 static int knifetool_cancel(bContext *C, wmOperator *op)
@@ -3039,7 +3063,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	/* alloc new customdata */
 	kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
-	knifetool_init(C, kcd, only_select, cut_through);
+	knifetool_init(C, kcd, only_select, cut_through, true);
 
 	/* add a modal handler for this operator - handles loop selection */
 	WM_cursor_modal(CTX_wm_window(C), BC_KNIFECURSOR);
@@ -3360,10 +3384,11 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag)
 	{
 		const bool only_select = false;
 		const bool cut_through = false;
+		const bool is_interactive = false;  /* can enable for testing */
 
 		kcd = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
-		knifetool_init(C, kcd, only_select, cut_through);
+		knifetool_init(C, kcd, only_select, cut_through, is_interactive);
 
 		kcd->ignore_edge_snapping = true;
 		kcd->ignore_vert_snapping = true;
