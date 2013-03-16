@@ -669,7 +669,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
                      const char *text)
 {
 	PropertyRNA *propID, *propType;
-	uiLayout *row;
+	uiLayout *split, *row, *sub;
 	
 	/* get properties... */
 	propID = RNA_struct_find_property(ptr, propname);
@@ -685,22 +685,34 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 	}
 	
 	/* Start drawing UI Elements using standard defines */
-	row = uiLayoutRow(layout, TRUE);
+	split = uiLayoutSplit(layout, 0.33f, FALSE); /* NOTE: split amount here needs to be synced with normal labels */
+	
+	/* FIRST PART ................................................ */
+	row = uiLayoutRow(split, FALSE);
 	
 	/* Label - either use the provided text, or will become "ID-Block:" */
 	if (text) {
 		if (text[0])
 			uiItemL(row, text, ICON_NONE);
 	}
-	else
+	else {
 		uiItemL(row, IFACE_("ID-Block:"), ICON_NONE);
+	}
+	
+	/* SECOND PART ................................................ */
+	row = uiLayoutRow(split, TRUE);
 	
 	/* ID-Type Selector - just have a menu of icons */
-	/* FIXME: the icon-only setting doesn't work when we supply a blank name */
-	uiItemFullR(row, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+	sub = uiLayoutRow(row, TRUE);                     /* HACK: special group just for the enum, otherwise we */
+	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);  /*       we get ugly layout with text included too...  */
+	
+	uiItemFullR(sub, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	
 	/* ID-Block Selector - just use pointer widget... */
-	uiItemFullR(row, ptr, propID, 0, 0, 0, "", ICON_NONE);
+	sub = uiLayoutRow(row, TRUE);                       /* HACK: special group to counteract the effects of the previous */
+	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);  /*       enum, which now pushes everything too far right         */
+	
+	uiItemFullR(sub, ptr, propID, 0, 0, 0, "", ICON_NONE);
 }
 
 /********************* RNA Path Builder Template ********************/
