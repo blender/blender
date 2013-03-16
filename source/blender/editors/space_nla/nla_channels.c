@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_report.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
@@ -393,24 +394,18 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 /* ******************** Add Tracks Operator ***************************** */
 /* Add NLA Tracks to the same AnimData block as a selected track, or above the selected tracks */
 
-static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
+/* helper - add NLA Tracks alongside existing ones */
+static bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 {
-	bAnimContext ac;
-	
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	
 	AnimData *lastAdt = NULL;
-	short above_sel = RNA_boolean_get(op->ptr, "above_selected");
+	bool added = false;
 	
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-		
-	/* get a list of the AnimData blocks being shown in the NLA */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	/* get a list of the (selected) NLA Tracks being shown in the NLA */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* add tracks... */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -424,11 +419,13 @@ static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
 			if (above_sel) {
 				/* just add a new one above this one */
 				add_nlatrack(adt, nlt);
+				added = true;
 			}
 			else if ((lastAdt == NULL) || (adt != lastAdt)) {
 				/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
 				add_nlatrack(adt, NULL);
 				lastAdt = adt;
+				added = true;
 			}
 		}
 	}
@@ -436,17 +433,79 @@ static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
-	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+	return added;
+}
+
+/* helper - add NLA Tracks to empty (and selected) AnimData blocks */
+static bool nlaedit_add_tracks_empty(bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	bool added = false;
 	
-	/* done */
-	return OPERATOR_FINISHED;
+	/* get a list of the selected AnimData blocks in the NLA */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* check if selected AnimData blocks are empty, and add tracks if so... */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		AnimData *adt = ale->adt;
+		
+		/* sanity check */
+		BLI_assert(adt->flag & ADT_UI_SELECTED);
+		
+		/* ensure it is empty */
+		if (adt->nla_tracks.first == NULL) {
+			/* add new track to this AnimData block then */
+			add_nlatrack(adt, NULL);
+			added = true;
+		}
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+	
+	return added;
+}
+
+/* Add Tracks exec() */
+static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bool above_sel = RNA_boolean_get(op->ptr, "above_selected");
+	bool op_done = false;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* perform adding in two passes - existing first so that we don't double up for empty */
+	op_done |= nlaedit_add_tracks_existing(&ac, above_sel);
+	op_done |= nlaedit_add_tracks_empty(&ac);
+	
+	/* done? */
+	if (op_done) {
+		/* set notifier that things have changed */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+		
+		/* done */
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* failed to add any tracks */
+		BKE_report(op->reports, RPT_WARNING,
+		           "Select an existing NLA Track or an empty action line first");
+		
+		/* not done */
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void NLA_OT_tracks_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Track(s)";
+	ot->name = "Add Tracks";
 	ot->idname = "NLA_OT_tracks_add";
 	ot->description = "Add NLA-Tracks above/after the selected tracks";
 	

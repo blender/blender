@@ -292,10 +292,13 @@ typedef enum eAnimFilter_Flags {
 #define SEL_MASKLAY(masklay) (masklay->flag & SELECT)
 
 
-
 /* NLA only */
 #define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
 #define EDITABLE_NLT(nlt) ((nlt->flag & NLATRACK_PROTECTED) == 0)
+
+
+/* AnimData - NLA mostly... */
+#define SEL_ANIMDATA(adt) (adt->flag & ADT_UI_SELECTED)
 
 /* -------------- Channel Defines -------------- */
 
