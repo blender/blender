@@ -1657,12 +1657,13 @@ bool BM_face_is_any_edge_flag_test(BMFace *f, const char hflag)
 
 static void bm_mesh_calc_volume_face(BMFace *f, float *r_vol)
 {
-	const int tottri = f->len - 2;
+	int tottri = f->len - 2;
 	BMLoop **loops     = BLI_array_alloca(loops, f->len);
 	int    (*index)[3] = BLI_array_alloca(index, tottri);
 	int j;
 
-	BM_face_calc_tessellation(f, loops, index);
+	tottri = BM_face_calc_tessellation(f, loops, index);
+	BLI_assert(tottri <= f->len - 2);
 
 	for (j = 0; j < tottri; j++) {
 		const float *p1 = loops[index[j][0]]->v->co;

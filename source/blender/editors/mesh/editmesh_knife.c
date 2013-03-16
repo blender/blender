@@ -3312,15 +3312,17 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
  */
 static void edvm_mesh_knife_face_point(BMFace *f, float r_cent[3])
 {
-	const int tottri = f->len - 2;
+	int tottri = f->len - 2;
 	BMLoop **loops     = BLI_array_alloca(loops, f->len);
 	int    (*index)[3] = BLI_array_alloca(index, tottri);
 	int j;
 
 	float const *best_co[3] = {NULL};
 	float  best_area  = -1.0f;
+	bool ok = false;
 
-	BM_face_calc_tessellation(f, loops, index);
+	tottri = BM_face_calc_tessellation(f, loops, index);
+	BLI_assert(tottri <= f->len - 2);
 
 	for (j = 0; j < tottri; j++) {
 		const float *p1 = loops[index[j][0]]->v->co;
@@ -3336,10 +3338,16 @@ static void edvm_mesh_knife_face_point(BMFace *f, float r_cent[3])
 			best_co[1] = p2;
 			best_co[2] = p3;
 			best_area = area;
+			ok = true;
 		}
 	}
 
-	mid_v3_v3v3v3(r_cent, best_co[0], best_co[1], best_co[2]);
+	if (ok) {
+		mid_v3_v3v3v3(r_cent, best_co[0], best_co[1], best_co[2]);
+	}
+	else {
+		mid_v3_v3v3v3(r_cent, loops[0]->v->co, loops[1]->v->co, loops[2]->v->co);
+	}
 }
 
 static bool edbm_mesh_knife_face_isect(ARegion *ar, LinkNode *polys, BMFace *f, float projmat[4][4])

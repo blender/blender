@@ -42,6 +42,7 @@
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_scanfill.h"
+#include "BLI_listbase.h"
 
 #include "bmesh.h"
 
@@ -160,11 +161,12 @@ static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float n[3],
  * \param r_loops  Store face loop pointers, (f->len)
  * \param r_index  Store triangle triples, indicies into \a r_loops,  ((f->len - 2) * 3)
  */
-void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
+int BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 {
 	int *r_index = (int *)_r_index;
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter;
+	int totfilltri;
 
 	if (f->len == 3) {
 		*r_loops++ = (l_iter = l_first);
@@ -174,9 +176,9 @@ void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 		r_index[0] = 0;
 		r_index[1] = 1;
 		r_index[2] = 2;
+		totfilltri = 1;
 	}
 	else if (f->len == 4) {
-		BMLoop *l_iter;
 		*r_loops++ = (l_iter = l_first);
 		*r_loops++ = (l_iter = l_iter->next);
 		*r_loops++ = (l_iter = l_iter->next);
@@ -189,6 +191,7 @@ void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 		r_index[3] = 0;
 		r_index[4] = 2;
 		r_index[5] = 3;
+		totfilltri = 2;
 	}
 	else {
 		int j;
@@ -197,7 +200,6 @@ void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 		ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
 		/* ScanFillEdge *e; */ /* UNUSED */
 		ScanFillFace *sf_tri;
-		int totfilltri;
 
 		BLI_scanfill_begin(&sf_ctx);
 
@@ -228,7 +230,7 @@ void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 
 		totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, f->no);
 		BLI_assert(totfilltri <= f->len - 2);
-		(void)totfilltri;
+		BLI_assert(totfilltri == BLI_countlist(&sf_ctx.fillfacebase));
 
 		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 			int i1 = BM_elem_index_get((BMLoop *)sf_tri->v1->tmp.p);
@@ -246,6 +248,8 @@ void BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
 
 		BLI_scanfill_end(&sf_ctx);
 	}
+
+	return totfilltri;
 }
 
 /**
