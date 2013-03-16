@@ -1293,7 +1293,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail)
 			}
 		}
 		else {
-			td->dist = MAXFLOAT;
+			td->dist = FLT_MAX;
 			td->flag |= TD_NOTCONNECTED;
 		}
 	}
@@ -2131,7 +2131,7 @@ static void createTransEditVerts(TransInfo *t)
 					}
 					else {
 						tob->flag |= TD_NOTCONNECTED;
-						tob->dist = MAXFLOAT;
+						tob->dist = FLT_MAX;
 					}
 				}
 
@@ -2367,7 +2367,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 		td->dist = 0.0;
 	}
 	else {
-		td->dist = MAXFLOAT;
+		td->dist = FLT_MAX;
 	}
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
@@ -3504,7 +3504,7 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, AnimData *adt, B
 		td->dist = 0.0f;
 	}
 	else
-		td->dist = MAXFLOAT;
+		td->dist = FLT_MAX;
 	
 	if (ishandle)
 		td->flag |= TD_NOTIMESNAP;

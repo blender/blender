@@ -41,10 +41,11 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  const GHOST_TEmbedderWindowID parentWindow,
                                  GHOST_TDrawingContextType type,
                                  const bool stereoVisual,
+                                 const bool exclusive,
                                  const GHOST_TUns16 numOfAASamples
                                  )
 	:
-	GHOST_Window(width, height, state, type, stereoVisual, numOfAASamples),
+	GHOST_Window(width, height, state, type, stereoVisual, exclusive, numOfAASamples),
 	m_system(system),
 	m_invalid_window(false),
 	m_sdl_custom_cursor(NULL)

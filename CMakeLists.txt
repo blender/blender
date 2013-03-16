@@ -278,6 +278,10 @@ mark_as_advanced(WITH_ASSERT_ABORT)
 
 option(WITH_BOOST					"Enable features depending no boost" ON)
 
+if(CMAKE_COMPILER_IS_GNUCC)
+	option(WITH_GCC_MUDFLAP			"Enable mudflap" OFF)
+	mark_as_advanced(WITH_GCC_MUDFLAP)
+endif()
 
 if(APPLE)
 	cmake_minimum_required(VERSION 2.8.8)
@@ -2036,7 +2040,7 @@ if(WITH_PYTHON)
 
 	if(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
 		# set but invalid
-        # -- disabled until we make numpy bundled with blender - campbell
+		# -- disabled until we make numpy bundled with blender - campbell
 		if((NOT ${PYTHON_NUMPY_PATH} STREQUAL "") AND (NOT ${PYTHON_NUMPY_PATH} MATCHES NOTFOUND))
 #			if(NOT EXISTS "${PYTHON_NUMPY_PATH}/numpy")
 #				message(WARNING "PYTHON_NUMPY_PATH is invalid, numpy not found in '${PYTHON_NUMPY_PATH}' "
@@ -2078,6 +2082,13 @@ if(WITH_PYTHON)
 			unset(_PY_VER_MAJOR)
 		endif()
 	endif()
+endif()
+
+if(WITH_GCC_MUDFLAP)
+	set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -fmudflapth -funwind-tables")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lmudflapth -rdynamic")
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS     C_WARN_NO_ERROR_MUDFLAP   -Wno-error=mudflap)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_ERROR_MUDFLAP -Wno-error=mudflap)
 endif()
 
 # Include warnings first, so its possible to disable them with user defined flags

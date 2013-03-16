@@ -1171,7 +1171,7 @@ static void mouse_mesh_loop(bContext *C, const int mval[2], short extend, short 
 				/* Select the face of eed which is the nearest of mouse. */
 				BMFace *f, *efa = NULL;
 				BMIter iterf;
-				float best_dist = MAXFLOAT;
+				float best_dist = FLT_MAX;
 
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);

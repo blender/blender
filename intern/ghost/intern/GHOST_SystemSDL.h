@@ -108,9 +108,10 @@ private:
 	             GHOST_TUns32 height,
 	             GHOST_TWindowState state,
 	             GHOST_TDrawingContextType type,
-	             bool stereoVisual,
-	             const GHOST_TUns16 numOfAASamples,
-	             const GHOST_TEmbedderWindowID parentWindow
+	             const bool stereoVisual,
+	             const bool exclusive = false,
+	             const GHOST_TUns16 numOfAASamples = 0,
+	             const GHOST_TEmbedderWindowID parentWindow = 0
 	             );
 
 	/* SDL specific */

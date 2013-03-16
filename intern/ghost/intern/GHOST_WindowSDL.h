@@ -41,6 +41,7 @@ extern "C" {
 #endif
 
 class STR_String;
+class GHOST_SystemSDL;
 
 class GHOST_WindowSDL : public GHOST_Window
 {
@@ -64,9 +65,10 @@ public:
 	                GHOST_TUns32 width, GHOST_TUns32 height,
 	                GHOST_TWindowState state,
 	                const GHOST_TEmbedderWindowID parentWindow,
-	                GHOST_TDrawingContextType type,
-	                const bool stereoVisual,
-	                const GHOST_TUns16 numOfAASamples
+	                GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
+	                const bool stereoVisual = false,
+	                const bool exclusive = false,
+	                const GHOST_TUns16 numOfAASamples = 0
 	                );
 
 	~GHOST_WindowSDL();
@@ -165,6 +167,11 @@ protected:
 		// TODO
 		return GHOST_kSuccess;
 	}
+
+	// TODO
+	GHOST_TSuccess beginFullScreen() const { return GHOST_kFailure; }
+
+	GHOST_TSuccess endFullScreen() const { return GHOST_kFailure; }
 
 };
 
