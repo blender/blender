@@ -141,10 +141,10 @@ static int txtfmt_osl_find_specialvar(const char *string)
 	int i, len;
 	
 	/* OSL shader types */
-	if      (STR_LITERAL_STARTSWITH(string, "shader", 		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "surface", 		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "volume", 		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "displacement",	len)) i = len;
+	if      (STR_LITERAL_STARTSWITH(string, "shader",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "surface",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "volume",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "displacement", len)) i = len;
 	else                                                    i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */

@@ -147,7 +147,7 @@ static float event_tablet_data(const wmEvent *event, int *pen_flip)
 /* Initialize the stroke cache variants from operator properties */
 static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
                                          struct PaintStroke *stroke,
-										 const float mouse[2], float pressure)
+                                         const float mouse[2], float pressure)
 {
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -289,7 +289,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 		/* XXX: meh, this is round about because
 		 * BKE_brush_jitter_pos isn't written in the best way to
 		 * be reused here */
-		if(factor != 1.0f) {
+		if (factor != 1.0f) {
 			sub_v2_v2v2(delta, mouse_out, mouse_in);
 			mul_v2_fl(delta, factor);
 			add_v2_v2v2(mouse_out, mouse_in, delta);
@@ -324,7 +324,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 	output[1] = sample->mouse[1];
 
 	if (paint_supports_smooth_stroke(stroke->brush, mode)) {
-		float radius = stroke->brush->smooth_stroke_radius*stroke->zoom_2d;
+		float radius = stroke->brush->smooth_stroke_radius * stroke->zoom_2d;
 		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
 		float dy = stroke->last_mouse_position[1] - sample->mouse[1];
@@ -483,9 +483,9 @@ bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 
 bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 {
-	if(!(br->flag & BRUSH_SMOOTH_STROKE) ||
-	    (br->flag & BRUSH_ANCHORED) ||
-	    (br->flag & BRUSH_RESTORE_MESH))
+	if (!(br->flag & BRUSH_SMOOTH_STROKE) ||
+	     (br->flag & BRUSH_ANCHORED) ||
+	     (br->flag & BRUSH_RESTORE_MESH))
 	{
 		return false;
 	}

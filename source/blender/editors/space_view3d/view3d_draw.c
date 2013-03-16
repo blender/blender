@@ -1357,8 +1357,9 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		char error[256];
 
 		if (rv3d->gpuoffscreen) {
-			if (GPU_offscreen_width(rv3d->gpuoffscreen) != w ||
-			    GPU_offscreen_height(rv3d->gpuoffscreen) != h) {
+			if (GPU_offscreen_width(rv3d->gpuoffscreen)  != w ||
+			    GPU_offscreen_height(rv3d->gpuoffscreen) != h)
+			{
 				GPU_offscreen_free(rv3d->gpuoffscreen);
 				rv3d->gpuoffscreen = NULL;
 			}

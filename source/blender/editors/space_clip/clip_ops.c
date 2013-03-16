@@ -1134,7 +1134,7 @@ static void *do_proxy_thread(void *data_v)
 
 static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
                               int *build_undistort_sizes, int build_undistort_count,
-							  short *stop, short *do_update, float *progress)
+                              short *stop, short *do_update, float *progress)
 {
 	ProxyJob *pj = pjv;
 	MovieClip *clip = pj->clip;
