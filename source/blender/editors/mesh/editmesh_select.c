@@ -66,6 +66,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "GPU_extensions.h"
+
 #include "mesh_intern.h"
 
 #include "UI_resources.h"
@@ -253,6 +255,9 @@ int EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short 
 
 	dr = buf->rect;
 
+	if (vc->rv3d->gpuoffscreen)
+		GPU_offscreen_bind(vc->rv3d->gpuoffscreen);
+	
 	/* draw the mask */
 	glDisable(GL_DEPTH_TEST);
 	
@@ -269,6 +274,9 @@ int EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short 
 	glEnd();
 	
 	glFinish(); /* to be sure readpixels sees mask */
+	
+	if (vc->rv3d->gpuoffscreen)
+		GPU_offscreen_unbind(vc->rv3d->gpuoffscreen);
 	
 	/* grab mask */
 	bufmask = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
