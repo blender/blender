@@ -70,6 +70,9 @@ static LinkNode *knifeproject_poly_from_object(ARegion *ar, Scene *scene, Object
 		dm = CDDM_from_curve(ob);
 		dm_needsFree = true;
 	}
+	else {
+		dm = NULL;
+	}
 
 	if (dm) {
 		ListBase nurbslist = {NULL, NULL};
