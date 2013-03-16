@@ -281,14 +281,14 @@ void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
 
 void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 {
-	char line[256];
+	char line[FILE_MAXDIR];
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
 	FILE *fp;
 
 	fp = BLI_fopen(filename, "r");
 	if (!fp) return;
 
-	while (fgets(line, 256, fp) != NULL) {       /* read a line */
+	while (fgets(line, sizeof(line), fp) != NULL) {       /* read a line */
 		if (strncmp(line, "[Bookmarks]", 11) == 0) {
 			category = FS_CATEGORY_BOOKMARKS;
 		}
@@ -318,7 +318,7 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 
 void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 {
-	char line[256];
+	char line[FILE_MAXDIR];
 #ifdef WIN32
 	/* Add the drive names to the listing */
 	{
@@ -376,25 +376,25 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 		 * TODO : replace hardcoded paths with proper BLI_get_folder calls */
 		home = getenv("HOME");
 		if (read_bookmarks && home) {
-			BLI_snprintf(line, 256, "%s/", home);
+			BLI_snprintf(line, sizeof(line), "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
-			BLI_snprintf(line, 256, "%s/Desktop/", home);
+			BLI_snprintf(line, sizeof(line), "%s/Desktop/", home);
 			if (BLI_exists(line)) {
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
-			BLI_snprintf(line, 256, "%s/Documents/", home);
+			BLI_snprintf(line, sizeof(line), "%s/Documents/", home);
 			if (BLI_exists(line)) {
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
-			BLI_snprintf(line, 256, "%s/Pictures/", home);
+			BLI_snprintf(line, sizeof(line), "%s/Pictures/", home);
 			if (BLI_exists(line)) {
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
-			BLI_snprintf(line, 256, "%s/Music/", home);
+			BLI_snprintf(line, sizeof(line), "%s/Music/", home);
 			if (BLI_exists(line)) {
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
-			BLI_snprintf(line, 256, "%s/Movies/", home);
+			BLI_snprintf(line, sizeof(line), "%s/Movies/", home);
 			if (BLI_exists(line)) {
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
@@ -427,7 +427,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			
 			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 			
-			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
+			if (!CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingASCII))
 				continue;
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, FS_INSERT_SORTED);
 			
@@ -480,7 +480,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				
 				pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 				
-				if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
+				if (!CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingASCII))
 					continue;
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 				
@@ -499,9 +499,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 		const char *home = getenv("HOME");
 
 		if (read_bookmarks && home) {
-			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
+			BLI_snprintf(line, sizeof(line), "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
-			BLI_snprintf(line, FILE_MAXDIR, "%s/Desktop/", home);
+			BLI_snprintf(line, sizeof(line), "%s/Desktop/", home);
 			if (BLI_exists(line)) {
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
@@ -527,7 +527,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
 					len = strlen(mnt->mnt_dir);
 					if (len && mnt->mnt_dir[len - 1] != '/') {
-						BLI_snprintf(line, FILE_MAXDIR, "%s/", mnt->mnt_dir);
+						BLI_snprintf(line, sizeof(line), "%s/", mnt->mnt_dir);
 						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, FS_INSERT_SORTED);
 					}
 					else {
