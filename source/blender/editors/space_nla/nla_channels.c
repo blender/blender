@@ -469,7 +469,8 @@ static bool nlaedit_add_tracks_empty(bAnimContext *ac)
 	return added;
 }
 
-/* Add Tracks exec() */
+/* ----- */
+
 static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;

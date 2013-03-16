@@ -472,8 +472,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Motion Paths:")
-        col.operator("pose.paths_calculate", text="Calculate Paths")
-        col.operator("pose.paths_clear", text="Clear Paths")
+        row = col.row(align=True)
+        row.operator("pose.paths_calculate", text="Calculate")
+        row.operator("pose.paths_clear", text="Clear")
 
         draw_repeat_tools(context, layout)
 

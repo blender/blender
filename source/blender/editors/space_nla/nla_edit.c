@@ -1627,7 +1627,7 @@ void NLA_OT_action_sync_length(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = nlaedit_sync_actlen_exec;
-	ot->poll = ED_operator_nla_active; // XXX: is this satisfactory... probably requires a check for active strip...
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2102,8 +2102,10 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
 		return OPERATOR_CANCELLED;
 	}
-	else
+	else {
+		/* no updates needed - copy is non-destructive operation */
 		return OPERATOR_FINISHED;
+	}
 }
  
 void NLA_OT_fmodifier_copy(wmOperatorType *ot)
@@ -2157,8 +2159,6 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	
 	/* successful or not? */
 	if (ok) {
-		/* set notifier that things have changed */
-		/* set notifier that things have changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
 		return OPERATOR_FINISHED;
 	}
