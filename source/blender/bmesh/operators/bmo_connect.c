@@ -160,19 +160,19 @@ static int clamp_index(const int x, const int len)
  * isn't there should be... */
 #define ARRAY_SWAP(elemtype, arr1, arr2)                                      \
 	{                                                                         \
-		int i;                                                                \
+		int i_;                                                               \
 		elemtype *arr_tmp = NULL;                                             \
 		BLI_array_declare(arr_tmp);                                           \
-		for (i = 0; i < BLI_array_count(arr1); i++) {                         \
-			BLI_array_append(arr_tmp, arr1[i]);                               \
+		for (i_ = 0; i_ < BLI_array_count(arr1); i_++) {                      \
+			BLI_array_append(arr_tmp, arr1[i_]);                              \
 		}                                                                     \
 		BLI_array_empty(arr1);                                                \
-		for (i = 0; i < BLI_array_count(arr2); i++) {                         \
-			BLI_array_append(arr1, arr2[i]);                                  \
+		for (i_ = 0; i_ < BLI_array_count(arr2); i_++) {                      \
+			BLI_array_append(arr1, arr2[i_]);                                 \
 		}                                                                     \
 		BLI_array_empty(arr2);                                                \
-		for (i = 0; i < BLI_array_count(arr_tmp); i++) {                      \
-			BLI_array_append(arr2, arr_tmp[i]);                               \
+		for (i_ = 0; i_ < BLI_array_count(arr_tmp); i_++) {                   \
+			BLI_array_append(arr2, arr_tmp[i_]);                              \
 		}                                                                     \
 		BLI_array_free(arr_tmp);                                              \
 	} (void)0

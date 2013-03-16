@@ -3103,7 +3103,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int numTex, numCol;
 	int hasPCol, hasOrigSpace;
 	int gridInternalEdges;
-	float *w = NULL;
 	WeightTable wtable = {0};
 	/* MCol *mcol; */ /* UNUSED */
 	MEdge *medge = NULL;
@@ -3291,7 +3290,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		int numFinalEdges = numVerts * (gridSideEdges + gridInternalEdges);
 		int origIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 		int g2_wid = gridCuts + 2;
-		float *w2;
+		float *w, *w2;
 		int s, x, y;
 		
 		w = get_ss_weights(&wtable, gridCuts, numVerts);

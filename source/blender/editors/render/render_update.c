@@ -394,8 +394,6 @@ static void texture_changed(Main *bmain, Tex *tex)
 
 			if (dm && totmaterial && material) {
 				for (a = 0; a < *totmaterial; a++) {
-					Material *ma;
-
 					if (ob->matbits && ob->matbits[a])
 						ma = ob->mat[a];
 					else

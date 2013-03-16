@@ -810,9 +810,9 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			}
 			
 			if (use_restrict) {
-				int *group = (int *)BMO_slot_map_data_get(slot_restrict, e);
-				if (group) {
-					if (!(*group & path->group)) {
+				int *group_flag = (int *)BMO_slot_map_data_get(slot_restrict, e);
+				if (group_flag) {
+					if (!(*group_flag & path->group)) {
 						v2 = NULL;
 						continue;
 					}
@@ -925,15 +925,12 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, f, ELE_ORIG);
 	}
 
-	i = 0;
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		BM_elem_index_set(e, i); /* set_inline */
 		
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			edata[i].tag = 2;
 		}
-
-		i++;
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 

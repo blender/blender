@@ -1116,12 +1116,12 @@ static void calc_weightpaint_vert_color(
 	}
 }
 
-static DMWeightColorInfo dm_wcinfo;
+static DMWeightColorInfo G_dm_wcinfo;
 
 void vDM_ColorBand_store(const ColorBand *coba, const char alert_color[4])
 {
-	dm_wcinfo.coba        = coba;
-	dm_wcinfo.alert_color = alert_color;
+	G_dm_wcinfo.coba        = coba;
+	G_dm_wcinfo.alert_color = alert_color;
 }
 
 /* return an array of vertex weight colors, caller must free.
@@ -1219,10 +1219,10 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		if (indices)
 			MEM_freeN(w);
 	}
-
-	/* No weights given, take them from active vgroup(s). */
-	else
-		wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, &dm_wcinfo);
+	else {
+		/* No weights given, take them from active vgroup(s). */
+		wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, &G_dm_wcinfo);
+	}
 
 	/* now add to loops, so the data can be passed through the modifier stack */
 	/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */

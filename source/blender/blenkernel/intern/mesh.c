@@ -1588,13 +1588,13 @@ static void appendPolyLineVert(ListBase *lb, unsigned int index)
 
 void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int edge_users_test)
 {
-	MVert *mverts = dm->getVertArray(dm);
+	MVert       *mvert = dm->getVertArray(dm);
 	MEdge *med, *medge = dm->getEdgeArray(dm);
 	MPoly *mp,  *mpoly = dm->getPolyArray(dm);
 	MLoop       *mloop = dm->getLoopArray(dm);
 
-	int totedge = dm->getNumEdges(dm);
-	int totpoly = dm->getNumPolys(dm);
+	int dm_totedge = dm->getNumEdges(dm);
+	int dm_totpoly = dm->getNumPolys(dm);
 	int totedges = 0;
 	int i;
 
@@ -1604,8 +1604,8 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 	ListBase edges = {NULL, NULL};
 
 	/* get boundary edges */
-	edge_users = MEM_callocN(sizeof(int) * totedge, __func__);
-	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
+	edge_users = MEM_callocN(sizeof(int) * dm_totedge, __func__);
+	for (i = 0, mp = mpoly; i < dm_totpoly; i++, mp++) {
 		MLoop *ml = &mloop[mp->loopstart];
 		int j;
 		for (j = 0; j < mp->totloop; j++, ml++) {
@@ -1615,7 +1615,7 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 
 	/* create edges from all faces (so as to find edges not in any faces) */
 	med = medge;
-	for (i = 0; i < totedge; i++, med++) {
+	for (i = 0; i < dm_totedge; i++, med++) {
 		if (edge_users[i] == edge_users_test) {
 			EdgeLink *edl = MEM_callocN(sizeof(EdgeLink), "EdgeLink");
 			edl->edge = med;
@@ -1705,7 +1705,7 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 				/* add points */
 				vl = polyline.first;
 				for (i = 0, bp = nu->bp; i < totpoly; i++, bp++, vl = (VertLink *)vl->next) {
-					copy_v3_v3(bp->vec, mverts[vl->index].co);
+					copy_v3_v3(bp->vec, mvert[vl->index].co);
 					bp->f1 = SELECT;
 					bp->radius = bp->weight = 1.0;
 				}
