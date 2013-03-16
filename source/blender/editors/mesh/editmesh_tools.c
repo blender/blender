@@ -3394,6 +3394,16 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 		Base *base = CTX_data_active_base(C);
 		BMEditMesh *em = BMEdit_FromObject(base->object);
 
+		if (type == 0) {
+			if ((em->bm->totvertsel == 0) &&
+			    (em->bm->totedgesel == 0) &&
+			    (em->bm->totfacesel == 0))
+			{
+				BKE_report(op->reports, RPT_ERROR, "Nothing selected");
+				return OPERATOR_CANCELLED;
+			}
+		}
+
 		/* editmode separate */
 		if      (type == 0) retval = mesh_separate_selected(bmain, scene, base, em->bm);
 		else if (type == 1) retval = mesh_separate_material(bmain, scene, base, em->bm);
