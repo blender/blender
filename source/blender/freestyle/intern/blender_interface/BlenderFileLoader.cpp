@@ -82,7 +82,7 @@ NodeGroup *BlenderFileLoader::Load()
 		if (!(obi->lay & _srl->lay))
 			continue;
 		char *name = obi->ob->id.name;
-		//cout << name[0] << name[1] << ":" << (name+2) <<;
+		//printf("%c%c:%s\n", name[0], name[1], name+2);
 		//print_m4("obi->mat", obi->mat);
 
 		if (obi->obr->totvlak > 0) {
@@ -463,6 +463,8 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			vlr = obr->vlaknodes[p>>8].vlak;
 		else
 			vlr++;
+		if (vlr->mat->material_type == MA_TYPE_WIRE)
+			continue;
 		copy_v3_v3(v1, vlr->v1->co);
 		copy_v3_v3(v2, vlr->v2->co);
 		copy_v3_v3(v3, vlr->v3->co);
