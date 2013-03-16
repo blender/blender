@@ -147,16 +147,25 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 			case ANIMTYPE_DSSPK:
 			{
 				/* for these channels, we only do AnimData */
-				if (ale->id && ale->adt) {
-					if (adt_ptr) {
-						/* AnimData pointer */
-						RNA_pointer_create(ale->id, &RNA_AnimData, ale->adt, adt_ptr);
-						
-						/* set found status to -1, since setting to 1 would break the loop 
-						 * and potentially skip an active NLA-Track in some cases...
-						 */
-						found = -1;
+				if (ale->adt && adt_ptr) {
+					ID *id;
+					
+					if ((ale->data == NULL) || (ale->type == ANIMTYPE_OBJECT)) {
+						/* ale->data is not an ID block! */
+						id = ale->id;
 					}
+					else {
+						/* ale->data is always the proper ID block we need, but ale->id may not be (i.e. for textures) */
+						id = (ID *)ale->data;
+					}
+					
+					/* AnimData pointer */
+					RNA_pointer_create(id, &RNA_AnimData, ale->adt, adt_ptr);
+					
+					/* set found status to -1, since setting to 1 would break the loop 
+					 * and potentially skip an active NLA-Track in some cases...
+					 */
+					found = -1;
 				}
 			}
 			break;
@@ -248,6 +257,28 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	
 	block = uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	
+	/* AnimData Source Properties ----------------------------------- */
+	
+	/* icon + id-block name of block where AnimData came from to prevent 
+	 * accidentally changing the properties of the wrong action
+	 */
+	if (adt_ptr.id.data) {
+		ID *id = adt_ptr.id.data;
+		PointerRNA id_ptr;
+		
+		RNA_id_pointer_create(id, &id_ptr);
+		
+		/* ID-block name > AnimData */
+		row = uiLayoutRow(layout, TRUE);
+		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+		
+		uiItemL(row, id->name + 2, RNA_struct_ui_icon(id_ptr.type));  /* id-block (src) */
+		uiItemL(row, "", VICO_SMALL_TRI_RIGHT_VEC);                   /* expander */
+		uiItemL(row, IFACE_("Animation Data"), ICON_ANIM_DATA);       /* animdata */
+		
+		uiItemS(layout);
+	}
 	
 	/* Active Action Properties ------------------------------------- */
 	/* action */
