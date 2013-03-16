@@ -1113,8 +1113,9 @@ static Stroke *createStroke(Interface1D& inter)
 				if (!vprevious.isBegin())
 					--vprevious;
 
-				// collect a set of overlapping vertices (except the first one)
+				// collect a set of overlapping vertices
 				std::vector<Interface0D *> overlapping_vertices;
+				overlapping_vertices.push_back(&(*v));
 				do {
 					overlapping_vertices.push_back(&(*vnext));
 					current = next;
@@ -1140,43 +1141,37 @@ static Stroke *createStroke(Interface1D& inter)
 					delete stroke;
 					return NULL;
 				}
+				current = overlapping_vertices.front()->getPoint2D();
 				Vec2r dir(target - current);
 				real dist = dir.norm();
 				real len = 1.0e-3; // default offset length
 				int nvert = overlapping_vertices.size();
 				if (dist < len * nvert) {
-					len = dist / (nvert + 1);
+					len = dist / nvert;
 				}
 				dir.normalize();
 				Vec2r offset(dir * len);
-#if 0
-				if (G.debug & G_DEBUG_FREESTYLE) {
-					cout << "#vert " << nvert << " len " << len << " reverse? " << reverse << endl;
-				}
-#endif
 				// add the offset to the overlapping vertices
 				StrokeVertex *sv;
-				std::vector<Interface0D *>::iterator it = overlapping_vertices.begin(),
-				                                     itend = overlapping_vertices.end();
+				std::vector<Interface0D *>::iterator it = overlapping_vertices.begin();
 				if (!reverse) {
-					int n = 1;
-					for (; it != itend; ++it) {
+					for (int n = 1; n < nvert; n++) {
 						sv = dynamic_cast<StrokeVertex*>(*it);
 						sv->setPoint(sv->getPoint() + offset * n);
-						++n;
+						++it;
 					}
 				}
 				else {
-					int n = nvert;
-					for (; it != itend; ++it) {
+					int last = nvert - 1;
+					for (int n = 0; n < last; n++) {
 						sv = dynamic_cast<StrokeVertex*>(*it);
-						sv->setPoint(sv->getPoint() + offset * n);
-						--n;
+						sv->setPoint(sv->getPoint() + offset * (last - n));
+						++it;
 					}
 				}
 
 				if (vnext.isEnd())
-				break;
+					break;
 			}
 			++v;
 			++vnext;
