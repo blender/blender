@@ -548,7 +548,9 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_NO_XRAY);
 	RNA_def_property_ui_text(prop, "X Ray", "Make the layer draw in front of objects");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
-
+	
+	
+	/* Layers API */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_layer_clear");
 	RNA_def_function_ui_description(func, "Remove all the grease pencil layer data");
 }

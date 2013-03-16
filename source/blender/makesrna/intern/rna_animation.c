@@ -895,6 +895,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "AnimData", NULL);
 	RNA_def_struct_ui_text(srna, "Animation Data", "Animation data for datablock");
+	RNA_def_struct_ui_icon(srna, ICON_ANIM_DATA);
 	
 	/* NLA */
 	prop = RNA_def_property(srna, "nla_tracks", PROP_COLLECTION, PROP_NONE);

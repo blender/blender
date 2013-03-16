@@ -200,7 +200,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ale->data;
 		
-		/* try entering tweakmode if valid */
+		/* to be sure, just exit tweakmode... */
 		BKE_nla_tweakmode_exit(adt);
 	}
 	
