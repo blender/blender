@@ -1084,7 +1084,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	
 	read_vertices(mesh, me);
 	read_polys(mesh, me);
-	BKE_mesh_calc_edges(me, 0);
+	BKE_mesh_calc_edges(me, false, false);
 
 	// read_lines() must be called after the face edges have been generated.
 	// Oterwise the loose edges will be silently deleted again.

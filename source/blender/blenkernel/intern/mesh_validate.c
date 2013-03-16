@@ -774,7 +774,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 		}
 
 		if (do_edge_recalc) {
-			BKE_mesh_calc_edges(mesh, TRUE);
+			BKE_mesh_calc_edges(mesh, true, false);
 		}
 	}
 
@@ -914,7 +914,7 @@ int BKE_mesh_validate_dm(DerivedMesh *dm)
  * \param mesh  The mesh to add edges into
  * \param update  When true create new edges co-exist
  */
-void BKE_mesh_calc_edges(Mesh *mesh, int update)
+void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 {
 	CustomData edata;
 	EdgeHashIterator *ehi;
@@ -923,9 +923,11 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, totedge, totpoly = mesh->totpoly;
 	int med_index;
+	/* select for newly created meshes which are selected [#25595] */
+	const short ed_flag = (ME_EDGEDRAW | ME_EDGERENDER) | (select ? SELECT : 0);
 
 	if (mesh->totedge == 0)
-		update = FALSE;
+		update = false;
 
 	if (update) {
 		/* assume existing edges are valid
@@ -963,7 +965,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 		}
 		else {
 			BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
-			med->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT; /* select for newly created meshes which are selected [#25595] */
+			med->flag = ed_flag;
 		}
 
 		/* store the new edge index in the hash value */

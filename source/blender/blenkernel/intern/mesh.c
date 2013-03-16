@@ -1198,7 +1198,7 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 
 		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 
-		BKE_mesh_calc_edges(me, TRUE);
+		BKE_mesh_calc_edges(me, true, false);
 	}
 }
 
@@ -1523,7 +1523,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_u
 
 		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 
-		BKE_mesh_calc_edges(me, TRUE);
+		BKE_mesh_calc_edges(me, true, false);
 	}
 	else {
 		me = BKE_mesh_add(G.main, "Mesh");
