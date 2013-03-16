@@ -509,10 +509,15 @@ void BLI_timestr(double _time, char *str)
 }
 
 /* determine the length of a fixed-size string */
-size_t BLI_strnlen(const char *str, const size_t maxlen)
+size_t BLI_strnlen(const char *s, size_t maxlen)
 {
-	const char *end = memchr(str, '\0', maxlen);
-	return end ? (size_t) (end - str) : maxlen;
+	size_t len;
+
+	for (len = 0; len < maxlen; len++, s++) {
+		if (!*s)
+			break;
+	}
+	return len;
 }
 
 void BLI_ascii_strtolower(char *str, const size_t len)
