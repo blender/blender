@@ -64,6 +64,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "mesh_intern.h"
 
@@ -2953,6 +2954,59 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+}
+
+static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMVert *eve;
+	BMIter iter;
+
+	if (!em->selectmode == SCE_SELECT_VERTEX) {
+		BKE_report(op->reports, RPT_ERROR, "Does not work out of vertex selection mode");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (obedit->defbase.first == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!RNA_boolean_get(op->ptr, "extend")) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+			/* no dv or dv set with no weight */
+			if (dv == NULL || (dv && dv->dw == NULL)) {
+				BM_vert_select_set(em->bm, eve, true);
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_ungrouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Ungrouped";
+	ot->idname = "MESH_OT_select_ungrouped";
+	ot->description = "Select vertices without a group";
+
+	/* api callbacks */
+	ot->exec = edbm_select_ungrouped_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 

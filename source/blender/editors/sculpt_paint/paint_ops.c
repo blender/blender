@@ -485,6 +485,7 @@ void ED_operatortypes_paint(void)
 
 	/* vertex selection */
 	WM_operatortype_append(PAINT_OT_vert_select_all);
+	WM_operatortype_append(PAINT_OT_vert_select_ungrouped);
 
 	/* vertex */
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);

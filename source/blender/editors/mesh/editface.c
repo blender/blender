@@ -712,6 +712,37 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 	}
 }
 
+void paintvert_select_ungrouped(Object *ob, short extend, short flush_flags)
+{
+	Mesh *me = BKE_mesh_from_object(ob);
+	MVert *mv;
+	MDeformVert *dv;
+	int a, tot;
+
+	if (me == NULL || me->dvert == NULL) {
+		return;
+	}
+
+	if (!extend) {
+		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE);
+	}
+
+	dv = me->dvert;
+	tot = me->totvert;
+
+	for (a = 0, mv = me->mvert; a < tot; a++, mv++, dv++) {
+		if ((mv->flag & ME_HIDE) == 0) {
+			if (dv->dw == NULL) {
+				/* if null weight then not grouped */
+				mv->flag |= SELECT;
+			}
+		}
+	}
+
+	if (flush_flags) {
+		paintvert_flush_flags(ob);
+	}
+}
 
 /* ********************* MESH VERTEX MIRR TOPO LOOKUP *************** */
 /* note, this is not the best place for the function to be but moved

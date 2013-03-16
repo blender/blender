@@ -53,6 +53,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_deform.h"
+#include "BKE_report.h"
 
 #include "ED_lattice.h"
 #include "ED_object.h"
@@ -253,6 +254,58 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
+}
+
+/************************** Select Ungrouped Verts Operator *************************/
+
+static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+	MDeformVert *dv;
+	BPoint *bp;
+	int a, tot;
+
+	if (obedit->defbase.first == NULL || lt->dvert == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!RNA_boolean_get(op->ptr, "extend")) {
+		ED_setflagsLatt(obedit, 0);
+	}
+
+	dv = lt->dvert;
+	tot = lt->pntsu * lt->pntsv * lt->pntsw;
+
+	for (a = 0, bp = lt->def; a < tot; a++, bp++, dv++) {
+		if (bp->hide == 0) {
+			if (dv->dw == NULL) {
+				bp->f1 |= SELECT;
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void LATTICE_OT_select_ungrouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Ungrouped";
+	ot->idname = "LATTICE_OT_select_ungrouped";
+	ot->description = "Select vertices without a group";
+
+	/* api callbacks */
+	ot->exec = lattice_select_ungrouped_exec;
+	ot->poll = ED_operator_editlattice;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /************************** Make Regular Operator *************************/

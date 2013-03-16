@@ -193,6 +193,7 @@ void paintface_hide(struct Object *ob, const int unselected);
 void paintface_reveal(struct Object *ob);
 
 void paintvert_deselect_all_visible(struct Object *ob, int action, short flush_flags);
+void paintvert_select_ungrouped(struct Object *ob, short extend, short flush_flags);
 void paintvert_flush_flags(struct Object *ob);
 
 /* mirrtopo */

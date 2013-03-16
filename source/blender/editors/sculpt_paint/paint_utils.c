@@ -47,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -482,6 +483,39 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
+}
+
+
+static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	Mesh *me = ob->data;
+
+	if ((ob->defbase.first == NULL) || (me->dvert == NULL)) {
+		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
+		return OPERATOR_CANCELLED;
+	}
+
+	paintvert_select_ungrouped(ob, RNA_boolean_get(op->ptr, "extend"), TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Ungrouped";
+	ot->idname = "PAINT_OT_vert_select_ungrouped";
+	ot->description = "Select vertices without a group";
+
+	/* api callbacks */
+	ot->exec = vert_select_ungrouped_exec;
+	ot->poll = vert_paint_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)
