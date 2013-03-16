@@ -3661,6 +3661,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	Brush *brush = paint_brush(&sd->paint);
 	ViewContext *vc = paint_stroke_view_context(op->customdata);
 	Object *ob = CTX_data_active_object(C);
+	float rot[3][3], scale[3], loc[3];
 	int i;
 	int mode;
 
@@ -3725,7 +3726,12 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	/* cache projection matrix */
 	ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
 
+	mat4_to_loc_rot_size(loc, rot, scale, ob->obmat);
+	/* transposing an orthonormal matrix inverts */
+	transpose_m3(rot);
 	ED_view3d_global_to_vector(cache->vc->rv3d, cache->vc->rv3d->twmat[3], cache->true_view_normal);
+	/* This takes care of rotated mesh. Instead of rotating every normal, we inverse rotate view normal. */
+	mul_m3_v3(rot, cache->true_view_normal);
 	/* Initialize layer brush displacements and persistent coords */
 	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
 		/* not supported yet for multires or dynamic topology */
