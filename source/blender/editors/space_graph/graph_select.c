@@ -1342,9 +1342,12 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 	ot->idname = "GRAPH_OT_clickselect";
 	ot->description = "Select keyframes by clicking on them";
 	
-	/* api callbacks */
+	/* callbacks */
 	ot->invoke = graphkeys_clickselect_invoke;
 	ot->poll = graphop_visible_keyframes_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

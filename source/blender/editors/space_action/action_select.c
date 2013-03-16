@@ -1264,16 +1264,17 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 	ot->idname = "ACTION_OT_clickselect";
 	ot->description = "Select keyframes by clicking on them";
 	
-	/* api callbacks - absolutely no exec() this yet... */
+	/* callbacks */
 	ot->invoke = actkeys_clickselect_invoke;
 	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	
 	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
