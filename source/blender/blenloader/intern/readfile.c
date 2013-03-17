@@ -7436,6 +7436,21 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 	}
 }
 
+/* initialize userdef with non-UI dependency stuff */
+/* other initializers (such as theme color defaults) go to resources.c */
+static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
+{
+	Main *bmain = bfd->main;
+	UserDef *user = bfd->user;
+	
+	if (user == NULL) return;
+	
+	if (bmain->versionfile < 267) {
+	
+		if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
+			user->image_gpubuffer_limit = 10;
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -8772,14 +8787,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 265, 8)) {
+	if (MAIN_VERSION_OLDER(main, 265, 9)) {
 		Mesh *me;
 		for (me = main->mesh.first; me; me = me->id.next) {
 			BKE_mesh_do_versions_cd_flag_init(me);
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 265, 9)) {
+	if (MAIN_VERSION_OLDER(main, 265, 10)) {
 		Brush *br;
 		for (br = main->brush.first; br; br = br->id.next) {
 			if (br->ob_mode & OB_MODE_TEXTURE_PAINT) {
@@ -8789,7 +8804,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	// add storage for compositor translate nodes when not existing
-	if (!MAIN_VERSION_ATLEAST(main, 265, 10)) {
+	if (MAIN_VERSION_OLDER(main, 265, 11)) {
 		bNodeTreeType *ntreetype;
 		bNodeTree *ntree;
 
@@ -8801,10 +8816,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_version_node_fix_translate_wrapping(NULL, NULL, ntree);
 	}
 
-	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
-
+	if (main->versionfile < 267) {
+		
+		/* TIP: to initialize new variables added, use the new function
+		   DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")
+		   example: 
+				if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
+					user->image_gpubuffer_limit = 10;
+		 */
+		
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
 	/* don't forget to set version number in blender.c! */
 }
@@ -9001,8 +9025,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	}
 	
 	/* do before read_libraries, but skip undo case */
-//	if (fd->memfile==NULL) (the mesh shuffle hacks don't work yet? ton)
+	if (fd->memfile==NULL)
 		do_versions(fd, NULL, bfd->main);
+	
+	do_versions_userdef(fd, bfd);
 	
 	read_libraries(fd, &mainlist);
 	

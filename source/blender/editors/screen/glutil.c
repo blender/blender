@@ -669,6 +669,22 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	}
 }
 
+/* uses either DrawPixelsSafe or DrawPixelsTex, based on user defined maximum */
+void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, void *rect)
+{
+	if (U.image_gpubuffer_limit) {
+		/* Megapixels, use float math to prevent overflow */
+		float img_size = ((float)img_w * (float)img_h) / (1024.0f * 1024.0f);
+		
+		if (U.image_gpubuffer_limit > (int)img_size) {
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+			glaDrawPixelsTex(x, y, img_w, img_h, format, rect);
+			return;
+		}
+	}
+	glaDrawPixelsSafe(x, y, img_w, img_h, img_w, GL_RGBA, format, rect);
+}
+
 /* 2D Drawing Assistance */
 
 void glaDefine2DArea(rcti *screen_rect)

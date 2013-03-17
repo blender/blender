@@ -3456,6 +3456,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "GPU Mipmap Generation", "Generate Image Mipmaps on the GPU");
 	RNA_def_property_update(prop, 0, "rna_userdef_gl_gpu_mipmaps");
 
+	prop = RNA_def_property(srna, "image_gpubuffer_limit", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "image_gpubuffer_limit");
+	RNA_def_property_range(prop, 0, 128);
+	RNA_def_property_ui_text(prop, "Image GPU draw limit", "If set, amount of Mega Pixels to use for drawing Images as GPU textures");
+	
+	
 	prop = RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
 	RNA_def_property_ui_text(prop, "VBOs",

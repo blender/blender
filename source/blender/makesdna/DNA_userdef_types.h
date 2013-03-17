@@ -451,7 +451,7 @@ typedef struct UserDef {
 
 	short ogl_multisamples;	/* amount of samples for OpenGL FSA, if zero no FSA */
 
-	short pad4;
+	short image_gpubuffer_limit; /* If set, amount of mega-pixels to use for texture drawing of images */
 	
 	float glalphaclip;
 	

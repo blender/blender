@@ -71,6 +71,8 @@ void *DNA_struct_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *c
 int DNA_elem_array_size(const char *astr, int len);
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
+bool DNA_struct_elem_find(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
+
 
 int DNA_elem_type_size(const eSDNA_Type elem_nr);
 

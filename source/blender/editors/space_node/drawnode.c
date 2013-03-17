@@ -3301,7 +3301,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glPixelZoom(snode->zoom, snode->zoom);
 					
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
+					glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
 					glDisable(GL_BLEND);
@@ -3309,7 +3309,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 				else {
 					glPixelZoom(snode->zoom, snode->zoom);
 
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
+					glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
 				}
@@ -3358,57 +3358,6 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 	}
 }
 
-#if 0
-/* note: needs to be userpref or opengl profile option */
-static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
-{
-
-	draw_nodespace_grid(snode);
-	
-	if (snode->flag & SNODE_BACKDRAW) {
-		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-		if (ibuf) {
-			int x, y;
-			float zoom = 1.0;
-
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			
-			glaDefine2DArea(&sa->winrct);
-
-			if (ibuf->x > sa->winx || ibuf->y > sa->winy) {
-				float zoomx, zoomy;
-				zoomx = (float)sa->winx / ibuf->x;
-				zoomy = (float)sa->winy / ibuf->y;
-				zoom = min_ff(zoomx, zoomy);
-			}
-			
-			x = (sa->winx - zoom * ibuf->x) / 2 + snode->xof;
-			y = (sa->winy - zoom * ibuf->y) / 2 + snode->yof;
-
-			glPixelZoom(zoom, zoom);
-
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-			if (ibuf->rect)
-				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-			else if (ibuf->channels == 4)
-				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float);
-
-			glPixelZoom(1.0, 1.0);
-
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-		}
-	}
-}
-#endif
 
 /* if v2d not NULL, it clips and returns 0 if not visible */
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol)
