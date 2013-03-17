@@ -491,6 +491,8 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 	/* set zoom */
 	glPixelZoom(zoomx, zoomy);
 
+	glaDefine2DArea(&ar->winrct);
+	
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, fx, fy, &x, &y);
 
@@ -523,11 +525,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
 		if (display_buffer)
-			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
-#if 0
-		else
-			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
-#endif
+			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, display_buffer);
 
 		IMB_display_buffer_release(cache_handle);
 
