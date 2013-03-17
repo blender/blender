@@ -517,7 +517,7 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 				dr = drect;
 				sr = srect;
 				for (x = width; x > 0; x--, dr++, sr++) {
-					if (*sr & IB_ALPHA_MASK)
+					if (((char *)sr)[3])
 						func((char *)dr, (char *)dr, (char *)sr, ((char *)sr)[3]);
 				}
 
