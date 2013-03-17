@@ -379,7 +379,6 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
-	MultiresModifierData *mmd;
 	int update = FALSE, rebuild = FALSE;
 	int need_mask = FALSE;
 
@@ -450,7 +449,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw, NULL);
 
-		if ((mmd = sculpt_multires_active(scene, ob))) {
+		if (sculpt_multires_active(scene, ob)) {
 			if (rebuild)
 				multires_mark_as_modified(ob, MULTIRES_HIDDEN_MODIFIED);
 			else

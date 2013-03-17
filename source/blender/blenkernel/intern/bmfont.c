@@ -198,7 +198,7 @@ void detectBitmapFont(ImBuf *ibuf)
 							readBitmapFontVersion0(ibuf, rect, 4);
 						}
 						else {
-							printf("detectBitmapFont :Unsupported version %d\n", version);
+							printf("detectBitmapFont :Unsupported version %d\n", (int)version);
 						}
 
 						/* on succes ibuf->userdata points to the bitmapfont */

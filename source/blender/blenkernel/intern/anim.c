@@ -1154,10 +1154,6 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 					if (ob->type != OB_MBALL) ob->flag |= OB_DONE;  /* doesnt render */
 
 					for (a = 0, mp = mpoly; a < totface; a++, mp++) {
-						int mv1;
-						int mv2;
-						int mv3;
-						/* int mv4; */ /* UNUSED */
 						float *v1;
 						float *v2;
 						float *v3;
@@ -1171,9 +1167,9 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						}
 						else {
 							BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
-							v1 = mvert[(mv1 = loopstart[0].v)].co;
-							v2 = mvert[(mv2 = loopstart[1].v)].co;
-							v3 = mvert[(mv3 = loopstart[2].v)].co;
+							v1 = mvert[loopstart[0].v].co;
+							v2 = mvert[loopstart[1].v].co;
+							v3 = mvert[loopstart[2].v].co;
 						}
 
 						/* translation */

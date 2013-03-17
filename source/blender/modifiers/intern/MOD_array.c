@@ -338,7 +338,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	/* offset matrix */
 	float offset[4][4];
 	float final_offset[4][4];
-	float tmp_mat[4][4];
 	float length = amd->length;
 	int count = amd->count, maxVerts;
 	int *indexMap = NULL;
@@ -418,6 +417,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	unit_m4(final_offset);
 
 	for (j = 0; j < count - 1; j++) {
+		float tmp_mat[4][4];
 		mult_m4_m4m4(tmp_mat, offset, final_offset);
 		copy_m4_m4(final_offset, tmp_mat);
 	}

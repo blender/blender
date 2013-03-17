@@ -84,7 +84,6 @@ static void delete_void_pointer(void *data)
 {
 	if (data) {
 		MEM_freeN(data);
-		data = NULL;
 	}
 }
 

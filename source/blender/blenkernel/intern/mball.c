@@ -1501,7 +1501,7 @@ static void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
 static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 {
 	MetaElem *ml;
-	float f = 0.0f;
+	float f;
 
 	ml = G_mb.mainb[a];
 	f = 1.0f - (mb->thresh / ml->s);

@@ -496,7 +496,7 @@ static int check_mask_half(BMesh *bm, BMVert *v)
 	const float *mask;
 
 	mask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
-	return ((*mask) < 0.5);
+	return ((*mask) < 0.5f);
 }
 
 static void edge_queue_insert(EdgeQueue *q, BLI_mempool *pool, BMEdge *e,

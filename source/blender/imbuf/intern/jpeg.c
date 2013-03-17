@@ -121,10 +121,12 @@ static void jpeg_error(j_common_ptr cinfo)
  * INPUT HANDLER FROM MEMORY
  *---------------------------------------------------------- */
 
+#if 0
 typedef struct {
 	unsigned char  *buffer;
 	int             filled;
 } buffer_struct;
+#endif
 
 typedef struct {
 	struct jpeg_source_mgr pub; /* public fields */

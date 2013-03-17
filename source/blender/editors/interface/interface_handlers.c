@@ -3154,9 +3154,6 @@ static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
 		BLI_rctf_clamp_pt_v(&but->rect, data->ungrab_mval);
 	}
 #endif
-	if (is_horizontal == false) {
-		mx_fl = my_fl;
-	}
 	/* done correcting mouse */
 
 

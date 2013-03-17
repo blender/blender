@@ -61,6 +61,7 @@ typedef struct BMPINFOHEADER {
 	unsigned int    biClrImportant;
 } BMPINFOHEADER;
 
+#if 0
 typedef struct BMPHEADER {
 	unsigned short biType;
 	unsigned int biSize;
@@ -68,6 +69,7 @@ typedef struct BMPHEADER {
 	unsigned short biRes2;
 	unsigned int biOffBits;
 } BMPHEADER;
+#endif
 
 #define BMP_FILEHEADER_SIZE 14
 

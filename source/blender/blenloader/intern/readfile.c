@@ -378,7 +378,7 @@ static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
 
 		for (i = 0, entry = onm->entries; i < nentries; i++, entry++) {
 			if (entry->old == addr) {
-				ID *id = id = entry->newp;
+				ID *id = entry->newp;
 				if (id && (!lib || id->lib)) {
 					return id;
 				}

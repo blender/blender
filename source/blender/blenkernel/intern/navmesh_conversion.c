@@ -436,7 +436,7 @@ int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
                                   unsigned short **polys, int **dtrisToPolysMap,
                                   int **dtrisToTrisMap, int **trisToFacesMap)
 {
-	int res = 1;
+	int res;
 	int ntris = 0, *recastData = NULL;
 	unsigned short *tris = NULL;
 

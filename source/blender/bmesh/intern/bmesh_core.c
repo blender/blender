@@ -1700,8 +1700,8 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *l_iter, *l_f1 = NULL, *l_f2 = NULL;
-	int newlen = 0, i, f1len = 0, f2len = 0, edok;
-
+	int newlen = 0, i, f1len = 0, f2len = 0;
+	bool edok;
 	/* can't join a face to itself */
 	if (f1 == f2) {
 		return NULL;

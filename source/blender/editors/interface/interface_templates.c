@@ -2140,10 +2140,10 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 		uiLayoutRow(layout, TRUE);
 		uiBlockSetNFunc(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
-		bt = uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
-		               &cmp->x, bounds.xmin, bounds.xmax, 1, 5, "");
-		bt = uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
-		               &cmp->y, bounds.ymin, bounds.ymax, 1, 5, "");
+		uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
+		          &cmp->x, bounds.xmin, bounds.xmax, 1, 5, "");
+		uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
+		          &cmp->y, bounds.ymin, bounds.ymax, 1, 5, "");
 	}
 
 	/* black/white levels */

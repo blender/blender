@@ -57,7 +57,7 @@ subject to the following restrictions:
  */
 
 #include <stdio.h>
- 
+
 #include "RBI_api.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -112,7 +112,7 @@ static inline void copy_v3_btvec3(float vec[3], const btVector3 &btvec)
 	vec[1] = (float)btvec[1];
 	vec[2] = (float)btvec[2];
 }
-static inline void copy_quat_btquat(float quat[3], const btQuaternion &btquat)
+static inline void copy_quat_btquat(float quat[4], const btQuaternion &btquat)
 {
 	quat[0] = btquat.getW();
 	quat[1] = btquat.getX();

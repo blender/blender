@@ -1478,7 +1478,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 	MDeformWeight *ndw;
 	MDeformWeight *odw;
 
-	float changed_sum = 0.0f;
+	// float changed_sum = 0.0f;  // UNUSED
 
 	char *change_status;
 
@@ -1507,7 +1507,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 		}
 		else if (ndw->weight != odw->weight) { /* changed groups are handled here */
 			totchange += ndw->weight - odw->weight;
-			changed_sum += ndw->weight;
+			// changed_sum += ndw->weight;  // UNUSED
 			change_status[i] = 2; /* was altered already */
 			total_changed++;
 		} /* unchanged, unlocked bone groups are handled here */

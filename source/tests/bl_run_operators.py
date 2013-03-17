@@ -139,7 +139,9 @@ if USE_ATTRSET:
 
             if subvalue == parent:
                 continue
-
+            # grr, recursive!
+            if prop == "point_caches":
+                continue
             subvalue_type = type(subvalue)
             yield value, prop, subvalue_type
             subvalue_id = getattr(subvalue, "id_data", Ellipsis)
