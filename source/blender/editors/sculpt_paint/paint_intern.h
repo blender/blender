@@ -133,15 +133,14 @@ void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
 void paint_2d_redraw(const bContext *C, void *ps, int final);
 void paint_2d_stroke_done(void *ps);
 int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser);
-void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, const int mouse[2]);
-int paint_proj_stroke(void *ps, const int prevmval_i[2], const int mval_i[2]);
+void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, const int mouse[2], int mode);
+int paint_proj_stroke(struct bContext *C, void *ps, const int prevmval_i[2], const int mval_i[2]);
 void paint_proj_stroke_done(void *ps);
 void paint_brush_init_tex(struct Brush *brush);
 void paint_brush_exit_tex(struct Brush *brush);
 
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);
 void PAINT_OT_sample_color(struct wmOperatorType *ot);
-void PAINT_OT_clone_cursor_set(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_project_image(struct wmOperatorType *ot);
 void PAINT_OT_image_from_view(struct wmOperatorType *ot);

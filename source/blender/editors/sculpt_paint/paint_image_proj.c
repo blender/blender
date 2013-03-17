@@ -205,7 +205,7 @@ typedef struct ProjPaintState {
 	int source; /* PROJ_SRC_**** */
 
 	Brush *brush;
-	short tool, blend;
+	short tool, blend, mode;
 	int orig_brush_size;
 	Object *ob;
 	/* end similarities with ImagePaintState */
@@ -4098,7 +4098,7 @@ static int project_paint_op(void *state, const float lastpos[2], const float pos
 }
 
 
-int paint_proj_stroke(void *pps, const int prevmval_i[2], const int mval_i[2])
+int paint_proj_stroke(bContext *C, void *pps, const int prevmval_i[2], const int mval_i[2])
 {
 	ProjPaintState *ps = pps;
 	int a, redraw;
@@ -4109,6 +4109,22 @@ int paint_proj_stroke(void *pps, const int prevmval_i[2], const int mval_i[2])
 
 	prev_pos[0] = (float)(prevmval_i[0]);
 	prev_pos[1] = (float)(prevmval_i[1]);
+
+	/* clone gets special treatment here to avoid going through image initialization */
+	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
+		Scene *scene = ps->scene;
+		View3D *v3d = ps->v3d;
+		float *cursor = give_cursor(scene, v3d);
+
+		view3d_operator_needs_opengl(C);
+
+		if (!ED_view3d_autodist(scene, ps->ar, v3d, mval_i, cursor))
+			return 0;
+
+		ED_region_tag_redraw(ps->ar);
+
+		return 0;
+	}
 
 	for (a = 0; a < ps->image_tot; a++)
 		partial_redraw_array_init(ps->projImages[a].partRedrawRect);
@@ -4123,12 +4139,13 @@ int paint_proj_stroke(void *pps, const int prevmval_i[2], const int mval_i[2])
 
 
 /* initialize project paint settings from context */
-static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
+static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int mode)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
 
 	/* brush */
+	ps->mode = mode;
 	ps->brush = paint_brush(&settings->imapaint.paint);
 	if (ps->brush) {
 		Brush *brush = ps->brush;
@@ -4193,10 +4210,15 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	return;
 }
 
-void *paint_proj_new_stroke(bContext *C, Object *ob, const int mouse[2])
+void *paint_proj_new_stroke(bContext *C, Object *ob, const int mouse[2], int mode)
 {
 	ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
-	project_state_init(C, ob, ps);
+	project_state_init(C, ob, ps, mode);
+
+	if (ps->tool == PAINT_TOOL_CLONE && mode == BRUSH_STROKE_INVERT) {
+		view3d_operator_needs_opengl(C);
+		return ps;
+	}
 
 	/* needed so multiple threads don't try to initialize the brush at once (can leak memory) */
 	curvemapping_initialize(ps->brush->curve);
@@ -4232,7 +4254,12 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const int mouse[2])
 void paint_proj_stroke_done(void *pps)
 {
 	ProjPaintState *ps = pps;
+	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
+		MEM_freeN(ps);
+		return;
+	}
 	BKE_brush_size_set(ps->scene, ps->brush, ps->orig_brush_size);
+
 	paint_brush_exit_tex(ps->brush);
 
 	project_paint_end(ps);
@@ -4248,7 +4275,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	IDProperty *idgroup;
 	IDProperty *view_data = NULL;
 
-	project_state_init(C, OBACT, &ps);
+	project_state_init(C, OBACT, &ps, BRUSH_STROKE_NORMAL);
 
 	if (ps.ob == NULL || ps.ob->type != OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "No active mesh object");

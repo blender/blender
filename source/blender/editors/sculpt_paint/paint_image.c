@@ -371,14 +371,6 @@ static int image_paint_poll(bContext *C)
 	return 0;
 }
 
-static int image_paint_3d_poll(bContext *C)
-{
-	if (CTX_wm_region_view3d(C))
-		return image_paint_poll(C);
-	
-	return 0;
-}
-
 static int image_paint_2d_clone_poll(bContext *C)
 {
 	Brush *brush = image_paint_brush(C);
@@ -450,7 +442,7 @@ static PaintOperation * texture_paint_init(bContext *C, wmOperator *op, const wm
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
 	PaintOperation *pop = MEM_callocN(sizeof(PaintOperation), "PaintOperation"); /* caller frees */
-
+	int mode = RNA_enum_get(op->ptr, "mode");
 	view3d_set_viewcontext(C, &pop->vc);
 
 	/* TODO Should avoid putting this here. Instead, last position should be requested
@@ -462,7 +454,7 @@ static PaintOperation * texture_paint_init(bContext *C, wmOperator *op, const wm
 	/* initialize from context */
 	if (CTX_wm_region_view3d(C)) {
 		pop->mode = PAINT_MODE_3D_PROJECT;
-		pop->custom_paint = paint_proj_new_stroke(C, OBACT, pop->prevmouse);
+		pop->custom_paint = paint_proj_new_stroke(C, OBACT, pop->prevmouse, mode);
 	}
 	else {
 		pop->mode = PAINT_MODE_2D;
@@ -512,7 +504,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 		BKE_brush_size_set(scene, brush, max_ff(1.0f, startsize * pressure));
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
-		redraw = paint_proj_stroke(pop->custom_paint, pop->prevmouse, mouse);
+		redraw = paint_proj_stroke(C, pop->custom_paint, pop->prevmouse, mouse);
 	}
 	else {
 		redraw = paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser);
@@ -599,6 +591,11 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 void PAINT_OT_image_paint(wmOperatorType *ot)
 {
+	static EnumPropertyItem stroke_mode_items[] = {
+		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
+		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
+		{0}
+	};
 
 	/* identifiers */
 	ot->name = "Image Paint";
@@ -614,6 +611,10 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+
+	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL,
+				 "Paint Stroke Mode",
+				 "Action taken when a paint stroke is made");
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
@@ -928,57 +929,6 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "Cursor location in region coordinates", 0, 16384);
-}
-
-/******************** set clone cursor operator ********************/
-
-static int set_clone_cursor_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	float *cursor = give_cursor(scene, v3d);
-
-	RNA_float_get_array(op->ptr, "location", cursor);
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-static int set_clone_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar = CTX_wm_region(C);
-	float location[3];
-
-	view3d_operator_needs_opengl(C);
-
-	if (!ED_view3d_autodist(scene, ar, v3d, event->mval, location))
-		return OPERATOR_CANCELLED;
-
-	RNA_float_set_array(op->ptr, "location", location);
-
-	return set_clone_cursor_exec(C, op);
-}
-
-void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Set Clone Cursor";
-	ot->idname = "PAINT_OT_clone_cursor_set";
-	ot->description = "Set the location of the clone cursor";
-	
-	/* api callbacks */
-	ot->exec = set_clone_cursor_exec;
-	ot->invoke = set_clone_cursor_invoke;
-	ot->poll = image_paint_3d_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates", -10000.0f, 10000.0f);
 }
 
 /******************** texture paint toggle operator ********************/
