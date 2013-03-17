@@ -154,7 +154,7 @@ bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingI
 		{
 			PyErr_Print();
 			PyErr_Clear();
-			PySys_SetObject( (char *)"last_traceback", NULL);
+			PySys_SetObject("last_traceback", NULL);
 		}
 	}
 	else

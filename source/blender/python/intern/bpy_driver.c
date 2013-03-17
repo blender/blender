@@ -75,14 +75,14 @@ int bpy_pydriver_create_dict(void)
 	}
 
 	/* add bpy to global namespace */
-	mod = PyImport_ImportModuleLevel((char *)"bpy", NULL, NULL, NULL, 0);
+	mod = PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	if (mod) {
 		PyDict_SetItemString(bpy_pydriver_Dict, "bpy", mod);
 		Py_DECREF(mod);
 	}
 
 	/* add noise to global namespace */
-	mod = PyImport_ImportModuleLevel((char *)"mathutils", NULL, NULL, NULL, 0);
+	mod = PyImport_ImportModuleLevel("mathutils", NULL, NULL, NULL, 0);
 	if (mod) {
 		PyObject *modsub = PyDict_GetItemString(PyModule_GetDict(mod), "noise");
 		PyDict_SetItemString(bpy_pydriver_Dict, "noise", modsub);

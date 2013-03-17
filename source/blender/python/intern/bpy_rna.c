@@ -6118,7 +6118,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 	PyObject *newclass;
 
 	if (bpy_types_dict == NULL) {
-		PyObject *bpy_types = PyImport_ImportModuleLevel((char *)"bpy_types", NULL, NULL, NULL, 0);
+		PyObject *bpy_types = PyImport_ImportModuleLevel("bpy_types", NULL, NULL, NULL, 0);
 
 		if (bpy_types == NULL) {
 			PyErr_Print();

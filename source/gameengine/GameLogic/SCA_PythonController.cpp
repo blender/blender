@@ -270,7 +270,7 @@ void SCA_PythonController::ErrorPrint(const char *error_msg)
 	 * their user count. Not to mention holding references to wrapped data.
 	 * This is especially bad when the PyObject for the wrapped data is freed, after blender
 	 * has already dealocated the pointer */
-	PySys_SetObject( (char *)"last_traceback", NULL);
+	PySys_SetObject("last_traceback", NULL);
 	PyErr_Clear(); /* just to be sure */
 }
 

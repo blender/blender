@@ -870,16 +870,16 @@ PyMODINIT_FUNC PyInit_mathutils_noise_types(void)
 {
 	PyObject *submodule = PyModule_Create(&M_NoiseTypes_module_def);
 
-	PyModule_AddIntConstant(submodule, (char *)"BLENDER", TEX_BLENDER);
-	PyModule_AddIntConstant(submodule, (char *)"STDPERLIN", TEX_STDPERLIN);
-	PyModule_AddIntConstant(submodule, (char *)"NEWPERLIN", TEX_NEWPERLIN);
-	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F1", TEX_VORONOI_F1);
-	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F2", TEX_VORONOI_F2);
-	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F3", TEX_VORONOI_F3);
-	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F4", TEX_VORONOI_F4);
-	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F2F1", TEX_VORONOI_F2F1);
-	PyModule_AddIntConstant(submodule, (char *)"VORONOI_CRACKLE", TEX_VORONOI_CRACKLE);
-	PyModule_AddIntConstant(submodule, (char *)"CELLNOISE", TEX_CELLNOISE);
+	PyModule_AddIntConstant(submodule, "BLENDER", TEX_BLENDER);
+	PyModule_AddIntConstant(submodule, "STDPERLIN", TEX_STDPERLIN);
+	PyModule_AddIntConstant(submodule, "NEWPERLIN", TEX_NEWPERLIN);
+	PyModule_AddIntConstant(submodule, "VORONOI_F1", TEX_VORONOI_F1);
+	PyModule_AddIntConstant(submodule, "VORONOI_F2", TEX_VORONOI_F2);
+	PyModule_AddIntConstant(submodule, "VORONOI_F3", TEX_VORONOI_F3);
+	PyModule_AddIntConstant(submodule, "VORONOI_F4", TEX_VORONOI_F4);
+	PyModule_AddIntConstant(submodule, "VORONOI_F2F1", TEX_VORONOI_F2F1);
+	PyModule_AddIntConstant(submodule, "VORONOI_CRACKLE", TEX_VORONOI_CRACKLE);
+	PyModule_AddIntConstant(submodule, "CELLNOISE", TEX_CELLNOISE);
 
 	return submodule;
 }
@@ -900,13 +900,13 @@ PyMODINIT_FUNC PyInit_mathutils_noise_metrics(void)
 {
 	PyObject *submodule = PyModule_Create(&M_NoiseMetrics_module_def);
 
-	PyModule_AddIntConstant(submodule, (char *)"DISTANCE", TEX_DISTANCE);
-	PyModule_AddIntConstant(submodule, (char *)"DISTANCE_SQUARED", TEX_DISTANCE_SQUARED);
-	PyModule_AddIntConstant(submodule, (char *)"MANHATTAN", TEX_MANHATTAN);
-	PyModule_AddIntConstant(submodule, (char *)"CHEBYCHEV", TEX_CHEBYCHEV);
-	PyModule_AddIntConstant(submodule, (char *)"MINKOVSKY_HALF", TEX_MINKOVSKY_HALF);
-	PyModule_AddIntConstant(submodule, (char *)"MINKOVSKY_FOUR", TEX_MINKOVSKY_FOUR);
-	PyModule_AddIntConstant(submodule, (char *)"MINKOVSKY", TEX_MINKOVSKY);
+	PyModule_AddIntConstant(submodule, "DISTANCE", TEX_DISTANCE);
+	PyModule_AddIntConstant(submodule, "DISTANCE_SQUARED", TEX_DISTANCE_SQUARED);
+	PyModule_AddIntConstant(submodule, "MANHATTAN", TEX_MANHATTAN);
+	PyModule_AddIntConstant(submodule, "CHEBYCHEV", TEX_CHEBYCHEV);
+	PyModule_AddIntConstant(submodule, "MINKOVSKY_HALF", TEX_MINKOVSKY_HALF);
+	PyModule_AddIntConstant(submodule, "MINKOVSKY_FOUR", TEX_MINKOVSKY_FOUR);
+	PyModule_AddIntConstant(submodule, "MINKOVSKY", TEX_MINKOVSKY);
 
 	return submodule;
 }

@@ -222,7 +222,7 @@ static PyMethodDef meth_bpy_resource_path =
 
 static PyObject *bpy_import_test(const char *modname)
 {
-	PyObject *mod = PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
+	PyObject *mod = PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
 	if (mod) {
 		Py_DECREF(mod);
 	}

@@ -86,10 +86,10 @@ void BLI_setenv_if_new(const char *env, const char *val);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(const char *name);
-void BLI_split_dirfile(const char *string, char *dir, char *file, size_t dirlen, size_t filelen);
-void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
-void BLI_split_file_part(const char *string, char *file, size_t filelen);
-void BLI_join_dirfile(char *string, size_t maxlen, const char *dir, const char *file);
+void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
+void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
+void BLI_split_file_part(const char *string, char *file, const size_t filelen);
+void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file);
 const char *BLI_path_basename(const char *path);
 
 typedef enum bli_rebase_state {
@@ -105,7 +105,7 @@ int         BLI_add_slash(char *string);
 void        BLI_del_slash(char *string);
 const char *BLI_first_slash(const char *string);
 
-void BLI_getlastdir(const char *dir, char *last, size_t maxlen);
+void BLI_getlastdir(const char *dir, char *last, const size_t maxlen);
 bool BLI_testextensie(const char *str, const char *ext);
 bool BLI_testextensie_array(const char *str, const char **ext_array);
 bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
@@ -117,7 +117,7 @@ bool BLI_uniquename_cb(bool (*unique_check)(void * arg, const char * name),
 void BLI_newname(char *name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
-int BLI_split_name_num(char *left, int *nr, const char *name, char delim);
+int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 
 /* make sure path separators conform to system one */
 void BLI_clean(char *path)
