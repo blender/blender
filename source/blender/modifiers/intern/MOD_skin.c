@@ -1785,7 +1785,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	totvert = origdm->getNumVerts(origdm);
 	totedge = origdm->getNumEdges(origdm);
 
-	create_vert_edge_map(&emap, &emapmem, medge, totvert, totedge);
+	BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, totvert, totedge);
 
 	emat = build_edge_mats(nodes, mvert, totvert, medge, emap, totedge);
 	skin_nodes = build_frames(mvert, totvert, nodes, emap, emat);

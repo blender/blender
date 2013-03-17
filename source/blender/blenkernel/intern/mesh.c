@@ -348,7 +348,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
  * note that for undo mesh data we want to skip 'ensure_tess_cd' call since
  * we don't want to store memory for tessface when its only used for older
  * versions of the mesh. - campbell*/
-static void mesh_update_linked_customdata(Mesh *me, const short do_ensure_tess_cd)
+static void mesh_update_linked_customdata(Mesh *me, const bool do_ensure_tess_cd)
 {
 	if (me->edit_btmesh)
 		BMEdit_UpdateLinkedCustomData(me->edit_btmesh);
@@ -360,7 +360,7 @@ static void mesh_update_linked_customdata(Mesh *me, const short do_ensure_tess_c
 	CustomData_bmesh_update_active_layers(&me->fdata, &me->pdata, &me->ldata);
 }
 
-void mesh_update_customdata_pointers(Mesh *me, const short do_ensure_tess_cd)
+void BKE_mesh_update_customdata_pointers(Mesh *me, const bool do_ensure_tess_cd)
 {
 	mesh_update_linked_customdata(me, do_ensure_tess_cd);
 
@@ -493,7 +493,7 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 		mesh_tessface_clear_intern(men, FALSE);
 	}
 
-	mesh_update_customdata_pointers(men, do_tessface);
+	BKE_mesh_update_customdata_pointers(men, do_tessface);
 
 	/* ensure indirect linked data becomes lib-extern */
 	for (i = 0; i < me->fdata.totlayer; i++) {
@@ -622,7 +622,7 @@ void BKE_mesh_make_local(Mesh *me)
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (me == ob->data) {
 				if (ob->id.lib == NULL) {
-					set_mesh(ob, me_new);
+					BKE_mesh_assign_object(ob, me_new);
 				}
 			}
 		}
@@ -825,7 +825,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
 	else return NULL;
 }
 
-void set_mesh(Object *ob, Mesh *me)
+void BKE_mesh_assign_object(Object *ob, Mesh *me)
 {
 	Mesh *old = NULL;
 
@@ -1194,7 +1194,7 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 			index += 4;
 		}
 
-		mesh_update_customdata_pointers(me, TRUE);
+		BKE_mesh_update_customdata_pointers(me, true);
 
 		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 
@@ -1477,7 +1477,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 
 
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_uv)
+void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv)
 {
 	Main *bmain = G.main;
 	Object *ob1;
@@ -2063,7 +2063,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 	                                     mesh->medge, mesh->mface,
 	                                     &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
 
-	mesh_update_customdata_pointers(mesh, TRUE);
+	BKE_mesh_update_customdata_pointers(mesh, true);
 }
 
 /* the same as BKE_mesh_convert_mfaces_to_mpolys but oriented to be used in do_versions from readfile.c
@@ -2085,7 +2085,7 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 
 	CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata, &mesh->pdata, &mesh->ldata);
 
-	mesh_update_customdata_pointers(mesh, TRUE);
+	BKE_mesh_update_customdata_pointers(mesh, true);
 }
 
 void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
@@ -2190,12 +2190,12 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	*mloop_r = mloop;
 }
 
-float (*mesh_getVertexCos(Mesh * me, int *numVerts_r))[3]
+float (*mesh_getVertexCos(Mesh * me, int *r_numVerts))[3]
 {
 	int i, numVerts = me->totvert;
 	float (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "vertexcos1");
 
-	if (numVerts_r) *numVerts_r = numVerts;
+	if (r_numVerts) *r_numVerts = numVerts;
 	for (i = 0; i < numVerts; i++)
 		copy_v3_v3(cos[i], me->mvert[i].co);
 
@@ -2207,7 +2207,8 @@ float (*mesh_getVertexCos(Mesh * me, int *numVerts_r))[3]
 /* this replaces the non bmesh function (in trunk) which takes MTFace's, if we ever need it back we could
  * but for now this replaces it because its unused. */
 
-UvVertMap *BKE_mesh_uv_vert_map_make(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv, unsigned int totpoly, unsigned int totvert, int selected, float *limit)
+UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
+                                       unsigned int totpoly, unsigned int totvert, int selected, float *limit)
 {
 	UvVertMap *vmap;
 	UvMapVert *buf;
@@ -2315,9 +2316,9 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
 /* Generates a map where the key is the vertex and the value is a list
  * of polys that use that vertex as a corner. The lists are allocated
  * from one memory pool. */
-void create_vert_poly_map(MeshElemMap **map, int **mem,
-                          const MPoly *mpoly, const MLoop *mloop,
-                          int totvert, int totpoly, int totloop)
+void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
+                                   const MPoly *mpoly, const MLoop *mloop,
+                                   int totvert, int totpoly, int totloop)
 {
 	int i, j;
 	int *indices;
@@ -2359,8 +2360,8 @@ void create_vert_poly_map(MeshElemMap **map, int **mem,
 /* Generates a map where the key is the vertex and the value is a list
  * of edges that use that vertex as an endpoint. The lists are allocated
  * from one memory pool. */
-void create_vert_edge_map(MeshElemMap **map, int **mem,
-                          const MEdge *medge, int totvert, int totedge)
+void BKE_mesh_vert_edge_map_create(MeshElemMap **map, int **mem,
+                                   const MEdge *medge, int totvert, int totedge)
 {
 	int i, *indices;
 
@@ -2465,7 +2466,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
                                  int totpoly,
                                  /* when tessellating to recalculate normals after
                                   * we can skip copying here */
-                                 const int do_face_nor_cpy)
+                                 const bool do_face_nor_cpy)
 {
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
@@ -3335,7 +3336,7 @@ int BKE_mesh_center_centroid(Mesh *me, float cent[3])
 	return (me->totpoly != 0);
 }
 
-void BKE_mesh_translate(Mesh *me, float offset[3], int do_keys)
+void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 {
 	int i = me->totvert;
 	MVert *mvert;
@@ -3374,9 +3375,9 @@ void BKE_mesh_tessface_calc(Mesh *mesh)
 	                                             mesh->mvert,
 	                                             mesh->totface, mesh->totloop, mesh->totpoly,
 	                                             /* calc normals right after, don't copy from polys here */
-	                                             FALSE);
+	                                             false);
 
-	mesh_update_customdata_pointers(mesh, TRUE);
+	BKE_mesh_update_customdata_pointers(mesh, true);
 }
 
 void BKE_mesh_tessface_ensure(Mesh *mesh)

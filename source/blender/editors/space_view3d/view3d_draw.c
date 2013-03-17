@@ -1008,9 +1008,9 @@ void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, R
 }
 
 void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
-                                  rctf *viewborder_r, const bool no_shift)
+                                  rctf *r_viewborder, const bool no_shift)
 {
-	view3d_camera_border(scene, ar, v3d, rv3d, viewborder_r, no_shift, false);
+	view3d_camera_border(scene, ar, v3d, rv3d, r_viewborder, no_shift, false);
 }
 
 static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float fac)

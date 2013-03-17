@@ -1859,7 +1859,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[3][3], 
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
-static void get_face_center(float cent_r[3], BMVert *eve)
+static void get_face_center(float r_cent[3], BMVert *eve)
 
 {
 	BMFace *efa;
@@ -1867,20 +1867,20 @@ static void get_face_center(float cent_r[3], BMVert *eve)
 
 	BM_ITER_ELEM (efa, &iter, eve, BM_FACES_OF_VERT) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			BM_face_calc_center_mean(efa, cent_r);
+			BM_face_calc_center_mean(efa, r_cent);
 			break;
 		}
 	}
 }
 
-static void get_edge_center(float cent_r[3], BMVert *eve)
+static void get_edge_center(float r_cent[3], BMVert *eve)
 {
 	BMEdge *eed;
 	BMIter iter;
 
 	BM_ITER_ELEM (eed, &iter, eve, BM_EDGES_OF_VERT) {
 		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-			mid_v3_v3v3(cent_r, eed->v1->co, eed->v2->co);
+			mid_v3_v3v3(r_cent, eed->v1->co, eed->v2->co);
 			break;
 		}
 	}

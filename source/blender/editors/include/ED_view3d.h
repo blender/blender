@@ -216,7 +216,7 @@ bool ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int 
                              struct rctf *r_viewplane, float *r_clipsta, float *r_clipend);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar,
                                   struct View3D *v3d, struct RegionView3D *rv3d,
-                                  struct rctf *viewborder_r, const bool no_shift);
+                                  struct rctf *r_viewborder, const bool no_shift);
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar,
                                        struct View3D *v3d, struct RegionView3D *rv3d,
                                        float r_size[2]);
@@ -268,7 +268,7 @@ int edge_inside_circle(const float cent[2], float radius, const float screen_co_
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
-int ED_view3d_context_user_region(struct bContext *C, struct View3D **v3d_r, struct ARegion **ar_r);
+int ED_view3d_context_user_region(struct bContext *C, struct View3D **r_v3d, struct ARegion **r_ar);
 int ED_operator_rv3d_user_region_poll(struct bContext *C);
 
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);

@@ -81,7 +81,7 @@ struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
 int BKE_mesh_recalc_tessellation(struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
                                  struct MVert *mvert,
                                  int totface, int totloop, int totpoly,
-                                 const int do_face_normals);
+                                 const bool do_face_normals);
 
 /* for forwards compat only quad->tri polys to mface, skip ngons.
  */
@@ -150,7 +150,7 @@ void BKE_mesh_free(struct Mesh *me, int unlink);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 struct Mesh *BKE_mesh_copy_ex(struct Main *bmain, struct Mesh *me);
 struct Mesh *BKE_mesh_copy(struct Mesh *me);
-void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
+void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
 
 void BKE_mesh_make_local(struct Mesh *me);
 void BKE_mesh_boundbox_calc(struct Mesh *me, float r_loc[3], float r_size[3]);
@@ -159,7 +159,7 @@ float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void   BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
-void set_mesh(struct Object *ob, struct Mesh *me);
+void BKE_mesh_assign_object(struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
 int  BKE_mesh_nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *totvert,
                              struct MEdge **alledge, int *totedge, struct MLoop **allloop, struct MPoly **allpoly,
@@ -167,7 +167,7 @@ int  BKE_mesh_nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *tot
 int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
                                      struct MEdge **alledge, int *_totedge, struct MLoop **allloop, struct MPoly **allpoly,
                                      struct MLoopUV **alluv, int *_totloop, int *_totpoly);
-void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase, int use_orco_uv);
+void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase, const bool use_orco_uv);
 void BKE_mesh_from_nurbs(struct Object *ob);
 void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
 void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
@@ -221,7 +221,7 @@ void BKE_mesh_calc_normals(
 
 /* Return a newly MEM_malloc'd array of all the mesh vertex locations
  * (_numVerts_r_ may be NULL) */
-float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
+float (*mesh_getVertexCos(struct Mesh *me, int *r_numVerts))[3];
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 
@@ -280,7 +280,7 @@ typedef struct UvElementMap {
  * to make that many islands, he can bite me :p */
 #define INVALID_ISLAND 0xFFFF
 
-UvVertMap *BKE_mesh_uv_vert_map_make(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
+UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
                                      unsigned int totpoly, unsigned int totvert, int selected, float *limit);
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
 void       BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
@@ -296,12 +296,12 @@ typedef struct IndexNode {
 	int index;
 } IndexNode;
 
-void create_vert_poly_map(MeshElemMap **map, int **mem,
-                          const struct MPoly *mface, const struct MLoop *mloop,
-                          int totvert, int totface, int totloop);
+void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
+                                   const struct MPoly *mface, const struct MLoop *mloop,
+                                   int totvert, int totface, int totloop);
 
-void create_vert_edge_map(MeshElemMap **map, int **mem,
-                          const struct MEdge *medge, int totvert, int totedge);
+void BKE_mesh_vert_edge_map_create(MeshElemMap **map, int **mem,
+                                   const struct MEdge *medge, int totvert, int totedge);
 
 /* vertex level transformations & checks (no derived mesh) */
 
@@ -309,7 +309,7 @@ int BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
 int BKE_mesh_center_median(struct Mesh *me, float cent[3]);
 int BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
 int BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
-void BKE_mesh_translate(struct Mesh *me, float offset[3], int do_keys);
+void BKE_mesh_translate(struct Mesh *me, const float offset[3], const bool do_keys);
 
 /* mesh_validate.c */
 /* XXX Loop v/e are unsigned, so using max uint_32 value as invalid marker... */
@@ -322,8 +322,8 @@ int BKE_mesh_validate_arrays(
         struct MLoop *mloops, unsigned int totloop,
         struct MPoly *mpolys, unsigned int totpoly,
         struct MDeformVert *dverts, /* assume totvert length */
-        const short do_verbose, const short do_fixes);
-int BKE_mesh_validate(struct Mesh *me, int do_verbose);
+        const bool do_verbose, const bool do_fixes);
+int BKE_mesh_validate(struct Mesh *me, const int do_verbose);
 int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 
 void BKE_mesh_calc_edges(struct Mesh *mesh, bool update, const bool select);

@@ -190,13 +190,13 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
                              MLoop *mloops, unsigned int totloop,
                              MPoly *mpolys, unsigned int totpoly,
                              MDeformVert *dverts, /* assume totvert length */
-                             const short do_verbose, const short do_fixes)
+                             const bool do_verbose, const bool do_fixes)
 {
-#   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; do_edge_free = TRUE; } (void)0
+#   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; do_edge_free = true; } (void)0
 #   define IS_REMOVED_EDGE(_me) (_me->v2 == _me->v1)
 
-#   define REMOVE_LOOP_TAG(_ml) { _ml->e = INVALID_LOOP_EDGE_MARKER; do_polyloop_free = TRUE; } (void)0
-#   define REMOVE_POLY_TAG(_mp) { _mp->totloop *= -1; do_polyloop_free = TRUE; } (void)0
+#   define REMOVE_LOOP_TAG(_ml) { _ml->e = INVALID_LOOP_EDGE_MARKER; do_polyloop_free = true; } (void)0
+#   define REMOVE_POLY_TAG(_mp) { _mp->totloop *= -1; do_polyloop_free = true; } (void)0
 
 	MVert *mv = mverts;
 	MEdge *me;
@@ -205,15 +205,15 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 	unsigned int i, j;
 	int *v;
 
-	short do_edge_free = FALSE;
-	short do_face_free = FALSE;
-	short do_polyloop_free = FALSE; /* This regroups loops and polys! */
+	bool do_edge_free = false;
+	bool do_face_free = false;
+	bool do_polyloop_free = false; /* This regroups loops and polys! */
 
-	short verts_fixed = FALSE;
-	short vert_weights_fixed = FALSE;
-	int msel_fixed = FALSE;
+	bool verts_fixed = false;
+	bool vert_weights_fixed = false;
+	bool msel_fixed = false;
 
-	int do_edge_recalc = FALSE;
+	bool do_edge_recalc = false;
 
 	EdgeHash *edge_hash = BLI_edgehash_new();
 
@@ -825,7 +825,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 	return (verts_fixed || vert_weights_fixed || do_polyloop_free || do_edge_free || do_edge_recalc || msel_fixed);
 }
 
-static int mesh_validate_customdata(CustomData *data, short do_verbose, const short do_fixes)
+static int mesh_validate_customdata(CustomData *data, const bool do_verbose, const bool do_fixes)
 {
 	int i = 0, has_fixes = 0;
 
@@ -859,7 +859,7 @@ static int mesh_validate_customdata(CustomData *data, short do_verbose, const sh
 
 static int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
                                             CustomData *ldata, CustomData *pdata,
-                                            short do_verbose, const short do_fixes)
+                                            const bool do_verbose, const short do_fixes)
 {
 	int vfixed = 0, efixed = 0, lfixed = 0, pfixed = 0;
 
@@ -871,7 +871,7 @@ static int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata
 	return vfixed || efixed || lfixed || pfixed;
 }
 
-int BKE_mesh_validate(Mesh *me, int do_verbose)
+int BKE_mesh_validate(Mesh *me, const int do_verbose)
 {
 	int layers_fixed = 0, arrays_fixed = 0;
 
@@ -887,13 +887,13 @@ int BKE_mesh_validate(Mesh *me, int do_verbose)
 	                                        me->mloop, me->totloop,
 	                                        me->mpoly, me->totpoly,
 	                                        me->dvert,
-	                                        do_verbose, TRUE);
+	                                        do_verbose, true);
 
 	if (layers_fixed || arrays_fixed) {
 		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 int BKE_mesh_validate_dm(DerivedMesh *dm)

@@ -1869,7 +1869,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
 				                                        mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
 
-				mesh_update_customdata_pointers(mesh, FALSE);
+				BKE_mesh_update_customdata_pointers(mesh, false);
 
 				writestruct(wd, ID_ME, "Mesh", 1, mesh);
 
@@ -1906,7 +1906,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->totpoly = backup_mesh.totpoly;
 				mesh->totloop = backup_mesh.totloop;
 				/* -- */
-				mesh_update_customdata_pointers(mesh, FALSE);
+				BKE_mesh_update_customdata_pointers(mesh, false);
 				/* --*/
 				mesh->edit_btmesh = backup_mesh.edit_btmesh; /* keep this after updating custom pointers */
 				/* restore */

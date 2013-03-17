@@ -383,7 +383,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		}
 	}
 	else if (ob->type == OB_MESH) {
-		set_mesh(ob, (Mesh *)id);
+		BKE_mesh_assign_object(ob, (Mesh *)id);
 	}
 	else {
 		if (ob->data) {

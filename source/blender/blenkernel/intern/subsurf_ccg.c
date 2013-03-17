@@ -295,7 +295,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
-	vmap = BKE_mesh_uv_vert_map_make(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
+	vmap = BKE_mesh_uv_vert_map_create(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
 	
@@ -2985,7 +2985,7 @@ static const MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	if (!ccgdm->multires.mmd && !ccgdm->pmap && ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		create_vert_poly_map(&ccgdm->pmap, &ccgdm->pmap_mem,
+		BKE_mesh_vert_poly_map_create(&ccgdm->pmap, &ccgdm->pmap_mem,
 		                     me->mpoly, me->mloop,
 		                     me->totvert, me->totpoly, me->totloop);
 	}
