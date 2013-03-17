@@ -529,6 +529,8 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	ToolSettings *settings = scene->toolsettings;
 	PaintOperation *pop = paint_stroke_mode_data(stroke);
 
+	paint_redraw(C, pop, 1);
+
 	if (pop->timer)
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), pop->timer);
 
@@ -541,7 +543,6 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		paint_2d_stroke_done(pop->custom_paint);
 	}
 
-	paint_redraw(C, pop, 1);
 	undo_paint_push_end(UNDO_PAINT_IMAGE);
 
 	/* duplicate warning, see texpaint_init
