@@ -457,7 +457,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
-		if ((vod->use_dyn_ofs = ED_view3d_autodist(CTX_data_scene(C), vod->ar, vod->v3d, event->mval, vod->dyn_ofs))) {
+		if ((vod->use_dyn_ofs = ED_view3d_autodist(CTX_data_scene(C), vod->ar, vod->v3d, event->mval, vod->dyn_ofs, true))) {
 			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
@@ -2896,7 +2896,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	draw_depth(scene, ar, v3d, NULL);
+	draw_depth(scene, ar, v3d, NULL, true);
 	
 	{
 		/* avoid allocating the whole depth buffer */
@@ -3745,7 +3745,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 
 		if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
 			view3d_operator_needs_opengl(C);
-			if (ED_view3d_autodist(scene, ar, v3d, mval, fp))
+			if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true))
 				depth_used = TRUE;
 		}
 
@@ -3917,7 +3917,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
-int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3])
+int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3], bool alphaoverride)
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close = FLT_MAX;
@@ -3925,7 +3925,7 @@ int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2]
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	draw_depth(scene, ar, v3d, NULL);
+	draw_depth(scene, ar, v3d, NULL, alphaoverride);
 
 	depth_close = view_autodist_depth_margin(ar, mval, 4);
 
@@ -3952,7 +3952,7 @@ int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	switch (mode) {
 		case 0:
-			draw_depth(scene, ar, v3d, NULL);
+			draw_depth(scene, ar, v3d, NULL, true);
 			break;
 		case 1:
 			draw_depth_gpencil(scene, ar, v3d);

@@ -2235,7 +2235,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 
 }
 
-void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *))
+void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), bool alphaoverride)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -2247,7 +2247,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *))
 	
 	/* Setting these temporarily is not nice */
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
-	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	U.glalphaclip = alphaoverride ? 0.5 : glalphaclip; /* not that nice but means we wont zoom into billboards */
 	U.obcenter_dia = 0;
 	
 	setwinmatrixview3d(ar, v3d, NULL);

@@ -4118,7 +4118,7 @@ int paint_proj_stroke(bContext *C, void *pps, const int prevmval_i[2], const int
 
 		view3d_operator_needs_opengl(C);
 
-		if (!ED_view3d_autodist(scene, ps->ar, v3d, mval_i, cursor))
+		if (!ED_view3d_autodist(scene, ps->ar, v3d, mval_i, cursor, false))
 			return 0;
 
 		ED_region_tag_redraw(ps->ar);

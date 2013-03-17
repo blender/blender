@@ -152,7 +152,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 
 /* view3d_draw.c */
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
-void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (*func)(void *));
+void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (*func)(void *), bool alphaoverride);
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag);
 

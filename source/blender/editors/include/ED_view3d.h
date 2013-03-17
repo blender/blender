@@ -244,7 +244,7 @@ unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, const int mval[2
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
 /* draws and does a 4x4 sample */
-int ED_view3d_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, const int mval[2], float mouse_worldloc[3]);
+int ED_view3d_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, const int mval[2], float mouse_worldloc[3], bool alphaoverride);
 
 /* only draw so ED_view3d_autodist_simple can be called many times after */
 int ED_view3d_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, int mode);
