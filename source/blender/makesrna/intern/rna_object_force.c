@@ -483,7 +483,7 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 			part->pd->tex = NULL;
 		}
 
-		if (part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
+		if (part->pd2 && part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
 			part->pd2->tex->id.us--;
 			part->pd2->tex = NULL;
 		}
