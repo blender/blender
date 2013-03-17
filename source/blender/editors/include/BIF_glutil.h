@@ -141,17 +141,17 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
  * 1-to-1 mapping to screen space.
  */
 
-void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect);
+void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect);
 
 /**
  * glaDrawPixelsAuto - Switches between texture or pixel drawing using UserDef.
  * only RGBA
  * needs glaDefine2DArea to be set.
  */
-void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, void *rect);
+void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect);
 
 
-void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, void *rect, float scaleX, float scaleY);
+void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect, float scaleX, float scaleY);
 
 /* 2D Drawing Assistance */
 

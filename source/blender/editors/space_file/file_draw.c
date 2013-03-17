@@ -376,7 +376,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		
 		/* the image */
 		glColor4f(1.0, 1.0, 1.0, 1.0);
-		glaDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect, scale, scale);
+		glaDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect, scale, scale);
 		
 		/* border */
 		if (dropshadow) {

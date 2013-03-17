@@ -323,7 +323,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 				drag_rect_minmax(rect, x, y, x + drag->sx, y + drag->sy);
 			else {
 				glColor4f(1.0, 1.0, 1.0, 0.65); /* this blends texture */
-				glaDrawPixelsTexScaled(x, y, drag->imb->x, drag->imb->y, GL_UNSIGNED_BYTE, drag->imb->rect, drag->scale, drag->scale);
+				glaDrawPixelsTexScaled(x, y, drag->imb->x, drag->imb->y, GL_UNSIGNED_BYTE, GL_NEAREST, drag->imb->rect, drag->scale, drag->scale);
 			}
 		}
 		else {

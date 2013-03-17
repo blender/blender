@@ -482,7 +482,7 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 	return texid;
 }
 
-void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, void *rect, float scaleX, float scaleY)
+void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect, float scaleX, float scaleY)
 {
 	unsigned char *uc_rect = (unsigned char *) rect;
 	float *f_rect = (float *)rect;
@@ -503,6 +503,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	/* don't want nasty border artifacts */
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, zoomfilter);
 
 #ifdef __APPLE__
 	/* workaround for os x 10.5/10.6 driver bug: http://lists.apple.com/archives/Mac-opengl/2008/Jul/msg00117.html */
@@ -585,9 +586,9 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 #endif
 }
 
-void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
+void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect)
 {
-	glaDrawPixelsTexScaled(x, y, img_w, img_h, format, rect, 1.0f, 1.0f);
+	glaDrawPixelsTexScaled(x, y, img_w, img_h, format, zoomfilter, rect, 1.0f, 1.0f);
 }
 
 void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect)
@@ -670,7 +671,7 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 }
 
 /* uses either DrawPixelsSafe or DrawPixelsTex, based on user defined maximum */
-void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, void *rect)
+void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect)
 {
 	if (U.image_gpubuffer_limit) {
 		/* Megapixels, use float math to prevent overflow */
@@ -678,7 +679,7 @@ void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, void 
 		
 		if (U.image_gpubuffer_limit > (int)img_size) {
 			glColor4f(1.0, 1.0, 1.0, 1.0);
-			glaDrawPixelsTex(x, y, img_w, img_h, format, rect);
+			glaDrawPixelsTex(x, y, img_w, img_h, format, zoomfilter, rect);
 			return;
 		}
 	}

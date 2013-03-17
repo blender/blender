@@ -525,7 +525,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
 		if (display_buffer)
-			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, display_buffer);
+			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer);
 
 		IMB_display_buffer_release(cache_handle);
 
