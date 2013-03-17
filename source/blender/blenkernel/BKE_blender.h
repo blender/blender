@@ -70,7 +70,7 @@ int BKE_read_file(struct bContext *C, const char *filepath, struct ReportList *r
 #define BKE_READ_FILE_OK                1 /* OK */
 #define BKE_READ_FILE_OK_USERPREFS      2 /* OK, and with new user settings */
 
-int BKE_read_file_from_memory(struct bContext *C, char *filebuf, int filelength, struct ReportList *reports);
+int BKE_read_file_from_memory(struct bContext *C, const void *filebuf, int filelength, struct ReportList *reports);
 int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile, struct ReportList *reports);
 
 int BKE_read_file_userdef(const char *filepath, struct ReportList *reports);
@@ -105,8 +105,8 @@ extern struct Main *BKE_undo_get_main(struct Scene **scene);
 	/* copybuffer */
 void BKE_copybuffer_begin(void);
 void BKE_copybuffer_tag_ID(struct ID *id);
-int BKE_copybuffer_save(char *filename, struct ReportList *reports);
-	int BKE_copybuffer_paste(struct bContext *C, char *libname, struct ReportList *reports);
+int BKE_copybuffer_save(const char *filename, struct ReportList *reports);
+	int BKE_copybuffer_paste(struct bContext *C, const char *libname, struct ReportList *reports);
 
 #ifdef __cplusplus
 }

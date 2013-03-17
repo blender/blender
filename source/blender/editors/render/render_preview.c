@@ -192,7 +192,7 @@ static Main *G_pr_main = NULL;
 static Main *G_pr_main_cycles = NULL;
 
 #ifndef WITH_HEADLESS
-static Main *load_main_from_memory(char *blend, int blend_size)
+static Main *load_main_from_memory(const void *blend, int blend_size)
 {
 	const int fileflags = G.fileflags;
 	Main *bmain = NULL;

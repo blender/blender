@@ -1041,7 +1041,7 @@ static int fd_read_gzip_from_memory_init(FileData *fd)
 	return 1;
 }
 
-FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
+FileData *blo_openblendermemory(const void *mem, int memsize, ReportList *reports)
 {
 	if (!mem || memsize<SIZEOFBLENDERHEADER) {
 		BKE_report(reports, RPT_WARNING, (mem) ? TIP_("Unable to read"): TIP_("Unable to open"));
@@ -1049,7 +1049,7 @@ FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 	}
 	else {
 		FileData *fd = filedata_new();
-		char *cp = mem;
+		const char *cp = mem;
 		
 		fd->buffer = mem;
 		fd->buffersize = memsize;
@@ -1106,7 +1106,7 @@ void blo_freefiledata(FileData *fd)
 		}
 		
 		if (fd->buffer && !(fd->flags & FD_FLAGS_NOT_MY_BUFFER)) {
-			MEM_freeN(fd->buffer);
+			MEM_freeN((void *)fd->buffer);
 			fd->buffer = NULL;
 		}
 		

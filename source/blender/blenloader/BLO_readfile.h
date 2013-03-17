@@ -96,7 +96,7 @@ BlendFileData *BLO_read_from_file(const char *filepath, struct ReportList *repor
  * indicating the cause of the failure.
  * \return The data of the file.
  */
-BlendFileData *BLO_read_from_memory(void *mem, int memsize, struct ReportList *reports);
+BlendFileData *BLO_read_from_memory(const void *mem, int memsize, struct ReportList *reports);
 
 /**
  * oldmain is old main, from which we will keep libraries, images, ..
@@ -122,7 +122,7 @@ BLO_blendfiledata_free(BlendFileData *bfd);
  * \return A handle on success, or NULL on failure.
  */
 BlendHandle *
-BLO_blendhandle_from_file(char *file,
+BLO_blendhandle_from_file(const char *filepath,
                           struct ReportList *reports);
 
 /**
@@ -134,7 +134,7 @@ BLO_blendhandle_from_file(char *file,
  */
 
 BlendHandle *
-BLO_blendhandle_from_memory(void *mem,
+BLO_blendhandle_from_memory(const void *mem,
                             int memsize);
 
 /**

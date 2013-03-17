@@ -487,13 +487,13 @@ static FModifierTypeInfo FMI_ENVELOPE = {
  */
 #define BINARYSEARCH_FRAMEEQ_THRESH 0.0001f
 
-int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int arraylen, short *exists)
+int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int arraylen, bool *r_exists)
 {
 	int start = 0, end = arraylen;
 	int loopbreaker = 0, maxloop = arraylen * 2;
 
 	/* initialize exists-flag first */
-	*exists = 0;
+	*r_exists = false;
 
 	/* sneaky optimizations (don't go through searching process if...):
 	 * - keyframe to be added is to be added out of current bounds
@@ -510,7 +510,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int array
 		/* 'First' Point (when only one point, this case is used) */
 		framenum = array[0].time;
 		if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
-			*exists = 1;
+			*r_exists = true;
 			return 0;
 		}
 		else if (frame < framenum) {
@@ -520,7 +520,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int array
 		/* 'Last' Point */
 		framenum = array[(arraylen - 1)].time;
 		if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
-			*exists = 1;
+			*r_exists = true;
 			return (arraylen - 1);
 		}
 		else if (frame > framenum) {
@@ -539,7 +539,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int array
 
 		/* check if exactly equal to midpoint */
 		if (IS_EQT(frame, midfra, BINARYSEARCH_FRAMEEQ_THRESH)) {
-			*exists = 1;
+			*r_exists = true;
 			return mid;
 		}
 

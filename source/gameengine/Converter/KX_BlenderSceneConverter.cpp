@@ -1050,12 +1050,12 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int 
 	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str, options);
 }
 
-KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
+KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFilePath(const char *filepath, char *group, KX_Scene *scene_merge, char **err_str, short options)
 {
-	BlendHandle *bpy_openlib = BLO_blendhandle_from_file((char *)path, NULL);
+	BlendHandle *bpy_openlib = BLO_blendhandle_from_file(filepath, NULL);
 
 	// Error checking is done in LinkBlendFile
-	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str, options);
+	return LinkBlendFile(bpy_openlib, filepath, group, scene_merge, err_str, options);
 }
 
 static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const char *path, int idcode)

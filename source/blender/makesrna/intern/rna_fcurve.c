@@ -646,7 +646,7 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod, Repor
 	fed.f1 = fed.f2 = 0;
 
 	if (env->data) {
-		short exists = -1;
+		bool exists;
 		i = BKE_fcm_envelope_find_index(env->data, frame, env->totvert, &exists);
 		if (exists) {
 			BKE_reportf(reports, RPT_ERROR, "Already a control point at frame %.6f", frame);

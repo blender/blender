@@ -55,19 +55,19 @@
 
 #include "interface_intern.h"
 
-static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, int *driven)
+static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, bool *r_driven)
 {
 	/* for entire array buttons we check the first component, it's not perfect
 	 * but works well enough in typical cases */
 	int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
-	return rna_get_fcurve(&but->rnapoin, but->rnaprop, rnaindex, action, driven);
+	return rna_get_fcurve(&but->rnapoin, but->rnaprop, rnaindex, action, r_driven);
 }
 
 void ui_but_anim_flag(uiBut *but, float cfra)
 {
 	FCurve *fcu;
-	int driven;
+	bool driven;
 
 	but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
 
@@ -90,7 +90,7 @@ int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;
-	int driven;
+	bool driven;
 
 	fcu = ui_but_get_fcurve(but, NULL, &driven);
 
@@ -110,7 +110,7 @@ int ui_but_anim_expression_set(uiBut *but, const char *str)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;
-	int driven;
+	bool driven;
 
 	fcu = ui_but_get_fcurve(but, NULL, &driven);
 
@@ -194,7 +194,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 	ID *id;
 	bAction *action;
 	FCurve *fcu;
-	int driven;
+	bool driven;
 
 	fcu = ui_but_get_fcurve(but, &action, &driven);
 

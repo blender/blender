@@ -237,7 +237,7 @@ int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 	
 	/* are there already keyframes? */
 	if (fcu->bezt) {
-		short replace = -1;
+		bool replace;
 		i = binarysearch_bezt_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
 		
 		/* replace an existing keyframe? */
@@ -1055,7 +1055,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
 		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
-		short found = -1;
+		bool found;
 		int i;
 		
 		/* check if F-Curve exists and/or whether it can be edited */
@@ -1845,7 +1845,7 @@ short fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
 	
 	/* we either include all regardless of muting, or only non-muted  */
 	if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED) == 0) {
-		short replace = -1;
+		bool replace;
 		int i = binarysearch_bezt_index(fcu->bezt, frame, fcu->totvert, &replace);
 		
 		/* binarysearch_bezt_index will set replace to be 0 or 1
