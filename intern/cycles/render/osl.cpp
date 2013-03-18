@@ -468,6 +468,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 					parameter(param_name.c_str(), input->value_string);
 					break;
 				case SHADER_SOCKET_CLOSURE:
+				case SHADER_SOCKET_UNDEFINED:
 					break;
 			}
 		}
