@@ -231,9 +231,10 @@ void node_socket_init_default_value(bNodeSocket *sock)
 		break;
 	}
 	case SOCK_VECTOR: {
+		static float default_value[] = { 0.0f, 0.0f, 0.0f };
 		bNodeSocketValueVector *dval = MEM_callocN(sizeof(bNodeSocketValueVector), "node socket value vector");
 		dval->subtype = subtype;
-		copy_v3_v3(dval->value, (float[]){0.0f, 0.0f, 0.0f});
+		copy_v3_v3(dval->value, default_value);
 		dval->min = -FLT_MAX;
 		dval->max = FLT_MAX;
 		
@@ -241,8 +242,9 @@ void node_socket_init_default_value(bNodeSocket *sock)
 		break;
 	}
 	case SOCK_RGBA: {
+		static float default_value[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		bNodeSocketValueRGBA *dval = MEM_callocN(sizeof(bNodeSocketValueRGBA), "node socket value color");
-		copy_v4_v4(dval->value, (float[]){0.0f, 0.0f, 0.0f, 1.0f});
+		copy_v4_v4(dval->value, default_value);
 		
 		sock->default_value = dval;
 		break;
