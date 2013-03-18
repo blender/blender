@@ -619,7 +619,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 		return NULL;
 
 	if (strlen(identifier) >= sizeof(dummynt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering node tree class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering node tree class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummynt.idname));
 		return NULL;
 	}
@@ -1394,7 +1394,7 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 		return NULL;
 
 	if (strlen(identifier) >= sizeof(dummynt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering node class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering node class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummynt.idname));
 		return NULL;
 	}
@@ -1911,7 +1911,7 @@ static StructRNA *rna_NodeSocket_register(Main *bmain, ReportList *reports, void
 		return NULL;
 	
 	if (strlen(identifier) >= sizeof(dummyst.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering node socket class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering node socket class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummyst.idname));
 		return NULL;
 	}
