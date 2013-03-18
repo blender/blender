@@ -2072,6 +2072,8 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
 	sock->flag |= SELECT;
 	
 	ntreeUpdateTree(ntree);
+
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2115,6 +2117,8 @@ static int ntree_socket_remove_exec(bContext *C, wmOperator *UNUSED(op))
 		active_sock->flag |= SELECT;
 	
 	ntreeUpdateTree(ntree);
+
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2180,6 +2184,8 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
 	}
 	
 	ntreeUpdateTree(ntree);
+
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 	
 	return OPERATOR_FINISHED;
 }
