@@ -162,7 +162,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 
 /* used by node view too */
 void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_default_view, int channels, int x, int y,
-                        const unsigned char cp[4], const float fp[4], int *zp, float *zpf)
+                        const unsigned char cp[4], const float fp[4], const float linearcol[4], int *zp, float *zpf)
 {
 	char str[256];
 	float dx = 6;
@@ -258,15 +258,23 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			dx += BLF_width(blf_mono_font, str);
 		}
 
-		if (color_manage && channels == 4) {
-			float pixel[4];
+		if (color_manage) {
+			float rgba[4];
+
+			copy_v3_v3(rgba, linearcol);
+			if (channels == 3)
+				rgba[3] = 1.0f;
+			else
+				rgba[3] = linearcol[3];
+
+			(void)color_manage;
 
 			if (use_default_view)
-				IMB_colormanagement_pixel_to_display_space_v4(pixel, fp,  NULL, &scene->display_settings);
+				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba,  NULL, &scene->display_settings);
 			else
-				IMB_colormanagement_pixel_to_display_space_v4(pixel, fp,  &scene->view_settings, &scene->display_settings);
+				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba,  &scene->view_settings, &scene->display_settings);
 
-			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", pixel[0], pixel[1], pixel[2]);
+			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
 			BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 			dx += BLF_width(blf_mono_font, str);
@@ -287,26 +295,11 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		col[3] = 1.0f;
 	}
 	else if (channels == 3) {
-		if (fp) {
-			copy_v3_v3(col, fp);
-		}
-		else if (cp) {
-			rgb_uchar_to_float(col, cp);
-		}
-		else {
-			zero_v3(col);
-		}
+		copy_v3_v3(col, linearcol);
 		col[3] = 1.0f;
 	}
 	else if (channels == 4) {
-		if (fp)
-			copy_v4_v4(col, fp);
-		else if (cp) {
-			rgba_uchar_to_float(col, cp);
-		}
-		else {
-			zero_v4(col);
-		}
+		copy_v4_v4(col, linearcol);
 	}
 	else {
 		BLI_assert(0);

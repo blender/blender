@@ -56,6 +56,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -335,6 +336,7 @@ typedef struct ImageSampleInfo {
 
 	unsigned char col[4];
 	float colf[4];
+	float linearcol[4];
 	
 	int z;
 	float zf;
@@ -353,7 +355,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
 	if (info->draw) {
 		ED_image_draw_info(scene, ar, info->color_manage, FALSE, info->channels,
-		                   info->x, info->y, info->col, info->colf,
+		                   info->x, info->y, info->col, info->colf, info->linearcol,
 		                   info->zp, info->zfp);
 	}
 }
@@ -469,7 +471,10 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 			info->colf[2] = (float)cp[2] / 255.0f;
 			info->colf[3] = (float)cp[3] / 255.0f;
 
-			info->color_manage = FALSE;
+			copy_v4_v4(info->linearcol, info->colf);
+			IMB_colormanagement_colorspace_to_scene_linear_v4(info->linearcol, false, ibuf->rect_colorspace);
+
+			info->color_manage = TRUE;
 		}
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));

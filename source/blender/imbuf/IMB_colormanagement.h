@@ -70,6 +70,8 @@ void IMB_colormanagement_transform_threaded(float *buffer, int width, int height
 void IMB_colormanagement_transform_v4(float pixel[4], const char *from_colorspace, const char *to_colorspace);
 
 void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], struct ColorSpace *colorspace);
+void IMB_colormanagement_colorspace_to_scene_linear_v4(float pixel[4], int predivide, struct ColorSpace *colorspace);
+
 void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], struct ColorSpace *colorspace);
 
 void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, int height, int channels, struct ColorSpace *colorspace, int predivide);
