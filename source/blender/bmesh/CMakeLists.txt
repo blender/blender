@@ -57,7 +57,6 @@ set(SRC
 	operators/bmo_smooth_laplacian.c
 	operators/bmo_symmetrize.c
 	operators/bmo_subdivide.c
-	operators/bmo_subdivide.h
 	operators/bmo_triangulate.c
 	operators/bmo_unsubdivide.c
 	operators/bmo_utils.c

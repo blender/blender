@@ -609,7 +609,7 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int graphkeys_click_insert_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int graphkeys_click_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	ARegion *ar;
@@ -625,8 +625,8 @@ static int graphkeys_click_insert_invoke(bContext *C, wmOperator *op, wmEvent *e
 	ar = ac.ar;
 	v2d = &ar->v2d;
 	
-	mval[0] = (evt->x - ar->winrct.xmin);
-	mval[1] = (evt->y - ar->winrct.ymin);
+	mval[0] = (event->x - ar->winrct.xmin);
+	mval[1] = (event->y - ar->winrct.ymin);
 	
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 	
@@ -835,7 +835,7 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	graphkeys_duplicate_exec(C, op);
 
@@ -1190,7 +1190,7 @@ static int graphkeys_sound_bake_exec(bContext *UNUSED(C), wmOperator *op)
 
 #endif //WITH_AUDASPACE
 
-static int graphkeys_sound_bake_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int graphkeys_sound_bake_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 
@@ -2132,7 +2132,7 @@ void GRAPH_OT_smooth(wmOperatorType *ot)
 /* ******************** Add F-Modifier Operator *********************** */
 
 /* present a special customised popup menu for this, with some filtering */
-static int graph_fmodifier_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int graph_fmodifier_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	wmOperatorType *ot = WM_operatortype_find("GRAPH_OT_fmodifier_add", 1);
 	uiPopupMenu *pup;
@@ -2196,8 +2196,9 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 		
 		/* add F-Modifier of specified type to active F-Curve, and make it the active one */
 		fcm = add_fmodifier(&fcu->modifiers, type);
-		if (fcm)
+		if (fcm) {
 			set_active_fmodifier(&fcu->modifiers, fcm);
+		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "Modifier could not be added (see console for details)");
 			break;

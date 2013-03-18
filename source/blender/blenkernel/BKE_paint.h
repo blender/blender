@@ -48,11 +48,22 @@ struct PBVH;
 struct Scene;
 struct StrokeCache;
 struct ImagePool;
+struct UnifiedPaintSettings;
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
 extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
+
+typedef enum PaintMode {
+	PAINT_SCULPT = 0,
+	PAINT_VERTEX = 1,
+	PAINT_WEIGHT = 2,
+	PAINT_TEXTURE_PROJECTIVE = 3,
+	PAINT_TEXTURE_2D = 4,
+	PAINT_SCULPT_UV = 5,
+	PAINT_INVALID = 6
+} PaintMode;
 
 void BKE_paint_init(struct Paint *p, const char col[3]);
 void BKE_paint_free(struct Paint *p);
@@ -61,6 +72,7 @@ void BKE_paint_copy(struct Paint *src, struct Paint *tar);
 /* TODO, give these BKE_ prefix too */
 struct Paint *paint_get_active(struct Scene *sce);
 struct Paint *paint_get_active_from_context(const struct bContext *C);
+PaintMode paintmode_get_active_from_context(const struct bContext *C);
 struct Brush *paint_brush(struct Paint *paint);
 void paint_brush_set(struct Paint *paint, struct Brush *br);
 
@@ -79,7 +91,7 @@ int paint_is_bmesh_face_hidden(struct BMFace *f);
 /* paint masks */
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, unsigned level,
                             unsigned x, unsigned y);
-
+void paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups, const float mouse_pos[2]);
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {

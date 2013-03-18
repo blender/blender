@@ -1012,7 +1012,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		DAG_relations_tag_update(bmain);
 }
 
-static void UNUSED_FUNCTION(copy_attr_menu) (Main * bmain, Scene * scene, View3D * v3d)
+static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, View3D *v3d)
 {
 	Object *ob;
 	short event;
@@ -1132,7 +1132,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 
 
 /* show popup to determine settings */
-static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *ob = CTX_data_active_object(C);
 	
@@ -1358,7 +1358,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-static void UNUSED_FUNCTION(image_aspect) (Scene * scene, View3D * v3d)
+static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 {
 	/* all selected objects with an image map: scale in image aspect */
 	Base *base;

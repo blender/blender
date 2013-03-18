@@ -155,6 +155,18 @@ void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc)
 	}
 }
 
+void BLI_linklist_freeN(LinkNode *list)
+{
+	while (list) {
+		LinkNode *next = list->next;
+
+		MEM_freeN(list->link);
+		MEM_freeN(list);
+
+		list = next;
+	}
+}
+
 void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata)
 {
 	for (; list; list = list->next)

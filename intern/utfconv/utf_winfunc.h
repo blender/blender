@@ -32,6 +32,7 @@
 
 FILE * ufopen(const char * filename, const char * mode);
 int uopen(const char *filename, int oflag, int pmode);
+int uaccess(const char *filename, int mode);
 int urename(const char *oldname, const char *newname );
 
 char * u_alloc_getenv(const char *varname);

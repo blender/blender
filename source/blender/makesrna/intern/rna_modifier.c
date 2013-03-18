@@ -29,11 +29,6 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -52,6 +47,11 @@
 #include "BKE_dynamicpaint.h"
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2593,6 +2593,13 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "Amount to deform object");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "factor");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -10, 10, 1, 3);
+	RNA_def_property_ui_text(prop, "Angle", "Angle of deformation");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "limits", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "limit");
 	RNA_def_property_array(prop, 2);
@@ -2639,6 +2646,13 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "thickness_clamp", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "offset_clamp");
+	RNA_def_property_range(prop, 0, 100.0);
+	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 4);
+	RNA_def_property_ui_text(prop, "Clamp", "Offset clamp based on geometry scale");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "thickness_vertex_group", PROP_FLOAT, PROP_FACTOR);

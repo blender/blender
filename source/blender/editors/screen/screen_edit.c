@@ -194,7 +194,9 @@ void removenotused_scrverts(bScreen *sc)
 			BLI_remlink(&sc->vertbase, sv);
 			MEM_freeN(sv);
 		}
-		else sv->flag = 0;
+		else {
+			sv->flag = 0;
+		}
 		sv = svn;
 	}
 }
@@ -250,7 +252,9 @@ void removenotused_scredges(bScreen *sc)
 			BLI_remlink(&sc->edgebase, se);
 			MEM_freeN(se);
 		}
-		else se->flag = 0;
+		else {
+			se->flag = 0;
+		}
 		se = sen;
 	}
 }
@@ -1133,7 +1137,11 @@ void ED_screens_initialize(wmWindowManager *wm)
 
 void ED_region_exit(bContext *C, ARegion *ar)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	ARegion *prevar = CTX_wm_region(C);
+
+	if (ar->type && ar->type->exit)
+		ar->type->exit(wm, ar);
 
 	CTX_wm_region_set(C, ar);
 	WM_event_remove_handlers(C, &ar->handlers);
@@ -1153,18 +1161,12 @@ void ED_region_exit(bContext *C, ARegion *ar)
 
 void ED_area_exit(bContext *C, ScrArea *sa)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	ScrArea *prevsa = CTX_wm_area(C);
 	ARegion *ar;
 
-	if (sa->spacetype == SPACE_FILE) {
-		SpaceLink *sl = sa->spacedata.first;
-		if (sl && sl->spacetype == SPACE_FILE) {
-			ED_fileselect_exit(C, (SpaceFile *)sl);
-		}
-	}
-	else if (sa->spacetype == SPACE_VIEW3D) {
-		ED_render_engine_area_exit(sa);
-	}
+	if (sa->type && sa->type->exit)
+		sa->type->exit(wm, sa);
 
 	CTX_wm_area_set(C, sa);
 	for (ar = sa->regionbase.first; ar; ar = ar->next)

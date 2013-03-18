@@ -108,6 +108,9 @@ float ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3]);
 void view3d_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
+/* view3d_ruler.c */
+void VIEW3D_OT_ruler(struct wmOperatorType *ot);
+
 /* drawanim.c */
 void draw_motion_paths_init(View3D *v3d, struct ARegion *ar);
 void draw_motion_path_instance(Scene *scene,

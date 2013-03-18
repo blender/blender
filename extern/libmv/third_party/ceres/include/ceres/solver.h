@@ -611,11 +611,13 @@ class Solver {
     // Preprocessor summary.
     int num_parameter_blocks;
     int num_parameters;
+    int num_effective_parameters;
     int num_residual_blocks;
     int num_residuals;
 
     int num_parameter_blocks_reduced;
     int num_parameters_reduced;
+    int num_effective_parameters_reduced;
     int num_residual_blocks_reduced;
     int num_residuals_reduced;
 

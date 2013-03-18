@@ -393,7 +393,7 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
 	}
 }
 
-int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
+int handleMouseInput(TransInfo *t, MouseInput *mi, const wmEvent *event)
 {
 	int redraw = TREDRAW_NOTHING;
 

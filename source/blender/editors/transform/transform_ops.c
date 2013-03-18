@@ -24,15 +24,10 @@
  *  \ingroup edtransform
  */
 
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -43,6 +38,10 @@
 #include "BKE_global.h"
 #include "BKE_armature.h"
 #include "BKE_report.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -166,7 +165,7 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -213,7 +212,7 @@ static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int delete_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return delete_orientation_exec(C, op);
 }
@@ -269,7 +268,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int create_orientation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return create_orientation_exec(C, op);
 }
@@ -301,7 +300,7 @@ static void transformops_exit(bContext *C, wmOperator *op)
 	G.moving = 0;
 }
 
-static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
+static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval = 1;
 	if (op->customdata == NULL) {
@@ -335,7 +334,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 	return retval; /* return 0 on error */
 }
 
-static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int exit_code;
 
@@ -402,7 +401,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!transformops_data(C, op, event)) {
 		G.moving = 0;
@@ -431,7 +430,6 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		/* Make this not hidden when there's a nice axis selection widget */
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_ui_text(prop, "Axis", "The axis around which the transformation occurs");
-
 	}
 
 	if (flags & P_CONSTRAINT) {
@@ -439,8 +437,6 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		prop = RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
 		RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
-
-		
 	}
 
 	if (flags & P_MIRROR) {
@@ -558,6 +554,8 @@ static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
 
 static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name   = "Trackball";
 	ot->description = "Trackball style rotation of selected items";
@@ -571,7 +569,9 @@ static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_screenactive;
 
-	RNA_def_float_vector(ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
+	/* Maybe we could use float_vector_xyz here too? */
+	prop = RNA_def_float_vector(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_subtype(prop, PROP_ANGLE);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
@@ -841,7 +841,7 @@ static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_sequencer_active;
 
-	RNA_def_float_vector(ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
 	Transform_Properties(ot, P_SNAP);
 }

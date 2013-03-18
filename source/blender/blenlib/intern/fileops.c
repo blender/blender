@@ -138,7 +138,9 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 		if (readsize > 0) {
 			size += readsize;
 		}
-		else break;
+		else {
+			break;
+		}
 	}
 	
 	gzclose(gzfile);
@@ -155,37 +157,43 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 	return mem;
 }
 
-
-/* return 1 when file can be written */
-int BLI_file_is_writable(const char *filename)
+/**
+ * Returns true if the file with the specified name can be written.
+ * This implementation uses access(2), which makes the check according
+ * to the real UID and GID of the process, not its effective UID and GID.
+ * This shouldn't matter for Blender, which is not going to run privileged
+ * anyway.
+ */
+bool BLI_file_is_writable(const char *filename)
 {
-	int file;
-	
-	/* first try to open without creating */
-	file = BLI_open(filename, O_BINARY | O_RDWR, 0666);
-	
-	if (file < 0) {
-		/* now try to open and create. a test without actually
-		 * creating a file would be nice, but how? */
-		file = BLI_open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
-		
-		if (file < 0) {
-			return 0;
-		}
-		else {
-			/* success, delete the file we create */
-			close(file);
-			BLI_delete(filename, 0, 0);
-			return 1;
-		}
+	bool writable;
+	if (BLI_access(filename, W_OK) == 0) {
+		/* file exists and I can write to it */
+		writable = true;
+	}
+	else if (errno != ENOENT) {
+		/* most likely file or containing directory cannot be accessed */
+		writable = false;
 	}
 	else {
-		close(file);
-		return 1;
+		/* file doesn't exist -- check I can create it in parent directory */
+		char parent[FILE_MAX];
+		BLI_split_dirfile(filename, parent, NULL, sizeof(parent), 0);
+#ifdef WIN32
+		/* windows does not have X_OK */
+		writable = BLI_access(parent, W_OK) == 0;
+#else
+		writable = BLI_access(parent, X_OK | W_OK) == 0;
+#endif
 	}
+	return writable;
 }
 
-int BLI_file_touch(const char *file)
+/**
+ * Creates the file with nothing in it, or updates its last-modified date if it already exists.
+ * Returns true if successful. (like the unix touch command)
+ */
+bool BLI_file_touch(const char *file)
 {
 	FILE *f = BLI_fopen(file, "r+b");
 	if (f != NULL) {
@@ -198,9 +206,9 @@ int BLI_file_touch(const char *file)
 	}
 	if (f) {
 		fclose(f);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 #ifdef WIN32
@@ -255,7 +263,12 @@ int   BLI_open(const char *filename, int oflag, int pmode)
 	return uopen(filename, oflag, pmode);
 }
 
-int BLI_delete(const char *file, int dir, int recursive)
+int   BLI_access(const char *filename, int mode)
+{
+	return uaccess(filename, mode);
+}
+
+int BLI_delete(const char *file, bool dir, bool recursive)
 {
 	int err;
 	
@@ -279,6 +292,8 @@ int BLI_delete(const char *file, int dir, int recursive)
 	return err;
 }
 
+/* Not used anywhere! */
+#if 0
 int BLI_move(const char *file, const char *to)
 {
 	int err;
@@ -308,7 +323,7 @@ int BLI_move(const char *file, const char *to)
 
 	return err;
 }
-
+#endif
 
 int BLI_copy(const char *file, const char *to)
 {
@@ -391,15 +406,16 @@ int BLI_rename(const char *from, const char *to)
 
 	/* make sure the filenames are different (case insensitive) before removing */
 	if (BLI_exists(to) && BLI_strcasecmp(from, to))
-		if (BLI_delete(to, 0, 0)) return 1;
+		if (BLI_delete(to, false, false)) return 1;
 	
 	return urename(from, to);
 }
 
 #else /* The UNIX world */
 
+/* results from recursive_operation and its callbacks */
 enum {
-	/* operation succeeded succeeded */
+	/* operation succeeded */
 	RecursiveOp_Callback_OK = 0,
 
 	/* operation requested not to perform recursive digging for current path */
@@ -434,120 +450,122 @@ static char *strip_last_slash(const char *dir)
 	return result;
 }
 
-static int recursive_operation(const char *startfrom, const char *startto, RecursiveOp_Callback callback_dir_pre,
+
+
+/**
+ * Scans \a startfrom, generating a corresponding destination name for each item found by
+ * prefixing it with startto, recursively scanning subdirectories, and invoking the specified
+ * callbacks for files and subdirectories found as appropriate.
+ *
+ * \param startfrom  Top-level source path.
+ * \param startto  Top-level destination path.
+ * \param callback_dir_pre  Optional, to be invoked before entering a subdirectory, can return
+ *                          RecursiveOp_Callback_StopRecurs to skip the subdirectory.
+ * \param callback_file  Optional, to be invoked on each file found.
+ * \param callback_dir_post  optional, to be invoked after leaving a subdirectory.
+ * \return
+ */
+static int recursive_operation(const char *startfrom, const char *startto,
+                               RecursiveOp_Callback callback_dir_pre,
                                RecursiveOp_Callback callback_file, RecursiveOp_Callback callback_dir_post)
 {
-	struct dirent **dirlist;
 	struct stat st;
 	char *from = NULL, *to = NULL;
 	char *from_path = NULL, *to_path = NULL;
+	struct dirent **dirlist = NULL;
 	size_t from_alloc_len = -1, to_alloc_len = -1;
 	int i, n, ret = 0;
 
-	/* ensure there's no trailing slash in file path */
-	from = strip_last_slash(startfrom);
-	if (startto)
-		to = strip_last_slash(startto);
+	do {  /* once */
+		/* ensure there's no trailing slash in file path */
+		from = strip_last_slash(startfrom);
+		if (startto)
+			to = strip_last_slash(startto);
 
-	ret = lstat(from, &st);
-	if (ret < 0) {
-		/* source wasn't found, nothing to operate with */
-		return ret;
-	}
+		ret = lstat(from, &st);
+		if (ret < 0)
+			/* source wasn't found, nothing to operate with */
+			break;
 
-	if (!S_ISDIR(st.st_mode)) {
-		/* source isn't a directory, can't do recursive walking for it,
-		 * so just call file callback and leave */
-		if (callback_file) {
-			ret = callback_file(from, to);
-
-			if (ret != RecursiveOp_Callback_OK)
-				ret = -1;
-		}
-
-		MEM_freeN(from);
-		if (to) MEM_freeN(to);
-
-		return ret;
-	}
-
-
-	n = scandir(startfrom, &dirlist, 0, alphasort);
-	if (n < 0) {
-		/* error opening directory for listing */
-		perror("scandir");
-
-		MEM_freeN(from);
-		if (to) MEM_freeN(to);
-
-		return -1;
-	}
-
-	if (callback_dir_pre) {
-		/* call pre-recursive walking directory callback */
-		ret = callback_dir_pre(from, to);
-
-		if (ret != RecursiveOp_Callback_OK) {
-			MEM_freeN(from);
-			if (to) free(to);
-
-			if (ret == RecursiveOp_Callback_StopRecurs) {
-				/* callback requested not to perform recursive walking, not an error */
-				return 0;
-			}
-
-			return -1;
-		}
-	}
-
-	for (i = 0; i < n; i++) {
-		struct dirent *dirent = dirlist[i];
-
-		if (!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, "..")) {
-			free(dirent);
-			continue;
-		}
-
-		join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
-
-		if (to)
-			join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
-
-		if (dirent->d_type == DT_DIR) {
-			/* recursively dig into a folder */
-			ret = recursive_operation(from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
-		}
-		else if (callback_file) {
-			/* call file callback for current path */
-			ret = callback_file(from_path, to_path);
-			if (ret != RecursiveOp_Callback_OK)
-				ret = -1;
-		}
-
-		if (ret != 0) {
-			while (i < n) {
-				free(dirlist[i++]);
+		if (!S_ISDIR(st.st_mode)) {
+			/* source isn't a directory, can't do recursive walking for it,
+			 * so just call file callback and leave */
+			if (callback_file != NULL) {
+				ret = callback_file(from, to);
+				if (ret != RecursiveOp_Callback_OK)
+					ret = -1;
 			}
 			break;
 		}
-	}
 
-	free(dirlist);
+		n = scandir(startfrom, &dirlist, 0, alphasort);
+		if (n < 0) {
+			/* error opening directory for listing */
+			perror("scandir");
+			ret = -1;
+			break;
+		}
 
-	if (ret == 0) {
-		if (callback_dir_post) {
-			/* call post-recursive directory callback */
+		if (callback_dir_pre != NULL) {
+			ret = callback_dir_pre(from, to);
+			if (ret != RecursiveOp_Callback_OK) {
+				if (ret == RecursiveOp_Callback_StopRecurs)
+					/* callback requested not to perform recursive walking, not an error */
+					ret = 0;
+				else
+					ret = -1;
+				break;
+			}
+		}
+
+		for (i = 0; i < n; i++) {
+			const struct dirent * const dirent = dirlist[i];
+
+			if (!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, ".."))
+				continue;
+
+			join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
+			if (to)
+				join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
+
+			if (dirent->d_type == DT_DIR) {
+				/* recursively dig into a subfolder */
+				ret = recursive_operation(from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
+			}
+			else if (callback_file != NULL) {
+				ret = callback_file(from_path, to_path);
+				if (ret != RecursiveOp_Callback_OK)
+					ret = -1;
+			}
+
+			if (ret != 0)
+				break;
+		}
+		if (ret != 0)
+			break;
+
+		if (callback_dir_post != NULL) {
 			ret = callback_dir_post(from, to);
 			if (ret != RecursiveOp_Callback_OK)
 				ret = -1;
 		}
 	}
+	while (false);
 
-	if (from_path) MEM_freeN(from_path);
-	if (to_path) MEM_freeN(to_path);
-
-	MEM_freeN(from);
-	if (to) MEM_freeN(to);
+	if (dirlist != NULL) {
+		for (i = 0; i < n; i++) {
+			free(dirlist[i]);
+		}
+		free(dirlist);
+	}
+	if (from_path != NULL)
+		MEM_freeN(from_path);
+	if (to_path != NULL)
+		MEM_freeN(to_path);
+	if (from != NULL)
+		MEM_freeN(from);
+	if (to != NULL)
+		MEM_freeN(to);
 
 	return ret;
 }
@@ -589,7 +607,17 @@ int BLI_open(const char *filename, int oflag, int pmode)
 	return open(filename, oflag, pmode);
 }
 
-int BLI_delete(const char *file, int dir, int recursive) 
+int   BLI_access(const char *filename, int mode)
+{
+	return access(filename, mode);
+}
+
+
+/**
+ * Deletes the specified file or directory (depending on dir), optionally
+ * doing recursive delete of directory contents.
+ */
+int BLI_delete(const char *file, bool dir, bool recursive)
 {
 	if (strchr(file, '"')) {
 		printf("Error: not deleted file %s because of quote!\n", file);
@@ -608,20 +636,26 @@ int BLI_delete(const char *file, int dir, int recursive)
 	return -1;
 }
 
-static int check_the_same(const char *path_a, const char *path_b)
+/**
+ * Do the two paths denote the same filesystem object?
+ */
+static bool check_the_same(const char *path_a, const char *path_b)
 {
 	struct stat st_a, st_b;
 
 	if (lstat(path_a, &st_a))
-		return 0;
+		return false;
 
 	if (lstat(path_b, &st_b))
-		return 0;
+		return false;
 
 	return st_a.st_dev == st_b.st_dev && st_a.st_ino == st_b.st_ino;
 }
 
-static int set_permissions(const char *file, struct stat *st)
+/**
+ * Sets the mode and ownership of file to the values from st.
+ */
+static int set_permissions(const char *file, const struct stat *st)
 {
 	if (chown(file, st->st_uid, st->st_gid)) {
 		perror("chown");
@@ -769,6 +803,8 @@ static int copy_single_file(const char *from, const char *to)
 	return RecursiveOp_Callback_OK;
 }
 
+/* Not used anywhere! */
+#if 0
 static int move_callback_pre(const char *from, const char *to)
 {
 	int ret = rename(from, to);
@@ -789,16 +825,19 @@ static int move_single_file(const char *from, const char *to)
 	return RecursiveOp_Callback_OK;
 }
 
+/* if *file represents a directory, moves all its contents into *to, else renames
+ * file itself to *to. */
 int BLI_move(const char *file, const char *to)
 {
 	int ret = recursive_operation(file, to, move_callback_pre, move_single_file, NULL);
 
-	if (ret) {
+	if (ret && ret != -1) {
 		return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
 	}
 
 	return ret;
 }
+#endif
 
 static char *check_destination(const char *file, const char *to)
 {
@@ -806,7 +845,8 @@ static char *check_destination(const char *file, const char *to)
 
 	if (!stat(to, &st)) {
 		if (S_ISDIR(st.st_mode)) {
-			char *str, *filename, *path;
+			char *str, *path;
+			const char *filename;
 			size_t len = 0;
 
 			str = strip_last_slash(file);
@@ -875,7 +915,7 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	BLI_strncpy(tmp, dirname, size);
 		
-	lslash = BLI_last_slash(tmp);
+	lslash = (char *)BLI_last_slash(tmp);
 	if (lslash) {
 		/* Split about the last slash and recurse */
 		*lslash = 0;
@@ -893,10 +933,9 @@ int BLI_rename(const char *from, const char *to)
 	if (!BLI_exists(from)) return 0;
 	
 	if (BLI_exists(to))
-		if (BLI_delete(to, 0, 0)) return 1;
+		if (BLI_delete(to, false, false)) return 1;
 
 	return rename(from, to);
 }
 
 #endif
-

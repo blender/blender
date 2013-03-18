@@ -37,15 +37,16 @@
 extern "C" {
 #endif
 
-struct FileList;
-struct FolderList;
-struct direntry;
 struct BlendHandle;
-struct Scene;
-struct Main;
-struct rcti;
-struct ReportList;
+struct FileList;
 struct FileSelection;
+struct FolderList;
+struct Main;
+struct ReportList;
+struct Scene;
+struct direntry;
+struct rcti;
+struct wmWindowManager;
 
 typedef enum FileSelType {
 	FILE_SEL_REMOVE = 0,
@@ -99,9 +100,9 @@ void                folderlist_popdir(struct ListBase *folderlist, char *dir);
 void                folderlist_pushdir(struct ListBase *folderlist, const char *dir);
 int                 folderlist_clear_next(struct SpaceFile *sfile);
 
-void                thumbnails_stop(struct FileList *filelist, const struct bContext *C);
 void                thumbnails_start(struct FileList *filelist, const struct bContext *C);
-int                 thumbnails_running(struct FileList *filelist, const struct bContext *C);
+void                thumbnails_stop(struct wmWindowManager *wm, struct FileList *filelist);
+int                 thumbnails_running(struct wmWindowManager *wm, struct FileList *filelist);
 
 #ifdef __cplusplus
 }

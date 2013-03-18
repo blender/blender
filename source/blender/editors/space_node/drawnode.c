@@ -687,14 +687,14 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *ntree, bNode *gnode,
                               bNodeSocket *sock, bNodeSocket *gsock, int index, int in_out)
 {
-	const float dpi_fac = 1.0f;
+	const float dpi_fac = UI_DPI_FAC;
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeSocketType *stype = ntreeGetSocketType(gsock ? gsock->type : sock->type);
 	uiBut *bt;
 	float offset;
 	int draw_value;
 	const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
-	const float socket_size      = NODE_SOCKSIZE * dpi_fac;
+	const float socket_size      = NODE_SOCKSIZE;
 	const float arrowbutw        = 0.8f * UI_UNIT_X;
 	const short co_text_w = 72 * dpi_fac;
 	const float co_margin = 6.0f * dpi_fac;
@@ -799,12 +799,12 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiLayout *layout;
 		PointerRNA ptr;
 		rctf rect = gnode->totr;
-		const float dpi_fac = 1.0f;
+		const float dpi_fac = UI_DPI_FAC;
 		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
 		const float group_header = 26 * dpi_fac;
 		
 		int index;
-		
+
 		/* backdrop header */
 		glEnable(GL_BLEND);
 		uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
@@ -1296,11 +1296,11 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	uiItemR(row, ptr, "scale", 0, "", ICON_NONE);
 	
 	row = uiLayoutRow(layout, TRUE);
-	uiItemR(row, ptr, "use_min", 0, "Min", ICON_NONE);
+	uiItemR(row, ptr, "use_min", 0, IFACE_("Min"), ICON_NONE);
 	uiItemR(row, ptr, "min", 0, "", ICON_NONE);
 	
 	row = uiLayoutRow(layout, TRUE);
-	uiItemR(row, ptr, "use_max", 0, "Max", ICON_NONE);
+	uiItemR(row, ptr, "use_max", 0, IFACE_("Max"), ICON_NONE);
 	uiItemR(row, ptr, "max", 0, "", ICON_NONE);
 }
 
@@ -3301,7 +3301,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glPixelZoom(snode->zoom, snode->zoom);
 					
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
+					glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_LINEAR, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
 					glDisable(GL_BLEND);
@@ -3309,7 +3309,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 				else {
 					glPixelZoom(snode->zoom, snode->zoom);
 
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
+					glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_LINEAR, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
 				}
@@ -3320,6 +3320,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			/** @note draw selected info on backdrop */
 			if (snode->edittree) {
 				bNode *node = snode->edittree->nodes.first;
+				rctf *viewer_border = &snode->edittree->viewer_border;
 				while (node) {
 					if (node->flag & NODE_SELECT) {
 						if (node->typeinfo->uibackdropfunc) {
@@ -3327,6 +3328,23 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 						}
 					}
 					node = node->next;
+				}
+
+				if ((snode->edittree->flag & NTREE_VIEWER_BORDER) &&
+				    viewer_border->xmin < viewer_border->xmax &&
+				    viewer_border->ymin < viewer_border->ymax)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					setlinestyle(3);
+					cpack(0x4040FF);
+
+					glRectf(x + snode->zoom * viewer_border->xmin * ibuf->x,
+					        y + snode->zoom * viewer_border->ymin * ibuf->y,
+					        x + snode->zoom * viewer_border->xmax * ibuf->x,
+					        y + snode->zoom * viewer_border->ymax * ibuf->y);
+
+					setlinestyle(0);
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				}
 			}
 			
@@ -3340,57 +3358,6 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 	}
 }
 
-#if 0
-/* note: needs to be userpref or opengl profile option */
-static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
-{
-
-	draw_nodespace_grid(snode);
-	
-	if (snode->flag & SNODE_BACKDRAW) {
-		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-		if (ibuf) {
-			int x, y;
-			float zoom = 1.0;
-
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			
-			glaDefine2DArea(&sa->winrct);
-
-			if (ibuf->x > sa->winx || ibuf->y > sa->winy) {
-				float zoomx, zoomy;
-				zoomx = (float)sa->winx / ibuf->x;
-				zoomy = (float)sa->winy / ibuf->y;
-				zoom = min_ff(zoomx, zoomy);
-			}
-			
-			x = (sa->winx - zoom * ibuf->x) / 2 + snode->xof;
-			y = (sa->winy - zoom * ibuf->y) / 2 + snode->yof;
-
-			glPixelZoom(zoom, zoom);
-
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-			if (ibuf->rect)
-				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-			else if (ibuf->channels == 4)
-				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float);
-
-			glPixelZoom(1.0, 1.0);
-
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-		}
-	}
-}
-#endif
 
 /* if v2d not NULL, it clips and returns 0 if not visible */
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol)

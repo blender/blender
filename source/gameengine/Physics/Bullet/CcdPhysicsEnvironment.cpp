@@ -1206,7 +1206,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 					{
 						// soft body using different face numbering because of randomization
 						// hopefully we have stored the original face number in m_tag
-						btSoftBody* softBody = static_cast<btSoftBody*>(rayCallback.m_collisionObject);
+						const btSoftBody* softBody = static_cast<const btSoftBody*>(rayCallback.m_collisionObject);
 						if (softBody->m_faces[hitTriangleIndex].m_tag != 0)
 						{
 							rayCallback.m_hitTriangleIndex = (int)((uintptr_t)(softBody->m_faces[hitTriangleIndex].m_tag)-1);
@@ -1226,7 +1226,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 						if (shape->isSoftBody())
 						{
 							// soft body give points directly in world coordinate
-							btSoftBody* softBody = static_cast<btSoftBody*>(rayCallback.m_collisionObject);
+							const btSoftBody* softBody = static_cast<const btSoftBody*>(rayCallback.m_collisionObject);
 							v1 = softBody->m_faces[hitTriangleIndex].m_n[0]->m_x;
 							v2 = softBody->m_faces[hitTriangleIndex].m_n[1]->m_x;
 							v3 = softBody->m_faces[hitTriangleIndex].m_n[2]->m_x;
@@ -1274,7 +1274,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 						if (shape->isSoftBody()) 
 						{
 							// we can get the real normal directly from the body
-							btSoftBody* softBody = static_cast<btSoftBody*>(rayCallback.m_collisionObject);
+							const btSoftBody* softBody = static_cast<const btSoftBody*>(rayCallback.m_collisionObject);
 							rayCallback.m_hitNormalWorld = softBody->m_faces[hitTriangleIndex].m_normal;
 						} else
 						{
@@ -2211,8 +2211,8 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 			int numContacts = manifold->getNumContacts();
 			if (numContacts)
 			{
-				btRigidBody* rb0 = static_cast<btRigidBody*>(manifold->getBody0());
-				btRigidBody* rb1 = static_cast<btRigidBody*>(manifold->getBody1());
+				const btRigidBody* rb0 = static_cast<const btRigidBody*>(manifold->getBody0());
+				const btRigidBody* rb1 = static_cast<const btRigidBody*>(manifold->getBody1());
 				if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints))
 				{
 					for (int j=0;j<numContacts;j++)
@@ -2223,8 +2223,8 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 							m_debugDrawer->drawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.getDistance(),cp.getLifeTime(),color);
 					}
 				}
-				btRigidBody* obj0 = rb0;
-				btRigidBody* obj1 = rb1;
+				const btRigidBody* obj0 = rb0;
+				const btRigidBody* obj1 = rb1;
 
 				//m_internalOwner is set in 'addPhysicsController'
 				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->getUserPointer());

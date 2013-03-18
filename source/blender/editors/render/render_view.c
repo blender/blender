@@ -275,7 +275,7 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 
 /************************* show render viewer *****************/
 
-static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	wmWindow *wincur = CTX_wm_window(C);
 	

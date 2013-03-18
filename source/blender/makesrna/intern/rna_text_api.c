@@ -24,9 +24,10 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 

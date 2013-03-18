@@ -27,15 +27,9 @@
  *  \ingroup RNA
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
 
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -47,6 +41,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_boid_types.h"
 #include "DNA_texture_types.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

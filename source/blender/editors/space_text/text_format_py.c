@@ -233,7 +233,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			/* Deal with comments first */
 			if (*str == '#') {
 				/* fill the remaining line */
-				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(str - fs.buf));
+				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */

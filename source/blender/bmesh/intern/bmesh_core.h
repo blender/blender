@@ -73,9 +73,9 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1,
                           );
 
 BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e);
-BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const bool check_edge_splice);
+BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_edge_splice);
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
-BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv);
-BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl);
+BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep);
+BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep);
 
 #endif /* __BMESH_CORE_H__ */

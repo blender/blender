@@ -47,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -160,12 +161,12 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 	Object *ob = vc->obact;
 	float delta[3], scale, loc[3];
 	const float mval_f[2] = {pixel_radius, 0.0f};
+	float zfac;
 
 	mul_v3_m4v3(loc, ob->obmat, center);
 
-	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
-
-	ED_view3d_win_to_delta(vc->ar, mval_f, delta);
+	zfac = ED_view3d_calc_zfac(vc->rv3d, loc, NULL);
+	ED_view3d_win_to_delta(vc->ar, mval_f, delta, zfac);
 
 	scale = fabsf(mat4_to_scale(ob->obmat));
 	scale = (scale == 0.0f) ? 1.0f : scale;
@@ -414,7 +415,7 @@ void PAINT_OT_face_select_linked(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int mode = RNA_boolean_get(op->ptr, "extend") ? 1 : 0;
 	paintface_select_linked(C, CTX_data_active_object(C), event->mval, mode);
@@ -482,6 +483,39 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
+}
+
+
+static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	Mesh *me = ob->data;
+
+	if ((ob->defbase.first == NULL) || (me->dvert == NULL)) {
+		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
+		return OPERATOR_CANCELLED;
+	}
+
+	paintvert_select_ungrouped(ob, RNA_boolean_get(op->ptr, "extend"), TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Ungrouped";
+	ot->idname = "PAINT_OT_vert_select_ungrouped";
+	ot->description = "Select vertices without a group";
+
+	/* api callbacks */
+	ot->exec = vert_select_ungrouped_exec;
+	ot->poll = vert_paint_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)

@@ -107,6 +107,7 @@ typedef struct RegionView3D {
 	struct RenderInfo *ri;
 	struct RenderEngine *render_engine;
 	struct ViewDepths *depths;
+	void *gpuoffscreen;
 
 	/* animated smooth view */
 	struct SmoothView3DStore *sms;
@@ -118,7 +119,6 @@ typedef struct RegionView3D {
 
 	float viewquat[4];			/* view rotation, must be kept normalized */
 	float dist;					/* distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs' */
-	float zfac;					/* initgrabz() result */
 	float camdx, camdy;			/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;				/* runtime only */
 	float ofs[3];				/* view center & orbit pivot, negative of worldspace location,
@@ -129,10 +129,11 @@ typedef struct RegionView3D {
 	char persp;
 	char view;
 	char viewlock;
+	char pad[4];
 
 	short twdrawflag;
 	short rflag;
-	
+
 
 	/* last view (use when switching out of camera view) */
 	float lviewquat[4];

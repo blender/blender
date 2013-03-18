@@ -520,7 +520,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				return 0;
 			}
 			if ((seq != activeseq) && (seq != seq2)) {
-				if (seq2 == NULL) seq2 = seq;
+				if      (seq2 == NULL) seq2 = seq;
 				else if (seq1 == NULL) seq1 = seq;
 				else if (seq3 == NULL) seq3 = seq;
 				else {
@@ -889,7 +889,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 	return done;
 }
 
-static void UNUSED_FUNCTION(touch_seq_files) (Scene * scene)
+static void UNUSED_FUNCTION(touch_seq_files) (Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -946,7 +946,7 @@ static void set_filter_seq(Scene *scene)
 }
 #endif
 
-static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
+static void UNUSED_FUNCTION(seq_remap_paths) (Scene *scene)
 {
 	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -988,7 +988,7 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 }
 
 
-static void UNUSED_FUNCTION(no_gaps) (Scene * scene)
+static void UNUSED_FUNCTION(no_gaps) (Scene *scene)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int cfra, first = 0, done;
@@ -1121,7 +1121,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	
@@ -1546,7 +1546,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 }
 
 
-static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_cut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
@@ -1695,7 +1695,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -3105,7 +3105,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	Sequence *seq = BKE_sequencer_active_get(scene);

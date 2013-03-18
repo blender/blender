@@ -27,6 +27,12 @@
  *  \ingroup bmesh
  */
 
+int   BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*r_index)[3])
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull))
+#endif
+;
 float BM_face_calc_area(BMFace *f);
 float BM_face_calc_perimeter(BMFace *f);
 void  BM_face_calc_center_bounds(BMFace *f, float center[3]);

@@ -381,7 +381,7 @@ static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
 
 		for (i = 0, entry = onm->entries; i < nentries; i++, entry++) {
 			if (entry->old == addr) {
-				ID *id = id = entry->newp;
+				ID *id = entry->newp;
 				if (id && (!lib || id->lib)) {
 					return id;
 				}
@@ -496,16 +496,6 @@ void blo_split_main(ListBase *mainlist, Main *main)
 		split_libdata(lbarray[i], main->next);
 }
 
-/* removes things like /blah/blah/../../blah/ etc, then writes in *name the full path */
-static void cleanup_path(const char *relabase, char *name)
-{
-	char filename[FILE_MAXFILE];
-	
-	BLI_splitdirstring(name, filename);
-	BLI_cleanup_dir(relabase, name);
-	strcat(name, filename);
-}
-
 static void read_file_version(FileData *fd, Main *main)
 {
 	BHead *bhead;
@@ -534,7 +524,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 	char name1[FILE_MAX];
 	
 	BLI_strncpy(name1, filepath, sizeof(name1));
-	cleanup_path(relabase, name1);
+	BLI_cleanup_path(relabase, name1);
 	
 //	printf("blo_find_main: relabase  %s\n", relabase);
 //	printf("blo_find_main: original in  %s\n", filepath);
@@ -1178,7 +1168,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 	dir[len - 1] = '\0';
 
 	/* Find the last slash */
-	fd = BLI_last_slash(dir);
+	fd = (char *)BLI_last_slash(dir);
 
 	if (fd == NULL) return 0;
 	*fd = 0;
@@ -1187,10 +1177,10 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 		*fd = '/'; /* put back the removed slash separating the dir and the .blend file name */
 	}
 	else {
-		char *gp = fd + 1; // in case we have a .blend file, gp points to the group
+		const char * const gp = fd + 1; // in case we have a .blend file, gp points to the group
 		
 		/* Find the last slash */
-		fd = BLI_last_slash(dir);
+		fd = (char *)BLI_last_slash(dir);
 		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
 		
 		/* now we know that we are in a blend file and it is safe to 
@@ -3259,7 +3249,9 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->strinfo= newdataadr(fd, cu->strinfo);
 	cu->tb = newdataadr(fd, cu->tb);
 
-	if (cu->vfont == NULL) link_list(fd, &(cu->nurb));
+	if (cu->vfont == NULL) {
+		link_list(fd, &(cu->nurb));
+	}
 	else {
 		cu->nurb.first=cu->nurb.last= NULL;
 		
@@ -3839,8 +3831,10 @@ static void lib_link_mesh(FileData *fd, Main *main)
 					me->mat[i] = newlibadr_us(fd, me->id.lib, me->mat[i]);
 				}
 			}
-			else me->totcol = 0;
-			
+			else {
+				me->totcol = 0;
+			}
+
 			me->ipo = newlibadr_us(fd, me->id.lib, me->ipo); // XXX: deprecated: old anim sys
 			me->key = newlibadr_us(fd, me->id.lib, me->key);
 			me->texcomesh = newlibadr_us(fd, me->id.lib, me->texcomesh);
@@ -5345,8 +5339,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* link cache */
 		direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, FALSE);
 		/* make sure simulation starts from the beginning after loading file */
-		if (rbw->pointcache)
-			rbw->ltime = rbw->pointcache->startframe;
+		if (rbw->pointcache) {
+			rbw->ltime = (float)rbw->pointcache->startframe;
+		}
 	}
 }
 
@@ -5750,7 +5745,9 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						}
 #endif
 					}
-					else if (v3d->scenelock) v3d->lay = sc->scene->lay;
+					else if (v3d->scenelock) {
+						v3d->lay = sc->scene->lay;
+					}
 					
 					/* not very nice, but could help */
 					if ((v3d->layact & v3d->lay) == 0) v3d->layact = v3d->lay;
@@ -5946,6 +5943,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			rv3d->clipbb = newdataadr(fd, rv3d->clipbb);
 			
 			rv3d->depths = NULL;
+			rv3d->gpuoffscreen = NULL;
 			rv3d->ri = NULL;
 			rv3d->render_engine = NULL;
 			rv3d->sms = NULL;
@@ -6111,7 +6109,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					soops->treestore->totelem = soops->treestore->usedelem;
 					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
 				}
-				 soops->tree.first = soops->tree.last= NULL;
+				soops->tree.first = soops->tree.last= NULL;
 			}
 			else if (sl->spacetype == SPACE_IMAGE) {
 				SpaceImage *sima = (SpaceImage *)sl;
@@ -6282,7 +6280,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	}
 	/* make sure we have full path in lib->filepath */
 	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
-	cleanup_path(fd->relabase, lib->filepath);
+	BLI_cleanup_path(fd->relabase, lib->filepath);
 	
 //	printf("direct_link_library: name %s\n", lib->name);
 //	printf("direct_link_library: filepath %s\n", lib->filepath);
@@ -7647,6 +7645,21 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 	}
 }
 
+/* initialize userdef with non-UI dependency stuff */
+/* other initializers (such as theme color defaults) go to resources.c */
+static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
+{
+	Main *bmain = bfd->main;
+	UserDef *user = bfd->user;
+	
+	if (user == NULL) return;
+	
+	if (bmain->versionfile < 267) {
+	
+		if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
+			user->image_gpubuffer_limit = 10;
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -8872,8 +8885,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 5)) {
 		Scene *scene;
-		Image *image, *nimage;
-		Tex *tex, *otex;
+		Image *image;
+		Tex *tex;
 		bNodeTreeType *ntreetype;
 		bNodeTree *ntree;
 
@@ -8920,66 +8933,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			else {
 				BKE_image_alpha_mode_from_extension(image);
 			}
-
-			image->flag &= ~IMA_DONE_TAG;
 		}
 
-		/* use alpha flag moved from texture to image datablock */
 		for (tex = main->tex.first; tex; tex = tex->id.next) {
 			if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
 				image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
 
-				/* skip if no image or already tested */
-				if (!image || (image->flag & (IMA_DONE_TAG|IMA_IGNORE_ALPHA)))
-					continue;
-
-				image->flag |= IMA_DONE_TAG;
-
-				/* we might have some textures using alpha and others not, so we check if
-				 * they exist and duplicate the image datablock if necessary */
-				for (otex = main->tex.first; otex; otex = otex->id.next)
-					if (otex->type == TEX_IMAGE && (otex->imaflag & TEX_USEALPHA))
-						if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima))
-							break;
-
-				/* no duplication if the texture and image datablock are not
-				 * from the same .blend file, the image datablock may not have
-				 * been loaded from a library file otherwise */
-				if (otex && (tex->id.lib == image->id.lib)) {
-					/* copy image datablock */
-					nimage = BKE_image_copy(main, image);
-					nimage->flag |= IMA_IGNORE_ALPHA|IMA_DONE_TAG;
-					nimage->id.us--;
-
-					/* we need to do some trickery to make file loading think
-					 * this new datablock is part of file we're loading */
-					blo_do_versions_oldnewmap_insert(fd->libmap, nimage, nimage, 0);
-					nimage->id.lib = image->id.lib;
-					nimage->id.flag |= (image->id.flag & LIB_NEED_LINK);
-
-					/* assign new image, and update the users counts accordingly */
-					for (otex = main->tex.first; otex; otex = otex->id.next) {
-						if (otex->type == TEX_IMAGE && (otex->imaflag & TEX_USEALPHA) == 0) {
-							if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima)) {
-								if (!(otex->id.flag & LIB_NEED_LINK)) {
-									image->id.us--;
-									nimage->id.us++;
-								}
-								otex->ima = nimage;
-								break;
-							}
-						}
-					}
-				}
-				else {
-					/* no other textures using alpha, just set the flag */
+				if (image && (image->flag & IMA_DO_PREMUL) == 0)
 					image->flag |= IMA_IGNORE_ALPHA;
-				}
 			}
 		}
-
-		for (image = main->image.first; image; image = image->id.next)
-			image->flag &= ~IMA_DONE_TAG;
 
 		ntreetype = ntreeGetType(NTREE_COMPOSIT);
 		if (ntreetype && ntreetype->foreach_nodetree)
@@ -8987,6 +8950,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
 			do_version_node_straight_image_alpha_workaround(fd, NULL, ntree);
+	}
+	else if (main->versionfile < 266 || (main->versionfile == 266 && main->subversionfile < 1)) {
+		/* texture use alpha was removed for 2.66 but added back again for 2.66a,
+		 * for compatibility all textures assumed it to be enabled */
+		Tex *tex;
+
+		for (tex = main->tex.first; tex; tex = tex->id.next)
+			if (tex->type == TEX_IMAGE)
+				tex->imaflag |= TEX_USEALPHA;
 	}
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
@@ -9024,14 +8996,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 265, 8)) {
+	if (MAIN_VERSION_OLDER(main, 265, 9)) {
 		Mesh *me;
 		for (me = main->mesh.first; me; me = me->id.next) {
 			BKE_mesh_do_versions_cd_flag_init(me);
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 265, 9)) {
+	if (MAIN_VERSION_OLDER(main, 265, 10)) {
 		Brush *br;
 		for (br = main->brush.first; br; br = br->id.next) {
 			if (br->ob_mode & OB_MODE_TEXTURE_PAINT) {
@@ -9041,7 +9013,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	// add storage for compositor translate nodes when not existing
-	if (!MAIN_VERSION_ATLEAST(main, 265, 10)) {
+	if (MAIN_VERSION_OLDER(main, 265, 11)) {
 		bNodeTreeType *ntreetype;
 		bNodeTree *ntree;
 
@@ -9053,8 +9025,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_version_node_fix_translate_wrapping(NULL, NULL, ntree);
 	}
 
-	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
-
+	if (main->versionfile < 267) {
+		
+		/* TIP: to initialize new variables added, use the new function
+		   DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")
+		   example: 
+				if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
+					user->image_gpubuffer_limit = 10;
+		 */
+		
+	}
+	
 #ifdef WITH_FREESTYLE
 	/* default values in Freestyle settings */
 	{
@@ -9155,7 +9136,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 #endif
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
 	/* don't forget to set version number in blender.c! */
 }
@@ -9355,8 +9336,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	}
 	
 	/* do before read_libraries, but skip undo case */
-//	if (fd->memfile==NULL) (the mesh shuffle hacks don't work yet? ton)
+	if (fd->memfile==NULL)
 		do_versions(fd, NULL, bfd->main);
+	
+	do_versions_userdef(fd, bfd);
 	
 	read_libraries(fd, &mainlist);
 	
@@ -10806,7 +10789,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						PackedFile *pf = mainptr->curlib->packedfile;
 						
 						BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read packed library:  '%s'"),
-										 mainptr->curlib->name);
+						                 mainptr->curlib->name);
 						fd = blo_openblendermemory(pf->data, pf->size, basefd->reports);
 						
 						
@@ -10814,9 +10797,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						BLI_strncpy(fd->relabase, mainptr->curlib->filepath, sizeof(fd->relabase));
 					}
 					else {
-					BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read library:  '%s', '%s'"),
-					                 mainptr->curlib->filepath, mainptr->curlib->name);
-					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
+						BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read library:  '%s', '%s'"),
+						                 mainptr->curlib->filepath, mainptr->curlib->name);
+						fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 					}
 					/* allow typing in a new lib path */
 					if (G.debug_value == -666) {
@@ -10831,7 +10814,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							if (scanf("%s", newlib_path) > 0) {
 								BLI_strncpy(mainptr->curlib->name, newlib_path, sizeof(mainptr->curlib->name));
 								BLI_strncpy(mainptr->curlib->filepath, newlib_path, sizeof(mainptr->curlib->filepath));
-								cleanup_path(G.main->name, mainptr->curlib->filepath);
+								BLI_cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 
@@ -10863,7 +10846,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						/* subversion */
 						read_file_version(fd, mainptr);
 					}
-					else mainptr->curlib->filedata = NULL;
+					else {
+						mainptr->curlib->filedata = NULL;
+					}
 					
 					if (fd == NULL) {
 						BKE_reportf_wrap(basefd->reports, RPT_WARNING, TIP_("Cannot find lib '%s'"),

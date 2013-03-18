@@ -189,30 +189,21 @@ void GPU_render_text(MTFace *tface, int mode,
 
 /* Checking powers of two for images since opengl 1.x requires it */
 
-static int is_pow2_limit(int num)
+static bool is_power_of_2_resolution(int w, int h)
 {
-	/* take texture clamping into account */
-
-	/* XXX: texturepaint not global! */
-#if 0
-	if (G.f & G_TEXTUREPAINT)
-		return 1;*/
-#endif
-
-	if (U.glreslimit != 0 && num > U.glreslimit)
-		return 0;
-
-	return is_power_of_2_i(num);
+	return is_power_of_2_i(w) && is_power_of_2_i(h);
 }
 
-static int smaller_pow2_limit(int num)
+static bool is_over_resolution_limit(int w, int h)
 {
-	/* XXX: texturepaint not global! */
-#if 0
-	if (G.f & G_TEXTUREPAINT)
-		return 1;*/
-#endif
+	if (U.glreslimit != 0)
+		return (w > U.glreslimit || h > U.glreslimit);
 
+	return false;
+}
+
+static int smaller_power_of_2_limit(int num)
+{
 	/* take texture clamping into account */
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return U.glreslimit;
@@ -670,7 +661,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 }
 
 /* Image *ima can be NULL */
-void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int rectw, int recth, int mipmap, int use_high_bit_depth, Image *ima)
+void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int rectw, int recth, int mipmap, int use_high_bit_depth, Image *ima)
 {
 	unsigned int *scalerect = NULL;
 	float *fscalerect = NULL;
@@ -681,9 +672,10 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 	/* scale if not a power of two. this is not strictly necessary for newer
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
-	if (!GPU_non_power_of_two_support() && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
-		rectw= smaller_pow2_limit(rectw);
-		recth= smaller_pow2_limit(recth);
+	if ((!GPU_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
+		is_over_resolution_limit(rectw, recth)) {
+		rectw= smaller_power_of_2_limit(rectw);
+		recth= smaller_power_of_2_limit(recth);
 		
 		if (use_high_bit_depth) {
 			fscalerect= MEM_mallocN(rectw*recth*sizeof(*fscalerect)*4, "fscalerect");
@@ -772,7 +764,7 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		return FALSE;
 	}
 
-	if (!is_power_of_2_i(width) || !is_power_of_2_i(height)) {
+	if (!is_power_of_2_resolution(width, height)) {
 		printf("Unable to load non-power-of-two DXT image resolution, falling back to uncompressed\n");
 		return FALSE;
 	}

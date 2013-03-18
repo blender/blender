@@ -461,7 +461,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.postsat = 1.0;
 
 	sce->r.bake_mode = 1;    /* prevent to include render stuff here */
-	sce->r.bake_filter = 2;
+	sce->r.bake_filter = 16;
 	sce->r.bake_osa = 5;
 	sce->r.bake_flag = R_BAKE_CLEAR;
 	sce->r.bake_normal_space = R_BAKE_SPACE_TANGENT;
@@ -786,7 +786,9 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 			else {
 				if (*base && fase != F_DUPLI) {
 					*base = (*base)->next;
-					if (*base) *ob = (*base)->object;
+					if (*base) {
+						*ob = (*base)->object;
+					}
 					else {
 						if (fase == F_SCENE) {
 							/* (*scene) is finished, now do the set */
@@ -803,7 +805,9 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 				}
 			}
 			
-			if (*base == NULL) fase = F_START;
+			if (*base == NULL) {
+				fase = F_START;
+			}
 			else {
 				if (fase != F_DUPLI) {
 					if ( (*base)->object->transflag & OB_DUPLI) {

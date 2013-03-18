@@ -125,7 +125,9 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot);
 void NLA_OT_channels_click(wmOperatorType *ot);
 
 void NLA_OT_tracks_add(wmOperatorType *ot);
-void NLA_OT_delete_tracks(wmOperatorType *ot);
+void NLA_OT_tracks_delete(wmOperatorType *ot);
+
+void NLA_OT_selected_objects_add(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_ops.c */

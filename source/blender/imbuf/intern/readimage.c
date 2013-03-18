@@ -43,11 +43,10 @@
 #endif
 
 #include <stdlib.h>
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
-
-#include "BLI_utildefines.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"

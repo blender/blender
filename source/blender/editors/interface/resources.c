@@ -279,6 +279,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->vertex; break;
 				case TH_VERTEX_SELECT:
 					cp = ts->vertex_select; break;
+				case TH_VERTEX_UNREFERENCED:
+					cp = ts->vertex_unreferenced; break;
 				case TH_VERTEX_SIZE:
 					cp = &ts->vertex_size; break;
 				case TH_OUTLINE_WIDTH:
@@ -445,7 +447,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_HANDLE_VERTEX_SIZE:
 					cp = &ts->handle_vertex_size;
 					break;
-
 				case TH_DOPESHEET_CHANNELOB:
 					cp = ts->ds_channel;
 					break;
@@ -718,6 +719,8 @@ void ui_theme_init_default(void)
 	/* space view3d */
 	btheme->tv3d.panelcolors.show_back = FALSE;
 	btheme->tv3d.panelcolors.show_header = FALSE;
+	rgba_char_args_set_fl(btheme->tv3d.panelcolors.back, 0.45, 0.45, 0.45, 0.5);
+	rgba_char_args_set_fl(btheme->tv3d.panelcolors.header, 0, 0, 0, 0.01);
 	rgba_char_args_set_fl(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	rgba_char_args_set(btheme->tv3d.text,       0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
@@ -742,6 +745,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
 	rgba_char_args_set(btheme->tv3d.vertex, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.vertex_select, 255, 133, 0, 255);
+	rgba_char_args_set(btheme->tv3d.vertex_unreferenced, 0, 0, 0, 255);
 	btheme->tv3d.vertex_size = 3;
 	btheme->tv3d.outline_width = 1;
 	rgba_char_args_set(btheme->tv3d.edge,       0x0, 0x0, 0x0, 255);
@@ -1376,7 +1380,7 @@ void init_userdef_do_versions(void)
 	
 	/* signal for derivedmesh to use colorband */
 	/* run in case this was on and is now off in the user prefs [#28096] */
-	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL);
+	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, UI_GetTheme()->tv3d.vertex_unreferenced);
 
 	if (bmain->versionfile <= 191) {
 		strcpy(U.sounddir, "/");

@@ -133,7 +133,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int node_group_edit_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
@@ -789,7 +789,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_group_separate_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int node_group_separate_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
@@ -1146,7 +1146,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_group_make_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int node_group_make_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *act = nodeGetActive(snode->edittree);

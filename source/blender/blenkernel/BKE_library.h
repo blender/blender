@@ -63,7 +63,7 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
 ;
-void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const short do_action);
+void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const bool do_action);
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);
@@ -72,13 +72,13 @@ void id_us_ensure_real(struct ID *id);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 
-int id_make_local(struct ID *id, int test);
-int id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
-int id_copy(struct ID *id, struct ID **newid, int test);
-int id_unlink(struct ID *id, int test);
+bool id_make_local(struct ID *id, bool test);
+bool id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
+bool id_copy(struct ID *id, struct ID **newid, bool test);
+bool id_unlink(struct ID *id, int test);
 void id_sort_by_name(struct ListBase *lb, struct ID *id);
 
-int new_id(struct ListBase *lb, struct ID *id, const char *name);
+bool new_id(struct ListBase *lb, struct ID *id, const char *name);
 void id_clear_lib_data(struct Main *bmain, struct ID *id);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
@@ -96,10 +96,9 @@ void tag_main_lb(struct ListBase *lb, const short tag);
 void tag_main(struct Main *mainvar, const short tag);
 
 void rename_id(struct ID *id, const char *name);
-void name_uiprefix_id(char *name, struct ID *id);
+void name_uiprefix_id(char *name, const struct ID *id);
 void test_idbutton(char *name);
-void text_idbutton(struct ID *id, char *text);
-void BKE_library_make_local(struct Main *bmain, struct Library *lib, int untagged_only);
+void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagged_only);
 struct ID *BKE_libblock_find_name(const short type, const char *name)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
@@ -128,4 +127,4 @@ void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowMa
 }
 #endif
 
-#endif
+#endif  /* __BKE_LIBRARY_H__ */

@@ -32,7 +32,7 @@ subject to the following restrictions:
 /// 4 : rotation Y (2nd Euler rotational around new position of Y axis, range [-PI/2+epsilon, PI/2-epsilon] )
 /// 5 : rotation Z (1st Euler rotational around Z axis, range [-PI+epsilon, PI-epsilon] )
 
-class btGeneric6DofSpringConstraint : public btGeneric6DofConstraint
+ATTRIBUTE_ALIGNED16(class) btGeneric6DofSpringConstraint : public btGeneric6DofConstraint
 {
 protected:
 	bool		m_springEnabled[6];
@@ -42,6 +42,9 @@ protected:
 	void init();
 	void internalUpdateSprings(btConstraintInfo2* info);
 public: 
+	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
     btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
     btGeneric6DofSpringConstraint(btRigidBody& rbB, const btTransform& frameInB, bool useLinearReferenceFrameB);
 	void enableSpring(int index, bool onOff);
@@ -87,12 +90,12 @@ SIMD_FORCE_INLINE	const char*	btGeneric6DofSpringConstraint::serialize(void* dat
 	int i;
 	for (i=0;i<6;i++)
 	{
-		dof->m_equilibriumPoint[i] = m_equilibriumPoint[i];
-		dof->m_springDamping[i] = m_springDamping[i];
+		dof->m_equilibriumPoint[i] = (float)m_equilibriumPoint[i];
+		dof->m_springDamping[i] = (float)m_springDamping[i];
 		dof->m_springEnabled[i] = m_springEnabled[i]? 1 : 0;
-		dof->m_springStiffness[i] = m_springStiffness[i];
+		dof->m_springStiffness[i] = (float)m_springStiffness[i];
 	}
-	return "btGeneric6DofConstraintData";
+	return "btGeneric6DofSpringConstraintData";
 }
 
 #endif // BT_GENERIC_6DOF_SPRING_CONSTRAINT_H

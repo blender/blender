@@ -54,7 +54,7 @@ public:
 	GHOST_TimerTask(GHOST_TUns64 start,
 	                GHOST_TUns64 interval,
 	                GHOST_TimerProcPtr timerProc,
-	                GHOST_TUserDataPtr userData = 0)
+	                GHOST_TUserDataPtr userData = NULL)
 		: m_start(start),
 		m_interval(interval),
 		m_next(start),

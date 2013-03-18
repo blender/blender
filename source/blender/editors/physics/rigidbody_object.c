@@ -44,6 +44,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -374,61 +376,61 @@ typedef struct rbMaterialDensityItem {
  * 3) http://www.avlandesign.com/density_metal.htm
  */
 static rbMaterialDensityItem RB_MATERIAL_DENSITY_TABLE[] = {
-	{"Air", 1.0f}, /* not quite; adapted from 1.43 for oxygen for use as default */
-	{"Acrylic", 1400.0f},
-	{"Asphalt (Crushed)", 721.0f},
-	{"Bark", 240.0f},
-	{"Beans (Cocoa)", 593.0f},
-	{"Beans (Soy)", 721.0f},
-	{"Brick (Pressed)", 2400.0f},
-	{"Brick (Common)", 2000.0f},
-	{"Brick (Soft)", 1600.0f},
-	{"Brass", 8216.0f},
-	{"Bronze", 8860.0f},
-	{"Carbon (Solid)", 2146.0f},
-	{"Cardboard", 689.0f},
-	{"Cast Iron", 7150.0f},
-	//{"Cement", 1442.0f},
-	{"Chalk (Solid)", 2499.0f},
-	//{"Coffee (Fresh/Roast)", ~500},
-	{"Concrete", 2320.0f},
-	{"Charcoal", 208.0f},
-	{"Cork", 240.0f},
-	{"Copper", 8933.0f},
-	{"Garbage", 481.0f},
-	{"Glass (Broken)", 1940.0f},
-	{"Glass (Solid)", 2190.0f},
-	{"Gold", 19282.0f},
-	{"Granite (Broken)", 1650.0f},
-	{"Granite (Solid)", 2691.0f},
-	{"Gravel", 2780.0f},
-	{"Ice (Crushed)", 593.0f},
-	{"Ice (Solid)", 919.0f},
-	{"Iron", 7874.0f},
-	{"Lead", 11342.0f},
-	{"Limestone (Broken)", 1554.0f},
-	{"Limestone (Solid)", 2611.0f},
-	{"Marble (Broken)", 1570.0f},
-	{"Marble (Solid)", 2563.0f},
-	{"Paper", 1201.0f},
-	{"Peanuts (Shelled)", 641.0f},
-	{"Peanuts (Not Shelled)", 272.0f},
-	{"Plaster", 849.0f},
-	{"Plastic", 1200.0f},
-	{"Polystyrene", 1050.0f},
-	{"Rubber", 1522.0f},
-	{"Silver", 10501.0f},
-	{"Steel", 7860.0f},
-	{"Stone", 2515.0f},
-	{"Stone (Crushed)", 1602.0f},
-	{"Timber", 610.0f}
+	{N_("Air"), 1.0f}, /* not quite; adapted from 1.43 for oxygen for use as default */
+	{N_("Acrylic"), 1400.0f},
+	{N_("Asphalt (Crushed)"), 721.0f},
+	{N_("Bark"), 240.0f},
+	{N_("Beans (Cocoa)"), 593.0f},
+	{N_("Beans (Soy)"), 721.0f},
+	{N_("Brick (Pressed)"), 2400.0f},
+	{N_("Brick (Common)"), 2000.0f},
+	{N_("Brick (Soft)"), 1600.0f},
+	{N_("Brass"), 8216.0f},
+	{N_("Bronze"), 8860.0f},
+	{N_("Carbon (Solid)"), 2146.0f},
+	{N_("Cardboard"), 689.0f},
+	{N_("Cast Iron"), 7150.0f},
+	/* {N_("Cement"), 1442.0f}, */
+	{N_("Chalk (Solid)"), 2499.0f},
+	/* {N_("Coffee (Fresh/Roast)"), ~500}, */
+	{N_("Concrete"), 2320.0f},
+	{N_("Charcoal"), 208.0f},
+	{N_("Cork"), 240.0f},
+	{N_("Copper"), 8933.0f},
+	{N_("Garbage"), 481.0f},
+	{N_("Glass (Broken)"), 1940.0f},
+	{N_("Glass (Solid)"), 2190.0f},
+	{N_("Gold"), 19282.0f},
+	{N_("Granite (Broken)"), 1650.0f},
+	{N_("Granite (Solid)"), 2691.0f},
+	{N_("Gravel"), 2780.0f},
+	{N_("Ice (Crushed)"), 593.0f},
+	{N_("Ice (Solid)"), 919.0f},
+	{N_("Iron"), 7874.0f},
+	{N_("Lead"), 11342.0f},
+	{N_("Limestone (Broken)"), 1554.0f},
+	{N_("Limestone (Solid)"), 2611.0f},
+	{N_("Marble (Broken)"), 1570.0f},
+	{N_("Marble (Solid)"), 2563.0f},
+	{N_("Paper"), 1201.0f},
+	{N_("Peanuts (Shelled)"), 641.0f},
+	{N_("Peanuts (Not Shelled)"), 272.0f},
+	{N_("Plaster"), 849.0f},
+	{N_("Plastic"), 1200.0f},
+	{N_("Polystyrene"), 1050.0f},
+	{N_("Rubber"), 1522.0f},
+	{N_("Silver"), 10501.0f},
+	{N_("Steel"), 7860.0f},
+	{N_("Stone"), 2515.0f},
+	{N_("Stone (Crushed)"), 1602.0f},
+	{N_("Timber"), 610.0f}
 };
 static const int NUM_RB_MATERIAL_PRESETS = sizeof(RB_MATERIAL_DENSITY_TABLE) / sizeof(rbMaterialDensityItem);
 
 
 /* dynamically generate list of items
  * - Although there is a runtime cost, this has a lower maintenance cost
- *	 in the long run than other two-list solutions...
+ *   in the long run than other two-list solutions...
  */
 static EnumPropertyItem *rigidbody_materials_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
@@ -441,14 +443,16 @@ static EnumPropertyItem *rigidbody_materials_itemf(bContext *UNUSED(C), PointerR
 	for (i = 0; i < NUM_RB_MATERIAL_PRESETS; i++) {
 		rbMaterialDensityItem *preset = &RB_MATERIAL_DENSITY_TABLE[i];
 
-		item_tmp.identifier = item_tmp.name = preset->name;
+		item_tmp.identifier = preset->name;
+		item_tmp.name = IFACE_(preset->name);
 		item_tmp.value = i;
 		RNA_enum_item_add(&item, &totitem, &item_tmp);
 	}
 
 	/* add special "custom" entry to the end of the list */
 	{
-		item_tmp.identifier = item_tmp.name = "Custom";
+		item_tmp.identifier = "Custom";
+		item_tmp.name = IFACE_("Custom");
 		item_tmp.value = -1;
 		RNA_enum_item_add(&item, &totitem, &item_tmp);
 	}

@@ -869,7 +869,7 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 				if (vg) {
 					vg->def_nr = dv1->dw[j].def_nr;
 					vg->w1 = dv1->dw[j].weight;
-					vg->w1 = dv2->dw[k].weight;
+					vg->w2 = dv2->dw[k].weight;
 				}
 			}
 		}

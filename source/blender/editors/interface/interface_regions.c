@@ -663,9 +663,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* since the text has beens caled already, the size of tooltips is defined now */
 	/* here we try to figure out the right location */
 	if (butregion) {
-		float ofsx = rect_fl.xmin, ofsy = rect_fl.ymax;
-		ui_block_to_window_fl(butregion, but->block, &ofsx, &ofsy);
-		BLI_rctf_translate(&rect_fl, ofsx - rect_fl.xmin, ofsy - rect_fl.ymax);
+		float ofsx_fl = rect_fl.xmin, ofsy_fl = rect_fl.ymax;
+		ui_block_to_window_fl(butregion, but->block, &ofsx_fl, &ofsy_fl);
+		BLI_rctf_translate(&rect_fl, ofsx_fl - rect_fl.xmin, ofsy_fl - rect_fl.ymax);
 	}
 	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 

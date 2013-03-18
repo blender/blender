@@ -29,13 +29,15 @@ subject to the following restrictions:
 // 2 rotational degrees of freedom, similar to Euler rotations around Z (axis 1) and X (axis 2)
 // 1 translational (along axis Z) with suspension spring
 
-class btHinge2Constraint : public btGeneric6DofSpringConstraint
+ATTRIBUTE_ALIGNED16(class) btHinge2Constraint : public btGeneric6DofSpringConstraint
 {
 protected:
 	btVector3	m_anchor;
 	btVector3	m_axis1;
 	btVector3	m_axis2;
 public:
+		BT_DECLARE_ALIGNED_ALLOCATOR();
+		
 	// constructor
 	// anchor, axis1 and axis2 are in world coordinate system
 	// axis1 must be orthogonal to axis2

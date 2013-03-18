@@ -50,7 +50,7 @@ enum btConeTwistFlags
 };
 
 ///btConeTwistConstraint can be used to simulate ragdoll joints (upper arm, leg etc)
-class btConeTwistConstraint : public btTypedConstraint
+ATTRIBUTE_ALIGNED16(class) btConeTwistConstraint : public btTypedConstraint
 {
 #ifdef IN_PARALLELL_SOLVER
 public:
@@ -126,6 +126,8 @@ protected:
 
 public:
 
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB,const btTransform& rbAFrame, const btTransform& rbBFrame);
 	
 	btConeTwistConstraint(btRigidBody& rbA,const btTransform& rbAFrame);
@@ -140,8 +142,9 @@ public:
 	
 	void	getInfo2NonVirtual(btConstraintInfo2* info,const btTransform& transA,const btTransform& transB,const btMatrix3x3& invInertiaWorldA,const btMatrix3x3& invInertiaWorldB);
 
-	virtual	void	solveConstraintObsolete(btRigidBody& bodyA,btRigidBody& bodyB,btScalar	timeStep);
+	virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
 
+    
 	void	updateRHS(btScalar	timeStep);
 
 

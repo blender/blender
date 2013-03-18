@@ -231,7 +231,9 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 			nextcol = 1;
 			col++;
 		}
-		else nextcol = 0;
+		else {
+			nextcol = 0;
+		}
 		
 		bt->rect.xmin = x1addval;
 		bt->rect.xmax = bt->rect.xmin + i + block->bounds;
@@ -1461,6 +1463,8 @@ double ui_get_but_val(uiBut *but)
 	if (but->rnaprop) {
 		prop = but->rnaprop;
 
+		BLI_assert(but->rnaindex != -1);
+
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_check(prop))
@@ -1642,6 +1646,9 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	if (unit_type == PROP_UNIT_LENGTH) {
 		return value * (double)unit->scale_length;
 	}
+	else if (unit_type == PROP_UNIT_CAMERA) {
+		return value * (double)unit->scale_length;
+	}
 	else if (unit_type == PROP_UNIT_AREA) {
 		return value * pow(unit->scale_length, 2);
 	}
@@ -1674,18 +1681,28 @@ void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 	}
 }
 
-static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, int pad)
+/**
+ * \param float_precision  Override the button precision.
+ */
+static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, int pad, int float_precision)
 {
 	UnitSettings *unit = but->block->unit;
 	int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
 	int unit_type = uiButGetUnitType(but);
-	int precision = but->a2;
+	int precision;
 
 	if (unit->scale_length < 0.0001f) unit->scale_length = 1.0f;  // XXX do_versions
 
-	/* Sanity checks */
-	if (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
-	else if (precision == 0) precision = 2;
+	/* Use precision override? */
+	if (float_precision == -1) {
+		/* Sanity checks */
+		precision = (int)but->a2;
+		if      (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
+		else if (precision == 0)                  precision = 2;
+	}
+	else {
+		precision = float_precision;
+	}
 
 	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision,
 	               unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type), do_split, pad);
@@ -1706,8 +1723,10 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 	}
 }
 
-
-void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
+/**
+ * \param float_precision  For number buttons the precission to use or -1 to fallback to the button default.
+ */
+void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
 {
 	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		PropertyType type;
@@ -1779,16 +1798,20 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 
 		if (ui_is_but_float(but)) {
 			if (ui_is_but_unit(but)) {
-				ui_get_but_string_unit(but, str, maxlen, value, 0);
+				ui_get_but_string_unit(but, str, maxlen, value, 0, float_precision);
 			}
 			else {
-				const int prec = ui_but_float_precision(but, value);
+				const int prec = (float_precision == -1) ? ui_but_float_precision(but, value) : float_precision;
 				BLI_snprintf(str, maxlen, "%.*f", prec, value);
 			}
 		}
 		else
 			BLI_snprintf(str, maxlen, "%d", (int)value);
 	}
+}
+void ui_get_but_string(uiBut *but, char *str, const size_t maxlen)
+{
+	ui_get_but_string_ex(but, str, maxlen, -1);
 }
 
 #ifdef WITH_PYTHON
@@ -1984,7 +2007,8 @@ static double soft_range_round_down(double value, double max)
 		return newmax;
 }
 
-void ui_set_but_soft_range(uiBut *but, double value)
+/* note: this could be split up into functions which handle arrays and not */
+static void ui_set_but_soft_range(uiBut *but)
 {
 	/* ideally we would not limit this but practically, its more then
 	 * enough worst case is very long vectors wont use a smart soft-range
@@ -1993,14 +2017,14 @@ void ui_set_but_soft_range(uiBut *but, double value)
 	if (but->rnaprop) {
 		const PropertyType type = RNA_property_type(but->rnaprop);
 		double softmin, softmax /*, step, precision*/;
-		double value_min = value;
-		double value_max = value;
+		double value_min;
+		double value_max;
 
 		/* clamp button range to something reasonable in case
 		 * we get -inf/inf from RNA properties */
 		if (type == PROP_INT) {
+			const bool is_array = RNA_property_array_check(but->rnaprop);
 			int imin, imax, istep;
-			const int array_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
 			softmin = (imin == INT_MIN) ? -1e4 : imin;
@@ -2008,16 +2032,19 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			/*step = istep;*/ /*UNUSED*/
 			/*precision = 1;*/ /*UNUSED*/
 
-			if (array_len >= 2) {
+			if (is_array) {
 				int value_range[2];
 				RNA_property_int_get_array_range(&but->rnapoin, but->rnaprop, value_range);
 				value_min = (double)value_range[0];
 				value_max = (double)value_range[1];
 			}
+			else {
+				value_min = value_max = (double)RNA_property_int_get(&but->rnapoin, but->rnaprop);
+			}
 		}
 		else if (type == PROP_FLOAT) {
+			const bool is_array = RNA_property_array_check(but->rnaprop);
 			float fmin, fmax, fstep, fprecision;
-			const int array_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
 			softmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
@@ -2025,15 +2052,19 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			/*step = fstep;*/ /*UNUSED*/
 			/*precision = fprecision;*/ /*UNUSED*/
 
-			if (array_len >= 2) {
+			if (is_array) {
 				float value_range[2];
 				RNA_property_float_get_array_range(&but->rnapoin, but->rnaprop, value_range);
 				value_min = (double)value_range[0];
 				value_max = (double)value_range[1];
 			}
+			else {
+				value_min = value_max = (double)RNA_property_float_get(&but->rnapoin, but->rnaprop);
+			}
 		}
-		else
+		else {
 			return;
+		}
 
 		/* if the value goes out of the soft/max range, adapt the range */
 		if (value_min + 1e-10 < softmin) {
@@ -2260,8 +2291,7 @@ void ui_check_but(uiBut *but)
 	
 	/* only update soft range while not editing */
 	if (but->rnaprop && !(but->editval || but->editstr || but->editvec)) {
-		UI_GET_BUT_VALUE_INIT(but, value);
-		ui_set_but_soft_range(but, value);
+		ui_set_but_soft_range(but);
 	}
 
 	/* test for min and max, icon sliders, etc */
@@ -2345,7 +2375,7 @@ void ui_check_but(uiBut *but)
 				/* support length type buttons */
 				else if (ui_is_but_unit(but)) {
 					char new_str[sizeof(but->drawstr)];
-					ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE);
+					ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
 					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
 				}
 				else {
@@ -2530,7 +2560,9 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 					else
 						flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT;
 				}
-				else flag = UI_BUT_ALIGN_TOP;
+				else {
+					flag = UI_BUT_ALIGN_TOP;
+				}
 			}
 		}
 		else if (buts_are_horiz(but, next)) {
@@ -2550,7 +2582,9 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 					if (bt == NULL || bt->alignnr != nr) flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
 				}
 			}
-			else flag |= UI_BUT_ALIGN_LEFT;
+			else {
+				flag |= UI_BUT_ALIGN_LEFT;
+			}
 		}
 		else {
 			if (cols == 0) {
@@ -2712,8 +2746,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	but->retval = retval;
 
 	slen = strlen(str);
-	if (slen >= UI_MAX_NAME_STR - 1) {
-		but->str = MEM_mallocN(slen + 2, "ui_def_but str"); /* why +2 ? */
+	if (slen >= UI_MAX_NAME_STR) {
+		but->str = MEM_mallocN(slen + 1, "ui_def_but str");
 	}
 	else {
 		but->str = but->strdata;
@@ -3016,7 +3050,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 }
 
 #if 0 /* UNUSED */
-static uiBut *UNUSED_FUNCTION(ui_def_but_operator) (uiBlock * block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, const char *tip)
+static uiBut *UNUSED_FUNCTION(ui_def_but_operator) (uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, const char *tip)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0);
 	if (str == NULL && ot == NULL) str = opname;

@@ -571,6 +571,12 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 					link->fromnode = fromlink->fromnode;
 					link->fromsock = fromlink->fromsock;
 					
+					/* if the up- or downstream link is invalid,
+					 * the replacement link will be invalid too.
+					 */
+					if (!(fromlink->flag & NODE_LINK_VALID))
+						link->flag &= ~NODE_LINK_VALID;
+					
 					ntree->update |= NTREE_UPDATE_LINKS;
 				}
 				else
@@ -710,7 +716,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 	}
 	else {
 		newtree = MEM_dupallocN(ntree);
-		BKE_libblock_copy_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
+		BKE_libblock_copy_data(&newtree->id, &ntree->id, true); /* copy animdata and ID props */
 	}
 
 	id_us_plus((ID *)newtree->gpd);

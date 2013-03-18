@@ -71,6 +71,8 @@ typedef struct Brush {
 	int size;           /* brush diameter */
 	int flag;           /* general purpose flag */
 	float jitter;       /* jitter the position of the brush */
+	int jitter_absolute;	/* absolute jitter in pixels */
+	int pad;
 	int spacing;        /* spacing of paint operations */
 	int smooth_stroke_radius;   /* turning radius (in pixels) for smooth stroke */
 	float smooth_stroke_factor; /* higher values limit fast changes in the stroke direction */
@@ -137,7 +139,8 @@ typedef enum BrushFlags {
 
 	/* temporary flag which sets up automatically for correct brush
 	 * drawing when inverted modal operator is running */
-	BRUSH_INVERTED = (1 << 29)
+	BRUSH_INVERTED = (1 << 29),
+	BRUSH_ABSOLUTE_JITTER = (1 << 30)
 } BrushFlags;
 
 /* Brush.sculpt_tool */

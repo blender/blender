@@ -111,8 +111,9 @@ static void delete_picture(AVFrame *f)
 	}
 }
 
-static int use_float_audio_buffer(int codec_id)
+static int request_float_audio_buffer(int codec_id)
 {
+	/* If any of these codecs, we prefer the float sample format (if supported) */
 	return codec_id == CODEC_ID_AAC || codec_id == CODEC_ID_AC3 || codec_id == CODEC_ID_VORBIS;
 }
 
@@ -551,6 +552,12 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		}
 	}
 
+	if (codec_id == CODEC_ID_PNG) {
+		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+			c->pix_fmt = PIX_FMT_ARGB;
+		}
+	}
+
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
 //		|| !strcmp(of->oformat->name, "mp4")
 //	    || !strcmp(of->oformat->name, "mov")
@@ -623,14 +630,53 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->bit_rate = ffmpeg_audio_bitrate * 1000;
 	c->sample_fmt = AV_SAMPLE_FMT_S16;
 	c->channels = rd->ffcodecdata.audio_channels;
-	if (use_float_audio_buffer(codec_id)) {
+
+	if (request_float_audio_buffer(codec_id)) {
+		/* mainly for AAC codec which is experimental */
 		c->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
 		c->sample_fmt = AV_SAMPLE_FMT_FLT;
 	}
+
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
 		//XXX error("Couldn't find a valid audio codec");
 		return NULL;
+	}
+
+	if (codec->sample_fmts) {
+		/* check if the prefered sample format for this codec is supported.
+		 * this is because, depending on the version of libav, and with the whole ffmpeg/libav fork situation,
+		 * you have various implementations around. float samples in particular are not always supported.
+		 */
+		const enum AVSampleFormat *p = codec->sample_fmts;
+		for (; *p!=-1; p++) {
+			if (*p == st->codec->sample_fmt)
+				break;
+		}
+		if (*p == -1) {
+			/* sample format incompatible with codec. Defaulting to a format known to work */
+			st->codec->sample_fmt = codec->sample_fmts[0];
+		}
+	}
+
+	if (c->sample_fmt == AV_SAMPLE_FMT_FLTP) {
+		BLI_strncpy(error, "Requested audio codec requires planar float sample format, which is not supported yet", error_size);
+		return NULL;
+	}
+
+	if (codec->supported_samplerates) {
+		const int *p = codec->supported_samplerates;
+		int best = 0;
+		int best_dist = INT_MAX;
+		for (; *p; p++) {
+			int dist = abs(st->codec->sample_rate - *p);
+			if (dist < best_dist) {
+				best_dist = dist;
+				best = *p;
+			}
+		}
+		/* best is the closest supported sample rate (same as selected if best_dist == 0) */
+		st->codec->sample_rate = best;
 	}
 
 	set_ffmpeg_properties(rd, c, "audio");
@@ -658,7 +704,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	audio_output_buffer = (uint8_t *) av_malloc(audio_outbuf_size);
 
-	if (use_float_audio_buffer(codec_id)) {
+	if (c->sample_fmt == AV_SAMPLE_FMT_FLT) {
 		audio_input_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * sizeof(float));
 	}
 	else {
@@ -740,7 +786,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	fmt->audio_codec = ffmpeg_audio_codec;
 
-	BLI_snprintf(of->filename, sizeof(of->filename), "%s", name);
+	BLI_strncpy(of->filename, name, sizeof(of->filename));
 	/* set the codec to the user's selection */
 	switch (ffmpeg_type) {
 		case FFMPEG_AVI:
@@ -837,7 +883,8 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	}
 	if (avformat_write_header(of, NULL) < 0) {
 		BKE_report(reports, RPT_ERROR, "Could not initialize streams, probably unsupported codec combination");
-			av_dict_free(&opts);
+		av_dict_free(&opts);
+		avio_close(of->pb);
 		return 0;
 	}
 
@@ -963,7 +1010,7 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 		AVCodecContext *c = audio_stream->codec;
 		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
-		if (use_float_audio_buffer(c->codec_id)) {
+		if (c->sample_fmt == AV_SAMPLE_FMT_FLT) {
 			specs.format = AUD_FORMAT_FLOAT32;
 		}
 		else {
@@ -980,7 +1027,6 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 	return success;
 }
 
-void BKE_ffmpeg_end(void);
 static void end_ffmpeg_impl(int is_autosplit);
 
 #ifdef WITH_AUDASPACE
@@ -1491,6 +1537,9 @@ int BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 	int codec = rd->ffcodecdata.codec;
 
 	if (codec == CODEC_ID_QTRLE)
+		return TRUE;
+
+	if (codec == CODEC_ID_PNG)
 		return TRUE;
 
 #ifdef FFMPEG_FFV1_ALPHA_SUPPORTED

@@ -68,6 +68,8 @@ struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void);
 
 unsigned char *BLF_get_unifont(int *unifont_size);
 void BLF_free_unifont(void);
+unsigned char *BLF_get_unifont_mono(int *unifont_size);
+void BLF_free_unifont_mono(void);
 
 const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 
@@ -108,12 +110,14 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
  * All i18n contexts must be defined here.
  * This is a nice way to be sure not to use a context twice for different
  * things, and limit the number of existing contexts!
+ * WARNING! Contexts should not be longer than BKE_ST_MAXNAME - 1!
  */
 
 /* Default, void context.
  * WARNING! The "" context is not the same as no (NULL) context at mo/boost::locale level!
  * NOTE: We translate BLF_I18NCONTEXT_DEFAULT as BLF_I18NCONTEXT_DEFAULT_BPY in Python, as we can't use "natural"
  *       None value in rna string properties... :/
+ *       The void string "" is also interpreted as BLF_I18NCONTEXT_DEFAULT.
  *       For perf reason, we only use the first char to detect this context, so other contexts should never start
  *       with the same char!
  */

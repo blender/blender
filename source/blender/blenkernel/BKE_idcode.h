@@ -64,7 +64,7 @@ int BKE_idcode_from_name(const char *name);
  * \param code The code to check.
  * \return Boolean, 0 when non linkable.
  */
-int BKE_idcode_is_linkable(int code);
+bool BKE_idcode_is_linkable(int code);
 
 /**
  * Return if the ID code is a valid ID code.
@@ -72,7 +72,7 @@ int BKE_idcode_is_linkable(int code);
  * \param code The code to check.
  * \return Boolean, 0 when invalid.
  */
-int BKE_idcode_is_valid(int code);
+bool BKE_idcode_is_valid(int code);
 
 /**
  * Return an ID code and steps the index forward 1.

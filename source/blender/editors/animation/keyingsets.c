@@ -468,7 +468,7 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 /* Change Active KeyingSet Operator ------------------------ */
 /* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
 
-static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -879,7 +879,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 		if (ksi == NULL)
 			return MODIFYKEY_MISSING_TYPEINFO;
 		/* TODO: check for missing callbacks! */
-
+		
 		/* check if it can be used in the current context */
 		if (ksi->poll(ksi, C)) {
 			/* if a list of data sources are provided, run a special iterator over them,

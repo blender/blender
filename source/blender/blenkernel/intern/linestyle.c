@@ -39,6 +39,10 @@
 #include "DNA_material_types.h" /* for ramp blend */
 #include "DNA_texture_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
@@ -46,9 +50,6 @@
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
 	NULL,

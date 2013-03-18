@@ -29,10 +29,10 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_array.h"
-#include "BLI_heap.h"
 #include "BLI_math.h"
 #include "BLI_math_geom.h"
 #include "BLI_smallhash.h"
+#include "BLI_heap.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
@@ -69,7 +69,6 @@ struct BLaplacianSystem {
 };
 typedef struct BLaplacianSystem LaplacianSystem;
 
-static float compute_volume(BMesh *bm);
 static float cotan_weight(float *v1, float *v2, float *v3);
 static int vert_is_boundary(BMVert *v);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts);
@@ -85,7 +84,6 @@ static void delete_void_pointer(void *data)
 {
 	if (data) {
 		MEM_freeN(data);
-		data = NULL;
 	}
 }
 
@@ -416,45 +414,6 @@ static int vert_is_boundary(BMVert *v)
 	return 0;
 }
 
-static float compute_volume(BMesh *bm)
-{
-	float vol = 0.0f;
-	float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-	int i;
-	BMFace *f;
-	BMIter fiter;
-	BMIter vi;
-	BMVert *vn;
-	BMVert *vf[4];
-
-	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, i) {
-			vf[i] = vn;
-		}
-		x1 = vf[0]->co[0];
-		y1 = vf[0]->co[1];
-		z1 = vf[0]->co[2];
-
-		x2 = vf[1]->co[0];
-		y2 = vf[1]->co[1];
-		z2 = vf[1]->co[2];
-
-		x3 = vf[2]->co[0];
-		y3 = vf[2]->co[1];
-		z3 = vf[2]->co[2];
-
-		vol += (1.0f / 6.0f) * (0.0f - x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 - x2 * y1 * z3 + x1 * y2 * z3);
-
-		if (i == 4) {
-			x4 = vf[3]->co[0];
-			y4 = vf[3]->co[1];
-			z4 = vf[3]->co[2];
-			vol += (1.0f / 6.0f) * (x1 * y3 * z4 - x1 * y4 * z3 - x3 * y1 * z4 + x3 * z1 * y4 + y1 * x4 * z3 - x4 * y3 * z1);
-		}
-	}
-	return fabs(vol);
-}
-
 static void volume_preservation(BMOperator *op, float vini, float vend, int usex, int usey, int usez)
 {
 	float beta;
@@ -510,7 +469,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 	}
 
 	if (preserve_volume) {
-		vini = compute_volume(sys->bm);
+		vini = BM_mesh_calc_volume(sys->bm);
 	}
 	BMO_ITER (v, &siter, sys->op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
@@ -527,7 +486,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 		}
 	}
 	if (preserve_volume) {
-		vend = compute_volume(sys->bm);
+		vend = BM_mesh_calc_volume(sys->bm);
 		volume_preservation(sys->op, vini, vend, usex, usey, usez);
 	}
 

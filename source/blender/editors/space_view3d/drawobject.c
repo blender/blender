@@ -615,7 +615,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		glColor4fv(ob->col);
 
 		/* Draw the Image on the screen */
-		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_UNSIGNED_BYTE, ibuf->rect);
+		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
 		glDisable(GL_BLEND);
@@ -812,17 +812,6 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		}
 		
 		for (vos = strings->first; vos; vos = vos->next) {
-			/* too slow, reading opengl info while drawing is very bad,
-			 * better to see if we can use the zbuffer while in pixel space - campbell */
-#if 0
-			if (v3d->zbuf && (vos->flag & V3D_CACHE_TEXT_ZBUF)) {
-				gluProject(vos->vec[0], vos->vec[1], vos->vec[2], mats.modelview, mats.projection, (GLint *)mats.viewport, &ux, &uy, &uz);
-				glReadPixels(ar->winrct.xmin + vos->mval[0] + vos->xoffs, ar->winrct.ymin + vos->mval[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-
-				if (uz > depth)
-					continue;
-			}
-#endif
 			if (vos->sco[0] != IS_CLIPPED) {
 				const char *str = (char *)(vos + 1);
 
@@ -3862,7 +3851,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
 		/* not all displists use same in/out normal direction convention */
 		glEnable(GL_CULL_FACE);
-		glCullFace((base->object->type == OB_MBALL) ? GL_BACK : GL_FRONT);
+		glCullFace((base->object->type == OB_MBALL || base->object->derivedFinal) ? GL_BACK : GL_FRONT);
 	}
 
 	retval = drawDispList_nobackface(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
@@ -3968,7 +3957,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			if (draw_as == PART_DRAW_AXIS) {
 				copy_v3_v3(vec2, state->co);
 			}
-			else sub_v3_v3v3(vec2, state->co, vec);
+			else {
+				sub_v3_v3v3(vec2, state->co, vec);
+			}
 
 			add_v3_v3(vec, state->co);
 			copy_v3_v3(pdd->vd, vec); pdd->vd += 3;
@@ -3980,7 +3971,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			if (draw_as == PART_DRAW_AXIS) {
 				copy_v3_v3(vec2, state->co);
 			}
-			else sub_v3_v3v3(vec2, state->co, vec);
+			else {
+				sub_v3_v3v3(vec2, state->co, vec);
+			}
 
 			add_v3_v3(vec, state->co);
 
@@ -6055,8 +6048,10 @@ static void drawtexspace(Object *ob)
 		copy_v3_v3(size, mb->size);
 		copy_v3_v3(loc, mb->loc);
 	}
-	else return;
-	
+	else {
+		return;
+	}
+
 	vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = loc[0] - size[0];
 	vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = loc[0] + size[0];
 	

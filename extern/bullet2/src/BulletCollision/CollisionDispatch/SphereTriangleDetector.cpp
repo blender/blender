@@ -158,7 +158,6 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 				depth = -(radius-distance);
 			} else
 			{
-				btScalar distance = 0.f;
 				resultNormal = normal;
 				point = contactPoint;
 				depth = -radius;

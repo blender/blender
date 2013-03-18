@@ -27,9 +27,9 @@
  *  \ingroup edphys
  */
 
-
 #include <stdlib.h>
 
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -38,8 +38,6 @@
 
 #include "ED_physics.h"
 #include "ED_object.h"
-
-#include "BLI_utildefines.h"
 
 #include "physics_intern.h" // own include
 

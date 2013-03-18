@@ -117,7 +117,7 @@ private:
 
 struct GeometryFunctor {
 	// f should have
-	// void operator()(Object* ob)
+	// void operator()(Object *ob)
 	template<class Functor>
 	void forEachMeshObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 	{

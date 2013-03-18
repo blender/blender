@@ -28,12 +28,8 @@
  *  \ingroup spfile
  */
 
-
 #include <string.h>
 #include <stdio.h>
-
-
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -45,10 +41,16 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
+
+#include "RNA_access.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -56,9 +58,6 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -147,7 +146,7 @@ static void file_free(SpaceLink *sl)
 
 
 /* spacetype; init callback, area size changes, screen set, etc */
-static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
+static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 	//printf("file_init\n");
@@ -158,6 +157,12 @@ static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 	if (sfile->layout) sfile->layout->dirty = TRUE;
 }
 
+static void file_exit(wmWindowManager *wm, ScrArea *sa)
+{
+	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
+
+	ED_fileselect_exit(wm, sfile);
+}
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
 {
@@ -187,6 +192,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 
 static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 
@@ -202,7 +208,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	filelist_setfilter_types(sfile->files, params->filter_glob);
 
 	if (filelist_empty(sfile->files)) {
-		thumbnails_stop(sfile->files, C);
+		thumbnails_stop(wm, sfile->files);
 		filelist_readdir(sfile->files);
 		if (params->sort != FILE_SORT_NONE) {
 			filelist_sort(sfile->files, params->sort);
@@ -214,7 +220,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	}
 	else {
 		if (params->sort != FILE_SORT_NONE) {
-			thumbnails_stop(sfile->files, C);
+			thumbnails_stop(wm, sfile->files);
 			filelist_sort(sfile->files, params->sort);
 			if (params->display == FILE_IMGDISPLAY) {
 				thumbnails_start(sfile->files, C);
@@ -222,14 +228,14 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		}
 		else {
 			if (params->display == FILE_IMGDISPLAY) {
-				if (!thumbnails_running(sfile->files, C)) {
+				if (!thumbnails_running(wm, sfile->files)) {
 					thumbnails_start(sfile->files, C);
 				}
 			}
 			else {
 				/* stop any running thumbnail jobs if we're not 
 				 * displaying them - speedup for NFS */
-				thumbnails_stop(sfile->files, C);
+				thumbnails_stop(wm, sfile->files);
 			}
 			filelist_filter(sfile->files);
 		}
@@ -577,6 +583,7 @@ void ED_spacetype_file(void)
 	st->new = file_new;
 	st->free = file_free;
 	st->init = file_init;
+	st->exit = file_exit;
 	st->duplicate = file_duplicate;
 	st->refresh = file_refresh;
 	st->listener = file_listener;
@@ -629,7 +636,7 @@ void ED_spacetype_file(void)
 
 void ED_file_init(void)
 {
-	char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 	
 	fsmenu_read_system(fsmenu_get(), TRUE);
 

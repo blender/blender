@@ -1314,6 +1314,22 @@ int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const ch
 	return (int)((intptr_t)cp);
 }
 
+bool DNA_struct_elem_find(SDNA *sdna, const char *stype, const char *vartype, const char *name)
+{
+	
+	const int SDNAnr = DNA_struct_find_nr(sdna, stype);
+	
+	if (SDNAnr >= 0) {
+		const short * const spo = sdna->structs[SDNAnr];
+		char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
+		
+		if (cp) return true;
+		return (int)((intptr_t)cp);
+	}
+	return false;
+}
+
+
 /**
  * Returns the size in bytes of a primitive type.
  */

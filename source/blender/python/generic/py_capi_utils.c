@@ -751,7 +751,7 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
 	PyObject *as_pointer;
 	PyObject *pointer;
 
-	if (!strcmp(Py_TYPE(value)->tp_name, type_name) &&
+	if (STREQ(Py_TYPE(value)->tp_name, type_name) &&
 	    (as_pointer = PyObject_GetAttrString(value, "as_pointer")) != NULL &&
 	    PyCallable_Check(as_pointer))
 	{
@@ -804,7 +804,7 @@ char *PyC_FlagSet_AsString(PyC_FlagSet *item)
 int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *value)
 {
 	for ( ; item->identifier; item++) {
-		if (strcmp(item->identifier, identifier) == 0) {
+		if (STREQ(item->identifier, identifier)) {
 			*value = item->value;
 			return 1;
 		}

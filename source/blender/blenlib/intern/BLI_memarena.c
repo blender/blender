@@ -74,7 +74,7 @@ void BLI_memarena_use_align(struct MemArena *ma, const int align)
 
 void BLI_memarena_free(MemArena *ma)
 {
-	BLI_linklist_free(ma->bufs, (void (*)(void *))MEM_freeN);
+	BLI_linklist_freeN(ma->bufs);
 	MEM_freeN(ma);
 }
 

@@ -86,6 +86,16 @@ static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 	WM_event_remove_timer(wm, timer->win, timer);
 }
 
+/* wrap these because of 'const wmEvent *' */
+static int rna_Operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_confirm(C, op, event);
+}
+static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_props_popup(C, op, event);
+}
+
 static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, const char *idname, int type, int value,
                                          int any, int shift, int ctrl, int alt, int oskey, int keymodifier, int head)
 {
@@ -266,7 +276,7 @@ void RNA_api_wm(StructRNA *srna)
 
 
 	/* invoke functions, for use with python */
-	func = RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
+	func = RNA_def_function(srna, "invoke_props_popup", "rna_Operator_props_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
 
@@ -284,7 +294,7 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Operator popup invoke");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE | WM_GEN_INVOKE_RETURN);
 
-	func = RNA_def_function(srna, "invoke_confirm", "WM_operator_confirm");
+	func = RNA_def_function(srna, "invoke_confirm", "rna_Operator_confirm");
 	RNA_def_function_ui_description(func, "Operator confirmation");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
 	

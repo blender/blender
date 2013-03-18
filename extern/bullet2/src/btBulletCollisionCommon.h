@@ -45,7 +45,6 @@ subject to the following restrictions:
 ///Narrowphase Collision Detector
 #include "BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h"
 
-//btSphereBoxCollisionAlgorithm is broken, use gjk for now
 //#include "BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.h"
 #include "BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h"
 

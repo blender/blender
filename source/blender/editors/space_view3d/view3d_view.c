@@ -294,7 +294,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 }
 
 /* only meant for timer usage */
-static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -667,22 +667,29 @@ void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
-int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
+bool ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *r_clipsta, float *r_clipend,
+                              const bool use_ortho_factor)
 {
 	CameraParams params;
 
 	BKE_camera_params_init(&params);
 	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 
-	if (clipsta) *clipsta = params.clipsta;
-	if (clipend) *clipend = params.clipend;
+	if (use_ortho_factor && params.is_ortho) {
+		const float fac = 2.0f / (params.clipend - params.clipsta);
+		params.clipsta *= fac;
+		params.clipend *= fac;
+	}
+
+	if (r_clipsta) *r_clipsta = params.clipsta;
+	if (r_clipend) *r_clipend = params.clipend;
 
 	return params.is_ortho;
 }
 
 /* also exposed in previewrender.c */
-int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
-                            rctf *viewplane, float *clipsta, float *clipend)
+bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
+                             rctf *r_viewplane, float *r_clipsta, float *r_clipend)
 {
 	CameraParams params;
 
@@ -690,9 +697,9 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
 	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
-	if (viewplane) *viewplane = params.viewplane;
-	if (clipsta) *clipsta = params.clipsta;
-	if (clipend) *clipend = params.clipend;
+	if (r_viewplane) *r_viewplane = params.viewplane;
+	if (r_clipsta) *r_clipsta = params.clipsta;
+	if (r_clipend) *r_clipend = params.clipend;
 	
 	return params.is_ortho;
 }
@@ -791,7 +798,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 
 #define QUATSET(a, b, c, d, e) { a[0] = b; a[1] = c; a[2] = d; a[3] = e; } (void)0
 
-int ED_view3d_lock(RegionView3D *rv3d)
+bool ED_view3d_lock(RegionView3D *rv3d)
 {
 	switch (rv3d->view) {
 		case RV3D_VIEW_BOTTOM:
@@ -818,10 +825,10 @@ int ED_view3d_lock(RegionView3D *rv3d)
 			QUATSET(rv3d->viewquat, 0.5, -0.5, -0.5, -0.5);
 			break;
 		default:
-			return FALSE;
+			return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /* don't set windows active in here, is used by renderwin too */
@@ -863,7 +870,9 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			copy_v3_v3(vec, give_cursor(scene, v3d));
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
 		}
-		else translate_m4(rv3d->viewmat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+		else {
+			translate_m4(rv3d->viewmat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+		}
 	}
 }
 
@@ -1558,11 +1567,7 @@ static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView
 
 float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
 {
-	return (rv3d->persmat[3][3] + (
-	            rv3d->persmat[0][3] * co[0] +
-	            rv3d->persmat[1][3] * co[1] +
-	            rv3d->persmat[2][3] * co[2])
-	        ) * rv3d->pixsize * U.pixelsize;
+	return mul_project_m4_v3_zfac(rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
 }
 
 float ED_view3d_radius_to_persp_dist(const float angle, const float radius)

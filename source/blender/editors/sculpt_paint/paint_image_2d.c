@@ -35,17 +35,56 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
-
-#include "BKE_brush.h"
+#include "DNA_space_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
 
+#include "BKE_context.h"
+#include "BKE_brush.h"
+#include "BKE_main.h"
+#include "BKE_image.h"
+#include "BKE_paint.h"
+#include "BKE_report.h"
+
+#include "ED_screen.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "UI_view2d.h"
 
 #include "RE_shader_ext.h"
 
- /* Brush Painting for 2D image editor */
+#include "GPU_draw.h"
+
+#include "paint_intern.h"
+
+/* Brush Painting for 2D image editor */
+
+/* Defines and Structs */
+/* FTOCHAR as inline function */
+BLI_INLINE unsigned char f_to_char(const float val)
+{
+	return FTOCHAR(val);
+}
+#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f)  {                                   \
+	(c)[0] = f_to_char((f)[0]);                                               \
+	(c)[1] = f_to_char((f)[1]);                                               \
+	(c)[2] = f_to_char((f)[2]);                                               \
+} (void)0
+
+#define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
+	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
+	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
+	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
+} (void)0
+
+#define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)
 
 typedef struct BrushPainterCache {
 	short enabled;
@@ -57,38 +96,55 @@ typedef struct BrushPainterCache {
 	int lastsize;
 	float lastalpha;
 	float lastjitter;
+	float last_rotation;
 
 	ImBuf *ibuf;
 	ImBuf *texibuf;
 	ImBuf *maskibuf;
 } BrushPainterCache;
 
-struct BrushPainter {
+typedef struct BrushPainter {
 	Scene *scene;
 	Brush *brush;
 
-	float lastmousepos[2];  /* mouse position of last paint call */
-
-	float accumdistance;    /* accumulated distance of brush since last paint op */
 	float lastpaintpos[2];  /* position of last paint op */
 	float startpaintpos[2]; /* position of first paint */
 
-	double accumtime;       /* accumulated time since last paint op (airbrush) */
-	double lasttime;        /* time of last update */
-
-	float lastpressure;
-
 	short firsttouch;       /* first paint op */
 
-	float startsize;
-	float startalpha;
-	float startjitter;
-	float startspacing;
-
 	BrushPainterCache cache;
-};
+} BrushPainter;
 
-BrushPainter *BKE_brush_painter_new(Scene *scene, Brush *brush)
+typedef struct ImagePaintRegion {
+	int destx, desty;
+	int srcx, srcy;
+	int width, height;
+} ImagePaintRegion;
+
+typedef struct ImagePaintState {
+	BrushPainter *painter;
+	SpaceImage *sima;
+	View2D *v2d;
+	Scene *scene;
+	bScreen *screen;
+
+	Brush *brush;
+	short tool, blend;
+	Image *image;
+	ImBuf *canvas;
+	ImBuf *clonecanvas;
+	char *warnpackedfile;
+	char *warnmultifile;
+
+	/* viewport texture paint only, but _not_ project paint */
+	Object *ob;
+	int faceindex;
+	float uv[2];
+	int do_facesel;
+} ImagePaintState;
+
+
+static BrushPainter *brush_painter_2d_new(Scene *scene, Brush *brush)
 {
 	BrushPainter *painter = MEM_callocN(sizeof(BrushPainter), "BrushPainter");
 
@@ -97,29 +153,11 @@ BrushPainter *BKE_brush_painter_new(Scene *scene, Brush *brush)
 	painter->firsttouch = 1;
 	painter->cache.lastsize = -1; /* force ibuf create in refresh */
 
-	painter->startsize = BKE_brush_size_get(scene, brush);
-	painter->startalpha = BKE_brush_alpha_get(scene, brush);
-	painter->startjitter = brush->jitter;
-	painter->startspacing = brush->spacing;
-
 	return painter;
 }
 
 
-static void brush_pressure_apply(BrushPainter *painter, Brush *brush, float pressure)
-{
-	if (BKE_brush_use_alpha_pressure(painter->scene, brush))
-		BKE_brush_alpha_set(painter->scene, brush, max_ff(0.0f, painter->startalpha * pressure));
-	if (BKE_brush_use_size_pressure(painter->scene, brush))
-		BKE_brush_size_set(painter->scene, brush, max_ff(1.0f, painter->startsize * pressure));
-	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = max_ff(0.0f, painter->startjitter * pressure);
-	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = max_ff(1.0f, painter->startspacing * (1.5f - pressure));
-}
-
-
-void BKE_brush_painter_require_imbuf(BrushPainter *painter, short flt, short texonly, int size)
+static void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt, short texonly, int size)
 {
 	if ((painter->cache.flt != flt) || (painter->cache.size != size) ||
 	    ((painter->cache.texonly != texonly) && texonly))
@@ -142,22 +180,15 @@ void BKE_brush_painter_require_imbuf(BrushPainter *painter, short flt, short tex
 	painter->cache.enabled = 1;
 }
 
-void BKE_brush_painter_free(BrushPainter *painter)
+static void brush_painter_2d_free(BrushPainter *painter)
 {
-	Brush *brush = painter->brush;
-
-	BKE_brush_size_set(painter->scene, brush, painter->startsize);
-	BKE_brush_alpha_set(painter->scene, brush, painter->startalpha);
-	brush->jitter = painter->startjitter;
-	brush->spacing = painter->startspacing;
-
 	if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
 	if (painter->cache.texibuf) IMB_freeImBuf(painter->cache.texibuf);
 	if (painter->cache.maskibuf) IMB_freeImBuf(painter->cache.maskibuf);
 	MEM_freeN(painter);
 }
 
-static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
+static void brush_painter_2d_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
                                      int x, int y, int w, int h, int xt, int yt,
                                      const float pos[2])
 {
@@ -204,7 +235,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					BKE_brush_sample_tex_2D(scene, brush, xy, tf, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, tf, NULL);
 				}
 
 				bf[0] = tf[0] * mf[0];
@@ -235,7 +266,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, NULL);
 					rgba_float_to_uchar(t, rgba);
 				}
 
@@ -248,7 +279,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 	}
 }
 
-static void brush_painter_tiled_tex_partial_update(BrushPainter *painter, const float pos[2])
+static void brush_painter_2d_tiled_tex_partial_update(BrushPainter *painter, const float pos[2])
 {
 	const Scene *scene = painter->scene;
 	Brush *brush = painter->brush;
@@ -286,25 +317,26 @@ static void brush_painter_tiled_tex_partial_update(BrushPainter *painter, const 
 
 	/* blend existing texture in new position */
 	if ((x1 < x2) && (y1 < y2))
-		brush_painter_do_partial(painter, oldtexibuf, x1, y1, x2, y2, srcx, srcy, pos);
+		brush_painter_2d_do_partial(painter, oldtexibuf, x1, y1, x2, y2, srcx, srcy, pos);
 
 	if (oldtexibuf)
 		IMB_freeImBuf(oldtexibuf);
 
 	/* sample texture in new areas */
 	if ((0 < x1) && (0 < ibuf->y))
-		brush_painter_do_partial(painter, NULL, 0, 0, x1, ibuf->y, 0, 0, pos);
+		brush_painter_2d_do_partial(painter, NULL, 0, 0, x1, ibuf->y, 0, 0, pos);
 	if ((x2 < ibuf->x) && (0 < ibuf->y))
-		brush_painter_do_partial(painter, NULL, x2, 0, ibuf->x, ibuf->y, 0, 0, pos);
+		brush_painter_2d_do_partial(painter, NULL, x2, 0, ibuf->x, ibuf->y, 0, 0, pos);
 	if ((x1 < x2) && (0 < y1))
-		brush_painter_do_partial(painter, NULL, x1, 0, x2, y1, 0, 0, pos);
+		brush_painter_2d_do_partial(painter, NULL, x1, 0, x2, y1, 0, 0, pos);
 	if ((x1 < x2) && (y2 < ibuf->y))
-		brush_painter_do_partial(painter, NULL, x1, y2, x2, ibuf->y, 0, 0, pos);
+		brush_painter_2d_do_partial(painter, NULL, x1, y2, x2, ibuf->y, 0, 0, pos);
 }
 
-static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2], int use_color_correction)
+static void brush_painter_2d_refresh_cache(BrushPainter *painter, const float pos[2], int use_color_correction)
 {
 	const Scene *scene = painter->scene;
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Brush *brush = painter->brush;
 	BrushPainterCache *cache = &painter->cache;
 	MTex *mtex = &brush->mtex;
@@ -313,10 +345,16 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 	const int diameter = 2 * BKE_brush_size_get(scene, brush);
 	const float alpha = BKE_brush_alpha_get(scene, brush);
 	const bool do_tiled = ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_3D);
+	float rotation = -mtex->rot;
+
+	if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+		rotation += ups->brush_rotation;
+	}
 
 	if (diameter != cache->lastsize ||
 	    alpha != cache->lastalpha ||
-	    brush->jitter != cache->lastjitter)
+	    brush->jitter != cache->lastjitter ||
+	    rotation != cache->last_rotation)
 	{
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);
@@ -332,7 +370,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 
 		if (do_tiled) {
 			BKE_brush_imbuf_new(scene, brush, flt, 3, size, &cache->maskibuf, use_color_correction);
-			brush_painter_tiled_tex_partial_update(painter, pos);
+			brush_painter_2d_tiled_tex_partial_update(painter, pos);
 		}
 		else
 			BKE_brush_imbuf_new(scene, brush, flt, 2, size, &cache->ibuf, use_color_correction);
@@ -340,221 +378,447 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 		cache->lastsize = diameter;
 		cache->lastalpha = alpha;
 		cache->lastjitter = brush->jitter;
+		cache->last_rotation = rotation;
 	}
 	else if (do_tiled && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
 		int dy = (int)painter->lastpaintpos[1] - (int)pos[1];
 
 		if ((dx != 0) || (dy != 0))
-			brush_painter_tiled_tex_partial_update(painter, pos);
+			brush_painter_2d_tiled_tex_partial_update(painter, pos);
 	}
 }
 
-void BKE_brush_painter_break_stroke(BrushPainter *painter)
+/* keep these functions in sync */
+static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_torus, float r_rgb[3])
 {
-	painter->firsttouch = 1;
+	if (is_torus) {
+		x %= ibuf->x;
+		if (x < 0) x += ibuf->x;
+		y %= ibuf->y;
+		if (y < 0) y += ibuf->y;
+	}
+
+	if (ibuf->rect_float) {
+		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
+		IMAPAINT_FLOAT_RGB_COPY(r_rgb, rrgbf);
+	}
+	else {
+		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
+		IMAPAINT_CHAR_RGB_TO_FLOAT(r_rgb, rrgb);
+	}
+}
+static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_torus, const float rgb[3])
+{
+	if (is_torus) {
+		x %= ibuf->x;
+		if (x < 0) x += ibuf->x;
+		y %= ibuf->y;
+		if (y < 0) y += ibuf->y;
+	}
+
+	if (ibuf->rect_float) {
+		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
+		IMAPAINT_FLOAT_RGB_COPY(rrgbf, rgb);
+	}
+	else {
+		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
+		IMAPAINT_FLOAT_RGB_TO_CHAR(rrgb, rgb);
+	}
+}
+
+static int paint_2d_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, float *outrgb, short torus)
+{
+	float inrgb[3];
+
+	// XXX: signed unsigned mismatch
+	if ((x >= (unsigned int)(ibuf->x)) || (y >= (unsigned int)(ibuf->y))) {
+		if (torus) paint_2d_ibuf_rgb_get(ibuf, x, y, 1, inrgb);
+		else return 0;
+	}
+	else {
+		paint_2d_ibuf_rgb_get(ibuf, x, y, 0, inrgb);
+	}
+
+	outrgb[0] += inrgb[0];
+	outrgb[1] += inrgb[1];
+	outrgb[2] += inrgb[2];
+
+	return 1;
+}
+
+static void paint_2d_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, const short is_torus)
+{
+	int x, y, count, xi, yi, xo, yo;
+	int out_off[2], in_off[2], dim[2];
+	float outrgb[3];
+
+	dim[0] = ibufb->x;
+	dim[1] = ibufb->y;
+	in_off[0] = pos[0];
+	in_off[1] = pos[1];
+	out_off[0] = out_off[1] = 0;
+
+	if (!is_torus) {
+		IMB_rectclip(ibuf, ibufb, &in_off[0], &in_off[1], &out_off[0],
+		             &out_off[1], &dim[0], &dim[1]);
+
+		if ((dim[0] == 0) || (dim[1] == 0))
+			return;
+	}
+
+	for (y = 0; y < dim[1]; y++) {
+		for (x = 0; x < dim[0]; x++) {
+			/* get input pixel */
+			xi = in_off[0] + x;
+			yi = in_off[1] + y;
+
+			count = 1;
+			paint_2d_ibuf_rgb_get(ibuf, xi, yi, is_torus, outrgb);
+
+			count += paint_2d_ibuf_add_if(ibuf, xi - 1, yi - 1, outrgb, is_torus);
+			count += paint_2d_ibuf_add_if(ibuf, xi - 1, yi, outrgb, is_torus);
+			count += paint_2d_ibuf_add_if(ibuf, xi - 1, yi + 1, outrgb, is_torus);
+
+			count += paint_2d_ibuf_add_if(ibuf, xi, yi - 1, outrgb, is_torus);
+			count += paint_2d_ibuf_add_if(ibuf, xi, yi + 1, outrgb, is_torus);
+
+			count += paint_2d_ibuf_add_if(ibuf, xi + 1, yi - 1, outrgb, is_torus);
+			count += paint_2d_ibuf_add_if(ibuf, xi + 1, yi, outrgb, is_torus);
+			count += paint_2d_ibuf_add_if(ibuf, xi + 1, yi + 1, outrgb, is_torus);
+
+			mul_v3_fl(outrgb, 1.0f / (float)count);
+
+			/* write into brush buffer */
+			xo = out_off[0] + x;
+			yo = out_off[1] + y;
+			paint_2d_ibuf_rgb_set(ibufb, xo, yo, 0, outrgb);
+		}
+	}
+}
+
+static void paint_2d_set_region(ImagePaintRegion *region, int destx, int desty, int srcx, int srcy, int width, int height)
+{
+	region->destx = destx;
+	region->desty = desty;
+	region->srcx = srcx;
+	region->srcy = srcy;
+	region->width = width;
+	region->height = height;
+}
+
+static int paint_2d_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, ImBuf *sbuf)
+{
+	int destx = region->destx;
+	int desty = region->desty;
+	int srcx = region->srcx;
+	int srcy = region->srcy;
+	int width = region->width;
+	int height = region->height;
+	int origw, origh, w, h, tot = 0;
+
+	/* convert destination and source coordinates to be within image */
+	destx = destx % dbuf->x;
+	if (destx < 0) destx += dbuf->x;
+	desty = desty % dbuf->y;
+	if (desty < 0) desty += dbuf->y;
+	srcx = srcx % sbuf->x;
+	if (srcx < 0) srcx += sbuf->x;
+	srcy = srcy % sbuf->y;
+	if (srcy < 0) srcy += sbuf->y;
+
+	/* clip width of blending area to destination imbuf, to avoid writing the
+	 * same pixel twice */
+	origw = w = (width > dbuf->x) ? dbuf->x : width;
+	origh = h = (height > dbuf->y) ? dbuf->y : height;
+
+	/* clip within image */
+	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &w, &h);
+	paint_2d_set_region(&region[tot++], destx, desty, srcx, srcy, w, h);
+
+	/* do 3 other rects if needed */
+	if (w < origw)
+		paint_2d_set_region(&region[tot++], (destx + w) % dbuf->x, desty, (srcx + w) % sbuf->x, srcy, origw - w, h);
+	if (h < origh)
+		paint_2d_set_region(&region[tot++], destx, (desty + h) % dbuf->y, srcx, (srcy + h) % sbuf->y, w, origh - h);
+	if ((w < origw) && (h < origh))
+		paint_2d_set_region(&region[tot++], (destx + w) % dbuf->x, (desty + h) % dbuf->y, (srcx + w) % sbuf->x, (srcy + h) % sbuf->y, origw - w, origh - h);
+
+	return tot;
+}
+
+static void paint_2d_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
+{
+	ImagePaintRegion region[4];
+	int a, tot;
+
+	paint_2d_set_region(region, 0, 0, pos[0], pos[1], ibufb->x, ibufb->y);
+	tot = paint_2d_torus_split_region(region, ibufb, ibuf);
+
+	for (a = 0; a < tot; a++)
+		IMB_rectblend(ibufb, ibuf, region[a].destx, region[a].desty,
+		              region[a].srcx, region[a].srcy,
+		              region[a].width, region[a].height, IMB_BLEND_COPY_RGB);
+}
+
+static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
+{
+	/* note: allocImbuf returns zero'd memory, so regions outside image will
+	 * have zero alpha, and hence not be blended onto the image */
+	int w = ibufb->x, h = ibufb->y, destx = 0, desty = 0, srcx = pos[0], srcy = pos[1];
+	ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);
+
+	IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
+	IMB_rectblend(clonebuf, ibuf, destx, desty, srcx, srcy, w, h,
+	              IMB_BLEND_COPY_RGB);
+	IMB_rectblend(clonebuf, ibufb, destx, desty, destx, desty, w, h,
+	              IMB_BLEND_COPY_ALPHA);
+
+	return clonebuf;
+}
+
+static void paint_2d_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[2])
+{
+	ipos[0] = (int)floorf((pos[0] - ibufb->x / 2) + 1.0f);
+	ipos[1] = (int)floorf((pos[1] - ibufb->y / 2) + 1.0f);
+}
+
+static int paint_2d_op(void *state, ImBuf *ibufb, const float lastpos[2], const float pos[2])
+{
+	ImagePaintState *s = ((ImagePaintState *)state);
+	ImBuf *clonebuf = NULL, *frombuf;
+	ImagePaintRegion region[4];
+	short torus = s->brush->flag & BRUSH_TORUS;
+	short blend = s->blend;
+	float *offset = s->brush->clone.offset;
+	float liftpos[2];
+	int bpos[2], blastpos[2], bliftpos[2];
+	int a, tot;
+
+	paint_2d_convert_brushco(ibufb, pos, bpos);
+
+	/* lift from canvas */
+	if (s->tool == PAINT_TOOL_SOFTEN) {
+		paint_2d_lift_soften(s->canvas, ibufb, bpos, torus);
+	}
+	else if (s->tool == PAINT_TOOL_SMEAR) {
+		if (lastpos[0] == pos[0] && lastpos[1] == pos[1])
+			return 0;
+
+		paint_2d_convert_brushco(ibufb, lastpos, blastpos);
+		paint_2d_lift_smear(s->canvas, ibufb, blastpos);
+	}
+	else if (s->tool == PAINT_TOOL_CLONE && s->clonecanvas) {
+		liftpos[0] = pos[0] - offset[0] * s->canvas->x;
+		liftpos[1] = pos[1] - offset[1] * s->canvas->y;
+
+		paint_2d_convert_brushco(ibufb, liftpos, bliftpos);
+		clonebuf = paint_2d_lift_clone(s->clonecanvas, ibufb, bliftpos);
+	}
+
+	frombuf = (clonebuf) ? clonebuf : ibufb;
+
+	if (torus) {
+		paint_2d_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
+		tot = paint_2d_torus_split_region(region, s->canvas, frombuf);
+	}
+	else {
+		paint_2d_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
+		tot = 1;
+	}
+
+	/* blend into canvas */
+	for (a = 0; a < tot; a++) {
+		imapaint_dirty_region(s->image, s->canvas,
+		                      region[a].destx, region[a].desty,
+		                      region[a].width, region[a].height);
+
+		IMB_rectblend(s->canvas, frombuf,
+		              region[a].destx, region[a].desty,
+		              region[a].srcx, region[a].srcy,
+		              region[a].width, region[a].height, blend);
+	}
+
+	if (clonebuf) IMB_freeImBuf(clonebuf);
+
+	return 1;
 }
 
 
-int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2], double time, float pressure,
-                            void *user, int use_color_correction)
+static int paint_2d_canvas_set(ImagePaintState *s, Image *ima)
 {
-	Scene *scene = painter->scene;
-	Brush *brush = painter->brush;
-	int totpaintops = 0;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, s->sima ? &s->sima->iuser : NULL, NULL);
 
-	if (pressure == 0.0f) {
-		if (painter->lastpressure) // XXX - hack, operator misses
-			pressure = painter->lastpressure;
-		else
-			pressure = 1.0f;    /* zero pressure == not using tablet */
+	/* verify that we can paint and set canvas */
+	if (ima == NULL) {
+		return 0;
 	}
+	else if (ima->packedfile && ima->rr) {
+		s->warnpackedfile = ima->id.name + 2;
+		return 0;
+	}
+	else if (ibuf && ibuf->channels != 4) {
+		s->warnmultifile = ima->id.name + 2;
+		return 0;
+	}
+	else if (!ibuf || !(ibuf->rect || ibuf->rect_float))
+		return 0;
+
+	s->image = ima;
+	s->canvas = ibuf;
+
+	/* set clone canvas */
+	if (s->tool == PAINT_TOOL_CLONE) {
+		ima = s->brush->clone.image;
+		ibuf = BKE_image_acquire_ibuf(ima, s->sima ? &s->sima->iuser : NULL, NULL);
+
+		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
+			BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_release_ibuf(s->image, s->canvas, NULL);
+			return 0;
+		}
+
+		s->clonecanvas = ibuf;
+
+		/* temporarily add float rect for cloning */
+		if (s->canvas->rect_float && !s->clonecanvas->rect_float) {
+			IMB_float_from_rect(s->clonecanvas);
+		}
+		else if (!s->canvas->rect_float && !s->clonecanvas->rect)
+			IMB_rect_from_float(s->clonecanvas);
+	}
+
+	return 1;
+}
+
+static void paint_2d_canvas_free(ImagePaintState *s)
+{
+	BKE_image_release_ibuf(s->image, s->canvas, NULL);
+	BKE_image_release_ibuf(s->brush->clone.image, s->clonecanvas, NULL);
+}
+
+int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser)
+{
+	float newuv[2], olduv[2];
+	int redraw = 0;
+	ImagePaintState *s = ps;
+	BrushPainter *painter = s->painter;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
+	const bool is_data = (ibuf && ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA);
+
+	if (!ibuf)
+		return 0;
+
+	s->blend = s->brush->blend;
+	if (eraser)
+		s->blend = IMB_BLEND_ERASE_ALPHA;
+
+	UI_view2d_region_to_view(s->v2d, mval[0], mval[1], &newuv[0], &newuv[1]);
+	UI_view2d_region_to_view(s->v2d, prev_mval[0], prev_mval[1], &olduv[0], &olduv[1]);
+
+	newuv[0] *= ibuf->x;
+	newuv[1] *= ibuf->y;
+
+	olduv[0] *= ibuf->x;
+	olduv[1] *= ibuf->y;
+
 	if (painter->firsttouch) {
 		/* paint exactly once on first touch */
-		painter->startpaintpos[0] = pos[0];
-		painter->startpaintpos[1] = pos[1];
+		painter->startpaintpos[0] = newuv[0];
+		painter->startpaintpos[1] = newuv[1];
 
-		brush_pressure_apply(painter, brush, pressure);
-		if (painter->cache.enabled)
-			brush_painter_refresh_cache(painter, pos, use_color_correction);
-		totpaintops += func(user, painter->cache.ibuf, pos, pos);
-		
-		painter->lasttime = time;
 		painter->firsttouch = 0;
-		painter->lastpaintpos[0] = pos[0];
-		painter->lastpaintpos[1] = pos[1];
+		copy_v2_v2(painter->lastpaintpos, newuv);
 	}
-#if 0
-	else if (painter->brush->flag & BRUSH_AIRBRUSH) {
-		float spacing, step, paintpos[2], dmousepos[2], len;
-		double starttime, curtime = time;
-
-		/* compute brush spacing adapted to brush size */
-		spacing = brush->rate; //radius*brush->spacing * 0.01f;
-
-		/* setup starting time, direction vector and accumulated time */
-		starttime = painter->accumtime;
-		sub_v2_v2v2(dmousepos, pos, painter->lastmousepos);
-		len = normalize_v2(dmousepos);
-		painter->accumtime += curtime - painter->lasttime;
-
-		/* do paint op over unpainted time distance */
-		while (painter->accumtime >= spacing) {
-			step = (spacing - starttime) * len;
-			paintpos[0] = painter->lastmousepos[0] + dmousepos[0] * step;
-			paintpos[1] = painter->lastmousepos[1] + dmousepos[1] * step;
-
-			if (painter->cache.enabled)
-				brush_painter_refresh_cache(painter);
-			totpaintops += func(user, painter->cache.ibuf,
-			                    painter->lastpaintpos, paintpos);
-
-			painter->lastpaintpos[0] = paintpos[0];
-			painter->lastpaintpos[1] = paintpos[1];
-			painter->accumtime -= spacing;
-			starttime -= spacing;
-		}
-		
-		painter->lasttime = curtime;
-	}
-#endif
 	else {
-		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
-		float t, len, press;
-		const int radius = BKE_brush_size_get(scene, brush);
+		copy_v2_v2(painter->lastpaintpos, olduv);
+	}
+	/* OCIO_TODO: float buffers are now always linear, so always use color correction
+	 *            this should probably be changed when texture painting color space is supported
+	 */
+	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 
-		/* compute brush spacing adapted to brush radius, spacing may depend
-		 * on pressure, so update it */
-		brush_pressure_apply(painter, brush, painter->lastpressure);
-		spacing = max_ff(1.0f, radius) * brush->spacing * 0.01f;
+	if (painter->cache.enabled)
+		brush_painter_2d_refresh_cache(painter, newuv, is_data == false);
 
-		/* setup starting distance, direction vector and accumulated distance */
-		startdistance = painter->accumdistance;
-		sub_v2_v2v2(dmousepos, pos, painter->lastmousepos);
-		len = normalize_v2(dmousepos);
-		painter->accumdistance += len;
-
-		if (brush->flag & BRUSH_SPACE) {
-			/* do paint op over unpainted distance */
-			while ((len > 0.0f) && (painter->accumdistance >= spacing)) {
-				step = spacing - startdistance;
-				paintpos[0] = painter->lastmousepos[0] + dmousepos[0] * step;
-				paintpos[1] = painter->lastmousepos[1] + dmousepos[1] * step;
-
-				t = step / len;
-				press = (1.0f - t) * painter->lastpressure + t * pressure;
-				brush_pressure_apply(painter, brush, press);
-				spacing = max_ff(1.0f, radius) * brush->spacing * 0.01f;
-
-				BKE_brush_jitter_pos(scene, brush, paintpos, finalpos);
-
-				if (painter->cache.enabled)
-					brush_painter_refresh_cache(painter, finalpos, use_color_correction);
-
-				totpaintops +=
-				    func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
-
-				painter->lastpaintpos[0] = paintpos[0];
-				painter->lastpaintpos[1] = paintpos[1];
-				painter->accumdistance -= spacing;
-				startdistance -= spacing;
-			}
-		}
-		else {
-			BKE_brush_jitter_pos(scene, brush, pos, finalpos);
-
-			if (painter->cache.enabled)
-				brush_painter_refresh_cache(painter, finalpos, use_color_correction);
-
-			totpaintops += func(user, painter->cache.ibuf, pos, finalpos);
-
-			painter->lastpaintpos[0] = pos[0];
-			painter->lastpaintpos[1] = pos[1];
-			painter->accumdistance = 0;
-		}
-
-		/* do airbrush paint ops, based on the number of paint ops left over
-		 * from regular painting. this is a temporary solution until we have
-		 * accurate time stamps for mouse move events */
-		if (brush->flag & BRUSH_AIRBRUSH) {
-			double curtime = time;
-			double painttime = brush->rate * totpaintops;
-
-			painter->accumtime += curtime - painter->lasttime;
-			if (painter->accumtime <= painttime)
-				painter->accumtime = 0.0;
-			else
-				painter->accumtime -= painttime;
-
-			while (painter->accumtime >= (double)brush->rate) {
-				brush_pressure_apply(painter, brush, pressure);
-
-				BKE_brush_jitter_pos(scene, brush, pos, finalpos);
-
-				if (painter->cache.enabled)
-					brush_painter_refresh_cache(painter, finalpos, use_color_correction);
-
-				totpaintops +=
-				    func(user, painter->cache.ibuf, painter->lastmousepos, finalpos);
-				painter->accumtime -= (double)brush->rate;
-			}
-
-			painter->lasttime = curtime;
-		}
+	if (paint_2d_op(s, painter->cache.ibuf, olduv, newuv)) {
+		imapaint_image_update(s->sima, s->image, ibuf, false);
+		BKE_image_release_ibuf(s->image, ibuf, NULL);
+		redraw |= 1;
+	}
+	else {
+		BKE_image_release_ibuf(s->image, ibuf, NULL);
 	}
 
-	painter->lastmousepos[0] = pos[0];
-	painter->lastmousepos[1] = pos[1];
-	painter->lastpressure = pressure;
+	if (redraw)
+		imapaint_clear_partial_redraw();
 
-	BKE_brush_alpha_set(scene, brush, painter->startalpha);
-	BKE_brush_size_set(scene, brush, painter->startsize);
-	brush->jitter = painter->startjitter;
-	brush->spacing = painter->startspacing;
-
-	return totpaintops;
+	return redraw;
 }
 
-
-/* TODO: should probably be unified with BrushPainter stuff? */
-unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
+void *paint_2d_new_stroke(bContext *C, wmOperator *op)
 {
-	unsigned int *texcache = NULL;
-	MTex *mtex = &br->mtex;
-	TexResult texres = {0};
-	int hasrgb, ix, iy;
-	int side = half_side * 2;
-	
-	if (mtex->tex) {
-		float x, y, step = 2.0 / side, co[3];
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *settings = scene->toolsettings;
+	Brush *brush = paint_brush(&settings->imapaint.paint);
 
-		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
+	ImagePaintState *s = MEM_callocN(sizeof(ImagePaintState), "ImagePaintState");
 
-		/*do normalized cannonical view coords for texture*/
-		for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
-			for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
-				co[0] = x;
-				co[1] = y;
-				co[2] = 0.0f;
-				
-				/* This is copied from displace modifier code */
-				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, NULL);
-			
-				/* if the texture gave an RGB value, we assume it didn't give a valid
-				 * intensity, so calculate one (formula from do_material_tex).
-				 * if the texture didn't give an RGB value, copy the intensity across
-				 */
-				if (hasrgb & TEX_RGB)
-					texres.tin = rgb_to_grayscale(&texres.tr);
+	s->sima = CTX_wm_space_image(C);
+	s->v2d = &CTX_wm_region(C)->v2d;
+	s->scene = scene;
+	s->screen = CTX_wm_screen(C);
 
-				((char *)texcache)[(iy * side + ix) * 4] =
-				((char *)texcache)[(iy * side + ix) * 4 + 1] =
-				((char *)texcache)[(iy * side + ix) * 4 + 2] =
-				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(texres.tin * 255.0f);
-			}
-		}
+	s->brush = brush;
+	s->tool = brush->imagepaint_tool;
+	s->blend = brush->blend;
+
+	s->image = s->sima->image;
+
+	if (!paint_2d_canvas_set(s, s->image)) {
+		if (s->warnmultifile)
+			BKE_report(op->reports, RPT_WARNING, "Image requires 4 color channels to paint");
+		if (s->warnpackedfile)
+			BKE_report(op->reports, RPT_WARNING, "Packed MultiLayer files cannot be painted");
+
+		MEM_freeN(s);
+		return NULL;
 	}
 
-	return texcache;
+	paint_brush_init_tex(s->brush);
+
+	/* create painter */
+	s->painter = brush_painter_2d_new(scene, s->brush);
+
+	return s;
 }
 
+void paint_2d_redraw (const bContext *C, void *ps, int final)
+{
+	ImagePaintState *s = ps;
+
+	if (final) {
+		if (s->image && !(s->sima && s->sima->lock))
+			GPU_free_image(s->image);
+
+		/* compositor listener deals with updating */
+		WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, s->image);
+	}
+	else {
+		if (!s->sima || !s->sima->lock)
+			ED_region_tag_redraw(CTX_wm_region(C));
+		else
+			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, s->image);
+	}
+}
+
+void paint_2d_stroke_done(void *ps)
+{
+	ImagePaintState *s = ps;
+
+	paint_2d_canvas_free(s);
+	brush_painter_2d_free(s->painter);
+	paint_brush_exit_tex(s->brush);
+
+	MEM_freeN(s);
+}

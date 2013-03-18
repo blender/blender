@@ -24,14 +24,15 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_group_types.h"
+
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_group_types.h"
 
 #ifdef RNA_RUNTIME
 

@@ -120,7 +120,9 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_channels_click);
 	
 	WM_operatortype_append(NLA_OT_tracks_add);
-	WM_operatortype_append(NLA_OT_delete_tracks);
+	WM_operatortype_append(NLA_OT_tracks_delete);
+	
+	WM_operatortype_append(NLA_OT_selected_objects_add);
 	
 	/* select */
 	WM_operatortype_append(NLA_OT_click_select);
@@ -188,8 +190,8 @@ static void nla_keymap_channels(wmKeyMap *keymap)
 	RNA_boolean_set(kmi->ptr, "above_selected", TRUE);
 	
 	/* delete tracks */
-	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_tracks_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_tracks_delete", DELKEY, KM_PRESS, 0, 0);
 }
 
 static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)

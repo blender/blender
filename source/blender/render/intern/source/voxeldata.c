@@ -34,12 +34,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_voxel.h"
 #include "BLI_utildefines.h"
+
+#include "BLF_translation.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -400,7 +406,7 @@ void make_voxeldata(struct Render *re)
 {
 	Tex *tex;
 	
-	re->i.infostr = "Loading voxel datasets";
+	re->i.infostr = IFACE_("Loading voxel datasets");
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* XXX: should be doing only textures used in this render */

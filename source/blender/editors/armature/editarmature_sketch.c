@@ -28,9 +28,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 
-#include "RNA_define.h"
-#include "RNA_access.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
@@ -38,6 +35,9 @@
 
 #include "BKE_context.h"
 #include "BKE_sketch.h"
+
+#include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
@@ -170,20 +170,20 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 	GHashIterator ghi;
 	const char *menu_header = IFACE_("Template %t|None %x0|");
 	char *p;
+	const size_t template_size = (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30);
 
 	if (TEMPLATES_MENU != NULL) {
 		MEM_freeN(TEMPLATES_MENU);
 	}
 
-	TEMPLATES_MENU = MEM_callocN(sizeof(char) * (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30), "skeleton template menu");
+	TEMPLATES_MENU = MEM_callocN(sizeof(char) * template_size, "skeleton template menu");
 
 	p = TEMPLATES_MENU;
-
-	p += sprintf(TEMPLATES_MENU, "%s", menu_header);
+	p += BLI_strncpy_rlen(p, menu_header, template_size);
 
 	BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
 
-	while (!BLI_ghashIterator_isDone(&ghi)) {
+	while (BLI_ghashIterator_notDone(&ghi)) {
 		Object *ob = BLI_ghashIterator_getValue(&ghi);
 		int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 
@@ -203,7 +203,7 @@ int   BIF_currentTemplate(const bContext *C)
 		GHashIterator ghi;
 		BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
 
-		while (!BLI_ghashIterator_isDone(&ghi)) {
+		while (BLI_ghashIterator_notDone(&ghi)) {
 			Object *ob = BLI_ghashIterator_getValue(&ghi);
 			int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 
@@ -922,17 +922,18 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	float fp[3] = {0, 0, 0};
 	float dvec[3];
 	float mval_f[2];
+	float zfac;
 
 	if (last != NULL) {
 		copy_v3_v3(fp, last->p);
 	}
 
-	initgrabz(ar->regiondata, fp[0], fp[1], fp[2]);
+	zfac = ED_view3d_calc_zfac(ar->regiondata, fp, NULL);
 
 	/* method taken from editview.c - mouse_cursor() */
 	if (ED_view3d_project_short_global(ar, fp, cval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		VECSUB2D(mval_f, cval, dd->mval);
-		ED_view3d_win_to_delta(ar, mval_f, dvec);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
 		sub_v3_v3v3(vec, fp, dvec);
 	}
 	else {
@@ -2231,7 +2232,7 @@ void BDR_drawSketch(const bContext *C)
 	}
 }
 
-static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_delete(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch) {
@@ -2328,7 +2329,7 @@ SK_Sketch *viewcontextSketch(ViewContext *vc, int create)
 	return sketch;
 }
 
-static int sketch_convert(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_convert(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2338,7 +2339,7 @@ static int sketch_convert(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 	return OPERATOR_FINISHED;
 }
 
-static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2349,7 +2350,7 @@ static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int sketch_finish(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int sketch_finish(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2361,7 +2362,7 @@ static int sketch_finish(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int sketch_select(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int sketch_select(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch) {
@@ -2381,7 +2382,7 @@ static int sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_stroke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
@@ -2407,7 +2408,7 @@ static int sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_gesture(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
@@ -2425,7 +2426,7 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short gesture, SK_Stroke *stk)
+static int sketch_draw_modal(bContext *C, wmOperator *op, const wmEvent *event, short gesture, SK_Stroke *stk)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd = op->customdata;
@@ -2483,19 +2484,19 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 	return retval;
 }
 
-static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	return sketch_draw_modal(C, op, event, 0, sketch->active_stroke);
 }
 
-static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	return sketch_draw_modal(C, op, event, 1, sketch->gesture);
 }
 
-static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_preview(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_Sketch *sketch = contextSketch(C, 0);

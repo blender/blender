@@ -899,7 +899,9 @@ static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain), void *vid
 {
 	if (vid) {
 		ID *id = vid;
-		id->flag |= LIB_NEED_EXPAND | LIB_DOIT;
+		/* only tag for need-expand if not done, prevents eternal loops */
+		if ((id->flag & LIB_DOIT) == 0)
+			id->flag |= LIB_NEED_EXPAND | LIB_DOIT;
 	}
 }
 
@@ -993,7 +995,7 @@ int BKE_copybuffer_paste(bContext *C, char *libname, ReportList *reports)
 	
 	/* append, rather than linking */
 	lib = BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
-	BKE_library_make_local(bmain, lib, 1);
+	BKE_library_make_local(bmain, lib, true);
 	
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */

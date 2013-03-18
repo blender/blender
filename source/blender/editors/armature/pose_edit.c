@@ -201,7 +201,7 @@ void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 
 
 /* show popup to determine settings */
-static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {	
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
@@ -793,7 +793,7 @@ void ARMATURE_OT_layers_show_all(wmOperatorType *ot)
 /* ------------------- */
 
 /* Present a popup to get the layers that should be used */
-static int pose_armature_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_armature_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm = (ob) ? ob->data : NULL;
@@ -810,7 +810,7 @@ static int pose_armature_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 	/* part to sync with other similar operators... */
-	return WM_operator_props_popup(C, op, evt);
+	return WM_operator_props_popup(C, op, event);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -879,7 +879,7 @@ void ARMATURE_OT_armature_layers(wmOperatorType *ot)
 /* ------------------- */
 
 /* Present a popup to get the layers that should be used */
-static int pose_bone_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
@@ -900,7 +900,7 @@ static int pose_bone_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 	/* part to sync with other similar operators... */
-	return WM_operator_props_popup(C, op, evt);
+	return WM_operator_props_popup(C, op, event);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -954,7 +954,7 @@ void POSE_OT_bone_layers(wmOperatorType *ot)
 /* ------------------- */
 
 /* Present a popup to get the layers that should be used */
-static int armature_bone_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int armature_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
@@ -975,7 +975,7 @@ static int armature_bone_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 	/* part to sync with other similar operators... */
-	return WM_operator_props_popup(C, op, evt);
+	return WM_operator_props_popup(C, op, event);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */

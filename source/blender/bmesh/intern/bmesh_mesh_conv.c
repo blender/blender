@@ -782,7 +782,9 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 									hmd->indexar[j++] = BM_elem_index_get(eve);
 								}
 							}
-							else j++;
+							else {
+								j++;
+							}
 						}
 
 						hmd->totindex = j;

@@ -24,15 +24,9 @@
  *  \ingroup RNA
  */
 
-
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_lamp_types.h"
@@ -47,6 +41,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_node.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1194,6 +1193,11 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_flip_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_IMAROT);
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flip the texture's X and Y axis");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_USEALPHA);
+	RNA_def_property_ui_text(prop, "Use Alpha", "Use the alpha channel information in the image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "use_calculate_alpha", PROP_BOOLEAN, PROP_NONE);

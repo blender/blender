@@ -449,7 +449,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 					if (ANIMDATA_HAS_NLA(id)) { \
 						nlaOk \
 					} \
-					else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) { \
+					else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) || ANIMDATA_HAS_KEYS(id)) { \
 						nlaOk \
 					} \
 				} \
@@ -1001,22 +1001,39 @@ static short skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, ID *owner_id)
 /* Check if F-Curve has errors and/or is disabled 
  * > returns: (bool) True if F-Curve has errors/is disabled
  */
-static short fcurve_has_errors(FCurve *fcu)
+static bool fcurve_has_errors(FCurve *fcu)
 {
 	/* F-Curve disabled - path eval error */
 	if (fcu->flag & FCURVE_DISABLED) {
-		return 1;
+		return true;
 	}
 	
 	/* driver? */
 	if (fcu->driver) {
-		/* for now, just check if the entire thing got disabled... */
-		if (fcu->driver->flag & DRIVER_FLAG_INVALID)
-			return 1;
+		ChannelDriver *driver = fcu->driver;
+		DriverVar *dvar;
+		
+		/* error flag on driver usually means that there is an error
+		 * BUT this may not hold with PyDrivers as this flag gets cleared
+		 *     if no critical errors prevent the driver from working...
+		 */
+		if (driver->flag & DRIVER_FLAG_INVALID)
+			return true;
+			
+		/* check variables for other things that need linting... */
+		// TODO: maybe it would be more efficient just to have a quick flag for this?
+		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
+			DRIVER_TARGETS_USED_LOOPER(dvar)
+			{
+				if (dtar->flag & DTAR_FLAG_INVALID)
+					return true;
+			}
+			DRIVER_TARGETS_LOOPER_END
+		}
 	}
 	
 	/* no errors found */
-	return 0;
+	return false;
 }
 
 /* find the next F-Curve that is usable for inclusion */
@@ -1060,7 +1077,7 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGro
 						/* error-based filtering... */
 						if ((ads) && (ads->filterflag & ADS_FILTER_ONLY_ERRORS)) {
 							/* skip if no errors... */
-							if (fcurve_has_errors(fcu) == 0)
+							if (fcurve_has_errors(fcu) == false)
 								continue;
 						}
 						
@@ -1297,7 +1314,9 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 		ANIMDATA_FILTER_CASES(iat,
 			{ /* AnimData */
 				/* specifically filter animdata block */
-				ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_ANIMDATA, id);
+				if (ANIMCHANNEL_SELOK(SEL_ANIMDATA(adt)) ) {
+					ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_ANIMDATA, id);
+				}
 			},
 			{ /* NLA */
 				items += animfilter_nla(ac, anim_data, ads, adt, filter_mode, id);
@@ -1347,7 +1366,9 @@ static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Ke
 		// TODO: somehow manage to pass dopesheet info down here too?
 		if (key->adt) {
 			if (filter_mode & ANIMFILTER_ANIMDATA) {
-				ANIMCHANNEL_NEW_CHANNEL(key->adt, ANIMTYPE_ANIMDATA, key);
+				if (ANIMCHANNEL_SELOK(SEL_ANIMDATA(key->adt)) ) {
+					ANIMCHANNEL_NEW_CHANNEL(key->adt, ANIMTYPE_ANIMDATA, key);
+				}
 			}
 			else if (key->adt->action) {
 				items = animfilter_action(ac, anim_data, NULL, key->adt->action, filter_mode, (ID *)key);

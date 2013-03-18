@@ -21,11 +21,13 @@ subject to the following restrictions:
 
 ///The btConvex2dShape allows to use arbitrary convex shapes as 2d convex shapes, with the Z component assumed to be 0.
 ///For 2d boxes, the btBox2dShape is recommended.
-class btConvex2dShape : public btConvexShape
+ATTRIBUTE_ALIGNED16(class) btConvex2dShape : public btConvexShape
 {
 	btConvexShape*	m_childConvexShape;
 
 	public:
+	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 	
 	btConvex2dShape(	btConvexShape* convexChildShape);
 	

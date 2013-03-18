@@ -33,15 +33,15 @@
 
 #include "DNA_object_types.h"
 
-#include "RNA_define.h"
-#include "RNA_access.h"
-
 #include "BLI_math.h"
 #include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
+
+#include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "WM_types.h"
 
@@ -499,16 +499,9 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter);
 			}
 			else {
-				if (v_shared == f_verts[0]) {
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
-				}
-				else {
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
-				}
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
 			}
 
 		}
@@ -538,7 +531,7 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 /**
  * This is the main vert ripping function (rip when one vertex is selected)
  */
-static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
@@ -860,7 +853,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 /**
  * This is the main edge ripping function
  */
-static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
@@ -988,7 +981,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* based on mouse cursor position, it defines how is being ripped */
-static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);

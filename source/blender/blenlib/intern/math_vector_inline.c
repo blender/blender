@@ -398,6 +398,15 @@ MINLINE void mul_v4_v4fl(float r[4], const float a[4], float f)
 	r[3] = a[3] * f;
 }
 
+/* note: could add a matrix inline */
+MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3])
+{
+	return (mat[0][3] * co[0]) +
+	       (mat[1][3] * co[1]) +
+	       (mat[2][3] * co[2]) + mat[3][3];
+}
+
+
 MINLINE void madd_v2_v2fl(float r[2], const float a[2], float f)
 {
 	r[0] += a[0] * f;

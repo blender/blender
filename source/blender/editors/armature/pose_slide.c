@@ -614,12 +614,12 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 }
 
 /* common code for modal() */
-static int pose_slide_modal(bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseSlideOp *pso = op->customdata;
 	wmWindow *win = CTX_wm_window(C);
 	
-	switch (evt->type) {
+	switch (event->type) {
 		case LEFTMOUSE: /* confirm */
 		case RETKEY:
 		{
@@ -660,7 +660,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			/* calculate percentage based on position of mouse (we only use x-axis for now.
 			 * since this is more convenient for users to do), and store new percentage value
 			 */
-			pso->percentage = (evt->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
+			pso->percentage = (event->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
 			RNA_float_set(op->ptr, "percentage", pso->percentage);
 			
 			/* update percentage indicator in header */
@@ -717,7 +717,7 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
 /* ------------------------------------ */
 
 /* invoke() - for 'push' mode */
-static int pose_slide_push_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
+static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	tPoseSlideOp *pso;
 	
@@ -774,7 +774,7 @@ void POSE_OT_push(wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'relax' mode */
-static int pose_slide_relax_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
+static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	tPoseSlideOp *pso;
 	
@@ -831,7 +831,7 @@ void POSE_OT_relax(wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'breakdown' mode */
-static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
+static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	tPoseSlideOp *pso;
 	

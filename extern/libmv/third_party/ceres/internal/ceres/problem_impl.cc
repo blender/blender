@@ -651,14 +651,19 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
   program.ParameterBlocksToStateVector(parameters.data());
 
   double tmp_cost = 0;
-  bool status = evaluator->Evaluate(parameters.data(),
+
+  Evaluator::EvaluateOptions evaluator_evaluate_options;
+  evaluator_evaluate_options.apply_loss_function =
+      evaluate_options.apply_loss_function;
+  bool status = evaluator->Evaluate(evaluator_evaluate_options,
+                                    parameters.data(),
                                     &tmp_cost,
                                     residuals != NULL ? &(*residuals)[0] : NULL,
                                     gradient != NULL ? &(*gradient)[0] : NULL,
                                     tmp_jacobian.get());
 
-  // Make the parameter blocks that were temporarirly marked
-  // constant, variable again.
+  // Make the parameter blocks that were temporarily marked constant,
+  // variable again.
   for (int i = 0; i < variable_parameter_blocks.size(); ++i) {
     variable_parameter_blocks[i]->SetVarying();
   }

@@ -34,13 +34,11 @@
 #define __BLI_FILEOPS_H__
 
 #include <stdio.h>
-
+#include <sys/stat.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_fileops_types.h"
 
 /* for size_t (needed on windows) */
 #include <stddef.h>
@@ -52,7 +50,7 @@ struct gzFile;
 int    BLI_exists(const char *path);
 int    BLI_copy(const char *path, const char *to);
 int    BLI_rename(const char *from, const char *to);
-int    BLI_delete(const char *path, int dir, int recursive);
+int    BLI_delete(const char *path, bool dir, bool recursive);
 int    BLI_move(const char *path, const char *to);
 int    BLI_create_symlink(const char *path, const char *to);
 int    BLI_stat(const char *path, struct stat *buffer);
@@ -61,22 +59,24 @@ int    BLI_stat(const char *path, struct stat *buffer);
 
 struct direntry;
 
-int    BLI_is_dir(const char *path);
-int    BLI_is_file(const char *path);
+bool   BLI_is_dir(const char *path);
+bool   BLI_is_file(const char *path);
 void   BLI_dir_create_recursive(const char *dir);
 double BLI_dir_free_space(const char *dir);
 char  *BLI_current_working_dir(char *dir, const size_t maxlen);
 
 unsigned int BLI_dir_contents(const char *dir, struct direntry **filelist);
+void BLI_free_filelist(struct direntry * filelist, unsigned int nrentries);
 
 /* Files */
 
 FILE  *BLI_fopen(const char *filename, const char *mode);
 void  *BLI_gzopen(const char *filename, const char *mode);
 int    BLI_open(const char *filename, int oflag, int pmode);
+int    BLI_access(const char *filename, int mode);
 
-int    BLI_file_is_writable(const char *file);
-int    BLI_file_touch(const char *file);
+bool   BLI_file_is_writable(const char *file);
+bool   BLI_file_touch(const char *file);
 
 int    BLI_file_gzip(const char *from, const char *to);
 char  *BLI_file_ungzip_to_mem(const char *from_file, int *size_r);
@@ -85,7 +85,7 @@ size_t BLI_file_descriptor_size(int file);
 size_t BLI_file_size(const char *file);
 
 /* compare if one was last modified before the other */
-int    BLI_file_older(const char *file1, const char *file2);
+bool   BLI_file_older(const char *file1, const char *file2);
 
 /* read ascii file as lines, empty list if reading fails */
 struct LinkNode *BLI_file_read_as_lines(const char *file);
@@ -104,5 +104,4 @@ void BLI_get_short_name(char short_name[256], const char *filename);
 }
 #endif
 
-#endif
-
+#endif  /* __BLI_FILEOPS_H__ */

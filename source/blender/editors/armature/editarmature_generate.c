@@ -263,7 +263,7 @@ EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *U
 	parent = ED_armature_edit_bone_add(arm, "Bone");
 	copy_v3_v3(parent->head, iter->p);
 	
-	if (iter->size > 0) {
+	if (iter->size > FLT_EPSILON) {
 		parent->rad_head = iter->size * size_buffer;
 	}
 	
@@ -278,7 +278,7 @@ EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *U
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;
 		
-		if (iter->size > 0) {
+		if (iter->size > FLT_EPSILON) {
 			child->rad_head = iter->size * size_buffer;
 			parent->rad_tail = iter->size * size_buffer;
 		}
@@ -299,7 +299,7 @@ EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *U
 	iter->tail(iter);
 
 	copy_v3_v3(parent->tail, iter->p);
-	if (iter->size > 0) {
+	if (iter->size > FLT_EPSILON) {
 		parent->rad_tail = iter->size * size_buffer;
 	}
 		

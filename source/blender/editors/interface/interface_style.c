@@ -216,7 +216,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 	/* rotate counter-clockwise for now (assumes left-to-right language)*/
 	xofs += height;
 	yofs = BLF_width(fs->uifont_id, str) + 5;
-	angle = 90.0f;
+	angle = (float)M_PI / 2.0f;
 
 	/* translate rect to vertical */
 	txtrect.xmin = rect->xmin - BLI_rcti_size_y(rect);
@@ -330,6 +330,8 @@ void uiStyleInit(void)
 {
 	uiFont *font = U.uifonts.first;
 	uiStyle *style = U.uistyles.first;
+	int monofont_size = datatoc_bmonofont_ttf_size;
+	unsigned char *monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
 	
 	/* recover from uninitialized dpi */
 	if (U.dpi == 0)
@@ -400,15 +402,33 @@ void uiStyleInit(void)
 		ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
 	}
 	
+#ifdef WITH_INTERNATIONAL
+	/* use unicode font for text editor and interactive console */
+	if (U.transopts & USER_DOTRANSLATE) {
+		monofont_ttf = BLF_get_unifont_mono(&monofont_size);
+
+		if (!monofont_ttf) {
+			/* fall back if not found */
+			monofont_size = datatoc_bmonofont_ttf_size;
+			monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
+		}
+	}
+
+	/* reload */
+	BLF_unload("monospace");
+	blf_mono_font = -1;
+	blf_mono_font_render = -1;
+#endif
+
 	/* XXX, this should be moved into a style, but for now best only load the monospaced font once. */
 	if (blf_mono_font == -1)
-		blf_mono_font = BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+		blf_mono_font = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
 
 	BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
 	
 	/* second for rendering else we get threading problems */
 	if (blf_mono_font_render == -1)
-		blf_mono_font_render = BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+		blf_mono_font_render = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
 
 	BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72 );
 }

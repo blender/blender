@@ -81,7 +81,7 @@ class NonlinearConjugateGradient : public LineSearchDirection {
 
     *search_direction =  -current.gradient + beta * previous.search_direction;
     const double directional_derivative =
-        current. gradient.dot(*search_direction);
+        current.gradient.dot(*search_direction);
     if (directional_derivative > -function_tolerance_) {
       LOG(WARNING) << "Restarting non-linear conjugate gradients: "
                    << directional_derivative;

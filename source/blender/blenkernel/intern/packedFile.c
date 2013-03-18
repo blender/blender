@@ -348,7 +348,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 			}
 		}
 		else {
-			if (BLI_delete(tempname, 0, 0) != 0) {
+			if (BLI_delete(tempname, false, false) != 0) {
 				BKE_reportf(reports, RPT_ERROR, "Error deleting '%s' (ignored)", tempname);
 			}
 		}
@@ -488,11 +488,8 @@ int unpackVFont(ReportList *reports, VFont *vfont, int how)
 	int ret_value = RET_ERROR;
 	
 	if (vfont != NULL) {
-		BLI_strncpy(localname, vfont->name, sizeof(localname));
-		BLI_splitdirstring(localname, fi);
-		
+		BLI_split_file_part(vfont->name, fi, sizeof(fi));
 		BLI_snprintf(localname, sizeof(localname), "//fonts/%s", fi);
-		
 		newname = unpackFile(reports, vfont->name, localname, vfont->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
@@ -513,10 +510,8 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 	int ret_value = RET_ERROR;
 
 	if (sound != NULL) {
-		BLI_strncpy(localname, sound->name, sizeof(localname));
-		BLI_splitdirstring(localname, fi);
+		BLI_split_file_part(sound->name, fi, sizeof(fi));
 		BLI_snprintf(localname, sizeof(localname), "//sounds/%s", fi);
-
 		newname = unpackFile(reports, sound->name, localname, sound->packedfile, how);
 		if (newname != NULL) {
 			BLI_strncpy(sound->name, newname, sizeof(sound->name));
@@ -541,10 +536,8 @@ int unpackImage(ReportList *reports, Image *ima, int how)
 	int ret_value = RET_ERROR;
 	
 	if (ima != NULL && ima->name[0]) {
-		BLI_strncpy(localname, ima->name, sizeof(localname));
-		BLI_splitdirstring(localname, fi);
+		BLI_split_file_part(ima->name, fi, sizeof(fi));
 		BLI_snprintf(localname, sizeof(localname), "//textures/%s", fi);
-
 		newname = unpackFile(reports, ima->name, localname, ima->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
@@ -591,7 +584,7 @@ void packLibraries(Main *bmain, ReportList *reports)
 	
 	/* test for relativenss */
 	for (lib = bmain->library.first; lib; lib = lib->id.next)
-		if (0 == BLI_path_is_rel(lib->name))
+		if (!BLI_path_is_rel(lib->name))
 			break;
 	
 	if (lib) {
@@ -624,7 +617,7 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
 }
 
 /* ID should be not NULL, return 1 if there's a packed file */
-int BKE_pack_check(ID *id)
+bool BKE_pack_check(ID *id)
 {
 	if (GS(id->name) == ID_IM) {
 		Image *ima = (Image *)id;
@@ -642,7 +635,7 @@ int BKE_pack_check(ID *id)
 		Library *li = (Library *)id;
 		return li->packedfile != NULL;
 	}
-	return 0;
+	return false;
 }
 
 /* ID should be not NULL */

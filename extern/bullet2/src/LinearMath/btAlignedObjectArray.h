@@ -197,8 +197,26 @@ protected:
 			m_data[m_size].~T();
 		}
 
+
 		///resize changes the number of elements in the array. If the new size is larger, the new elements will be constructed using the optional second argument.
 		///when the new number of elements is smaller, the destructor will be called, but memory will not be freed, to reduce performance overhead of run-time memory (de)allocations.
+		SIMD_FORCE_INLINE	void	resizeNoInitialize(int newsize)
+		{
+			int curSize = size();
+
+			if (newsize < curSize)
+			{
+			} else
+			{
+				if (newsize > size())
+				{
+					reserve(newsize);
+				}
+				//leave this uninitialized
+			}
+			m_size = newsize;
+		}
+	
 		SIMD_FORCE_INLINE	void	resize(int newsize, const T& fillData=T())
 		{
 			int curSize = size();
@@ -226,7 +244,6 @@ protected:
 
 			m_size = newsize;
 		}
-	
 		SIMD_FORCE_INLINE	T&  expandNonInitializing( )
 		{	
 			int sz = size();

@@ -181,7 +181,6 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 	unsigned vert_seek_b_tot = 0;
 #endif
 
-	BMVert *v;
 	BMIter iter;
 
 	const unsigned int offset = 0;
@@ -192,12 +191,14 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 	/* if tag_only is set, we assume the caller knows what verts to tag
 	 * needed for the operator */
 	if (tag_only == false) {
+		BMVert *v;
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
 		}
 	}
 
 	for (iter_step = 0; iter_step < iterations; iter_step++) {
+		BMVert *v;
 		bool iter_done;
 
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -223,7 +224,6 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 			unsigned int i;
 #endif
 			BMVert *v_first = NULL;
-			BMVert *v;
 
 			/* we could avoid iterating from the start each time */
 			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

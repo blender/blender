@@ -73,7 +73,7 @@ void ED_view3d_project_float_v2_m4(const ARegion *ar, const float co[3], float r
 /**
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
-void ED_view3d_project_float_v3_m4(ARegion *ar, const float vec[3], float r_co[3], float mat[4][4])
+void ED_view3d_project_float_v3_m4(const ARegion *ar, const float vec[3], float r_co[3], float mat[4][4])
 {
 	float vec4[4];
 	
@@ -97,7 +97,7 @@ void ED_view3d_project_float_v3_m4(ARegion *ar, const float vec[3], float r_co[3
 /* Clipping Projection Functions
  * ***************************** */
 
-eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base)
+eV3DProjStatus ED_view3d_project_base(const struct ARegion *ar, struct Base *base)
 {
 	eV3DProjStatus ret = ED_view3d_project_short_global(ar, base->object->obmat[3], &base->sx, V3D_PROJ_TEST_CLIP_DEFAULT);
 
@@ -113,8 +113,8 @@ eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base)
  * - 'rv3d->perspmat',   is_local == FALSE
  * - 'rv3d->persmatob', is_local == TRUE
  */
-static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
-                                                  float perspmat[4][4], const int is_local,  /* normally hidden */
+static eV3DProjStatus ed_view3d_project__internal(const ARegion *ar,
+                                                  float perspmat[4][4], const bool is_local,  /* normally hidden */
                                                   const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	float vec4[4];
@@ -171,7 +171,7 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 	return V3D_PROJ_RET_OK;
 }
 
-eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+eV3DProjStatus ED_view3d_project_short_ex(const ARegion *ar, float perspmat[4][4], const bool is_local,
                                           const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	float tvec[2];
@@ -190,7 +190,7 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 	return ret;
 }
 
-eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+eV3DProjStatus ED_view3d_project_int_ex(const ARegion *ar, float perspmat[4][4], const bool is_local,
                                         const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	float tvec[2];
@@ -209,7 +209,7 @@ eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const
 	return ret;
 }
 
-eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+eV3DProjStatus ED_view3d_project_float_ex(const ARegion *ar, float perspmat[4][4], const bool is_local,
                                         const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	float tvec[2];
@@ -228,39 +228,39 @@ eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], con
 }
 
 /* --- short --- */
-eV3DProjStatus ED_view3d_project_short_global(ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_short_global(const ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_short_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
-eV3DProjStatus ED_view3d_project_short_object(ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_short_object(const ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_short_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
 /* --- int --- */
-eV3DProjStatus ED_view3d_project_int_global(ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_int_global(const ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_int_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
-eV3DProjStatus ED_view3d_project_int_object(ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_int_object(const ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_int_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
 /* --- float --- */
-eV3DProjStatus ED_view3d_project_float_global(ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_float_global(const ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_float_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
-eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_float_object(const ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_float_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
@@ -271,28 +271,30 @@ eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], fl
 /* More Generic Window/Ray/Vector projection functions
  * *************************************************** */
 
-/* odd function, need to document better */
-int initgrabz(RegionView3D *rv3d, float x, float y, float z)
+/**
+ * Caculate a depth value from \a co, use with #ED_view3d_win_to_delta
+ */
+float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_flip)
 {
-	int flip = FALSE;
-	if (rv3d == NULL) return flip;
-	rv3d->zfac = rv3d->persmat[0][3] * x + rv3d->persmat[1][3] * y + rv3d->persmat[2][3] * z + rv3d->persmat[3][3];
-	if (rv3d->zfac < 0.0f)
-		flip = TRUE;
+	float zfac = mul_project_m4_v3_zfac((float (*)[4])rv3d->persmat, co);
+
+	if (r_flip) {
+		*r_flip = (zfac < 0.0f);
+	}
+
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that
-	 * (accounting for near zero values)
-	 */
-	if (rv3d->zfac < 1.e-6f && rv3d->zfac > -1.e-6f) rv3d->zfac = 1.0f;
+	 * (accounting for near zero values) */
+	if (zfac < 1.e-6f && zfac > -1.e-6f) {
+		zfac = 1.0f;
+	}
 
 	/* Negative zfac means x, y, z was behind the camera (in perspective).
-	 * This gives flipped directions, so revert back to ok default case.
-	 */
-	/* NOTE: I've changed this to flip zfac to be positive again for now so that GPencil draws ok
-	 * Aligorith, 2009Aug31 */
-	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
-	if (rv3d->zfac < 0.0f) rv3d->zfac = -rv3d->zfac;
+	 * This gives flipped directions, so revert back to ok default case. */
+	if (zfac < 0.0f) {
+		zfac = -zfac;
+	}
 
-	return flip;
+	return zfac;
 }
 
 /**
@@ -306,7 +308,7 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
  * \param ray_start The world-space starting point of the segment.
  * \param ray_normal The normalized world-space direction of towards mval.
  */
-void ED_view3d_win_to_ray(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3])
+void ED_view3d_win_to_ray(const ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3])
 {
 	float ray_end[3];
 	
@@ -322,7 +324,7 @@ void ED_view3d_win_to_ray(ARegion *ar, View3D *v3d, const float mval[2], float r
  * \param coord The world-space location.
  * \param vec The resulting normalized vector.
  */
-void ED_view3d_global_to_vector(RegionView3D *rv3d, const float coord[3], float vec[3])
+void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], float vec[3])
 {
 	if (rv3d->is_persp) {
 		float p1[4], p2[4];
@@ -331,11 +333,11 @@ void ED_view3d_global_to_vector(RegionView3D *rv3d, const float coord[3], float 
 		p1[3] = 1.0f;
 		copy_v3_v3(p2, p1);
 		p2[3] = 1.0f;
-		mul_m4_v4(rv3d->viewmat, p2);
+		mul_m4_v4((float (*)[4])rv3d->viewmat, p2);
 
 		mul_v3_fl(p2, 2.0f);
 
-		mul_m4_v4(rv3d->viewinv, p2);
+		mul_m4_v4((float (*)[4])rv3d->viewinv, p2);
 
 		sub_v3_v3v3(vec, p1, p2);
 	}
@@ -352,7 +354,7 @@ void ED_view3d_global_to_vector(RegionView3D *rv3d, const float coord[3], float 
  * \param mval The area relative location (such as event->mval converted to floats).
  * \param out The resulting world-space location.
  */
-void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[2], float out[3])
+void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float mval[2], float out[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	
@@ -384,19 +386,19 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[
 
 /**
  * Calculate a 3d difference vector from 2d window offset.
- * note that initgrabz() must be called first to determine
+ * note that ED_view3d_calc_zfac() must be called first to determine
  * the depth used to calculate the delta.
  * \param ar The region (used for the window width and height).
  * \param mval The area relative 2d difference (such as event->mval[0] - other_x).
  * \param out The resulting world-space delta.
  */
-void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
+void ED_view3d_win_to_delta(const ARegion *ar, const float mval[2], float out[3], const float zfac)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	float dx, dy;
 	
-	dx = 2.0f * mval[0] * rv3d->zfac / ar->winx;
-	dy = 2.0f * mval[1] * rv3d->zfac / ar->winy;
+	dx = 2.0f * mval[0] * zfac / ar->winx;
+	dy = 2.0f * mval[1] * zfac / ar->winy;
 	
 	out[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy);
 	out[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy);
@@ -408,7 +410,7 @@ void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
  * This direction vector starts and the view in the direction of the 2d window coordinates.
  * In orthographic view all window coordinates yield the same vector.
  *
- * \note doesn't rely on initgrabz
+ * \note doesn't rely on ED_view3d_calc_zfac
  * for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector.
  *
@@ -416,7 +418,7 @@ void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
  * \param mval The area relative 2d location (such as event->mval converted to floats).
  * \param out The resulting normalized world-space direction vector.
  */
-void ED_view3d_win_to_vector(ARegion *ar, const float mval[2], float out[3])
+void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -433,7 +435,7 @@ void ED_view3d_win_to_vector(ARegion *ar, const float mval[2], float out[3])
 	normalize_v3(out);
 }
 
-void ED_view3d_win_to_segment(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+void ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -472,7 +474,7 @@ void ED_view3d_win_to_segment(ARegion *ar, View3D *v3d, const float mval[2], flo
  * \param ray_end The world-space end point of the segment.
  * \return success, FALSE if the segment is totally clipped.
  */
-int ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+int ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ED_view3d_win_to_segment(ar, v3d, mval, ray_start, ray_end);
@@ -503,12 +505,12 @@ int ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2],
 /* Utility functions for projection
  * ******************************** */
 
-void ED_view3d_ob_project_mat_get(RegionView3D *rv3d, Object *ob, float pmat[4][4])
+void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, Object *ob, float pmat[4][4])
 {
 	float vmat[4][4];
 
-	mult_m4_m4m4(vmat, rv3d->viewmat, ob->obmat);
-	mult_m4_m4m4(pmat, rv3d->winmat, vmat);
+	mult_m4_m4m4(vmat, (float (*)[4])rv3d->viewmat, ob->obmat);
+	mult_m4_m4m4(pmat, (float (*)[4])rv3d->winmat, vmat);
 }
 
 /**

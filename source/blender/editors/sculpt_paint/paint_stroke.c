@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_rand.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -91,6 +92,12 @@ typedef struct PaintStroke {
 	/* event that started stroke, for modal() return */
 	int event_type;
 	
+	bool brush_init;
+	float initial_mouse[2];
+	float cached_pressure;
+
+	float zoom_2d;
+
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
@@ -104,23 +111,21 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = customdata;
 
-	glColor4ubv(paint->paint_cursor_col);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
-
 	if (stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
-		ARegion *ar = CTX_wm_region(C);
-		sdrawline(x, y, (int)stroke->last_mouse_position[0] - ar->winrct.xmin,
-		          (int)stroke->last_mouse_position[1] - ar->winrct.ymin);
-	}
+		glColor4ubv(paint->paint_cursor_col);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
 
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+		sdrawline(x, y, (int)stroke->last_mouse_position[0],
+		          (int)stroke->last_mouse_position[1]);
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+	}
 }
 
 /* if this is a tablet event, return tablet pressure and set *pen_flip
  * to 1 if the eraser tool is being used, 0 otherwise */
-static float event_tablet_data(wmEvent *event, int *pen_flip)
+static float event_tablet_data(const wmEvent *event, int *pen_flip)
 {
 	int erasor = 0;
 	float pressure = 1;
@@ -138,11 +143,105 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 	return pressure;
 }
 
+
+/* Initialize the stroke cache variants from operator properties */
+static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
+                                         struct PaintStroke *stroke,
+                                         const float mouse[2], float pressure)
+{
+	Scene *scene = CTX_data_scene(C);
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+	/* XXX: Use pressure value from first brush step for brushes which don't
+	 *      support strokes (grab, thumb). They depends on initial state and
+	 *      brush coord/pressure/etc.
+	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
+	 *      changing events. We should avoid this after events system re-design */
+	if (paint_supports_dynamic_size(brush, mode) || !stroke->brush_init) {
+		copy_v2_v2(stroke->initial_mouse, mouse);
+		copy_v2_v2(ups->tex_mouse, mouse);
+		stroke->cached_pressure = pressure;
+	}
+
+	/* Truly temporary data that isn't stored in properties */
+
+	ups->draw_pressure = TRUE;
+	ups->pressure_value = stroke->cached_pressure;
+
+	ups->pixel_radius = BKE_brush_size_get(scene, brush);
+
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, mode)) {
+		ups->pixel_radius *= stroke->cached_pressure;
+	}
+
+	if (!(brush->flag & BRUSH_ANCHORED ||
+	      ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
+	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
+	{
+		copy_v2_v2(ups->tex_mouse, mouse);
+
+		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
+		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
+		    !(brush->flag & BRUSH_RAKE))
+		{
+			ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
+		}
+	}
+
+	if (brush->flag & BRUSH_ANCHORED) {
+		bool hit = false;
+		float halfway[2];
+
+		const float dx = mouse[0] - stroke->initial_mouse[0];
+		const float dy = mouse[1] - stroke->initial_mouse[1];
+
+		ups->anchored_size = ups->pixel_radius = sqrt(dx * dx + dy * dy);
+
+		ups->brush_rotation = atan2(dx, dy) + M_PI;
+
+		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
+			float out[3];
+
+			halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
+			halfway[1] = dy * 0.5f + stroke->initial_mouse[1];
+
+			if (stroke->get_location) {
+				if (stroke->get_location(C, out, halfway)) {
+					hit = true;
+				}
+			}
+			else {
+				hit = true;
+			}
+		}
+		if (hit) {
+			copy_v2_v2(ups->anchored_initial_mouse, halfway);
+			copy_v2_v2(ups->tex_mouse, halfway);
+			ups->anchored_size /= 2.0f;
+			ups->pixel_radius  /= 2.0f;
+		}
+		else
+			copy_v2_v2(ups->anchored_initial_mouse, stroke->initial_mouse);
+
+		ups->draw_anchored = 1;
+	}
+	else if (brush->flag & BRUSH_RAKE) {
+		if (!stroke->brush_init)
+			copy_v2_v2(ups->last_rake, mouse);
+		else
+			paint_calculate_rake_rotation(ups, mouse);
+	}
+
+	stroke->brush_init = TRUE;
+}
+
+
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, const float mouse_in[2])
+static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEvent *event, const float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
+	PaintMode mode = paintmode_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
 	float mouse_out[2];
@@ -154,19 +253,45 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	/* see if tablet affects event */
 	pressure = event_tablet_data(event, &pen_flip);
 
+/* the following code is adapted from texture paint. It may not be needed but leaving here
+ * just in case for reference (code in texpaint removed as part of refactoring).
+ * It's strange that only texpaint had these guards. */
+#if 0
+	/* special exception here for too high pressure values on first touch in
+	 * windows for some tablets, then we just skip first touch ..  */
+	if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || BKE_brush_use_alpha_pressure(scene, pop->s.brush) || BKE_brush_use_size_pressure(scene, pop->s.brush)))
+		return;
+
+	/* This can be removed once fixed properly in
+	 * BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user)
+	 * at zero pressure we should do nothing 1/2^12 is 0.0002 which is the sensitivity of the most sensitive pen tablet available */
+	if (tablet && (pressure < 0.0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || BKE_brush_use_alpha_pressure(scene, pop->s.brush) || BKE_brush_use_size_pressure(scene, pop->s.brush)))
+		return;
+#endif
+
+	/* copy last position -before- jittering, or space fill code
+	 * will create too many dabs */
+	copy_v2_v2(stroke->last_mouse_position, mouse_in);
+
+	paint_brush_update(C, brush, mode, stroke, mouse_in, pressure);
+
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * separation will go away */
-	if (stroke->vc.obact->sculpt) {
+	if (paint_supports_jitter(mode)) {
 		float delta[2];
+		float factor = stroke->zoom_2d;
+
+		if (brush->flag & BRUSH_JITTER_PRESSURE)
+			factor *= pressure;
 
 		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse_out);
 
 		/* XXX: meh, this is round about because
 		 * BKE_brush_jitter_pos isn't written in the best way to
 		 * be reused here */
-		if (brush->flag & BRUSH_JITTER_PRESSURE) {
+		if (factor != 1.0f) {
 			sub_v2_v2v2(delta, mouse_out, mouse_in);
-			mul_v2_fl(delta, pressure);
+			mul_v2_fl(delta, factor);
 			add_v2_v2v2(mouse_out, mouse_in, delta);
 		}
 	}
@@ -188,34 +313,25 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_set(&itemptr, "pen_flip", pen_flip);
 	RNA_float_set(&itemptr, "pressure", pressure);
 
-	copy_v2_v2(stroke->last_mouse_position, mouse_out);
-
 	stroke->update_step(C, stroke, &itemptr);
 }
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
 static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
-                               const PaintSample *sample)
+                               const PaintSample *sample, PaintMode mode)
 {
 	output[0] = sample->mouse[0];
 	output[1] = sample->mouse[1];
 
-	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
-	    !ELEM4(stroke->brush->sculpt_tool,
-	           SCULPT_TOOL_GRAB,
-	           SCULPT_TOOL_THUMB,
-	           SCULPT_TOOL_ROTATE,
-	           SCULPT_TOOL_SNAKE_HOOK) &&
-	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
-	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
-	{
+	if (paint_supports_smooth_stroke(stroke->brush, mode)) {
+		float radius = stroke->brush->smooth_stroke_radius * stroke->zoom_2d;
 		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
 		float dy = stroke->last_mouse_position[1] - sample->mouse[1];
 
 		/* If the mouse is moving within the radius of the last move,
 		 * don't update the mouse position. This allows sharp turns. */
-		if (dx * dx + dy * dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
+		if (dx * dx + dy * dy <  radius * radius)
 			return 0;
 
 		output[0] = sample->mouse[0] * v + stroke->last_mouse_position[0] * u;
@@ -227,12 +343,14 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
  * towards the final mouse location. */
-static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const float final_mouse[2])
+static int paint_space_stroke(bContext *C, wmOperator *op, const wmEvent *event, const float final_mouse[2])
 {
 	PaintStroke *stroke = op->customdata;
+	PaintMode mode = paintmode_get_active_from_context(C);
+
 	int cnt = 0;
 
-	if (paint_space_stroke_enabled(stroke->brush)) {
+	if (paint_space_stroke_enabled(stroke->brush, mode)) {
 		float mouse[2];
 		float vec[2];
 		float length, scale;
@@ -246,17 +364,28 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			const Scene *scene = CTX_data_scene(C);
 			int steps;
 			int i;
-			float pressure = 1.0f;
+			float size_pressure = 1.0f;
+			float pressure = event_tablet_data(event, NULL);
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
 			if (BKE_brush_use_size_pressure(scene, stroke->brush))
-				pressure = event_tablet_data(event, NULL);
+				size_pressure = pressure;
 			
-			if (pressure > FLT_EPSILON) {
+			if (size_pressure > FLT_EPSILON) {
 				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
 				 * causing very high step sizes, hanging blender [#32381] */
-				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * pressure);
-				scale = (size_clamp * stroke->brush->spacing / 50.0f) / length;
+				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
+				float spacing = stroke->brush->spacing;
+
+				/* stroke system is used for 2d paint too, so we need to account for
+				 * the fact that brush can be scaled there. */
+
+				if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
+					spacing = max_ff(1.0f, spacing * (1.5f - pressure));
+
+				spacing *= stroke->zoom_2d;
+
+				scale = (size_clamp * spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 
@@ -286,7 +415,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 	stroke->brush = paint_brush(paint_get_active_from_context(C));
 	view3d_set_viewcontext(C, &stroke->vc);
-	view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
+	if (stroke->vc.v3d)
+		view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
 	stroke->get_location = get_location;
 	stroke->test_start = test_start;
@@ -324,16 +454,77 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
-bool paint_space_stroke_enabled(Brush *br)
+bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 {
-	return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br);
+	return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br, mode);
 }
 
 /* return true if the brush size can change during paint (normally used for pressure) */
-bool paint_supports_dynamic_size(Brush *br)
+bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 {
-	return !(br->flag & BRUSH_ANCHORED) &&
-	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
+	if (br->flag & BRUSH_ANCHORED)
+		return false;
+
+	switch (mode) {
+		case PAINT_SCULPT:
+			if (ELEM4(br->sculpt_tool,
+			          SCULPT_TOOL_GRAB,
+			          SCULPT_TOOL_THUMB,
+			          SCULPT_TOOL_ROTATE,
+			          SCULPT_TOOL_SNAKE_HOOK))
+			{
+				return false;
+			}
+		default:
+			;
+	}
+	return true;
+}
+
+bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
+{
+	if (!(br->flag & BRUSH_SMOOTH_STROKE) ||
+	     (br->flag & BRUSH_ANCHORED) ||
+	     (br->flag & BRUSH_RESTORE_MESH))
+	{
+		return false;
+	}
+
+	switch (mode) {
+		case PAINT_SCULPT:
+			if (ELEM4(br->sculpt_tool,
+			          SCULPT_TOOL_GRAB,
+			          SCULPT_TOOL_THUMB,
+			          SCULPT_TOOL_ROTATE,
+			          SCULPT_TOOL_SNAKE_HOOK))
+			{
+				return false;
+			}
+		default:
+			;
+	}
+	return true;
+}
+
+/* return true if the brush size can change during paint (normally used for pressure) */
+bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
+{
+	if (br->flag & BRUSH_ANCHORED)
+		return false;
+
+	switch (mode) {
+		case PAINT_SCULPT:
+			if (ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
+				return false;
+		default:
+			;
+		}
+	return true;
+}
+
+bool paint_supports_jitter(PaintMode mode)
+{
+	return ELEM3(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
 }
 
 #define PAINT_STROKE_MODAL_CANCEL 1
@@ -400,16 +591,21 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
 	/*printf("avg=(%f, %f), num=%d\n", average->mouse[0], average->mouse[1], stroke->num_samples);*/
 }
 
-int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
+int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Paint *p = paint_get_active_from_context(C);
+	PaintMode mode = paintmode_get_active_from_context(C);
 	PaintStroke *stroke = op->customdata;
 	PaintSample sample_average;
 	float mouse[2];
 	int first = 0;
+	float zoomx, zoomy;
 
-	paint_stroke_add_sample(p, stroke, event->x, event->y);
+	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1]);
 	paint_stroke_sample_average(stroke, &sample_average);
+
+	get_imapaint_zoom(C, &zoomx, &zoomy);
+	stroke->zoom_2d = max_ff(zoomx, zoomy);
 
 	/* let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
 	 * this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
@@ -452,8 +648,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	         (event->type == TIMER && (event->customdata == stroke->timer)) )
 	{
 		if (stroke->stroke_started) {
-			if (paint_smooth_stroke(stroke, mouse, &sample_average)) {
-				if (paint_space_stroke_enabled(stroke->brush)) {
+			if (paint_smooth_stroke(stroke, mouse, &sample_average, mode)) {
+				if (paint_space_stroke_enabled(stroke->brush, mode)) {
 					if (!paint_space_stroke(C, op, event, mouse)) {
 						//ED_region_tag_redraw(ar);
 					}
@@ -472,7 +668,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	 * instead of waiting till we have moved the space distance */
 	if (first &&
 	    stroke->stroke_started &&
-	    paint_space_stroke_enabled(stroke->brush) &&
+	    paint_space_stroke_enabled(stroke->brush, mode) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
 	{

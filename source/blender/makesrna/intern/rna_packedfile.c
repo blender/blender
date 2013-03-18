@@ -24,14 +24,15 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "BLI_utildefines.h"
+
+#include "DNA_packedFile_types.h"
 
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_packedFile_types.h"
 
 EnumPropertyItem unpack_method_items[] = {
 	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use Local File", ""},

@@ -179,6 +179,7 @@ typedef struct ImBuf {
  * Note that the lower 11 bits is used for storing custom flags
  */
 #define IB_CUSTOM_FLAGS_MASK 0x7ff
+#define IB_ALPHA_MASK 0xff
 
 #define PNG				(1 << 30)
 #define TGA				(1 << 28)

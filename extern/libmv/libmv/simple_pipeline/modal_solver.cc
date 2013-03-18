@@ -200,7 +200,7 @@ void ModalSolver(Tracks &tracks,
     if (num_residuals) {
       // Configure the solve.
       ceres::Solver::Options solver_options;
-      solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
+      solver_options.linear_solver_type = ceres::DENSE_QR;
       solver_options.max_num_iterations = 50;
       solver_options.update_state_every_iteration = true;
       solver_options.gradient_tolerance = 1e-36;

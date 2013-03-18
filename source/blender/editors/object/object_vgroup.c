@@ -1037,7 +1037,7 @@ static void vgroup_duplicate(Object *ob)
 		BLI_snprintf(name, sizeof(name), "%s_copy", dg->name);
 	}
 	else {
-		BLI_snprintf(name, sizeof(name), "%s", dg->name);
+		BLI_strncpy(name, dg->name, sizeof(name));
 	}
 
 	cdg = defgroup_duplicate(dg);

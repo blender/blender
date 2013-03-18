@@ -432,22 +432,22 @@ int defgroup_flip_index(Object *ob, int index, int use_default)
 	return (flip_index == -1 && use_default) ? index : flip_index;
 }
 
-static int defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
+static bool defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
 {
 	bDeformGroup *curdef;
 
 	for (curdef = ob->defbase.first; curdef; curdef = curdef->next) {
 		if (dg != curdef) {
 			if (!strcmp(curdef->name, name)) {
-				return 1;
+				return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-static int defgroup_unique_check(void *arg, const char *name)
+static bool defgroup_unique_check(void *arg, const char *name)
 {
 	struct {Object *ob; void *dg; } *data = arg;
 	return defgroup_find_name_dupe(name, data->dg, data->ob);

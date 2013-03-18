@@ -63,15 +63,15 @@ BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v)
 	return NULL;
 }
 
-bool bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
+bool bmesh_edge_swapverts(BMEdge *e, BMVert *v_orig, BMVert *v_new)
 {
-	if (e->v1 == orig) {
-		e->v1 = newv;
+	if (e->v1 == v_orig) {
+		e->v1 = v_new;
 		e->v1_disk_link.next = e->v1_disk_link.prev = NULL;
 		return true;
 	}
-	else if (e->v2 == orig) {
-		e->v2 = newv;
+	else if (e->v2 == v_orig) {
+		e->v2 = v_new;
 		e->v2_disk_link.next = e->v2_disk_link.prev = NULL;
 		return true;
 	}

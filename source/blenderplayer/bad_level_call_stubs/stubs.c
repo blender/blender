@@ -71,6 +71,7 @@ struct Mask;
 struct Material;
 struct MenuType;
 struct Mesh;
+struct MetaBall;
 struct ModifierData;
 struct MovieClip;
 struct MultiresModifierData;
@@ -116,6 +117,7 @@ struct bNodeSocket;
 struct bNodeTree;
 struct bPoseChannel;
 struct bPythonConstraint;
+struct bTheme;
 struct uiLayout;
 struct wmEvent;
 struct wmKeyConfig;
@@ -201,7 +203,7 @@ void WM_menutype_free(void) {}
 void WM_menutype_freelink(struct MenuType *mt) {}
 int WM_menutype_add(struct MenuType *mt) {return 0;}
 int WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width, int height) {return 0;}
-int WM_operator_confirm(struct bContext *C, struct wmOperator *op, struct wmEvent *event) {return 0;}
+int WM_operator_confirm(struct bContext *C, struct wmOperator *op, const struct wmEvent *event) {return 0;}
 struct MenuType *WM_menutype_find(const char *idname, int quiet) {return (struct MenuType *) NULL;}
 void WM_operator_stack_clear(struct bContext *C) {}
 void WM_operator_handlers_clear(struct bContext *C, struct wmOperatorType *ot) {}
@@ -420,6 +422,7 @@ void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct Point
 char *uiLayoutIntrospect(struct uiLayout *layout) {return (char *)NULL;}
 void UI_reinit_font(void) {}
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, int big) {return 0;}
+struct bTheme *UI_GetTheme(void) {return (struct bTheme *) NULL;};
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text) {}
@@ -466,6 +469,7 @@ struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, 
 struct RenderResult *RE_AcquireResultRead(struct Render *re) {return (struct RenderResult *) NULL;}
 struct RenderResult *RE_AcquireResultWrite(struct Render *re) {return (struct RenderResult *) NULL;}
 struct RenderStats *RE_GetStats(struct Render *re) {return (struct RenderStats *) NULL;}
+struct RenderData *RE_engine_get_render_data(struct Render *re) {return (struct RenderData *) NULL;}
 void RE_engine_update_result(struct RenderEngine *engine, struct RenderResult *result) {}
 void RE_engine_update_progress(struct RenderEngine *engine, float progress) {}
 void RE_engine_end_result(struct RenderEngine *engine, struct RenderResult *result) {}
@@ -524,7 +528,6 @@ float sculpt_get_brush_alpha(struct Brush *brush) {return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha) {}
 void ED_sculpt_modifiers_changed(struct Object *ob) {}
 void ED_mesh_calc_tessface(struct Mesh *mesh) {}
-void BKE_brush_gen_texture_cache(struct Brush *br, int half_side) {}
 
 /* bpy/python internal api */
 void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}

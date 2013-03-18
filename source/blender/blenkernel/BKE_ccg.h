@@ -126,7 +126,7 @@ BLI_INLINE CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset
 
 BLI_INLINE CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y)
 {
-	BLI_assert(x < key->grid_size && y < key->grid_size);
+//	BLI_assert(x < key->grid_size && y < key->grid_size);
 	return CCG_elem_offset(key, elem, (y * key->grid_size + x));
 }
 

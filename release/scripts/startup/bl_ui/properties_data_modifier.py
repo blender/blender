@@ -715,7 +715,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Deform:")
-        col.prop(md, "factor")
+        if md.deform_method in {'TAPER', 'STRETCH'}:
+            col.prop(md, "factor")
+        else:
+            col.prop(md, "angle")
         col.prop(md, "limits", slider=True)
         if md.deform_method in {'TAPER', 'STRETCH', 'TWIST'}:
             col.prop(md, "lock_x")
@@ -747,6 +750,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.prop(md, "thickness")
+        col.prop(md, "thickness_clamp")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         col.label(text="Crease:")
@@ -758,6 +762,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
 
         col.prop(md, "offset")
+        col.prop(md, "use_flip_normals")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert_vertex_group", text="Invert")
@@ -773,7 +778,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row = row.row()
         row.active = md.use_rim
         row.prop(md, "material_offset_rim", text="Rim")
-        sub.prop(md, "use_flip_normals")
 
     def SUBSURF(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)

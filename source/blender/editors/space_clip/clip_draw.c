@@ -944,7 +944,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	if (state[0])
 		BLI_snprintf(str, sizeof(str), "%s: %s", track->name, state);
 	else
-		BLI_snprintf(str, sizeof(str), "%s", track->name);
+		BLI_strncpy(str, track->name, sizeof(str));
 
 	BLF_position(fontid, pos[0], pos[1], 0.0f);
 	BLF_draw(fontid, str, sizeof(str));

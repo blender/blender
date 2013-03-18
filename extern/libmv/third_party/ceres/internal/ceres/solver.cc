@@ -100,10 +100,12 @@ Solver::Summary::Summary()
       jacobian_evaluation_time_in_seconds(-1.0),
       num_parameter_blocks(-1),
       num_parameters(-1),
+      num_effective_parameters(-1),
       num_residual_blocks(-1),
       num_residuals(-1),
       num_parameter_blocks_reduced(-1),
       num_parameters_reduced(-1),
+      num_effective_parameters_reduced(-1),
       num_residual_blocks_reduced(-1),
       num_residuals_reduced(-1),
       num_threads_given(-1),
@@ -156,10 +158,12 @@ string Solver::Summary::FullReport() const {
 
   if (termination_type == DID_NOT_RUN) {
     StringAppendF(&report, "                      Original\n");
-    StringAppendF(&report, "Parameter blocks    % 10d\n",
-                  num_parameter_blocks);
-    StringAppendF(&report, "Parameters          % 10d\n",
-                  num_parameters);
+    StringAppendF(&report, "Parameter blocks    % 10d\n", num_parameter_blocks);
+    StringAppendF(&report, "Parameters          % 10d\n", num_parameters);
+    if (num_effective_parameters != num_parameters) {
+      StringAppendF(&report, "Effective parameters% 10d\n", num_parameters);
+    }
+
     StringAppendF(&report, "Residual blocks     % 10d\n",
                   num_residual_blocks);
     StringAppendF(&report, "Residuals           % 10d\n\n",
@@ -170,6 +174,10 @@ string Solver::Summary::FullReport() const {
                   num_parameter_blocks, num_parameter_blocks_reduced);
     StringAppendF(&report, "Parameters          % 25d% 25d\n",
                   num_parameters, num_parameters_reduced);
+    if (num_effective_parameters_reduced != num_parameters_reduced) {
+      StringAppendF(&report, "Effective parameters% 25d% 25d\n",
+                    num_effective_parameters, num_effective_parameters_reduced);
+    }
     StringAppendF(&report, "Residual blocks     % 25d% 25d\n",
                   num_residual_blocks, num_residual_blocks_reduced);
     StringAppendF(&report, "Residual            % 25d% 25d\n",
@@ -204,7 +212,7 @@ string Solver::Summary::FullReport() const {
     StringAppendF(&report, "\n");
     StringAppendF(&report, "\n");
 
-    StringAppendF(&report,   "%45s    %21s\n", "Given",  "Used");
+    StringAppendF(&report, "%45s    %21s\n", "Given",  "Used");
     StringAppendF(&report, "Linear solver       %25s%25s\n",
                   LinearSolverTypeToString(linear_solver_type_given),
                   LinearSolverTypeToString(linear_solver_type_used));
@@ -299,15 +307,15 @@ string Solver::Summary::FullReport() const {
     // LINE_SEARCH
     StringAppendF(&report, "\nMinimizer                 %19s\n", "LINE_SEARCH");
     if (line_search_direction_type == LBFGS) {
-      StringAppendF(&report,   "Line search direction     %19s(%d)\n",
+      StringAppendF(&report, "Line search direction     %19s(%d)\n",
                     LineSearchDirectionTypeToString(line_search_direction_type),
                     max_lbfgs_rank);
     } else {
-      StringAppendF(&report,   "Line search direction     %19s\n",
+      StringAppendF(&report, "Line search direction     %19s\n",
                     LineSearchDirectionTypeToString(
                         line_search_direction_type));
     }
-    StringAppendF(&report,   "Line search type          %19s\n",
+    StringAppendF(&report, "Line search type          %19s\n",
                   LineSearchTypeToString(line_search_type));
 
     StringAppendF(&report, "\n");
@@ -336,8 +344,8 @@ string Solver::Summary::FullReport() const {
                     initial_cost - final_cost);
     }
 
-    StringAppendF(&report, "\nNumber of iterations:    % 20ld\n",
-                  iterations.size() - 1);
+    StringAppendF(&report, "\nNumber of iterations:    % 20d\n",
+                  static_cast<int>(iterations.size() - 1));
 
     StringAppendF(&report, "\nTime (in seconds):\n");
     StringAppendF(&report, "Preprocessor        %25.3f\n",

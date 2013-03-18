@@ -85,17 +85,22 @@ def brush_texture_settings(layout, brush, sculpt):
 
     # angle and texture_angle_source
     col = layout.column()
-    if sculpt:
-        col.active = brush.sculpt_capabilities.has_texture_angle_source
-        col.label(text="Angle:")
-        if brush.sculpt_capabilities.has_random_texture_angle:
-            col.prop(brush, "texture_angle_source_random", text="")
+    col.active = brush.brush_capabilities.has_texture_angle_source
+    col.label(text="Angle:")
+    if brush.brush_capabilities.has_random_texture_angle:
+        if sculpt:
+            if brush.sculpt_capabilities.has_random_texture_angle:
+                col.prop(brush, "texture_angle_source_random", text="")
+            else:
+                col.prop(brush, "texture_angle_source_no_random", text="")
+        
         else:
-            col.prop(brush, "texture_angle_source_no_random", text="")
-
-        col = layout.column()
-        col.active = brush.sculpt_capabilities.has_texture_angle
-        col.prop(tex_slot, "angle", text="")
+            col.prop(brush, "texture_angle_source_random", text="")
+    else:
+        col.prop(brush, "texture_angle_source_no_random", text="")
+    col = layout.column()
+    col.active = brush.brush_capabilities.has_texture_angle
+    col.prop(tex_slot, "angle", text="")
 
     # scale and offset
     split = layout.split()

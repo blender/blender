@@ -197,7 +197,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 	 * generated code, to avoid have to add the actual code & recompile all */
 	ghi = BLI_ghashIterator_new(hash);
 
-	for (; !BLI_ghashIterator_isDone(ghi); BLI_ghashIterator_step(ghi)) {
+	for (; BLI_ghashIterator_notDone(ghi); BLI_ghashIterator_step(ghi)) {
 		name = BLI_ghashIterator_getValue(ghi);
 		function = BLI_ghashIterator_getValue(ghi);
 

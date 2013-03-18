@@ -47,6 +47,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_dynamicpaint_types.h"
@@ -703,10 +704,8 @@ static void init_iconfile_list(struct ListBase *list)
 {
 	IconFile *ifile;
 	struct direntry *dir;
-	int restoredir = 1; /* restore to current directory */
 	int totfile, i, index = 1;
 	const char *icondir;
-	char olddir[FILE_MAX];
 
 	list->first = list->last = NULL;
 	icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
@@ -714,12 +713,7 @@ static void init_iconfile_list(struct ListBase *list)
 	if (icondir == NULL)
 		return;
 	
-	/* since BLI_dir_contents changes the current working directory, restore it 
-	 * back to old value afterwards */
-	if (!BLI_current_working_dir(olddir, sizeof(olddir))) 
-		restoredir = 0;
 	totfile = BLI_dir_contents(icondir, &dir);
-	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */
 
 	for (i = 0; i < totfile; i++) {
 		if ((dir[i].type & S_IFREG)) {
@@ -766,18 +760,8 @@ static void init_iconfile_list(struct ListBase *list)
 			}
 		}
 	}
-	
-	/* free temporary direntry structure that's been created by BLI_dir_contents() */
-	i = totfile - 1;
-	
-	for (; i >= 0; i--) {
-		MEM_freeN(dir[i].relname);
-		MEM_freeN(dir[i].path);
-		if (dir[i].string) {
-			MEM_freeN(dir[i].string);
-		}
-	}
-	free(dir);
+
+	BLI_free_filelist(dir, totfile);
 	dir = NULL;
 }
 

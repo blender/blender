@@ -294,7 +294,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	MEM_freeN(linkflag);
 }
 
-void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]), int mode)
+void paintface_select_linked(bContext *UNUSED(C), Object *ob, const int UNUSED(mval[2]), int mode)
 {
 	Mesh *me;
 	unsigned int index = 0;
@@ -525,7 +525,9 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 		else
 			mpoly_sel->flag |= ME_FACE_SEL;
 	}
-	else mpoly_sel->flag |= ME_FACE_SEL;
+	else {
+		mpoly_sel->flag |= ME_FACE_SEL;
+	}
 	
 	/* image window redraw */
 	
@@ -568,7 +570,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 
 	ibuf = IMB_allocImBuf(sx, sy, 32, IB_rect);
 	rt = ibuf->rect;
-	glReadPixels(rect->xmin + vc->ar->winrct.xmin,  rect->ymin + vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+	view3d_opengl_read_pixels(vc->ar, rect->xmin, rect->ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a = sx * sy;
@@ -710,6 +712,37 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 	}
 }
 
+void paintvert_select_ungrouped(Object *ob, short extend, short flush_flags)
+{
+	Mesh *me = BKE_mesh_from_object(ob);
+	MVert *mv;
+	MDeformVert *dv;
+	int a, tot;
+
+	if (me == NULL || me->dvert == NULL) {
+		return;
+	}
+
+	if (!extend) {
+		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE);
+	}
+
+	dv = me->dvert;
+	tot = me->totvert;
+
+	for (a = 0, mv = me->mvert; a < tot; a++, mv++, dv++) {
+		if ((mv->flag & ME_HIDE) == 0) {
+			if (dv->dw == NULL) {
+				/* if null weight then not grouped */
+				mv->flag |= SELECT;
+			}
+		}
+	}
+
+	if (flush_flags) {
+		paintvert_flush_flags(ob);
+	}
+}
 
 /* ********************* MESH VERTEX MIRR TOPO LOOKUP *************** */
 /* note, this is not the best place for the function to be but moved

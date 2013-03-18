@@ -162,7 +162,7 @@ void select_surround_from_last(Scene *scene)
 }
 #endif
 
-void ED_sequencer_select_sequence_single(Scene * scene, Sequence * seq, int deselect_all)
+void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
@@ -315,7 +315,7 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	View2D *v2d = UI_view2d_fromcontext(C);
 	Scene *scene = CTX_data_scene(C);
@@ -552,8 +552,6 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 }
 
 
-
-
 /* run recursively to select linked */
 static int select_more_less_seq__internal(Scene *scene, int sel, int linked)
 {
@@ -670,7 +668,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 
 
 /* select pick linked operator (uses the mouse) */
-static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);

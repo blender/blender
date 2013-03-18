@@ -113,6 +113,7 @@ static void rna_tracking_active_object_index_set(PointerRNA *ptr, int value)
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 
 	clip->tracking.objectnr = value;
+	BKE_tracking_dopesheet_tag_update(&clip->tracking);
 }
 
 static void rna_tracking_active_object_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)

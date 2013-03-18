@@ -122,7 +122,7 @@ static Object *edit_object_property_get(bContext *C, wmOperator *op)
 
 	/* if ob_name is valid try to find the object with this name
 	 * otherwise gets the active object */
-	if (BLI_strnlen(ob_name, MAX_NAME) > 0)
+	if (*ob_name)
 		ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
 	else
 		ob = ED_object_active_context(C);
@@ -250,7 +250,7 @@ static int sensor_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sensor_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sensor_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_sensor_invoke_properties(C, op))
 		return sensor_remove_exec(C, op);
@@ -295,12 +295,13 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(&sens_ptr, "type");
 
 	RNA_string_get(op->ptr, "name", name);
-	if (BLI_strnlen(name, MAX_NAME) < 1) {
+	if (*name) {
+		BLI_strncpy(sens->name, name, sizeof(sens->name));
+	}
+	else {
 		RNA_property_enum_name(C, &sens_ptr, prop, RNA_property_enum_get(&sens_ptr, prop), &sens_name);
 		BLI_strncpy(sens->name, sens_name, sizeof(sens->name));
 	}
-	else
-		BLI_strncpy(sens->name, name, sizeof(sens->name));
 
 	make_unique_prop_names(C, sens->name);
 	ob->scaflag |= OB_SHOWSENS;
@@ -355,7 +356,7 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int controller_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int controller_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_controller_invoke_properties(C, op))
 		return controller_remove_exec(C, op);
@@ -401,12 +402,13 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(&cont_ptr, "type");
 
 	RNA_string_get(op->ptr, "name", name);
-	if (BLI_strnlen(name, MAX_NAME) < 1) {
+	if (*name) {
+		BLI_strncpy(cont->name, name, sizeof(cont->name));
+	}
+	else {
 		RNA_property_enum_name(C, &cont_ptr, prop, RNA_property_enum_get(&cont_ptr, prop), &cont_name);
 		BLI_strncpy(cont->name, cont_name, sizeof(cont->name));
 	}
-	else
-		BLI_strncpy(cont->name, name, sizeof(cont->name));
 
 	make_unique_prop_names(C, cont->name);
 	/* set the controller state mask from the current object state.
@@ -473,7 +475,7 @@ static int actuator_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int actuator_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int actuator_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_actuator_invoke_properties(C, op))
 		return actuator_remove_exec(C, op);
@@ -518,12 +520,13 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(&act_ptr, "type");
 
 	RNA_string_get(op->ptr, "name", name);
-	if (BLI_strnlen(name, MAX_NAME) < 1) {
+	if (*name) {
+		BLI_strncpy(act->name, name, sizeof(act->name));
+	}
+	else {
 		RNA_property_enum_name(C, &act_ptr, prop, RNA_property_enum_get(&act_ptr, prop), &act_name);
 		BLI_strncpy(act->name, act_name, sizeof(act->name));
 	}
-	else
-		BLI_strncpy(act->name, name, sizeof(act->name));
 
 	make_unique_prop_names(C, act->name);
 	ob->scaflag |= OB_SHOWACT;
@@ -583,7 +586,7 @@ static int sensor_move_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sensor_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int sensor_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_sensor_invoke_properties(C, op)) {
 		return sensor_move_exec(C, op);
@@ -628,7 +631,7 @@ static int controller_move_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int controller_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int controller_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_controller_invoke_properties(C, op)) {
 		return controller_move_exec(C, op);
@@ -673,7 +676,7 @@ static int actuator_move_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int actuator_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int actuator_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_actuator_invoke_properties(C, op)) {
 		return actuator_move_exec(C, op);
@@ -711,7 +714,7 @@ static int texface_convert_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int texface_convert_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int texface_convert_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return texface_convert_exec(C, op);
 }

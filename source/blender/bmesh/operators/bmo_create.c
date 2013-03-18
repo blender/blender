@@ -26,12 +26,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_heap.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
 #include "BLI_rand.h"
+#include "BLI_heap.h"
 
 #include "bmesh.h"
 
@@ -810,9 +810,9 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			}
 			
 			if (use_restrict) {
-				int *group = (int *)BMO_slot_map_data_get(slot_restrict, e);
-				if (group) {
-					if (!(*group & path->group)) {
+				int *group_flag = (int *)BMO_slot_map_data_get(slot_restrict, e);
+				if (group_flag) {
+					if (!(*group_flag & path->group)) {
 						v2 = NULL;
 						continue;
 					}
@@ -925,15 +925,12 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, f, ELE_ORIG);
 	}
 
-	i = 0;
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		BM_elem_index_set(e, i); /* set_inline */
 		
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			edata[i].tag = 2;
 		}
-
-		i++;
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
@@ -1491,6 +1488,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 			if (use_smooth) {
 				BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 			}
+			BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_OUT);
 		}
 
 		MEM_freeN(vert_arr);

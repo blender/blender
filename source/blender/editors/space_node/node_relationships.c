@@ -448,7 +448,7 @@ static int outside_group_rect(SpaceNode *snode)
 
 /* loop that adds a nodelink, called by function below  */
 /* in_out = starting socket */
-static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -702,7 +702,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, int detach)
 	return nldrag;
 }
 
-static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -840,7 +840,9 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	if (i > 1) {
 		int found = FALSE;
 		bNodeLink *link, *next;
-
+		
+		ED_preview_kill_jobs(C);
+		
 		for (link = snode->edittree->links.first; link; link = next) {
 			next = link->next;
 
@@ -1181,7 +1183,7 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int node_attach_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_attach_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);

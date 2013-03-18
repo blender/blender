@@ -97,7 +97,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(maxx, miny + rad);
 	}
-	else glVertex2f(maxx, miny);
+	else {
+		glVertex2f(maxx, miny);
+	}
 	
 	/* corner right-top */
 	if (roundboxtype & UI_CNR_TOP_RIGHT) {
@@ -107,7 +109,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(maxx - rad, maxy);
 	}
-	else glVertex2f(maxx, maxy);
+	else {
+		glVertex2f(maxx, maxy);
+	}
 	
 	/* corner left-top */
 	if (roundboxtype & UI_CNR_TOP_LEFT) {
@@ -117,7 +121,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(minx, maxy - rad);
 	}
-	else glVertex2f(minx, maxy);
+	else {
+		glVertex2f(minx, maxy);
+	}
 	
 	/* corner left-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
@@ -127,7 +133,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 		}
 		glVertex2f(minx + rad, miny);
 	}
-	else glVertex2f(minx, miny);
+	else {
+		glVertex2f(minx, miny);
+	}
 	
 	glEnd();
 }
@@ -381,16 +389,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 /* (old, used in outliner) plain antialiased filled box */
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 {
-	float color[4];
-	
-	if (roundboxtype & UI_RB_ALPHA) {
-		glGetFloatv(GL_CURRENT_COLOR, color);
-		color[3] = 0.5;
-		glColor4fv(color);
-		glEnable(GL_BLEND);
-	}
-	
-	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad);
+	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA);
 }
 
 
@@ -454,8 +453,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 		float facy = (float)h / (float)ibuf->y;
 		glPixelZoom(facx, facy);
 	}
-	glaDrawPixelsSafe((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-	//glaDrawPixelsTex((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+	glaDrawPixelsAuto((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect);
 	
 	glPixelZoom(1.0f, 1.0f);
 	
@@ -1301,8 +1299,10 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		
 		glEndList();
 	}
-	else glCallList(displist);
-	
+	else {
+		glCallList(displist);
+	}
+
 	/* restore */
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
@@ -1602,7 +1602,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
 		                                            scopes->track_search, scopes->track,
-		                                            &scopes->undist_marker, scopes->use_track_mask,
+		                                            &scopes->undist_marker, TRUE, scopes->use_track_mask,
 		                                            width, height, scopes->track_pos);
 
 		if (tmpibuf) {

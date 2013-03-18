@@ -110,7 +110,7 @@ ImBuf *get_brush_icon(Brush *brush)
 	static const int flags = IB_rect | IB_multilayer | IB_metadata;
 
 	char path[FILE_MAX];
-	char *folder;
+	const char *folder;
 
 	if (!(brush->icon_imbuf)) {
 		if (brush->flag & BRUSH_CUSTOM_ICON) {
@@ -188,8 +188,8 @@ typedef struct IconPreview {
 
 /* *************************** Preview for buttons *********************** */
 
-static Main *pr_main = NULL;
-static Main *pr_main_cycles = NULL;
+static Main *G_pr_main = NULL;
+static Main *G_pr_main_cycles = NULL;
 
 #ifndef WITH_HEADLESS
 static Main *load_main_from_memory(char *blend, int blend_size)
@@ -214,18 +214,18 @@ static Main *load_main_from_memory(char *blend, int blend_size)
 void ED_preview_init_dbase(void)
 {
 #ifndef WITH_HEADLESS
-	pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
-	pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
+	G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
+	G_pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
 #endif
 }
 
 void ED_preview_free_dbase(void)
 {
-	if (pr_main)
-		free_main(pr_main);
+	if (G_pr_main)
+		free_main(G_pr_main);
 
-	if (pr_main_cycles)
-		free_main(pr_main_cycles);
+	if (G_pr_main_cycles)
+		free_main(G_pr_main_cycles);
 }
 
 static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
@@ -425,15 +425,16 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						
 						if (tex && sp->slot)
 							mat->mtex[0]->which_output = sp->slot->which_output;
-						
+
+						mat->mtex[0]->mapto &= ~MAP_ALPHA;
+						mat->alpha = 1.0f;
+
 						/* show alpha in this case */
 						if (tex == NULL || (tex->flag & TEX_PRV_ALPHA)) {
-							mat->mtex[0]->mapto |= MAP_ALPHA;
-							mat->alpha = 0.0f;
-						}
-						else {
-							mat->mtex[0]->mapto &= ~MAP_ALPHA;
-							mat->alpha = 1.0f;
+							if (!(tex && tex->type == TEX_IMAGE && (tex->imaflag & (TEX_USEALPHA | TEX_CALCALPHA)) == 0)) {
+								mat->mtex[0]->mapto |= MAP_ALPHA;
+								mat->alpha = 0.0f;
+							}
 						}
 					}
 				}
@@ -670,8 +671,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		if (first) sizex = sp->sizex / 2;
 		else sizex = sp->sizex - sp->sizex / 2;
 	}
-	else sizex = sp->sizex;
-	
+	else {
+		sizex = sp->sizex;
+	}
+
 	/* we have to set preview variables first */
 	sce = preview_get_scene(pr_main);
 	if (sce) {
@@ -1025,7 +1028,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = PR_ICON_RENDER;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
-		sp->pr_main = pr_main;
+		sp->pr_main = G_pr_main;
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
@@ -1128,9 +1131,9 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	/* hardcoded preview .blend for cycles/internal, this should be solved
 	 * once with custom preview .blend path for external engines */
 	if (BKE_scene_use_new_shading_nodes(scene))
-		sp->pr_main = pr_main_cycles;
+		sp->pr_main = G_pr_main_cycles;
 	else
-		sp->pr_main = pr_main;
+		sp->pr_main = G_pr_main;
 
 	if (ob && ob->totcol) copy_v4_v4(sp->col, ob->col);
 	else sp->col[0] = sp->col[1] = sp->col[2] = sp->col[3] = 1.0f;

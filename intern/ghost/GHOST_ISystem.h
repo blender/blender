@@ -201,7 +201,7 @@ public:
 	virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
 	                                       GHOST_TUns64 interval,
 	                                       GHOST_TimerProcPtr timerProc,
-	                                       GHOST_TUserDataPtr userData = 0) = 0;
+	                                       GHOST_TUserDataPtr userData = NULL) = 0;
 
 	/**
 	 * Removes a timer.

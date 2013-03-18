@@ -20,9 +20,9 @@
  *		Monique Dewanchand
  */
 
- #ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
- #endif
+#endif
 
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"

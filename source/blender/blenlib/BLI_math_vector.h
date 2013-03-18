@@ -42,6 +42,11 @@ extern "C" {
 
 /************************************* Init ***********************************/
 
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
+
 MINLINE void zero_v2(float r[2]);
 MINLINE void zero_v3(float r[3]);
 MINLINE void zero_v4(float r[4]);
@@ -108,6 +113,7 @@ MINLINE void mul_v3_v3(float r[3], const float a[3]);
 MINLINE void mul_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void mul_v4_fl(float r[4], float f);
 MINLINE void mul_v4_v4fl(float r[3], const float a[3], float f);
+MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3]);
 
 MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
@@ -259,6 +265,10 @@ void interp_vn_vn(float *array_tar, const float *array_src, const float t, const
 void fill_vn_i(int *array_tar, const int size, const int val);
 void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void fill_vn_fl(float *array_tar, const int size, const float val);
+
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
+#  pragma GCC diagnostic pop
+#endif
 
 #ifdef __cplusplus
 }

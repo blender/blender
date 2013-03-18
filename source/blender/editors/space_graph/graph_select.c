@@ -815,7 +815,7 @@ static int graphkeys_select_leftright_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	short leftright = RNA_enum_get(op->ptr, "mode");
@@ -1297,7 +1297,7 @@ static void graphkeys_mselect_column(bAnimContext *ac, const int mval[2], short 
 /* ------------------- */
 
 /* handle clicking */
-static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	short selectmode;
@@ -1342,9 +1342,12 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 	ot->idname = "GRAPH_OT_clickselect";
 	ot->description = "Select keyframes by clicking on them";
 	
-	/* api callbacks */
+	/* callbacks */
 	ot->invoke = graphkeys_clickselect_invoke;
 	ot->poll = graphop_visible_keyframes_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

@@ -32,9 +32,9 @@
 /* XXX Why bloody hell isn't that included in Python.h???? */
 #include <structmember.h>
 
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
-#include "BLI_utildefines.h"
 
 #include "BPY_extern.h"
 #include "bpy_app_translations.h"

@@ -42,6 +42,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 
 #include "RNA_access.h"
@@ -63,9 +65,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		return icon;
 	else if (ELEM3(NULL, id, fcu, fcu->rna_path)) {
 		if (fcu == NULL)
-			strcpy(name, "<invalid>");
+			strcpy(name, IFACE_("<invalid>"));
 		else if (fcu->rna_path == NULL)
-			strcpy(name, "<no path>");
+			strcpy(name, IFACE_("<no path>"));
 		else /* id == NULL */
 			BLI_snprintf(name, 256, "%s[%d]", fcu->rna_path, fcu->array_index);
 	}

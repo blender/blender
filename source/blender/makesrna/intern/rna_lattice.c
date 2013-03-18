@@ -24,18 +24,18 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
-
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+#include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 

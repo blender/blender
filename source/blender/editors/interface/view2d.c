@@ -457,8 +457,12 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_
 				if (ABS(winx - v2d->oldwinx) > ABS(winy - v2d->oldwiny)) do_y = FALSE;
 				else do_x = FALSE;
 			}
-			else if (winRatio > 1.0f) do_x = FALSE;
-			else do_x = TRUE;
+			else if (winRatio > 1.0f) {
+				do_x = FALSE;
+			}
+			else {
+				do_x = TRUE;
+			}
 		}
 		do_cur = do_x;
 		/* do_win = do_y; */ /* UNUSED */

@@ -218,13 +218,16 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glDisable(GL_BLEND);
 }
 
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad)
+void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha)
 {
 	float color[4];
 	int j;
 	
 	glEnable(GL_BLEND);
 	glGetFloatv(GL_CURRENT_COLOR, color);
+	if (use_alpha) {
+		color[3] = 0.5f;
+	}
 	color[3] *= 0.125f;
 	glColor4fv(color);
 	
@@ -1289,7 +1292,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
 		ui_text_clip_left(fstyle, but, rect);
 	}
-	else but->ofs = 0;
+	else {
+		but->ofs = 0;
+	}
 
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {

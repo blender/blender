@@ -638,7 +638,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 }
 
 
-static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	OGLRender *oglrender = op->customdata;
 	int anim = RNA_boolean_get(op->ptr, "animation");
@@ -677,7 +677,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int screen_opengl_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	OGLRender *oglrender;
 	int anim = RNA_boolean_get(op->ptr, "animation");

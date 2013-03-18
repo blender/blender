@@ -121,6 +121,27 @@ static void blend_color_darken(char cp[3], const char cp1[3], const char cp2[3],
 	}
 }
 
+static void blend_color_erase_alpha(char cp[4], const char cp1[4], const char cp2[4], const int fac)
+{
+	int temp = (cp1[3] - fac * cp2[3] / 255);
+
+	cp[0] = cp1[0];
+	cp[1] = cp1[1];
+	cp[2] = cp1[2];
+	cp[3] = (temp < 0) ? 0 : temp;
+}
+
+static void blend_color_add_alpha(char cp[4], const char cp1[4], const char cp2[4], const int fac)
+{
+	int temp = (cp1[3] + fac * cp2[3] / 255);
+
+	cp[0] = cp1[0];
+	cp[1] = cp1[1];
+	cp[2] = cp1[2];
+	cp[3] = (temp < 0) ? 0 : temp;
+}
+
+
 unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_BlendMode mode)
 {
 	unsigned int dst;
@@ -230,6 +251,26 @@ static void blend_color_darken_float(float cp[3], const float cp1[3], const floa
 		blend_color_mix_float(cp, cp1, cp2, fac);
 }
 
+static void blend_color_erase_alpha_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
+{
+	cp[0] = cp1[0];
+	cp[1] = cp1[1];
+	cp[2] = cp1[2];
+
+	cp[3] = (cp1[3] - fac * cp2[3]);
+	if (cp[3] < 0.0f) cp[3] = 0.0f;
+}
+
+static void blend_color_add_alpha_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
+{
+	cp[0] = cp1[0];
+	cp[1] = cp1[1];
+	cp[2] = cp1[2];
+
+	cp[3] = (cp1[3] + fac * cp2[3]);
+	if (cp[3] < 0.0f) cp[3] = 0.0f;
+}
+
 void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac, IMB_BlendMode mode)
 {
 	if (fac == 0) {
@@ -326,12 +367,18 @@ void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 	              IMB_BLEND_COPY);
 }
 
+typedef void (*IMB_blend_func)(char *dst, const char *src1, const char *src2, const int fac);
+typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2, const float fac);
+
+
 void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
                    int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode)
 {
 	unsigned int *drect = NULL, *srect = NULL, *dr, *sr;
 	float *drectf = NULL, *srectf = NULL, *drf, *srf;
 	int do_float, do_char, srcskip, destskip, x;
+	IMB_blend_func func = NULL;
+	IMB_blend_func_float func_float = NULL;
 
 	if (dbuf == NULL) return;
 
@@ -427,13 +474,52 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 		}
 	}
 	else {
+		switch (mode) {
+			case IMB_BLEND_MIX:
+				func = blend_color_mix;
+				func_float = blend_color_mix_float;
+				break;
+			case IMB_BLEND_ADD:
+				func = blend_color_add;
+				func_float = blend_color_add_float;
+				break;
+			case IMB_BLEND_SUB:
+				func = blend_color_sub;
+				func_float = blend_color_sub_float;
+				break;
+			case IMB_BLEND_MUL:
+				func = blend_color_mul;
+				func_float = blend_color_mul_float;
+				break;
+			case IMB_BLEND_LIGHTEN:
+				func = blend_color_lighten;
+				func_float = blend_color_lighten_float;
+				break;
+			case IMB_BLEND_DARKEN:
+				func = blend_color_darken;
+				func_float = blend_color_darken_float;
+				break;
+			case IMB_BLEND_ERASE_ALPHA:
+				func = blend_color_erase_alpha;
+				func_float = blend_color_erase_alpha_float;
+				break;
+			case IMB_BLEND_ADD_ALPHA:
+				func = blend_color_add_alpha;
+				func_float = blend_color_add_alpha_float;
+				break;
+			default:
+				break;
+		}
+
 		/* blend */
 		for (; height > 0; height--) {
 			if (do_char) {
 				dr = drect;
 				sr = srect;
-				for (x = width; x > 0; x--, dr++, sr++)
-					*dr = IMB_blend_color(*dr, *sr, ((char *)sr)[3], mode);
+				for (x = width; x > 0; x--, dr++, sr++) {
+					if (*sr & IB_ALPHA_MASK)
+						func((char *)dr, (char *)dr, (char *)sr, ((char *)sr)[3]);
+				}
 
 				drect += destskip;
 				srect += srcskip;
@@ -442,9 +528,10 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 			if (do_float) {
 				drf = drectf;
 				srf = srectf;
-				for (x = width; x > 0; x--, drf += 4, srf += 4)
-					IMB_blend_color_float(drf, drf, srf, srf[3], mode);
-
+				for (x = width; x > 0; x--, drf += 4, srf += 4) {
+					if (srf[3] != 0)
+						func_float(drf, drf, srf, srf[3]);
+				}
 				drectf += destskip * 4;
 				srectf += srcskip * 4;
 			}

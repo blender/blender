@@ -840,7 +840,10 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 	
 	/* version header */
 	ptcache_file_read(pf, version, 1, sizeof(char) * 4);
-	if (strncmp(version, DPAINT_CACHE_VERSION, 4)) {printf("Dynamic Paint: Invalid cache version: %s!\n", version); return 0;}
+	if (strncmp(version, DPAINT_CACHE_VERSION, 4)) {
+		printf("Dynamic Paint: Invalid cache version: %s!\n", version);
+		return 0;
+	}
 
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
 		unsigned int data_len;
@@ -1516,7 +1519,7 @@ static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, uns
 	if (mode == 2) {
 		
 		r = LzmaCompress(out, &out_len, in, in_len, //assume sizeof(char)==1....
-						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
+		                 props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
 
 		if (!(r == SZ_OK) || (out_len >= in_len))
 			compressed = 0;
@@ -2432,7 +2435,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 						if (mode == PTCACHE_CLEAR_ALL) {
 							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-							BLI_delete(path_full, 0, 0);
+							BLI_delete(path_full, false, false);
 						}
 						else {
 							/* read the number of the file */
@@ -2448,7 +2451,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 								{
 									
 									BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-									BLI_delete(path_full, 0, 0);
+									BLI_delete(path_full, false, false);
 									if (pid->cache->cached_frames && frame >=sta && frame <= end)
 										pid->cache->cached_frames[frame-sta] = 0;
 								}
@@ -2502,7 +2505,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 		if (pid->cache->flag & PTCACHE_DISK_CACHE) {
 			if (BKE_ptcache_id_exist(pid, cfra)) {
 				ptcache_filename(pid, filename, cfra, 1, 1); /* no path */
-				BLI_delete(filename, 0, 0);
+				BLI_delete(filename, false, false);
 			}
 		}
 		else {
@@ -2820,7 +2823,7 @@ void BKE_ptcache_remove(void)
 			}
 			else if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
 				BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-				BLI_delete(path_full, 0, 0);
+				BLI_delete(path_full, false, false);
 			}
 			else {
 				rmdir = 0; /* unknown file, don't remove the dir */
@@ -2834,7 +2837,7 @@ void BKE_ptcache_remove(void)
 	}
 	
 	if (rmdir) {
-		BLI_delete(path, 1, 0);
+		BLI_delete(path, true, false);
 	}
 }
 
@@ -3039,7 +3042,7 @@ static void *ptcache_bake_thread(void *ptr)
 }
 
 /* if bake is not given run simulations to current frame */
-void BKE_ptcache_bake(PTCacheBaker* baker)
+void BKE_ptcache_bake(PTCacheBaker *baker)
 {
 	Main *bmain = baker->main;
 	Scene *scene = baker->scene;
@@ -3511,7 +3514,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		else if (totframes && cache->totpoint)
 			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%i points found!"), cache->totpoint);
 		else
-			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("No valid data to read!"));
+			BLI_strncpy(cache->info, IFACE_("No valid data to read!"), sizeof(cache->info));
 		return;
 	}
 

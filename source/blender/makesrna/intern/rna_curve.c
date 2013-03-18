@@ -26,11 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "rna_internal.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
@@ -39,6 +34,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_font.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
 

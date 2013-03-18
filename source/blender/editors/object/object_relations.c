@@ -215,7 +215,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if (v4 || !((v1 && v2 == 0 && v3 == 0) || (v1 && v2 && v3)) ) {
+	if (v4 || !((v1 && v2 == 0 && v3 == 0) || (v1 && v2 && v3))) {
 		BKE_report(op->reports, RPT_ERROR, "Select either 1 or 3 vertices to parent to");
 		return OPERATOR_CANCELLED;
 	}
@@ -286,7 +286,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 /********************** Make Proxy Operator *************************/
 
 /* set the object to proxify */
-static int make_proxy_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
@@ -299,7 +299,7 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	if (ob->dup_group && ob->dup_group->id.lib) {
 		/* gives menu with list of objects in group */
 		//proxy_group_objects_menu(C, op, ob, ob->dup_group);
-		WM_enum_search_invoke(C, op, evt);
+		WM_enum_search_invoke(C, op, event);
 		return OPERATOR_CANCELLED;
 
 	}
@@ -608,8 +608,10 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				cu->flag |= CU_PATH | CU_FOLLOW;
 				BKE_displist_make_curveTypes(scene, par, 0);  /* force creation of path data */
 			}
-			else cu->flag |= CU_FOLLOW;
-			
+			else {
+				cu->flag |= CU_FOLLOW;
+			}
+
 			/* if follow, add F-Curve for ctime (i.e. "eval_time") so that path-follow works */
 			if (partype == PAR_FOLLOW) {
 				/* get or create F-Curve */
@@ -797,7 +799,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 }
 
 
-static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	Object *ob = ED_object_active_context(C);
 	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
@@ -1227,7 +1229,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	return lay;
 }
 
-static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d && v3d->localvd) {
@@ -1541,6 +1543,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_OBJECT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1928,11 +1931,11 @@ static void make_local_makelocalmaterial(Material *ma)
 	AnimData *adt;
 	int b;
 	
-	id_make_local(&ma->id, 0);
+	id_make_local(&ma->id, false);
 	
 	for (b = 0; b < MAX_MTEX; b++)
 		if (ma->mtex[b] && ma->mtex[b]->tex)
-			id_make_local(&ma->mtex[b]->tex->id, 0);
+			id_make_local(&ma->mtex[b]->tex->id, false);
 	
 	adt = BKE_animdata_from_id(&ma->id);
 	if (adt) BKE_animdata_make_local(adt);
@@ -1958,7 +1961,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	int a, b, mode = RNA_enum_get(op->ptr, "type");
 	
 	if (mode == MAKE_LOCAL_ALL) {
-		BKE_library_make_local(bmain, NULL, 0); /* NULL is all libs */
+		BKE_library_make_local(bmain, NULL, false); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
 	}
@@ -1968,7 +1971,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		if (ob->id.lib)
-			id_make_local(&ob->id, 0);
+			id_make_local(&ob->id, false);
 	}
 	CTX_DATA_END;
 	
@@ -1986,7 +1989,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 		id = ob->data;
 			
 		if (id && (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL))) {
-			id_make_local(id, 0);
+			id_make_local(id, false);
 			adt = BKE_animdata_from_id(id);
 			if (adt) BKE_animdata_make_local(adt);
 			
@@ -2002,7 +2005,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 		}
 
 		for (psys = ob->particlesystem.first; psys; psys = psys->next)
-			id_make_local(&psys->part->id, 0);
+			id_make_local(&psys->part->id, false);
 
 		adt = BKE_animdata_from_id(&ob->id);
 		if (adt) BKE_animdata_make_local(adt);
@@ -2017,7 +2020,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 				for (b = 0; b < MAX_MTEX; b++)
 					if (la->mtex[b] && la->mtex[b]->tex)
-						id_make_local(&la->mtex[b]->tex->id, 0);
+						id_make_local(&la->mtex[b]->tex->id, false);
 			}
 			else {
 				for (a = 0; a < ob->totcol; a++) {
@@ -2130,7 +2133,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
 }
 
-static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;

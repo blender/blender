@@ -817,7 +817,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 static bConstraintTypeInfo CTI_CHILDOF = {
 	CONSTRAINT_TYPE_CHILDOF, /* type */
 	sizeof(bChildOfConstraint), /* size */
-	"ChildOf", /* name */
+	"Child Of", /* name */
 	"bChildOfConstraint", /* struct name */
 	NULL, /* free data */
 	childof_id_looper, /* id looper */
@@ -992,7 +992,7 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 static bConstraintTypeInfo CTI_TRACKTO = {
 	CONSTRAINT_TYPE_TRACKTO, /* type */
 	sizeof(bTrackToConstraint), /* size */
-	"TrackTo", /* name */
+	"Track To", /* name */
 	"bTrackToConstraint", /* struct name */
 	NULL, /* free data */
 	trackto_id_looper, /* id looper */

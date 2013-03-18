@@ -108,23 +108,23 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->obedit = CTX_data_edit_object(C);
 }
 
-int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int mval[2], const short do_fallback)
+/**
+ * Re-project \a fp so it stays on the same view-plane but is under \a mval (normally the cursor location).
+ */
+bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval[2], const bool do_fallback)
 {
+	RegionView3D *rv3d = ar->regiondata;
 	float dvec[3];
 	int mval_cpy[2];
 	eV3DProjStatus ret;
 
-	mval_cpy[0] = mval[0];
-	mval_cpy[1] = mval[1];
-
-	ret = ED_view3d_project_int_global(vc->ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
-
-	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
+	ret = ED_view3d_project_int_global(ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
 
 	if (ret == V3D_PROJ_RET_OK) {
 		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
 		                         (float)(mval_cpy[1] - mval[1])};
-		ED_view3d_win_to_delta(vc->ar, mval_f, dvec);
+		const float zfac = ED_view3d_calc_zfac(rv3d, fp, NULL);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
 		sub_v3_v3(fp, dvec);
 
 		return TRUE;
@@ -132,11 +132,11 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 	else {
 		/* fallback to the view center */
 		if (do_fallback) {
-			negate_v3_v3(fp, vc->rv3d->ofs);
-			return view3d_get_view_aligned_coordinate(vc, fp, mval, FALSE);
+			negate_v3_v3(fp, rv3d->ofs);
+			return view3d_get_view_aligned_coordinate(ar, fp, mval, false);
 		}
 		else {
-			return FALSE;
+			return false;
 		}
 	}
 }
@@ -177,10 +177,9 @@ static void edbm_backbuf_check_and_select_verts(BMEditMesh *em, int select)
 {
 	BMVert *eve;
 	BMIter iter;
-	int index = bm_wireoffs;
+	unsigned int index = bm_wireoffs;
 
-	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (; eve; eve = BM_iter_step(&iter), index++) {
+	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter), index++) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if (EDBM_backbuf_check(index)) {
 				BM_vert_select_set(em->bm, eve, select);
@@ -209,7 +208,7 @@ static void edbm_backbuf_check_and_select_faces(BMEditMesh *em, int select)
 {
 	BMFace *efa;
 	BMIter iter;
-	int index = 1;
+	unsigned int index = 1;
 
 	efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 	for (; efa; efa = BM_iter_step(&iter), index++) {
@@ -226,11 +225,11 @@ static void edbm_backbuf_check_and_select_faces(BMEditMesh *em, int select)
 static void edbm_backbuf_check_and_select_verts_obmode(Mesh *me, int select)
 {
 	MVert *mv = me->mvert;
-	int a;
+	unsigned int index;
 
 	if (mv) {
-		for (a = 1; a <= me->totvert; a++, mv++) {
-			if (EDBM_backbuf_check(a)) {
+		for (index = 1; index <= me->totvert; index++, mv++) {
+			if (EDBM_backbuf_check(index)) {
 				if (!(mv->flag & ME_HIDE)) {
 					mv->flag = select ? (mv->flag | SELECT) : (mv->flag & ~SELECT);
 				}
@@ -243,11 +242,11 @@ static void edbm_backbuf_check_and_select_verts_obmode(Mesh *me, int select)
 static void edbm_backbuf_check_and_select_tfaces(Mesh *me, int select)
 {
 	MPoly *mpoly = me->mpoly;
-	int a;
+	unsigned int index;
 
 	if (mpoly) {
-		for (a = 1; a <= me->totpoly; a++, mpoly++) {
-			if (EDBM_backbuf_check(a)) {
+		for (index = 1; index <= me->totpoly; index++, mpoly++) {
+			if (EDBM_backbuf_check(index)) {
 				mpoly->flag = select ? (mpoly->flag | ME_FACE_SEL) : (mpoly->flag & ~ME_FACE_SEL);
 			}
 		}
@@ -733,7 +732,7 @@ static void do_lasso_select_meta(ViewContext *vc, const int mcords[][2], short m
 	MetaBall *mb = (MetaBall *)vc->obedit->data;
 
 	if (extend == 0 && select)
-		 BKE_mball_deselect_all(mb);
+		BKE_mball_deselect_all(mb);
 
 	BLI_lasso_boundbox(&rect, mcords, moves);
 
@@ -780,9 +779,6 @@ static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], sh
 	}
 	else {
 		LassoSelectUserData data;
-		rcti rect;
-
-		BLI_lasso_boundbox(&rect, mcords, moves);
 
 		view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
@@ -1054,7 +1050,7 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
-		if (strcmp(name, base->object->id.name + 2) == 0) {
+		if (STREQ(name, base->object->id.name + 2)) {
 			ED_base_object_activate(C, base);
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -2230,7 +2226,7 @@ static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], shor
 /* ****** Mouse Select ****** */
 
 
-static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);

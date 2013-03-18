@@ -35,13 +35,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_image.h"
 #include "BKE_global.h"
@@ -990,11 +990,9 @@ void render_result_exr_file_merge(RenderResult *rr, RenderResult *rrpart)
 /* path to temporary exr file */
 void render_result_exr_file_path(Scene *scene, const char *layname, int sample, char *filepath)
 {
-	char di[FILE_MAX], name[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100], fi[FILE_MAXFILE];
+	char name[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100], fi[FILE_MAXFILE];
 	
-	BLI_strncpy(di, G.main->name, FILE_MAX);
-	BLI_splitdirstring(di, fi);
-	
+	BLI_split_file_part(G.main->name, fi, sizeof(fi));
 	if (sample == 0)
 		BLI_snprintf(name, sizeof(name), "%s_%s_%s.exr", fi, scene->id.name + 2, layname);
 	else

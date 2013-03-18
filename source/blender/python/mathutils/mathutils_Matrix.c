@@ -829,10 +829,10 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		mat[0] = 1.0f;
 		mat[3] = 1.0f;
 
-		if (strcmp(plane, "X") == 0) {
+		if (STREQ(plane, "X")) {
 			mat[2] = factor;
 		}
-		else if (strcmp(plane, "Y") == 0) {
+		else if (STREQ(plane, "Y")) {
 			mat[1] = factor;
 		}
 		else {
@@ -855,15 +855,15 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		mat[4] = 1.0f;
 		mat[8] = 1.0f;
 
-		if (strcmp(plane, "XY") == 0) {
+		if (STREQ(plane, "XY")) {
 			mat[6] = factor[0];
 			mat[7] = factor[1];
 		}
-		else if (strcmp(plane, "XZ") == 0) {
+		else if (STREQ(plane, "XZ")) {
 			mat[3] = factor[0];
 			mat[5] = factor[1];
 		}
-		else if (strcmp(plane, "YZ") == 0) {
+		else if (STREQ(plane, "YZ")) {
 			mat[1] = factor[0];
 			mat[2] = factor[1];
 		}

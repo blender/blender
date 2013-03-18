@@ -98,7 +98,7 @@ public:
 			{ this->sw = sw; }
 	
 
-	void exportAnimations(Scene *sce);
+	bool exportAnimations(Scene *sce);
 
 	// called for each exported object
 	void operator() (Object *ob); 
@@ -141,7 +141,7 @@ protected:
 	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);
+	                           COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);
 	
 	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length);
 	
@@ -184,6 +184,7 @@ protected:
 	char *extract_transform_name(char *rna_path);
 
 	std::string getObjectBoneName(Object *ob, const FCurve * fcu);
+	std::string getAnimationPathId(const FCurve *fcu);
 
 	void getBakedPoseData(Object *obarm, int startFrame, int endFrame, bool ActionBake, bool ActionBakeFirstFrame);
 

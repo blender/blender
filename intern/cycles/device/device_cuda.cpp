@@ -209,7 +209,7 @@ public:
 			int major, minor;
 			cuDeviceComputeCapability(&major, &minor, cuDevId);
 
-			if(major <= 1 && minor <= 3) {
+			if(major < 2) {
 				cuda_error_message(string_printf("CUDA device supported only with compute capability 2.0 or up, found %d.%d.", major, minor));
 				return false;
 			}
@@ -242,7 +242,7 @@ public:
 
 #ifdef _WIN32
 		if(cuHavePrecompiledKernels()) {
-			if(major <= 1 && minor <= 3)
+			if(major < 2)
 				cuda_error_message(string_printf("CUDA device requires compute capability 2.0 or up, found %d.%d. Your GPU is not supported.", major, minor));
 			else
 				cuda_error_message(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
@@ -294,7 +294,8 @@ public:
 		/* check if cuda init succeeded */
 		if(cuContext == 0)
 			return false;
-
+		
+		/* check if GPU is supported with current feature set */
 		if(!support_device(experimental))
 			return false;
 

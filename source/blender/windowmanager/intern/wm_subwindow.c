@@ -257,9 +257,9 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
 	if (srct) {
-		int width  = BLI_rcti_size_x(srct) + 1; /* only here */
-		int height = BLI_rcti_size_y(srct) + 1;
-		glScissor(srct->xmin, srct->ymin, width, height);
+		int scissor_width  = BLI_rcti_size_x(srct) + 1; /* only here */
+		int scissor_height = BLI_rcti_size_y(srct) + 1;
+		glScissor(srct->xmin, srct->ymin, scissor_width, scissor_height);
 	}
 	else
 		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);

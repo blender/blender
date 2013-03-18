@@ -28,7 +28,7 @@ void btConvexPointCloudShape::setLocalScaling(const btVector3& scaling)
 btVector3	btConvexPointCloudShape::localGetSupportingVertexWithoutMargin(const btVector3& vec0)const
 {
 	btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
-	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
+	btScalar maxDot = btScalar(-BT_LARGE_FLOAT);
 
 	btVector3 vec = vec0;
 	btScalar lenSqr = vec.length2();
@@ -40,51 +40,33 @@ btVector3	btConvexPointCloudShape::localGetSupportingVertexWithoutMargin(const b
 		btScalar rlen = btScalar(1.) / btSqrt(lenSqr );
 		vec *= rlen;
 	}
+    
+    if( m_numPoints > 0 )
+    {
+        // Here we take advantage of dot(a*b, c) = dot( a, b*c) to do less work. Note this transformation is true mathematically, not numerically.
+    //    btVector3 scaled = vec * m_localScaling;
+        int index = (int) vec.maxDot( &m_unscaledPoints[0], m_numPoints, maxDot);   //FIXME: may violate encapsulation of m_unscaledPoints
+        return getScaledPoint(index);
+    }
 
-
-	for (int i=0;i<m_numPoints;i++)
-	{
-		btVector3 vtx = getScaledPoint(i);
-
-		newDot = vec.dot(vtx);
-		if (newDot > maxDot)
-		{
-			maxDot = newDot;
-			supVec = vtx;
-		}
-	}
 	return supVec;
 }
 
 void	btConvexPointCloudShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
 {
-	btScalar newDot;
-	//use 'w' component of supportVerticesOut?
-	{
-		for (int i=0;i<numVectors;i++)
-		{
-			supportVerticesOut[i][3] = btScalar(-BT_LARGE_FLOAT);
-		}
-	}
-	for (int i=0;i<m_numPoints;i++)
-	{
-		btVector3 vtx = getScaledPoint(i);
-
-		for (int j=0;j<numVectors;j++)
-		{
-			const btVector3& vec = vectors[j];
-			
-			newDot = vec.dot(vtx);
-			if (newDot > supportVerticesOut[j][3])
-			{
-				//WARNING: don't swap next lines, the w component would get overwritten!
-				supportVerticesOut[j] = vtx;
-				supportVerticesOut[j][3] = newDot;
-			}
-		}
-	}
-
-
+    for( int j = 0; j < numVectors; j++ )
+    {
+        const btVector3& vec = vectors[j] * m_localScaling;  // dot( a*c, b) = dot(a, b*c)
+        btScalar maxDot;
+        int index = (int) vec.maxDot( &m_unscaledPoints[0], m_numPoints, maxDot);
+        supportVerticesOut[j][3] = btScalar(-BT_LARGE_FLOAT);
+        if( 0 <= index )
+        {
+            //WARNING: don't swap next lines, the w component would get overwritten!
+            supportVerticesOut[j] = getScaledPoint(index);
+            supportVerticesOut[j][3] = maxDot;
+        }
+    }
 
 }
 	

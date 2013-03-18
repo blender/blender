@@ -55,6 +55,8 @@
 #include "BLI_rand.h"
 #include "BLI_callbacks.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"  /* <------ should this be here?, needed for sequencer update */
 #include "BKE_camera.h"
 #include "BKE_global.h"
@@ -160,22 +162,23 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
 	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
-	fprintf(stdout, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
+	fprintf(stdout, IFACE_("Fra:%d Mem:%.2fM (%.2fM, Peak %.2fM) "), rs->cfra,
 	        megs_used_memory, mmap_used_memory, megs_peak_memory);
 
 	if (rs->curfield)
-		fprintf(stdout, "Field %d ", rs->curfield);
+		fprintf(stdout, IFACE_("Field %d "), rs->curfield);
 	if (rs->curblur)
-		fprintf(stdout, "Blur %d ", rs->curblur);
+		fprintf(stdout, IFACE_("Blur %d "), rs->curblur);
 
 	if (rs->infostr) {
 		fprintf(stdout, "| %s", rs->infostr);
 	}
 	else {
 		if (rs->tothalo)
-			fprintf(stdout, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scene_name, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			fprintf(stdout, IFACE_("Sce: %s Ve:%d Fa:%d Ha:%d La:%d"),
+			        rs->scene_name, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
 		else
-			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scene_name, rs->totvert, rs->totface, rs->totlamp);
+			fprintf(stdout, IFACE_("Sce: %s Ve:%d Fa:%d La:%d"), rs->scene_name, rs->totvert, rs->totface, rs->totlamp);
 	}
 
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
@@ -458,13 +461,43 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	
 	re->i.starttime = PIL_check_seconds_timer();
 	re->r = *rd;     /* hardcopy */
-	
+
+	if (source) {
+		/* reuse border flags from source renderer */
+		re->r.mode &= ~(R_BORDER | R_CROP);
+		re->r.mode |= source->r.mode & (R_BORDER | R_CROP);
+
+		/* dimensions shall be shared between all renderers */
+		re->r.xsch = source->r.xsch;
+		re->r.ysch = source->r.ysch;
+		re->r.size = source->r.size;
+	}
+
 	re->winx = winx;
 	re->winy = winy;
-	if (disprect) {
+	if (source && (source->r.mode & R_BORDER)) {
+		/* eeh, doesn't seem original bordered disprect is storing anywhere
+		 * after insertion on black happening in do_render_fields_blur_3d(),
+		 * so for now simply re-calculate disprect using border from source
+		 * renderer (sergey)
+		 */
+
+		re->disprect.xmin = source->r.border.xmin * winx;
+		re->disprect.xmax = source->r.border.xmax * winx;
+
+		re->disprect.ymin = source->r.border.ymin * winy;
+		re->disprect.ymax = source->r.border.ymax * winy;
+
+		re->rectx = BLI_rcti_size_x(&re->disprect);
+		re->recty = BLI_rcti_size_y(&re->disprect);
+
+		/* copy border itself, since it could be used by external engines */
+		re->r.border = source->r.border;
+	}
+	else if (disprect) {
 		re->disprect = *disprect;
-		re->rectx = BLI_rcti_size_x(disprect);
-		re->recty = BLI_rcti_size_y(disprect);
+		re->rectx = BLI_rcti_size_x(&re->disprect);
+		re->recty = BLI_rcti_size_y(&re->disprect);
 	}
 	else {
 		re->disprect.xmin = re->disprect.ymin = 0;
@@ -826,7 +859,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 {
 	char str[64];
 	
-	BLI_snprintf(str, sizeof(str), "%s, Part %d-%d", re->scene->id.name + 2, pa->nr, re->i.totpart);
+	BLI_snprintf(str, sizeof(str), IFACE_("%s, Part %d-%d"), re->scene->id.name + 2, pa->nr, re->i.totpart);
 	re->i.infostr = str;
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
@@ -972,7 +1005,20 @@ static void threaded_tile_processor(Render *re)
 		if ((g_break=re->test_break(re->tbh)))
 			break;
 	}
-	
+
+	if (g_break) {
+		/* review the done queue and handle all the render parts,
+		 * so no unfreed render result are lurking around
+		 */
+		BLI_thread_queue_nowait(donequeue);
+		while ((pa = BLI_thread_queue_pop(donequeue))) {
+			if (pa->result) {
+				render_result_free_list(&pa->fullresult, pa->result);
+				pa->result = NULL;
+			}
+		}
+	}
+
 	BLI_thread_queue_free(donequeue);
 	BLI_thread_queue_free(workqueue);
 	
@@ -2091,7 +2137,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		
 		render_result_exr_file_path(scene, "", 0, str);
 		
-		if (BLI_file_is_writable(str) == 0) {
+		if (!BLI_file_is_writable(str)) {
 			BKE_report(reports, RPT_ERROR, "Cannot save render buffers, check the temp default path");
 			return 0;
 		}
@@ -2532,7 +2578,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				/* remove touched file */
 				if (BKE_imtype_is_movie(scene->r.im_format.imtype) == 0) {
 					if (scene->r.mode & R_TOUCH && BLI_exists(name) && BLI_file_size(name) == 0) {
-						BLI_delete(name, 0, 0);
+						BLI_delete(name, false, false);
 					}
 				}
 				

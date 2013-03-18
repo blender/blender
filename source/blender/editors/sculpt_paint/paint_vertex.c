@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -854,36 +855,46 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 }
 
 /* whats _dl mean? */
-static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float co[3],
-                                 const float mval[2], const float brush_size_pressure)
+static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co[3],
+                                 const float mval[2], const float brush_size_pressure, float rgba[4])
 {
-	float vertco[2];
+	float co_ss[2];  /* screenspace */
 
 	if (ED_view3d_project_float_object(vc->ar,
-	                                   co, vertco,
+	                                   co, co_ss,
 	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 	{
 		float delta[2];
 		float dist_squared;
 
-		sub_v2_v2v2(delta, mval, vertco);
+		sub_v2_v2v2(delta, mval, co_ss);
 		dist_squared = dot_v2v2(delta, delta); /* len squared */
 		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
 			Brush *brush = paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_squared);
+			if (brush->mtex.tex && rgba) {
+				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
+					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
+				}
+				else {
+					const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
+					BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
+				}
+			}
 			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}
 	}
-
+	if (rgba)
+		zero_v4(rgba);
 	return 0.0f;
 }
 
-static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
+static float calc_vp_alpha_col_dl(VPaint *vp, ViewContext *vc,
                               float vpimat[3][3], const DMCoNo *v_co_no,
                               const float mval[2],
-                              const float brush_size_pressure, const float brush_alpha_pressure)
+                              const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
 {
-	float strength = calc_vp_strength_dl(vp, vc, v_co_no->co, mval, brush_size_pressure);
+	float strength = calc_vp_strength_col_dl(vp, vc, v_co_no->co, mval, brush_size_pressure, rgba);
 
 	if (strength > 0.0f) {
 		float alpha = brush_alpha_pressure * strength;
@@ -1015,7 +1026,7 @@ static float wpaint_blend(VPaint *wp, float weight, float weight_prev,
 
 /* sets wp->weight to the closest weight value to vertex */
 /* note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewContext vc;
 	Mesh *me;
@@ -1467,7 +1478,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 	MDeformWeight *ndw;
 	MDeformWeight *odw;
 
-	float changed_sum = 0.0f;
+	// float changed_sum = 0.0f;  // UNUSED
 
 	char *change_status;
 
@@ -1496,7 +1507,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 		}
 		else if (ndw->weight != odw->weight) { /* changed groups are handled here */
 			totchange += ndw->weight - odw->weight;
-			changed_sum += ndw->weight;
+			// changed_sum += ndw->weight;  // UNUSED
 			change_status[i] = 2; /* was altered already */
 			total_changed++;
 		} /* unchanged, unlocked bone groups are handled here */
@@ -2239,11 +2250,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
-	mval[0] -= vc->ar->winrct.xmin;
-	mval[1] -= vc->ar->winrct.ymin;
-
-
-
 
 	/* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
 	wpi.defbase_tot =        wpd->defbase_tot;
@@ -2312,7 +2318,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 #define WP_BLUR_ACCUM(v_idx_var)  \
 	{ \
 		const unsigned int vidx = v_idx_var; \
-		const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure); \
+		const float fac = calc_vp_strength_col_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
 		if (fac > 0.0f) { \
 			MDeformWeight *dw = dw_func(&me->dvert[vidx], wpi.vgroup_active); \
 			paintweight += dw ? (dw->weight * fac) : 0.0f; \
@@ -2382,8 +2388,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	{ \
 		unsigned int vidx = v_idx_var; \
 		if (me->dvert[vidx].flag) { \
-			alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
-			                         mval, brush_size_pressure, brush_alpha_pressure); \
+			alpha = calc_vp_alpha_col_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
+			                         mval, brush_size_pressure, brush_alpha_pressure, NULL); \
 			if (alpha) { \
 				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
 			} \
@@ -2480,7 +2486,7 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 }
 
 
-static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval;
 
@@ -2667,6 +2673,8 @@ typedef struct VPaintData {
 	/* mpoly -> mface mapping */
 	MemArena *polyfacemap_arena;
 	ListBase *polyfacemap;
+
+	bool is_texbrush;
 } VPaintData;
 
 static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
@@ -2703,6 +2711,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;
 	VPaint *vp = ts->vpaint;
+	Brush *brush = paint_brush(&vp->paint);
 	struct VPaintData *vpd;
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me;
@@ -2732,6 +2741,8 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	vpd->indexar = get_indexarray(me);
 	vpd->paintcol = vpaint_get_current_col(vp);
 
+	vpd->is_texbrush = !(brush->vertexpaint_tool == PAINT_BLEND_BLUR) &&
+	                   brush->mtex.tex;
 
 	/* are we painting onto a modified mesh?,
 	 * if not we can skip face map trickyness */
@@ -2808,12 +2819,24 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 
 	ml = me->mloop + mpoly->loopstart;
 	for (i = 0; i < mpoly->totloop; i++, ml++) {
-		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat,
+		float rgba[4];
+		unsigned int paintcol;
+		alpha = calc_vp_alpha_col_dl(vp, vc, vpd->vpimat,
 		                         &vpd->vertexcosnos[ml->v], mval,
-		                         brush_size_pressure, brush_alpha_pressure);
+		                         brush_size_pressure, brush_alpha_pressure, rgba);
+
+		if (vpd->is_texbrush) {
+			float rgba_br[3];
+			rgb_uchar_to_float(rgba_br, (const unsigned char *)&vpd->paintcol);
+			mul_v3_v3(rgba_br, rgba);
+			rgb_float_to_uchar((unsigned char *)&paintcol, rgba_br);
+		}
+		else
+			paintcol = vpd->paintcol;
+
 		if (alpha > 0.0f) {
 			const int alpha_i = (int)(alpha * 255.0f);
-			lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
+			lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], paintcol, alpha_i, brush_alpha_pressure_i);
 		}
 	}
 
@@ -2871,10 +2894,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* load projection matrix */
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
-
-	mval[0] -= vc->ar->winrct.xmin;
-	mval[1] -= vc->ar->winrct.ymin;
-
 
 	/* which faces are involved */
 	if (vp->flag & VP_AREA) {
@@ -2959,7 +2978,7 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	MEM_freeN(vpd);
 }
 
-static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval;
 
@@ -3165,7 +3184,7 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 	}
 }
 
-static int paint_weight_gradient_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int ret = WM_gesture_straightline_modal(C, op, event);
 
@@ -3273,7 +3292,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int ret;
 

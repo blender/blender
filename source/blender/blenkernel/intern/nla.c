@@ -1262,7 +1262,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 
 /* Sanity Validation ------------------------------------ */
 
-static int nla_editbone_name_check(void *arg, const char *name)
+static bool nla_editbone_name_check(void *arg, const char *name)
 {
 	return BLI_ghash_haskey((GHash *)arg, (void *)name);
 }
@@ -1660,7 +1660,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 
 /* Baking Tools ------------------------------------------- */
 
-static void UNUSED_FUNCTION(BKE_nla_bake) (Scene * scene, ID *UNUSED(id), AnimData * adt, int UNUSED(flag))
+static void UNUSED_FUNCTION(BKE_nla_bake) (Scene *scene, ID *UNUSED(id), AnimData *adt, int UNUSED(flag))
 {
 
 	/* verify that data is valid 

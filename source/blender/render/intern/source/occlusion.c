@@ -44,6 +44,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_global.h"
 #include "BKE_scene.h"
 
@@ -1257,7 +1259,7 @@ void make_occ_tree(Render *re)
 	/* ugly, needed for occ_face */
 	R = *re;
 
-	re->i.infostr = "Occlusion preprocessing";
+	re->i.infostr = IFACE_("Occlusion preprocessing");
 	re->stats_draw(re->sdh, &re->i);
 	
 	re->occlusiontree = tree = occ_tree_build(re);

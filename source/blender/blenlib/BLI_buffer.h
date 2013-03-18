@@ -52,6 +52,7 @@ enum {
 };
 
 #define BLI_buffer_declare_static(type_, name_, flag_, static_count_) \
+	char name_ ## user;  /* warn for free only */ \
 	type_ *name_ ## _static_[static_count_]; \
 	BLI_Buffer name_ = { \
 	/* clear the static memory if this is a calloc'd array */ \
@@ -66,15 +67,26 @@ enum {
 
 /* never use static*/
 #define BLI_buffer_declare(type_, name_, flag_) \
+	bool name_ ## user;  /* warn for free only */ \
 	BLI_Buffer name_ = {NULL, \
 	                    sizeof(type_), \
 	                    0, \
 	                    0, \
 	                    flag_}
 
-
 #define BLI_buffer_at(buffer_, type_, index_) ( \
-	(((type_ *)(buffer_)->data)[(BLI_assert(sizeof(type_) == (buffer_)->elem_size)), index_]))
+	(((type_ *)(buffer_)->data)[ \
+	        (BLI_assert(sizeof(type_) == (buffer_)->elem_size)), \
+	        (BLI_assert(index_ >= 0 && index_ < (buffer_)->count)), \
+	        index_]))
+
+#define BLI_buffer_array(buffer_, type_) ( \
+	&(BLI_buffer_at(buffer_, type_, 0)))
+
+#define BLI_buffer_resize_data(buffer_, type_, new_count_) ( \
+	(BLI_buffer_resize(buffer_, new_count_), new_count_ ? BLI_buffer_array(buffer_, type_) : NULL))
+
+
 
 #define BLI_buffer_append(buffer_, type_, val_)  ( \
 	BLI_buffer_resize(buffer_, (buffer_)->count + 1), \
@@ -85,6 +97,10 @@ enum {
 void BLI_buffer_resize(BLI_Buffer *buffer, int new_count);
 
 /* Does not free the buffer structure itself */
-void BLI_buffer_free(BLI_Buffer *buffer);
+void _bli_buffer_free(BLI_Buffer *buffer);
+#define BLI_buffer_free(name_) { \
+	_bli_buffer_free(name_); \
+	(void)name_ ## user;  /* ensure we free */ \
+} (void)0
 
 #endif  /* __BLI_BUFFER_H__ */

@@ -24,12 +24,7 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
-
-#include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
@@ -37,6 +32,10 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
+
+#include "RNA_define.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -484,7 +483,7 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 			part->pd->tex = NULL;
 		}
 
-		if (part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
+		if (part->pd2 && part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
 			part->pd2->tex->id.us--;
 			part->pd2->tex = NULL;
 		}

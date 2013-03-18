@@ -17,15 +17,16 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 
-btSphereSphereCollisionAlgorithm::btSphereSphereCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1)
-: btActivatingCollisionAlgorithm(ci,col0,col1),
+btSphereSphereCollisionAlgorithm::btSphereSphereCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,const btCollisionObjectWrapper* col0Wrap,const btCollisionObjectWrapper* col1Wrap)
+: btActivatingCollisionAlgorithm(ci,col0Wrap,col1Wrap),
 m_ownManifold(false),
 m_manifoldPtr(mf)
 {
 	if (!m_manifoldPtr)
 	{
-		m_manifoldPtr = m_dispatcher->getNewManifold(col0,col1);
+		m_manifoldPtr = m_dispatcher->getNewManifold(col0Wrap->getCollisionObject(),col1Wrap->getCollisionObject());
 		m_ownManifold = true;
 	}
 }
@@ -39,7 +40,7 @@ btSphereSphereCollisionAlgorithm::~btSphereSphereCollisionAlgorithm()
 	}
 }
 
-void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+void btSphereSphereCollisionAlgorithm::processCollision (const btCollisionObjectWrapper* col0Wrap,const btCollisionObjectWrapper* col1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	(void)dispatchInfo;
 
@@ -48,10 +49,10 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 
 	resultOut->setPersistentManifold(m_manifoldPtr);
 
-	btSphereShape* sphere0 = (btSphereShape*)col0->getCollisionShape();
-	btSphereShape* sphere1 = (btSphereShape*)col1->getCollisionShape();
+	btSphereShape* sphere0 = (btSphereShape*)col0Wrap->getCollisionShape();
+	btSphereShape* sphere1 = (btSphereShape*)col1Wrap->getCollisionShape();
 
-	btVector3 diff = col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
+	btVector3 diff = col0Wrap->getWorldTransform().getOrigin()-  col1Wrap->getWorldTransform().getOrigin();
 	btScalar len = diff.length();
 	btScalar radius0 = sphere0->getRadius();
 	btScalar radius1 = sphere1->getRadius();
@@ -80,7 +81,7 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 	///point on A (worldspace)
 	///btVector3 pos0 = col0->getWorldTransform().getOrigin() - radius0 * normalOnSurfaceB;
 	///point on B (worldspace)
-	btVector3 pos1 = col1->getWorldTransform().getOrigin() + radius1* normalOnSurfaceB;
+	btVector3 pos1 = col1Wrap->getWorldTransform().getOrigin() + radius1* normalOnSurfaceB;
 
 	/// report a contact. internally this will be kept persistent, and contact reduction is done
 	

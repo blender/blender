@@ -141,7 +141,7 @@ public:
 	virtual void
 	removeTypeEvents(
 	    GHOST_TEventType type,
-	    GHOST_IWindow *window = 0
+	    GHOST_IWindow *window = NULL
 	    );
 
 protected:

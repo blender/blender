@@ -59,6 +59,7 @@ void    BLI_linklist_prepend_arena(struct LinkNode **listp, void *ptr, struct Me
 void    BLI_linklist_insert_after(struct LinkNode **listp, void *ptr);
 
 void    BLI_linklist_free(struct LinkNode *list, LinkNodeFreeFP freefunc);
+void    BLI_linklist_freeN(struct LinkNode *list);
 void    BLI_linklist_apply(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
 
 #endif

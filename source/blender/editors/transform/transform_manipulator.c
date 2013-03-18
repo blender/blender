@@ -856,7 +856,7 @@ static void axis_sort_v3(const float axis_values[3], int r_axis_order[3])
 	}
 	else {
 		if (v[1] < v[2]) { SWAP_AXIS(0, 1); }
-		else { SWAP_AXIS(0, 2); }
+		else             { SWAP_AXIS(0, 2); }
 	}
 	if (v[2] < v[1])     { SWAP_AXIS(1, 2); }
 
@@ -1293,7 +1293,9 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 
 		dz = 1.0;
 	}
-	else dz = 1.0f - 4.0f * cusize;
+	else {
+		dz = 1.0f - 4.0f * cusize;
+	}
 
 	if (moving) {
 		float matt[4][4];
@@ -1739,8 +1741,12 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 			dep = buffer[4 * a + 1];
 			val = buffer[4 * a + 3];
 
-			if (val == MAN_TRANS_C) return MAN_TRANS_C;
-			else if (val == MAN_SCALE_C) return MAN_SCALE_C;
+			if (val == MAN_TRANS_C) {
+				return MAN_TRANS_C;
+			}
+			else if (val == MAN_SCALE_C) {
+				return MAN_SCALE_C;
+			}
 			else {
 				if (val & MAN_ROT_C) {
 					if (minvalrot == 0 || dep < mindeprot) {
@@ -1767,7 +1773,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 
 
 /* return 0; nothing happened */
-int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
+int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1855,8 +1861,15 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_resize", 0), event, op->ptr, NULL, FALSE);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
-			WM_operator_name_call(C, "TRANSFORM_OT_trackball", WM_OP_INVOKE_DEFAULT, op->ptr);
-			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, op->ptr, NULL, FALSE);
+			/* Do not pass op->ptr!!! trackball has no "constraint" properties!
+			 * See [#34621], it's a miracle it did not cause more problems!!! */
+			/* However, we need to copy the "release_confirm" property... */
+			PointerRNA props_ptr;
+			WM_operator_properties_create(&props_ptr, "TRANSFORM_OT_trackball");
+			RNA_boolean_set(&props_ptr, "release_confirm", RNA_boolean_get(op->ptr, "release_confirm"));
+
+			WM_operator_name_call(C, "TRANSFORM_OT_trackball", WM_OP_INVOKE_DEFAULT, &props_ptr);
+			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, NULL, NULL, FALSE);
 		}
 		else if (drawflags & MAN_ROT_C) {
 			switch (drawflags) {

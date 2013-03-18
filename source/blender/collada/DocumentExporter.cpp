@@ -266,20 +266,32 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 	// <library_animations>
 	AnimationExporter ae(&sw, this->export_settings);
-	ae.exportAnimations(sce);
+	bool has_animations = ae.exportAnimations(sce);
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw, this->export_settings);
 	ControllerExporter controller_exporter(&sw , this->export_settings);
-	//for Morph controller export, removing the check
-	/*if (bc_has_object_type(export_set, OB_ARMATURE)) 
-	{*/
-	controller_exporter.export_controllers(sce);
-	//}
+	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys) 
+	{
+		controller_exporter.export_controllers(sce);
+	}
 
 	// <library_visual_scenes>
 
 	SceneExporter se(&sw, &arm_exporter, this->export_settings);
+
+	if (has_animations && this->export_settings->export_transformation_type == BC_TRANSFORMATION_TYPE_MATRIX) {
+		// channels adressing <matrix> objects is not (yet) supported
+		// So we force usage of <location>, <translation> and <scale>
+		fprintf(stdout, 
+			"For animated Ojects we must use decomposed <matrix> elements,\n" \
+			"Forcing usage of TransLocRot transformation type.");
+		se.setExportTransformationType(BC_TRANSFORMATION_TYPE_TRANSROTLOC);
+	}
+	else {
+		se.setExportTransformationType(this->export_settings->export_transformation_type);
+	}
+
 	se.exportScene(sce);
 	
 	// <scene>

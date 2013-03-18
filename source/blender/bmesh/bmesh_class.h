@@ -252,6 +252,9 @@ enum {
                                      * not have functions clobber them */
 };
 
+struct BPy_BMGeneric;
+extern void bpy_bm_generic_invalidate(struct BPy_BMGeneric *self);
+
 /* defines */
 #define BM_ELEM_CD_GET_VOID_P(ele, offset) \
 	(assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))

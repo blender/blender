@@ -159,7 +159,7 @@ static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject
 	const char *opname = _PyUnicode_AsString(pyname);
 
 	for (i = 0; i < tot; i++) {
-		if (strcmp(bmo_opdefines[i]->opname, opname) == 0) {
+		if (STREQ(bmo_opdefines[i]->opname, opname)) {
 			return bpy_bmesh_op_CreatePyObject(opname);
 		}
 	}

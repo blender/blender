@@ -28,17 +28,12 @@
  *  \ingroup edanimation
  */
 
-
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
@@ -50,6 +45,10 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -277,7 +276,9 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
 				ce->sel = marker->flag;
 			return;
 		}
-		else if (ce->cfra > marker->frame) break;
+		else if (ce->cfra > marker->frame) {
+			break;
+		}
 	}
 	
 	cen = MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");
@@ -513,8 +514,8 @@ static int ed_markers_poll_markers_exist(bContext *C)
  *			that operator would otherwise have used. If NULL, the operator's standard
  *			exec() callback will be called instead in the appropriate places.
  */
-static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent *evt, 
-                                           int (*invoke_func)(bContext *, wmOperator *, wmEvent *))
+static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, const wmEvent *event,
+                                           int (*invoke_func)(bContext *, wmOperator *, const wmEvent *))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	int retval = OPERATOR_PASS_THROUGH;
@@ -523,7 +524,7 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent 
 	
 	/* allow operator to run now */
 	if (invoke_func)
-		retval = invoke_func(C, op, evt);
+		retval = invoke_func(C, op, event);
 	else if (op->type->exec)
 		retval = op->type->exec(C, op);
 	else
@@ -544,9 +545,9 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent 
  * though will need to implement their own wrapper which calls the second-tier callback themselves
  * (passing through the custom invoke function they use)
  */
-static int ed_markers_opwrap_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_markers_opwrap_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, evt, NULL);
+	return ed_markers_opwrap_invoke_custom(C, op, event, NULL);
 }
 
 /* ************************** add markers *************************** */
@@ -684,14 +685,14 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 	ED_area_headerprint(CTX_wm_area(C), NULL);
 }
 
-static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (ed_marker_move_init(C, op)) {
 		MarkerMove *mm = op->customdata;
 		
-		mm->evtx = evt->x;
-		mm->firstx = evt->x;
-		mm->event_type = evt->type;
+		mm->evtx = event->x;
+		mm->firstx = event->x;
+		mm->event_type = event->type;
 		
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
@@ -705,9 +706,9 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_CANCELLED;
 }
 
-static int ed_marker_move_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_move_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, evt, ed_marker_move_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, ed_marker_move_invoke);
 }
 
 /* note, init has to be called succesfully */
@@ -756,7 +757,7 @@ static int ed_marker_move_cancel(bContext *C, wmOperator *op)
 
 
 
-static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	MarkerMove *mm = op->customdata;
@@ -765,14 +766,14 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 	float dx, fac;
 	char str[256];
 		
-	switch (evt->type) {
+	switch (event->type) {
 		case ESCKEY:
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;
 		
 		case RIGHTMOUSE:
 			/* press = user manually demands transform to be canceled */
-			if (evt->val == KM_PRESS) {
+			if (event->val == KM_PRESS) {
 				ed_marker_move_cancel(C, op);
 				return OPERATOR_CANCELLED;
 			}
@@ -782,7 +783,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case PADENTER:
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (WM_modal_tweak_exit(evt, mm->event_type)) {
+			if (WM_modal_tweak_exit(event, mm->event_type)) {
 				ed_marker_move_exit(C, op);
 				WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
 				WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);
@@ -795,17 +796,17 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			
 			dx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 			
-			if (evt->x != mm->evtx) {   /* XXX maybe init for first time */
+			if (event->x != mm->evtx) {   /* XXX maybe init for first time */
 				int a, offs, totmark = 0;
 				
-				mm->evtx = evt->x;
+				mm->evtx = event->x;
 				
-				fac = ((float)(evt->x - mm->firstx) * dx);
+				fac = ((float)(event->x - mm->firstx) * dx);
 				
 				if (mm->slink->spacetype == SPACE_TIME) 
-					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, FPS, 0.1 * FPS, 0);
+					apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, FPS, 0.1 * FPS, 0);
 				else
-					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, 1.0, 0.1, 0 /*was: U.flag & USER_AUTOGRABGRID*/);
+					apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, 1.0, 0.1, 0 /*was: U.flag & USER_AUTOGRABGRID*/);
 				
 				offs = (int)fac;
 				RNA_int_set(op->ptr, "frames", offs);
@@ -864,8 +865,8 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			}
 	}
 
-	if (evt->val == KM_PRESS) {
-		if (handleNumInput(&mm->num, evt)) {
+	if (event->val == KM_PRESS) {
+		if (handleNumInput(&mm->num, event)) {
 			char str_tx[NUM_STR_REP_LEN];
 			float value = RNA_int_get(op->ptr, "frames");
 			applyNumInput(&mm->num, &value);
@@ -981,15 +982,15 @@ static int ed_marker_duplicate_exec(bContext *C, wmOperator *op)
 	
 }
 
-static int ed_marker_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ed_marker_duplicate_apply(C);
-	return ed_marker_move_invoke(C, op, evt);
+	return ed_marker_move_invoke(C, op, event);
 }
 
-static int ed_marker_duplicate_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_duplicate_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, evt, ed_marker_duplicate_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, ed_marker_duplicate_invoke);
 }
 
 static void MARKER_OT_duplicate(wmOperatorType *ot)
@@ -1036,7 +1037,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	}
 }
 
-static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
+static int ed_marker_select(bContext *C, const wmEvent *event, int extend, int camera)
 {
 	ListBase *markers = ED_context_get_markers(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1047,8 +1048,8 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 	if (markers == NULL)
 		return OPERATOR_PASS_THROUGH;
 
-	x = evt->x - ar->winrct.xmin;
-	y = evt->y - ar->winrct.ymin;
+	x = event->x - ar->winrct.xmin;
+	y = event->y - ar->winrct.ymin;
 	
 	UI_view2d_region_to_view(v2d, x, y, &viewx, NULL);
 	
@@ -1103,19 +1104,19 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 	return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
-static int ed_marker_select_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	short extend = RNA_boolean_get(op->ptr, "extend");
 	short camera = 0;
 #ifdef DURIAN_CAMERA_SWITCH
 	camera = RNA_boolean_get(op->ptr, "camera");
 #endif
-	return ed_marker_select(C, evt, extend, camera);
+	return ed_marker_select(C, event, extend, camera);
 }
 
-static int ed_marker_select_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_select_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, evt, ed_marker_select_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, ed_marker_select_invoke);
 }
 
 static void MARKER_OT_select(wmOperatorType *ot)
@@ -1200,9 +1201,9 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static int ed_marker_select_border_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_select_border_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, evt, WM_border_select_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_border_select_invoke);
 }
 
 static void MARKER_OT_select_border(wmOperatorType *ot)
@@ -1309,10 +1310,10 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int ed_marker_delete_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_delete_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	// XXX: must we keep these confirmations?
-	return ed_markers_opwrap_invoke_custom(C, op, evt, WM_operator_confirm);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_operator_confirm);
 }
 
 static void MARKER_OT_delete(wmOperatorType *ot)
@@ -1352,7 +1353,7 @@ static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* must initialize the marker name first if there is a marker selected */
 	TimeMarker *marker = ED_markers_get_first_selected(ED_context_get_markers(C));
@@ -1360,7 +1361,7 @@ static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent 
 		RNA_string_set(op->ptr, "name", marker->name);
 	
 	/* now see if the operator is usable */
-	return ed_markers_opwrap_invoke_custom(C, op, evt, WM_operator_props_popup);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_operator_props_popup);
 }
 
 static void MARKER_OT_rename(wmOperatorType *ot)
@@ -1414,9 +1415,9 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int ed_marker_make_links_scene_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+static int ed_marker_make_links_scene_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, evt, WM_menu_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_menu_invoke);
 }
 
 static void MARKER_OT_make_links_scene(wmOperatorType *ot)

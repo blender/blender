@@ -76,7 +76,6 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
-	bool triangulate       = this->export_settings->triangulate;
 	Mesh *me = bc_get_mesh_copy( mScene, 
 					ob,
 					this->export_settings->export_mesh_type,
@@ -379,8 +378,6 @@ void GeometryExporter::createPolylist(short material_index,
 	
 	// <p>
 	int texindex = 0;
-	unsigned int vi = 0;
-	unsigned int ni = 0;
 	for (i = 0; i < totpolys; i++) {
 		MPoly *p = &mpolys[i];
 		int loop_count = p->totloop;
@@ -442,19 +439,14 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
-	if (!CustomData_has_layer(&me->fdata, CD_MCOL))
+	if (!CustomData_has_layer(&me->ldata, CD_MLOOPCOL))
 		return;
 
-	MFace *f;
-	int totcolor = 0, i, j;
-
-	for (i = 0, f = me->mface; i < me->totface; i++, f++)
-		totcolor += f->v4 ? 4 : 3;
 
 	COLLADASW::FloatSourceF source(mSW);
 	source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR));
 	source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + ARRAY_ID_SUFFIX);
-	source.setAccessorCount(totcolor);
+	source.setAccessorCount(me->totloop);
 	source.setAccessorStride(3);
 
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -464,14 +456,21 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
 	source.prepareToAppendValues();
 
-	int index = CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
+	int index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
+	MCol *mcol = (MCol *)me->ldata.layers[index].data;
 
-	MCol *mcol = (MCol *)me->fdata.layers[index].data;
-	MCol *c = mcol;
-
-	for (i = 0, f = me->mface; i < me->totface; i++, c += 4, f++)
-		for (j = 0; j < (f->v4 ? 4 : 3); j++)
-			source.appendValues(c[j].b / 255.0f, c[j].g / 255.0f, c[j].r / 255.0f);
+	MPoly *mpoly;
+	int i;
+	for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
+		MCol *color = mcol + mpoly->loopstart;
+		for (int j = 0; j < mpoly->totloop; j++, color++) {
+			source.appendValues(
+					color->b / 255.0f,
+					color->g / 255.0f,
+					color->r / 255.0f 
+			);
+		}
+	}
 	
 	source.finish();
 }
@@ -563,19 +562,19 @@ void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::v
 
 void GeometryExporter::create_normals(std::vector<Normal> &normals, std::vector<BCPolygonNormalsIndices> &polygons_normals, Mesh *me)
 {
-	MVert *vert = me->mvert;
 	std::map<unsigned int, unsigned int> shared_normal_indices;
+	int last_normal_index = -1;
 
+	MVert *verts  = me->mvert;
+	MLoop *mloops = me->mloop;
 	for (int poly_index = 0; poly_index < me->totpoly; poly_index++) {
 		MPoly *mpoly  = &me->mpoly[poly_index];
-		MLoop *mloops = me->mloop;
 
-		unsigned int last_normal_index = -1;
 		if (!(mpoly->flag & ME_SMOOTH)) {
-			// For flat faces calculate use face normal as vertex normal:
+			// For flat faces use face normal as vertex normal:
 
 			float vector[3];
-			BKE_mesh_calc_poly_normal(mpoly, mloops, vert, vector);
+			BKE_mesh_calc_poly_normal(mpoly, mloops, verts, vector);
 
 			Normal n = { vector[0], vector[1], vector[2] };
 			normals.push_back(n);
@@ -593,8 +592,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals, std::vector<
 				else {
 
 					float vector[3];
-					normal_short_to_float_v3(vector, vert[vertex_index].no);
-					normalize_v3(vector);
+					normal_short_to_float_v3(vector, verts[vertex_index].no);
 
 					Normal n = { vector[0], vector[1], vector[2] };
 					normals.push_back(n);

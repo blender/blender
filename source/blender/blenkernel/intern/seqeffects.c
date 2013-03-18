@@ -182,8 +182,8 @@ static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,  un
 			fac = fac2;
 			mfac = 1.0f - fac2 * rt1[3];
 
-			if (fac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp2);
-			else if (mfac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp1);
+			if      (fac  <= 0.0f) *((unsigned int *) rt) = *((unsigned int *) cp2);
+			else if (mfac <= 0.0f) *((unsigned int *) rt) = *((unsigned int *) cp1);
 			else {
 				tempc[0] = fac * rt1[0] + mfac * rt2[0];
 				tempc[1] = fac * rt1[1] + mfac * rt2[1];
@@ -206,8 +206,8 @@ static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,  un
 			fac = fac4;
 			mfac = 1.0f - (fac4 * rt1[3]);
 
-			if (fac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp2);
-			else if (mfac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp1);
+			if      (fac  <= 0.0f) *((unsigned int *) rt) = *((unsigned int *) cp2);
+			else if (mfac <= 0.0f) *((unsigned int *) rt) = *((unsigned int *) cp1);
 			else {
 				tempc[0] = fac * rt1[0] + mfac * rt2[0];
 				tempc[1] = fac * rt1[1] + mfac * rt2[1];
@@ -328,13 +328,13 @@ static void do_alphaunder_effect_byte(float facf0, float facf1, int x, int y, un
 			/* this complex optimization is because the
 			 * 'skybuf' can be crossed in
 			 */
-			if (rt2[3] == 0 && fac2 == 256) *( (unsigned int *) rt) = *( (unsigned int *) rt1);
-			else if (rt2[3] == 255) *( (unsigned int *) rt) = *( (unsigned int *) rt2);
+			if      (rt2[3] == 0 && fac2 == 256) *((unsigned int *) rt) = *((unsigned int *) rt1);
+			else if (rt2[3] == 255)              *((unsigned int *) rt) = *((unsigned int *) rt2);
 			else {
 				mfac = rt2[3];
 				fac = (fac2 * (256 - mfac)) >> 8;
 
-				if (fac == 0) *( (unsigned int *) rt) = *( (unsigned int *) rt2);
+				if (fac == 0) *((unsigned int *) rt) = *((unsigned int *) rt2);
 				else {
 					rt[0] = (fac * rt1[0] + mfac * rt2[0]) >> 8;
 					rt[1] = (fac * rt1[1] + mfac * rt2[1]) >> 8;
@@ -351,13 +351,13 @@ static void do_alphaunder_effect_byte(float facf0, float facf1, int x, int y, un
 
 		x = xo;
 		while (x--) {
-			if (rt2[3] == 0 && fac4 == 256) *( (unsigned int *) rt) = *( (unsigned int *) rt1);
-			else if (rt2[3] == 255) *( (unsigned int *) rt) = *( (unsigned int *) rt2);
+			if      (rt2[3] == 0 && fac4 == 256) *((unsigned int *) rt) = *((unsigned int *) rt1);
+			else if (rt2[3] == 255)              *((unsigned int *) rt) = *((unsigned int *) rt2);
 			else {
 				mfac = rt2[3];
 				fac = (fac4 * (256 - mfac)) >> 8;
 
-				if (fac == 0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+				if (fac == 0) *((unsigned int *)rt) = *((unsigned int *)rt2);
 				else {
 					rt[0] = (fac * rt1[0] + mfac * rt2[0]) >> 8;
 					rt[1] = (fac * rt1[1] + mfac * rt2[1]) >> 8;
@@ -682,7 +682,7 @@ static void gamtabs(float gamma)
 	}
 	/* inverse gamtab1 : in byte, out short */
 	for (a = 1; a <= 256; a++) {
-		if (gamma == 2.0f) igamtab1[a - 1] = a * a - 1;
+		if      (gamma == 2.0f) igamtab1[a - 1] = a   * a - 1;
 		else if (gamma == 1.0f) igamtab1[a - 1] = 256 * a - 1;
 		else {
 			val = a / 256.0f;

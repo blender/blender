@@ -89,7 +89,7 @@ static TransformOrientation *findOrientationName(ListBase *lb, const char *name)
 	return NULL;
 }
 
-static int uniqueOrientationNameCheck(void *arg, const char *name)
+static bool uniqueOrientationNameCheck(void *arg, const char *name)
 {
 	return findOrientationName((ListBase *)arg, name) != NULL;
 }
@@ -409,14 +409,16 @@ const char *BIF_menustringTransformOrientation(const bContext *C, const char *ti
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
 	const int elem_size = MAX_NAME + 4;
+	size_t str_menu_size;
 
 	title = IFACE_(title);
 
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), "UserTransSpace from matrix");
+	str_menu_size = strlen(menu) + strlen(title) + 1 + (elem_size * BIF_countTransformOrientation(C));
+	str_menu = MEM_callocN(str_menu_size, "UserTransSpace from matrix");
+
 	p = str_menu;
-	
-	p += sprintf(str_menu, "%s", title);
-	p += sprintf(p, "%s", menu);
+	p += BLI_strncpy_rlen(p, title, str_menu_size);
+	p += BLI_strncpy_rlen(p, menu, str_menu_size - (p - str_menu));
 	
 	for (ts = transform_spaces->first; ts; ts = ts->next) {
 		p += sprintf(p, "|%s %%x%d", ts->name, i++);

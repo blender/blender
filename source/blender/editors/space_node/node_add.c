@@ -400,7 +400,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);

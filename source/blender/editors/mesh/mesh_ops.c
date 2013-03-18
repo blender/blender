@@ -59,6 +59,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked);
 	WM_operatortype_append(MESH_OT_select_linked_pick);
 	WM_operatortype_append(MESH_OT_select_random);
+	WM_operatortype_append(MESH_OT_select_ungrouped);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_face_by_sides);
@@ -155,6 +156,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_nth);
 	WM_operatortype_append(MESH_OT_vert_connect);
 	WM_operatortype_append(MESH_OT_knife_tool);
+	WM_operatortype_append(MESH_OT_knife_project);
 
 	WM_operatortype_append(MESH_OT_bevel);
 

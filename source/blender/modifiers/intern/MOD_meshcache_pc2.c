@@ -62,7 +62,7 @@ static bool meshcache_read_pc2_head(FILE *fp, const int verts_tot,
 	}
 
 #ifdef __BIG_ENDIAN__
-	BLI_endian_switch_int32_array(&pc2_head->huh, (sizeof(*pc2_head) - sizeof(pc2_head->header)) / sizeof(int));
+	BLI_endian_switch_int32_array(&pc2_head->file_version, (sizeof(*pc2_head) - sizeof(pc2_head->header)) / sizeof(int));
 #endif
 
 	if (pc2_head->verts_tot != verts_tot) {

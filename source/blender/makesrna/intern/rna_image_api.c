@@ -34,12 +34,14 @@
 #include <string.h>
 #include <time.h>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
 #include "DNA_packedFile_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BIF_gl.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"  /* own include */
 

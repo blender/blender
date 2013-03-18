@@ -1888,7 +1888,7 @@ PyObject *initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	 * somehow it remembers the sys.path - Campbell
 	 */
 	static bool first_time = true;
-	char *py_path_bundle   = BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL);
+	const char * const py_path_bundle   = BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL);
 
 #if 0 // TODO - py3
 	STR_String pname = progname;

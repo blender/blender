@@ -24,15 +24,9 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "BLF_translation.h"
 
@@ -48,6 +42,11 @@
 #include "DNA_sequence_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_view3d_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -3340,6 +3339,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "view");
 	RNA_def_property_enum_items(prop, view_items);
 	RNA_def_property_ui_text(prop, "View", "Type of the clip editor view");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_MOVIECLIP);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_view_type_update");
 
 	/* show pattern */
@@ -3513,6 +3513,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "gpencil_src");
 	RNA_def_property_enum_items(prop, gpencil_source_items);
 	RNA_def_property_ui_text(prop, "Grease Pencil Source", "Where the grease pencil comes from");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_MOVIECLIP);
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* pivot point */

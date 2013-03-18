@@ -21,7 +21,7 @@ subject to the following restrictions:
 #include "LinearMath/btVector3.h"
 
 /// The btCylinderShape class implements a cylinder shape primitive, centered around the origin. Its central axis aligned with the Y axis. btCylinderShapeX is aligned with the X axis and btCylinderShapeZ around the Z axis.
-class btCylinderShape : public btConvexInternalShape
+ATTRIBUTE_ALIGNED16(class) btCylinderShape : public btConvexInternalShape
 
 {
 
@@ -30,6 +30,8 @@ protected:
 	int	m_upAxis;
 
 public:
+
+BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btVector3 getHalfExtentsWithMargin() const
 	{
@@ -95,6 +97,13 @@ public:
 		return m_upAxis;
 	}
 
+	virtual btVector3	getAnisotropicRollingFrictionDirection() const
+	{
+		btVector3 aniDir(0,0,0);
+		aniDir[getUpAxis()]=1;
+		return aniDir;
+	}
+
 	virtual btScalar getRadius() const
 	{
 		return getHalfExtentsWithMargin().getX();
@@ -128,6 +137,8 @@ public:
 class btCylinderShapeX : public btCylinderShape
 {
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	btCylinderShapeX (const btVector3& halfExtents);
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
@@ -149,6 +160,8 @@ public:
 class btCylinderShapeZ : public btCylinderShape
 {
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	btCylinderShapeZ (const btVector3& halfExtents);
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;

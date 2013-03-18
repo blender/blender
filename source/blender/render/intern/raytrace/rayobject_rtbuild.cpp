@@ -50,15 +50,15 @@ static bool selected_node(RTBuilder::Object *node)
 static void rtbuild_init(RTBuilder *b)
 {
 	b->split_axis = -1;
-	b->primitives.begin   = 0;
-	b->primitives.end     = 0;
+	b->primitives.begin   = NULL;
+	b->primitives.end     = NULL;
 	b->primitives.maxsize = 0;
 	
 	for (int i = 0; i < RTBUILD_MAX_CHILDS; i++)
 		b->child_offset[i] = 0;
 
 	for (int i = 0; i < 3; i++)
-		b->sorted_begin[i] = b->sorted_end[i] = 0;
+		b->sorted_begin[i] = b->sorted_end[i] = NULL;
 		
 	INIT_MINMAX(b->bb, b->bb + 3);
 }
@@ -178,8 +178,8 @@ RTBuilder *rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 			tmp->sorted_end[i] = b->sorted_begin[i] +  b->child_offset[child + 1];
 		}
 		else {
-			tmp->sorted_begin[i] = 0;
-			tmp->sorted_end[i] = 0;
+			tmp->sorted_begin[i] = NULL;
+			tmp->sorted_end[i] = NULL;
 		}
 	
 	return tmp;

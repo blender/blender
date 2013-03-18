@@ -23,7 +23,7 @@ subject to the following restrictions:
 #include "LinearMath/btMinMax.h"
 
 ///The btBox2dShape is a box primitive around the origin, its sides axis aligned with length specified by half extents, in local shape coordinates. When used as part of a btCollisionObject or btRigidBody it will be an oriented box in world space.
-class btBox2dShape: public btPolyhedralConvexShape
+ATTRIBUTE_ALIGNED16(class) btBox2dShape: public btPolyhedralConvexShape
 {
 
 	//btVector3	m_boxHalfExtents1; //use m_implicitShapeDimensions instead
@@ -33,6 +33,8 @@ class btBox2dShape: public btPolyhedralConvexShape
 	btVector3 m_normals[4];
 
 public:
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btVector3 getHalfExtentsWithMargin() const
 	{

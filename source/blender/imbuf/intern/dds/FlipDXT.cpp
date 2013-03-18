@@ -241,7 +241,7 @@ int FlipDXTCImage(unsigned int width, unsigned int height, unsigned int levels, 
 				memcpy(line2, temp_line, row_bytes);
 			}
 
-			delete temp_line;
+			delete[] temp_line;
 		}
 
 		// mip levels are contiguous.

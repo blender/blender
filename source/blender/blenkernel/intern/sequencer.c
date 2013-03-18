@@ -245,7 +245,7 @@ static void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
 }
 
 
-Editing *BKE_sequencer_editing_get(Scene *scene, int alloc)
+Editing *BKE_sequencer_editing_get(Scene *scene, bool alloc)
 {
 	if (alloc) {
 		BKE_sequencer_editing_ensure(scene);
@@ -856,7 +856,7 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
 	Sequence *seq;
 	for (seq = seqbasep->first; seq; seq = seq->next) {
-		if (sui->seq != seq && strcmp(sui->name_dest, seq->name + 2) == 0) {
+		if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
 			/* SEQ_NAME_MAXSTR - 2 for prefix, -1 for \0, -4 for the number */
 			BLI_snprintf(sui->name_dest, sizeof(sui->name_dest), "%.59s.%03d",  sui->name_src, sui->count++);
 			sui->match = 1; /* be sure to re-scan */
@@ -3062,30 +3062,30 @@ static void free_anim_seq(Sequence *seq)
 }
 
 /* check whether sequence cur depends on seq */
-int BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
+bool BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
 {
 	if (cur->seq1 == seq || cur->seq2 == seq || cur->seq3 == seq)
-		return TRUE;
+		return true;
 
 	/* sequences are not intersecting in time, assume no dependency exists between them */
 	if (cur->enddisp < seq->startdisp || cur->startdisp > seq->enddisp)
-		return FALSE;
+		return false;
 
 	/* checking sequence is below reference one, not dependent on it */
 	if (cur->machine < seq->machine)
-		return FALSE;
+		return false;
 
 	/* sequence is not blending with lower machines, no dependency here occurs
 	 * check for non-effects only since effect could use lower machines as input
 	 */
 	if ((cur->type & SEQ_TYPE_EFFECT) == 0 &&
-		    ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
-	         (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f)))
+	    ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
+	     (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f)))
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void sequence_do_invalidate_dependent(Sequence *seq, ListBase *seqbase)
@@ -3291,7 +3291,7 @@ void BKE_sequence_tx_set_final_right(Sequence *seq, int val)
 
 /* used so we can do a quick check for single image seq
  * since they work a bit differently to normal image seq's (during transform) */
-int BKE_sequence_single_check(Sequence *seq)
+bool BKE_sequence_single_check(Sequence *seq)
 {
 	return ((seq->len == 1) &&
 	        (seq->type == SEQ_TYPE_IMAGE ||
@@ -3300,21 +3300,21 @@ int BKE_sequence_single_check(Sequence *seq)
 }
 
 /* check if the selected seq's reference unselected seq's */
-int BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
+bool BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
 {
 	Sequence *seq;
 	/* is there more than 1 select */
-	int ok = FALSE;
+	bool ok = false;
 
 	for (seq = seqbase->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			ok = TRUE;
+			ok = true;
 			break;
 		}
 	}
 
-	if (ok == FALSE)
-		return FALSE;
+	if (ok == false)
+		return false;
 
 	/* test relationships */
 	for (seq = seqbase->first; seq; seq = seq->next) {
@@ -3322,24 +3322,24 @@ int BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
 			continue;
 
 		if (seq->flag & SELECT) {
-			if ( (seq->seq1 && (seq->seq1->flag & SELECT) == 0) ||
-			     (seq->seq2 && (seq->seq2->flag & SELECT) == 0) ||
-			     (seq->seq3 && (seq->seq3->flag & SELECT) == 0) )
+			if ((seq->seq1 && (seq->seq1->flag & SELECT) == 0) ||
+			    (seq->seq2 && (seq->seq2->flag & SELECT) == 0) ||
+			    (seq->seq3 && (seq->seq3->flag & SELECT) == 0) )
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		else {
-			if ( (seq->seq1 && (seq->seq1->flag & SELECT)) ||
-			     (seq->seq2 && (seq->seq2->flag & SELECT)) ||
-			     (seq->seq3 && (seq->seq3->flag & SELECT)) )
+			if ((seq->seq1 && (seq->seq1->flag & SELECT)) ||
+			    (seq->seq2 && (seq->seq2->flag & SELECT)) ||
+			    (seq->seq3 && (seq->seq3->flag & SELECT)) )
 			{
-				return FALSE;
+				return false;
 			}
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 /* use to impose limits when dragging/extending - so impossible situations don't happen
@@ -3405,29 +3405,29 @@ void BKE_sequence_single_fix(Sequence *seq)
 	}
 }
 
-int BKE_sequence_tx_test(Sequence *seq)
+bool BKE_sequence_tx_test(Sequence *seq)
 {
 	return (seq->type < SEQ_TYPE_EFFECT) || (BKE_sequence_effect_get_num_inputs(seq->type) == 0);
 }
 
-static int seq_overlap(Sequence *seq1, Sequence *seq2)
+static bool seq_overlap(Sequence *seq1, Sequence *seq2)
 {
 	return (seq1 != seq2 && seq1->machine == seq2->machine &&
 	        ((seq1->enddisp <= seq2->startdisp) || (seq1->startdisp >= seq2->enddisp)) == 0);
 }
 
-int BKE_sequence_test_overlap(ListBase *seqbasep, Sequence *test)
+bool BKE_sequence_test_overlap(ListBase *seqbasep, Sequence *test)
 {
 	Sequence *seq;
 
 	seq = seqbasep->first;
 	while (seq) {
 		if (seq_overlap(test, seq))
-			return 1;
+			return true;
 
 		seq = seq->next;
 	}
-	return 0;
+	return false;
 }
 
 
@@ -3487,7 +3487,7 @@ Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
 }
 
 /* return 0 if there werent enough space */
-int BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene)
+bool BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene)
 {
 	int orig_machine = test->machine;
 	test->machine++;
@@ -3518,10 +3518,10 @@ int BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_sc
 		BKE_sequence_translate(evil_scene, test, new_frame - test->start);
 
 		BKE_sequence_calc(evil_scene, test);
-		return 0;
+		return false;
 	}
 	else {
-		return 1;
+		return true;
 	}
 }
 
@@ -3572,7 +3572,7 @@ static int shuffle_seq_time_offset(Scene *scene, ListBase *seqbasep, char dir)
 	return tot_ofs;
 }
 
-int BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
+bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
 {
 	/* note: seq->tmp is used to tag strips to move */
 
@@ -3591,7 +3591,7 @@ int BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
 		}
 	}
 
-	return offset ? 0 : 1;
+	return offset ? false : true;
 }
 
 void BKE_sequencer_update_sound_bounds_all(Scene *scene)
@@ -3861,7 +3861,7 @@ Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, int recu
 	Sequence *rseq = NULL;
 
 	for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-		if (strcmp(name, iseq->name + 2) == 0)
+		if (STREQ(name, iseq->name + 2))
 			return iseq;
 		else if (recursive && (iseq->seqbase.first) && (rseq = BKE_sequence_get_by_name(&iseq->seqbase, name, 1))) {
 			return rseq;
@@ -4072,7 +4072,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	if (sound == NULL || sound->playback_handle == NULL) {
 #if 0
-		 if (op)
+		if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 #endif
 
@@ -4324,7 +4324,7 @@ void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *
 
 /* called on draw, needs to be fast,
  * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
-int BKE_sequence_is_valid_check(Sequence *seq)
+bool BKE_sequence_is_valid_check(Sequence *seq)
 {
 	switch (seq->type) {
 		case SEQ_TYPE_MASK:
@@ -4337,6 +4337,6 @@ int BKE_sequence_is_valid_check(Sequence *seq)
 			return (seq->sound != NULL);
 	}
 
-	return TRUE;
+	return true;
 }
 

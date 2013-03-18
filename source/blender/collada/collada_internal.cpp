@@ -224,6 +224,12 @@ void clear_global_id_map()
 }
 
 /** Look at documentation of translate_map */
+std::string translate_id(const char *idString)
+{
+	std::string id = std::string(idString);
+	return translate_id(id);
+}
+
 std::string translate_id(const std::string &id)
 {
 	if (id.size() == 0) {

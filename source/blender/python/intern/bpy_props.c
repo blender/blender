@@ -1265,9 +1265,11 @@ static int icon_id_from_name(const char *name)
 	int id;
 
 	if (name[0]) {
-		for (item = icon_items, id = 0; item->identifier; item++, id++)
-			if (strcmp(item->name, name) == 0)
+		for (item = icon_items, id = 0; item->identifier; item++, id++) {
+			if (STREQ(item->name, name)) {
 				return item->value;
+			}
+		}
 	}
 	
 	return 0;
@@ -1353,7 +1355,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 					tmp.value = i;
 				}
 
-				if (def && def_used == 0 && strcmp(def_cmp, tmp.identifier) == 0) {
+				if (def && def_used == 0 && STREQ(def_cmp, tmp.identifier)) {
 					*defvalue = tmp.value;
 					def_used++; /* only ever 1 */
 				}

@@ -24,18 +24,19 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
+#include "DNA_sensor_types.h"
+
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 #include "RNA_access.h"
 
 #include "rna_internal.h"
-
-#include "DNA_constraint_types.h"
-#include "DNA_object_types.h"
-#include "DNA_sensor_types.h"
 
 #include "WM_types.h"
 

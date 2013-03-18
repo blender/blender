@@ -224,7 +224,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	}
 
 	/* keep this before interpolation [#29761] */
-	if (tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
+	if ((tex->imaflag & TEX_USEALPHA) && tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
 			texres->talpha = TRUE;
 		}
@@ -274,14 +274,18 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 				ibuf_get_color(col, ibuf, x+1, y);
 				val2= (col[0]+col[1]+col[2]);
 			}
-			else val2= val1;
+			else {
+				val2= val1;
+			}
 
 			if (y<ibuf->y-1) {
 				float col[4];
 				ibuf_get_color(col, ibuf, x, y+1);
-				val3= (col[0]+col[1]+col[2]);
+				val3 = (col[0]+col[1]+col[2]);
 			}
-			else val3= val1;
+			else {
+				val3 = val1;
+			}
 
 			/* do not mix up x and y here! */
 			texres->nor[0]= (val1-val2);
@@ -289,13 +293,19 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		}
 	}
 
-	if (texres->talpha) texres->tin= texres->ta;
+	if (texres->talpha) {
+		texres->tin = texres->ta;
+	}
 	else if (tex->imaflag & TEX_CALCALPHA) {
 		texres->ta = texres->tin = max_fff(texres->tr, texres->tg, texres->tb);
 	}
-	else texres->ta= texres->tin= 1.0;
+	else {
+		texres->ta = texres->tin = 1.0;
+	}
 	
-	if (tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
+	if (tex->flag & TEX_NEGALPHA) {
+		texres->ta = 1.0f - texres->ta;
+	}
 
 	/* de-premul, this is being premulled in shade_input_do_shade() */
 	if (texres->ta!=1.0f && texres->ta>1e-4f) {
@@ -829,7 +839,7 @@ static float EWA_WTS[EWA_MAXIDX + 1] = {
 #endif
 //static int ISNAN(float x) { return (x != x); }
 
-static void radangle2imp(float a2, float b2, float th, float* A, float* B, float* C, float* F)
+static void radangle2imp(float a2, float b2, float th, float *A, float *B, float *C, float *F)
 {
 	float ct2 = cosf(th);
 	const float st2 = 1.0f - ct2 * ct2;	/* <- sin(th)^2 */
@@ -841,7 +851,7 @@ static void radangle2imp(float a2, float b2, float th, float* A, float* B, float
 }
 
 /* all tests here are done to make sure possible overflows are hopefully minimized */
-static void imp2radangle(float A, float B, float C, float F, float* a, float* b, float* th, float* ecc)
+static void imp2radangle(float A, float B, float C, float F, float *a, float *b, float *th, float *ecc)
 {
 	if (F <= 1e-5f) {	/* use arbitrary major radius, zero minor, infinite eccentricity */
 		*a = sqrtf(A > C ? A : C);
@@ -1098,7 +1108,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 	
-	if (tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
+	if ((tex->imaflag & TEX_USEALPHA) && tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0)
 			texres->talpha = 1;
 	}
@@ -1514,7 +1524,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 
-	if (tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
+	if ((tex->imaflag & TEX_USEALPHA) && tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
 			texres->talpha = TRUE;
 		}
@@ -1838,7 +1848,9 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (tex->imaflag & TEX_CALCALPHA) {
 		texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
 	}
-	else texres->tin= texres->ta;
+	else {
+		texres->tin = texres->ta;
+	}
 
 	if (tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
 	

@@ -115,7 +115,7 @@ args = sys.argv[2:]
 # print(args)
 
 tu = index.parse(sys.argv[1], args)
-print('Translation unit: %s' % tu.spelling)
+# print('Translation unit: %s' % tu.spelling)
 
 # -----------------------------------------------------------------------------
 

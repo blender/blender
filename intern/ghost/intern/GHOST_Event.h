@@ -51,7 +51,7 @@ public:
 	 * \param window The generating window (or NULL if system event).
 	 */
 	GHOST_Event(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window)
-		: m_type(type), m_time(msec), m_window(window), m_data(0)
+		: m_type(type), m_time(msec), m_window(window), m_data(NULL)
 	{
 	}
 

@@ -62,7 +62,8 @@ ResidualBlock::ResidualBlock(const CostFunction* cost_function,
             parameter_blocks_.get());
 }
 
-bool ResidualBlock::Evaluate(double* cost,
+bool ResidualBlock::Evaluate(const bool apply_loss_function,
+                             double* cost,
                              double* residuals,
                              double** jacobians,
                              double* scratch) const {
@@ -154,7 +155,7 @@ bool ResidualBlock::Evaluate(double* cost,
     }
   }
 
-  if (loss_function_ == NULL) {
+  if (loss_function_ == NULL || !apply_loss_function) {
     *cost = 0.5 * squared_norm;
     return true;
   }

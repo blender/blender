@@ -851,16 +851,16 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
+        obj = context.object
 
-        if ob.mode == 'POSE':
+        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'}:
             box = layout.box()
             box.alert = True
             box.label(icon='INFO', text="See Bone Constraints tab to Add Constraints to active bone")
         else:
-            layout.operator_menu_enum("object.constraint_add", "type")
+            layout.operator_menu_enum("object.constraint_add", "type", text="Add Object Constraint")
 
-        for con in ob.constraints:
+        for con in obj.constraints:
             self.draw_constraint(context, con)
 
 
@@ -876,7 +876,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("pose.constraint_add", "type")
+        layout.operator_menu_enum("pose.constraint_add", "type", text="Add Bone Constraint")
 
         for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)

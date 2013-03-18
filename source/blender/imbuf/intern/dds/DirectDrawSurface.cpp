@@ -1092,7 +1092,7 @@ void DirectDrawSurface::setUserVersion(int version)
 	header.setUserVersion(version);
 }
 
-void DirectDrawSurface::mipmap(Image * img, uint face, uint mipmap)
+void DirectDrawSurface::mipmap(Image *img, uint face, uint mipmap)
 {
 	stream.seek(offset(face, mipmap));
 	
@@ -1158,7 +1158,7 @@ void* DirectDrawSurface::readData(uint &rsize)
 	return data;
 }
 
-void DirectDrawSurface::readLinearImage(Image * img)
+void DirectDrawSurface::readLinearImage(Image *img)
 {
 	
 	const uint w = img->width();
@@ -1204,7 +1204,7 @@ void DirectDrawSurface::readLinearImage(Image * img)
 	}
 }
 
-void DirectDrawSurface::readBlockImage(Image * img)
+void DirectDrawSurface::readBlockImage(Image *img)
 {
 
 	const uint w = img->width();
@@ -1246,7 +1246,7 @@ static Color32 buildNormal(uint8 x, uint8 y)
 }
 
 
-void DirectDrawSurface::readBlock(ColorBlock * rgba)
+void DirectDrawSurface::readBlock(ColorBlock *rgba)
 {
 	uint fourcc = header.pf.fourcc;
 

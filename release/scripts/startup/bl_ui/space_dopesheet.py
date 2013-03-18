@@ -29,7 +29,6 @@ from bpy.types import Header, Menu
 def dopesheet_filter(layout, context, genericFiltersOnly=False):
     dopesheet = context.space_data.dopesheet
     is_nla = context.area.type == 'NLA_EDITOR'
-    is_drivers = (context.area.type == 'GRAPH_EDITOR' and context.space_data.mode == 'DRIVERS')
 
     row = layout.row(align=True)
     row.prop(dopesheet, "show_only_selected", text="")
@@ -37,8 +36,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 
     if is_nla:
         row.prop(dopesheet, "show_missing_nla", text="")
-
-    if is_drivers:
+    else:  # graph and dopesheet editors - F-Curves and drivers only
         row.prop(dopesheet, "show_only_errors", text="")
 
     if not genericFiltersOnly:

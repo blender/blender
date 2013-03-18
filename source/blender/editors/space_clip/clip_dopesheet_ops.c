@@ -59,12 +59,11 @@
 
 #include "clip_intern.h"	// own include
 
-#if 0
-static int ED_space_clip_dopesheet_poll(bContext *C)
+static int space_clip_dopesheet_poll(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	if (ED_space_clip_tracking_poll(C)) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
 
-	if (sc && sc->clip) {
 		if (sc->view == SC_VIEW_DOPESHEET) {
 			ARegion *ar = CTX_wm_region(C);
 
@@ -74,7 +73,6 @@ static int ED_space_clip_dopesheet_poll(bContext *C)
 
 	return FALSE;
 }
-#endif
 
 /********************** select channel operator *********************/
 
@@ -129,7 +127,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int dopesheet_select_channel_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int dopesheet_select_channel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	float location[2];
@@ -160,4 +158,55 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
 	                     "Location", "Mouse location to select channel", -100.0f, 100.0f);
 	RNA_def_boolean(ot->srna, "extend", 0,
 	                "Extend", "Extend selection rather than clearing the existing selection");
+}
+
+/********************** View All operator *********************/
+
+static int dopesheet_view_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+	View2D *v2d = &ar->v2d;
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+	MovieTrackingDopesheetChannel *channel;
+	int frame_min = INT_MAX, frame_max = INT_MIN;
+
+	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+		frame_min = min_ii(frame_min, channel->segments[0]);
+		frame_max = max_ii(frame_max, channel->segments[channel->tot_segment]);
+	}
+
+	if (frame_min < frame_max) {
+		float extra;
+
+		v2d->cur.xmin = frame_min;
+		v2d->cur.xmax = frame_max;
+
+		/* we need an extra "buffer" factor on either side so that the endpoints are visible */
+		extra = 0.01f * BLI_rctf_size_x(&v2d->cur);
+		v2d->cur.xmin -= extra;
+		v2d->cur.xmax += extra;
+
+		ED_region_tag_redraw(ar);
+	}
+
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_dopesheet_view_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View All";
+	ot->description = "Reset viewable area to show full keyframe range";
+	ot->idname = "CLIP_OT_dopesheet_view_all";
+
+	/* api callbacks */
+	ot->exec = dopesheet_view_all_exec;
+	ot->poll = space_clip_dopesheet_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

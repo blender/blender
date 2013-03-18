@@ -394,15 +394,14 @@ extern void ui_set_but_vectorf(uiBut *but, const float vec[3]);
 extern void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
                                        const float mx, const float my);
 
-extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
+extern void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision);
+extern void ui_get_but_string(uiBut *but, char *str, const size_t maxlen);
 extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
 extern int ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value);
 
 extern void ui_set_but_default(struct bContext *C, short all);
-
-extern void ui_set_but_soft_range(uiBut *but, double value);
 
 extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
@@ -523,7 +522,7 @@ extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiB
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad);
+void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 uiWidgetColors *ui_tooltip_get_theme(void);
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock * block, rcti * rect);

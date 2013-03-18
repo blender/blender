@@ -28,9 +28,11 @@ subject to the following restrictions:
 
 /// The btEmptyShape is a collision shape without actual collision detection shape, so most users should ignore this class.
 /// It can be replaced by another shape during runtime, but the inertia tensor should be recomputed.
-class btEmptyShape	: public btConcaveShape
+ATTRIBUTE_ALIGNED16(class) btEmptyShape	: public btConcaveShape
 {
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	btEmptyShape();
 
 	virtual ~btEmptyShape();

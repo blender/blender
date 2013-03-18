@@ -42,7 +42,7 @@
 
 //MSVC defines SendMessage as a win api function, even though we aren't using it
 #ifdef SendMessage
-	#undef SendMessage
+#  undef SendMessage
 #endif
 
 using namespace std;

@@ -248,7 +248,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 	return wm_macro_end(op, retval);
 }
 
-static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
+static int wm_macro_invoke_internal(bContext *C, wmOperator *op, const wmEvent *event, wmOperator *opm)
 {
 	int retval = OPERATOR_FINISHED;
 
@@ -275,13 +275,13 @@ static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event,
 	return wm_macro_end(op, retval);
 }
 
-static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_macro_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wm_macro_start(op);
 	return wm_macro_invoke_internal(C, op, event, op->macro.first);
 }
 
-static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmOperator *opm = op->opm;
 	int retval = OPERATOR_FINISHED;
@@ -381,7 +381,9 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
-	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
+	/* Use i18n context from ext.srna if possible (py operators). */
+	RNA_def_struct_translation_context(ot->srna, ot->ext.srna ? RNA_struct_translation_context(ot->ext.srna) :
+	                                                            BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 
@@ -875,7 +877,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 
 /* ************ default op callbacks, exported *********** */
 
-int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *UNUSED(event))
+int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -905,7 +907,7 @@ int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op
 }
 
 /* invoke callback, uses enum property named "type" */
-int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	PropertyRNA *prop = op->type->prop;
 	uiPopupMenu *pup;
@@ -1024,7 +1026,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 }
 
 
-int WM_enum_search_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPupBlock(C, wm_enum_search_menu, op);
 	return OPERATOR_CANCELLED;
@@ -1051,13 +1053,13 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 }
 
 
-int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return WM_operator_confirm_message(C, op, NULL);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
-int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op); /* call exec direct */
@@ -1475,12 +1477,12 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
  * This way - the button values correspond to the result of the operator.
  * Without this, first access to a button will make the result jump,
  * see [#32452] */
-int WM_operator_props_popup_call(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return wm_operator_props_popup_ex(C, op, TRUE);
 }
 
-int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return wm_operator_props_popup_ex(C, op, FALSE);
 }
@@ -1529,7 +1531,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_debug_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	RNA_int_set(op->ptr, "debug_value", G.debug_value);
 	return WM_operator_props_dialog_popup(C, op, 9 * UI_UNIT_X, UI_UNIT_Y);
@@ -1598,14 +1600,14 @@ static void wm_block_splash_refreshmenu(bContext *UNUSED(C), void *UNUSED(arg_bl
 static int wm_resource_check_prev(void)
 {
 
-	char *res = BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, TRUE);
+	const char *res = BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, true);
 
 	// if (res) printf("USER: %s\n", res);
 
 #if 0 /* ignore the local folder */
 	if (res == NULL) {
 		/* with a local dir, copying old files isn't useful since local dir get priority for config */
-		res = BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, TRUE);
+		res = BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, true);
 	}
 #endif
 
@@ -1614,7 +1616,7 @@ static int wm_resource_check_prev(void)
 		return FALSE;
 	}
 	else {
-		return (BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, TRUE) != NULL);
+		return (BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, true) != NULL);
 	}
 }
 
@@ -1704,7 +1706,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	uiItemStringO(col, IFACE_("User Community"), ICON_URL, "WM_OT_url_open", "url",
 	              "http://www.blender.org/community/user-community");
-	if (strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release") == 0) {
+	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
 		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d"
 		                               STRINGIFY(BLENDER_VERSION_CHAR) "_release",
 		             BLENDER_VERSION / 100, BLENDER_VERSION % 100);
@@ -1742,7 +1744,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	return block;
 }
 
-static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	uiPupBlock(C, wm_block_create_splash, NULL);
 	
@@ -1796,7 +1798,7 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	uiPupBlock(C, wm_block_search_menu, op);
 	
@@ -1944,7 +1946,7 @@ static void open_set_use_scripts(wmOperator *op)
 	}
 }
 
-static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	const char *openname = G.main->name;
 
@@ -2034,7 +2036,7 @@ static int wm_link_append_poll(bContext *C)
 	return 0;
 }
 
-static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op);
@@ -2168,7 +2170,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
 		Library *lib = BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
-		if (lib) BKE_library_make_local(bmain, lib, 1);
+		if (lib) BKE_library_make_local(bmain, lib, true);
 		else BLI_assert(!"cant find name of just added library!");
 	}
 
@@ -2289,7 +2291,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char filename[FILE_MAX];
 
@@ -2319,7 +2321,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 static void untitled(char *filepath)
 {
 	if (G.save_over == 0 && strlen(filepath) < FILE_MAX - 16) {
-		char *c = BLI_last_slash(filepath);
+		char *c = (char *)BLI_last_slash(filepath);
 		
 		if (c)
 			strcpy(&c[1], "untitled.blend");
@@ -2338,7 +2340,7 @@ static void save_set_compress(wmOperator *op)
 	}
 }
 
-static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char name[FILE_MAX];
 
@@ -2409,7 +2411,7 @@ static int blend_save_check(bContext *UNUSED(C), wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filepath);
 	if (!BLO_has_bfile_extension(filepath)) {
 		/* some users would prefer BLI_replace_extension(),
-		 * we keep getting knit-picking bug reports about this - campbell */
+		 * we keep getting nitpicking bug reports about this - campbell */
 		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return TRUE;
@@ -2444,7 +2446,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
 /* *************** save file directly ******** */
 
-static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char name[FILE_MAX];
 	int ret;
@@ -2650,7 +2652,7 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 		WM_cursor_restore(CTX_wm_window(C));
 }
 
-int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (ISTWEAK(event->type))
 		op->customdata = WM_gesture_new(C, event, WM_GESTURE_RECT);
@@ -2665,7 +2667,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -2734,7 +2736,7 @@ int WM_border_select_cancel(bContext *C, wmOperator *op)
 int circle_select_size = 25; /* XXX - need some operator memory thing! */
 #endif
 
-int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
 	
@@ -2769,7 +2771,7 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 #endif
 }
 
-int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -2787,7 +2789,18 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			gesture_circle_apply(C, op);
 	}
 	else if (event->type == EVT_MODAL_MAP) {
+		float fac;
+		
 		switch (event->val) {
+			case GESTURE_MODAL_CIRCLE_SIZE:
+				fac = 0.3f * (event->y - event->prevy);
+				if (fac > 0)
+					rect->xmax += ceil(fac);
+				else
+					rect->xmax += floor(fac);
+				if (rect->xmax < 1) rect->xmax = 1;
+				wm_gesture_tag_redraw(C);
+				break;
 			case GESTURE_MODAL_CIRCLE_ADD:
 				rect->xmax += 2 + rect->xmax / 10;
 				wm_gesture_tag_redraw(C);
@@ -2854,7 +2867,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 
 /* **************** Tweak gesture *************** */
 
-static void tweak_gesture_modal(bContext *C, wmEvent *event)
+static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 {
 	wmWindow *window = CTX_wm_window(C);
 	wmGesture *gesture = window->tweak;
@@ -2896,7 +2909,9 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 				WM_gesture_end(C, gesture);
 
 				/* when tweak fails we should give the other keymap entries a chance */
-				event->val = KM_RELEASE;
+
+				/* XXX, assigning to readonly, BAD JUJU! */
+				((wmEvent *)event)->val = KM_RELEASE;
 			}
 			break;
 		default:
@@ -2932,7 +2947,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 
 /* *********************** lasso gesture ****************** */
 
-int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_LASSO);
 	
@@ -2947,7 +2962,7 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_lines_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_LINES);
 	
@@ -2989,7 +3004,7 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 	}
 }
 
-int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	int sx, sy;
@@ -3045,7 +3060,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_lines_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_lines_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	return WM_gesture_lasso_modal(C, op, event);
 }
@@ -3164,7 +3179,7 @@ static int straightline_apply(bContext *C, wmOperator *op)
 }
 
 
-int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_STRAIGHTLINE);
 	
@@ -3179,7 +3194,7 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -3271,7 +3286,7 @@ typedef struct {
 	void *cursor;
 } RadialControl;
 
-static void radial_control_set_initial_mouse(RadialControl *rc, wmEvent *event)
+static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
 {
 	float d[2] = {0, 0};
 	float zoom[2] = {1, 1};
@@ -3587,7 +3602,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static int radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmWindowManager *wm;
 	RadialControl *rc;
@@ -3684,7 +3699,7 @@ static int radial_control_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
 	float new_value, dist, zoom[2];
@@ -4062,6 +4077,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 		{GESTURE_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 		{GESTURE_MODAL_CIRCLE_ADD, "ADD", 0, "Add", ""},
 		{GESTURE_MODAL_CIRCLE_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{GESTURE_MODAL_CIRCLE_SIZE, "SIZE", 0, "Size", ""},
 
 		{GESTURE_MODAL_SELECT,  "SELECT", 0, "Select", ""},
 		{GESTURE_MODAL_DESELECT, "DESELECT", 0, "DeSelect", ""},
@@ -4100,6 +4116,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_SUB);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_ADD);
 	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_ADD);
+	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, GESTURE_MODAL_CIRCLE_SIZE);
 
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
@@ -4184,6 +4201,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NLA_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_border");
+	WM_modalkeymap_assign(keymap, "NODE_OT_viewer_border");
 	WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show");
 	WM_modalkeymap_assign(keymap, "OUTLINER_OT_select_border");
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template

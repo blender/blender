@@ -31,6 +31,8 @@ ATTRIBUTE_ALIGNED16(class) btScaledBvhTriangleMeshShape : public btConcaveShape
 
 public:
 
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 
 	btScaledBvhTriangleMeshShape(btBvhTriangleMeshShape* childShape,const btVector3& localScaling);
 

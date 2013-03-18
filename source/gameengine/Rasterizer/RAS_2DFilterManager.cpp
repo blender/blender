@@ -435,6 +435,9 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// if the last rendered face had alpha add it would messes with the color of the plane we apply 2DFilter to
 	glDisable(GL_BLEND); 
+	// fix for [#34523] alpha buffer is now available for all OSs
+	glDisable(GL_ALPHA_TEST);
+
 	glPushMatrix();		//GL_MODELVIEW
 	glLoadIdentity();	// GL_MODELVIEW
 	glMatrixMode(GL_TEXTURE);
@@ -465,7 +468,8 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	}
 
 	glEnable(GL_DEPTH_TEST);
-	canvas->SetViewPort(viewport[0],viewport[1],viewport[2],viewport[3]);
+	//We can't pass the results of canvas->GetViewPort() directly because canvas->SetViewPort() does some extra math [#34517]
+	canvas->SetViewPort(0, 0, viewport[2]-1, viewport[3]-1);
 	EndShaderProgram();
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);

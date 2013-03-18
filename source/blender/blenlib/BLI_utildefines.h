@@ -167,7 +167,7 @@ typedef bool _BLI_Bool;
 	(b) = (tval);                 \
 } (void)0
 
-
+/* ELEM#(a, ...): is the first arg equal any of the others */
 #define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
 #define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
 #define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
@@ -295,9 +295,9 @@ typedef bool _BLI_Bool;
 #define UNPACK3(a)  ((a)[0]), ((a)[1]), ((a)[2])
 #define UNPACK4(a)  ((a)[0]), ((a)[1]), ((a)[2]), ((a)[3])
 /* op may be '&' or '*' */
-#define UNPACK2OP(a, op)  op((a)[0]), op((a)[1])
-#define UNPACK3OP(a, op)  op((a)[0]), op((a)[1]), op((a)[2])
-#define UNPACK4OP(a, op)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
+#define UNPACK2OP(op, a)  op((a)[0]), op((a)[1])
+#define UNPACK3OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2])
+#define UNPACK4OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
 
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)                 \
@@ -325,6 +325,22 @@ typedef bool _BLI_Bool;
 #define STRINGIFY_ARG(x) "" #x
 #define STRINGIFY_APPEND(a, b) "" a #b
 #define STRINGIFY(x) STRINGIFY_APPEND("", x)
+
+/* generic strcmp macros */
+#define STREQ(a, b) (strcmp(a, b) == 0)
+#define STRNEQ(a, b) (!STREQ(a, b))
+
+#define STRCASEEQ(a, b) (strcasecmp(a, b) == 0)
+#define STRCASENEQ(a, b) (!STRCASEEQ(a, b))
+
+#define STREQLEN(a, b, n) (strncmp(a, b, n) == 0)
+#define STRNEQLEN(a, b, n) (!STREQLEN(a, b, n))
+
+#define STRCASEEQLEN(a, b, n) (strncasecmp(a, b, n) == 0)
+#define STRCASENEQLEN(a, b, n) (!STRCASEEQLEN(a, b, n))
+
+#define STRPREFIX(a, b) (strncmp((a), (b), strlen(b)) == 0)
+
 
 /* useful for debugging */
 #define AT __FILE__ ":" STRINGIFY(__LINE__)

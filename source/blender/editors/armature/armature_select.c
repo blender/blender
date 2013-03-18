@@ -166,7 +166,7 @@ void *get_nearest_bone(bContext *C, short findunsel, int x, int y)
 
 /* called in space.c */
 /* previously "selectconnected_armature" */
-static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
@@ -323,7 +323,9 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 							else 
 								dep = 2;
 						}
-						else dep = 2;
+						else {
+							dep = 2;
+						}
 					}
 					else {
 						/* bone found */
@@ -333,7 +335,9 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 							else
 								dep = 3;
 						}
-						else dep = 3;
+						else {
+							dep = 3;
+						}
 					}
 
 					if (ebone == ebone_next_act) {
@@ -390,8 +394,10 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 			//			}
 		}
 	}
-	else sel = toggle;
-	
+	else {
+		sel = toggle;
+	}
+
 	/*	Set the flags */
 	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
 		if (sel == 2) {

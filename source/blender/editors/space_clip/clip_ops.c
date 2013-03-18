@@ -30,16 +30,26 @@
  */
 
 #include <errno.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#ifndef WIN32
+#  include <unistd.h>
+#else
+#  include <io.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 #include "DNA_scene_types.h"	/* min/max frames */
 
-#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops.h"
+#include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_threads.h"
 
 #include "BLF_translation.h"
 
@@ -113,7 +123,7 @@ static void sclip_zoom_set_factor(const bContext *C, float zoomfac, float locati
 	sclip_zoom_set(C, sc->zoom * zoomfac, location);
 }
 
-static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor)
+static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float factor)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -230,7 +240,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	char path[FILE_MAX];
@@ -318,7 +328,7 @@ typedef struct ViewPanData {
 	float *vec;
 } ViewPanData;
 
-static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
+static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewPanData *vpd;
@@ -377,7 +387,7 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type == MOUSEPAN) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
@@ -399,7 +409,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewPanData *vpd = op->customdata;
@@ -471,7 +481,7 @@ typedef struct ViewZoomData {
 	float location[2];
 } ViewZoomData;
 
-static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
+static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -514,7 +524,7 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		float delta, factor;
@@ -538,7 +548,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewZoomData *vpd = op->customdata;
 	float delta, factor;
@@ -611,7 +621,7 @@ static int view_zoom_in_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_in_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -654,7 +664,7 @@ static int view_zoom_out_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_zoom_out_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -844,7 +854,7 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int frame_from_event(bContext *C, wmEvent *event)
+static int frame_from_event(bContext *C, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -866,7 +876,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 	return framenr;
 }
 
-static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -885,7 +895,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case ESCKEY:
@@ -971,46 +981,39 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
 	return build_count;
 }
 
-/* only this runs inside thread */
-static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+/* simple case for movies -- handle frame-by-frame, do threading within single frame */
+static void do_movie_proxy(void *pjv, int *UNUSED(build_sizes), int UNUSED(build_count),
+                           int *build_undistort_sizes, int build_undistort_count,
+                           short *stop, short *do_update, float *progress)
 {
 	ProxyJob *pj = pjv;
 	Scene *scene = pj->scene;
 	MovieClip *clip = pj->clip;
 	struct MovieDistortion *distortion = NULL;
-	short size_flag;
 	int cfra, sfra = SFRA, efra = EFRA;
-	int build_sizes[4], build_count = 0;
-	int build_undistort_sizes[4], build_undistort_count = 0;
 
-	size_flag = clip->proxy.build_size_flag;
+	if (pj->index_context)
+		IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
 
-	build_count = proxy_bitflag_to_array(size_flag, build_sizes, 0);
-	build_undistort_count = proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);
+	if (!build_undistort_count) {
+		if (*stop)
+			pj->stop = 1;
 
-	if (clip->source == MCLIP_SRC_MOVIE) {
-		if (pj->index_context)
-			IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
-
-		if (!build_undistort_count) {
-			if (*stop)
-				pj->stop = 1;
-
-			return;
-		}
-		else {
-			sfra = 1;
-			efra = IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
-		}
+		return;
+	}
+	else {
+		sfra = 1;
+		efra = IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
 	}
 
-	if (build_undistort_count)
+	if (build_undistort_count) {
+		int threads = BLI_system_thread_count();
+
 		distortion = BKE_tracking_distortion_new();
+		BKE_tracking_distortion_set_threads(distortion, threads);
+	}
 
 	for (cfra = sfra; cfra <= efra; cfra++) {
-		if (clip->source != MCLIP_SRC_MOVIE)
-			BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, NULL, cfra, build_sizes, build_count, 0);
-
 		BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, distortion, cfra,
 		                                build_undistort_sizes, build_undistort_count, 1);
 
@@ -1026,6 +1029,193 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 
 	if (*stop)
 		pj->stop = 1;
+}
+
+/* *****
+ * special case for sequences -- handle different frames in different threads,
+ * loading from disk happens in critical section, decoding frame happens from
+ * thread for maximal speed
+ */
+
+typedef struct ProxyQueue {
+	int cfra;
+	int sfra;
+	int efra;
+	SpinLock spin;
+
+	short *stop;
+	short *do_update;
+	float *progress;
+} ProxyQueue;
+
+typedef struct ProxyThread {
+	MovieClip *clip;
+	ProxyQueue *queue;
+
+	struct MovieDistortion *distortion;
+
+	int *build_sizes, build_count;
+	int *build_undistort_sizes, build_undistort_count;
+} ProxyThread;
+
+static unsigned char *proxy_thread_next_frame(ProxyQueue *queue, MovieClip *clip, size_t *size_r, int *cfra_r)
+{
+	unsigned char *mem = NULL;
+
+	BLI_spin_lock(&queue->spin);
+	if (!*queue->stop && queue->cfra <= queue->efra) {
+		char name[FILE_MAX];
+		size_t size;
+		int file;
+
+		BKE_movieclip_filename_for_frame(clip, queue->cfra, name);
+
+		file = open(name, O_BINARY | O_RDONLY, 0);
+		if (file < 0) {
+			BLI_spin_unlock(&queue->spin);
+			return NULL;
+		}
+
+		size = BLI_file_descriptor_size(file);
+		if (size < 1) {
+			close(file);
+			BLI_spin_unlock(&queue->spin);
+			return NULL;
+		}
+
+		mem = MEM_mallocN(size, "movieclip proxy memory file");
+
+		if (read(file, mem, size) != size) {
+			close(file);
+			BLI_spin_unlock(&queue->spin);
+			MEM_freeN(mem);
+			return NULL;
+		}
+
+		*size_r = size;
+		*cfra_r = queue->cfra;
+
+		queue->cfra++;
+		close(file);
+
+		*queue->do_update = 1;
+		*queue->progress = (float)(queue->cfra - queue->sfra) / (queue->efra - queue->sfra);
+	}
+	BLI_spin_unlock(&queue->spin);
+
+	return mem;
+}
+
+static void *do_proxy_thread(void *data_v)
+{
+	ProxyThread *data = (ProxyThread *) data_v;
+	unsigned char *mem;
+	size_t size;
+	int cfra;
+
+	while ((mem = proxy_thread_next_frame(data->queue, data->clip, &size, &cfra))) {
+		ImBuf *ibuf;
+
+		ibuf = IMB_ibImageFromMemory(mem, size, IB_rect | IB_multilayer | IB_alphamode_detect, NULL, "proxy frame");
+
+		BKE_movieclip_build_proxy_frame_for_ibuf(data->clip, ibuf, NULL, cfra,
+		                                         data->build_sizes, data->build_count, FALSE);
+
+		BKE_movieclip_build_proxy_frame_for_ibuf(data->clip, ibuf, data->distortion, cfra,
+		                                         data->build_undistort_sizes, data->build_undistort_count, TRUE);
+
+		IMB_freeImBuf(ibuf);
+
+		MEM_freeN(mem);
+	}
+
+	return NULL;
+}
+
+static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
+                              int *build_undistort_sizes, int build_undistort_count,
+                              short *stop, short *do_update, float *progress)
+{
+	ProxyJob *pj = pjv;
+	MovieClip *clip = pj->clip;
+	Scene *scene = pj->scene;
+	int sfra = SFRA, efra = EFRA;
+	ProxyThread *handles;
+	ListBase threads;
+	int i, tot_thread = BLI_system_thread_count();
+	ProxyQueue queue;
+
+	BLI_spin_init(&queue.spin);
+
+	queue.cfra = sfra;
+	queue.sfra = sfra;
+	queue.efra = efra;
+	queue.stop = stop;
+	queue.do_update = do_update;
+	queue.progress = progress;
+
+	handles = MEM_callocN(sizeof(ProxyThread) * tot_thread, "proxy threaded handles");
+
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, do_proxy_thread, tot_thread);
+
+	for (i = 0; i < tot_thread; i++) {
+		ProxyThread *handle = &handles[i];
+
+		handle->clip = clip;
+		handle->queue = &queue;
+
+		handle->build_count = build_count;
+		handle->build_sizes = build_sizes;
+
+		handle->build_undistort_count = build_undistort_count;
+		handle->build_undistort_sizes = build_undistort_sizes;
+
+		if (build_undistort_count)
+			handle->distortion = BKE_tracking_distortion_new();
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, handle);
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		do_proxy_thread(handles);
+
+	MEM_freeN(handles);
+
+	if (build_undistort_count) {
+		for (i = 0; i < tot_thread; i++) {
+			ProxyThread *handle = &handles[i];
+
+			BKE_tracking_distortion_free(handle->distortion);
+		}
+	}
+}
+
+static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+{
+	ProxyJob *pj = pjv;
+	MovieClip *clip = pj->clip;
+
+	short size_flag;
+	int build_sizes[4], build_count = 0;
+	int build_undistort_sizes[4], build_undistort_count = 0;
+
+	size_flag = clip->proxy.build_size_flag;
+
+	build_count = proxy_bitflag_to_array(size_flag, build_sizes, 0);
+	build_undistort_count = proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);
+
+	if (clip->source == MCLIP_SRC_MOVIE) {
+		do_movie_proxy(pjv, build_sizes, build_count, build_undistort_sizes,
+		               build_undistort_count, stop, do_update, progress);
+	}
+	else {
+		do_sequence_proxy(pjv, build_sizes, build_count, build_undistort_sizes,
+		                 build_undistort_count, stop, do_update, progress);
+	}
 }
 
 static void proxy_endjob(void *pjv)
@@ -1134,7 +1324,7 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
  * that explains the negative signs in the code below
  */
 
-static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;

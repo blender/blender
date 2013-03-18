@@ -150,6 +150,7 @@ endif()
 		bf_intern_opencolorio
 		bf_intern_opennl
 		extern_rangetree
+		extern_wcwidth
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)

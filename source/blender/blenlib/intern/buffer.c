@@ -70,7 +70,8 @@ void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
 	buffer->count = new_count;
 }
 
-void BLI_buffer_free(BLI_Buffer *buffer)
+/* callers use BLI_buffer_free */
+void _bli_buffer_free(BLI_Buffer *buffer)
 {
 	if ((buffer->flag & BLI_BUFFER_USE_STATIC) == 0) {
 		if (buffer->data) {

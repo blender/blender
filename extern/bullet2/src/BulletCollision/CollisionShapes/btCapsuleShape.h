@@ -23,7 +23,7 @@ subject to the following restrictions:
 ///The btCapsuleShape represents a capsule around the Y axis, there is also the btCapsuleShapeX aligned around the X axis and btCapsuleShapeZ around the Z axis.
 ///The total height is height+2*radius, so the height is just the height between the center of each 'sphere' of the capsule caps.
 ///The btCapsuleShape is a convex hull of two spheres. The btMultiSphereShape is a more general collision shape that takes the convex hull of multiple sphere, so it can also represent a capsule when just using two spheres.
-class btCapsuleShape : public btConvexInternalShape
+ATTRIBUTE_ALIGNED16(class) btCapsuleShape : public btConvexInternalShape
 {
 protected:
 	int	m_upAxis;
@@ -33,6 +33,9 @@ protected:
 	btCapsuleShape() : btConvexInternalShape() {m_shapeType = CAPSULE_SHAPE_PROXYTYPE;};
 
 public:
+	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	btCapsuleShape(btScalar radius,btScalar height);
 
 	///CollisionShape Interface
@@ -62,8 +65,8 @@ public:
 			halfExtents += btVector3(getMargin(),getMargin(),getMargin());
 			btMatrix3x3 abs_b = t.getBasis().absolute();  
 			btVector3 center = t.getOrigin();
-			btVector3 extent = btVector3(abs_b[0].dot(halfExtents),abs_b[1].dot(halfExtents),abs_b[2].dot(halfExtents));		  
-			
+            btVector3 extent = halfExtents.dot3(abs_b[0], abs_b[1], abs_b[2]);
+        
 			aabbMin = center - extent;
 			aabbMax = center + extent;
 	}
@@ -100,6 +103,14 @@ public:
 		m_implicitShapeDimensions = (unScaledImplicitShapeDimensionsWithMargin * m_localScaling) - oldMargin;
 
 	}
+
+	virtual btVector3	getAnisotropicRollingFrictionDirection() const
+	{
+		btVector3 aniDir(0,0,0);
+		aniDir[getUpAxis()]=1;
+		return aniDir;
+	}
+
 
 	virtual	int	calculateSerializeBufferSize() const;
 

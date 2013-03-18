@@ -795,8 +795,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
 				else if (centermode == ORIGIN_TO_CENTER_OF_MASS) { BKE_mesh_center_centroid(me, cent); }
-				else if (around == V3D_CENTROID) { BKE_mesh_center_median(me, cent); }
-				else { BKE_mesh_center_bounds(me, cent); }
+				else if (around == V3D_CENTROID)                 { BKE_mesh_center_median(me, cent); }
+				else                                             { BKE_mesh_center_bounds(me, cent); }
 
 				negate_v3_v3(cent_neg, cent);
 				BKE_mesh_translate(me, cent_neg, 1);
@@ -808,9 +808,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 				Curve *cu = ob->data;
 
-				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				if      (centermode == ORIGIN_TO_CURSOR) { /* done */ }
 				else if (around == V3D_CENTROID) { BKE_curve_center_median(cu, cent); }
-				else { BKE_curve_center_bounds(cu, cent);   }
+				else                             { BKE_curve_center_bounds(cu, cent);   }
 
 				/* don't allow Z change if curve is 2D */
 				if ((ob->type == OB_CURVE) && !(cu->flag & CU_3D))
@@ -889,9 +889,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			else if (ob->type == OB_MBALL) {
 				MetaBall *mb = ob->data;
 
-				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				if      (centermode == ORIGIN_TO_CURSOR) { /* done */ }
 				else if (around == V3D_CENTROID) { BKE_mball_center_median(mb, cent); }
-				else { BKE_mball_center_bounds(mb, cent);    }
+				else                             { BKE_mball_center_bounds(mb, cent); }
 
 				negate_v3_v3(cent_neg, cent);
 				BKE_mball_translate(mb, cent_neg);
@@ -910,9 +910,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			else if (ob->type == OB_LATTICE) {
 				Lattice *lt = ob->data;
 
-				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				if      (centermode == ORIGIN_TO_CURSOR) { /* done */ }
 				else if (around == V3D_CENTROID) { BKE_lattice_center_median(lt, cent); }
-				else { BKE_lattice_center_bounds(lt, cent); }
+				else                             { BKE_lattice_center_bounds(lt, cent); }
 
 				negate_v3_v3(cent_neg, cent);
 				BKE_lattice_translate(lt, cent_neg, 1);

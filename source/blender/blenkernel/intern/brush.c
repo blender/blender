@@ -53,6 +53,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h" /* externtex */
+#include "RE_shader_ext.h"
 
 static void brush_defaults(Brush *brush)
 {
@@ -471,62 +472,133 @@ int BKE_brush_clone_image_delete(Brush *brush)
 	return 0;
 }
 
-/* Brush Sampling for 3d brushes. Currently used for texture painting only, but should be generalized */
-void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco[3], float rgba[4], const int thread, struct ImagePool *pool)
+/* Generic texture sampler for 3D painting systems. point has to be either in
+ * region space mouse coordinates, or 3d world coordinates for 3D mapping */
+float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
+                              const float point[3],
+                              float rgba[4], const int thread,
+                              struct ImagePool *pool)
 {
-	MTex *mtex = &brush->mtex;
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	MTex *mtex = &br->mtex;
+	float intensity = 1.0;
+	bool hasrgb = false;
 
-	if (mtex && mtex->tex) {
-		float tin, tr, tg, tb, ta;
-		int hasrgb;
-		const int radius = BKE_brush_size_get(scene, brush);
-
-		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-			hasrgb = externtex(mtex, sampleco, &tin, &tr, &tg, &tb, &ta, thread, pool);
-		}
-		else {
-			float co[3];
-
-			co[0] = sampleco[0] / radius;
-			co[1] = sampleco[1] / radius;
-			co[2] = 0.0f;
-
-			hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread, pool);
-		}
-
-		if (hasrgb) {
-			rgba[0] = tr;
-			rgba[1] = tg;
-			rgba[2] = tb;
-			rgba[3] = ta;
-		}
-		else {
-			rgba[0] = tin;
-			rgba[1] = tin;
-			rgba[2] = tin;
-			rgba[3] = 1.0f;
-		}
+	if (!mtex->tex) {
+		intensity = 1;
+	}
+	else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+		/* Get strength by feeding the vertex
+		 * location directly into a texture */
+		hasrgb = externtex(mtex, point, &intensity,
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	}
 	else {
-		rgba[0] = rgba[1] = rgba[2] = rgba[3] = 1.0f;
+		float rotation = -mtex->rot;
+		float point_2d[2] = {point[0], point[1]};
+		float x = 0.0f, y = 0.0f; /* Quite warnings */
+		float radius = 1.0f; /* Quite warnings */
+		float co[3];
+
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			/* keep coordinates relative to mouse */
+
+			rotation += ups->brush_rotation;
+
+			point_2d[0] -= ups->tex_mouse[0];
+			point_2d[1] -= ups->tex_mouse[1];
+
+			/* use pressure adjusted size for fixed mode */
+			radius = ups->pixel_radius;
+
+			x = point_2d[0];
+			y = point_2d[1];
+		}
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+			/* leave the coordinates relative to the screen */
+
+			/* use unadjusted size for tiled mode */
+			radius = BKE_brush_size_get(scene, br);
+
+			x = point_2d[0];
+			y = point_2d[1];
+		}
+
+		x /= radius;
+		y /= radius;
+
+		/* it is probably worth optimizing for those cases where
+		 * the texture is not rotated by skipping the calls to
+		 * atan2, sqrtf, sin, and cos. */
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
+			const float flen     = sqrtf(x * x + y * y);
+
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
+		}
+
+		x *= br->mtex.size[0];
+		y *= br->mtex.size[1];
+
+		co[0] = x + br->mtex.ofs[0];
+		co[1] = y + br->mtex.ofs[1];
+		co[2] = 0.0f;
+
+		hasrgb = externtex(mtex, co, &intensity,
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	}
+
+	intensity += br->texture_sample_bias;
+
+	if (!hasrgb) {
+		rgba[0] = intensity;
+		rgba[1] = intensity;
+		rgba[2] = intensity;
+		rgba[3] = 1.0f;
+	}
+
+	return intensity;
 }
 
+
 /* Brush Sampling for 2D brushes. when we unify the brush systems this will be necessarily a separate function */
-void BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4], const int thread)
+float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4], struct ImagePool *pool)
 {
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	MTex *mtex = &brush->mtex;
 
 	if (mtex && mtex->tex) {
 		float co[3], tin, tr, tg, tb, ta;
+		float x = xy[0], y = xy[1];
 		int hasrgb;
-		const int radius = BKE_brush_size_get(scene, brush);
+		int radius = BKE_brush_size_get(scene, brush);
+		float rotation = -mtex->rot;
 
-		co[0] = xy[0] / radius;
-		co[1] = xy[1] / radius;
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			rotation += ups->brush_rotation;
+			radius = ups->pixel_radius;
+		}
+
+		x /= radius;
+		y /= radius;
+
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
+			const float flen     = sqrtf(x * x + y * y);
+
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
+		}
+
+		x *= brush->mtex.size[0];
+		y *= brush->mtex.size[1];
+
+		co[0] = x + brush->mtex.ofs[0];
+		co[1] = y + brush->mtex.ofs[1];
 		co[2] = 0.0f;
 
-		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread, NULL);
+		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, 0, pool);
 
 		if (hasrgb) {
 			rgba[0] = tr;
@@ -540,9 +612,11 @@ void BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2]
 			rgba[2] = tin;
 			rgba[3] = 1.0f;
 		}
+		return tin;
 	}
 	else {
 		rgba[0] = rgba[1] = rgba[2] = rgba[3] = 1.0f;
+		return 1.0;
 	}
 }
 
@@ -790,7 +864,8 @@ void BKE_brush_scale_size(int *r_brush_size,
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
 {
-	int use_jitter = brush->jitter != 0;
+	int use_jitter = (brush->flag & BRUSH_ABSOLUTE_JITTER) ?
+		(brush->jitter_absolute != 0) : (brush->jitter != 0);
 
 	/* jitter-ed brush gives weird and unpredictable result for this
 	 * kinds of stroke, so manually disable jitter usage (sergey) */
@@ -798,17 +873,26 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 
 	if (use_jitter) {
 		float rand_pos[2];
-		const int radius = BKE_brush_size_get(scene, brush);
-		const int diameter = 2 * radius;
+		float spread;
+		int diameter;
 
-		/* find random position within a circle of diameter 1 */
 		do {
 			rand_pos[0] = BLI_frand() - 0.5f;
 			rand_pos[1] = BLI_frand() - 0.5f;
 		} while (len_v2(rand_pos) > 0.5f);
 
-		jitterpos[0] = pos[0] + 2 * rand_pos[0] * diameter * brush->jitter;
-		jitterpos[1] = pos[1] + 2 * rand_pos[1] * diameter * brush->jitter;
+
+		if (brush->flag & BRUSH_ABSOLUTE_JITTER) {
+			diameter = 2 * brush->jitter_absolute;
+			spread = 1.0;
+		}
+		else {
+			diameter = 2 * BKE_brush_size_get(scene, brush);
+			spread = brush->jitter;
+		}
+		/* find random position within a circle of diameter 1 */
+		jitterpos[0] = pos[0] + 2 * rand_pos[0] * diameter * spread;
+		jitterpos[1] = pos[1] + 2 * rand_pos[1] * diameter * spread;
 	}
 	else {
 		copy_v2_v2(jitterpos, pos);
@@ -840,6 +924,49 @@ float BKE_brush_curve_strength(Brush *br, float p, const float len)
 	curvemapping_initialize(br->curve);
 	return curvemapping_evaluateF(br->curve, 0, p);
 }
+
+/* TODO: should probably be unified with BrushPainter stuff? */
+unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
+{
+	unsigned int *texcache = NULL;
+	MTex *mtex = &br->mtex;
+	TexResult texres = {0};
+	int hasrgb, ix, iy;
+	int side = half_side * 2;
+
+	if (mtex->tex) {
+		float x, y, step = 2.0 / side, co[3];
+
+		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
+
+		/*do normalized cannonical view coords for texture*/
+		for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
+			for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
+				co[0] = x;
+				co[1] = y;
+				co[2] = 0.0f;
+
+				/* This is copied from displace modifier code */
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, NULL);
+
+				/* if the texture gave an RGB value, we assume it didn't give a valid
+				 * intensity, so calculate one (formula from do_material_tex).
+				 * if the texture didn't give an RGB value, copy the intensity across
+				 */
+				if (hasrgb & TEX_RGB)
+					texres.tin = rgb_to_grayscale(&texres.tr);
+
+				((char *)texcache)[(iy * side + ix) * 4] =
+				((char *)texcache)[(iy * side + ix) * 4 + 1] =
+				((char *)texcache)[(iy * side + ix) * 4 + 2] =
+				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(texres.tin * 255.0f);
+			}
+		}
+	}
+
+	return texcache;
+}
+
 
 /**** Radial Control ****/
 struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br)

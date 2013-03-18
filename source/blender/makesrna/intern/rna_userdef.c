@@ -26,12 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -39,15 +33,21 @@
 #include "DNA_view3d_types.h"
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "BLI_utildefines.h"
-
-#include "BLF_translation.h"
 
 #include "BKE_sound.h"
 #include "BKE_addon.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "BLF_translation.h"
 
 #ifdef WITH_CYCLES
 static EnumPropertyItem compute_device_type_items[] = {
@@ -278,7 +278,8 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 {
 	Object *ob;
 
-	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL);
+	bTheme *btheme = UI_GetTheme();
+	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, btheme->tv3d.vertex_unreferenced);
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
@@ -442,7 +443,7 @@ static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), Poi
 }
 #endif
 
-static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, bool create)
 {
 	if (create && !ptr->data) {
 		IDPropertyTemplate val = {0};
@@ -1163,6 +1164,11 @@ static void rna_def_userdef_theme_spaces_vertex(StructRNA *srna)
 	prop = RNA_def_property(srna, "vertex_size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Vertex Size", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "vertex_unreferenced", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Vertex Group Unreferenced", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -3464,6 +3470,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "GPU Mipmap Generation", "Generate Image Mipmaps on the GPU");
 	RNA_def_property_update(prop, 0, "rna_userdef_gl_gpu_mipmaps");
 
+	prop = RNA_def_property(srna, "image_gpubuffer_limit", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "image_gpubuffer_limit");
+	RNA_def_property_range(prop, 0, 128);
+	RNA_def_property_ui_text(prop, "Image GPU draw limit", "If set, amount of Mega Pixels to use for drawing Images as GPU textures");
+	
+	
 	prop = RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
 	RNA_def_property_ui_text(prop, "VBOs",

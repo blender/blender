@@ -27,13 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-#include "rna_internal_types.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -54,7 +47,15 @@
 #include "BKE_texture.h"
 #include "BKE_idprop.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
+#include "rna_internal_types.h"
+
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "WM_types.h"
 
@@ -519,6 +520,38 @@ static void rna_Node_material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		nodeSetActive(ntree, node);
 
 	node_update(bmain, scene, ntree, node);
+}
+
+static void rna_NodeTree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+
+	/* when using border, make it so no old data from outside of
+	 * border is hanging around
+	 * ideally shouldn't be in RNA callback, but how to teach
+	 * compo to only clear frame when border usage is actually
+	 * toggling
+	 */
+	if (ntree->flag & NTREE_VIEWER_BORDER) {
+		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+		void *lock;
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+		if (ibuf) {
+			if (ibuf->rect)
+				memset(ibuf->rect, 0, 4 * ibuf->x * ibuf->y);
+
+			if (ibuf->rect_float)
+				memset(ibuf->rect_float, 0, 4 * ibuf->x * ibuf->y * sizeof(float));
+
+			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+		}
+
+		BKE_image_release_ibuf(ima, ibuf, lock);
+	}
+
+	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
 }
 
 static void rna_NodeGroup_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1009,6 +1042,16 @@ static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *rep
 	return NULL;
 }
 
+static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
+
+	node->update |= NODE_UPDATE_ID;
+	node_update(bmain, scene, ntree, node);
+	node->update &= ~NODE_UPDATE_ID;
+}
+
 static void rna_Mapping_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -1193,7 +1236,7 @@ static void rna_ShaderNodeScript_bytecode_set(PointerRNA *ptr, const char *value
 		nss->bytecode = NULL;
 }
 
-static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, bool create)
 {
 	bNode *node = (bNode *)ptr->data;
 	NodeShaderScript *nss = node->storage;
@@ -2411,7 +2454,7 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Image_Node_update_id");
 
 	prop = RNA_def_property(srna, "use_straight_alpha_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT);
@@ -4091,7 +4134,7 @@ static void def_cmp_viewer(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", CMP_NODE_OUTPUT_IGNORE_ALPHA);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -4101,7 +4144,7 @@ static void def_cmp_composite(StructRNA *srna)
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", CMP_NODE_OUTPUT_IGNORE_ALPHA);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -4985,6 +5028,11 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_TWO_PASS);
 	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing: first calculate fast nodes, "
 	                                           "second pass calculate all nodes");
+
+	prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_VIEWER_BORDER);
+	RNA_def_property_ui_text(prop, "Viewer Border", "Use boundaries for viewer nodes and composite backdrop");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 }
 
 static void rna_def_shader_nodetree(BlenderRNA *brna)

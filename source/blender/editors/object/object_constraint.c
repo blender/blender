@@ -435,7 +435,9 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 								curcon->flag |= CONSTRAINT_DISABLE;
 						}
 					}
-					else curcon->flag |= CONSTRAINT_DISABLE;
+					else {
+						curcon->flag |= CONSTRAINT_DISABLE;
+					}
 				}
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
@@ -645,7 +647,7 @@ static int stretchto_reset_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int stretchto_reset_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int stretchto_reset_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return stretchto_reset_exec(C, op);
@@ -691,7 +693,7 @@ static int limitdistance_reset_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int limitdistance_reset_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int limitdistance_reset_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return limitdistance_reset_exec(C, op);
@@ -827,7 +829,7 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int childof_set_inverse_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int childof_set_inverse_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return childof_set_inverse_exec(C, op);
@@ -874,7 +876,7 @@ static int childof_clear_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int childof_clear_inverse_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int childof_clear_inverse_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return childof_clear_inverse_exec(C, op);
@@ -991,7 +993,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int followpath_path_animate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int followpath_path_animate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	/* hook up invoke properties for figuring out which constraint we're dealing with */
 	if (edit_constraint_invoke_properties(C, op)) {
@@ -1049,7 +1051,7 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int objectsolver_set_inverse_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int objectsolver_set_inverse_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return objectsolver_set_inverse_exec(C, op);
@@ -1095,7 +1097,7 @@ static int objectsolver_clear_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int objectsolver_clear_inverse_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int objectsolver_clear_inverse_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return objectsolver_clear_inverse_exec(C, op);
@@ -1231,7 +1233,7 @@ static int constraint_move_down_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int constraint_move_down_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int constraint_move_down_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return constraint_move_down_exec(C, op);
@@ -1280,7 +1282,7 @@ static int constraint_move_up_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int constraint_move_up_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int constraint_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (edit_constraint_invoke_properties(C, op))
 		return constraint_move_up_exec(C, op);
@@ -1848,7 +1850,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 // TODO: should these be here, or back in editors/armature/poseobject.c again?
 
 /* present menu with options + validation for targets to use */
-static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
+static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan = BKE_pose_channel_active(ob);

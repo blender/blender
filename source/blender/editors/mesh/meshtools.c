@@ -789,7 +789,9 @@ static intptr_t mesh_octree_find_index(MocNode **bt, MVert *mvert, const float c
 					return (*bt)->index[a];
 			}
 		}
-		else return -1;
+		else {
+			return -1;
+		}
 	}
 	if ( (*bt)->next)
 		return mesh_octree_find_index(&(*bt)->next, mvert, co);

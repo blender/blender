@@ -34,6 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
@@ -422,7 +423,7 @@ void IMB_thumb_delete(const char *path, ThumbSize size)
 			return;
 		}
 		if (BLI_exists(thumb)) {
-			BLI_delete(thumb, 0, 0);
+			BLI_delete(thumb, false, false);
 		}
 	}
 }
@@ -447,7 +448,7 @@ ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 		if (BLI_exists(thumb)) {
 			/* clear out of date fail case */
 			if (BLI_file_older(thumb, path)) {
-				BLI_delete(thumb, 0, 0);
+				BLI_delete(thumb, false, false);
 			}
 			else {
 				return NULL;

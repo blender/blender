@@ -31,7 +31,7 @@ struct Scene;
 struct Sequence;
 struct SpaceSeq;
 
-void ED_sequencer_select_sequence_single(struct Scene *scene, struct Sequence *seq, int deselect_all);
+void ED_sequencer_select_sequence_single(struct Scene *scene, struct Sequence *seq, bool deselect_all);
 void ED_sequencer_deselect_all(struct Scene *scene);
 
 int ED_space_sequencer_maskedit_mask_poll(struct bContext *C);

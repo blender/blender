@@ -50,6 +50,7 @@
 #include "BKE_tessmesh.h"
 
 #include "BLI_array.h"
+#include "BLI_buffer.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -177,6 +178,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 
+	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
+	BLI_buffer_declare_static(vec2f, tf_uvorig_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
+
 	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 	
 	switch (sima->dt_uvstretch) {
@@ -186,8 +190,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				const int efa_len = efa->len;
-				float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
-				float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
+				float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf,     vec2f, efa_len);
+				float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_resize_data(&tf_uvorig_buf, vec2f, efa_len);
 				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
@@ -229,8 +233,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 					if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 						const int efa_len = efa->len;
-						float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
-						float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
+						float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf,     vec2f, efa_len);
+						float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_resize_data(&tf_uvorig_buf, vec2f, efa_len);
 
 						area = BM_face_calc_area(efa) / totarea;
 
@@ -268,6 +272,11 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 		{
 			float a;
 
+			BLI_buffer_declare_static(float, uvang_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
+			BLI_buffer_declare_static(float, ang_buf,   BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
+			BLI_buffer_declare_static(vec3f, av_buf,  BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
+			BLI_buffer_declare_static(vec2f, auv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
+
 			col[3] = 0.5f; /* hard coded alpha, not that nice */
 			
 			glShadeModel(GL_SMOOTH);
@@ -277,12 +286,12 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				
 				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					const int efa_len = efa->len;
-					float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
-					float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
-					float *uvang = BLI_array_alloca(uvang, efa_len);
-					float *ang = BLI_array_alloca(ang, efa_len);
-					float (*av)[3] = BLI_array_alloca(av, efa_len);  /* use for 2d and 3d  angle vectors */
-					float (*auv)[2] = BLI_array_alloca(auv, efa_len);
+					float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf,     vec2f, efa_len);
+					float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_resize_data(&tf_uvorig_buf, vec2f, efa_len);
+					float *uvang = BLI_buffer_resize_data(&uvang_buf, float, efa_len);
+					float *ang   = BLI_buffer_resize_data(&ang_buf,   float, efa_len);
+					float (*av)[3]  = (float (*)[3])BLI_buffer_resize_data(&av_buf, vec3f, efa_len);
+					float (*auv)[2] = (float (*)[2])BLI_buffer_resize_data(&auv_buf, vec2f, efa_len);
 					int j;
 
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -329,11 +338,19 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				}
 			}
 
+			BLI_buffer_free(&uvang_buf);
+			BLI_buffer_free(&ang_buf);
+			BLI_buffer_free(&av_buf);
+			BLI_buffer_free(&auv_buf);
+
 			glShadeModel(GL_FLAT);
 
 			break;
 		}
 	}
+
+	BLI_buffer_free(&tf_uv_buf);
+	BLI_buffer_free(&tf_uvorig_buf);
 }
 
 static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)

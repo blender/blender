@@ -629,7 +629,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -703,7 +703,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int add_feather_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int add_feather_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);

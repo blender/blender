@@ -28,6 +28,7 @@
 
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
 #include "RNA_define.h"
@@ -225,6 +226,20 @@ static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
 	return (engine->type && engine->type->ext.srna) ? engine->type->ext.srna : &RNA_RenderEngine;
 }
 
+static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
+{
+	RenderEngine *engine = (RenderEngine *)ptr->data;
+
+	if (engine->re) {
+		RenderData *r = RE_engine_get_render_data(engine->re);
+
+		return rna_pointer_inherit_refine(ptr, &RNA_RenderSettings, r);
+	}
+	else {
+		return rna_pointer_inherit_refine(ptr, &RNA_RenderSettings, NULL);
+	}
+}
+
 static void rna_RenderResult_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	RenderResult *rr = (RenderResult *)ptr->data;
@@ -405,6 +420,12 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolution_y");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	/* Render Data */
+	prop = RNA_def_property(srna, "render", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "RenderSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_RenderEngine_render_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Render Data", "");
 
 	prop = RNA_def_property(srna, "use_highlight_tiles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", RE_ENGINE_HIGHLIGHT_TILES);

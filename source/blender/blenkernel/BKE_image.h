@@ -68,7 +68,7 @@ int     BKE_add_image_extension_from_type(char *string, const char imtype);
 char    BKE_ftype_to_imtype(const int ftype);
 int     BKE_imtype_to_ftype(const char imtype);
 
-int     BKE_imtype_is_movie(const char imtype);
+bool    BKE_imtype_is_movie(const char imtype);
 int     BKE_imtype_supports_zbuf(const char imtype);
 int     BKE_imtype_supports_compress(const char imtype);
 int     BKE_imtype_supports_quality(const char imtype);

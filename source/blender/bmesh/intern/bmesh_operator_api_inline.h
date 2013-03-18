@@ -120,13 +120,13 @@ BLI_INLINE void BMO_slot_map_empty_insert(BMOperator *op, BMOpSlot *slot,
 	BMO_slot_map_insert(op, slot, element, NULL, 0);
 }
 
-BLI_INLINE int BMO_slot_map_contains(BMOpSlot *slot, const void *element)
+BLI_INLINE bool BMO_slot_map_contains(BMOpSlot *slot, const void *element)
 {
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
 
 	/* sanity check */
 	if (UNLIKELY(slot->data.ghash == NULL)) {
-		return 0;
+		return false;
 	}
 
 	return BLI_ghash_haskey(slot->data.ghash, element);

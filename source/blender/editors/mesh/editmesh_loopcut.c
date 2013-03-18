@@ -385,7 +385,7 @@ static int ringcut_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -405,8 +405,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	WM_event_add_modal_handler(C, op);
 
 	lcd = op->customdata;
-	lcd->vc.mval[0] = evt->mval[0];
-	lcd->vc.mval[1] = evt->mval[1];
+	copy_v2_v2_int(lcd->vc.mval, event->mval);
 	
 	edge = EDBM_edge_find_nearest(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
@@ -419,7 +418,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	float smoothness = RNA_float_get(op->ptr, "smoothness");
 	int cuts = RNA_int_get(op->ptr, "number_cuts");

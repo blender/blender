@@ -220,7 +220,7 @@ static GHash *text_autocomplete_build(Text *text)
 			TextFormatType *tft;
 			tft = ED_text_format_get(text);
 
-			for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+			for (; BLI_ghashIterator_notDone(iter); BLI_ghashIterator_step(iter)) {
 				const char *s = BLI_ghashIterator_getValue(iter);
 				texttool_suggest_add(s, tft->format_identifier(s));
 			}
@@ -282,7 +282,7 @@ static void confirm_suggestion(Text *text)
 /* -- */
 
 
-static int text_autocomplete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
@@ -313,7 +313,7 @@ static int text_autocomplete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 
 static int doc_scroll = 0;
 
-static int text_autocomplete_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ScrArea *sa = CTX_wm_area(C);

@@ -161,7 +161,18 @@ private:
 	 * @see openCL
 	 */
 	bool m_initialized;
-	
+
+	/**
+	 * @brief denotes boundary for border compositing
+	 * @note measured in pixel space
+	 */
+	rcti m_viewerBorder;
+
+	/**
+	 * @brief start time of execution
+	 */
+	double m_executionStartTime;
+
 	// methods
 	/**
 	 * @brief check whether parameter operation can be added to the execution group
@@ -335,6 +346,11 @@ public:
 	 * @see determineChunkRect
 	 */
 	MemoryBuffer *allocateOutputBuffer(int chunkNumber, rcti *rect);
+
+	/**
+	 * @brief print execution statistics to stdout when running in a background mode
+	 */
+	void printBackgroundStats(void);
 	
 	/**
 	 * @brief after a chunk is executed the needed resources can be freed or unlocked.
@@ -394,6 +410,12 @@ public:
 	 * @see ExecutionSystem.execute
 	 */
 	CompositorPriority getRenderPriotrity();
+
+	/**
+	 * @brief set border for viewer operation
+	 * @note all the coordinates are assumed to be in normalized space
+	 */
+	void setViewerBorder(float xmin, float xmax, float ymin, float ymax);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")

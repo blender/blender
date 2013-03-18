@@ -127,12 +127,12 @@ static unsigned long getipaddress(const char * ipaddr)
 	return (ip);
 }
 
-static void my_send(SOCKET sock, char * str)
+static void my_send(SOCKET sock, char *str)
 {
 	send(sock, str, strlen(str), 0);
 }
 
-static int my_recv(SOCKET sock, char * line, int maxlen)
+static int my_recv(SOCKET sock, char *line, int maxlen)
 {
 	int got = 0;
 	int toget = maxlen;
@@ -148,7 +148,7 @@ static int my_recv(SOCKET sock, char * line, int maxlen)
 	return maxlen;
 }
 
-static int my_gets(SOCKET sock, char * line, int maxlen)
+static int my_gets(SOCKET sock, char *line, int maxlen)
 {
 	int last_rval = 0;
 

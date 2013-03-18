@@ -109,7 +109,7 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
 
         #col = layout.column(align=1)
         #col.label(text="Activation:")
-        # XXX: settings such as activate on collison/etc. 
+        # XXX: settings such as activate on collison/etc.
 
         split = layout.split()
 

@@ -55,6 +55,8 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "DNA_material_types.h"
@@ -994,7 +996,7 @@ void make_sss_tree(Render *re)
 	
 	re->sss_hash= BLI_ghash_ptr_new("make_sss_tree gh");
 
-	re->i.infostr= "SSS preprocessing";
+	re->i.infostr = IFACE_("SSS preprocessing");
 	re->stats_draw(re->sdh, &re->i);
 	
 	for (mat= re->main->mat.first; mat; mat= mat->id.next)
@@ -1016,7 +1018,7 @@ void free_sss(Render *re)
 	if (re->sss_hash) {
 		GHashIterator *it= BLI_ghashIterator_new(re->sss_hash);
 
-		while (!BLI_ghashIterator_isDone(it)) {
+		while (BLI_ghashIterator_notDone(it)) {
 			sss_free_tree(BLI_ghashIterator_getValue(it));
 			BLI_ghashIterator_step(it);
 		}

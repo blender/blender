@@ -383,6 +383,17 @@ static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /*
 	if (len) mywrite(wd, adr, len);
 }
 
+/* use this to force writing of lists in same order as reading (using link_list) */
+static void writelist(WriteData *wd, int filecode, const char *structname, ListBase *lb)
+{
+	Link *link = lb->first;
+	
+	while (link) {
+		writestruct(wd, filecode, structname, 1, link);
+		link = link->next;
+	}
+}
+
 /* *************** writing some direct data structs used in more code parts **************** */
 /*These functions are used by blender's .blend system for file saving/loading.*/
 void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
@@ -462,6 +473,9 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 {
 	FModifier *fcm;
 	
+	/* Write all modifiers first (for faster reloading) */
+	writelist(wd, DATA, "FModifier", fmodifiers);
+	
 	/* Modifiers */
 	for (fcm= fmodifiers->first; fcm; fcm= fcm->next) {
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -502,9 +516,6 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 					break;
 			}
 		}
-		
-		/* Write the modifier */
-		writestruct(wd, DATA, "FModifier", 1, fcm);
 	}
 }
 
@@ -512,10 +523,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 {
 	FCurve *fcu;
 	
+	writelist(wd, DATA, "FCurve", fcurves);
 	for (fcu=fcurves->first; fcu; fcu=fcu->next) {
-		/* F-Curve */
-		writestruct(wd, DATA, "FCurve", 1, fcu);
-		
 		/* curve data */
 		if (fcu->bezt)
 			writestruct(wd, DATA, "BezTriple", fcu->totvert, fcu->bezt);
@@ -533,9 +542,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
 			/* variables */
-			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
-				writestruct(wd, DATA, "DriverVar", 1, dvar);
-				
+			writelist(wd, DATA, "DriverVar", &driver->variables);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {				
 				DRIVER_TARGETS_USED_LOOPER(dvar)
 				{
 					if (dtar->rna_path)
@@ -601,10 +609,8 @@ static void write_nlastrips(WriteData *wd, ListBase *strips)
 {
 	NlaStrip *strip;
 	
+	writelist(wd, DATA, "NlaStrip", strips);
 	for (strip= strips->first; strip; strip= strip->next) {
-		/* write the strip first */
-		writestruct(wd, DATA, "NlaStrip", 1, strip);
-		
 		/* write the strip's F-Curves and modifiers */
 		write_fcurves(wd, &strip->fcurves);
 		write_fmodifiers(wd, &strip->modifiers);
@@ -801,14 +807,15 @@ typedef struct RenderInfo {
 static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
-	Scene *sce;
+	Scene *sce, *curscene = NULL;
 	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screens? */
 	current_screen_compat(mainvar, &curscreen);
-
+	if (curscreen) curscene = curscreen->scene;
+	
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
-		if (sce->id.lib == NULL && (sce == curscreen->scene || (sce->r.scemode & R_BG_RENDER))) {
+		if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
 			data.sfra = sce->r.sfra;
 			data.efra = sce->r.efra;
 			memset(data.scene_name, 0, sizeof(data.scene_name));
@@ -2354,16 +2361,16 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 			writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 			
 			/* write grease-pencil layers to file */
+			writelist(wd, DATA, "bGPDlayer", &gpd->layers);
 			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-				writestruct(wd, DATA, "bGPDlayer", 1, gpl);
 				
 				/* write this layer's frames to file */
+				writelist(wd, DATA, "bGPDframe", &gpl->frames);
 				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-					writestruct(wd, DATA, "bGPDframe", 1, gpf);
 					
 					/* write strokes */
+					writelist(wd, DATA, "bGPDstroke", &gpf->strokes);
 					for (gps= gpf->strokes.first; gps; gps= gps->next) {
-						writestruct(wd, DATA, "bGPDstroke", 1, gps);
 						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);
 					}
 				}
@@ -2594,7 +2601,7 @@ static void write_libraries(WriteData *wd, Main *main)
 		
 		/* to be able to restore quit.blend and temp saves, the packed blend has to be in undo buffers... */
 		/* XXX needs rethink, just like save UI in undo files now - would be nice to append things only for the]
-		   quit.blend and temp saves */
+		 * quit.blend and temp saves */
 		if (foundone) {
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 
@@ -3386,7 +3393,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				return 0;
 			}
 
-			BLI_delete(tempname, 0, 0);
+			BLI_delete(tempname, false, false);
 		}
 		else if (-1==ret) {
 			BKE_report(reports, RPT_ERROR, "Failed opening .gz file");

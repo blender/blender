@@ -24,15 +24,18 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
-#include "WM_types.h"
+#include "DNA_object_types.h"
+#include "DNA_controller_types.h"
+
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-#include "DNA_object_types.h"
-#include "DNA_controller_types.h"
+
+#include "WM_types.h"
 
 EnumPropertyItem controller_type_items[] = {
 	{CONT_LOGIC_AND, "LOGIC_AND", 0, "And", "Logic And"},

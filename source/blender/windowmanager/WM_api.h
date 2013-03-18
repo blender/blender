@@ -165,7 +165,7 @@ struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase
 			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
 void		WM_event_add_mousemove_window(struct wmWindow *window);
-int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
+int			WM_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 
 			/* notifiers */
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
@@ -180,19 +180,19 @@ void		WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, str
 
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */
-int			WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
-int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 		/* invoke callback, file selector "filepath" unset + exec */
-int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int         WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
-int			WM_operator_props_popup_call(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_props_popup_call(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int 		WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 int			WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
@@ -282,31 +282,31 @@ void                WM_menutype_freelink(struct MenuType *mt);
 void                WM_menutype_free(void);
 
 			/* default operator callbacks for border/circle/lasso */
-int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_border_select_modal	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_border_select_modal	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_border_select_cancel(struct bContext *C, struct wmOperator *op);
-int			WM_gesture_circle_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_gesture_circle_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_circle_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_gesture_circle_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_circle_cancel(struct bContext *C, struct wmOperator *op);
-int			WM_gesture_lines_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_gesture_lines_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_lines_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_gesture_lines_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_lines_cancel(struct bContext *C, struct wmOperator *op);
-int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_lasso_cancel(struct bContext *C, struct wmOperator *op);
 const int (*WM_gesture_lasso_path_to_array(struct bContext *C, struct wmOperator *op, int *mcords_tot))[2];
-int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
 
 			/* Gesture manager API */
-struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
+struct wmGesture *WM_gesture_new(struct bContext *C, const struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 void		WM_gestures_remove(struct bContext *C);
 
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
-void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval);
+void		WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int eventval);
 #ifndef NDEBUG
 void		WM_event_print(const struct wmEvent *event);
 #endif
@@ -317,7 +317,7 @@ void		WM_operator_region_active_win_set(struct bContext *C);
 struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value);
 void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);
 
-struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
+struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event),
                                     void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 

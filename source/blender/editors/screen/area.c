@@ -67,6 +67,8 @@
 
 #include "screen_intern.h"
 
+extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
+
 /* general area and region code */
 
 static void region_draw_emboss(ARegion *ar, rcti *scirct)
@@ -245,8 +247,6 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 
 static void region_draw_azone_tab_plus(AZone *az)
 {
-	extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
-	
 	glEnable(GL_BLEND);
 	
 	/* add code to draw region hidden as 'too small' */
@@ -321,8 +321,6 @@ static void region_draw_azone_tab(AZone *az)
 
 static void region_draw_azone_tria(AZone *az)
 {
-	extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
-	
 	glEnable(GL_BLEND);
 	//UI_GetThemeColor3fv(TH_HEADER, col);
 	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);
@@ -590,7 +588,7 @@ static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
-#define AZONEPAD_EDGE   (0.2f * U.widget_unit)
+#define AZONEPAD_EDGE   (0.1f * U.widget_unit)
 #define AZONEPAD_ICON   (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
@@ -599,22 +597,22 @@ static void region_azone_edge(AZone *az, ARegion *ar)
 			az->x1 = ar->winrct.xmin;
 			az->y1 = ar->winrct.ymax - AZONEPAD_EDGE;
 			az->x2 = ar->winrct.xmax;
-			az->y2 = ar->winrct.ymax;
+			az->y2 = ar->winrct.ymax + AZONEPAD_EDGE;
 			break;
 		case AE_BOTTOM_TO_TOPLEFT:
 			az->x1 = ar->winrct.xmin;
 			az->y1 = ar->winrct.ymin + AZONEPAD_EDGE;
 			az->x2 = ar->winrct.xmax;
-			az->y2 = ar->winrct.ymin;
+			az->y2 = ar->winrct.ymin - AZONEPAD_EDGE;
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
-			az->x1 = ar->winrct.xmin;
+			az->x1 = ar->winrct.xmin - AZONEPAD_EDGE;
 			az->y1 = ar->winrct.ymin;
 			az->x2 = ar->winrct.xmin + AZONEPAD_EDGE;
 			az->y2 = ar->winrct.ymax;
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
-			az->x1 = ar->winrct.xmax;
+			az->x1 = ar->winrct.xmax + AZONEPAD_EDGE;
 			az->y1 = ar->winrct.ymin;
 			az->x2 = ar->winrct.xmax - AZONEPAD_EDGE;
 			az->y2 = ar->winrct.ymax;
@@ -1071,7 +1069,9 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 				if (G.debug & G_DEBUG)
 					printf("region quadsplit failed\n");
 			}
-			else quad = 1;
+			else {
+				quad = 1;
+			}
 		}
 		if (quad) {
 			if (quad == 1) { /* left bottom */
@@ -1746,7 +1746,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			/* uiScalePanels(ar, BLI_rctf_size_x(&v2d->cur));
 			   break; */
 		}
-		else break;
+		else {
+			break;
+		}
 	}
 	
 	

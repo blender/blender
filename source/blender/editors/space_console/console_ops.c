@@ -390,7 +390,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	// if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if (!RNA_string_length(op->ptr, "text")) {
@@ -1042,7 +1042,7 @@ static void console_cursor_set_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleC
 	}
 }
 
-static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1080,7 +1080,7 @@ static void console_cursor_set_exit(bContext *UNUSED(C), wmOperator *op)
 	MEM_freeN(scu);
 }
 
-static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceConsole *sc = CTX_wm_space_console(C);
 //	ARegion *ar = CTX_wm_region(C);
@@ -1101,7 +1101,7 @@ static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int console_modal_select(bContext *C, wmOperator *op, wmEvent *event)
+static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case LEFTMOUSE:

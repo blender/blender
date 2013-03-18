@@ -40,6 +40,11 @@ extern "C" {
 #include "intern/math_geom_inline.c"
 #endif
 
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
+
 /********************************** Polygons *********************************/
 
 void cent_tri_v3(float r[3], const float a[3], const float b[3], const float c[3]);
@@ -130,13 +135,15 @@ int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
                              const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2], const float epsilon);
 
 /* point in polygon */
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], const int nr);
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const int nr);
+
 int isect_point_quad_v2(const float p[2], const float a[2], const float b[2], const float c[2], const float d[2]);
 
 int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y2, const int a, const int b);
 int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
-
 void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2[2], const float v3[2],
                             const float pt[2], float r_uv[2]);
 void isect_point_face_uv_v2(const int isquad, const float v0[2], const float v1[2], const float v2[2],
@@ -280,6 +287,10 @@ MINLINE int max_axis_v3(const float vec[3]);
 MINLINE int min_axis_v3(const float vec[3]);
 
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count);
+
+#ifdef BLI_MATH_GCC_WARN_PRAGMA
+#  pragma GCC diagnostic pop
+#endif
 
 #ifdef __cplusplus
 }

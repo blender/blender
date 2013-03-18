@@ -154,22 +154,22 @@ public:
 	virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 	
 	MTex *assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
-									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
-									 MTex *color_texture);
+	                                 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
+	                                 MTex *color_texture);
 
 	void optimize_material_assignements();
 
 	MTFace *assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
-									std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
-									Object *ob, const COLLADAFW::UniqueId *geom_uid, 
-									char *layername, MTFace *texture_face,
-									std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index);
+	                                std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
+	                                Object *ob, const COLLADAFW::UniqueId *geom_uid,
+	                                char *layername, MTFace *texture_face,
+	                                std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index);
 	
 	
 	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
-							   bool isController,
-							   std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
-							   std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map);
+	                           bool isController,
+	                           std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
+	                           std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map);
 
 	// create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
 	bool write_geometry(const COLLADAFW::Geometry* geom);

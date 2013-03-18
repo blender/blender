@@ -207,14 +207,14 @@ static int load_tex(Brush *br, ViewContext *vc)
 				x = (float)i / size;
 				y = (float)j / size;
 
-				x -= 0.5f;
-				y -= 0.5f;
-
 				if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) {
 					x *= vc->ar->winx / radius;
 					y *= vc->ar->winy / radius;
 				}
 				else {
+					x -= 0.5f;
+					y -= 0.5f;
+
 					x *= 2;
 					y *= 2;
 				}
@@ -345,14 +345,14 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
-	float window[2];
+	float mouse[2];
 	int hit;
 
-	window[0] = x + vc->ar->winrct.xmin;
-	window[1] = y + vc->ar->winrct.ymin;
+	mouse[0] = x;
+	mouse[1] = y;
 
 	if (vc->obact->sculpt && vc->obact->sculpt->pbvh &&
-	    sculpt_stroke_get_location(C, location, window))
+	    sculpt_stroke_get_location(C, location, mouse))
 	{
 		Brush *brush = paint_brush(paint);
 		*pixel_radius =
@@ -420,8 +420,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* brush rotation */
 			glTranslatef(0.5, 0.5, 0);
-			glRotatef((double)RAD2DEGF((brush->flag & BRUSH_RAKE) ?
-			                           ups->last_angle : ups->special_rotation),
+			glRotatef((double)RAD2DEGF(ups->brush_rotation),
 			          0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
@@ -434,11 +433,10 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 			if (ups->draw_anchored) {
 				const float *aim = ups->anchored_initial_mouse;
-				const rcti *win = &vc->ar->winrct;
-				quad.xmin = aim[0] - ups->anchored_size - win->xmin;
-				quad.ymin = aim[1] - ups->anchored_size - win->ymin;
-				quad.xmax = aim[0] + ups->anchored_size - win->xmin;
-				quad.ymax = aim[1] + ups->anchored_size - win->ymin;
+				quad.xmin = aim[0] - ups->anchored_size;
+				quad.ymin = aim[1] - ups->anchored_size;
+				quad.xmax = aim[0] + ups->anchored_size;
+				quad.ymax = aim[1] + ups->anchored_size;
 			}
 			else {
 				const int radius = BKE_brush_size_get(vc->scene, brush);
@@ -537,37 +535,21 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	 * mouse over too, not just during a stroke */
 	view3d_set_viewcontext(C, &vc);
 
+	if (brush->flag & BRUSH_RAKE)
+		/* here, translation contains the mouse coordinates. */
+		paint_calculate_rake_rotation(ups, translation);
+
+	/* draw overlay */
+	paint_draw_alpha_overlay(ups, brush, &vc, x, y);
+
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
 	if (vc.obact->sculpt) {
 		float location[3];
 		int pixel_radius, hit;
 
-		/* this is probably here so that rake takes into
-		 * account the brush movements before the stroke
-		 * starts, but this doesn't really belong in draw code
-		 *  TODO) */
-		{
-			const float u = 0.5f;
-			const float v = 1 - u;
-			const float r = 20;
-
-			const float dx = ups->last_x - x;
-			const float dy = ups->last_y - y;
-
-			if (dx * dx + dy * dy >= r * r) {
-				ups->last_angle = atan2(dx, dy);
-
-				ups->last_x = u * ups->last_x + v * x;
-				ups->last_y = u * ups->last_y + v * y;
-			}
-		}
-
 		/* test if brush is over the mesh */
 		hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location);
-
-		/* draw overlay */
-		paint_draw_alpha_overlay(ups, brush, &vc, x, y);
 
 		if (BKE_brush_use_locked_size(scene, brush))
 			BKE_brush_size_set(scene, brush, pixel_radius);
@@ -590,8 +572,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 		if (ups->draw_anchored) {
 			final_radius = ups->anchored_size;
-			translation[0] = ups->anchored_initial_mouse[0] - vc.ar->winrct.xmin;
-			translation[1] = ups->anchored_initial_mouse[1] - vc.ar->winrct.ymin;
+			translation[0] = ups->anchored_initial_mouse[0];
+			translation[1] = ups->anchored_initial_mouse[1];
 		}
 	}
 

@@ -57,7 +57,7 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveImpl(
   const int num_rows = A->num_rows();
   const int num_cols = A->num_cols();
 
-  ConstAlignedMatrixRef Aref = A->matrix();
+  ConstColMajorMatrixRef Aref = A->matrix();
   Matrix lhs(num_cols, num_cols);
   lhs.setZero();
 

@@ -71,6 +71,7 @@
 #ifdef WIN32
 #  include <io.h>
 #  include <direct.h>
+#  include <limits.h>  /* PATH_MAX */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
 #else
@@ -91,14 +92,14 @@
 #include "BLI_fileops_types.h"
 #include "BLI_path_util.h"
 
-/* vars: */
-static int totnum, actnum;
-static struct direntry *files;
+#include "../imbuf/IMB_imbuf.h"
 
-static struct ListBase dirbase_ = {NULL, NULL};
-static struct ListBase *dirbase = &dirbase_;
-
-/* can return NULL when the size is not big enough */
+/**
+ * Copies the current working directory into *dir (max size maxncpy), and
+ * returns a pointer to same.
+ *
+ * \note can return NULL when the size is not big enough
+ */
 char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
 	const char *pwd = getenv("PWD");
@@ -110,26 +111,33 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 	return getcwd(dir, maxncpy);
 }
 
-
+/*
+ * Ordering function for sorting lists of files/directories. Returns -1 if
+ * entry1 belongs before entry2, 0 if they are equal, 1 if they should be swapped.
+ */
 static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 {
 	/* type is equal to stat.st_mode */
 
+	/* directories come before non-directories */
 	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type) == 0) return (-1);
 	}
 	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
+	/* non-regular files come after regular files */
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type) == 0) return (-1);
 	}
 	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
+	/* arbitrary, but consistent, ordering of different types of non-regular files */
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
-	
+
+	/* OK, now we know their S_IFMT fields are the same, go on to a name comparison */
 	/* make sure "." and ".." are always first */
 	if (strcmp(entry1->relname, ".") == 0) return (-1);
 	if (strcmp(entry2->relname, ".") == 0) return (1);
@@ -139,7 +147,10 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
 
-
+/**
+ * Returns the number of free bytes on the volume containing the specified pathname. */
+/* Not actually used anywhere.
+ */
 double BLI_dir_free_space(const char *dir)
 {
 #ifdef WIN32
@@ -180,7 +191,9 @@ double BLI_dir_free_space(const char *dir)
 		slash = strrchr(name, '/');
 		if (slash) slash[1] = 0;
 	}
-	else strcpy(name, "/");
+	else {
+		strcpy(name, "/");
+	}
 
 #if defined(__FreeBSD__) || defined(linux) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
 	if (statfs(name, &disk)) return(-1);
@@ -197,89 +210,77 @@ double BLI_dir_free_space(const char *dir)
 #endif
 }
 
-static void bli_builddir(const char *dirname, const char *relname)
+struct BuildDirCtx {
+	struct direntry *files; /* array[nrfiles] */
+	int nrfiles;
+};
+
+/**
+ * Scans the directory named *dirname and appends entries for its contents to files.
+ */
+static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 {
-	struct dirent *fname;
-	struct dirlink *dlink;
-	int rellen, newnum = 0;
-	char buf[256];
+	struct ListBase dirbase = {NULL, NULL};
+	int newnum = 0;
 	DIR *dir;
 
-	BLI_strncpy(buf, relname, sizeof(buf));
-	rellen = strlen(relname);
+	if ((dir = opendir(dirname)) != NULL) {
 
-	if (rellen) {
-		buf[rellen] = '/';
-		rellen++;
-	}
-#ifndef WIN32
-	if (chdir(dirname) == -1) {
-		perror(dirname);
-		return;
-	}
-#else
-	UTF16_ENCODE(dirname);
-	if (!SetCurrentDirectoryW(dirname_16)) {
-		perror(dirname);
-		free(dirname_16);
-		return;
-	}
-	UTF16_UN_ENCODE(dirname);
-
-#endif
-	if ((dir = (DIR *)opendir("."))) {
-		while ((fname = (struct dirent *) readdir(dir)) != NULL) {
-			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-			if (dlink) {
-				BLI_strncpy(buf + rellen, fname->d_name, sizeof(buf) - rellen);
-				dlink->name = BLI_strdup(buf);
-				BLI_addhead(dirbase, dlink);
+		const struct dirent *fname;
+		while ((fname = readdir(dir)) != NULL) {
+			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+			if (dlink != NULL) {
+				dlink->name = BLI_strdup(fname->d_name);
+				BLI_addhead(&dirbase, dlink);
 				newnum++;
 			}
 		}
-		
+
 		if (newnum) {
 
-			if (files) {
-				void *tmp = realloc(files, (totnum + newnum) * sizeof(struct direntry));
+			if (dir_ctx->files) {
+				void * const tmp = realloc(dir_ctx->files, (dir_ctx->nrfiles + newnum) * sizeof(struct direntry));
 				if (tmp) {
-					files = (struct direntry *)tmp;
+					dir_ctx->files = (struct direntry *)tmp;
 				}
 				else { /* realloc fail */
-					free(files);
-					files = NULL;
+					free(dir_ctx->files);
+					dir_ctx->files = NULL;
 				}
 			}
 			
-			if (files == NULL)
-				files = (struct direntry *)malloc(newnum * sizeof(struct direntry));
+			if (dir_ctx->files == NULL)
+				dir_ctx->files = (struct direntry *)malloc(newnum * sizeof(struct direntry));
 
-			if (files) {
-				dlink = (struct dirlink *) dirbase->first;
+			if (dir_ctx->files) {
+				struct dirlink * dlink = (struct dirlink *) dirbase.first;
+				struct direntry *file = &dir_ctx->files[dir_ctx->nrfiles];
 				while (dlink) {
-					memset(&files[actnum], 0, sizeof(struct direntry));
-					files[actnum].relname = dlink->name;
-					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
+					char fullname[PATH_MAX];
+					memset(file, 0, sizeof(struct direntry));
+					file->relname = dlink->name;
+					file->path = BLI_strdupcat(dirname, dlink->name);
+					BLI_join_dirfile(fullname, sizeof(fullname), dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test
 #ifdef WIN32
 					{
-						wchar_t *name_16 = alloc_utf16_from_8(dlink->name, 0);
-#if (defined(WIN32) || defined(WIN64)) && (_MSC_VER >= 1500)
-						_wstat64(name_16, &files[actnum].s);
+						wchar_t *name_16 = alloc_utf16_from_8(fullname, 0);
+#if defined(_MSC_VER) && (_MSC_VER >= 1500)
+						_wstat64(name_16, &file->s);
 #elif defined(__MINGW32__)
-						_stati64(dlink->name, &files[actnum].s);
+						_stati64(fullname, &file->s);
 #endif
 						free(name_16);
 					}
 
 #else
-					stat(dlink->name, &files[actnum].s);
+					stat(fullname, &file->s);
 #endif
-					files[actnum].type = files[actnum].s.st_mode;
-					files[actnum].flags = 0;
-					totnum++;
-					actnum++;
+					file->type = file->s.st_mode;
+					file->flags = 0;
+					dir_ctx->nrfiles++;
+					file++;
 					dlink = dlink->next;
 				}
 			}
@@ -288,8 +289,10 @@ static void bli_builddir(const char *dirname, const char *relname)
 				exit(1);
 			}
 
-			BLI_freelist(dirbase);
-			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *, const void *))bli_compare);
+			BLI_freelist(&dirbase);
+			if (dir_ctx->files) {
+				qsort(dir_ctx->files, dir_ctx->nrfiles, sizeof(struct direntry), (int (*)(const void *, const void *))bli_compare);
+			}
 		}
 		else {
 			printf("%s empty directory\n", dirname);
@@ -302,12 +305,17 @@ static void bli_builddir(const char *dirname, const char *relname)
 	}
 }
 
-static void bli_adddirstrings(void)
+/**
+ * Fills in the "mode[123]", "size" and "string" fields in the elements of the files
+ * array with descriptive details about each item. "string" will have a format similar to "ls -l".
+ */
+static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 {
 	char datum[100];
-	char buf[512];
+//	char buf[512];  // UNUSED
 	char size[250];
-	static const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
+	const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
+	/* symbolic display, indexed by mode field value */
 	int num, mode;
 #ifdef WIN32
 	__int64 st_size;
@@ -319,7 +327,7 @@ static void bli_adddirstrings(void)
 	struct tm *tm;
 	time_t zero = 0;
 	
-	for (num = 0, file = files; num < actnum; num++, file++) {
+	for (num = 0, file = dir_ctx->files; num < dir_ctx->nrfiles; num++, file++) {
 #ifdef WIN32
 		mode = 0;
 		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
@@ -330,7 +338,7 @@ static void bli_adddirstrings(void)
 
 		BLI_strncpy(file->mode1, types[(mode & 0700) >> 6], sizeof(file->mode1));
 		BLI_strncpy(file->mode2, types[(mode & 0070) >> 3], sizeof(file->mode2));
-		BLI_strncpy(file->mode3, types[(mode & 0007)], sizeof(file->mode3));
+		BLI_strncpy(file->mode3, types[(mode & 0007)],      sizeof(file->mode3));
 		
 		if (((mode & S_ISGID) == S_ISGID) && (file->mode2[2] == '-')) file->mode2[2] = 'l';
 
@@ -375,6 +383,9 @@ static void bli_adddirstrings(void)
 		 */
 		st_size = file->s.st_size;
 
+		/* FIXME: Either change decimal prefixes to binary ones
+		 * <http://en.wikipedia.org/wiki/Binary_prefix>, or change
+		 * divisor factors from 1024 to 1000. */
 		if (st_size > 1024 * 1024 * 1024) {
 			BLI_snprintf(file->size, sizeof(file->size), "%.2f GB", ((double)st_size) / (1024 * 1024 * 1024));
 		}
@@ -408,61 +419,86 @@ static void bli_adddirstrings(void)
 			BLI_snprintf(size, sizeof(size), "%10d", (int) st_size);
 		}
 
+#if 0
 		BLI_snprintf(buf, sizeof(buf), "%s %s %s %7s %s %s %10s %s",
 		             file->mode1, file->mode2, file->mode3, file->owner,
 		             file->date, file->time, size, file->relname);
-
-		file->string = BLI_strdup(buf);
+#endif
 	}
 }
 
+/**
+ * Scans the contents of the directory named *dirname, and allocates and fills in an
+ * array of entries describing them in *filelist. The length of the array is the function result.
+ */
 unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 {
-	/* reset global variables
-	 * memory stored in files is free()'d in
-	 * filesel.c:freefilelist() */
+	struct BuildDirCtx dir_ctx;
 
-	actnum = totnum = 0;
-	files = NULL;
+	dir_ctx.nrfiles = 0;
+	dir_ctx.files = NULL;
 
-	bli_builddir(dirname, "");
-	bli_adddirstrings();
+	bli_builddir(&dir_ctx, dirname);
+	bli_adddirstrings(&dir_ctx);
 
-	if (files) {
-		*(filelist) = files;
+	if (dir_ctx.files) {
+		*filelist = dir_ctx.files;
 	}
 	else {
 		// keep blender happy. Blender stores this in a variable
 		// where 0 has special meaning.....
-		*(filelist) = files = malloc(sizeof(struct direntry));
+		*filelist = malloc(sizeof(struct direntry));
 	}
 
-	return(actnum);
+	return dir_ctx.nrfiles;
+}
+
+/* frees storage for an array of direntries, including the array itself. */
+void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
+{
+	unsigned int i;
+	for (i = 0; i < nrentries; ++i) {
+		struct direntry * const entry = filelist + i;
+		if (entry->image) {
+			IMB_freeImBuf(entry->image);
+		}
+		if (entry->relname)
+			MEM_freeN(entry->relname);
+		if (entry->path)
+			MEM_freeN(entry->path);
+		/* entry->poin assumed not to point to anything needing freeing here */
+	}
+
+	free(filelist);
 }
 
 
+/**
+ * Returns the file size of an opened file descriptor.
+ */
 size_t BLI_file_descriptor_size(int file)
 {
-	struct stat buf;
-
-	if (file <= 0) return (-1);
-	fstat(file, &buf); /* CHANGE */
-	return (buf.st_size);
+	struct stat st;
+	if ((file < 0) || (fstat(file, &st) == -1))
+		return -1;
+	return st.st_size;
 }
 
+/**
+ * Returns the size of a file.
+ */
 size_t BLI_file_size(const char *path)
 {
-	int size, file = BLI_open(path, O_BINARY | O_RDONLY, 0);
-	
-	if (file == -1)
+	struct stat stats;
+	if (BLI_stat(path, &stats) == -1)
 		return -1;
-	
-	size = BLI_file_descriptor_size(file);
-	close(file);
-	return size;
+	return stats.st_size;
 }
 
-
+/**
+ * Returns the st_mode from statting the specified path name, or 0 if it couldn't be statted
+ * (most likely doesn't exist or no access).
+ */
 int BLI_exists(const char *name)
 {
 #if defined(WIN32) 
@@ -509,18 +545,27 @@ int BLI_stat(const char *path, struct stat *buffer)
 }
 #endif
 
-/* would be better in fileops.c except that it needs stat.h so add here */
-int BLI_is_dir(const char *file)
+/**
+ * Does the specified path point to a directory?
+ * \note Would be better in fileops.c except that it needs stat.h so add here
+ */
+bool BLI_is_dir(const char *file)
 {
 	return S_ISDIR(BLI_exists(file));
 }
 
-int BLI_is_file(const char *path)
+/**
+ * Does the specified path point to a non-directory?
+ */
+bool BLI_is_file(const char *path)
 {
-	int mode = BLI_exists(path);
+	const int mode = BLI_exists(path);
 	return (mode && !S_ISDIR(mode));
 }
 
+/**
+ * Reads the contents of a text file and returns the lines in a linked list.
+ */
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
 	FILE *fp = BLI_fopen(name, "r");
@@ -549,6 +594,9 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 				char *line = BLI_strdupn(&buf[last], i - last);
 
 				BLI_linklist_prepend(&lines, line);
+				/* faster to build singly-linked list in reverse order */
+				/* alternatively, could process buffer in reverse order so
+				 * list ends up right way round to start with */
 				last = i + 1;
 			}
 		}
@@ -557,18 +605,22 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 	}
 	
 	fclose(fp);
-	
+
+	/* get them the right way round */
 	BLI_linklist_reverse(&lines);
 	return lines;
 }
 
+/*
+ * Frees memory from a previous call to BLI_file_read_as_lines.
+ */
 void BLI_file_free_lines(LinkNode *lines)
 {
-	BLI_linklist_free(lines, (void (*)(void *))MEM_freeN);
+	BLI_linklist_freeN(lines);
 }
 
 /** is file1 older then file2 */
-int BLI_file_older(const char *file1, const char *file2)
+bool BLI_file_older(const char *file1, const char *file2)
 {
 #ifdef WIN32
 	struct _stat st1, st2;
@@ -576,16 +628,16 @@ int BLI_file_older(const char *file1, const char *file2)
 	UTF16_ENCODE(file1);
 	UTF16_ENCODE(file2);
 	
-	if (_wstat(file1_16, &st1)) return 0;
-	if (_wstat(file2_16, &st2)) return 0;
+	if (_wstat(file1_16, &st1)) return false;
+	if (_wstat(file2_16, &st2)) return false;
 
 	UTF16_UN_ENCODE(file2);
 	UTF16_UN_ENCODE(file1);
 #else
 	struct stat st1, st2;
 
-	if (stat(file1, &st1)) return 0;
-	if (stat(file2, &st2)) return 0;
+	if (stat(file1, &st1)) return false;
+	if (stat(file2, &st2)) return false;
 #endif
 	return (st1.st_mtime < st2.st_mtime);
 }

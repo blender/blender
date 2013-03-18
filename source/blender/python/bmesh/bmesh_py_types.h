@@ -168,7 +168,7 @@ int       BPy_BMElem_CheckHType(PyTypeObject *type, const char htype);
 char     *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32]);
 char     *BPy_BMElem_StringFromHType(const char htype);
 
-void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
+// void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
 int  bpy_bm_generic_valid_check(BPy_BMGeneric *self);
 int  bpy_bm_generic_valid_check_source(BPy_BMGeneric *self, BMesh *bm_source, const char *error_prefix);
 

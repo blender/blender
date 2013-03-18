@@ -74,7 +74,7 @@ void rewindPackedFile(struct PackedFile *pf);
 int readPackedFile(struct PackedFile *pf, void *data, int size);
 
 /* ID should be not NULL, return 1 if there's a packed file */
-int BKE_pack_check(struct ID *id);
+bool BKE_pack_check(struct ID *id);
 /* ID should be not NULL, throws error when ID is Library */
 void BKE_unpack_id(struct Main *bmain, struct ID *id, struct ReportList *reports, int how);
 

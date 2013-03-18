@@ -90,7 +90,7 @@ GHOST_TSuccess GHOST_TimerManager::removeTimer(GHOST_TimerTask *timer)
 		// Remove the timer task
 		m_timers.erase(iter);
 		delete timer;
-		timer = 0;
+		timer = NULL;
 		success = GHOST_kSuccess;
 	}
 	else {

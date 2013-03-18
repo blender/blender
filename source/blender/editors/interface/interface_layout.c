@@ -1567,7 +1567,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	}
 
 	if (!name) {
-		name = IFACE_(mt->label);
+		name = CTX_IFACE_(mt->translation_context, mt->label);
 	}
 
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
@@ -2369,6 +2369,7 @@ uiLayout *uiLayoutAbsolute(uiLayout *layout, int align)
 	litem->active = 1;
 	litem->enabled = 1;
 	litem->context = layout->context;
+	litem->redalert = layout->redalert;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -2396,6 +2397,7 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 	litem->active = 1;
 	litem->enabled = 1;
 	litem->context = layout->context;
+	litem->redalert = layout->redalert;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -2415,6 +2417,7 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 	split->litem.enabled = 1;
 	split->litem.context = layout->context;
 	split->litem.space = layout->root->style->columnspace;
+	split->litem.redalert = layout->redalert;
 	split->litem.w = layout->w;
 	split->percentage = percentage;
 	BLI_addtail(&layout->items, split);

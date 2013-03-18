@@ -85,7 +85,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	}
 }
 
-static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -168,7 +168,7 @@ static void sample_exit(bContext *C, wmOperator *op)
 	MEM_freeN(info);
 }
 
-static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
@@ -189,7 +189,7 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case LEFTMOUSE:

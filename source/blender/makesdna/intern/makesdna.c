@@ -255,7 +255,9 @@ static int add_type(const char *str, int len)
 	}
 	
 	/* append new type */
-	if (nr_types == 0) cp = typedata;
+	if (nr_types == 0) {
+		cp = typedata;
+	}
 	else {
 		cp = types[nr_types - 1] + strlen(types[nr_types - 1]) + 1;
 	}
@@ -401,7 +403,9 @@ static int add_name(const char *str)
 	}
 	
 	/* append new type */
-	if (nr_names == 0) cp = namedata;
+	if (nr_names == 0) {
+		cp = namedata;
+	}
 	else {
 		cp = names[nr_names - 1] + strlen(names[nr_names - 1]) + 1;
 	}

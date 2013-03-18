@@ -2236,7 +2236,7 @@ static int select_exec(bContext *C, wmOperator *op)
 	return mouse_select(C, co, extend, loop);
 }
 
-static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	float co[2];
@@ -2281,7 +2281,7 @@ static int select_loop_exec(bContext *C, wmOperator *op)
 	return mouse_select(C, co, extend, loop);
 }
 
-static int select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	float co[2];
@@ -2314,7 +2314,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 
 /* ******************** linked select operator **************** */
 
-static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, int pick)
+static int select_linked_internal(bContext *C, wmOperator *op, const wmEvent *event, int pick)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2384,7 +2384,7 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 	                "Extend", "Extend selection rather than clearing the existing selection");
 }
 
-static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	return select_linked_internal(C, op, event, 1);
 }
@@ -3748,7 +3748,7 @@ static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	float location[2];
@@ -3799,7 +3799,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int set_tile_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);

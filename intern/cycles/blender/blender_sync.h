@@ -56,7 +56,7 @@ public:
 	/* sync */
 	bool sync_recalc();
 	void sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const char *layer = 0);
-	void sync_camera(BL::Object b_override, int width, int height);
+	void sync_camera(BL::RenderSettings b_render, BL::Object b_override, int width, int height);
 	void sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
 	int get_layer_samples() { return render_layer.samples; }
 
@@ -64,7 +64,7 @@ public:
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
 	static SessionParams get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
-	static BufferParams get_buffer_params(BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height);
+	static BufferParams get_buffer_params(BL::RenderSettings b_render, BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height);
 
 private:
 	/* sync */

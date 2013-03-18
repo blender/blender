@@ -24,19 +24,19 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "BLI_math_base.h"
+
+#include "BLF_translation.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
-
 #include "rna_internal.h"
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
-
-#include "BLI_math_base.h"
 
 #ifdef RNA_RUNTIME
 
@@ -364,6 +364,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, lamp_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of Lamp");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_LAMP);
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);

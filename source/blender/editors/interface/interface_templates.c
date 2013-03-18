@@ -281,11 +281,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 				if (id->flag & LIB_FAKEUSER) id_us_plus(id);
 				else id_us_min(id);
 			}
-			else return;
+			else {
+				return;
+			}
 			break;
 		case UI_ID_LOCAL:
 			if (id) {
-				if (id_make_local(id, 0)) {
+				if (id_make_local(id, false)) {
 					/* reassign to get get proper updates/notifiers */
 					idptr = RNA_property_pointer_get(&template->ptr, template->prop);
 					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
@@ -465,7 +467,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			else {
 				but = uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 				                   NULL, 0, 0, 0, 0, TIP_("Direct linked library datablock, click to make local"));
-				if (!id_make_local(id, 1 /* test */) || (idfrom && idfrom->lib))
+				if (!id_make_local(id, true /* test */) || (idfrom && idfrom->lib))
 					uiButSetFlag(but, UI_BUT_DISABLED);
 			}
 
@@ -483,7 +485,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if (/* test only */
-			    (id_copy(id, NULL, 1) == FALSE) ||
+			    (id_copy(id, NULL, true) == false) ||
 			    (idfrom && idfrom->lib) ||
 			    (editable == FALSE) ||
 			    /* object in editmode - don't change data */
@@ -676,7 +678,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
                      const char *text)
 {
 	PropertyRNA *propID, *propType;
-	uiLayout *row;
+	uiLayout *split, *row, *sub;
 	
 	/* get properties... */
 	propID = RNA_struct_find_property(ptr, propname);
@@ -692,22 +694,34 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 	}
 	
 	/* Start drawing UI Elements using standard defines */
-	row = uiLayoutRow(layout, TRUE);
+	split = uiLayoutSplit(layout, 0.33f, FALSE); /* NOTE: split amount here needs to be synced with normal labels */
+	
+	/* FIRST PART ................................................ */
+	row = uiLayoutRow(split, FALSE);
 	
 	/* Label - either use the provided text, or will become "ID-Block:" */
 	if (text) {
 		if (text[0])
 			uiItemL(row, text, ICON_NONE);
 	}
-	else
+	else {
 		uiItemL(row, IFACE_("ID-Block:"), ICON_NONE);
+	}
+	
+	/* SECOND PART ................................................ */
+	row = uiLayoutRow(split, TRUE);
 	
 	/* ID-Type Selector - just have a menu of icons */
-	/* FIXME: the icon-only setting doesn't work when we supply a blank name */
-	uiItemFullR(row, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+	sub = uiLayoutRow(row, TRUE);                     /* HACK: special group just for the enum, otherwise we */
+	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);  /*       we get ugly layout with text included too...  */
+	
+	uiItemFullR(sub, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	
 	/* ID-Block Selector - just use pointer widget... */
-	uiItemFullR(row, ptr, propID, 0, 0, 0, "", ICON_NONE);
+	sub = uiLayoutRow(row, TRUE);                       /* HACK: special group to counteract the effects of the previous */
+	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);  /*       enum, which now pushes everything too far right         */
+	
+	uiItemFullR(sub, ptr, propID, 0, 0, 0, "", ICON_NONE);
 }
 
 /********************* RNA Path Builder Template ********************/
@@ -2135,10 +2149,10 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 		uiLayoutRow(layout, TRUE);
 		uiBlockSetNFunc(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
-		bt = uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
-		               &cmp->x, bounds.xmin, bounds.xmax, 1, 5, "");
-		bt = uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
-		               &cmp->y, bounds.ymin, bounds.ymax, 1, 5, "");
+		uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
+		          &cmp->x, bounds.xmin, bounds.xmax, 1, 5, "");
+		uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
+		          &cmp->y, bounds.ymin, bounds.ymax, 1, 5, "");
 	}
 
 	/* black/white levels */
@@ -2727,7 +2741,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 {
 	GHashIterator *iter = WM_operatortype_iter();
 
-	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+	for (; BLI_ghashIterator_notDone(iter); BLI_ghashIterator_step(iter)) {
 		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
 
 		if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0)

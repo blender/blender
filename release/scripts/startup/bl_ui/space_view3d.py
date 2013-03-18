@@ -580,6 +580,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
         layout.operator("mesh.select_random", text="Random")
         layout.operator("mesh.select_nth")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
@@ -704,6 +705,10 @@ class VIEW3D_MT_select_edit_lattice(Menu):
         layout.operator("lattice.select_all").action = 'TOGGLE'
         layout.operator("lattice.select_all", text="Inverse").action = 'INVERT'
 
+        layout.separator()
+
+        layout.operator("lattice.select_ungrouped", text="Ungrouped Verts")
+
 
 class VIEW3D_MT_select_edit_armature(Menu):
     bl_label = "Select"
@@ -769,6 +774,10 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
 
         layout.operator("paint.vert_select_all").action = 'TOGGLE'
         layout.operator("paint.vert_select_all", text="Inverse").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("paint.vert_select_ungrouped", text="Ungrouped Verts")
 
 
 # ********** Object menu **********
@@ -2532,19 +2541,19 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         mesh = context.active_object.data
 
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Overlays:")
         col.prop(mesh, "show_faces", text="Faces")
         col.prop(mesh, "show_edges", text="Edges")
         col.prop(mesh, "show_edge_crease", text="Creases")
-        
+
         col = split.column()
         col.label()
         col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp")
         col.prop(mesh, "show_edge_bevel_weight", text="Weights")
-        
+
         if context.scene and bpy.app.build_options.freestyle:
             col.prop(mesh, "show_freestyle_edge_marks", text="Freestyle Edge Marks")
             col.prop(mesh, "show_freestyle_face_marks", text="Freestyle Face Marks")
@@ -2554,11 +2563,11 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.separator()
         col.label(text="Normals:")
         row = col.row()
-        
+
         sub = row.row(align=True)
         sub.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
         sub.prop(mesh, "show_normal_face", text="", icon='FACESEL')
-        
+
         sub = row.row(align=True)
         sub.active = mesh.show_normal_vertex or mesh.show_normal_face
         sub.prop(context.scene.tool_settings, "normal_size", text="Size")

@@ -237,7 +237,7 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const int do_n
 			}
 			/* Single line comment */
 			else if (*str == '-' && *(str + 1) == '-') {
-				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(str - fs.buf));
+				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */

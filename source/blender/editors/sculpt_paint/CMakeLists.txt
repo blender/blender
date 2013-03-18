@@ -23,6 +23,7 @@ set(INC
 	../uvedit
 	../../blenkernel
 	../../blenlib
+	../../blenfont
 	../../blenloader
 	../../bmesh
 	../../gpu
@@ -43,6 +44,7 @@ set(SRC
 	paint_hide.c
 	paint_image.c
 	paint_image_2d.c
+	paint_image_proj.c
 	paint_mask.c
 	paint_ops.c
 	paint_stroke.c
@@ -56,5 +58,9 @@ set(SRC
 	paint_intern.h
 	sculpt_intern.h
 )
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}")

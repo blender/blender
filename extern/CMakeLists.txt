@@ -28,6 +28,7 @@ remove_strict_flags()
 
 add_subdirectory(colamd)
 add_subdirectory(rangetree)
+add_subdirectory(wcwidth)
 
 if(WITH_BULLET)
 	if(NOT WITH_SYSTEM_BULLET)

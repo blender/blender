@@ -75,6 +75,20 @@ int uopen(const char *filename, int oflag, int pmode)
 	return f;
 }
 
+int uaccess(const char *filename, int mode)
+{
+	int r = -1;
+	UTF16_ENCODE(filename);
+
+	if (filename_16) {
+		r = _waccess(filename_16, mode);
+	}
+
+	UTF16_UN_ENCODE(filename);
+
+	return r;
+}
+
 int urename(const char *oldname, const char *newname )
 {
 	int r = -1;
@@ -123,7 +137,7 @@ void  u_free_getenv(char *val)
 	free(val);
 }
 
-int uput_getenv(const char *varname, char * value, size_t buffsize)
+int uput_getenv(const char *varname, char *value, size_t buffsize)
 {
 	int r = 0;
 	wchar_t * str;

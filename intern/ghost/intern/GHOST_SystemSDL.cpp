@@ -27,6 +27,7 @@
 #include <assert.h>
 
 #include "GHOST_SystemSDL.h"
+#include "GHOST_WindowSDL.h"
 
 #include "GHOST_WindowManager.h"
 
@@ -66,14 +67,19 @@ GHOST_SystemSDL::createWindow(const STR_String& title,
                               GHOST_TUns32 height,
                               GHOST_TWindowState state,
                               GHOST_TDrawingContextType type,
-                              bool stereoVisual,
+                              const bool stereoVisual,
+                              const bool exclusive,
                               const GHOST_TUns16 numOfAASamples,
                               const GHOST_TEmbedderWindowID parentWindow
                               )
 {
 	GHOST_WindowSDL *window = NULL;
 
-	window = new GHOST_WindowSDL(this, title, left, top, width, height, state, parentWindow, type, stereoVisual, numOfAASamples);
+	window = new GHOST_WindowSDL(this, title,
+	                             left, top, width, height,
+	                             state, parentWindow, type,
+	                             stereoVisual, exclusive,
+	                             numOfAASamples);
 
 	if (window) {
 		if (GHOST_kWindowStateFullScreen == state) {

@@ -576,6 +576,21 @@ void BLF_draw_ascii(int fontid, const char *str, size_t len)
 	}
 }
 
+int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth)
+{
+	FontBLF *font = blf_get(fontid);
+	GLint mode, param;
+	int columns = 0;
+
+	if (font && font->glyph_cache) {
+		blf_draw__start(font, &mode, &param);
+		columns = blf_font_draw_mono(font, str, len, cwidth);
+		blf_draw__end(mode, param);
+	}
+
+	return columns;
+}
+
 void BLF_boundbox(int fontid, const char *str, rctf *box)
 {
 	FontBLF *font = blf_get(fontid);

@@ -56,7 +56,14 @@ size_t       BLI_strnlen_utf8(const char *start, const size_t maxlen);
 size_t       BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict src, const size_t maxcpy);
 size_t       BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst, const char *__restrict src, const size_t maxcpy);
 
-#define      BLI_UTF8_MAX 6
+/* count columns that character/string occupies, based on wcwidth.c */
+int          BLI_wcwidth(wchar_t ucs);
+int          BLI_wcswidth(const wchar_t *pwcs, size_t n);
+int          BLI_str_utf8_char_width(const char *p); /* warning, can return -1 on bad chars */
+int          BLI_str_utf8_char_width_safe(const char *p);
+
+#define      BLI_UTF8_MAX 6        /* mem */
+#define      BLI_UTF8_WIDTH_MAX 2  /* columns */
 #define      BLI_UTF8_ERR ((unsigned int)-1)
 
 #ifdef __cplusplus

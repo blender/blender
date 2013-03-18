@@ -21,13 +21,15 @@ subject to the following restrictions:
 
 ///The btUniformScalingShape allows to re-use uniform scaled instances of btConvexShape in a memory efficient way.
 ///Istead of using btUniformScalingShape, it is better to use the non-uniform setLocalScaling method on convex shapes that implement it.
-class btUniformScalingShape : public btConvexShape
+ATTRIBUTE_ALIGNED16(class) btUniformScalingShape : public btConvexShape
 {
 	btConvexShape*	m_childConvexShape;
 
 	btScalar	m_uniformScalingFactor;
 	
 	public:
+	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 	
 	btUniformScalingShape(	btConvexShape* convexChildShape, btScalar uniformScalingFactor);
 	

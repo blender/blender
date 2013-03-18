@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 /// The btMinkowskiSumShape is only for advanced users. This shape represents implicit based minkowski sum of two convex implicit shapes.
-class btMinkowskiSumShape : public btConvexInternalShape
+ATTRIBUTE_ALIGNED16(class) btMinkowskiSumShape : public btConvexInternalShape
 {
 
 	btTransform	m_transA;
@@ -29,6 +29,8 @@ class btMinkowskiSumShape : public btConvexInternalShape
 	const btConvexShape*	m_shapeB;
 
 public:
+
+BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB);
 

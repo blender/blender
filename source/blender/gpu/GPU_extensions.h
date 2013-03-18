@@ -157,6 +157,8 @@ void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs);
 void GPU_offscreen_unbind(GPUOffScreen *ofs);
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
+int GPU_offscreen_width(GPUOffScreen *ofs);
+int GPU_offscreen_height(GPUOffScreen *ofs);
 
 /* GPU Shader
  * - only for fragment shaders now
@@ -200,30 +202,6 @@ typedef struct GPUVertexAttribs {
 
 	int totlayer;
 } GPUVertexAttribs;
-
-/* Fixed Function Materials */
-
-typedef enum GPUFixedMaterialOption {
-	GPU_FIXED_COLOR_MATERIAL = (1<<0),   /* replace diffuse with glcolor */
-	GPU_FIXED_SOLID_LIGHTING = (1<<1),   /* use solid lighting (only 3 directional lights) */
-	GPU_FIXED_SCENE_LIGHTING = (1<<2),   /* use scene lighting (up to 8 arbitrary lights) */
-	GPU_FIXED_TWO_SIDED = (1<<3),        /* flip normals towards viewer */
-	GPU_FIXED_TEXTURE_2D = (1<<4),       /* use 2D texture to replace diffuse color */
-
-	GPU_FIXED_OPTIONS_NUM = 5,
-	GPU_FIXED_OPTION_COMBINATIONS = (1<<GPU_FIXED_OPTIONS_NUM)
-} GPUFixedMaterialOption;
-
-void GPU_fixed_materials_init(void);
-void GPU_fixed_materials_exit(void);
-
-void GPU_fixed_material_shader_bind(int options);
-void GPU_fixed_material_shader_unbind(void);
-
-void GPU_fixed_material_colors(const float diffuse[3], const float specular[3],
-	int shininess, float alpha);
-
-bool GPU_fixed_material_need_normals(void);
 
 #ifdef __cplusplus
 }

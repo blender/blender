@@ -98,6 +98,8 @@
 
 #include "transform.h"
 
+#define MAX_INFO_LEN 256
+
 static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg);
 static int doEdgeSlide(TransInfo *t, float perc);
 static int doVertSlide(TransInfo *t, float perc);
@@ -183,7 +185,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 {
 	if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
 		const float mval_f[2] = {(float)dx, (float)dy};
-		ED_view3d_win_to_delta(t->ar, mval_f, r_vec);
+		ED_view3d_win_to_delta(t->ar, mval_f, r_vec, t->zfac);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		float aspx, aspy;
@@ -864,7 +866,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 	}
 }
 
-int transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, const wmEvent *event)
 {
 	float mati[3][3] = MAT3_UNITY;
 	char cmode = constraintModeToChar(t);
@@ -1298,7 +1300,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_AUTOIK) {
 					transform_autoik_update(t, 1);
 				}
-				else view_editmove(event->type);
+				else {
+					view_editmove(event->type);
+				}
 				t->redraw = 1;
 				break;
 			case PADMINUS:
@@ -1313,7 +1317,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_AUTOIK) {
 					transform_autoik_update(t, -1);
 				}
-				else view_editmove(event->type);
+				else {
+					view_editmove(event->type);
+				}
 				t->redraw = 1;
 				break;
 			case LEFTALTKEY:
@@ -1854,7 +1860,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 }
 
 /* note: caller needs to free 't' on a 0 return */
-int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
+int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
 {
 	int options = 0;
 	PropertyRNA *prop;
@@ -2654,11 +2660,12 @@ void initWarp(TransInfo *t)
 
 	mid_v3_v3v3(t->center, min, max);
 
-	if (max[0] == min[0]) max[0] += 0.1f;  /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
+	if (max[0] == min[0])
+		max[0] += 0.1f;  /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
 	t->val = (max[0] - min[0]) / 2.0f; /* t->val is X dimension projected boundbox */
 }
 
-int handleEventWarp(TransInfo *t, wmEvent *event)
+int handleEventWarp(TransInfo *t, const wmEvent *event)
 {
 	int status = 0;
 	
@@ -2681,7 +2688,7 @@ int Warp(TransInfo *t, const int UNUSED(mval[2]))
 	float vec[3], circumfac, dist, phi0, co, si, cursor[3], gcursor[3];
 	const float *curs;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 	
 	curs = give_cursor(t->scene, t->view);
 	/*
@@ -2716,13 +2723,13 @@ int Warp(TransInfo *t, const int UNUSED(mval[2]))
 		
 		outputNumInput(&(t->num), c);
 		
-		sprintf(str, IFACE_("Warp: %s"), c);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Warp: %s"), c);
 
 		circumfac = DEG2RADF(circumfac);
 	}
 	else {
 		/* default header print */
-		sprintf(str, IFACE_("Warp: %.3f"), RAD2DEGF(circumfac));
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Warp: %.3f"), RAD2DEGF(circumfac));
 	}
 	
 	t->values[0] = circumfac;
@@ -2799,7 +2806,7 @@ void initShear(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 }
 
-int handleEventShear(TransInfo *t, wmEvent *event)
+int handleEventShear(TransInfo *t, const wmEvent *event)
 {
 	int status = 0;
 	
@@ -2840,7 +2847,7 @@ int Shear(TransInfo *t, const int UNUSED(mval[2]))
 	float smat[3][3], tmat[3][3], totmat[3][3], persmat[3][3], persinv[3][3];
 	float value;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 	
 	copy_m3_m4(persmat, t->viewmat);
 	invert_m3_m3(persinv, persmat);
@@ -2857,11 +2864,11 @@ int Shear(TransInfo *t, const int UNUSED(mval[2]))
 		
 		outputNumInput(&(t->num), c);
 		
-		sprintf(str, IFACE_("Shear: %s %s"), c, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shear: %s %s"), c, t->proptext);
 	}
 	else {
 		/* default header print */
-		sprintf(str, IFACE_("Shear: %.3f %s (Press X or Y to set shear axis)"), value, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shear: %.3f %s (Press X or Y to set shear axis)"), value, t->proptext);
 	}
 	
 	t->values[0] = value;
@@ -2937,10 +2944,11 @@ void initResize(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
+/* We assume str is MAX_INFO_LEN long. */
 static void headerResize(TransInfo *t, float vec[3], char *str)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
-	char *spos = str;
+	size_t ofs = 0;
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
 	}
@@ -2949,37 +2957,36 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 		BLI_snprintf(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", vec[1]);
 		BLI_snprintf(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", vec[2]);
 	}
-	
+
 	if (t->con.mode & CON_APPLY) {
 		switch (t->num.idx_max) {
 			case 0:
-				spos += sprintf(spos, IFACE_("Scale: %s%s %s"), &tvec[0], t->con.text, t->proptext);
+				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale: %s%s %s"),
+				                    &tvec[0], t->con.text, t->proptext);
 				break;
 			case 1:
-				spos += sprintf(spos, IFACE_("Scale: %s : %s%s %s"), &tvec[0], &tvec[NUM_STR_REP_LEN],
-				                t->con.text, t->proptext);
+				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale: %s : %s%s %s"),
+				                    &tvec[0], &tvec[NUM_STR_REP_LEN], t->con.text, t->proptext);
 				break;
 			case 2:
-				spos += sprintf(spos, IFACE_("Scale: %s : %s : %s%s %s"), &tvec[0], &tvec[NUM_STR_REP_LEN],
-				                &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale: %s : %s : %s%s %s"), &tvec[0],
+				                    &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
 		}
 	}
 	else {
 		if (t->flag & T_2D_EDIT) {
-			spos += sprintf(spos, IFACE_("Scale X: %s   Y: %s%s %s"), &tvec[0], &tvec[NUM_STR_REP_LEN],
-			                t->con.text, t->proptext);
+			ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale X: %s   Y: %s%s %s"),
+			                    &tvec[0], &tvec[NUM_STR_REP_LEN], t->con.text, t->proptext);
 		}
 		else {
-			spos += sprintf(spos, IFACE_("Scale X: %s   Y: %s  Z: %s%s %s"), &tvec[0], &tvec[NUM_STR_REP_LEN],
-			                &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+			ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale X: %s   Y: %s  Z: %s%s %s"),
+			                    &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
 		}
 	}
-	
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
-		spos += sprintf(spos, IFACE_(" Proportional size: %.2f"), t->prop_size);
-	}
 
-	(void)spos;
+	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
+	}
 }
 
 /* FLT_EPSILON is too small [#29633], 0.0000001f starts to flip */
@@ -3114,7 +3121,7 @@ int Resize(TransInfo *t, const int mval[2])
 	float size[3], mat[3][3];
 	float ratio;
 	int i;
-	char str[200];
+	char str[MAX_INFO_LEN];
 
 	/* for manipulator, center handle, the scaling can't be done relative to center */
 	if ((t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
@@ -3219,7 +3226,7 @@ int SkinResize(TransInfo *t, const int UNUSED(mval[2]))
 	float size[3], mat[3][3];
 	float ratio;
 	int i;
-	char str[200];
+	char str[MAX_INFO_LEN];
 	
 	ratio = t->values[0];
 	size[0] = size[1] = size[2] = ratio;
@@ -3313,7 +3320,7 @@ int ToSphere(TransInfo *t, const int UNUSED(mval[2]))
 	float vec[3];
 	float ratio, radius;
 	int i;
-	char str[64];
+	char str[MAX_INFO_LEN];
 	TransData *td = t->data;
 	
 	ratio = t->values[0];
@@ -3335,11 +3342,11 @@ int ToSphere(TransInfo *t, const int UNUSED(mval[2]))
 		
 		outputNumInput(&(t->num), c);
 		
-		sprintf(str, IFACE_("To Sphere: %s %s"), c, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("To Sphere: %s %s"), c, t->proptext);
 	}
 	else {
 		/* default header print */
-		sprintf(str, IFACE_("To Sphere: %.4f %s"), ratio, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("To Sphere: %.4f %s"), ratio, t->proptext);
 	}
 	
 	
@@ -3528,7 +3535,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 				
 				/* this function works on end result */
-				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
+				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis,
+				                       td->ext->irotAngle);
 			}
 			else {
 				float eulmat[3][3];
@@ -3575,12 +3583,15 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		if ((t->flag & T_V3D_ALIGN) == 0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
 			if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
-				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat(quat, fmat);   // Actual transform
-				
-				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
-				/* this function works on end result */
-				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				/* can be called for texture space translate for example, then opt out */
+				if (td->ext->quat) {
+					mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
+					mat3_to_quat(quat, fmat);   // Actual transform
+					
+					mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
+					/* this function works on end result */
+					protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				}
 			}
 			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
@@ -3595,7 +3606,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 				
 				/* this function works on end result */
-				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
+				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis,
+				                       td->ext->irotAngle);
 			}
 			else {
 				float obmat[3][3];
@@ -3654,14 +3666,15 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 
 int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[128], *spos = str;
-	
+	char str[MAX_INFO_LEN];
+	size_t ofs = 0;
+
 	float final;
 
 	final = t->values[0];
-	
+
 	snapGrid(t, &final);
-	
+
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
 		t->con.applyRot(t, NULL, t->axis, NULL);
 	}
@@ -3669,9 +3682,9 @@ int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 		/* reset axis if constraint is not set */
 		copy_v3_v3(t->axis, t->axis_orig);
 	}
-	
+
 	applySnapping(t, &final);
-	
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		
@@ -3679,19 +3692,19 @@ int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 		
 		outputNumInput(&(t->num), c);
 		
-		spos += sprintf(spos, IFACE_("Rot: %s %s %s"), &c[0], t->con.text, t->proptext);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Rot: %s %s %s"), &c[0], t->con.text, t->proptext);
 
 		/* Clamp between -180 and 180 */
 		final = angle_wrap_rad(DEG2RADF(final));
 	}
 	else {
-		spos += sprintf(spos, IFACE_("Rot: %.2f%s %s"), RAD2DEGF(final), t->con.text, t->proptext);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Rot: %.2f%s %s"),
+		                    RAD2DEGF(final), t->con.text, t->proptext);
 	}
 	
 	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
-		spos += sprintf(spos, IFACE_(" Proportional size: %.2f"), t->prop_size);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
-	(void)spos;
 
 	t->values[0] = final;
 	
@@ -3756,7 +3769,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 
 int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[128], *spos = str;
+	char str[MAX_INFO_LEN];
+	size_t ofs = 0;
 	float axis1[3], axis2[3];
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
@@ -3778,19 +3792,20 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		spos += sprintf(spos, IFACE_("Trackball: %s %s %s"), &c[0], &c[NUM_STR_REP_LEN], t->proptext);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Trackball: %s %s %s"),
+		                    &c[0], &c[NUM_STR_REP_LEN], t->proptext);
 
 		phi[0] = DEG2RADF(phi[0]);
 		phi[1] = DEG2RADF(phi[1]);
 	}
 	else {
-		spos += sprintf(spos, IFACE_("Trackball: %.2f %.2f %s"), RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Trackball: %.2f %.2f %s"),
+		                    RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
 	}
 
 	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
-		spos += sprintf(spos, IFACE_(" Proportional size: %.2f"), t->prop_size);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
-	(void)spos;
 
 	vec_rot_to_mat3(smat, axis1, phi[0]);
 	vec_rot_to_mat3(totmat, axis2, phi[1]);
@@ -3854,9 +3869,10 @@ void initTranslation(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
+/* We assume str is MAX_INFO_LEN long. */
 static void headerTranslation(TransInfo *t, float vec[3], char *str)
 {
-	char *spos = str;
+	size_t ofs = 0;
 	char tvec[NUM_STR_REP_LEN * 3];
 	char distvec[NUM_STR_REP_LEN];
 	char autoik[NUM_STR_REP_LEN];
@@ -3877,29 +3893,30 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 			int i, do_split = t->scene->unit.flag & USER_UNIT_OPT_SPLIT ? 1 : 0;
 
 			for (i = 0; i < 3; i++) {
-				bUnit_AsString(&tvec[i * NUM_STR_REP_LEN], NUM_STR_REP_LEN, dvec[i] * t->scene->unit.scale_length,
+				bUnit_AsString(&tvec[NUM_STR_REP_LEN * i], NUM_STR_REP_LEN, dvec[i] * t->scene->unit.scale_length,
 				               4, t->scene->unit.system, B_UNIT_LENGTH, do_split, 1);
 			}
 		}
 		else {
-			sprintf(&tvec[0], "%.4f", dvec[0]);
-			sprintf(&tvec[NUM_STR_REP_LEN], "%.4f", dvec[1]);
-			sprintf(&tvec[NUM_STR_REP_LEN * 2], "%.4f", dvec[2]);
+			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", dvec[0]);
+			BLI_snprintf(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", dvec[1]);
+			BLI_snprintf(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", dvec[2]);
 		}
 	}
 
 	if (!(t->flag & T_2D_EDIT) && t->scene->unit.system)
-		bUnit_AsString(distvec, sizeof(distvec), dist * t->scene->unit.scale_length, 4, t->scene->unit.system, B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
+		bUnit_AsString(distvec, sizeof(distvec), dist * t->scene->unit.scale_length, 4, t->scene->unit.system,
+		               B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
 	else if (dist > 1e10f || dist < -1e10f)     /* prevent string buffer overflow */
-		sprintf(distvec, "%.4e", dist);
+		BLI_snprintf(distvec, NUM_STR_REP_LEN, "%.4e", dist);
 	else
-		sprintf(distvec, "%.4f", dist);
+		BLI_snprintf(distvec, NUM_STR_REP_LEN, "%.4f", dist);
 
 	if (t->flag & T_AUTOIK) {
 		short chainlen = t->settings->autoik_chainlen;
 
 		if (chainlen)
-			sprintf(autoik, IFACE_("AutoIK-Len: %d"), chainlen);
+			BLI_snprintf(autoik, NUM_STR_REP_LEN, IFACE_("AutoIK-Len: %d"), chainlen);
 		else
 			autoik[0] = '\0';
 	}
@@ -3909,32 +3926,34 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 	if (t->con.mode & CON_APPLY) {
 		switch (t->num.idx_max) {
 			case 0:
-				spos += sprintf(spos, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
+				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "D: %s (%s)%s %s  %s",
+				               &tvec[0], distvec, t->con.text, t->proptext, autoik);
 				break;
 			case 1:
-				spos += sprintf(spos, "D: %s   D: %s (%s)%s %s  %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
-				                distvec, t->con.text, t->proptext, &autoik[0]);
+				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "D: %s   D: %s (%s)%s %s  %s",
+				                    &tvec[0], &tvec[NUM_STR_REP_LEN], distvec, t->con.text, t->proptext, autoik);
 				break;
 			case 2:
-				spos += sprintf(spos, "D: %s   D: %s  D: %s (%s)%s %s  %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
-				                &tvec[NUM_STR_REP_LEN * 2], distvec, t->con.text, t->proptext, &autoik[0]);
+				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "D: %s   D: %s  D: %s (%s)%s %s  %s",
+				                    &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], distvec,
+				                    t->con.text, t->proptext, autoik);
 		}
 	}
 	else {
 		if (t->flag & T_2D_EDIT) {
-			spos += sprintf(spos, "Dx: %s   Dy: %s (%s)%s %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
-			                distvec, t->con.text, t->proptext);
+			ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "Dx: %s   Dy: %s (%s)%s %s",
+			                    &tvec[0], &tvec[NUM_STR_REP_LEN], distvec, t->con.text, t->proptext);
 		}
 		else {
-			spos += sprintf(spos, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
-			                &tvec[NUM_STR_REP_LEN * 2], distvec, t->con.text, t->proptext, &autoik[0]);
+			ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s",
+			                    &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], distvec, t->con.text,
+			                    t->proptext, autoik);
 		}
 	}
-	
+
 	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
-		spos += sprintf(spos, IFACE_(" Proportional size: %.2f"), t->prop_size);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
-	(void)spos;
 }
 
 static void applyTranslation(TransInfo *t, float vec[3])
@@ -4006,7 +4025,7 @@ static void applyTranslation(TransInfo *t, float vec[3])
 /* uses t->vec to store actual translation in */
 int Translation(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[250];
+	char str[MAX_INFO_LEN];
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
@@ -4082,8 +4101,8 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float distance;
 	int i;
-	char str[128];
-	char *str_p;
+	char str[MAX_INFO_LEN];
+	size_t ofs = 0;
 	TransData *td = t->data;
 
 	distance = -t->values[0];
@@ -4093,31 +4112,30 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	applyNumInput(&t->num, &distance);
 
 	/* header print for NumInput */
-	str_p = str;
-	str_p += BLI_snprintf(str_p, sizeof(str), IFACE_("Shrink/Fatten:"));
+	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Shrink/Fatten:"), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		outputNumInput(&(t->num), c);
-		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s", c);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, " %s", c);
 	}
 	else {
 		/* default header print */
-		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %.4f", distance);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, " %.4f", distance);
 	}
 
 	if (t->proptext[0]) {
-		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s", t->proptext);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, " %s", t->proptext);
 	}
-	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), ", (");
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, ", (");
 
 	{
 		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
 		if (kmi) {
-			str_p += WM_keymap_item_to_string(kmi, str_p, sizeof(str) - (str_p - str));
+			ofs += WM_keymap_item_to_string(kmi, str + ofs, MAX_INFO_LEN - ofs);
 		}
 	}
-	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), IFACE_(" or Alt) Even Thickness %s"),
-	                      (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
+	BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Even Thickness %s"),
+	             (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
 	/* done with header string */
 
 
@@ -4173,7 +4191,7 @@ int Tilt(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	float final;
 
@@ -4188,7 +4206,7 @@ int Tilt(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, IFACE_("Tilt: %s° %s"), &c[0], t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Tilt: %s° %s"), &c[0], t->proptext);
 
 		final = DEG2RADF(final);
 
@@ -4196,7 +4214,7 @@ int Tilt(TransInfo *t, const int UNUSED(mval[2]))
 		t->values[0] = final;
 	}
 	else {
-		sprintf(str, IFACE_("Tilt: %.2f° %s"), RAD2DEGF(final), t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Tilt: %.2f° %s"), RAD2DEGF(final), t->proptext);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
@@ -4247,7 +4265,7 @@ int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td = t->data;
 	float ratio;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	ratio = t->values[0];
 
@@ -4260,10 +4278,10 @@ int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		char c[NUM_STR_REP_LEN];
 
 		outputNumInput(&(t->num), c);
-		sprintf(str, IFACE_("Shrink/Fatten: %s"), c);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shrink/Fatten: %s"), c);
 	}
 	else {
-		sprintf(str, IFACE_("Shrink/Fatten: %3f"), ratio);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shrink/Fatten: %3f"), ratio);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
@@ -4315,7 +4333,7 @@ int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td;
 	float ratio;
 	int i, initial_feather = FALSE;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	ratio = t->values[0];
 
@@ -4328,10 +4346,10 @@ int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		char c[NUM_STR_REP_LEN];
 
 		outputNumInput(&(t->num), c);
-		sprintf(str, IFACE_("Feather Shrink/Fatten: %s"), c);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Feather Shrink/Fatten: %s"), c);
 	}
 	else {
-		sprintf(str, IFACE_("Feather Shrink/Fatten: %3f"), ratio);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Feather Shrink/Fatten: %3f"), ratio);
 	}
 
 	/* detect if no points have feather yet */
@@ -4401,7 +4419,7 @@ int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 	float vec[3], axis[3];
 	float distance;
 	int i;
-	char str[128];
+	char str[MAX_INFO_LEN];
 	TransData *td = t->data;
 
 	distance = t->values[0];
@@ -4416,11 +4434,11 @@ int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, IFACE_("Push/Pull: %s%s %s"), c, t->con.text, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Push/Pull: %s%s %s"), c, t->con.text, t->proptext);
 	}
 	else {
 		/* default header print */
-		sprintf(str, IFACE_("Push/Pull: %.4f%s %s"), distance, t->con.text, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Push/Pull: %.4f%s %s"), distance, t->con.text, t->proptext);
 	}
 
 	t->values[0] = distance;
@@ -4496,7 +4514,7 @@ void initBevel(TransInfo *t)
 	}
 }
 
-int handleEventBevel(TransInfo *t, wmEvent *event)
+int handleEventBevel(TransInfo *t, const wmEvent *event)
 {
 	if (event->val == KM_PRESS) {
 		if (!G.editBMesh) return 0;
@@ -4533,7 +4551,7 @@ int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float distance, d;
 	int i;
-	char str[128];
+	char str[MAX_INFO_LEN];
 	const char *mode;
 	TransData *td = t->data;
 
@@ -4552,11 +4570,11 @@ int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, IFACE_("Bevel - Dist: %s, Mode: %s (MMB to toggle))"), c, mode);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel - Dist: %s, Mode: %s (MMB to toggle))"), c, mode);
 	}
 	else {
 		/* default header print */
-		sprintf(str, IFACE_("Bevel - Dist: %.4f, Mode: %s (MMB to toggle))"), distance, mode);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel - Dist: %.4f, Mode: %s (MMB to toggle))"), distance, mode);
 	}
 
 	if (distance < 0) distance = -distance;
@@ -4602,7 +4620,7 @@ int BevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td = t->data;
 	float weight;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	weight = t->values[0];
 
@@ -4620,16 +4638,16 @@ int BevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 		outputNumInput(&(t->num), c);
 
 		if (weight >= 0.0f)
-			sprintf(str, IFACE_("Bevel Weight: +%s %s"), c, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel Weight: +%s %s"), c, t->proptext);
 		else
-			sprintf(str, IFACE_("Bevel Weight: %s %s"), c, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel Weight: %s %s"), c, t->proptext);
 	}
 	else {
 		/* default header print */
 		if (weight >= 0.0f)
-			sprintf(str, IFACE_("Bevel Weight: +%.3f %s"), weight, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel Weight: +%.3f %s"), weight, t->proptext);
 		else
-			sprintf(str, IFACE_("Bevel Weight: %.3f %s"), weight, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel Weight: %.3f %s"), weight, t->proptext);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
@@ -4675,7 +4693,7 @@ int Crease(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td = t->data;
 	float crease;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	crease = t->values[0];
 
@@ -4693,16 +4711,16 @@ int Crease(TransInfo *t, const int UNUSED(mval[2]))
 		outputNumInput(&(t->num), c);
 
 		if (crease >= 0.0f)
-			sprintf(str, IFACE_("Crease: +%s %s"), c, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Crease: +%s %s"), c, t->proptext);
 		else
-			sprintf(str, IFACE_("Crease: %s %s"), c, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Crease: %s %s"), c, t->proptext);
 	}
 	else {
 		/* default header print */
 		if (crease >= 0.0f)
-			sprintf(str, IFACE_("Crease: +%.3f %s"), crease, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Crease: +%.3f %s"), crease, t->proptext);
 		else
-			sprintf(str, IFACE_("Crease: %.3f %s"), crease, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Crease: %.3f %s"), crease, t->proptext);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
@@ -4746,6 +4764,7 @@ void initBoneSize(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
+/* We assume str is MAX_INFO_LEN long. */
 static void headerBoneSize(TransInfo *t, float vec[3], char *str)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
@@ -4753,22 +4772,22 @@ static void headerBoneSize(TransInfo *t, float vec[3], char *str)
 		outputNumInput(&(t->num), tvec);
 	}
 	else {
-		sprintf(&tvec[0], "%.4f", vec[0]);
-		sprintf(&tvec[NUM_STR_REP_LEN], "%.4f", vec[1]);
-		sprintf(&tvec[NUM_STR_REP_LEN * 2], "%.4f", vec[2]);
+		BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);
+		BLI_snprintf(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", vec[1]);
+		BLI_snprintf(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", vec[2]);
 	}
 
 	/* hmm... perhaps the y-axis values don't need to be shown? */
 	if (t->con.mode & CON_APPLY) {
 		if (t->num.idx_max == 0)
-			sprintf(str, IFACE_("ScaleB: %s%s %s"), &tvec[0], t->con.text, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("ScaleB: %s%s %s"), &tvec[0], t->con.text, t->proptext);
 		else
-			sprintf(str, IFACE_("ScaleB: %s : %s : %s%s %s"), &tvec[0], &tvec[NUM_STR_REP_LEN],
-			        &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("ScaleB: %s : %s : %s%s %s"),
+			             &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
 	}
 	else {
-		sprintf(str, IFACE_("ScaleB X: %s  Y: %s  Z: %s%s %s"), &tvec[0], &tvec[NUM_STR_REP_LEN],
-		        &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("ScaleB X: %s  Y: %s  Z: %s%s %s"),
+		             &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
 	}
 }
 
@@ -4798,7 +4817,7 @@ int BoneSize(TransInfo *t, const int mval[2])
 	float size[3], mat[3][3];
 	float ratio;
 	int i;
-	char str[60];
+	char str[MAX_INFO_LEN];
 	
 	// TRANSFORM_FIX_ME MOVE TO MOUSE INPUT
 	/* for manipulator, center handle, the scaling can't be done relative to center */
@@ -4871,7 +4890,7 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td = t->data;
 	float ratio;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 	
 	ratio = t->values[0];
 	
@@ -4884,10 +4903,10 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 		char c[NUM_STR_REP_LEN];
 		
 		outputNumInput(&(t->num), c);
-		sprintf(str, IFACE_("Envelope: %s"), c);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Envelope: %s"), c);
 	}
 	else {
-		sprintf(str, IFACE_("Envelope: %3f"), ratio);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Envelope: %3f"), ratio);
 	}
 	
 	for (i = 0; i < t->total; i++, td++) {
@@ -5604,7 +5623,8 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
 							}
 							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->down)) {
-								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
+								                                   (uintptr_t)e_sel->l->radial_next->f);
 							}
 
 						}
@@ -5613,7 +5633,8 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
 							}
 							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->up)) {
-								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
+								                                   (uintptr_t)e_sel->l->radial_next->f);
 							}
 						}
 
@@ -5746,7 +5767,7 @@ void initEdgeSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
+int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
 		EdgeSlideData *sld = t->customData;
@@ -5929,11 +5950,14 @@ static int doEdgeSlide(TransInfo *t, float perc)
 
 int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[128];
+	char str[MAX_INFO_LEN];
 	float final;
 	EdgeSlideData *sld =  t->customData;
 	bool flipped = sld->flipped_vtx;
 	bool is_proportional = sld->is_proportional;
+
+	const char *on_str = IFACE_("ON");
+	const char *off_str = IFACE_("OFF");
 
 	final = t->values[0];
 
@@ -5949,12 +5973,12 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		BLI_snprintf(str, sizeof(str), IFACE_("Edge Slide: %s (E)ven: %s, (F)lipped: %s"),
-		             &c[0], !is_proportional ? IFACE_("ON") : IFACE_("OFF"), flipped ? IFACE_("ON") : IFACE_("OFF"));
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %s (E)ven: %s, (F)lipped: %s"),
+		             &c[0], !is_proportional ? on_str : off_str, flipped ? on_str : off_str);
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), IFACE_("Edge Slide: %.4f (E)ven: %s, (F)lipped: %s"),
-		             final, !is_proportional ? IFACE_("ON") : IFACE_("OFF"), flipped ? IFACE_("ON") : IFACE_("OFF"));
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %.4f (E)ven: %s, (F)lipped: %s"),
+		             final, !is_proportional ? on_str : off_str, flipped ? on_str : off_str);
 	}
 
 	CLAMP(final, -1.0f, 1.0f);
@@ -5962,10 +5986,11 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	t->values[0] = final;
 
 	/*do stuff here*/
-	if (t->customData)
+	if (t->customData) {
 		doEdgeSlide(t, final);
+	}
 	else {
-		strcpy(str, IFACE_("Invalid Edge Selection"));
+		BLI_strncpy(str, IFACE_("Invalid Edge Selection"), MAX_INFO_LEN);
 		t->state = TRANS_CANCEL;
 	}
 
@@ -6249,7 +6274,7 @@ void initVertSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
+int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_VERT_SLIDE) {
 		VertSlideData *sld = t->customData;
@@ -6434,14 +6459,17 @@ static int doVertSlide(TransInfo *t, float perc)
 
 int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[128];
-	char *str_p;
+	char str[MAX_INFO_LEN];
+	size_t ofs = 0;
 	float final;
 	VertSlideData *sld =  t->customData;
 	const bool flipped = sld->flipped_vtx;
 	const bool is_proportional = sld->is_proportional;
 	const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 	const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
+
+	const char *on_str = IFACE_("ON");
+	const char *off_str = IFACE_("OFF");
 
 	final = t->values[0];
 
@@ -6453,25 +6481,21 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	/* header string */
-	str_p = str;
-	str_p += BLI_snprintf(str_p, sizeof(str), IFACE_("Vert Slide: "));
+	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Vert Slide: "), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		applyNumInput(&t->num, &final);
 		outputNumInput(&(t->num), c);
-		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "%s", &c[0]);
+		ofs += BLI_strncpy_rlen(str + ofs, &c[0], MAX_INFO_LEN - ofs);
 	}
 	else {
-		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "%.4f ", final);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%.4f ", final);
 	}
-	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), IFACE_("(E)ven: %s, "),
-	                      !is_proportional ? IFACE_("ON") : IFACE_("OFF"));
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), !is_proportional ? on_str : off_str);
 	if (!is_proportional) {
-		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), IFACE_("(F)lipped: %s, "),
-		                      flipped ? IFACE_("ON") : IFACE_("OFF"));
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), flipped ? on_str : off_str);
 	}
-	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), IFACE_("Alt or (C)lamp: %s"),
-	                      is_clamp ? IFACE_("ON") : IFACE_("OFF"));
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), is_clamp ? on_str : off_str);
 	/* done with header string */
 
 	/*do stuff here*/
@@ -6479,7 +6503,7 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		doVertSlide(t, final);
 	}
 	else {
-		strcpy(str, IFACE_("Invalid Vert Selection"));
+		BLI_strncpy(str, IFACE_("Invalid Vert Selection"), MAX_INFO_LEN);
 		t->state = TRANS_CANCEL;
 	}
 
@@ -6515,7 +6539,7 @@ int BoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	float final;
 
@@ -6530,12 +6554,12 @@ int BoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, IFACE_("Roll: %s"), &c[0]);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Roll: %s"), &c[0]);
 
 		final = DEG2RADF(final);
 	}
 	else {
-		sprintf(str, IFACE_("Roll: %.2f"), RAD2DEGF(final));
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Roll: %.2f"), RAD2DEGF(final));
 	}
 
 	/* set roll values */
@@ -6577,7 +6601,7 @@ int BakeTime(TransInfo *t, const int mval[2])
 	TransData *td = t->data;
 	float time;
 	int i;
-	char str[50];
+	char str[MAX_INFO_LEN];
 
 	float fac = 0.1f;
 
@@ -6601,16 +6625,16 @@ int BakeTime(TransInfo *t, const int mval[2])
 		outputNumInput(&(t->num), c);
 
 		if (time >= 0.0f)
-			sprintf(str, IFACE_("Time: +%s %s"), c, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Time: +%s %s"), c, t->proptext);
 		else
-			sprintf(str, IFACE_("Time: %s %s"), c, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Time: %s %s"), c, t->proptext);
 	}
 	else {
 		/* default header print */
 		if (time >= 0.0f)
-			sprintf(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Time: +%.3f %s"), time, t->proptext);
 		else
-			sprintf(str, IFACE_("Time: %.3f %s"), time, t->proptext);
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Time: %.3f %s"), time, t->proptext);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
@@ -6652,7 +6676,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td;
 	float size[3], mat[3][3];
 	int i;
-	char str[200];
+	char str[MAX_INFO_LEN];
 
 	/*
 	 * OPTIMIZATION:
@@ -6670,7 +6694,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 			t->con.applySize(t, NULL, mat);
 		}
 
-		sprintf(str, IFACE_("Mirror%s"), t->con.text);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Mirror%s"), t->con.text);
 
 		for (i = 0, td = t->data; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
@@ -6787,29 +6811,29 @@ void initSeqSlide(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
-static void headerSeqSlide(TransInfo *t, float val[2], char *str, size_t str_len)
+/* We assume str is MAX_INFO_LEN long. */
+static void headerSeqSlide(TransInfo *t, float val[2], char *str)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
-	char *str_p;
+	size_t ofs = 0;
 
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
 	}
 	else {
-		sprintf(&tvec[0], "%.0f, %.0f", val[0], val[1]);
+		BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.0f, %.0f", val[0], val[1]);
 	}
 
-	str_p = str;
-	str_p += BLI_snprintf(str, str_len, IFACE_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
 	{
 		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
 		if (kmi) {
-			str_p += WM_keymap_item_to_string(kmi, str_p, str_len - (str_p - str));
+			ofs += WM_keymap_item_to_string(kmi, str + ofs, MAX_INFO_LEN - ofs);
 		}
 	}
-	str_p += BLI_snprintf(str_p, str_len - (str_p - str), IFACE_(" or Alt) Expand to fit %s"),
-	                      (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Expand to fit %s"),
+	                    (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
 }
 
 static void applySeqSlide(TransInfo *t, float val[2])
@@ -6837,7 +6861,7 @@ static void applySeqSlide(TransInfo *t, float val[2])
 
 int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[200];
+	char str[MAX_INFO_LEN];
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
@@ -6853,7 +6877,7 @@ int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 	t->values[0] = floor(t->values[0] + 0.5f);
 	t->values[1] = floor(t->values[1] + 0.5f);
 
-	headerSeqSlide(t, t->values, str, sizeof(str));
+	headerSeqSlide(t, t->values, str);
 	applySeqSlide(t, t->values);
 
 	recalcData(t);
@@ -6953,7 +6977,11 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 #if 0   /* 'do_time' disabled for now */
 
 		const Scene *scene = t->scene;
-		const short do_time = 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behavior given the option's label, hence disabled
+#if 0   /* NOTE: this works, but may be confusing behavior given the option's label, hence disabled */
+		const short do_time = getAnimEdit_DrawTime(t);
+#else
+		const short do_time = 0;
+#endif
 		const double secf = FPS;
 #endif
 		double val;
@@ -7041,6 +7069,7 @@ void initTimeTranslate(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
+/* We assume str is MAX_INFO_LEN long. */
 static void headerTimeTranslate(TransInfo *t, char *str)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
@@ -7069,12 +7098,12 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		}
 		
 		if (autosnap == SACTSNAP_FRAME)
-			sprintf(&tvec[0], "%d.00 (%.4f)", (int)val, val);
+			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%d.00 (%.4f)", (int)val, val);
 		else
-			sprintf(&tvec[0], "%.4f", val);
+			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", val);
 	}
 
-	sprintf(str, IFACE_("DeltaX: %s"), &tvec[0]);
+	BLI_snprintf(str, MAX_INFO_LEN, IFACE_("DeltaX: %s"), &tvec[0]);
 }
 
 static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
@@ -7138,7 +7167,7 @@ int TimeTranslate(TransInfo *t, const int mval[2])
 {
 	View2D *v2d = (View2D *)t->view;
 	float cval[2], sval[2];
-	char str[200];
+	char str[MAX_INFO_LEN];
 
 	/* calculate translation amount from mouse movement - in 'time-grid space' */
 	UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
@@ -7196,6 +7225,7 @@ void initTimeSlide(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
+/* We assume str is MAX_INFO_LEN long. */
 static void headerTimeSlide(TransInfo *t, float sval, char *str)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
@@ -7212,10 +7242,10 @@ static void headerTimeSlide(TransInfo *t, float sval, char *str)
 		val = 2.0f * (cval - sval) / (maxx - minx);
 		CLAMP(val, -1.0f, 1.0f);
 
-		sprintf(&tvec[0], "%.4f", val);
+		BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", val);
 	}
 
-	sprintf(str, IFACE_("TimeSlide: %s"), &tvec[0]);
+	BLI_snprintf(str, MAX_INFO_LEN, IFACE_("TimeSlide: %s"), &tvec[0]);
 }
 
 static void applyTimeSlide(TransInfo *t, float sval)
@@ -7271,7 +7301,7 @@ int TimeSlide(TransInfo *t, const int mval[2])
 	float cval[2], sval[2];
 	float minx = *((float *)(t->customData));
 	float maxx = *((float *)(t->customData) + 1);
-	char str[200];
+	char str[MAX_INFO_LEN];
 
 	/* calculate mouse co-ordinates */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
@@ -7338,6 +7368,7 @@ void initTimeScale(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
+/* We assume str is MAX_INFO_LEN long. */
 static void headerTimeScale(TransInfo *t, char *str)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
@@ -7345,9 +7376,9 @@ static void headerTimeScale(TransInfo *t, char *str)
 	if (hasNumInput(&t->num))
 		outputNumInput(&(t->num), tvec);
 	else
-		sprintf(&tvec[0], "%.4f", t->values[0]);
+		BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", t->values[0]);
 
-	sprintf(str, IFACE_("ScaleX: %s"), &tvec[0]);
+	BLI_snprintf(str, MAX_INFO_LEN, IFACE_("ScaleX: %s"), &tvec[0]);
 }
 
 static void applyTimeScale(TransInfo *t)
@@ -7392,7 +7423,7 @@ static void applyTimeScale(TransInfo *t)
 
 int TimeScale(TransInfo *t, const int UNUSED(mval[2]))
 {
-	char str[200];
+	char str[MAX_INFO_LEN];
 	
 	/* handle numeric-input stuff */
 	t->vec[0] = t->values[0];
@@ -7423,3 +7454,5 @@ bool checkUseLocalCenter_GraphEdit(TransInfo *t)
 {
 	return ((t->around == V3D_LOCAL) && !ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE));
 }
+
+#undef MAX_INFO_LEN

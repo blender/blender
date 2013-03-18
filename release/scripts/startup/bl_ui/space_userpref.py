@@ -743,6 +743,7 @@ class USERPREF_PT_theme(Panel):
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
+            colsub.active = False
             colsub.row().prop(ui, "icon_file")
 
             subsplit = row.split(percentage=0.85)
@@ -1239,7 +1240,7 @@ class USERPREF_PT_addons(Panel):
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
-                            split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
+                            split.operator("wm.url_open", text="Documentation", icon='HELP').url = info["wiki_url"]
                         if info["tracker_url"]:
                             split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
                         if user_addon:

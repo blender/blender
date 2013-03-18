@@ -165,8 +165,9 @@ void draw_outliner(const struct bContext *C);
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
 
 /* outliner_select.c -------------------------------------------- */
-int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set);
+int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set, bool recursive);
 int tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soops, TreeElement *te, int set);
+int outliner_item_do_activate(struct bContext *C, int x, int y, bool extend, bool recursive);
 
 /* outliner_edit.c ---------------------------------------------- */
 
@@ -189,9 +190,9 @@ void group_toggle_renderability_cb(struct bContext *C, struct Scene *scene, Tree
 
 void item_rename_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
 
-TreeElement *outliner_dropzone_parent(struct bContext *C, struct wmEvent *event, struct TreeElement *te, float *fmval);
-int outliner_dropzone_parent_clear(struct bContext *C, struct wmEvent *event, struct TreeElement *te, float *fmval);
-TreeElement *outliner_dropzone_scene(struct bContext *C, struct wmEvent *event, struct TreeElement *te, float *fmval);
+TreeElement *outliner_dropzone_parent(struct bContext *C, const struct wmEvent *event, struct TreeElement *te, const float fmval[2]);
+int outliner_dropzone_parent_clear(struct bContext *C, const struct wmEvent *event, struct TreeElement *te, const float fmval[2]);
+TreeElement *outliner_dropzone_scene(struct bContext *C, const struct wmEvent *event, struct TreeElement *te, const float fmval[2]);
 /* ...................................................... */
 
 void OUTLINER_OT_item_activate(struct wmOperatorType *ot);

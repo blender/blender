@@ -69,9 +69,9 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info);
 void   BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_insert(GHash *gh, void *key, void *val);
 void  *BLI_ghash_lookup(GHash *gh, const void *key);
-int    BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+bool   BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void  *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp);
-int    BLI_ghash_haskey(GHash *gh, const void *key);
+bool    BLI_ghash_haskey(GHash *gh, const void *key);
 int    BLI_ghash_size(GHash *gh);
 
 /* *** */
@@ -130,11 +130,11 @@ void            BLI_ghashIterator_step(GHashIterator *ghi);
  * \param ghi The iterator.
  * \return True if done, False otherwise.
  */
-int             BLI_ghashIterator_isDone(GHashIterator *ghi);
+bool            BLI_ghashIterator_notDone(GHashIterator *ghi);
 
 #define GHASH_ITER(gh_iter_, ghash_)                                          \
 	for (BLI_ghashIterator_init(&gh_iter_, ghash_);                           \
-	     !BLI_ghashIterator_isDone(&gh_iter_);                                \
+	     BLI_ghashIterator_notDone(&gh_iter_);                                \
 	     BLI_ghashIterator_step(&gh_iter_))
 
 /* *** */

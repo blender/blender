@@ -424,7 +424,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int hide_show_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	PartialVisArea area = RNA_enum_get(op->ptr, "area");
 

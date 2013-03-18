@@ -40,6 +40,8 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
@@ -299,7 +301,7 @@ void make_pointdensities(Render *re)
 	if (re->scene->r.scemode & R_PREVIEWBUTS)
 		return;
 	
-	re->i.infostr= "Caching Point Densities";
+	re->i.infostr = IFACE_("Caching Point Densities");
 	re->stats_draw(re->sdh, &re->i);
 
 	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
@@ -308,7 +310,7 @@ void make_pointdensities(Render *re)
 		}
 	}
 	
-	re->i.infostr= NULL;
+	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
 

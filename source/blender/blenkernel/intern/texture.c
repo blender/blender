@@ -256,7 +256,9 @@ int do_colorband(const ColorBand *coba, float in, float out[4])
 				left.pos = 0.0f;
 				cbd2 = &left;
 			}
-			else cbd2 = cbd1 - 1;
+			else {
+				cbd2 = cbd1 - 1;
+			}
 			
 			if (in >= cbd1->pos && coba->ipotype < 2) {
 				out[0] = cbd1->r;
@@ -440,7 +442,7 @@ void default_tex(Tex *tex)
 	tex->type = TEX_CLOUDS;
 	tex->stype = 0;
 	tex->flag = TEX_CHECKER_ODD;
-	tex->imaflag = TEX_INTERPOL | TEX_MIPMAP;
+	tex->imaflag = TEX_INTERPOL | TEX_MIPMAP | TEX_USEALPHA;
 	tex->extend = TEX_REPEAT;
 	tex->cropxmin = tex->cropymin = 0.0;
 	tex->cropxmax = tex->cropymax = 1.0;
@@ -911,15 +913,18 @@ void autotexname(Tex *tex)
 		else if (tex->type == TEX_IMAGE) {
 			ima = tex->ima;
 			if (ima) {
-				BLI_strncpy(di, ima->name, sizeof(di));
-				BLI_splitdirstring(di, fi);
+				BLI_split_file_part(ima->name, fi, sizeof(fi));
 				strcpy(di, "I.");
 				strcat(di, fi);
 				new_id(&bmain->tex, (ID *)tex, di);
 			}
-			else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+			else {
+				new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+			}
 		}
-		else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+		else {
+			new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
+		}
 	}
 }
 #endif

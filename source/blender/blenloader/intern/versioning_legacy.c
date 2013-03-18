@@ -1547,7 +1547,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 						else if (sbuts->mainb == BUTS_EDIT) {
 							sbuts->mainb = CONTEXT_EDITING;
 						}
-						else sbuts->mainb = CONTEXT_SCENE;
+						else {
+							sbuts->mainb = CONTEXT_SCENE;
+						}
 					}
 				}
 			}
@@ -2550,7 +2552,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		if (main->subversionfile < 4) {
 			for (sce = main->scene.first; sce; sce = sce->id.next) {
 				sce->r.bake_mode = 1;	/* prevent to include render stuff here */
-				sce->r.bake_filter = 2;
+				sce->r.bake_filter = 16;
 				sce->r.bake_osa = 5;
 				sce->r.bake_flag = R_BAKE_CLEAR;
 			}

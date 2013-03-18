@@ -384,7 +384,6 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 			for (int i = 0; i < totuvset; i++) {
 				COLLADAFW::MeshVertexData::InputInfos *info = collada_mesh->getUVCoords().getInputInfosArray()[i];
 				COLLADAFW::String &uvname = info->mName;
-				int x = 0;
 				// Allocate space for UV_data
 				CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, uvname.c_str());
 				CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, uvname.c_str());
@@ -556,7 +555,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 
 		int collada_meshtype = mp->getPrimitiveType();
 		
-		// since we cannot set mpoly->mat_nr here, we store a portion of me->mface in Primitive
+		// since we cannot set mpoly->mat_nr here, we store a portion of me->mpoly in Primitive
 		Primitive prim = {mpoly, 0};
 		COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
 
@@ -1085,7 +1084,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	
 	read_vertices(mesh, me);
 	read_polys(mesh, me);
-	BKE_mesh_calc_edges(me, 0);
+	BKE_mesh_calc_edges(me, false, false);
 
 	// read_lines() must be called after the face edges have been generated.
 	// Oterwise the loose edges will be silently deleted again.

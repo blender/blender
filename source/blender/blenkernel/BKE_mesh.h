@@ -169,7 +169,8 @@ int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob, struct ListBase *dispbas
                                      struct MLoopUV **alluv, int *_totloop, int *_totpoly);
 void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase, int use_orco_uv);
 void BKE_mesh_from_nurbs(struct Object *ob);
-void BKE_mesh_from_curve(struct Scene *scene, struct Object *ob);
+void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
+void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
 void BKE_mesh_delete_material_index(struct Mesh *me, short index);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
 void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
@@ -325,7 +326,7 @@ int BKE_mesh_validate_arrays(
 int BKE_mesh_validate(struct Mesh *me, int do_verbose);
 int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 
-void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
+void BKE_mesh_calc_edges(struct Mesh *mesh, bool update, const bool select);
 
 void BKE_mesh_ensure_navmesh(struct Mesh *me);
 

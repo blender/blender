@@ -100,7 +100,6 @@ static void delete_void_pointer(void *data)
 {
 	if (data) {
 		MEM_freeN(data);
-		data = NULL;
 	}
 }
 
@@ -242,7 +241,7 @@ static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
 
 static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4)
 {
-	float areaq = 0.0f;
+	float areaq;
 	areaq = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v2, v4) + area_tri_v3(v1, v3, v4);
 	return areaq / 2.0f;
 }
@@ -520,7 +519,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 	}
 }
 
-static void validate_solution(LaplacianSystem * sys, short flag, float lambda, float lambda_border)
+static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border)
 {
 	int i;
 	float lam;

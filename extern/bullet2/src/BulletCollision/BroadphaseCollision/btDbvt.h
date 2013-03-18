@@ -57,7 +57,7 @@ subject to the following restrictions:
 // Specific methods implementation
 
 //SSE gives errors on a MSVC 7.1
-#if defined (BT_USE_SSE) && defined (_WIN32)
+#if defined (BT_USE_SSE) //&& defined (_WIN32)
 #define DBVT_SELECT_IMPL		DBVT_IMPL_SSE
 #define DBVT_MERGE_IMPL			DBVT_IMPL_SSE
 #define DBVT_INT0_IMPL			DBVT_IMPL_SSE
@@ -160,6 +160,10 @@ struct	btDbvtAabbMm
 		btDbvtAabbMm& r);
 	DBVT_INLINE friend bool			NotEqual(	const btDbvtAabbMm& a,
 		const btDbvtAabbMm& b);
+    
+    DBVT_INLINE btVector3&	tMins()	{ return(mi); }
+	DBVT_INLINE btVector3&	tMaxs()	{ return(mx); }
+    
 private:
 	DBVT_INLINE void				AddSpan(const btVector3& d,btScalar& smi,btScalar& smx) const;
 private:
@@ -320,7 +324,7 @@ struct	btDbvt
 	DBVT_PREFIX
 		void		collideTV(	const btDbvtNode* root,
 		const btDbvtVolume& volume,
-		DBVT_IPOLICY);
+		DBVT_IPOLICY) const;
 	///rayTest is a re-entrant ray test, and can be called in parallel as long as the btAlignedAlloc is thread-safe (uses locking etc)
 	///rayTest is slower than rayTestInternal, because it builds a local stack, using memory allocations, and it recomputes signs/rayDirectionInverses each time
 	DBVT_PREFIX
@@ -519,7 +523,11 @@ DBVT_INLINE bool		Intersect(	const btDbvtAabbMm& a,
 #if	DBVT_INT0_IMPL == DBVT_IMPL_SSE
 	const __m128	rt(_mm_or_ps(	_mm_cmplt_ps(_mm_load_ps(b.mx),_mm_load_ps(a.mi)),
 		_mm_cmplt_ps(_mm_load_ps(a.mx),_mm_load_ps(b.mi))));
+#if defined (_WIN32)
 	const __int32*	pu((const __int32*)&rt);
+#else
+    const int*	pu((const int*)&rt);
+#endif
 	return((pu[0]|pu[1]|pu[2])==0);
 #else
 	return(	(a.mi.x()<=b.mx.x())&&
@@ -568,7 +576,12 @@ DBVT_INLINE int			Select(	const btDbvtAabbMm& o,
 							   const btDbvtAabbMm& b)
 {
 #if	DBVT_SELECT_IMPL == DBVT_IMPL_SSE
+    
+#if defined (_WIN32)
 	static ATTRIBUTE_ALIGNED16(const unsigned __int32)	mask[]={0x7fffffff,0x7fffffff,0x7fffffff,0x7fffffff};
+#else
+    static ATTRIBUTE_ALIGNED16(const unsigned int)	mask[]={0x7fffffff,0x7fffffff,0x7fffffff,0x00000000 /*0x7fffffff*/};
+#endif
 	///@todo: the intrinsic version is 11% slower
 #if DBVT_USE_INTRINSIC_SSE
 
@@ -908,7 +921,7 @@ inline void		btDbvt::collideTT(	const btDbvtNode* root0,
 DBVT_PREFIX
 inline void		btDbvt::collideTV(	const btDbvtNode* root,
 								  const btDbvtVolume& vol,
-								  DBVT_IPOLICY)
+								  DBVT_IPOLICY) const
 {
 	DBVT_CHECKTYPE
 		if(root)

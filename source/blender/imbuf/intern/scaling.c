@@ -34,6 +34,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_color.h"
+#include "BLI_math_interp.h"
 #include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
@@ -1604,3 +1605,113 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 	return(ibuf);
 }
 
+/* ******** threaded scaling ******** */
+
+typedef struct ScaleTreadInitData {
+	ImBuf *ibuf;
+
+	unsigned int newx;
+	unsigned int newy;
+
+	unsigned char *byte_buffer;
+	float *float_buffer;
+} ScaleTreadInitData;
+
+typedef struct ScaleThreadData {
+	ImBuf *ibuf;
+
+	unsigned int newx;
+	unsigned int newy;
+
+	int start_line;
+	int tot_line;
+
+	unsigned char *byte_buffer;
+	float *float_buffer;
+} ScaleThreadData;
+
+static void scale_thread_init(void *data_v, int start_line, int tot_line, void *init_data_v)
+{
+	ScaleThreadData *data = (ScaleThreadData *) data_v;
+	ScaleTreadInitData *init_data = (ScaleTreadInitData *) init_data_v;
+
+	data->ibuf = init_data->ibuf;
+
+	data->newx = init_data->newx;
+	data->newy = init_data->newy;
+
+	data->start_line = start_line;
+	data->tot_line = tot_line;
+
+	data->byte_buffer = init_data->byte_buffer;
+	data->float_buffer = init_data->float_buffer;
+}
+
+static void *do_scale_thread(void *data_v)
+{
+	ScaleThreadData *data = (ScaleThreadData *) data_v;
+	ImBuf *ibuf = data->ibuf;
+	int i;
+	float factor_x = (float) ibuf->x / data->newx;
+	float factor_y = (float) ibuf->y / data->newy;
+
+	for (i = 0; i < data->tot_line; i++) {
+		int y = data->start_line + i;
+		int x;
+
+		for (x = 0; x < data->newx; x++) {
+			float u = (float) x * factor_x;
+			float v = (float) y * factor_y;
+			int offset = y * data->newx + x;
+
+			if (data->byte_buffer) {
+				unsigned char *pixel = data->byte_buffer + 4 * offset;
+				BLI_bilinear_interpolation_char((unsigned char *) ibuf->rect, pixel, ibuf->x, ibuf->y, 4, u, v);
+			}
+
+			if (data->float_buffer) {
+				float *pixel = data->float_buffer + ibuf->channels * offset;
+				BLI_bilinear_interpolation_fl(ibuf->rect_float, pixel, ibuf->x, ibuf->y, ibuf->channels, u, v);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy)
+{
+	ScaleTreadInitData init_data = {0};
+
+	/* prepare initialization data */
+	init_data.ibuf = ibuf;
+
+	init_data.newx = newx;
+	init_data.newy = newy;
+
+	if (ibuf->rect)
+		init_data.byte_buffer = MEM_mallocN(4 * newx * newy * sizeof(char), "threaded scale byte buffer");
+
+	if (ibuf->rect_float)
+		init_data.float_buffer = MEM_mallocN(ibuf->channels * newx * newy * sizeof(float), "threaded scale float buffer");
+
+	/* actual scaling threads */
+	IMB_processor_apply_threaded(newy, sizeof(ScaleThreadData), &init_data,
+	                             scale_thread_init, do_scale_thread);
+
+	/* alter image buffer */
+	ibuf->x = newx;
+	ibuf->y = newy;
+
+	if (ibuf->rect) {
+		imb_freerectImBuf(ibuf);
+		ibuf->mall |= IB_rect;
+		ibuf->rect = (unsigned int *) init_data.byte_buffer;
+	}
+
+	if (ibuf->rect_float) {
+		imb_freerectfloatImBuf(ibuf);
+		ibuf->mall |= IB_rectfloat;
+		ibuf->rect_float = init_data.float_buffer;
+	}
+}

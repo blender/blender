@@ -300,14 +300,14 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 	BM_ITER_ELEM (f_iter, &fiter, v1, BM_FACES_OF_VERT) {
 		BM_ITER_ELEM (v_iter, &viter, f_iter, BM_FACES_OF_VERT) {
 			if (v_iter == v2) {
-				BMLoop *nl;
+				BMLoop *l_new;
 
-				f_iter = BM_face_split(bm, f_iter, v1, v2, &nl, NULL, false);
+				f_iter = BM_face_split(bm, f_iter, v1, v2, &l_new, NULL, false);
 
 				if (r_f) {
 					*r_f = f_iter;
 				}
-				return nl->e;
+				return l_new->e;
 			}
 		}
 	}
@@ -339,51 +339,51 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
                       BMEdge *example, const bool no_double)
 {
 	const bool has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
-	BMFace *nf, *of;
+	BMFace *f_new, *f_tmp;
 
 	BLI_assert(v1 != v2);
 
 	/* do we have a multires layer? */
 	if (has_mdisp) {
-		of = BM_face_copy(bm, f, false, false);
+		f_tmp = BM_face_copy(bm, f, false, false);
 	}
 	
 #ifdef USE_BMESH_HOLES
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example, no_double);
+	f_new = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example, no_double);
 #else
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, example, no_double);
+	f_new = bmesh_sfme(bm, f, v1, v2, r_l, example, no_double);
 #endif
 	
-	if (nf) {
-		BM_elem_attrs_copy(bm, bm, f, nf);
-		copy_v3_v3(nf->no, f->no);
+	if (f_new) {
+		BM_elem_attrs_copy(bm, bm, f, f_new);
+		copy_v3_v3(f_new->no, f->no);
 
 		/* handle multires update */
-		if (has_mdisp && (nf != f)) {
+		if (has_mdisp && (f_new != f)) {
 			BMLoop *l_iter;
 			BMLoop *l_first;
 
 			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
-				BM_loop_interp_multires(bm, l_iter, of);
+				BM_loop_interp_multires(bm, l_iter, f_tmp);
 			} while ((l_iter = l_iter->next) != l_first);
 
-			l_iter = l_first = BM_FACE_FIRST_LOOP(nf);
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
 			do {
-				BM_loop_interp_multires(bm, l_iter, of);
+				BM_loop_interp_multires(bm, l_iter, f_tmp);
 			} while ((l_iter = l_iter->next) != l_first);
 
-			BM_face_kill(bm, of);
+			BM_face_kill(bm, f_tmp);
 
 #if 0
 			/* BM_face_multires_bounds_smooth doesn't flip displacement correct */
 			BM_face_multires_bounds_smooth(bm, f);
-			BM_face_multires_bounds_smooth(bm, nf);
+			BM_face_multires_bounds_smooth(bm, f_new);
 #endif
 		}
 	}
 
-	return nf;
+	return f_new;
 }
 
 /**
@@ -406,62 +406,62 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[][3], int n,
                         BMLoop **r_l, BMEdge *example)
 {
-	BMFace *nf, *of;
+	BMFace *f_new, *f_tmp;
 	BMLoop *l_dummy;
-	BMEdge *e, *newe;
-	BMVert *newv;
+	BMEdge *e, *e_new;
+	BMVert *v_new;
 	int i, j;
 
 	BLI_assert(v1 != v2);
 
-	of = BM_face_copy(bm, f, true, true);
+	f_tmp = BM_face_copy(bm, f, true, true);
 
 	if (!r_l)
 		r_l = &l_dummy;
 	
 #ifdef USE_BMESH_HOLES
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example, false);
+	f_new = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example, false);
 #else
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, example, false);
+	f_new = bmesh_sfme(bm, f, v1, v2, r_l, example, false);
 #endif
-	/* bmesh_sfme returns in r_l a Loop for nf going from v1 to v2.
+	/* bmesh_sfme returns in r_l a Loop for f_new going from v1 to v2.
 	 * The radial_next is for f and goes from v2 to v1  */
 
-	if (nf) {
-		BM_elem_attrs_copy(bm, bm, f, nf);
-		copy_v3_v3(nf->no, f->no);
+	if (f_new) {
+		BM_elem_attrs_copy(bm, bm, f, f_new);
+		copy_v3_v3(f_new->no, f->no);
 
 		e = (*r_l)->e;
 		for (i = 0; i < n; i++) {
-			newv = bmesh_semv(bm, v2, e, &newe);
-			BLI_assert(newv != NULL);
-			/* bmesh_semv returns in newe the edge going from newv to tv */
-			copy_v3_v3(newv->co, cos[i]);
+			v_new = bmesh_semv(bm, v2, e, &e_new);
+			BLI_assert(v_new != NULL);
+			/* bmesh_semv returns in e_new the edge going from v_new to tv */
+			copy_v3_v3(v_new->co, cos[i]);
 
-			/* interpolate the loop data for the loops with (v == newv), using orig face */
+			/* interpolate the loop data for the loops with (v == v_new), using orig face */
 			for (j = 0; j < 2; j++) {
-				BMEdge *e_iter = (j == 0) ? e : newe;
+				BMEdge *e_iter = (j == 0) ? e : e_new;
 				BMLoop *l_iter = e_iter->l;
 				do {
-					if (l_iter->v == newv) {
+					if (l_iter->v == v_new) {
 						/* this interpolates both loop and vertex data */
-						BM_loop_interp_from_face(bm, l_iter, of, true, true);
+						BM_loop_interp_from_face(bm, l_iter, f_tmp, true, true);
 					}
 				} while ((l_iter = l_iter->radial_next) != e_iter->l);
 			}
-			e = newe;
+			e = e_new;
 		}
 	}
 
-	BM_face_verts_kill(bm, of);
+	BM_face_verts_kill(bm, f_tmp);
 
-	return nf;
+	return f_new;
 }
 
 /**
  * \brief Vert Collapse Faces
  *
- * Collapses vertex \a kv that has only two manifold edges
+ * Collapses vertex \a v_kill that has only two manifold edges
  * onto a vertex it shares an edge with.
  * \a fac defines the amount of interpolation for Custom Data.
  *
@@ -472,8 +472,8 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
  * Except this takes a factor and merges custom data.
  *
  * \param bm The bmesh
- * \param ke The edge to collapse
- * \param kv The vertex  to collapse into the edge
+ * \param e_kill The edge to collapse
+ * \param v_kill The vertex  to collapse into the edge
  * \param fac The factor along the edge
  * \param join_faces When true the faces around the vertex will be joined
  * otherwise collapse the vertex by merging the 2 edges this vert touches into one.
@@ -481,11 +481,11 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
  *
  * \returns The New Edge
  */
-BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
+BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
                                const bool join_faces, const bool kill_degenerate_faces)
 {
-	BMEdge *ne = NULL;
-	BMVert *tv = bmesh_edge_other_vert_get(ke, kv);
+	BMEdge *e_new = NULL;
+	BMVert *tv = bmesh_edge_other_vert_get(e_kill, v_kill);
 
 	BMEdge *e2;
 	BMVert *tv2;
@@ -497,17 +497,17 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 	float w[2];
 
 	/* Only intended to be called for 2-valence vertices */
-	BLI_assert(bmesh_disk_count(kv) <= 2);
+	BLI_assert(bmesh_disk_count(v_kill) <= 2);
 
 
 	/* first modify the face loop data  */
 	w[0] = 1.0f - fac;
 	w[1] = fac;
 
-	if (ke->l) {
-		l_iter = ke->l;
+	if (e_kill->l) {
+		l_iter = e_kill->l;
 		do {
-			if (l_iter->v == tv && l_iter->next->v == kv) {
+			if (l_iter->v == tv && l_iter->next->v == v_kill) {
 				tvloop = l_iter;
 				kvloop = l_iter->next;
 
@@ -515,30 +515,30 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 				src[1] = tvloop->head.data;
 				CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, kvloop->head.data);
 			}
-		} while ((l_iter = l_iter->radial_next) != ke->l);
+		} while ((l_iter = l_iter->radial_next) != e_kill->l);
 	}
 
 	/* now interpolate the vertex data */
-	BM_data_interp_from_verts(bm, kv, tv, kv, fac);
+	BM_data_interp_from_verts(bm, v_kill, tv, v_kill, fac);
 
-	e2 = bmesh_disk_edge_next(ke, kv);
-	tv2 = BM_edge_other_vert(e2, kv);
+	e2 = bmesh_disk_edge_next(e_kill, v_kill);
+	tv2 = BM_edge_other_vert(e2, v_kill);
 
 	if (join_faces) {
 		BMFace **faces = NULL;
 		BMFace *f;
 		BLI_array_staticdeclare(faces, 8);
 
-		BM_ITER_ELEM (f, &iter, kv, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (f, &iter, v_kill, BM_FACES_OF_VERT) {
 			BLI_array_append(faces, f);
 		}
 
 		if (BLI_array_count(faces) >= 2) {
 			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_count(faces), true);
 			if (f2) {
-				BMLoop *nl = NULL;
-				if (BM_face_split(bm, f2, tv, tv2, &nl, NULL, false)) {
-					ne = nl->e;
+				BMLoop *l_new = NULL;
+				if (BM_face_split(bm, f2, tv, tv2, &l_new, NULL, false)) {
+					e_new = l_new->e;
 				}
 			}
 		}
@@ -549,16 +549,16 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		/* single face or no faces */
 		/* same as BM_vert_collapse_edge() however we already
 		 * have vars to perform this operation so don't call. */
-		ne = bmesh_jekv(bm, ke, kv, true);
-		/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
+		e_new = bmesh_jekv(bm, e_kill, v_kill, true);
+		/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
 
-		if (ne && kill_degenerate_faces) {
+		if (e_new && kill_degenerate_faces) {
 			BLI_array_declare(bad_faces);
 			BMFace **bad_faces = NULL;
 
 			BMIter fiter;
 			BMFace *f;
-			BMVert *verts[2] = {ne->v1, ne->v2};
+			BMVert *verts[2] = {e_new->v1, e_new->v2};
 			int i;
 
 			for (i = 0; i < 2; i++) {
@@ -577,7 +577,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		}
 	}
 
-	return ne;
+	return e_new;
 }
 
 
@@ -588,37 +588,37 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
  *
  * \return The New Edge
  */
-BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
+BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
                               const bool kill_degenerate_faces)
 {
 	/* nice example implementation but we want loops to have their customdata
 	 * accounted for */
 #if 0
-	BMEdge *ne = NULL;
+	BMEdge *e_new = NULL;
 
 	/* Collapse between 2 edges */
 
 	/* in this case we want to keep all faces and not join them,
 	 * rather just get rid of the vertex - see bug [#28645] */
-	BMVert *tv  = bmesh_edge_other_vert_get(ke, kv);
+	BMVert *tv  = bmesh_edge_other_vert_get(e_kill, v_kill);
 	if (tv) {
-		BMEdge *e2 = bmesh_disk_edge_next(ke, kv);
+		BMEdge *e2 = bmesh_disk_edge_next(e_kill, v_kill);
 		if (e2) {
-			BMVert *tv2 = BM_edge_other_vert(e2, kv);
+			BMVert *tv2 = BM_edge_other_vert(e2, v_kill);
 			if (tv2) {
 				/* only action, other calls here only get the edge to return */
-				ne = bmesh_jekv(bm, ke, kv);
+				e_new = bmesh_jekv(bm, e_kill, v_kill);
 
-				/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
+				/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
 			}
 		}
 	}
 
-	return ne;
+	return e_new;
 #else
 	/* with these args faces are never joined, same as above
 	 * but account for loop customdata */
-	return BM_vert_collapse_faces(bm, ke, kv, 1.0f, false, kill_degenerate_faces);
+	return BM_vert_collapse_faces(bm, e_kill, v_kill, 1.0f, false, kill_degenerate_faces);
 #endif
 }
 
@@ -637,7 +637,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
  */
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent)
 {
-	BMVert *nv, *v2;
+	BMVert *v_new, *v2;
 	BMFace **oldfaces = NULL;
 	BMEdge *e_dummy;
 	BLI_array_staticdeclare(oldfaces, 32);
@@ -668,21 +668,21 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	}
 
 	v2 = bmesh_edge_other_vert_get(e, v);
-	nv = bmesh_semv(bm, v, e, r_e);
+	v_new = bmesh_semv(bm, v, e, r_e);
 
-	BLI_assert(nv != NULL);
+	BLI_assert(v_new != NULL);
 
-	sub_v3_v3v3(nv->co, v2->co, v->co);
-	madd_v3_v3v3fl(nv->co, v->co, nv->co, percent);
+	sub_v3_v3v3(v_new->co, v2->co, v->co);
+	madd_v3_v3v3fl(v_new->co, v->co, v_new->co, percent);
 
 	if (r_e) {
 		(*r_e)->head.hflag = e->head.hflag;
 		BM_elem_attrs_copy(bm, bm, e, *r_e);
 	}
 
-	/* v->nv->v2 */
-	BM_data_interp_face_vert_edge(bm, v2, v, nv, e, percent);
-	BM_data_interp_from_verts(bm, v, v2, nv, percent);
+	/* v->v_new->v2 */
+	BM_data_interp_face_vert_edge(bm, v2, v, v_new, e, percent);
+	BM_data_interp_from_verts(bm, v, v2, v_new, percent);
 
 	if (do_mdisp) {
 		int i, j;
@@ -742,7 +742,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 		BLI_array_free(oldfaces);
 	}
 
-	return nv;
+	return v_new;
 }
 
 /**
@@ -752,13 +752,13 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 {
 	int i;
 	float percent;
-	BMVert *nv = NULL;
+	BMVert *v_new = NULL;
 	
 	for (i = 0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
-		nv = BM_edge_split(bm, e, e->v2, NULL, percent);
+		v_new = BM_edge_split(bm, e, e->v2, NULL, percent);
 	}
-	return nv;
+	return v_new;
 }
 
 #if 0

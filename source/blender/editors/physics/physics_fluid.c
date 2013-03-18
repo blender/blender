@@ -679,18 +679,15 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	if (fileCfg) {
 		dirExist = 1; fclose(fileCfg); 
 		// remove cfg dummy from  directory test
-		BLI_delete(targetFile, 0, 0);
+		BLI_delete(targetFile, false, false);
 	}
 	
 	if (targetDir[0] == '\0' || (!dirExist)) {
-		char blendDir[FILE_MAX];
 		char blendFile[FILE_MAX];
 		
 		// invalid dir, reset to current/previous
-		BLI_strncpy(blendDir, G.main->name, FILE_MAX);
-		BLI_splitdirstring(blendDir, blendFile);
+		BLI_split_file_part(G.main->name, blendFile, sizeof(blendFile));
 		BLI_replace_extension(blendFile, FILE_MAX, ""); /* strip .blend */
-
 		BLI_snprintf(newSurfdataPath, FILE_MAX, "//fluidsimdata/%s_%s_", blendFile, fsDomain->id.name);
 		
 		BLI_snprintf(debugStrBuffer, 256, "fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);
@@ -852,9 +849,9 @@ static void fluidsim_delete_until_lastframe(FluidsimSettings *fss, const char *r
 		curFrame++;
 
 		if ((exists = BLI_exists(targetFile))) {
-			BLI_delete(targetFile, 0, 0);
-			BLI_delete(targetFileVel, 0, 0);
-			BLI_delete(previewFile, 0, 0);
+			BLI_delete(targetFile, false, false);
+			BLI_delete(targetFileVel, false, false);
+			BLI_delete(previewFile, false, false);
 		}
 	} while (exists);
 
@@ -1130,7 +1127,7 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 
 /***************************** Operators ******************************/
 
-static int fluid_bake_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	/* only one bake job at a time */
 	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))

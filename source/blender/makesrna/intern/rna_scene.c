@@ -26,11 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
@@ -48,6 +43,11 @@
 #include "BLF_translation.h"
 
 #include "BKE_tessmesh.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 /* Include for Bake Options */
 #include "RE_engine.h"
@@ -3578,8 +3578,9 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
-		{CODEC_ID_QTRLE, "QTRLE", 0, "QTRLE", ""},
+		{CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
 		{CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
+		{CODEC_ID_PNG, "PNG", 0, "PNG", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

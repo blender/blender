@@ -33,8 +33,6 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "RNA_access.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -45,11 +43,13 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "RNA_access.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
+
+#include "ED_screen.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

@@ -475,7 +475,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 }
 
 
-static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	int undosys, totitem = 0;
 	

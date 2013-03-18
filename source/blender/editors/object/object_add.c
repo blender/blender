@@ -49,11 +49,13 @@
 #include "DNA_vfont_types.h"
 #include "DNA_actuator_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -662,7 +664,9 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	else {
+		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	}
 
 	if (obedit == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature");
@@ -736,7 +740,7 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, FALSE);
 }
 
-static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Base *base = NULL;
 	Image *ima = NULL;
@@ -872,6 +876,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	RNA_def_property_translation_context(ot->prop, BLF_I18NCONTEXT_ID_LAMP);
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -1482,7 +1487,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = ob;
 			}
 
-			BKE_mesh_from_curve(scene, newob);
+			BKE_mesh_to_curve(scene, newob);
 
 			if (newob->type == OB_CURVE)
 				BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */

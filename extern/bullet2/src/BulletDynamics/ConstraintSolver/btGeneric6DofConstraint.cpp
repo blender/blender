@@ -174,10 +174,8 @@ btScalar btRotationalLimitMotor::solveAngularLimits(
 
 	// current velocity difference
 
-	btVector3 angVelA;
-	body0->internalGetAngularVelocity(angVelA);
-	btVector3 angVelB;
-	body1->internalGetAngularVelocity(angVelB);
+	btVector3 angVelA = body0->getAngularVelocity();
+	btVector3 angVelB = body1->getAngularVelocity();
 
 	btVector3 vel_diff;
 	vel_diff = angVelA-angVelB;
@@ -225,12 +223,8 @@ btScalar btRotationalLimitMotor::solveAngularLimits(
 
 	btVector3 motorImp = clippedMotorImpulse * axis;
 
-	//body0->applyTorqueImpulse(motorImp);
-	//body1->applyTorqueImpulse(-motorImp);
-
-	body0->internalApplyImpulse(btVector3(0,0,0), body0->getInvInertiaTensorWorld()*axis,clippedMotorImpulse);
-	body1->internalApplyImpulse(btVector3(0,0,0), body1->getInvInertiaTensorWorld()*axis,-clippedMotorImpulse);
-
+	body0->applyTorqueImpulse(motorImp);
+	body1->applyTorqueImpulse(-motorImp);
 
 	return clippedMotorImpulse;
 
@@ -292,10 +286,8 @@ btScalar btTranslationalLimitMotor::solveLinearAxis(
 	btVector3 rel_pos1 = anchorPos - body1.getCenterOfMassPosition();
 	btVector3 rel_pos2 = anchorPos - body2.getCenterOfMassPosition();
 
-	btVector3 vel1;
-	body1.internalGetVelocityInLocalPointObsolete(rel_pos1,vel1);
-	btVector3 vel2;
-	body2.internalGetVelocityInLocalPointObsolete(rel_pos2,vel2);
+	btVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
+	btVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
 	btVector3 vel = vel1 - vel2;
 
 	btScalar rel_vel = axis_normal_on_a.dot(vel);
@@ -348,16 +340,10 @@ btScalar btTranslationalLimitMotor::solveLinearAxis(
 	normalImpulse = m_accumulatedImpulse[limit_index] - oldNormalImpulse;
 
 	btVector3 impulse_vector = axis_normal_on_a * normalImpulse;
-	//body1.applyImpulse( impulse_vector, rel_pos1);
-	//body2.applyImpulse(-impulse_vector, rel_pos2);
+	body1.applyImpulse( impulse_vector, rel_pos1);
+	body2.applyImpulse(-impulse_vector, rel_pos2);
 
-	btVector3 ftorqueAxis1 = rel_pos1.cross(axis_normal_on_a);
-	btVector3 ftorqueAxis2 = rel_pos2.cross(axis_normal_on_a);
-	body1.internalApplyImpulse(axis_normal_on_a*body1.getInvMass(), body1.getInvInertiaTensorWorld()*ftorqueAxis1,normalImpulse);
-	body2.internalApplyImpulse(axis_normal_on_a*body2.getInvMass(), body2.getInvInertiaTensorWorld()*ftorqueAxis2,-normalImpulse);
-
-
-
+	
 
 	return normalImpulse;
 }
@@ -795,17 +781,16 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
     if (powered || limit)
     {   // if the joint is powered, or has joint limits, add in the extra row
         btScalar *J1 = rotational ? info->m_J1angularAxis : info->m_J1linearAxis;
-        btScalar *J2 = rotational ? info->m_J2angularAxis : 0;
+        btScalar *J2 = rotational ? info->m_J2angularAxis : info->m_J2linearAxis;
         J1[srow+0] = ax1[0];
         J1[srow+1] = ax1[1];
         J1[srow+2] = ax1[2];
-        if(rotational)
-        {
-            J2[srow+0] = -ax1[0];
-            J2[srow+1] = -ax1[1];
-            J2[srow+2] = -ax1[2];
-        }
-        if((!rotational))
+
+        J2[srow+0] = -ax1[0];
+        J2[srow+1] = -ax1[1];
+        J2[srow+2] = -ax1[2];
+
+		if((!rotational))
         {
 			if (m_useOffsetForConstraintFrame)
 			{

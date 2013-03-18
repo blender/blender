@@ -261,7 +261,9 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking, MovieTrackingOb
 		invert_m4_m4(imat, camera->mat);
 		mult_m4_m4m4(mat, winmat, imat);
 	}
-	else copy_m4_m4(mat, winmat);
+	else {
+		copy_m4_m4(mat, winmat);
+	}
 }
 
 /* **** space transformation functions  **** */
@@ -1189,6 +1191,7 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 	object->keyframe2 = 30;
 
 	BKE_tracking_object_unique_name(tracking, object);
+	BKE_tracking_dopesheet_tag_update(tracking);
 
 	return object;
 }
@@ -1223,6 +1226,9 @@ int BKE_tracking_object_delete(MovieTracking *tracking, MovieTrackingObject *obj
 		tracking->objectnr = index - 1;
 	else
 		tracking->objectnr = 0;
+
+	BKE_tracking_dopesheet_tag_update(tracking);
+
 	return TRUE;
 }
 
@@ -1446,7 +1452,7 @@ static void cameraIntrinscisOptionsFromTracking(libmv_cameraIntrinsicsOptions *c
 	camera_intrinsics_options->k3 = camera->k3;
 
 	camera_intrinsics_options->image_width = calibration_width;
-	camera_intrinsics_options->image_height = (double) calibration_height * aspy;
+	camera_intrinsics_options->image_height = (double) (calibration_height * aspy);
 }
 #endif
 
@@ -1455,6 +1461,10 @@ MovieDistortion *BKE_tracking_distortion_new(void)
 	MovieDistortion *distortion;
 
 	distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
+
+#ifdef WITH_LIBMV
+	distortion->intrinsics = libmv_CameraIntrinsicsNewEmpty();
+#endif
 
 	return distortion;
 }
@@ -1468,17 +1478,22 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking,
 	                                    calibration_width, calibration_height);
 
-	if (!distortion->intrinsics) {
-		distortion->intrinsics = libmv_CameraIntrinsicsNew(&camera_intrinsics_options);
-	}
-	else {
-		libmv_CameraIntrinsicsUpdate(distortion->intrinsics, &camera_intrinsics_options);
-	}
+	libmv_CameraIntrinsicsUpdate(distortion->intrinsics, &camera_intrinsics_options);
 #else
 	(void) distortion;
 	(void) tracking;
 	(void) calibration_width;
 	(void) calibration_height;
+#endif
+}
+
+void BKE_tracking_distortion_set_threads(MovieDistortion *distortion, int threads)
+{
+#ifdef WITH_LIBMV
+	libmv_CameraIntrinsicsSetThreads(distortion->intrinsics, threads);
+#else
+	(void) distortion;
+	(void) threads;
 #endif
 }
 
@@ -1594,8 +1609,8 @@ void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float
 
 	libmv_InvertIntrinsics(&camera_intrinsics_options, x, y, &x, &y);
 
-	r_co[0] = x * camera->focal + camera->principal[0];
-	r_co[1] = y * camera->focal + camera->principal[1] * aspy;
+	r_co[0] = (float)x * camera->focal + camera->principal[0];
+	r_co[1] = (float)y * camera->focal + camera->principal[1] * aspy;
 #else
 	(void) camera;
 	(void) co;
@@ -1699,7 +1714,7 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 
 ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *search_ibuf,
                                    MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                   int use_mask, int num_samples_x, int num_samples_y,
+                                   int from_anchor, int use_mask, int num_samples_x, int num_samples_y,
                                    float pos[2])
 {
 #ifdef WITH_LIBMV
@@ -1718,6 +1733,28 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	}
 
 	get_marker_coords_for_tracking(frame_width, frame_height, marker, src_pixel_x, src_pixel_y);
+
+	/* from_anchor means search buffer was obtained for an anchored position,
+	 * which means applying track offset rounded to pixel space (we could not
+	 * store search buffer with sub-pixel precision)
+	 *
+	 * in this case we need to alter coordinates a bit, to compensate rounded
+	 * fractional part of offset
+	 */
+	if (from_anchor) {
+		int a;
+
+		for (a = 0; a < 5; a++) {
+			src_pixel_x[a] += (double) ((track->offset[0] * frame_width) - ((int) (track->offset[0] * frame_width)));
+			src_pixel_y[a] += (double) ((track->offset[1] * frame_height) - ((int) (track->offset[1] * frame_height)));
+
+			/* when offset is negative, rounding happens in opposite direction */
+			if (track->offset[0] < 0.0f)
+				src_pixel_x[a] += 1.0;
+			if (track->offset[1] < 0.0f)
+				src_pixel_y[a] += 1.0;
+		}
+	}
 
 	if (use_mask) {
 		mask = BKE_tracking_track_get_mask(frame_width, frame_height, track, marker);
@@ -1751,6 +1788,7 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	(void) frame_height;
 	(void) search_ibuf;
 	(void) marker;
+	(void) from_anchor;
 	(void) track;
 	(void) use_mask;
 
@@ -1779,7 +1817,7 @@ ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 
 	if (search_ibuf) {
 		pattern_ibuf = BKE_tracking_sample_pattern(ibuf->x, ibuf->y, search_ibuf, track, marker,
-		                                           FALSE, num_samples_x, num_samples_y, NULL);
+		                                           anchored, FALSE, num_samples_x, num_samples_y, NULL);
 
 		IMB_freeImBuf(search_ibuf);
 	}
@@ -2726,7 +2764,7 @@ static void reconstruct_retrieve_libmv_intrinscis(MovieReconstructContext *conte
 	tracking->camera.focal = focal_length;
 
 	tracking->camera.principal[0] = principal_x;
-	tracking->camera.principal[1] = principal_y / aspy;
+	tracking->camera.principal[1] = principal_y / (double)aspy;
 
 	tracking->camera.k1 = k1;
 	tracking->camera.k2 = k2;

@@ -72,7 +72,7 @@
 /************************ poll ***************************/
 
 
-BLI_INLINE int text_pixel_x_to_index(SpaceText *st, const int x)
+BLI_INLINE int text_pixel_x_to_column(SpaceText *st, const int x)
 {
 	/* add half the char width so mouse cursor selection is inbetween letters */
 	return (x + (st->cwidth / 2)) / st->cwidth;
@@ -278,7 +278,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
 	char *path = (text && text->name) ? text->name : G.main->name;
@@ -539,7 +539,7 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
 	char *str;
@@ -1011,7 +1011,7 @@ static int text_line_break_exec(bContext *C, wmOperator *UNUSED(op))
 	text_drawcache_tag_update(st, 0);
 
 	// double check tabs/spaces before splitting the line
-	curts = setcurr_tab_spaces(text, space);
+	curts = txt_setcurr_tab_spaces(text, space);
 	txt_split_curline(text);
 
 	for (a = 0; a < curts; a++) {
@@ -1407,25 +1407,31 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 
 	for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe(linein->line + j)) {
 		int chars;
+		int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
+
 		/* Mimic replacement of tabs */
 		ch = linein->line[j];
 		if (ch == '\t') {
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
-			if (rell == 0 && i - start == relc) {
+			if (rell == 0 && i - start <= relc && i + columns - start > relc) {
 				/* current position could be wrapped to next line */
 				/* this should be checked when end of current line would be reached */
 				selc = j;
 				found = 1;
 			}
-			else if (i - end == relc) {
+			else if (i - end <= relc && i + columns - end > relc) {
 				curs = j;
 			}
-			if (i - start >= max) {
+			if (i + columns - start > max) {
+				end = MIN2(end, i);
+
 				if (found) {
 					/* exact cursor position was found, check if it's */
 					/* still on needed line (hasn't been wrapped) */
@@ -1441,7 +1447,7 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 				chop = 1;
 				rell--;
 
-				if (rell == 0 && i - start >= relc) {
+				if (rell == 0 && i + columns - start > relc) {
 					selc = curs;
 					loop = 0;
 					break;
@@ -1458,7 +1464,7 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 					break;
 				}
 
-				if (rell == 0 && i - start >= relc) {
+				if (rell == 0 && i + columns - start > relc) {
 					selc = curs;
 					loop = 0;
 					break;
@@ -1467,7 +1473,7 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 				endj = j;
 				chop = 0;
 			}
-			i++;
+			i += columns;
 		}
 	}
 
@@ -1585,20 +1591,26 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 
 	for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
 		int chars;
+		int columns = BLI_str_utf8_char_width_safe((*linep)->line + j); /* = 1 for tab */
+
 		/* Mimic replacement of tabs */
 		ch = (*linep)->line[j];
 		if (ch == '\t') {
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
-			if (i - start >= max) {
+			if (i + columns - start > max) {
+				end = MIN2(end, i);
+
 				*charp = endj;
 
 				if (j >= oldc) {
-					if (ch == '\0') *charp = txt_utf8_index_to_offset((*linep)->line, start);
+					if (ch == '\0') *charp = txt_utf8_column_to_offset((*linep)->line, start);
 					loop = 0;
 					break;
 				}
@@ -1611,7 +1623,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 			}
 			else if (ch == ' ' || ch == '-' || ch == '\0') {
 				if (j >= oldc) {
-					*charp = txt_utf8_index_to_offset((*linep)->line, start);
+					*charp = txt_utf8_column_to_offset((*linep)->line, start);
 					loop = 0;
 					break;
 				}
@@ -1620,7 +1632,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 				endj = j + 1;
 				chop = 0;
 			}
-			i++;
+			i += columns;
 		}
 	}
 
@@ -1651,16 +1663,22 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 
 	for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
 		int chars;
+		int columns = BLI_str_utf8_char_width_safe((*linep)->line + j); /* = 1 for tab */
+
 		/* Mimic replacement of tabs */
 		ch = (*linep)->line[j];
 		if (ch == '\t') {
 			chars = st->tabnumber - i % st->tabnumber;
 			ch = ' ';
 		}
-		else chars = 1;
+		else {
+			chars = 1;
+		}
 
 		while (chars--) {
-			if (i - start >= max) {
+			if (i + columns - start > max) {
+				end = MIN2(end, i);
+
 				if (chop) endj = BLI_str_prev_char_utf8((*linep)->line + j) - (*linep)->line;
 
 				if (endj >= oldc) {
@@ -1684,7 +1702,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 				endj = j;
 				chop = 0;
 			}
-			i++;
+			i += columns;
 		}
 	}
 
@@ -1716,7 +1734,9 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 			visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
 			*charp = text_get_cursor_rel(st, ar, *linep, visible_lines - 1, col);
 		}
-		else *charp = 0;
+		else {
+			*charp = 0;
+		}
 	}
 
 	if (!sel) txt_pop_sel(text);
@@ -1745,7 +1765,9 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 			*linep = (*linep)->next;
 			*charp = text_get_cursor_rel(st, ar, *linep, 0, col);
 		}
-		else *charp = (*linep)->len;
+		else {
+			*charp = (*linep)->len;
+		}
 	}
 
 	if (!sel) txt_pop_sel(text);
@@ -1927,7 +1949,7 @@ static int text_jump_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_jump_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_jump_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
 
@@ -2085,7 +2107,7 @@ static int text_scroll_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void text_scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2142,7 +2164,7 @@ static void scroll_exit(bContext *C, wmOperator *op)
 	MEM_freeN(op->customdata);
 }
 
-static int text_scroll_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	TextScroll *tsc = op->customdata;
 	SpaceText *st = CTX_wm_space_text(C);
@@ -2182,7 +2204,7 @@ static int text_scroll_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	TextScroll *tsc;
@@ -2259,7 +2281,7 @@ static int text_region_scroll_poll(bContext *C)
 	return 1;
 }
 
-static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2342,7 +2364,7 @@ typedef struct SetSelection {
 	short old[2];
 } SetSelection;
 
-static int flatten_len(SpaceText *st, const char *str)
+static int flatten_width(SpaceText *st, const char *str)
 {
 	int i, total = 0;
 
@@ -2350,20 +2372,30 @@ static int flatten_len(SpaceText *st, const char *str)
 		if (str[i] == '\t') {
 			total += st->tabnumber - total % st->tabnumber;
 		}
-		else total++;
+		else {
+			total += BLI_str_utf8_char_width_safe(str + i);
+		}
 	}
 	
 	return total;
 }
 
-static int flatten_index_to_offset(SpaceText *st, const char *str, int index)
+static int flatten_column_to_offset(SpaceText *st, const char *str, int index)
 {
-	int i, j;
-	for (i = 0, j = 0; i < index; j += BLI_str_utf8_size_safe(str + j))
+	int i = 0, j = 0, col;
+
+	while (*(str + j)) {
 		if (str[j] == '\t')
-			i += st->tabnumber - i % st->tabnumber;
+			col = st->tabnumber - i % st->tabnumber;
 		else
-			i++;
+			col = BLI_str_utf8_char_width_safe(str + j);
+		
+		if (i + col > index)
+			break;
+		
+		i += col;
+		j += BLI_str_utf8_size_safe(str + j);
+	}
 	
 	return j;
 }
@@ -2390,7 +2422,7 @@ static TextLine *get_first_visible_line(SpaceText *st, ARegion *ar, int *y)
 static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, int y, int sel)
 {
 	Text *text = st->text;
-	int max = wrap_width(st, ar); /* view */
+	int max = wrap_width(st, ar); /* column */
 	int charp = -1;               /* mem */
 	int loop = 1, found = 0;      /* flags */
 	char ch;
@@ -2399,12 +2431,13 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 	TextLine *linep = get_first_visible_line(st, ar, &y);
 	
 	while (loop && linep) {
-		int i = 0, start = 0, end = max; /* view */
+		int i = 0, start = 0, end = max; /* column */
 		int j = 0, curs = 0, endj = 0;   /* mem */
 		int chop = 1;                    /* flags */
 		
 		for (; loop; j += BLI_str_utf8_size_safe(linep->line + j)) {
 			int chars;
+			int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
 			
 			/* Mimic replacement of tabs */
 			ch = linep->line[j];
@@ -2412,7 +2445,9 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 				chars = st->tabnumber - i % st->tabnumber;
 				ch = ' ';
 			}
-			else chars = 1;
+			else {
+				chars = 1;
+			}
 			
 			while (chars--) {
 				/* Gone too far, go back to last wrap point */
@@ -2422,17 +2457,19 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 					break;
 					/* Exactly at the cursor */
 				}
-				else if (y == 0 && i - start == x) {
+				else if (y == 0 && i - start <= x && i + columns - start > x) {
 					/* current position could be wrapped to next line */
 					/* this should be checked when end of current line would be reached */
 					charp = curs = j;
 					found = 1;
 					/* Prepare curs for next wrap */
 				}
-				else if (i - end == x) {
+				else if (i - end <= x && i + columns - end > x) {
 					curs = j;
 				}
-				if (i - start >= max) {
+				if (i + columns - start > max) {
+					end = MIN2(end, i);
+					
 					if (found) {
 						/* exact cursor position was found, check if it's */
 						/* still on needed line (hasn't been wrapped) */
@@ -2449,7 +2486,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 						y--;
 					
 					chop = 1;
-					if (y == 0 && i - start >= x) {
+					if (y == 0 && i + columns - start > x) {
 						charp = curs;
 						loop = 0;
 						break;
@@ -2461,7 +2498,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 						break;
 					}
 					
-					if (y == 0 && i - start >= x) {
+					if (y == 0 && i + columns - start > x) {
 						charp = curs;
 						loop = 0;
 						break;
@@ -2470,7 +2507,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 					endj = j;
 					chop = 0;
 				}
-				i++;
+				i += columns;
 			}
 			
 			if (ch == '\0') break;
@@ -2509,7 +2546,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 	else x -= TXT_OFFSET;
 
 	if (x < 0) x = 0;
-	x = text_pixel_x_to_index(st, x) + st->left;
+	x = text_pixel_x_to_column(st, x) + st->left;
 	
 	if (st->wordwrap) {
 		text_cursor_set_to_pos_wrapped(st, ar, x, y, sel);
@@ -2532,14 +2569,14 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 		}
 
 		
-		w = flatten_len(st, (*linep)->line);
-		if (x < w) *charp = flatten_index_to_offset(st, (*linep)->line, x);
+		w = flatten_width(st, (*linep)->line);
+		if (x < w) *charp = flatten_column_to_offset(st, (*linep)->line, x);
 		else *charp = (*linep)->len;
 	}
 	if (!sel) txt_pop_sel(text);
 }
 
-static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void text_cursor_set_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2594,7 +2631,7 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
 	MEM_freeN(ssel);
 }
 
-static int text_set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_set_selection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	SetSelection *ssel;
@@ -2619,7 +2656,7 @@ static int text_set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int text_set_selection_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int text_set_selection_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
 		case LEFTMOUSE:
@@ -2675,7 +2712,7 @@ static int text_cursor_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int text_cursor_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_cursor_set_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 
@@ -2707,7 +2744,7 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 
 /******************* line number operator **********************/
 
-static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
@@ -2797,7 +2834,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int ret;
 
@@ -3100,7 +3137,7 @@ static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
 	uiPopupMenu *pup;

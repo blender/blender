@@ -108,7 +108,7 @@ public:
 	bool destroy_if_possible() {
 		if (can_destroy()) {
 			delete data;
-			data = 0;
+			data = NULL;
 			unmanage();
 			return true;
 		}

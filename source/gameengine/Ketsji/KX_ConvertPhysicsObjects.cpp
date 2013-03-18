@@ -68,8 +68,8 @@ extern "C"{
 #include "KX_BulletPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
 
-							#ifdef WIN32
-#if _MSC_VER >= 1310
+#ifdef WIN32
+#if defined(_MSC_VER) && (_MSC_VER >= 1310)
 //only use SIMD Hull code under Win32
 //#define TEST_HULL 1
 #ifdef TEST_HULL

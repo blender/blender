@@ -340,7 +340,7 @@ int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *
 	return 0;
 }
 
-static int surface_duplicateOutputExists(void *arg, const char *name)
+static bool surface_duplicateOutputExists(void *arg, const char *name)
 {
 	DynamicPaintSurface *t_surface = (DynamicPaintSurface *)arg;
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
@@ -349,11 +349,11 @@ static int surface_duplicateOutputExists(void *arg, const char *name)
 		if (surface != t_surface && surface->type == t_surface->type &&
 		    surface->format == t_surface->format)
 		{
-			if (surface->output_name[0] != '\0' && !BLI_path_cmp(name, surface->output_name)) return 1;
-			if (surface->output_name2[0] != '\0' && !BLI_path_cmp(name, surface->output_name2)) return 1;
+			if (surface->output_name[0] != '\0' && !BLI_path_cmp(name, surface->output_name)) return true;
+			if (surface->output_name2[0] != '\0' && !BLI_path_cmp(name, surface->output_name2)) return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
@@ -367,15 +367,15 @@ static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *base
 }
 
 
-static int surface_duplicateNameExists(void *arg, const char *name)
+static bool surface_duplicateNameExists(void *arg, const char *name)
 {
 	DynamicPaintSurface *t_surface = (DynamicPaintSurface *)arg;
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
 
 	for (; surface; surface = surface->next) {
-		if (surface != t_surface && !strcmp(name, surface->name)) return 1;
+		if (surface != t_surface && !strcmp(name, surface->name)) return true;
 	}
-	return 0;
+	return false;
 }
 
 void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char *basename)
@@ -473,7 +473,9 @@ static float mixColors(float a_color[3], float a_weight, float b_color[3], float
 		}
 		weight_ratio = b_weight / (a_weight + b_weight);
 	}
-	else return a_weight * (1.0f - ratio);
+	else {
+		return a_weight * (1.0f - ratio);
+	}
 
 	/* calculate final interpolation factor */
 	if (ratio <= 0.5f) {
@@ -2606,7 +2608,9 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 				if (!f_data->uv_p || !f_data->barycentricWeights) error = 1;
 			}
-			else error = 1;
+			else {
+				error = 1;
+			}
 
 			sData->total_points = active_points;
 			
@@ -2859,7 +2863,9 @@ static void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], fl
 			mat = bMats->ob_mats[mat_nr];
 			if (mat == NULL) return;    /* No material assigned */
 		}
-		else return;
+		else {
+			return;
+		}
 	}
 
 	RE_sample_material_color(mat, color, alpha, volume_co, surface_co, faceIndex, isQuad, orcoDm, brushOb);
@@ -3924,7 +3930,9 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 			strength = 1.0f - distance / brush_radius;
 			CLAMP(strength, 0.0f, 1.0f);
 		}
-		else strength = 1.0f;
+		else {
+			strength = 1.0f;
+		}
 
 		if (strength >= 0.001f) {
 			float paintColor[3] = {0.0f};

@@ -31,13 +31,18 @@
 #include <limits.h>
 #include <assert.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLF_api.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string_utf8.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "BKE_text.h"
 
 #include "ED_datafiles.h"
 
@@ -68,12 +73,12 @@ BLI_INLINE void console_step_sel(ConsoleDrawContext *cdc, const int step)
 	cdc->sel[1] += step;
 }
 
-static void console_draw_sel(const int sel[2], const int xy[2], const int str_len_draw, int cwidth, int lheight,
-                             const unsigned char bg_sel[4])
+static void console_draw_sel(const char *str, const int sel[2], const int xy[2], const int str_len_draw,
+                             int cwidth, int lheight, const unsigned char bg_sel[4])
 {
 	if (sel[0] <= str_len_draw && sel[1] >= 0) {
-		const int sta = max_ii(sel[0], 0);
-		const int end = min_ii(sel[1], str_len_draw);
+		const int sta = txt_utf8_offset_to_column(str, max_ii(sel[0], 0));
+		const int end = txt_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -85,38 +90,72 @@ static void console_draw_sel(const int sel[2], const int xy[2], const int str_le
 	}
 }
 
+/* warning: allocated memory for 'offsets' must be freed by caller */
+static int console_wrap_offsets(const char *str, int len, int width, int *lines, int **offsets)
+{
+	int i, end;  /* column */
+	int j;       /* mem */
+
+	*lines = 1;
+
+	*offsets = MEM_callocN(sizeof(**offsets) * (len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
+	                       "console_wrap_offsets");
+	(*offsets)[0] = 0;
+
+	for (i = 0, end = width, j = 0; j < len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {
+		int columns = BLI_str_utf8_char_width_safe(str + j);
+
+		if (i + columns > end) {
+			(*offsets)[*lines] = j;
+			(*lines)++;
+
+			end = i + width;
+		}
+		i += columns;
+	}
+	return j; /* return actual length */
+}
+
 /* return 0 if the last line is off the screen
  * should be able to use this for any string type */
 
-static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const int str_len,
+static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str_len,
                                const unsigned char fg[3], const unsigned char bg[3], const unsigned char bg_sel[4])
 {
 	int rct_ofs = cdc->lheight / 4;
-	int tot_lines = (str_len / cdc->console_width) + 1; /* total number of lines for wrapping */
-	int y_next = (str_len > cdc->console_width) ? cdc->xy[1] + cdc->lheight * tot_lines : cdc->xy[1] + cdc->lheight;
+	int tot_lines;            /* total number of lines for wrapping */
+	int *offsets;             /* offsets of line beginnings for wrapping */
+	int y_next;
 	const int mono = blf_mono_font;
+
+	str_len = console_wrap_offsets(str, str_len, cdc->console_width, &tot_lines, &offsets);
+	y_next = cdc->xy[1] + cdc->lheight * tot_lines;
 
 	/* just advance the height */
 	if (cdc->draw == 0) {
-		if (cdc->pos_pick && (cdc->mval[1] != INT_MAX)) {
-			if (cdc->xy[1] <= cdc->mval[1]) {
-				if ((y_next >= cdc->mval[1])) {
-					int ofs = (int)floor(((float)cdc->mval[0] / (float)cdc->cwidth));
+		if (cdc->pos_pick && cdc->mval[1] != INT_MAX && cdc->xy[1] <= cdc->mval[1]) {
+			if (y_next >= cdc->mval[1]) {
+				int ofs = 0;
 
-					/* wrap */
-					if (str_len > cdc->console_width)
-						ofs += cdc->console_width * ((int)((((float)(y_next - cdc->mval[1]) /
-						                                     (float)(y_next - cdc->xy[1])) * tot_lines)));
-	
-					CLAMP(ofs, 0, str_len);
-					*cdc->pos_pick += str_len - ofs;
+				/* wrap */
+				if (tot_lines > 1) {
+					int iofs = (int)((float)(y_next - cdc->mval[1]) / cdc->lheight);
+					ofs += offsets[MIN2(iofs, tot_lines - 1)];
 				}
-				else
-					*cdc->pos_pick += str_len + 1;
+
+				/* last part */
+				ofs += txt_utf8_column_to_offset(str + ofs,
+				                                 (int)floor((float)cdc->mval[0] / cdc->cwidth));
+
+				CLAMP(ofs, 0, str_len);
+				*cdc->pos_pick += str_len - ofs;
 			}
+			else
+				*cdc->pos_pick += str_len + 1;
 		}
 
 		cdc->xy[1] = y_next;
+		MEM_freeN(offsets);
 		return 1;
 	}
 	else if (y_next - cdc->lheight < cdc->ymin) {
@@ -128,12 +167,15 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 			console_step_sel(cdc, -(str_len + 1));
 		}
 
+		MEM_freeN(offsets);
 		return 1;
 	}
 
 	if (tot_lines > 1) { /* wrap? */
-		const int initial_offset = ((tot_lines - 1) * cdc->console_width);
-		const char *line_stride = str + initial_offset;  /* advance to the last line and draw it first */
+		const int initial_offset = offsets[tot_lines - 1];
+		size_t len = str_len - initial_offset;
+		const char *s = str + initial_offset;
+		int i;
 		
 		int sel_orig[2];
 		copy_v2_v2_int(sel_orig, cdc->sel);
@@ -151,36 +193,38 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 
 		/* last part needs no clipping */
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
-		BLF_draw(mono, line_stride, str_len - initial_offset);
+		BLF_draw_mono(mono, s, len, cdc->cwidth);
 
 		if (cdc->sel[0] != cdc->sel[1]) {
 			console_step_sel(cdc, -initial_offset);
 			// glColor4ub(255, 0, 0, 96); // debug
-			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->lheight, bg_sel);
-			console_step_sel(cdc, cdc->console_width);
+			console_draw_sel(s, cdc->sel, cdc->xy, len, cdc->cwidth, cdc->lheight, bg_sel);
 			glColor3ubv(fg);
 		}
 
 		cdc->xy[1] += cdc->lheight;
 
-		line_stride -= cdc->console_width;
-		
-		for (; line_stride >= str; line_stride -= cdc->console_width) {
+		for (i = tot_lines - 1; i > 0; i--) {
+			len = offsets[i] - offsets[i - 1];
+			s = str + offsets[i - 1];
+
 			BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
-			BLF_draw(mono, line_stride, cdc->console_width);
+			BLF_draw_mono(mono, s, len, cdc->cwidth);
 			
 			if (cdc->sel[0] != cdc->sel[1]) {
+				console_step_sel(cdc, len);
 				// glColor4ub(0, 255, 0, 96); // debug
-				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->lheight, bg_sel);
-				console_step_sel(cdc, cdc->console_width);
+				console_draw_sel(s, cdc->sel, cdc->xy, len, cdc->cwidth, cdc->lheight, bg_sel);
 				glColor3ubv(fg);
 			}
 
 			cdc->xy[1] += cdc->lheight;
 			
 			/* check if were out of view bounds */
-			if (cdc->xy[1] > cdc->ymax)
+			if (cdc->xy[1] > cdc->ymax) {
+				MEM_freeN(offsets);
 				return 0;
+			}
 		}
 
 		copy_v2_v2_int(cdc->sel, sel_orig);
@@ -196,7 +240,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 		glColor3ubv(fg);
 
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
-		BLF_draw(mono, str, str_len);
+		BLF_draw_mono(mono, str, str_len, cdc->cwidth);
 		
 		if (cdc->sel[0] != cdc->sel[1]) {
 			int isel[2];
@@ -205,16 +249,19 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 			isel[1] = str_len - cdc->sel[0];
 
 			// glColor4ub(255, 255, 0, 96); // debug
-			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight, bg_sel);
+			console_draw_sel(str, isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight, bg_sel);
 			console_step_sel(cdc, -(str_len + 1));
 		}
 
 		cdc->xy[1] += cdc->lheight;
 
-		if (cdc->xy[1] > cdc->ymax)
+		if (cdc->xy[1] > cdc->ymax) {
+			MEM_freeN(offsets);
 			return 0;
+		}
 	}
 
+	MEM_freeN(offsets);
 	return 1;
 }
 

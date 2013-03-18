@@ -1012,7 +1012,7 @@ void resetTransRestrictions(TransInfo *t)
 }
 
 /* the *op can be NULL */
-int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1669,7 +1669,7 @@ void calculateCenter(TransInfo *t)
 				
 				projectIntView(t, axis, t->center2d);
 				
-				/* rotate only needs correct 2d center, grab needs initgrabz() value */
+				/* rotate only needs correct 2d center, grab needs ED_view3d_calc_zfac() value */
 				if (t->mode == TFM_TRANSLATION) {
 					copy_v3_v3(t->center, axis);
 					copy_v3_v3(t->con.center, t->center);
@@ -1679,18 +1679,16 @@ void calculateCenter(TransInfo *t)
 	}
 	
 	if (t->spacetype == SPACE_VIEW3D) {
-		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d_delta() */
+		/* ED_view3d_calc_zfac() defines a factor for perspective depth correction, used in ED_view3d_win_to_delta() */
+		float vec[3];
 		if (t->flag & (T_EDIT | T_POSE)) {
 			Object *ob = t->obedit ? t->obedit : t->poseobj;
-			float vec[3];
-			
-			copy_v3_v3(vec, t->center);
-			mul_m4_v3(ob->obmat, vec);
-			initgrabz(t->ar->regiondata, vec[0], vec[1], vec[2]);
+			mul_v3_m4v3(vec, ob->obmat, t->center);
 		}
 		else {
-			initgrabz(t->ar->regiondata, t->center[0], t->center[1], t->center[2]);
+			copy_v3_v3(vec, t->center);
 		}
+		t->zfac = ED_view3d_calc_zfac(t->ar->regiondata, vec, NULL);
 	}
 }
 

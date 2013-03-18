@@ -24,13 +24,14 @@
  *  \ingroup bke
  */
 
-
 #include <math.h>
 #include <stdlib.h>
 
-#include "BKE_image.h"
 #include "BLI_math_color.h"
 #include "BLI_math_base.h"
+
+#include "BKE_image.h"
+
 #include "BLF_api.h"
 
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, const float color[4])

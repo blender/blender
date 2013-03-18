@@ -48,6 +48,7 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
+struct LinkNode;
 
 /* ******************** editmesh_utils.c */
 
@@ -77,7 +78,6 @@ int EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
 int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
                    struct wmOperator *op, const int report);
 
-void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_stats_update(struct BMEditMesh *em);
 
 /* ******************** editface.c */
@@ -128,6 +128,7 @@ void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
 void MESH_OT_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_mode(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
+void MESH_OT_select_ungrouped(struct wmOperatorType *ot);
 void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
@@ -211,6 +212,8 @@ void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
 
 void MESH_OT_knife_tool(struct wmOperatorType *ot);
+void MESH_OT_knife_project(wmOperatorType *ot);
+
 void MESH_OT_bevel(struct wmOperatorType *ot);
 
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
@@ -227,5 +230,7 @@ void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot);
 void MESH_OT_navmesh_face_add(struct wmOperatorType *ot);
 void MESH_OT_navmesh_reset(struct wmOperatorType *ot);
 void MESH_OT_navmesh_clear(struct wmOperatorType *ot);
+
+void EDBM_mesh_knife(struct bContext *C, struct LinkNode *polys, bool use_tag);
 
 #endif  /* __MESH_INTERN_H__ */

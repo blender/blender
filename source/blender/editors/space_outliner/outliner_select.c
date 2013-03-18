@@ -47,8 +47,11 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
+#include "BKE_armature.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -140,7 +143,50 @@ static int tree_element_active_renderlayer(bContext *C, TreeElement *te, TreeSto
 	return 0;
 }
 
-static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
+/**
+ * Select object tree:
+ * CTRL+LMB: Select/Deselect object and all cildren
+ * CTRL+SHIFT+LMB: Add/Remove object and all children
+ */
+static void do_outliner_object_select_recursive(Scene *scene, Object *ob_parent, bool select)
+{
+	Base *base;
+
+	for (base = FIRSTBASE; base; base = base->next) {
+		Object *ob = base->object;
+		if ((((ob->restrictflag & OB_RESTRICT_VIEW) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
+			ED_base_object_select(base, select ? BA_SELECT : BA_DESELECT);
+		}
+	}
+}
+
+static void do_outliner_bone_select_recursive(bArmature *arm, Bone *bone_parent, bool select)
+{
+	Bone *bone;
+	for (bone = bone_parent->childbase.first; bone; bone = bone->next) {
+		if (select && PBONE_SELECTABLE(arm, bone))
+			bone->flag |= BONE_SELECTED;
+		else
+			bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+		do_outliner_bone_select_recursive(arm, bone, select);
+	}
+}
+
+static void do_outliner_ebone_select_recursive(bArmature *arm, EditBone *ebone_parent, bool select)
+{
+	EditBone *ebone;
+	for (ebone = ebone_parent->next; ebone; ebone = ebone->next) {
+		if (ED_armature_ebone_is_child_recursive(ebone_parent, ebone)) {
+			if (select && EBONE_SELECTABLE(arm, ebone))
+				ebone->flag |= BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL;
+			else
+				ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+		}
+	}
+}
+
+static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops,
+                                           TreeElement *te, int set, bool recursive)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	Scene *sce;
@@ -148,7 +194,9 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	Object *ob = NULL;
 	
 	/* if id is not object, we search back */
-	if (te->idcode == ID_OB) ob = (Object *)tselem->id;
+	if (te->idcode == ID_OB) {
+		ob = (Object *)tselem->id;
+	}
 	else {
 		ob = (Object *)outliner_search_back(soops, te, ID_OB);
 		if (ob == OBACT) return 0;
@@ -176,6 +224,12 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 			BKE_scene_base_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
+
+		if (recursive) {
+			/* Recursive select/deselect for Object hierarchies */
+			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
+		}
+
 		if (C) {
 			ED_base_object_activate(C, base); /* adds notifier */
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -312,7 +366,9 @@ static int tree_element_active_lamp(bContext *UNUSED(C), Scene *scene, SpaceOops
 	if (set) {
 // XXX		extern_set_butspace(F5KEY, 0);
 	}
-	else return 1;
+	else {
+		return 1;
+	}
 	
 	return 0;
 }
@@ -395,7 +451,7 @@ static int tree_element_active_posegroup(bContext *C, Scene *scene, TreeElement 
 	return 0;
 }
 
-static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set)
+static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set, bool recursive)
 {
 	Object *ob = (Object *)tselem->id;
 	bArmature *arm = ob->data;
@@ -404,9 +460,13 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 	if (set) {
 		if (!(pchan->bone->flag & BONE_HIDDEN_P)) {
 			
-			if (set == 2) ED_pose_deselectall(ob, 2);  // 2 = clear active tag
-			else ED_pose_deselectall(ob, 0);    // 0 = deselect
-			
+			if (set != 2) {
+				bPoseChannel *pchannel;
+				/* single select forces all other bones to get unselected */
+				for (pchannel = ob->pose->chanbase.first; pchannel; pchannel = pchannel->next)
+					pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+			}
+
 			if (set == 2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
 			}
@@ -414,7 +474,12 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 				pchan->bone->flag |= BONE_SELECTED;
 				arm->act_bone = pchan->bone;
 			}
-			
+
+			if (recursive) {
+				/* Recursive select/deselect */
+				do_outliner_bone_select_recursive(arm, pchan->bone, (pchan->bone->flag & BONE_SELECTED) != 0);
+			}
+
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
 
 		}
@@ -427,7 +492,7 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 	return 0;
 }
 
-static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set)
+static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set, bool recursive)
 {
 	bArmature *arm = (bArmature *)tselem->id;
 	Bone *bone = te->directdata;
@@ -436,8 +501,12 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 		if (!(bone->flag & BONE_HIDDEN_P)) {
 			Object *ob = OBACT;
 			if (ob) {
-				if (set == 2) ED_pose_deselectall(ob, 2);  // 2 is clear active tag
-				else ED_pose_deselectall(ob, 0);
+				if (set != 2) {
+					bPoseChannel *pchannel;
+					/* single select forces all other bones to get unselected */
+					for (pchannel = ob->pose->chanbase.first; pchannel; pchannel = pchannel->next)
+						pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+				}
 			}
 			
 			if (set == 2 && (bone->flag & BONE_SELECTED)) {
@@ -447,6 +516,12 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 				bone->flag |= BONE_SELECTED;
 				arm->act_bone = bone;
 			}
+
+			if (recursive) {
+				/* Recursive select/deselect */
+				do_outliner_bone_select_recursive(arm, bone, (bone->flag & BONE_SELECTED) != 0);
+			}
+
 			
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
 		}
@@ -479,35 +554,42 @@ static void tree_element_active_ebone__sel(bContext *C, Scene *scene, bArmature 
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, scene->obedit);
 }
-static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
+static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set, bool recursive)
 {
 	bArmature *arm = scene->obedit->data;
 	EditBone *ebone = te->directdata;
-
-	if (set == 1) {
-		if (!(ebone->flag & BONE_HIDDEN_A)) {
-			ED_armature_deselect_all(scene->obedit, 0); // deselect
-			tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
-			return 1;
-		}
-	}
-	else if (set == 2) {
-		if (!(ebone->flag & BONE_HIDDEN_A)) {
-			if (!(ebone->flag & BONE_SELECTED)) {
+	int status = 0;
+	if (set) {
+		if (set == 1) {
+			if (!(ebone->flag & BONE_HIDDEN_A)) {
+				ED_armature_deselect_all(scene->obedit, 0); // deselect
 				tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
-				return 1;
+				status = 1;
 			}
-			else {
-				/* entirely selected, so de-select */
-				tree_element_active_ebone__sel(C, scene, arm, ebone, FALSE);
-				return 0;
+		}
+		else if (set == 2) {
+			if (!(ebone->flag & BONE_HIDDEN_A)) {
+				if (!(ebone->flag & BONE_SELECTED)) {
+					tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+					status = 1;
+				}
+				else {
+					/* entirely selected, so de-select */
+					tree_element_active_ebone__sel(C, scene, arm, ebone, FALSE);
+					status = 0;
+				}
 			}
+		}
+
+		if (recursive) {
+			/* Recursive select/deselect */
+			do_outliner_ebone_select_recursive(arm, ebone, (ebone->flag & BONE_SELECTED) != 0);
 		}
 	}
 	else if (ebone->flag & BONE_SELECTED) {
-		return 1;
+		status = 1;
 	}
-	return 0;
+	return status;
 }
 
 static int tree_element_active_modifier(bContext *C, TreeElement *UNUSED(te), TreeStoreElem *tselem, int set)
@@ -675,19 +757,19 @@ int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement
 /* generic call for non-id data to make/check active in UI */
 /* Context can be NULL when set==0 */
 int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
-                             TreeElement *te, TreeStoreElem *tselem, int set)
+                             TreeElement *te, TreeStoreElem *tselem, int set, bool recursive)
 {
 	switch (tselem->type) {
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(C, scene, te, tselem, set);
 		case TSE_BONE:
-			return tree_element_active_bone(C, scene, te, tselem, set);
+			return tree_element_active_bone(C, scene, te, tselem, set, recursive);
 		case TSE_EBONE:
-			return tree_element_active_ebone(C, scene, te, tselem, set);
+			return tree_element_active_ebone(C, scene, te, tselem, set, recursive);
 		case TSE_MODIFIER:
 			return tree_element_active_modifier(C, te, tselem, set);
 		case TSE_LINKED_OB:
-			if (set) tree_element_set_active_object(C, scene, soops, te, set);
+			if (set) tree_element_set_active_object(C, scene, soops, te, set, FALSE);
 			else if (tselem->id == (ID *)OBACT) return 1;
 			break;
 		case TSE_LINKED_PSYS:
@@ -695,7 +777,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 		case TSE_POSE_BASE:
 			return tree_element_active_pose(C, scene, te, tselem, set);
 		case TSE_POSE_CHANNEL:
-			return tree_element_active_posechannel(C, scene, te, tselem, set);
+			return tree_element_active_posechannel(C, scene, te, tselem, set, recursive);
 		case TSE_CONSTRAINT:
 			return tree_element_active_constraint(C, te, tselem, set);
 		case TSE_R_LAYER:
@@ -716,7 +798,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 /* ================================================ */
 
 static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
-                                     TreeElement *te, int extend, const float mval[2])
+                                     TreeElement *te, bool extend, bool recursive, const float mval[2])
 {
 	
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
@@ -748,7 +830,9 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 			
 			/* always makes active object */
 			if (tselem->type != TSE_SEQUENCE && tselem->type != TSE_SEQ_STRIP && tselem->type != TSE_SEQUENCE_DUP)
-				tree_element_set_active_object(C, scene, soops, te, 1 + (extend != 0 && tselem->type == 0));
+				tree_element_set_active_object(C, scene, soops, te,
+				                               1 + (extend != 0 && tselem->type == 0),
+				                               recursive && tselem->type == 0 );
 			
 			if (tselem->type == 0) { // the lib blocks
 				/* editmode? */
@@ -791,31 +875,31 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 				else {  // rest of types
 					tree_element_active(C, scene, soops, te, 1);
 				}
-				
+
 			}
-			else tree_element_type_active(C, scene, soops, te, tselem, 1 + (extend != 0));
+			else {
+				tree_element_type_active(C, scene, soops, te, tselem, 1 + (extend != 0), recursive);
+			}
 			
 			return 1;
 		}
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
-		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, mval)) return 1;
+		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, recursive, mval)) return 1;
 	}
 	return 0;
 }
 
-/* event can enterkey, then it opens/closes */
-static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
+int outliner_item_do_activate(bContext *C, int x, int y, bool extend, bool recursive)
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	int extend = RNA_boolean_get(op->ptr, "extend");
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
+	UI_view2d_region_to_view(&ar->v2d, x, y, fmval, fmval + 1);
 
 	if (!ELEM3(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF, SO_KEYMAP) &&
 	    !(soops->flag & SO_HIDE_RESTRICTCOLS) &&
@@ -825,7 +909,7 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, fmval)) break;
+		if (do_outliner_item_activate(C, scene, ar, soops, te, extend, recursive, fmval)) break;
 	}
 	
 	if (te) {
@@ -855,6 +939,16 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
+/* event can enterkey, then it opens/closes */
+static int outliner_item_activate(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	bool extend    = RNA_boolean_get(op->ptr, "extend");
+	bool recursive = RNA_boolean_get(op->ptr, "recursive");
+	int x = event->mval[0];
+	int y = event->mval[1];
+	return outliner_item_do_activate(C, x, y, extend, recursive);
+}
+
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
 {
 	ot->name = "Activate Item";
@@ -865,7 +959,8 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 	
 	ot->poll = ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation");
+	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
+	RNA_def_boolean(ot->srna, "recursive", false, "Recursive", "Select Objects and their children");
 }
 
 /* ****************************************************** */

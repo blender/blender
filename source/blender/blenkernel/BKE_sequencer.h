@@ -192,7 +192,7 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
 /* **********************************************************************
  * sequencer scene functions
  * ********************************************************************** */
-struct Editing  *BKE_sequencer_editing_get(struct Scene *scene, int alloc);
+struct Editing  *BKE_sequencer_editing_get(struct Scene *scene, bool alloc);
 struct Editing  *BKE_sequencer_editing_ensure(struct Scene *scene);
 void             BKE_sequencer_editing_free(struct Scene *scene);
 
@@ -289,10 +289,10 @@ int BKE_sequence_tx_get_final_right(struct Sequence *seq, int metaclip);
 void BKE_sequence_tx_set_final_left(struct Sequence *seq, int val);
 void BKE_sequence_tx_set_final_right(struct Sequence *seq, int val);
 void BKE_sequence_tx_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);
-int BKE_sequence_tx_test(struct Sequence *seq);
-int BKE_sequence_single_check(struct Sequence *seq);
+bool BKE_sequence_tx_test(struct Sequence *seq);
+bool BKE_sequence_single_check(struct Sequence *seq);
 void BKE_sequence_single_fix(struct Sequence *seq);
-int BKE_sequence_test_overlap(struct ListBase *seqbasep, struct Sequence *test);
+bool BKE_sequence_test_overlap(struct ListBase *seqbasep, struct Sequence *test);
 void BKE_sequence_translate(struct Scene *scene, struct Sequence *seq, int delta);
 void BKE_sequence_sound_init(struct Scene *scene, struct Sequence *seq);
 struct Sequence *BKE_sequencer_foreground_frame_get(struct Scene *scene, int frame);
@@ -301,14 +301,14 @@ struct Sequence *BKE_sequence_metastrip(ListBase *seqbase /* = ed->seqbase */, s
 
 void BKE_sequencer_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void BKE_sequencer_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
-int BKE_sequence_base_shuffle(struct ListBase *seqbasep, struct Sequence *test, struct Scene *evil_scene);
-int BKE_sequence_base_shuffle_time(ListBase *seqbasep, struct Scene *evil_scene);
-int BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase);
+bool BKE_sequence_base_shuffle(struct ListBase *seqbasep, struct Sequence *test, struct Scene *evil_scene);
+bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, struct Scene *evil_scene);
+bool BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase);
 void BKE_sequencer_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, int for_render);
 struct Sequence *BKE_sequence_dupli_recursive(struct Scene *scene, struct Scene *scene_to, struct Sequence *seq, int dupe_flag);
 int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 
-int BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
+bool BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
 void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_invalidate_dependent(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_invalidate_cache_for_modifier(struct Scene *scene, struct Sequence *seq);
@@ -320,7 +320,7 @@ void BKE_sequencer_update_sound(struct Scene *scene, struct bSound *sound);
 
 void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void BKE_sequence_base_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
-int  BKE_sequence_is_valid_check(struct Sequence *seq);
+bool BKE_sequence_is_valid_check(struct Sequence *seq);
 
 void BKE_sequencer_clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 void BKE_sequencer_clear_movieclip_in_clipboard(struct MovieClip *clip);
@@ -419,4 +419,4 @@ int BKE_sequence_supports_modifiers(struct Sequence *seq);
 struct ImBuf *BKE_sequencer_render_mask_input(SeqRenderData context, int mask_input_type, struct Sequence *mask_sequence, struct Mask *mask_id, int cfra, int make_float);
 void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb, struct ImBuf *ibuf, float mul, short make_float, struct ImBuf *mask_input);
 
-#endif /* __BKE_SEQUENCER_H__ */
+#endif  /* __BKE_SEQUENCER_H__ */

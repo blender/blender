@@ -39,13 +39,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
 #include "RNA_types.h"
@@ -931,11 +931,7 @@ static void bpy_module_free(void *UNUSED(mod))
 
 
 /* EVIL, define text.c functions here... */
-extern int text_check_identifier_unicode(const unsigned int ch);
-extern int text_check_identifier_nodigit_unicode(const unsigned int ch);
-extern int text_check_identifier(const char ch);
-extern int text_check_identifier_nodigit(const char ch);
-
+/* BKE_text.h */
 int text_check_identifier_unicode(const unsigned int ch)
 {
 	return (ch < 255 && text_check_identifier((char)ch)) || Py_UNICODE_ISALNUM(ch);

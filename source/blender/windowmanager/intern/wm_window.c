@@ -28,7 +28,6 @@
  *  \ingroup wm
  */
 
-
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,7 +36,6 @@
 #include "DNA_listBase.h"	
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -55,8 +53,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-
 #include "BIF_gl.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -445,11 +444,15 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 #endif
 
 #if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
-		/* X11, start maximized but use default same size */
+		/* X11, start maximized but use default sane size */
 		wm_init_state.size_x = min_ii(wm_init_state.size_x, WM_WIN_INIT_SIZE_X);
 		wm_init_state.size_y = min_ii(wm_init_state.size_y, WM_WIN_INIT_SIZE_Y);
+		/* pad */
+		wm_init_state.start_x = WM_WIN_INIT_PAD;
+		wm_init_state.start_y = WM_WIN_INIT_PAD;
+		wm_init_state.size_x -= WM_WIN_INIT_PAD * 2;
+		wm_init_state.size_y -= WM_WIN_INIT_PAD * 2;
 #endif
-
 	}
 	
 	for (win = wm->windows.first; win; win = win->next) {
@@ -460,19 +463,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
 
-#if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
-				if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
-					/* we can't properly resize a maximized window */
-					win->windowstate = GHOST_kWindowStateNormal;
-				}
-				else {
-					/* loading without userpref, default to maximized */
-					win->windowstate = GHOST_kWindowStateMaximized;
-				}
-#else
 				win->windowstate = GHOST_kWindowStateNormal;
-#endif
-
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
 
@@ -1253,7 +1244,9 @@ void WM_clipboard_text_set(char *buf, int selection)
 			if (*p == '\n') {
 				*(p2++) = '\r'; *p2 = '\n';
 			}
-			else *p2 = *p;
+			else {
+				*p2 = *p;
+			}
 		}
 		*p2 = '\0';
 	

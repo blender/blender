@@ -147,6 +147,15 @@ void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 	bone_free(arm, exBone);
 }
 
+bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child)
+{
+	for (ebone_child = ebone_child->parent; ebone_child; ebone_child = ebone_child->parent) {
+		if (ebone_child == ebone_parent)
+			return true;
+	}
+	return false;
+}
+
 /* *************************************************************** */
 /* Mirroring */
 

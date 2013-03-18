@@ -268,6 +268,17 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	return OPERATOR_FINISHED;
 }
 
+static int select_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc) {
+		return sc->clip && sc->view == SC_VIEW_CLIP;
+	}
+
+	return FALSE;
+}
+
 static int select_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
@@ -279,7 +290,7 @@ static int select_exec(bContext *C, wmOperator *op)
 	return mouse_select(C, co, extend);
 }
 
-static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -317,8 +328,7 @@ void CLIP_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = select_exec;
 	ot->invoke = select_invoke;
-	//ot->poll = ED_space_clip_tracking_poll; // so mask view can Ctrl+RMB markers
-	ot->poll = ED_space_clip_view_clip_poll;
+	ot->poll = select_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;

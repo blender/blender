@@ -120,6 +120,8 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_clipboard_paste);
 	
 	WM_operatortype_append(NODE_OT_shader_script_update);
+
+	WM_operatortype_append(NODE_OT_viewer_border);
 }
 
 void ED_operatormacros_node(void)
@@ -298,5 +300,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_clipboard_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_clipboard_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	
+	WM_keymap_add_item(keymap, "NODE_OT_viewer_border", BKEY, KM_PRESS, KM_CTRL, 0);
+
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

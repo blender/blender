@@ -36,11 +36,14 @@
 struct OCIO_ConstProcessorRcPtr;
 struct ImBuf;
 
+#define MAX_COLORSPACE_NAME          64
+#define MAX_COLORSPACE_DESCRIPTION  512
+
 typedef struct ColorSpace {
 	struct ColorSpace *next, *prev;
 	int index;
-	char name[64];
-	char description[64];
+	char name[MAX_COLORSPACE_NAME];
+	char description[MAX_COLORSPACE_DESCRIPTION];
 
 	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
 	struct OCIO_ConstProcessorRcPtr *from_scene_linear;
@@ -52,7 +55,7 @@ typedef struct ColorSpace {
 typedef struct ColorManagedDisplay {
 	struct ColorManagedDisplay *next, *prev;
 	int index;
-	char name[64];
+	char name[MAX_COLORSPACE_NAME];
 	ListBase views;
 
 	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
@@ -62,7 +65,7 @@ typedef struct ColorManagedDisplay {
 typedef struct ColorManagedView {
 	struct ColorManagedView *next, *prev;
 	int index;
-	char name[64];
+	char name[MAX_COLORSPACE_NAME];
 } ColorManagedView;
 
 /* ** Initialization / De-initialization ** */

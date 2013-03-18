@@ -74,6 +74,7 @@ int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
  * Clamped by real desktop limits */
 #define WM_WIN_INIT_SIZE_X 1800
 #define WM_WIN_INIT_SIZE_Y 1000
+#define WM_WIN_INIT_PAD 40
 
 #endif /* __WM_WINDOW_H__ */
 

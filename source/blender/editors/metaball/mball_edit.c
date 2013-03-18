@@ -254,7 +254,7 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	int retv = duplicate_metaelems_exec(C, op);
 	

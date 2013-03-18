@@ -1596,7 +1596,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		}
 		else if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};
-			bPoseChannel pchanw = {NULL};
+			bPoseChannel pchanw;
 			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw = *pchanp;

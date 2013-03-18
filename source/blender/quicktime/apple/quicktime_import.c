@@ -210,13 +210,13 @@ int anim_is_quicktime(const char *name)
 	if (QTIME_DEBUG) printf("qt: checking as movie: %s\n", name);
 
 #ifdef __APPLE__
-	sprintf(theFullPath, "%s", name);
+	strcpy(theFullPath, name);
 
 	err = FSPathMakeRef(theFullPath, &myRef, 0);
 	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &theFSSpec, NULL);
 #else
 	qtname = get_valid_qtname(name);
-	sprintf(theFullPath, "%s", qtname);
+	strcpy(theFullPath, qtname);
 	MEM_freeN(qtname);
 
 	CopyCStringToPascal(theFullPath, dst);
@@ -461,13 +461,13 @@ int startquicktime(struct anim *anim)
 	if (QTIME_DEBUG) printf("qt: attempting to load as movie %s\n", anim->name);
 	
 #ifdef __APPLE__
-	sprintf(theFullPath, "%s", anim->name);
+	strcpy(theFullPath, anim->name);
 
 	err = FSPathMakeRef(theFullPath, &myRef, 0);
 	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &theFSSpec, NULL);
 #else
 	qtname = get_valid_qtname(anim->name);
-	sprintf(theFullPath, "%s", qtname);
+	strcpy(theFullPath, qtname);
 	MEM_freeN(qtname);
 
 	CopyCStringToPascal(theFullPath, dst);
@@ -592,7 +592,7 @@ int imb_is_a_quicktime(char *name)
 		return 0;
 	}
 
-	sprintf(theFullPath, "%s", name);
+	strcpy(theFullPath, name);
 #ifdef __APPLE__
 	err = FSPathMakeRef(theFullPath, &myRef, 0);
 	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &theFSSpec, NULL);

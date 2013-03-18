@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_report.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
@@ -140,7 +141,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				}
 				else {
 					Base *b;
-
+					
 					/* deselect all */
 					/* TODO: should this deselect all other types of channels too? */
 					for (b = sce->base.first; b; b = b->next) {
@@ -268,6 +269,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 		{
 			AnimData *adt = BKE_animdata_from_id(ale->id);
 			
+			/* button area... */
 			if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
 					/* 'push-down' action - only usable when not in TweakMode */
@@ -282,6 +284,30 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				
 				/* changes to NLA-Action occurred */
 				notifierFlags |= ND_NLA_ACTCHANGE;
+			}
+			/* OR rest of name... */
+			else {
+				/* NOTE: rest of NLA-Action name doubles for operating on the AnimData block 
+				 * - this is useful when there's no clear divider, and makes more sense in
+				 *   the case of users trying to use this to change actions
+				 */
+				
+				/* select/deselect */
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this AnimData block only */
+					adt->flag ^= ADT_UI_SELECTED;
+				}
+				else {
+					/* select AnimData block by itself */
+					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					adt->flag |= ADT_UI_SELECTED;
+				}
+				
+				/* set active? */
+				if (adt->flag & ADT_UI_SELECTED)
+					adt->flag |= ADT_UI_ACTIVE;
+				
+				notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			}
 		}
 		break;
@@ -301,7 +327,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 /* ------------------- */
 
 /* handle clicking */
-static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	bAnimContext ac;
 	SpaceNla *snla;
@@ -358,7 +384,7 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* props */
 	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
@@ -371,24 +397,18 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 /* ******************** Add Tracks Operator ***************************** */
 /* Add NLA Tracks to the same AnimData block as a selected track, or above the selected tracks */
 
-static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
+/* helper - add NLA Tracks alongside existing ones */
+static bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 {
-	bAnimContext ac;
-	
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	
 	AnimData *lastAdt = NULL;
-	short above_sel = RNA_boolean_get(op->ptr, "above_selected");
+	bool added = false;
 	
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-		
-	/* get a list of the AnimData blocks being shown in the NLA */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	/* get a list of the (selected) NLA Tracks being shown in the NLA */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* add tracks... */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -402,11 +422,13 @@ static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
 			if (above_sel) {
 				/* just add a new one above this one */
 				add_nlatrack(adt, nlt);
+				added = true;
 			}
 			else if ((lastAdt == NULL) || (adt != lastAdt)) {
 				/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
 				add_nlatrack(adt, NULL);
 				lastAdt = adt;
+				added = true;
 			}
 		}
 	}
@@ -414,17 +436,80 @@ static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
-	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+	return added;
+}
+
+/* helper - add NLA Tracks to empty (and selected) AnimData blocks */
+static bool nlaedit_add_tracks_empty(bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	bool added = false;
 	
-	/* done */
-	return OPERATOR_FINISHED;
+	/* get a list of the selected AnimData blocks in the NLA */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* check if selected AnimData blocks are empty, and add tracks if so... */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		AnimData *adt = ale->adt;
+		
+		/* sanity check */
+		BLI_assert(adt->flag & ADT_UI_SELECTED);
+		
+		/* ensure it is empty */
+		if (adt->nla_tracks.first == NULL) {
+			/* add new track to this AnimData block then */
+			add_nlatrack(adt, NULL);
+			added = true;
+		}
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+	
+	return added;
+}
+
+/* ----- */
+
+static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bool above_sel = RNA_boolean_get(op->ptr, "above_selected");
+	bool op_done = false;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* perform adding in two passes - existing first so that we don't double up for empty */
+	op_done |= nlaedit_add_tracks_existing(&ac, above_sel);
+	op_done |= nlaedit_add_tracks_empty(&ac);
+	
+	/* done? */
+	if (op_done) {
+		/* set notifier that things have changed */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+		
+		/* done */
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* failed to add any tracks */
+		BKE_report(op->reports, RPT_WARNING,
+		           "Select an existing NLA Track or an empty action line first");
+		
+		/* not done */
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void NLA_OT_tracks_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Track(s)";
+	ot->name = "Add Tracks";
 	ot->idname = "NLA_OT_tracks_add";
 	ot->description = "Add NLA-Tracks above/after the selected tracks";
 	
@@ -485,15 +570,71 @@ static int nlaedit_delete_tracks_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_delete_tracks(wmOperatorType *ot)
+void NLA_OT_tracks_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Tracks";
-	ot->idname = "NLA_OT_delete_tracks";
+	ot->idname = "NLA_OT_tracks_delete";
 	ot->description = "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
 	ot->exec = nlaedit_delete_tracks_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* *********************************************** */
+/* AnimData Related Operators */
+
+/* ******************** Include Objects Operator ***************************** */
+/* Include selected objects in NLA Editor, by giving them AnimData blocks 
+ * NOTE: This doesn't help for non-object AnimData, where we do not have any effective
+ *       selection mechanism in place. Unfortunately, this means that non-object AnimData
+ *       once again becomes a second-class citizen here. However, at least for the most 
+ *       common use case, we now have a nice shortcut again.
+ */
+
+static int nlaedit_objects_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bAnimContext ac;
+	SpaceNla *snla;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* ensure that filters are set so that the effect will be immediately visible */
+	snla = (SpaceNla *)ac.sl;
+	if (snla && snla->ads) {
+		snla->ads->filterflag &= ~ADS_FILTER_NLA_NOACT;
+	}
+	
+	/* operate on selected objects... */	
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		/* ensure that object has AnimData... that's all */
+		BKE_id_add_animdata(&ob->id);
+	}
+	CTX_DATA_END;
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_selected_objects_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Include Selected Objects";
+	ot->idname = "NLA_OT_selected_objects_add";
+	ot->description = "Make selected objects appear in NLA Editor by adding Animation Data";
+	
+	/* api callbacks */
+	ot->exec = nlaedit_objects_add_exec;
 	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */

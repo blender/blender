@@ -235,14 +235,13 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 	BLI_assert(*type == MOUSEPAN);
 
 	/* sign differs, reset */
-	if ((dy > 0 && lastdy < 0) || (dy < 0 && lastdy > 0))
+	if ((dy > 0 && lastdy < 0) || (dy < 0 && lastdy > 0)) {
 		lastdy = dy;
+	}
 	else {
 		lastdy += dy;
 		
 		if (ABS(lastdy) > (int)UI_UNIT_Y) {
-			int dy = event->prevy - event->y;
-			
 			if (U.uiflag2 & USER_TRACKPAD_NATURAL)
 				dy = -dy;
 			
@@ -804,8 +803,6 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
 	 */
 	if (drag_info->xy_lock[0] == false && drag_info->xy_lock[1] == false) {
-		ARegion *ar = CTX_wm_region(C);
-
 		/* first store the buttons original coords */
 		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
 		if (but) {
@@ -1402,7 +1399,11 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			/* pass */
 		}
 		else if (mode == 'c') {
-			ui_get_but_string(but, buf, sizeof(buf));
+			/* Get many decimal places, then strip trailing zeros.
+			 * note: too high values start to give strange results (6 or so is ok) */
+			ui_get_but_string_ex(but, buf, sizeof(buf), 6);
+			BLI_str_rstrip_float_zero(buf, '\0');
+
 			WM_clipboard_text_set(buf, 0);
 		}
 		else {
@@ -1984,6 +1985,10 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->str = MEM_callocN(sizeof(char) * data->maxlen + 1, "textedit str");
 	ui_get_but_string(but, data->str, data->maxlen);
 
+	if (ui_is_but_float(but) && !ui_is_but_unit(but)) {
+		BLI_str_rstrip_float_zero(data->str, '\0');
+	}
+
 	if (ELEM3(but->type, NUM, NUMABS, NUMSLI)) {
 		ui_convert_to_unit_alt_name(but, data->str, data->maxlen);
 	}
@@ -2327,7 +2332,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 		data->coba = (ColorBand *)but->poin;
 		but->editcoba = data->coba;
 	}
-	else if (ELEM3(but->type, BUT_NORMAL, HSVCUBE, HSVCIRCLE)) {
+	else if (ELEM4(but->type, BUT_NORMAL, HSVCUBE, HSVCIRCLE, COLOR)) {
 		ui_get_but_vectorf(but, data->origvec);
 		copy_v3_v3(data->vec, data->origvec);
 		but->editvec = data->vec;
@@ -3149,9 +3154,6 @@ static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
 		BLI_rctf_clamp_pt_v(&but->rect, data->ungrab_mval);
 	}
 #endif
-	if (is_horizontal == false) {
-		mx_fl = my_fl;
-	}
 	/* done correcting mouse */
 
 
@@ -5013,7 +5015,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	if (but->rnapoin.data && but->rnaprop) {
-		short is_anim = RNA_property_animateable(&but->rnapoin, but->rnaprop);
+		bool is_anim = RNA_property_animateable(&but->rnapoin, but->rnaprop);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
@@ -6294,7 +6296,7 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 {
 	uiHandleButtonData *data = but->active;
-	const uiButtonActivateType state_orig = data->state;
+	const uiHandleButtonState state_orig = data->state;
 	uiBlock *block;
 	ARegion *ar;
 	int retval;
@@ -6466,9 +6468,9 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			 * This is needed to make sure if a button was active,
 			 * it stays active while the mouse is over it.
 			 * This avoids adding mousemoves, see: [#33466] */
-			if (ELEM(state_orig, BUTTON_ACTIVATE, BUTTON_ACTIVATE_OVER)) {
+			if (ELEM(state_orig, BUTTON_STATE_INIT, BUTTON_STATE_HIGHLIGHT)) {
 				if (ui_but_find_mouse_over(ar, event->x, event->y) == but) {
-					button_activate_init(C, ar, but, state_orig);
+					button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 				}
 			}
 		}

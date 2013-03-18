@@ -742,7 +742,7 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	actkeys_duplicate_exec(C, op);
 	

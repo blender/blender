@@ -195,7 +195,7 @@ static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
 }
 
 #ifndef WITH_PYTHON
-void bpy_bm_generic_invalidate(void *UNUSED(self))
+void bpy_bm_generic_invalidate(struct BPy_BMGeneric *UNUSED(self))
 {
 	/* dummy */
 }
@@ -203,8 +203,6 @@ void bpy_bm_generic_invalidate(void *UNUSED(self))
 
 static void layerFree_bmesh_elem_py_ptr(void *data, int count, int size)
 {
-	extern void bpy_bm_generic_invalidate(void *self);
-
 	int i;
 
 	for (i = 0; i < count; ++i) {
@@ -1174,7 +1172,7 @@ const CustomDataMask CD_MASK_MESH =
     CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MPOLY | CD_MASK_MLOOP |
-    CD_MASK_MTEXPOLY | CD_MASK_NORMAL | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
+    CD_MASK_MTEXPOLY | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
     CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
 const CustomDataMask CD_MASK_EDITMESH =
     CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MLOOPUV |
@@ -2866,7 +2864,7 @@ static int  CustomData_is_property_layer(int type)
 	return 0;
 }
 
-static int cd_layer_find_dupe(CustomData *data, const char *name, int type, int index)
+static bool cd_layer_find_dupe(CustomData *data, const char *name, int type, int index)
 {
 	int i;
 	/* see if there is a duplicate */
@@ -2876,21 +2874,21 @@ static int cd_layer_find_dupe(CustomData *data, const char *name, int type, int 
 			
 			if (CustomData_is_property_layer(type)) {
 				if (CustomData_is_property_layer(layer->type) && strcmp(layer->name, name) == 0) {
-					return 1;
+					return true;
 				}
 			}
 			else {
 				if (i != index && layer->type == type && strcmp(layer->name, name) == 0) {
-					return 1;
+					return true;
 				}
 			}
 		}
 	}
 	
-	return 0;
+	return false;
 }
 
-static int customdata_unique_check(void *arg, const char *name)
+static bool customdata_unique_check(void *arg, const char *name)
 {
 	struct {CustomData *data; int type; int index; } *data_arg = arg;
 	return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);

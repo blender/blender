@@ -29,6 +29,8 @@
 
 #include "DNA_screen_types.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -226,6 +228,7 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 	memcpy(pt, &dummypt, sizeof(dummypt));
 
 	pt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, pt->idname, &RNA_Panel);
+	RNA_def_struct_translation_context(pt->ext.srna, pt->translation_context);
 	pt->ext.data = data;
 	pt->ext.call = call;
 	pt->ext.free = free;
@@ -573,6 +576,7 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 	}
 
 	mt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, mt->idname, &RNA_Menu);
+	RNA_def_struct_translation_context(mt->ext.srna, mt->translation_context);
 	mt->ext.data = data;
 	mt->ext.call = call;
 	mt->ext.free = free;
@@ -773,6 +777,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Panel");
 	RNA_def_struct_refine_func(srna, "rna_Panel_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Panel_register", "rna_Panel_unregister", NULL);
+	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_DEFAULT);
 
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
@@ -819,7 +824,13 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Label",
 	                         "The panel label, shows up in the panel header at the right of the "
 	                         "triangle used to collapse the panel");
-	
+
+	prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_define_verify_sdna(TRUE);
+
 	prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
@@ -956,6 +967,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Menu");
 	RNA_def_struct_refine_func(srna, "rna_Menu_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister", NULL);
+	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_DEFAULT);
 
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
@@ -972,7 +984,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	RNA_define_verify_sdna(0); /* not in sdna */
+	RNA_define_verify_sdna(FALSE); /* not in sdna */
 
 	prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "layout");
@@ -993,6 +1005,11 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Label", "The menu label");
+
+	prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");

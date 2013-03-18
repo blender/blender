@@ -48,7 +48,6 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 	BMEdge *e;
 
 	unsigned char *vtouch;
-	unsigned char *vt;
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -65,6 +64,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 		else if (BM_edge_is_boundary(e)) {
+			unsigned char *vt;
 			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
 			vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
 

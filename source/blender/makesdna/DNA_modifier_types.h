@@ -744,6 +744,8 @@ typedef struct SolidifyModifierData {
 	float offset;			/* new surface offset level*/
 	float offset_fac;		/* midpoint of the offset  */
 	float offset_fac_vg;	/* factor for the minimum weight to use when vgroups are used, avoids 0.0 weights giving duplicate geometry */
+	float offset_clamp;		/* clamp offset based on surrounding geometry */
+	float pad;
 	float crease_inner;
 	float crease_outer;
 	float crease_rim;

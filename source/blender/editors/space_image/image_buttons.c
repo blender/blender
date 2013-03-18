@@ -73,51 +73,55 @@
 
 /* proto */
 
-static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str)
+static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str, size_t len)
 {
-	int ofs = 0;
+	size_t ofs = 0;
 
 	str[0] = 0;
-	
-	if (ima == NULL) return;
+	if (ima == NULL)
+		return;
 
 	if (ibuf == NULL) {
-		ofs += sprintf(str, IFACE_("Can't Load Image"));
+		ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Can't Load Image"), len - ofs);
 	}
 	else {
 		if (ima->source == IMA_SRC_MOVIE) {
-			ofs += sprintf(str, IFACE_("Movie"));
+			ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Movie"), len - ofs);
 			if (ima->anim)
-				ofs += sprintf(str + ofs, IFACE_(" %d frs"), IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN));
+				ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_(" %d frs"),
+				                    IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN));
 		}
-		else
-			ofs += sprintf(str, IFACE_("Image"));
+		else {
+			ofs += BLI_strncpy_rlen(str, IFACE_("Image"), len - ofs);
+		}
 
-		ofs += sprintf(str + ofs, IFACE_(": size %d x %d,"), ibuf->x, ibuf->y);
+		ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_(": size %d x %d,"), ibuf->x, ibuf->y);
 
 		if (ibuf->rect_float) {
 			if (ibuf->channels != 4) {
-				ofs += sprintf(str + ofs, IFACE_("%d float channel(s)"), ibuf->channels);
+				ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_("%d float channel(s)"), ibuf->channels);
 			}
 			else if (ibuf->planes == R_IMF_PLANES_RGBA)
-				ofs += sprintf(str + ofs, IFACE_(" RGBA float"));
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGBA float"), len - ofs);
 			else
-				ofs += sprintf(str + ofs, IFACE_(" RGB float"));
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGB float"), len - ofs);
 		}
 		else {
 			if (ibuf->planes == R_IMF_PLANES_RGBA)
-				ofs += sprintf(str + ofs, IFACE_(" RGBA byte"));
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGBA byte"), len - ofs);
 			else
-				ofs += sprintf(str + ofs, IFACE_(" RGB byte"));
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGB byte"), len - ofs);
 		}
 		if (ibuf->zbuf || ibuf->zbuf_float)
-			ofs += sprintf(str + ofs, IFACE_(" + Z"));
+			ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" + Z"), len - ofs);
 
 		if (ima->source == IMA_SRC_SEQUENCE) {
-			char *file = BLI_last_slash(ibuf->name);
-			if (file == NULL) file = ibuf->name;
-			else file++;
-			ofs += sprintf(str + ofs, ", %s", file);
+			const char *file = BLI_last_slash(ibuf->name);
+			if (file == NULL)
+				file = ibuf->name;
+			else
+				file++;
+			ofs += BLI_snprintf(str + ofs, len - ofs, ", %s", file);
 		}
 	}
 
@@ -125,10 +129,8 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
 		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0, NULL);
-		ofs += sprintf(str + ofs, IFACE_(", Frame: %d"), framenr);
+		ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_(", Frame: %d"), framenr);
 	}
-
-	(void)ofs;
 }
 
 /* gets active viewer user */
@@ -539,16 +541,17 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 
 void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *userptr, int compact)
 {
+#define MAX_INFO_LEN  128
+
 	PropertyRNA *prop;
 	PointerRNA imaptr;
 	RNAUpdateCb *cb;
 	Image *ima;
 	ImageUser *iuser;
-	ImBuf *ibuf;
 	Scene *scene = CTX_data_scene(C);
 	uiLayout *row, *split, *col;
 	uiBlock *block;
-	char str[128];
+	char str[MAX_INFO_LEN];
 
 	void *lock;
 
@@ -591,8 +594,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 		uiBlockSetNFunc(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 		if (ima->source == IMA_SRC_VIEWER) {
-			ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-			image_info(scene, iuser, ima, ibuf, str);
+			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+			image_info(scene, iuser, ima, ibuf, str, MAX_INFO_LEN);
 			BKE_image_release_ibuf(ima, ibuf, lock);
 
 			uiItemL(layout, ima->id.name + 2, ICON_NONE);
@@ -661,8 +664,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 			else if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) {
-					ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-					image_info(scene, iuser, ima, ibuf, str);
+					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+					image_info(scene, iuser, ima, ibuf, str, MAX_INFO_LEN);
 					BKE_image_release_ibuf(ima, ibuf, lock);
 					uiItemL(layout, str, ICON_NONE);
 				}
@@ -750,6 +753,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	}
 
 	MEM_freeN(cb);
+
+#undef MAX_INFO_LEN
 }
 
 void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)

@@ -24,20 +24,21 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_image_types.h"
+#include "DNA_scene_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_image.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
-
-#include "DNA_image_types.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_image.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -454,7 +455,6 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Offset", "Offset the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");

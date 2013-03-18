@@ -26,12 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
@@ -40,9 +34,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "ED_keyframing.h"
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
+
+#include "ED_keyframing.h"
 
 /* exported for use in API */
 EnumPropertyItem keyingset_path_grouping_items[] = {
@@ -895,6 +895,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "AnimData", NULL);
 	RNA_def_struct_ui_text(srna, "Animation Data", "Animation data for datablock");
+	RNA_def_struct_ui_icon(srna, ICON_ANIM_DATA);
 	
 	/* NLA */
 	prop = RNA_def_property(srna, "nla_tracks", PROP_COLLECTION, PROP_NONE);

@@ -409,11 +409,11 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 	for (i = 0, j = 0; i < (MAXBONENAME - 1) && j < (MAXBONENAME - 1) && template_name[i] != '\0'; i++) {
 		if (template_name[i] == '&') {
 			if (template_name[i + 1] == 'S' || template_name[i + 1] == 's') {
-				j += sprintf(name + j, "%s", side_string);
+				j += BLI_strncpy_rlen(name + j, side_string, MAXBONENAME);
 				i++;
 			}
 			else if (template_name[i + 1] == 'N' || template_name[i + 1] == 'n') {
-				j += sprintf(name + j, "%s", num_string);
+				j += BLI_strncpy_rlen(name + j, num_string, MAXBONENAME);
 				i++;
 			}
 			else {
@@ -896,7 +896,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			/* look on deform bones first */
 			BLI_ghashIterator_init(&ghi, rg->bones_map);
 			
-			for (; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi)) {
+			for (; BLI_ghashIterator_notDone(&ghi); BLI_ghashIterator_step(&ghi)) {
 				EditBone *bone = (EditBone *)BLI_ghashIterator_getValue(&ghi);
 				
 				/* don't link with parent */

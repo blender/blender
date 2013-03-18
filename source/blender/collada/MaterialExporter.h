@@ -88,7 +88,7 @@ public:
 struct MaterialFunctor {
 	// calls f for each unique material linked to each object in sce
 	// f should have
-	// void operator()(Material* ma)
+	// void operator()(Material *ma)
 	template<class Functor>
 	void forEachMaterialInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 	{

@@ -41,10 +41,11 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	compositorOperation->setSceneName(editorNode->id->name);
 	compositorOperation->setRenderData(context->getRenderData());
 	compositorOperation->setbNodeTree(context->getbNodeTree());
-	compositorOperation->setIgnoreAlpha(editorNode->custom2 & 1);
+	compositorOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);
 	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);
 	alphaSocket->relinkConnections(compositorOperation->getInputSocket(1));
 	depthSocket->relinkConnections(compositorOperation->getInputSocket(2));
 	graph->addOperation(compositorOperation);
 	addPreviewOperation(graph, context, compositorOperation->getInputSocket(0));
 }
+

@@ -384,6 +384,8 @@ enum {
 #define GESTURE_MODAL_IN			9
 #define GESTURE_MODAL_OUT			10
 
+#define GESTURE_MODAL_CIRCLE_SIZE	11 /* circle sel: size brush (for trackpad event) */
+
 
 #endif	/* __WM_EVENT_TYPES_H__ */
 

@@ -151,7 +151,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags);
 
 /* view3d manipulators */
 
-int BIF_do_manipulator(struct bContext *C, struct wmEvent *event, struct wmOperator *op);
+int BIF_do_manipulator(struct bContext *C, const struct wmEvent *event, struct wmOperator *op);
 void BIF_draw_manipulator(const struct bContext *C);
 
 /* Snapping */
@@ -177,12 +177,12 @@ typedef enum SnapMode {
 
 #define SNAP_MIN_DISTANCE 30
 
-int peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
-int peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
-int snapObjectsTransform(struct TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
-int snapObjectsContext(struct bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
-int snapNodesTransform(struct TransInfo *t, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode);
-int snapNodesContext(struct bContext *C, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode);
+bool peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
+bool peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
+bool snapObjectsTransform(struct TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
+bool snapObjectsContext(struct bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
+bool snapNodesTransform(struct TransInfo *t, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode);
+bool snapNodesContext(struct bContext *C, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode);
 
 #endif
 

@@ -2244,12 +2244,12 @@ void wm_event_do_handlers(bContext *C)
 
 /* ********** filesector handling ************ */
 
-void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
+void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval)
 {
 	/* add to all windows! */
 	wmWindow *win;
 	
-	for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
+	for (win = wm->windows.first; win; win = win->next) {
 		wmEvent event = *win->eventstate;
 		
 		event.type = EVT_FILESELECT;
@@ -2271,6 +2271,7 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
 	wmEventHandler *handler, *handlernext;
+	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	int full = 1;    // XXX preset?
 
@@ -2302,7 +2303,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 		op->type->check(C, op); /* ignore return value */
 	}
 
-	WM_event_fileselect_event(C, op, full ? EVT_FILESELECT_FULL_OPEN : EVT_FILESELECT_OPEN);
+	WM_event_fileselect_event(wm, op, full ? EVT_FILESELECT_FULL_OPEN : EVT_FILESELECT_OPEN);
 }
 
 #if 0
@@ -2487,14 +2488,14 @@ void WM_event_add_mousemove_window(wmWindow *window)
 }
 
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
-int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
+int WM_modal_tweak_exit(const wmEvent *event, int tweak_event)
 {
 	/* if the release-confirm userpref setting is enabled, 
 	 * tweak events can be canceled when mouse is released
 	 */
 	if (U.flag & USER_RELEASECONFIRM) {
 		/* option on, so can exit with km-release */
-		if (evt->val == KM_RELEASE) {
+		if (event->val == KM_RELEASE) {
 			switch (tweak_event) {
 				case EVT_TWEAK_L:
 				case EVT_TWEAK_M:
@@ -2515,7 +2516,7 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 		 * some items (i.e. markers) being tweaked may end up getting
 		 * dropped all over
 		 */
-		if (evt->val != KM_RELEASE)
+		if (event->val != KM_RELEASE)
 			return 1;
 	}
 	
@@ -2745,9 +2746,9 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 }
 
 /* imperfect but probably usable... draw/enable drags to other windows */
-static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
+static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
-	int mx = evt->x, my = evt->y;
+	int mx = event->x, my = event->y;
 	
 	if (wm->windows.first == wm->windows.last)
 		return NULL;
@@ -2779,8 +2780,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 				if (mx - posx >= 0 && owin->posy >= 0 &&
 				    mx - posx <= WM_window_pixels_x(owin) && my - posy <= WM_window_pixels_y(owin))
 				{
-					evt->x = mx - (int)(U.pixelsize * owin->posx);
-					evt->y = my - (int)(U.pixelsize * owin->posy);
+					event->x = mx - (int)(U.pixelsize * owin->posx);
+					event->y = my - (int)(U.pixelsize * owin->posy);
 					
 					return owin;
 				}

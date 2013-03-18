@@ -151,8 +151,6 @@ static bool bm_loop_is_radial_boundary(BMLoop *l_first)
 	return true;
 }
 
-extern float BM_vert_calc_mean_tagged_edge_length(BMVert *v);
-
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 {
 	const bool use_boundary        = BMO_slot_bool_get(op->slots_in,  "use_boundary");

@@ -66,6 +66,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "GPU_extensions.h"
+
 #include "mesh_intern.h"
 
 #include "UI_resources.h"
@@ -253,6 +255,9 @@ int EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short 
 
 	dr = buf->rect;
 
+	if (vc->rv3d->gpuoffscreen)
+		GPU_offscreen_bind(vc->rv3d->gpuoffscreen);
+	
 	/* draw the mask */
 	glDisable(GL_DEPTH_TEST);
 	
@@ -269,6 +274,9 @@ int EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short 
 	glEnd();
 	
 	glFinish(); /* to be sure readpixels sees mask */
+	
+	if (vc->rv3d->gpuoffscreen)
+		GPU_offscreen_unbind(vc->rv3d->gpuoffscreen);
 	
 	/* grab mask */
 	bufmask = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
@@ -308,8 +316,10 @@ int EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 			return 0;
 		}
 	}
-	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) return 0;
-	
+	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) {
+		return 0;
+	}
+
 	xmin = xs - rads; xmax = xs + rads;
 	ymin = ys - rads; ymax = ys + rads;
 	buf = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
@@ -932,7 +942,7 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int edbm_select_mode_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	/* detecting these options based on shift/ctrl here is weak, but it's done
 	 * to make this work when clicking buttons or menus */
@@ -1084,7 +1094,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short deselect, short toggle, short ring)
+static void mouse_mesh_loop(bContext *C, const int mval[2], short extend, short deselect, short toggle, short ring)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -1171,7 +1181,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short desele
 				/* Select the face of eed which is the nearest of mouse. */
 				BMFace *f, *efa = NULL;
 				BMIter iterf;
-				float best_dist = MAXFLOAT;
+				float best_dist = FLT_MAX;
 
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
@@ -1203,7 +1213,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short desele
 	}
 }
 
-static int edbm_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -1754,7 +1764,7 @@ static int mouse_mesh_shortest_path_face(ViewContext *vc)
 
 /* ******************* operator for edge and face tag ****************** */
 
-static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -2252,7 +2262,7 @@ static void linked_limit_default(bContext *C, wmOperator *op)
 	}
 }
 
-static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;
@@ -2992,6 +3002,59 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+}
+
+static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMVert *eve;
+	BMIter iter;
+
+	if (!em->selectmode == SCE_SELECT_VERTEX) {
+		BKE_report(op->reports, RPT_ERROR, "Does not work out of vertex selection mode");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (obedit->defbase.first == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!RNA_boolean_get(op->ptr, "extend")) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+			/* no dv or dv set with no weight */
+			if (dv == NULL || (dv && dv->dw == NULL)) {
+				BM_vert_select_set(em->bm, eve, true);
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_ungrouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Ungrouped";
+	ot->idname = "MESH_OT_select_ungrouped";
+	ot->description = "Select vertices without a group";
+
+	/* api callbacks */
+	ot->exec = edbm_select_ungrouped_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 

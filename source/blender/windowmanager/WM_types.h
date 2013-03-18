@@ -515,6 +515,7 @@ typedef struct wmTimer {
 typedef struct wmOperatorType {
 	const char *name;		/* text for ui, undo */
 	const char *idname;		/* unique identifier */
+	const char *translation_context;
 	const char *description;	/* tooltips and python docs */
 
 	/* this callback executes the operator without any interactive input,
@@ -537,13 +538,13 @@ typedef struct wmOperatorType {
 	 * any further events are handled in modal. if the operation is
 	 * canceled due to some external reason, cancel is called
 	 * - see defines below for return values */
-	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *)
+	int (*invoke)(struct bContext *, struct wmOperator *, const struct wmEvent *)
 #ifdef __GNUC__
 	__attribute__((warn_unused_result))
 #endif
 	;
 	int (*cancel)(struct bContext *, struct wmOperator *);
-	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *)
+	int (*modal)(struct bContext *, struct wmOperator *, const struct wmEvent *)
 #ifdef __GNUC__
 	__attribute__((warn_unused_result))
 #endif
@@ -648,7 +649,7 @@ typedef struct wmDropBox {
 	struct wmDropBox *next, *prev;
 	
 	/* test if the dropbox is active, then can print optype name */
-	int (*poll)(struct bContext *, struct wmDrag *, wmEvent *);
+	int (*poll)(struct bContext *, struct wmDrag *, const wmEvent *);
 
 	/* before exec, this copies drag info to wmDrop properties */
 	void (*copy)(struct wmDrag *, struct wmDropBox *);

@@ -29,6 +29,7 @@ set(INC
 	../makesdna
 	../../../intern/ghost
 	../../../intern/guardedalloc
+	../../../extern/wcwidth
 )
 
 set(INC_SYS

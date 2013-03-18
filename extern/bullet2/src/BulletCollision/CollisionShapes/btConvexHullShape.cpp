@@ -13,6 +13,10 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#if defined (_WIN32) || defined (__i386__)
+#define BT_USE_SSE_IN_API
+#endif
+
 #include "btConvexHullShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 
@@ -45,30 +49,28 @@ void btConvexHullShape::setLocalScaling(const btVector3& scaling)
 	recalcLocalAabb();
 }
 
-void btConvexHullShape::addPoint(const btVector3& point)
+void btConvexHullShape::addPoint(const btVector3& point, bool recalculateLocalAabb)
 {
 	m_unscaledPoints.push_back(point);
-	recalcLocalAabb();
+	if (recalculateLocalAabb)
+		recalcLocalAabb();
 
 }
 
 btVector3	btConvexHullShape::localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 {
 	btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
-	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
+	btScalar maxDot = btScalar(-BT_LARGE_FLOAT);
 
-	for (int i=0;i<m_unscaledPoints.size();i++)
-	{
-		btVector3 vtx = m_unscaledPoints[i] * m_localScaling;
+    // Here we take advantage of dot(a, b*c) = dot(a*b, c).  Note: This is true mathematically, but not numerically. 
+    if( 0 < m_unscaledPoints.size() )
+    {
+        btVector3 scaled = vec * m_localScaling;
+        int index = (int) scaled.maxDot( &m_unscaledPoints[0], m_unscaledPoints.size(), maxDot); // FIXME: may violate encapsulation of m_unscaledPoints
+        return m_unscaledPoints[index] * m_localScaling;
+    }
 
-		newDot = vec.dot(vtx);
-		if (newDot > maxDot)
-		{
-			maxDot = newDot;
-			supVec = vtx;
-		}
-	}
-	return supVec;
+    return supVec;
 }
 
 void	btConvexHullShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
@@ -81,23 +83,19 @@ void	btConvexHullShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const 
 			supportVerticesOut[i][3] = btScalar(-BT_LARGE_FLOAT);
 		}
 	}
-	for (int i=0;i<m_unscaledPoints.size();i++)
-	{
-		btVector3 vtx = getScaledPoint(i);
 
-		for (int j=0;j<numVectors;j++)
-		{
-			const btVector3& vec = vectors[j];
-			
-			newDot = vec.dot(vtx);
-			if (newDot > supportVerticesOut[j][3])
-			{
-				//WARNING: don't swap next lines, the w component would get overwritten!
-				supportVerticesOut[j] = vtx;
-				supportVerticesOut[j][3] = newDot;
-			}
-		}
-	}
+    for (int j=0;j<numVectors;j++)
+    {
+        btVector3 vec = vectors[j] * m_localScaling;        // dot(a*b,c) = dot(a,b*c)
+        if( 0 <  m_unscaledPoints.size() )
+        {
+            int i = (int) vec.maxDot( &m_unscaledPoints[0], m_unscaledPoints.size(), newDot);
+            supportVerticesOut[j] = getScaledPoint(i);
+            supportVerticesOut[j][3] = newDot;        
+        }
+        else
+            supportVerticesOut[j][3] = -BT_LARGE_FLOAT;
+    }
 
 
 
@@ -208,13 +206,11 @@ const char*	btConvexHullShape::serialize(void* dataBuffer, btSerializer* seriali
 	return "btConvexHullShapeData";
 }
 
-void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, btScalar& min, btScalar& max) const
+void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, btScalar& minProj, btScalar& maxProj, btVector3& witnesPtMin,btVector3& witnesPtMax) const
 {
 #if 1
-	min = FLT_MAX;
-	max = -FLT_MAX;
-	btVector3 witnesPtMin;
-	btVector3 witnesPtMax;
+	minProj = FLT_MAX;
+	maxProj = -FLT_MAX;
 
 	int numVerts = m_unscaledPoints.size();
 	for(int i=0;i<numVerts;i++)
@@ -222,31 +218,30 @@ void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, 
 		btVector3 vtx = m_unscaledPoints[i] * m_localScaling;
 		btVector3 pt = trans * vtx;
 		btScalar dp = pt.dot(dir);
-		if(dp < min)	
+		if(dp < minProj)	
 		{
-			min = dp;
+			minProj = dp;
 			witnesPtMin = pt;
 		}
-		if(dp > max)	
+		if(dp > maxProj)	
 		{
-			max = dp;
+			maxProj = dp;
 			witnesPtMax=pt;
 		}
 	}
 #else
 	btVector3 localAxis = dir*trans.getBasis();
-	btVector3 vtx1 = trans(localGetSupportingVertex(localAxis));
-	btVector3 vtx2 = trans(localGetSupportingVertex(-localAxis));
+	witnesPtMin  = trans(localGetSupportingVertex(localAxis));
+	witnesPtMax = trans(localGetSupportingVertex(-localAxis));
 
-	min = vtx1.dot(dir);
-	max = vtx2.dot(dir);
+	minProj = witnesPtMin.dot(dir);
+	maxProj = witnesPtMax.dot(dir);
 #endif
 
-	if(min>max)
+	if(minProj>maxProj)
 	{
-		btScalar tmp = min;
-		min = max;
-		max = tmp;
+		btSwap(minProj,maxProj);
+		btSwap(witnesPtMin,witnesPtMax);
 	}
 
 

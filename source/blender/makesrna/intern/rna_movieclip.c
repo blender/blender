@@ -25,7 +25,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <limits.h>
 
@@ -34,12 +33,12 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
+#include "DNA_movieclip_types.h"
+#include "DNA_scene_types.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_movieclip_types.h"
-#include "DNA_scene_types.h"
 
 #include "WM_types.h"
 

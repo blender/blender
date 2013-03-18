@@ -172,17 +172,10 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* renam
 
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-
 /* mesh_ops.c */
 void        ED_operatortypes_mesh(void);
 void        ED_operatormacros_mesh(void);
 void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
-void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
-
-
-/* spacetypes.c */
-void        ED_spacetypes_init(void);
-
 
 /* editmesh_tools.c (could be moved) */
 void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEditMesh *em);
@@ -193,13 +186,14 @@ void paintface_flush_flags(struct Object *ob);
 int  paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend, int deselect, int toggle);
 int  do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
-void paintface_select_linked(struct bContext *C, struct Object *ob, int mval[2], int mode);
+void paintface_select_linked(struct bContext *C, struct Object *ob, const int mval[2], int mode);
 int  paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
 void paintface_hide(struct Object *ob, const int unselected);
 void paintface_reveal(struct Object *ob);
 
 void paintvert_deselect_all_visible(struct Object *ob, int action, short flush_flags);
+void paintvert_select_ungrouped(struct Object *ob, short extend, short flush_flags);
 void paintvert_flush_flags(struct Object *ob);
 
 /* mirrtopo */

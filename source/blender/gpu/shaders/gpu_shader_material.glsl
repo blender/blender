@@ -233,7 +233,7 @@ void math_pow(float val1, float val2, out float outval)
 	else {
 		float val2_mod_1 = mod(abs(val2), 1.0);
 
-	 	if (val2_mod_1 > 0.999 || val2_mod_1 < 0.001)
+		if (val2_mod_1 > 0.999 || val2_mod_1 < 0.001)
 			outval = compatible_pow(val1, floor(val2 + 0.5));
 		else
 			outval = 0.0;

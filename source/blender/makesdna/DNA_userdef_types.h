@@ -229,7 +229,7 @@ typedef struct ThemeSpace {
 	char wire[4], select[4];
 	char lamp[4], speaker[4], empty[4], camera[4], pad[8];
 	char active[4], group[4], group_active[4], transform[4];
-	char vertex[4], vertex_select[4];
+	char vertex[4], vertex_select[4], vertex_unreferenced[4];
 	char edge[4], edge_select[4];
 	char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4];
 	char face[4], face_select[4];	/* solid faces */
@@ -270,6 +270,7 @@ typedef struct ThemeSpace {
 
 	char handle_vertex[4];
 	char handle_vertex_select[4];
+	char pad2[4];
 	
 	char handle_vertex_size;
 	
@@ -453,7 +454,7 @@ typedef struct UserDef {
 
 	short ogl_multisamples;	/* amount of samples for OpenGL FSA, if zero no FSA */
 
-	short pad4;
+	short image_gpubuffer_limit; /* If set, amount of mega-pixels to use for texture drawing of images */
 	
 	float glalphaclip;
 	

@@ -30,6 +30,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -227,7 +228,7 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	return retval;
 }
 
-static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -310,7 +311,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, 1);
 }
 
-static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -584,7 +585,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	return (params->active_file != origfile);
 }
 
-static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -611,12 +612,13 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 
 int file_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
 	
 	sfile->op = NULL;
 
-	WM_event_fileselect_event(C, op, EVT_FILESELECT_CANCEL);
+	WM_event_fileselect_event(wm, op, EVT_FILESELECT_CANCEL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -779,6 +781,7 @@ int file_draw_check_exists(SpaceFile *sfile)
 /* sends events now, so things get handled on windowqueue level */
 int file_exec(bContext *C, wmOperator *exec_op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	char filepath[FILE_MAX];
 	
@@ -810,7 +813,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
-		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
+		WM_event_fileselect_event(wm, op, EVT_FILESELECT_EXEC);
 
 	}
 				
@@ -870,10 +873,11 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 
 static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	struct FSMenu *fsmenu = fsmenu_get();
 
-	ED_fileselect_clear(C, sfile);
+	ED_fileselect_clear(wm, sfile);
 
 	/* refresh system directory menu */
 	fsmenu_refresh_system_category(fsmenu);
@@ -949,7 +953,7 @@ int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 
 
 /* only meant for timer usage */
-static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -1087,6 +1091,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	char path[FILE_MAX];
 	int generate_name = 1;
 
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	
 	if (!sfile->params) {
@@ -1125,7 +1130,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	sfile->scroll_offset = 0;
 
 	/* reload dir to make sure we're seeing what's in the directory */
-	ED_fileselect_clear(C, sfile);
+	ED_fileselect_clear(wm, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1189,7 +1194,7 @@ static void file_expand_directory(bContext *C)
 	}
 }
 
-static int file_directory_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int file_directory_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
@@ -1227,7 +1232,6 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		}
 
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);
-		BLI_add_slash(sfile->params->dir);
 		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -1291,11 +1295,12 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 
 static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	
 	if (sfile->params) {
 		sfile->params->flag ^= FILE_HIDE_DOT;
-		ED_fileselect_clear(C, sfile);
+		ED_fileselect_clear(wm, sfile);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
 	
@@ -1477,14 +1482,15 @@ static int file_delete_poll(bContext *C)
 int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	char str[FILE_MAX];
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	struct direntry *file;
 	
 	
 	file = filelist_file(sfile->files, sfile->params->active_file);
 	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
-	BLI_delete(str, 0, 0);
-	ED_fileselect_clear(C, sfile);
+	BLI_delete(str, false, false);
+	ED_fileselect_clear(wm, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	
 	return OPERATOR_FINISHED;

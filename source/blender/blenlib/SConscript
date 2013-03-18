@@ -31,7 +31,7 @@ sources = env.Glob('intern/*.c')
 
 cflags=''
 # don't add ../blenkernel back!
-incs = '. ../makesdna #/intern/guardedalloc #/intern/ghost'
+incs = '. ../makesdna #/intern/guardedalloc #/intern/ghost #/extern/wcwidth'
 
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']

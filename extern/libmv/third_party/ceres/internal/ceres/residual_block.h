@@ -93,10 +93,15 @@ class ResidualBlock {
   // parameterizations applied already; for example, the jacobian for a
   // 4-dimensional quaternion parameter using the "QuaternionParameterization"
   // is num_residuals by 3 instead of num_residuals by 4.
-  bool Evaluate(double* cost,
+  //
+  // apply_loss_function as the name implies allows the user to switch
+  // the application of the loss function on and off.
+  bool Evaluate(bool apply_loss_function,
+                double* cost,
                 double* residuals,
                 double** jacobians,
                 double* scratch) const;
+
 
   const CostFunction* cost_function() const { return cost_function_; }
   const LossFunction* loss_function() const { return loss_function_; }

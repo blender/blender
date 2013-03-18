@@ -165,6 +165,10 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 if(APPLE)
     # SSE math is enabled by default on x86_64
 	if(CMAKE_OSX_ARCHITECTURES MATCHES "i386")

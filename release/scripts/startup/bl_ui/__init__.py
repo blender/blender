@@ -26,6 +26,7 @@ if "bpy" in locals():
         _reload(val)
 _modules = (
     "properties_animviz",
+    "properties_constraint",
     "properties_data_armature",
     "properties_data_bone",
     "properties_data_camera",
@@ -40,7 +41,6 @@ _modules = (
     "properties_game",
     "properties_mask_common",
     "properties_material",
-    "properties_object_constraint",
     "properties_object",
     "properties_particle",
     "properties_physics_cloth",

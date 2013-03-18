@@ -24,11 +24,12 @@
  *  \ingroup RNA
  */
 
-
 #ifndef __RNA_INTERNAL_H__
 #define __RNA_INTERNAL_H__
 
 #include "UI_resources.h"
+
+#include "BLI_utildefines.h"
 
 #include "rna_internal_types.h"
 
@@ -211,9 +212,9 @@ void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
-struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, int create);
+struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, bool create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
-struct IDProperty *rna_PropertyGroup_idprops(struct PointerRNA *ptr, int create);
+struct IDProperty *rna_PropertyGroup_idprops(struct PointerRNA *ptr, bool create);
 void rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
 struct StructRNA *rna_PropertyGroup_register(struct Main *bmain, struct ReportList *reports, void *data,
                                              const char *identifier, StructValidateFunc validate,
@@ -422,6 +423,4 @@ int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct Poi
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 
-#endif /* __RNA_INTERNAL_H__ */
-
-
+#endif  /* __RNA_INTERNAL_H__ */

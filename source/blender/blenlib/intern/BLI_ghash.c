@@ -120,7 +120,7 @@ void *BLI_ghash_lookup(GHash *gh, const void *key)
 	return NULL;
 }
 
-int BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
 	Entry *e;
@@ -140,12 +140,12 @@ int BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFre
 			else   gh->buckets[hash] = n;
 
 			gh->nentries--;
-			return 1;
+			return true;
 		}
 		p = e;
 	}
 
-	return 0;
+	return false;
 }
 
 /* same as above but return the value,
@@ -178,16 +178,16 @@ void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 	return NULL;
 }
 
-int BLI_ghash_haskey(GHash *gh, const void *key)
+bool BLI_ghash_haskey(GHash *gh, const void *key)
 {
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
 	Entry *e;
 
 	for (e = gh->buckets[hash]; e; e = e->next)
 		if (gh->cmpfp(key, e->key) == 0)
-			return 1;
+			return true;
 
-	return 0;
+	return false;
 }
 
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
@@ -271,9 +271,9 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
 		}
 	}
 }
-int BLI_ghashIterator_isDone(GHashIterator *ghi)
+bool BLI_ghashIterator_notDone(GHashIterator *ghi)
 {
-	return !ghi->curEntry;
+	return ghi->curEntry != NULL;
 }
 
 /***/

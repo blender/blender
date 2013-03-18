@@ -208,7 +208,7 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
 
 /* within active object context */
 /* previously known as "selectconnected_posearmature" */
-static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm = (bArmature *)ob->data;

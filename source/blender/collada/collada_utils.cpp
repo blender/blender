@@ -116,11 +116,11 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 	DAG_id_tag_update(&par->id, OB_RECALC_OB);
 
-	/** done once after import
+	/** done once after import */
+#if 0
 	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-    */
-
+#endif
 
 	return true;
 }
@@ -299,15 +299,17 @@ int bc_get_active_UVLayer(Object *ob)
 	return CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
 }
 
-std::string bc_url_encode(std::string data) {
+std::string bc_url_encode(std::string data)
+{
 	/* XXX We probably do not need to do a full encoding.
-	   But in case that is necessary,then it can be added here.
-	*/
+	 * But in case that is necessary,then it can be added here.
+	 */
 	return bc_replace_string(data,"#", "%23");
 }
 
 std::string bc_replace_string(std::string data, const std::string& pattern,
-							  const std::string& replacement) {
+                              const std::string& replacement)
+{
 	size_t pos = 0;
 	while((pos = data.find(pattern, pos)) != std::string::npos) {
 		data.replace(pos, pattern.length(), replacement);
@@ -317,15 +319,15 @@ std::string bc_replace_string(std::string data, const std::string& pattern,
 }
 
 /**
-	Calculate a rescale factor such that the imported scene's scale
-	is preserved. I.e. 1 meter in the import will also be
-	1 meter in the current scene.
-	XXX : I am not sure if it is correct to map 1 Blender Unit
-	to 1 Meter for unit type NONE. But it looks reasonable to me.
-*/
+ * Calculate a rescale factor such that the imported scene's scale
+ * is preserved. I.e. 1 meter in the import will also be
+ * 1 meter in the current scene.
+ * XXX : I am not sure if it is correct to map 1 Blender Unit
+ * to 1 Meter for unit type NONE. But it looks reasonable to me.
+ */
 void bc_match_scale(std::vector<Object *> *objects_done, 
-					Scene &sce, 
-					UnitConverter &bc_unit) {
+                    Scene &sce,
+                    UnitConverter &bc_unit) {
 
 	Object *ob = NULL;
 

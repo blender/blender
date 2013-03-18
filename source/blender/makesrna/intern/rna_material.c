@@ -24,16 +24,15 @@
  *  \ingroup RNA
  */
 
-
 #include <float.h>
 #include <stdlib.h>
+
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

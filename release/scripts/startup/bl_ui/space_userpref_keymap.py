@@ -215,13 +215,13 @@ class InputKeyMapPanel:
 
     _EVENT_TYPES = set()
     _EVENT_TYPE_MAP = {}
+
     def draw_filtered(self, display_keymaps, filter_type, filter_text, layout):
 
         if filter_type == 'NAME':
             def filter_func(kmi):
                 return (filter_text in kmi.idname.lower() or
                         filter_text in kmi.name.lower())
-                
         else:
             if not self._EVENT_TYPES:
                 enum = bpy.types.Event.bl_rna.properties["type"].enum_items
@@ -230,11 +230,15 @@ class InputKeyMapPanel:
 
                 del enum
                 self._EVENT_TYPE_MAP.update({
+                    "`": 'ACCENT_GRAVE',
                     "*": 'NUMPAD_ASTERIX',
                     "/": 'NUMPAD_SLASH',
                     "RMB": 'RIGHTMOUSE',
                     "LMB": 'LEFTMOUSE',
                     "MMB": 'MIDDLEMOUSE',
+                    })
+                self._EVENT_TYPE_MAP.update({
+                    "%d" % i: "NUMPAD_%d" % i for i in range(9)
                     })
             # done with once off init
 
@@ -268,13 +272,13 @@ class InputKeyMapPanel:
                 return False
             elif filter_text_split:
                 kmi_type = filter_text_split[0].upper()
-                
+
                 if kmi_type not in self._EVENT_TYPES:
                     # replacement table
                     kmi_type_test = self._EVENT_TYPE_MAP.get(kmi_type)
                     if kmi_type_test is None:
                         # print("Unknown Type:", kmi_type)
-                        
+
                         # Partial match
                         for k, v in self._EVENT_TYPE_MAP.items():
                             if kmi_type in k:
@@ -289,7 +293,7 @@ class InputKeyMapPanel:
 
                     kmi_type = kmi_type_test
                     del kmi_type_test
-                    
+
                 kmi_test_dict["type"] = kmi_type
 
             # main filter func, runs many times
@@ -365,8 +369,8 @@ class InputKeyMapPanel:
         col.separator()
         display_keymaps = keyconfig_utils.keyconfig_merge(kc, kc)
         filter_type = spref.filter_type
-        filter_text = spref.filter_text
-        if filter_text != "":
+        filter_text = spref.filter_text.strip()
+        if filter_text:
             filter_text = filter_text.lower()
             ok = self.draw_filtered(display_keymaps, filter_type, filter_text, col)
         else:
@@ -377,7 +381,7 @@ class InputKeyMapPanel:
         rowsub.prop(spref, "filter_type", text="")
         rowsubsub = rowsub.row(align=True)
         if not ok:
-	        rowsubsub.alert = True
+            rowsubsub.alert = True
         rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
 
 

@@ -47,7 +47,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
 	viewerOperation->setCenterX(editorNode->custom3);
 	viewerOperation->setCenterY(editorNode->custom4);
-	viewerOperation->setIgnoreAlpha(editorNode->custom2 & 1);
+	viewerOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);
 
 	viewerOperation->setViewSettings(context->getViewSettings());
 	viewerOperation->setDisplaySettings(context->getDisplaySettings());

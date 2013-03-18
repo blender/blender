@@ -77,7 +77,7 @@ public:
 	AUD_CallbackIIRFilterReader(boost::shared_ptr<AUD_IReader> reader, int in, int out,
 								doFilterIIR doFilter,
 								endFilterIIR endFilter = 0,
-								void* data = 0);
+								void* data = NULL);
 
 	virtual ~AUD_CallbackIIRFilterReader();
 

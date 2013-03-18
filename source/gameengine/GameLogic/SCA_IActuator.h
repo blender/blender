@@ -131,7 +131,7 @@ public:
 	virtual void ProcessReplica();
 
 	/** 
-	 * Return true iff all the current events 
+	 * Return true if all the current events
 	 * are negative. The definition of negative event is
 	 * not immediately clear. But usually refers to key-up events
 	 * or events where no action is required.

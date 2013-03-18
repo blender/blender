@@ -186,9 +186,7 @@ public:
 
 	SIMD_FORCE_INLINE btVector3 transform(const btVector3 & point)
 	{
-		return btVector3(m_R1to0[0].dot(point) + m_T1to0.x(),
-			m_R1to0[1].dot(point) + m_T1to0.y(),
-			m_R1to0[2].dot(point) + m_T1to0.z());
+        return point.dot3(m_R1to0[0], m_R1to0[1], m_R1to0[2]) + m_T1to0;
 	}
 };
 
@@ -332,10 +330,10 @@ public:
 		// Compute new center
 		center = trans(center);
 
-		btVector3 textends(extends.dot(trans.getBasis().getRow(0).absolute()),
- 				 extends.dot(trans.getBasis().getRow(1).absolute()),
-				 extends.dot(trans.getBasis().getRow(2).absolute()));
-
+        btVector3 textends = extends.dot3(trans.getBasis().getRow(0).absolute(), 
+                                          trans.getBasis().getRow(1).absolute(), 
+                                          trans.getBasis().getRow(2).absolute());
+        
 		m_min = center - textends;
 		m_max = center + textends;
 	}

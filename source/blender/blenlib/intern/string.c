@@ -43,6 +43,15 @@
 
 #include "BLI_utildefines.h"
 
+/**
+ * Duplicates the first \a len bytes of cstring \a str
+ * into a newly mallocN'd string and returns it. \a str
+ * is assumed to be at least len bytes long.
+ *
+ * \param str The string to be duplicated
+ * \param len The number of bytes to duplicate
+ * \retval Returns the duplicated string
+ */
 char *BLI_strdupn(const char *str, const size_t len)
 {
 	char *n = MEM_mallocN(len + 1, "strdup");
@@ -51,11 +60,25 @@ char *BLI_strdupn(const char *str, const size_t len)
 	
 	return n;
 }
+
+/**
+ * Duplicates the cstring \a str into a newly mallocN'd
+ * string and returns it.
+ *
+ * \param str The string to be duplicated
+ * \retval Returns the duplicated string
+ */
 char *BLI_strdup(const char *str)
 {
 	return BLI_strdupn(str, strlen(str));
 }
 
+/**
+ * Appends the two strings, and returns new mallocN'ed string
+ * \param str1 first string for copy
+ * \param str2 second string for append
+ * \retval Returns dst
+ */
 char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 {
 	size_t len;
@@ -69,18 +92,52 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 	return n;
 }
 
+/**
+ * Like strncpy but ensures dst is always
+ * '\0' terminated.
+ *
+ * \param dst Destination for copy
+ * \param src Source string to copy
+ * \param maxncpy Maximum number of characters to copy (generally
+ * the size of dst)
+ * \retval Returns dst
+ */
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
-	size_t srclen = strlen(src);
-	size_t cpylen = (srclen > (maxncpy - 1)) ? (maxncpy - 1) : srclen;
+	size_t srclen = BLI_strnlen(src, maxncpy - 1);
 	BLI_assert(maxncpy != 0);
-	
-	memcpy(dst, src, cpylen);
-	dst[cpylen] = '\0';
-	
+
+	memcpy(dst, src, srclen);
+	dst[srclen] = '\0';
 	return dst;
 }
 
+/**
+ * Like strncpy but ensures dst is always
+ * '\0' terminated.
+ *
+ * \note This is a duplicate of #BLI_strncpy that returns bytes copied.
+ * And is a drop in replacement for 'snprintf(str, sizeof(str), "%s", arg);'
+ *
+ * \param dst Destination for copy
+ * \param src Source string to copy
+ * \param maxncpy Maximum number of characters to copy (generally
+ * the size of dst)
+ * \retval The number of bytes copied (The only difference from BLI_strncpy).
+ */
+size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+{
+	size_t srclen = BLI_strnlen(src, maxncpy - 1);
+	BLI_assert(maxncpy != 0);
+
+	memcpy(dst, src, srclen);
+	dst[srclen] = '\0';
+	return srclen;
+}
+
+/**
+ * Portable replacement for #vsnprintf
+ */
 size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restrict format, va_list arg)
 {
 	size_t n;
@@ -101,6 +158,9 @@ size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restri
 	return n;
 }
 
+/**
+ * Portable replacement for #snprintf
+ */
 size_t BLI_snprintf(char *__restrict buffer, size_t count, const char *__restrict format, ...)
 {
 	size_t n;
@@ -113,6 +173,10 @@ size_t BLI_snprintf(char *__restrict buffer, size_t count, const char *__restric
 	return n;
 }
 
+/**
+ * Print formatted string into a newly #MEM_mallocN'd string
+ * and return it.
+ */
 char *BLI_sprintfN(const char *__restrict format, ...)
 {
 	DynStr *ds;
@@ -180,17 +244,17 @@ escape_finish:
 	return len;
 }
 
-
-/* Makes a copy of the text within the "" that appear after some text 'blahblah'
+/**
+ * Makes a copy of the text within the "" that appear after some text 'blahblah'
  * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
- * 
- *  - str: is the entire string to chop
- *	- prefix: is the part of the string to leave out 
  *
- * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
+ * - str: is the entire string to chop
+ * - prefix: is the part of the string to leave out
+ *
+ * Assume that the strings returned must be freed afterwards, and that the inputs will contain
  * data we want...
  *
- * TODO, return the offset and a length so as to avoid doing an allocation.
+ * \return the offset and a length so as to avoid doing an allocation.
  */
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
@@ -210,12 +274,19 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 	return BLI_strdupn("", 0);
 }
 
-/* Replaces all occurrences of oldText with newText in str, returning a new string that doesn't 
- * contain the 'replaced' occurrences.
+/**
+ * Returns a copy of the cstring \a str into a newly mallocN'd
+ * string with all instances of oldText replaced with newText,
+ * and returns it.
+ *
+ * \note A rather wasteful string-replacement utility, though this shall do for now...
+ * Feel free to replace this with an even safe + nicer alternative
+ *
+ * \param str The string to replace occurrences of oldText in
+ * \param oldText The text in the string to find and replace
+ * \param newText The text in the string to find and replace
+ * \retval Returns the duplicated string
  */
-
-/* A rather wasteful string-replacement utility, though this shall do for now...
- * Feel free to replace this with an even safe + nicer alternative */
 char *BLI_replacestr(char *__restrict str, const char *__restrict oldText, const char *__restrict newText)
 {
 	DynStr *ds = NULL;
@@ -282,12 +353,19 @@ char *BLI_replacestr(char *__restrict str, const char *__restrict oldText, const
 	}
 } 
 
+/**
+ * Compare two strings without regard to case.
+ *
+ * \retval True if the strings are equal, false otherwise.
+ */
 int BLI_strcaseeq(const char *a, const char *b) 
 {
 	return (BLI_strcasecmp(a, b) == 0);
 }
 
-/* strcasestr not available in MSVC */
+/**
+ * Portable replacement for #strcasestr (not available in MSVC)
+ */
 char *BLI_strcasestr(const char *s, const char *find)
 {
 	register char c, sc;
@@ -431,10 +509,15 @@ void BLI_timestr(double _time, char *str)
 }
 
 /* determine the length of a fixed-size string */
-size_t BLI_strnlen(const char *str, const size_t maxlen)
+size_t BLI_strnlen(const char *s, size_t maxlen)
 {
-	const char *end = memchr(str, '\0', maxlen);
-	return end ? (size_t) (end - str) : maxlen;
+	size_t len;
+
+	for (len = 0; len < maxlen; len++, s++) {
+		if (!*s)
+			break;
+	}
+	return len;
 }
 
 void BLI_ascii_strtolower(char *str, const size_t len)
@@ -453,4 +536,32 @@ void BLI_ascii_strtoupper(char *str, const size_t len)
 	for (i = 0; i < len; i++)
 		if (str[i] >= 'a' && str[i] <= 'z')
 			str[i] -= 'a' - 'A';
+}
+
+/**
+ * Strip trailing zeros from a float, eg:
+ *   0.0000 -> 0.0
+ *   2.0010 -> 2.001
+ *
+ * \param str
+ * \param len
+ * \return The number of zeto's stripped.
+ */
+int BLI_str_rstrip_float_zero(char *str, const char pad)
+{
+	char *p = strchr(str, '.');
+	int totstrip = 0;
+	if (p) {
+		char *end_p;
+		p++;  /* position at first decimal place */
+		end_p = p + (strlen(p) - 1);  /* position at last character */
+		if (end_p > p) {
+			while (end_p != p && *end_p == '0') {
+				*end_p = pad;
+				end_p--;
+			}
+		}
+	}
+
+	return totstrip;
 }

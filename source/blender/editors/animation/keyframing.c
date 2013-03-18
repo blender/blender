@@ -714,7 +714,6 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 	else if (ptr->type == &RNA_PoseBone) {
 		Object *ob = (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-		float tmat[4][4];
 		
 		/* Although it is not strictly required for this particular space conversion, 
 		 * arg1 must not be null, as there is a null check for the other conversions to
@@ -1298,7 +1297,7 @@ void ANIM_OT_keyframe_insert(wmOperatorType *ot)
  * then calls the menu if necessary before 
  */
 
-static int insert_key_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	
@@ -1308,7 +1307,7 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 		uiLayout *layout;
 		
 		/* call the menu, which will call this operator again, hence the canceled */
-		pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+		pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 		layout = uiPupMenuLayout(pup);
 		uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
 		uiPupMenuEnd(C, pup);
@@ -1624,17 +1623,21 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			success += insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
 		else {
-			if (G.debug & G_DEBUG)
-				printf("Button Insert-Key: no path to property\n");
-			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property, try using a keying set instead");
+			BKE_report(op->reports, RPT_WARNING, 
+			           "Failed to resolve path to property, try manually specifying this using a Keying Set instead");
 		}
 	}
-	else if (G.debug & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
-		if (prop)
-			printf("animatable = %d\n", RNA_property_animateable(&ptr, prop));
-		else
-			printf("animatable = NULL\n");
+	else {
+		if (prop && !RNA_property_animateable(&ptr, prop)) {
+			BKE_reportf(op->reports, RPT_WARNING, 
+			           "\"%s\" property cannot be animated",
+			           RNA_property_identifier(prop));
+		}
+		else {
+			BKE_reportf(op->reports, RPT_WARNING,
+			            "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)",
+			            (void *)ptr.data, (void *)prop);
+		}
 	}
 	
 	if (success) {
