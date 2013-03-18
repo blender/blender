@@ -2005,8 +2005,19 @@ static bNodeSocket *make_socket_template(bNodeTree *ntree, int in_out,
 	 * Node sockets generally use the identifier string instead now,
 	 * but reconstructing own_index in writefile.c would require parsing the identifier string.
 	 */
-	sock->own_index = own_index;
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
+
+	sock->own_index = own_index;
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
+
+#endif  /* USE_NODE_COMPAT_CUSTOMNODES */
 	
 	sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 	
