@@ -1974,6 +1974,17 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 
 /* ************ NODE TREE INTERFACE *************** */
 
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
+#endif  /* USE_NODE_COMPAT_CUSTOMNODES */
+
 static bNodeSocket *make_socket_template(bNodeTree *ntree, int in_out,
                                          const char *idname, const char *name)
 {
@@ -2006,16 +2017,7 @@ static bNodeSocket *make_socket_template(bNodeTree *ntree, int in_out,
 	 * but reconstructing own_index in writefile.c would require parsing the identifier string.
 	 */
 
-#ifdef __GNUC__
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
 	sock->own_index = own_index;
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic pop
-#endif
 
 #endif  /* USE_NODE_COMPAT_CUSTOMNODES */
 	
