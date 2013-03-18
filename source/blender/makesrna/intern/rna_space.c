@@ -25,6 +25,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -32,6 +33,7 @@
 
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
+#include "BKE_node.h"
 
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
@@ -1014,20 +1016,91 @@ static void rna_BackgroundImage_clear(View3D *v3d)
 
 /* Space Node Editor */
 
-static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceNodeEditor_node_tree_set(PointerRNA *ptr, const PointerRNA value)
+{
+	SpaceNode *snode = (SpaceNode *)ptr->data;
+	ED_node_tree_start(snode, (bNodeTree *)value.data, NULL, NULL);
+}
+
+static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
 {
 	SpaceNode *snode = (SpaceNode *)ptr->data;
 	bNodeTree *ntree = (bNodeTree *)value.data;
 	
-	/* exclude group trees, only trees of the active type */
-	return (ntree->nodetype == 0 && ntree->type == snode->treetype);
+	/* node tree type must match the selected type in node editor */
+	return (strcmp(snode->tree_idname, ntree->idname) == 0);
 }
 
-static void rna_SpaceNodeEditor_node_tree_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *UNUSED(ptr))
+{
+	ED_node_tree_update(C);
+}
+
+static int rna_SpaceNodeEditor_tree_type_get(PointerRNA *ptr)
 {
 	SpaceNode *snode = (SpaceNode *)ptr->data;
+	return rna_node_tree_idname_to_enum(snode->tree_idname);
+}
+static void rna_SpaceNodeEditor_tree_type_set(PointerRNA *ptr, int value)
+{
+	SpaceNode *snode = (SpaceNode *)ptr->data;
+	ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
+}
+static int rna_SpaceNodeEditor_tree_type_poll(void *Cv, bNodeTreeType *type)
+{
+	bContext *C = (bContext *)Cv;
+	if (type->poll)
+		return type->poll(C, type);
+	else
+		return TRUE;
+}
+static EnumPropertyItem *rna_SpaceNodeEditor_tree_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+{
+	return rna_node_tree_type_itemf(C, rna_SpaceNodeEditor_tree_type_poll, free);
+}
+
+static void rna_SpaceNodeEditor_path_get(PointerRNA *ptr, char *value)
+{
+	SpaceNode *snode = ptr->data;
+	ED_node_tree_path_get(snode, value);
+}
+
+static int rna_SpaceNodeEditor_path_length(PointerRNA *ptr)
+{
+	SpaceNode *snode = ptr->data;
+	return ED_node_tree_path_length(snode);
+}
+
+void rna_SpaceNodeEditor_path_clear(SpaceNode *snode, bContext *C)
+{
+	ED_node_tree_start(snode, NULL, NULL, NULL);
+	ED_node_tree_update(C);
+}
+
+void rna_SpaceNodeEditor_path_start(SpaceNode *snode, bContext *C, PointerRNA *node_tree)
+{
+	ED_node_tree_start(snode, (bNodeTree *)node_tree->data, NULL, NULL);
+	ED_node_tree_update(C);
+}
+
+void rna_SpaceNodeEditor_path_push(SpaceNode *snode, bContext *C, ReportList *reports, PointerRNA *node)
+{
+	PointerRNA tree_ptr;
 	
-	ED_node_tree_update(snode, scene);
+	tree_ptr = RNA_pointer_get(node, "node_tree");
+	if (!tree_ptr.data) {
+		BKE_reportf(reports, RPT_WARNING, "Missing node group tree in node %s", ((bNode *)node->data)->name);
+		return;
+	}
+	
+	ED_node_tree_push(snode, (bNodeTree *)tree_ptr.data, (bNode *)node->data);
+	ED_node_tree_update(C);
+}
+
+void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
+{
+	ED_node_tree_pop(snode);
+	ED_node_tree_update(C);
 }
 
 static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
@@ -3078,6 +3151,58 @@ static void rna_def_space_userpref(BlenderRNA *brna)
 
 }
 
+static void rna_def_node_tree_path(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "NodeTreePath", NULL);
+	RNA_def_struct_sdna(srna, "bNodeTreePath");
+	RNA_def_struct_ui_text(srna, "Node Tree Path", "Element of the node space tree path");
+
+	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Node Tree", "Base node tree from context");
+}
+
+static void rna_def_space_node_path_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop, *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "SpaceNodeEditorPath");
+	srna = RNA_def_struct(brna, "SpaceNodeEditorPath", NULL);
+	RNA_def_struct_sdna(srna, "SpaceNode");
+	RNA_def_struct_ui_text(srna, "Space Node Editor Path", "History of node trees in the editor");
+
+	prop = RNA_def_property(srna, "to_string", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_SpaceNodeEditor_path_get", "rna_SpaceNodeEditor_path_length", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_struct_ui_text(srna, "Path", "Get the node tree path as a string");
+
+	func = RNA_def_function(srna, "clear", "rna_SpaceNodeEditor_path_clear");
+	RNA_def_function_ui_description(func, "Reset the node tree path");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func = RNA_def_function(srna, "start", "rna_SpaceNodeEditor_path_start");
+	RNA_def_function_ui_description(func, "Set the root node tree");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm = RNA_def_pointer(func, "node_tree", "NodeTree", "Node Tree", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
+
+	func = RNA_def_function(srna, "push", "rna_SpaceNodeEditor_path_push");
+	RNA_def_function_ui_description(func, "Append a node group tree to the path");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "node", "NodeGroup", "Node", "Group node");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
+
+	func = RNA_def_function(srna, "pop", "rna_SpaceNodeEditor_path_pop");
+	RNA_def_function_ui_description(func, "Remove the last node tree from the path");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+}
+
 static void rna_def_space_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3107,13 +3232,17 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem dummy_items[] = {
+		{0, "DUMMY", 0, "", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna = RNA_def_struct(brna, "SpaceNodeEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceNode");
 	RNA_def_struct_ui_text(srna, "Space Node Editor", "Node editor space data");
 
 	prop = RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "treetype");
-	RNA_def_property_enum_items(prop, nodetree_type_items);
+	RNA_def_property_enum_items(prop, dummy_items);
+	RNA_def_property_enum_funcs(prop, "rna_SpaceNodeEditor_tree_type_get", "rna_SpaceNodeEditor_tree_type_set", "rna_SpaceNodeEditor_tree_type_itemf");
 	RNA_def_property_ui_text(prop, "Tree Type", "Node tree type to display and edit");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
@@ -3138,17 +3267,29 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "ID From", "Datablock from which the edited datablock is linked");
 
+	prop = RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "treepath", NULL);
+	RNA_def_property_struct_type(prop, "NodeTreePath");
+	RNA_def_property_ui_text(prop, "Node Tree Path", "Path from the data block to the currently edited node tree");
+	rna_def_space_node_path_api(brna, prop);
+
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceNodeEditor_node_tree_set", NULL, "rna_SpaceNodeEditor_node_tree_poll");
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_SpaceNodeEditor_node_tree_poll");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed");
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
+	RNA_def_property_ui_text(prop, "Node Tree", "Base node tree from context");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_update");
 
 	prop = RNA_def_property(srna, "edit_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "edittree");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Edit Tree", "Edited node tree");
+	RNA_def_property_ui_text(prop, "Edit Tree", "Node tree being displayed and edited");
+
+	prop = RNA_def_property(srna, "pin", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_PIN);
+	RNA_def_property_ui_text(prop, "Pinned", "Use the pinned node tree");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
 	prop = RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);
@@ -3545,6 +3686,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_console_line(brna);
 	rna_def_space_info(brna);
 	rna_def_space_userpref(brna);
+	rna_def_node_tree_path(brna);
 	rna_def_space_node(brna);
 	rna_def_space_logic(brna);
 	rna_def_space_clip(brna);

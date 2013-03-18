@@ -1368,7 +1368,7 @@ void UI_view2d_constant_grid_draw(View2D *v2d)
 }
 
 /* Draw a multi-level grid in given 2d-region */
-void UI_view2d_multi_grid_draw(View2D *v2d, float step, int level_size, int totlevels)
+void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_size, int totlevels)
 {
 	int offset = -10;
 	float lstep = step;
@@ -1378,7 +1378,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, float step, int level_size, int totl
 		int i;
 		float start;
 		
-		UI_ThemeColorShade(TH_BACK, offset);
+		UI_ThemeColorShade(colorid, offset);
 		
 		i = (v2d->cur.xmin >= 0.0f ? -(int)(-v2d->cur.xmin / lstep) : (int)(v2d->cur.xmin / lstep));
 		start = i * lstep;
@@ -1402,7 +1402,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, float step, int level_size, int totl
 		}
 		
 		/* X and Y axis */
-		UI_ThemeColorShade(TH_BACK, offset - 8);
+		UI_ThemeColorShade(colorid, offset - 8);
 		glVertex2f(0.0f, v2d->cur.ymin);
 		glVertex2f(0.0f, v2d->cur.ymax);
 		glVertex2f(v2d->cur.xmin, 0.0f);
@@ -2073,6 +2073,28 @@ void UI_view2d_getscale_inverse(View2D *v2d, float *x, float *y)
 {
 	if (x) *x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 	if (y) *y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+}
+
+/* Simple functions for consistent center offset access.
+ * Used by node editor to shift view center for each individual node tree.
+ */
+void UI_view2d_getcenter(struct View2D *v2d, float *x, float *y)
+{
+	/* get center */
+	if (x) *x = BLI_rctf_cent_x(&v2d->cur);
+	if (y) *y = BLI_rctf_cent_y(&v2d->cur);
+}
+void UI_view2d_setcenter(struct View2D *v2d, float x, float y)
+{
+	/* get delta from current center */
+	float dx = x - BLI_rctf_cent_x(&v2d->cur);
+	float dy = y - BLI_rctf_cent_y(&v2d->cur);
+
+	/* add to cur */
+	BLI_rctf_translate(&v2d->cur, dx, dy);
+	
+	/* make sure that 'cur' rect is in a valid state as a result of these changes */
+	UI_view2d_curRect_validate(v2d);
 }
 
 /* Check if mouse is within scrollers

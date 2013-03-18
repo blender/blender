@@ -33,25 +33,35 @@
 #include "DNA_node_types.h"
 
 #include "node_composite_util.h"
+#include "NOD_common.h"
 #include "node_common.h"
 #include "node_exec.h"
 
 #include "BKE_node.h"
 
-void register_node_type_cmp_group(bNodeTreeType *ttype)
+#include "RNA_access.h"
+
+void register_node_type_cmp_group(void)
 {
 	static bNodeType ntype;
-
-	node_type_base(ttype, &ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS | NODE_CONST_OUTPUT);
+	
+	/* NB: cannot use sh_node_type_base for node group, because it would map the node type
+	 * to the shared NODE_GROUP integer type id.
+	 */
+	node_type_base_custom(&ntype, "CompositorNodeGroup", "Group", NODE_CLASS_GROUP, NODE_OPTIONS | NODE_CONST_OUTPUT);
+	ntype.type = NODE_GROUP;
+	ntype.poll = cmp_node_poll_default;
+	ntype.update_internal_links = node_update_internal_links_default;
+	ntype.ext.srna = RNA_struct_find("CompositorNodeGroup");
+	BLI_assert(ntype.ext.srna != NULL);
+	RNA_struct_blender_type_set(ntype.ext.srna, &ntype);
+	
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
-	node_type_init(&ntype, node_group_init);
-	node_type_valid(&ntype, node_group_valid);
-	node_type_template(&ntype, node_group_template);
 	node_type_update(&ntype, NULL, node_group_verify);
-	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
+	strcpy(ntype.group_tree_idname, "CompositorNodeTree");
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 

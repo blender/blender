@@ -282,6 +282,20 @@ static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
 	return NULL;
 }
 
+static void rna_idproperty_free(PointerRNA *ptr, const char *name)
+{
+	IDProperty *group = RNA_struct_idprops(ptr, 0);
+
+	if (group) {
+		IDProperty *idprop = IDP_GetPropertyFromGroup(group, name);
+		if (idprop) {
+			IDP_RemFromGroup(group, idprop);
+			IDP_FreeProperty(idprop);
+			MEM_freeN(idprop);
+		}
+	}
+}
+
 static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
 	if (prop->magic == RNA_MAGIC) {
@@ -477,7 +491,7 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 			description = ((IDProperty *)prop)->name;  /* XXX - not correct */
 	}
 
-	return TIP_(description);
+	return description;
 }
 
 static const char *rna_ensure_property_name(PropertyRNA *prop)
@@ -489,7 +503,7 @@ static const char *rna_ensure_property_name(PropertyRNA *prop)
 	else
 		name = ((IDProperty *)prop)->name;
 
-	return CTX_IFACE_(prop->translation_context, name);
+	return name;
 }
 
 /* Structs */
@@ -515,6 +529,11 @@ const char *RNA_struct_ui_name(StructRNA *type)
 	return CTX_IFACE_(type->translation_context, type->name);
 }
 
+const char *RNA_struct_ui_name_raw(StructRNA *type)
+{
+	return type->name;
+}
+
 int RNA_struct_ui_icon(StructRNA *type)
 {
 	if (type)
@@ -526,6 +545,11 @@ int RNA_struct_ui_icon(StructRNA *type)
 const char *RNA_struct_ui_description(StructRNA *type)
 {
 	return TIP_(type->description);
+}
+
+const char *RNA_struct_ui_description_raw(StructRNA *type)
+{
+	return type->description;
 }
 
 const char *RNA_struct_translation_context(StructRNA *type)
@@ -778,7 +802,7 @@ const char *RNA_property_identifier(PropertyRNA *prop)
 
 const char *RNA_property_description(PropertyRNA *prop)
 {
-	return rna_ensure_property_description(prop);
+	return TIP_(rna_ensure_property_description(prop));
 }
 
 PropertyType RNA_property_type(PropertyRNA *prop)
@@ -1401,10 +1425,20 @@ int RNA_property_enum_bitflag_identifiers(bContext *C, PointerRNA *ptr, Property
 
 const char *RNA_property_ui_name(PropertyRNA *prop)
 {
+	return CTX_IFACE_(prop->translation_context, rna_ensure_property_name(prop));
+}
+
+const char *RNA_property_ui_name_raw(PropertyRNA *prop)
+{
 	return rna_ensure_property_name(prop);
 }
 
 const char *RNA_property_ui_description(PropertyRNA *prop)
+{
+	return TIP_(rna_ensure_property_description(prop));
+}
+
+const char *RNA_property_ui_description_raw(PropertyRNA *prop)
 {
 	return rna_ensure_property_description(prop);
 }
@@ -4797,6 +4831,13 @@ bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 	}
 }
 
+void RNA_property_unset(PointerRNA *ptr, PropertyRNA *prop)
+{
+	if (prop->flag & PROP_IDPROPERTY) {
+		rna_idproperty_free(ptr, prop->identifier);
+	}
+}
+
 bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool use_ghost)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, identifier);
@@ -4822,6 +4863,15 @@ bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier)
 		/* python raises an error */
 		/* printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name); */
 		return 0;
+	}
+}
+
+void RNA_struct_property_unset(PointerRNA *ptr, const char *identifier)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, identifier);
+
+	if (prop) {
+		RNA_property_unset(ptr, prop);
 	}
 }
 
@@ -5189,6 +5239,11 @@ const char *RNA_function_identifier(FunctionRNA *func)
 }
 
 const char *RNA_function_ui_description(FunctionRNA *func)
+{
+	return TIP_(func->description);
+}
+
+const char *RNA_function_ui_description_raw(FunctionRNA *func)
 {
 	return func->description;
 }

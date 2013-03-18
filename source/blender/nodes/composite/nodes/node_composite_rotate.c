@@ -44,18 +44,18 @@ static bNodeSocketTemplate cmp_node_rotate_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	node->custom1= 1; /* Bilinear Filter*/
 }
 
-void register_node_type_cmp_rotate(bNodeTreeType *ttype)
+void register_node_type_cmp_rotate(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_rotate_in, cmp_node_rotate_out);
 	node_type_init(&ntype, node_composit_init_rotate);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

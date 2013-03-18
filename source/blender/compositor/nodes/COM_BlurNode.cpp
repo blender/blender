@@ -45,8 +45,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	InputSocket *inputSizeSocket = this->getInputSocket(1);
 	bool connectedSizeSocket = inputSizeSocket->isConnected();
 
-	const bNodeSocket *sock = this->getInputSocket(1)->getbNodeSocket();
-	const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
+	const float size = this->getInputSocket(1)->getEditorValueFloat();
 	
 	CompositorQuality quality = context->getQuality();
 	NodeOperation *input_operation = NULL, *output_operation = NULL;

@@ -53,12 +53,11 @@ private:
 	 * @brief Is this node part of the active group
 	 */
 	bool m_inActiveGroup;
-	
+
 	/**
-	 * @brief The group node this node belongs to.
-	 * @note: used to find the links in the current subtree for muting nodes
+	 * @brief Instance key to identify the node in an instance hash table
 	 */
-	bNode *m_bNodeGroup;
+	bNodeInstanceKey m_instanceKey;
 
 public:
 	Node(bNode *editorNode, bool create_sockets = true);
@@ -145,8 +144,9 @@ public:
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 	
-	inline void setbNodeGroup(bNode *group) {this->m_bNodeGroup = group;}
-	inline bNode *getbNodeGroup() {return this->m_bNodeGroup;}
+	void setInstanceKey(bNodeInstanceKey instance_key) { m_instanceKey = instance_key; }
+	bNodeInstanceKey getInstanceKey() const { return m_instanceKey; }
+	
 protected:
 	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket);
 	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket);

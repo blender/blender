@@ -24,6 +24,10 @@
 #include "COM_Node.h"
 #include "COM_SocketConnection.h"
 
+extern "C" {
+#include "RNA_access.h"
+}
+
 Socket::Socket(DataType datatype)
 {
 	this->m_datatype = datatype;
@@ -41,3 +45,24 @@ int Socket::isOutputSocket() const { return false; }
 const int Socket::isConnected() const { return false; }
 void Socket::setNode(NodeBase *node) { this->m_node = node; }
 NodeBase *Socket::getNode() const { return this->m_node; }
+
+float Socket::getEditorValueFloat()
+{
+	PointerRNA ptr;
+	RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+	return RNA_float_get(&ptr, "default_value");
+}
+
+void Socket::getEditorValueColor(float *value)
+{
+	PointerRNA ptr;
+	RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+	return RNA_float_get_array(&ptr, "default_value", value);
+}
+
+void Socket::getEditorValueVector(float *value)
+{
+	PointerRNA ptr;
+	RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+	return RNA_float_get_array(&ptr, "default_value", value);
+}

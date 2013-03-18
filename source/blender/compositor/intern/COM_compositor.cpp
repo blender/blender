@@ -21,9 +21,9 @@
  */
 
 
-#include "BKE_node.h"
 extern "C" {
-	#include "BLI_threads.h"
+#include "BKE_node.h"
+#include "BLI_threads.h"
 }
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -63,6 +63,11 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 		return;
 	}
 
+	/* Make sure node tree has previews.
+	 * Don't create previews in advance, this is done when adding preview operations.
+	 */
+	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, COM_PREVIEW_SIZE, FALSE);
+
 	/* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
 	bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL);
 	WorkScheduler::initialize(use_opencl);
@@ -85,7 +90,6 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 		}
 	}
 
-	
 	ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, false, viewSettings, displaySettings);
 	system->execute();
 	delete system;

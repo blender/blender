@@ -458,6 +458,78 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 	return 1;
 }
 
+void RNA_identifier_sanitize(char *identifier, int property)
+{
+	int a = 0;
+	
+	/*  list from http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
+	static const char *kwlist[] = {
+		/* "False", "None", "True", */
+		"and", "as", "assert", "break",
+		"class", "continue", "def", "del", "elif", "else", "except",
+		"finally", "for", "from", "global", "if", "import", "in",
+		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+		"return", "try", "while", "with", "yield", NULL
+	};
+	
+	
+	if (!isalpha(identifier[0])) {
+		/* first character failed isalpha() check */
+		identifier[0] = '_';
+	}
+	
+	for (a = 0; identifier[a]; a++) {
+		if (DefRNA.preprocess && property) {
+			if (isalpha(identifier[a]) && isupper(identifier[a])) {
+				/* property names must contain lower case characters only */
+				identifier[a] = tolower(identifier[a]);
+			}
+		}
+		
+		if (identifier[a] == '_') {
+			continue;
+		}
+
+		if (identifier[a] == ' ') {
+			/* spaces are not okay in identifier names */
+			identifier[a] = '_';
+		}
+
+		if (isalnum(identifier[a]) == 0) {
+			/* one of the characters failed an isalnum() check and is not an underscore */
+			identifier[a] = '_';
+		}
+	}
+	
+	for (a = 0; kwlist[a]; a++) {
+		if (strcmp(identifier, kwlist[a]) == 0) {
+			/* this keyword is reserved by python.
+			 * just replace the last character by '_' to keep it readable.
+			 */
+			identifier[strlen(identifier) - 1] = '_';
+			break;
+		}
+	}
+
+	if (property) {
+		static const char *kwlist_prop[] = {
+			/* not keywords but reserved all the same because py uses */
+			"keys", "values", "items", "get",
+			NULL
+		};
+
+		for (a = 0; kwlist_prop[a]; a++) {
+			if (strcmp(identifier, kwlist_prop[a]) == 0) {
+				/* this keyword is reserved by python.
+				* just replace the last character by '_' to keep it readable.
+				*/
+				identifier[strlen(identifier) - 1] = '_';
+				break;
+			}
+		}
+	}
+}
+
 /* Blender Data Definition */
 
 BlenderRNA *RNA_create(void)

@@ -1898,6 +1898,12 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Group Node", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	prop = RNA_def_property(srna, "group_socket_node", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "console_output");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Group Socket Node", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "frame_node", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "movie");
 	RNA_def_property_array(prop, 4);

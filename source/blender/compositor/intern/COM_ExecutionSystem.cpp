@@ -26,7 +26,9 @@
 
 #include "PIL_time.h"
 #include "BLI_utildefines.h"
+extern "C" {
 #include "BKE_node.h"
+}
 
 #include "COM_Converter.h"
 #include "COM_NodeOperation.h"
@@ -49,7 +51,9 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
                                  const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
 {
 	this->m_context.setbNodeTree(editingtree);
+	this->m_context.setPreviewHash(editingtree->previews);
 	this->m_context.setFastCalculation(fastcalculation);
+#if 0	/* XXX TODO find a better way to define visible output nodes from all editors */
 	bNode *gnode;
 	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = gnode->next) {
 		if (gnode->type == NODE_GROUP && gnode->typeinfo->group_edit_get(gnode)) {
@@ -57,6 +61,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 			break;
 		}
 	}
+#endif
 
 	/* initialize the CompositorContext */
 	if (rendering) {
@@ -68,7 +73,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 	this->m_context.setRendering(rendering);
 	this->m_context.setHasActiveOpenCLDevices(WorkScheduler::hasGPUDevices() && (editingtree->flag & NTREE_COM_OPENCL));
 
-	ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
+	ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NODE_INSTANCE_KEY_BASE);
 
 	this->m_context.setRenderData(rd);
 	this->m_context.setViewSettings(viewSettings);

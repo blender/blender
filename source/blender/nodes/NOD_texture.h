@@ -34,48 +34,52 @@
 
 #include "BKE_node.h"
 
-extern bNodeTreeType ntreeType_Texture;
+extern struct bNodeTreeType *ntreeType_Texture;
 
 
 /* ****************** types array for all texture nodes ****************** */
 
-void register_node_type_tex_group(struct bNodeTreeType *ttype);
+void register_node_tree_type_tex(void);
 
-void register_node_type_tex_math(struct bNodeTreeType *ttype);
-void register_node_type_tex_mix_rgb(struct bNodeTreeType *ttype);
-void register_node_type_tex_valtorgb(struct bNodeTreeType *ttype);
-void register_node_type_tex_valtonor(struct bNodeTreeType *ttype);
-void register_node_type_tex_rgbtobw(struct bNodeTreeType *ttype);
-void register_node_type_tex_output(struct bNodeTreeType *ttype);
-void register_node_type_tex_viewer(struct bNodeTreeType *ttype);
-void register_node_type_tex_checker(struct bNodeTreeType *ttype);
-void register_node_type_tex_texture(struct bNodeTreeType *ttype);
-void register_node_type_tex_bricks(struct bNodeTreeType *ttype);
-void register_node_type_tex_image(struct bNodeTreeType *ttype);
-void register_node_type_tex_curve_rgb(struct bNodeTreeType *ttype);
-void register_node_type_tex_curve_time(struct bNodeTreeType *ttype);
-void register_node_type_tex_invert(struct bNodeTreeType *ttype);
-void register_node_type_tex_hue_sat(struct bNodeTreeType *ttype);
-void register_node_type_tex_coord(struct bNodeTreeType *ttype);
-void register_node_type_tex_distance(struct bNodeTreeType *ttype);
+void register_node_type_tex_group(void);
+void register_node_type_tex_forloop(void);
+void register_node_type_tex_whileloop(void);
 
-void register_node_type_tex_rotate(struct bNodeTreeType *ttype);
-void register_node_type_tex_translate(struct bNodeTreeType *ttype);
-void register_node_type_tex_scale(struct bNodeTreeType *ttype);
-void register_node_type_tex_at(struct bNodeTreeType *ttype);
+void register_node_type_tex_math(void);
+void register_node_type_tex_mix_rgb(void);
+void register_node_type_tex_valtorgb(void);
+void register_node_type_tex_valtonor(void);
+void register_node_type_tex_rgbtobw(void);
+void register_node_type_tex_output(void);
+void register_node_type_tex_viewer(void);
+void register_node_type_tex_checker(void);
+void register_node_type_tex_texture(void);
+void register_node_type_tex_bricks(void);
+void register_node_type_tex_image(void);
+void register_node_type_tex_curve_rgb(void);
+void register_node_type_tex_curve_time(void);
+void register_node_type_tex_invert(void);
+void register_node_type_tex_hue_sat(void);
+void register_node_type_tex_coord(void);
+void register_node_type_tex_distance(void);
 
-void register_node_type_tex_compose(struct bNodeTreeType *ttype);
-void register_node_type_tex_decompose(struct bNodeTreeType *ttype);
+void register_node_type_tex_rotate(void);
+void register_node_type_tex_translate(void);
+void register_node_type_tex_scale(void);
+void register_node_type_tex_at(void);
 
-void register_node_type_tex_proc_voronoi(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_blend(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_magic(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_marble(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_clouds(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_wood(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_musgrave(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_noise(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_stucci(struct bNodeTreeType *ttype);
-void register_node_type_tex_proc_distnoise(struct bNodeTreeType *ttype);
+void register_node_type_tex_compose(void);
+void register_node_type_tex_decompose(void);
+
+void register_node_type_tex_proc_voronoi(void);
+void register_node_type_tex_proc_blend(void);
+void register_node_type_tex_proc_magic(void);
+void register_node_type_tex_proc_marble(void);
+void register_node_type_tex_proc_clouds(void);
+void register_node_type_tex_proc_wood(void);
+void register_node_type_tex_proc_musgrave(void);
+void register_node_type_tex_proc_noise(void);
+void register_node_type_tex_proc_stucci(void);
+void register_node_type_tex_proc_distnoise(void);
 
 #endif

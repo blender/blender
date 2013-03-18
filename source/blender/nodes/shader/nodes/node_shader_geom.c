@@ -51,7 +51,7 @@ static bNodeSocketTemplate sh_node_geom_out[] = {
 };
 
 /* node execute callback */
-static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
+static void node_shader_exec_geom(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if (data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
@@ -120,12 +120,12 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 	}
 }
 
-static void node_shader_init_geometry(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_geometry(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
 }
 
-static int gpu_shader_geom(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_geom(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	NodeGeometry *ngeo= (NodeGeometry*)node->storage;
 	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
@@ -138,18 +138,18 @@ static int gpu_shader_geom(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 }
 
 /* node type definition */
-void register_node_type_sh_geom(bNodeTreeType *ttype)
+void register_node_type_sh_geom(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_geom_out);
 	node_type_size(&ntype, 120, 80, 160);
 	node_type_init(&ntype, node_shader_init_geometry);
 	node_type_storage(&ntype, "NodeGeometry", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, node_shader_exec_geom);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_geom);
 	node_type_gpu(&ntype, gpu_shader_geom);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

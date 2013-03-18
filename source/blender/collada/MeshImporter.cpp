@@ -353,7 +353,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 				size_t prim_poly_count    = mpvc->getFaceCount();
 
 				size_t prim_loop_count    = 0;
-				for(int index=0; index < prim_poly_count; index++) {
+				for (int index=0; index < prim_poly_count; index++) {
 					prim_loop_count += get_vertex_count(mpvc, index);
 				}
 

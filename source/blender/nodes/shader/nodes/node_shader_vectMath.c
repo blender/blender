@@ -47,7 +47,7 @@ static bNodeSocketTemplate sh_node_vect_math_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_shader_exec_vect_math(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out) 
+static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out) 
 { 
 	float vec1[3], vec2[3];
 	
@@ -102,7 +102,7 @@ static void node_shader_exec_vect_math(void *UNUSED(data), bNode *node, bNodeSta
 	
 }
 
-static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	static const char *names[] = {"vec_math_add", "vec_math_sub",
 		"vec_math_average", "vec_math_dot", "vec_math_cross",
@@ -139,18 +139,18 @@ static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 	return 1;
 }
 
-void register_node_type_sh_vect_math(bNodeTreeType *ttype)
+void register_node_type_sh_vect_math(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_VECT_MATH, "Vector Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_VECT_MATH, "Vector Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_vect_math_in, sh_node_vect_math_out);
 	node_type_size(&ntype, 80, 75, 140);
 	node_type_label(&ntype, node_vect_math_label);
 	node_type_storage(&ntype, "node_vect_math", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_vect_math);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_vect_math);
 	node_type_gpu(&ntype, gpu_shader_vect_math);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

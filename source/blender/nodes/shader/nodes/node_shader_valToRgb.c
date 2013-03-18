@@ -43,7 +43,7 @@ static bNodeSocketTemplate sh_node_valtorgb_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_valtorgb(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: fac */
 	/* stack order out: col, alpha */
@@ -57,12 +57,12 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStac
 	}
 }
 
-static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= add_colorband(1);
+	node->storage= add_colorband(true);
 }
 
-static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	float *array;
 	int size;
@@ -71,20 +71,20 @@ static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 	return GPU_stack_link(mat, "valtorgb", in, out, GPU_texture(size, array));
 }
 
-void register_node_type_sh_valtorgb(bNodeTreeType *ttype)
+void register_node_type_sh_valtorgb(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_valtorgb_in, sh_node_valtorgb_out);
 	node_type_size(&ntype, 240, 200, 300);
 	node_type_init(&ntype, node_shader_init_valtorgb);
 	node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, node_shader_exec_valtorgb);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_valtorgb);
 	node_type_gpu(&ntype, gpu_shader_valtorgb);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 
 
@@ -99,7 +99,7 @@ static bNodeSocketTemplate sh_node_rgbtobw_out[] = {
 };
 
 
-static void node_shader_exec_rgbtobw(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_rgbtobw(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: bw */
 	/* stack order in: col */
@@ -107,21 +107,21 @@ static void node_shader_exec_rgbtobw(void *UNUSED(data), bNode *UNUSED(node), bN
 	out[0]->vec[0] = rgb_to_bw(in[0]->vec);
 }
 
-static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "rgbtobw", in, out);
 }
 
-void register_node_type_sh_rgbtobw(bNodeTreeType *ttype)
+void register_node_type_sh_rgbtobw(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
+	sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_rgbtobw_in, sh_node_rgbtobw_out);
 	node_type_size(&ntype, 80, 40, 120);
-	node_type_exec(&ntype, node_shader_exec_rgbtobw);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_rgbtobw);
 	node_type_gpu(&ntype, gpu_shader_rgbtobw);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

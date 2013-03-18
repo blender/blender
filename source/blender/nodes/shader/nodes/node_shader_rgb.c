@@ -34,49 +34,25 @@
 
 /* **************** RGB ******************** */
 static bNodeSocketTemplate sh_node_rgb_out[] = {
-	{	SOCK_RGBA, 0, N_("Color")},
+	{	SOCK_RGBA, 0, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static int gpu_shader_rgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	bNodeSocket *sock= node->outputs.first;
-	bNodeSocketValueRGBA *dval= (bNodeSocketValueRGBA*)sock->default_value;
-	/* uses the default value of the output socket, must be initialized here */
-	dval->value[0] = 0.5f;
-	dval->value[1] = 0.5f;
-	dval->value[2] = 0.5f;
-	dval->value[3] = 1.0f;
-}
-
-static void node_shader_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
-	
-	copy_v3_v3(out[0]->vec, col);
-}
-
-static int gpu_shader_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
-	GPUNodeLink *vec = GPU_uniform(col);
-
+	GPUNodeLink *vec = GPU_uniform(out[0].vec);
 	return GPU_stack_link(mat, "set_rgba", in, out, vec);
 }
 
-void register_node_type_sh_rgb(bNodeTreeType *ttype)
+void register_node_type_sh_rgb(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_rgb_out);
-	node_type_init(&ntype, node_shader_init_rgb);
 	node_type_size(&ntype, 140, 80, 140);
-	node_type_exec(&ntype, node_shader_exec_rgb);
 	node_type_gpu(&ntype, gpu_shader_rgb);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

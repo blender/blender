@@ -419,6 +419,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static float node_socket_color_default[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
 	/* simple layout specifiers */
 	func = RNA_def_function(srna, "row", "uiLayoutRow");
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
@@ -829,6 +831,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 
+	func = RNA_def_function(srna, "template_component_menu", "uiTemplateComponentMenu");
+	RNA_def_function_ui_description(func, "Item. Display expanded property in a popup menu");
+	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
+	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_string(func, "name", "", 0, "", "");
+
 	func = RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
 	parm = RNA_def_string(func, "string", "", 1024 * 1024, "Descr", "DESCR");
 	RNA_def_function_return(func, parm);
@@ -843,6 +853,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	/* RNA_def_boolean(func, "show_global_settings", 0, "", "Show widgets to control global color management settings"); */
+
+	/* node socket icon */
+	func = RNA_def_function(srna, "template_node_socket", "uiTemplateNodeSocket");
+	RNA_def_function_ui_description(func, "Node Socket Icon");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_float_array(func, "color", 4, node_socket_color_default, 0.0f, 1.0f, "Color", "", 0.0f, 1.0f);
 }
 
 #endif

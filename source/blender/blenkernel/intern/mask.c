@@ -57,6 +57,8 @@
 #include "BKE_movieclip.h"
 #include "BKE_image.h"
 
+#include "NOD_composite.h"
+
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
 {
 	if (point == &points_array[spline->tot_point - 1]) {
@@ -966,10 +968,9 @@ void BKE_mask_free(Main *bmain, Mask *mask)
 		}
 	}
 
-	{
-		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
-		treetype->foreach_nodetree(bmain, (void *)mask, &BKE_node_tree_unlink_id_cb);
-	}
+	FOREACH_NODETREE(bmain, ntree, id) {
+		BKE_node_tree_unlink_id((ID *)mask, ntree);
+	} FOREACH_NODETREE_END
 
 	/* free mask data */
 	BKE_mask_layer_free_list(&mask->masklayers);

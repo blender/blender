@@ -172,17 +172,25 @@ extern "C" void smoke_export(FLUID_3D *fluid, float *dt, float *dx, float **dens
 							 float **heatold, float **vx, float **vy, float **vz, float **r, float **g, float **b, unsigned char **obstacles)
 {
 	*dens = fluid->_density;
-	*fuel = fluid->_fuel;
-	*react = fluid->_react;
-	*flame = fluid->_flame;
-	*heat = fluid->_heat;
-	*heatold = fluid->_heatOld;
+	if(fuel)
+		*fuel = fluid->_fuel;
+	if(react)
+		*react = fluid->_react;
+	if(flame)
+		*flame = fluid->_flame;
+	if(heat)
+		*heat = fluid->_heat;
+	if(heatold)
+		*heatold = fluid->_heatOld;
 	*vx = fluid->_xVelocity;
 	*vy = fluid->_yVelocity;
 	*vz = fluid->_zVelocity;
-	*r = fluid->_color_r;
-	*g = fluid->_color_g;
-	*b = fluid->_color_b;
+	if(r)
+		*r = fluid->_color_r;
+	if(g)
+		*g = fluid->_color_g;
+	if(b)
+		*b = fluid->_color_b;
 	*obstacles = fluid->_obstacles;
 	*dt = fluid->_dt;
 	*dx = fluid->_dx;
@@ -195,12 +203,18 @@ extern "C" void smoke_turbulence_export(WTURBULENCE *wt, float **dens, float **r
 		return;
 
 	*dens = wt->_densityBig;
-	*fuel = wt->_fuelBig;
-	*react = wt->_reactBig;
-	*flame = wt->_flameBig;
-	*r = wt->_color_rBig;
-	*g = wt->_color_gBig;
-	*b = wt->_color_bBig;
+	if(fuel)
+		*fuel = wt->_fuelBig;
+	if(react)
+		*react = wt->_reactBig;
+	if(flame)
+		*flame = wt->_flameBig;
+	if(r)
+		*r = wt->_color_rBig;
+	if(g)
+		*g = wt->_color_gBig;
+	if(b)
+		*b = wt->_color_bBig;
 	*tcu = wt->_tcU;
 	*tcv = wt->_tcV;
 	*tcw = wt->_tcW;

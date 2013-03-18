@@ -46,12 +46,12 @@ static bNodeSocketTemplate cmp_node_map_range_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_map_range(bNodeTreeType *ttype)
+void register_node_type_cmp_map_range(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_map_range_in, cmp_node_map_range_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

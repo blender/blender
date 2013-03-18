@@ -32,7 +32,6 @@
 
 #include "node_composite_util.h"
 
-
 /* **************** NORMAL  ******************** */
 static bNodeSocketTemplate cmp_node_normal_in[] = {
 	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
@@ -40,28 +39,17 @@ static bNodeSocketTemplate cmp_node_normal_in[] = {
 };
 
 static bNodeSocketTemplate cmp_node_normal_out[] = {
-	{	SOCK_VECTOR, 0, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
+	{	SOCK_VECTOR, 0, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
 	{	SOCK_FLOAT, 0, N_("Dot")},
 	{	-1, 0, ""	}
 };
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *nor= ((bNodeSocketValueVector*)sock->default_value)->value;
-	
-	nor[0] = 0.0f;
-	nor[1] = 0.0f;
-	nor[2] = 1.0f;
-}
-
-void register_node_type_cmp_normal(bNodeTreeType *ttype)
+void register_node_type_cmp_normal(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_normal_in, cmp_node_normal_out);
-	node_type_init(&ntype, init);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

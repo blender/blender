@@ -921,7 +921,7 @@ static void flag_render_node_material(Render *re, bNodeTree *ntree)
 {
 	bNode *node;
 
-	for (node=ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id) {
 			if (GS(node->id->name)==ID_MA) {
 				Material *ma= (Material *)node->id;
@@ -5755,7 +5755,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 						ok= 1;
 				}
 				if (ok==0) {
-					printf("speed table: missing object %s\n", obi->ob->id.name+2);
+					printf("speed table: missing object %s\n", obi->ob->id.name + 2);
 					continue;
 				}
 
@@ -5771,7 +5771,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 					if (obi->totvector==oldobi->totvector)
 						calculate_speedvectors(re, obi, oldobi->vectors, step);
 					else
-						printf("Warning: object %s has different amount of vertices or strands on other frame\n", obi->ob->id.name+2);
+						printf("Warning: object %s has different amount of vertices or strands on other frame\n", obi->ob->id.name + 2);
 				}  /* not fluidsim */
 
 				oldobi= oldobi->next;

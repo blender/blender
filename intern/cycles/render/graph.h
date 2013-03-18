@@ -43,6 +43,8 @@ class OSLCompiler;
  * Data type for inputs and outputs */
 
 enum ShaderSocketType {
+	SHADER_SOCKET_UNDEFINED,
+	
 	SHADER_SOCKET_FLOAT,
 	SHADER_SOCKET_INT,
 	SHADER_SOCKET_COLOR,

@@ -40,7 +40,7 @@ static bNodeSocketTemplate sh_node_tex_gradient_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexGradient *tex = MEM_callocN(sizeof(NodeTexGradient), "NodeTexGradient");
 	default_tex_mapping(&tex->base.tex_mapping);
@@ -50,7 +50,7 @@ static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node,
 	node->storage = tex;
 }
 
-static int node_shader_gpu_tex_gradient(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_gradient(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
@@ -61,18 +61,17 @@ static int node_shader_gpu_tex_gradient(GPUMaterial *mat, bNode *node, GPUNodeSt
 }
 
 /* node type definition */
-void register_node_type_sh_tex_gradient(bNodeTreeType *ttype)
+void register_node_type_sh_tex_gradient(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_gradient_in, sh_node_tex_gradient_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_tex_gradient);
 	node_type_storage(&ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_tex_gradient);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

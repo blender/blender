@@ -45,14 +45,14 @@ static bNodeSocketTemplate cmp_node_seprgba_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_seprgba(bNodeTreeType *ttype)
+void register_node_type_cmp_seprgba(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_SEPRGBA, "Separate RGBA", NODE_CLASS_CONVERTOR, 0);
+	cmp_node_type_base(&ntype, CMP_NODE_SEPRGBA, "Separate RGBA", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_seprgba_in, cmp_node_seprgba_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 
 
@@ -70,12 +70,12 @@ static bNodeSocketTemplate cmp_node_combrgba_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combrgba(bNodeTreeType *ttype)
+void register_node_type_cmp_combrgba(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_COMBRGBA, "Combine RGBA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_COMBRGBA, "Combine RGBA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combrgba_in, cmp_node_combrgba_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

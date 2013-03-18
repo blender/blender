@@ -67,10 +67,9 @@ Node::Node(bNode *editorNode, bool create_sockets): NodeBase()
 
 void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
-	bNodeSocket *bSock = this->getEditorInputSocket(editorNodeInputSocketIndex);
+	InputSocket *input = getInputSocket(editorNodeInputSocketIndex);
 	SetValueOperation *operation = new SetValueOperation();
-	bNodeSocketValueFloat *val = (bNodeSocketValueFloat *)bSock->default_value;
-	operation->setValue(val->value);
+	operation->setValue(input->getEditorValueFloat());
 	this->addLink(graph, operation->getOutputSocket(), inputsocket);
 	graph->addOperation(operation);
 }
@@ -79,11 +78,13 @@ void Node::addPreviewOperation(ExecutionSystem *system, CompositorContext *conte
 {
 	if (this->isInActiveGroup()) {
 		if (!(this->getbNode()->flag & NODE_HIDDEN)) { // do not calculate previews of hidden nodes.
-			if (this->getbNode()->flag & NODE_PREVIEW) {
+			bNodeInstanceHash *previews = context->getPreviewHash();
+			if (previews && (this->getbNode()->flag & NODE_PREVIEW)) {
 				PreviewOperation *operation = new PreviewOperation(context->getViewSettings(), context->getDisplaySettings());
 				system->addOperation(operation);
 				operation->setbNode(this->getbNode());
 				operation->setbNodeTree(system->getContext().getbNodeTree());
+				operation->verifyPreview(previews, this->getInstanceKey());
 				this->addLink(system, outputSocket, operation->getInputSocket(0));
 			}
 		}
@@ -114,25 +115,27 @@ SocketConnection *Node::addLink(ExecutionSystem *graph, OutputSocket *outputSock
 
 void Node::addSetColorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
-	bNodeSocket *bSock = this->getEditorInputSocket(editorNodeInputSocketIndex);
+	InputSocket *input = getInputSocket(editorNodeInputSocketIndex);
 	SetColorOperation *operation = new SetColorOperation();
-	bNodeSocketValueRGBA *val = (bNodeSocketValueRGBA *)bSock->default_value;
-	operation->setChannel1(val->value[0]);
-	operation->setChannel2(val->value[1]);
-	operation->setChannel3(val->value[2]);
-	operation->setChannel4(val->value[3]);
+	float col[4];
+	input->getEditorValueColor(col);
+	operation->setChannel1(col[0]);
+	operation->setChannel2(col[1]);
+	operation->setChannel3(col[2]);
+	operation->setChannel4(col[3]);
 	this->addLink(graph, operation->getOutputSocket(), inputsocket);
 	graph->addOperation(operation);
 }
 
 void Node::addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
-	bNodeSocket *bSock = this->getEditorInputSocket(editorNodeInputSocketIndex);
-	bNodeSocketValueVector *val = (bNodeSocketValueVector *)bSock->default_value;
+	InputSocket *input = getInputSocket(editorNodeInputSocketIndex);
 	SetVectorOperation *operation = new SetVectorOperation();
-	operation->setX(val->value[0]);
-	operation->setY(val->value[1]);
-	operation->setZ(val->value[2]);
+	float vec[3];
+	input->getEditorValueVector(vec);
+	operation->setX(vec[0]);
+	operation->setY(vec[1]);
+	operation->setZ(vec[2]);
 	this->addLink(graph, operation->getOutputSocket(), inputsocket);
 	graph->addOperation(operation);
 }

@@ -2030,6 +2030,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", "Draw bounds as sphere"},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", "Draw bounds as cylinder"},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", "Draw bounds as cone"},
+		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", "Draw bounds as capsule"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

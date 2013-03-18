@@ -79,46 +79,17 @@
 
 #include "GPU_material.h"
 
+
+int sh_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
+void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+
+
 /* ********* exec data struct, remains internal *********** */
 
 typedef struct ShaderCallData {
 	ShadeInput *shi;		/* from render pipe */
 	ShadeResult *shr;		/* from render pipe */
 } ShaderCallData;
-
-/* output socket defines */
-#define GEOM_OUT_GLOB	0
-#define GEOM_OUT_LOCAL	1
-#define GEOM_OUT_VIEW	2
-#define GEOM_OUT_ORCO	3
-#define GEOM_OUT_UV		4
-#define GEOM_OUT_NORMAL	5
-#define GEOM_OUT_VCOL	6
-#define GEOM_OUT_VCOL_ALPHA	7
-#define GEOM_OUT_FRONTBACK	8
-
-
-/* input socket defines */
-#define MAT_IN_COLOR	0
-#define MAT_IN_SPEC		1
-#define MAT_IN_REFL		2
-#define MAT_IN_NORMAL	3
-#define MAT_IN_MIR		4
-#define MAT_IN_AMB		5
-#define MAT_IN_EMIT	6
-#define MAT_IN_SPECTRA	7
-#define MAT_IN_RAY_MIRROR	8
-#define MAT_IN_ALPHA	9
-#define MAT_IN_TRANSLUCENCY	10
-#define NUM_MAT_IN		11	/* for array size */
-
-/* output socket defines */
-#define MAT_OUT_COLOR		0
-#define MAT_OUT_ALPHA		1
-#define MAT_OUT_NORMAL	2
-#define MAT_OUT_DIFFUSE	3
-#define MAT_OUT_SPEC		4
-#define MAT_OUT_AO		5
 
 
 extern void node_ID_title_cb(void *node_v, void *unused_v);

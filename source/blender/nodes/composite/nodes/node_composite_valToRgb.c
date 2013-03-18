@@ -44,22 +44,22 @@ static bNodeSocketTemplate cmp_node_valtorgb_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= add_colorband(1);
+	node->storage= add_colorband(true);
 }
 
-void register_node_type_cmp_valtorgb(bNodeTreeType *ttype)
+void register_node_type_cmp_valtorgb(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_valtorgb_in, cmp_node_valtorgb_out);
 	node_type_size(&ntype, 240, 200, 320);
 	node_type_init(&ntype, node_composit_init_valtorgb);
 	node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 
 
@@ -74,13 +74,13 @@ static bNodeSocketTemplate cmp_node_rgbtobw_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_rgbtobw(bNodeTreeType *ttype)
+void register_node_type_cmp_rgbtobw(void)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
+	cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_rgbtobw_in, cmp_node_rgbtobw_out);
 	node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 	
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

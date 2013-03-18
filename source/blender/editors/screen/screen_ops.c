@@ -47,6 +47,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_node_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -54,6 +55,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -252,7 +254,7 @@ int ED_operator_node_active(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	if (snode && snode->edittree)
+	if (snode && ntreeIsValid(snode->edittree))
 		return 1;
 	
 	return 0;

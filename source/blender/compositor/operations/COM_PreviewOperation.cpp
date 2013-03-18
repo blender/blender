@@ -36,42 +36,47 @@ extern "C" {
 	#include "IMB_imbuf.h"
 	#include "IMB_imbuf_types.h"
 	#include "IMB_colormanagement.h"
+	#include "BKE_node.h"
 }
 
 
 PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings) : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
+	this->m_preview = NULL;
 	this->m_outputBuffer = NULL;
 	this->m_input = NULL;
 	this->m_divider = 1.0f;
-	this->m_node = NULL;
 	this->m_viewSettings = viewSettings;
 	this->m_displaySettings = displaySettings;
+}
+
+void PreviewOperation::verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key)
+{
+	/* Size (0, 0) ensures the preview rect is not allocated in advance,
+	 * this is set later in initExecution once the resolution is determined.
+	 */
+	this->m_preview = BKE_node_preview_verify(previews, key, 0, 0, TRUE);
 }
 
 void PreviewOperation::initExecution()
 {
 	this->m_input = getInputSocketReader(0);
-	if (!this->m_node->preview) {
-		this->m_node->preview = (bNodePreview *)MEM_callocN(sizeof(bNodePreview), "node preview");
-	}
-	else {
-		if (this->getWidth() == (unsigned int)this->m_node->preview->xsize &&
-		    this->getHeight() == (unsigned int)this->m_node->preview->ysize)
-		{
-			this->m_outputBuffer = this->m_node->preview->rect;
-		}
+	
+	if (this->getWidth() == (unsigned int)this->m_preview->xsize &&
+	    this->getHeight() == (unsigned int)this->m_preview->ysize)
+	{
+		this->m_outputBuffer = this->m_preview->rect;
 	}
 
 	if (this->m_outputBuffer == NULL) {
 		this->m_outputBuffer = (unsigned char *)MEM_callocN(sizeof(unsigned char) * 4 * getWidth() * getHeight(), "PreviewOperation");
-		if (this->m_node->preview->rect) {
-			MEM_freeN(this->m_node->preview->rect);
+		if (this->m_preview->rect) {
+			MEM_freeN(this->m_preview->rect);
 		}
-		this->m_node->preview->xsize = getWidth();
-		this->m_node->preview->ysize = getHeight();
-		this->m_node->preview->rect = this->m_outputBuffer;
+		this->m_preview->xsize = getWidth();
+		this->m_preview->ysize = getHeight();
+		this->m_preview->rect = this->m_outputBuffer;
 	}
 }
 

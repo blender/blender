@@ -46,23 +46,22 @@ static bNodeSocketTemplate sh_node_bump_out[] = {
 	{ -1, 0, "" }
 };
 
-static int gpu_shader_bump(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_bump(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_bump", in, out, GPU_builtin(GPU_VIEW_NORMAL));
 }
 
 /* node type definition */
-void register_node_type_sh_bump(bNodeTreeType *ttype)
+void register_node_type_sh_bump(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bump_in, sh_node_bump_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_storage(&ntype, "BumpNode", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, gpu_shader_bump);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

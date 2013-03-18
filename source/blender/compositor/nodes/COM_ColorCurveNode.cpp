@@ -50,10 +50,11 @@ void ColorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		bNodeSocketValueRGBA *val = (bNodeSocketValueRGBA *)this->getInputSocket(2)->getbNodeSocket()->default_value;
-		operation->setBlackLevel(val->value);
-		val = (bNodeSocketValueRGBA *)this->getInputSocket(3)->getbNodeSocket()->default_value;
-		operation->setWhiteLevel(val->value);
+		float col[4];
+		this->getInputSocket(2)->getEditorValueColor(col);
+		operation->setBlackLevel(col);
+		this->getInputSocket(3)->getEditorValueColor(col);
+		operation->setWhiteLevel(col);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	
 		operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);

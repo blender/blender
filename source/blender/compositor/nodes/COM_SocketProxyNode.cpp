@@ -50,54 +50,54 @@ void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 {
 	OutputSocket *outputsocket = this->getOutputSocket(0);
 	InputSocket *inputsocket = this->getInputSocket(0);
-	if (outputsocket->isConnected()) {
-		if (inputsocket->isConnected()) {
-			SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
-			inputsocket->relinkConnections(operation->getInputSocket(0));
-			outputsocket->relinkConnections(operation->getOutputSocket(0));
-			graph->addOperation(operation);
-			if (m_buffer) {
-				WriteBufferOperation *writeOperation = new WriteBufferOperation();
-				ReadBufferOperation *readOperation = new ReadBufferOperation();
-				readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
-
-				operation->getOutputSocket()->relinkConnections(readOperation->getOutputSocket());
-				addLink(graph, operation->getOutputSocket(), writeOperation->getInputSocket(0));
-
-				graph->addOperation(writeOperation);
-				graph->addOperation(readOperation);
-			}
+	if (inputsocket->isConnected()) {
+		SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
+		inputsocket->relinkConnections(operation->getInputSocket(0));
+		outputsocket->relinkConnections(operation->getOutputSocket(0));
+		graph->addOperation(operation);
+		
+		if (m_buffer) {
+			WriteBufferOperation *writeOperation = new WriteBufferOperation();
+			ReadBufferOperation *readOperation = new ReadBufferOperation();
+			readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
+			
+			operation->getOutputSocket()->relinkConnections(readOperation->getOutputSocket());
+			addLink(graph, operation->getOutputSocket(), writeOperation->getInputSocket(0));
+			
+			graph->addOperation(writeOperation);
+			graph->addOperation(readOperation);
 		}
-		else {
-			/* If input is not connected, add a constant value operation instead */
-			switch (outputsocket->getDataType()) {
-				case COM_DT_VALUE:
-				{
-					SetValueOperation *operation = new SetValueOperation();
-					bNodeSocketValueFloat *dval = (bNodeSocketValueFloat *)inputsocket->getbNodeSocket()->default_value;
-					operation->setValue(dval->value);
-					outputsocket->relinkConnections(operation->getOutputSocket(0));
-					graph->addOperation(operation);
-					break;
-				}
-				case COM_DT_COLOR:
-				{
-					SetColorOperation *operation = new SetColorOperation();
-					bNodeSocketValueRGBA *dval = (bNodeSocketValueRGBA *)inputsocket->getbNodeSocket()->default_value;
-					operation->setChannels(dval->value);
-					outputsocket->relinkConnections(operation->getOutputSocket(0));
-					graph->addOperation(operation);
-					break;
-				}
-				case COM_DT_VECTOR:
-				{
-					SetVectorOperation *operation = new SetVectorOperation();
-					bNodeSocketValueVector *dval = (bNodeSocketValueVector *)inputsocket->getbNodeSocket()->default_value;
-					operation->setVector(dval->value);
-					outputsocket->relinkConnections(operation->getOutputSocket(0));
-					graph->addOperation(operation);
-					break;
-				}
+	}
+	else if (outputsocket->isConnected()) {
+		/* If input is not connected, add a constant value operation instead */
+		switch (outputsocket->getDataType()) {
+			case COM_DT_VALUE:
+			{
+				SetValueOperation *operation = new SetValueOperation();
+				operation->setValue(inputsocket->getEditorValueFloat());
+				outputsocket->relinkConnections(operation->getOutputSocket(0));
+				graph->addOperation(operation);
+				break;
+			}
+			case COM_DT_COLOR:
+			{
+				SetColorOperation *operation = new SetColorOperation();
+				float col[4];
+				inputsocket->getEditorValueColor(col);
+				operation->setChannels(col);
+				outputsocket->relinkConnections(operation->getOutputSocket(0));
+				graph->addOperation(operation);
+				break;
+			}
+			case COM_DT_VECTOR:
+			{
+				SetVectorOperation *operation = new SetVectorOperation();
+				float vec[3];
+				inputsocket->getEditorValueVector(vec);
+				operation->setVector(vec);
+				outputsocket->relinkConnections(operation->getOutputSocket(0));
+				graph->addOperation(operation);
+				break;
 			}
 		}
 	}

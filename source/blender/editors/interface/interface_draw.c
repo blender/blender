@@ -42,6 +42,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
+#include "BKE_node.h"
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
 
@@ -1683,6 +1684,71 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	draw_scope_end(&rect, scissor);
 
 	glDisable(GL_BLEND);
+}
+
+void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
+{
+	static const float size = 5.0f;
+	
+	/* 16 values of sin function */
+	static float si[16] = {
+	    0.00000000f, 0.39435585f, 0.72479278f, 0.93775213f,
+	    0.99871650f, 0.89780453f, 0.65137248f, 0.29936312f,
+	    -0.10116832f, -0.48530196f, -0.79077573f, -0.96807711f,
+	    -0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f
+	};
+	/* 16 values of cos function */
+	static float co[16] = {
+	    1.00000000f, 0.91895781f, 0.68896691f, 0.34730525f,
+	    -0.05064916f, -0.44039415f, -0.75875812f, -0.95413925f,
+	    -0.99486932f, -0.87434661f, -0.61210598f, -0.25065253f,
+	    0.15142777f, 0.52896401f, 0.82076344f, 0.97952994f,
+	};
+	
+	unsigned char *col = but->col;
+	int a;
+	GLint scissor[4];
+	rcti scissor_new;
+	float x, y;
+	
+	x = 0.5f * (recti->xmin + recti->xmax);
+	y = 0.5f * (recti->ymin + recti->ymax);
+	
+	/* need scissor test, can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	scissor_new.xmin = ar->winrct.xmin + recti->xmin;
+	scissor_new.ymin = ar->winrct.ymin + recti->ymin;
+	scissor_new.xmax = ar->winrct.xmin + recti->xmax;
+	scissor_new.ymax = ar->winrct.ymin + recti->ymax;
+	BLI_rcti_isect(&scissor_new, &ar->winrct, &scissor_new);
+	glScissor(scissor_new.xmin,
+	          scissor_new.ymin,
+	          BLI_rcti_size_x(&scissor_new),
+	          BLI_rcti_size_y(&scissor_new));
+	
+	glColor4ubv(col);
+	
+	glEnable(GL_BLEND);
+	glBegin(GL_POLYGON);
+	for (a = 0; a < 16; a++)
+		glVertex2f(x + size * si[a], y + size * co[a]);
+	glEnd();
+	glDisable(GL_BLEND);
+	
+	glColor4ub(0, 0, 0, 150);
+	
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	glBegin(GL_LINE_LOOP);
+	for (a = 0; a < 16; a++)
+		glVertex2f(x + size * si[a], y + size * co[a]);
+	glEnd();
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
+	glLineWidth(1.0f);
+	
+	/* restore scissortest */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 }
 
 /* ****************************************************** */

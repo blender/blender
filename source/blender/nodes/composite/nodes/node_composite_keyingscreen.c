@@ -50,7 +50,7 @@ static bNodeSocketTemplate cmp_node_keyingscreen_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeKeyingScreenData *data;
 
@@ -59,14 +59,14 @@ static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *nod
 	node->storage = data;
 }
 
-void register_node_type_cmp_keyingscreen(bNodeTreeType *ttype)
+void register_node_type_cmp_keyingscreen(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_keyingscreen_out);
 	node_type_init(&ntype, node_composit_init_keyingscreen);
 	node_type_storage(&ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

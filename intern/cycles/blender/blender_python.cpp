@@ -207,6 +207,7 @@ static PyObject *available_devices_func(PyObject *self, PyObject *args)
 }
 
 #ifdef WITH_OSL
+
 static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 {
 	PyObject *pynodegroup, *pynode;
@@ -248,17 +249,19 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 			continue;
 
 		/* determine socket type */
-		BL::NodeSocket::type_enum socket_type;
-		float default_float4[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+		std::string socket_type;
+		BL::NodeSocket::type_enum data_type = BL::NodeSocket::type_VALUE;
+		float4 default_float4 = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 		float default_float = 0.0f;
 		int default_int = 0;
 		std::string default_string = "";
 		
 		if(param->isclosure) {
-			socket_type = BL::NodeSocket::type_SHADER;
+			socket_type = "NodeSocketShader";
 		}
 		else if(param->type.vecsemantics == TypeDesc::COLOR) {
-			socket_type = BL::NodeSocket::type_RGBA;
+			socket_type = "NodeSocketColor";
+			data_type = BL::NodeSocket::type_RGBA;
 
 			if(param->validdefault) {
 				default_float4[0] = param->fdefault[0];
@@ -269,7 +272,8 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		else if(param->type.vecsemantics == TypeDesc::POINT ||
 		        param->type.vecsemantics == TypeDesc::VECTOR ||
 		        param->type.vecsemantics == TypeDesc::NORMAL) {
-			socket_type = BL::NodeSocket::type_VECTOR;
+			socket_type = "NodeSocketVector";
+			data_type = BL::NodeSocket::type_VECTOR;
 
 			if(param->validdefault) {
 				default_float4[0] = param->fdefault[0];
@@ -279,17 +283,20 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		}
 		else if(param->type.aggregate == TypeDesc::SCALAR) {
 			if(param->type.basetype == TypeDesc::INT) {
-				socket_type = BL::NodeSocket::type_INT;
+				socket_type = "NodeSocketInt";
+				data_type = BL::NodeSocket::type_INT;
 				if(param->validdefault)
 					default_int = param->idefault[0];
 			}
 			else if(param->type.basetype == TypeDesc::FLOAT) {
-				socket_type = BL::NodeSocket::type_VALUE;
+				socket_type = "NodeSocketFloat";
+				data_type = BL::NodeSocket::type_VALUE;
 				if(param->validdefault)
 					default_float = param->fdefault[0];
 			}
 			else if(param->type.basetype == TypeDesc::STRING) {
-				socket_type =  BL::NodeSocket::type_STRING;
+				socket_type = "NodeSocketString";
+				data_type = BL::NodeSocket::type_STRING;
 				if(param->validdefault)
 					default_string = param->sdefault[0];
 			}
@@ -300,38 +307,52 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 			continue;
 
 		/* find socket socket */
-		BL::NodeSocket b_sock = b_node.find_socket(param->name.c_str(), param->isoutput);
-
-		/* remove if type no longer matches */
-		if(b_sock && b_sock.type() != socket_type) {
-			b_node.remove_socket(b_sock);
-			b_sock = BL::NodeSocket(PointerRNA_NULL);
+		BL::NodeSocket b_sock(PointerRNA_NULL);
+		if (param->isoutput) {
+			b_sock = b_node.outputs[param->name];
+			
+			/* remove if type no longer matches */
+			if(b_sock && b_sock.bl_idname() != socket_type) {
+				b_node.outputs.remove(b_sock);
+				b_sock = BL::NodeSocket(PointerRNA_NULL);
+			}
+			
+			if (!b_sock) {
+				/* create new socket */
+				b_sock = b_node.outputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
+			}
+		}
+		else {
+			b_sock = b_node.inputs[param->name];
+			
+			/* remove if type no longer matches */
+			if(b_sock && b_sock.bl_idname() != socket_type) {
+				b_node.inputs.remove(b_sock);
+				b_sock = BL::NodeSocket(PointerRNA_NULL);
+			}
+			
+			if (!b_sock) {
+				/* create new socket */
+				b_sock = b_node.inputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
+			}
 		}
 
-		/* create new socket */
-		if(!b_sock) {
-			b_sock = b_node.add_socket(param->name.c_str(), socket_type, param->isoutput);
-
-			/* set default value */
-			if(socket_type == BL::NodeSocket::type_VALUE) {
-				BL::NodeSocketFloatNone b_float_sock(b_sock.ptr);
-				b_float_sock.default_value(default_float);
+		/* set default value */
+		if(b_sock) {
+			if(data_type == BL::NodeSocket::type_VALUE) {
+				set_float(b_sock.ptr, "default_value", default_float);
 			}
-			else if(socket_type == BL::NodeSocket::type_INT) {
-				BL::NodeSocketIntNone b_int_sock(b_sock.ptr);
-				b_int_sock.default_value(default_int);
+			else if(data_type == BL::NodeSocket::type_INT) {
+				set_int(b_sock.ptr, "default_value", default_int);
 			}
-			else if(socket_type == BL::NodeSocket::type_RGBA) {
-				BL::NodeSocketRGBA b_rgba_sock(b_sock.ptr);
-				b_rgba_sock.default_value(default_float4);
+			else if(data_type == BL::NodeSocket::type_RGBA) {
+				set_float4(b_sock.ptr, "default_value", default_float4);
 			}
-			else if(socket_type == BL::NodeSocket::type_VECTOR) {
-				BL::NodeSocketVectorNone b_vector_sock(b_sock.ptr);
-				b_vector_sock.default_value(default_float4);
+			else if(data_type == BL::NodeSocket::type_VECTOR) {
+				set_float3(b_sock.ptr, "default_value", float4_to_float3(default_float4));
 			}
-			else if(socket_type == BL::NodeSocket::type_STRING) {
-				BL::NodeSocketStringNone b_string_sock(b_sock.ptr);
-				b_string_sock.default_value(default_string);
+			else if(data_type == BL::NodeSocket::type_STRING) {
+				set_string(b_sock.ptr, "default_value", default_string);
 			}
 		}
 
@@ -349,7 +370,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 
 		for (b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
 			if(used_sockets.find(b_input->ptr.data) == used_sockets.end()) {
-				b_node.remove_socket(*b_input);
+				b_node.inputs.remove(*b_input);
 				removed = true;
 				break;
 			}
@@ -357,7 +378,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 
 		for (b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
 			if(used_sockets.find(b_output->ptr.data) == used_sockets.end()) {
-				b_node.remove_socket(*b_output);
+				b_node.outputs.remove(*b_output);
 				removed = true;
 				break;
 			}

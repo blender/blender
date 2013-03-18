@@ -190,10 +190,10 @@ public:
 
 class ProxyNode : public ShaderNode {
 public:
-	ProxyNode(ShaderSocketType from, ShaderSocketType to);
+	ProxyNode(ShaderSocketType type);
 	SHADER_NODE_BASE_CLASS(ProxyNode)
 
-	ShaderSocketType from, to;
+	ShaderSocketType type;
 };
 
 class BsdfNode : public ShaderNode {

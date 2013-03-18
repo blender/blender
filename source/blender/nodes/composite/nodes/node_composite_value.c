@@ -34,29 +34,17 @@
 
 /* **************** VALUE ******************** */
 static bNodeSocketTemplate cmp_node_value_out[] = {
-	/* XXX value nodes use the output sockets for buttons, so we need explicit limits here! */
-	{	SOCK_FLOAT, 0, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
+	{	SOCK_FLOAT, 0, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_value(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
-{
-	bNodeSocket *sock= node->outputs.first;
-	bNodeSocketValueFloat *dval= (bNodeSocketValueFloat*)sock->default_value;
-	/* uses the default value of the output socket, must be initialized here */
-	dval->value = 0.5f;
-	dval->min = -FLT_MAX;
-	dval->max = FLT_MAX;
-}
-
-void register_node_type_cmp_value(bNodeTreeType *ttype)
+void register_node_type_cmp_value(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_value_out);
-	node_type_init(&ntype, node_composit_init_value);
 	node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

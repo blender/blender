@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_dynamicpaint_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
@@ -57,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"
@@ -3072,4 +3074,66 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), P
 	uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);
 	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
 		uiTemplateCurveMapping(col, &view_transform_ptr, "curve_mapping", 'c', TRUE, 0);
+}
+
+/********************************* Component Menu *************************************/
+
+typedef struct ComponentMenuArgs {
+	PointerRNA ptr;
+	char propname[64];	/* XXX arbitrary */
+} ComponentMenuArgs;
+/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
+static uiBlock *component_menu(bContext *C, ARegion *ar, void *args_v)
+{
+	ComponentMenuArgs *args = (ComponentMenuArgs *)args_v;
+	uiBlock *block;
+	uiLayout *layout;
+	
+	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
+	
+	layout = uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, UI_GetStyle()), 0);
+	
+	uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	return block;
+}
+void uiTemplateComponentMenu(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name)
+{
+	ComponentMenuArgs *args = MEM_callocN(sizeof(ComponentMenuArgs), "component menu template args");
+	uiBlock *block;
+	
+	args->ptr = *ptr;
+	BLI_strncpy(args->propname, propname, sizeof(args->propname));
+	
+	block = uiLayoutGetBlock(layout);
+	uiBlockBeginAlign(block);
+
+	uiDefBlockButN(block, component_menu, args, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
+	
+	uiBlockEndAlign(block);
+}
+
+/************************* Node Socket Icon **************************/
+
+void uiTemplateNodeSocket(uiLayout *layout, bContext *UNUSED(C), float *color)
+{
+	uiBlock *block;
+	uiBut *but;
+	
+	block = uiLayoutGetBlock(layout);
+	uiBlockBeginAlign(block);
+	
+	/* XXX using explicit socket colors is not quite ideal.
+	 * Eventually it should be possible to use theme colors for this purpose,
+	 * but this requires a better design for extendable color palettes in user prefs.
+	 */
+	but = uiDefBut(block, NODESOCKET, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+	rgba_float_to_uchar(but->col, color);
+	
+	uiBlockEndAlign(block);
 }

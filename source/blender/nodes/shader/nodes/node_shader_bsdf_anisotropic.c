@@ -44,7 +44,7 @@ static bNodeSocketTemplate sh_node_bsdf_anisotropic_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[3].link)
 		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
@@ -53,18 +53,17 @@ static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_anisotropic(bNodeTreeType *ttype)
+void register_node_type_sh_bsdf_anisotropic(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_BSDF_ANISOTROPIC, "Anisotropic BSDF", NODE_CLASS_SHADER, 0);
+	sh_node_type_base(&ntype, SH_NODE_BSDF_ANISOTROPIC, "Anisotropic BSDF", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bsdf_anisotropic_in, sh_node_bsdf_anisotropic_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_bsdf_anisotropic);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

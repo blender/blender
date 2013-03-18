@@ -64,11 +64,12 @@ private:
 	 * @see ExecutionSystem
 	 */
 	bNodeTree *m_bnodetree;
-	
+
 	/**
-	 * @brief activegNode the group node that is currently being edited.
+	 * @brief Preview image hash table
+	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 */
-	bNode *m_activegNode;
+	bNodeInstanceHash *m_previews;
 
 	/**
 	 * @brief does this system have active opencl devices?
@@ -115,19 +116,19 @@ public:
 	const bNodeTree *getbNodeTree() const { return this->m_bnodetree; }
 
 	/**
-	 * @brief set the active groupnode of the context
-	 */
-	void setActivegNode(bNode *gnode) { this->m_activegNode = gnode; }
-
-	/**
-	 * @brief get the active groupnode of the context
-	 */
-	const bNode *getActivegNode() const { return this->m_activegNode; }
-
-	/**
 	 * @brief get the scene of the context
 	 */
 	const RenderData *getRenderData() const { return this->m_rd; }
+
+	/**
+	 * @brief set the preview image hash table
+	 */
+	void setPreviewHash(bNodeInstanceHash *previews) { this->m_previews = previews; }
+
+	/**
+	 * @brief get the preview image hash table
+	 */
+	bNodeInstanceHash *getPreviewHash() const { return this->m_previews; }
 
 	/**
 	 * @brief set view settings of color color management

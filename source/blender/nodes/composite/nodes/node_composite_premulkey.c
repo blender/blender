@@ -44,12 +44,12 @@ static bNodeSocketTemplate cmp_node_premulkey_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_premulkey(bNodeTreeType *ttype)
+void register_node_type_cmp_premulkey(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_premulkey_in, cmp_node_premulkey_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

@@ -41,7 +41,7 @@ static bNodeSocketTemplate inputs[] = {
 };
 
 /* applies to render pipeline */
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	TexCallData *cdata = (TexCallData *)data;
 	TexResult *target = cdata->target;
@@ -54,7 +54,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
 		else
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
-		tex_do_preview(node, params.co, &target->tr);
+		tex_do_preview(execdata->preview, params.co, &target->tr);
 	}
 	else {
 		/* 0 means don't care, so just use first */
@@ -141,7 +141,7 @@ static void assign_index(struct bNode *node)
 	node->custom1 = index;
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
 	node->storage= tno;
@@ -151,26 +151,26 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(nt
 	assign_index(node);
 }
 
-static void copy(bNode *orig, bNode *new)
+static void copy(bNodeTree *dest_ntree, bNode *dest_node, bNode *src_node)
 {
-	node_copy_standard_storage(orig, new);
-	unique_name(new);
-	assign_index(new);
+	node_copy_standard_storage(dest_ntree, dest_node, src_node);
+	unique_name(dest_node);
+	assign_index(dest_node);
 }
 
-void register_node_type_tex_output(bNodeTreeType *ttype)
+void register_node_type_tex_output(void)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
+	tex_node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, NULL);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
-	node_type_exec(&ntype, exec);
+	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	/* Do not allow muting output. */
 	node_type_internal_links(&ntype, NULL);
 	
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

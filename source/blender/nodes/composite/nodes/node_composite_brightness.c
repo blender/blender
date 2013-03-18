@@ -48,12 +48,12 @@ static bNodeSocketTemplate cmp_node_brightcontrast_out[] = {
 };
 
 
-void register_node_type_cmp_brightcontrast(bNodeTreeType *ttype)
+void register_node_type_cmp_brightcontrast(void)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_brightcontrast_in, cmp_node_brightcontrast_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

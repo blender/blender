@@ -59,6 +59,11 @@ private:
 	 */
 	bNode *m_editorNode;
 
+	/**
+	 * @brief stores the reference to the SDNA bNode struct
+	 */
+	bNodeTree *m_editorNodeTree;
+
 protected:
 	/**
 	 * @brief get access to the vector of input sockets
@@ -82,14 +87,25 @@ public:
 	/**
 	 * @brief get the reference to the SDNA bNode struct
 	 */
-	bNode *getbNode() {return m_editorNode;}
+	bNode *getbNode() const {return m_editorNode;}
+
+	/**
+	 * @brief get the reference to the SDNA bNodeTree struct
+	 */
+	bNodeTree *getbNodeTree() const {return m_editorNodeTree;}
 	
 	/**
 	 * @brief set the reference to the bNode
 	 * @note used in Node instances to receive the storage/settings and complex node for highlight during execution
 	 * @param bNode
 	 */
-	void setbNode(bNode *bNode) {this->m_editorNode = bNode;}
+	void setbNode(bNode *node) {this->m_editorNode = node;}
+	
+	/**
+	 * @brief set the reference to the bNodeTree
+	 * @param bNodeTree
+	 */
+	void setbNodeTree(bNodeTree *nodetree) {this->m_editorNodeTree = nodetree;}
 	
 	/**
 	 * @brief is this node an operation?

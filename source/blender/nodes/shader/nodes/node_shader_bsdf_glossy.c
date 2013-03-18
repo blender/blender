@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_bsdf_glossy_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[2].link)
 		in[2].link = GPU_builtin(GPU_VIEW_NORMAL);
@@ -50,18 +50,17 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *UNUSED(node), GP
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_glossy(bNodeTreeType *ttype)
+void register_node_type_sh_bsdf_glossy(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bsdf_glossy_in, sh_node_bsdf_glossy_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_bsdf_glossy);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

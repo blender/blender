@@ -39,26 +39,14 @@ static bNodeSocketTemplate sh_node_normal_in[] = {
 };
 
 static bNodeSocketTemplate sh_node_normal_out[] = {
-	{	SOCK_VECTOR, 0, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
+	{	SOCK_VECTOR, 0, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
 	{	SOCK_FLOAT, 0, N_("Dot")},
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_normal(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
-{
-	bNodeSocket *sock= node->outputs.first;
-	bNodeSocketValueVector *dval= (bNodeSocketValueVector*)sock->default_value;
-	
-	/* output value is used for normal vector */
-	dval->value[0] = 0.0f;
-	dval->value[1] = 0.0f;
-	dval->value[2] = 1.0f;
-}
-
 /* generates normal, does dot product */
-static void node_shader_exec_normal(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_normal(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
-	bNodeSocket *sock= node->outputs.first;
 	float vec[3];
 	
 	/* stack order input:  normal */
@@ -66,29 +54,25 @@ static void node_shader_exec_normal(void *UNUSED(data), bNode *node, bNodeStack 
 	
 	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 	
-	copy_v3_v3(out[0]->vec, ((bNodeSocketValueVector*)sock->default_value)->value);
 	/* render normals point inside... the widget points outside */
-	out[1]->vec[0] = -dot_v3v3(out[0]->vec, vec);
+	out[1]->vec[0] = -dot_v3v3(vec, out[0]->vec);
 }
 
-static int gpu_shader_normal(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_normal(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	bNodeSocket *sock= node->outputs.first;
-	GPUNodeLink *vec = GPU_uniform(((bNodeSocketValueVector*)sock->default_value)->value);
-
+	GPUNodeLink *vec = GPU_uniform(out[0].vec);
 	return GPU_stack_link(mat, "normal", in, out, vec);
 }
 
-void register_node_type_sh_normal(bNodeTreeType *ttype)
+void register_node_type_sh_normal(void)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_normal_in, sh_node_normal_out);
-	node_type_init(&ntype, node_shader_init_normal);
-	node_type_exec(&ntype, node_shader_exec_normal);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_normal);
 	node_type_gpu(&ntype, gpu_shader_normal);
 	
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

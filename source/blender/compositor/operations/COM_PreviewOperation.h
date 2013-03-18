@@ -35,7 +35,7 @@ protected:
 	/**
 	 * @brief holds reference to the SDNA bNode, where this nodes will render the preview image for
 	 */
-	bNode *m_node;
+	bNodePreview *m_preview;
 	SocketReader *m_input;
 	float m_divider;
 
@@ -43,6 +43,8 @@ protected:
 	const ColorManagedDisplaySettings *m_displaySettings;
 public:
 	PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
+	void verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key);
+	
 	bool isOutputOperation(bool rendering) const { return !G.background; }
 	void initExecution();
 	void deinitExecution();
@@ -50,7 +52,6 @@ public:
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	void setbNode(bNode *node) { this->m_node = node; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	bool isPreviewOperation() { return true; }
 	

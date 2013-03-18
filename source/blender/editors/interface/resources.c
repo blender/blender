@@ -395,6 +395,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->syntaxv; break;
 				case TH_NODE_GROUP:
 					cp = ts->syntaxc; break;
+				case TH_NODE_INTERFACE:
+					cp = ts->console_output; break;
 				case TH_NODE_FRAME:
 					cp = ts->movie; break;
 				case TH_NODE_MATTE:
@@ -961,7 +963,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
 	rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      /* sliders */
 	
-	/* space node, re-uses syntax color storage */
+	/* space node, re-uses syntax and console color storage */
 	btheme->tnode = btheme->tv3d;
 	rgba_char_args_set(btheme->tnode.edge_select, 255, 255, 255, 255);	/* wire selected */
 	rgba_char_args_set(btheme->tnode.syntaxl, 155, 155, 155, 160);  /* TH_NODE, backdrop */
@@ -970,6 +972,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tnode.syntaxv, 104, 106, 117, 255);  /* generator */
 	rgba_char_args_set(btheme->tnode.syntaxc, 105, 117, 110, 255);  /* group */
 	rgba_char_args_set(btheme->tnode.movie, 155, 155, 155, 160);  /* frame */
+	rgba_char_args_set(btheme->tnode.console_output, 190, 190, 80, 255);	/* group input/output */
 	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
@@ -1545,7 +1548,7 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
 		}
 		if (U.coba_weight.tot == 0)
-			init_colorband(&U.coba_weight, 1);
+			init_colorband(&U.coba_weight, true);
 	}
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 11)) {
 		bTheme *btheme;
@@ -2171,6 +2174,13 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_test_set(btheme->tconsole.console_select, 255, 255, 255, 48);
+		}
+	}
+
+	if (U.versionfile < 266 || (U.versionfile == 266 && U.subversionfile < 2)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_test_set(btheme->tnode.console_output, 223, 202, 53, 255);  /* interface nodes */
 		}
 	}
 

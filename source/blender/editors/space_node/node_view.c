@@ -61,6 +61,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "node_intern.h"  /* own include */
+#include "NOD_composite.h"
 
 
 /* **************** View All Operator ************** */
@@ -370,7 +371,7 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 	float fx, fy, bufx, bufy;
 	int ret = FALSE;
 
-	if (snode->treetype != NTREE_COMPOSIT || (snode->flag & SNODE_BACKDRAW) == 0) {
+	if (STREQ(snode->tree_idname, ntreeType_Composite->idname) || (snode->flag & SNODE_BACKDRAW) == 0) {
 		/* use viewer image for color sampling only if we're in compositor tree
 		 * with backdrop enabled
 		 */
@@ -524,7 +525,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 	ImageSampleInfo *info;
 
-	if (snode->treetype != NTREE_COMPOSIT || !(snode->flag & SNODE_BACKDRAW))
+	if (!ED_node_is_compositor(snode) || !(snode->flag & SNODE_BACKDRAW))
 		return OPERATOR_CANCELLED;
 
 	info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");

@@ -123,7 +123,7 @@ set(SRC
 	composite/nodes/node_composite_pixelate.c
 
 	composite/node_composite_tree.c
-	composite/node_composite_util.h
+	composite/node_composite_util.c
 
 	shader/nodes/node_shader_camera.c
 	shader/nodes/node_shader_common.c
@@ -224,13 +224,16 @@ set(SRC
 	intern/node_common.c
 	intern/node_socket.c
 
+	composite/node_composite_util.h
 	shader/node_shader_util.h
 	texture/node_texture_util.h
 
+	NOD_common.h
 	NOD_composite.h
 	NOD_shader.h
 	NOD_texture.h
 	NOD_socket.h
+	NOD_static_types.h
 	intern/node_util.h
 	intern/node_exec.h
 	intern/node_common.h

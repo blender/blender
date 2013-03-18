@@ -163,7 +163,7 @@ class SpellChecker():
         "uncomment",
         "undeformed",
         "undistort", "undistortion",
-        "ungroup",
+        "ungroup", "ungrouped",
         "unhide",
         "unindent",
         "unkeyed",

@@ -259,7 +259,8 @@ typedef enum {
 	WAVEFORM      = (49 << 9),
 	VECTORSCOPE   = (50 << 9),
 	PROGRESSBAR   = (51 << 9),
-	SEARCH_MENU_UNLINK   = (52 << 9)
+	SEARCH_MENU_UNLINK   = (52 << 9),
+	NODESOCKET    = (53 << 9)
 } eButType;
 
 #define BUTTYPE     (63 << 9)
@@ -835,6 +836,8 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
+void uiTemplateComponentMenu(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name);
+void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float *color);
 
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"

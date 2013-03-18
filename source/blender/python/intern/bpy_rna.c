@@ -3119,6 +3119,33 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 	return PyBool_FromLong(RNA_property_is_set(&self->ptr, prop));
 }
 
+PyDoc_STRVAR(pyrna_struct_property_unset_doc,
+".. method:: property_unset(property)\n"
+"\n"
+"   Unset a property, will use default value afterward.\n"
+);
+static PyObject *pyrna_struct_property_unset(BPy_StructRNA *self, PyObject *args)
+{
+	PropertyRNA *prop;
+	const char *name;
+
+	PYRNA_STRUCT_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "s:property_unset", &name))
+		return NULL;
+
+	if ((prop = RNA_struct_find_property(&self->ptr, name)) == NULL) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s.property_unset(\"%.200s\") not found",
+		             RNA_struct_identifier(self->ptr.type), name);
+		return NULL;
+	}
+
+	RNA_property_unset(&self->ptr, prop);
+
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(pyrna_struct_is_property_hidden_doc,
 ".. method:: is_property_hidden(property)\n"
 "\n"
@@ -4633,6 +4660,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"driver_remove", (PyCFunction)pyrna_struct_driver_remove, METH_VARARGS, pyrna_struct_driver_remove_doc},
 
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, pyrna_struct_is_property_set_doc},
+	{"property_unset", (PyCFunction)pyrna_struct_property_unset, METH_VARARGS, pyrna_struct_property_unset_doc},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, pyrna_struct_is_property_hidden_doc},
 	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_VARARGS, pyrna_struct_path_resolve_doc},
 	{"path_from_id", (PyCFunction)pyrna_struct_path_from_id, METH_VARARGS, pyrna_struct_path_from_id_doc},

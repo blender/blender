@@ -66,85 +66,132 @@
 #include "UI_resources.h"
 
 #include "node_intern.h"  /* own include */
+#include "NOD_common.h"
 #include "NOD_socket.h"
 
-static EnumPropertyItem socket_in_out_items[] = {
-	{ SOCK_IN, "SOCK_IN", 0, "Input", "" },
-	{ SOCK_OUT, "SOCK_OUT", 0, "Output", "" },
-	{ 0, NULL, 0, NULL, NULL },
-};
+/* define common group node operator properties */
+static void node_group_operator_properties(wmOperatorType *ot)
+{
+	/* NB: not using an enum here, because that it would have to use an item callback and thus require
+	 * copying of identifier strings anyway. node_type is not a user option, just a way of allowing
+	 * node group operators to work on different types of group nodes.
+	 */
+	RNA_def_string(ot->srna, "node_type", "", 0, "Node Type", "Group node type the operator works on");
+}
+
+/* Internal poll functions so group node operators can work with different group node types.
+ * This checks the operator node type property and looks up the respective types.
+ * If this function returns FALSE the operator should return PASS_THROUGH to allow other variants.
+ */
+static int node_group_operator_check_type(bContext *C, wmOperator *op, char **r_node_idname, char **r_ntree_idname)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	PropertyRNA *ntype_prop = RNA_struct_find_property(op->ptr, "node_type");
+	char *node_idname, *ntree_idname;
+	bNodeType *ntype;
+	bNodeTreeType *ntreetype;
+	
+	if (!RNA_property_is_set(op->ptr, ntype_prop)) {
+		BKE_report(op->reports, RPT_ERROR, "Group node type not set");
+		return FALSE;
+	}
+	
+	node_idname = RNA_property_string_get_alloc(op->ptr, ntype_prop, NULL, 0, NULL);
+	ntype = nodeTypeFind(node_idname);
+	if (!ntype) {
+		BKE_reportf(op->reports, RPT_ERROR, "Group node type %s undefined", node_idname);
+		MEM_freeN(node_idname);
+		return FALSE;
+	}
+	
+	if (!ntype->poll(ntype, ntree)) {
+		MEM_freeN(node_idname);
+		return FALSE;
+	}
+	
+	ntree_idname = BLI_strdup(ntype->group_tree_idname);
+	ntreetype = ntreeTypeFind(ntree_idname);
+	if (!ntreetype) {
+		BKE_reportf(op->reports, RPT_ERROR, "Group node tree type %s undefined", ntree_idname);
+		MEM_freeN(node_idname);
+		MEM_freeN(ntree_idname);
+		return FALSE;
+	}
+	
+	if (r_node_idname)
+		*r_node_idname = node_idname;
+	else
+		MEM_freeN(node_idname);
+	
+	if (r_ntree_idname)
+		*r_ntree_idname = ntree_idname;
+	else
+		MEM_freeN(ntree_idname);
+	
+	return TRUE;
+}
+
+static bNode *node_group_get_active(bContext *C, const char *node_idname)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *node = nodeGetActive(snode->edittree);
+	
+	if (node && STREQ(node->idname, node_idname))
+		return node;
+	else
+		return NULL;
+}
 
 /* ***************** Edit Group operator ************* */
 
-void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
-{
-	bNode *node;
-
-	/* make sure nothing has group editing on */
-	for (node = snode->nodetree->nodes.first; node; node = node->next) {
-		nodeGroupEditClear(node);
-
-		/* while we're here, clear texture active */
-		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
-			/* this is not 100% sure to be reliable, see comment on the flag */
-			node->flag &= ~NODE_ACTIVE_TEXTURE;
-		}
-	}
-
-	if (gnode == NULL) {
-		/* with NULL argument we do a toggle */
-		if (snode->edittree == snode->nodetree)
-			gnode = nodeGetActive(snode->nodetree);
-	}
-
-	if (gnode) {
-		snode->edittree = nodeGroupEditSet(gnode, 1);
-
-		/* deselect all other nodes, so we can also do grabbing of entire subtree */
-		for (node = snode->nodetree->nodes.first; node; node = node->next) {
-			node_deselect(node);
-
-			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
-				/* this is not 100% sure to be reliable, see comment on the flag */
-				node->flag &= ~NODE_ACTIVE_TEXTURE;
-			}
-		}
-		node_select(gnode);
-	}
-	else
-		snode->edittree = snode->nodetree;
-}
-
-static int node_group_edit_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_group_edit_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
-
+	char *node_idname;
+	bNode *gnode;
+	int exit = RNA_boolean_get(op->ptr, "exit");
+	
 	ED_preview_kill_jobs(C);
-
-	if (snode->nodetree == snode->edittree) {
-		bNode *gnode = nodeGetActive(snode->edittree);
-		snode_make_group_editable(snode, gnode);
+	
+	if (!node_group_operator_check_type(C, op, &node_idname, NULL))
+		return OPERATOR_PASS_THROUGH;
+	
+	gnode = node_group_get_active(C, node_idname);
+	MEM_freeN(node_idname);
+	
+	if (gnode && !exit) {
+		bNodeTree *ngroup = (bNodeTree *)gnode->id;
+		
+		if (ngroup) {
+			if (ngroup->id.lib)
+				ntreeMakeLocal(ngroup);
+			
+			ED_node_tree_push(snode, ngroup, gnode);
+		}
 	}
 	else
-		snode_make_group_editable(snode, NULL);
-
+		ED_node_tree_pop(snode);
+	
 	WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
-
+	
 	return OPERATOR_FINISHED;
 }
 
 static int node_group_edit_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	SpaceNode *snode = CTX_wm_space_node(C);
+	char *node_idname;
 	bNode *gnode;
-
-	/* XXX callback? */
-	if (snode->nodetree == snode->edittree) {
-		gnode = nodeGetActive(snode->edittree);
-		if (gnode && gnode->id && GS(gnode->id->name) == ID_NT && gnode->id->lib) {
-			uiPupMenuOkee(C, op->type->idname, "Make group local?");
-			return OPERATOR_CANCELLED;
-		}
+	
+	if (!node_group_operator_check_type(C, op, &node_idname, NULL))
+		return OPERATOR_PASS_THROUGH;
+	
+	gnode = node_group_get_active(C, node_idname);
+	MEM_freeN(node_idname);
+	
+	if (gnode && gnode->id && gnode->id->lib) {
+		WM_operator_confirm_message(C, op, "Make group local?");
+		return OPERATOR_CANCELLED;
 	}
 
 	return node_group_edit_exec(C, op);
@@ -156,258 +203,17 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 	ot->name = "Edit Group";
 	ot->description = "Edit node group";
 	ot->idname = "NODE_OT_group_edit";
-
+	
 	/* api callbacks */
 	ot->invoke = node_group_edit_invoke;
 	ot->exec = node_group_edit_exec;
 	ot->poll = ED_operator_node_active;
-
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/* ***************** Add Group Socket operator ************* */
-
-static int node_group_socket_add_exec(bContext *C, wmOperator *op)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	int in_out = -1;
-	char name[MAX_NAME] = "";
-	int type = SOCK_FLOAT;
-	bNodeTree *ngroup = snode->edittree;
-	/* bNodeSocket *sock; */ /* UNUSED */
-
-	ED_preview_kill_jobs(C);
-
-	if (RNA_struct_property_is_set(op->ptr, "name"))
-		RNA_string_get(op->ptr, "name", name);
-
-	if (RNA_struct_property_is_set(op->ptr, "type"))
-		type = RNA_enum_get(op->ptr, "type");
-
-	if (RNA_struct_property_is_set(op->ptr, "in_out"))
-		in_out = RNA_enum_get(op->ptr, "in_out");
-	else
-		return OPERATOR_CANCELLED;
-
-	/* using placeholder subtype first */
-	/* sock = */ /* UNUSED */ node_group_add_socket(ngroup, name, type, in_out);
-
-	ntreeUpdateTree(ngroup);
-
-	snode_notify(C, snode);
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_group_socket_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Group Socket";
-	ot->description = "Add node group socket";
-	ot->idname = "NODE_OT_group_socket_add";
-
-	/* api callbacks */
-	ot->exec = node_group_socket_add_exec;
-	ot->poll = ED_operator_node_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Group socket name");
-	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_FLOAT, "Type", "Type of the group socket");
-}
-
-/* ***************** Remove Group Socket operator ************* */
-
-static int node_group_socket_remove_exec(bContext *C, wmOperator *op)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	int index = -1;
-	int in_out = -1;
-	bNodeTree *ngroup = snode->edittree;
-	bNodeSocket *sock;
-
-	ED_preview_kill_jobs(C);
-
-	if (RNA_struct_property_is_set(op->ptr, "index"))
-		index = RNA_int_get(op->ptr, "index");
-	else
-		return OPERATOR_CANCELLED;
-
-	if (RNA_struct_property_is_set(op->ptr, "in_out"))
-		in_out = RNA_enum_get(op->ptr, "in_out");
-	else
-		return OPERATOR_CANCELLED;
-
-	sock = (bNodeSocket *)BLI_findlink(in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs, index);
-	if (sock) {
-		node_group_remove_socket(ngroup, sock, in_out);
-		ntreeUpdateTree(ngroup);
-
-		snode_notify(C, snode);
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_group_socket_remove(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Remove Group Socket";
-	ot->description = "Remove a node group socket";
-	ot->idname = "NODE_OT_group_socket_remove";
-
-	/* api callbacks */
-	ot->exec = node_group_socket_remove_exec;
-	ot->poll = ED_operator_node_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
-}
-
-/* ***************** Move Group Socket Up operator ************* */
-
-static int node_group_socket_move_up_exec(bContext *C, wmOperator *op)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	int index = -1;
-	int in_out = -1;
-	bNodeTree *ngroup = snode->edittree;
-	bNodeSocket *sock, *prev;
-
-	ED_preview_kill_jobs(C);
-
-	if (RNA_struct_property_is_set(op->ptr, "index"))
-		index = RNA_int_get(op->ptr, "index");
-	else
-		return OPERATOR_CANCELLED;
-
-	if (RNA_struct_property_is_set(op->ptr, "in_out"))
-		in_out = RNA_enum_get(op->ptr, "in_out");
-	else
-		return OPERATOR_CANCELLED;
-
-	/* swap */
-	if (in_out == SOCK_IN) {
-		sock = (bNodeSocket *)BLI_findlink(&ngroup->inputs, index);
-		prev = sock->prev;
-		/* can't move up the first socket */
-		if (!prev)
-			return OPERATOR_CANCELLED;
-		BLI_remlink(&ngroup->inputs, sock);
-		BLI_insertlinkbefore(&ngroup->inputs, prev, sock);
-
-		ngroup->update |= NTREE_UPDATE_GROUP_IN;
-	}
-	else if (in_out == SOCK_OUT) {
-		sock = (bNodeSocket *)BLI_findlink(&ngroup->outputs, index);
-		prev = sock->prev;
-		/* can't move up the first socket */
-		if (!prev)
-			return OPERATOR_CANCELLED;
-		BLI_remlink(&ngroup->outputs, sock);
-		BLI_insertlinkbefore(&ngroup->outputs, prev, sock);
-
-		ngroup->update |= NTREE_UPDATE_GROUP_OUT;
-	}
-	ntreeUpdateTree(ngroup);
-
-	snode_notify(C, snode);
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_group_socket_move_up(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Move Group Socket Up";
-	ot->description = "Move up node group socket";
-	ot->idname = "NODE_OT_group_socket_move_up";
-
-	/* api callbacks */
-	ot->exec = node_group_socket_move_up_exec;
-	ot->poll = ED_operator_node_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
-}
-
-/* ***************** Move Group Socket Up operator ************* */
-
-static int node_group_socket_move_down_exec(bContext *C, wmOperator *op)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	int index = -1;
-	int in_out = -1;
-	bNodeTree *ngroup = snode->edittree;
-	bNodeSocket *sock, *next;
-
-	ED_preview_kill_jobs(C);
-
-	if (RNA_struct_property_is_set(op->ptr, "index"))
-		index = RNA_int_get(op->ptr, "index");
-	else
-		return OPERATOR_CANCELLED;
-
-	if (RNA_struct_property_is_set(op->ptr, "in_out"))
-		in_out = RNA_enum_get(op->ptr, "in_out");
-	else
-		return OPERATOR_CANCELLED;
-
-	/* swap */
-	if (in_out == SOCK_IN) {
-		sock = (bNodeSocket *)BLI_findlink(&ngroup->inputs, index);
-		next = sock->next;
-		/* can't move down the last socket */
-		if (!next)
-			return OPERATOR_CANCELLED;
-		BLI_remlink(&ngroup->inputs, sock);
-		BLI_insertlinkafter(&ngroup->inputs, next, sock);
-
-		ngroup->update |= NTREE_UPDATE_GROUP_IN;
-	}
-	else if (in_out == SOCK_OUT) {
-		sock = (bNodeSocket *)BLI_findlink(&ngroup->outputs, index);
-		next = sock->next;
-		/* can't move down the last socket */
-		if (!next)
-			return OPERATOR_CANCELLED;
-		BLI_remlink(&ngroup->outputs, sock);
-		BLI_insertlinkafter(&ngroup->outputs, next, sock);
-
-		ngroup->update |= NTREE_UPDATE_GROUP_OUT;
-	}
-	ntreeUpdateTree(ngroup);
-
-	snode_notify(C, snode);
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_group_socket_move_down(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Move Group Socket Down";
-	ot->description = "Move down node group socket";
-	ot->idname = "NODE_OT_group_socket_move_down";
-
-	/* api callbacks */
-	ot->exec = node_group_socket_move_down_exec;
-	ot->poll = ED_operator_node_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+	
+	node_group_operator_properties(ot);
+	RNA_def_boolean(ot->srna, "exit", FALSE, "Exit", "");
 }
 
 /* ******************** Ungroup operator ********************** */
@@ -415,180 +221,185 @@ void NODE_OT_group_socket_move_down(wmOperatorType *ot)
 /* returns 1 if its OK */
 static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 {
-	bNodeLink *link, *linkn;
-	bNode *node, *nextn;
+	bNodeLink *link, *linkn, *tlink;
+	bNode *node, *nextnode;
 	bNodeTree *ngroup, *wgroup;
 	ListBase anim_basepaths = {NULL, NULL};
-
+	
 	ngroup = (bNodeTree *)gnode->id;
-	if (ngroup == NULL) return 0;
-
+	
 	/* clear new pointers, set in copytree */
 	for (node = ntree->nodes.first; node; node = node->next)
 		node->new_node = NULL;
-
+	
 	/* wgroup is a temporary copy of the NodeTree we're merging in
 	 * - all of wgroup's nodes are transferred across to their new home
 	 * - ngroup (i.e. the source NodeTree) is left unscathed
 	 * - temp copy. don't change ID usercount
 	 */
 	wgroup = ntreeCopyTree_ex(ngroup, FALSE);
-
-	/* add the nodes into the ntree */
-	for (node = wgroup->nodes.first; node; node = nextn) {
-		nextn = node->next;
-
-		/* keep track of this node's RNA "base" path (the part of the path identifying the node)
+	
+	/* Add the nodes into the ntree */
+	for (node = wgroup->nodes.first; node; node = nextnode) {
+		nextnode = node->next;
+		
+		/* Remove interface nodes.
+		 * This also removes remaining links to and from interface nodes.
+		 */
+		if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+			nodeFreeNode(wgroup, node);
+			continue;
+		}
+		
+		/* keep track of this node's RNA "base" path (the part of the path identifying the node) 
 		 * if the old nodetree has animation data which potentially covers this node
 		 */
 		if (wgroup->adt) {
 			PointerRNA ptr;
 			char *path;
-
+			
 			RNA_pointer_create(&wgroup->id, &RNA_Node, node, &ptr);
 			path = RNA_path_from_ID_to_struct(&ptr);
-
+			
 			if (path)
 				BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
 		}
-
+		
 		/* migrate node */
 		BLI_remlink(&wgroup->nodes, node);
 		BLI_addtail(&ntree->nodes, node);
-
-		/* ensure unique node name in the nodee tree */
+		
+		/* ensure unique node name in the node tree */
 		nodeUniqueName(ntree, node);
-
+		
 		if (!node->parent) {
 			node->locx += gnode->locx;
 			node->locy += gnode->locy;
 		}
-
+		
 		node->flag |= NODE_SELECT;
 	}
-
-	/* restore external links to and from the gnode */
-	for (link = ntree->links.first; link; link = link->next) {
-		if (link->fromnode == gnode) {
-			if (link->fromsock->groupsock) {
-				bNodeSocket *gsock = link->fromsock->groupsock;
-				if (gsock->link) {
-					if (gsock->link->fromnode) {
-						/* NB: using the new internal copies here! the groupsock pointer still maps to the old tree */
-						link->fromnode = (gsock->link->fromnode ? gsock->link->fromnode->new_node : NULL);
-						link->fromsock = gsock->link->fromsock->new_sock;
-					}
-					else {
-						/* group output directly maps to group input */
-						bNodeSocket *insock = node_group_find_input(gnode, gsock->link->fromsock);
-						if (insock->link) {
-							link->fromnode = insock->link->fromnode;
-							link->fromsock = insock->link->fromsock;
-						}
-					}
-				}
-				else {
-					/* copy the default input value from the group socket default to the external socket */
-					node_socket_convert_default_value(link->tosock->type, link->tosock->default_value, gsock->type, gsock->default_value);
-				}
-			}
-		}
-	}
-	/* remove internal output links, these are not used anymore */
-	for (link = wgroup->links.first; link; link = linkn) {
-		linkn = link->next;
-		if (!link->tonode)
-			nodeRemLink(wgroup, link);
-	}
-	/* restore links from internal nodes */
-	for (link = wgroup->links.first; link; link = linkn) {
-		linkn = link->next;
-		/* indicates link to group input */
-		if (!link->fromnode) {
-			/* NB: can't use find_group_node_input here,
-			 * because gnode sockets still point to the old tree!
-			 */
-			bNodeSocket *insock;
-			for (insock = gnode->inputs.first; insock; insock = insock->next)
-				if (insock->groupsock->new_sock == link->fromsock)
-					break;
-			if (insock->link) {
-				link->fromnode = insock->link->fromnode;
-				link->fromsock = insock->link->fromsock;
-			}
-			else {
-				/* copy the default input value from the group node socket default to the internal socket */
-				node_socket_convert_default_value(link->tosock->type, link->tosock->default_value, insock->type, insock->default_value);
-				nodeRemLink(wgroup, link);
-			}
-		}
-	}
-
-	/* add internal links to the ntree */
+	
+	/* Add internal links to the ntree */
 	for (link = wgroup->links.first; link; link = linkn) {
 		linkn = link->next;
 		BLI_remlink(&wgroup->links, link);
 		BLI_addtail(&ntree->links, link);
 	}
-
+	
 	/* and copy across the animation,
 	 * note that the animation data's action can be NULL here */
 	if (wgroup->adt) {
 		LinkData *ld, *ldn = NULL;
 		bAction *waction;
-
+		
 		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
 		waction = wgroup->adt->action = BKE_action_copy(wgroup->adt->action);
-
+		
 		/* now perform the moving */
 		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
-
+		
 		/* paths + their wrappers need to be freed */
 		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
-
+			
 			MEM_freeN(ld->data);
 			BLI_freelinkN(&anim_basepaths, ld);
 		}
-
+		
 		/* free temp action too */
 		if (waction) {
 			BKE_libblock_free(&G.main->action, waction);
 		}
 	}
-
-	/* delete the group instance. this also removes old input links! */
-	nodeFreeNode(ntree, gnode);
-
+	
 	/* free the group tree (takes care of user count) */
 	BKE_libblock_free(&G.main->nodetree, wgroup);
-
+	
+	/* restore external links to and from the gnode */
+	/* note: the nodes have been copied to intermediate wgroup first (so need to use new_node),
+	 *       then transferred to ntree (new_node pointers remain valid).
+	 */
+	
+	/* input links */
+	for (link = ngroup->links.first; link; link = link->next) {
+		if (link->fromnode->type == NODE_GROUP_INPUT) {
+			const char *identifier = link->fromsock->identifier;
+			int num_external_links = 0;
+			
+			/* find external links to this input */
+			for (tlink = ntree->links.first; tlink; tlink = tlink->next) {
+				if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
+					nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode->new_node, link->tosock->new_sock);
+					++num_external_links;
+				}
+			}
+			
+			/* if group output is not externally linked,
+			 * convert the constant input value to ensure somewhat consistent behavior */
+			if (num_external_links == 0) {
+				bNodeSocket *sock = node_group_find_input_socket(gnode, identifier);
+				BLI_assert(sock);
+				
+				/* XXX TODO nodeSocketCopy(ntree, link->tosock->new_sock, link->tonode->new_node, ntree, sock, gnode);*/
+			}
+		}
+	}
+	
+	/* output links */
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->fromnode == gnode) {
+			const char *identifier = link->fromsock->identifier;
+			int num_internal_links = 0;
+			
+			/* find internal links to this output */
+			for (tlink = ngroup->links.first; tlink; tlink = tlink->next) {
+				/* only use active output node */
+				if (tlink->tonode->type == NODE_GROUP_OUTPUT && (tlink->tonode->flag & NODE_DO_OUTPUT)) {
+					if (STREQ(tlink->tosock->identifier, identifier)) {
+						nodeAddLink(ntree, tlink->fromnode->new_node, tlink->fromsock->new_sock, link->tonode, link->tosock);
+						++num_internal_links;
+					}
+				}
+			}
+			
+			/* if group output is not internally linked,
+			 * convert the constant output value to ensure somewhat consistent behavior */
+			if (num_internal_links == 0) {
+				bNodeSocket *sock = node_group_find_output_socket(gnode, identifier);
+				BLI_assert(sock);
+				
+				/* XXX TODO nodeSocketCopy(ntree, link->tosock, link->tonode, ntree, sock, gnode); */
+			}
+		}
+	}
+	
+	/* delete the group instance */
+	nodeFreeNode(ntree, gnode);
+	
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
-
+	
 	return 1;
 }
+
 
 static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
+	char *node_idname;
 	bNode *gnode;
 
 	ED_preview_kill_jobs(C);
 
-	/* are we inside of a group? */
-	gnode = node_tree_get_editgroup(snode->nodetree);
-	if (gnode)
-		snode_make_group_editable(snode, NULL);
-
-	gnode = nodeGetActive(snode->edittree);
-	if (gnode == NULL)
+	if (!node_group_operator_check_type(C, op, &node_idname, NULL))
+		return OPERATOR_PASS_THROUGH;
+	
+	gnode = node_group_get_active(C, node_idname);
+	MEM_freeN(node_idname);
+	if (!gnode)
 		return OPERATOR_CANCELLED;
-
-	if (gnode->type != NODE_GROUP) {
-		BKE_report(op->reports, RPT_WARNING, "Not a group");
-		return OPERATOR_CANCELLED;
-	}
-	else if (node_group_ungroup(snode->nodetree, gnode)) {
+	
+	if (gnode->id && node_group_ungroup(snode->edittree, gnode)) {
 		ntreeUpdateTree(snode->nodetree);
 	}
 	else {
@@ -608,93 +419,92 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 	ot->name = "Ungroup";
 	ot->description = "Ungroup selected nodes";
 	ot->idname = "NODE_OT_group_ungroup";
-
+	
 	/* api callbacks */
 	ot->exec = node_group_ungroup_exec;
 	ot->poll = ED_operator_node_active;
-
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	node_group_operator_properties(ot);
 }
 
 /* ******************** Separate operator ********************** */
 
 /* returns 1 if its OK */
-static int node_group_separate_selected(bNodeTree *ntree, bNode *gnode, int make_copy)
+static int node_group_separate_selected(bNodeTree *ntree, bNodeTree *ngroup, float offx, float offy, int make_copy)
 {
 	bNodeLink *link, *link_next;
 	bNode *node, *node_next, *newnode;
-	bNodeTree *ngroup;
 	ListBase anim_basepaths = {NULL, NULL};
-
-	ngroup = (bNodeTree *)gnode->id;
-	if (ngroup == NULL) return 0;
-
+	
 	/* deselect all nodes in the target tree */
 	for (node = ntree->nodes.first; node; node = node->next)
-		node_deselect(node);
-
+		nodeSetSelected(node, FALSE);
+	
 	/* clear new pointers, set in nodeCopyNode */
 	for (node = ngroup->nodes.first; node; node = node->next)
 		node->new_node = NULL;
-
+	
 	/* add selected nodes into the ntree */
 	for (node = ngroup->nodes.first; node; node = node_next) {
 		node_next = node->next;
-		if (node->flag & NODE_SELECT) {
-			
-			if (make_copy) {
-				/* make a copy */
-				newnode = nodeCopyNode(ngroup, node);
-			}
-			else {
-				/* use the existing node */
-				newnode = node;
-			}
-			
-			/* keep track of this node's RNA "base" path (the part of the path identifying the node)
-			 * if the old nodetree has animation data which potentially covers this node
-			 */
-			if (ngroup->adt) {
-				PointerRNA ptr;
-				char *path;
-				
-				RNA_pointer_create(&ngroup->id, &RNA_Node, newnode, &ptr);
-				path = RNA_path_from_ID_to_struct(&ptr);
-				
-				if (path)
-					BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
-			}
-			
-			/* ensure valid parent pointers, detach if parent stays inside the group */
-			if (newnode->parent && !(newnode->parent->flag & NODE_SELECT))
-				nodeDetachNode(newnode);
-			
-			/* migrate node */
-			BLI_remlink(&ngroup->nodes, newnode);
-			BLI_addtail(&ntree->nodes, newnode);
-			
-			/* ensure unique node name in the node tree */
-			nodeUniqueName(ntree, newnode);
-			
-			if (!newnode->parent) {
-				newnode->locx += gnode->locx;
-				newnode->locy += gnode->locy;
-			}
+		if (!(node->flag & NODE_SELECT))
+			continue;
+		
+		/* ignore interface nodes */
+		if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+			nodeSetSelected(node, FALSE);
+			continue;
+		}
+		
+		if (make_copy) {
+			/* make a copy */
+			newnode = nodeCopyNode(ngroup, node);
 		}
 		else {
-			/* ensure valid parent pointers, detach if child stays inside the group */
-			if (node->parent && (node->parent->flag & NODE_SELECT))
-				nodeDetachNode(node);
+			/* use the existing node */
+			newnode = node;
+		}
+		
+		/* keep track of this node's RNA "base" path (the part of the path identifying the node) 
+		 * if the old nodetree has animation data which potentially covers this node
+		 */
+		if (ngroup->adt) {
+			PointerRNA ptr;
+			char *path;
+			
+			RNA_pointer_create(&ngroup->id, &RNA_Node, newnode, &ptr);
+			path = RNA_path_from_ID_to_struct(&ptr);
+			
+			if (path)
+				BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
+		}
+		
+		/* ensure valid parent pointers, detach if parent stays inside the group */
+		if (newnode->parent && !(newnode->parent->flag & NODE_SELECT))
+			nodeDetachNode(newnode);
+		
+		/* migrate node */
+		BLI_remlink(&ngroup->nodes, newnode);
+		BLI_addtail(&ntree->nodes, newnode);
+		
+		/* ensure unique node name in the node tree */
+		nodeUniqueName(ntree, newnode);
+
+		if (!newnode->parent) {
+			newnode->locx += offx;
+			newnode->locy += offy;		
 		}
 	}
-
+	
 	/* add internal links to the ntree */
 	for (link = ngroup->links.first; link; link = link_next) {
 		int fromselect = (link->fromnode && (link->fromnode->flag & NODE_SELECT));
 		int toselect = (link->tonode && (link->tonode->flag & NODE_SELECT));
 		link_next = link->next;
-
+		
 		if (make_copy) {
 			/* make a copy of internal links */
 			if (fromselect && toselect)
@@ -711,28 +521,28 @@ static int node_group_separate_selected(bNodeTree *ntree, bNode *gnode, int make
 			}
 		}
 	}
-
+	
 	/* and copy across the animation,
 	 * note that the animation data's action can be NULL here */
 	if (ngroup->adt) {
 		LinkData *ld, *ldn = NULL;
-
+		
 		/* now perform the moving */
 		BKE_animdata_separate_by_basepath(&ngroup->id, &ntree->id, &anim_basepaths);
-
+		
 		/* paths + their wrappers need to be freed */
 		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
-
+			
 			MEM_freeN(ld->data);
 			BLI_freelinkN(&anim_basepaths, ld);
 		}
 	}
-
+	
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 	if (!make_copy)
 		ngroup->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
-
+	
 	return 1;
 }
 
@@ -751,56 +561,64 @@ EnumPropertyItem node_group_separate_types[] = {
 static int node_group_separate_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
-	bNode *gnode;
+	bNodeTree *ngroup, *nparent;
 	int type = RNA_enum_get(op->ptr, "type");
+	float offx, offy;
 
 	ED_preview_kill_jobs(C);
 
 	/* are we inside of a group? */
-	gnode = node_tree_get_editgroup(snode->nodetree);
-	if (!gnode) {
+	ngroup = snode->edittree;
+	nparent = ED_node_tree_get(snode, 1);
+	if (!nparent) {
 		BKE_report(op->reports, RPT_WARNING, "Not inside node group");
 		return OPERATOR_CANCELLED;
 	}
-
+	/* get node tree offset */
+	snode_group_offset(snode, &offx, &offy);
+	
 	switch (type) {
 		case NODE_GS_COPY:
-			if (!node_group_separate_selected(snode->nodetree, gnode, 1)) {
+			if (!node_group_separate_selected(nparent, ngroup, offx, offy, 1)) {
 				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
 			break;
 		case NODE_GS_MOVE:
-			if (!node_group_separate_selected(snode->nodetree, gnode, 0)) {
+			if (!node_group_separate_selected(nparent, ngroup, offx, offy, 0)) {
 				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
 			break;
 	}
-
+	
 	/* switch to parent tree */
-	snode_make_group_editable(snode, NULL);
-
+	ED_node_tree_pop(snode);
+	
 	ntreeUpdateTree(snode->nodetree);
-
+	
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 
 	return OPERATOR_FINISHED;
 }
 
-static int node_group_separate_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static int node_group_separate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
-	uiLayout *layout = uiPupMenuLayout(pup);
-
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_COPY);
-	uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_MOVE);
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
+	if (!node_group_operator_check_type(C, op, NULL, NULL))
+		return OPERATOR_PASS_THROUGH;
+	else {
+		uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
+		uiLayout *layout = uiPupMenuLayout(pup);
+		
+		uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+		uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_COPY);
+		uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_MOVE);
+		
+		uiPupMenuEnd(C, pup);
+		
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void NODE_OT_group_separate(wmOperatorType *ot)
@@ -809,162 +627,183 @@ void NODE_OT_group_separate(wmOperatorType *ot)
 	ot->name = "Separate";
 	ot->description = "Separate selected nodes from the node group";
 	ot->idname = "NODE_OT_group_separate";
-
+	
 	/* api callbacks */
 	ot->invoke = node_group_separate_invoke;
 	ot->exec = node_group_separate_exec;
 	ot->poll = ED_operator_node_active;
-
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
+	
+	node_group_operator_properties(ot);
 	RNA_def_enum(ot->srna, "type", node_group_separate_types, NODE_GS_COPY, "Type", "");
 }
 
 /* ****************** Make Group operator ******************* */
 
-static int node_group_make_test(bNodeTree *ntree, bNode *gnode)
+static bool node_group_make_use_node(bNode *node, bNode *gnode)
 {
+	return (node != gnode &&
+	        !ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT) &&
+	        (node->flag & NODE_SELECT));
+}
+
+static bool node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const char *ntree_idname, struct ReportList *reports)
+{
+	bNodeTree *ngroup;
 	bNode *node;
 	bNodeLink *link;
-	int totnode = 0;
-
-	/* is there something to group? also do some clearing */
+	int ok = true;
+	
+	/* make a local pseudo node tree to pass to the node poll functions */
+	ngroup = ntreeAddTree(NULL, "Pseudo Node Group", ntree_idname);
+	
+	/* check poll functions for selected nodes */
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node == gnode)
-			continue;
-
-		if (node->flag & NODE_SELECT) {
-			/* no groups in groups */
-			if (node->type == NODE_GROUP)
-				return 0;
-			totnode++;
+		if (node_group_make_use_node(node, gnode)) {
+			if (node->typeinfo->poll_instance && !node->typeinfo->poll_instance(node, ngroup)) {
+				BKE_reportf(reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
+				ok = false;
+				break;
+			}
 		}
 
 		node->done = 0;
 	}
-	if (totnode == 0) return 0;
-
+	
+	/* free local pseudo node tree again */
+	ntreeFreeTree(ngroup);
+	MEM_freeN(ngroup);
+	if (!ok)
+		return false;
+	
 	/* check if all connections are OK, no unselected node has both
 	 * inputs and outputs to a selection */
 	for (link = ntree->links.first; link; link = link->next) {
-		if (link->fromnode && link->tonode && link->fromnode->flag & NODE_SELECT && link->fromnode != gnode)
+		if (node_group_make_use_node(link->fromnode, gnode))
 			link->tonode->done |= 1;
-		if (link->fromnode && link->tonode && link->tonode->flag & NODE_SELECT && link->tonode != gnode)
+		if (node_group_make_use_node(link->tonode, gnode))
 			link->fromnode->done |= 2;
 	}
-
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node == gnode)
-			continue;
-		if ((node->flag & NODE_SELECT) == 0)
-			if (node->done == 3)
-				break;
+		if (!(node->flag & NODE_SELECT) &&
+		    node != gnode &&
+		    node->done == 3)
+		{
+			return false;
+		}
 	}
-	if (node)
-		return 0;
-
-	return 1;
+	return true;
 }
 
-
-static void node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, float *max)
+static int node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, float *max)
 {
 	bNode *node;
 	float loc[2];
+	int totselect = 0;
+	
 	INIT_MINMAX2(min, max);
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node == gnode)
-			continue;
-		if (node->flag & NODE_SELECT) {
+		if (node_group_make_use_node(node, gnode)) {
 			nodeToView(node, 0.0f, 0.0f, &loc[0], &loc[1]);
 			minmax_v2v2_v2(min, max, loc);
+			++totselect;
 		}
 	}
+	
+	/* sane min/max if no selected nodes */
+	if (totselect == 0) {
+		min[0] = min[1] = max[0] = max[1] = 0.0f;
+	}
+	
+	return totselect;
 }
 
-static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
+static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree, bNode *gnode)
 {
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeLink *link, *linkn;
 	bNode *node, *nextn;
-	bNodeSocket *gsock, *sock;
+	bNodeSocket *sock;
 	ListBase anim_basepaths = {NULL, NULL};
-	float min[2], max[2];
-
+	float min[2], max[2], center[2];
+	int totselect;
+	int expose_all = FALSE;
+	bNode *input_node = NULL, *output_node = NULL;	/* lazy initialized, in case there are no external links */
+	
+	/* XXX rough guess, not nice but we don't have access to UI constants here ... */
+	static const float offsetx = 200;
+	static const float offsety = 0.0f;
+	
 	/* deselect all nodes in the target tree */
 	for (node = ngroup->nodes.first; node; node = node->next)
-		node_deselect(node);
-
-	node_get_selected_minmax(ntree, gnode, min, max);
-
+		nodeSetSelected(node, FALSE);
+	
+	totselect = node_get_selected_minmax(ntree, gnode, min, max);
+	add_v2_v2v2(center, min, max);
+	mul_v2_fl(center, 0.5f);
+	
+	/* auto-add interface for "solo" nodes */
+	if (totselect == 1)
+		expose_all = TRUE;
+	
 	/* move nodes over */
 	for (node = ntree->nodes.first; node; node = nextn) {
 		nextn = node->next;
-		if (node == gnode)
-			continue;
-		if (node->flag & NODE_SELECT) {
-			/* keep track of this node's RNA "base" path (the part of the pat identifying the node)
+		if (node_group_make_use_node(node, gnode)) {
+			/* keep track of this node's RNA "base" path (the part of the pat identifying the node) 
 			 * if the old nodetree has animation data which potentially covers this node
 			 */
 			if (ntree->adt) {
 				PointerRNA ptr;
 				char *path;
-
+				
 				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 				path = RNA_path_from_ID_to_struct(&ptr);
-
+				
 				if (path)
 					BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
 			}
-
+			
 			/* ensure valid parent pointers, detach if parent stays outside the group */
 			if (node->parent && !(node->parent->flag & NODE_SELECT))
 				nodeDetachNode(node);
-
+			
 			/* change node-collection membership */
 			BLI_remlink(&ntree->nodes, node);
 			BLI_addtail(&ngroup->nodes, node);
-
+			
 			/* ensure unique node name in the ngroup */
 			nodeUniqueName(ngroup, node);
-
-			if (!node->parent) {
-				node->locx -= 0.5f * (min[0] + max[0]);
-				node->locy -= 0.5f * (min[1] + max[1]);
-			}
-		}
-		else {
-			/* if the parent is to be inserted but not the child, detach properly */
-			if (node->parent && (node->parent->flag & NODE_SELECT))
-				nodeDetachNode(node);
 		}
 	}
-
+	
 	/* move animation data over */
 	if (ntree->adt) {
 		LinkData *ld, *ldn = NULL;
-
+		
 		BKE_animdata_separate_by_basepath(&ntree->id, &ngroup->id, &anim_basepaths);
-
+		
 		/* paths + their wrappers need to be freed */
 		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
-
+			
 			MEM_freeN(ld->data);
 			BLI_freelinkN(&anim_basepaths, ld);
 		}
 	}
-
+	
 	/* node groups don't use internal cached data */
 	ntreeFreeCache(ngroup);
-
+	
 	/* relink external sockets */
 	for (link = ntree->links.first; link; link = linkn) {
-		int fromselect = (link->fromnode && (link->fromnode->flag & NODE_SELECT) && link->fromnode != gnode);
-		int toselect = (link->tonode && (link->tonode->flag & NODE_SELECT) && link->tonode != gnode);
+		int fromselect = node_group_make_use_node(link->fromnode, gnode);
+		int toselect = node_group_make_use_node(link->tonode, gnode);
+		
 		linkn = link->next;
-
+		
 		if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
 			/* remove all links to/from the gnode.
 			 * this can remove link information, but there's no general way to preserve it.
@@ -976,58 +815,123 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 			BLI_addtail(&ngroup->links, link);
 		}
 		else if (toselect) {
-			gsock = node_group_expose_socket(ngroup, link->tosock, SOCK_IN);
-			link->tosock->link = nodeAddLink(ngroup, NULL, gsock, link->tonode, link->tosock);
-			link->tosock = node_group_add_extern_socket(ntree, &gnode->inputs, SOCK_IN, gsock);
+			bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link->tonode, link->tosock);
+			bNodeSocket *input_sock;
+			
+			/* lazy init */
+			if (!input_node) {
+				input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
+				
+				input_node->locx = min[0] - center[0] - offsetx;
+				input_node->locy = -offsety;
+			}
+			/* update the group node and interface node sockets,
+			 * so the new interface socket can be linked.
+			 */
+			node_group_verify(ntree, gnode, (ID *)ngroup);
+			node_group_input_verify(ngroup, input_node, (ID *)ngroup);
+			
+			/* create new internal link */
+			input_sock = node_group_input_find_socket(input_node, iosock->identifier);
+			nodeAddLink(ngroup, input_node, input_sock, link->tonode, link->tosock);
+			
+			/* redirect external link */
 			link->tonode = gnode;
+			link->tosock = node_group_find_input_socket(gnode, iosock->identifier);
 		}
 		else if (fromselect) {
-			/* search for existing group node socket */
-			for (gsock = ngroup->outputs.first; gsock; gsock = gsock->next)
-				if (gsock->link && gsock->link->fromsock == link->fromsock)
-					break;
-			if (!gsock) {
-				gsock = node_group_expose_socket(ngroup, link->fromsock, SOCK_OUT);
-				gsock->link = nodeAddLink(ngroup, link->fromnode, link->fromsock, NULL, gsock);
-				link->fromsock = node_group_add_extern_socket(ntree, &gnode->outputs, SOCK_OUT, gsock);
+			bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link->fromnode, link->fromsock);
+			bNodeSocket *output_sock;
+			
+			/* lazy init */
+			if (!output_node) {
+				output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
+				
+				output_node->locx = max[0] - center[0] + offsetx;
+				output_node->locy = -offsety;
 			}
-			else
-				link->fromsock = node_group_find_output(gnode, gsock);
+			/* update the group node and interface node sockets,
+			 * so the new interface socket can be linked.
+			 */
+			node_group_verify(ntree, gnode, (ID *)ngroup);
+			node_group_output_verify(ngroup, output_node, (ID *)ngroup);
+
+			/* create new internal link */
+			output_sock = node_group_output_find_socket(output_node, iosock->identifier);
+			nodeAddLink(ngroup, link->fromnode, link->fromsock, output_node, output_sock);
+			
+			/* redirect external link */
 			link->fromnode = gnode;
+			link->fromsock = node_group_find_output_socket(gnode, iosock->identifier);
 		}
 	}
 
-	/* auto-add interface for "solo" nodes */
-	node = ((bNodeTree *)gnode->id)->nodes.first;
-	if (node && !node->next) {
-		for (sock = node->inputs.first; sock; sock = sock->next) {
-			int skip = FALSE;
-			
-			for (link = ((bNodeTree *)gnode->id)->links.first; link; link = link->next)
-				if (link->tosock == sock)
-					skip = TRUE;
-
-			if (skip == TRUE)
-				continue;
-
-			gsock = node_group_expose_socket(ngroup, sock, SOCK_IN);
-			node_group_add_extern_socket(ntree, &gnode->inputs, SOCK_IN, gsock);
-			nodeAddLink(ngroup, NULL, gsock, node, sock);
+	/* move nodes in the group to the center */
+	for (node = ngroup->nodes.first; node; node = node->next) {
+		if (node_group_make_use_node(node, gnode) && !node->parent) {
+			node->locx -= center[0];
+			node->locy -= center[1];
 		}
-
-		for (sock = node->outputs.first; sock; sock = sock->next) {
-			int skip = FALSE;
-			
-			for (link = ((bNodeTree *)gnode->id)->links.first; link; link = link->next)
-				if (link->fromsock == sock)
-					skip = TRUE;
-
-			if (skip == TRUE)
-				continue;
-
-			gsock = node_group_expose_socket(ngroup, sock, SOCK_OUT);
-			node_group_add_extern_socket(ntree, &gnode->outputs, SOCK_OUT, gsock);
-			nodeAddLink(ngroup, NULL, gsock, node, sock);
+	}
+	
+	/* expose all unlinked sockets too */
+	if (expose_all) {
+		for (node = ngroup->nodes.first; node; node = node->next) {
+			if (node_group_make_use_node(node, gnode)) {
+				for (sock = node->inputs.first; sock; sock = sock->next) {
+					bNodeSocket *iosock, *input_sock;
+					int skip = FALSE;
+					for (link = ngroup->links.first; link; link = link->next) {
+						if (link->tosock == sock) {
+							skip = TRUE;
+							break;
+						}
+					}
+					if (skip)
+						continue;
+					
+					iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
+					
+					/* lazy init */
+					if (!input_node) {
+						input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
+						
+						input_node->locx = min[0] - center[0] - offsetx;
+						input_node->locy = -offsety;
+					}
+					node_group_input_verify(ngroup, input_node, (ID *)ngroup);
+					
+					/* create new internal link */
+					input_sock = node_group_input_find_socket(input_node, iosock->identifier);
+					nodeAddLink(ngroup, input_node, input_sock, node, sock);
+				}
+				
+				for (sock = node->outputs.first; sock; sock = sock->next) {
+					bNodeSocket *iosock, *output_sock;
+					int skip = FALSE;
+					for (link = ngroup->links.first; link; link = link->next)
+						if (link->fromsock == sock)
+							skip = TRUE;
+					if (skip)
+						continue;
+					
+					iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
+					
+					/* lazy init */
+					if (!output_node) {
+						output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
+						
+						output_node->locx = max[0] - center[0] + offsetx;
+						output_node->locy = -offsety;
+					}
+					
+					node_group_output_verify(ngroup, output_node, (ID *)ngroup);
+					
+					/* create new internal link */
+					output_sock = node_group_output_find_socket(output_node, iosock->identifier);
+					nodeAddLink(ngroup, node, sock, output_node, output_sock);
+				}
+			}
 		}
 	}
 
@@ -1035,30 +939,32 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 	ngroup->update |= NTREE_UPDATE | NTREE_UPDATE_LINKS;
 	/* update of the tree containing the group instance node */
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
-
-	return 1;
 }
 
-static bNode *node_group_make_from_selected(bNodeTree *ntree)
+static bNode *node_group_make_from_selected(const bContext *C, bNodeTree *ntree, const char *ntype, const char *ntreetype)
 {
+	Main *bmain = CTX_data_main(C);
 	bNode *gnode;
 	bNodeTree *ngroup;
 	float min[2], max[2];
-	bNodeTemplate ntemp;
-
-	node_get_selected_minmax(ntree, NULL, min, max);
-
+	int totselect;
+	
+	totselect = node_get_selected_minmax(ntree, NULL, min, max);
+	/* don't make empty group */
+	if (totselect == 0)
+		return NULL;
+	
 	/* new nodetree */
-	ngroup = ntreeAddTree(G.main, "NodeGroup", ntree->type, NODE_GROUP);
-
+	ngroup = ntreeAddTree(bmain, "NodeGroup", ntreetype);
+	
 	/* make group node */
-	ntemp.type = NODE_GROUP;
-	ntemp.ngroup = ngroup;
-	gnode = nodeAddNode(ntree, &ntemp);
+	gnode = nodeAddNode(C, ntree, ntype);
+	gnode->id = (ID *)ngroup;
+	
 	gnode->locx = 0.5f * (min[0] + max[0]);
 	gnode->locy = 0.5f * (min[1] + max[1]);
-
-	node_group_make_insert_selected(ntree, gnode);
+	
+	node_group_make_insert_selected(C, ntree, gnode);
 
 	/* update of the tree containing the group instance node */
 	ntree->update |= NTREE_UPDATE_NODES;
@@ -1066,120 +972,116 @@ static bNode *node_group_make_from_selected(bNodeTree *ntree)
 	return gnode;
 }
 
-typedef enum eNodeGroupMakeType {
-	NODE_GM_NEW,
-	NODE_GM_INSERT
-} eNodeGroupMakeType;
-
-/* Operator Property */
-EnumPropertyItem node_group_make_types[] = {
-	{NODE_GM_NEW, "NEW", 0, "New", "Create a new node group from selected nodes"},
-	{NODE_GM_INSERT, "INSERT", 0, "Insert", "Insert into active node group"},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int node_group_make_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	char *node_idname, *ntree_idname;
+	bNodeTree *ngroup;
 	bNode *gnode;
-	int type = RNA_enum_get(op->ptr, "type");
-
-	if (snode->edittree != snode->nodetree) {
-		BKE_report(op->reports, RPT_WARNING, "Cannot add a new group in a group");
+	
+	ED_preview_kill_jobs(C);
+	
+	if (!node_group_operator_check_type(C, op, &node_idname, &ntree_idname))
+		return OPERATOR_PASS_THROUGH;
+	
+	if (!node_group_make_test_selected(ntree, NULL, ntree_idname, op->reports)) {
+		MEM_freeN(node_idname);
+		MEM_freeN(ntree_idname);
 		return OPERATOR_CANCELLED;
 	}
-
-	/* for time being... is too complex to handle */
-	if (snode->treetype == NTREE_COMPOSIT) {
-		for (gnode = snode->nodetree->nodes.first; gnode; gnode = gnode->next) {
-			if (gnode->flag & SELECT)
-				if (gnode->type == CMP_NODE_R_LAYERS)
-					break;
-		}
-
-		if (gnode) {
-			BKE_report(op->reports, RPT_WARNING, "Cannot add a Render Layers node in a group");
-			return OPERATOR_CANCELLED;
-		}
-	}
-
-	ED_preview_kill_jobs(C);
-
-	switch (type) {
-		case NODE_GM_NEW:
-			if (node_group_make_test(snode->nodetree, NULL)) {
-				gnode = node_group_make_from_selected(snode->nodetree);
-			}
-			else {
-				BKE_report(op->reports, RPT_WARNING, "Cannot make group");
-				return OPERATOR_CANCELLED;
-			}
-			break;
-		case NODE_GM_INSERT:
-			gnode = nodeGetActive(snode->nodetree);
-			if (!gnode || gnode->type != NODE_GROUP) {
-				BKE_report(op->reports, RPT_WARNING, "No active group node");
-				return OPERATOR_CANCELLED;
-			}
-			if (node_group_make_test(snode->nodetree, gnode)) {
-				node_group_make_insert_selected(snode->nodetree, gnode);
-			}
-			else {
-				BKE_report(op->reports, RPT_WARNING, "Cannot insert into group");
-				return OPERATOR_CANCELLED;
-			}
-			break;
-	}
-
+	
+	gnode = node_group_make_from_selected(C, ntree, node_idname, ntree_idname);
+	MEM_freeN(node_idname);
+	MEM_freeN(ntree_idname);
+	
 	if (gnode) {
-		nodeSetActive(snode->nodetree, gnode);
-		snode_make_group_editable(snode, gnode);
+		ngroup = (bNodeTree *)gnode->id;
+		
+		nodeSetActive(ntree, gnode);
+		if (ngroup) {
+			ED_node_tree_push(snode, ngroup, gnode);
+			ntreeUpdateTree(ngroup);
+		}
 	}
-
-	if (gnode)
-		ntreeUpdateTree((bNodeTree *)gnode->id);
-	ntreeUpdateTree(snode->nodetree);
+	
+	ntreeUpdateTree(ntree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
-
+	
 	return OPERATOR_FINISHED;
-}
-
-static int node_group_make_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	bNode *act = nodeGetActive(snode->edittree);
-	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Make Group"), ICON_NONE);
-	uiLayout *layout = uiPupMenuLayout(pup);
-
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, "NODE_OT_group_make", NULL, 0, "type", NODE_GM_NEW);
-
-	/* if active node is a group, add insert option */
-	if (act && act->type == NODE_GROUP) {
-		uiItemEnumO(layout, "NODE_OT_group_make", NULL, 0, "type", NODE_GM_INSERT);
-	}
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_group_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Group";
+	ot->name = "Make Group";
 	ot->description = "Make group from selected nodes";
 	ot->idname = "NODE_OT_group_make";
-
+	
 	/* api callbacks */
-	ot->invoke = node_group_make_invoke;
 	ot->exec = node_group_make_exec;
 	ot->poll = ED_operator_node_active;
-
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	node_group_operator_properties(ot);
+}
 
-	RNA_def_enum(ot->srna, "type", node_group_make_types, NODE_GM_NEW, "Type", "");
+/* ****************** Group Insert operator ******************* */
+
+static int node_group_insert_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNodeTree *ngroup;
+	char *node_idname;
+	bNode *gnode;
+	
+	ED_preview_kill_jobs(C);
+	
+	if (!node_group_operator_check_type(C, op, &node_idname, NULL))
+		return OPERATOR_PASS_THROUGH;
+	
+	gnode = node_group_get_active(C, node_idname);
+	MEM_freeN(node_idname);
+	
+	if (!gnode || !gnode->id)
+		return OPERATOR_CANCELLED;
+	
+	ngroup = (bNodeTree *)gnode->id;
+	if (!node_group_make_test_selected(ntree, gnode, ngroup->idname, op->reports))
+		return OPERATOR_CANCELLED;
+	
+	node_group_make_insert_selected(C, ntree, gnode);
+	
+	nodeSetActive(ntree, gnode);
+	ED_node_tree_push(snode, ngroup, gnode);
+	ntreeUpdateTree(ngroup);
+	
+	ntreeUpdateTree(ntree);
+	
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_insert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Group Insert";
+	ot->description = "Insert selected nodes into a node group";
+	ot->idname = "NODE_OT_group_insert";
+	
+	/* api callbacks */
+	ot->exec = node_group_insert_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	node_group_operator_properties(ot);
 }

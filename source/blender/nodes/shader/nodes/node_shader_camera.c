@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_camera_out[] = {
 };
 
 
-static void node_shader_exec_camera(void *data, bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **out)
+static void node_shader_exec_camera(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if (data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;  /* Data we need for shading. */
@@ -52,22 +52,22 @@ static void node_shader_exec_camera(void *data, bNode *UNUSED(node), bNodeStack 
 	}
 }
 
-static int gpu_shader_camera(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_camera(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "camera", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-void register_node_type_sh_camera(bNodeTreeType *ttype)
+void register_node_type_sh_camera(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT, 0);
+	sh_node_type_base(&ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_camera_out);
 	node_type_size(&ntype, 95, 95, 120);
 	node_type_storage(&ntype, "node_camera", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_camera);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_camera);
 	node_type_gpu(&ntype, gpu_shader_camera);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

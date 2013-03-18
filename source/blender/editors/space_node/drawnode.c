@@ -43,18 +43,23 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "BLF_api.h"
 #include "BLF_translation.h"
 
+#include "NOD_texture.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_translation.h"
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_node.h"
 
@@ -68,188 +73,135 @@
 #include "IMB_imbuf_types.h"
 
 #include "node_intern.h"  /* own include */
+#include "NOD_composite.h"
+#include "NOD_shader.h"
+#include "NOD_texture.h"
+
+/* ****************** MENU FUNCTIONS ***************** */
+
+static void node_add_menu_class(bContext *C, uiLayout *layout, void *arg_nodeclass)
+{
+	Scene *scene = CTX_data_scene(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree;
+	int nodeclass = GET_INT_FROM_POINTER(arg_nodeclass);
+	int event, compatibility = 0;
+	
+	ntree = snode->nodetree;
+	
+	if (!ntree) {
+		uiItemS(layout);
+		return;
+	}
+
+	if (ntree->type == NTREE_SHADER) {
+		if (BKE_scene_use_new_shading_nodes(scene))
+			compatibility = NODE_NEW_SHADING;
+		else
+			compatibility = NODE_OLD_SHADING;
+	}
+	
+	if (nodeclass == NODE_CLASS_GROUP) {
+		Main *bmain = CTX_data_main(C);
+		bNodeTree *ngroup;
+		const char *ngroup_type, *node_type;
+		PointerRNA ptr;
+		
+		NODE_TYPES_BEGIN(ntype)
+			if (ntype->nclass != nodeclass || !ntype->ui_name)
+				continue;
+			if (!ntype->poll(ntype, ntree))
+				continue;
+			
+			switch (ntree->type) {
+			case NTREE_COMPOSIT:
+				ngroup_type = "CompositorNodeTree";
+				node_type = "CompositorNodeGroup";
+				break;
+			case NTREE_SHADER:
+				ngroup_type = "ShaderNodeTree";
+				node_type = "ShaderNodeGroup";
+				break;
+			case NTREE_TEXTURE:
+				ngroup_type = "TextureNodeTree";
+				node_type = "TextureNodeGroup";
+				break;
+			}
+			
+			ptr = uiItemFullO(layout, "NODE_OT_group_make", "New Group", ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_string_set(&ptr, "node_type", node_type);
+			
+			uiItemS(layout);
+
+			for (ngroup = bmain->nodetree.first, event = 0; ngroup; ngroup = ngroup->id.next, ++event) {
+				/* only use group trees of the right type */
+				if (STRNEQ(ngroup->idname, ngroup_type))
+					continue;
+				if (!nodeGroupPoll(ntree, ngroup))
+					continue;
+				
+				ptr = uiItemFullO(layout, "NODE_OT_add_group_node", ngroup->id.name + 2, ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				RNA_string_set(&ptr, "type", ntype->idname);
+				RNA_string_set(&ptr, "grouptree", ngroup->id.name + 2);
+			}
+		NODE_TYPES_END
+	}
+	else if (nodeclass == NODE_DYNAMIC) {
+		/* disabled */
+	}
+	else {
+		PointerRNA ptr;
+		
+		NODE_TYPES_BEGIN(ntype)
+			if (ntype->nclass != nodeclass || !ntype->ui_name)
+				continue;
+			if (!ntype->poll(ntype, ntree))
+				continue;
+			if (compatibility && (ntype->compatibility & compatibility) == 0)
+				continue;
+			
+			ptr = uiItemFullO(layout, "NODE_OT_add_node", IFACE_(ntype->ui_name), ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_string_set(&ptr, "type", ntype->idname);
+		NODE_TYPES_END
+	}
+}
+
+static void node_add_menu_foreach_class_cb(void *calldata, int nclass, const char *name)
+{
+	uiLayout *layout = calldata;
+	uiItemMenuF(layout, IFACE_(name), 0, node_add_menu_class, SET_INT_IN_POINTER(nclass));
+}
+
+static void node_add_menu_default(const bContext *C, uiLayout *layout, bNodeTree *ntree)
+{
+	Scene *scene = CTX_data_scene(C);
+	
+	if (ntree->typeinfo->foreach_nodeclass)
+		ntree->typeinfo->foreach_nodeclass(scene, layout, node_add_menu_foreach_class_cb);
+}
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
-static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)
+static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, PointerRNA *ptr, PointerRNA *UNUSED(node_ptr))
 {
-	SpaceNode *snode = snode_v;
-	
-	if (snode->treetype == NTREE_SHADER) {
-		nodeShaderSynchronizeID(node_v, 1);
-		// allqueue(REDRAWBUTSSHADING, 0);
-	}
+	bNodeSocket *sock = (bNodeSocket *)ptr->data;
+	uiItemL(layout, sock->name, 0);
 }
 
-static void node_socket_button_label(const bContext *UNUSED(C), uiBlock *block,
-                                     bNodeTree *UNUSED(ntree), bNode *UNUSED(node), bNodeSocket *sock,
-                                     const char *UNUSED(name), int x, int y, int width)
+static void node_draw_input_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int linked)
 {
-	uiDefBut(block, LABEL, 0, IFACE_(sock->name), x, y, width, NODE_DY, NULL, 0, 0, 0, 0, "");
-}
-
-static void node_socket_button_default(const bContext *C, uiBlock *block,
-                                       bNodeTree *ntree, bNode *node, bNodeSocket *sock,
-                                       const char *name, int x, int y, int width)
-{
-	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
-	else {
-		PointerRNA ptr;
-		uiBut *bt;
-		
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		
-		bt = uiDefButR(block, NUM, B_NODE_EXEC, IFACE_(name),
-		               x, y + 1, width, NODE_DY - 2,
-		               &ptr, "default_value", 0, 0, 0, -1, -1, NULL);
-		if (node)
-			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
-	}
-}
-
-static void node_socket_button_string(const bContext *C, uiBlock *block,
-                                       bNodeTree *ntree, bNode *node, bNodeSocket *sock,
-                                       const char *name, int x, int y, int width)
-{
-	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
-	else {
-		PointerRNA ptr;
-		uiBut *bt;
-
-		SpaceNode *snode = CTX_wm_space_node(C);
-		const char *ui_name = IFACE_(name);
-		float slen;
-
-		UI_ThemeColor(TH_TEXT);
-		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect;	/* XXX, check for dpis */
-		while (slen > (width * 0.5f) && *ui_name) {
-			ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
-			slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect;
-		}
-
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		
-		if (name[0] == '\0')
-			slen = 0.0;
-		
-		bt = uiDefButR(block, TEX, B_NODE_EXEC, "",
-		               x, y + 1, width - slen, NODE_DY - 2,
-		               &ptr, "default_value", 0, 0, 0, -1, -1, "");
-		if (node)
-			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
-		
-		if (slen > 0.0f)
-			uiDefBut(block, LABEL, 0, IFACE_(name), x + (width - slen), y + 2, slen, NODE_DY - 2, NULL, 0, 0, 0, 0, "");
-	}
-}
-
-typedef struct SocketComponentMenuArgs {
-	PointerRNA ptr;
-	int x, y, width;
-	uiButHandleFunc cb;
-	void *arg1, *arg2;
-} SocketComponentMenuArgs;
-/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
-{
-	SocketComponentMenuArgs *args = (SocketComponentMenuArgs *)args_v;
-	uiBlock *block;
-	uiLayout *layout;
-	
-	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
-	
-	layout = uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-	                                      args->x, args->y + 2, args->width, NODE_DY, UI_GetStyle()), FALSE);
-	
-	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
-	
-	return block;
-}
-static void node_socket_button_components(const bContext *C, uiBlock *block,
-                                          bNodeTree *ntree, bNode *node, bNodeSocket *sock,
-                                          const char *name, int x, int y, int width)
-{
-	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
-	else {
-		PointerRNA ptr;
-		SocketComponentMenuArgs *args;
-		
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		
-		args = MEM_callocN(sizeof(SocketComponentMenuArgs), "SocketComponentMenuArgs");
-		
-		args->ptr = ptr;
-		args->x = x;
-		args->y = y;
-		args->width = width;
-		args->cb = node_sync_cb;
-		args->arg1 = CTX_wm_space_node(C);
-		args->arg2 = node;
-		
-		uiDefBlockButN(block, socket_component_menu, args, IFACE_(name), x, y + 1, width, NODE_DY - 2, "");
-	}
-}
-
-static void node_socket_button_color(const bContext *C, uiBlock *block,
-                                     bNodeTree *ntree, bNode *node, bNodeSocket *sock,
-                                     const char *name, int x, int y, int width)
-{
-	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, block, ntree, node, sock, IFACE_(name), x, y, width);
-	else {
-		PointerRNA ptr;
-		uiBut *bt;
-		int labelw = width - 40;
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		
-		bt = uiDefButR(block, COLOR, B_NODE_EXEC, "",
-		               x, y + 2, (labelw > 0 ? 40 : width), NODE_DY - 2,
-		               &ptr, "default_value", -1, 0, 0, -1, -1, NULL);
-		if (node)
-			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
-		
-		if (name[0] != '\0' && labelw > 0)
-			uiDefBut(block, LABEL, 0, IFACE_(name), x + 40, y + 2, labelw, NODE_DY - 2, NULL, 0, 0, 0, 0, "");
-	}
-}
-
-/* standard draw function, display the default input value */
-static void node_draw_input_default(const bContext *C, uiBlock *block,
-                                    bNodeTree *ntree, bNode *node, bNodeSocket *sock,
-                                    const char *name, int x, int y, int width)
-{
-	bNodeSocketType *stype = ntreeGetSocketType(sock->type);
-	if (stype->buttonfunc)
-		stype->buttonfunc(C, block, ntree, node, sock, name, x, y, width);
+	bNodeSocket *sock = (bNodeSocket *)ptr->data;
+	if (linked || (sock->flag & SOCK_HIDE_VALUE))
+		node_socket_button_label(C, layout, ptr, node_ptr);
 	else
-		node_socket_button_label(C, block, ntree, node, sock, IFACE_(name), x, y, width);
+		sock->typeinfo->draw(C, layout, ptr, node_ptr);
 }
 
-static void node_draw_output_default(const bContext *UNUSED(C), uiBlock *block,
-                                     bNodeTree *UNUSED(ntree), bNode *node, bNodeSocket *sock,
-                                     const char *name, int UNUSED(x), int UNUSED(y), int UNUSED(width))
+static void node_draw_output_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int UNUSED(linked))
 {
-	const char *ui_name = IFACE_(name);
-	float slen;
-
-	UI_ThemeColor(TH_TEXT);
-	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) ;
-	while (slen > NODE_WIDTH(node) && *ui_name) {
-		ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
-		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X);
-	}
-	
-	if (*ui_name) {
-		uiDefBut(block, LABEL, 0, ui_name,
-		         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
-		         (short)slen, (short)NODE_DY,
-		         NULL, 0, 0, 0, 0, "");
-	}
+	node_socket_button_label(C, layout, ptr, node_ptr);
 }
+
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
 
@@ -297,25 +249,23 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 
 static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+	/* first output stores value */
+	bNodeSocket *output = node->outputs.first;
 	PointerRNA sockptr;
-	PropertyRNA *prop;
-	
-	/* first socket stores value */
-	prop = RNA_struct_find_property(ptr, "outputs");
-	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
+	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, output, &sockptr);
 	
 	uiItemR(layout, &sockptr, "default_value", 0, "", ICON_NONE);
 }
 
 static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiLayout *col;
+	bNode *node = ptr->data;
+	/* first output stores value */
+	bNodeSocket *output = node->outputs.first;
 	PointerRNA sockptr;
-	PropertyRNA *prop;
-	
-	/* first socket stores value */
-	prop = RNA_struct_find_property(ptr, "outputs");
-	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
+	uiLayout *col;
+	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, output, &sockptr);
 	
 	col = uiLayoutColumn(layout, FALSE);
 	uiTemplateColorPicker(col, &sockptr, "default_value", 1, 0, 0, 0);
@@ -399,14 +349,15 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 
 static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
-	bNode *node = (bNode *)ptr->data;
-	bNodeSocket *sock = node->outputs.first;     /* first socket stores normal */
+	bNode *node = ptr->data;
+	/* first output stores normal */
+	bNodeSocket *output = node->outputs.first;
 	PointerRNA sockptr;
-
-	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &sockptr);
+	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, output, &sockptr);
+	
 	uiItemR(layout, &sockptr, "default_value", 0, "", ICON_NONE);
 }
+
 #if 0 /* not used in 2.5x yet */
 static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 {
@@ -491,427 +442,6 @@ static int node_resize_area_default(bNode *node, int x, int y)
 
 /* ****************** BUTTON CALLBACKS FOR COMMON NODES ***************** */
 
-/* width of socket columns in group display */
-#define NODE_GROUP_FRAME        120
-
-/* based on settings in node, sets drawing rect info. each redraw! */
-/* note: this assumes only 1 group at a time is drawn (linked data) */
-/* in node->totr the entire boundbox for the group is stored */
-static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
-{
-	if (!(gnode->flag & NODE_GROUP_EDIT)) {
-		node_update_default(C, ntree, gnode);
-	}
-	else {
-		bNodeTree *ngroup = (bNodeTree *)gnode->id;
-		bNode *node;
-		bNodeSocket *sock, *gsock;
-		float locx, locy;
-		rctf *rect = &gnode->totr;
-		const float dpi_fac = UI_DPI_FAC;
-		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
-		const float group_header = 26 * dpi_fac;
-		int counter;
-		int dy;
-		
-		/* get "global" coords */
-		node_to_view(gnode, 0.0f, 0.0f, &locx, &locy);
-		
-		/* center them, is a bit of abuse of locx and locy though */
-		node_update_nodetree(C, ngroup, locx, locy);
-		
-		rect->xmin = rect->xmax = locx;
-		rect->ymin = rect->ymax = locy;
-		
-		counter = 1;
-		for (node = ngroup->nodes.first; node; node = node->next) {
-			if (counter) {
-				*rect = node->totr;
-				counter = 0;
-			}
-			else
-				BLI_rctf_union(rect, &node->totr);
-		}
-		
-		/* add some room for links to group sockets */
-		rect->xmin -= 4 * NODE_DY;
-		rect->xmax += 4 * NODE_DY;
-		rect->ymin -= NODE_DY;
-		rect->ymax += NODE_DY;
-		
-		/* input sockets */
-		dy = BLI_rctf_cent_y(rect) + (NODE_DY * (BLI_countlist(&gnode->inputs) - 1));
-		gsock = ngroup->inputs.first;
-		sock = gnode->inputs.first;
-		while (gsock || sock) {
-			while (sock && !sock->groupsock) {
-				sock->locx = rect->xmin - node_group_frame;
-				sock->locy = dy;
-
-				/* prevent long socket lists from growing out of the group box */
-				if (dy - 3 * NODE_DYS < rect->ymin)
-					rect->ymin = dy - 3 * NODE_DYS;
-				if (dy + 3 * NODE_DYS > rect->ymax)
-					rect->ymax = dy + 3 * NODE_DYS;
-				dy -= 2 * NODE_DY;
-				
-				sock = sock->next;
-			}
-			while (gsock && (!sock || sock->groupsock != gsock)) {
-				gsock->locx = rect->xmin;
-				gsock->locy = dy;
-				
-				/* prevent long socket lists from growing out of the group box */
-				if (dy - 3 * NODE_DYS < rect->ymin)
-					rect->ymin = dy - 3 * NODE_DYS;
-				if (dy + 3 * NODE_DYS > rect->ymax)
-					rect->ymax = dy + 3 * NODE_DYS;
-				dy -= 2 * NODE_DY;
-				
-				gsock = gsock->next;
-			}
-			while (sock && gsock && sock->groupsock == gsock) {
-				gsock->locx = rect->xmin;
-				sock->locx = rect->xmin - node_group_frame;
-				sock->locy = gsock->locy = dy;
-				
-				/* prevent long socket lists from growing out of the group box */
-				if (dy - 3 * NODE_DYS < rect->ymin)
-					rect->ymin = dy - 3 * NODE_DYS;
-				if (dy + 3 * NODE_DYS > rect->ymax)
-					rect->ymax = dy + 3 * NODE_DYS;
-				dy -= 2 * NODE_DY;
-				
-				sock = sock->next;
-				gsock = gsock->next;
-			}
-		}
-		
-		/* output sockets */
-		dy = BLI_rctf_cent_y(rect) + (NODE_DY * (BLI_countlist(&gnode->outputs) - 1));
-		gsock = ngroup->outputs.first;
-		sock = gnode->outputs.first;
-		while (gsock || sock) {
-			while (sock && !sock->groupsock) {
-				sock->locx = rect->xmax + node_group_frame;
-				sock->locy = dy - NODE_DYS;
-				
-				/* prevent long socket lists from growing out of the group box */
-				if (dy - 3 * NODE_DYS < rect->ymin)
-					rect->ymin = dy - 3 * NODE_DYS;
-				if (dy + 3 * NODE_DYS > rect->ymax)
-					rect->ymax = dy + 3 * NODE_DYS;
-				dy -= 2 * NODE_DY;
-				
-				sock = sock->next;
-			}
-			while (gsock && (!sock || sock->groupsock != gsock)) {
-				gsock->locx = rect->xmax;
-				gsock->locy = dy - NODE_DYS;
-				
-				/* prevent long socket lists from growing out of the group box */
-				if (dy - 3 * NODE_DYS < rect->ymin)
-					rect->ymin = dy - 3 * NODE_DYS;
-				if (dy + 3 * NODE_DYS > rect->ymax)
-					rect->ymax = dy + 3 * NODE_DYS;
-				dy -= 2 * NODE_DY;
-				
-				gsock = gsock->next;
-			}
-			while (sock && gsock && sock->groupsock == gsock) {
-				gsock->locx = rect->xmax;
-				sock->locx = rect->xmax + node_group_frame;
-				sock->locy = gsock->locy = dy - NODE_DYS;
-				
-				/* prevent long socket lists from growing out of the group box */
-				if (dy - 3 * NODE_DYS < rect->ymin)
-					rect->ymin = dy - 3 * NODE_DYS;
-				if (dy + 3 * NODE_DYS > rect->ymax)
-					rect->ymax = dy + 3 * NODE_DYS;
-				dy -= 2 * NODE_DY;
-				
-				sock = sock->next;
-				gsock = gsock->next;
-			}
-		}
-		
-		/* Set the block bounds to clip mouse events from underlying nodes.
-		 * Add margin for header and input/output columns.
-		 */
-		uiExplicitBoundsBlock(gnode->block,
-		                      rect->xmin - node_group_frame,
-		                      rect->ymin,
-		                      rect->xmax + node_group_frame,
-		                      rect->ymax + group_header);
-	}
-}
-
-static void update_group_input_cb(bContext *UNUSED(C), void *UNUSED(snode_v), void *ngroup_v)
-{
-	bNodeTree *ngroup = (bNodeTree *)ngroup_v;
-	
-	ngroup->update |= NTREE_UPDATE_GROUP_IN;
-	ntreeUpdateTree(ngroup);
-}
-
-static void update_group_output_cb(bContext *UNUSED(C), void *UNUSED(snode_v), void *ngroup_v)
-{
-	bNodeTree *ngroup = (bNodeTree *)ngroup_v;
-	
-	ngroup->update |= NTREE_UPDATE_GROUP_OUT;
-	ntreeUpdateTree(ngroup);
-}
-
-static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *sock,
-                                   int in_out, float xoffset, float yoffset, short width, short height)
-{
-	if (sock->flag & SOCK_DYNAMIC) {
-		bNodeTree *ngroup = (bNodeTree *)gnode->id;
-		uiBut *but;
-		but = uiDefBut(gnode->block, TEX, 0, "",
-		               sock->locx + xoffset, sock->locy + 1 + yoffset, width, height,
-		               sock->name, 0, sizeof(sock->name), 0, 0, "");
-		if (in_out == SOCK_IN)
-			uiButSetFunc(but, update_group_input_cb, snode, ngroup);
-		else
-			uiButSetFunc(but, update_group_output_cb, snode, ngroup);
-	}
-	else {
-		const char *ui_name = IFACE_(sock->name);
-		uiDefBut(gnode->block, LABEL, 0, ui_name,
-		         sock->locx + xoffset, sock->locy + 1 + yoffset, width, height,
-		         NULL, 0, 0, 0, 0, "");
-	}
-}
-
-static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *ntree, bNode *gnode,
-                              bNodeSocket *sock, bNodeSocket *gsock, int index, int in_out)
-{
-	const float dpi_fac = UI_DPI_FAC;
-	bNodeTree *ngroup = (bNodeTree *)gnode->id;
-	bNodeSocketType *stype = ntreeGetSocketType(gsock ? gsock->type : sock->type);
-	uiBut *bt;
-	float offset;
-	int draw_value;
-	const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
-	const float socket_size      = NODE_SOCKSIZE;
-	const float arrowbutw        = 0.8f * UI_UNIT_X;
-	const short co_text_w = 72 * dpi_fac;
-	const float co_margin = 6.0f * dpi_fac;
-	/* layout stuff for buttons on group left frame */
-	const float colw = 0.6f * node_group_frame;
-	const float col1 = co_margin - node_group_frame;
-	const float col2 = col1 + colw + co_margin;
-	const float col3 = -arrowbutw - co_margin;
-	/* layout stuff for buttons on group right frame */
-	const float cor1 = co_margin;
-	const float cor2 = cor1 + arrowbutw;
-	const float cor3 = cor2 + arrowbutw + co_margin;
-	
-	/* node and group socket circles */
-	if (sock)
-		node_socket_circle_draw(ntree, sock, socket_size, sock->flag & SELECT);
-	if (gsock)
-		node_socket_circle_draw(ngroup, gsock, socket_size, gsock->flag & SELECT);
-	
-	/* socket name */
-	offset = (in_out == SOCK_IN ? col1 : cor3);
-	if (!gsock)
-		offset += (in_out == SOCK_IN ? node_group_frame : -node_group_frame);
-	
-	/* draw both name and value button if:
-	 * 1) input: not internal
-	 * 2) output: (node type uses const outputs) and (group output is unlinked)
-	 */
-	draw_value = 0;
-	switch (in_out) {
-		case SOCK_IN:
-			draw_value = !(gsock && (gsock->flag & SOCK_INTERNAL));
-			break;
-		case SOCK_OUT:
-			if (gnode->typeinfo->flag & NODE_CONST_OUTPUT)
-				draw_value = !(gsock && gsock->link);
-			break;
-	}
-	if (draw_value) {
-		/* both name and value buttons */
-		if (gsock) {
-			draw_group_socket_name(snode, gnode, gsock, in_out, offset, 0, co_text_w, NODE_DY);
-			if (stype->buttonfunc)
-				stype->buttonfunc(C, gnode->block, ngroup, NULL, gsock, "",
-				                  gsock->locx + offset, gsock->locy - NODE_DY, colw);
-		}
-		else {
-			draw_group_socket_name(snode, gnode, sock, in_out, offset, 0, co_text_w, NODE_DY);
-			if (stype->buttonfunc)
-				stype->buttonfunc(C, gnode->block, ngroup, NULL, sock, "",
-				                  sock->locx + offset, sock->locy - NODE_DY, colw);
-		}
-	}
-	else {
-		/* only name, no value button */
-		if (gsock)
-			draw_group_socket_name(snode, gnode, gsock, in_out, offset, -NODE_DYS, co_text_w, NODE_DY);
-		else
-			draw_group_socket_name(snode, gnode, sock, in_out, offset, -NODE_DYS, co_text_w, NODE_DY);
-	}
-	
-	if (gsock && (gsock->flag & SOCK_DYNAMIC)) {
-		/* up/down buttons */
-		offset = (in_out == SOCK_IN ? col2 : cor2);
-		uiBlockSetDirection(gnode->block, UI_TOP);
-		uiBlockBeginAlign(gnode->block);
-		bt = uiDefIconButO(gnode->block, BUT, "NODE_OT_group_socket_move_up", 0, ICON_TRIA_UP,
-		                   gsock->locx + offset, gsock->locy, arrowbutw, arrowbutw, "");
-		if (!gsock->prev || !(gsock->prev->flag & SOCK_DYNAMIC))
-			uiButSetFlag(bt, UI_BUT_DISABLED);
-		RNA_int_set(uiButGetOperatorPtrRNA(bt), "index", index);
-		RNA_enum_set(uiButGetOperatorPtrRNA(bt), "in_out", in_out);
-		bt = uiDefIconButO(gnode->block, BUT, "NODE_OT_group_socket_move_down", 0, ICON_TRIA_DOWN,
-		                   gsock->locx + offset, gsock->locy - arrowbutw, arrowbutw, arrowbutw, "");
-		if (!gsock->next || !(gsock->next->flag & SOCK_DYNAMIC))
-			uiButSetFlag(bt, UI_BUT_DISABLED);
-		RNA_int_set(uiButGetOperatorPtrRNA(bt), "index", index);
-		RNA_enum_set(uiButGetOperatorPtrRNA(bt), "in_out", in_out);
-		uiBlockEndAlign(gnode->block);
-		uiBlockSetDirection(gnode->block, 0);
-		
-		/* remove button */
-		offset = (in_out == SOCK_IN ? col3 : cor1);
-		uiBlockSetEmboss(gnode->block, UI_EMBOSSN);
-		bt = uiDefIconButO(gnode->block, BUT, "NODE_OT_group_socket_remove", 0, ICON_X,
-		                   gsock->locx + offset, gsock->locy - 0.5f * arrowbutw, arrowbutw, arrowbutw, "");
-		RNA_int_set(uiButGetOperatorPtrRNA(bt), "index", index);
-		RNA_enum_set(uiButGetOperatorPtrRNA(bt), "in_out", in_out);
-		uiBlockSetEmboss(gnode->block, UI_EMBOSS);
-	}
-}
-
-/* groups are, on creation, centered around 0,0 */
-static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
-{
-	if (!(gnode->flag & NODE_GROUP_EDIT)) {
-		node_draw_default(C, ar, snode, ntree, gnode);
-	}
-	else {
-		bNodeTree *ngroup = (bNodeTree *)gnode->id;
-		bNodeSocket *sock, *gsock;
-		uiLayout *layout;
-		PointerRNA ptr;
-		rctf rect = gnode->totr;
-		const float dpi_fac = UI_DPI_FAC;
-		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
-		const float group_header = 26 * dpi_fac;
-		
-		int index;
-
-		/* backdrop header */
-		glEnable(GL_BLEND);
-		uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
-		UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
-		uiDrawBox(GL_POLYGON,
-		          rect.xmin - node_group_frame, rect.ymax,
-		          rect.xmax + node_group_frame, rect.ymax + group_header, BASIS_RAD);
-		
-		/* backdrop body */
-		UI_ThemeColorShadeAlpha(TH_BACK, -8, -70);
-		uiSetRoundBox(UI_CNR_NONE);
-		uiDrawBox(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, BASIS_RAD);
-	
-		/* input column */
-		UI_ThemeColorShadeAlpha(TH_BACK, 10, -50);
-		uiSetRoundBox(UI_CNR_BOTTOM_LEFT);
-		uiDrawBox(GL_POLYGON, rect.xmin - node_group_frame, rect.ymin, rect.xmin, rect.ymax, BASIS_RAD);
-	
-		/* output column */
-		UI_ThemeColorShadeAlpha(TH_BACK, 10, -50);
-		uiSetRoundBox(UI_CNR_BOTTOM_RIGHT);
-		uiDrawBox(GL_POLYGON, rect.xmax, rect.ymin, rect.xmax + node_group_frame, rect.ymax, BASIS_RAD);
-	
-		/* input column separator */
-		glColor4ub(200, 200, 200, 140);
-		glBegin(GL_LINES);
-		glVertex2f(rect.xmin, rect.ymin);
-		glVertex2f(rect.xmin, rect.ymax);
-		glEnd();
-	
-		/* output column separator */
-		glColor4ub(200, 200, 200, 140);
-		glBegin(GL_LINES);
-		glVertex2f(rect.xmax, rect.ymin);
-		glVertex2f(rect.xmax, rect.ymax);
-		glEnd();
-	
-		/* group node outline */
-		uiSetRoundBox(UI_CNR_ALL);
-		glColor4ub(200, 200, 200, 140);
-		glEnable(GL_LINE_SMOOTH);
-		uiDrawBox(GL_LINE_LOOP,
-		          rect.xmin - node_group_frame, rect.ymin,
-		          rect.xmax + node_group_frame, rect.ymax + group_header, BASIS_RAD);
-		glDisable(GL_LINE_SMOOTH);
-		glDisable(GL_BLEND);
-		
-		/* backdrop title */
-		UI_ThemeColor(TH_TEXT_HI);
-	
-		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + (group_header - (2.5f * dpi_fac))),
-		                       min_ii((int)(BLI_rctf_size_x(&rect) - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
-		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
-		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);
-		uiBlockLayoutResolve(gnode->block, NULL, NULL);
-	
-		/* draw the internal tree nodes and links */
-		node_draw_nodetree(C, ar, snode, ngroup);
-	
-		/* group sockets */
-		gsock = ngroup->inputs.first;
-		sock = gnode->inputs.first;
-		index = 0;
-		while (gsock || sock) {
-			while (sock && !sock->groupsock) {
-				draw_group_socket(C, snode, ntree, gnode, sock, NULL, index, SOCK_IN);
-				sock = sock->next;
-			}
-			while (gsock && (!sock || sock->groupsock != gsock)) {
-				draw_group_socket(C, snode, ntree, gnode, NULL, gsock, index, SOCK_IN);
-				gsock = gsock->next;
-				index++;
-			}
-			while (sock && gsock && sock->groupsock == gsock) {
-				draw_group_socket(C, snode, ntree, gnode, sock, gsock, index, SOCK_IN);
-				sock = sock->next;
-				gsock = gsock->next;
-				index++;
-			}
-		}
-		gsock = ngroup->outputs.first;
-		sock = gnode->outputs.first;
-		index = 0;
-		while (gsock || sock) {
-			while (sock && !sock->groupsock) {
-				draw_group_socket(C, snode, ntree, gnode, sock, NULL, index, SOCK_OUT);
-				sock = sock->next;
-			}
-			while (gsock && (!sock || sock->groupsock != gsock)) {
-				draw_group_socket(C, snode, ntree, gnode, NULL, gsock, index, SOCK_OUT);
-				gsock = gsock->next;
-				index++;
-			}
-			while (sock && gsock && sock->groupsock == gsock) {
-				draw_group_socket(C, snode, ntree, gnode, sock, gsock, index, SOCK_OUT);
-				sock = sock->next;
-				gsock = gsock->next;
-				index++;
-			}
-		}
-		
-		uiEndBlock(C, gnode->block);
-		uiDrawBlock(C, gnode->block);
-		gnode->block = NULL;
-	}
-}
 
 static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
@@ -1003,7 +533,8 @@ static void node_draw_frame_label(bNode *node, const float aspect)
 	BLF_disable(fontid, BLF_ASPECT);
 }
 
-static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *UNUSED(ntree), bNode *node)
+static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
+                            bNodeTree *UNUSED(ntree), bNode *node, bNodeInstanceKey UNUSED(key))
 {
 	rctf *rct = &node->totr;
 	int color_id = node_get_colorid(node);
@@ -1118,7 +649,8 @@ static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntr
 	node->totr.ymin = locy - size;
 }
 
-static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(snode),  bNodeTree *ntree, bNode *node)
+static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(snode),
+                              bNodeTree *ntree, bNode *node, bNodeInstanceKey UNUSED(key))
 {
 	bNodeSocket *sock;
 	char showname[128]; /* 128 used below */
@@ -1178,7 +710,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		node_socket_circle_draw(ntree, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
+		node_socket_circle_draw(C, ntree, node, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
 	}
 
 	uiEndBlock(C, node->block);
@@ -1205,8 +737,6 @@ static void node_common_set_butfunc(bNodeType *ntype)
 	switch (ntype->type) {
 		case NODE_GROUP:
 			ntype->uifunc = node_uifunc_group;
-			ntype->drawfunc = node_draw_group;
-			ntype->drawupdatefunc = node_update_group;
 			break;
 		case NODE_FRAME:
 			ntype->drawfunc = node_draw_frame;
@@ -1491,8 +1021,6 @@ static void node_shader_buts_script_details(uiLayout *layout, bContext *C, Point
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		/* case NODE_GROUP: note, typeinfo for group is generated... see "XXX ugly hack" */
-
 		case SH_NODE_MATERIAL:
 		case SH_NODE_MATERIAL_EXT:
 			ntype->uifunc = node_shader_buts_material;
@@ -2092,20 +1620,17 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), Po
 }
 
 /* draw function for file output node sockets, displays only sub-path and format, no value button */
-static void node_draw_input_file_output(const bContext *C, uiBlock *block,
-                                        bNodeTree *ntree, bNode *node, bNodeSocket *sock,
-                                        const char *UNUSED(name), int x, int y, int width)
+static void node_draw_input_file_output(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int UNUSED(linked))
 {
-	uiLayout *layout, *row;
-	PointerRNA nodeptr, inputptr, imfptr;
+	bNodeTree *ntree = ptr->id.data;
+	bNodeSocket *sock = ptr->data;
+	uiLayout *row;
+	PointerRNA inputptr, imfptr;
 	int imtype;
-	int rx, ry;
-	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 	
-	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y + NODE_DY, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, FALSE);
 	
-	imfptr = RNA_pointer_get(&nodeptr, "format");
+	imfptr = RNA_pointer_get(node_ptr, "format");
 	imtype = RNA_enum_get(&imfptr, "file_format");
 	if (imtype == R_IMF_IMTYPE_MULTILAYER) {
 		NodeImageMultiFileSocket *input = sock->storage;
@@ -2117,6 +1642,7 @@ static void node_draw_input_file_output(const bContext *C, uiBlock *block,
 		NodeImageMultiFileSocket *input = sock->storage;
 		PropertyRNA *imtype_prop;
 		const char *imtype_name;
+		uiBlock *block;
 		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotFile, input, &inputptr);
 		
 		uiItemL(row, input->path, ICON_NONE);
@@ -2127,12 +1653,11 @@ static void node_draw_input_file_output(const bContext *C, uiBlock *block,
 		imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
 		RNA_property_enum_name((bContext *)C, &imfptr, imtype_prop,
 		                       RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
+		block = uiLayoutGetBlock(row);
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		uiItemL(row, imtype_name, ICON_NONE);
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 	}
-	
-	uiBlockLayoutResolve(block, &rx, &ry);
 }
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -2781,8 +2306,6 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		/* case NODE_GROUP: note, typeinfo for group is generated... see "XXX ugly hack" */
-
 		case CMP_NODE_IMAGE:
 			ntype->uifunc = node_composit_buts_image;
 			ntype->uifuncbut = node_composit_buts_image_details;
@@ -2998,8 +2521,6 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_TRACKPOS:
 			ntype->uifunc = node_composit_buts_trackpos;
 			break;
-		default:
-			ntype->uifunc = NULL;
 	}
 }
 
@@ -3158,81 +2679,170 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */
 
+static void node_property_update_default(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	bNodeTree *ntree = ptr->id.data;
+	ED_node_tag_update_nodetree(bmain, ntree);
+}
+
+static void node_socket_template_properties_update(bNodeType *ntype, bNodeSocketTemplate *stemp)
+{
+	StructRNA *srna = ntype->ext.srna;
+	PropertyRNA *prop = RNA_struct_type_find_property(srna, stemp->identifier);
+	
+	if (prop)
+		RNA_def_property_update_runtime(prop, node_property_update_default);
+}
+
+static void node_template_properties_update(bNodeType *ntype)
+{
+	bNodeSocketTemplate *stemp;
+	
+	if (ntype->inputs) {
+		for (stemp = ntype->inputs; stemp->type >= 0; ++stemp)
+			node_socket_template_properties_update(ntype, stemp);
+	}
+	if (ntype->outputs) {
+		for (stemp = ntype->outputs; stemp->type >= 0; ++stemp)
+			node_socket_template_properties_update(ntype, stemp);
+	}
+}
+
 void ED_node_init_butfuncs(void)
 {
-	bNodeTreeType *treetype;
-	bNodeType *ntype;
-	bNodeSocketType *stype;
-	int i;
-	
 	/* node type ui functions */
-	for (i = 0; i < NUM_NTREE_TYPES; ++i) {
-		treetype = ntreeGetType(i);
-		if (treetype) {
-			for (ntype = treetype->node_types.first; ntype; ntype = ntype->next) {
-				/* default ui functions */
-				ntype->drawfunc = node_draw_default;
-				ntype->drawupdatefunc = node_update_default;
-				ntype->select_area_func = node_select_area_default;
-				ntype->tweak_area_func = node_tweak_area_default;
-				ntype->uifunc = NULL;
-				ntype->uifuncbut = NULL;
-				ntype->drawinputfunc = node_draw_input_default;
-				ntype->drawoutputfunc = node_draw_output_default;
-				ntype->resize_area_func = node_resize_area_default;
-				
-				node_common_set_butfunc(ntype);
-				
-				switch (i) {
-					case NTREE_COMPOSIT:
-						node_composit_set_butfunc(ntype);
-						break;
-					case NTREE_SHADER:
-						node_shader_set_butfunc(ntype);
-						break;
-					case NTREE_TEXTURE:
-						node_texture_set_butfunc(ntype);
-						break;
-				}
-			}
-		}
-	}
+	NODE_TYPES_BEGIN(ntype)
+		/* default ui functions */
+		ntype->drawfunc = node_draw_default;
+		ntype->drawupdatefunc = node_update_default;
+		ntype->select_area_func = node_select_area_default;
+		ntype->tweak_area_func = node_tweak_area_default;
+		ntype->uifunc = NULL;
+		ntype->uifuncbut = NULL;
+		ntype->drawinputfunc = node_draw_input_default;
+		ntype->drawoutputfunc = node_draw_output_default;
+		ntype->resize_area_func = node_resize_area_default;
+		
+		node_common_set_butfunc(ntype);
+		
+		node_composit_set_butfunc(ntype);
+		node_shader_set_butfunc(ntype);
+		node_texture_set_butfunc(ntype);
+		
+		/* define update callbacks for socket properties */
+		node_template_properties_update(ntype);
+	NODE_TYPES_END
 	
-	/* socket type ui functions */
-	for (i = 0; i < NUM_SOCKET_TYPES; ++i) {
-		stype = ntreeGetSocketType(i);
-		if (stype) {
-			switch (stype->type) {
-				case SOCK_FLOAT:
-				case SOCK_INT:
-				case SOCK_BOOLEAN:
-					stype->buttonfunc = node_socket_button_default;
-					break;
-				case SOCK_STRING:
-					stype->buttonfunc = node_socket_button_string;
-					break;
-				case SOCK_VECTOR:
-					stype->buttonfunc = node_socket_button_components;
-					break;
-				case SOCK_RGBA:
-					stype->buttonfunc = node_socket_button_color;
-					break;
-				case SOCK_SHADER:
-					stype->buttonfunc = node_socket_button_label;
-					break;
-				default:
-					stype->buttonfunc = NULL;
-			}
+	/* tree type icons */
+	ntreeType_Composite->ui_icon = ICON_RENDERLAYERS;
+	ntreeType_Composite->draw_add_menu = node_add_menu_default;
+	ntreeType_Shader->ui_icon = ICON_MATERIAL;
+	ntreeType_Shader->draw_add_menu = node_add_menu_default;
+	ntreeType_Texture->ui_icon = ICON_TEXTURE;
+	ntreeType_Texture->draw_add_menu = node_add_menu_default;
+}
+
+void ED_init_custom_node_type(bNodeType *ntype)
+{
+	/* default ui functions */
+	ntype->drawfunc = node_draw_default;
+	ntype->drawupdatefunc = node_update_default;
+	ntype->drawinputfunc = node_draw_input_default;
+	ntype->drawoutputfunc = node_draw_output_default;
+	ntype->resize_area_func = node_resize_area_default;
+	ntype->select_area_func = node_select_area_default;
+	ntype->tweak_area_func = node_tweak_area_default;
+}
+
+void ED_init_custom_node_socket_type(bNodeSocketType *stype)
+{
+	/* default ui functions */
+	stype->draw = node_socket_button_label;
+}
+
+/* maps standard socket integer type to a color */
+static const float std_node_socket_colors[][4] = {
+    {0.63, 0.63, 0.63, 1.0},    /* SOCK_FLOAT */
+    {0.39, 0.39, 0.78, 1.0},    /* SOCK_VECTOR */
+    {0.78, 0.78, 0.16, 1.0},    /* SOCK_RGBA */
+    {0.39, 0.78, 0.39, 1.0},    /* SOCK_SHADER */
+    {0.70, 0.65, 0.19, 1.0},    /* SOCK_BOOLEAN */
+    {0.0, 0.0, 0.0, 1.0},       /*__SOCK_MESH (deprecated) */
+    {0.06, 0.52, 0.15, 1.0},    /* SOCK_INT */
+    {1.0, 1.0, 1.0, 1.0},       /* SOCK_STRING */
+};
+
+/* common color callbacks for standard types */
+static void std_node_socket_draw_color(bContext *UNUSED(C), PointerRNA *ptr, PointerRNA *UNUSED(node_ptr), float *r_color)
+{
+	bNodeSocket *sock = ptr->data;
+	int type = sock->typeinfo->type;
+	copy_v4_v4(r_color, std_node_socket_colors[type]);
+}
+static void std_node_socket_interface_draw_color(bContext *UNUSED(C), PointerRNA *ptr, float *r_color)
+{
+	bNodeSocket *sock = ptr->data;
+	int type = sock->typeinfo->type;
+	copy_v4_v4(r_color, std_node_socket_colors[type]);
+}
+
+static void std_node_socket_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *ptr, PointerRNA *UNUSED(node_ptr))
+{
+	bNodeSocket *sock = ptr->data;
+	int type = sock->typeinfo->type;
+	/*int subtype = sock->typeinfo->subtype;*/
+	
+	switch (type) {
+		case SOCK_FLOAT:
+		case SOCK_INT:
+		case SOCK_BOOLEAN:
+			uiItemR(layout, ptr, "default_value", 0, sock->name, 0);
+			break;
+		case SOCK_VECTOR:
+			uiTemplateComponentMenu(layout, ptr, "default_value", sock->name);
+			break;
+		case SOCK_RGBA: {
+			uiLayout *row = uiLayoutRow(layout, false);
+			uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+			/* draw the socket name right of the actual button */
+			uiItemR(row, ptr, "default_value", 0, "", 0);
+			uiItemL(row, sock->name, 0);
+			break;
+		}
+		case SOCK_STRING: {
+			uiLayout *row = uiLayoutRow(layout, true);
+			/* draw the socket name right of the actual button */
+			uiItemR(row, ptr, "default_value", 0, "", 0);
+			uiItemL(row, sock->name, 0);
+			break;
 		}
 	}
+}
+
+void ED_init_standard_node_socket_type(bNodeSocketType *stype)
+{
+	stype->draw = std_node_socket_draw;
+	stype->draw_color = std_node_socket_draw_color;
+	stype->interface_draw_color = std_node_socket_interface_draw_color;
+}
+
+static void node_socket_virtual_draw_color(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr), float *r_color)
+{
+	/* alpha = 0, empty circle */
+	zero_v4(r_color);
+}
+
+void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
+{
+	stype->draw = node_socket_button_label;
+	stype->draw_color = node_socket_virtual_draw_color;
 }
 
 /* ************** Generic drawing ************** */
 
 void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 {
-	
-	if ((snode->flag & SNODE_BACKDRAW) && snode->treetype == NTREE_COMPOSIT) {
+	if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
 		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 		void *lock;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
@@ -3640,18 +3250,13 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		do_triple = TRUE;
 	}
 	else {
-		int cycle = 0;
-		
 		/* going to give issues once... */
 		if (link->tosock->flag & SOCK_UNAVAIL)
 			return;
 		if (link->fromsock->flag & SOCK_UNAVAIL)
 			return;
 		
-		/* check cyclic */
-		if (link->fromnode && link->tonode)
-			cycle = (link->fromnode->level < link->tonode->level || link->tonode->level == 0xFFF);
-		if (!cycle && (link->flag & NODE_LINK_VALID)) {
+		if (link->flag & NODE_LINK_VALID) {
 			/* special indicated link, on drop-node */
 			if (link->flag & NODE_LINKFLAG_HILITE) {
 				th_col1 = th_col2 = TH_ACTIVE;

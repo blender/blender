@@ -32,32 +32,19 @@
 
 #include "node_composite_util.h"
 
-
 /* **************** RGB ******************** */
 static bNodeSocketTemplate cmp_node_rgb_out[] = {
-	{	SOCK_RGBA, 0, N_("RGBA"),			0.5f, 0.5f, 0.5f, 1.0f},
+	{	SOCK_RGBA, 0, N_("RGBA"), 0.5f, 0.5f, 0.5f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
-	/* uses the default value of the output socket, must be initialized here */
-	col[0] = 0.5f;
-	col[1] = 0.5f;
-	col[2] = 0.5f;
-	col[3] = 1.0f;
-}
-
-void register_node_type_cmp_rgb(bNodeTreeType *ttype)
+void register_node_type_cmp_rgb(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_rgb_out);
-	node_type_init(&ntype, node_composit_init_rgb);
 	node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

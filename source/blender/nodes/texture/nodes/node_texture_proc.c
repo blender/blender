@@ -129,11 +129,11 @@ static int count_outputs(bNode *node)
 		{                                                                                                    \
 				texfn(result, p, node, in, 1, &name##_map_inputs, thread);                               \
 		}                                                                                                    \
-		static void name##_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)                  \
+		static void name##_exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out) \
 		{                                                                                                    \
 				int outs = count_outputs(node);                                                              \
-				if (outs >= 1) tex_output(node, in, out[0], &name##_colorfn, data);                                 \
-				if (outs >= 2) tex_output(node, in, out[1], &name##_normalfn, data);                                \
+				if (outs >= 1) tex_output(node, execdata, in, out[0], &name##_colorfn, data);                                 \
+				if (outs >= 2) tex_output(node, execdata, in, out[1], &name##_normalfn, data);                                \
 		}
 
 
@@ -281,7 +281,7 @@ ProcDef(stucci)
 
 /* --- */
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	Tex *tex = MEM_callocN(sizeof(Tex), "Tex");
 	node->storage= tex;
@@ -296,18 +296,18 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(nt
 
 /* Node type definitions */
 #define TexDef(TEXTYPE, outputs, name, Name) \
-void register_node_type_tex_proc_##name(bNodeTreeType *ttype) \
+void register_node_type_tex_proc_##name(void) \
 { \
 	static bNodeType ntype; \
 	\
-	node_type_base(ttype, &ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW|NODE_OPTIONS); \
+	tex_node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW | NODE_OPTIONS); \
 	node_type_socket_templates(&ntype, name##_inputs, outputs); \
 	node_type_size(&ntype, 140, 80, 140); \
 	node_type_init(&ntype, init); \
 	node_type_storage(&ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
-	node_type_exec(&ntype, name##_exec); \
+	node_type_exec(&ntype, NULL, NULL, name##_exec); \
 	\
-	nodeRegisterType(ttype, &ntype); \
+	nodeRegisterType(&ntype); \
 }
 	
 #define C outputs_color_only

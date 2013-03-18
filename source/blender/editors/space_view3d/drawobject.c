@@ -5992,6 +5992,15 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 		glScalef(radius, radius, 2.0f * size[2]);
 		gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 	}
+	else if (type == OB_BOUND_CAPSULE) {
+		float radius = size[0] > size[1] ? size[0] : size[1];
+		float length = size[2] > radius ? 2.0f * (size[2] - radius) : 0.0f;
+		glTranslatef(cent[0], cent[1], cent[2] - length * 0.5f);
+		gluCylinder(qobj, radius, radius, length, 8, 1);
+		gluSphere(qobj, radius, 8, 4);
+		glTranslatef(0.0, 0.0, length);
+		gluSphere(qobj, radius, 8, 4);
+	}
 	glPopMatrix();
 	
 	gluDeleteQuadric(qobj);

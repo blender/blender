@@ -45,8 +45,7 @@ static bNodeSocketTemplate sh_node_math_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_shader_exec_math(void *UNUSED(data), bNode *node, bNodeStack **in, 
-bNodeStack **out) 
+static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out) 
 {
 	switch (node->custom1) {
 	
@@ -207,7 +206,7 @@ bNodeStack **out)
 	}
 }
 
-static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	static const char *names[] = {"math_add", "math_subtract", "math_multiply",
 		"math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
@@ -256,18 +255,18 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 	return 1;
 }
 
-void register_node_type_sh_math(bNodeTreeType *ttype)
+void register_node_type_sh_math(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_math_in, sh_node_math_out);
 	node_type_size(&ntype, 120, 110, 160);
 	node_type_label(&ntype, node_math_label);
 	node_type_storage(&ntype, "node_math", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_math);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_math);
 	node_type_gpu(&ntype, gpu_shader_math);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

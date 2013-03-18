@@ -121,7 +121,7 @@ static void init_render_texture(Render *re, Tex *tex)
 	}
 	
 	if (tex->nodetree && tex->use_nodes) {
-		ntreeTexBeginExecTree(tex->nodetree, 1); /* has internal flag to detect it only does it once */
+		ntreeTexBeginExecTree(tex->nodetree); /* has internal flag to detect it only does it once */
 	}
 }
 
@@ -141,7 +141,7 @@ void init_render_textures(Render *re)
 static void end_render_texture(Tex *tex)
 {
 	if (tex && tex->use_nodes && tex->nodetree && tex->nodetree->execdata)
-		ntreeTexEndExecTree(tex->nodetree->execdata, 1);
+		ntreeTexEndExecTree(tex->nodetree->execdata);
 }
 
 void end_render_textures(Render *re)

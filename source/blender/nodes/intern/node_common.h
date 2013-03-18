@@ -37,15 +37,8 @@
 
 struct bNodeTree;
 
-void node_group_init(struct bNodeTree *ntree, struct bNode *node, struct bNodeTemplate *ntemp);
 const char *node_group_label(struct bNode *node);
-struct bNodeTemplate node_group_template(struct bNode *node);
-int node_group_valid(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
-void node_group_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *id);
-
-struct bNodeTree *node_group_edit_get(struct bNode *node);
-struct bNodeTree *node_group_edit_set(struct bNode *node, int edit);
-void node_group_edit_clear(bNode *node);
+int node_group_poll_instance(struct bNode *node, struct bNodeTree *nodetree);
 
 void ntree_update_reroute_nodes(struct bNodeTree *ntree);
 

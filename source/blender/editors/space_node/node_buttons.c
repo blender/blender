@@ -62,7 +62,7 @@ static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	return (snode && snode->nodetree);
+	return (snode && ntreeIsValid(snode->nodetree));
 }
 
 /* poll callback for active node */
@@ -70,7 +70,7 @@ static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	return (snode && snode->edittree && nodeGetActive(snode->edittree));
+	return (snode && ntreeIsValid(snode->edittree) && nodeGetActive(snode->edittree));
 }
 
 /* active node */
@@ -160,6 +160,86 @@ static void node_sockets_panel(const bContext *C, Panel *pa)
 	}
 }
 
+static int node_tree_interface_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	
+	return (snode && snode->edittree && (snode->edittree->inputs.first || snode->edittree->outputs.first));
+}
+
+static int node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock, int *r_in_out)
+{
+	bNodeSocket *sock;
+	for (sock = ntree->inputs.first; sock; sock = sock->next) {
+		if (sock->flag & SELECT) {
+			*r_sock = sock;
+			*r_in_out = SOCK_IN;
+			return TRUE;
+		}
+	}
+	for (sock = ntree->outputs.first; sock; sock = sock->next) {
+		if (sock->flag & SELECT) {
+			*r_sock = sock;
+			*r_in_out = SOCK_OUT;
+			return TRUE;
+		}
+	}
+	
+	*r_sock = NULL;
+	*r_in_out = 0;
+	return FALSE;
+}
+
+static void node_tree_interface_panel(const bContext *C, Panel *pa)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = (snode) ? snode->edittree : NULL;
+	bNodeSocket *sock;
+	int in_out;
+	uiLayout *layout = pa->layout, *row, *split, *col;
+	PointerRNA ptr, sockptr, opptr;
+
+	if (!ntree)
+		return;
+	
+	RNA_id_pointer_create((ID *)ntree, &ptr);
+	
+	node_tree_find_active_socket(ntree, &sock, &in_out);
+	RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, sock, &sockptr);
+	
+	row = uiLayoutRow(layout, FALSE);
+	
+	split = uiLayoutRow(row, TRUE);
+	col = uiLayoutColumn(split, TRUE);
+	uiItemL(col, "Inputs:", ICON_NONE);
+	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "", &ptr, "inputs", &ptr, "active_input", 0, 0, 0);
+	opptr = uiItemFullO(col, "NODE_OT_tree_socket_add", "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "in_out", SOCK_IN);
+	
+	col = uiLayoutColumn(split, TRUE);
+	uiItemL(col, "Outputs:", ICON_NONE);
+	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "", &ptr, "outputs", &ptr, "active_output", 0, 0, 0);
+	opptr = uiItemFullO(col, "NODE_OT_tree_socket_add", "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "in_out", SOCK_OUT);
+	
+	col = uiLayoutColumn(row, TRUE);
+	opptr = uiItemFullO(col, "NODE_OT_tree_socket_move", "", ICON_TRIA_UP, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "direction", 1);
+	opptr = uiItemFullO(col, "NODE_OT_tree_socket_move", "", ICON_TRIA_DOWN, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "direction", 2);
+	
+	if (sock) {
+		row = uiLayoutRow(layout, TRUE);
+		uiItemR(row, &sockptr, "name", 0, NULL, ICON_NONE);
+		uiItemO(row, "", ICON_X, "NODE_OT_tree_socket_remove");
+		
+		if (sock->typeinfo->interface_draw) {
+			uiItemS(layout);
+			sock->typeinfo->interface_draw((bContext *)C, layout, &sockptr);
+		}
+	}
+}
+
 /* ******************* node buttons registration ************** */
 
 void node_buttons_register(ARegionType *art)
@@ -180,7 +260,14 @@ void node_buttons_register(ARegionType *art)
 	pt->poll = node_sockets_poll;
 	pt->flag |= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
-	
+
+	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel tree interface");
+	strcpy(pt->idname, "NODE_PT_node_tree_interface");
+	strcpy(pt->label, "Interface");
+	pt->draw = node_tree_interface_panel;
+	pt->poll = node_tree_interface_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
 	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel gpencil");
 	strcpy(pt->idname, "NODE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");

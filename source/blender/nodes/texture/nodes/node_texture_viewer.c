@@ -42,7 +42,7 @@ static bNodeSocketTemplate outputs[] = {
 	{ -1, 0, "" }
 };
 
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void exec(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *execdata, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	TexCallData *cdata = (TexCallData *)data;
 
@@ -52,21 +52,21 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 		params_from_cdata(&params, cdata);
 
 		tex_input_rgba(col, in[0], &params, cdata->thread);
-		tex_do_preview(node, params.previewco, col);
+		tex_do_preview(execdata->preview, params.previewco, col);
 	}
 }
 
-void register_node_type_tex_viewer(bNodeTreeType *ttype)
+void register_node_type_tex_viewer(void)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	tex_node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size(&ntype, 100, 60, 150);
-	node_type_exec(&ntype, exec);
+	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	/* Do not allow muting viewer node. */
 	node_type_internal_links(&ntype, NULL);
 	
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

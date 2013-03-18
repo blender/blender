@@ -34,87 +34,91 @@
 
 #include "BKE_node.h"
 
-extern struct bNodeTreeType ntreeType_Shader;
+extern struct bNodeTreeType *ntreeType_Shader;
 
 
 /* the type definitions array */
 /* ****************** types array for all shaders ****************** */
 
-void register_node_type_sh_group(struct bNodeTreeType *ttype);
+void register_node_tree_type_sh(void);
 
-void register_node_type_sh_output(struct bNodeTreeType *ttype);
-void register_node_type_sh_material(struct bNodeTreeType *ttype);
-void register_node_type_sh_camera(struct bNodeTreeType *ttype);
-void register_node_type_sh_value(struct bNodeTreeType *ttype);
-void register_node_type_sh_rgb(struct bNodeTreeType *ttype);
-void register_node_type_sh_mix_rgb(struct bNodeTreeType *ttype);
-void register_node_type_sh_valtorgb(struct bNodeTreeType *ttype);
-void register_node_type_sh_rgbtobw(struct bNodeTreeType *ttype);
-void register_node_type_sh_texture(struct bNodeTreeType *ttype);
-void register_node_type_sh_normal(struct bNodeTreeType *ttype);
-void register_node_type_sh_gamma(struct bNodeTreeType *ttype);
-void register_node_type_sh_brightcontrast(struct bNodeTreeType *ttype);
-void register_node_type_sh_geom(struct bNodeTreeType *ttype);
-void register_node_type_sh_mapping(struct bNodeTreeType *ttype);
-void register_node_type_sh_curve_vec(struct bNodeTreeType *ttype);
-void register_node_type_sh_curve_rgb(struct bNodeTreeType *ttype);
-void register_node_type_sh_math(struct bNodeTreeType *ttype);
-void register_node_type_sh_vect_math(struct bNodeTreeType *ttype);
-void register_node_type_sh_squeeze(struct bNodeTreeType *ttype);
-void register_node_type_sh_dynamic(struct bNodeTreeType *ttype);
-void register_node_type_sh_material_ext(struct bNodeTreeType *ttype);
-void register_node_type_sh_invert(struct bNodeTreeType *ttype);
-void register_node_type_sh_seprgb(struct bNodeTreeType *ttype);
-void register_node_type_sh_combrgb(struct bNodeTreeType *ttype);
-void register_node_type_sh_hue_sat(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_brick(struct bNodeTreeType *ttype);
+void register_node_type_sh_group(void);
+void register_node_type_sh_forloop(void);
+void register_node_type_sh_whileloop(void);
 
-void register_node_type_sh_attribute(struct bNodeTreeType *ttype);
-void register_node_type_sh_geometry(struct bNodeTreeType *ttype);
-void register_node_type_sh_light_path(struct bNodeTreeType *ttype);
-void register_node_type_sh_light_falloff(struct bNodeTreeType *ttype);
-void register_node_type_sh_object_info(struct bNodeTreeType *ttype);
-void register_node_type_sh_fresnel(struct bNodeTreeType *ttype);
-void register_node_type_sh_layer_weight(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_coord(struct bNodeTreeType *ttype);
-void register_node_type_sh_particle_info(struct bNodeTreeType *ttype);
-void register_node_type_sh_hair_info(struct bNodeTreeType *ttype);
-void register_node_type_sh_script(struct bNodeTreeType *ttype);
-void register_node_type_sh_normal_map(struct bNodeTreeType *ttype);
-void register_node_type_sh_tangent(struct bNodeTreeType *ttype);
+void register_node_type_sh_output(void);
+void register_node_type_sh_material(void);
+void register_node_type_sh_camera(void);
+void register_node_type_sh_value(void);
+void register_node_type_sh_rgb(void);
+void register_node_type_sh_mix_rgb(void);
+void register_node_type_sh_valtorgb(void);
+void register_node_type_sh_rgbtobw(void);
+void register_node_type_sh_texture(void);
+void register_node_type_sh_normal(void);
+void register_node_type_sh_gamma(void);
+void register_node_type_sh_brightcontrast(void);
+void register_node_type_sh_geom(void);
+void register_node_type_sh_mapping(void);
+void register_node_type_sh_curve_vec(void);
+void register_node_type_sh_curve_rgb(void);
+void register_node_type_sh_math(void);
+void register_node_type_sh_vect_math(void);
+void register_node_type_sh_squeeze(void);
+void register_node_type_sh_dynamic(void);
+void register_node_type_sh_material_ext(void);
+void register_node_type_sh_invert(void);
+void register_node_type_sh_seprgb(void);
+void register_node_type_sh_combrgb(void);
+void register_node_type_sh_hue_sat(void);
+void register_node_type_sh_tex_brick(void);
 
-void register_node_type_sh_ambient_occlusion(struct bNodeTreeType *ttype);
-void register_node_type_sh_background(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_diffuse(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_glossy(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_glass(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_refraction(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_translucent(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_transparent(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_velvet(struct bNodeTreeType *ttype);
-void register_node_type_sh_bsdf_anisotropic(struct bNodeTreeType *ttype);
-void register_node_type_sh_emission(struct bNodeTreeType *ttype);
-void register_node_type_sh_holdout(struct bNodeTreeType *ttype);
-void register_node_type_sh_volume_transparent(struct bNodeTreeType *ttype);
-void register_node_type_sh_volume_isotropic(struct bNodeTreeType *ttype);
-void register_node_type_sh_mix_shader(struct bNodeTreeType *ttype);
-void register_node_type_sh_add_shader(struct bNodeTreeType *ttype);
+void register_node_type_sh_attribute(void);
+void register_node_type_sh_geometry(void);
+void register_node_type_sh_light_path(void);
+void register_node_type_sh_light_falloff(void);
+void register_node_type_sh_object_info(void);
+void register_node_type_sh_fresnel(void);
+void register_node_type_sh_layer_weight(void);
+void register_node_type_sh_tex_coord(void);
+void register_node_type_sh_particle_info(void);
+void register_node_type_sh_hair_info(void);
+void register_node_type_sh_script(void);
+void register_node_type_sh_normal_map(void);
+void register_node_type_sh_tangent(void);
 
-void register_node_type_sh_output_lamp(struct bNodeTreeType *ttype);
-void register_node_type_sh_output_material(struct bNodeTreeType *ttype);
-void register_node_type_sh_output_world(struct bNodeTreeType *ttype);
+void register_node_type_sh_ambient_occlusion(void);
+void register_node_type_sh_background(void);
+void register_node_type_sh_bsdf_diffuse(void);
+void register_node_type_sh_bsdf_glossy(void);
+void register_node_type_sh_bsdf_glass(void);
+void register_node_type_sh_bsdf_refraction(void);
+void register_node_type_sh_bsdf_translucent(void);
+void register_node_type_sh_bsdf_transparent(void);
+void register_node_type_sh_bsdf_velvet(void);
+void register_node_type_sh_bsdf_anisotropic(void);
+void register_node_type_sh_emission(void);
+void register_node_type_sh_holdout(void);
+void register_node_type_sh_volume_transparent(void);
+void register_node_type_sh_volume_isotropic(void);
+void register_node_type_sh_mix_shader(void);
+void register_node_type_sh_add_shader(void);
 
-void register_node_type_sh_tex_image(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_environment(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_sky(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_voronoi(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_gradient(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_magic(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_wave(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_musgrave(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_noise(struct bNodeTreeType *ttype);
-void register_node_type_sh_tex_checker(struct bNodeTreeType *ttype);
-void register_node_type_sh_bump(struct bNodeTreeType *ttype);
+void register_node_type_sh_output_lamp(void);
+void register_node_type_sh_output_material(void);
+void register_node_type_sh_output_world(void);
+
+void register_node_type_sh_tex_image(void);
+void register_node_type_sh_tex_environment(void);
+void register_node_type_sh_tex_sky(void);
+void register_node_type_sh_tex_voronoi(void);
+void register_node_type_sh_tex_gradient(void);
+void register_node_type_sh_tex_magic(void);
+void register_node_type_sh_tex_wave(void);
+void register_node_type_sh_tex_musgrave(void);
+void register_node_type_sh_tex_noise(void);
+void register_node_type_sh_tex_checker(void);
+void register_node_type_sh_bump(void);
 
 #endif
 

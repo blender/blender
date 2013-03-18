@@ -69,27 +69,27 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float *hue, float *s
 	}
 }
 
-static void node_shader_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_hue_sat(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {	
 	do_hue_sat_fac(node, out[0]->vec, in[0]->vec, in[1]->vec, in[2]->vec, in[4]->vec, in[3]->vec);
 }
 
 
-static int gpu_shader_hue_sat(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_hue_sat(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "hue_sat", in, out);
 }
 
-void register_node_type_sh_hue_sat(bNodeTreeType *ttype)
+void register_node_type_sh_hue_sat(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_hue_sat_in, sh_node_hue_sat_out);
 	node_type_size(&ntype, 150, 80, 250);
-	node_type_exec(&ntype, node_shader_exec_hue_sat);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_hue_sat);
 	node_type_gpu(&ntype, gpu_shader_hue_sat);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

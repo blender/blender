@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/makesrna/intern/rna_nodetree_types.h
- *  \ingroup RNA
+/** \file blender/makesrna/intern/NOD_static_types.h
+ *  \ingroup nodes
  */
 
 /* intentionally no include guard */
@@ -34,6 +34,12 @@
 /* WARNING! If you edit those strings, please do the same in relevant nodes files (under blender/nodes/...)! */
 
 /*       Tree type       Node ID                  RNA def function        Enum name         Struct name       UI Name              UI Description */
+DefNode( Node,           NODE_FRAME,              def_frame,              "FRAME",          Frame,            "Frame",             ""              )
+DefNode( Node,           NODE_GROUP,              def_group,              "GROUP",          Group,            "Group",             ""              )
+DefNode( Node,           NODE_GROUP_INPUT,        def_group_input,        "GROUP_INPUT",    GroupInput,       "Group Input",       ""              )
+DefNode( Node,           NODE_GROUP_OUTPUT,       def_group_output,       "GROUP_OUTPUT",   GroupOutput,      "Group Output",      ""              )
+DefNode( Node,           NODE_REROUTE,            0,                      "REROUTE",        Reroute,          "Reroute",           ""              )
+
 DefNode( ShaderNode,     SH_NODE_OUTPUT,          0,                      "OUTPUT",         Output,           "Output",            ""              )
 DefNode( ShaderNode,     SH_NODE_MATERIAL,        def_sh_material,        "MATERIAL",       Material,         "Material",          ""              )
 DefNode( ShaderNode,     SH_NODE_RGB,             0,                      "RGB",            RGB,              "RGB",               ""              )
@@ -186,7 +192,7 @@ DefNode( CompositorNode, CMP_NODE_KEYINGSCREEN,   def_cmp_keyingscreen,   "KEYIN
 DefNode( CompositorNode, CMP_NODE_KEYING,         def_cmp_keying,         "KEYING",         Keying,           "Keying",            ""              )
 DefNode( CompositorNode, CMP_NODE_TRACKPOS,       def_cmp_trackpos,       "TRACKPOS",       TrackPos,         "Track Position",    ""              )
 DefNode( CompositorNode, CMP_NODE_PIXELATE,       0,                      "PIXELATE",       Pixelate,         "Pixelate",          ""              )
-                                                                                                                                                   
+
 DefNode( TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode( TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )
 DefNode( TextureNode,    TEX_NODE_TEXTURE,        def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
@@ -209,6 +215,18 @@ DefNode( TextureNode,    TEX_NODE_COMPOSE,        0,                      "COMPO
 DefNode( TextureNode,    TEX_NODE_DECOMPOSE,      0,                      "DECOMPOSE",      Decompose,        "Separate RGBA",     ""              )
 DefNode( TextureNode,    TEX_NODE_VALTONOR,       0,                      "VALTONOR",       ValToNor,         "Value to Normal",   ""              )
 DefNode( TextureNode,    TEX_NODE_SCALE,          0,                      "SCALE",          Scale,            "Scale",             ""              )
+DefNode( TextureNode,    TEX_NODE_AT,             0,                      "AT",             At,               "At",                ""              )
+/* procedural textures */
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_VORONOI, 0,                    "TEX_VORONOI",    TexVoronoi,       "Voronoi",           ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_BLEND, 0,                      "TEX_BLEND",      TexBlend,         "Blend",             ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_MAGIC, 0,                      "TEX_MAGIC",      TexMagic,         "Magic",             ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_MARBLE, 0,                     "TEX_MARBLE",     TexMarble,        "Marble",            ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_CLOUDS, 0,                     "TEX_CLOUDS",     TexClouds,        "Clouds",            ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_WOOD, 0,                       "TEX_WOOD",       TexWood,          "Wood",              ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_MUSGRAVE, 0,                   "TEX_MUSGRAVE",   TexMusgrave,      "Musgrave",          ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_NOISE, 0,                      "TEX_NOISE",      TexNoise,         "Noise",             ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_STUCCI, 0,                     "TEX_STUCCI",     TexStucci,        "Stucci",            ""              )
+DefNode( TextureNode,    TEX_NODE_PROC+TEX_DISTNOISE, 0,                  "TEX_DISTNOISE",  TexDistNoise,     "Distorted Noise",   ""              )
 
 
 /* undefine macros */

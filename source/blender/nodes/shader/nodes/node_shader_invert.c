@@ -46,7 +46,7 @@ static bNodeSocketTemplate sh_node_invert_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_shader_exec_invert(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, 
+static void node_shader_exec_invert(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, 
 bNodeStack **out) 
 {
 	float col[3], facm;
@@ -67,21 +67,21 @@ bNodeStack **out)
 	copy_v3_v3(out[0]->vec, col);
 }
 
-static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "invert", in, out);
 }
 
-void register_node_type_sh_invert(bNodeTreeType *ttype)
+void register_node_type_sh_invert(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_invert_in, sh_node_invert_out);
 	node_type_size(&ntype, 90, 80, 100);
-	node_type_exec(&ntype, node_shader_exec_invert);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_invert);
 	node_type_gpu(&ntype, gpu_shader_invert);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

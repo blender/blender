@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_tex_environment_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
 	default_tex_mapping(&tex->base.tex_mapping);
@@ -56,7 +56,7 @@ static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *no
 	node->storage = tex;
 }
 
-static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
@@ -88,18 +88,17 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 }
 
 /* node type definition */
-void register_node_type_sh_tex_environment(bNodeTreeType *ttype)
+void register_node_type_sh_tex_environment(void)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_environment_in, sh_node_tex_environment_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_tex_environment);
 	node_type_storage(&ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_tex_environment);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

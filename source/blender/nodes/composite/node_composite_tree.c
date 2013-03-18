@@ -44,6 +44,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -64,14 +65,17 @@
 	#include "COM_compositor.h"
 #endif
 
-static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
+static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
-	Scene *sce;
-	for (sce= main->scene.first; sce; sce= sce->id.next) {
-		if (sce->nodetree) {
-			func(calldata, &sce->id, sce->nodetree);
-		}
-	}
+	Scene *scene = CTX_data_scene(C);
+	
+	*r_from = NULL;
+	*r_id = &scene->id;
+	*r_ntree = scene->nodetree;
+	
+	/* update output sockets based on available layers */
+	ntreeCompositForceHidden(scene->nodetree, scene);
+	
 }
 
 static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
@@ -85,6 +89,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 	func(calldata, NODE_CLASS_MATTE, N_("Matte"));
 	func(calldata, NODE_CLASS_DISTORT, N_("Distort"));
 	func(calldata, NODE_CLASS_GROUP, N_("Group"));
+	func(calldata, NODE_CLASS_INTERFACE, N_("Interface"));
 	func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
@@ -102,24 +107,8 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 static void free_cache(bNodeTree *ntree)
 {
 	bNode *node;
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		free_node_cache(ntree, node);
-}
-
-static void update_node(bNodeTree *ntree, bNode *node)
-{
-	bNodeSocket *sock;
-
-	for (sock= node->outputs.first; sock; sock= sock->next) {
-		if (sock->cache) {
-			//free_compbuf(sock->cache);
-			//sock->cache= NULL;
-		}
-	}
-	node->need_exec= 1;
-	/* individual node update call */
-	if (node->typeinfo->updatefunc)
-		node->typeinfo->updatefunc(ntree, node);
 }
 
 /* local tree then owns all compbufs */
@@ -128,7 +117,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	bNode *node, *node_next;
 	bNodeSocket *sock;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
 		node->new_node->original = node;
@@ -145,16 +134,6 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 			}
 		}
 		
-		/* copy over the preview buffers to update graduatly */
-		if (node->preview) {
-			bNodePreview *preview = MEM_callocN(sizeof(bNodePreview), "Preview");
-			preview->pad = node->preview->pad;
-			preview->xsize = node->preview->xsize;
-			preview->ysize = node->preview->ysize;
-			preview->rect = MEM_dupallocN(node->preview->rect);
-			node->new_node->preview = preview;
-		}
-		
 		for (sock= node->outputs.first; sock; sock= sock->next) {
 			sock->new_sock->cache= sock->cache;
 			sock->cache= NULL;
@@ -163,7 +142,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	}
 	
 	/* replace muted nodes and reroute nodes by internal links */
-	for (node= localtree->nodes.first; node; node= node_next) {
+	for (node = localtree->nodes.first; node; node = node_next) {
 		node_next = node->next;
 		
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
@@ -183,24 +162,8 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	}
 }
 
-static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
+static void local_sync(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
 {
-	bNode *lnode;
-	
-	/* move over the compbufs and previews */
-	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		if ( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
-			if (ntreeNodeExists(ntree, lnode->new_node)) {
-				
-				if (lnode->preview && lnode->preview->rect) {
-					nodeFreePreview(lnode->new_node);
-					lnode->new_node->preview= lnode->preview;
-					lnode->preview= NULL;
-				}
-				
-			}
-		}
-	}
 }
 
 static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
@@ -245,27 +208,38 @@ static void update(bNodeTree *ntree)
 	ntreeSetOutput(ntree);
 	
 	ntree_update_reroute_nodes(ntree);
+	
+	if (ntree->update & NTREE_UPDATE_NODES) {
+		/* clean up preview cache, in case nodes have been removed */
+		BKE_node_preview_remove_unused(ntree);
+	}
 }
 
-bNodeTreeType ntreeType_Composite = {
-	/* type */				NTREE_COMPOSIT,
-	/* idname */			"NTCompositing Nodetree",
-	
-	/* node_types */		{ NULL, NULL },
-	
-	/* free_cache */		free_cache,
-	/* free_node_cache */	free_node_cache,
-	/* foreach_nodetree */	foreach_nodetree,
-	/* foreach_nodeclass */	foreach_nodeclass,
-	/* localize */			localize,
-	/* local_sync */		local_sync,
-	/* local_merge */		local_merge,
-	/* update */			update,
-	/* update_node */		update_node,
-	/* validate_link */		NULL,
-	/* update_internal_links */	node_update_internal_links_default
-};
+bNodeTreeType *ntreeType_Composite;
 
+void register_node_tree_type_cmp(void)
+{
+	bNodeTreeType *tt = ntreeType_Composite = MEM_callocN(sizeof(bNodeTreeType), "compositor node tree type");
+	
+	tt->type = NTREE_COMPOSIT;
+	strcpy(tt->idname, "CompositorNodeTree");
+	strcpy(tt->ui_name, "Compositing");
+	tt->ui_icon = 0;	/* defined in drawnode.c */
+	strcpy(tt->ui_description, "");
+	
+	tt->free_cache = free_cache;
+	tt->free_node_cache = free_node_cache;
+	tt->foreach_nodeclass = foreach_nodeclass;
+	tt->localize = localize;
+	tt->local_sync = local_sync;
+	tt->local_merge = local_merge;
+	tt->update = update;
+	tt->get_from_context = composite_get_from_context;
+	
+	tt->ext.srna = &RNA_CompositorNodeTree;
+	
+	ntreeTypeAdd(tt);
+}
 
 void *COM_linker_hack = NULL;
 

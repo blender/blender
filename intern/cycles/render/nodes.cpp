@@ -1242,15 +1242,14 @@ void ConvertNode::compile(OSLCompiler& compiler)
 
 /* Proxy */
 
-ProxyNode::ProxyNode(ShaderSocketType from_, ShaderSocketType to_)
+ProxyNode::ProxyNode(ShaderSocketType type_)
 : ShaderNode("proxy")
 {
-	from = from_;
-	to = to_;
+	type = type_;
 	special_type = SHADER_SPECIAL_TYPE_PROXY;
 
-	add_input("Input", from);
-	add_output("Output", to);
+	add_input("Input", type);
+	add_output("Output", type);
 }
 
 void ProxyNode::compile(SVMCompiler& compiler)

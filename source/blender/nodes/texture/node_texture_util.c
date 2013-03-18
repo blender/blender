@@ -49,13 +49,28 @@
 #include <assert.h>
 #include "node_texture_util.h"
 
+
+int tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+{
+	return (strcmp(ntree->idname, "TextureNodeTree")==0);
+}
+
+void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
+{
+	node_type_base(ntype, type, name, nclass, flag);
+	
+	ntype->poll = tex_node_poll_default;
+	ntype->update_internal_links = node_update_internal_links_default;
+}
+
+
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
 	if (dg->node->need_exec) {
 		dg->fn(out, params, dg->node, dg->in, thread);
 
 		if (dg->cdata->do_preview)
-			tex_do_preview(dg->node, params->previewco, out);
+			tex_do_preview(dg->preview, params->previewco, out);
 	}
 }
 
@@ -112,19 +127,17 @@ void params_from_cdata(TexParams *out, TexCallData *in)
 	out->mtex = in->mtex;
 }
 
-void tex_do_preview(bNode *node, const float coord[2], const float col[4])
+void tex_do_preview(bNodePreview *preview, const float coord[2], const float col[4])
 {
-	bNodePreview *preview = node->preview;
-
 	if (preview) {
 		int xs = ((coord[0] + 1.0f) * 0.5f) * preview->xsize;
 		int ys = ((coord[1] + 1.0f) * 0.5f) * preview->ysize;
-
-		nodeAddToPreview(node, col, xs, ys, 0); /* 0 = no color management */
+		
+		BKE_node_preview_set_pixel(preview, col, xs, ys, 0); /* 0 = no color management */
 	}
 }
 
-void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
+void tex_output(bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
 {
 	TexDelegate *dg;
 	if (!out->data)
@@ -136,6 +149,7 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexC
 	dg->cdata = cdata;
 	dg->fn = texfn;
 	dg->node = node;
+	dg->preview = execdata->preview;
 	memcpy(dg->in, in, MAX_SOCKET * sizeof(bNodeStack *));
 	dg->type = out->sockettype;
 }
