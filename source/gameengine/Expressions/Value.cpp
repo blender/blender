@@ -18,6 +18,7 @@
  *
  */
 #include "Value.h"
+#include "BoolValue.h"
 #include "FloatValue.h"
 #include "IntValue.h"
 #include "VectorValue.h"
@@ -573,6 +574,11 @@ CValue* CValue::ConvertPythonToValue(PyObject *pyobj, const char *error_prefix)
 
 	} else
 #endif
+	/* note: Boolean check should go before Int check [#34677] */
+	if (PyBool_Check(pyobj))
+	{
+		vallie = new CBoolValue( (bool)PyLong_AsLongLong(pyobj) );
+	} else
 	if (PyFloat_Check(pyobj))
 	{
 		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
