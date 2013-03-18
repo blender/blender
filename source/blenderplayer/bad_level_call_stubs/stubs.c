@@ -471,6 +471,7 @@ void uiTemplateImageSettings(struct uiLayout *layout, struct PointerRNA *imfptr)
 void uiTemplateColorspaceSettings(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {}
 void uiTemplateColormanagedViewSettings(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int show_global_settings) {}
 void uiTemplateComponentMenu(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name){}
+void uiTemplateNodeSocket(struct uiLayout *layout, struct bContext *C, float *color) {}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h) {return (struct RenderResult *) NULL;}
