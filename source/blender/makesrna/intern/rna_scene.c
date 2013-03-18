@@ -2632,7 +2632,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ticrate");
 	RNA_def_property_ui_range(prop, 1, 60, 1, 1);
-	RNA_def_property_range(prop, 1, 250);
+	RNA_def_property_range(prop, 1, 10000);
 	RNA_def_property_ui_text(prop, "Frames Per Second",
 	                         "Nominal number of game frames per second "
 	                         "(physics fixed timestep = 1/fps, independently of actual frame rate)");
