@@ -176,9 +176,9 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 	
 	dstweight = 1.0F - srcweight;
 
-	for (it=m_blendshape.begin(), kb = (KeyBlock*)key->block.first; 
+	for (it=m_blendshape.begin(), kb = (KeyBlock *)key->block.first; 
 	     kb && it != m_blendshape.end();
-	     kb = (KeyBlock*)kb->next, it++)
+	     kb = (KeyBlock *)kb->next, it++)
 	{
 		kb->curval = kb->curval * dstweight + (*it) * srcweight;
 	}
@@ -439,7 +439,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 				KeyBlock *kb;
 				// We go through and clear out the keyblocks so there isn't any interference
 				// from other shape actions
-				for (kb=(KeyBlock*)key->block.first; kb; kb=(KeyBlock*)kb->next)
+				for (kb=(KeyBlock *)key->block.first; kb; kb=(KeyBlock *)kb->next)
 					kb->curval = 0.f;
 
 				animsys_evaluate_action(m_idptr, m_action, NULL, m_localtime);

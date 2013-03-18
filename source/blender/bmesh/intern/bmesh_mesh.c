@@ -756,7 +756,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
 			if (vptr_map) {
 /*				printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void *)ed->v1));*/
-/*				printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void* )ed->v2));*/
+/*				printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void *)ed->v2));*/
 				ed->v1 = BLI_ghash_lookup(vptr_map, (const void *)ed->v1);
 				ed->v2 = BLI_ghash_lookup(vptr_map, (const void *)ed->v2);
 			}

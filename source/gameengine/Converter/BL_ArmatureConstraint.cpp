@@ -130,10 +130,10 @@ void BL_ArmatureConstraint::ReParent(BL_ArmatureObject* armature)
 		m_constraint = NULL;
 		m_posechannel = NULL;
 		// and locate the constraint
-		for (pchan = (bPoseChannel*)newpose->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
+		for (pchan = (bPoseChannel*)newpose->chanbase.first; pchan; pchan = (bPoseChannel*)pchan->next) {
 			if (!strcmp(pchan->name, posechannel)) {
 				// now locate the constraint
-				for (pcon = (bConstraint*)pchan->constraints.first; pcon; pcon=(bConstraint*)pcon->next) {
+				for (pcon = (bConstraint *)pchan->constraints.first; pcon; pcon = (bConstraint *)pcon->next) {
 					if (!strcmp(pcon->name, constraint)) {
 						m_constraint = pcon;
 						m_posechannel = pchan;

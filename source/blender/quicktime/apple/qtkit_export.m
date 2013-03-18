@@ -295,8 +295,8 @@ static OSStatus AudioConverterInputCallback(AudioConverterRef inAudioConverter,
 	
 	qtexport->audioTotalExportedFrames += *ioNumberDataPackets;
 	
-	AUD_readDevice(qtexport->audioInputDevice, (UInt8*)qtexport->audioInputBuffer, 
-				   qtexport->audioInputFormat.mFramesPerPacket * *ioNumberDataPackets);
+	AUD_readDevice(qtexport->audioInputDevice, (UInt8 *)qtexport->audioInputBuffer,
+	               qtexport->audioInputFormat.mFramesPerPacket * *ioNumberDataPackets);
 	
 	ioData->mBuffers[0].mDataByteSize = qtexport->audioInputFormat.mBytesPerPacket * *ioNumberDataPackets;
 	ioData->mBuffers[0].mData = qtexport->audioInputBuffer;
@@ -357,7 +357,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 
 			tmpnam(name);
 			strcat(name, extension);
-			outputFileURL = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault,(UInt8*) name, strlen(name), false);
+			outputFileURL = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault,(UInt8 *)name, strlen(name), false);
 			
 			if (outputFileURL) {
 				

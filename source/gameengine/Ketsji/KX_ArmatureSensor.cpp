@@ -80,7 +80,7 @@ void KX_ArmatureSensor::FindConstraint()
 		for (pchan = (bPoseChannel*)pose->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
 			if (!strcmp(pchan->name, m_posechannel)) {
 				// now locate the constraint
-				for (pcon = (bConstraint*)pchan->constraints.first; pcon; pcon=(bConstraint*)pcon->next) {
+				for (pcon = (bConstraint *)pchan->constraints.first; pcon; pcon = (bConstraint *)pcon->next) {
 					if (!strcmp(pcon->name, m_constraintname)) {
 						if (pcon->flag & CONSTRAINT_DISABLE)
 							/* this constraint is not valid, can't use it */

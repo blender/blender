@@ -115,7 +115,7 @@ RAS_MeshObject::RAS_MeshObject(Mesh* mesh)
 		int count=0;
 		// initialize weight cache for shape objects
 		// count how many keys in this mesh
-		for (kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next)
+		for (kb= (KeyBlock *)m_mesh->key->block.first; kb; kb= (KeyBlock *)kb->next)
 			count++;
 		m_cacheWeightIndex.resize(count,-1);
 	}
@@ -129,7 +129,7 @@ RAS_MeshObject::~RAS_MeshObject()
 	{
 		KeyBlock *kb;
 		// remove the weight cache to avoid memory leak 
-		for (kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next) {
+		for (kb = (KeyBlock *)m_mesh->key->block.first; kb; kb = (KeyBlock *)kb->next) {
 			if (kb->weights) 
 				MEM_freeN(kb->weights);
 			kb->weights= NULL;

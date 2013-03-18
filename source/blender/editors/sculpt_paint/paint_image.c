@@ -614,8 +614,8 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL,
-				 "Paint Stroke Mode",
-				 "Action taken when a paint stroke is made");
+	             "Paint Stroke Mode",
+	             "Action taken when a paint stroke is made");
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

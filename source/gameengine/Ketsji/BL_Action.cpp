@@ -239,7 +239,7 @@ bool BL_Action::Play(const char* name,
 			// Now that we have the previous blend shape saved, we can clear out the key to avoid any
 			// further interference.
 			KeyBlock *kb;
-			for (kb=(KeyBlock*)shape_deformer->GetKey()->block.first; kb; kb=(KeyBlock*)kb->next)
+			for (kb=(KeyBlock *)shape_deformer->GetKey()->block.first; kb; kb=(KeyBlock *)kb->next)
 				kb->curval = 0.f;
 		}
 	}
@@ -358,9 +358,9 @@ void BL_Action::BlendShape(Key* key, float srcweight, std::vector<float>& blends
 	
 	dstweight = 1.0F - srcweight;
 	//printf("Dst: %f\tSrc: %f\n", srcweight, dstweight);
-	for (it=blendshape.begin(), kb = (KeyBlock*)key->block.first; 
+	for (it=blendshape.begin(), kb = (KeyBlock *)key->block.first; 
 	     kb && it != blendshape.end();
-	     kb = (KeyBlock*)kb->next, it++)
+	     kb = (KeyBlock *)kb->next, it++)
 	{
 		//printf("OirgKeys: %f\t%f\n", kb->curval, (*it));
 		kb->curval = kb->curval * dstweight + (*it) * srcweight;
@@ -478,7 +478,7 @@ void BL_Action::Update(float curtime)
 				// We go through and clear out the keyblocks so there isn't any interference
 				// from other shape actions
 				KeyBlock *kb;
-				for (kb=(KeyBlock*)key->block.first; kb; kb=(KeyBlock*)kb->next)
+				for (kb=(KeyBlock *)key->block.first; kb; kb=(KeyBlock *)kb->next)
 					kb->curval = 0.f;
 
 				// Now blend the shape

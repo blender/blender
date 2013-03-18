@@ -170,7 +170,7 @@ bool Armature::popQ(CacheTS timestamp)
 {
 	if (m_qCCh >= 0) {
 		double* item;
-		item = (double*)m_cache->getPreviousCacheItem(this, m_qCCh, &timestamp);
+		item = (double *)m_cache->getPreviousCacheItem(this, m_qCCh, &timestamp);
 		if (item && m_qCTs != timestamp) {
 			double* q = m_qKdl(0);
 			memcpy(q, item, m_qKdl.rows()*sizeof(double));
@@ -698,8 +698,8 @@ void Armature::updateControlOutput(const Timestamp& timestamp)
 		JointConstraint_struct* pConstraint = *it;
 		unsigned int nr, i;
 		for (i=0, nr = pConstraint->segment->second.q_nr; i<pConstraint->v_nr; i++, nr++) {
-			*(double*)&pConstraint->value[i].y = m_qKdl[nr];
-			*(double*)&pConstraint->value[i].ydot = m_qdotKdl[nr];
+			*(double *)&pConstraint->value[i].y = m_qKdl[nr];
+			*(double *)&pConstraint->value[i].ydot = m_qdotKdl[nr];
 		}
 		if (pConstraint->function && (pConstraint->substep || (!timestamp.reiterate && !timestamp.substep))) {
 			(*pConstraint->function)(timestamp, pConstraint->values, pConstraint->v_nr, pConstraint->param);
