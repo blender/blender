@@ -476,8 +476,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         split = layout.split()
         
         col = split.column()
-        col.active = file_format not in ('AVI_JPEG', 'AVI_RAW', 'FRAMESERVER', 'H264', 'FFMPEG',
-                                        'THEORA', 'QUICKTIME_QTKIT', 'QUICKTIME_CARBON', 'XVID')
+        col.active = not rd.is_movie_format
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
         
