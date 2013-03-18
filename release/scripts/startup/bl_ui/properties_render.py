@@ -473,10 +473,15 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         layout.prop(rd, "filepath", text="")
 
-        flow = layout.column_flow()
-        flow.prop(rd, "use_overwrite")
-        flow.prop(rd, "use_placeholder")
-        flow.prop(rd, "use_file_extension")
+        split = layout.split()
+        
+        col = split.column()
+        col.active = file_format not in ('AVI_JPEG', 'AVI_RAW', 'FRAMESERVER', 'H264', 'FFMPEG',
+                                        'THEORA', 'QUICKTIME_QTKIT', 'QUICKTIME_CARBON', 'XVID')
+        col.prop(rd, "use_overwrite")
+        col.prop(rd, "use_placeholder")
+        
+        split.prop(rd, "use_file_extension")
 
         layout.template_image_settings(image_settings, color_management=False)
 
