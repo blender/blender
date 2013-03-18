@@ -767,7 +767,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		const unsigned char tcol[4] = {wcol->outline[0],
 		                               wcol->outline[1],
 		                               wcol->outline[2],
-		                               UCHAR_MAX / WIDGET_AA_JITTER};
+		                               wcol->outline[3] / WIDGET_AA_JITTER};
 
 		widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
 
@@ -1184,7 +1184,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 				
 				but->drawstr[selend_tmp] = ch;
 
-				glColor3ubv((unsigned char *)wcol->item);
+				glColor4ubv((unsigned char *)wcol->item);
 				glRects(rect->xmin + selsta_draw, rect->ymin + 2, rect->xmin + selwidth_draw, rect->ymax - 2);
 			}
 		}
@@ -1224,7 +1224,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		}
 	}
 	
-	glColor3ubv((unsigned char *)wcol->text);
+	glColor4ubv((unsigned char *)wcol->text);
 
 	uiStyleFontDrawExt(fstyle, rect, but->drawstr + but->ofs, &font_xofs, &font_yofs);
 
@@ -1272,6 +1272,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
+	float alpha = (float)wcol->text[3] / 255.0;
 	char password_str[UI_MAX_DRAW_STR];
 
 	if (but == NULL)
@@ -1311,12 +1312,12 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 				dualset = UI_BITBUT_TEST(*(((int *)but->poin) + 1), but->bitnr);
 			}
 
-			widget_draw_icon(but, ICON_DOT, dualset ? 1.0f : 0.25f, rect);
+			widget_draw_icon(but, ICON_DOT, dualset ? alpha : 0.25f, rect);
 		}
 		else if (but->type == MENU && (but->flag & UI_BUT_NODE_LINK)) {
 			int tmp = rect->xmin;
 			rect->xmin = rect->xmax - BLI_rcti_size_y(rect) - 1;
-			widget_draw_icon(but, ICON_LAYER_USED, 1.0f, rect);
+			widget_draw_icon(but, ICON_LAYER_USED, alpha, rect);
 			rect->xmin = tmp;
 		}
 
@@ -1324,7 +1325,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		 * and offset the text label to accommodate it */
 
 		if (but->flag & UI_HAS_ICON) {
-			widget_draw_icon(but, but->icon + but->iconadd, 1.0f, rect);
+			widget_draw_icon(but, but->icon + but->iconadd, alpha, rect);
 			
 			/* icons default draw 0.8f x height */
 			rect->xmin += (int)(0.8f * BLI_rcti_size_y(rect));
@@ -1342,7 +1343,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			rcti temp = *rect;
 			
 			temp.xmin = temp.xmax - BLI_rcti_size_y(rect);
-			widget_draw_icon(but, ICON_X, 1.0f, &temp);
+			widget_draw_icon(but, ICON_X, alpha, &temp);
 		}
 
 		/* always draw text for textbutton cursor */
@@ -1379,12 +1380,12 @@ static struct uiWidgetStateColors wcol_state_colors = {
 };
 
 /* uiWidgetColors
- *     float outline[3];
- *     float inner[4];
- *     float inner_sel[4];
- *     float item[3];
- *     float text[3];
- *     float text_sel[3];
+ *     char outline[3];
+ *     char inner[4];
+ *     char inner_sel[4];
+ *     char item[3];
+ *     char text[3];
+ *     char text_sel[3];
  *     
  *     short shaded;
  *     float shadetop, shadedown;
@@ -2873,12 +2874,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
-	
-	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
-	 * over the top to indicate disabled buttons */
-	/* XXX, this doesnt work right since the color applies to buttons outside the box too. */
-	glClearColor(wcol->inner[0] / 255.0, wcol->inner[1] / 255.0, wcol->inner[2] / 255.0, 1.0);
-	
+		
 	copy_v3_v3_char(wcol->inner, old_col);
 }
 
@@ -2939,24 +2935,6 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	wtb.inner = 0;
 	widgetbase_draw(&wtb, &wt->wcol);
 	
-}
-
-
-static void widget_disabled(const rcti *rect)
-{
-	float col[4];
-	
-	glEnable(GL_BLEND);
-	
-	/* can't use theme TH_BACK or TH_PANEL... undefined */
-	glGetFloatv(GL_COLOR_CLEAR_VALUE, col);
-	glColor4f(col[0], col[1], col[2], 0.5f);
-
-	/* need -1 and +1 to make it work right for aligned buttons,
-	 * but problem may be somewhere else? */
-	glRectf(rect->xmin - 1, rect->ymin - 1, rect->xmax, rect->ymax + 1);
-	
-	glDisable(GL_BLEND);
 }
 
 static uiWidgetType *widget_type(uiWidgetTypeEnum type)
@@ -3171,6 +3149,23 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	return roundbox;
 }
 
+/* put all widget colors on half alpha, use local storage */
+static void ui_widget_color_disabled(uiWidgetType *wt)
+{
+	static uiWidgetColors wcol_theme_s;
+	
+	wcol_theme_s = *wt->wcol_theme;
+	
+	wcol_theme_s.outline[3] *= 0.5;
+	wcol_theme_s.inner[3] *= 0.5;
+	wcol_theme_s.inner_sel[3] *= 0.5;
+	wcol_theme_s.item[3] *= 0.5;
+	wcol_theme_s.text[3] *= 0.5;
+	wcol_theme_s.text_sel[3] *= 0.5;
+
+	wt->wcol_theme = &wcol_theme_s;
+}
+
 /* conversion from old to new buttons, so still messy */
 void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
@@ -3377,24 +3372,37 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	}
 	
 	if (wt) {
-		rcti disablerect = *rect; /* rect gets clipped smaller for text */
+		//rcti disablerect = *rect; /* rect gets clipped smaller for text */
 		int roundboxalign, state;
+		bool disabled = FALSE;
 		
 		roundboxalign = widget_roundbox_set(but, rect);
 
 		state = but->flag;
 		if (but->editstr) state |= UI_TEXTINPUT;
 		
+		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))
+			if (but->dt != UI_EMBOSSP)
+				disabled = TRUE;
+		
+		if (disabled)
+			ui_widget_color_disabled(wt);
+		
 		wt->state(wt, state);
 		if (wt->custom)
 			wt->custom(but, &wt->wcol, rect, state, roundboxalign);
 		else if (wt->draw)
 			wt->draw(&wt->wcol, rect, state, roundboxalign);
-		wt->text(fstyle, &wt->wcol, but, rect);
 		
-		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))
-			if (but->dt != UI_EMBOSSP)
-				widget_disabled(&disablerect);
+		if (disabled)
+			glEnable(GL_BLEND);
+		wt->text(fstyle, &wt->wcol, but, rect);
+		if (disabled)
+			glDisable(GL_BLEND);
+		
+//		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))
+//			if (but->dt != UI_EMBOSSP)
+//				widget_disabled(&disablerect);
 	}
 }
 
@@ -3478,7 +3486,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 		rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1) + 10;
 	}
 	
-	glColor3ubv((unsigned char *)wt->wcol.text);
+	glColor4ubv((unsigned char *)wt->wcol.text);
 	uiStyleFontDraw(fstyle, rect, name);
 	
 	/* part text right aligned */
@@ -3545,9 +3553,9 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	glDisable(GL_BLEND);
 	
 	if (state == UI_ACTIVE)
-		glColor3ubv((unsigned char *)wt->wcol.text);
+		glColor4ubv((unsigned char *)wt->wcol.text);
 	else
-		glColor3ubv((unsigned char *)wt->wcol.text_sel);
+		glColor4ubv((unsigned char *)wt->wcol.text_sel);
 
 	uiStyleFontDraw(fstyle, &trect, name);
 }
