@@ -312,8 +312,8 @@ void ED_node_tree_update(const struct bContext *C) {}
 void ED_node_set_tree_type(struct SpaceNode *snode, struct bNodeTreeType *typeinfo){}
 void ED_init_custom_node_type(struct bNodeType *ntype){}
 void ED_init_custom_node_socket_type(struct bNodeSocketType *stype){}
-void ED_init_standard_node_socket_type(struct bNodeSocketType *) {}
-void ED_init_node_socket_type_virtual(struct bNodeSocketType *) {}
+void ED_init_standard_node_socket_type(struct bNodeSocketType *stype) {}
+void ED_init_node_socket_type_virtual(struct bNodeSocketType *stype) {}
 int ED_node_tree_path_length(struct SpaceNode *snode){return 0;}
 void ED_node_tree_path_get(struct SpaceNode *snode, char *value){}
 void ED_node_tree_path_get_fixedbuf(struct SpaceNode *snode, char *value, int max_length){}
