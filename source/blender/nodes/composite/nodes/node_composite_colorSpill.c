@@ -54,7 +54,7 @@ static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node
 	ncs->unspill=0;   /* do not use unspill */
 }
 
-void register_node_type_cmp_color_spill()
+void register_node_type_cmp_color_spill(void)
 {
 	static bNodeType ntype;
 	

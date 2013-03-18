@@ -66,8 +66,8 @@
 bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifier)
 {
 	bNodeSocket *sock;
-	for (sock=groupnode->inputs.first; sock; sock=sock->next)
-		if (strcmp(sock->identifier, identifier)==0)
+	for (sock=groupnode->inputs.first; sock; sock = sock->next)
+		if (STREQ(sock->identifier, identifier))
 			return sock;
 	return NULL;
 }
@@ -75,8 +75,8 @@ bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifi
 bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identifier)
 {
 	bNodeSocket *sock;
-	for (sock=groupnode->outputs.first; sock; sock=sock->next)
-		if (strcmp(sock->identifier, identifier)==0)
+	for (sock=groupnode->outputs.first; sock; sock = sock->next)
+		if (STREQ(sock->identifier, identifier))
 			return sock;
 	return NULL;
 }
@@ -119,8 +119,8 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, bNode *gnode, bNodeSoc
 	bNodeSocket *sock;
 	
 	for (sock= verify_lb->first; sock; sock= sock->next) {
-		if (strcmp(sock->identifier, iosock->identifier)==0)
-				break;
+		if (STREQ(sock->identifier, iosock->identifier))
+			break;
 	}
 	if (sock) {
 		strcpy(sock->name, iosock->name);
@@ -334,8 +334,8 @@ static void node_group_input_init(bNodeTree *ntree, bNode *node)
 bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 {
 	bNodeSocket *sock;
-	for (sock=node->outputs.first; sock; sock=sock->next)
-		if (strcmp(sock->identifier, identifier)==0)
+	for (sock = node->outputs.first; sock; sock = sock->next)
+		if (STREQ(sock->identifier, identifier))
 			return sock;
 	return NULL;
 }
@@ -421,8 +421,8 @@ static void node_group_output_init(bNodeTree *ntree, bNode *node)
 bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
 {
 	bNodeSocket *sock;
-	for (sock=node->inputs.first; sock; sock=sock->next)
-		if (strcmp(sock->identifier, identifier)==0)
+	for (sock = node->inputs.first; sock; sock = sock->next)
+		if (STREQ(sock->identifier, identifier))
 			return sock;
 	return NULL;
 }

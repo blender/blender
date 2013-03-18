@@ -834,7 +834,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "template_component_menu", "uiTemplateComponentMenu");
 	RNA_def_function_ui_description(func, "Item. Display expanded property in a popup menu");
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_string(func, "name", "", 0, "", "");

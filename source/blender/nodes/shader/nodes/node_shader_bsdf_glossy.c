@@ -50,7 +50,7 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *UNUSED(node), bN
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_glossy()
+void register_node_type_sh_bsdf_glossy(void)
 {
 	static bNodeType ntype;
 

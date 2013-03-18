@@ -177,15 +177,15 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context, bNodeTree *ntree, bNo
 		node->stack_index = index;
 		
 		/* init node socket stack indexes */
-		for (sock=node->inputs.first; sock; sock=sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next)
 			node_init_input_index(sock, &index);
 		
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-			for (sock=node->outputs.first; sock; sock=sock->next)
+			for (sock = node->outputs.first; sock; sock = sock->next)
 				node_init_output_index(sock, &index, &node->internal_links);
 		}
 		else {
-			for (sock=node->outputs.first; sock; sock=sock->next)
+			for (sock = node->outputs.first; sock; sock = sock->next)
 				node_init_output_index(sock, &index, NULL);
 		}
 	}
@@ -206,7 +206,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context, bNodeTree *ntree, bNo
 		node = nodeexec->node = nodelist[n];
 		
 		/* tag inputs */
-		for (sock=node->inputs.first; sock; sock=sock->next) {
+		for (sock = node->inputs.first; sock; sock = sock->next) {
 			/* disable the node if an input link is invalid */
 			if (sock->link && !(sock->link->flag & NODE_LINK_VALID))
 				node->need_exec= 0;
@@ -217,7 +217,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context, bNodeTree *ntree, bNo
 		}
 		
 		/* tag all outputs */
-		for (sock=node->outputs.first; sock; sock=sock->next) {
+		for (sock = node->outputs.first; sock; sock = sock->next) {
 			/* ns = */ setup_stack(exec->stack, ntree, node, sock);
 		}
 		

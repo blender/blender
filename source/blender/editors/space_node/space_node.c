@@ -65,7 +65,7 @@
 void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 {
 	bNodeTreePath *path, *path_next;
-	for (path=snode->treepath.first; path; path=path_next) {
+	for (path = snode->treepath.first; path; path = path_next) {
 		path_next = path->next;
 		MEM_freeN(path);
 	}
@@ -76,7 +76,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 		path->nodetree = ntree;
 		path->parent_key = NODE_INSTANCE_KEY_BASE;
 		if (id)
-			BLI_strncpy(path->node_name, id->name+2, sizeof(path->node_name));
+			BLI_strncpy(path->node_name, id->name + 2, sizeof(path->node_name));
 		BLI_addtail(&snode->treepath, path);
 	}
 	
@@ -86,7 +86,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 	snode->from = from;
 	
 	/* listener updates the View2D center from edittree */
-	WM_main_add_notifier(NC_SCENE|ND_NODES, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
 void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
@@ -111,7 +111,7 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 	snode->edittree = ntree;
 	
 	/* listener updates the View2D center from edittree */
-	WM_main_add_notifier(NC_SCENE|ND_NODES, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
 void ED_node_tree_pop(SpaceNode *snode)
@@ -130,7 +130,7 @@ void ED_node_tree_pop(SpaceNode *snode)
 	snode->edittree = path->nodetree;
 	
 	/* listener updates the View2D center from edittree */
-	WM_main_add_notifier(NC_SCENE|ND_NODES, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
 int ED_node_tree_depth(SpaceNode *snode)
@@ -142,7 +142,7 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 {
 	bNodeTreePath *path;
 	int i;
-	for (path = snode->treepath.last, i = 0; path; path=path->prev, ++i) {
+	for (path = snode->treepath.last, i = 0; path; path = path->prev, ++i) {
 		if (i == level)
 			return path->nodetree;
 	}
@@ -154,7 +154,7 @@ int ED_node_tree_path_length(SpaceNode *snode)
 	bNodeTreePath *path;
 	int length = 0;
 	int i;
-	for (path=snode->treepath.first, i=0; path; path=path->next, ++i) {
+	for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
 		length += strlen(path->node_name);
 		if (i > 0)
 			length += 1;	/* for separator char */
@@ -168,7 +168,7 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
 	int i;
 	
 	value[0] = '\0';
-	for (path=snode->treepath.first, i=0; path; path=path->next, ++i) {
+	for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
 		if (i == 0) {
 			strcpy(value, path->node_name);
 			value += strlen(path->node_name);
@@ -186,7 +186,7 @@ void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_lengt
 	int size, i;
 	
 	value[0] = '\0';
-	for (path=snode->treepath.first, i=0; path; path=path->next, ++i) {
+	for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
 		if (i == 0) {
 			BLI_strncpy(value, path->node_name, max_length);
 			size = strlen(path->node_name);
@@ -337,10 +337,10 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 
 static void node_free(SpaceLink *sl)
 {
-	SpaceNode *snode = (SpaceNode*)sl;
+	SpaceNode *snode = (SpaceNode *)sl;
 	bNodeTreePath *path, *path_next;
 
-	for (path=snode->treepath.first; path; path=path_next) {
+	for (path = snode->treepath.first; path; path = path_next) {
 		path_next = path->next;
 		MEM_freeN(path);
 	}
@@ -521,7 +521,7 @@ static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 
 static SpaceLink *node_duplicate(SpaceLink *sl)
 {
-	SpaceNode *snode = (SpaceNode*)sl;
+	SpaceNode *snode = (SpaceNode *)sl;
 	SpaceNode *snoden = MEM_dupallocN(snode);
 
 	/* clear or remove stuff from old */

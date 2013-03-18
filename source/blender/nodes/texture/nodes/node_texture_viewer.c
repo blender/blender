@@ -56,7 +56,7 @@ static void exec(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecD
 	}
 }
 
-void register_node_type_tex_viewer()
+void register_node_type_tex_viewer(void)
 {
 	static bNodeType ntype;
 	

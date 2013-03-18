@@ -604,7 +604,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 			list = &pchan->constraints;
 		else {
 			//if (G.debug & G_DEBUG)
-			//printf("edit_constraint_property_get: No active bone for object '%s'\n", (ob)? ob->id.name+2 : "<None>");
+			//printf("edit_constraint_property_get: No active bone for object '%s'\n", (ob)? ob->id.name + 2 : "<None>");
 			return NULL;
 		}
 	}

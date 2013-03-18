@@ -3076,7 +3076,7 @@ typedef struct ComponentMenuArgs {
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *component_menu(bContext *C, ARegion *ar, void *args_v)
 {
-	ComponentMenuArgs *args = (ComponentMenuArgs*)args_v;
+	ComponentMenuArgs *args = (ComponentMenuArgs *)args_v;
 	uiBlock *block;
 	uiLayout *layout;
 	

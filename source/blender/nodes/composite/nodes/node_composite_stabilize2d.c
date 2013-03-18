@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_stabilize2d_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_stabilize2d()
+void register_node_type_cmp_stabilize2d(void)
 {
 	static bNodeType ntype;
 

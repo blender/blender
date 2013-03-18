@@ -205,29 +205,29 @@ static void update_typeinfo(Main *bmain, const struct bContext *C, bNodeTreeType
 		
 		ntree->init |= NTREE_TYPE_INIT;
 		
-		if (treetype && strcmp(ntree->idname, treetype->idname)==0)
+		if (treetype && STREQ(ntree->idname, treetype->idname))
 			ntree_set_typeinfo(ntree, unregister ? NULL : treetype);
 		
 		/* initialize nodes */
-		for (node=ntree->nodes.first; node; node=node->next) {
-			if (nodetype && strcmp(node->idname, nodetype->idname)==0)
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (nodetype && STREQ(node->idname, nodetype->idname))
 				node_set_typeinfo(C, ntree, node, unregister ? NULL : nodetype);
 			
 			/* initialize node sockets */
-			for (sock=node->inputs.first; sock; sock=sock->next)
-				if (socktype && strcmp(sock->idname, socktype->idname)==0)
+			for (sock = node->inputs.first; sock; sock = sock->next)
+				if (socktype && STREQ(sock->idname, socktype->idname))
 					node_socket_set_typeinfo(ntree, sock, unregister ? NULL : socktype);
-			for (sock=node->outputs.first; sock; sock=sock->next)
-				if (socktype && strcmp(sock->idname, socktype->idname)==0)
+			for (sock = node->outputs.first; sock; sock = sock->next)
+				if (socktype && STREQ(sock->idname, socktype->idname))
 					node_socket_set_typeinfo(ntree, sock, unregister ? NULL : socktype);
 		}
 		
 		/* initialize tree sockets */
-		for (sock=ntree->inputs.first; sock; sock=sock->next)
-			if (socktype && strcmp(sock->idname, socktype->idname)==0)
+		for (sock = ntree->inputs.first; sock; sock = sock->next)
+			if (socktype && STREQ(sock->idname, socktype->idname))
 				node_socket_set_typeinfo(ntree, sock, unregister ? NULL : socktype);
-		for (sock=ntree->outputs.first; sock; sock=sock->next)
-			if (socktype && strcmp(sock->idname, socktype->idname)==0)
+		for (sock = ntree->outputs.first; sock; sock = sock->next)
+			if (socktype && STREQ(sock->idname, socktype->idname))
 				node_socket_set_typeinfo(ntree, sock, unregister ? NULL : socktype);
 	}
 	FOREACH_NODETREE_END
@@ -250,37 +250,37 @@ void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)
 	for (node = ntree->nodes.first; node; node = node->next) {
 		node_set_typeinfo(C, ntree, node, nodeTypeFind(node->idname));
 		
-		for (sock=node->inputs.first; sock; sock=sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next)
 			node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
-		for (sock=node->outputs.first; sock; sock=sock->next)
+		for (sock = node->outputs.first; sock; sock = sock->next)
 			node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
 	}
 	
-	for (sock=ntree->inputs.first; sock; sock=sock->next)
+	for (sock = ntree->inputs.first; sock; sock = sock->next)
 		node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
-	for (sock=ntree->outputs.first; sock; sock=sock->next)
+	for (sock = ntree->outputs.first; sock; sock = sock->next)
 		node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
 }
 
 
-static GHash *nodetreetypes_hash= NULL;
-static GHash *nodetypes_hash= NULL;
-static GHash *nodesockettypes_hash= NULL;
+static GHash *nodetreetypes_hash = NULL;
+static GHash *nodetypes_hash = NULL;
+static GHash *nodesockettypes_hash = NULL;
 
 bNodeTreeType *ntreeTypeFind(const char *idname)
 {
-	bNodeTreeType* nt;
+	bNodeTreeType *nt;
 
 	if (idname[0]) {
-		nt= BLI_ghash_lookup(nodetreetypes_hash, idname);
-		if(nt)
+		nt = BLI_ghash_lookup(nodetreetypes_hash, idname);
+		if (nt)
 			return nt;
 	}
 
 	return NULL;
 }
 
-void ntreeTypeAdd(bNodeTreeType* nt)
+void ntreeTypeAdd(bNodeTreeType *nt)
 {
 	BLI_ghash_insert(nodetreetypes_hash, (void *)nt->idname, nt);
 	/* XXX pass Main to register function? */
@@ -296,12 +296,12 @@ static void ntree_free_type(void *treetype_v)
 	MEM_freeN(treetype);
 }
 
-void ntreeTypeFreeLink(bNodeTreeType* nt)
+void ntreeTypeFreeLink(bNodeTreeType *nt)
 {
 	BLI_ghash_remove(nodetreetypes_hash, nt->idname, NULL, ntree_free_type);
 }
 
-GHashIterator *ntreeTypeGetIterator()
+GHashIterator *ntreeTypeGetIterator(void)
 {
 	return BLI_ghashIterator_new(nodetreetypes_hash);
 }
@@ -313,11 +313,11 @@ int ntreeIsValid(bNodeTree *ntree)
 
 bNodeType *nodeTypeFind(const char *idname)
 {
-	bNodeType* nt;
+	bNodeType *nt;
 
 	if (idname[0]) {
-		nt= BLI_ghash_lookup(nodetypes_hash, idname);
-		if(nt)
+		nt = BLI_ghash_lookup(nodetypes_hash, idname);
+		if (nt)
 			return nt;
 	}
 
@@ -326,14 +326,14 @@ bNodeType *nodeTypeFind(const char *idname)
 
 static void free_dynamic_typeinfo(bNodeType *ntype)
 {
-	if(ntype->type==NODE_DYNAMIC) {
-		if(ntype->inputs) {
+	if (ntype->type == NODE_DYNAMIC) {
+		if (ntype->inputs) {
 			MEM_freeN(ntype->inputs);
 		}
-		if(ntype->outputs) {
+		if (ntype->outputs) {
 			MEM_freeN(ntype->outputs);
 		}
-		if(ntype->ui_name) {
+		if (ntype->ui_name) {
 			MEM_freeN((void *)ntype->ui_name);
 		}
 	}
@@ -347,7 +347,7 @@ static void node_free_type(void *nodetype_v)
 	update_typeinfo(G.main, NULL, NULL, nodetype, NULL, true);
 	
 	/* XXX deprecated */
-	if (nodetype->type==NODE_DYNAMIC)
+	if (nodetype->type == NODE_DYNAMIC)
 		free_dynamic_typeinfo(nodetype);
 	
 	if (nodetype->needs_free)
@@ -365,23 +365,23 @@ void nodeRegisterType(bNodeType *nt)
 	update_typeinfo(G.main, NULL, NULL, nt, NULL, false);
 }
 
-void nodeUnregisterType(bNodeType* nt)
+void nodeUnregisterType(bNodeType *nt)
 {
 	BLI_ghash_remove(nodetypes_hash, nt->idname, NULL, node_free_type);
 }
 
-GHashIterator *nodeTypeGetIterator()
+GHashIterator *nodeTypeGetIterator(void)
 {
 	return BLI_ghashIterator_new(nodetypes_hash);
 }
 
 bNodeSocketType *nodeSocketTypeFind(const char *idname)
 {
-	bNodeSocketType* st;
+	bNodeSocketType *st;
 
 	if (idname[0]) {
-		st= BLI_ghash_lookup(nodesockettypes_hash, idname);
-		if(st)
+		st = BLI_ghash_lookup(nodesockettypes_hash, idname);
+		if (st)
 			return st;
 	}
 
@@ -398,14 +398,14 @@ static void node_free_socket_type(void *socktype_v)
 	MEM_freeN(socktype);
 }
 
-void nodeRegisterSocketType(bNodeSocketType* st)
+void nodeRegisterSocketType(bNodeSocketType *st)
 {
 	BLI_ghash_insert(nodesockettypes_hash, (void *)st->idname, st);
 	/* XXX pass Main to register function? */
 	update_typeinfo(G.main, NULL, NULL, NULL, st, false);
 }
 
-void nodeUnregisterSocketType(bNodeSocketType* st)
+void nodeUnregisterSocketType(bNodeSocketType *st)
 {
 	BLI_ghash_remove(nodesockettypes_hash, st->idname, NULL, node_free_socket_type);
 }
@@ -419,20 +419,20 @@ void nodeMakeDynamicType(bNode *UNUSED(node))
 {
 	#if 0	/* XXX deprecated */
 	/* find SH_DYNAMIC_NODE ntype */
-	bNodeType *ntype= ntreeType_Shader->node_types.first;
-	while(ntype) {
-		if(ntype->type==NODE_DYNAMIC)
+	bNodeType *ntype = ntreeType_Shader->node_types.first;
+	while (ntype) {
+		if (ntype->type == NODE_DYNAMIC)
 			break;
-		ntype= ntype->next;
+		ntype = ntype->next;
 	}
 
 	/* make own type struct to fill */
-	if(ntype) {
+	if (ntype) {
 		/*node->typeinfo= MEM_dupallocN(ntype);*/
-		bNodeType *newtype= MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
-		*newtype= *ntype;
+		bNodeType *newtype = MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
+		*newtype = *ntype;
 		BLI_strncpy(newtype->name, ntype->name, sizeof(newtype->name));
-		node->typeinfo= newtype;
+		node->typeinfo = newtype;
 	}
 	#endif
 }
@@ -440,8 +440,8 @@ void nodeMakeDynamicType(bNode *UNUSED(node))
 struct bNodeSocket *nodeFindSocket(bNode *node, int in_out, const char *identifier)
 {
 	bNodeSocket *sock = (in_out == SOCK_IN ? node->inputs.first : node->outputs.first);
-	for (; sock; sock=sock->next) {
-		if (strcmp(sock->identifier, identifier)==0)
+	for (; sock; sock = sock->next) {
+		if (STREQ(sock->identifier, identifier))
 			return sock;
 	}
 	return NULL;
@@ -453,7 +453,7 @@ static bool unique_identifier_check(void *arg, const char *identifier)
 	struct ListBase *lb = arg;
 	bNodeSocket *sock;
 	for (sock = lb->first; sock; sock = sock->next) {
-		if (strcmp(sock->identifier, identifier)==0)
+		if (STREQ(sock->identifier, identifier))
 			return true;
 	}
 	return false;
@@ -792,10 +792,10 @@ bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idnam
 
 bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 {
-	const char *idname=NULL;
+	const char *idname = NULL;
 	
 	NODE_TYPES_BEGIN(ntype)
-		if(ntype->type==type) {
+		if (ntype->type == type) {
 			idname = ntype->idname;
 			break;
 		}
@@ -1075,7 +1075,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 	 * node groups and other tree types are created as library data.
 	 */
 	if (bmain) {
-		ntree= BKE_libblock_alloc(&bmain->nodetree, ID_NT, name);
+		ntree = BKE_libblock_alloc(&bmain->nodetree, ID_NT, name);
 	}
 	else {
 		ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
@@ -1593,7 +1593,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 			ntree->execdata = NULL;
 		}
 		
-		if(node->typeinfo && node->typeinfo->freefunc)
+		if (node->typeinfo && node->typeinfo->freefunc)
 			node->typeinfo->freefunc(node);
 	}
 	
@@ -1987,7 +1987,7 @@ static bNodeSocket *make_socket_template(bNodeTree *ntree, int in_out,
 	}
 	
 	sock = MEM_callocN(sizeof(bNodeSocket), "socket template");
-	sock->typeinfo= stype;
+	sock->typeinfo = stype;
 	BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
 	sock->in_out = in_out;
 	sock->type = SOCK_CUSTOM;	/* int type undefined by default */
@@ -2021,7 +2021,7 @@ bNodeSocket *ntreeFindSocketInterface(bNodeTree *ntree, int in_out, const char *
 {
 	bNodeSocket *iosock = (in_out == SOCK_IN ? ntree->inputs.first : ntree->outputs.first);
 	for (; iosock; iosock = iosock->next)
-		if (strcmp(iosock->identifier, identifier)==0)
+		if (STREQ(iosock->identifier, identifier))
 			return iosock;
 	return NULL;
 }
@@ -2097,7 +2097,7 @@ void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock)
 static void ntree_interface_identifier_base(bNodeTree *ntree, char *base)
 {
 	/* generate a valid RNA identifier */
-	sprintf(base, "NodeTreeInterface_%s", ntree->id.name+2);
+	sprintf(base, "NodeTreeInterface_%s", ntree->id.name + 2);
 	RNA_identifier_sanitize(base, FALSE);
 }
 
@@ -2117,8 +2117,8 @@ static void ntree_interface_identifier(bNodeTree *ntree, const char *base, char 
 	identifier[0] = '\0';
 	BLI_uniquename_cb(ntree_interface_unique_identifier_check, NULL, base, '_', identifier, maxlen);
 	
-	sprintf(name, "Node Tree %s Interface", ntree->id.name+2);
-	sprintf(description, "Interface properties of node group %s", ntree->id.name+2);
+	sprintf(name, "Node Tree %s Interface", ntree->id.name + 2);
+	sprintf(description, "Interface properties of node group %s", ntree->id.name + 2);
 }
 
 static void ntree_interface_type_create(bNodeTree *ntree)
@@ -2126,7 +2126,7 @@ static void ntree_interface_type_create(bNodeTree *ntree)
 	StructRNA *srna;
 	bNodeSocket *sock;
 	/* strings are generated from base string + ID name, sizes are sufficient */
-	char base[MAX_ID_NAME+64], identifier[MAX_ID_NAME+64], name[MAX_ID_NAME+64], description[MAX_ID_NAME+64];
+	char base[MAX_ID_NAME + 64], identifier[MAX_ID_NAME + 64], name[MAX_ID_NAME + 64], description[MAX_ID_NAME + 64];
 	
 	/* generate a valid RNA identifier */
 	ntree_interface_identifier_base(ntree, base);
@@ -2158,7 +2158,7 @@ StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, int create)
 {
 	if (ntree->interface_type) {
 		/* strings are generated from base string + ID name, sizes are sufficient */
-		char base[MAX_ID_NAME+64], identifier[MAX_ID_NAME+64], name[MAX_ID_NAME+64], description[MAX_ID_NAME+64];
+		char base[MAX_ID_NAME + 64], identifier[MAX_ID_NAME + 64], name[MAX_ID_NAME + 64], description[MAX_ID_NAME + 64];
 		
 		/* A bit of a hack: when changing the ID name, update the RNA type identifier too,
 		 * so that the names match. This is not strictly necessary to keep it working,
@@ -2270,9 +2270,9 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 				return node;
 	
 	/* no node with active ID in this tree, look inside groups */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==NODE_GROUP) {
-			tnode = nodeGetActiveID((bNodeTree*)node->id, idtype);
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == NODE_GROUP) {
+			tnode = nodeGetActiveID((bNodeTree *)node->id, idtype);
 			if (tnode)
 				return tnode;
 		}
@@ -2281,10 +2281,10 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 	return NULL;
 }
 
-int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
+bool nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
 {
 	bNode *node;
-	int ok = FALSE;
+	bool ok = false;
 
 	if (ntree == NULL) return ok;
 
@@ -2304,9 +2304,9 @@ int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
 	 * if active ID node has been found already,
 	 * just pass NULL so other matching nodes are deactivated.
 	 */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==NODE_GROUP)
-			ok |= nodeSetActiveID((bNodeTree*)node->id, idtype, (ok==FALSE ? id : NULL));
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == NODE_GROUP)
+			ok |= nodeSetActiveID((bNodeTree *)node->id, idtype, (ok == false ? id : NULL));
 	}
 
 	return ok;
@@ -2336,9 +2336,9 @@ void nodeSetSelected(bNode *node, int select)
 		node->flag &= ~NODE_SELECT;
 		
 		/* deselect sockets too */
-		for (sock=node->inputs.first; sock; sock=sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next)
 			sock->flag &= ~NODE_SELECT;
-		for (sock=node->outputs.first; sock; sock=sock->next)
+		for (sock = node->outputs.first; sock; sock = sock->next)
 			sock->flag &= ~NODE_SELECT;
 	}
 }
@@ -2563,7 +2563,7 @@ bNodeInstanceKey BKE_node_instance_key(bNodeInstanceKey parent_key, bNodeTree *n
 {
 	bNodeInstanceKey key;
 	
-	key = node_hash_int_str(parent_key, ntree->id.name+2);
+	key = node_hash_int_str(parent_key, ntree->id.name + 2);
 	
 	if (node)
 		key = node_hash_int_str(key, node->name);
@@ -2673,7 +2673,7 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash, bNodeInstan
 	/* NOTE: Hash must not be mutated during iterating!
 	 * Store tagged entries in a separate list and remove items afterward.
 	 */
-	bNodeInstanceKey *untagged = MEM_mallocN(sizeof(bNodeInstanceKey)*BKE_node_instance_hash_size(hash), "temporary node instance key list");
+	bNodeInstanceKey *untagged = MEM_mallocN(sizeof(bNodeInstanceKey) * BKE_node_instance_hash_size(hash), "temporary node instance key list");
 	bNodeInstanceHashIterator iter;
 	int num_untagged, i;
 	
@@ -2922,7 +2922,7 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 	ntree->is_updating = TRUE;
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if(node->id == id) {
+		if (node->id == id) {
 			change = TRUE;
 			node->update |= NODE_UPDATE_ID;
 			if (node->typeinfo->updatefunc)
@@ -2952,15 +2952,15 @@ void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
 /* nodes that use ID data get synced with local data */
 void nodeSynchronizeID(bNode *node, bool copy_to_id)
 {
-	if (node->id==NULL) return;
+	if (node->id == NULL) return;
 	
 	if (ELEM(node->type, SH_NODE_MATERIAL, SH_NODE_MATERIAL_EXT)) {
 		bNodeSocket *sock;
-		Material *ma= (Material *)node->id;
+		Material *ma = (Material *)node->id;
 		int a;
 		
 		/* hrmf, case in loop isn't super fast, but we don't edit 100s of material at same time either! */
-		for (a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+		for (a = 0, sock = node->inputs.first; sock; sock = sock->next, a++) {
 			if (!nodeSocketIsHidden(sock)) {
 				if (copy_to_id) {
 					switch (a) {
@@ -2969,7 +2969,7 @@ void nodeSynchronizeID(bNode *node, bool copy_to_id)
 						case MAT_IN_SPEC:
 							copy_v3_v3(&ma->specr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
 						case MAT_IN_REFL:
-							ma->ref= ((bNodeSocketValueFloat *)sock->default_value)->value; break;
+							ma->ref = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_MIR:
 							copy_v3_v3(&ma->mirr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
 						case MAT_IN_AMB:
@@ -2993,7 +2993,7 @@ void nodeSynchronizeID(bNode *node, bool copy_to_id)
 						case MAT_IN_SPEC:
 							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->specr); break;
 						case MAT_IN_REFL:
-							((bNodeSocketValueFloat *)sock->default_value)->value= ma->ref; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->ref; break;
 						case MAT_IN_MIR:
 							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->mirr); break;
 						case MAT_IN_AMB:
@@ -3098,11 +3098,11 @@ void node_type_base_custom(bNodeType *ntype, const char *idname, const char *nam
 static bool unique_socket_template_identifier_check(void *arg, const char *name)
 {
 	bNodeSocketTemplate *ntemp;
-	struct {bNodeSocketTemplate *list; bNodeSocketTemplate *ntemp;} *data= arg;
+	struct {bNodeSocketTemplate *list; bNodeSocketTemplate *ntemp;} *data = arg;
 	
 	for (ntemp = data->list; ntemp->type >= 0; ++ntemp) {
 		if (ntemp != data->ntemp) {
-			if (!strcmp(ntemp->identifier, name)) {
+			if (STREQ(ntemp->identifier, name)) {
 				return true;
 			}
 		}
@@ -3114,7 +3114,7 @@ static bool unique_socket_template_identifier_check(void *arg, const char *name)
 static void unique_socket_template_identifier(bNodeSocketTemplate *list, bNodeSocketTemplate *ntemp, const char defname[], char delim)
 {
 	struct {bNodeSocketTemplate *list; bNodeSocketTemplate *ntemp;} data;
-	data.list= list;
+	data.list = list;
 	data.ntemp = ntemp;
 
 	BLI_uniquename_cb(unique_socket_template_identifier_check, &data, defname, delim, ntemp->identifier, sizeof(ntemp->identifier));
@@ -3130,20 +3130,20 @@ void node_type_socket_templates(struct bNodeType *ntype, struct bNodeSocketTempl
 	/* automatically generate unique identifiers */
 	if (inputs) {
 		/* clear identifier strings (uninitialized memory) */
-		for (ntemp=inputs; ntemp->type >= 0; ++ntemp)
+		for (ntemp = inputs; ntemp->type >= 0; ++ntemp)
 			ntemp->identifier[0] = '\0';
 		
-		for (ntemp=inputs; ntemp->type >= 0; ++ntemp) {
+		for (ntemp = inputs; ntemp->type >= 0; ++ntemp) {
 			BLI_strncpy(ntemp->identifier, ntemp->name, sizeof(ntemp->identifier));
 			unique_socket_template_identifier(inputs, ntemp, ntemp->identifier, '_');
 		}
 	}
 	if (outputs) {
 		/* clear identifier strings (uninitialized memory) */
-		for (ntemp=outputs; ntemp->type >= 0; ++ntemp)
+		for (ntemp = outputs; ntemp->type >= 0; ++ntemp)
 			ntemp->identifier[0] = '\0';
 		
-		for (ntemp=outputs; ntemp->type >= 0; ++ntemp) {
+		for (ntemp = outputs; ntemp->type >= 0; ++ntemp) {
 			BLI_strncpy(ntemp->identifier, ntemp->name, sizeof(ntemp->identifier));
 			unique_socket_template_identifier(outputs, ntemp, ntemp->identifier, '_');
 		}
@@ -3472,20 +3472,20 @@ void init_nodesystem(void)
 void free_nodesystem(void) 
 {
 	NODE_TYPES_BEGIN(nt)
-		if(nt->ext.free) {
+		if (nt->ext.free) {
 			nt->ext.free(nt->ext.data);
 		}
 	NODE_TYPES_END
 	
 	NODE_SOCKET_TYPES_BEGIN(st)
-		if(st->ext_socket.free)
+		if (st->ext_socket.free)
 			st->ext_socket.free(st->ext_socket.data);
-		if(st->ext_interface.free)
+		if (st->ext_interface.free)
 			st->ext_interface.free(st->ext_interface.data);
 	NODE_SOCKET_TYPES_END
 	
 	NODE_TREE_TYPES_BEGIN(nt)
-		if(nt->ext.free) {
+		if (nt->ext.free) {
 			nt->ext.free(nt->ext.data);
 		}
 	NODE_TREE_TYPES_END

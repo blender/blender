@@ -55,7 +55,7 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *nod
 	n->gain[0] = n->gain[1] = n->gain[2] = 1.0f;
 }
 
-void register_node_type_cmp_colorbalance()
+void register_node_type_cmp_colorbalance(void)
 {
 	static bNodeType ntype;
 

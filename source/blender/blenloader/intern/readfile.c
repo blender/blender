@@ -1401,7 +1401,7 @@ void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	for (; sce; sce = sce->id.next) {
 		if (sce->nodetree) {
 			bNode *node;
-			for (node = sce->nodetree->nodes.first; node; node= node->next)
+			for (node = sce->nodetree->nodes.first; node; node = node->next)
 				if (node->type == CMP_NODE_MOVIEDISTORTION)
 					oldnewmap_insert(fd->movieclipmap, node->storage, node->storage, 0);
 		}
@@ -2332,15 +2332,15 @@ static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 		
 		node->id= newlibadr_us(fd, id->lib, node->id);
 
-		for (sock=node->inputs.first; sock; sock=sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next)
 			lib_link_node_socket(fd, id, sock);
-		for (sock=node->outputs.first; sock; sock=sock->next)
+		for (sock = node->outputs.first; sock; sock = sock->next)
 			lib_link_node_socket(fd, id, sock);
 	}
 	
-	for (sock=ntree->inputs.first; sock; sock=sock->next)
+	for (sock = ntree->inputs.first; sock; sock = sock->next)
 		lib_link_node_socket(fd, id, sock);
-	for (sock=ntree->outputs.first; sock; sock=sock->next)
+	for (sock = ntree->outputs.first; sock; sock = sock->next)
 		lib_link_node_socket(fd, id, sock);
 }
 
@@ -2367,7 +2367,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
 	bNodeSocket *sock;
 	bNodeLink *link;
 	
-	for (sock=gnode->outputs.first; sock; sock=sock->next) {
+	for (sock=gnode->outputs.first; sock; sock = sock->next) {
 		int old_index = sock->to_index;
 		
 		for (link = ngroup->links.first; link; link = link->next) {
@@ -2380,7 +2380,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
 			}
 		}
 	}
-	for (sock=gnode->inputs.first; sock; sock=sock->next) {
+	for (sock=gnode->inputs.first; sock; sock = sock->next) {
 		int old_index = sock->to_index;
 		
 		for (link = ngroup->links.first; link; link = link->next) {
@@ -4245,9 +4245,9 @@ static void lib_link_object(FileData *fd, Main *main)
 					ob->proxy = NULL;
 					
 					if (ob->id.lib)
-						printf("Proxy lost from  object %s lib %s\n", ob->id.name+2, ob->id.lib->name);
+						printf("Proxy lost from  object %s lib %s\n", ob->id.name + 2, ob->id.lib->name);
 					else
-						printf("Proxy lost from  object %s lib <NONE>\n", ob->id.name+2);
+						printf("Proxy lost from  object %s lib <NONE>\n", ob->id.name + 2);
 				}
 				else {
 					/* this triggers object_update to always use a copy */
@@ -4261,9 +4261,9 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			if (ob->data==NULL && poin!=NULL) {
 				if (ob->id.lib)
-					printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
+					printf("Can't find obdata of %s lib %s\n", ob->id.name + 2, ob->id.lib->name);
 				else
-					printf("Object %s lost data.\n", ob->id.name+2);
+					printf("Object %s lost data.\n", ob->id.name + 2);
 				
 				ob->type = OB_EMPTY;
 				warn = 1;
@@ -4984,7 +4984,7 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 {
 	bNode *node;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id==NULL && ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
 			node->id = &scene->id;
 	}
@@ -5681,7 +5681,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 static bool restore_pointer(ID *id, ID *newid, int user)
 {
-	if (strcmp(newid->name+2, id->name+2) == 0) {
+	if (strcmp(newid->name + 2, id->name + 2) == 0) {
 		if (newid->lib == id->lib) {
 			if (user == 1) {
 				if (newid->us == 0) {
@@ -7238,7 +7238,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 				nimf->format = sce->r.im_format;
 			
 			/* transfer render format toggle to node format toggle */
-			for (sock=node->inputs.first; sock; sock=sock->next) {
+			for (sock = node->inputs.first; sock; sock = sock->next) {
 				NodeImageMultiFileSocket *simf = sock->storage;
 				simf->use_node_format = simf->use_render_format;
 			}
@@ -7292,7 +7292,7 @@ static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
 	for (node=ntree->nodes.first; node; node=node->next) {
 		if (node->type == CMP_NODE_OUTPUT_FILE) {
 			bNodeSocket *sock;
-			for (sock=node->inputs.first; sock; sock=sock->next) {
+			for (sock = node->inputs.first; sock; sock = sock->next) {
 				NodeImageMultiFileSocket *input = sock->storage;
 				
 				/* multilayer names are stored as separate strings now,
@@ -7487,15 +7487,15 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 			node->flag |= NODE_INIT;
 			
 			/* sockets idname */
-			for (sock=node->inputs.first; sock; sock=sock->next)
+			for (sock = node->inputs.first; sock; sock = sock->next)
 				BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
-			for (sock=node->outputs.first; sock; sock=sock->next)
+			for (sock = node->outputs.first; sock; sock = sock->next)
 				BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
 		}
 		/* tree sockets idname */
-		for (sock=ntree->inputs.first; sock; sock=sock->next)
+		for (sock = ntree->inputs.first; sock; sock = sock->next)
 			BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
-		for (sock=ntree->outputs.first; sock; sock=sock->next)
+		for (sock = ntree->outputs.first; sock; sock = sock->next)
 			BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
 	}
 	
@@ -7505,14 +7505,14 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 		bNodeSocket *sock;
 		
 		for (node=ntree->nodes.first; node; node=node->next) {
-			for (sock=node->inputs.first; sock; sock=sock->next)
+			for (sock = node->inputs.first; sock; sock = sock->next)
 				sock->in_out = SOCK_IN;
-			for (sock=node->outputs.first; sock; sock=sock->next)
+			for (sock = node->outputs.first; sock; sock = sock->next)
 				sock->in_out = SOCK_OUT;
 		}
-		for (sock=ntree->inputs.first; sock; sock=sock->next)
+		for (sock = ntree->inputs.first; sock; sock = sock->next)
 			sock->in_out = SOCK_IN;
-		for (sock=ntree->outputs.first; sock; sock=sock->next)
+		for (sock = ntree->outputs.first; sock; sock = sock->next)
 			sock->in_out = SOCK_OUT;
 	}
 	
@@ -7522,20 +7522,20 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 		bNodeSocket *sock;
 		
 		for (node=ntree->nodes.first; node; node=node->next) {
-			for (sock=node->inputs.first; sock; sock=sock->next) {
+			for (sock = node->inputs.first; sock; sock = sock->next) {
 				BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
 				BLI_uniquename(&node->inputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 			}
-			for (sock=node->outputs.first; sock; sock=sock->next) {
+			for (sock = node->outputs.first; sock; sock = sock->next) {
 				BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
 				BLI_uniquename(&node->outputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 			}
 		}
-		for (sock=ntree->inputs.first; sock; sock=sock->next) {
+		for (sock = ntree->inputs.first; sock; sock = sock->next) {
 			BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
 			BLI_uniquename(&ntree->inputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 		}
-		for (sock=ntree->outputs.first; sock; sock=sock->next) {
+		for (sock = ntree->outputs.first; sock; sock = sock->next) {
 			BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
 			BLI_uniquename(&ntree->outputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 		}
@@ -8980,7 +8980,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->spacetype==SPACE_NODE) {
+					if (sl->spacetype==SPACE_NODE) {
 						SpaceNode *snode = (SpaceNode *)sl;
 						
 						/* reset pointers to force tree path update from context */
@@ -10331,7 +10331,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			Base *base;
 			
 			/* BKE_object_add(...) messes with the selection */
-			Object *ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name+2);
+			Object *ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name + 2);
 			ob->type = OB_EMPTY;
 			ob->lay = scene->lay;
 			
@@ -10345,7 +10345,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			/* assign the group */
 			ob->dup_group = group;
 			ob->transflag |= OB_DUPLIGROUP;
-			rename_id(&ob->id, group->id.name+2);
+			rename_id(&ob->id, group->id.name + 2);
 			copy_v3_v3(ob->loc, scene->cursor);
 		}
 	}
@@ -10733,7 +10733,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 									BKE_reportf_wrap(fd->reports, RPT_WARNING,
 									                 TIP_("LIB ERROR: %s: '%s' missing from '%s'"),
 									                 BKE_idcode_to_name(GS(id->name)),
-									                 id->name+2, mainptr->curlib->filepath);
+									                 id->name + 2, mainptr->curlib->filepath);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);

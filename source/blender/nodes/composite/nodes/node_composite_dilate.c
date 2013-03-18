@@ -51,7 +51,7 @@ static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode *node
 	node->storage = data;
 }
 
-void register_node_type_cmp_dilateerode()
+void register_node_type_cmp_dilateerode(void)
 {
 	static bNodeType ntype;
 	

@@ -56,7 +56,7 @@ static int gpu_shader_seprgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDat
 	return GPU_stack_link(mat, "separate_rgb", in, out);
 }
 
-void register_node_type_sh_seprgb()
+void register_node_type_sh_seprgb(void)
 {
 	static bNodeType ntype;
 
@@ -96,7 +96,7 @@ static int gpu_shader_combrgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDa
 	return GPU_stack_link(mat, "combine_rgb", in, out);
 }
 
-void register_node_type_sh_combrgb()
+void register_node_type_sh_combrgb(void)
 {
 	static bNodeType ntype;
 

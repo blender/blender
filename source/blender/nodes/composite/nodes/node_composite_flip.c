@@ -43,7 +43,7 @@ static bNodeSocketTemplate cmp_node_flip_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_flip()
+void register_node_type_cmp_flip(void)
 {
 	static bNodeType ntype;
 

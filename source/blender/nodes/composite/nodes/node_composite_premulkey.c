@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_premulkey_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_premulkey()
+void register_node_type_cmp_premulkey(void)
 {
 	static bNodeType ntype;
 

@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_math_out[] = {
 };
 
 
-void register_node_type_cmp_math()
+void register_node_type_cmp_math(void)
 {
 	static bNodeType ntype;
 

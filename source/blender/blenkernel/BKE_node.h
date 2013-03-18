@@ -329,8 +329,8 @@ typedef struct bNodeTreeType {
 /* ************** GENERIC API, TREES *************** */
 
 struct bNodeTreeType *ntreeTypeFind(const char *idname);
-void ntreeTypeAdd(struct bNodeTreeType* nt);
-void ntreeTypeFreeLink(struct bNodeTreeType* nt);
+void ntreeTypeAdd(struct bNodeTreeType *nt);
+void ntreeTypeFreeLink(struct bNodeTreeType *nt);
 struct GHashIterator *ntreeTypeGetIterator(void);
 
 /* helper macros for iterating over tree types */
@@ -405,8 +405,8 @@ void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 /* ************** GENERIC API, NODES *************** */
 
 struct bNodeType *nodeTypeFind(const char *idname);
-void			nodeRegisterType(struct bNodeType* ntype);
-void			nodeUnregisterType(struct bNodeType* ntype);
+void			nodeRegisterType(struct bNodeType *ntype);
+void			nodeUnregisterType(struct bNodeType *ntype);
 struct GHashIterator *nodeTypeGetIterator(void);
 
 /* helper macros for iterating over node types */
@@ -422,8 +422,8 @@ struct GHashIterator *nodeTypeGetIterator(void);
 }
 
 struct bNodeSocketType *nodeSocketTypeFind(const char *idname);
-void			nodeRegisterSocketType(struct bNodeSocketType* stype);
-void			nodeUnregisterSocketType(struct bNodeSocketType* stype);
+void			nodeRegisterSocketType(struct bNodeSocketType *stype);
+void			nodeUnregisterSocketType(struct bNodeSocketType *stype);
 struct GHashIterator *nodeSocketTypeGetIterator(void);
 const char *	nodeStaticSocketType(int type, int subtype);
 const char *	nodeStaticSocketInterfaceType(int type, int subtype);
@@ -485,7 +485,7 @@ void			nodeSetSelected(struct bNode *node, int select);
 void            nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode   *nodeGetActive(struct bNodeTree *ntree);
 struct bNode   *nodeGetActiveID(struct bNodeTree *ntree, short idtype);
-int             nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
+bool            nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
 void            nodeClearActive(struct bNodeTree *ntree);
 void            nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 struct bNode   *nodeGetActiveTexture(struct bNodeTree *ntree);
@@ -519,13 +519,13 @@ extern const bNodeInstanceKey NODE_INSTANCE_KEY_BASE;
 
 bNodeInstanceKey       BKE_node_instance_key(bNodeInstanceKey parent_key, struct bNodeTree *ntree, struct bNode *node);
 
-bNodeInstanceHash *    BKE_node_instance_hash_new(const char *info);
+bNodeInstanceHash     *BKE_node_instance_hash_new(const char *info);
 void                   BKE_node_instance_hash_free(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
 void                   BKE_node_instance_hash_insert(bNodeInstanceHash *hash, bNodeInstanceKey key, void *value);
-void*                  BKE_node_instance_hash_lookup(bNodeInstanceHash *hash, bNodeInstanceKey key);
+void                  *BKE_node_instance_hash_lookup(bNodeInstanceHash *hash, bNodeInstanceKey key);
 int                    BKE_node_instance_hash_remove(bNodeInstanceHash *hash, bNodeInstanceKey key, bNodeInstanceValueFP valfreefp);
 void                   BKE_node_instance_hash_clear(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
-void*                  BKE_node_instance_hash_pop(bNodeInstanceHash *hash, bNodeInstanceKey key);
+void                  *BKE_node_instance_hash_pop(bNodeInstanceHash *hash, bNodeInstanceKey key);
 int                    BKE_node_instance_hash_haskey(bNodeInstanceHash *hash, bNodeInstanceKey key);
 int                    BKE_node_instance_hash_size(bNodeInstanceHash *hash);
 
@@ -540,7 +540,7 @@ BLI_INLINE bNodeInstanceHashIterator *BKE_node_instance_hash_iterator_new(bNodeI
 BLI_INLINE void                       BKE_node_instance_hash_iterator_init(bNodeInstanceHashIterator *iter, bNodeInstanceHash *hash) { BLI_ghashIterator_init(iter, hash->ghash); }
 BLI_INLINE void                       BKE_node_instance_hash_iterator_free(bNodeInstanceHashIterator *iter) { BLI_ghashIterator_free(iter); }
 BLI_INLINE bNodeInstanceKey           BKE_node_instance_hash_iterator_get_key(bNodeInstanceHashIterator *iter) { return *(bNodeInstanceKey *)BLI_ghashIterator_getKey(iter); }
-BLI_INLINE void*                      BKE_node_instance_hash_iterator_get_value(bNodeInstanceHashIterator *iter) { return BLI_ghashIterator_getValue(iter); }
+BLI_INLINE void                      *BKE_node_instance_hash_iterator_get_value(bNodeInstanceHashIterator *iter) { return BLI_ghashIterator_getValue(iter); }
 BLI_INLINE void                       BKE_node_instance_hash_iterator_step(bNodeInstanceHashIterator *iter) { BLI_ghashIterator_step(iter); }
 BLI_INLINE bool                       BKE_node_instance_hash_iterator_not_done(bNodeInstanceHashIterator *iter) { return BLI_ghashIterator_notDone(iter); }
 
@@ -553,8 +553,8 @@ BLI_INLINE bool                       BKE_node_instance_hash_iterator_not_done(b
 /* Node Previews */
 
 int             BKE_node_preview_used(struct bNode *node);
-bNodePreview*   BKE_node_preview_verify(struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, int create);
-bNodePreview*   BKE_node_preview_copy(struct bNodePreview *preview);
+bNodePreview   *BKE_node_preview_verify(struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, int create);
+bNodePreview   *BKE_node_preview_copy(struct bNodePreview *preview);
 void            BKE_node_preview_free(struct bNodePreview *preview);
 void            BKE_node_preview_init_tree(struct bNodeTree *ntree, int xsize, int ysize, int create_previews);
 void            BKE_node_preview_free_tree(struct bNodeTree *ntree);

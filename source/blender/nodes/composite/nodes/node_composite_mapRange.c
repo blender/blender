@@ -46,7 +46,7 @@ static bNodeSocketTemplate cmp_node_map_range_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_map_range()
+void register_node_type_cmp_map_range(void)
 {
 	static bNodeType ntype;
 

@@ -47,7 +47,7 @@ static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode *node)
 	node->storage= add_tex_mapping();
 }
 
-void register_node_type_cmp_map_value()
+void register_node_type_cmp_map_value(void)
 {
 	static bNodeType ntype;
 

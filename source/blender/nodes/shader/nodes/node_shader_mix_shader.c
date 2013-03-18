@@ -47,7 +47,7 @@ static int node_shader_gpu_mix_shader(GPUMaterial *mat, bNode *UNUSED(node), bNo
 }
 
 /* node type definition */
-void register_node_type_sh_mix_shader()
+void register_node_type_sh_mix_shader(void)
 {
 	static bNodeType ntype;
 

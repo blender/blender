@@ -69,7 +69,7 @@ static int gpu_shader_curve_vec(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 	return GPU_stack_link(mat, "curves_vec", in, out, GPU_texture(size, array));
 }
 
-void register_node_type_sh_curve_vec()
+void register_node_type_sh_curve_vec(void)
 {
 	static bNodeType ntype;
 
@@ -126,7 +126,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 	return GPU_stack_link(mat, "curves_rgb", in, out, GPU_texture(size, array));
 }
 
-void register_node_type_sh_curve_rgb()
+void register_node_type_sh_curve_rgb(void)
 {
 	static bNodeType ntype;
 

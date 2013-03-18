@@ -178,7 +178,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		if ((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
 			GroupObject *go = NULL;
 			Group *gr = ob->dup_group;
-			/* printf("group detected '%s'\n", gr->id.name+2); */
+			/* printf("group detected '%s'\n", gr->id.name + 2); */
 			for (go = (GroupObject *)(gr->gobject.first); go; go = go->next) {
 				printf("\t%s\n", go->ob->id.name);
 			}

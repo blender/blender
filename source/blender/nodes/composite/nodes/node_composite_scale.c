@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_scale_out[] = {
 	{   -1, 0, ""   }
 };
 
-void register_node_type_cmp_scale()
+void register_node_type_cmp_scale(void)
 {
 	static bNodeType ntype;
 

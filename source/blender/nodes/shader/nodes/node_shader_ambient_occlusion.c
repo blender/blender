@@ -45,7 +45,7 @@ static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat, bNode *UNUSED(nod
 }
 
 /* node type definition */
-void register_node_type_sh_ambient_occlusion()
+void register_node_type_sh_ambient_occlusion(void)
 {
 	static bNodeType ntype;
 

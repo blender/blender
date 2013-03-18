@@ -54,7 +54,7 @@ static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
 }
 
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */
-void register_node_type_cmp_vecblur()
+void register_node_type_cmp_vecblur(void)
 {
 	static bNodeType ntype;
 

@@ -52,7 +52,7 @@ static int gpu_shader_bump(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData 
 }
 
 /* node type definition */
-void register_node_type_sh_bump()
+void register_node_type_sh_bump(void)
 {
 	static bNodeType ntype;
 

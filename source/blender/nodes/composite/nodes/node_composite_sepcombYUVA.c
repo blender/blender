@@ -46,7 +46,7 @@ static bNodeSocketTemplate cmp_node_sepyuva_out[] = {
 	{  -1, 0, ""   }
 };
 
-void register_node_type_cmp_sepyuva()
+void register_node_type_cmp_sepyuva(void)
 {
 	static bNodeType ntype;
 
@@ -71,7 +71,7 @@ static bNodeSocketTemplate cmp_node_combyuva_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combyuva()
+void register_node_type_cmp_combyuva(void)
 {
 	static bNodeType ntype;
 

@@ -44,7 +44,7 @@ static int find_group_input(GroupNode *gnode, const char *identifier, InputSocke
 	int index;
 	for (index = 0; index < gnode->getNumberOfInputSockets(); ++index) {
 		InputSocket *sock = gnode->getInputSocket(index);
-		if (strcmp(sock->getbNodeSocket()->identifier, identifier)==0) {
+		if (STREQ(sock->getbNodeSocket()->identifier, identifier)) {
 			*r_sock = sock;
 			return index;
 		}
@@ -58,7 +58,7 @@ static int find_group_output(GroupNode *gnode, const char *identifier, OutputSoc
 	int index;
 	for (index = 0; index < gnode->getNumberOfOutputSockets(); ++index) {
 		OutputSocket *sock = gnode->getOutputSocket(index);
-		if (strcmp(sock->getbNodeSocket()->identifier, identifier)==0) {
+		if (STREQ(sock->getbNodeSocket()->identifier, identifier)) {
 			*r_sock = sock;
 			return index;
 		}

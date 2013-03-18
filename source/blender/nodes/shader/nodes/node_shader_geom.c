@@ -138,7 +138,7 @@ static int gpu_shader_geom(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 }
 
 /* node type definition */
-void register_node_type_sh_geom()
+void register_node_type_sh_geom(void)
 {
 	static bNodeType ntype;
 

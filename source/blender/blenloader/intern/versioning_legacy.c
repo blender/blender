@@ -2306,7 +2306,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			Image *ima;
 			for (ima = main->image.first; ima; ima = ima->id.next)
 				if (strcmp(ima->name, "Compositor") == 0) {
-					strcpy(ima->id.name+2, "Viewer Node");
+					strcpy(ima->id.name + 2, "Viewer Node");
 					strcpy(ima->name, "Viewer Node");
 				}
 		}
@@ -2495,11 +2495,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				ima->gen_x = 256; ima->gen_y = 256;
 				ima->gen_type = 1;
 
-				if (0 == strncmp(ima->id.name+2, "Viewer Node", sizeof(ima->id.name) - 2)) {
+				if (0 == strncmp(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2)) {
 					ima->source = IMA_SRC_VIEWER;
 					ima->type = IMA_TYPE_COMPOSITE;
 				}
-				if (0 == strncmp(ima->id.name+2, "Render Result", sizeof(ima->id.name) - 2)) {
+				if (0 == strncmp(ima->id.name + 2, "Render Result", sizeof(ima->id.name) - 2)) {
 					ima->source = IMA_SRC_VIEWER;
 					ima->type = IMA_TYPE_R_RESULT;
 				}

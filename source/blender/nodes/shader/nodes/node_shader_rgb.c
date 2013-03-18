@@ -44,7 +44,7 @@ static int gpu_shader_rgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *
 	return GPU_stack_link(mat, "set_rgba", in, out, vec);
 }
 
-void register_node_type_sh_rgb()
+void register_node_type_sh_rgb(void)
 {
 	static bNodeType ntype;
 

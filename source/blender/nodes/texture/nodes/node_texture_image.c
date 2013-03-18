@@ -97,7 +97,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 	iuser->ok= 1;
 }
 
-void register_node_type_tex_image()
+void register_node_type_tex_image(void)
 {
 	static bNodeType ntype;
 	

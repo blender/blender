@@ -80,7 +80,7 @@ static int gpu_shader_hue_sat(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDa
 	return GPU_stack_link(mat, "hue_sat", in, out);
 }
 
-void register_node_type_sh_hue_sat()
+void register_node_type_sh_hue_sat(void)
 {
 	static bNodeType ntype;
 

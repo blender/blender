@@ -140,12 +140,12 @@ EnumPropertyItem *rna_node_tree_type_itemf(void *data, int (*poll)(void *data, s
 int rna_node_type_to_enum(struct bNodeType *typeinfo);
 int rna_node_idname_to_enum(const char *idname);
 struct bNodeType *rna_node_type_from_enum(int value);
-EnumPropertyItem *rna_node_type_itemf(void *data, int (*poll)(void *data, struct bNodeType*), int *free);
+EnumPropertyItem *rna_node_type_itemf(void *data, int (*poll)(void *data, struct bNodeType *), int *free);
 
 int rna_node_socket_type_to_enum(struct bNodeSocketType *typeinfo);
 int rna_node_socket_idname_to_enum(const char *idname);
 struct bNodeSocketType *rna_node_socket_type_from_enum(int value);
-EnumPropertyItem *rna_node_socket_type_itemf(void *data, int (*poll)(void *data, struct bNodeSocketType*), int *free);
+EnumPropertyItem *rna_node_socket_type_itemf(void *data, int (*poll)(void *data, struct bNodeSocketType *), int *free);
 
 extern EnumPropertyItem node_socket_in_out_items[];
 extern EnumPropertyItem node_icon_items[];

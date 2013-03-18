@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_normal_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_normal()
+void register_node_type_cmp_normal(void)
 {
 	static bNodeType ntype;
 

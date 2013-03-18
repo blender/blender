@@ -390,7 +390,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_NODE_GROUP:
 					cp = ts->syntaxc; break;
 				case TH_NODE_INTERFACE:
-					cp= ts->console_output; break;
+					cp = ts->console_output; break;
 				case TH_NODE_FRAME:
 					cp = ts->movie; break;
 				case TH_NODE_MATTE:
@@ -1538,7 +1538,7 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
 		}
 		if (U.coba_weight.tot == 0)
-			init_colorband(&U.coba_weight, 1);
+			init_colorband(&U.coba_weight, true);
 	}
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 11)) {
 		bTheme *btheme;

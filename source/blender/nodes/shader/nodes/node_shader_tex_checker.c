@@ -63,7 +63,7 @@ static int node_shader_gpu_tex_checker(GPUMaterial *mat, bNode *node, bNodeExecD
 }
 
 /* node type definition */
-void register_node_type_sh_tex_checker()
+void register_node_type_sh_tex_checker(void)
 {
 	static bNodeType ntype;
 

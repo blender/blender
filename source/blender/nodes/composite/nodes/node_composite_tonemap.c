@@ -57,7 +57,7 @@ static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node)
 	node->storage = ntm;
 }
 
-void register_node_type_cmp_tonemap()
+void register_node_type_cmp_tonemap(void)
 {
 	static bNodeType ntype;
 

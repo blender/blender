@@ -68,7 +68,7 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 	tex_output(node, execdata, in, out[0], &colorfn, data);
 }
 
-void register_node_type_tex_scale()
+void register_node_type_tex_scale(void)
 {
 	static bNodeType ntype;
 	

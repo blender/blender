@@ -274,7 +274,7 @@ static void rna_Material_use_diffuse_ramp_set(PointerRNA *ptr, int value)
 	else ma->mode &= ~MA_RAMP_COL;
 
 	if ((ma->mode & MA_RAMP_COL) && ma->ramp_col == NULL)
-		ma->ramp_col = add_colorband(0);
+		ma->ramp_col = add_colorband(false);
 }
 
 static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
@@ -285,7 +285,7 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 	else ma->mode &= ~MA_RAMP_SPEC;
 
 	if ((ma->mode & MA_RAMP_SPEC) && ma->ramp_spec == NULL)
-		ma->ramp_spec = add_colorband(0);
+		ma->ramp_spec = add_colorband(false);
 }
 
 static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)

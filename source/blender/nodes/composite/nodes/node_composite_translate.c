@@ -52,7 +52,7 @@ static void node_composit_init_translate(bNodeTree *UNUSED(ntree), bNode *node)
 	node->storage = data;
 }
 
-void register_node_type_cmp_translate()
+void register_node_type_cmp_translate(void)
 {
 	static bNodeType ntype;
 

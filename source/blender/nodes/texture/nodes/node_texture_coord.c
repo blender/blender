@@ -48,7 +48,7 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 	tex_output(node, execdata, in, out[0], &vectorfn, data);
 }
 
-void register_node_type_tex_coord()
+void register_node_type_tex_coord(void)
 {
 	static bNodeType ntype;
 	

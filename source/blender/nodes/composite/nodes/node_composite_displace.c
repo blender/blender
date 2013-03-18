@@ -47,7 +47,7 @@ static bNodeSocketTemplate cmp_node_displace_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_displace()
+void register_node_type_cmp_displace(void)
 {
 	static bNodeType ntype;
 

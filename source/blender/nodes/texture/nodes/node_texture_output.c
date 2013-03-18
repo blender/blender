@@ -158,7 +158,7 @@ static void copy(bNodeTree *dest_ntree, bNode *dest_node, bNode *src_node)
 	assign_index(dest_node);
 }
 
-void register_node_type_tex_output()
+void register_node_type_tex_output(void)
 {
 	static bNodeType ntype;
 	

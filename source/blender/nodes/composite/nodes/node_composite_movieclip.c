@@ -50,7 +50,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 	user->framenr = 1;
 }
 
-void register_node_type_cmp_movieclip()
+void register_node_type_cmp_movieclip(void)
 {
 	static bNodeType ntype;
 

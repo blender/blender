@@ -42,7 +42,7 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[] = {
 	{ -1, 0, "" }					// output socket array terminator
 };
 
-void register_node_type_cmp_doubleedgemask()
+void register_node_type_cmp_doubleedgemask(void)
 {
 	static bNodeType ntype;	// allocate a node type data structure
 

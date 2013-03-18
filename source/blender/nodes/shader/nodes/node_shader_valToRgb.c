@@ -59,7 +59,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), int UNUSED(thread), bN
 
 static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= add_colorband(1);
+	node->storage= add_colorband(true);
 }
 
 static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
@@ -71,7 +71,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 	return GPU_stack_link(mat, "valtorgb", in, out, GPU_texture(size, array));
 }
 
-void register_node_type_sh_valtorgb()
+void register_node_type_sh_valtorgb(void)
 {
 	static bNodeType ntype;
 
@@ -112,7 +112,7 @@ static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDa
 	return GPU_stack_link(mat, "rgbtobw", in, out);
 }
 
-void register_node_type_sh_rgbtobw()
+void register_node_type_sh_rgbtobw(void)
 {
 	static bNodeType ntype;
 

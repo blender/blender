@@ -45,7 +45,7 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeE
 }
 
 /* node type definition */
-void register_node_type_sh_fresnel()
+void register_node_type_sh_fresnel(void)
 {
 	static bNodeType ntype;
 

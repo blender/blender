@@ -63,7 +63,7 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 	tex_output(node, execdata, in, out[0], &colorfn, data);
 }
 
-void register_node_type_tex_invert()
+void register_node_type_tex_invert(void)
 {
 	static bNodeType ntype;
 	

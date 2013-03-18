@@ -53,7 +53,7 @@ static void node_composit_init_luma_matte(bNodeTree *UNUSED(ntree), bNode *node)
 	c->t2= 0.0f;
 }
 
-void register_node_type_cmp_luma_matte()
+void register_node_type_cmp_luma_matte(void)
 {
 	static bNodeType ntype;
 

@@ -56,7 +56,7 @@ static void node_composit_init_chroma_matte(bNodeTree *UNUSED(ntree), bNode *nod
 	c->fstrength= 1.0f;
 }
 
-void register_node_type_cmp_chroma_matte()
+void register_node_type_cmp_chroma_matte(void)
 {
 	static bNodeType ntype;
 

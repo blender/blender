@@ -66,7 +66,7 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, bNodeExecDat
 }
 
 /* node type definition */
-void register_node_type_sh_tex_magic()
+void register_node_type_sh_tex_magic(void)
 {
 	static bNodeType ntype;
 

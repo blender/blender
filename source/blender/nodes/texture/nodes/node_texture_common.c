@@ -149,7 +149,7 @@ static void group_execute(void *data, int thread, struct bNode *node, bNodeExecD
 	ntreeReleaseThreadStack(nts);
 }
 
-void register_node_type_tex_group()
+void register_node_type_tex_group(void)
 {
 	static bNodeType ntype;
 

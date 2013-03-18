@@ -137,7 +137,7 @@ static bNode *node_group_get_active(bContext *C, const char *node_idname)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node = nodeGetActive(snode->edittree);
 	
-	if (node && strcmp(node->idname, node_idname)==0)
+	if (node && STREQ(node->idname, node_idname))
 		return node;
 	else
 		return NULL;
@@ -161,7 +161,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
 	MEM_freeN(node_idname);
 	
 	if (gnode && !exit) {
-		bNodeTree *ngroup= (bNodeTree*)gnode->id;
+		bNodeTree *ngroup = (bNodeTree *)gnode->id;
 		
 		if (ngroup) {
 			if (ngroup->id.lib)
@@ -240,8 +240,8 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	wgroup = ntreeCopyTree_ex(ngroup, FALSE);
 	
 	/* Add the nodes into the ntree */
-	for(node= wgroup->nodes.first; node; node= nextnode) {
-		nextnode= node->next;
+	for (node = wgroup->nodes.first; node; node = nextnode) {
+		nextnode = node->next;
 		
 		/* Remove interface nodes.
 		 * This also removes remaining links to and from interface nodes.
@@ -329,7 +329,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 			
 			/* find external links to this input */
 			for (tlink = ntree->links.first; tlink; tlink = tlink->next) {
-				if (tlink->tonode == gnode && strcmp(tlink->tosock->identifier, identifier)==0) {
+				if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
 					nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode->new_node, link->tosock->new_sock);
 					++num_external_links;
 				}
@@ -356,7 +356,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 			for (tlink = ngroup->links.first; tlink; tlink = tlink->next) {
 				/* only use active output node */
 				if (tlink->tonode->type == NODE_GROUP_OUTPUT && (tlink->tonode->flag & NODE_DO_OUTPUT)) {
-					if (strcmp(tlink->tosock->identifier, identifier)==0) {
+					if (STREQ(tlink->tosock->identifier, identifier)) {
 						nodeAddLink(ntree, tlink->fromnode->new_node, tlink->fromsock->new_sock, link->tonode, link->tosock);
 						++num_internal_links;
 					}
@@ -642,19 +642,19 @@ void NODE_OT_group_separate(wmOperatorType *ot)
 
 /* ****************** Make Group operator ******************* */
 
-static int node_group_make_use_node(bNode *node, bNode *gnode)
+static bool node_group_make_use_node(bNode *node, bNode *gnode)
 {
-	return (node != gnode
-	        && !ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)
-	        && (node->flag & NODE_SELECT));
+	return (node != gnode &&
+	        !ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT) &&
+	        (node->flag & NODE_SELECT));
 }
 
-static int node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const char *ntree_idname, struct ReportList *reports)
+static bool node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const char *ntree_idname, struct ReportList *reports)
 {
 	bNodeTree *ngroup;
 	bNode *node;
 	bNodeLink *link;
-	int ok = TRUE;
+	int ok = true;
 	
 	/* make a local pseudo node tree to pass to the node poll functions */
 	ngroup = ntreeAddTree(NULL, "Pseudo Node Group", ntree_idname);
@@ -664,7 +664,7 @@ static int node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const c
 		if (node_group_make_use_node(node, gnode)) {
 			if (!node->typeinfo->poll_instance(node, ngroup)) {
 				BKE_reportf(reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
-				ok = FALSE;
+				ok = false;
 				break;
 			}
 		}
@@ -676,7 +676,7 @@ static int node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const c
 	ntreeFreeTree(ngroup);
 	MEM_freeN(ngroup);
 	if (!ok)
-		return FALSE;
+		return false;
 	
 	/* check if all connections are OK, no unselected node has both
 	 * inputs and outputs to a selection */
@@ -687,12 +687,14 @@ static int node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const c
 			link->fromnode->done |= 2;
 	}
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (!(node->flag & NODE_SELECT)
-		    && node != gnode
-		    && node->done == 3)
-			return FALSE;
+		if (!(node->flag & NODE_SELECT) &&
+		    node != gnode &&
+		    node->done == 3)
+		{
+			return false;
+		}
 	}
-	return TRUE;
+	return true;
 }
 
 static int node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, float *max)

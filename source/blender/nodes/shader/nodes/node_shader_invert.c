@@ -72,7 +72,7 @@ static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDat
 	return GPU_stack_link(mat, "invert", in, out);
 }
 
-void register_node_type_sh_invert()
+void register_node_type_sh_invert(void)
 {
 	static bNodeType ntype;
 

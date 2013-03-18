@@ -66,7 +66,7 @@ static void storage_copy(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode 
 		dest_node->storage = BKE_tracking_distortion_copy(src_node->storage);
 }
 
-void register_node_type_cmp_moviedistortion()
+void register_node_type_cmp_moviedistortion(void)
 {
 	static bNodeType ntype;
 

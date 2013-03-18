@@ -42,7 +42,7 @@ static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
 }
 
 /* node type definition */
-void register_node_type_sh_tangent()
+void register_node_type_sh_tangent(void)
 {
 	static bNodeType ntype;
 

@@ -43,7 +43,7 @@ static bNodeSocketTemplate cmp_node_normalize_out[] = {
 	{   -1, 0, ""   }
 };
 
-void register_node_type_cmp_normalize()
+void register_node_type_cmp_normalize(void)
 {
 	static bNodeType ntype;
 	

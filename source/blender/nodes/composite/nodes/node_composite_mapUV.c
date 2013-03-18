@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_mapuv_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_mapuv()
+void register_node_type_cmp_mapuv(void)
 {
 	static bNodeType ntype;
 

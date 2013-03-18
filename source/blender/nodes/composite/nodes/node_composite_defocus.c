@@ -61,7 +61,7 @@ static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node)
 	node->storage = nbd;
 }
 
-void register_node_type_cmp_defocus()
+void register_node_type_cmp_defocus(void)
 {
 	static bNodeType ntype;
 

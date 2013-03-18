@@ -328,7 +328,7 @@ static bNodeSocketType *make_socket_type_virtual(void)
 }
 
 
-void register_standard_node_socket_types()
+void register_standard_node_socket_types(void)
 {
 	/* draw callbacks are set in drawnode.c to avoid bad-level calls */
 	

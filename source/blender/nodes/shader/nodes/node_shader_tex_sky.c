@@ -63,7 +63,7 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *node, bNodeExecData 
 }
 
 /* node type definition */
-void register_node_type_sh_tex_sky()
+void register_node_type_sh_tex_sky(void)
 {
 	static bNodeType ntype;
 

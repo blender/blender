@@ -63,7 +63,7 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *node, bNodeExecDat
 }
 
 /* node type definition */
-void register_node_type_sh_tex_noise()
+void register_node_type_sh_tex_noise(void)
 {
 	static bNodeType ntype;
 

@@ -382,7 +382,7 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 	else tex->flag &= ~TEX_COLORBAND;
 
 	if ((tex->flag & TEX_COLORBAND) && tex->coba == NULL)
-		tex->coba = add_colorband(0);
+		tex->coba = add_colorband(false);
 }
 
 static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)

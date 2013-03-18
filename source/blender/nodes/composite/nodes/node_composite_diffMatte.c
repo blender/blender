@@ -53,7 +53,7 @@ static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node)
 	c->t2= 0.1f;
 }
 
-void register_node_type_cmp_diff_matte()
+void register_node_type_cmp_diff_matte(void)
 {
 	static bNodeType ntype;
 

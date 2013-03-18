@@ -46,7 +46,7 @@ static int node_shader_gpu_layer_weight(GPUMaterial *UNUSED(mat), bNode *UNUSED(
 }
 
 /* node type definition */
-void register_node_type_sh_layer_weight()
+void register_node_type_sh_layer_weight(void)
 {
 	static bNodeType ntype;
 

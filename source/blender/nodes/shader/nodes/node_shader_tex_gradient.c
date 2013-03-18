@@ -61,7 +61,7 @@ static int node_shader_gpu_tex_gradient(GPUMaterial *mat, bNode *node, bNodeExec
 }
 
 /* node type definition */
-void register_node_type_sh_tex_gradient()
+void register_node_type_sh_tex_gradient(void)
 {
 	static bNodeType ntype;
 

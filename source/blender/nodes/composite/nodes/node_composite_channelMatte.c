@@ -60,7 +60,7 @@ static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *no
 	node->custom2= 2; /* Green Channel */
 }
 
-void register_node_type_cmp_channel_matte()
+void register_node_type_cmp_channel_matte(void)
 {
 	static bNodeType ntype;
 

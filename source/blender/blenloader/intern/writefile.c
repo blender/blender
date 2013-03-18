@@ -738,7 +738,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	if (ntree->adt) write_animdata(wd, ntree->adt);
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		writestruct(wd, DATA, "bNode", 1, node);
 
 		if (node->prop)
@@ -774,12 +774,12 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		
 		if (node->type==CMP_NODE_OUTPUT_FILE) {
 			/* inputs have own storage data */
-			for (sock=node->inputs.first; sock; sock=sock->next)
+			for (sock = node->inputs.first; sock; sock = sock->next)
 				writestruct(wd, DATA, "NodeImageMultiFileSocket", 1, sock->storage);
 		}
 		if (node->type==CMP_NODE_IMAGE) {
 			/* write extra socket info */
-			for (sock=node->outputs.first; sock; sock=sock->next)
+			for (sock = node->outputs.first; sock; sock = sock->next)
 				writestruct(wd, DATA, "NodeImageLayer", 1, sock->storage);
 		}
 	}

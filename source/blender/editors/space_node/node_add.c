@@ -324,7 +324,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	Image *ima = NULL;
-	int type= 0;
+	int type = 0;
 
 	/* check input variables */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -427,7 +427,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 
 static int new_node_tree_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	Main *bmain = CTX_data_main(C);
 	bNodeTree *ntree;
 	PointerRNA ptr, idptr;

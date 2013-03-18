@@ -46,7 +46,7 @@ static int node_shader_gpu_emission(GPUMaterial *mat, bNode *UNUSED(node), bNode
 }
 
 /* node type definition */
-void register_node_type_sh_emission()
+void register_node_type_sh_emission(void)
 {
 	static bNodeType ntype;
 

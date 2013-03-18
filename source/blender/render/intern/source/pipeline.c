@@ -1458,7 +1458,7 @@ static bool rlayer_node_uses_alpha(bNodeTree *ntree, bNode *node)
 
 	for (sock = node->outputs.first; sock; sock = sock->next) {
 		/* Weak! but how to make it better? */
-		if (!strcmp(sock->name, "Alpha") && nodeCountSocketLinks(ntree, sock) > 0)
+		if (STREQ(sock->name, "Alpha") && nodeCountSocketLinks(ntree, sock) > 0)
 			return true;
 	}
 

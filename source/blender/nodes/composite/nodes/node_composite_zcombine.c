@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_zcombine_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_zcombine()
+void register_node_type_cmp_zcombine(void)
 {
 	static bNodeType ntype;
 

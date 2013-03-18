@@ -80,7 +80,7 @@ static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDat
 	return 1;
 }
 
-void register_node_type_sh_output()
+void register_node_type_sh_output(void)
 {
 	static bNodeType ntype;
 

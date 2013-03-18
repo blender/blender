@@ -53,7 +53,7 @@ static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_anisotropic()
+void register_node_type_sh_bsdf_anisotropic(void)
 {
 	static bNodeType ntype;
 

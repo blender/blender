@@ -49,7 +49,7 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
 	node->custom1= 50;	/* default 50% split */
 }
 
-void register_node_type_cmp_splitviewer()
+void register_node_type_cmp_splitviewer(void)
 {
 	static bNodeType ntype;
 

@@ -53,7 +53,7 @@ static void node_composit_init_hue_sat(bNodeTree *UNUSED(ntree), bNode *node)
 	nhs->val= 1.0f;
 }
 
-void register_node_type_cmp_hue_sat()
+void register_node_type_cmp_hue_sat(void)
 {
 	static bNodeType ntype;
 

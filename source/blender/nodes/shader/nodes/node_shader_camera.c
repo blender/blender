@@ -57,7 +57,7 @@ static int gpu_shader_camera(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDat
 	return GPU_stack_link(mat, "camera", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-void register_node_type_sh_camera()
+void register_node_type_sh_camera(void)
 {
 	static bNodeType ntype;
 

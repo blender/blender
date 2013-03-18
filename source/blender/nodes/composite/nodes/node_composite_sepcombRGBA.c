@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_seprgba_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_seprgba()
+void register_node_type_cmp_seprgba(void)
 {
 	static bNodeType ntype;
 
@@ -70,7 +70,7 @@ static bNodeSocketTemplate cmp_node_combrgba_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combrgba()
+void register_node_type_cmp_combrgba(void)
 {
 	static bNodeType ntype;
 

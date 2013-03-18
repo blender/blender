@@ -53,10 +53,10 @@ static bool unique_path_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; bNodeSocket *sock;} *data= arg;
 	bNodeSocket *sock;
-	for (sock=data->lb->first; sock; sock=sock->next) {
+	for (sock=data->lb->first; sock; sock = sock->next) {
 		if (sock != data->sock) {
 			NodeImageMultiFileSocket *sockdata = sock->storage;
-			if (strcmp(sockdata->path, name)==0)
+			if (STREQ(sockdata->path, name))
 				return true;
 		}
 	}
@@ -82,10 +82,10 @@ static bool unique_layer_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; bNodeSocket *sock;} *data= arg;
 	bNodeSocket *sock;
-	for (sock=data->lb->first; sock; sock=sock->next) {
+	for (sock=data->lb->first; sock; sock = sock->next) {
 		if (sock != data->sock) {
 			NodeImageMultiFileSocket *sockdata = sock->storage;
-			if (strcmp(sockdata->layer, name)==0)
+			if (STREQ(sockdata->layer, name))
 				return true;
 		}
 	}
@@ -202,7 +202,7 @@ static void free_output_file(bNode *node)
 	bNodeSocket *sock;
 	
 	/* free storage data in sockets */
-	for (sock=node->inputs.first; sock; sock=sock->next) {
+	for (sock = node->inputs.first; sock; sock = sock->next) {
 		MEM_freeN(sock->storage);
 	}
 	
@@ -229,7 +229,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
 	cmp_node_update_default(ntree, node);
 	
 	/* automatically update the socket type based on linked input */
-	for (sock=node->inputs.first; sock; sock=sock->next) {
+	for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (sock->link) {
 			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 			RNA_enum_set(&ptr, "type", sock->link->fromsock->type);
@@ -237,7 +237,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
 	}
 }
 
-void register_node_type_cmp_output_file()
+void register_node_type_cmp_output_file(void)
 {
 	static bNodeType ntype;
 

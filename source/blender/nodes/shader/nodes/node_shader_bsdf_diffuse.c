@@ -50,7 +50,7 @@ static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat, bNode *UNUSED(node), b
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_diffuse()
+void register_node_type_sh_bsdf_diffuse(void)
 {
 	static bNodeType ntype;
 

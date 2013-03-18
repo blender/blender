@@ -80,7 +80,7 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 	tex_output(node, execdata, in, out[0], &normalfn, data);
 }
 
-void register_node_type_tex_valtonor()
+void register_node_type_tex_valtonor(void)
 {
 	static bNodeType ntype;
 	

@@ -46,7 +46,7 @@ static int node_shader_gpu_volume_transparent(GPUMaterial *UNUSED(mat), bNode *U
 }
 
 /* node type definition */
-void register_node_type_sh_volume_transparent()
+void register_node_type_sh_volume_transparent(void)
 {
 	static bNodeType ntype;
 

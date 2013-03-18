@@ -73,7 +73,7 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 }
 
 
-void register_node_type_sh_mix_rgb()
+void register_node_type_sh_mix_rgb(void)
 {
 	static bNodeType ntype;
 

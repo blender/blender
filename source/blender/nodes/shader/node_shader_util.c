@@ -98,7 +98,7 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 	bNodeSocket *sock;
 	int a;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type==SH_NODE_TEXTURE) {
 			if ((r_mode & R_OSA) && node->id) {
 				Tex *tex= (Tex *)node->id;
@@ -177,7 +177,7 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 	bNodeSocket *sock;
 	int i;
 	
-	for (sock=sockets->first, i=0; sock; sock=sock->next, i++)
+	for (sock=sockets->first, i=0; sock; sock = sock->next, i++)
 		node_gpu_stack_from_data(&gs[i], sock->type, ns[i]);
 	
 	gs[i].type= GPU_NONE;
@@ -188,7 +188,7 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 	bNodeSocket *sock;
 	int i;
 
-	for (sock=sockets->first, i=0; sock; sock=sock->next, i++)
+	for (sock=sockets->first, i=0; sock; sock = sock->next, i++)
 		node_data_from_gpu_stack(ns[i], &gs[i]);
 }
 
@@ -200,12 +200,12 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 	if (!ntree)
 		return NULL;
 
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->flag & NODE_ACTIVE_TEXTURE)
 			return node;
 	
 	/* node active texture node in this tree, look inside groups */
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type==NODE_GROUP) {
 			tnode = nodeGetActiveTexture((bNodeTree*)node->id);
 			if (tnode)

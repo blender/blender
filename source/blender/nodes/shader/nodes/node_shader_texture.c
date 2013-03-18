@@ -144,7 +144,7 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 		return 0;
 }
 
-void register_node_type_sh_texture()
+void register_node_type_sh_texture(void)
 {
 	static bNodeType ntype;
 

@@ -49,7 +49,7 @@ static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node)
 	node->custom1= 1; /* Bilinear Filter*/
 }
 
-void register_node_type_cmp_rotate()
+void register_node_type_cmp_rotate(void)
 {
 	static bNodeType ntype;
 

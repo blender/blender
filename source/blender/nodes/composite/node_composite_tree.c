@@ -107,7 +107,7 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 static void free_cache(bNodeTree *ntree)
 {
 	bNode *node;
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		free_node_cache(ntree, node);
 }
 
@@ -117,7 +117,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	bNode *node, *node_next;
 	bNodeSocket *sock;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
 		node->new_node->original = node;
@@ -142,7 +142,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	}
 	
 	/* replace muted nodes and reroute nodes by internal links */
-	for (node= localtree->nodes.first; node; node= node_next) {
+	for (node = localtree->nodes.first; node; node = node_next) {
 		node_next = node->next;
 		
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
@@ -217,7 +217,7 @@ static void update(bNodeTree *ntree)
 
 bNodeTreeType *ntreeType_Composite;
 
-void register_node_tree_type_cmp()
+void register_node_tree_type_cmp(void)
 {
 	bNodeTreeType *tt = ntreeType_Composite = MEM_callocN(sizeof(bNodeTreeType), "compositor node tree type");
 	

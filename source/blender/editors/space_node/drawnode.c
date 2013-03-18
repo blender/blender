@@ -81,34 +81,34 @@
 
 static void node_add_menu_class(bContext *C, uiLayout *layout, void *arg_nodeclass)
 {
-	Scene *scene= CTX_data_scene(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *scene = CTX_data_scene(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree;
-	int nodeclass= GET_INT_FROM_POINTER(arg_nodeclass);
-	int event, compatibility= 0;
+	int nodeclass = GET_INT_FROM_POINTER(arg_nodeclass);
+	int event, compatibility = 0;
 	
 	ntree = snode->nodetree;
 	
-	if(!ntree) {
+	if (!ntree) {
 		uiItemS(layout);
 		return;
 	}
 
-	if(ntree->type == NTREE_SHADER) {
-		if(BKE_scene_use_new_shading_nodes(scene))
-			compatibility= NODE_NEW_SHADING;
+	if (ntree->type == NTREE_SHADER) {
+		if (BKE_scene_use_new_shading_nodes(scene))
+			compatibility = NODE_NEW_SHADING;
 		else
-			compatibility= NODE_OLD_SHADING;
+			compatibility = NODE_OLD_SHADING;
 	}
 	
-	if (nodeclass==NODE_CLASS_GROUP) {
-		Main *bmain= CTX_data_main(C);
+	if (nodeclass == NODE_CLASS_GROUP) {
+		Main *bmain = CTX_data_main(C);
 		bNodeTree *ngroup;
 		const char *ngroup_type, *node_type;
 		PointerRNA ptr;
 		
 		NODE_TYPES_BEGIN(ntype)
-			if (ntype->nclass!=nodeclass || !ntype->ui_name)
+			if (ntype->nclass != nodeclass || !ntype->ui_name)
 				continue;
 			if (!ntype->poll(ntype, ntree))
 				continue;
@@ -132,33 +132,32 @@ static void node_add_menu_class(bContext *C, uiLayout *layout, void *arg_nodecla
 			RNA_string_set(&ptr, "node_type", node_type);
 			
 			uiItemS(layout);
-			
-			for(ngroup=bmain->nodetree.first, event=0; ngroup; ngroup= ngroup->id.next, ++event) {
+
+			for (ngroup = bmain->nodetree.first, event = 0; ngroup; ngroup = ngroup->id.next, ++event) {
 				/* only use group trees of the right type */
-				if (strcmp(ngroup->idname, ngroup_type)!=0)
+				if (STRNEQ(ngroup->idname, ngroup_type))
 					continue;
 				if (!nodeGroupPoll(ntree, ngroup))
 					continue;
 				
-				ptr = uiItemFullO(layout, "NODE_OT_add_group_node", ngroup->id.name+2, ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				ptr = uiItemFullO(layout, "NODE_OT_add_group_node", ngroup->id.name + 2, ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 				RNA_string_set(&ptr, "type", ntype->idname);
-				RNA_string_set(&ptr, "grouptree", ngroup->id.name+2);
+				RNA_string_set(&ptr, "grouptree", ngroup->id.name + 2);
 			}
 		NODE_TYPES_END
 	}
-	else if (nodeclass==NODE_DYNAMIC) {
+	else if (nodeclass == NODE_DYNAMIC) {
 		/* disabled */
 	}
-	else 
-	{
+	else {
 		PointerRNA ptr;
 		
 		NODE_TYPES_BEGIN(ntype)
-			if (ntype->nclass!=nodeclass || !ntype->ui_name)
+			if (ntype->nclass != nodeclass || !ntype->ui_name)
 				continue;
 			if (!ntype->poll(ntype, ntree))
 				continue;
-			if (compatibility && (ntype->compatibility & compatibility)==0)
+			if (compatibility && (ntype->compatibility & compatibility) == 0)
 				continue;
 			
 			ptr = uiItemFullO(layout, "NODE_OT_add_node", IFACE_(ntype->ui_name), ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
@@ -169,15 +168,15 @@ static void node_add_menu_class(bContext *C, uiLayout *layout, void *arg_nodecla
 
 static void node_add_menu_foreach_class_cb(void *calldata, int nclass, const char *name)
 {
-	uiLayout *layout= calldata;
+	uiLayout *layout = calldata;
 	uiItemMenuF(layout, IFACE_(name), 0, node_add_menu_class, SET_INT_IN_POINTER(nclass));
 }
 
 static void node_add_menu_default(const bContext *C, uiLayout *layout, bNodeTree *ntree)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	
-	if(ntree->typeinfo->foreach_nodeclass)
+	if (ntree->typeinfo->foreach_nodeclass)
 		ntree->typeinfo->foreach_nodeclass(scene, layout, node_add_menu_foreach_class_cb);
 }
 

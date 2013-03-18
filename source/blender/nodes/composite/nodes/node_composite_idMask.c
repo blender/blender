@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_idmask_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_idmask()
+void register_node_type_cmp_idmask(void)
 {
 	static bNodeType ntype;
 

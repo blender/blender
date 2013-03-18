@@ -88,7 +88,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, bNodeE
 }
 
 /* node type definition */
-void register_node_type_sh_tex_environment()
+void register_node_type_sh_tex_environment(void)
 {
 	static bNodeType ntype;
 

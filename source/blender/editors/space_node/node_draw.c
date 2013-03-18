@@ -89,17 +89,17 @@ static bNodeTree *node_tree_from_ID(ID *id)
 	
 		switch (idtype) {
 		case ID_NT:
-			return (bNodeTree*)id;
+			return (bNodeTree *)id;
 		case ID_MA:
-			return ((Material*)id)->nodetree;
+			return ((Material *)id)->nodetree;
 		case ID_LA:
-			return ((Lamp*)id)->nodetree;
+			return ((Lamp *)id)->nodetree;
 		case ID_WO:
-			return ((World*)id)->nodetree;
+			return ((World *)id)->nodetree;
 		case ID_SCE:
-			return ((Scene*)id)->nodetree;
+			return ((Scene *)id)->nodetree;
 		case ID_TE:
-			return ((Tex*)id)->nodetree;
+			return ((Tex *)id)->nodetree;
 		}
 	}
 	
@@ -339,7 +339,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 		
 		layout = uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       locx+NODE_DYS, dy, NODE_WIDTH(node)-NODE_DY, NODE_DY, UI_GetStyle());
+		                       locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, UI_GetStyle());
 		/* context pointers for current node and socket */
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
@@ -427,7 +427,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 		
 		layout = uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       locx+NODE_DYS, dy, NODE_WIDTH(node)-NODE_DY, NODE_DY, UI_GetStyle());
+		                       locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, UI_GetStyle());
 		/* context pointers for current node and socket */
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);

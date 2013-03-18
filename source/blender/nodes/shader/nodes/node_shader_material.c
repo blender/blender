@@ -91,7 +91,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		 * we just want to know if a node input uses external data or the material setting.
 		 * this is an ugly hack, but so is this node as a whole.
 		 */
-		for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i)
+		for (sock = node->inputs.first, i=0; sock; sock = sock->next, ++i)
 			hasinput[i] = (sock->link != NULL);
 		
 		shi= shcd->shi;
@@ -236,7 +236,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		 * the constant input stack values (e.g. in case material node is inside a group).
 		 * we just want to know if a node input uses external data or the material setting.
 		 */
-		for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i)
+		for (sock = node->inputs.first, i=0; sock; sock = sock->next, ++i)
 			hasinput[i] = (sock->link != NULL);
 
 		GPU_shadeinput_set(mat, (Material*)node->id, &shi);
@@ -307,7 +307,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 	return 0;
 }
 
-void register_node_type_sh_material()
+void register_node_type_sh_material(void)
 {
 	static bNodeType ntype;
 
@@ -323,7 +323,7 @@ void register_node_type_sh_material()
 }
 
 
-void register_node_type_sh_material_ext()
+void register_node_type_sh_material_ext(void)
 {
 	static bNodeType ntype;
 

@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_mix_rgb_out[] = {
 };
 
 /* custom1 = mix type */
-void register_node_type_cmp_mix_rgb()
+void register_node_type_cmp_mix_rgb(void)
 {
 	static bNodeType ntype;
 

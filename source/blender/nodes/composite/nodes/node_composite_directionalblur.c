@@ -50,7 +50,7 @@ static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node)
 	ndbd->center_y = 0.5;
 }
 
-void register_node_type_cmp_dblur()
+void register_node_type_cmp_dblur(void)
 {
 	static bNodeType ntype;
 

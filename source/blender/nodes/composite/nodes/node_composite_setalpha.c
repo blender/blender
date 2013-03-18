@@ -43,7 +43,7 @@ static bNodeSocketTemplate cmp_node_setalpha_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_setalpha()
+void register_node_type_cmp_setalpha(void)
 {
 	static bNodeType ntype;
 

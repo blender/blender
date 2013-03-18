@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_background_out[] = {
 };
 
 /* node type definition */
-void register_node_type_sh_background()
+void register_node_type_sh_background(void)
 {
 	static bNodeType ntype;
 

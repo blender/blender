@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_pixelate_out[] = {
 	{   -1, 0, ""   }
 };
 
-void register_node_type_cmp_pixelate()
+void register_node_type_cmp_pixelate(void)
 {
 	static bNodeType ntype;
 

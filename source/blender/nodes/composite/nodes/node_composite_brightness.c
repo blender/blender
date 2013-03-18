@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_brightcontrast_out[] = {
 };
 
 
-void register_node_type_cmp_brightcontrast()
+void register_node_type_cmp_brightcontrast(void)
 {
 	static bNodeType ntype;
 	

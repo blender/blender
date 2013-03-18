@@ -2081,20 +2081,17 @@ void UI_view2d_getscale_inverse(View2D *v2d, float *x, float *y)
 void UI_view2d_getcenter(struct View2D *v2d, float *x, float *y)
 {
 	/* get center */
-	if (x) *x = 0.5f*(v2d->cur.xmin + v2d->cur.xmax);
-	if (y) *y = 0.5f*(v2d->cur.ymin + v2d->cur.ymax);
+	if (x) *x = BLI_rctf_cent_x(&v2d->cur);
+	if (y) *y = BLI_rctf_cent_y(&v2d->cur);
 }
 void UI_view2d_setcenter(struct View2D *v2d, float x, float y)
 {
 	/* get delta from current center */
-	float dx = x - 0.5f*(v2d->cur.xmin + v2d->cur.xmax);
-	float dy = y - 0.5f*(v2d->cur.ymin + v2d->cur.ymax);
-	
+	float dx = x - BLI_rctf_cent_x(&v2d->cur);
+	float dy = y - BLI_rctf_cent_y(&v2d->cur);
+
 	/* add to cur */
-	v2d->cur.xmin += dx;
-	v2d->cur.xmax += dx;
-	v2d->cur.ymin += dy;
-	v2d->cur.ymax += dy;
+	BLI_rctf_translate(&v2d->cur, dx, dy);
 	
 	/* make sure that 'cur' rect is in a valid state as a result of these changes */
 	UI_view2d_curRect_validate(v2d);

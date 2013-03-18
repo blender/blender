@@ -36,7 +36,7 @@ static bNodeSocketTemplate outputs[] = {
 };
 
 /* node type definition */
-void register_node_type_sh_hair_info()
+void register_node_type_sh_hair_info(void)
 {
 	static bNodeType ntype;
 

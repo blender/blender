@@ -359,8 +359,9 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 		node = node_under_mouse_select(snode->edittree, mx, my);
 		
 		if (node) {
-			for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
-					nodeSetSelected(tnode, FALSE);
+			for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+				nodeSetSelected(tnode, false);
+			}
 			nodeSetSelected(node, TRUE);
 			ED_node_set_active(bmain, snode->edittree, node);
 			selected = 1;

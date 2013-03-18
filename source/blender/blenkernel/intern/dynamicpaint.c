@@ -1152,7 +1152,7 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			{
 				CBData *ramp;
 
-				brush->paint_ramp = add_colorband(0);
+				brush->paint_ramp = add_colorband(false);
 				if (!brush->paint_ramp)
 					return 0;
 				ramp = brush->paint_ramp->data;
@@ -1168,7 +1168,7 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			{
 				CBData *ramp;
 
-				brush->vel_ramp = add_colorband(0);
+				brush->vel_ramp = add_colorband(false);
 				if (!brush->vel_ramp)
 					return 0;
 				ramp = brush->vel_ramp->data;

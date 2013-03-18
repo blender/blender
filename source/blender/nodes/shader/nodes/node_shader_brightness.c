@@ -48,7 +48,7 @@ static int gpu_shader_brightcontrast(GPUMaterial *mat, bNode *UNUSED(node), bNod
 	return GPU_stack_link(mat, "brightness_contrast", in, out);
 }
 
-void register_node_type_sh_brightcontrast()
+void register_node_type_sh_brightcontrast(void)
 {
 	static bNodeType ntype;
 	

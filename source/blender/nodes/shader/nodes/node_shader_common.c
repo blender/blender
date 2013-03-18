@@ -221,7 +221,7 @@ static int gpu_group_execute(GPUMaterial *mat, bNode *node, bNodeExecData *execd
 	return 1;
 }
 
-void register_node_type_sh_group()
+void register_node_type_sh_group(void)
 {
 	static bNodeType ntype;
 	

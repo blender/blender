@@ -41,7 +41,7 @@
 
 #include "RNA_access.h"
 
-void register_node_type_cmp_group()
+void register_node_type_cmp_group(void)
 {
 	static bNodeType ntype;
 	

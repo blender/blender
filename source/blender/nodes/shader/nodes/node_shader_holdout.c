@@ -40,7 +40,7 @@ static bNodeSocketTemplate sh_node_holdout_out[] = {
 
 
 /* node type definition */
-void register_node_type_sh_holdout()
+void register_node_type_sh_holdout(void)
 {
 	static bNodeType ntype;
 

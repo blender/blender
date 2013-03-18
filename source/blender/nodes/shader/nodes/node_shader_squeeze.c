@@ -61,7 +61,7 @@ static int gpu_shader_squeeze(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDa
 	return GPU_stack_link(mat, "squeeze", in, out);
 }
 
-void register_node_type_sh_squeeze()
+void register_node_type_sh_squeeze(void)
 {
 	static bNodeType ntype;
 

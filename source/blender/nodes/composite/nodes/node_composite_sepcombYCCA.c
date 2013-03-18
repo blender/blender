@@ -47,7 +47,7 @@ static bNodeSocketTemplate cmp_node_sepycca_out[] = {
 };
 
 
-void register_node_type_cmp_sepycca()
+void register_node_type_cmp_sepycca(void)
 {
 	static bNodeType ntype;
 
@@ -72,7 +72,7 @@ static bNodeSocketTemplate cmp_node_combycca_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combycca()
+void register_node_type_cmp_combycca(void)
 {
 	static bNodeType ntype;
 

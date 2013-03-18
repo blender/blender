@@ -44,7 +44,7 @@ static int gpu_shader_value(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData
 	return GPU_stack_link(mat, "set_value", in, out, vec);
 }
 
-void register_node_type_sh_value()
+void register_node_type_sh_value(void)
 {
 	static bNodeType ntype;
 

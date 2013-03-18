@@ -139,7 +139,7 @@ static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 	return 1;
 }
 
-void register_node_type_sh_vect_math()
+void register_node_type_sh_vect_math(void)
 {
 	static bNodeType ntype;
 

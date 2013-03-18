@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_texture_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_texture()
+void register_node_type_cmp_texture(void)
 {
 	static bNodeType ntype;
 

@@ -108,7 +108,7 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree, bNode *node, bNodeSocke
 
 		/* check for same types */
 		if (sock->type == sock_target->type) {
-			if (strcmp(sock->name, sock_target->name) == 0)
+			if (STREQ(sock->name, sock_target->name))
 				return sock;
 		}
 	}
@@ -547,7 +547,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 							
 							{
 								/* place the node at the mouse pointer */
-								float sockx = 42.f + 3*HIDDEN_RAD;	/* XXX totally arbitrary initial hidden node size ... */
+								float sockx = 42.0f + 3 * HIDDEN_RAD;  /* XXX totally arbitrary initial hidden node size ... */
 								float socky = -HIDDEN_RAD;
 								
 								ionode->locx = snode->cursor[0] - sockx;

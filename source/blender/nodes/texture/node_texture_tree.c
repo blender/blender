@@ -154,7 +154,7 @@ static void update(bNodeTree *ntree)
 
 bNodeTreeType *ntreeType_Texture;
 
-void register_node_tree_type_tex()
+void register_node_tree_type_tex(void)
 {
 	bNodeTreeType *tt = ntreeType_Texture = MEM_callocN(sizeof(bNodeTreeType), "texture node tree type");
 	

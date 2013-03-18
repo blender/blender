@@ -46,7 +46,7 @@ static int node_shader_gpu_volume_isotropic(GPUMaterial *UNUSED(mat), bNode *UNU
 }
 
 /* node type definition */
-void register_node_type_sh_volume_isotropic()
+void register_node_type_sh_volume_isotropic(void)
 {
 	static bNodeType ntype;
 

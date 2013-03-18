@@ -59,10 +59,10 @@ static void valtorgb_exec(void *data, int UNUSED(thread), bNode *node, bNodeExec
 
 static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = add_colorband(1);
+	node->storage = add_colorband(true);
 }
 
-void register_node_type_tex_valtorgb()
+void register_node_type_tex_valtorgb(void)
 {
 	static bNodeType ntype;
 	
@@ -99,7 +99,7 @@ static void rgbtobw_exec(void *data, int UNUSED(thread), bNode *node, bNodeExecD
 	tex_output(node, execdata, in, out[0], &rgbtobw_valuefn, data);
 }
 
-void register_node_type_tex_rgbtobw()
+void register_node_type_tex_rgbtobw(void)
 {
 	static bNodeType ntype;
 	

@@ -39,7 +39,7 @@ static bNodeSocketTemplate cmp_node_composite_in[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_composite()
+void register_node_type_cmp_composite(void)
 {
 	static bNodeType ntype;
 

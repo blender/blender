@@ -43,7 +43,7 @@ static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 }
 
 /* node type definition */
-void register_node_type_sh_attribute()
+void register_node_type_sh_attribute(void)
 {
 	static bNodeType ntype;
 

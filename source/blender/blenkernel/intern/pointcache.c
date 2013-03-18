@@ -1362,7 +1362,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 		newname += len;
 	}
 	if (pid->cache->name[0] == '\0' && (pid->cache->flag & PTCACHE_EXTERNAL)==0) {
-		idname = (pid->ob->id.name+2);
+		idname = (pid->ob->id.name + 2);
 		/* convert chars to hex so they are always a valid filename */
 		while ('\0' != *idname) {
 			BLI_snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));

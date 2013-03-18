@@ -35,7 +35,7 @@ static bNodeSocketTemplate sh_node_output_lamp_in[] = {
 };
 
 /* node type definition */
-void register_node_type_sh_output_lamp()
+void register_node_type_sh_output_lamp(void)
 {
 	static bNodeType ntype;
 

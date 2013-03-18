@@ -255,7 +255,7 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 	return 1;
 }
 
-void register_node_type_sh_math()
+void register_node_type_sh_math(void)
 {
 	static bNodeType ntype;
 

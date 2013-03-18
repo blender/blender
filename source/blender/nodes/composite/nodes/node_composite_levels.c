@@ -50,7 +50,7 @@ static void node_composit_init_view_levels(bNodeTree *UNUSED(ntree), bNode *node
 	node->custom1=1; /*All channels*/
 }
 
-void register_node_type_cmp_view_levels()
+void register_node_type_cmp_view_levels(void)
 {
 	static bNodeType ntype;
 

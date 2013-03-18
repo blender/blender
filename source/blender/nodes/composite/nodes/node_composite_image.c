@@ -202,8 +202,8 @@ static bNodeSocket *cmp_node_image_output_find_match(bNode *UNUSED(node), bNodeS
 {
 	bNodeSocket *sock;
 	
-	for (sock=oldsocklist->first; sock; sock=sock->next)
-		if (strcmp(sock->name, newsock->name)==0)
+	for (sock=oldsocklist->first; sock; sock = sock->next)
+		if (STREQ(sock->name, newsock->name))
 			return sock;
 	return NULL;
 }
@@ -213,8 +213,8 @@ static bNodeSocket *cmp_node_image_output_relink(bNode *node, bNodeSocket *oldso
 	bNodeSocket *sock;
 	
 	/* first try to find matching socket name */
-	for (sock=node->outputs.first; sock; sock=sock->next)
-		if (strcmp(sock->name, oldsock->name)==0)
+	for (sock = node->outputs.first; sock; sock = sock->next)
+		if (STREQ(sock->name, oldsock->name))
 			return sock;
 	
 	/* no matching name, simply link to same index */
@@ -241,7 +241,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node)
 	/* XXX make callback */
 	cmp_node_image_create_outputs(ntree, node);
 	
-	for (newsock=node->outputs.first; newsock; newsock=newsock->next) {
+	for (newsock = node->outputs.first; newsock; newsock=newsock->next) {
 		/* XXX make callback */
 		oldsock = cmp_node_image_output_find_match(node, newsock, &oldsocklist);
 		if (oldsock) {
@@ -299,7 +299,7 @@ static void node_composit_free_image(bNode *node)
 	bNodeSocket *sock;
 	
 	/* free extra socket info */
-	for (sock=node->outputs.first; sock; sock=sock->next)
+	for (sock = node->outputs.first; sock; sock = sock->next)
 		MEM_freeN(sock->storage);
 	
 	MEM_freeN(node->storage);
@@ -312,11 +312,11 @@ static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree), bNode *dest_
 	dest_node->storage= MEM_dupallocN(src_node->storage);
 	
 	/* copy extra socket info */
-	for (sock=src_node->outputs.first; sock; sock=sock->next)
+	for (sock=src_node->outputs.first; sock; sock = sock->next)
 		sock->new_sock->storage = MEM_dupallocN(sock->storage);
 }
 
-void register_node_type_cmp_image()
+void register_node_type_cmp_image(void)
 {
 	static bNodeType ntype;
 
@@ -340,7 +340,7 @@ static int node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree
 	return (strcmp(ntree->idname, "CompositorNodeTree")==0 && RNA_boolean_get(&ptr, "is_local_tree"));
 }
 
-void register_node_type_cmp_rlayers()
+void register_node_type_cmp_rlayers(void)
 {
 	static bNodeType ntype;
 

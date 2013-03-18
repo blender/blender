@@ -45,7 +45,7 @@ static int node_shader_gpu_bsdf_transparent(GPUMaterial *mat, bNode *UNUSED(node
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_transparent()
+void register_node_type_sh_bsdf_transparent(void)
 {
 	static bNodeType ntype;
 

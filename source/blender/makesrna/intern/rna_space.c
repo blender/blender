@@ -1038,12 +1038,12 @@ static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *
 
 static int rna_SpaceNodeEditor_tree_type_get(PointerRNA *ptr)
 {
-	SpaceNode *snode= (SpaceNode*)ptr->data;
+	SpaceNode *snode = (SpaceNode *)ptr->data;
 	return rna_node_tree_idname_to_enum(snode->tree_idname);
 }
 static void rna_SpaceNodeEditor_tree_type_set(PointerRNA *ptr, int value)
 {
-	SpaceNode *snode= (SpaceNode*)ptr->data;
+	SpaceNode *snode = (SpaceNode *)ptr->data;
 	ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
 }
 static int rna_SpaceNodeEditor_tree_type_poll(void *Cv, bNodeTreeType *type)
@@ -3266,7 +3266,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "ID From", "Datablock from which the edited datablock is linked");
 
-	prop= RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
+	prop = RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "treepath", NULL);
 	RNA_def_property_struct_type(prop, "NodeTreePath");
 	RNA_def_property_ui_text(prop, "Node Tree Path", "Path from the data block to the currently edited node tree");
@@ -3279,16 +3279,16 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Node Tree", "Base node tree from context");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_update");
 
-	prop= RNA_def_property(srna, "edit_tree", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "edit_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "edittree");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edit Tree", "Node tree being displayed and edited");
 
-	prop= RNA_def_property(srna, "pin", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_PIN);
 	RNA_def_property_ui_text(prop, "Pinned", "Use the pinned node tree");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
 	prop = RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);

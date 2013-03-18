@@ -38,7 +38,7 @@ static bNodeSocketTemplate cmp_node_value_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_value()
+void register_node_type_cmp_value(void)
 {
 	static bNodeType ntype;
 

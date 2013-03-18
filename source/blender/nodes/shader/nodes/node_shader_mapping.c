@@ -86,7 +86,7 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	return GPU_stack_link(mat, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
 }
 
-void register_node_type_sh_mapping()
+void register_node_type_sh_mapping(void)
 {
 	static bNodeType ntype;
 	

@@ -172,7 +172,8 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 
 	/* XXX how can this be done nicely? bNodeTemplate is removed, it doesn't work for generic custom nodes */
 	if (node_prev && node_prev->type == type &&
-	    (type != NODE_GROUP || node_prev->id == &ngroup->id)) {
+	    (type != NODE_GROUP || node_prev->id == &ngroup->id))
+	{
 		/* keep the previous node if it's the same type */
 		node_from = node_prev;
 	}
@@ -182,8 +183,8 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 		node_from->locy = node_to->locy;
 		
 		/* XXX bad, should be dispatched to generic operator or something ... */
-		if (type==NODE_GROUP) {
-			node_from->id = (ID*)ngroup;
+		if (type == NODE_GROUP) {
+			node_from->id = (ID *)ngroup;
 		}
 		
 		if (node_from->id)
@@ -206,7 +207,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 				if (nodeCountSocketLinks(ntree, sock_from) >= sock_from->limit)
 					continue;
 
-				if (strcmp(sock_prev->name, sock_from->name) == 0 && sock_prev->type == sock_from->type) {
+				if (STREQ(sock_prev->name, sock_from->name) && sock_prev->type == sock_from->type) {
 					bNodeLink *link = sock_prev->link;
 
 					if (link && link->fromnode) {
@@ -377,8 +378,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 			else
 				BLI_strncpy(name, IFACE_(ntype->ui_name), UI_MAX_NAME_STR);
 			
-			but = uiDefBut(block, BUT, 0, name, 0, 0, UI_UNIT_X*4, UI_UNIT_Y,
-				NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Add node to input"));
+			but = uiDefBut(block, BUT, 0, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
+			               NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Add node to input"));
 			
 			argN = MEM_dupallocN(arg);
 			argN->type = ntype->type;

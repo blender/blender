@@ -296,11 +296,11 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 
 /* Node type definitions */
 #define TexDef(TEXTYPE, outputs, name, Name) \
-void register_node_type_tex_proc_##name() \
+void register_node_type_tex_proc_##name(void) \
 { \
 	static bNodeType ntype; \
 	\
-	tex_node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW|NODE_OPTIONS); \
+	tex_node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW | NODE_OPTIONS); \
 	node_type_socket_templates(&ntype, name##_inputs, outputs); \
 	node_type_size(&ntype, 140, 80, 140); \
 	node_type_init(&ntype, init); \

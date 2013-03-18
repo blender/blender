@@ -53,7 +53,7 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), bNod
 }
 
 /* node type definition */
-void register_node_type_sh_tex_coord()
+void register_node_type_sh_tex_coord(void)
 {
 	static bNodeType ntype;
 

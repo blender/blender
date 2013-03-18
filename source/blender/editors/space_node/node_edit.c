@@ -290,11 +290,11 @@ void snode_notify(bContext *C, SpaceNode *snode)
 {
 	WM_event_add_notifier(C, NC_NODE | NA_EDITED, NULL);
 
-	if(ED_node_is_shader(snode))
+	if (ED_node_is_shader(snode))
 		WM_event_add_notifier(C, NC_MATERIAL | ND_NODES, snode->id);
-	else if(ED_node_is_compositor(snode))
+	else if (ED_node_is_compositor(snode))
 		WM_event_add_notifier(C, NC_SCENE | ND_NODES, snode->id);
-	else if(ED_node_is_texture(snode))
+	else if (ED_node_is_texture(snode))
 		WM_event_add_notifier(C, NC_TEXTURE | ND_NODES, snode->id);
 }
 
@@ -308,17 +308,17 @@ void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo)
 
 int ED_node_is_compositor(struct SpaceNode *snode)
 {
-	return (strcmp(snode->tree_idname, ntreeType_Composite->idname)==0);
+	return STREQ(snode->tree_idname, ntreeType_Composite->idname);
 }
 
 int ED_node_is_shader(struct SpaceNode *snode)
 {
-	return (strcmp(snode->tree_idname, ntreeType_Shader->idname)==0);
+	return STREQ(snode->tree_idname, ntreeType_Shader->idname);
 }
 
 int ED_node_is_texture(struct SpaceNode *snode)
 {
-	return (strcmp(snode->tree_idname, ntreeType_Texture->idname)==0);
+	return STREQ(snode->tree_idname, ntreeType_Texture->idname);
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -513,8 +513,9 @@ void snode_set_context(const bContext *C)
 		snode->flag &= ~SNODE_NEW_SHADERS;
 	
 	/* check the tree type */
-	if (!treetype
-	    || (treetype->poll && !treetype->poll(C, treetype))) {
+	if (!treetype ||
+	    (treetype->poll && !treetype->poll(C, treetype)))
+	{
 		/* invalid tree type, disable */
 		snode->tree_idname[0] = '\0';
 		ED_node_tree_start(snode, NULL, NULL, NULL);
@@ -533,8 +534,9 @@ void snode_set_context(const bContext *C)
 			treetype->get_from_context(C, treetype, &ntree, &id, &from);
 	}
 	
-	if (snode->nodetree!=ntree || snode->id!=id || snode->from!=snode->from)
+	if (snode->nodetree != ntree || snode->id != id || snode->from != snode->from) {
 		ED_node_tree_start(snode, ntree, id, from);
+	}
 }
 
 void snode_update(SpaceNode *snode, bNode *node)
@@ -547,11 +549,11 @@ void snode_update(SpaceNode *snode, bNode *node)
 	 */
 	
 	/* update all edited group nodes */
-	path=snode->treepath.last;
+	path = snode->treepath.last;
 	if (path) {
 		bNodeTree *ngroup = path->nodetree;
-		for (path=path->prev; path; path=path->prev) {
-			nodeUpdateID(path->nodetree, (ID*)ngroup);
+		for (path = path->prev; path; path = path->prev) {
+			nodeUpdateID(path->nodetree, (ID *)ngroup);
 			ngroup = path->nodetree;
 		}
 	}
@@ -2077,15 +2079,15 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
 void NODE_OT_tree_socket_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Node Tree Interface Socket";
-	ot->idname= "NODE_OT_tree_socket_add";
+	ot->name = "Add Node Tree Interface Socket";
+	ot->idname = "NODE_OT_tree_socket_add";
 	
 	/* api callbacks */
-	ot->exec= ntree_socket_add_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = ntree_socket_add_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "in_out", node_socket_in_out_items, SOCK_IN, "Socket Type", "");
 }
@@ -2120,15 +2122,15 @@ static int ntree_socket_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_tree_socket_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Node Tree Interface Socket";
-	ot->idname= "NODE_OT_tree_socket_remove";
+	ot->name = "Remove Node Tree Interface Socket";
+	ot->idname = "NODE_OT_tree_socket_remove";
 	
 	/* api callbacks */
-	ot->exec= ntree_socket_remove_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = ntree_socket_remove_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************** Move interface socket operator *********************/
@@ -2185,15 +2187,15 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
 void NODE_OT_tree_socket_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Node Tree Socket";
-	ot->idname= "NODE_OT_tree_socket_move";
+	ot->name = "Move Node Tree Socket";
+	ot->idname = "NODE_OT_tree_socket_move";
 	
 	/* api callbacks */
-	ot->exec= ntree_socket_move_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = ntree_socket_move_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "direction", move_direction_items, 1, "Direction", "");
 }

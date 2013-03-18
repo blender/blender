@@ -38,7 +38,7 @@ static bNodeSocketTemplate cmp_node_rgb_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_rgb()
+void register_node_type_cmp_rgb(void)
 {
 	static bNodeType ntype;
 

@@ -50,7 +50,7 @@ static int node_shader_gpu_bsdf_velvet(GPUMaterial *mat, bNode *UNUSED(node), bN
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_velvet()
+void register_node_type_sh_bsdf_velvet(void)
 {
 	static bNodeType ntype;
 

@@ -156,7 +156,7 @@ static void update(bNodeTree *ntree)
 
 bNodeTreeType *ntreeType_Shader;
 
-void register_node_tree_type_sh()
+void register_node_tree_type_sh(void)
 {
 	bNodeTreeType *tt = ntreeType_Shader = MEM_callocN(sizeof(bNodeTreeType), "shader node tree type");
 	

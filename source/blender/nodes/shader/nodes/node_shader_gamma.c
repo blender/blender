@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_gamma_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_sh_gamma()
+void register_node_type_sh_gamma(void)
 {
 	static bNodeType ntype;
 	

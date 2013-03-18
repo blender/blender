@@ -46,7 +46,7 @@ static bNodeSocketTemplate cmp_node_sephsva_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_sephsva()
+void register_node_type_cmp_sephsva(void)
 {
 	static bNodeType ntype;
 
@@ -70,7 +70,7 @@ static bNodeSocketTemplate cmp_node_combhsva_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combhsva()
+void register_node_type_cmp_combhsva(void)
 {
 	static bNodeType ntype;
 
