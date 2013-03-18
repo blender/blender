@@ -75,19 +75,19 @@ static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack *
 	out[1] = val-nor[1];
 	out[2] = val-nor[2];
 }
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) 
+static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out) 
 {
-	tex_output(node, in, out[0], &normalfn, data);
+	tex_output(node, execdata, in, out[0], &normalfn, data);
 }
 
-void register_node_type_tex_valtonor(bNodeTreeType *ttype)
+void register_node_type_tex_valtonor()
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, TEX_NODE_VALTONOR, "Value to Normal", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	tex_node_type_base(&ntype, TEX_NODE_VALTONOR, "Value to Normal", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size(&ntype, 90, 80, 100);
-	node_type_exec(&ntype, exec);
+	node_type_exec(&ntype, NULL, NULL, exec);
 	
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

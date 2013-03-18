@@ -35,6 +35,8 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_node.h"
 
 #include "MEM_guardedalloc.h"
@@ -43,17 +45,29 @@
 
 #include "GPU_material.h" /* For Shader muting GPU code... */
 
+#include "RNA_access.h"
+
 struct bNodeTree;
 struct bNode;
+
+/* data for initializing node execution */
+typedef struct bNodeExecContext {
+	struct bNodeInstanceHash *previews;
+} bNodeExecContext;
+
+typedef struct bNodeExecData {
+	void *data;						/* custom data storage */
+	struct bNodePreview *preview;	/* optional preview image */
+} bNodeExecData;
 
 /**** Storage Data ****/
 
 extern void node_free_curves(struct bNode *node);
 extern void node_free_standard_storage(struct bNode *node);
 
-extern void node_copy_curves(struct bNode *orig_node, struct bNode *new_node);
-extern void node_copy_standard_storage(struct bNode *orig_node, struct bNode *new_node);
-extern void *node_initexec_curves(struct bNode *node);
+extern void node_copy_curves(struct bNodeTree *dest_ntree, struct bNode *dest_node, struct bNode *src_node);
+extern void node_copy_standard_storage(struct bNodeTree *dest_ntree, struct bNode *dest_node, struct bNode *src_node);
+extern void *node_initexec_curves(struct bNodeExecContext *context, struct bNode *node, bNodeInstanceKey key);
 
 /**** Labels ****/
 
@@ -63,5 +77,12 @@ const char *node_vect_math_label(struct bNode *node);
 const char *node_filter_label(struct bNode *node);
 
 void node_update_internal_links_default(struct bNodeTree *ntree, struct bNode *node);
+
+float node_socket_get_float(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock);
+void node_socket_set_float(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock, float value);
+void node_socket_get_color(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock, float *value);
+void node_socket_set_color(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock, const float *value);
+void node_socket_get_vector(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock, float *value);
+void node_socket_set_vector(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock, const float *value);
 
 #endif

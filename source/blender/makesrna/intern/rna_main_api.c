@@ -235,23 +235,32 @@ static void rna_Main_materials_remove(Main *bmain, ReportList *reports, PointerR
 	}
 }
 
-static bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
+static EnumPropertyItem *rna_Main_nodetree_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
-	bNodeTree *tree = ntreeAddTree(bmain, name, type, NODE_GROUP);
-
-	id_us_min(&tree->id);
-	return tree;
+	return rna_node_tree_type_itemf(NULL, NULL, free);
 }
-static void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, PointerRNA *tree_ptr)
+static struct bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
 {
-	bNodeTree *tree = tree_ptr->data;
-	if (ID_REAL_USERS(tree) <= 0) {
-		BKE_libblock_free(&bmain->nodetree, tree);
-		RNA_POINTER_INVALIDATE(tree_ptr);
+	bNodeTreeType *typeinfo = rna_node_tree_type_from_enum(type);
+	if (typeinfo) {
+		bNodeTree *ntree = ntreeAddTree(bmain, name, typeinfo->idname);
+		
+		id_us_min(&ntree->id);
+		return ntree;
+	}
+	else
+		return NULL;
+}
+static void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, PointerRNA *ntree_ptr)
+{
+	bNodeTree *ntree = ntree_ptr->data;
+	if (ID_REAL_USERS(ntree) <= 0) {
+		BKE_libblock_free(&bmain->nodetree, ntree);
+		RNA_POINTER_INVALIDATE(ntree_ptr);
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Node tree '%s' must have zero users to be removed, found %d",
-		            tree->id.name + 2, ID_REAL_USERS(tree));
+		            ntree->id.name + 2, ID_REAL_USERS(ntree));
 	}
 }
 
@@ -1069,10 +1078,8 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem node_nodetree_items[] = {
-		{0, "SHADER",       0,    "Shader",       ""},
-		{1, "COMPOSITE",    0,    "Composite",    ""},
-		{2, "TEXTURE",      0,    "Texture",      ""},
+	static EnumPropertyItem dummy_items[] = {
+		{0, "DUMMY", 0, "", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1085,7 +1092,8 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new node tree to the main database");
 	parm = RNA_def_string(func, "name", "NodeGroup", 0, "", "New name for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", node_nodetree_items, 0, "Type", "The type of node_group to add");
+	parm = RNA_def_enum(func, "type", dummy_items, 0, "Type", "The type of node_group to add");
+	RNA_def_property_enum_funcs(parm, NULL, NULL, "rna_Main_nodetree_type_itemf");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "tree", "NodeTree", "", "New node tree datablock");

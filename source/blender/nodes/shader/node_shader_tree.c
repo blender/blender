@@ -36,6 +36,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
@@ -45,10 +46,13 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
+
+#include "RNA_access.h"
 
 #include "GPU_material.h"
 
@@ -59,23 +63,45 @@
 #include "node_util.h"
 #include "node_shader_util.h"
 
-static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
+static int shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 {
-	Material *ma;
-	Lamp *la;
-	World *wo;
+	Scene *scene = CTX_data_scene(C);
+	/* allow empty engine string too, this is from older versions that didn't have registerable engines yet */
+	return (scene->r.engine[0] == '\0'
+	        || strcmp(scene->r.engine, "BLENDER_RENDER")==0
+	        || strcmp(scene->r.engine, "CYCLES")==0);
+}
 
-	for (ma = main->mat.first; ma; ma = ma->id.next)
-		if (ma->nodetree)
-			func(calldata, &ma->id, ma->nodetree);
-
-	for (la = main->lamp.first; la; la = la->id.next)
-		if (la->nodetree)
-			func(calldata, &la->id, la->nodetree);
-
-	for (wo = main->world.first; wo; wo = wo->id.next)
-		if (wo->nodetree)
-			func(calldata, &wo->id, wo->nodetree);
+static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
+	
+	if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
+		if (ob) {
+			if (ob->type == OB_LAMP) {
+				*r_from = &ob->id;
+				*r_id = ob->data;
+				*r_ntree = ((Lamp *)ob->data)->nodetree;
+			}
+			else {
+				Material *ma = give_current_material(ob, ob->actcol);
+				if (ma) {
+					*r_from = &ob->id;
+					*r_id = &ma->id;
+					*r_ntree = ma->nodetree;
+				}
+			}
+		}
+	}
+	else { /* SNODE_SHADER_WORLD */
+		if (scene->world) {
+			*r_from = NULL;
+			*r_id = &scene->world->id;
+			*r_ntree = scene->world->nodetree;
+		}
+	}
 }
 
 static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback func)
@@ -93,6 +119,7 @@ static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback f
 	func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
 	func(calldata, NODE_CLASS_SCRIPT, N_("Script"));
 	func(calldata, NODE_CLASS_GROUP, N_("Group"));
+	func(calldata, NODE_CLASS_INTERFACE, N_("Interface"));
 	func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
@@ -111,24 +138,8 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 	}
 }
 
-static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
+static void local_sync(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
 {
-	bNode *lnode;
-	
-	/* copy over contents of previews */
-	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
-		if (ntreeNodeExists(ntree, lnode->new_node)) {
-			bNode *node = lnode->new_node;
-			
-			if (node->preview && node->preview->rect) {
-				if (lnode->preview && lnode->preview->rect) {
-					int xsize = node->preview->xsize;
-					int ysize = node->preview->ysize;
-					memcpy(node->preview->rect, lnode->preview->rect, 4 * xsize + xsize * ysize * sizeof(char) * 4);
-				}
-			}
-		}
-	}
 }
 
 static void update(bNodeTree *ntree)
@@ -136,26 +147,36 @@ static void update(bNodeTree *ntree)
 	ntreeSetOutput(ntree);
 	
 	ntree_update_reroute_nodes(ntree);
+	
+	if (ntree->update & NTREE_UPDATE_NODES) {
+		/* clean up preview cache, in case nodes have been removed */
+		BKE_node_preview_remove_unused(ntree);
+	}
 }
 
-bNodeTreeType ntreeType_Shader = {
-	/* type */				NTREE_SHADER,
-	/* id_name */			"NTShader Nodetree",
+bNodeTreeType *ntreeType_Shader;
+
+void register_node_tree_type_sh()
+{
+	bNodeTreeType *tt = ntreeType_Shader = MEM_callocN(sizeof(bNodeTreeType), "shader node tree type");
 	
-	/* node_types */		{ NULL, NULL },
+	tt->type = NTREE_SHADER;
+	strcpy(tt->idname, "ShaderNodeTree");
+	strcpy(tt->ui_name, "Shader");
+	tt->ui_icon = 0;	/* defined in drawnode.c */
+	strcpy(tt->ui_description, "");
 	
-	/* free_cache */		NULL,
-	/* free_node_cache */	NULL,
-	/* foreach_nodetree */	foreach_nodetree,
-	/* foreach_nodeclass */	foreach_nodeclass,
-	/* localize */			localize,
-	/* local_sync */		local_sync,
-	/* local_merge */		NULL,
-	/* update */			update,
-	/* update_node */		NULL,
-	/* validate_link */		NULL,
-	/* update_internal_links */	node_update_internal_links_default
-};
+	tt->foreach_nodeclass = foreach_nodeclass;
+	tt->localize = localize;
+	tt->local_sync = local_sync;
+	tt->update = update;
+	tt->poll = shader_tree_poll;
+	tt->get_from_context = shader_get_from_context;
+	
+	tt->ext.srna = &RNA_ShaderNodeTree;
+	
+	ntreeTypeAdd(tt);
+}
 
 /* GPU material from shader nodes */
 
@@ -163,11 +184,11 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 {
 	bNodeTreeExec *exec;
 
-	exec = ntreeShaderBeginExecTree(ntree, 1);
+	exec = ntreeShaderBeginExecTree(ntree);
 
 	ntreeExecGPUNodes(exec, mat, 1);
 
-	ntreeShaderEndExecTree(exec, 1);
+	ntreeShaderEndExecTree(exec);
 }
 
 /* **************** call to switch lamploop for material node ************ */
@@ -180,27 +201,16 @@ void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult 
 }
 
 
-/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
- * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
- */
-bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree, int use_tree_data)
+bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context, bNodeTree *ntree, bNodeInstanceKey parent_key)
 {
 	bNodeTreeExec *exec;
 	bNode *node;
-	
-	if (use_tree_data) {
-		/* XXX hack: prevent exec data from being generated twice.
-		 * this should be handled by the renderer!
-		 */
-		if (ntree->execdata)
-			return ntree->execdata;
-	}
 	
 	/* ensures only a single output node is enabled */
 	ntreeSetOutput(ntree);
 	
 	/* common base initialization */
-	exec = ntree_exec_begin(ntree);
+	exec = ntree_exec_begin(context, ntree, parent_key);
 	
 	/* allocate the thread stack listbase array */
 	exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
@@ -208,43 +218,58 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree, int use_tree_data)
 	for (node = exec->nodetree->nodes.first; node; node = node->next)
 		node->need_exec = 1;
 	
-	if (use_tree_data) {
-		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
-		 * which only store the ntree pointer. Should be fixed at some point!
-		 */
-		ntree->execdata = exec;
-	}
+	return exec;
+}
+
+bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
+{
+	bNodeExecContext context;
+	bNodeTreeExec *exec;
+	
+	/* XXX hack: prevent exec data from being generated twice.
+	 * this should be handled by the renderer!
+	 */
+	if (ntree->execdata)
+		return ntree->execdata;
+	
+	context.previews = ntree->previews;
+	
+	exec = ntreeShaderBeginExecTree_internal(&context, ntree, NODE_INSTANCE_KEY_BASE);
+	
+	/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
+	 * which only store the ntree pointer. Should be fixed at some point!
+	 */
+	ntree->execdata = exec;
 	
 	return exec;
 }
 
-/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
- * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
- */
-void ntreeShaderEndExecTree(bNodeTreeExec *exec, int use_tree_data)
+void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec)
+{
+	bNodeThreadStack *nts;
+	int a;
+	
+	if (exec->threadstack) {
+		for (a = 0; a < BLENDER_MAX_THREADS; a++) {
+			for (nts = exec->threadstack[a].first; nts; nts = nts->next)
+				if (nts->stack) MEM_freeN(nts->stack);
+			BLI_freelistN(&exec->threadstack[a]);
+		}
+		
+		MEM_freeN(exec->threadstack);
+		exec->threadstack = NULL;
+	}
+	
+	ntree_exec_end(exec);
+}
+
+void ntreeShaderEndExecTree(bNodeTreeExec *exec)
 {
 	if (exec) {
-		bNodeTree *ntree = exec->nodetree;
-		bNodeThreadStack *nts;
-		int a;
+		ntreeShaderEndExecTree_internal(exec);
 		
-		if (exec->threadstack) {
-			for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-				for (nts = exec->threadstack[a].first; nts; nts = nts->next)
-					if (nts->stack) MEM_freeN(nts->stack);
-				BLI_freelistN(&exec->threadstack[a]);
-			}
-			
-			MEM_freeN(exec->threadstack);
-			exec->threadstack = NULL;
-		}
-		
-		ntree_exec_end(exec);
-		
-		if (use_tree_data) {
-			/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-			ntree->execdata = NULL;
-		}
+		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
+		exec->nodetree->execdata = NULL;
 	}
 }
 
@@ -272,7 +297,7 @@ bool ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	if (!exec) {
 		BLI_lock_thread(LOCK_NODES);
 		if (!ntree->execdata)
-			ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+			ntree->execdata = ntreeShaderBeginExecTree(ntree);
 		BLI_unlock_thread(LOCK_NODES);
 
 		exec = ntree->execdata;

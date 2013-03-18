@@ -45,12 +45,12 @@ static bNodeSocketTemplate cmp_node_pixelate_out[] = {
 	{   -1, 0, ""   }
 };
 
-void register_node_type_cmp_pixelate(bNodeTreeType *ttype)
+void register_node_type_cmp_pixelate()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_pixelate_in, cmp_node_pixelate_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

@@ -36,6 +36,7 @@
 using namespace std;
 class SocketConnection;
 class NodeBase;
+struct PointerRNA;
 
 /**
  * @brief Base class for InputSocket and OutputSocket.
@@ -86,6 +87,10 @@ public:
 	void setEditorSocket(bNodeSocket *editorSocket) { this->m_editorSocket = editorSocket; }
 	bNodeSocket *getbNodeSocket() const { return this->m_editorSocket; }
 	
+	float getEditorValueFloat();
+	void getEditorValueColor(float *value);
+	void getEditorValueVector(float *value);
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Socket")
 #endif

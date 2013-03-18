@@ -1173,13 +1173,12 @@ static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *activescene, Po
 	rna_Scene_glsl_update(bmain, activescene, ptr);
 }
 
-static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
+static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
 
-	scene->use_nodes = value;
 	if (scene->use_nodes && scene->nodetree == NULL)
-		ED_node_composit_default(scene);
+		ED_node_composit_default(C, scene);
 }
 
 static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -4533,9 +4532,9 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_use_nodes_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Enable the compositing node tree");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_use_nodes_update");
 	
 	/* Sequencer */
 	prop = RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);

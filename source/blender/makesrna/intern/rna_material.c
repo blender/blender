@@ -82,6 +82,7 @@ EnumPropertyItem ramp_blend_items[] = {
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -111,7 +112,7 @@ static void rna_Material_update_previews(Main *bmain, Scene *scene, PointerRNA *
 	Material *ma = ptr->id.data;
 	
 	if (ma->nodetree)
-		ntreeClearPreview(ma->nodetree);
+		BKE_node_preview_clear_tree(ma->nodetree);
 		
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
@@ -287,14 +288,14 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 		ma->ramp_spec = add_colorband(0);
 }
 
-static void rna_Material_use_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	Material *ma = (Material *)ptr->data;
 
 	if (ma->use_nodes && ma->nodetree == NULL)
-		ED_node_shader_default(scene, &ma->id);
+		ED_node_shader_default(C, &ma->id);
 	
-	rna_Material_update(bmain, scene, ptr);
+	rna_Material_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
@@ -2024,6 +2025,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material");
 	RNA_def_property_update(prop, 0, "rna_Material_use_nodes_update");
 

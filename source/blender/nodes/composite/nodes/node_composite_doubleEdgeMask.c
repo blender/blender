@@ -42,12 +42,13 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[] = {
 	{ -1, 0, "" }					// output socket array terminator
 };
 
-void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
+void register_node_type_cmp_doubleedgemask()
 {
 	static bNodeType ntype;	// allocate a node type data structure
 
-	node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
+	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
 	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

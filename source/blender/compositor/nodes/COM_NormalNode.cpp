@@ -36,15 +36,13 @@ void NormalNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	OutputSocket *outputSocketDotproduct = this->getOutputSocket(1);
-	bNode *editorNode = this->getbNode();
 	
 	SetVectorOperation *operationSet = new SetVectorOperation();
-	bNodeSocket *insock = (bNodeSocket *)editorNode->outputs.first;
-	bNodeSocketValueVector *dval = (bNodeSocketValueVector *)insock->default_value;
 	float normal[3];
+	outputSocket->getEditorValueVector(normal);
 
 	/* animation can break normalization, this restores it */
-	normalize_v3_v3(normal, dval->value);
+	normalize_v3(normal);
 
 	operationSet->setX(normal[0]);
 	operationSet->setY(normal[1]);

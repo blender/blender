@@ -34,49 +34,25 @@
 
 /* **************** VALUE ******************** */
 static bNodeSocketTemplate sh_node_value_out[] = {
-	/* XXX value nodes use the output sockets for buttons, so we need explicit limits here! */
-	{	SOCK_FLOAT, 0, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
+    {	SOCK_FLOAT, 0, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_value(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static int gpu_shader_value(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	bNodeSocket *sock= node->outputs.first;
-	bNodeSocketValueFloat *dval= (bNodeSocketValueFloat*)sock->default_value;
-	/* uses the default value of the output socket, must be initialized here */
-	dval->value = 0.5f;
-	dval->min = -FLT_MAX;
-	dval->max = FLT_MAX;
-}
-
-static void node_shader_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float val= ((bNodeSocketValueFloat*)sock->default_value)->value;
-	
-	out[0]->vec[0] = val;
-}
-
-static int gpu_shader_value(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *val= &((bNodeSocketValueFloat*)sock->default_value)->value;
-	GPUNodeLink *vec = GPU_uniform(val);
-
+	GPUNodeLink *vec = GPU_uniform(out[0].vec);
 	return GPU_stack_link(mat, "set_value", in, out, vec);
 }
 
-void register_node_type_sh_value(bNodeTreeType *ttype)
+void register_node_type_sh_value()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_value_out);
-	node_type_init(&ntype, node_shader_init_value);
 	node_type_size(&ntype, 80, 50, 120);
-	node_type_exec(&ntype, node_shader_exec_value);
 	node_type_gpu(&ntype, gpu_shader_value);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

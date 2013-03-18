@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_channel_matte_out[] = {
 	{-1, 0, ""}
 };
 
-static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
 	node->storage=c;
@@ -60,14 +60,14 @@ static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *no
 	node->custom2= 2; /* Green Channel */
 }
 
-void register_node_type_cmp_channel_matte(bNodeTreeType *ttype)
+void register_node_type_cmp_channel_matte()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_channel_matte_in, cmp_node_channel_matte_out);
 	node_type_init(&ntype, node_composit_init_channel_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

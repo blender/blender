@@ -41,7 +41,7 @@ static bNodeSocketTemplate cmp_node_tonemap_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTonemap *ntm = MEM_callocN(sizeof(NodeTonemap), "node tonemap data");
 	ntm->type = 1;
@@ -57,14 +57,14 @@ static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node, bN
 	node->storage = ntm;
 }
 
-void register_node_type_cmp_tonemap(bNodeTreeType *ttype)
+void register_node_type_cmp_tonemap()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_tonemap_in, cmp_node_tonemap_out);
 	node_type_init(&ntype, node_composit_init_tonemap);
 	node_type_storage(&ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

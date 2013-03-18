@@ -48,7 +48,7 @@ static bNodeSocketTemplate sh_node_texture_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_texture(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)
 {
 	if (data && node->id) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
@@ -113,13 +113,14 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		
 		copy_v3_v3(out[2]->vec, nor);
 		
-		if (shi->do_preview)
-			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys, shi->do_manage);
+		if (shi->do_preview) {
+			BKE_node_preview_set_pixel(execdata->preview, out[1]->vec, shi->xs, shi->ys, shi->do_manage);
+		}
 		
 	}
 }
 
-static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_texture(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	Tex *tex = (Tex*)node->id;
 
@@ -143,16 +144,16 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 		return 0;
 }
 
-void register_node_type_sh_texture(bNodeTreeType *ttype)
+void register_node_type_sh_texture()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	sh_node_type_base(&ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_texture_in, sh_node_texture_out);
 	node_type_size(&ntype, 120, 80, 240);
-	node_type_exec(&ntype, node_shader_exec_texture);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_texture);
 	node_type_gpu(&ntype, gpu_shader_texture);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

@@ -695,7 +695,7 @@ Tex *BKE_texture_copy(Tex *tex)
 
 	if (tex->nodetree) {
 		if (tex->nodetree->execdata) {
-			ntreeTexEndExecTree(tex->nodetree->execdata, 1);
+			ntreeTexEndExecTree(tex->nodetree->execdata);
 		}
 		texn->nodetree = ntreeCopyTree(tex->nodetree);
 	}

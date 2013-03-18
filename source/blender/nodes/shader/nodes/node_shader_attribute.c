@@ -36,25 +36,23 @@ static bNodeSocketTemplate sh_node_attribute_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeShaderAttribute *attr = MEM_callocN(sizeof(NodeShaderAttribute), "NodeShaderAttribute");
 	node->storage = attr;
 }
 
 /* node type definition */
-void register_node_type_sh_attribute(bNodeTreeType *ttype)
+void register_node_type_sh_attribute()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_attribute_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_attribute);
 	node_type_storage(&ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, NULL);
-	node_type_gpu(&ntype, NULL);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

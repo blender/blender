@@ -45,41 +45,11 @@ struct bNodeTree;
 struct bNode;
 struct bNodeStack;
 
-void node_socket_type_init(struct bNodeSocketType *types[]);
-
-void *node_socket_make_default_value(int type);
-void node_socket_free_default_value(int type, void *default_value);
-void node_socket_init_default_value(int type, void *default_value);
-void node_socket_copy_default_value(int type, void *to_default_value, void *from_default_value);
-void node_socket_convert_default_value(int to_type, void *to_default_value, int from_type, void *from_default_value);
-
-void node_socket_set_default_value_int(void *default_value, PropertySubType subtype, int value, int min, int max);
-void node_socket_set_default_value_float(void *default_value, PropertySubType subtype, float value, float min, float max);
-void node_socket_set_default_value_boolean(void *default_value, char value);
-void node_socket_set_default_value_vector(void *default_value, PropertySubType subtype, float x, float y, float z, float min, float max);
-void node_socket_set_default_value_rgba(void *default_value, float r, float g, float b, float a);
-void node_socket_set_default_value_shader(void *default_value);
-void node_socket_set_default_value_mesh(void *default_value);
-void node_socket_set_default_value_string(void *default_value, PropertySubType subtype, const char *value);
-
-struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp);
-struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp);
+struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp, int in_out);
 
 void node_verify_socket_templates(struct bNodeTree *ntree, struct bNode *node);
 
-
-/* Socket Converters */
-
-#define SOCK_VECTOR_X			1
-#define SOCK_VECTOR_Y			2
-#define SOCK_VECTOR_Z			3
-
-#define SOCK_RGBA_R			1
-#define SOCK_RGBA_G			2
-#define SOCK_RGBA_B			3
-#define SOCK_RGBA_A			4
-
-#define SOCK_MESH_VERT_CO	1
-#define SOCK_MESH_VERT_NO	2
+void node_socket_init_default_value(struct bNodeSocket *sock);
+void register_standard_node_socket_types(void);
 
 #endif

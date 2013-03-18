@@ -43,7 +43,7 @@ static bNodeSocketTemplate cmp_node_huecorrect_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	CurveMapping *cumapping = node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	int c;
@@ -59,15 +59,15 @@ static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node,
 	cumapping->cur = 1;
 }
 
-void register_node_type_cmp_huecorrect(bNodeTreeType *ttype)
+void register_node_type_cmp_huecorrect()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_HUECORRECT, "Hue Correct", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_HUECORRECT, "Hue Correct", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_huecorrect_in, cmp_node_huecorrect_out);
 	node_type_size(&ntype, 320, 140, 500);
 	node_type_init(&ntype, node_composit_init_huecorrect);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

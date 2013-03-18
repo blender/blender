@@ -20,6 +20,8 @@
  *		Monique Dewanchand
  */
 
+#include "BKE_node.h"
+
 #include "COM_GroupNode.h"
 #include "COM_SocketProxyNode.h"
 #include "COM_SetColorOperation.h"
@@ -37,13 +39,38 @@ void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	}
 }
 
+static int find_group_input(GroupNode *gnode, const char *identifier, InputSocket **r_sock)
+{
+	int index;
+	for (index = 0; index < gnode->getNumberOfInputSockets(); ++index) {
+		InputSocket *sock = gnode->getInputSocket(index);
+		if (strcmp(sock->getbNodeSocket()->identifier, identifier)==0) {
+			*r_sock = sock;
+			return index;
+		}
+	}
+	*r_sock = NULL;
+	return -1;
+}
+
+static int find_group_output(GroupNode *gnode, const char *identifier, OutputSocket **r_sock)
+{
+	int index;
+	for (index = 0; index < gnode->getNumberOfOutputSockets(); ++index) {
+		OutputSocket *sock = gnode->getOutputSocket(index);
+		if (strcmp(sock->getbNodeSocket()->identifier, identifier)==0) {
+			*r_sock = sock;
+			return index;
+		}
+	}
+	*r_sock = NULL;
+	return -1;
+}
+
 void GroupNode::ungroup(ExecutionSystem &system)
 {
 	bNode *bnode = this->getbNode();
 	bNodeTree *subtree = (bNodeTree *)bnode->id;
-	vector<InputSocket *> &inputsockets = this->getInputSockets();
-	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
-	unsigned int index;
 
 	/* get the node list size _before_ adding proxy nodes, so they are available for linking */
 	int nodes_start = system.getNodes().size();
@@ -54,26 +81,44 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		return;
 	}
 
-	for (index = 0; index < inputsockets.size(); index++) {
-		InputSocket *inputSocket = inputsockets[index];
-		bNodeSocket *editorInput = inputSocket->getbNodeSocket();
-		if (editorInput->groupsock) {
-			SocketProxyNode *proxy = new SocketProxyNode(bnode, editorInput, editorInput->groupsock, false);
-			inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
-			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
-		}
-	}
-
 	const bool groupnodeBuffering = system.getContext().isGroupnodeBufferEnabled();
-	for (index = 0; index < outputsockets.size(); index++) {
-		OutputSocket *outputSocket = outputsockets[index];
-		bNodeSocket *editorOutput = outputSocket->getbNodeSocket();
-		if (editorOutput->groupsock) {
-			SocketProxyNode *proxy = new SocketProxyNode(bnode, editorOutput->groupsock, editorOutput, groupnodeBuffering);
-			outputSocket->relinkConnections(proxy->getOutputSocket(0));
-			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
+
+	/* create proxy nodes for group input/output nodes */
+	for (bNode *bionode = (bNode *)subtree->nodes.first; bionode; bionode = bionode->next) {
+		if (bionode->type == NODE_GROUP_INPUT) {
+			for (bNodeSocket *bsock = (bNodeSocket *)bionode->outputs.first; bsock; bsock = bsock->next) {
+				InputSocket *gsock;
+				int gsock_index = find_group_input(this, bsock->identifier, &gsock);
+				/* ignore virtual sockets */
+				if (gsock) {
+					SocketProxyNode *proxy = new SocketProxyNode(bionode, gsock->getbNodeSocket(), bsock, false);
+					ExecutionSystemHelper::addNode(system.getNodes(), proxy);
+					
+					gsock->relinkConnectionsDuplicate(proxy->getInputSocket(0), gsock_index, &system);
+				}
+			}
+		}
+		
+		if (bionode->type == NODE_GROUP_OUTPUT && (bionode->flag & NODE_DO_OUTPUT)) {
+			for (bNodeSocket *bsock = (bNodeSocket *)bionode->inputs.first; bsock; bsock = bsock->next) {
+				OutputSocket *gsock;
+				find_group_output(this, bsock->identifier, &gsock);
+				/* ignore virtual sockets */
+				if (gsock) {
+					SocketProxyNode *proxy = new SocketProxyNode(bionode, bsock, gsock->getbNodeSocket(), groupnodeBuffering);
+					ExecutionSystemHelper::addNode(system.getNodes(), proxy);
+					
+					gsock->relinkConnections(proxy->getOutputSocket(0));
+				}
+			}
 		}
 	}
-
-	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree, bnode);
+	
+	/* unlink the group node itself, input links have been duplicated */
+	for (int index = 0; index < this->getNumberOfInputSockets(); ++index) {
+		InputSocket *sock = this->getInputSocket(index);
+		sock->unlinkConnections(&system);
+	}
+	
+	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree, this->getInstanceKey());
 }

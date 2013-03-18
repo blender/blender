@@ -34,7 +34,7 @@ static bNodeSocketTemplate sh_node_tangent_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeShaderTangent *attr = MEM_callocN(sizeof(NodeShaderTangent), "NodeShaderTangent");
 	attr->axis = SHD_TANGENT_AXIS_Z;
@@ -42,19 +42,16 @@ static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node, bNod
 }
 
 /* node type definition */
-void register_node_type_sh_tangent(bNodeTreeType *ttype)
+void register_node_type_sh_tangent()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_tangent_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_tangent);
 	node_type_storage(&ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, NULL);
-	node_type_gpu(&ntype, NULL);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
-

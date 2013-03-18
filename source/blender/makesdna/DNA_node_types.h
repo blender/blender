@@ -44,10 +44,18 @@ struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
 struct bNodeTreeExec;
+struct bNodePreview;
+struct bNodeInstanceHash;
 struct AnimData;
 struct bGPdata;
 struct uiBlock;
 struct Image;
+
+/* In writefile.c: write deprecated DNA data,
+ * to ensure forward compatibility in 2.6x versions.
+ * Will be removed eventually.
+ */
+#define USE_NODE_COMPAT_CUSTOMNODES
 
 #define NODE_MAXSTR 64
 
@@ -79,13 +87,22 @@ typedef struct bNodeStack {
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev, *new_sock;
 	
+	IDProperty *prop;			/* user-defined properties */
+	
+	char identifier[64];		/* unique identifier for mapping */
+	
 	char name[64];	/* MAX_NAME */
 	
+	/* XXX deprecated, only used for the Image and OutputFile nodes,
+	 * should be removed at some point.
+	 */
 	void *storage;				/* custom storage */
 	
 	short type, flag;
 	short limit;				/* max. number of links */
-	short pad1;
+	short in_out;				/* input/output type */
+	struct bNodeSocketType *typeinfo;	/* runtime type information */
+	char idname[64];			/* runtime type identifier */
 	
 	float locx, locy;
 	
@@ -98,11 +115,14 @@ typedef struct bNodeSocket {
 	int resizemode;				/* compositor resize mode of the socket */
 	void *cache;				/* cached data from execution */
 	
-	/* internal data to retrieve relations and groups */
-	int own_index;				/* group socket identifiers, to find matching pairs after reading files */
+	/* internal data to retrieve relations and groups
+	 * DEPRECATED, now uses the generic identifier string instead
+	 */
+	int own_index  DNA_DEPRECATED;	/* group socket identifiers, to find matching pairs after reading files */
 	/* XXX deprecated, only used for restoring old group node links */
 	int to_index  DNA_DEPRECATED;
-	struct bNodeSocket *groupsock;
+	/* XXX deprecated, still forward compatible since verification restores pointer from matching own_index. */
+	struct bNodeSocket *groupsock  DNA_DEPRECATED;
 	
 	struct bNodeLink *link;		/* a link pointer, set in ntreeUpdateTree */
 
@@ -111,31 +131,34 @@ typedef struct bNodeSocket {
 } bNodeSocket;
 
 /* sock->type */
+#define SOCK_CUSTOM			-1	/* socket has no integer type */
 #define SOCK_FLOAT			0
 #define SOCK_VECTOR			1
 #define SOCK_RGBA			2
 #define SOCK_SHADER			3
 #define SOCK_BOOLEAN		4
-#define SOCK_MESH			5
+#define __SOCK_MESH			5	/* deprecated */
 #define SOCK_INT			6
 #define SOCK_STRING			7
 #define NUM_SOCKET_TYPES	8	/* must be last! */
 
 /* socket side (input/output) */
-#define SOCK_IN		1
-#define SOCK_OUT	2
+typedef enum eNodeSocketInOut {
+	SOCK_IN = 1,
+	SOCK_OUT = 2
+} eNodeSocketInOut;
 
 /* sock->flag, first bit is select */
 	/* hidden is user defined, to hide unused */
 #define SOCK_HIDDEN				2
 	/* for quick check if socket is linked */
-#define SOCK_IN_USE				4	/* XXX deprecated */
+#define SOCK_IN_USE				4
 	/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
-	/* dynamic socket (can be modified by user) */
-#define SOCK_DYNAMIC			16
-	/* group socket should not be exposed */
-#define SOCK_INTERNAL			32
+	/* DEPRECATED  dynamic socket (can be modified by user) */
+#define __SOCK_DYNAMIC			16
+	/* DEPRECATED  group socket should not be exposed */
+#define __SOCK_INTERNAL			32
 	/* socket collapsed in UI */
 #define SOCK_COLLAPSED			64
 	/* hide socket value, if it gets auto default */
@@ -144,19 +167,18 @@ typedef struct bNodeSocket {
 	/* DEPRECATED, only kept here to avoid reusing the flag */
 #define SOCK_AUTO_HIDDEN__DEPRECATED	256
 
-typedef struct bNodePreview {
-	unsigned char *rect;
-	short xsize, ysize;
-	int pad;
-} bNodePreview;
-
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
+
+	IDProperty *prop;		/* user-defined properties */
+	
+	struct bNodeType *typeinfo;	/* runtime type information */
+	char idname[64];			/* runtime type identifier */
 	
 	char name[64];	/* MAX_NAME */
 	int flag;
-	short type, pad2;
+	short type, pad;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
 	short stack_index;		/* for groupnode, offset in global caller stack */
@@ -186,10 +208,17 @@ typedef struct bNode {
 	rctf totr;				/* entire boundbox (worldspace) */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
-	bNodePreview *preview;	/* optional preview image */
+	/* XXX TODO
+	 * Node totr size depends on the prvr size, which in turn is determined from preview size.
+	 * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
+	 * multiple instances using different preview images it is possible that required node size varies between instances.
+	 * preview_xsize, preview_ysize defines a common reserved size for preview rect for now,
+	 * could be replaced by more accurate node instance drawing, but that requires removing totr from DNA
+	 * and replacing all uses with per-instance data.
+	 */
+	short preview_xsize, preview_ysize;	/* reserved size of the preview rect */
+	int pad2;
 	struct uiBlock *block;	/* runtime during drawing */
-	
-	struct bNodeType *typeinfo;	/* lookup of callbacks and defaults */
 } bNode;
 
 /* node->flag */
@@ -200,7 +229,7 @@ typedef struct bNode {
 #define NODE_ACTIVE			16
 #define NODE_ACTIVE_ID		32
 #define NODE_DO_OUTPUT		64
-#define NODE_GROUP_EDIT		128
+#define __NODE_GROUP_EDIT	128		/* DEPRECATED */
 	/* free test flag, undefined */
 #define NODE_TEST			256
 	/* node is disabled */
@@ -221,6 +250,12 @@ typedef struct bNode {
 #define NODE_ACTIVE_TEXTURE	(1<<14)
 	/* use a custom color for the node */
 #define NODE_CUSTOM_COLOR	(1<<15)
+	/* Node has been initialized
+	 * This flag indicates the node->typeinfo->init function has been called.
+	 * In case of undefined type at creation time this can be delayed until
+	 * until the node type is registered.
+	 */
+#define NODE_INIT			(1<<16)
 
 /* node->update */
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
@@ -228,6 +263,36 @@ typedef struct bNode {
  */
 #define NODE_UPDATE			0xFFFF	/* generic update flag (includes all others) */
 #define NODE_UPDATE_ID		1		/* associated id data block has changed */
+
+/* Unique hash key for identifying node instances
+ * Defined as a struct because DNA does not support other typedefs.
+ */
+typedef struct bNodeInstanceKey
+{
+	unsigned int value;
+} bNodeInstanceKey;
+
+/* Base struct for entries in node instance hash.
+ * WARNING: pointers are cast to this struct internally,
+ * it must be first member in hash entry structs!
+ */
+typedef struct bNodeInstanceHashEntry {
+	bNodeInstanceKey key;
+	
+	/* tags for cleaning the cache */
+	short tag;
+	short pad;
+} bNodeInstanceHashEntry;
+
+
+typedef struct bNodePreview {
+	bNodeInstanceHashEntry hash_entry;	/* must be first */
+	
+	unsigned char *rect;
+	short xsize, ysize;
+	int pad;
+} bNodePreview;
+
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -263,7 +328,13 @@ typedef struct bNodeTree {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 	
+	struct bNodeTreeType *typeinfo;	/* runtime type information */
+	char idname[64];				/* runtime type identifier */
+	
+	struct StructRNA *interface_type;	/* runtime RNA type of the group interface */
+	
 	struct bGPdata *gpd;		/* grease pencil data */
+	float view_center[2];		/* node tree stores own offset for consistent editor view */
 	
 	ListBase nodes, links;
 	
@@ -272,8 +343,11 @@ typedef struct bNodeTree {
 									 * will increase this counter */
 	int flag;
 	int update;						/* update flags */
+	short is_updating;				/* flag to prevent reentrant update calls */
+	short done;						/* generic temporary flag for recursion check (DFS/BFS) */
+	int pad2;
 	
-	int nodetype;					/* specific node type this tree is used for */
+	int nodetype DNA_DEPRECATED;	/* specific node type this tree is used for */
 
 	short edit_quality;				/* Quality setting when editing */
 	short render_quality;				/* Quality setting when rendering */
@@ -281,7 +355,16 @@ typedef struct bNodeTree {
 	
 	rctf viewer_border;
 	
-	ListBase inputs, outputs;		/* external sockets for group nodes */
+	/* Lists of bNodeSocket to hold default values and own_index.
+	 * Warning! Don't make links to these sockets, input/output nodes are used for that.
+	 * These sockets are used only for generating external interfaces.
+	 */
+	ListBase inputs, outputs;
+	
+	/* Node preview hash table
+	 * Only available in base node trees (e.g. scene->node_tree)
+	 */
+	struct bNodeInstanceHash *previews;
 	
 	/* execution data */
 	/* XXX It would be preferable to completely move this data out of the underlying node tree,
@@ -302,10 +385,10 @@ typedef struct bNodeTree {
 } bNodeTree;
 
 /* ntree->type, index */
+#define NTREE_CUSTOM		-1		/* for dynamically registered custom types */
 #define NTREE_SHADER		0
 #define NTREE_COMPOSIT		1
 #define NTREE_TEXTURE		2
-#define NUM_NTREE_TYPES		3
 
 /* ntree->init, flag */
 #define NTREE_TYPE_INIT		1
@@ -320,18 +403,24 @@ typedef struct bNodeTree {
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
  */
-#define NTREE_DO_VERSIONS_GROUP_EXPOSE	1024
+#define NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2	1024	/* changes from r35033 */
+#define NTREE_DO_VERSIONS_CUSTOMNODES_GROUP		2048	/* custom_nodes branch: remove links to node tree sockets */
+#define NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE	4096	/* custom_nodes branch: create group input/output nodes */
 
 /* ntree->update */
-#define NTREE_UPDATE			0xFFFF	/* generic update flag (includes all others) */
-#define NTREE_UPDATE_LINKS		1		/* links have been added or removed */
-#define NTREE_UPDATE_NODES		2		/* nodes or sockets have been added or removed */
-#define NTREE_UPDATE_GROUP_IN	16		/* group inputs have changed */
-#define NTREE_UPDATE_GROUP_OUT	32		/* group outputs have changed */
-#define NTREE_UPDATE_GROUP		48		/* group has changed (generic flag including all other group flags) */
+typedef enum eNodeTreeUpdate {
+	NTREE_UPDATE            = 0xFFFF,	/* generic update flag (includes all others) */
+	NTREE_UPDATE_LINKS      = 1,		/* links have been added or removed */
+	NTREE_UPDATE_NODES      = 2,		/* nodes or sockets have been added or removed */
+	NTREE_UPDATE_GROUP_IN   = 16,		/* group inputs have changed */
+	NTREE_UPDATE_GROUP_OUT  = 32,		/* group outputs have changed */
+	NTREE_UPDATE_GROUP      = 48		/* group has changed (generic flag including all other group flags) */
+} eNodeTreeUpdate;
 
 
-/* socket value structs for input buttons */
+/* socket value structs for input buttons
+ * DEPRECATED now using ID properties
+ */
 
 typedef struct bNodeSocketValueInt {
 	int subtype;				/* RNA subtype */
@@ -731,8 +820,6 @@ typedef struct NodeShaderScript {
 
 	char bytecode_hash[64];
 	char *bytecode;
-
-	IDProperty *prop;
 } NodeShaderScript;
 
 typedef struct NodeShaderTangent {
@@ -757,6 +844,9 @@ typedef struct NodeShaderNormalMap {
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
 #define NODE_FRAME_RESIZEABLE	2	/* test flag, if frame can be resized by user */
+
+/* proxy node flags */
+#define NODE_PROXY_AUTOTYPE			1	/* automatically change output type based on link */
 
 /* comp channel matte */
 #define CMP_NODE_CHANNEL_MATTE_CS_RGB	1
@@ -856,6 +946,39 @@ typedef struct NodeShaderNormalMap {
 #define CMP_NODE_WRAP_XY		3
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
+
+/* geometry output socket defines */
+#define GEOM_OUT_GLOB	0
+#define GEOM_OUT_LOCAL	1
+#define GEOM_OUT_VIEW	2
+#define GEOM_OUT_ORCO	3
+#define GEOM_OUT_UV		4
+#define GEOM_OUT_NORMAL	5
+#define GEOM_OUT_VCOL	6
+#define GEOM_OUT_VCOL_ALPHA	7
+#define GEOM_OUT_FRONTBACK	8
+
+/* material input socket defines */
+#define MAT_IN_COLOR	0
+#define MAT_IN_SPEC		1
+#define MAT_IN_REFL		2
+#define MAT_IN_NORMAL	3
+#define MAT_IN_MIR		4
+#define MAT_IN_AMB		5
+#define MAT_IN_EMIT	6
+#define MAT_IN_SPECTRA	7
+#define MAT_IN_RAY_MIRROR	8
+#define MAT_IN_ALPHA	9
+#define MAT_IN_TRANSLUCENCY	10
+#define NUM_MAT_IN		11	/* for array size */
+
+/* material output socket defines */
+#define MAT_OUT_COLOR		0
+#define MAT_OUT_ALPHA		1
+#define MAT_OUT_NORMAL	2
+#define MAT_OUT_DIFFUSE	3
+#define MAT_OUT_SPEC		4
+#define MAT_OUT_AO		5
 
 /* image */
 #define CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT	1

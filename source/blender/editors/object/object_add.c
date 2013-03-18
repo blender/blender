@@ -852,7 +852,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	rename_id(&la->id, get_lamp_defname(type));
 
 	if (BKE_scene_use_new_shading_nodes(scene)) {
-		ED_node_shader_default(scene, &la->id);
+		ED_node_shader_default(C, &la->id);
 		la->use_nodes = TRUE;
 	}
 

@@ -46,15 +46,14 @@ static bNodeSocketTemplate cmp_node_sepyuva_out[] = {
 	{  -1, 0, ""   }
 };
 
-
-void register_node_type_cmp_sepyuva(bNodeTreeType *ttype)
+void register_node_type_cmp_sepyuva()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTOR, 0);
+	cmp_node_type_base(&ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_sepyuva_in, cmp_node_sepyuva_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 
 
@@ -72,12 +71,12 @@ static bNodeSocketTemplate cmp_node_combyuva_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combyuva(bNodeTreeType *ttype)
+void register_node_type_cmp_combyuva()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combyuva_in, cmp_node_combyuva_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

@@ -86,6 +86,8 @@
 #include "intern/openexr/openexr_multi.h"
 #endif
 
+#include "NOD_composite.h"
+
 /*********************** movieclip buffer loaders *************************/
 
 static int sequence_guess_offset(const char *full_name, int head_len, unsigned short numlen)
@@ -1401,10 +1403,9 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 		}
 	}
 
-	{
-		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
-		treetype->foreach_nodetree(bmain, (void *)clip, &BKE_node_tree_unlink_id_cb);
-	}
+	FOREACH_NODETREE(bmain, ntree, id) {
+		BKE_node_tree_unlink_id((ID *)clip, ntree);
+	} FOREACH_NODETREE_END
 
 	clip->id.us = 0;
 }

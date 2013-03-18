@@ -127,6 +127,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for which_libbase
 #include "BKE_idcode.h"
+#include "BKE_idprop.h"
 #include "BKE_material.h"
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
@@ -150,7 +151,11 @@
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 
+#include "NOD_common.h"
 #include "NOD_socket.h"
+#include "NOD_composite.h"
+#include "NOD_shader.h"
+#include "NOD_texture.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -1313,10 +1318,12 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 				oldnewmap_insert(fd->imamap, ima->renders[a], ima->renders[a], 0);
 	}
 	for (; sce; sce = sce->id.next) {
-		if (sce->nodetree) {
-			bNode *node;
-			for (node = sce->nodetree->nodes.first; node; node = node->next)
-				oldnewmap_insert(fd->imamap, node->preview, node->preview, 0);
+		if (sce->nodetree && sce->nodetree->previews) {
+			bNodeInstanceHashIterator iter;
+			NODE_INSTANCE_HASH_ITER(iter, sce->nodetree->previews) {
+				bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
+				oldnewmap_insert(fd->imamap, preview, preview, 0);
+			}
 		}
 	}
 }
@@ -1355,10 +1362,23 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 		ima->gputexture = newimaadr(fd, ima->gputexture);
 	}
 	for (; sce; sce = sce->id.next) {
-		if (sce->nodetree) {
-			bNode *node;
-			for (node = sce->nodetree->nodes.first; node; node = node->next)
-				node->preview = newimaadr(fd, node->preview);
+		if (sce->nodetree && sce->nodetree->previews) {
+			bNodeInstanceHash *new_previews = BKE_node_instance_hash_new("node previews");
+			bNodeInstanceHashIterator iter;
+			
+			/* reconstruct the preview hash, only using remaining pointers */
+			NODE_INSTANCE_HASH_ITER(iter, sce->nodetree->previews) {
+				bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
+				if (preview) {
+					bNodePreview *new_preview = newimaadr(fd, preview);
+					if (new_preview) {
+						bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
+						BKE_node_instance_hash_insert(new_previews, key, new_preview);
+					}
+				}
+			}
+			BKE_node_instance_hash_free(sce->nodetree->previews, NULL);
+			sce->nodetree->previews = new_previews;
 		}
 	}
 }
@@ -2286,17 +2306,42 @@ static void direct_link_motionpath(FileData *fd, bMotionPath *mpath)
 
 /* ************ READ NODE TREE *************** */
 
+static void lib_link_node_socket(FileData *fd, ID *UNUSED(id), bNodeSocket *sock)
+{
+	/* Link ID Properties -- and copy this comment EXACTLY for easy finding
+	 * of library blocks that implement this.*/
+	if (sock->prop)
+		IDP_LibLinkProperty(sock->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+}
+
 /* singe node tree (also used for material/scene trees), ntree is not NULL */
 static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 {
 	bNode *node;
+	bNodeSocket *sock;
 	
 	if (ntree->adt) lib_link_animdata(fd, &ntree->id, ntree->adt);
 	
 	ntree->gpd = newlibadr_us(fd, id->lib, ntree->gpd);
 	
-	for (node = ntree->nodes.first; node; node = node->next)
-		node->id = newlibadr_us(fd, id->lib, node->id);
+	for (node = ntree->nodes.first; node; node = node->next) {
+		/* Link ID Properties -- and copy this comment EXACTLY for easy finding
+		 * of library blocks that implement this.*/
+		if (node->prop)
+			IDP_LibLinkProperty(node->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
+		node->id= newlibadr_us(fd, id->lib, node->id);
+
+		for (sock=node->inputs.first; sock; sock=sock->next)
+			lib_link_node_socket(fd, id, sock);
+		for (sock=node->outputs.first; sock; sock=sock->next)
+			lib_link_node_socket(fd, id, sock);
+	}
+	
+	for (sock=ntree->inputs.first; sock; sock=sock->next)
+		lib_link_node_socket(fd, id, sock);
+	for (sock=ntree->outputs.first; sock; sock=sock->next)
+		lib_link_node_socket(fd, id, sock);
 }
 
 /* library ntree linking after fileread */
@@ -2313,121 +2358,41 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 	}
 }
 
-static void do_versions_socket_default_value(bNodeSocket *sock)
-{
-	bNodeSocketValueFloat *valfloat;
-	bNodeSocketValueVector *valvector;
-	bNodeSocketValueRGBA *valrgba;
-	
-	if (sock->default_value)
-		return;
-	
-	switch (sock->type) {
-		case SOCK_FLOAT:
-			valfloat = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueFloat), "default socket value");
-			valfloat->value = sock->ns.vec[0];
-			valfloat->min = sock->ns.min;
-			valfloat->max = sock->ns.max;
-			valfloat->subtype = PROP_NONE;
-			break;
-		case SOCK_VECTOR:
-			valvector = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueVector), "default socket value");
-			copy_v3_v3(valvector->value, sock->ns.vec);
-			valvector->min = sock->ns.min;
-			valvector->max = sock->ns.max;
-			valvector->subtype = PROP_NONE;
-			break;
-		case SOCK_RGBA:
-			valrgba = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueRGBA), "default socket value");
-			copy_v4_v4(valrgba->value, sock->ns.vec);
-			break;
-	}
-}
-
-void blo_do_versions_nodetree_default_value(bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	for (node=ntree->nodes.first; node; node=node->next) {
-		for (sock=node->inputs.first; sock; sock=sock->next)
-			do_versions_socket_default_value(sock);
-		for (sock=node->outputs.first; sock; sock=sock->next)
-			do_versions_socket_default_value(sock);
-	}
-	for (sock=ntree->inputs.first; sock; sock=sock->next)
-		do_versions_socket_default_value(sock);
-	for (sock=ntree->outputs.first; sock; sock=sock->next)
-		do_versions_socket_default_value(sock);
-}
-
-static void lib_nodetree_init_types_cb(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-	
-	ntreeInitTypes(ntree);
-	
-	/* need to do this here instead of in do_versions, otherwise next function can crash */
-	blo_do_versions_nodetree_default_value(ntree);
-	
-	/* XXX could be replaced by do_versions for new nodes */
-	for (node=ntree->nodes.first; node; node=node->next)
-		node_verify_socket_templates(ntree, node);
-}
-
-/* updates group node socket own_index so that
+/* updates group node socket identifier so that
  * external links to/from the group node are preserved.
  */
 static void lib_node_do_versions_group_indices(bNode *gnode)
 {
 	bNodeTree *ngroup = (bNodeTree*)gnode->id;
-	bNode *intnode;
-	bNodeSocket *sock, *gsock, *intsock;
-	int found;
+	bNodeSocket *sock;
+	bNodeLink *link;
 	
 	for (sock=gnode->outputs.first; sock; sock=sock->next) {
 		int old_index = sock->to_index;
-		for (gsock=ngroup->outputs.first; gsock; gsock=gsock->next) {
-			if (gsock->link && gsock->link->fromsock->own_index == old_index) {
-				sock->own_index = gsock->own_index;
-				break;
+		
+		for (link = ngroup->links.first; link; link = link->next) {
+			if (link->tonode->type == NODE_GROUP_OUTPUT && link->fromsock->own_index == old_index) {
+				strcpy(sock->identifier, link->fromsock->identifier);
+				/* deprecated */
+				sock->own_index = link->fromsock->own_index;
+				sock->to_index = 0;
+				sock->groupsock = NULL;
 			}
 		}
 	}
 	for (sock=gnode->inputs.first; sock; sock=sock->next) {
 		int old_index = sock->to_index;
-		/* can't use break in double loop */
-		found = 0;
-		for (intnode=ngroup->nodes.first; intnode && !found; intnode=intnode->next) {
-			for (intsock=intnode->inputs.first; intsock; intsock=intsock->next) {
-				if (intsock->own_index == old_index && intsock->link) {
-					sock->own_index = intsock->link->fromsock->own_index;
-					found = 1;
-					break;
-				}
+		
+		for (link = ngroup->links.first; link; link = link->next) {
+			if (link->fromnode->type == NODE_GROUP_INPUT && link->tosock->own_index == old_index) {
+				strcpy(sock->identifier, link->tosock->identifier);
+				/* deprecated */
+				sock->own_index = link->tosock->own_index;
+				sock->to_index = 0;
+				sock->groupsock = NULL;
 			}
 		}
 	}
-}
-
-/* updates external links for all group nodes in a tree */
-static void lib_nodetree_do_versions_group_indices_cb(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-	
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == NODE_GROUP) {
-			bNodeTree *ngroup = (bNodeTree*)node->id;
-			if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE))
-				lib_node_do_versions_group_indices(node);
-		}
-	}
-}
-
-/* make an update call for the tree */
-static void lib_nodetree_do_versions_update_cb(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	if (ntree->update)
-		ntreeUpdateTree(ntree);
 }
 
 /* verify types for nodes and groups, all data has to be read */
@@ -2436,8 +2401,6 @@ static void lib_nodetree_do_versions_update_cb(void *UNUSED(data), ID *UNUSED(id
 static void lib_verify_nodetree(Main *main, int UNUSED(open))
 {
 	bNodeTree *ntree;
-	int i;
-	bNodeTreeType *ntreetype;
 	
 	/* this crashes blender on undo/redo */
 #if 0
@@ -2447,41 +2410,138 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 #endif
 	
 	/* set node->typeinfo pointers */
-	for (i = 0; i < NUM_NTREE_TYPES; ++i) {
-		ntreetype = ntreeGetType(i);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, lib_nodetree_init_types_cb);
-	}
-	for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
-		lib_nodetree_init_types_cb(NULL, NULL, ntree);
+	FOREACH_NODETREE(main, ntree, id) {
+		ntreeSetTypes(NULL, ntree);
+	} FOREACH_NODETREE_END
+	
+	/* verify static socket templates */
+	FOREACH_NODETREE(main, ntree, id) {
+		bNode *node;
+		for (node=ntree->nodes.first; node; node=node->next)
+			node_verify_socket_templates(ntree, node);
+	} FOREACH_NODETREE_END
 	
 	{
 		int has_old_groups = 0;
 		/* XXX this should actually be part of do_versions, but since we need
 		 * finished library linking, it is not possible there. Instead in do_versions
-		 * we have set the NTREE_DO_VERSIONS flag, so at this point we can do the
+		 * we have set the NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2 flag, so at this point we can do the
 		 * actual group node updates.
 		 */
 		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
-			if (ntree->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE) {
-				/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
-				node_group_expose_all_sockets(ntree);
+			if (ntree->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2)
 				has_old_groups = 1;
-			}
 		}
 		
 		if (has_old_groups) {
-			for (i = 0; i < NUM_NTREE_TYPES; ++i) {
-				ntreetype = ntreeGetType(i);
-				if (ntreetype && ntreetype->foreach_nodetree)
-					ntreetype->foreach_nodetree(main, NULL, lib_nodetree_do_versions_group_indices_cb);
-			}
+			FOREACH_NODETREE(main, ntree, id) {
+				/* updates external links for all group nodes in a tree */
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == NODE_GROUP) {
+						bNodeTree *ngroup = (bNodeTree*)node->id;
+						if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2))
+							lib_node_do_versions_group_indices(node);
+					}
+				}
+			} FOREACH_NODETREE_END
 		}
 		
 		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
-			ntree->flag &= ~NTREE_DO_VERSIONS_GROUP_EXPOSE;
+			ntree->flag &= ~NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2;
 	}
+	
+	{
+		/* Convert the previously used ntree->inputs/ntree->outputs lists to interface nodes.
+		 * Pre 2.56.2 node trees automatically have all unlinked sockets exposed already
+		 * (see NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2).
+		 *
+		 * XXX this should actually be part of do_versions,
+		 * but needs valid typeinfo pointers to create interface nodes.
+		 */
 		
+		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+			if (ntree->flag & NTREE_DO_VERSIONS_CUSTOMNODES_GROUP) {
+				bNode *input_node = NULL, *output_node = NULL;
+				int num_inputs = 0, num_outputs = 0;
+				bNodeLink *link, *next_link;
+				/* Only create new interface nodes for actual older files.
+				 * New file versions already have input/output nodes with duplicate links,
+				 * in that case just remove the invalid links.
+				 */
+				int create_io_nodes = (ntree->flag & NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE);
+				
+				float input_locx = 1000000.0f, input_locy = 0.0f;
+				float output_locx = -1000000.0f, output_locy = 0.0f;
+				/* rough guess, not nice but we don't have access to UI constants here ... */
+				static const float offsetx = 42 + 3*20 + 20;
+				/*static const float offsety = 0.0f;*/
+				
+				if (create_io_nodes) {
+					if (ntree->inputs.first)
+						input_node = nodeAddStaticNode(NULL, ntree, NODE_GROUP_INPUT);
+					
+					if (ntree->outputs.first)
+						output_node = nodeAddStaticNode(NULL, ntree, NODE_GROUP_OUTPUT);
+				}
+				
+				/* Redirect links from/to the node tree interface to input/output node.
+				 * If the fromnode/tonode pointers are NULL, this means a link from/to
+				 * the ntree interface sockets, which need to be redirected to new interface nodes.
+				 */
+				for (link = ntree->links.first; link; link = next_link) {
+					int free_link = FALSE;
+					next_link = link->next;
+					
+					if (link->fromnode == NULL) {
+						if (input_node) {
+							link->fromnode = input_node;
+							link->fromsock = node_group_input_find_socket(input_node, link->fromsock->identifier);
+							++num_inputs;
+							
+							if (input_locx > link->tonode->locx - offsetx)
+								input_locx = link->tonode->locx - offsetx;
+							input_locy += link->tonode->locy;
+						}
+						else
+							free_link = TRUE;
+					}
+					
+					if (link->tonode == NULL) {
+						if (output_node) {
+							link->tonode = output_node;
+							link->tosock = node_group_output_find_socket(output_node, link->tosock->identifier);
+							++num_outputs;
+							
+							if (output_locx < link->fromnode->locx + offsetx)
+								output_locx = link->fromnode->locx + offsetx;
+							output_locy += link->fromnode->locy;
+						}
+						else
+							free_link = TRUE;
+					}
+					
+					if (free_link)
+						nodeRemLink(ntree, link);
+				}
+				
+				if (num_inputs > 0) {
+					input_locy /= num_inputs;
+					input_node->locx = input_locx;
+					input_node->locy = input_locy;
+				}
+				if (num_outputs > 0) {
+					output_locy /= num_outputs;
+					output_node->locx = output_locx;
+					output_node->locy = output_locy;
+				}
+				
+				/* clear do_versions flags */
+				ntree->flag &= ~(NTREE_DO_VERSIONS_CUSTOMNODES_GROUP | NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE);
+			}
+		}
+	}
+	
 	/* verify all group user nodes */
 	for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
 		ntreeVerifyNodes(main, &ntree->id);
@@ -2489,21 +2549,22 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	
 	/* make update calls where necessary */
 	{
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
+		FOREACH_NODETREE(main, ntree, id) {
+			/* make an update call for the tree */
 			if (ntree->update)
 				ntreeUpdateTree(ntree);
-		
-		for (i = 0; i < NUM_NTREE_TYPES; i++) {
-			ntreetype = ntreeGetType(i);
-			if (ntreetype && ntreetype->foreach_nodetree)
-				ntreetype->foreach_nodetree(main, NULL, lib_nodetree_do_versions_update_cb);
-		}
+		} FOREACH_NODETREE_END
 	}
 }
 
 static void direct_link_node_socket(FileData *fd, bNodeSocket *sock)
 {
+	sock->prop = newdataadr(fd, sock->prop);
+	if (sock->prop)
+		IDP_DirectLinkProperty(sock->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	
 	sock->link = newdataadr(fd, sock->link);
+	sock->typeinfo = NULL;
 	sock->storage = newdataadr(fd, sock->storage);
 	sock->default_value = newdataadr(fd, sock->default_value);
 	sock->cache = NULL;
@@ -2518,6 +2579,10 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	bNodeLink *link;
 	
 	ntree->init = 0;		/* to set callbacks and force setting types */
+	ntree->is_updating = FALSE;
+	ntree->typeinfo= NULL;
+	ntree->interface_type = NULL;
+	
 	ntree->progress = NULL;
 	ntree->execdata = NULL;
 	
@@ -2533,6 +2598,10 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
 		
+		node->prop = newdataadr(fd, node->prop);
+		if (node->prop)
+			IDP_DirectLinkProperty(node->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
 		link_list(fd, &node->internal_links);
 		for (link = node->internal_links.first; link; link = link->next) {
 			link->fromnode = newdataadr(fd, link->fromnode);
@@ -2544,8 +2613,9 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		if (node->type == CMP_NODE_MOVIEDISTORTION) {
 			node->storage = newmclipadr(fd, node->storage);
 		}
-		else
+		else {
 			node->storage = newdataadr(fd, node->storage);
+		}
 		
 		if (node->storage) {
 			/* could be handlerized at some point */
@@ -2556,9 +2626,6 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 				else if (node->type==SH_NODE_SCRIPT) {
 					NodeShaderScript *nss = (NodeShaderScript *) node->storage;
 					nss->bytecode = newdataadr(fd, nss->bytecode);
-					nss->prop = newdataadr(fd, nss->prop);
-					if (nss->prop)
-						IDP_DirectLinkProperty(nss->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 				}
 			}
 			else if (ntree->type==NTREE_COMPOSIT) {
@@ -2577,14 +2644,9 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	}
 	link_list(fd, &ntree->links);
 	
-	/* external sockets */
-	link_list(fd, &ntree->inputs);
-	link_list(fd, &ntree->outputs);
-	
 	/* and we connect the rest */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		node->parent = newdataadr(fd, node->parent);
-		node->preview = newimaadr(fd, node->preview);
 		node->lasty = 0;
 		
 		for (sock = node->inputs.first; sock; sock = sock->next)
@@ -2592,6 +2654,10 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		for (sock = node->outputs.first; sock; sock = sock->next)
 			direct_link_node_socket(fd, sock);
 	}
+	
+	/* interface socket lists */
+	link_list(fd, &ntree->inputs);
+	link_list(fd, &ntree->outputs);
 	for (sock = ntree->inputs.first; sock; sock = sock->next)
 		direct_link_node_socket(fd, sock);
 	for (sock = ntree->outputs.first; sock; sock = sock->next)
@@ -2603,6 +2669,29 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link->fromsock = newdataadr(fd, link->fromsock);
 		link->tosock = newdataadr(fd, link->tosock);
 	}
+	
+#if 0
+	if (ntree->previews) {
+		bNodeInstanceHash *new_previews = BKE_node_instance_hash_new("node previews");
+		bNodeInstanceHashIterator iter;
+		
+		NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
+			bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
+			if (preview) {
+				bNodePreview *new_preview = newimaadr(fd, preview);
+				if (new_preview) {
+					bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
+					BKE_node_instance_hash_insert(new_previews, key, new_preview);
+				}
+			}
+		}
+		BKE_node_instance_hash_free(ntree->previews, NULL);
+		ntree->previews = new_previews;
+	}
+#else
+	/* XXX TODO */
+	ntree->previews = NULL;
+#endif
 	
 	/* type verification is in lib-link */
 }
@@ -5543,28 +5632,34 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if (sl->spacetype == SPACE_NODE) {
 						SpaceNode *snode = (SpaceNode *)sl;
+						bNodeTreePath *path, *path_next;
 						
+						for (path=snode->treepath.first; path; path=path->next) {
+							path->nodetree = newlibadr(fd, sc->id.lib, path->nodetree);
+							
+							if (!path->nodetree)
+								break;
+						}
+						
+						/* remaining path entries are invalid, remove */
+						for (; path; path = path_next) {
+							path_next = path->next;
+							
+							BLI_remlink(&snode->treepath, path);
+							MEM_freeN(path);
+						}
+						
+						snode->nodetree = newlibadr(fd, sc->id.lib, snode->nodetree);
+						/* edittree is just the last in the path,
+						 * set this directly since the path may have been shortened above */
+						if (snode->treepath.last) {
+							path = snode->treepath.last;
+							snode->edittree = path->nodetree;
+						}
+						else
+							snode->edittree = NULL;
 						snode->id = newlibadr(fd, sc->id.lib, snode->id);
-						
-						if (ELEM3(snode->treetype, NTREE_COMPOSIT, NTREE_SHADER, NTREE_TEXTURE)) {
-							/* internal data, a bit patchy */
-							snode->nodetree = NULL;
-							if (snode->id) {
-								if (GS(snode->id->name)==ID_MA)
-									snode->nodetree = ((Material *)snode->id)->nodetree;
-								else if (GS(snode->id->name)==ID_WO)
-									snode->nodetree = ((World *)snode->id)->nodetree;
-								else if (GS(snode->id->name)==ID_LA)
-									snode->nodetree = ((Lamp *)snode->id)->nodetree;
-								else if (GS(snode->id->name)==ID_SCE)
-									snode->nodetree = ((Scene *)snode->id)->nodetree;
-								else if (GS(snode->id->name)==ID_TE)
-									snode->nodetree = ((Tex *)snode->id)->nodetree;
-							}
-						}
-						else {
-							snode->nodetree = newlibadr_us(fd, sc->id.lib, snode->nodetree);
-						}
+						snode->from = newlibadr(fd, sc->id.lib, snode->from);
 					}
 					else if (sl->spacetype == SPACE_CLIP) {
 						SpaceClip *sclip = (SpaceClip *)sl;
@@ -5584,6 +5679,24 @@ static void lib_link_screen(FileData *fd, Main *main)
 	}
 }
 
+static bool restore_pointer(ID *id, ID *newid, int user)
+{
+	if (strcmp(newid->name+2, id->name+2) == 0) {
+		if (newid->lib == id->lib) {
+			if (user == 1) {
+				if (newid->us == 0) {
+					newid->us++;
+				}
+			}
+			else if (user == 2) {
+				id_us_ensure_real(newid);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
  * Only for undo files, or to restore a screen after reading without UI...
  *
@@ -5595,29 +5708,32 @@ static void lib_link_screen(FileData *fd, Main *main)
 static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
 	if (id) {
-		ListBase *lb = which_libbase(mainp, GS(id->name));
-		
-		if (lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
-			ID *idn = lb->first;
-			char *name = id->name + 2;
+		/* node trees can be stored locally in other IDs, needs special handling ... */
+		if (GS(id->name) == ID_NT) {
+			ID *idn = NULL;
 			
-			for (; idn; idn = idn->next) {
-				if (idn->name[2] == name[0] && strcmp(idn->name+2, name) == 0) {
-					if (idn->lib == id->lib) {
-						if (user == 1) {
-							if (idn->us == 0) {
-								idn->us++;
-							}
-						}
-						else if (user == 2) {
-							id_us_ensure_real(idn);
-						}
-						break;
-					}
+			FOREACH_NODETREE(mainp, ntree, owner_id) {
+				if (restore_pointer(id, &ntree->id, user)) {
+					idn = &ntree->id;
+					break;
 				}
 			}
+			FOREACH_NODETREE_END
 			
 			return idn;
+		}
+		else {
+			ListBase *lb = which_libbase(mainp, GS(id->name));
+			if (lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
+				ID *idn = lb->first;
+				
+				for (; idn; idn = idn->next) {
+					if (restore_pointer(id, idn, user))
+						break;
+				}
+				
+				return idn;
+			}
 		}
 	}
 	return NULL;
@@ -5848,24 +5964,34 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				}
 				else if (sl->spacetype == SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
+					bNodeTreePath *path, *path_next;
 					
+					for (path=snode->treepath.first; path; path=path->next) {
+						path->nodetree= restore_pointer_by_name(newmain, (ID*)path->nodetree, 0);
+						
+						if (!path->nodetree)
+							break;
+					}
+					
+					/* remaining path entries are invalid, remove */
+					for (; path; path = path_next) {
+						path_next = path->next;
+						
+						BLI_remlink(&snode->treepath, path);
+						MEM_freeN(path);
+					}
+					
+					snode->nodetree = restore_pointer_by_name(newmain, (ID*)snode->nodetree, 0);
+					/* edittree is just the last in the path,
+					 * set this directly since the path may have been shortened above */
+					if (snode->treepath.last) {
+						path = snode->treepath.last;
+						snode->edittree = path->nodetree;
+					}
+					else
+						snode->edittree = NULL;
 					snode->id = restore_pointer_by_name(newmain, snode->id, 1);
-					snode->edittree = NULL;
-					
-					if (ELEM3(snode->treetype, NTREE_COMPOSIT, NTREE_SHADER, NTREE_TEXTURE)) {
-						snode->nodetree = NULL;
-						if (snode->id) {
-							if (GS(snode->id->name)==ID_MA)
-								snode->nodetree = ((Material *)snode->id)->nodetree;
-							else if (GS(snode->id->name)==ID_SCE)
-								snode->nodetree = ((Scene *)snode->id)->nodetree;
-							else if (GS(snode->id->name)==ID_TE)
-								snode->nodetree = ((Tex *)snode->id)->nodetree;
-						}
-					}
-					else {
-						snode->nodetree= restore_pointer_by_name(newmain, &snode->nodetree->id, 1);
-					}
+					snode->from = restore_pointer_by_name(newmain, snode->from, 0);
 				}
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
@@ -6116,6 +6242,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					snode->gpd = newdataadr(fd, snode->gpd);
 					direct_link_gpencil(fd, snode->gpd);
 				}
+				
+				link_list(fd, &snode->treepath);
 				snode->edittree = NULL;
 				snode->linkdrag.first = snode->linkdrag.last = NULL;
 			}
@@ -6855,7 +6983,6 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 	}
 }
 
-/* deprecated, only keep this for readfile.c */
 void convert_tface_mt(FileData *fd, Main *main)
 {
 	Main *gmain;
@@ -6886,22 +7013,6 @@ static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
 			/* default Image output value should have 0 alpha */
 			sock = node->outputs.first;
 			((bNodeSocketValueRGBA *)(sock->default_value))->value[3] = 0.0f;
-		}
-	}
-}
-
-static void do_version_ntree_tex_mapping_260(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == SH_NODE_MAPPING) {
-			TexMapping *tex_mapping;
-			
-			tex_mapping= node->storage;
-			tex_mapping->projx= PROJ_X;
-			tex_mapping->projy= PROJ_Y;
-			tex_mapping->projz= PROJ_Z;
 		}
 	}
 }
@@ -7240,151 +7351,6 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
 	}
 }
 
-static void do_version_ntree_image_user_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-			NodeTexImage *tex = node->storage;
-
-			tex->iuser.frames= 1;
-			tex->iuser.sfra= 1;
-			tex->iuser.fie_ima= 2;
-			tex->iuser.ok= 1;
-		}
-	}
-}
-
-static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_DILATEERODE) {
-			if (node->storage == NULL) {
-				NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), __func__);
-				data->falloff = PROP_SMOOTH;
-				node->storage = data;
-			}
-		}
-	}
-}
-
-static void do_version_ntree_defocus_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_DEFOCUS) {
-			NodeDefocus *data = node->storage;
-			if (data->maxblur == 0.0f) {
-				data->maxblur = 16.0f;
-			}
-		}
-	}
-}
-
-static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_MASK) {
-			if (node->storage == NULL) {
-				NodeMask *data = MEM_callocN(sizeof(NodeMask), __func__);
-				/* move settings into own struct */
-				data->size_x = (int)node->custom3;
-				data->size_y = (int)node->custom4;
-				node->custom3 = 0.5f; /* default shutter */
-				node->storage = data;
-			}
-		}
-	}
-}
-
-static void do_version_ntree_keying_despill_balance(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_KEYING) {
-			NodeKeyingData *data = node->storage;
-
-			if (data->despill_balance == 0.0f) {
-				data->despill_balance = 0.5f;
-			}
-		}
-	}
-}
-
-static void do_version_ntree_tex_coord_from_dupli_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next)
-		if (node->type == SH_NODE_TEX_COORD)
-			node->flag |= NODE_OPTIONS;
-}
-
-static void do_version_node_cleanup_dynamic_sockets_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (!ELEM(node->type, NODE_GROUP, CMP_NODE_IMAGE)) {
-			for (sock = node->inputs.first; sock; sock = sock->next)
-				sock->flag &= ~SOCK_DYNAMIC;
-			for (sock = node->outputs.first; sock; sock = sock->next)
-				sock->flag &= ~SOCK_DYNAMIC;
-		}
-	}
-}
-
-static void do_version_node_fix_translate_wrapping(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_TRANSLATE && node->storage == NULL) {
-			node->storage = MEM_callocN(sizeof(NodeTranslateData), "node translate data");
-		}
-	}
-}
-
-static void do_version_node_straight_image_alpha_workaround(void *data, ID *UNUSED(id), bNodeTree *ntree)
-{
-	FileData *fd = (FileData *) data;
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_IMAGE) {
-			Image *image = blo_do_versions_newlibadr(fd, ntree->id.lib, node->id);
-
-			if (image) {
-				if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT)
-					node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
-			}
-		}
-	}
-}
-
-static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeLink *link, *nextlink;
-	
-	for (node = ntree->nodes.first; node; node = node->next) {
-		for (link = node->internal_links.first; link; link = nextlink) {
-			nextlink = link->next;
-			if (!link->fromnode || !link->fromsock || !link->tonode || !link->tosock) {
-				BLI_remlink(&node->internal_links, link);
-			}
-		}
-	}
-}
-	
 static void do_version_logic_264(ListBase *regionbase)
 {
 	ARegion *ar;
@@ -7436,6 +7402,146 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 	}
 }
 
+
+static const char *node_get_static_idname(int type, int treetype)
+{
+	/* use static type info header to map static int type to identifier string */
+	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+		case ID: return #Category #StructName;
+	
+	/* XXX hack, group types share a single static integer identifier, but are registered as separate types */
+	if (type == NODE_GROUP) {
+		switch (treetype) {
+		case NTREE_COMPOSIT: return "CompositorNodeGroup";
+		case NTREE_SHADER: return "ShaderNodeGroup";
+		case NTREE_TEXTURE: return "TextureNodeGroup";
+		}
+	}
+	else {
+		switch (type) {
+		#include "NOD_static_types.h"
+		}
+	}
+	return "";
+}
+
+static const char *node_socket_get_static_idname(bNodeSocket *sock)
+{
+	switch (sock->type) {
+	case SOCK_FLOAT: {
+		bNodeSocketValueFloat *dval = sock->default_value;
+		return nodeStaticSocketType(SOCK_FLOAT, dval->subtype);
+	}
+	case SOCK_INT: {
+		bNodeSocketValueInt *dval = sock->default_value;
+		return nodeStaticSocketType(SOCK_INT, dval->subtype);
+	}
+	case SOCK_BOOLEAN: {
+		return nodeStaticSocketType(SOCK_BOOLEAN, PROP_NONE);
+	}
+	case SOCK_VECTOR: {
+		bNodeSocketValueVector *dval = sock->default_value;
+		return nodeStaticSocketType(SOCK_VECTOR, dval->subtype);
+	}
+	case SOCK_RGBA: {
+		return nodeStaticSocketType(SOCK_RGBA, PROP_NONE);
+	}
+	case SOCK_STRING: {
+		bNodeSocketValueString *dval = sock->default_value;
+		return nodeStaticSocketType(SOCK_STRING, dval->subtype);
+	}
+	case SOCK_SHADER: {
+		return nodeStaticSocketType(SOCK_SHADER, PROP_NONE);
+	}
+	}
+	return "";
+}
+
+static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_group))
+{
+	/* initialize node tree type idname */
+	{
+		bNode *node;
+		bNodeSocket *sock;
+		
+		ntree->typeinfo = NULL;
+		
+		/* tree type idname */
+		switch (ntree->type) {
+		case NTREE_COMPOSIT:
+			strcpy(ntree->idname, "CompositorNodeTree");
+			break;
+		case NTREE_SHADER:
+			strcpy(ntree->idname, "ShaderNodeTree");
+			break;
+		case NTREE_TEXTURE:
+			strcpy(ntree->idname, "TextureNodeTree");
+			break;
+		}
+		
+		/* node type idname */
+		for (node=ntree->nodes.first; node; node=node->next) {
+			BLI_strncpy(node->idname, node_get_static_idname(node->type, ntree->type), sizeof(node->idname));
+			
+			/* existing old nodes have been initialized already */
+			node->flag |= NODE_INIT;
+			
+			/* sockets idname */
+			for (sock=node->inputs.first; sock; sock=sock->next)
+				BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+		}
+		/* tree sockets idname */
+		for (sock=ntree->inputs.first; sock; sock=sock->next)
+			BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+		for (sock=ntree->outputs.first; sock; sock=sock->next)
+			BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+	}
+	
+	/* initialize socket in_out values */
+	{
+		bNode *node;
+		bNodeSocket *sock;
+		
+		for (node=ntree->nodes.first; node; node=node->next) {
+			for (sock=node->inputs.first; sock; sock=sock->next)
+				sock->in_out = SOCK_IN;
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				sock->in_out = SOCK_OUT;
+		}
+		for (sock=ntree->inputs.first; sock; sock=sock->next)
+			sock->in_out = SOCK_IN;
+		for (sock=ntree->outputs.first; sock; sock=sock->next)
+			sock->in_out = SOCK_OUT;
+	}
+	
+	/* initialize socket identifier strings */
+	{
+		bNode *node;
+		bNodeSocket *sock;
+		
+		for (node=ntree->nodes.first; node; node=node->next) {
+			for (sock=node->inputs.first; sock; sock=sock->next) {
+				BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+				BLI_uniquename(&node->inputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+			}
+			for (sock=node->outputs.first; sock; sock=sock->next) {
+				BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+				BLI_uniquename(&node->outputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+			}
+		}
+		for (sock=ntree->inputs.first; sock; sock=sock->next) {
+			BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+			BLI_uniquename(&ntree->inputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+		}
+		for (sock=ntree->outputs.first; sock; sock=sock->next) {
+			BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+			BLI_uniquename(&ntree->outputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+		}
+	}
+}
+
 /* initialize userdef with non-UI dependency stuff */
 /* other initializers (such as theme color defaults) go to resources.c */
 static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
@@ -7451,7 +7557,6 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 			user->image_gpubuffer_limit = 10;
 	}
 }
-
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7517,10 +7622,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 2)) {
-		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
-		
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_mapping_260);
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_SHADER) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == SH_NODE_MAPPING) {
+						TexMapping *tex_mapping;
+						
+						tex_mapping= node->storage;
+						tex_mapping->projx= PROJ_X;
+						tex_mapping->projy= PROJ_Y;
+						tex_mapping->projz= PROJ_Z;
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 
 	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 4)) {
@@ -8156,16 +8272,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 9)) {
-		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
-		
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_image_user_264);
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_SHADER) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+						NodeTexImage *tex = node->storage;
+						
+						tex->iuser.frames= 1;
+						tex->iuser.sfra= 1;
+						tex->iuser.fie_ima= 2;
+						tex->iuser.ok= 1;
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 10)) {
 		{
 			Scene *scene;
-			bNodeTreeType *ntreetype;
 			// composite redesign
 			for (scene=main->scene.first; scene; scene=scene->id.next) {
 				if (scene->nodetree) {
@@ -8174,11 +8300,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-			ntreetype = ntreeGetType(NTREE_COMPOSIT);
-	
-			if (ntreetype && ntreetype->foreach_nodetree)
-				ntreetype->foreach_nodetree(main, NULL, do_version_ntree_defocus_264);
 			
+			FOREACH_NODETREE(main, ntree, id) {
+				if (ntree->type == NTREE_COMPOSIT) {
+					bNode *node;
+					for (node = ntree->nodes.first; node; node = node->next) {
+						if (node->type == CMP_NODE_DEFOCUS) {
+							NodeDefocus *data = node->storage;
+							if (data->maxblur == 0.0f) {
+								data->maxblur = 16.0f;
+							}
+						}
+					}
+				}
+			} FOREACH_NODETREE_END
 		}
 
 		{
@@ -8236,19 +8371,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 13)) {
-		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
-
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_dilateerode_264);
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_DILATEERODE) {
+						if (node->storage == NULL) {
+							NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), __func__);
+							data->falloff = PROP_SMOOTH;
+							node->storage = data;
+						}
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 14)) {
 		ParticleSettings *part;
-		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
-
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_keying_despill_balance);
-
+		
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_KEYING) {
+						NodeKeyingData *data = node->storage;
+						
+						if (data->despill_balance == 0.0f) {
+							data->despill_balance = 0.5f;
+						}
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
+		
 		/* keep compatibility for dupliobject particle size */
 		for (part=main->particle.first; part; part=part->id.next)
 			if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR))
@@ -8257,12 +8413,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 17)) {
-		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
-
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_mask_264);
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_MASK) {
+						if (node->storage == NULL) {
+							NodeMask *data = MEM_callocN(sizeof(NodeMask), __func__);
+							/* move settings into own struct */
+							data->size_x = (int)node->custom3;
+							data->size_y = (int)node->custom4;
+							node->custom3 = 0.5f; /* default shutter */
+							node->storage = data;
+						}
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
-
+	
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 18)) {
 		Scene *scene;
 
@@ -8387,15 +8556,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 1)) {
-		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
-		bNodeTree *ntree;
-
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_coord_from_dupli_264);
-		
-		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
-			if (ntree->type==NTREE_SHADER)
-				do_version_ntree_tex_coord_from_dupli_264(NULL, NULL, ntree);
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_SHADER) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next)
+					if (node->type == SH_NODE_TEX_COORD)
+						node->flag |= NODE_OPTIONS;
+			}
+		} FOREACH_NODETREE_END
 	}
 
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 2)) {
@@ -8481,28 +8649,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 4)) {
-		/* Fix for old node flags: Apparently the SOCK_DYNAMIC flag has been in use for other
-		 * purposes before and then removed and later reused for SOCK_DYNAMIC. This socket should
-		 * only be used by certain node types which don't use template lists, cleaning this up here.
-		 */
-		bNodeTreeType *ntreetype;
-		bNodeTree *ntree;
-		
-		ntreetype = ntreeGetType(NTREE_COMPOSIT);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_cleanup_dynamic_sockets_264);
-		ntreetype = ntreeGetType(NTREE_SHADER);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_cleanup_dynamic_sockets_264);
-		ntreetype = ntreeGetType(NTREE_TEXTURE);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_cleanup_dynamic_sockets_264);
-		
-		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
-			do_version_node_cleanup_dynamic_sockets_264(NULL, NULL, ntree);
-	}
-
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 5)) {
 		/* set a unwrapping margin and ABF by default */
 		Scene *scene;
@@ -8519,22 +8665,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Fix for bug #32982, internal_links list could get corrupted from r51630 onward.
 		 * Simply remove bad internal_links lists to avoid NULL pointers.
 		 */
-		bNodeTreeType *ntreetype;
-		bNodeTree *ntree;
-		
-		ntreetype = ntreeGetType(NTREE_COMPOSIT);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
-		ntreetype = ntreeGetType(NTREE_SHADER);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
-		ntreetype = ntreeGetType(NTREE_TEXTURE);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
-		
-		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
-			do_version_node_fix_internal_links_264(NULL, NULL, ntree);
-		
+		FOREACH_NODETREE(main, ntree, id)
+			bNode *node;
+			bNodeLink *link, *nextlink;
+			
+			for (node = ntree->nodes.first; node; node = node->next) {
+				for (link = node->internal_links.first; link; link = nextlink) {
+					nextlink = link->next;
+					if (!link->fromnode || !link->fromsock || !link->tonode || !link->tosock) {
+						BLI_remlink(&node->internal_links, link);
+					}
+				}
+			}
+		FOREACH_NODETREE_END
 	}
 	
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {
@@ -8678,8 +8821,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *scene;
 		Image *image;
 		Tex *tex;
-		bNodeTreeType *ntreetype;
-		bNodeTree *ntree;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			Sequence *seq;
@@ -8735,12 +8876,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-		ntreetype = ntreeGetType(NTREE_COMPOSIT);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, fd, do_version_node_straight_image_alpha_workaround);
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_IMAGE) {
+						Image *image = blo_do_versions_newlibadr(fd, ntree->id.lib, node->id);
 
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
-			do_version_node_straight_image_alpha_workaround(fd, NULL, ntree);
+						if (image) {
+							if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT)
+								node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
+						}
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 	else if (main->versionfile < 266 || (main->versionfile == 266 && main->subversionfile < 1)) {
 		/* texture use alpha was removed for 2.66 but added back again for 2.66a,
@@ -8805,15 +8955,76 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	// add storage for compositor translate nodes when not existing
 	if (MAIN_VERSION_OLDER(main, 265, 11)) {
-		bNodeTreeType *ntreetype;
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_TRANSLATE && node->storage == NULL) {
+						node->storage = MEM_callocN(sizeof(NodeTranslateData), "node translate data");
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 266, 2)) {
+		FOREACH_NODETREE(main, ntree, id) {
+			do_versions_nodetree_customnodes(ntree, ((ID *)ntree == id));
+		} FOREACH_NODETREE_END
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 266, 2)) {
+		bScreen *sc;
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_NODE) {
+						SpaceNode *snode = (SpaceNode *)sl;
+						
+						/* reset pointers to force tree path update from context */
+						snode->nodetree = NULL;
+						snode->edittree = NULL;
+						snode->id = NULL;
+						snode->from = NULL;
+						
+						/* convert deprecated treetype setting to tree_idname */
+						switch (snode->treetype) {
+							case NTREE_COMPOSIT:
+								strcpy(snode->tree_idname, "CompositorNodeTree");
+								break;
+							case NTREE_SHADER:
+								strcpy(snode->tree_idname, "ShaderNodeTree");
+								break;
+							case NTREE_TEXTURE:
+								strcpy(snode->tree_idname, "TextureNodeTree");
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/* Set flag for delayed do_versions in lib_verify_nodetree. It needs valid typeinfo pointers ... */
+	{
 		bNodeTree *ntree;
-
-		ntreetype = ntreeGetType(NTREE_COMPOSIT);
-		if (ntreetype && ntreetype->foreach_nodetree)
-			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_translate_wrapping);
-
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
-			do_version_node_fix_translate_wrapping(NULL, NULL, ntree);
+		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+			/* XXX This should be kept without version check for now!
+			 * As long as USE_NODE_COMPAT_CUSTOMNODES is active, files will write links
+			 * to tree interface sockets for forward compatibility. These links need to be removed again
+			 * on file load in new versions.
+			 * Once forward compatibility is not required any longer, make a subversion bump
+			 * and only execute this for older versions.
+			 */
+			ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP;
+			
+			/* Only add interface nodes once.
+			 * In old Blender versions they will be removed automatically due to undefined type */
+			if (!MAIN_VERSION_ATLEAST(main, 266, 2))
+				ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE;
+		}
 	}
 
 	if (main->versionfile < 267) {

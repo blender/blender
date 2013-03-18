@@ -84,13 +84,10 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_add_reroute);
 
 	WM_operatortype_append(NODE_OT_group_make);
+	WM_operatortype_append(NODE_OT_group_insert);
 	WM_operatortype_append(NODE_OT_group_ungroup);
 	WM_operatortype_append(NODE_OT_group_separate);
 	WM_operatortype_append(NODE_OT_group_edit);
-	WM_operatortype_append(NODE_OT_group_socket_add);
-	WM_operatortype_append(NODE_OT_group_socket_remove);
-	WM_operatortype_append(NODE_OT_group_socket_move_up);
-	WM_operatortype_append(NODE_OT_group_socket_move_down);
 	
 	WM_operatortype_append(NODE_OT_link_viewer);
 	
@@ -122,6 +119,10 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_shader_script_update);
 
 	WM_operatortype_append(NODE_OT_viewer_border);
+
+	WM_operatortype_append(NODE_OT_tree_socket_add);
+	WM_operatortype_append(NODE_OT_tree_socket_remove);
+	WM_operatortype_append(NODE_OT_tree_socket_move);
 }
 
 void ED_operatormacros_node(void)
@@ -198,6 +199,29 @@ static void node_select_keymap(wmKeyMap *keymap, int extend)
 	}
 }
 
+/* register group operators for a specific group node type */
+static void node_group_operators(wmKeyMap *keymap, const char *node_type)
+{
+	wmKeyMapItem *kmi;
+	
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "node_type", node_type);
+	
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(kmi->ptr, "node_type", node_type);
+	
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_separate", PKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "node_type", node_type);
+	
+	kmi= WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "node_type", node_type);
+	RNA_boolean_set(kmi->ptr, "exit", FALSE);
+	
+	kmi= WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "node_type", node_type);
+	RNA_boolean_set(kmi->ptr, "exit", TRUE);
+}
+
 void node_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
@@ -230,9 +254,18 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 
 	/* each of these falls through if not handled... */
-	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "detach", FALSE);
+		RNA_boolean_set(kmi->ptr, "expose", FALSE);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "detach", TRUE);
+		RNA_boolean_set(kmi->ptr, "expose", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "detach", FALSE);
+		RNA_boolean_set(kmi->ptr, "expose", TRUE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+		RNA_boolean_set(kmi->ptr, "detach", TRUE);
+		RNA_boolean_set(kmi->ptr, "expose", TRUE);
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_add_reroute", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
@@ -288,11 +321,10 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_select_same_type_next", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_same_type_prev", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 
-	WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_group_separate", PKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
-	
+	node_group_operators(keymap, "ShaderNodeGroup");
+	node_group_operators(keymap, "CompositorNodeGroup");
+	node_group_operators(keymap, "TextureNodeGroup");
+
 	WM_keymap_add_item(keymap, "NODE_OT_read_renderlayers", RKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_read_fullsamplelayers", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_render_changed", ZKEY, KM_PRESS, 0, 0);

@@ -26,7 +26,6 @@
 #include <stdio.h>
 
 #include "PIL_time.h"
-#include "BKE_node.h"
 
 #include "COM_Converter.h"
 #include "COM_NodeOperation.h"
@@ -39,18 +38,25 @@
 #include "COM_ReadBufferOperation.h"
 #include "COM_ViewerBaseOperation.h"
 
-void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode)
+extern "C" {
+#include "BKE_node.h"
+}
+
+void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNodeInstanceKey parent_key)
 {
 	vector<Node *>& nodes = system.getNodes();
 	vector<SocketConnection *>& links = system.getConnections();
-	const bNode *activeGroupNode = system.getContext().getActivegNode();
-	bool isActiveGroup = activeGroupNode == groupnode;
 	
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
+		/* XXX TODO replace isActiveGroup by a more accurate check, all visible editors should do this! */
+		bool isActiveGroup = true;
 		Node *nnode = addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
-		nnode->setbNodeGroup(groupnode);
+		if (nnode) {
+			nnode->setbNodeTree(tree);
+			nnode->setInstanceKey(BKE_node_instance_key(parent_key, tree, node));
+		}
 		node = node->next;
 	}
 
@@ -81,8 +87,10 @@ void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup, bool fast)
 {
 	Node *node = Converter::convert(b_node, fast);
-	node->setIsInActiveGroup(inActiveGroup);
-	addNode(nodes, node);
+	if (node) {
+		node->setIsInActiveGroup(inActiveGroup);
+		addNode(nodes, node);
+	}
 	return node;
 }
 void ExecutionSystemHelper::addOperation(vector<NodeOperation *>& operations, NodeOperation *operation)
@@ -109,43 +117,21 @@ void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation *> *re
 
 static InputSocket *find_input(NodeRange &node_range, bNode *bnode, bNodeSocket *bsocket)
 {
-	if (bnode != NULL) {
-		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
-			Node *node = *it;
-			if (node->getbNode() == bnode)
-				return node->findInputSocketBybNodeSocket(bsocket);
-		}
-	}
-	else {
-		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
-			Node *node = *it;
-			if (node->isProxyNode()) {
-				InputSocket *proxySocket = node->getInputSocket(0);
-				if (proxySocket->getbNodeSocket() == bsocket)
-					return proxySocket;
-			}
-		}
+	for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
+		Node *node = *it;
+		InputSocket *input = node->findInputSocketBybNodeSocket(bsocket);
+		if (input)
+			return input;
 	}
 	return NULL;
 }
 static OutputSocket *find_output(NodeRange &node_range, bNode *bnode, bNodeSocket *bsocket)
 {
-	if (bnode != NULL) {
-		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
-			Node *node = *it;
-			if (node->getbNode() == bnode)
-				return node->findOutputSocketBybNodeSocket(bsocket);
-		}
-	}
-	else {
-		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
-			Node *node = *it;
-			if (node->isProxyNode()) {
-				OutputSocket *proxySocket = node->getOutputSocket(0);
-				if (proxySocket->getbNodeSocket() == bsocket)
-					return proxySocket;
-			}
-		}
+	for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
+		Node *node = *it;
+		OutputSocket *output = node->findOutputSocketBybNodeSocket(bsocket);
+		if (output)
+			return output;
 	}
 	return NULL;
 }
@@ -190,7 +176,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 	tot = system->getNodes().size();
 	for (int i = 0; i < tot; i++) {
 		node = system->getNodes()[i];
-		printf("// NODE: %s\r\n", node->getbNode()->typeinfo->name);
+		printf("// NODE: %s\r\n", node->getbNode()->typeinfo->ui_name);
 	}
 	tot = system->getOperations().size();
 	for (int i = 0; i < tot; i++) {

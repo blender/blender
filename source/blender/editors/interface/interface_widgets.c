@@ -3367,6 +3367,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				ui_draw_but_TRACKPREVIEW(ar, but, &tui->wcol_regular, rect);
 				break;
 
+			case NODESOCKET:
+				ui_draw_but_NODESOCKET(ar, but, &tui->wcol_regular, rect);
+				break;
+
 			default:
 				wt = widget_type(UI_WTYPE_REGULAR);
 		}

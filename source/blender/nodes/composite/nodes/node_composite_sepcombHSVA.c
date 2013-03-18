@@ -46,14 +46,14 @@ static bNodeSocketTemplate cmp_node_sephsva_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_sephsva(bNodeTreeType *ttype)
+void register_node_type_cmp_sephsva()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
+	cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 
 
@@ -70,12 +70,12 @@ static bNodeSocketTemplate cmp_node_combhsva_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combhsva(bNodeTreeType *ttype)
+void register_node_type_cmp_combhsva()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

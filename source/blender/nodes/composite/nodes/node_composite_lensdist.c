@@ -43,7 +43,7 @@ static bNodeSocketTemplate cmp_node_lensdist_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeLensDist *nld = MEM_callocN(sizeof(NodeLensDist), "node lensdist data");
 	nld->jit = nld->proj = nld->fit = 0;
@@ -51,14 +51,14 @@ static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node, b
 }
 
 
-void register_node_type_cmp_lensdist(bNodeTreeType *ttype)
+void register_node_type_cmp_lensdist()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_LENSDIST, "Lens Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_LENSDIST, "Lens Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_lensdist_in, cmp_node_lensdist_out);
 	node_type_init(&ntype, node_composit_init_lensdist);
 	node_type_storage(&ntype, "NodeLensDist", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

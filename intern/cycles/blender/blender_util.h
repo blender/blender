@@ -202,18 +202,38 @@ static inline uint get_layer(BL::Array<int, 20> array, BL::Array<int, 8> local_a
 	return layer;
 }
 
-#if 0
 static inline float3 get_float3(PointerRNA& ptr, const char *name)
 {
 	float3 f;
 	RNA_float_get_array(&ptr, name, &f.x);
 	return f;
 }
-#endif
+
+static inline void set_float3(PointerRNA& ptr, const char *name, float3 value)
+{
+	RNA_float_set_array(&ptr, name, &value.x);
+}
+
+static inline float4 get_float4(PointerRNA& ptr, const char *name)
+{
+	float4 f;
+	RNA_float_get_array(&ptr, name, &f.x);
+	return f;
+}
+
+static inline void set_float4(PointerRNA& ptr, const char *name, float4 value)
+{
+	RNA_float_set_array(&ptr, name, &value.x);
+}
 
 static inline bool get_boolean(PointerRNA& ptr, const char *name)
 {
 	return RNA_boolean_get(&ptr, name)? true: false;
+}
+
+static inline void set_boolean(PointerRNA& ptr, const char *name, bool value)
+{
+	RNA_boolean_set(&ptr, name, (int)value);
 }
 
 static inline float get_float(PointerRNA& ptr, const char *name)
@@ -221,9 +241,19 @@ static inline float get_float(PointerRNA& ptr, const char *name)
 	return RNA_float_get(&ptr, name);
 }
 
+static inline void set_float(PointerRNA& ptr, const char *name, float value)
+{
+	RNA_float_set(&ptr, name, value);
+}
+
 static inline int get_int(PointerRNA& ptr, const char *name)
 {
 	return RNA_int_get(&ptr, name);
+}
+
+static inline void set_int(PointerRNA& ptr, const char *name, int value)
+{
+	RNA_int_set(&ptr, name, value);
 }
 
 static inline int get_enum(PointerRNA& ptr, const char *name)
@@ -240,6 +270,32 @@ static inline string get_enum_identifier(PointerRNA& ptr, const char *name)
 	RNA_property_enum_identifier(NULL, &ptr, prop, value, &identifier);
 
 	return string(identifier);
+}
+
+static inline void set_enum(PointerRNA& ptr, const char *name, int value)
+{
+	RNA_enum_set(&ptr, name, value);
+}
+
+static inline void set_enum(PointerRNA& ptr, const char *name, const string &identifier)
+{
+	RNA_enum_set_identifier(&ptr, name, identifier.c_str());
+}
+
+static inline string get_string(PointerRNA& ptr, const char *name)
+{
+	char cstrbuf[1024];
+	char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf));
+	string str(cstr);
+	if (cstr != cstrbuf)
+		MEM_freeN(cstr);
+	
+	return str;
+}
+
+static inline void set_string(PointerRNA& ptr, const char *name, const string &value)
+{
+	RNA_string_set(&ptr, name, value.c_str());
 }
 
 /* Relative Paths */

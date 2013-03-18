@@ -223,6 +223,8 @@ const char *RNA_property_typename(PropertyType type);
 #define IS_DNATYPE_FLOAT_COMPAT(_str) (strcmp(_str, "float") == 0 || strcmp(_str, "double") == 0)
 #define IS_DNATYPE_INT_COMPAT(_str) (strcmp(_str, "int") == 0 || strcmp(_str, "short") == 0 || strcmp(_str, "char") == 0)
 
+void RNA_identifier_sanitize(char *identifier, int property);
+
 /* max size for dynamic defined type descriptors,
  * this value is arbitrary */
 #define RNA_DYN_DESCR_MAX 240

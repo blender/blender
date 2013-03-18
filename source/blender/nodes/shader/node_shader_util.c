@@ -36,6 +36,20 @@
 
 #include "node_exec.h"
 
+
+int sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+{
+	return (strcmp(ntree->idname, "ShaderNodeTree")==0);
+}
+
+void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
+{
+	node_type_base(ntype, type, name, nclass, flag);
+	
+	ntype->poll = sh_node_poll_default;
+	ntype->update_internal_links = node_update_internal_links_default;
+}
+
 /* ****** */
 
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
@@ -123,74 +137,6 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 	}
 }
 
-/* nodes that use ID data get synced with local data */
-void nodeShaderSynchronizeID(bNode *node, int copyto)
-{
-	if (node->id==NULL) return;
-	
-	if (ELEM(node->type, SH_NODE_MATERIAL, SH_NODE_MATERIAL_EXT)) {
-		bNodeSocket *sock;
-		Material *ma= (Material *)node->id;
-		int a;
-		
-		/* hrmf, case in loop isn't super fast, but we don't edit 100s of material at same time either! */
-		for (a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
-			if (!nodeSocketIsHidden(sock)) {
-				if (copyto) {
-					switch (a) {
-						case MAT_IN_COLOR:
-							copy_v3_v3(&ma->r, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
-						case MAT_IN_SPEC:
-							copy_v3_v3(&ma->specr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
-						case MAT_IN_REFL:
-							ma->ref= ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_MIR:
-							copy_v3_v3(&ma->mirr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
-						case MAT_IN_AMB:
-							ma->amb = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_EMIT:
-							ma->emit = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_SPECTRA:
-							ma->spectra = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_RAY_MIRROR:
-							ma->ray_mirror = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_ALPHA:
-							ma->alpha = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_TRANSLUCENCY:
-							ma->translucency = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-					}
-				}
-				else {
-					switch (a) {
-						case MAT_IN_COLOR:
-							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->r); break;
-						case MAT_IN_SPEC:
-							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->specr); break;
-						case MAT_IN_REFL:
-							((bNodeSocketValueFloat *)sock->default_value)->value= ma->ref; break;
-						case MAT_IN_MIR:
-							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->mirr); break;
-						case MAT_IN_AMB:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->amb; break;
-						case MAT_IN_EMIT:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->emit; break;
-						case MAT_IN_SPECTRA:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->spectra; break;
-						case MAT_IN_RAY_MIRROR:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->ray_mirror; break;
-						case MAT_IN_ALPHA:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->alpha; break;
-						case MAT_IN_TRANSLUCENCY:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->translucency; break;
-					}
-				}
-			}
-		}
-	}
-	
-}
-
-
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));
@@ -249,22 +195,23 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 bNode *nodeGetActiveTexture(bNodeTree *ntree)
 {
 	/* this is the node we texture paint and draw in textured draw */
-	bNode *node;
+	bNode *node, *tnode;
 
 	if (!ntree)
 		return NULL;
 
-	/* check for group edit */
-	for (node= ntree->nodes.first; node; node= node->next)
-		if (node->flag & NODE_GROUP_EDIT)
-			break;
-
-	if (node)
-		ntree = (bNodeTree *)node->id;
-
 	for (node= ntree->nodes.first; node; node= node->next)
 		if (node->flag & NODE_ACTIVE_TEXTURE)
 			return node;
+	
+	/* node active texture node in this tree, look inside groups */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if (node->type==NODE_GROUP) {
+			tnode = nodeGetActiveTexture((bNodeTree*)node->id);
+			if (tnode)
+				return tnode;
+		}
+	}
 	
 	return NULL;
 }
@@ -299,14 +246,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 				node_get_stack(node, stack, nsin, nsout);
 				gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
 				gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
-				if (node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
-					data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
-			}
-			else if (node->typeinfo->gpuextfunc) {
-				node_get_stack(node, stack, nsin, nsout);
-				gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
-				gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
-				if (node->typeinfo->gpuextfunc(mat, node, nodeexec->data, gpuin, gpuout))
+				if (node->typeinfo->gpufunc(mat, node, &nodeexec->data, gpuin, gpuout))
 					data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
 			}
 		}

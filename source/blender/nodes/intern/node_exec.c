@@ -41,12 +41,19 @@
 #include "MEM_guardedalloc.h"
 
 #include "node_exec.h"
+#include "node_util.h"
 
+
+/* supported socket types in old nodes */
+int node_exec_socket_use_stack(bNodeSocket *sock)
+{
+	return ELEM3(sock->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
+}
 
 /* for a given socket, find the actual stack entry */
 bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
 {
-	if (stack && sock)
+	if (stack && sock && sock->stack_index >= 0)
 		return stack + sock->stack_index;
 	return NULL;
 }
@@ -75,7 +82,10 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
 		sock->stack_index = sock->link->fromsock->stack_index;
 	}
 	else {
-		sock->stack_index = (*index)++;
+		if (node_exec_socket_use_stack(sock))
+			sock->stack_index = (*index)++;
+		else
+			sock->stack_index = -1;
 	}
 }
 
@@ -91,19 +101,27 @@ static void node_init_output_index(bNodeSocket *sock, int *index, ListBase *inte
 			}
 		}
 		/* if not internally connected, assign a new stack index anyway to avoid bad stack access */
-		if (!link)
-			sock->stack_index = (*index)++;
+		if (!link) {
+			if (node_exec_socket_use_stack(sock))
+				sock->stack_index = (*index)++;
+			else
+				sock->stack_index = -1;
+		}
 	}
 	else {
-		sock->stack_index = (*index)++;
+		if (node_exec_socket_use_stack(sock))
+			sock->stack_index = (*index)++;
+		else
+			sock->stack_index = -1;
 	}
 }
 
 /* basic preparation of socket stacks */
-static struct bNodeStack *setup_stack(bNodeStack *stack, bNodeSocket *sock)
+static struct bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
 	bNodeStack *ns = node_get_socket_stack(stack, sock);
-	float null_value[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	if (!ns)
+		return NULL;
 	
 	/* don't mess with remote socket stacks, these are initialized by other nodes! */
 	if (sock->link)
@@ -111,49 +129,37 @@ static struct bNodeStack *setup_stack(bNodeStack *stack, bNodeSocket *sock)
 	
 	ns->sockettype = sock->type;
 	
-	if (sock->default_value) {
-		switch (sock->type) {
+	switch (sock->type) {
 		case SOCK_FLOAT:
-			ns->vec[0] = ((bNodeSocketValueFloat *)sock->default_value)->value;
+			ns->vec[0] = node_socket_get_float(ntree, node, sock);
 			break;
 		case SOCK_VECTOR:
-			copy_v3_v3(ns->vec, ((bNodeSocketValueVector *)sock->default_value)->value);
+			node_socket_get_vector(ntree, node, sock, ns->vec);
 			break;
 		case SOCK_RGBA:
-			copy_v4_v4(ns->vec, ((bNodeSocketValueRGBA *)sock->default_value)->value);
+			node_socket_get_color(ntree, node, sock, ns->vec);
 			break;
-		}
-	}
-	else {
-		switch (sock->type) {
-		case SOCK_FLOAT:
-			ns->vec[0] = 0.0f;
-			break;
-		case SOCK_VECTOR:
-			copy_v3_v3(ns->vec, null_value);
-			break;
-		case SOCK_RGBA:
-			copy_v4_v4(ns->vec, null_value);
-			break;
-		}
 	}
 	
 	return ns;
 }
 
-bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
+bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context, bNodeTree *ntree, bNodeInstanceKey parent_key)
 {
 	bNodeTreeExec *exec;
 	bNode *node;
 	bNodeExec *nodeexec;
-	bNodeSocket *sock, *gsock;
+	bNodeInstanceKey nodekey;
+	bNodeSocket *sock;
 	bNodeStack *ns;
 	int index;
 	bNode **nodelist;
 	int totnodes, n;
 	
-	if ((ntree->init & NTREE_TYPE_INIT)==0)
-		ntreeInitTypes(ntree);
+	BLI_assert(ntreeIsValid(ntree));
+	
+	/* ensure all sock->link pointers and node levels are correct */
+	ntreeUpdateTree(ntree);
 	
 	/* get a dependency-sorted list of nodes */
 	ntreeGetDependencyList(ntree, &nodelist, &totnodes);
@@ -165,9 +171,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	
 	/* set stack indices */
 	index = 0;
-	/* group inputs essentially work as outputs */
-	for (gsock=ntree->inputs.first; gsock; gsock = gsock->next)
-		node_init_output_index(gsock, &index, NULL);
 	for (n=0; n < totnodes; ++n) {
 		node = nodelist[n];
 		
@@ -186,9 +189,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 				node_init_output_index(sock, &index, NULL);
 		}
 	}
-	/* group outputs essentially work as inputs */
-	for (gsock=ntree->outputs.first; gsock; gsock = gsock->next)
-		node_init_input_index(gsock, &index);
 	
 	/* allocated exec data pointers for nodes */
 	exec->totnodes = totnodes;
@@ -201,11 +201,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	for (n=0; n < exec->stacksize; ++n)
 		exec->stack[n].hasinput = 1;
 	
-	/* prepare group tree inputs */
-	for (sock=ntree->inputs.first; sock; sock=sock->next) {
-		/* ns = */ setup_stack(exec->stack, sock);
-	}
-	/* prepare all internal nodes for execution */
+	/* prepare all nodes for execution */
 	for (n=0, nodeexec= exec->nodeexec; n < totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node = nodelist[n];
 		
@@ -215,22 +211,20 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 			if (sock->link && !(sock->link->flag & NODE_LINK_VALID))
 				node->need_exec= 0;
 			
-			ns = setup_stack(exec->stack, sock);
-			ns->hasoutput = 1;
+			ns = setup_stack(exec->stack, ntree, node, sock);
+			if (ns)
+				ns->hasoutput = 1;
 		}
 		
 		/* tag all outputs */
 		for (sock=node->outputs.first; sock; sock=sock->next) {
-			/* ns = */ setup_stack(exec->stack, sock);
+			/* ns = */ setup_stack(exec->stack, ntree, node, sock);
 		}
 		
+		nodekey = BKE_node_instance_key(parent_key, ntree, node);
+		nodeexec->data.preview = context->previews ? BKE_node_instance_hash_lookup(context->previews, nodekey) : NULL;
 		if (node->typeinfo->initexecfunc)
-			nodeexec->data = node->typeinfo->initexecfunc(node);
-	}
-	/* prepare group tree outputs */
-	for (sock=ntree->outputs.first; sock; sock=sock->next) {
-		ns = setup_stack(exec->stack, sock);
-		ns->hasoutput = 1;
+			nodeexec->data.data = node->typeinfo->initexecfunc(context, node, nodekey);
 	}
 	
 	if (nodelist)
@@ -250,7 +244,7 @@ void ntree_exec_end(bNodeTreeExec *exec)
 	for (n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		if (nodeexec->node->typeinfo)
 			if (nodeexec->node->typeinfo->freeexecfunc)
-				nodeexec->node->typeinfo->freeexecfunc(nodeexec->node, nodeexec->data);
+				nodeexec->node->typeinfo->freeexecfunc(nodeexec->node, nodeexec->data.data);
 	}
 	
 	if (exec->nodeexec)
@@ -309,9 +303,7 @@ bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
 //			if (node->typeinfo->compatibility == NODE_NEW_SHADING)
 //				return false;
 			if (node->typeinfo->execfunc)
-				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
-			else if (node->typeinfo->newexecfunc)
-				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
+				node->typeinfo->execfunc(callerdata, thread, node, &nodeexec->data, nsin, nsout);
 		}
 	}
 	

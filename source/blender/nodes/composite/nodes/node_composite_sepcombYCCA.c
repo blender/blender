@@ -47,14 +47,14 @@ static bNodeSocketTemplate cmp_node_sepycca_out[] = {
 };
 
 
-void register_node_type_cmp_sepycca(bNodeTreeType *ttype)
+void register_node_type_cmp_sepycca()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_sepycca_in, cmp_node_sepycca_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }
 
 
@@ -72,12 +72,12 @@ static bNodeSocketTemplate cmp_node_combycca_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_combycca(bNodeTreeType *ttype)
+void register_node_type_cmp_combycca()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combycca_in, cmp_node_combycca_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

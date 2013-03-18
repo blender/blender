@@ -2171,7 +2171,7 @@ void BKE_image_walk_all_users(const Main *mainp, void *customdata,
 				}
 				else if (sa->spacetype == SPACE_NODE) {
 					SpaceNode *snode = sa->spacedata.first;
-					if ((snode->treetype == NTREE_COMPOSIT) && (snode->nodetree)) {
+					if (snode->nodetree && snode->nodetree->type==NTREE_COMPOSIT) {
 						bNode *node;
 						for (node = snode->nodetree->nodes.first; node; node = node->next) {
 							if (node->id && node->type == CMP_NODE_IMAGE) {

@@ -62,62 +62,60 @@
 
 #include "node_intern.h"  /* own include */
 
-/* can be called from menus too, but they should do own undopush and redraws */
-bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene,
-                     bNodeTemplate *ntemp, float locx, float locy)
+/* XXX Does some additional initialization on top of nodeAddNode
+ * Can be used with both custom and static nodes, if idname==NULL the static int type will be used instead.
+ * Can be called from menus too, but they should do own undopush and redraws.
+ */
+bNode *node_add_node(const bContext *C, const char *idname, int type, float locx, float locy)
 {
-	bNode *node = NULL, *gnode;
-
+	SpaceNode *snode = CTX_wm_space_node(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	bNode *node = NULL;
+	
 	node_deselect_all(snode);
-
-	node = nodeAddNode(snode->edittree, ntemp);
-
+	
+	if (idname)
+		node = nodeAddNode(C, snode->edittree, idname);
+	else
+		node = nodeAddStaticNode(C, snode->edittree, type);
+	BLI_assert(node && node->typeinfo);
+	
 	/* generics */
-	if (node) {
-		node_select(node);
-
-		/* node location is mapped */
-		locx /= UI_DPI_FAC;
-		locy /= UI_DPI_FAC;
+	node->locx = locx;
+	node->locy = locy + 60.0f;		// arbitrary.. so its visible, (0,0) is top of node
+	nodeSetSelected(node, TRUE);
+	
+	/* node location is mapped */
+	locx /= UI_DPI_FAC;
+	locy /= UI_DPI_FAC;
+	
+	node->locx = locx;
+	node->locy = locy + 60.0f;
+	
+	ntreeUpdateTree(snode->edittree);
+	ED_node_set_active(bmain, snode->edittree, node);
+	
+	if (snode->nodetree->type == NTREE_COMPOSIT) {
+		if (ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE)) {
+			node->id = &scene->id;
+		}
+		else if (ELEM3(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_MOVIEDISTORTION, CMP_NODE_STABILIZE2D)) {
+			node->id = (ID *)scene->clip;
+		}
 		
-		gnode = node_tree_get_editgroup(snode->nodetree);
-		// arbitrary y offset of 60 so its visible
-		if (gnode) {
-			node_from_view(gnode, locx, locy + 60.0f, &node->locx, &node->locy);
-		}
-		else {
-			node->locx = locx;
-			node->locy = locy + 60.0f;
-		}
-
-		ntreeUpdateTree(snode->edittree);
-		ED_node_set_active(bmain, snode->edittree, node);
-
-		if (snode->nodetree->type == NTREE_COMPOSIT) {
-			if (ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE)) {
-				node->id = &scene->id;
-			}
-			else if (ELEM3(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_MOVIEDISTORTION, CMP_NODE_STABILIZE2D)) {
-				node->id = (ID *)scene->clip;
-			}
-
-			ntreeCompositForceHidden(snode->edittree, scene);
-		}
-
-		if (node->id)
-			id_us_plus(node->id);
-
-
-		if (snode->flag & SNODE_USE_HIDDEN_PREVIEW)
-			node->flag &= ~NODE_PREVIEW;
-
-		snode_update(snode, node);
+		ntreeCompositForceHidden(snode->edittree, scene);
 	}
-
+	
+	if (node->id)
+		id_us_plus(node->id);
+	
+	snode_update(snode, node);
+	
 	if (snode->nodetree->type == NTREE_TEXTURE) {
 		ntreeTexCheckCyclics(snode->edittree);
 	}
-
+	
 	return node;
 }
 
@@ -183,9 +181,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C, bNodeSocketLi
 			
 			/* create the reroute node for this cursock */
 			if (!reroute_node) {
-				bNodeTemplate ntemp;
-				ntemp.type = NODE_REROUTE;
-				reroute_node = nodeAddNode(ntree, &ntemp);
+				reroute_node = nodeAddStaticNode(C, ntree, NODE_REROUTE);
 				
 				/* add a single link to/from the reroute node to replace multiple links */
 				if (in_out == SOCK_OUT) {
@@ -213,18 +209,11 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C, bNodeSocketLi
 	}
 	
 	if (num_links > 0) {
-		bNode *gnode = node_tree_get_editgroup(snode->nodetree);
-		
 		/* average cut point from shared links */
 		mul_v2_fl(insert_point, 1.0f / num_links);
 		
-		if (gnode) {
-			node_from_view(gnode, insert_point[0], insert_point[1], &reroute_node->locx, &reroute_node->locy);
-		}
-		else {
-			reroute_node->locx = insert_point[0];
-			reroute_node->locy = insert_point[1];
-		}
+		reroute_node->locx = insert_point[0];
+		reroute_node->locy = insert_point[1];
 	}
 	
 	return socklink;
@@ -266,6 +255,8 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		output_links.first = output_links.last = NULL;
 		input_links.first = input_links.last = NULL;
 		for (link = ntree->links.first; link; link = link->next) {
+			if (nodeLinkIsHidden(link))
+				continue;
 			if (add_reroute_intersect_check(link, mcoords, i, insert_point)) {
 				add_reroute_insert_socket_link(&output_links, link->fromsock, link, insert_point);
 				add_reroute_insert_socket_link(&input_links, link->tosock, link, insert_point);
@@ -330,12 +321,10 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	Image *ima = NULL;
-	bNodeTemplate ntemp;
+	int type= 0;
 
 	/* check input variables */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -367,36 +356,35 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 	switch (snode->nodetree->type) {
 		case NTREE_SHADER:
-			ntemp.type = SH_NODE_TEX_IMAGE;
+			type = SH_NODE_TEX_IMAGE;
 			break;
 		case NTREE_TEXTURE:
-			ntemp.type = TEX_NODE_IMAGE;
+			type = TEX_NODE_IMAGE;
 			break;
 		case NTREE_COMPOSIT:
-			ntemp.type = CMP_NODE_IMAGE;
+			type = CMP_NODE_IMAGE;
 			break;
 		default:
 			return OPERATOR_CANCELLED;
 	}
-
+	
 	ED_preview_kill_jobs(C);
-
-	node = node_add_node(snode, bmain, scene, &ntemp, snode->cursor[0], snode->cursor[1]);
-
+	
+	node = node_add_node(C, NULL, type, snode->cursor[0], snode->cursor[1]);
+	
 	if (!node) {
 		BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
 		return OPERATOR_CANCELLED;
 	}
-
+	
 	node->id = (ID *)ima;
-	id_us_plus(node->id);
-
+	
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -404,11 +392,11 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
-
+	
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 	                         &snode->cursor[0], &snode->cursor[1]);
-
+	
 	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name"))
 		return node_add_file_exec(C, op);
 	else
@@ -435,35 +423,35 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Datablock name to assign");
 }
 
-
 /********************** New node tree operator *********************/
 
 static int new_node_tree_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode;
+	SpaceNode *snode= CTX_wm_space_node(C);
+	Main *bmain = CTX_data_main(C);
 	bNodeTree *ntree;
-	Main *bmain;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
-	int treetype;
+	const char *idname;
 	char treename[MAX_ID_NAME - 2] = "NodeTree";
-
-	/* retrieve state */
-	snode = CTX_wm_space_node(C);
-	bmain = CTX_data_main(C);
-
-	if (RNA_struct_property_is_set(op->ptr, "type"))
-		treetype = RNA_enum_get(op->ptr, "type");
-	else
-		treetype = snode->treetype;
-
+	
+	if (RNA_struct_property_is_set(op->ptr, "type")) {
+		prop = RNA_struct_find_property(op->ptr, "type");
+		RNA_property_enum_identifier(C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &idname);
+	}
+	else if (snode)
+		idname = snode->tree_idname;
+	
 	if (RNA_struct_property_is_set(op->ptr, "name"))
 		RNA_string_get(op->ptr, "name", treename);
-
-	ntree = ntreeAddTree(bmain, treename, treetype, 0);
-	if (!ntree)
+	
+	if (!ntreeTypeFind(idname)) {
+		BKE_reportf(op->reports, RPT_ERROR, "Node tree type %s undefined", idname);
 		return OPERATOR_CANCELLED;
-
+	}
+	
+	ntree = ntreeAddTree(bmain, treename, idname);
+	
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
@@ -477,29 +465,36 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &ptr, prop);
 	}
 	else if (snode) {
-		Scene *scene = CTX_data_scene(C);
 		snode->nodetree = ntree;
-
-		ED_node_tree_update(snode, scene);
+		
+		ED_node_tree_update(C);
 	}
-
+	
 	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem *new_node_tree_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+{
+	return rna_node_tree_type_itemf(NULL, NULL, free);
 }
 
 void NODE_OT_new_node_tree(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "New Node Tree";
 	ot->idname = "NODE_OT_new_node_tree";
 	ot->description = "Create a new node tree";
-
+	
 	/* api callbacks */
 	ot->exec = new_node_tree_exec;
-	ot->poll = ED_operator_node_active;
-
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_enum(ot->srna, "type", nodetree_type_items, NTREE_COMPOSIT, "Tree Type", "");
+	
+	prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Tree Type", "");
+	RNA_def_enum_funcs(prop, new_node_tree_type_itemf);
 	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME - 2, "Name", "");
 }
+

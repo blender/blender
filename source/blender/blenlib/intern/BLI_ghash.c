@@ -62,8 +62,7 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 	gh->nentries = 0;
 	gh->nbuckets = hashsizes[gh->cursize];
 
-	gh->buckets = MEM_mallocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-	memset(gh->buckets, 0, gh->nbuckets * sizeof(*gh->buckets));
+	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 
 	return gh;
 }
@@ -88,8 +87,7 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 		int i, nold = gh->nbuckets;
 
 		gh->nbuckets = hashsizes[++gh->cursize];
-		gh->buckets = (Entry **)MEM_mallocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-		memset(gh->buckets, 0, gh->nbuckets * sizeof(*gh->buckets));
+		gh->buckets = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 
 		for (i = 0; i < nold; i++) {
 			for (e = old[i]; e; ) {
@@ -146,6 +144,32 @@ bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 	}
 
 	return false;
+}
+
+void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	int i;
+
+	if (keyfreefp || valfreefp) {
+		for (i = 0; i < gh->nbuckets; i++) {
+			Entry *e;
+
+			for (e = gh->buckets[i]; e; ) {
+				Entry *n = e->next;
+
+				if (keyfreefp) keyfreefp(e->key);
+				if (valfreefp) valfreefp(e->val);
+
+				e = n;
+			}
+		}
+	}
+
+	gh->cursize = 0;
+	gh->nentries = 0;
+	gh->nbuckets = hashsizes[gh->cursize];
+
+	gh->buckets = MEM_recallocN(gh->buckets, gh->nbuckets * sizeof(*gh->buckets));
 }
 
 /* same as above but return the value,

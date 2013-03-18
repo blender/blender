@@ -259,6 +259,7 @@ blender_include_dirs(
 	../../imbuf
 	../../ikplugin
 	../../makesdna
+	../../nodes/
 	../../windowmanager
 	../../editors/include
 	../../render/extern/include
@@ -296,7 +297,6 @@ set(SRC
 	${SRC_RNA_INC}
 	rna_internal.h
 	rna_internal_types.h
-	rna_nodetree_types.h
 	rna_mesh_utils.h
 )
 

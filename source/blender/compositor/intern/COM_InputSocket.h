@@ -143,7 +143,6 @@ public:
 	
 	bool isStatic();
 	
-	float *getStaticValues();
 	SocketReader *getReader();
 	NodeOperation *getOperation() const;
 };

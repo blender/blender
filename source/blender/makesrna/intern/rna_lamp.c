@@ -42,6 +42,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
@@ -169,14 +170,14 @@ static void rna_Lamp_spot_size_set(PointerRNA *ptr, float value)
 	la->spotsize = RAD2DEGF(value);
 }
 
-static void rna_Lamp_use_nodes_update(Main *blain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	Lamp *la = (Lamp *)ptr->data;
 
 	if (la->use_nodes && la->nodetree == NULL)
-		ED_node_shader_default(scene, &la->id);
+		ED_node_shader_default(C, &la->id);
 	
-	rna_Lamp_update(blain, scene, ptr);
+	rna_Lamp_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 #else
@@ -414,6 +415,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_use_nodes_update");
 	

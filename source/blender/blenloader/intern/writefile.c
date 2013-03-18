@@ -74,6 +74,7 @@
 
 #include <math.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -151,6 +152,7 @@
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
+#include "BKE_idprop.h"
 #include "BKE_library.h" // for  set_listbasepointers
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -161,6 +163,13 @@
 #include "BKE_fcurve.h"
 #include "BKE_pointcache.h"
 #include "BKE_mesh.h"
+
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
+#include "NOD_common.h"
+#include "NOD_socket.h"	/* for sock->default_value data */
+#endif
+
+#include "RNA_access.h"
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
@@ -670,46 +679,54 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 	write_curvemapping_curves(wd, cumap);
 }
 
-static void write_node_socket(WriteData *wd, bNodeSocket *sock)
+static void write_node_socket(WriteData *wd, bNodeTree *UNUSED(ntree), bNode *node, bNodeSocket *sock)
 {
-	bNodeSocketType *stype= ntreeGetSocketType(sock->type);
-
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
 	/* forward compatibility code, so older blenders still open */
 	sock->stack_type = 1;
 	
-	if (sock->default_value) {
-		bNodeSocketValueFloat *valfloat;
-		bNodeSocketValueVector *valvector;
-		bNodeSocketValueRGBA *valrgba;
-		
-		switch (sock->type) {
-		case SOCK_FLOAT:
-			valfloat = sock->default_value;
-			sock->ns.vec[0] = valfloat->value;
-			sock->ns.min = valfloat->min;
-			sock->ns.max = valfloat->max;
-			break;
-		case SOCK_VECTOR:
-			valvector = sock->default_value;
-			copy_v3_v3(sock->ns.vec, valvector->value);
-			sock->ns.min = valvector->min;
-			sock->ns.max = valvector->max;
-			break;
-		case SOCK_RGBA:
-			valrgba = sock->default_value;
-			copy_v4_v4(sock->ns.vec, valrgba->value);
-			sock->ns.min = 0.0f;
-			sock->ns.max = 1.0f;
-			break;
+	if (node->type == NODE_GROUP) {
+		bNodeTree *ngroup = (bNodeTree *)node->id;
+		if (ngroup) {
+			/* for node groups: look up the deprecated groupsock pointer */
+			sock->groupsock = ntreeFindSocketInterface(ngroup, sock->in_out, sock->identifier);
+			BLI_assert(sock->groupsock != NULL);
+			
+			/* node group sockets now use the generic identifier string to verify group nodes,
+			 * old blender uses the own_index.
+			 */
+			sock->own_index = sock->groupsock->own_index;
 		}
 	}
+#endif
 
 	/* actual socket writing */
 	writestruct(wd, DATA, "bNodeSocket", 1, sock);
-	if (sock->default_value)
-		writestruct(wd, DATA, stype->value_structname, 1, sock->default_value);
-}
 
+	if (sock->prop)
+		IDP_WriteProperty(sock->prop, wd);
+	
+	if (sock->default_value)
+		writedata(wd, DATA, MEM_allocN_len(sock->default_value), sock->default_value);
+}
+static void write_node_socket_interface(WriteData *wd, bNodeTree *UNUSED(ntree), bNodeSocket *sock)
+{
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
+	/* forward compatibility code, so older blenders still open */
+	sock->stack_type = 1;
+	
+	/* Reconstruct the deprecated default_value structs in socket interface DNA. */
+	if (sock->default_value == NULL && sock->typeinfo) {
+		node_socket_init_default_value(sock);
+	}
+#endif
+
+	/* actual socket writing */
+	writestruct(wd, DATA, "bNodeSocket", 1, sock);
+
+	if (sock->prop)
+		IDP_WriteProperty(sock->prop, wd);
+}
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 {
@@ -721,18 +738,19 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	if (ntree->adt) write_animdata(wd, ntree->adt);
 	
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node= ntree->nodes.first; node; node= node->next) {
 		writestruct(wd, DATA, "bNode", 1, node);
 
-	for (node= ntree->nodes.first; node; node= node->next) {
+		if (node->prop)
+			IDP_WriteProperty(node->prop, wd);
+
 		for (sock= node->inputs.first; sock; sock= sock->next)
-			write_node_socket(wd, sock);
+			write_node_socket(wd, ntree, node, sock);
 		for (sock= node->outputs.first; sock; sock= sock->next)
-			write_node_socket(wd, sock);
+			write_node_socket(wd, ntree, node, sock);
 		
 		for (link = node->internal_links.first; link; link = link->next)
 			writestruct(wd, DATA, "bNodeLink", 1, link);
-		
 		if (node->storage) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
@@ -741,10 +759,6 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				NodeShaderScript *nss = (NodeShaderScript *)node->storage;
 				if (nss->bytecode)
 					writedata(wd, DATA, strlen(nss->bytecode)+1, nss->bytecode);
-				/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-				 * of library blocks that implement this.*/
-				if (nss->prop)
-					IDP_WriteProperty(nss->prop, wd);
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 			}
 			else if (ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
@@ -773,11 +787,10 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	for (link= ntree->links.first; link; link= link->next)
 		writestruct(wd, DATA, "bNodeLink", 1, link);
 	
-	/* external sockets */
-	for (sock= ntree->inputs.first; sock; sock= sock->next)
-		write_node_socket(wd, sock);
-	for (sock= ntree->outputs.first; sock; sock= sock->next)
-		write_node_socket(wd, sock);
+	for (sock = ntree->inputs.first; sock; sock = sock->next)
+		write_node_socket_interface(wd, ntree, sock);
+	for (sock = ntree->outputs.first; sock; sock = sock->next)
+		write_node_socket_interface(wd, ntree, sock);
 }
 
 static void current_screen_compat(Main *mainvar, bScreen **screen)
@@ -2518,7 +2531,12 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
 				}
 				else if (sl->spacetype==SPACE_NODE) {
-					writestruct(wd, DATA, "SpaceNode", 1, sl);
+					SpaceNode *snode = (SpaceNode *)sl;
+					bNodeTreePath *path;
+					writestruct(wd, DATA, "SpaceNode", 1, snode);
+					
+					for (path=snode->treepath.first; path; path=path->next)
+						writestruct(wd, DATA, "bNodeTreePath", 1, path);
 				}
 				else if (sl->spacetype==SPACE_LOGIC) {
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
@@ -2770,6 +2788,118 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 	}
 }
 
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
+static void customnodes_add_deprecated_nodetree_data(bNodeTree *ntree)
+{
+	bNodeLink *link, *last_link = ntree->links.last;
+	/* Forward compatibility for group nodes: add links to node tree interface sockets.
+	 * These links are invalid by new rules (missing node pointer)!
+	 * They will be removed again in customnodes_free_deprecated_data,
+	 * cannot do this directly lest bNodeLink pointer mapping becomes ambiguous.
+	 * When loading files with such links in a new Blender version
+	 * they will be removed as well.
+	 */
+	for (link = ntree->links.first; link; link = link->next) {
+		bNode *fromnode = link->fromnode, *tonode = link->tonode;
+		bNodeSocket *fromsock = link->fromsock, *tosock = link->tosock;
+		
+		/* check both sides of the link, to handle direct input-to-output links */
+		if (fromnode->type == NODE_GROUP_INPUT) {
+			fromnode = NULL;
+			fromsock = ntreeFindSocketInterface(ntree, SOCK_IN, fromsock->identifier);
+		}
+		/* only the active output node defines links */
+		if (tonode->type == NODE_GROUP_OUTPUT && (tonode->flag & NODE_DO_OUTPUT)) {
+			tonode = NULL;
+			tosock = ntreeFindSocketInterface(ntree, SOCK_OUT, tosock->identifier);
+		}
+		
+		if (!fromnode || !tonode) {
+			/* Note: not using nodeAddLink here, it asserts existing node pointers */
+			bNodeLink *tlink = MEM_callocN(sizeof(bNodeLink), "group node link");
+			tlink->fromnode = fromnode;
+			tlink->fromsock = fromsock;
+			tlink->tonode = tonode;
+			tlink->tosock= tosock;
+			tosock->link = tlink;
+			tlink->flag |= NODE_LINK_VALID;
+			BLI_addtail(&ntree->links, tlink);
+		}
+		
+		/* don't check newly created compatibility links */
+		if (link == last_link)
+			break;
+	}
+}
+
+static void customnodes_add_deprecated_data(Main *mainvar)
+{
+	bNodeTree *ntree;
+	Scene *scene;
+	Material *mat;
+	World *world;
+	Lamp *lamp;
+	Tex *tex;
+	
+	for (ntree = mainvar->nodetree.first; ntree; ntree = ntree->id.next)
+		customnodes_add_deprecated_nodetree_data(ntree);
+	for (scene = mainvar->scene.first; scene; scene = scene->id.next)
+		if (scene->nodetree)
+			customnodes_add_deprecated_nodetree_data(scene->nodetree);
+	for (mat = mainvar->mat.first; mat; mat = mat->id.next)
+		if (mat->nodetree)
+			customnodes_add_deprecated_nodetree_data(mat->nodetree);
+	for (world = mainvar->world.first; world; world = world->id.next)
+		if (world->nodetree)
+			customnodes_add_deprecated_nodetree_data(world->nodetree);
+	for (lamp = mainvar->lamp.first; lamp; lamp = lamp->id.next)
+		if (lamp->nodetree)
+			customnodes_add_deprecated_nodetree_data(lamp->nodetree);
+	for (tex = mainvar->tex.first; tex; tex = tex->id.next)
+		if (tex->nodetree)
+			customnodes_add_deprecated_nodetree_data(tex->nodetree);
+}
+
+static void customnodes_free_deprecated_nodetree_data(bNodeTree *ntree)
+{
+	bNodeLink *link, *next_link;
+	
+	for (link = ntree->links.first; link; link = next_link) {
+		next_link = link->next;
+		if (link->fromnode == NULL || link->tonode == NULL)
+			nodeRemLink(ntree, link);
+	}
+}
+
+static void customnodes_free_deprecated_data(Main *mainvar)
+{
+	bNodeTree *ntree;
+	Scene *scene;
+	Material *mat;
+	World *world;
+	Lamp *lamp;
+	Tex *tex;
+	
+	for (ntree = mainvar->nodetree.first; ntree; ntree = ntree->id.next)
+		customnodes_free_deprecated_nodetree_data(ntree);
+	for (scene = mainvar->scene.first; scene; scene = scene->id.next)
+		if (scene->nodetree)
+			customnodes_free_deprecated_nodetree_data(scene->nodetree);
+	for (mat = mainvar->mat.first; mat; mat = mat->id.next)
+		if (mat->nodetree)
+			customnodes_free_deprecated_nodetree_data(mat->nodetree);
+	for (world = mainvar->world.first; world; world = world->id.next)
+		if (world->nodetree)
+			customnodes_free_deprecated_nodetree_data(world->nodetree);
+	for (lamp = mainvar->lamp.first; lamp; lamp = lamp->id.next)
+		if (lamp->nodetree)
+			customnodes_free_deprecated_nodetree_data(lamp->nodetree);
+	for (tex = mainvar->tex.first; tex; tex = tex->id.next)
+		if (tex->nodetree)
+			customnodes_free_deprecated_nodetree_data(tex->nodetree);
+}
+#endif
+
 static void write_brushes(WriteData *wd, ListBase *idbase)
 {
 	Brush *brush;
@@ -2981,6 +3111,11 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	wd->use_mesh_compat = (write_flags & G_FILE_MESH_COMPAT) != 0;
 #endif
 
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
+	/* deprecated forward compat data is freed again below */
+	customnodes_add_deprecated_data(mainvar);
+#endif
+
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
 	mywrite(wd, buf, 12);
 
@@ -3025,6 +3160,14 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 							
 	/* dna as last, because (to be implemented) test for which structs are written */
 	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
+
+#ifdef USE_NODE_COMPAT_CUSTOMNODES
+	/* Ugly, forward compatibility code generates deprecated data during writing,
+	 * this has to be freed again. Can not be done directly after writing, otherwise
+	 * the data pointers could be reused and not be mapped correctly.
+	 */
+	customnodes_free_deprecated_data(mainvar);
+#endif
 
 	/* end of file */
 	memset(&bhead, 0, sizeof(BHead));

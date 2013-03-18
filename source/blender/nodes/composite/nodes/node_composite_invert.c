@@ -43,19 +43,19 @@ static bNodeSocketTemplate cmp_node_invert_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	node->custom1 |= CMP_CHAN_RGB;
 }
 
 /* custom1 = mix type */
-void register_node_type_cmp_invert(bNodeTreeType *ttype)
+void register_node_type_cmp_invert()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_invert_in, cmp_node_invert_out);
 	node_type_init(&ntype, node_composit_init_invert);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

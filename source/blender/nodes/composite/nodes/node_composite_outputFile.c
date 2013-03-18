@@ -34,6 +34,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
+#include "BKE_context.h"
+
+#include "RNA_access.h"
+
 #include "node_composite_util.h"
 
 #include "IMB_imbuf.h"
@@ -105,7 +109,7 @@ void ntreeCompositOutputFileUniqueLayer(ListBase *list, bNodeSocket *sock, const
 bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, const char *name, ImageFormatData *im_format)
 {
 	NodeImageMultiFile *nimf = node->storage;
-	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, "", SOCK_RGBA);
+	bNodeSocket *sock = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, NULL, name);
 	
 	/* create format data for the input socket */
 	NodeImageMultiFileSocket *sockdata = MEM_callocN(sizeof(NodeImageMultiFileSocket), "socket image format");
@@ -165,14 +169,19 @@ void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char 
 	ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
-static void init_output_file(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
+/* XXX uses initfunc_api callback, regular initfunc does not support context yet */
+static void init_output_file(const bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
+	bNodeTree *ntree = ptr->id.data;
+	bNode *node = ptr->data;
 	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
 	ImageFormatData *format = NULL;
 	node->storage= nimf;
+	
+	if (scene) {
+		RenderData *rd = &scene->r;
 
-	if (ntemp->scene) {
-		RenderData *rd = &ntemp->scene->r;
 		BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
 		nimf->format = rd->im_format;
 		if (BKE_imtype_is_movie(nimf->format.imtype)) {
@@ -200,41 +209,43 @@ static void free_output_file(bNode *node)
 	MEM_freeN(node->storage);
 }
 
-static void copy_output_file(struct bNode *node, struct bNode *target)
+static void copy_output_file(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
 {
-	bNodeSocket *sock, *newsock;
+	bNodeSocket *src_sock, *dest_sock;
 	
-	target->storage = MEM_dupallocN(node->storage);
+	dest_node->storage = MEM_dupallocN(src_node->storage);
 	
 	/* duplicate storage data in sockets */
-	for (sock=node->inputs.first, newsock=target->inputs.first; sock && newsock; sock=sock->next, newsock=newsock->next) {
-		newsock->storage = MEM_dupallocN(sock->storage);
+	for (src_sock=src_node->inputs.first, dest_sock=dest_node->inputs.first; src_sock && dest_sock; src_sock=src_sock->next, dest_sock=dest_sock->next) {
+		dest_sock->storage = MEM_dupallocN(src_sock->storage);
 	}
 }
 
-static void update_output_file(bNodeTree *UNUSED(ntree), bNode *node)
+static void update_output_file(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
+	PointerRNA ptr;
+	
+	cmp_node_update_default(ntree, node);
 	
 	/* automatically update the socket type based on linked input */
 	for (sock=node->inputs.first; sock; sock=sock->next) {
 		if (sock->link) {
-			int linktype = sock->link->fromsock->type;
-			if (linktype != sock->type)
-				nodeSocketSetType(sock, linktype);
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
+			RNA_enum_set(&ptr, "type", sock->link->fromsock->type);
 		}
 	}
 }
 
-void register_node_type_cmp_output_file(bNodeTreeType *ttype)
+void register_node_type_cmp_output_file()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS|NODE_PREVIEW);
+	cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS|NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, NULL);
-	node_type_init(&ntype, init_output_file);
+	ntype.initfunc_api = init_output_file;
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
 	node_type_update(&ntype, update_output_file, NULL);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

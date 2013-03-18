@@ -48,12 +48,12 @@ static bNodeSocketTemplate cmp_node_zcombine_out[] = {
 	{	-1, 0, ""	}
 };
 
-void register_node_type_cmp_zcombine(bNodeTreeType *ttype)
+void register_node_type_cmp_zcombine()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_zcombine_in, cmp_node_zcombine_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

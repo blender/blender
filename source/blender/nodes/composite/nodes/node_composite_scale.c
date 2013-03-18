@@ -45,12 +45,12 @@ static bNodeSocketTemplate cmp_node_scale_out[] = {
 	{   -1, 0, ""   }
 };
 
-void register_node_type_cmp_scale(bNodeTreeType *ttype)
+void register_node_type_cmp_scale()
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_SCALE, "Scale", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_SCALE, "Scale", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_scale_in, cmp_node_scale_out);
 
-	nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(&ntype);
 }

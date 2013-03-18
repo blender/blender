@@ -407,7 +407,7 @@ void paint_brush_init_tex(Brush *brush)
 	if (brush) {
 		MTex *mtex = &brush->mtex;
 		if (mtex->tex && mtex->tex->nodetree)
-			ntreeTexBeginExecTree(mtex->tex->nodetree, 1);  /* has internal flag to detect it only does it once */
+			ntreeTexBeginExecTree(mtex->tex->nodetree);  /* has internal flag to detect it only does it once */
 	}
 }
 
@@ -416,7 +416,7 @@ void paint_brush_exit_tex(Brush *brush)
 	if (brush) {
 		MTex *mtex = &brush->mtex;
 		if (mtex->tex && mtex->tex->nodetree)
-			ntreeTexEndExecTree(mtex->tex->nodetree->execdata, 1);
+			ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
 	}
 }
 

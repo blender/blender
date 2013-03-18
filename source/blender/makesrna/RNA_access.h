@@ -363,14 +363,13 @@ extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
-extern StructRNA RNA_NodeForLoop;
-extern StructRNA RNA_NodeGroup;
 extern StructRNA RNA_NodeOutputFileSlotFile;
 extern StructRNA RNA_NodeOutputFileSlotLayer;
+extern StructRNA RNA_NodeInstanceHash;
 extern StructRNA RNA_NodeLink;
 extern StructRNA RNA_NodeSocket;
+extern StructRNA RNA_NodeSocketInterface;
 extern StructRNA RNA_NodeTree;
-extern StructRNA RNA_NodeWhileLoop;
 extern StructRNA RNA_NoiseTexture;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
@@ -655,7 +654,9 @@ StructRNA *RNA_struct_find(const char *identifier);
 
 const char *RNA_struct_identifier(StructRNA *type);
 const char *RNA_struct_ui_name(StructRNA *type);
+const char *RNA_struct_ui_name_raw(StructRNA *type);
 const char *RNA_struct_ui_description(StructRNA *type);
+const char *RNA_struct_ui_description_raw(StructRNA *type);
 const char *RNA_struct_translation_context(StructRNA *type);
 int RNA_struct_ui_icon(StructRNA *type);
 
@@ -721,7 +722,9 @@ int  RNA_property_array_item_index(PropertyRNA *prop, char name);
 int RNA_property_string_maxlength(PropertyRNA *prop);
 
 const char *RNA_property_ui_name(PropertyRNA *prop);
+const char *RNA_property_ui_name_raw(PropertyRNA *prop);
 const char *RNA_property_ui_description(PropertyRNA *prop);
+const char *RNA_property_ui_description_raw(PropertyRNA *prop);
 const char *RNA_property_translation_context(PropertyRNA *prop);
 int RNA_property_ui_icon(PropertyRNA *prop);
 
@@ -976,9 +979,11 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 /* check if the idproperty exists, for operators */
 bool RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, bool use_ghost);
 bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_unset(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool use_ghost);
 bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 bool RNA_property_is_idprop(PropertyRNA *prop);
+void RNA_struct_property_unset(PointerRNA *ptr, const char *identifier);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index);
@@ -995,6 +1000,7 @@ char *RNA_function_as_string_keywords(struct bContext *C, FunctionRNA *func, Poi
 
 const char *RNA_function_identifier(FunctionRNA *func);
 const char *RNA_function_ui_description(FunctionRNA *func);
+const char *RNA_function_ui_description_raw(FunctionRNA *func);
 int RNA_function_flag(FunctionRNA *func);
 int RNA_function_defined(FunctionRNA *func);
 

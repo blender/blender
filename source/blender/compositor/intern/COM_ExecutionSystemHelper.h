@@ -48,7 +48,7 @@ public:
 	 * @param tree bNodeTree to add
 	 * @return Node representing the "Compositor node" of the maintree. or NULL when a subtree is added
 	 */
-	static void addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode);
+	static void addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNodeInstanceKey parent_key);
 
 	/**
 	 * @brief add an editor node to the system.

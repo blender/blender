@@ -167,7 +167,7 @@ View2DGrid *UI_view2d_grid_calc(struct Scene *scene, struct View2D *v2d,
                                 short xunits, short xclamp, short yunits, short yclamp, int winx, int winy);
 void UI_view2d_grid_draw(struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_constant_grid_draw(struct View2D *v2d);
-void UI_view2d_multi_grid_draw(struct View2D *v2d, float step, int level_size, int totlevels);
+void UI_view2d_multi_grid_draw(struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
 void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy);
 void UI_view2d_grid_free(View2DGrid *grid);
 
@@ -199,6 +199,9 @@ struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 
 void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
 void UI_view2d_getscale_inverse(struct View2D *v2d, float *x, float *y);
+
+void UI_view2d_getcenter(struct View2D *v2d, float *x, float *y);
+void UI_view2d_setcenter(struct View2D *v2d, float x, float y);
 
 short UI_view2d_mouse_in_scrollers(const struct bContext *C, struct View2D *v2d, int x, int y);
 

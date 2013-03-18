@@ -5434,6 +5434,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		case LISTROW:
 		case BUT_IMAGE:
 		case PROGRESSBAR:
+		case NODESOCKET:
 			retval = ui_do_but_EXIT(C, but, data, event);
 			break;
 		case HISTOGRAM:
