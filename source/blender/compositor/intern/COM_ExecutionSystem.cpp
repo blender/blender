@@ -26,7 +26,9 @@
 
 #include "PIL_time.h"
 #include "BLI_utildefines.h"
+extern "C" {
 #include "BKE_node.h"
+}
 
 #include "COM_Converter.h"
 #include "COM_NodeOperation.h"
