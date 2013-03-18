@@ -233,10 +233,10 @@ static void node_tree_interface_panel(const bContext *C, Panel *pa)
 		uiItemR(row, &sockptr, "name", 0, NULL, ICON_NONE);
 		uiItemO(row, "", ICON_X, "NODE_OT_tree_socket_remove");
 		
-		uiItemS(layout);
-		
-		if (sock->typeinfo->interface_draw)
+		if (sock->typeinfo->interface_draw) {
+			uiItemS(layout);
 			sock->typeinfo->interface_draw((bContext *)C, layout, &sockptr);
+		}
 	}
 }
 
