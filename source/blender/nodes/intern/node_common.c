@@ -105,7 +105,7 @@ int nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree)
 		return 0;
 	
 	for (node=grouptree->nodes.first; node; node=node->next) {
-		if (!node->typeinfo->poll_instance(node, nodetree)) {
+		if (node->typeinfo->poll_instance && !node->typeinfo->poll_instance(node, nodetree)) {
 			valid = 0;
 			break;
 		}

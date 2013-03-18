@@ -662,7 +662,7 @@ static bool node_group_make_test_selected(bNodeTree *ntree, bNode *gnode, const 
 	/* check poll functions for selected nodes */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node_group_make_use_node(node, gnode)) {
-			if (!node->typeinfo->poll_instance(node, ngroup)) {
+			if (node->typeinfo->poll_instance && !node->typeinfo->poll_instance(node, ngroup)) {
 				BKE_reportf(reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
 				ok = false;
 				break;
