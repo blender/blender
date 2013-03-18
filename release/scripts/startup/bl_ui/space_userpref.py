@@ -480,6 +480,10 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "texture_collection_rate", text="Collection Rate")
 
         col.separator()
+
+        col.label(text="Images:")
+        col.prop(system, "image_gpubuffer_limit")
+
         col.separator()
         col.separator()
 
