@@ -58,8 +58,6 @@ static double B1(double u);
 static double B2(double u);
 static double B3(double u);
 static Vector2 ComputeLeftTangent(Vector2 *d, int end);
-static Vector2 ComputeLeftTangent(Vector2 *d, int end);
-static Vector2 ComputeLeftTangent(Vector2 *d, int end);
 static double ComputeMaxError(Vector2 *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint);
 static double *ChordLengthParameterize(Vector2 *d, int first, int last);
 static BezierCurve GenerateBezier(Vector2 *d, int first, int last, double *uPrime, Vector2 tHat1, Vector2 tHat2);
