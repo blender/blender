@@ -1500,7 +1500,7 @@ static void tag_scenes_for_render(Render *re)
 			if (node->id) {
 				if (!MAIN_VERSION_ATLEAST(re->main, 265, 5)) {
 					if (rlayer_node_uses_alpha(re->scene->nodetree, node)) {
-						Scene *scene = (Scene*) node->id;
+						Scene *scene = (Scene *)node->id;
 
 						if (scene->r.alphamode != R_ALPHAPREMUL) {
 							BKE_reportf(re->reports, RPT_WARNING, "Setting scene %s alpha mode to Premul", scene->id.name + 2);

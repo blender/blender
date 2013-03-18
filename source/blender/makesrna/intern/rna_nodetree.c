@@ -341,7 +341,7 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 		
 		#define SUBTYPE(socktype, stypename, id, idname) \
 		{ \
-			bNodeSocketValue##stypename * value = (bNodeSocketValue##stypename *)sock->default_value; \
+			bNodeSocketValue##stypename *value = (bNodeSocketValue##stypename *)sock->default_value; \
 			if (value->subtype == PROP_##id) \
 				return &RNA_NodeSocket##stypename##idname; \
 		}

@@ -74,16 +74,16 @@ void BLO_blendhandle_print_sizes(BlendHandle *, void *);
 
 /* Access routines used by filesel. */
 	 
-BlendHandle *BLO_blendhandle_from_file(char *file, ReportList *reports)
+BlendHandle *BLO_blendhandle_from_file(const char *filepath, ReportList *reports)
 {
 	BlendHandle *bh;
 
-	bh = (BlendHandle *)blo_openblenderfile(file, reports);
+	bh = (BlendHandle *)blo_openblenderfile(filepath, reports);
 
 	return bh;
 }
 
-BlendHandle *BLO_blendhandle_from_memory(void *mem, int memsize)
+BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize)
 {
 	BlendHandle *bh;
 
@@ -271,7 +271,7 @@ BlendFileData *BLO_read_from_file(const char *filepath, ReportList *reports)
 	return bfd;
 }
 
-BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
+BlendFileData *BLO_read_from_memory(const void *mem, int memsize, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;

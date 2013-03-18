@@ -214,12 +214,12 @@ PyObject *initVideoTexture(void)
 	pyFilterTypes.reg(m);
 
 	Py_INCREF(&TextureType);
-	PyModule_AddObject(m, (char*)"Texture", (PyObject *)&TextureType);
-	PyModule_AddIntConstant(m, (char*)"SOURCE_ERROR", SourceError);
-	PyModule_AddIntConstant(m, (char*)"SOURCE_EMPTY", SourceEmpty);
-	PyModule_AddIntConstant(m, (char*)"SOURCE_READY", SourceReady);
-	PyModule_AddIntConstant(m, (char*)"SOURCE_PLAYING", SourcePlaying);
-	PyModule_AddIntConstant(m, (char*)"SOURCE_STOPPED", SourceStopped);
+	PyModule_AddObject(m, "Texture", (PyObject *)&TextureType);
+	PyModule_AddIntConstant(m, "SOURCE_ERROR", SourceError);
+	PyModule_AddIntConstant(m, "SOURCE_EMPTY", SourceEmpty);
+	PyModule_AddIntConstant(m, "SOURCE_READY", SourceReady);
+	PyModule_AddIntConstant(m, "SOURCE_PLAYING", SourcePlaying);
+	PyModule_AddIntConstant(m, "SOURCE_STOPPED", SourceStopped);
 	
 	// init last error description
 	Exception::m_lastError = "";

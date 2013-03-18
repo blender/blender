@@ -1754,7 +1754,7 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 	arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
 
 	mvert_skin = CustomData_get_layer(&me->vdata, CD_MVERT_SKIN);
-	create_vert_edge_map(&emap, &emap_mem,
+	BKE_mesh_vert_edge_map_create(&emap, &emap_mem,
 	                     me->medge, me->totvert, me->totedge);
 
 	edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");

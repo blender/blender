@@ -563,7 +563,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 
 
 /* Brush Sampling for 2D brushes. when we unify the brush systems this will be necessarily a separate function */
-float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4], struct ImagePool *pool)
+float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4])
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	MTex *mtex = &brush->mtex;
@@ -598,7 +598,7 @@ float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2
 		co[1] = y + brush->mtex.ofs[1];
 		co[2] = 0.0f;
 
-		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, 0, pool);
+		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, 0, NULL);
 
 		if (hasrgb) {
 			rgba[0] = tr;
@@ -660,15 +660,15 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 					dstf[3] = alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 				else if (texfall == 1) {
-					BKE_brush_sample_tex_2D(scene, brush, xy, dstf, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, dstf);
 				}
 				else if (texfall == 2) {
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba);
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
 					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 				else {
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba);
 					copy_v3_v3(dstf, brush_rgb);
 					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
@@ -695,11 +695,11 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 					dst[3] = FTOCHAR(alpha_f);
 				}
 				else if (texfall == 1) {
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba);
 					rgba_float_to_uchar(dst, rgba);
 				}
 				else if (texfall == 2) {
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba);
 					mul_v3_v3(rgba, brush->rgb);
 					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
@@ -708,7 +708,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 					dst[3] = FTOCHAR(alpha_f);
 				}
 				else {
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba);
 					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					dst[0] = crgb[0];

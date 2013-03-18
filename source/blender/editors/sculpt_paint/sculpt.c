@@ -4553,7 +4553,7 @@ void sculpt_dynamic_topology_disable(bContext *C,
 		CustomData_copy(&unode->bm_enter_pdata, &me->pdata, CD_MASK_MESH,
 		                CD_DUPLICATE, unode->bm_enter_totpoly);
 
-		mesh_update_customdata_pointers(me, FALSE);
+		BKE_mesh_update_customdata_pointers(me, false);
 	}
 	else {
 		sculptsession_bm_to_me(ob, TRUE);

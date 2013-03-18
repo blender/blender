@@ -103,12 +103,12 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 #define RE_rayobject_isVlakPrimitive(o)	((((intptr_t)o)&3) == 3)
 
 /* used to align a given ray object */
-#define RE_rayobject_align(o)					((RayObject*)(((intptr_t)o)&(~3)))
+#define RE_rayobject_align(o)					((RayObject *)(((intptr_t)o)&(~3)))
 
 /* used to unalign a given ray object */
-#define RE_rayobject_unalignRayFace(o)			((RayObject*)(((intptr_t)o)|1))
-#define RE_rayobject_unalignRayAPI(o)			((RayObject*)(((intptr_t)o)|2))
-#define RE_rayobject_unalignVlakPrimitive(o)	((RayObject*)(((intptr_t)o)|3))
+#define RE_rayobject_unalignRayFace(o)			((RayObject *)(((intptr_t)o)|1))
+#define RE_rayobject_unalignRayAPI(o)			((RayObject *)(((intptr_t)o)|2))
+#define RE_rayobject_unalignVlakPrimitive(o)	((RayObject *)(((intptr_t)o)|3))
 
 /*
  * This rayobject represents a generic object. With it's own callbacks for raytrace operations.

@@ -505,7 +505,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	me->pdata = pdata;
 
 	/* tessface data removed above, no need to update */
-	mesh_update_customdata_pointers(me, FALSE);
+	BKE_mesh_update_customdata_pointers(me, false);
 
 	/* update normals in case objects with non-uniform scale are joined */
 	ED_mesh_calc_normals(me);

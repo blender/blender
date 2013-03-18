@@ -352,7 +352,7 @@ std::string ControllerExporter::add_morph_targets(Key *key, Object *ob)
 
 	source.prepareToAppendValues();
 
-	KeyBlock * kb = (KeyBlock*)key->block.first;
+	KeyBlock *kb = (KeyBlock *)key->block.first;
 	//skip the basis
 	kb = kb->next;
 	for (; kb; kb = kb->next) {
@@ -381,7 +381,7 @@ std::string ControllerExporter::add_morph_weights(Key *key, Object *ob)
 	
 	source.prepareToAppendValues();
 
-	KeyBlock * kb = (KeyBlock*)key->block.first;
+	KeyBlock *kb = (KeyBlock *)key->block.first;
 	//skip the basis
 	kb = kb->next;
 	for (; kb; kb = kb->next) {
@@ -399,7 +399,7 @@ void ControllerExporter::add_weight_extras(Key *key)
 	// can also try the base element and param alternative
 	COLLADASW::BaseExtraTechnique extra;
 	
-	KeyBlock * kb = (KeyBlock*)key->block.first;
+	KeyBlock * kb = (KeyBlock *)key->block.first;
 	//skip the basis
 	kb = kb->next;
 	for (; kb; kb = kb->next) {

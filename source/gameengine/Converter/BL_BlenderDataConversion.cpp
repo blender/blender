@@ -2140,7 +2140,7 @@ static void UNUSED_FUNCTION(RBJconstraints)(Object *ob)//not used
 	conlist = get_active_constraints2(ob);
 
 	if (conlist) {
-		for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
+		for (curcon = (bConstraint *)conlist->first; curcon; curcon = (bConstraint *)curcon->next) {
 
 			printf("%i\n",curcon->type);
 		}
@@ -2785,7 +2785,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			continue;
 
 		if (conlist) {
-			for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
+			for (curcon = (bConstraint *)conlist->first; curcon; curcon = (bConstraint *)curcon->next) {
 				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 
 					bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;

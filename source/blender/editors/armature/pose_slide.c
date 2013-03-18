@@ -1081,7 +1081,7 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 	
 	BezTriple *bezt;
 	float refVal = 0.0f;
-	short keyExists;
+	bool keyExists;
 	int i, match;
 	short first = 1;
 	

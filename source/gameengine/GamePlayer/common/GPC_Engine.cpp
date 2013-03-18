@@ -155,14 +155,14 @@ bool GPC_Engine::Start(const char *filename)
 }
 
 
-bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
-		unsigned int blenderDataBufferSize)
+bool GPC_Engine::Start(const void *blenderDataBuffer,
+                       unsigned int blenderDataBufferSize)
 {
 	ReportList reports;
 	BlendFileData *bfd;
 	
 	BKE_reports_init(&reports, RPT_STORE);
-	bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &reports);
+	bfd = BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &reports);
 	BKE_reports_clear(&reports);
 
 	if (!bfd) {

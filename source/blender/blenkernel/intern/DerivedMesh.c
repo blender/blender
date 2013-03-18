@@ -542,7 +542,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	}
 
 	/* yes, must be before _and_ after tessellate */
-	mesh_update_customdata_pointers(&tmp, false);
+	BKE_mesh_update_customdata_pointers(&tmp, false);
 
 	/* since 2.65 caller must do! */
 	// BKE_mesh_tessface_calc(&tmp);

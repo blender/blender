@@ -2830,7 +2830,8 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				return OPERATOR_FINISHED; /* use finish or we don't get an undo */
 		}
 	}
-//	/* Allow view navigation??? */
+	/* Allow view navigation??? */
+	/* note, this gives issues: 1) other modal ops run on top (border select), 2) middlemouse is used now 3) tablet/trackpad? */
 //	else {
 //		return OPERATOR_PASS_THROUGH;
 //	}

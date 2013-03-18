@@ -465,7 +465,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->edata, mesh->totedge);
 	mesh->edata = edata;
-	mesh_update_customdata_pointers(mesh, FALSE); /* new edges don't change tessellation */
+	BKE_mesh_update_customdata_pointers(mesh, false); /* new edges don't change tessellation */
 
 	/* set default flags */
 	medge = &mesh->medge[mesh->totedge];
@@ -1029,7 +1029,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	Mesh *old_mesh = (Mesh *)ob->data;
 	Mesh *new_mesh = uid_mesh_map[*geom_uid];
 
-	set_mesh(ob, new_mesh);
+	BKE_mesh_assign_object(ob, new_mesh);
 	
 	if (old_mesh->id.us == 0) BKE_libblock_free(&G.main->mesh, old_mesh);
 	
@@ -1075,7 +1075,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	
 	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
 	Mesh *me = BKE_mesh_add(G.main, (char *)str_geom_id.c_str());
-	me->id.us--; // is already 1 here, but will be set later in set_mesh
+	me->id.us--; // is already 1 here, but will be set later in BKE_mesh_assign_object
 
 	// store the Mesh pointer to link it later with an Object
 	// mesh_geom_map needed to map mesh to its geometry name (for shape key naming)

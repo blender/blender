@@ -235,7 +235,7 @@ static void brush_painter_2d_do_partial(BrushPainter *painter, ImBuf *oldtexibuf
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					BKE_brush_sample_tex_2D(scene, brush, xy, tf, NULL);
+					BKE_brush_sample_tex_2D(scene, brush, xy, tf);
 				}
 
 				bf[0] = tf[0] * mf[0];
@@ -266,7 +266,7 @@ static void brush_painter_2d_do_partial(BrushPainter *painter, ImBuf *oldtexibuf
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, NULL);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba);
 					rgba_float_to_uchar(t, rgba);
 				}
 

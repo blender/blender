@@ -169,7 +169,7 @@ void copy_fcurves(ListBase *dst, ListBase *src)
 /* ----------------- Finding F-Curves -------------------------- */
 
 /* high level function to get an fcurve from C without having the rna */
-FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index, char *driven)
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index, bool *r_driven)
 {
 	/* anim vars */
 	AnimData *adt = BKE_animdata_from_id(id);
@@ -180,8 +180,8 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 	PropertyRNA *prop;
 	char *path;
 
-	if (driven)
-		*driven = FALSE;
+	if (r_driven)
+		*r_driven = false;
 	
 	/* only use the current action ??? */
 	if (ELEM(NULL, adt, adt->action))
@@ -201,8 +201,8 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 			/* if not animated, check if driven */
 			if ((fcu == NULL) && (adt->drivers.first)) {
 				fcu = list_find_fcurve(&adt->drivers, path, index);
-				if (fcu && driven)
-					*driven = TRUE;
+				if (fcu && r_driven)
+					*r_driven = true;
 				fcu = NULL;
 			}
 			
@@ -305,11 +305,11 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 	return matches;
 }
 
-FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, int *driven)
+FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, bool *r_driven)
 {
 	FCurve *fcu = NULL;
 	
-	*driven = 0;
+	*r_driven = false;
 	
 	/* there must be some RNA-pointer + property combon */
 	if (prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
@@ -331,7 +331,7 @@ FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction
 						fcu = list_find_fcurve(&adt->drivers, path, rnaindex);
 						
 						if (fcu)
-							*driven = 1;
+							*r_driven = true;
 					}
 					
 					if (fcu && action)
@@ -354,13 +354,13 @@ FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short *replace)
+int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *r_replace)
 {
 	int start = 0, end = arraylen;
 	int loopbreaker = 0, maxloop = arraylen * 2;
 	
 	/* initialize replace-flag first */
-	*replace = 0;
+	*r_replace = false;
 	
 	/* sneaky optimizations (don't go through searching process if...):
 	 *	- keyframe to be added is to be added out of current bounds
@@ -377,7 +377,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short 
 		/* 'First' Keyframe (when only one keyframe, this case is used) */
 		framenum = array[0].vec[1][0];
 		if (IS_EQT(frame, framenum, BEZT_BINARYSEARCH_THRESH)) {
-			*replace = 1;
+			*r_replace = true;
 			return 0;
 		}
 		else if (frame < framenum)
@@ -386,7 +386,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short 
 		/* 'Last' Keyframe */
 		framenum = array[(arraylen - 1)].vec[1][0];
 		if (IS_EQT(frame, framenum, BEZT_BINARYSEARCH_THRESH)) {
-			*replace = 1;
+			*r_replace = true;
 			return (arraylen - 1);
 		}
 		else if (frame > framenum)
@@ -404,7 +404,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short 
 		
 		/* check if exactly equal to midpoint */
 		if (IS_EQT(frame, midfra, BEZT_BINARYSEARCH_THRESH)) {
-			*replace = 1;
+			*r_replace = true;
 			return mid;
 		}
 		

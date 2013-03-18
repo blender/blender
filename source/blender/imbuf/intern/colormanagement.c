@@ -1583,6 +1583,26 @@ void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], ColorSpac
 		OCIO_processorApplyRGB(processor, pixel);
 }
 
+void IMB_colormanagement_colorspace_to_scene_linear_v4(float pixel[4], int predivide, ColorSpace *colorspace)
+{
+	OCIO_ConstProcessorRcPtr *processor;
+
+	if (!colorspace) {
+		/* should never happen */
+		printf("%s: perform conversion from unknown color space\n", __func__);
+		return;
+	}
+
+	processor = colorspace_to_scene_linear_processor(colorspace);
+
+	if (processor) {
+		if (predivide)
+			OCIO_processorApplyRGBA_predivide(processor, pixel);
+		else
+			OCIO_processorApplyRGBA(processor, pixel);
+	}
+}
+
 void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, int height, int channels, struct ColorSpace *colorspace, int predivide)
 {
 	OCIO_ConstProcessorRcPtr *processor;

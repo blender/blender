@@ -221,7 +221,7 @@ static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op)
 	Sequence *seq;
 	Scene *scene = CTX_data_scene(C);
 	struct FCurve *fcu;
-	char driven;
+	bool driven;
 
 	SEQ_BEGIN(scene->ed, seq)
 	{

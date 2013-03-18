@@ -1288,14 +1288,14 @@ void pbvh_bmesh_print(PBVH *bvh)
 	fprintf(stderr, "bm_face_to_node:\n");
 	GHASH_ITER (gh_iter, bvh->bm_face_to_node) {
 		fprintf(stderr, "  %d -> %d\n",
-		        BM_elem_index_get((BMFace*)BLI_ghashIterator_getKey(&gh_iter)),
+		        BM_elem_index_get((BMFace *)BLI_ghashIterator_getKey(&gh_iter)),
 		        GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
 	}
 
 	fprintf(stderr, "bm_vert_to_node:\n");
 	GHASH_ITER (gh_iter, bvh->bm_vert_to_node) {
 		fprintf(stderr, "  %d -> %d\n",
-		        BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)),
+		        BM_elem_index_get((BMVert *)BLI_ghashIterator_getKey(&gh_iter)),
 		        GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
 	}
 
@@ -1307,15 +1307,15 @@ void pbvh_bmesh_print(PBVH *bvh)
 		fprintf(stderr, "node %d\n  faces:\n", n);
 		GHASH_ITER (gh_iter, node->bm_faces)
 			fprintf(stderr, "    %d\n",
-			        BM_elem_index_get((BMFace*)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMFace *)BLI_ghashIterator_getKey(&gh_iter)));
 		fprintf(stderr, "  unique verts:\n");
 		GHASH_ITER (gh_iter, node->bm_unique_verts)
 			fprintf(stderr, "    %d\n",
-			        BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMVert *)BLI_ghashIterator_getKey(&gh_iter)));
 		fprintf(stderr, "  other verts:\n");
 		GHASH_ITER (gh_iter, node->bm_other_verts)
 			fprintf(stderr, "    %d\n",
-			        BM_elem_index_get((BMVert*)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMVert *)BLI_ghashIterator_getKey(&gh_iter)));
 	}
 }
 

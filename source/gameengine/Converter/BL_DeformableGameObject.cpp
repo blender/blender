@@ -94,7 +94,7 @@ bool BL_DeformableGameObject::GetShape(vector<float> &shape)
 		if (key && key->type==KEY_RELATIVE) 
 		{
 			KeyBlock *kb;
-			for (kb = (KeyBlock*)key->block.first; kb; kb = (KeyBlock*)kb->next)
+			for (kb = (KeyBlock *)key->block.first; kb; kb = (KeyBlock *)kb->next)
 			{
 				shape.push_back(kb->curval);
 			}

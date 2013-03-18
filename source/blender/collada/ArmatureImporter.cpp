@@ -674,7 +674,7 @@ void ArmatureImporter::make_shape_keys()
 		
 		if (source_ob) {
 
-			Mesh *source_me = (Mesh*) source_ob->data;
+			Mesh *source_me = (Mesh *)source_ob->data;
 			//insert key to source mesh
 			Key *key = source_me->key = BKE_key_add((ID *)source_me);
 			key->type = KEY_RELATIVE;

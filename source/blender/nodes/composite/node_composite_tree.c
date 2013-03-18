@@ -393,7 +393,8 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 	lb = RNA_struct_type_properties(ptr.type);
 
 	for (link = lb->first; link; link = link->next) {
-		int driven, len = 1, index;
+		int len = 1, index;
+		bool driven;
 		prop = (PropertyRNA *)link;
 
 		if (RNA_property_array_check(prop))
@@ -409,7 +410,8 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 
 	/* now check node sockets */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		int driven, len = 1, index;
+		int len = 1, index;
+		bool driven;
 
 		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 		prop = RNA_struct_find_property(&ptr, "default_value");

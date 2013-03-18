@@ -1929,14 +1929,14 @@ PyObject *initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 
 	/* mathutils types are used by the BGE even if we don't import them */
 	{
-		PyObject *mod= PyImport_ImportModuleLevel((char *)"mathutils", NULL, NULL, NULL, 0);
+		PyObject *mod = PyImport_ImportModuleLevel("mathutils", NULL, NULL, NULL, 0);
 		Py_DECREF(mod);
 	}
 
 #ifdef WITH_AUDASPACE
 	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
 	{
-		PyObject *mod= PyImport_ImportModuleLevel((char *)"aud", NULL, NULL, NULL, 0);
+		PyObject *mod = PyImport_ImportModuleLevel("aud", NULL, NULL, NULL, 0);
 		Py_DECREF(mod);
 	}
 #endif
@@ -1993,7 +1993,7 @@ PyObject *initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 #ifdef WITH_AUDASPACE
 	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
 	{
-		PyObject *mod= PyImport_ImportModuleLevel((char *)"aud", NULL, NULL, NULL, 0);
+		PyObject *mod= PyImport_ImportModuleLevel("aud", NULL, NULL, NULL, 0);
 		Py_DECREF(mod);
 	}
 #endif

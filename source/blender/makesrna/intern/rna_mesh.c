@@ -528,7 +528,7 @@ static void rna_CustomDataLayer_active_set(PointerRNA *ptr, CustomData *data, in
 		else CustomData_set_layer_active(ldata, CD_MLOOPUV, n);
 	}
 
-	mesh_update_customdata_pointers(me, TRUE);
+	BKE_mesh_update_customdata_pointers(me, true);
 }
 
 static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int value, int type, int render)

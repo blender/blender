@@ -54,7 +54,7 @@ typedef struct FileData {
 	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
 
 	// variables needed for reading from memory / stream
-	char *buffer;
+	const char *buffer;
 	// variables needed for reading from memfile (undo)
 	struct MemFile *memfile;
 
@@ -123,7 +123,7 @@ void blo_split_main(ListBase *mainlist, struct Main *main);
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
 FileData *blo_openblenderfile(const char *filepath, struct ReportList *reports);
-FileData *blo_openblendermemory(void *buffer, int buffersize, struct ReportList *reports);
+FileData *blo_openblendermemory(const void *buffer, int buffersize, struct ReportList *reports);
 FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
 void blo_clear_proxy_pointers_from_lib(Main *oldmain);

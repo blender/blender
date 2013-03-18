@@ -110,7 +110,7 @@
 						CustomData *ldata = rna_mesh_ldata_helper(me);                          \
 						CustomData_set_layer_##active_type(ldata, CD_MLOOPUV, a);               \
 					}                                                                           \
-					mesh_update_customdata_pointers(me, TRUE);                                  \
+					BKE_mesh_update_customdata_pointers(me, true);                              \
 					return;                                                                     \
 				}                                                                               \
 			}                                                                                   \
@@ -139,7 +139,7 @@
 				CustomData *ldata = rna_mesh_ldata_helper(me);                                  \
 				CustomData_set_layer_##active_type(ldata, CD_MLOOPUV, value);                   \
 			}                                                                                   \
-			mesh_update_customdata_pointers(me, TRUE);                                          \
+			BKE_mesh_update_customdata_pointers(me, true);                                      \
 		}                                                                                       \
 	}
 

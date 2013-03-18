@@ -390,10 +390,14 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         layout.prop(rd, "filepath", text="")
 
-        flow = layout.column_flow()
-        flow.prop(rd, "use_overwrite")
-        flow.prop(rd, "use_placeholder")
-        flow.prop(rd, "use_file_extension")
+        split = layout.split()
+        
+        col = split.column()
+        col.active = not rd.is_movie_format
+        col.prop(rd, "use_overwrite")
+        col.prop(rd, "use_placeholder")
+        
+        split.prop(rd, "use_file_extension")
 
         layout.template_image_settings(image_settings, color_management=False)
 

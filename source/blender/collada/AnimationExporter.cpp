@@ -184,7 +184,7 @@ void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<fl
 	ListBase *conlist = get_active_constraints(ob);
 	if (conlist == NULL) return;
 	bConstraint *con;
-	for (con = (bConstraint*)conlist->first; con; con = con->next) {
+	for (con = (bConstraint *)conlist->first; con; con = con->next) {
 		ListBase targets = {NULL, NULL};
 		
 		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
@@ -200,7 +200,7 @@ void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<fl
 			 */
 			cti->get_constraint_targets(con, &targets);
 			if (cti) {
-				for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next) {
+				for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
 					obtar = ct->tar;
 					find_frames(obtar, frames);
 				}
@@ -544,7 +544,7 @@ void AnimationExporter::dae_baked_object_animation(std::vector<float> &fra, Obje
 	if (!fra.size())
 		return;
 
-	BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s", (char*)translate_id(ob_name).c_str(),
+	BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s", (char *)translate_id(ob_name).c_str(),
 	             "object_matrix");
 
 	openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
@@ -1535,7 +1535,7 @@ void AnimationExporter::calc_ob_mat_at_time(Object *ob, float ctime , float mat[
 {
 	ListBase *conlist = get_active_constraints(ob);
 	bConstraint *con;
-	for (con = (bConstraint*)conlist->first; con; con = con->next) {
+	for (con = (bConstraint *)conlist->first; con; con = con->next) {
 		ListBase targets = {NULL, NULL};
 		
 		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
@@ -1544,7 +1544,7 @@ void AnimationExporter::calc_ob_mat_at_time(Object *ob, float ctime , float mat[
 			bConstraintTarget *ct;
 			Object *obtar;
 			cti->get_constraint_targets(con, &targets);
-			for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next) {
+			for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
 				obtar = ct->tar;
 				BKE_animsys_evaluate_animdata(scene, &obtar->id, obtar->adt, ctime, ADT_RECALC_ANIM);
 				BKE_object_where_is_calc_time(scene, obtar, ctime);

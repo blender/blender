@@ -165,7 +165,7 @@ extern "C" {
 	void MEM_printmemlist(void);
 
 	/** calls the function on all allocated memory blocks. */
-	void MEM_callbackmemlist(void (*func)(void*));
+	void MEM_callbackmemlist(void (*func)(void *));
 
 	/** Print statistics about memory usage */
 	void MEM_printmemlist_stats(void);

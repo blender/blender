@@ -100,14 +100,14 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	/* remap pointers */
 	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "game_copy_pose gh");
 
-	pchan= (bPoseChannel*)src->chanbase.first;
-	outpchan= (bPoseChannel*)out->chanbase.first;
+	pchan= (bPoseChannel *)src->chanbase.first;
+	outpchan= (bPoseChannel *)out->chanbase.first;
 	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
 		BLI_ghash_insert(ghash, pchan, outpchan);
 
-	for (pchan = (bPoseChannel*)out->chanbase.first; pchan; pchan = pchan->next) {
-		pchan->parent= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->parent);
-		pchan->child= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->child);
+	for (pchan = (bPoseChannel *)out->chanbase.first; pchan; pchan = pchan->next) {
+		pchan->parent= (bPoseChannel *)BLI_ghash_lookup(ghash, pchan->parent);
+		pchan->child= (bPoseChannel *)BLI_ghash_lookup(ghash, pchan->child);
 
 		if (copy_constraint) {
 			ListBase listb;
@@ -158,8 +158,8 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 		dstweight = 1.0F;
 	}
 	
-	schan= (bPoseChannel*)src->chanbase.first;
-	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next) {
+	schan= (bPoseChannel *)src->chanbase.first;
+	for (dchan = (bPoseChannel *)dst->chanbase.first; dchan; dchan=(bPoseChannel *)dchan->next, schan= (bPoseChannel *)schan->next) {
 		// always blend on all channels since we don't know which one has been set
 		/* quat interpolation done separate */
 		if (schan->rotmode == ROT_MODE_QUAT) {
@@ -376,7 +376,7 @@ void BL_ArmatureObject::LoadChannels()
 		BL_ArmatureChannel* proxy;
 	
 		m_channelNumber = 0;
-		for (pchan = (bPoseChannel*)m_pose->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
+		for (pchan = (bPoseChannel *)m_pose->chanbase.first; pchan; pchan=(bPoseChannel *)pchan->next) {
 			proxy = new BL_ArmatureChannel(this, pchan);
 			m_poseChannels.AddBack(proxy);
 			m_channelNumber++;

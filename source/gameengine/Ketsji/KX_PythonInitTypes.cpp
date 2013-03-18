@@ -172,9 +172,9 @@ void initPyTypes(void)
  */
 
 	/* For now just do PyType_Ready */
-	PyObject *mod= PyModule_New("GameTypes");
-	PyObject *dict= PyModule_GetDict(mod);
-	PyDict_SetItemString(PySys_GetObject((char *)"modules"), (char *)"GameTypes", mod);
+	PyObject *mod = PyModule_New("GameTypes");
+	PyObject *dict = PyModule_GetDict(mod);
+	PyDict_SetItemString(PySys_GetObject("modules"), "GameTypes", mod);
 	Py_DECREF(mod);
 	
 	
