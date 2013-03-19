@@ -184,7 +184,10 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 
 	for (int i = tc_first; i < tc_numCategories; i++)
 		m_logger->AddCategory((KX_TimeCategory)i);
-		
+
+#ifdef WITH_PYTHON
+	m_pyprofiledict = PyDict_New();
+#endif
 }
 
 
@@ -197,6 +200,10 @@ KX_KetsjiEngine::~KX_KetsjiEngine()
 	delete m_logger;
 	if (m_usedome)
 		delete m_dome;
+
+#ifdef WITH_PYTHON
+	Py_CLEAR(m_pyprofiledict);
+#endif
 }
 
 
@@ -255,6 +262,12 @@ void KX_KetsjiEngine::SetPyNamespace(PyObject *pythondictionary)
 {
 	MT_assert(pythondictionary);
 	m_pythondictionary = pythondictionary;
+}
+
+PyObject* KX_KetsjiEngine::GetPyProfileDict()
+{
+	Py_INCREF(m_pyprofiledict);
+	return m_pyprofiledict;
 }
 #endif
 
@@ -1513,6 +1526,15 @@ void KX_KetsjiEngine::RenderDebugProperties()
 
 			m_rendertools->RenderBox2D(xcoord + (int)(2.2 * profile_indent), ycoord, m_canvas->GetWidth(), m_canvas->GetHeight(), time/tottime);
 			ycoord += const_ysize;
+
+#ifdef WITH_PYTHON
+			PyObject *val = PyTuple_New(2);
+			PyTuple_SetItem(val, 0, PyFloat_FromDouble(time*1000.f));
+			PyTuple_SetItem(val, 1, PyFloat_FromDouble(time/tottime * 100.f));
+
+			PyDict_SetItemString(m_pyprofiledict, m_profileLabels[j], val);
+			Py_DECREF(val);
+#endif
 		}
 	}
 	// Add the ymargin for titles below the other section of debug info

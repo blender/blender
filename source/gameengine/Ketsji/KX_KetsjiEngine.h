@@ -81,6 +81,7 @@ private:
 #ifdef WITH_PYTHON
 	/* borrowed from sys.modules["__main__"], don't manage ref's */
 	PyObject*					m_pythondictionary;
+	PyObject*					m_pyprofiledict;
 #endif
 	class SCA_IInputDevice*				m_keyboarddevice;
 	class SCA_IInputDevice*				m_mousedevice;
@@ -222,6 +223,7 @@ public:
 #ifdef WITH_PYTHON
 	void			SetPyNamespace(PyObject *pythondictionary);
 	PyObject*		GetPyNamespace() { return m_pythondictionary; }
+	PyObject*		GetPyProfileDict();
 #endif
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
 	void			SetAnimRecordMode(bool animation_record, int startFrame);
