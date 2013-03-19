@@ -138,7 +138,7 @@ static void blend_color_add_alpha(char cp[4], const char cp1[4], const char cp2[
 	cp[0] = cp1[0];
 	cp[1] = cp1[1];
 	cp[2] = cp1[2];
-	cp[3] = (temp < 0) ? 0 : temp;
+	cp[3] = (temp > 255)? 255 : ((temp < 0) ? 0 : temp);
 }
 
 
@@ -269,6 +269,7 @@ static void blend_color_add_alpha_float(float cp[4], const float cp1[4], const f
 
 	cp[3] = (cp1[3] + fac * cp2[3]);
 	if (cp[3] < 0.0f) cp[3] = 0.0f;
+	if (cp[3] > 1.0f) cp[3] = 1.0f;
 }
 
 void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac, IMB_BlendMode mode)

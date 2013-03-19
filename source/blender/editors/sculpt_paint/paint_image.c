@@ -398,7 +398,6 @@ typedef struct PaintOperation {
 	double starttime;
 
 	ViewContext vc;
-	wmTimer *timer;
 } PaintOperation;
 
 void paint_brush_init_tex(Brush *brush)
@@ -530,9 +529,6 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	PaintOperation *pop = paint_stroke_mode_data(stroke);
 
 	paint_redraw(C, pop, 1);
-
-	if (pop->timer)
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), pop->timer);
 
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 
