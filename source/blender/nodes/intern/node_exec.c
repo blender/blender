@@ -156,8 +156,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context, bNodeTree *ntree, bNo
 	bNode **nodelist;
 	int totnodes, n;
 	
-	BLI_assert(ntreeIsValid(ntree));
-	
 	/* ensure all sock->link pointers and node levels are correct */
 	ntreeUpdateTree(ntree);
 	

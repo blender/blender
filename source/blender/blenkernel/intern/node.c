@@ -74,6 +74,11 @@
 #include "NOD_shader.h"
 #include "NOD_texture.h"
 
+/* Fallback types for undefined tree, nodes, sockets */
+bNodeTreeType NodeTreeTypeUndefined;
+bNodeType NodeTypeUndefined;
+bNodeSocketType NodeSocketTypeUndefined;
+
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
@@ -101,12 +106,11 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
 /* Note: This function is called to initialize node data based on the type.
  * The bNodeType may not be registered at creation time of the node,
  * so this can be delayed until the node type gets registered.
- * The node->typeinfo must not be used in that case until it is defined!
  */
 static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 {
 	bNodeType *ntype = node->typeinfo;
-	if (!ntype)
+	if (ntype == &NodeTypeUndefined)
 		return;
 	
 	/* only do this once */
@@ -151,22 +155,24 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 
 static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
 {
-	ntree->typeinfo = typeinfo;
-	
 	if (typeinfo) {
+		ntree->typeinfo = typeinfo;
+		
 		/* deprecated integer type */
 		ntree->type = typeinfo->type;
 	}
 	else {
+		ntree->typeinfo = &NodeTreeTypeUndefined;
+		
 		ntree->init &= ~NTREE_TYPE_INIT;
 	}
 }
 
 static void node_set_typeinfo(const struct bContext *C, bNodeTree *ntree, bNode *node, bNodeType *typeinfo)
 {
-	node->typeinfo = typeinfo;
-	
 	if (typeinfo) {
+		node->typeinfo = typeinfo;
+		
 		/* deprecated integer type */
 		node->type = typeinfo->type;
 		
@@ -174,21 +180,25 @@ static void node_set_typeinfo(const struct bContext *C, bNodeTree *ntree, bNode 
 		node_init(C, ntree, node);
 	}
 	else {
+		node->typeinfo = &NodeTypeUndefined;
+		
 		ntree->init &= ~NTREE_TYPE_INIT;
 	}
 }
 
 static void node_socket_set_typeinfo(bNodeTree *ntree, bNodeSocket *sock, bNodeSocketType *typeinfo)
 {
-	sock->typeinfo = typeinfo;
-
 	if (typeinfo) {
+		sock->typeinfo = typeinfo;
+	
 		if (sock->default_value == NULL) {
 			/* initialize the default_value pointer used by standard socket types */
 			node_socket_init_default_value(sock);
 		}
 	}
 	else {
+		sock->typeinfo = &NodeSocketTypeUndefined;
+		
 		ntree->init &= ~NTREE_TYPE_INIT;
 	}
 }
@@ -301,14 +311,14 @@ void ntreeTypeFreeLink(bNodeTreeType *nt)
 	BLI_ghash_remove(nodetreetypes_hash, nt->idname, NULL, ntree_free_type);
 }
 
+bool ntreeIsRegistered(bNodeTree *ntree)
+{
+	return (ntree->typeinfo != &NodeTreeTypeUndefined);
+}
+
 GHashIterator *ntreeTypeGetIterator(void)
 {
 	return BLI_ghashIterator_new(nodetreetypes_hash);
-}
-
-int ntreeIsValid(bNodeTree *ntree)
-{
-	return (ntree && (ntree->init & NTREE_TYPE_INIT));
 }
 
 bNodeType *nodeTypeFind(const char *idname)
@@ -370,6 +380,11 @@ void nodeUnregisterType(bNodeType *nt)
 	BLI_ghash_remove(nodetypes_hash, nt->idname, NULL, node_free_type);
 }
 
+bool nodeIsRegistered(bNode *node)
+{
+	return (node->typeinfo != &NodeTypeUndefined);
+}
+
 GHashIterator *nodeTypeGetIterator(void)
 {
 	return BLI_ghashIterator_new(nodetypes_hash);
@@ -408,6 +423,11 @@ void nodeRegisterSocketType(bNodeSocketType *st)
 void nodeUnregisterSocketType(bNodeSocketType *st)
 {
 	BLI_ghash_remove(nodesockettypes_hash, st->idname, NULL, node_free_socket_type);
+}
+
+bool nodeSocketIsRegistered(bNodeSocket *sock)
+{
+	return (sock->typeinfo != &NodeSocketTypeUndefined);
 }
 
 GHashIterator *nodeSocketTypeGetIterator(void)
@@ -1887,7 +1907,7 @@ int ntreeOutputExists(bNode *node, bNodeSocket *testsock)
 /* returns localized tree for execution in threads */
 bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
-	if (ntreeIsValid(ntree)) {
+	if (ntree) {
 		bNodeTree *ltree;
 		bNode *node;
 		
@@ -1944,7 +1964,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 /* is called by jobs manager, outside threads, so it doesnt happen during draw */
 void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 {
-	if (localtree && ntreeIsValid(ntree)) {
+	if (localtree && ntree) {
 		/* XXX syncing was disabled for compositor nodes.
 		 * It has to be ensured that there is no concurrent read/write access!
 		 * Possibly needs a mutex lock or a flag to disable for certain tree types ...
@@ -1960,7 +1980,7 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 /* we have to assume the editor already changed completely */
 void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 {
-	if (localtree && ntreeIsValid(ntree)) {
+	if (localtree && ntree) {
 		BKE_node_preview_merge_tree(ntree, localtree);
 		
 		if (ntree->typeinfo->local_merge)
@@ -2831,11 +2851,8 @@ void ntreeVerifyNodes(struct Main *main, struct ID *id)
 	FOREACH_NODETREE(main, ntree, owner_id) {
 		bNode *node;
 		
-		if (!ntreeIsValid(ntree))
-			return;
-		
 		for (node = ntree->nodes.first; node; node = node->next)
-			if (node->typeinfo && node->typeinfo->verifyfunc)
+			if (node->typeinfo->verifyfunc)
 				node->typeinfo->verifyfunc(ntree, node, id);
 	} FOREACH_NODETREE_END
 }
@@ -2844,14 +2861,13 @@ void ntreeUpdateTree(bNodeTree *ntree)
 {
 	bNode *node;
 	
+	if (!ntree)
+		return;
+	
 	/* avoid reentrant updates, can be caused by RNA update callbacks */
 	if (ntree->is_updating)
 		return;
 	ntree->is_updating = TRUE;
-	
-	/* only if types are initialized */
-	if (!ntreeIsValid(ntree))
-		return;
 	
 	if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {
 		/* set the bNodeSocket->link pointers */
@@ -3239,6 +3255,34 @@ void node_type_compatibility(struct bNodeType *ntype, short compatibility)
 	ntype->compatibility = compatibility;
 }
 
+/* callbacks for undefined types */
+
+static int node_undefined_poll(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(nodetree))
+{
+	/* this type can not be added deliberately, it's just a placeholder */
+	return false;
+}
+
+/* register fallback types used for undefined tree, nodes, sockets */
+static void register_undefined_types(void)
+{
+	/* Note: these types are not registered in the type hashes,
+	 * they are just used as placeholders in case the actual types are not registered.
+	 */
+	
+	strcpy(NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
+	strcpy(NodeTreeTypeUndefined.ui_name, "Undefined");
+	strcpy(NodeTreeTypeUndefined.ui_description, "Undefined Node Tree Type");
+	
+	node_type_base_custom(&NodeTypeUndefined, "NodeUndefined", "Undefined", 0, 0);
+	NodeTypeUndefined.poll = node_undefined_poll;
+	
+	BLI_strncpy(NodeSocketTypeUndefined.idname, "NodeSocketUndefined", sizeof(NodeSocketTypeUndefined.idname));
+	/* extra type info for standard socket types */
+	NodeSocketTypeUndefined.type = SOCK_CUSTOM;
+	NodeSocketTypeUndefined.subtype = PROP_NONE;
+}
+
 static void registerCompositNodes(void)
 {
 	register_node_type_cmp_group();
@@ -3463,6 +3507,8 @@ void init_nodesystem(void)
 	nodetreetypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nodetreetypes_hash gh");
 	nodetypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nodetypes_hash gh");
 	nodesockettypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nodesockettypes_hash gh");
+
+	register_undefined_types();
 
 	register_standard_node_socket_types();
 

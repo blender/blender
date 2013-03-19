@@ -542,9 +542,6 @@ static void rna_NodeTree_draw_add_menu(const bContext *C, struct uiLayout *layou
 	ParameterList list;
 	FunctionRNA *func;
 
-	if (!ntreeIsValid(ntree))
-		return;
-
 	RNA_id_pointer_create(&ntree->id, &ptr);
 	func = &rna_NodeTree_draw_add_menu_func; /* RNA_struct_find_function(&ptr, "draw_add_menu"); */
 
@@ -656,6 +653,18 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 	return nt->ext.srna;
 }
 
+static bool rna_NodeTree_check(bNodeTree *ntree, ReportList *reports)
+{
+	if (!ntreeIsRegistered(ntree)) {
+		if (reports)
+			BKE_reportf(reports, RPT_ERROR, "Node tree '%s' has undefined type %s", ntree->id.name + 2, ntree->idname);
+		
+		return false;
+	}
+	else
+		return true;
+}
+
 static void rna_NodeTree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
@@ -695,10 +704,8 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	bNodeType *ntype;
 	bNode *node;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 	
 	ntype = nodeTypeFind(type);
 	if (!ntype) {
@@ -745,10 +752,8 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, Poin
 {
 	bNode *node = node_ptr->data;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	if (BLI_findindex(&ntree->nodes, node) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in node tree", node->name);
@@ -767,10 +772,8 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNode *node = ntree->nodes.first;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 
 	while (node) {
 		bNode *next_node = node->next;
@@ -800,10 +803,6 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr, const PointerRNA value
 	bNodeTree *ntree = (bNodeTree *)ptr->data;
 	bNode *node = (bNode *)value.data;
 	
-	/* activating node might require valid typeinfo */
-	if (!ntreeIsValid(ntree))
-		return;
-	
 	if (node && BLI_findindex(&ntree->nodes, node) != -1)
 		nodeSetActive(ntree, node);
 	else
@@ -817,10 +816,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 	bNodeLink *ret;
 	bNode *fromnode = NULL, *tonode = NULL;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 
 	nodeFindNode(ntree, fromsock, &fromnode, NULL);
 	nodeFindNode(ntree, tosock, &tonode, NULL);
@@ -855,10 +852,8 @@ static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, Poin
 {
 	bNodeLink *link = link_ptr->data;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 
 	if (BLI_findindex(&ntree->links, link) == -1) {
 		BKE_report(reports, RPT_ERROR, "Unable to locate link in node tree");
@@ -876,10 +871,8 @@ static void rna_NodeTree_link_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNodeLink *link = ntree->links.first;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 
 	while (link) {
 		bNodeLink *next_link = link->next;
@@ -971,10 +964,8 @@ static bNodeSocket *rna_NodeTree_inputs_new(bNodeTree *ntree, ReportList *report
 {
 	bNodeSocket *sock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 	
 	sock = ntreeAddSocketInterface(ntree, SOCK_IN, type, name);
 	
@@ -988,10 +979,8 @@ static bNodeSocket *rna_NodeTree_outputs_new(bNodeTree *ntree, ReportList *repor
 {
 	bNodeSocket *sock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 	
 	sock = ntreeAddSocketInterface(ntree, SOCK_OUT, type, name);
 	
@@ -1003,10 +992,8 @@ static bNodeSocket *rna_NodeTree_outputs_new(bNodeTree *ntree, ReportList *repor
 
 static void rna_NodeTree_socket_remove(bNodeTree *ntree, ReportList *reports, bNodeSocket *sock)
 {
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	if (BLI_findindex(&ntree->inputs, sock) == -1 && BLI_findindex(&ntree->outputs, sock) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket '%s' in node", sock->identifier);
@@ -1023,10 +1010,8 @@ static void rna_NodeTree_inputs_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNodeSocket *sock, *nextsock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	for (sock = ntree->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
@@ -1041,10 +1026,8 @@ static void rna_NodeTree_outputs_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNodeSocket *sock, *nextsock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	for (sock = ntree->outputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
@@ -1057,9 +1040,6 @@ static void rna_NodeTree_outputs_clear(bNodeTree *ntree, ReportList *reports)
 
 static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 {
-	if (!ntreeIsValid(ntree))
-		return;
-	
 	ntree->update |= NTREE_UPDATE_GROUP;
 	ntreeUpdateTree(ntree);
 	

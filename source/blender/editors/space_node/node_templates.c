@@ -606,7 +606,7 @@ void uiTemplateNodeView(uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *
 {
 	bNode *tnode;
 
-	if (!ntreeIsValid(ntree))
+	if (!ntree)
 		return;
 
 	/* clear for cycle check */

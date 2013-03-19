@@ -2708,8 +2708,57 @@ static void node_template_properties_update(bNodeType *ntype)
 	}
 }
 
+static void node_socket_undefined_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr))
+{
+	uiItemL(layout, "Undefined Socket Type", ICON_ERROR);
+}
+
+static void node_socket_undefined_draw_color(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr), float *r_color)
+{
+	r_color[0] = 1.0f;
+	r_color[1] = 0.0f;
+	r_color[2] = 0.0f;
+	r_color[3] = 1.0f;
+}
+
+static void node_socket_undefined_interface_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr))
+{
+	uiItemL(layout, "Undefined Socket Type", ICON_ERROR);
+}
+
+static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), float *r_color)
+{
+	r_color[0] = 1.0f;
+	r_color[1] = 0.0f;
+	r_color[2] = 0.0f;
+	r_color[3] = 1.0f;
+}
+
 void ED_node_init_butfuncs(void)
 {
+	/* Fallback types for undefined tree, nodes, sockets
+	 * Defined in blenkernel, but not registered in type hashes.
+	 */
+	/*extern bNodeTreeType NodeTreeTypeUndefined;*/
+	extern bNodeType NodeTypeUndefined;
+	extern bNodeSocketType NodeSocketTypeUndefined;
+	
+	/* default ui functions */
+	NodeTypeUndefined.drawfunc = node_draw_default;
+	NodeTypeUndefined.drawupdatefunc = node_update_default;
+	NodeTypeUndefined.select_area_func = node_select_area_default;
+	NodeTypeUndefined.tweak_area_func = node_tweak_area_default;
+	NodeTypeUndefined.uifunc = NULL;
+	NodeTypeUndefined.uifuncbut = NULL;
+	NodeTypeUndefined.drawinputfunc = node_draw_input_default;
+	NodeTypeUndefined.drawoutputfunc = node_draw_output_default;
+	NodeTypeUndefined.resize_area_func = node_resize_area_default;
+	
+	NodeSocketTypeUndefined.draw = node_socket_undefined_draw;
+	NodeSocketTypeUndefined.draw_color = node_socket_undefined_draw_color;
+	NodeSocketTypeUndefined.interface_draw = node_socket_undefined_interface_draw;
+	NodeSocketTypeUndefined.interface_draw_color = node_socket_undefined_interface_draw_color;
+	
 	/* node type ui functions */
 	NODE_TYPES_BEGIN(ntype)
 		/* default ui functions */

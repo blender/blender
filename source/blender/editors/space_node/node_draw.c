@@ -148,7 +148,7 @@ static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 
 void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree)
 {
-	if (!ntreeIsValid(ntree))
+	if (!ntree)
 		return;
 	
 	/* look through all datablocks, to support groups */
@@ -861,7 +861,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	         NULL, 0, 0, 0, 0, "");
 
 	/* body */
-	if (node->flag & NODE_CUSTOM_COLOR)
+	if (!nodeIsRegistered(node))
+		UI_ThemeColor4(TH_REDALERT);	/* use warning color to indicate undefined types */
+	else if (node->flag & NODE_CUSTOM_COLOR)
 		glColor3fv(node->color);
 	else
 		UI_ThemeColor4(TH_NODE);
@@ -1057,7 +1059,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 	bNodeSocket *sock;
 	int cursor = CURSOR_STD;
 	
-	if (ntreeIsValid(ntree)) {
+	if (ntree) {
 		if (node_find_indicated_socket(snode, &node, &sock, SOCK_IN | SOCK_OUT)) {
 			/* pass */
 		}
@@ -1271,7 +1273,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		for (curdepth = depth; curdepth >= 0; path = path->next, --curdepth) {
 			ntree = path->nodetree;
 			
-			if (ntreeIsValid(ntree)) {
+			if (ntree) {
 				snode_setup_v2d(snode, ar, ntree->view_center[0], ntree->view_center[1]);
 				
 				if (curdepth == 0) {

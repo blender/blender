@@ -113,15 +113,15 @@ static void buttons_texture_users_find_nodetree(ListBase *users, ID *id,
 {
 	bNode *node;
 
-	if (ntreeIsValid(ntree)) {
+	if (ntree) {
 		for (node = ntree->nodes.first; node; node = node->next) {
 			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
 				PointerRNA ptr;
 				/* PropertyRNA *prop; */ /* UNUSED */
-
+				
 				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 				/* prop = RNA_struct_find_property(&ptr, "texture"); */ /* UNUSED */
-
+				
 				buttons_texture_user_node_add(users, id, ntree, node,
 				                              category, RNA_struct_ui_icon(ptr.type), node->name);
 			}
