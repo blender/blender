@@ -84,6 +84,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h" /* for DAG_on_visible_update */
 #include "BKE_font.h"
@@ -1485,6 +1486,8 @@ int main(int argc, const char **argv)
 
 	IMB_init();
 	BKE_images_init();
+
+	BKE_brush_system_init();
 
 #ifdef WITH_FFMPEG
 	IMB_ffmpeg_init();

@@ -42,6 +42,11 @@ struct Scene;
 struct wmOperator;
 // enum CurveMappingPreset;
 
+
+/* globals for brush execution */
+void BKE_brush_system_init(void);
+void BKE_brush_system_exit(void);
+
 /* datablock functions */
 struct Brush *BKE_brush_add(struct Main *bmain, const char *name);
 struct Brush *BKE_brush_copy(struct Brush *brush);

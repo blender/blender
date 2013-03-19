@@ -55,6 +55,18 @@
 #include "RE_render_ext.h" /* externtex */
 #include "RE_shader_ext.h"
 
+static RNG *brush_rng;
+
+void BKE_brush_system_init(void) {
+	brush_rng = BLI_rng_new(0);
+	BLI_rng_srandom(brush_rng, 31415682);
+}
+
+void BKE_brush_system_exit(void) {
+	BLI_rng_free(brush_rng);
+}
+
+
 static void brush_defaults(Brush *brush)
 {
 	brush->blend = 0;
@@ -877,8 +889,8 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 		int diameter;
 
 		do {
-			rand_pos[0] = BLI_frand() - 0.5f;
-			rand_pos[1] = BLI_frand() - 0.5f;
+			rand_pos[0] = BLI_rng_get_float(brush_rng) - 0.5f;
+			rand_pos[1] = BLI_rng_get_float(brush_rng) - 0.5f;
 		} while (len_v2(rand_pos) > 0.5f);
 
 
