@@ -30,7 +30,7 @@ import re
 import sys
 
 # XXX Relative import does not work here when used from Blender...
-from bl_i18n_utils import settings as i18n_settings, utils
+from bl_i18n_utils import settings as settings_i18n, utils
 
 import bpy
 
@@ -43,10 +43,10 @@ filter_message = ignore_reg.match
 
 def init_spell_check(settings, lang="en_US"):
     try:
-        from bl_i18n_utils import spell_check_utils
-        return spell_check_utils.SpellChecker(settings, lang)
+        from bl_i18n_utils import utils_spell_check
+        return utils_spell_check.SpellChecker(settings, lang)
     except Exception as e:
-        print("Failed to import spell_check_utils ({})".format(str(e)))
+        print("Failed to import utils_spell_check ({})".format(str(e)))
         return None
 
 
@@ -901,7 +901,7 @@ def main():
                         help="Override (some) default settings. Either a JSon file name, or a JSon string.")
     args = parser.parse_args()
 
-    settings = i18n_settings.I18nSettings()
+    settings = settings_i18n.I18nSettings()
     settings.from_json(args.settings)
 
     if args.output:

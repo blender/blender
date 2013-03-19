@@ -31,7 +31,9 @@ import sys
 import tempfile
 #import time
 
-from bl_i18n_utils import settings, rtl_utils
+from bl_i18n_utils import (settings,
+                           utils_rtl,
+                          )
 
 import bpy
 
@@ -402,7 +404,7 @@ class I18nMessages:
         for k, m in self.msgs.items():
             keys.append(k)
             trans.append(m.msgstr)
-        trans = rtl_utils.log2vis(trans, self.settings)
+        trans = utils_rtl.log2vis(trans, self.settings)
         for k, t in zip(keys, trans):
             self.msgs[k].msgstr = t
 
