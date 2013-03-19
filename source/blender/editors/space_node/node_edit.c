@@ -530,11 +530,17 @@ void snode_set_context(const bContext *C)
 	}
 	
 	if (!(snode->flag & SNODE_PIN) || ntree == NULL) {
-		if (treetype->get_from_context)
+		if (treetype->get_from_context) {
+			/* reset and update from context */
+			ntree = NULL;
+			id = NULL;
+			from = NULL;
+			
 			treetype->get_from_context(C, treetype, &ntree, &id, &from);
+		}
 	}
 	
-	if (snode->nodetree != ntree || snode->id != id || snode->from != snode->from) {
+	if (snode->nodetree != ntree || snode->id != id || snode->from != from) {
 		ED_node_tree_start(snode, ntree, id, from);
 	}
 }

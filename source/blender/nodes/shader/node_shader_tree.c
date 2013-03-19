@@ -80,15 +80,14 @@ static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tre
 	
 	if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
 		if (ob) {
+			*r_from = &ob->id;
 			if (ob->type == OB_LAMP) {
-				*r_from = &ob->id;
 				*r_id = ob->data;
 				*r_ntree = ((Lamp *)ob->data)->nodetree;
 			}
 			else {
 				Material *ma = give_current_material(ob, ob->actcol);
 				if (ma) {
-					*r_from = &ob->id;
 					*r_id = &ma->id;
 					*r_ntree = ma->nodetree;
 				}

@@ -83,11 +83,13 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 		}
 	}
 	else if (snode->texfrom == SNODE_TEX_WORLD) {
-		tx = give_current_world_texture(scene->world);
-		if (tx) {
+		if (scene->world) {
 			*r_from = (ID *)scene->world;
-			*r_id = &tx->id;
-			*r_ntree = tx->nodetree;
+			tx = give_current_world_texture(scene->world);
+			if (tx) {
+				*r_id = &tx->id;
+				*r_ntree = tx->nodetree;
+			}
 		}
 	}
 	else {
