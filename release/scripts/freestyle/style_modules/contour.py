@@ -21,10 +21,9 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws each object's visible contour
 
-from Freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantThicknessShader, \
-    Operators, QuantitativeInvisibilityUP1D, TrueUP1D
-from logical_operators import NotUP1D
-from shaders import pyMaterialColorShader
+from Freestyle import ChainPredicateIterator, ConstantThicknessShader, ContourUP1D, IncreasingColorShader, \
+    Operators, QuantitativeInvisibilityUP1D, SameShapeIdBP1D, TrueUP1D
+from logical_operators import AndUP1D, NotUP1D
 
 Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D()))
 bpred = SameShapeIdBP1D()
