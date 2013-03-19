@@ -1404,7 +1404,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 	
 	switch (eventType) {
 		case NSTabletPoint:
-			ct.Pressure = [event pressure];
+			ct.Pressure = sqrtf(powf([event pressure], 8 )); // experimental: change sensivity curve
 			ct.Xtilt = [event tilt].x;
 			ct.Ytilt = [event tilt].y;
 			break;
@@ -1441,6 +1441,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 			return GHOST_kFailure;
 			break;
 	}
+	// NSLog(@"pressure %f", ct.Pressure);
 	return GHOST_kSuccess;
 }
 
