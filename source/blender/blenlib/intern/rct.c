@@ -296,6 +296,19 @@ void BLI_rctf_translate(rctf *rect, float x, float y)
 	rect->ymax += y;
 }
 
+void BLI_rcti_recenter(rcti *rect, int x, int y)
+{
+	const int dx = x - BLI_rcti_cent_x(rect);
+	const int dy = y - BLI_rcti_cent_y(rect);
+	BLI_rcti_translate(rect, dx, dy);
+}
+void BLI_rctf_recenter(rctf *rect, float x, float y)
+{
+	const float dx = x - BLI_rctf_cent_x(rect);
+	const float dy = y - BLI_rctf_cent_y(rect);
+	BLI_rctf_translate(rect, dx, dy);
+}
+
 /* change width & height around the central location */
 void BLI_rcti_resize(rcti *rect, int x, int y)
 {

@@ -54,6 +54,8 @@ void BLI_rctf_do_minmax_v(struct rctf *rect, const float xy[2]);
 
 void BLI_rctf_translate(struct rctf *rect, float x, float y);
 void BLI_rcti_translate(struct rcti *rect, int x, int y);
+void BLI_rcti_recenter(struct rcti *rect, int x, int y);
+void BLI_rctf_recenter(struct rctf *rect, float x, float y);
 void BLI_rcti_resize(struct rcti *rect, int x, int y);
 void BLI_rctf_resize(struct rctf *rect, float x, float y);
 void BLI_rcti_scale(rcti *rect, const float scale);

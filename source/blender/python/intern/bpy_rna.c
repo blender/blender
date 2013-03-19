@@ -4339,7 +4339,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self, PyObject *args,
 	if (!PySequence_Check(*seq) && PyObject_CheckBuffer(*seq)) {
 		PyErr_Format(PyExc_TypeError,
 		             "foreach_get/set expected second argument to be a sequence or buffer, not a %.200s",
-		             Py_TYPE(seq)->tp_name);
+		             Py_TYPE(*seq)->tp_name);
 		return -1;
 	}
 

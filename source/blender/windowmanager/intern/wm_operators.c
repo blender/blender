@@ -3542,7 +3542,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 {
 	RadialControl *rc = op->customdata;
 	PointerRNA ctx_ptr, use_secondary_ptr;
-	PropertyRNA *use_secondary_prop;
+	PropertyRNA *use_secondary_prop = NULL;
 	const char *data_path;
 
 	RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
