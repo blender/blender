@@ -1526,7 +1526,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
 	int link_strokes = RNA_boolean_get(ptr, "use_link_strokes");
@@ -1542,7 +1542,7 @@ static int gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 	    strcmp(prop_id, "radius_multiplier") == 0 ||
 	    strcmp(prop_id, "use_link_strokes") == 0)
 	{
-		return TRUE;
+		return true;
 	}
 	
 	/* Never show this prop */
@@ -1550,44 +1550,44 @@ static int gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 		return FALSE;
 
 	if (link_strokes) {
-		/* Only show when link_stroke is TRUE */
+		/* Only show when link_stroke is true */
 		if (strcmp(prop_id, "timing_mode") == 0)
-			return TRUE;
+			return true;
 		
 		if (timing_mode != GP_STROKECONVERT_TIMING_NONE) {
-			/* Only show when link_stroke is TRUE and stroke timing is enabled */
+			/* Only show when link_stroke is true and stroke timing is enabled */
 			if (strcmp(prop_id, "frame_range") == 0 ||
 			    strcmp(prop_id, "start_frame") == 0)
 			{
-				return TRUE;
+				return true;
 			}
 			
 			/* Only show if we have valid timing data! */
 			if (valid_timing && strcmp(prop_id, "use_realtime") == 0)
-				return TRUE;
+				return true;
 			
 			/* Only show if realtime or valid_timing is FALSE! */
 			if ((!realtime || !valid_timing) && strcmp(prop_id, "end_frame") == 0)
-				return TRUE;
+				return true;
 			
 			if (valid_timing && timing_mode == GP_STROKECONVERT_TIMING_CUSTOMGAP) {
 				/* Only show for custom gaps! */
 				if (strcmp(prop_id, "gap_duration") == 0)
-					return TRUE;
+					return true;
 				
 				/* Only show randomness for non-null custom gaps! */
 				if (strcmp(prop_id, "gap_randomness") == 0 && (gap_duration > 0.0f))
-					return TRUE;
+					return true;
 				
 				/* Only show seed for randomize action! */
 				if (strcmp(prop_id, "seed") == 0 && (gap_duration > 0.0f) && (gap_randomness > 0.0f))
-					return TRUE;
+					return true;
 			}
 		}
 	}
 
 	/* Else, hidden! */
-	return FALSE;
+	return false;
 }
 
 static void gp_convert_ui(bContext *C, wmOperator *op)

@@ -75,7 +75,7 @@ struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,
 
 struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
                                                            struct ModifierData *lastmd);
-struct MultiresModifierData *get_multires_modifier(struct Scene *scene, struct Object *ob, int use_first);
+struct MultiresModifierData *get_multires_modifier(struct Scene *scene, struct Object *ob, bool use_first);
 struct DerivedMesh *get_multires_dm(struct Scene *scene, struct MultiresModifierData *mmd,
                                     struct Object *ob);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);

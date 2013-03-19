@@ -116,7 +116,7 @@ static ConsoleLine *console_history_find(SpaceConsole *sc, const char *str, Cons
 }
 
 /* return 0 if no change made, clamps the range */
-static int console_line_cursor_set(ConsoleLine *cl, int cursor)
+static bool console_line_cursor_set(ConsoleLine *cl, int cursor)
 {
 	int cursor_new;
 
@@ -125,11 +125,11 @@ static int console_line_cursor_set(ConsoleLine *cl, int cursor)
 	else cursor_new = cursor;
 	
 	if (cursor_new == cl->cursor) {
-		return FALSE;
+		return false;
 	}
 	
 	cl->cursor = cursor_new;
-	return TRUE;
+	return true;
 }
 
 #if 0 // XXX unused 
@@ -188,7 +188,7 @@ static ConsoleLine *console_scrollback_add(const bContext *C, ConsoleLine *from)
 }
 #endif
 
-static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, int own)
+static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, bool own)
 {
 	ConsoleLine *ci = MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add");
 	if (own) ci->line = str;
@@ -199,11 +199,11 @@ static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, int ow
 	BLI_addtail(lb, ci);
 	return ci;
 }
-ConsoleLine *console_history_add_str(SpaceConsole *sc, char *str, int own)
+ConsoleLine *console_history_add_str(SpaceConsole *sc, char *str, bool own)
 {
 	return console_lb_add_str__internal(&sc->history, str, own);
 }
-ConsoleLine *console_scrollback_add_str(SpaceConsole *sc, char *str, int own)
+ConsoleLine *console_scrollback_add_str(SpaceConsole *sc, char *str, bool own)
 {
 	ConsoleLine *ci = console_lb_add_str__internal(&sc->scrollback, str, own);
 	console_select_offset(sc, ci->len + 1);
@@ -276,7 +276,7 @@ static int console_move_exec(bContext *C, wmOperator *op)
 	ConsoleLine *ci = console_history_verify(C);
 	
 	int type = RNA_enum_get(op->ptr, "type");
-	int done = FALSE;
+	bool done = false;
 	int pos;
 	
 	switch (type) {

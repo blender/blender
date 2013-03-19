@@ -164,7 +164,7 @@ void ED_object_constraint_update(struct Object *ob);
 void ED_object_constraint_dependency_update(struct Main *bmain, struct Object *ob);
 
 /* object_lattice.c */
-int  mouse_lattice(struct bContext *C, const int mval[2], int extend, int deselect, int toggle);
+bool mouse_lattice(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 void undo_push_lattice(struct bContext *C, const char *name);
 
 /* object_lattice.c */
@@ -190,7 +190,7 @@ int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
-int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include_orig,
+int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, const bool include_orig,
                          int (*callback)(struct Object *ob, void *callback_data),
                          void *callback_data);
 

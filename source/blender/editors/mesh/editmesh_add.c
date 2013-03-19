@@ -62,7 +62,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 
 	*state = 0;
 	if (obedit == NULL || obedit->type != OB_MESH) {
-		obedit = ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
+		obedit = ED_object_add_type(C, OB_MESH, loc, rot, false, layer);
 
 		rename_id((ID *)obedit, idname);
 		rename_id((ID *)obedit->data, idname);
@@ -72,7 +72,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 		*state = 1;
 	}
 
-	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, FALSE);
+	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, false);
 
 	return obedit;
 }
@@ -87,7 +87,7 @@ static void make_prim_finish(bContext *C, Object *obedit, int *state, int enter_
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	/* only recalc editmode tessface if we are staying in editmode */
-	EDBM_update_generic(em, !exit_editmode, TRUE);
+	EDBM_update_generic(em, !exit_editmode, true);
 
 	/* userdef */
 	if (exit_editmode) {
@@ -134,7 +134,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
@@ -174,7 +174,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static const EnumPropertyItem fill_type_items[] = {
@@ -235,7 +235,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "fill_type", fill_type_items, 0, "Fill Type", "");
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
@@ -296,7 +296,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Cap Fill Type", "");
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
@@ -356,7 +356,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Base Fill Type", "");
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
@@ -409,7 +409,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
@@ -455,7 +455,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
@@ -507,7 +507,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
@@ -559,5 +559,5 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, "Size", "", 0.001f, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }

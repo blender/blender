@@ -349,7 +349,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 	BMEditMesh *em;
 	int layernum_dst;
 
-	short is_init = FALSE;
+	bool is_init = false;
 
 	if (me->edit_btmesh) {
 		em = me->edit_btmesh;
@@ -376,7 +376,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			const int layernum_src = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPUV);
 			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum_src, layernum_dst);
 
-			is_init = TRUE;
+			is_init = true;
 		}
 		if (active_set || layernum_dst == 0) {
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum_dst);
@@ -391,7 +391,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
-			is_init = TRUE;
+			is_init = true;
 		}
 		else {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, name);
@@ -410,7 +410,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 	}
 
 	/* don't overwrite our copied coords */
-	if (is_init == FALSE) {
+	if (is_init == false) {
 		ED_mesh_uv_loop_reset_ex(me, layernum_dst);
 	}
 
@@ -550,7 +550,7 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_context(C);
 	Mesh *me = ob->data;
 
-	if (ED_mesh_uv_texture_add(C, me, NULL, TRUE) == -1)
+	if (ED_mesh_uv_texture_add(C, me, NULL, true) == -1)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -699,7 +699,7 @@ static int mesh_vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_context(C);
 	Mesh *me = ob->data;
 
-	if (ED_mesh_color_add(C, scene, ob, me, NULL, TRUE) == -1)
+	if (ED_mesh_color_add(C, scene, ob, me, NULL, true) == -1)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -757,7 +757,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 	int tot;
 	CustomData *data = mesh_customdata_get_type(me, htype, &tot);
 
-	BLI_assert(CustomData_layertype_is_singleton(type) == TRUE);
+	BLI_assert(CustomData_layertype_is_singleton(type) == true);
 
 	if (CustomData_has_layer(data, type)) {
 		if (me->edit_btmesh) {
@@ -786,21 +786,21 @@ static int mesh_customdata_clear_mask_poll(bContext *C)
 
 		/* special case - can't run this if we're in sculpt mode */
 		if (ob->mode & OB_MODE_SCULPT) {
-			return FALSE;
+			return false;
 		}
 
 		if (me->id.lib == NULL) {
 			CustomData *data = GET_CD_DATA(me, vdata);
 			if (CustomData_has_layer(data, CD_PAINT_MASK)) {
-				return TRUE;
+				return true;
 			}
 			data = GET_CD_DATA(me, ldata);
 			if (CustomData_has_layer(data, CD_GRID_PAINT_MASK)) {
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 static int mesh_customdata_clear_mask_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -843,11 +843,11 @@ static int mesh_customdata_clear_skin_poll(bContext *C)
 		if (me->id.lib == NULL) {
 			CustomData *data = GET_CD_DATA(me, vdata);
 			if (CustomData_has_layer(data, CD_MVERT_SKIN)) {
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 static int mesh_customdata_clear_skin_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -875,20 +875,20 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 {
 	int *polyindex = NULL;
 	float (*face_nors)[3];
-	int tessface_input = FALSE;
+	bool tessface_input = false;
 
 	if (mesh->totface > 0 && mesh->totpoly == 0) {
 		BKE_mesh_convert_mfaces_to_mpolys(mesh);
 
 		/* would only be converting back again, don't bother */
-		tessface_input = TRUE;
+		tessface_input = true;
 	}
 
 	if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges, true);
 
 	if (calc_tessface) {
-		if (tessface_input == FALSE) {
+		if (tessface_input == false) {
 			BKE_mesh_tessface_calc(mesh);
 		}
 	}
@@ -911,7 +911,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	                                 mesh->totloop, mesh->totpoly,
 	                                 NULL /* polyNors_r */,
 	                                 mesh->mface, mesh->totface,
-	                                 polyindex, face_nors, FALSE);
+	                                 polyindex, face_nors, false);
 #else
 	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
 	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
@@ -1239,7 +1239,7 @@ void ED_mesh_calc_normals(Mesh *mesh)
 #ifdef USE_BMESH_MPOLY_NORMALS
 	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
 	                                 mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                                 NULL, NULL, 0, NULL, NULL, FALSE);
+	                                 NULL, NULL, 0, NULL, NULL, false);
 #else
 	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
 	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,

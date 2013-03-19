@@ -137,7 +137,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
  * in cases where PROP_HIDDEN flag can't be used for a property.
  */
 int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
-                     int (*check_prop)(PointerRNA *, PropertyRNA *),
+                     bool (*check_prop)(PointerRNA *, PropertyRNA *),
                      const char label_align)
 {
 	uiLayout *split, *col;

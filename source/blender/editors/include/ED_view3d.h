@@ -264,7 +264,7 @@ void view3d_opengl_read_pixels(struct ARegion *ar, int x, int y, int w, int h, i
 void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to BLI_math */
-int edge_inside_circle(const float cent[2], float radius, const float screen_co_a[2], const float screen_co_b[2]);
+bool edge_inside_circle(const float cent[2], float radius, const float screen_co_a[2], const float screen_co_b[2]);
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);

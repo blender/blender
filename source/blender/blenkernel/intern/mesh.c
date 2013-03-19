@@ -1814,7 +1814,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
                                       MLoop *mloop, MPoly *mpolys,
                                       int numLoops, int numPolys, float (*polyNors_r)[3],
                                       MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
-                                      const short only_face_normals)
+                                      const bool only_face_normals)
 {
 	float (*pnors)[3] = polyNors_r, (*fnors)[3] = faceNors_r;
 	int i;

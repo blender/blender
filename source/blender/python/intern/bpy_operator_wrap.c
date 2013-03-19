@@ -31,10 +31,10 @@
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

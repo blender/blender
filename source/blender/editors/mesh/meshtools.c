@@ -430,8 +430,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 					multiresModifier_prepare_join(scene, base->object, ob);
 
-					if ((mmd = get_multires_modifier(scene, base->object, TRUE))) {
-						ED_object_iter_other(bmain, base->object, TRUE,
+					if ((mmd = get_multires_modifier(scene, base->object, true))) {
+						ED_object_iter_other(bmain, base->object, true,
 						                     ED_object_multires_update_totlevels_cb,
 						                     &mmd->totlvl);
 					}
@@ -724,9 +724,9 @@ static void mesh_octree_add_nodes(MocNode **basetable, const float co[3], const 
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
-	if ((finite(co[0]) == FALSE) ||
-	    (finite(co[1]) == FALSE) ||
-	    (finite(co[2]) == FALSE))
+	if ((finite(co[0]) == false) ||
+	    (finite(co[1]) == false) ||
+	    (finite(co[2]) == false))
 	{
 		return;
 	}
@@ -910,7 +910,7 @@ int mesh_mirrtopo_table(Object *ob, char mode)
 		}
 	}
 	else if (mode == 's') { /* start table */
-		ED_mesh_mirrtopo_init(ob->data, ob->mode, &mesh_topo_store, FALSE);
+		ED_mesh_mirrtopo_init(ob->data, ob->mode, &mesh_topo_store, false);
 	}
 	else if (mode == 'e') { /* end table */
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
@@ -957,9 +957,9 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 	intptr_t poinval;
 	
 	/* ignore nan verts */
-	if ((finite(co[0]) == FALSE) ||
-	    (finite(co[1]) == FALSE) ||
-	    (finite(co[2]) == FALSE))
+	if ((finite(co[0]) == false) ||
+	    (finite(co[1]) == false) ||
+	    (finite(co[2]) == false))
 	{
 		return NULL;
 	}
@@ -1174,9 +1174,9 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
  * Face selection in object mode,
  * currently only weight-paint and vertex-paint use this.
  *
- * \return boolean TRUE == Found
+ * \return boolean true == Found
  */
-int ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
+bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
 	ViewContext vc;
 	Mesh *me = ob->data;
@@ -1184,7 +1184,7 @@ int ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *
 	BLI_assert(me && GS(me->id.name) == ID_ME);
 
 	if (!me || me->totpoly == 0)
-		return 0;
+		return false;
 
 	view3d_set_viewcontext(C, &vc);
 
@@ -1201,17 +1201,17 @@ int ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *
 	}
 
 	if ((*index) <= 0 || (*index) > (unsigned int)me->totpoly)
-		return 0;
+		return false;
 
 	(*index)--;
 
-	return 1;
+	return true;
 }
 /**
  * Use when the back buffer stores face index values. but we want a vert.
  * This gets the face then finds the closest vertex to mval.
  */
-int ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
+bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
 	unsigned int poly_index;
 	Mesh *me = ob->data;
@@ -1257,18 +1257,18 @@ int ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned 
 
 		if (v_idx_best != -1) {
 			*index = v_idx_best;
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 /**
  * Vertex selection in object mode,
  * currently only weight paint uses this.
  *
- * \return boolean TRUE == Found
+ * \return boolean true == Found
  */
 typedef struct VertPickData {
 	const MVert *mvert;
@@ -1296,7 +1296,7 @@ static void ed_mesh_pick_vert__mapFunc(void *userData, int index, const float co
 		}
 	}
 }
-int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size, int use_zbuf)
+bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size, bool use_zbuf)
 {
 	ViewContext vc;
 	Mesh *me = ob->data;
@@ -1304,7 +1304,7 @@ int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *
 	BLI_assert(me && GS(me->id.name) == ID_ME);
 
 	if (!me || me->totvert == 0)
-		return 0;
+		return false;
 
 	view3d_set_viewcontext(C, &vc);
 
@@ -1322,7 +1322,7 @@ int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *
 		}
 
 		if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
-			return 0;
+			return false;
 
 		(*index)--;
 	}
@@ -1341,7 +1341,7 @@ int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *
 		ED_view3d_init_mats_rv3d(ob, rv3d);
 
 		if (dm == NULL) {
-			return 0;
+			return false;
 		}
 
 		/* setup data */
@@ -1356,11 +1356,11 @@ int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *
 		dm->release(dm);
 
 		if (data.v_idx_best == -1) {
-			return 0;
+			return false;
 		}
 
 		*index = data.v_idx_best;
 	}
 
-	return 1;
+	return true;
 }

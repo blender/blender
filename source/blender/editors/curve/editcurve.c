@@ -4201,7 +4201,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 /***************** pick select from 3d view **********************/
 
-int mouse_nurb(bContext *C, const int mval[2], int extend, int deselect, int toggle)
+bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
@@ -4314,10 +4314,10 @@ int mouse_nurb(bContext *C, const int mval[2], int extend, int deselect, int tog
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
-		return 1;
+		return true;
 	}
 	
-	return 0;
+	return false;
 }
 
 /******************** spin operator ***********************/

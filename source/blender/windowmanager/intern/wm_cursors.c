@@ -35,6 +35,8 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_utildefines.h"
+
 #include "BLO_sys_types.h"
 
 #include "DNA_listBase.h"
@@ -44,8 +46,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
+#include "WM_api.h"
 #include "wm_cursors.h"
 
 /* XXX this still is mess from old code */

@@ -31,6 +31,8 @@
 
 #include "io_collada.h"
 
+#include "BLI_utildefines.h"
+
 #include "WM_types.h"
 #include "WM_api.h"
 

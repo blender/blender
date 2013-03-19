@@ -67,7 +67,7 @@
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits,
-                            short extend, short deselect, short toggle)
+                            bool extend, bool deselect, bool toggle)
 {
 	Object *ob = base->object;
 	Bone *nearBone;
@@ -575,7 +575,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 
 /* -------------------------------------- */
 
-static short pose_select_same_group(bContext *C, Object *ob, short extend)
+static short pose_select_same_group(bContext *C, Object *ob, bool extend)
 {
 	bArmature *arm = (ob) ? ob->data : NULL;
 	bPose *pose = (ob) ? ob->pose : NULL;
@@ -607,7 +607,7 @@ static short pose_select_same_group(bContext *C, Object *ob, short extend)
 		}
 		
 		/* deselect all bones before selecting new ones? */
-		if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
+		if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
 			pchan->bone->flag &= ~BONE_SELECTED;
 	}
 	CTX_DATA_END;
@@ -634,7 +634,7 @@ static short pose_select_same_group(bContext *C, Object *ob, short extend)
 	return changed;
 }
 
-static short pose_select_same_layer(bContext *C, Object *ob, short extend)
+static short pose_select_same_layer(bContext *C, Object *ob, bool extend)
 {
 	bPose *pose = (ob) ? ob->pose : NULL;
 	bArmature *arm = (ob) ? ob->data : NULL;
@@ -652,7 +652,7 @@ static short pose_select_same_layer(bContext *C, Object *ob, short extend)
 			layers |= pchan->bone->layer;
 			
 		/* deselect all bones before selecting new ones? */
-		if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
+		if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
 			pchan->bone->flag &= ~BONE_SELECTED;
 	}
 	CTX_DATA_END;
@@ -673,7 +673,7 @@ static short pose_select_same_layer(bContext *C, Object *ob, short extend)
 	return changed;
 }
 
-static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
+static int pose_select_same_keyingset(bContext *C, Object *ob, bool extend)
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
 	KS_Path *ksp;
@@ -690,7 +690,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 		return 0;
 		
 	/* if not extending selection, deselect all selected first */
-	if (extend == 0) {
+	if (extend == false) {
 		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
 		{
 			if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0)

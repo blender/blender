@@ -77,8 +77,8 @@ typedef struct RingSelOpData {
 	BMEdge *eed;
 	NumInput num;
 
-	int extend;
-	int do_cut;
+	bool extend;
+	bool do_cut;
 } RingSelOpData;
 
 /* modal loop selection drawing callback */
@@ -186,7 +186,7 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 		         BMW_NIL_LAY);
 
 		for (eed = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
-			BM_edge_select_set(em->bm, eed, TRUE);
+			BM_edge_select_set(em->bm, eed, true);
 		}
 		BMW_end(&walker);
 
@@ -276,9 +276,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
 	const float smoothness = 0.292f * RNA_float_get(op->ptr, "smoothness");
 #ifdef BMW_EDGERING_NGON
-	const int use_only_quads = FALSE;
+	const bool use_only_quads = false;
 #else
-	const int use_only_quads = TRUE;
+	const bool use_only_quads = false;
 #endif
 
 	if (lcd->eed) {
@@ -293,11 +293,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
 			                   smoothness, 0.0f, 0.0f,
 			                   cuts,
-			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE,
+			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, true,
 			                   use_only_quads, 0);
 
 			/* tessface is already re-recalculated */
-			EDBM_update_generic(em, FALSE, TRUE);
+			EDBM_update_generic(em, false, true);
 
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
@@ -349,7 +349,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 
 
 /* called when modal loop selection gets set up... */
-static int ringsel_init(bContext *C, wmOperator *op, int do_cut)
+static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 {
 	RingSelOpData *lcd;
 
@@ -423,7 +423,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	float smoothness = RNA_float_get(op->ptr, "smoothness");
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	RingSelOpData *lcd = op->customdata;
-	int show_cuts = 0;
+	bool show_cuts = false;
 
 	view3d_operator_needs_opengl(C);
 
@@ -471,12 +471,12 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				cuts++;
 				RNA_int_set(op->ptr, "number_cuts", cuts);
 				ringsel_find_edge(lcd, cuts);
-				show_cuts = TRUE;
+				show_cuts = true;
 			}
 			else {
 				smoothness = min_ff(smoothness + 0.05f, 4.0f);
 				RNA_float_set(op->ptr, "smoothness", smoothness);
-				show_cuts = TRUE;
+				show_cuts = true;
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
@@ -491,12 +491,12 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				cuts = max_ii(cuts - 1, 0);
 				RNA_int_set(op->ptr, "number_cuts", cuts);
 				ringsel_find_edge(lcd, cuts);
-				show_cuts = TRUE;
+				show_cuts = true;
 			}
 			else {
 				smoothness = max_ff(smoothness - 0.05f, 0.0f);
 				RNA_float_set(op->ptr, "smoothness", smoothness);
-				show_cuts = TRUE;
+				show_cuts = true;
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
@@ -534,7 +534,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
-			show_cuts = TRUE;
+			show_cuts = true;
 			
 			ED_region_tag_redraw(lcd->ar);
 		}

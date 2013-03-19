@@ -232,11 +232,11 @@ static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int screenshot_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+static bool screenshot_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
 
-	return !(strcmp(prop_id, "filepath") == 0);
+	return !(STREQ(prop_id, "filepath"));
 }
 
 static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
