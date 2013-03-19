@@ -513,14 +513,14 @@ class I18nMessages:
                 self.nbr_signs += len(msg.msgid)
                 self.nbr_trans_signs += len(msg.msgstr)
         self.nbr_msgs = len(self.msgs)
-        self.nbr_trans_msgs = len(self.trans_msgs)
+        self.nbr_trans_msgs = len(self.trans_msgs - self.fuzzy_msgs)
         self.nbr_ttips = len(self.ttip_msgs)
-        self.nbr_trans_ttips = len(self.ttip_msgs & self.trans_msgs)
+        self.nbr_trans_ttips = len(self.ttip_msgs & (self.trans_msgs - self.fuzzy_msgs))
         self.nbr_comm_msgs = len(self.comm_msgs)
 
-    def print_stats(self, prefix="", output=print):
+    def print_info(self, prefix="", output=print, print_stats=True, print_errors=True):
         """
-        Print out some stats about an I18nMessages object.
+        Print out some info about an I18nMessages object.
         """
         lvl = 0.0
         lvl_ttips = 0.0
@@ -536,18 +536,25 @@ class I18nMessages:
         if self.nbr_trans_msgs > 0:
             lvl_ttips_in_trans = float(self.nbr_trans_ttips) / float(self.nbr_trans_msgs)
 
-        lines = ("",
-                 "{:>6.1%} done! ({} translated messages over {}).\n"
-                 "".format(lvl, self.nbr_trans_msgs, self.nbr_msgs),
-                 "{:>6.1%} of messages are tooltips ({} over {}).\n"
-                 "".format(lvl_ttips, self.nbr_ttips, self.nbr_msgs),
-                 "{:>6.1%} of tooltips are translated ({} over {}).\n"
-                 "".format(lvl_trans_ttips, self.nbr_trans_ttips, self.nbr_ttips),
-                 "{:>6.1%} of translated messages are tooltips ({} over {}).\n"
-                 "".format(lvl_ttips_in_trans, self.nbr_trans_ttips, self.nbr_trans_msgs),
-                 "{:>6.1%} of messages are commented ({} over {}).\n"
-                 "".format(lvl_comm, self.nbr_comm_msgs, self.nbr_comm_msgs + self.nbr_msgs),
-                 "This translation is currently made of {} signs.\n".format(self.nbr_trans_signs))
+        lines = []
+        if print_stats:
+            lines += [
+                "",
+                "{:>6.1%} done! ({} translated messages over {}).\n"
+                "".format(lvl, self.nbr_trans_msgs, self.nbr_msgs),
+                "{:>6.1%} of messages are tooltips ({} over {}).\n"
+                "".format(lvl_ttips, self.nbr_ttips, self.nbr_msgs),
+                "{:>6.1%} of tooltips are translated ({} over {}).\n"
+                "".format(lvl_trans_ttips, self.nbr_trans_ttips, self.nbr_ttips),
+                "{:>6.1%} of translated messages are tooltips ({} over {}).\n"
+                "".format(lvl_ttips_in_trans, self.nbr_trans_ttips, self.nbr_trans_msgs),
+                "{:>6.1%} of messages are commented ({} over {}).\n"
+                "".format(lvl_comm, self.nbr_comm_msgs, self.nbr_comm_msgs + self.nbr_msgs),
+                "This translation is currently made of {} signs.\n".format(self.nbr_trans_signs)
+            ]
+        if print_errors and self.parsing_errors:
+            lines += ["WARNING! Errors during parsing:\n"]
+            lines += ["    Around line {}: {}\n".format(line, error) for line, error in self.parsing_errors]
         output(prefix.join(lines))
 
     def invalidate_reverse_cache(self, rebuild_now=False):
@@ -696,9 +703,8 @@ class I18nMessages:
         del self.parsing_errors[:]
         self.parsers[kind](self, src, key)
         if self.parsing_errors:
-            print("WARNING! Errors while parsing {}:".format(key))
-            for line, error in self.parsing_errors:
-                print("    Around line {}: {}".format(line, error))
+            print("{} ({}):".format(key, src))
+            self.print_info(print_stats=False)
             print("The parser solved them as well as it could...")
         self.update_info()
 
