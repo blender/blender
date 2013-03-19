@@ -47,7 +47,7 @@
 /* supported socket types in old nodes */
 int node_exec_socket_use_stack(bNodeSocket *sock)
 {
-	return ELEM3(sock->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
+	return ELEM4(sock->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
 }
 
 /* for a given socket, find the actual stack entry */
