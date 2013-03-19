@@ -146,7 +146,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
 				int offsetNxNy = offsetNy + (minx * COM_NUMBER_OF_CHANNELS);
 				for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
 					if (nx != x || ny != y) {
-						float size = inputSizeFloatBuffer[offsetNxNy] * scalar;
+						float size = min(inputSizeFloatBuffer[offsetNxNy] * scalar, size_center);
 						if (size > this->m_threshold) {
 							float dx = nx - x;
 							if (size > fabsf(dx) && size > fabsf(dy)) {
