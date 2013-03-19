@@ -21,15 +21,14 @@ from Freestyle import Curvature2DAngleF0D, CurveNatureF1D, DensityF1D, GetComple
     IntegrationType, ShapeUP1D, TVertex, UnaryPredicate1D
 from Functions1D import pyDensityAnisotropyF1D, pyViewMapGradientNormF1D
 
-count = 0
 class pyNFirstUP1D(UnaryPredicate1D):
 	def __init__(self, n):
 		UnaryPredicate1D.__init__(self)
 		self.__n = n
+		self.__count = 0
 	def __call__(self, inter):
-		global count
-		count = count + 1
-		if count <= self.__n:
+		self.__count = self.__count + 1
+		if self.__count <= self.__n:
 			return 1
 		return 0
 
