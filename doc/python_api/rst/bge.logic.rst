@@ -398,6 +398,10 @@ Utility functions
 .. function:: PrintMemInfo()
 
    Prints engine statistics into the console
+
+.. function:: getProfileInfo()
+
+   Returns a Python dictionary that contains the same information as the on screen profiler. The keys are the profiler categories and the values are tuples with the first element being time taken (in ms) and the second element being the percentage of total time.
    
 *********
 Constants
