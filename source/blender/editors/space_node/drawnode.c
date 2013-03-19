@@ -1165,7 +1165,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	if (!node->id) return;
 
 	col = uiLayoutColumn(layout, FALSE);
-	row = uiLayoutRow(col, FALSE);
+	row = uiLayoutRow(col, TRUE);
 	uiItemR(row, ptr, "layer", 0, "", ICON_NONE);
 	
 	prop = RNA_struct_find_property(ptr, "layer");
