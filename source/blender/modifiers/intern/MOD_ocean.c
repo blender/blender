@@ -169,6 +169,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	OceanModifierData *omd = (OceanModifierData *) md;
 	OceanModifierData *tomd = (OceanModifierData *) target;
 
+	tomd->geometry_mode = omd->geometry_mode;
 	tomd->resolution = omd->resolution;
 	tomd->spatial_size = omd->spatial_size;
 
@@ -190,7 +191,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tomd->flag = omd->flag;
 
 	tomd->refresh = 0;
-
 
 	tomd->size = omd->size;
 	tomd->repeat_x = omd->repeat_x;
