@@ -30,11 +30,9 @@
 #include "IMB_imbuf_types.h"
 
 /**
- * Base class for all renderlayeroperations
- *
- * @todo: rename to operation.
+ * Base class for movie clip
  */
-class MovieClipOperation : public NodeOperation {
+class MovieClipBaseOperation : public NodeOperation {
 protected:
 	MovieClip *m_movieClip;
 	MovieClipUser *m_movieClipUser;
@@ -50,7 +48,7 @@ protected:
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 public:
-	MovieClipOperation();
+	MovieClipBaseOperation();
 	
 	void initExecution();
 	void deinitExecution();
@@ -59,6 +57,17 @@ public:
 	void setCacheFrame(bool value) { this->m_cacheFrame = value; }
 
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MovieClipOperation : public MovieClipBaseOperation {
+public:
+	MovieClipOperation();
+};
+
+class MovieClipAlphaOperation : public MovieClipBaseOperation {
+public:
+	MovieClipAlphaOperation();
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 

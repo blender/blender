@@ -30,9 +30,8 @@ extern "C" {
 }
 #include "BKE_image.h"
 
-MovieClipOperation::MovieClipOperation() : NodeOperation()
+MovieClipBaseOperation::MovieClipBaseOperation() : NodeOperation()
 {
-	this->addOutputSocket(COM_DT_COLOR);
 	this->m_movieClip = NULL;
 	this->m_movieClipBuffer = NULL;
 	this->m_movieClipUser = NULL;
@@ -42,7 +41,7 @@ MovieClipOperation::MovieClipOperation() : NodeOperation()
 }
 
 
-void MovieClipOperation::initExecution()
+void MovieClipBaseOperation::initExecution()
 {
 	if (this->m_movieClip) {
 		BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
@@ -63,7 +62,7 @@ void MovieClipOperation::initExecution()
 	}
 }
 
-void MovieClipOperation::deinitExecution()
+void MovieClipBaseOperation::deinitExecution()
 {
 	if (this->m_movieClipBuffer) {
 		IMB_freeImBuf(this->m_movieClipBuffer);
@@ -72,7 +71,7 @@ void MovieClipOperation::deinitExecution()
 	}
 }
 
-void MovieClipOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void MovieClipBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = 0;
 	resolution[1] = 0;
@@ -87,7 +86,7 @@ void MovieClipOperation::determineResolution(unsigned int resolution[2], unsigne
 	}
 }
 
-void MovieClipOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MovieClipBaseOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (this->m_movieClipBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		zero_v4(output);
@@ -105,4 +104,23 @@ void MovieClipOperation::executePixel(float output[4], float x, float y, PixelSa
 				break;
 		}
 	}
+}
+
+MovieClipOperation::MovieClipOperation() : MovieClipBaseOperation()
+{
+	this->addOutputSocket(COM_DT_COLOR);
+}
+
+MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
+{
+	this->addOutputSocket(COM_DT_VALUE);
+}
+
+void MovieClipAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+{
+	MovieClipBaseOperation::executePixel(output, x, y, sampler);
+	output[0] = output[3];
+	output[1] = 0.0f;
+	output[2] = 0.0f;
+	output[3] = 0.0f;
 }
