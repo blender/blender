@@ -9027,6 +9027,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 266, 3)) {
+		{
+			/* Fix for a very old issue:
+			 * Node names were nominally made unique in r24478 (2.50.8), but the do_versions check
+			 * to update existing node names only applied to main->nodetree (i.e. group nodes).
+			 * Uniqueness is now required for proper preview mapping,
+			 * so do this now to ensure old files don't break.
+			 */
+			bNode *node;
+			FOREACH_NODETREE(main, ntree, id) {
+				if (id == &ntree->id)
+					continue;	/* already fixed for node groups */
+				
+				for (node = ntree->nodes.first; node; node = node->next)
+					nodeUniqueName(ntree, node);
+			}
+			FOREACH_NODETREE_END
+		}
+	}
+
 	if (main->versionfile < 267) {
 		
 		/* TIP: to initialize new variables added, use the new function
