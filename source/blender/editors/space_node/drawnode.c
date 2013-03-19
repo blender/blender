@@ -2786,7 +2786,7 @@ static void std_node_socket_interface_draw_color(bContext *UNUSED(C), PointerRNA
 	copy_v4_v4(r_color, std_node_socket_colors[type]);
 }
 
-static void std_node_socket_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *ptr, PointerRNA *UNUSED(node_ptr))
+static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
 	bNodeSocket *sock = ptr->data;
 	int type = sock->typeinfo->type;
@@ -2816,6 +2816,10 @@ static void std_node_socket_draw(bContext *UNUSED(C), uiLayout *layout, PointerR
 			uiItemL(row, sock->name, 0);
 			break;
 		}
+		
+		default:
+			node_socket_button_label(C, layout, ptr, node_ptr);
+			break;
 	}
 }
 
