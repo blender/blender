@@ -6944,11 +6944,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing: first calculate fast nodes, "
 	                                           "second pass calculate all nodes");
 
-	prop = RNA_def_property(srna, "is_local_tree", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, FALSE);
-	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Local Scene Tree", "Local scene node tree, eligible for special node types");
-
 	prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_VIEWER_BORDER);
 	RNA_def_property_ui_text(prop, "Viewer Border", "Use boundaries for viewer nodes and composite backdrop");
@@ -6958,34 +6953,22 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 static void rna_def_shader_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "ShaderNodeTree", "NodeTree");
 	RNA_def_struct_ui_text(srna, "Shader Node Tree",
 	                       "Node tree consisting of linked nodes used for materials (and other shading datablocks)");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL);
-
-	prop = RNA_def_property(srna, "is_local_tree", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, FALSE);
-	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Local Material Tree", "Local material node tree, eligible for special node types");
 }
 
 static void rna_def_texture_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "TextureNodeTree", "NodeTree");
 	RNA_def_struct_ui_text(srna, "Texture Node Tree", "Node tree consisting of linked nodes used for textures");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_TEXTURE);
-
-	prop = RNA_def_property(srna, "is_local_tree", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, FALSE);
-	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Local Texture Tree", "Local texture node tree, eligible for special node types");
 }
 
 static void define_specific_node(BlenderRNA *brna, const char *struct_name, const char *base_name,

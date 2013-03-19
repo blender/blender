@@ -329,14 +329,10 @@ void ED_node_shader_default(const bContext *C, ID *id)
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock, *sock;
 	bNodeTree *ntree;
-	PointerRNA ptr;
 	int output_type, shader_type;
 	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f }, strength = 1.0f;
 	
 	ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-
-	RNA_id_pointer_create((ID *)ntree, &ptr);
-	RNA_boolean_set(&ptr, "is_local_tree", TRUE);
 
 	switch (GS(id->name)) {
 		case ID_MA:
@@ -425,7 +421,6 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
-	PointerRNA ptr;
 	
 	/* but lets check it anyway */
 	if (sce->nodetree) {
@@ -435,9 +430,6 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 	}
 	
 	sce->nodetree = ntreeAddTree(NULL, "Compositing Nodetree", ntreeType_Composite->idname);
-	
-	RNA_id_pointer_create((ID *)sce->nodetree, &ptr);
-	RNA_boolean_set(&ptr, "is_local_tree", TRUE);
 	
 	sce->nodetree->chunksize = 256;
 	sce->nodetree->edit_quality = NTREE_QUALITY_HIGH;
@@ -470,7 +462,6 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
-	PointerRNA ptr;
 	
 	/* but lets check it anyway */
 	if (tx->nodetree) {
@@ -480,9 +471,6 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
 	}
 	
 	tx->nodetree = ntreeAddTree(NULL, "Texture Nodetree", ntreeType_Texture->idname);
-	
-	RNA_id_pointer_create((ID *)tx->nodetree, &ptr);
-	RNA_boolean_set(&ptr, "is_local_tree", TRUE);
 	
 	out = nodeAddStaticNode(C, tx->nodetree, TEX_NODE_OUTPUT);
 	out->locx = 300.0f; out->locy = 300.0f;
