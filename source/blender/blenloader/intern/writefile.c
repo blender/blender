@@ -3112,8 +3112,11 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 #endif
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
-	/* deprecated forward compat data is freed again below */
-	customnodes_add_deprecated_data(mainvar);
+	/* don't write compatibility data on undo */
+	if (!current) {
+		/* deprecated forward compat data is freed again below */
+		customnodes_add_deprecated_data(mainvar);
+	}
 #endif
 
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
@@ -3162,11 +3165,14 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
-	/* Ugly, forward compatibility code generates deprecated data during writing,
-	 * this has to be freed again. Can not be done directly after writing, otherwise
-	 * the data pointers could be reused and not be mapped correctly.
-	 */
-	customnodes_free_deprecated_data(mainvar);
+	/* compatibility data not created on undo */
+	if (!current) {
+		/* Ugly, forward compatibility code generates deprecated data during writing,
+		 * this has to be freed again. Can not be done directly after writing, otherwise
+		 * the data pointers could be reused and not be mapped correctly.
+		 */
+		customnodes_free_deprecated_data(mainvar);
+	}
 #endif
 
 	/* end of file */
