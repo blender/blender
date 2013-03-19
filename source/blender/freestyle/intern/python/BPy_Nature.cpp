@@ -46,7 +46,7 @@ static int BPy_Nature_bool(PyObject *v);
 
 /*-----------------------BPy_Nature number method definitions --------------------*/
 
-PyNumberMethods nature_as_number = {
+static PyNumberMethods nature_as_number = {
 	0,                              /* binaryfunc nb_add */
 	0,                              /* binaryfunc nb_subtract */
 	0,                              /* binaryfunc nb_multiply */

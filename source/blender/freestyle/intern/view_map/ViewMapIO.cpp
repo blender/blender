@@ -63,7 +63,7 @@ namespace ViewMapIO {
 
 namespace Internal {
 
-ViewMap *g_vm;
+static ViewMap *g_vm;
 
 //////////////////// 'load' Functions ////////////////////
 

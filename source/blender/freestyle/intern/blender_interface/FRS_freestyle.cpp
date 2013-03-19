@@ -93,7 +93,7 @@ int freestyle_viewport[4];
 // current scene
 Scene *freestyle_scene;
 
-string default_module_path;
+static string default_module_path;
 
 // function declarations
 static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset);
