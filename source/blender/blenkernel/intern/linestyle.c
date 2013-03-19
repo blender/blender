@@ -176,12 +176,10 @@ static LineStyleModifier *new_modifier(int type, size_t size)
 	LineStyleModifier *m;
 
 	m = (LineStyleModifier *)MEM_callocN(size, "line style modifier");
-	if (m) {
-		m->type = type;
-		strcpy(m->name, modifier_name[type]);
-		m->influence = 1.0f;
-		m->flags = LS_MODIFIER_ENABLED | LS_MODIFIER_EXPANDED;
-	}
+	m->type = type;
+	strcpy(m->name, modifier_name[type]);
+	m->influence = 1.0f;
+	m->flags = LS_MODIFIER_ENABLED | LS_MODIFIER_EXPANDED;
 
 	return m;
 }
@@ -221,8 +219,6 @@ LineStyleModifier *FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyl
 	LineStyleModifier *m;
 
 	m = alloc_color_modifier(type);
-	if (!m)
-		return NULL;
 	m->blend = MA_RAMP_BLEND;
 
 	switch (type) {
@@ -257,8 +253,6 @@ LineStyleModifier *FRS_copy_linestyle_color_modifier(FreestyleLineStyle *linesty
 	LineStyleModifier *new_m;
 
 	new_m = alloc_color_modifier(m->type);
-	if (!new_m)
-		return NULL;
 	new_m->influence = m->influence;
 	new_m->flags = m->flags;
 	new_m->blend = m->blend;
@@ -267,33 +261,37 @@ LineStyleModifier *FRS_copy_linestyle_color_modifier(FreestyleLineStyle *linesty
 	case LS_MODIFIER_ALONG_STROKE:
 		{
 			LineStyleColorModifier_AlongStroke *p = (LineStyleColorModifier_AlongStroke *)m;
-			((LineStyleColorModifier_AlongStroke *)new_m)->color_ramp = MEM_dupallocN(p->color_ramp);
+			LineStyleColorModifier_AlongStroke *q = (LineStyleColorModifier_AlongStroke *)new_m;
+			q->color_ramp = MEM_dupallocN(p->color_ramp);
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		{
 			LineStyleColorModifier_DistanceFromCamera *p = (LineStyleColorModifier_DistanceFromCamera *)m;
-			((LineStyleColorModifier_DistanceFromCamera *)new_m)->color_ramp = MEM_dupallocN(p->color_ramp);
-			((LineStyleColorModifier_DistanceFromCamera *)new_m)->range_min = p->range_min;
-			((LineStyleColorModifier_DistanceFromCamera *)new_m)->range_max = p->range_max;
+			LineStyleColorModifier_DistanceFromCamera *q = (LineStyleColorModifier_DistanceFromCamera *)new_m;
+			q->color_ramp = MEM_dupallocN(p->color_ramp);
+			q->range_min = p->range_min;
+			q->range_max = p->range_max;
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		{
 			LineStyleColorModifier_DistanceFromObject *p = (LineStyleColorModifier_DistanceFromObject *)m;
+			LineStyleColorModifier_DistanceFromObject *q = (LineStyleColorModifier_DistanceFromObject *)new_m;
 			if (p->target)
 				p->target->id.us++;
-			((LineStyleColorModifier_DistanceFromObject *)new_m)->target = p->target;
-			((LineStyleColorModifier_DistanceFromObject *)new_m)->color_ramp = MEM_dupallocN(p->color_ramp);
-			((LineStyleColorModifier_DistanceFromObject *)new_m)->range_min = p->range_min;
-			((LineStyleColorModifier_DistanceFromObject *)new_m)->range_max = p->range_max;
+			q->target = p->target;
+			q->color_ramp = MEM_dupallocN(p->color_ramp);
+			q->range_min = p->range_min;
+			q->range_max = p->range_max;
 		}
 		break;
 	case LS_MODIFIER_MATERIAL:
 		{
 			LineStyleColorModifier_Material *p = (LineStyleColorModifier_Material *)m;
-			((LineStyleColorModifier_Material *)new_m)->color_ramp = MEM_dupallocN(p->color_ramp);
-			((LineStyleColorModifier_Material *)new_m)->mat_attr = p->mat_attr;
+			LineStyleColorModifier_Material *q = (LineStyleColorModifier_Material *)new_m;
+			q->color_ramp = MEM_dupallocN(p->color_ramp);
+			q->mat_attr = p->mat_attr;
 		}
 		break;
 	default:
@@ -351,28 +349,38 @@ LineStyleModifier *FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyl
 	LineStyleModifier *m;
 
 	m = alloc_alpha_modifier(type);
-	if (!m)
-		return NULL;
 	m->blend = LS_VALUE_BLEND;
 
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
-		((LineStyleAlphaModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+		{
+			LineStyleAlphaModifier_AlongStroke *p = (LineStyleAlphaModifier_AlongStroke *)m;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-		((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_DistanceFromCamera *)m)->range_min = 0.0f;
-		((LineStyleAlphaModifier_DistanceFromCamera *)m)->range_max = 10000.0f;
+		{
+			LineStyleAlphaModifier_DistanceFromCamera *p = (LineStyleAlphaModifier_DistanceFromCamera *)m;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->range_min = 0.0f;
+			p->range_max = 10000.0f;
+		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-		((LineStyleAlphaModifier_DistanceFromObject *)m)->target = NULL;
-		((LineStyleAlphaModifier_DistanceFromObject *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_min = 0.0f;
-		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_max = 10000.0f;
+		{
+			LineStyleAlphaModifier_DistanceFromObject *p = (LineStyleAlphaModifier_DistanceFromObject *)m;
+			p->target = NULL;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->range_min = 0.0f;
+			p->range_max = 10000.0f;
+		}
 		break;
 	case LS_MODIFIER_MATERIAL:
-		((LineStyleAlphaModifier_Material *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+		{
+			LineStyleAlphaModifier_Material *p = (LineStyleAlphaModifier_Material *)m;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+		}
 		break;
 	default:
 		return NULL; /* unknown modifier type */
@@ -387,8 +395,6 @@ LineStyleModifier *FRS_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 	LineStyleModifier *new_m;
 
 	new_m = alloc_alpha_modifier(m->type);
-	if (!new_m)
-		return NULL;
 	new_m->influence = m->influence;
 	new_m->flags = m->flags;
 	new_m->blend = m->blend;
@@ -397,33 +403,37 @@ LineStyleModifier *FRS_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 	case LS_MODIFIER_ALONG_STROKE:
 		{
 			LineStyleAlphaModifier_AlongStroke *p = (LineStyleAlphaModifier_AlongStroke *)m;
-			((LineStyleAlphaModifier_AlongStroke *)new_m)->curve = curvemapping_copy(p->curve);
+			LineStyleAlphaModifier_AlongStroke *q = (LineStyleAlphaModifier_AlongStroke *)new_m;
+			q->curve = curvemapping_copy(p->curve);
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		{
 			LineStyleAlphaModifier_DistanceFromCamera *p = (LineStyleAlphaModifier_DistanceFromCamera *)m;
-			((LineStyleAlphaModifier_DistanceFromCamera *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleAlphaModifier_DistanceFromCamera *)new_m)->range_min = p->range_min;
-			((LineStyleAlphaModifier_DistanceFromCamera *)new_m)->range_max = p->range_max;
+			LineStyleAlphaModifier_DistanceFromCamera *q = (LineStyleAlphaModifier_DistanceFromCamera *)new_m;
+			q->curve = curvemapping_copy(p->curve);
+			q->range_min = p->range_min;
+			q->range_max = p->range_max;
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		{
 			LineStyleAlphaModifier_DistanceFromObject *p = (LineStyleAlphaModifier_DistanceFromObject *)m;
+			LineStyleAlphaModifier_DistanceFromObject *q = (LineStyleAlphaModifier_DistanceFromObject *)new_m;
 			if (p->target)
 				p->target->id.us++;
-			((LineStyleAlphaModifier_DistanceFromObject *)new_m)->target = p->target;
-			((LineStyleAlphaModifier_DistanceFromObject *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleAlphaModifier_DistanceFromObject *)new_m)->range_min = p->range_min;
-			((LineStyleAlphaModifier_DistanceFromObject *)new_m)->range_max = p->range_max;
+			q->target = p->target;
+			q->curve = curvemapping_copy(p->curve);
+			q->range_min = p->range_min;
+			q->range_max = p->range_max;
 		}
 		break;
 	case LS_MODIFIER_MATERIAL:
 		{
 			LineStyleAlphaModifier_Material *p = (LineStyleAlphaModifier_Material *)m;
-			((LineStyleAlphaModifier_Material *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleAlphaModifier_Material *)new_m)->mat_attr = p->mat_attr;
+			LineStyleAlphaModifier_Material *q = (LineStyleAlphaModifier_Material *)new_m;
+			q->curve = curvemapping_copy(p->curve);
+			q->mat_attr = p->mat_attr;
 		}
 		break;
 	default:
@@ -485,41 +495,54 @@ LineStyleModifier *FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *line
 	LineStyleModifier *m;
 
 	m = alloc_thickness_modifier(type);
-	if (!m)
-		return NULL;
 	m->blend = LS_VALUE_BLEND;
 
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
-		((LineStyleThicknessModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_AlongStroke *)m)->value_min = 0.0f;
-		((LineStyleThicknessModifier_AlongStroke *)m)->value_max = 1.0f;
+		{
+			LineStyleThicknessModifier_AlongStroke *p = (LineStyleThicknessModifier_AlongStroke *)m;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->value_min = 0.0f;
+			p->value_max = 1.0f;
+		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->range_min = 0.0f;
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->range_max = 1000.0f;
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->value_min = 0.0f;
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->value_max = 1.0f;
+		{
+			LineStyleThicknessModifier_DistanceFromCamera *p = (LineStyleThicknessModifier_DistanceFromCamera *)m;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->range_min = 0.0f;
+			p->range_max = 1000.0f;
+			p->value_min = 0.0f;
+			p->value_max = 1.0f;
+		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->target = NULL;
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->range_min = 0.0f;
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->range_max = 1000.0f;
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->value_min = 0.0f;
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->value_max = 1.0f;
+		{
+			LineStyleThicknessModifier_DistanceFromObject *p = (LineStyleThicknessModifier_DistanceFromObject *)m;
+			p->target = NULL;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->range_min = 0.0f;
+			p->range_max = 1000.0f;
+			p->value_min = 0.0f;
+			p->value_max = 1.0f;
+		}
 		break;
 	case LS_MODIFIER_MATERIAL:
-		((LineStyleThicknessModifier_Material *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
-		((LineStyleThicknessModifier_Material *)m)->value_min = 0.0f;
-		((LineStyleThicknessModifier_Material *)m)->value_max = 1.0f;
+		{
+			LineStyleThicknessModifier_Material *p = (LineStyleThicknessModifier_Material *)m;
+			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+			p->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+			p->value_min = 0.0f;
+			p->value_max = 1.0f;
+		}
 		break;
 	case LS_MODIFIER_CALLIGRAPHY:
-		((LineStyleThicknessModifier_Calligraphy *)m)->min_thickness = 1.0f;
-		((LineStyleThicknessModifier_Calligraphy *)m)->max_thickness = 10.0f;
-		((LineStyleThicknessModifier_Calligraphy *)m)->orientation = DEG2RADF(60.0f);
+		{
+			LineStyleThicknessModifier_Calligraphy *p = (LineStyleThicknessModifier_Calligraphy *)m;
+			p->min_thickness = 1.0f;
+			p->max_thickness = 10.0f;
+			p->orientation = DEG2RADF(60.0f);
+		}
 		break;
 	default:
 		return NULL; /* unknown modifier type */
@@ -544,49 +567,54 @@ LineStyleModifier *FRS_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 	case LS_MODIFIER_ALONG_STROKE:
 		{
 			LineStyleThicknessModifier_AlongStroke *p = (LineStyleThicknessModifier_AlongStroke *)m;
-			((LineStyleThicknessModifier_AlongStroke *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleThicknessModifier_AlongStroke *)new_m)->value_min = p->value_min;
-			((LineStyleThicknessModifier_AlongStroke *)new_m)->value_max = p->value_max;
+			LineStyleThicknessModifier_AlongStroke *q = (LineStyleThicknessModifier_AlongStroke *)new_m;
+			q->curve = curvemapping_copy(p->curve);
+			q->value_min = p->value_min;
+			q->value_max = p->value_max;
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		{
 			LineStyleThicknessModifier_DistanceFromCamera *p = (LineStyleThicknessModifier_DistanceFromCamera *)m;
-			((LineStyleThicknessModifier_DistanceFromCamera *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleThicknessModifier_DistanceFromCamera *)new_m)->range_min = p->range_min;
-			((LineStyleThicknessModifier_DistanceFromCamera *)new_m)->range_max = p->range_max;
-			((LineStyleThicknessModifier_DistanceFromCamera *)new_m)->value_min = p->value_min;
-			((LineStyleThicknessModifier_DistanceFromCamera *)new_m)->value_max = p->value_max;
+			LineStyleThicknessModifier_DistanceFromCamera *q = (LineStyleThicknessModifier_DistanceFromCamera *)new_m;
+			q->curve = curvemapping_copy(p->curve);
+			q->range_min = p->range_min;
+			q->range_max = p->range_max;
+			q->value_min = p->value_min;
+			q->value_max = p->value_max;
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		{
 			LineStyleThicknessModifier_DistanceFromObject *p = (LineStyleThicknessModifier_DistanceFromObject *)m;
+			LineStyleThicknessModifier_DistanceFromObject *q = (LineStyleThicknessModifier_DistanceFromObject *)new_m;
 			if (p->target)
 				p->target->id.us++;
-			((LineStyleThicknessModifier_DistanceFromObject *)new_m)->target = p->target;
-			((LineStyleThicknessModifier_DistanceFromObject *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleThicknessModifier_DistanceFromObject *)new_m)->range_min = p->range_min;
-			((LineStyleThicknessModifier_DistanceFromObject *)new_m)->range_max = p->range_max;
-			((LineStyleThicknessModifier_DistanceFromObject *)new_m)->value_min = p->value_min;
-			((LineStyleThicknessModifier_DistanceFromObject *)new_m)->value_max = p->value_max;
+			q->target = p->target;
+			q->curve = curvemapping_copy(p->curve);
+			q->range_min = p->range_min;
+			q->range_max = p->range_max;
+			q->value_min = p->value_min;
+			q->value_max = p->value_max;
 		}
 		break;
 	case LS_MODIFIER_MATERIAL:
 		{
 			LineStyleThicknessModifier_Material *p = (LineStyleThicknessModifier_Material *)m;
-			((LineStyleThicknessModifier_Material *)new_m)->curve = curvemapping_copy(p->curve);
-			((LineStyleThicknessModifier_Material *)new_m)->mat_attr = p->mat_attr;
-			((LineStyleThicknessModifier_Material *)new_m)->value_min = p->value_min;
-			((LineStyleThicknessModifier_Material *)new_m)->value_max = p->value_max;
+			LineStyleThicknessModifier_Material *q = (LineStyleThicknessModifier_Material *)new_m;
+			q->curve = curvemapping_copy(p->curve);
+			q->mat_attr = p->mat_attr;
+			q->value_min = p->value_min;
+			q->value_max = p->value_max;
 		}
 		break;
 	case LS_MODIFIER_CALLIGRAPHY:
 		{
 			LineStyleThicknessModifier_Calligraphy *p = (LineStyleThicknessModifier_Calligraphy *)m;
-			((LineStyleThicknessModifier_Calligraphy *)new_m)->min_thickness = p->min_thickness;
-			((LineStyleThicknessModifier_Calligraphy *)new_m)->max_thickness = p->max_thickness;
-			((LineStyleThicknessModifier_Calligraphy *)new_m)->orientation = p->orientation;
+			LineStyleThicknessModifier_Calligraphy *q = (LineStyleThicknessModifier_Calligraphy *)new_m;
+			q->min_thickness = p->min_thickness;
+			q->max_thickness = p->max_thickness;
+			q->orientation = p->orientation;
 		}
 		break;
 	default:
@@ -674,73 +702,110 @@ LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *lines
 	LineStyleModifier *m;
 
 	m = alloc_geometry_modifier(type);
-	if (!m)
-		return NULL;
 
 	switch (type) {
 	case LS_MODIFIER_SAMPLING:
-		((LineStyleGeometryModifier_Sampling *)m)->sampling = 10.0f;
+		{
+			LineStyleGeometryModifier_Sampling *p = (LineStyleGeometryModifier_Sampling *)m;
+			p->sampling = 10.0f;
+		}
 		break;
 	case LS_MODIFIER_BEZIER_CURVE:
-		((LineStyleGeometryModifier_BezierCurve *)m)->error = 10.0f;
+		{
+			LineStyleGeometryModifier_BezierCurve *p = (LineStyleGeometryModifier_BezierCurve *)m;
+			p->error = 10.0f;
+		}
 		break;
 	case LS_MODIFIER_SINUS_DISPLACEMENT:
-		((LineStyleGeometryModifier_SinusDisplacement *)m)->wavelength = 20.0f;
-		((LineStyleGeometryModifier_SinusDisplacement *)m)->amplitude = 5.0f;
-		((LineStyleGeometryModifier_SinusDisplacement *)m)->phase = 0.0f;
+		{
+			LineStyleGeometryModifier_SinusDisplacement *p = (LineStyleGeometryModifier_SinusDisplacement *)m;
+			p->wavelength = 20.0f;
+			p->amplitude = 5.0f;
+			p->phase = 0.0f;
+		}
 		break;
 	case LS_MODIFIER_SPATIAL_NOISE:
-		((LineStyleGeometryModifier_SpatialNoise *)m)->amplitude = 5.0f;
-		((LineStyleGeometryModifier_SpatialNoise *)m)->scale = 20.0f;
-		((LineStyleGeometryModifier_SpatialNoise *)m)->octaves = 4;
-		((LineStyleGeometryModifier_SpatialNoise *)m)->flags = LS_MODIFIER_SPATIAL_NOISE_SMOOTH | LS_MODIFIER_SPATIAL_NOISE_PURERANDOM;
+		{
+			LineStyleGeometryModifier_SpatialNoise *p = (LineStyleGeometryModifier_SpatialNoise *)m;
+			p->amplitude = 5.0f;
+			p->scale = 20.0f;
+			p->octaves = 4;
+			p->flags = LS_MODIFIER_SPATIAL_NOISE_SMOOTH | LS_MODIFIER_SPATIAL_NOISE_PURERANDOM;
+		}
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_1D:
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->frequency = 10.0f;
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->amplitude = 10.0f;
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->octaves = 4;
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->angle = DEG2RADF(45.0f);
+		{
+			LineStyleGeometryModifier_PerlinNoise1D *p = (LineStyleGeometryModifier_PerlinNoise1D *)m;
+			p->frequency = 10.0f;
+			p->amplitude = 10.0f;
+			p->octaves = 4;
+			p->angle = DEG2RADF(45.0f);
+		}
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_2D:
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->frequency = 10.0f;
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->amplitude = 10.0f;
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->octaves = 4;
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->angle = DEG2RADF(45.0f);
+		{
+			LineStyleGeometryModifier_PerlinNoise2D *p = (LineStyleGeometryModifier_PerlinNoise2D *)m;
+			p->frequency = 10.0f;
+			p->amplitude = 10.0f;
+			p->octaves = 4;
+			p->angle = DEG2RADF(45.0f);
+		}
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:
-		((LineStyleGeometryModifier_BackboneStretcher *)m)->backbone_length = 10.0f;
+		{
+			LineStyleGeometryModifier_BackboneStretcher *p = (LineStyleGeometryModifier_BackboneStretcher *)m;
+			p->backbone_length = 10.0f;
+		}
 		break;
 	case LS_MODIFIER_TIP_REMOVER:
-		((LineStyleGeometryModifier_TipRemover *)m)->tip_length = 10.0f;
+		{
+			LineStyleGeometryModifier_TipRemover *p = (LineStyleGeometryModifier_TipRemover *)m;
+			p->tip_length = 10.0f;
+		}
 		break;
 	case LS_MODIFIER_POLYGONIZATION:
-		((LineStyleGeometryModifier_Polygonalization *)m)->error = 10.0f;
+		{
+			LineStyleGeometryModifier_Polygonalization *p = (LineStyleGeometryModifier_Polygonalization *)m;
+			p->error = 10.0f;
+		}
 		break;
 	case LS_MODIFIER_GUIDING_LINES:
-		((LineStyleGeometryModifier_GuidingLines *)m)->offset = 0.0f;
+		{
+			LineStyleGeometryModifier_GuidingLines *p = (LineStyleGeometryModifier_GuidingLines *)m;
+			p->offset = 0.0f;
+		}
 		break;
 	case LS_MODIFIER_BLUEPRINT:
-		((LineStyleGeometryModifier_Blueprint *)m)->flags = LS_MODIFIER_BLUEPRINT_CIRCLES;
-		((LineStyleGeometryModifier_Blueprint *)m)->rounds = 1;
-		((LineStyleGeometryModifier_Blueprint *)m)->backbone_length = 10.0f;
-		((LineStyleGeometryModifier_Blueprint *)m)->random_radius = 3;
-		((LineStyleGeometryModifier_Blueprint *)m)->random_center = 5;
-		((LineStyleGeometryModifier_Blueprint *)m)->random_backbone = 5;
+		{
+			LineStyleGeometryModifier_Blueprint *p = (LineStyleGeometryModifier_Blueprint *)m;
+			p->flags = LS_MODIFIER_BLUEPRINT_CIRCLES;
+			p->rounds = 1;
+			p->backbone_length = 10.0f;
+			p->random_radius = 3;
+			p->random_center = 5;
+			p->random_backbone = 5;
+		}
 		break;
 	case LS_MODIFIER_2D_OFFSET:
-		((LineStyleGeometryModifier_2DOffset *)m)->start = 0.0f;
-		((LineStyleGeometryModifier_2DOffset *)m)->end = 0.0f;
-		((LineStyleGeometryModifier_2DOffset *)m)->x = 0.0f;
-		((LineStyleGeometryModifier_2DOffset *)m)->y = 0.0f;
+		{
+			LineStyleGeometryModifier_2DOffset *p = (LineStyleGeometryModifier_2DOffset *)m;
+			p->start = 0.0f;
+			p->end = 0.0f;
+			p->x = 0.0f;
+			p->y = 0.0f;
+		}
 		break;
 	case LS_MODIFIER_2D_TRANSFORM:
-		((LineStyleGeometryModifier_2DTransform *)m)->pivot = LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER;
-		((LineStyleGeometryModifier_2DTransform *)m)->scale_x = 1.0f;
-		((LineStyleGeometryModifier_2DTransform *)m)->scale_y = 1.0f;
-		((LineStyleGeometryModifier_2DTransform *)m)->angle = DEG2RADF(0.0f);
-		((LineStyleGeometryModifier_2DTransform *)m)->pivot_u = 0.5f;
-		((LineStyleGeometryModifier_2DTransform *)m)->pivot_x = 0.0f;
-		((LineStyleGeometryModifier_2DTransform *)m)->pivot_y = 0.0f;
+		{
+			LineStyleGeometryModifier_2DTransform *p = (LineStyleGeometryModifier_2DTransform *)m;
+			p->pivot = LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER;
+			p->scale_x = 1.0f;
+			p->scale_y = 1.0f;
+			p->angle = DEG2RADF(0.0f);
+			p->pivot_u = 0.5f;
+			p->pivot_x = 0.0f;
+			p->pivot_y = 0.0f;
+		}
 		break;
 	default:
 		return NULL; /* unknown modifier type */
@@ -755,112 +820,123 @@ LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 	LineStyleModifier *new_m;
 
 	new_m = alloc_geometry_modifier(m->type);
-	if (!new_m)
-		return NULL;
 	new_m->flags = m->flags;
 
 	switch (m->type) {
 	case LS_MODIFIER_SAMPLING:
 		{
 			LineStyleGeometryModifier_Sampling *p = (LineStyleGeometryModifier_Sampling *)m;
-			((LineStyleGeometryModifier_Sampling *)new_m)->sampling = p->sampling;
+			LineStyleGeometryModifier_Sampling *q = (LineStyleGeometryModifier_Sampling *)new_m;
+			q->sampling = p->sampling;
 		}
 		break;
 	case LS_MODIFIER_BEZIER_CURVE:
 		{
 			LineStyleGeometryModifier_BezierCurve *p = (LineStyleGeometryModifier_BezierCurve *)m;
-			((LineStyleGeometryModifier_BezierCurve *)new_m)->error = p->error;
+			LineStyleGeometryModifier_BezierCurve *q = (LineStyleGeometryModifier_BezierCurve *)new_m;
+			q->error = p->error;
 		}
 		break;
 	case LS_MODIFIER_SINUS_DISPLACEMENT:
 		{
 			LineStyleGeometryModifier_SinusDisplacement *p = (LineStyleGeometryModifier_SinusDisplacement *)m;
-			((LineStyleGeometryModifier_SinusDisplacement *)new_m)->wavelength = p->wavelength;
-			((LineStyleGeometryModifier_SinusDisplacement *)new_m)->amplitude = p->amplitude;
-			((LineStyleGeometryModifier_SinusDisplacement *)new_m)->phase = p->phase;
+			LineStyleGeometryModifier_SinusDisplacement *q = (LineStyleGeometryModifier_SinusDisplacement *)new_m;
+			q->wavelength = p->wavelength;
+			q->amplitude = p->amplitude;
+			q->phase = p->phase;
 		}
 		break;
 	case LS_MODIFIER_SPATIAL_NOISE:
 		{
 			LineStyleGeometryModifier_SpatialNoise *p = (LineStyleGeometryModifier_SpatialNoise *)m;
-			((LineStyleGeometryModifier_SpatialNoise *)new_m)->amplitude = p->amplitude;
-			((LineStyleGeometryModifier_SpatialNoise *)new_m)->scale = p->scale;
-			((LineStyleGeometryModifier_SpatialNoise *)new_m)->octaves = p->octaves;
-			((LineStyleGeometryModifier_SpatialNoise *)new_m)->flags = p->flags;
+			LineStyleGeometryModifier_SpatialNoise *q = (LineStyleGeometryModifier_SpatialNoise *)new_m;
+			q->amplitude = p->amplitude;
+			q->scale = p->scale;
+			q->octaves = p->octaves;
+			q->flags = p->flags;
 		}
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_1D:
 		{
 			LineStyleGeometryModifier_PerlinNoise1D *p = (LineStyleGeometryModifier_PerlinNoise1D *)m;
-			((LineStyleGeometryModifier_PerlinNoise1D *)new_m)->frequency = p->frequency;
-			((LineStyleGeometryModifier_PerlinNoise1D *)new_m)->amplitude = p->amplitude;
-			((LineStyleGeometryModifier_PerlinNoise1D *)new_m)->octaves = p->octaves;
-			((LineStyleGeometryModifier_PerlinNoise1D *)new_m)->angle = p->angle;
+			LineStyleGeometryModifier_PerlinNoise1D *q = (LineStyleGeometryModifier_PerlinNoise1D *)new_m;
+			q->frequency = p->frequency;
+			q->amplitude = p->amplitude;
+			q->octaves = p->octaves;
+			q->angle = p->angle;
 		}
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_2D:
 		{
 			LineStyleGeometryModifier_PerlinNoise2D *p = (LineStyleGeometryModifier_PerlinNoise2D *)m;
-			((LineStyleGeometryModifier_PerlinNoise2D *)new_m)->frequency = p->frequency;
-			((LineStyleGeometryModifier_PerlinNoise2D *)new_m)->amplitude = p->amplitude;
-			((LineStyleGeometryModifier_PerlinNoise2D *)new_m)->octaves = p->octaves;
-			((LineStyleGeometryModifier_PerlinNoise2D *)new_m)->angle = p->angle;
+			LineStyleGeometryModifier_PerlinNoise2D *q = (LineStyleGeometryModifier_PerlinNoise2D *)new_m;
+			q->frequency = p->frequency;
+			q->amplitude = p->amplitude;
+			q->octaves = p->octaves;
+			q->angle = p->angle;
 		}
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:
 		{
 			LineStyleGeometryModifier_BackboneStretcher *p = (LineStyleGeometryModifier_BackboneStretcher *)m;
-			((LineStyleGeometryModifier_BackboneStretcher *)new_m)->backbone_length = p->backbone_length;
+			LineStyleGeometryModifier_BackboneStretcher *q = (LineStyleGeometryModifier_BackboneStretcher *)new_m;
+			q->backbone_length = p->backbone_length;
 		}
 		break;
 	case LS_MODIFIER_TIP_REMOVER:
 		{
 			LineStyleGeometryModifier_TipRemover *p = (LineStyleGeometryModifier_TipRemover *)m;
-			((LineStyleGeometryModifier_TipRemover *)new_m)->tip_length = p->tip_length;
+			LineStyleGeometryModifier_TipRemover *q = (LineStyleGeometryModifier_TipRemover *)new_m;
+			q->tip_length = p->tip_length;
 		}
 		break;
 	case LS_MODIFIER_POLYGONIZATION:
 		{
 			LineStyleGeometryModifier_Polygonalization *p = (LineStyleGeometryModifier_Polygonalization *)m;
-			((LineStyleGeometryModifier_Polygonalization *)new_m)->error = p->error;
+			LineStyleGeometryModifier_Polygonalization *q = (LineStyleGeometryModifier_Polygonalization *)new_m;
+			q->error = p->error;
 		}
 		break;
 	case LS_MODIFIER_GUIDING_LINES:
 		{
 			LineStyleGeometryModifier_GuidingLines *p = (LineStyleGeometryModifier_GuidingLines *)m;
-			((LineStyleGeometryModifier_GuidingLines *)new_m)->offset = p->offset;
+			LineStyleGeometryModifier_GuidingLines *q = (LineStyleGeometryModifier_GuidingLines *)new_m;
+			q->offset = p->offset;
 		}
 		break;
 	case LS_MODIFIER_BLUEPRINT:
 		{
 			LineStyleGeometryModifier_Blueprint *p = (LineStyleGeometryModifier_Blueprint *)m;
-			((LineStyleGeometryModifier_Blueprint *)new_m)->flags = p->flags;
-			((LineStyleGeometryModifier_Blueprint *)new_m)->rounds = p->rounds;
-			((LineStyleGeometryModifier_Blueprint *)new_m)->backbone_length = p->backbone_length;
-			((LineStyleGeometryModifier_Blueprint *)new_m)->random_radius = p->random_radius;
-			((LineStyleGeometryModifier_Blueprint *)new_m)->random_center = p->random_center;
-			((LineStyleGeometryModifier_Blueprint *)new_m)->random_backbone = p->random_backbone;
+			LineStyleGeometryModifier_Blueprint *q = (LineStyleGeometryModifier_Blueprint *)new_m;
+			q->flags = p->flags;
+			q->rounds = p->rounds;
+			q->backbone_length = p->backbone_length;
+			q->random_radius = p->random_radius;
+			q->random_center = p->random_center;
+			q->random_backbone = p->random_backbone;
 		}
 		break;
 	case LS_MODIFIER_2D_OFFSET:
 		{
 			LineStyleGeometryModifier_2DOffset *p = (LineStyleGeometryModifier_2DOffset *)m;
-			((LineStyleGeometryModifier_2DOffset *)new_m)->start = p->start;
-			((LineStyleGeometryModifier_2DOffset *)new_m)->end = p->end;
-			((LineStyleGeometryModifier_2DOffset *)new_m)->x = p->x;
-			((LineStyleGeometryModifier_2DOffset *)new_m)->y = p->y;
+			LineStyleGeometryModifier_2DOffset *q = (LineStyleGeometryModifier_2DOffset *)new_m;
+			q->start = p->start;
+			q->end = p->end;
+			q->x = p->x;
+			q->y = p->y;
 		}
 		break;
 	case LS_MODIFIER_2D_TRANSFORM:
 		{
 			LineStyleGeometryModifier_2DTransform *p = (LineStyleGeometryModifier_2DTransform *)m;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot = p->pivot;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->scale_x = p->scale_x;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->scale_y = p->scale_y;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->angle = p->angle;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot_u = p->pivot_u;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot_x = p->pivot_x;
-			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot_y = p->pivot_y;
+			LineStyleGeometryModifier_2DTransform *q = (LineStyleGeometryModifier_2DTransform *)new_m;
+			q->pivot = p->pivot;
+			q->scale_x = p->scale_x;
+			q->scale_y = p->scale_y;
+			q->angle = p->angle;
+			q->pivot_u = p->pivot_u;
+			q->pivot_x = p->pivot_x;
+			q->pivot_y = p->pivot_y;
 		}
 		break;
 	default:
@@ -873,34 +949,6 @@ LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 
 void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
-	switch (m->type) {
-	case LS_MODIFIER_SAMPLING:
-		break;
-	case LS_MODIFIER_BEZIER_CURVE:
-		break;
-	case LS_MODIFIER_SINUS_DISPLACEMENT:
-		break;
-	case LS_MODIFIER_SPATIAL_NOISE:
-		break;
-	case LS_MODIFIER_PERLIN_NOISE_1D:
-		break;
-	case LS_MODIFIER_PERLIN_NOISE_2D:
-		break;
-	case LS_MODIFIER_BACKBONE_STRETCHER:
-		break;
-	case LS_MODIFIER_TIP_REMOVER:
-		break;
-	case LS_MODIFIER_POLYGONIZATION:
-		break;
-	case LS_MODIFIER_GUIDING_LINES:
-		break;
-	case LS_MODIFIER_BLUEPRINT:
-		break;
-	case LS_MODIFIER_2D_OFFSET:
-		break;
-	case LS_MODIFIER_2D_TRANSFORM:
-		break;
-	}
 	BLI_freelinkN(&linestyle->geometry_modifiers, m);
 }
 
