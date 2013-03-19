@@ -2740,10 +2740,16 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 			kfe = ((Ref *)sidechain->first)->ref;
 			if (knife_edge_in_face(kcd, kfe, f)) {
 				knife_make_chain_cut(kcd, f, sidechain, &fnew2);
+				if (fnew2 == NULL) {
+					return;
+				}
 				fhole = f;
 			}
 			else if (knife_edge_in_face(kcd, kfe, fnew)) {
 				knife_make_chain_cut(kcd, fnew, sidechain, &fnew2);
+				if (fnew2 == NULL) {
+					return;
+				}
 				fhole = fnew2;
 			}
 			else {
