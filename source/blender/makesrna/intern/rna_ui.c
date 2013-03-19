@@ -199,6 +199,9 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 	dummypanel.type = &dummypt;
 	RNA_pointer_create(NULL, &RNA_Panel, &dummypanel, &dummyptr);
 
+	/* We have to set default context! Else we get a void string... */
+	strcpy(dummypt.translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
+
 	/* validate the python class */
 	if (validate(&dummyptr, data, have_function) != 0)
 		return NULL;
@@ -544,6 +547,8 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 
 	/* clear in case they are left unset */
 	_menu_descr[0] = '\0';
+	/* We have to set default context! Else we get a void string... */
+	strcpy(dummymt.translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 
 	/* validate the python class */
 	if (validate(&dummymtr, data, have_function) != 0)
@@ -777,7 +782,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Panel");
 	RNA_def_struct_refine_func(srna, "rna_Panel_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Panel_register", "rna_Panel_unregister", NULL);
-	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_DEFAULT);
+	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
@@ -827,7 +832,7 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
-	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT);
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_define_verify_sdna(TRUE);
 
@@ -967,7 +972,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Menu");
 	RNA_def_struct_refine_func(srna, "rna_Menu_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister", NULL);
-	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_DEFAULT);
+	RNA_def_struct_translation_context(srna, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
@@ -1008,7 +1013,7 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
-	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT);
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);

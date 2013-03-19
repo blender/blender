@@ -554,7 +554,7 @@ const char *RNA_struct_ui_description_raw(StructRNA *type)
 
 const char *RNA_struct_translation_context(StructRNA *type)
 {
-	return type->translation_context ? type->translation_context : BLF_I18NCONTEXT_DEFAULT;
+	return type->translation_context;
 }
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type)
@@ -1283,7 +1283,6 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 
 		for (i = 0; nitem[i].identifier; i++) {
 			if (nitem[i].name && do_iface) {
-				/* note: prop->translation_context may be NULL, this just means we use the default "" context */
 				nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
 			}
 			if (nitem[i].description && do_tooltip) {
@@ -1446,7 +1445,7 @@ const char *RNA_property_ui_description_raw(PropertyRNA *prop)
 const char *RNA_property_translation_context(PropertyRNA *_prop)
 {
 	PropertyRNA *prop = rna_ensure_property(_prop);
-	return prop->translation_context ? prop->translation_context : BLF_I18NCONTEXT_DEFAULT;
+	return prop->translation_context;
 }
 
 int RNA_property_ui_icon(PropertyRNA *prop)

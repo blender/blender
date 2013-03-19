@@ -74,7 +74,7 @@ typedef struct GHashKey {
 static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 {
 	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "Py i18n GHashKey");
-	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY);
+	key->msgctxt = BLI_strdup(BLF_is_default_context(msgctxt) ? BLF_I18NCONTEXT_DEFAULT_BPYRNA : msgctxt);
 	key->msgid = BLI_strdup(msgid);
 	return key;
 }
@@ -195,7 +195,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 				else {
 					PyObject *tmp = PyTuple_GET_ITEM(pykey, 0);
 					if (tmp == Py_None) {
-						msgctxt = BLF_I18NCONTEXT_DEFAULT_BPY;
+						msgctxt = BLF_I18NCONTEXT_DEFAULT_BPYRNA;
 					}
 					else if (PyUnicode_Check(tmp)) {
 						msgctxt = _PyUnicode_AsString(tmp);
@@ -433,7 +433,7 @@ static PyObject *app_translations_contexts_make(void)
 
 PyDoc_STRVAR(app_translations_contexts_doc,
 	"A named tuple containing all pre-defined translation contexts.\n"
-	"WARNING: Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPY "\", it would be internally "
+	"WARNING: Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPYRNA "\", it would be internally "
 	"assimilated as the default one!\n"
 );
 
