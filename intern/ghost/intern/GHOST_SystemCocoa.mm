@@ -1404,6 +1404,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 	
 	switch (eventType) {
 		case NSTabletPoint:
+			// workaround 2 cornercases:
+			// 1. if [event isEnteringProximity] was not triggered since program-start
+			// 2. device is not sending [event pointingDeviceType], due no eraser
+			if (ct.Active == GHOST_kTabletModeNone)
+				ct.Active = GHOST_kTabletModeStylus;
+				
 			ct.Pressure = sqrtf(powf([event pressure], 5 )); // experimental: change sensivity curve
 			ct.Xtilt = [event tilt].x;
 			ct.Ytilt = [event tilt].y;
