@@ -829,9 +829,9 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 
 	if (verify_limits) {
 		/* remove other socket links if limit is exceeded */
-		if (nodeCountSocketLinks(ntree, fromsock) > fromsock->limit)
+		if (nodeCountSocketLinks(ntree, fromsock) + 1 > fromsock->limit)
 			nodeRemSocketLinks(ntree, fromsock);
-		if (nodeCountSocketLinks(ntree, tosock) > tosock->limit)
+		if (nodeCountSocketLinks(ntree, tosock) + 1 > tosock->limit)
 			nodeRemSocketLinks(ntree, tosock);
 	}
 
