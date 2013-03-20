@@ -3393,6 +3393,144 @@ bool BKE_nurb_order_clamp_v(struct Nurb *nu)
 	return change;
 }
 
+bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
+{
+	BezTriple *bezt;
+	BPoint *bp;
+	int a, c, nr;
+
+	if (nu->type == CU_POLY) {
+		if (type == CU_BEZIER) {  /* to Bezier with vecthandles  */
+			nr = nu->pntsu;
+			bezt = (BezTriple *)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+			nu->bezt = bezt;
+			a = nr;
+			bp = nu->bp;
+			while (a--) {
+				copy_v3_v3(bezt->vec[1], bp->vec);
+				bezt->f1 = bezt->f2 = bezt->f3 = bp->f1;
+				bezt->h1 = bezt->h2 = HD_VECT;
+				bezt->weight = bp->weight;
+				bezt->radius = bp->radius;
+				bp++;
+				bezt++;
+			}
+			MEM_freeN(nu->bp);
+			nu->bp = NULL;
+			nu->pntsu = nr;
+			nu->type = CU_BEZIER;
+			BKE_nurb_handles_calc(nu);
+		}
+		else if (type == CU_NURBS) {
+			nu->type = CU_NURBS;
+			nu->orderu = 4;
+			nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
+			BKE_nurb_knot_calc_u(nu);
+			a = nu->pntsu * nu->pntsv;
+			bp = nu->bp;
+			while (a--) {
+				bp->vec[3] = 1.0;
+				bp++;
+			}
+		}
+	}
+	else if (nu->type == CU_BEZIER) {   /* Bezier */
+		if (type == CU_POLY || type == CU_NURBS) {
+			nr = use_handles ? (3 * nu->pntsu) : nu->pntsu;
+			nu->bp = MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
+			a = nu->pntsu;
+			bezt = nu->bezt;
+			bp = nu->bp;
+			while (a--) {
+				if ((type == CU_POLY && bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) || (use_handles == false)) {
+					/* vector handle becomes 1 poly vertice */
+					copy_v3_v3(bp->vec, bezt->vec[1]);
+					bp->vec[3] = 1.0;
+					bp->f1 = bezt->f2;
+					if (use_handles) nr -= 2;
+					bp->radius = bezt->radius;
+					bp->weight = bezt->weight;
+					bp++;
+				}
+				else {
+					char *f = &bezt->f1;
+					for (c = 0; c < 3; c++, f++) {
+						copy_v3_v3(bp->vec, bezt->vec[c]);
+						bp->vec[3] = 1.0;
+						bp->f1 = *f;
+						bp->radius = bezt->radius;
+						bp->weight = bezt->weight;
+						bp++;
+					}
+				}
+				bezt++;
+			}
+			MEM_freeN(nu->bezt);
+			nu->bezt = NULL;
+			nu->pntsu = nr;
+			nu->pntsv = 1;
+			nu->orderu = 4;
+			nu->orderv = 1;
+			nu->type = type;
+
+#if 0       /* UNUSED */
+			if (nu->flagu & CU_NURB_CYCLIC) c = nu->orderu - 1;
+			else c = 0;
+#endif
+
+			if (type == CU_NURBS) {
+				nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
+				nu->flagu |= CU_NURB_BEZIER;
+				BKE_nurb_knot_calc_u(nu);
+			}
+		}
+	}
+	else if (nu->type == CU_NURBS) {
+		if (type == CU_POLY) {
+			nu->type = CU_POLY;
+			if (nu->knotsu) MEM_freeN(nu->knotsu);  /* python created nurbs have a knotsu of zero */
+			nu->knotsu = NULL;
+			if (nu->knotsv) MEM_freeN(nu->knotsv);
+			nu->knotsv = NULL;
+		}
+		else if (type == CU_BEZIER) {     /* to Bezier */
+			nr = nu->pntsu / 3;
+
+			if (nr < 2) {
+				return false;  /* conversion impossible */
+			}
+			else {
+				bezt = MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+				nu->bezt = bezt;
+				a = nr;
+				bp = nu->bp;
+				while (a--) {
+					copy_v3_v3(bezt->vec[0], bp->vec);
+					bezt->f1 = bp->f1;
+					bp++;
+					copy_v3_v3(bezt->vec[1], bp->vec);
+					bezt->f2 = bp->f1;
+					bp++;
+					copy_v3_v3(bezt->vec[2], bp->vec);
+					bezt->f3 = bp->f1;
+					bezt->radius = bp->radius;
+					bezt->weight = bp->weight;
+					bp++;
+					bezt++;
+				}
+				MEM_freeN(nu->bp);
+				nu->bp = NULL;
+				MEM_freeN(nu->knotsu);
+				nu->knotsu = NULL;
+				nu->pntsu = nr;
+				nu->type = CU_BEZIER;
+			}
+		}
+	}
+
+	return true;
+}
+
 /* Get edit nurbs or normal nurbs list */
 ListBase *BKE_curve_nurbs_get(Curve *cu)
 {
