@@ -90,6 +90,11 @@
 
 /* ***************** composite job manager ********************** */
 
+enum {
+	COM_RECALC_COMPOSITE = 1,
+	COM_RECALC_VIEWER    = 2
+};
+
 typedef struct CompoJob {
 	Scene *scene;
 	bNodeTree *ntree;
@@ -98,7 +103,54 @@ typedef struct CompoJob {
 	short *do_update;
 	float *progress;
 	short need_sync;
+	int recalc_flags;
 } CompoJob;
+
+static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
+{
+	bNode *node;
+
+	for (node = nodetree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_COMPOSITE) {
+			if (recalc_flags & COM_RECALC_COMPOSITE)
+				node->flag |= NODE_DO_OUTPUT_RECALC;
+		}
+		else if (node->type == CMP_NODE_VIEWER) {
+			if (recalc_flags & COM_RECALC_VIEWER)
+				node->flag |= NODE_DO_OUTPUT_RECALC;
+		}
+		else if (node->type == NODE_GROUP) {
+			if (node->id)
+				compo_tag_output_nodes((bNodeTree *)node->id, recalc_flags);
+		}
+	}
+}
+
+static int compo_get_recalc_flags(const bContext *C)
+{
+	bScreen *sc = CTX_wm_screen(C);
+	ScrArea *sa;
+	int recalc_flags = 0;
+
+	for (sa = sc->areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_IMAGE) {
+			SpaceImage *sima = sa->spacedata.first;
+			if (sima->image) {
+				if (sima->image->type == IMA_TYPE_R_RESULT)
+					recalc_flags |= COM_RECALC_COMPOSITE;
+				else if (sima->image->type == IMA_TYPE_COMPOSITE)
+					recalc_flags |= COM_RECALC_VIEWER;
+			}
+		}
+		else if (sa->spacetype == SPACE_NODE) {
+			SpaceNode *snode = sa->spacedata.first;
+			if (snode->flag & SNODE_BACKDRAW)
+				recalc_flags |= COM_RECALC_VIEWER;
+		}
+	}
+
+	return recalc_flags;
+}
 
 /* called by compo, only to check job 'stop' value */
 static int compo_breakjob(void *cjv)
@@ -148,6 +200,9 @@ static void compo_initjob(void *cjv)
 	CompoJob *cj = cjv;
 
 	cj->localtree = ntreeLocalize(cj->ntree);
+
+	if (cj->recalc_flags)
+		compo_tag_output_nodes(cj->localtree, cj->recalc_flags);
 }
 
 /* called before redraw notifiers, it moves finished previews over */
@@ -234,6 +289,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	/* customdata for preview thread */
 	cj->scene = CTX_data_scene(C);
 	cj->ntree = nodetree;
+	cj->recalc_flags = compo_get_recalc_flags(C);
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, cj, compo_freejob);

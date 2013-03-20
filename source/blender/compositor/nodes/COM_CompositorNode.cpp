@@ -32,6 +32,8 @@ CompositorNode::CompositorNode(bNode *editorNode) : Node(editorNode)
 void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *editorNode = this->getbNode();
+	bool is_active = (editorNode->flag & NODE_DO_OUTPUT_RECALC) ||
+	                 context->isRendering();
 
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
@@ -42,10 +44,12 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	compositorOperation->setRenderData(context->getRenderData());
 	compositorOperation->setbNodeTree(context->getbNodeTree());
 	compositorOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);
+	compositorOperation->setActive(is_active);
 	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);
 	alphaSocket->relinkConnections(compositorOperation->getInputSocket(1));
 	depthSocket->relinkConnections(compositorOperation->getInputSocket(2));
 	graph->addOperation(compositorOperation);
-	addPreviewOperation(graph, context, compositorOperation->getInputSocket(0));
-}
 
+	if (is_active)
+		addPreviewOperation(graph, context, compositorOperation->getInputSocket(0));
+}

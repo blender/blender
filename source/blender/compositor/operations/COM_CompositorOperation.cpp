@@ -50,12 +50,16 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->m_depthInput = NULL;
 
 	this->m_ignoreAlpha = false;
+	this->m_active = false;
 
 	this->m_sceneName[0] = '\0';
 }
 
 void CompositorOperation::initExecution()
 {
+	if (!this->m_active)
+		return;
+
 	// When initializing the tree during initial load the width and height can be zero.
 	this->m_imageInput = getInputSocketReader(0);
 	this->m_alphaInput = getInputSocketReader(1);
@@ -70,6 +74,9 @@ void CompositorOperation::initExecution()
 
 void CompositorOperation::deinitExecution()
 {
+	if (!this->m_active)
+		return;
+
 	if (!isBreaked()) {
 		Render *re = RE_GetRender(this->m_sceneName);
 		RenderResult *rr = RE_AcquireResultWrite(re);
