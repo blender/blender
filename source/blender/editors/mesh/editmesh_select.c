@@ -1946,38 +1946,57 @@ void EDBM_selectmode_set(BMEditMesh *em)
 
 	edbm_strip_selections(em); /* strip BMEditSelections from em->selected that are not relevant to new mode */
 	
+	if (em->bm->totvertsel == 0 &&
+	    em->bm->totedgesel == 0 &&
+	    em->bm->totfacesel == 0)
+	{
+		return;
+	}
+
 	if (em->selectmode & SCE_SELECT_VERTEX) {
-		EDBM_select_flush(em);
+		if (em->bm->totvertsel) {
+			EDBM_select_flush(em);
+		}
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
 		/* deselect vertices, and select again based on edge select */
-		eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-		for (; eve; eve = BM_iter_step(&iter)) BM_vert_select_set(em->bm, eve, false);
-		
-		eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for (; eed; eed = BM_iter_step(&iter)) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-				BM_edge_select_set(em->bm, eed, true);
-			}
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			BM_vert_select_set(em->bm, eve, false);
 		}
-		
-		/* selects faces based on edge status */
-		EDBM_selectmode_flush(em);
+
+		if (em->bm->totedgesel) {
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+					BM_edge_select_set(em->bm, eed, true);
+				}
+			}
+
+			/* selects faces based on edge status */
+			EDBM_selectmode_flush(em);
+		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
 		/* deselect eges, and select again based on face select */
-		eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for (; eed; eed = BM_iter_step(&iter)) BM_edge_select_set(em->bm, eed, false);
-		
-		efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for (; efa; efa = BM_iter_step(&iter)) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-				BM_face_select_set(em->bm, efa, true);
+		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			BM_edge_select_set(em->bm, eed, false);
+		}
+
+		if (em->bm->totfacesel) {
+			efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+			for (; efa; efa = BM_iter_step(&iter)) {
+				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+					BM_face_select_set(em->bm, efa, true);
+				}
 			}
 		}
 	}
 }
 
+/**
+ * Flush the selection up:
+ * - vert -> edge
+ * - edge -> face
+ */
 void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const short selectmode_new)
 {
 	BMEdge *eed;
@@ -1988,7 +2007,10 @@ void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const s
 
 	/* have to find out what the selectionmode was previously */
 	if (selectmode_old == SCE_SELECT_VERTEX) {
-		if (selectmode_new == SCE_SELECT_EDGE) {
+		if (em->bm->totvertsel == 0) {
+			/* pass */
+		}
+		else if (selectmode_new == SCE_SELECT_EDGE) {
 			/* select all edges associated with every selected vert */
 			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 				BM_elem_flag_set(eed, BM_ELEM_TAG, BM_edge_is_any_vert_flag_test(eed, BM_ELEM_SELECT));
@@ -2014,7 +2036,10 @@ void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const s
 		}
 	}
 	else if (selectmode_old == SCE_SELECT_EDGE) {
-		if (selectmode_new == SCE_SELECT_FACE) {
+		if (em->bm->totedgesel == 0) {
+			/* pass */
+		}
+		else if (selectmode_new == SCE_SELECT_FACE) {
 			/* select all faces associated with every selected edge */
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_edge_flag_test(efa, BM_ELEM_SELECT));
@@ -2123,6 +2148,37 @@ bool EDBM_selectmode_toggle(bContext *C, const short selectmode_new,
 	}
 
 	return ret;
+}
+
+/**
+ * Use to disable a selectmode if its enabled, Using another mode as a fallback
+ * if the disabled mode is the only mode set.
+ *
+ * \return true if the mode is changed.
+ */
+bool EDBM_selectmode_disable(Scene *scene, BMEditMesh *em,
+                             const short selectmode_disable,
+                             const short selectmode_fallback)
+{
+	/* note essential, but switch out of vertex mode since the
+	 * selected regions wont be nicely isolated after flushing */
+	if (em->selectmode & selectmode_disable) {
+		if (em->selectmode == selectmode_disable) {
+			em->selectmode = selectmode_fallback;
+		}
+		else {
+			em->selectmode &= ~selectmode_disable;
+		}
+		scene->toolsettings->selectmode = em->selectmode;
+		EDBM_selectmode_set(em);
+
+		WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, scene);
+
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 void EDBM_deselect_by_material(BMEditMesh *em, const short index, const short select)

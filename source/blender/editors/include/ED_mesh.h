@@ -161,6 +161,9 @@ void EDBM_selectmode_convert(struct BMEditMesh *em, const short selectmode_old, 
 bool EDBM_selectmode_toggle(struct bContext *C, const short selectmode_new,
                             const int action, const bool use_extend, const bool use_expand);
 
+bool EDBM_selectmode_disable(struct Scene *scene, struct BMEditMesh *em,
+                             const short selectmode_disable,
+                             const short selectmode_fallback);
 
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 

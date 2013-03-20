@@ -300,17 +300,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			EDBM_update_generic(em, false, true);
 
 			/* force edge slide to edge select mode in in face select mode */
-			if (em->selectmode & SCE_SELECT_FACE) {
-				if (em->selectmode == SCE_SELECT_FACE)
-					em->selectmode = SCE_SELECT_EDGE;
-				else
-					em->selectmode &= ~SCE_SELECT_FACE;
-				CTX_data_tool_settings(C)->selectmode = em->selectmode;
-				EDBM_selectmode_set(em);
-
-				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
+			if (EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
+				/* pass, the change will flush selection */
 			}
 			else {
+				/* else flush explicitly */
 				EDBM_selectmode_flush(lcd->em);
 			}
 		}

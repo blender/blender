@@ -180,6 +180,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         props = row.operator("mesh.knife_tool", text="Select")
         props.use_occlude_geometry = False
         props.only_selected = True
+        col.operator("mesh.knife_project")
 
         col = layout.column(align=True)
         col.label(text="Remove:")
