@@ -62,7 +62,6 @@ void GaussianBokehBlurOperation::updateGauss()
 		int n;
 		float *dgauss;
 		float *ddgauss;
-		float val;
 		int j, i;
 		const float width = this->getWidth();
 		const float height = this->getHeight();
@@ -84,13 +83,15 @@ void GaussianBokehBlurOperation::updateGauss()
 	
 		this->m_radx = ceil(radxf);
 		this->m_rady = ceil(radyf);
-	
-		n = (2 * this->m_radx + 1) * (2 * this->m_rady + 1);
+		
+		int ddwidth = 2 * this->m_radx + 1;
+		int ddheight = 2 * this->m_rady + 1;
+		n = ddwidth * ddheight;
 	
 		/* create a full filter image */
 		ddgauss = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 		dgauss = ddgauss;
-		val = 0.0f;
+		float sum = 0.0f;
 		for (j = -this->m_rady; j <= this->m_rady; j++) {
 			for (i = -this->m_radx; i <= this->m_radx; i++, dgauss++) {
 				float fj = (float)j / radyf;
@@ -98,16 +99,19 @@ void GaussianBokehBlurOperation::updateGauss()
 				float dist = sqrt(fj * fj + fi * fi);
 				*dgauss = RE_filter_value(this->m_data->filtertype, dist);
 				
-				val += *dgauss;
+				sum += *dgauss;
 			}
 		}
-		if (val != 0.0f) {
-			val = 1.0f / val;
-			for (j = n - 1; j >= 0; j--) {
-				ddgauss[j] *= val;
-			}
+		if (sum > 0.0f) {
+			/* normalize */
+			float norm = 1.0f / sum;
+			for (j = n - 1; j >= 0; j--)
+				ddgauss[j] *= norm;
 		}
-		else ddgauss[4] = 1.0f;
+		else {
+			int center = m_rady * ddwidth + m_radx;
+			ddgauss[center] = 1.0f;
+		}
 		
 		this->m_gausstab = ddgauss;
 	}
