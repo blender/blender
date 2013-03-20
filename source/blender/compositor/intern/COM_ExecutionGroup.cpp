@@ -633,3 +633,13 @@ void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float y
 		              ymin * this->m_height, ymax * this->m_height);
 	}
 }
+
+void ExecutionGroup::setRenderBorder(float xmin, float xmax, float ymin, float ymax)
+{
+	NodeOperation *operation = this->getOutputNodeOperation();
+
+	if (operation->isOutputOperation(true) && !(operation->isViewerOperation() || operation->isPreviewOperation())) {
+		BLI_rcti_init(&this->m_viewerBorder, xmin * this->m_width, xmax * this->m_width,
+		              ymin * this->m_height, ymax * this->m_height);
+	}
+}

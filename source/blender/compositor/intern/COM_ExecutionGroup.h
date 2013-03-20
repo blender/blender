@@ -417,6 +417,8 @@ public:
 	 */
 	void setViewerBorder(float xmin, float xmax, float ymin, float ymax);
 
+	void setRenderBorder(float xmin, float xmax, float ymin, float ymax);
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
 #endif
