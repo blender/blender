@@ -90,7 +90,7 @@ struct FreestyleLineStyle;
 typedef struct FreestyleLineSet {
 	struct FreestyleLineSet *next, *prev;
 
-	char name[32]; /* line set name */
+	char name[64]; /* line set name, MAX_NAME */
 	int flags;
 
 	int selection; /* selection criteria */
@@ -107,7 +107,7 @@ typedef struct FreestyleLineSet {
 typedef struct FreestyleModuleConfig {
 	struct FreestyleModuleConfig *next, *prev;
 
-	char module_path[256];
+	char module_path[1024]; /* FILE_MAX */
 	short is_displayed;
 	short pad[3];
 } FreestyleModuleConfig;

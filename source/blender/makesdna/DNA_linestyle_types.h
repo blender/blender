@@ -37,7 +37,7 @@ struct CurveMapping;
 typedef struct LineStyleModifier {
 	struct LineStyleModifier *next, *prev;
 
-	char name[32];
+	char name[64]; /* MAX_NAME */
 	int type;
 	float influence;
 	int flags;
