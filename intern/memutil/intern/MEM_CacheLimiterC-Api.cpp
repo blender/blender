@@ -202,3 +202,8 @@ void MEM_CacheLimiter_ItemPriority_Func_set(MEM_CacheLimiterC *This,
 {
 	cast(This)->get_cache()->set_item_priority_func(item_priority_func);
 }
+
+size_t MEM_CacheLimiter_get_memory_in_use(MEM_CacheLimiterC *This)
+{
+	return cast(This)->get_cache()->get_memory_in_use();
+}

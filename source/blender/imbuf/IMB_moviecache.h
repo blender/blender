@@ -58,7 +58,9 @@ void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGe
                                           MovieCachePriorityDeleterFP prioritydeleterfp);
 
 void IMB_moviecache_put(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
+int IMB_moviecache_put_if_possible(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
 struct ImBuf *IMB_moviecache_get(struct MovieCache *cache, void *userkey);
+int IMB_moviecache_has_frame(struct MovieCache *cache, void *userkey);
 void IMB_moviecache_free(struct MovieCache *cache);
 
 void IMB_moviecache_cleanup(struct MovieCache *cache, int (cleanup_check_cb) (void *userkey, void *userdata), void *userdata);

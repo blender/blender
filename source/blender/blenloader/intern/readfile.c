@@ -6579,6 +6579,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	clip->tracking.dopesheet.channels.first = clip->tracking.dopesheet.channels.last = NULL;
 	clip->tracking.dopesheet.coverage_segments.first = clip->tracking.dopesheet.coverage_segments.last = NULL;
 
+	clip->prefetch_ok = FALSE;
+
 	link_list(fd, &tracking->objects);
 	
 	for (object = tracking->objects.first; object; object = object->next) {

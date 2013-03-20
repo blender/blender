@@ -1064,11 +1064,14 @@ static unsigned char *proxy_thread_next_frame(ProxyQueue *queue, MovieClip *clip
 
 	BLI_spin_lock(&queue->spin);
 	if (!*queue->stop && queue->cfra <= queue->efra) {
+		MovieClipUser user = {0};
 		char name[FILE_MAX];
 		size_t size;
 		int file;
 
-		BKE_movieclip_filename_for_frame(clip, queue->cfra, name);
+		user.framenr = queue->cfra;
+
+		BKE_movieclip_filename_for_frame(clip, &user, name);
 
 		file = open(name, O_BINARY | O_RDONLY, 0);
 		if (file < 0) {
