@@ -122,17 +122,17 @@ DispList *BKE_displist_find(ListBase *lb, int type)
 	return NULL;
 }
 
-int BKE_displist_has_faces(ListBase *lb)
+bool BKE_displist_has_faces(ListBase *lb)
 {
 	DispList *dl;
 
 	for (dl = lb->first; dl; dl = dl->next) {
 		if (ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 void BKE_displist_copy(ListBase *lbn, ListBase *lb)
@@ -271,10 +271,10 @@ void BKE_displist_count(ListBase *lb, int *totvert, int *totface, int *tottri)
 	}
 }
 
-int BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4)
+bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4)
 {
 	if ((dl->flag & DL_CYCL_V) == 0 && a == (dl->parts) - 1) {
-		return 0;
+		return false;
 	}
 
 	if (dl->flag & DL_CYCL_U) {
@@ -297,7 +297,7 @@ int BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, in
 		(*p4) -= dl->nr * dl->parts;
 	}
 
-	return 1;
+	return true;
 }
 
 /* ****************** make displists ********************* */

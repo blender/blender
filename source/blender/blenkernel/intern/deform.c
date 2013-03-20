@@ -126,7 +126,7 @@ void defvert_copy_index(MDeformVert *dvert_dst, const MDeformVert *dvert_src, co
 /* only sync over matching weights, don't add or remove groups
  * warning, loop within loop.
  */
-void defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, int use_verify)
+void defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const bool use_verify)
 {
 	if (dvert_src->totweight && dvert_dst->totweight) {
 		int i;
@@ -145,7 +145,7 @@ void defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, int use_
 
 /* be sure all flip_map values are valid */
 void defvert_sync_mapped(MDeformVert *dvert_dst, const MDeformVert *dvert_src,
-                         const int *flip_map, const int flip_map_len, const int use_verify)
+                         const int *flip_map, const int flip_map_len, const bool use_verify)
 {
 	if (dvert_src->totweight && dvert_dst->totweight) {
 		int i;
@@ -346,7 +346,7 @@ int defgroup_name_index(Object *ob, const char *name)
 }
 
 /* note, must be freed */
-int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
+int *defgroup_flip_map(Object *ob, int *flip_map_len, const bool use_default)
 {
 	int defbase_tot = *flip_map_len = BLI_countlist(&ob->defbase);
 
@@ -384,7 +384,7 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 }
 
 /* note, must be freed */
-int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, int defgroup)
+int *defgroup_flip_map_single(Object *ob, int *flip_map_len, const bool use_default, int defgroup)
 {
 	int defbase_tot = *flip_map_len = BLI_countlist(&ob->defbase);
 
@@ -416,7 +416,7 @@ int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, in
 	}
 }
 
-int defgroup_flip_index(Object *ob, int index, int use_default)
+int defgroup_flip_index(Object *ob, int index, const bool use_default)
 {
 	bDeformGroup *dg = BLI_findlink(&ob->defbase, index);
 	int flip_index = -1;

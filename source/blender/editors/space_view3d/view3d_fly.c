@@ -170,11 +170,11 @@ typedef struct FlyInfo {
 	wmTimer *timer; /* needed for redraws */
 
 	short state;
-	short redraw;
-	unsigned char use_precision;
+	bool redraw;
+	bool use_precision;
 	/* if the user presses shift they can look about
 	 * without moving the direction there looking */
-	unsigned char use_freelook;
+	bool use_freelook;
 
 	int mval[2]; /* latest 2D mouse values */
 	wmNDOFMotionData *ndof;  /* latest 3D mouse values */
@@ -182,14 +182,14 @@ typedef struct FlyInfo {
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */
 	short axis; /* Axis index to move along by default Z to move along the view */
-	short pan_view; /* when true, pan the view instead of rotating */
+	bool pan_view; /* when true, pan the view instead of rotating */
 
 	/* relative view axis locking - xlock, zlock
 	 * 0) disabled
 	 * 1) enabled but not checking because mouse hasn't moved outside the margin since locking was checked an not needed
 	 *    when the mouse moves, locking is set to 2 so checks are done.
 	 * 2) mouse moved and checking needed, if no view altering is done its changed back to 1 */
-	short xlock, zlock;
+	bool xlock, zlock;
 	float xlock_momentum, zlock_momentum; /* nicer dynamics */
 	float grid; /* world scale 1.0 default */
 
@@ -208,7 +208,7 @@ typedef struct FlyInfo {
 	/* are we flying an ortho camera in perspective view,
 	 * which was originall in ortho view?
 	 * could probably figure it out but better be explicit */
-	short is_ortho_cam;
+	bool is_ortho_cam;
 	void *obtfm; /* backup the objects transform */
 
 	/* compare between last state */
@@ -272,7 +272,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 #define FLY_CANCEL      1
 #define FLY_CONFIRM     2
 
-static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
+static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
 	float upvec[3]; /* tmp */
@@ -294,30 +294,30 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent 
 
 	if (fly->rv3d->persp == RV3D_CAMOB && fly->v3d->camera->id.lib) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
-		return FALSE;
+		return false;
 	}
 
 	if (fly->v3d->ob_centre) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly when the view is locked to an object");
-		return FALSE;
+		return false;
 	}
 
 	if (fly->rv3d->persp == RV3D_CAMOB && fly->v3d->camera->constraints.first) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly an object with constraints");
-		return FALSE;
+		return false;
 	}
 
 	fly->state = FLY_RUNNING;
 	fly->speed = 0.0f;
 	fly->axis = 2;
-	fly->pan_view = FALSE;
-	fly->xlock = FALSE;
-	fly->zlock = FALSE;
+	fly->pan_view = false;
+	fly->xlock = false;
+	fly->zlock = false;
 	fly->xlock_momentum = 0.0f;
 	fly->zlock_momentum = 0.0f;
 	fly->grid = 1.0f;
-	fly->use_precision = FALSE;
-	fly->use_freelook = FALSE;
+	fly->use_precision = false;
+	fly->use_freelook = false;
 
 #ifdef NDOF_FLY_DRAW_TOOMUCH
 	fly->redraw = 1;
@@ -354,10 +354,10 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent 
 	/* check for flying ortho camera - which we cant support well
 	 * we _could_ also check for an ortho camera but this is easier */
 	if ((fly->rv3d->persp == RV3D_CAMOB) &&
-	    (fly->rv3d->is_persp == FALSE))
+	    (fly->rv3d->is_persp == false))
 	{
 		((Camera *)fly->v3d->camera->data)->type = CAM_PERSP;
-		fly->is_ortho_cam = TRUE;
+		fly->is_ortho_cam = true;
 	}
 
 	if (fly->rv3d->persp == RV3D_CAMOB) {
@@ -601,11 +601,11 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 				break;
 			}
 			case FLY_MODAL_PAN_ENABLE:
-				fly->pan_view = TRUE;
+				fly->pan_view = true;
 				break;
 			case FLY_MODAL_PAN_DISABLE:
 //XXX2.5				WM_cursor_warp(CTX_wm_window(C), cent_orig[0], cent_orig[1]);
-				fly->pan_view = FALSE;
+				fly->pan_view = false;
 				break;
 
 			/* implement WASD keys,
@@ -694,17 +694,17 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 				break;
 
 			case FLY_MODAL_PRECISION_ENABLE:
-				fly->use_precision = TRUE;
+				fly->use_precision = true;
 				break;
 			case FLY_MODAL_PRECISION_DISABLE:
-				fly->use_precision = FALSE;
+				fly->use_precision = false;
 				break;
 
 			case FLY_MODAL_FREELOOK_ENABLE:
-				fly->use_freelook = TRUE;
+				fly->use_freelook = true;
 				break;
 			case FLY_MODAL_FREELOOK_DISABLE:
-				fly->use_freelook = FALSE;
+				fly->use_freelook = false;
 				break;
 		}
 	}
@@ -733,7 +733,7 @@ static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orien
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 		mult_m4_m4m4(diff_mat, view_mat, prev_view_imat);
 		mult_m4_m4m4(parent_mat, diff_mat, fly->root_parent->obmat);
-		BKE_object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
+		BKE_object_apply_mat4(fly->root_parent, parent_mat, true, false);
 
 		// BKE_object_where_is_calc(scene, fly->root_parent);
 
@@ -748,7 +748,7 @@ static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orien
 	else {
 		float view_mat[4][4];
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-		BKE_object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
+		BKE_object_apply_mat4(v3d->camera, view_mat, true, false);
 		id_key = &v3d->camera->id;
 	}
 
@@ -876,7 +876,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 			copy_m3_m4(mat, rv3d->viewinv);
 
-			if (fly->pan_view == TRUE) {
+			if (fly->pan_view == true) {
 				/* pan only */
 				dvec_tmp[0] = -moffset[0];
 				dvec_tmp[1] = -moffset[1];
@@ -1059,19 +1059,19 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	const int flag = U.ndof_flag;
 
 #if 0
-	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE);
-	int shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
+	bool do_rotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == false);
+	bool do_translate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
 #endif
 
-	int shouldRotate = (fly->pan_view == FALSE);
-	int shouldTranslate = TRUE;
+	bool do_rotate = (fly->pan_view == false);
+	bool do_translate = true;
 
 	float view_inv[4];
 	invert_qt_qt(view_inv, rv3d->viewquat);
 
 	rv3d->rot_angle = 0.0f; /* disable onscreen rotation doo-dad */
 
-	if (shouldTranslate) {
+	if (do_translate) {
 		const float forward_sensitivity  = 1.0f;
 		const float vertical_sensitivity = 0.4f;
 		const float lateral_sensitivity  = 0.6f;
@@ -1107,14 +1107,14 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		if (!is_zero_v3(trans)) {
 			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, trans);
-			shouldTranslate = TRUE;
+			do_translate = true;
 		}
 		else {
-			shouldTranslate = FALSE;
+			do_translate = false;
 		}
 	}
 
-	if (shouldRotate) {
+	if (do_rotate) {
 		const float turn_sensitivity = 1.0f;
 
 		float rotation[4];
@@ -1122,7 +1122,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		float angle = turn_sensitivity * ndof_to_axis_angle(ndof, axis);
 
 		if (fabsf(angle) > 0.0001f) {
-			shouldRotate = TRUE;
+			do_rotate = true;
 
 			if (fly->use_precision)
 				angle *= 0.2f;
@@ -1164,15 +1164,15 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 			rv3d->view = RV3D_VIEW_USER;
 		}
 		else {
-			shouldRotate = FALSE;
+			do_rotate = false;
 		}
 	}
 
-	if (shouldTranslate || shouldRotate) {
-		fly->redraw = TRUE;
+	if (do_translate || do_rotate) {
+		fly->redraw = true;
 
 		if (rv3d->persp == RV3D_CAMOB) {
-			move_camera(C, rv3d, fly, shouldRotate, shouldTranslate);
+			move_camera(C, rv3d, fly, do_rotate, do_translate);
 		}
 	}
 
@@ -1191,7 +1191,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	op->customdata = fly;
 
-	if (initFlyInfo(C, fly, op, event) == FALSE) {
+	if (initFlyInfo(C, fly, op, event) == false) {
 		MEM_freeN(op->customdata);
 		return OPERATOR_CANCELLED;
 	}
@@ -1217,7 +1217,7 @@ static int fly_cancel(bContext *C, wmOperator *op)
 static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int exit_code;
-	short do_draw = FALSE;
+	bool do_draw = false;
 	FlyInfo *fly = op->customdata;
 	RegionView3D *rv3d = fly->rv3d;
 	Object *fly_object = fly->root_parent ? fly->root_parent : fly->v3d->camera;
@@ -1240,7 +1240,7 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	exit_code = flyEnd(C, fly);
 
 	if (exit_code != OPERATOR_RUNNING_MODAL)
-		do_draw = TRUE;
+		do_draw = true;
 
 	if (do_draw) {
 		if (rv3d->persp == RV3D_CAMOB) {

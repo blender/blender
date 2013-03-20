@@ -1712,7 +1712,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 
 /* Returns a list of DupliObject
  * note; group dupli's already set transform matrix. see note in group_duplilist() */
-ListBase *object_duplilist_ex(Scene *sce, Object *ob, int update, int for_render)
+ListBase *object_duplilist_ex(Scene *sce, Object *ob, bool update, bool for_render)
 {
 	ListBase *duplilist = MEM_mallocN(sizeof(ListBase), "duplilist");
 	int persistent_id[MAX_DUPLI_RECUR] = {0};
@@ -1728,9 +1728,9 @@ ListBase *object_duplilist_ex(Scene *sce, Object *ob, int update, int for_render
 
 /* note: previously updating was always done, this is why it defaults to be on
  * but there are likely places it can be called without updating */
-ListBase *object_duplilist(Scene *sce, Object *ob, int for_render)
+ListBase *object_duplilist(Scene *sce, Object *ob, bool for_render)
 {
-	return object_duplilist_ex(sce, ob, TRUE, for_render);
+	return object_duplilist_ex(sce, ob, true, for_render);
 }
 
 

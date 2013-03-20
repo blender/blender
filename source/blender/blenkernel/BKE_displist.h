@@ -85,7 +85,7 @@ DispList *BKE_displist_find(struct ListBase *lb, int type);
 void BKE_displist_normals_add(struct ListBase *lb);
 void BKE_displist_count(struct ListBase *lb, int *totvert, int *totface, int *tottri);
 void BKE_displist_free(struct ListBase *lb);
-int BKE_displist_has_faces(struct ListBase *lb);
+bool BKE_displist_has_faces(struct ListBase *lb);
 
 void BKE_displist_make_surf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forRender, int forOrco);
 void BKE_displist_make_curveTypes(struct Scene *scene, struct Object *ob, int forOrco);
@@ -94,7 +94,7 @@ void BKE_displist_make_curveTypes_forOrco(struct Scene *scene, struct Object *ob
 void BKE_displist_make_mball(struct Scene *scene, struct Object *ob);
 void BKE_displist_make_mball_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 
-int BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
+bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, int flipnormal);
 
 float BKE_displist_calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);

@@ -101,7 +101,7 @@ static void special_transvert_update(Object *obedit)
 		
 		if (obedit->type == OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(obedit);
-			BM_mesh_normals_update(em->bm, TRUE);  /* does face centers too */
+			BM_mesh_normals_update(em->bm, true);  /* does face centers too */
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
@@ -1075,7 +1075,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 /* **************************************************** */
 
 
-int ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
+bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 {
 	TransVert *tv;
 	float centroid[3], vec[3], bmat[3][3];
@@ -1085,7 +1085,7 @@ int ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 	if (ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE))
 		make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS);
 	
-	if (tottrans == 0) return 0;
+	if (tottrans == 0) return false;
 
 	copy_m3_m4(bmat, obedit->obmat);
 	
@@ -1101,5 +1101,5 @@ int ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 	MEM_freeN(transvmain);
 	transvmain = NULL;
 	
-	return 1;
+	return true;
 }

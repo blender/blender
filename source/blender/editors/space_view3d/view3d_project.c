@@ -110,8 +110,8 @@ eV3DProjStatus ED_view3d_project_base(const struct ARegion *ar, struct Base *bas
 }
 
 /* perspmat is typically...
- * - 'rv3d->perspmat',   is_local == FALSE
- * - 'rv3d->persmatob', is_local == TRUE
+ * - 'rv3d->perspmat',   is_local == false
+ * - 'rv3d->persmatob', is_local == true
  */
 static eV3DProjStatus ed_view3d_project__internal(const ARegion *ar,
                                                   float perspmat[4][4], const bool is_local,  /* normally hidden */
@@ -231,39 +231,39 @@ eV3DProjStatus ED_view3d_project_float_ex(const ARegion *ar, float perspmat[4][4
 eV3DProjStatus ED_view3d_project_short_global(const ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	return ED_view3d_project_short_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+	return ED_view3d_project_short_ex(ar, rv3d->persmat, false, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
 eV3DProjStatus ED_view3d_project_short_object(const ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	return ED_view3d_project_short_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
+	return ED_view3d_project_short_ex(ar, rv3d->persmatob, true, co, r_co, flag);
 }
 
 /* --- int --- */
 eV3DProjStatus ED_view3d_project_int_global(const ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	return ED_view3d_project_int_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+	return ED_view3d_project_int_ex(ar, rv3d->persmat, false, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
 eV3DProjStatus ED_view3d_project_int_object(const ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	return ED_view3d_project_int_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
+	return ED_view3d_project_int_ex(ar, rv3d->persmatob, true, co, r_co, flag);
 }
 
 /* --- float --- */
 eV3DProjStatus ED_view3d_project_float_global(const ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	return ED_view3d_project_float_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+	return ED_view3d_project_float_ex(ar, rv3d->persmat, false, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
 eV3DProjStatus ED_view3d_project_float_object(const ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	return ED_view3d_project_float_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
+	return ED_view3d_project_float_ex(ar, rv3d->persmatob, true, co, r_co, flag);
 }
 
 
@@ -367,7 +367,7 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 		ED_view3d_win_to_vector(ar, mval, mousevec);
 		add_v3_v3v3(line_end, line_sta, mousevec);
 
-		if (isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], TRUE) == 0) {
+		if (isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], true) == 0) {
 			/* highly unlikely to ever happen, mouse vec paralelle with view plane */
 			zero_v3(out);
 		}
@@ -435,7 +435,8 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
 	normalize_v3(out);
 }
 
-void ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+void ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2],
+                              float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -472,9 +473,10 @@ void ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2
  * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
  * \param ray_start The world-space starting point of the segment.
  * \param ray_end The world-space end point of the segment.
- * \return success, FALSE if the segment is totally clipped.
+ * \return success, false if the segment is totally clipped.
  */
-int ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+bool ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float mval[2],
+                                   float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ED_view3d_win_to_segment(ar, v3d, mval, ray_start, ray_end);
@@ -482,14 +484,14 @@ int ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float mv
 	/* clipping */
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		/* if the ray is totally clipped,
-		 * restore the original values but return FALSE
+		 * restore the original values but return false
 		 * caller can choose what to do */
 		float tray_start[3] = {UNPACK3(ray_start)};
 		float tray_end[3]   = {UNPACK3(ray_end)};
 		int a;
 		for (a = 0; a < 4; a++) {
-			if (clip_line_plane(tray_start, tray_end, rv3d->clip[a]) == FALSE) {
-				return FALSE;
+			if (clip_line_plane(tray_start, tray_end, rv3d->clip[a]) == false) {
+				return false;
 			}
 		}
 
@@ -498,7 +500,7 @@ int ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float mv
 		copy_v3_v3(ray_end, tray_end);
 	}
 
-	return TRUE;
+	return true;
 }
 
 

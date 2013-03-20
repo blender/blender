@@ -69,7 +69,7 @@ void GPU_state_print(void);
  * - after drawing, the material must be disabled again */
 
 void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
-	struct Scene *scene, struct Object *ob, int glsl, int *do_alpha_after);
+                                struct Scene *scene, struct Object *ob, bool glsl, bool *do_alpha_after);
 void GPU_end_object_materials(void);
 
 int GPU_enable_material(int nr, void *attribs);
@@ -124,7 +124,7 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap);
 void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h);
 void GPU_update_images_framechange(void);
 int GPU_update_image_time(struct Image *ima, double time);
-int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int compare, int mipmap, int isdata);
+int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int compare, int mipmap, bool is_data);
 void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int rectw, int recth, int mipmap, int use_hight_bit_depth, struct Image *ima);
 void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, int y, int mipmap, struct Image *ima, struct ImBuf *ibuf);
 int GPU_upload_dxt_texture(struct ImBuf *ibuf);

@@ -91,11 +91,11 @@ bool BKE_object_is_libdata(struct Object *ob);
 bool BKE_object_obdata_is_libdata(struct Object *ob);
 
 void BKE_object_scale_to_mat3(struct Object *ob, float mat[3][3]);
-void BKE_object_rot_to_mat3(struct Object *ob, float mat[3][3], short use_drot);
-void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], short use_compat);
+void BKE_object_rot_to_mat3(struct Object *ob, float mat[3][3], bool use_drot);
+void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], bool use_compat);
 void BKE_object_to_mat3(struct Object *ob, float mat[3][3]);
 void BKE_object_to_mat4(struct Object *ob, float mat[4][4]);
-void BKE_object_apply_mat4(struct Object *ob, float mat[4][4], const short use_compat, const short use_parent);
+void BKE_object_apply_mat4(struct Object *ob, float mat[4][4], const bool use_compat, const bool use_parent);
 
 int BKE_object_pose_context_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
@@ -117,8 +117,8 @@ struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
 void BKE_object_dimensions_get(struct Object *ob, float vec[3]);
 void BKE_object_dimensions_set(struct Object *ob, const float *value);
 void BKE_object_boundbox_flag(struct Object *ob, int flag, int set);
-void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3], const short use_hidden);
-int BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3], const short use_hidden);
+void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3], const bool use_hidden);
+int BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3], const bool use_hidden);
 
 /* sometimes min-max isn't enough, we need to loop over each point */
 void BKE_object_foreach_display_point(struct Object *ob, float obmat[4][4],

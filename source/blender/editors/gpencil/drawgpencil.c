@@ -757,7 +757,7 @@ void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes,
  * second time with only3d=0 for screen-aligned strokes */
-void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
+void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;

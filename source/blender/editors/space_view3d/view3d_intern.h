@@ -122,14 +122,14 @@ void draw_motion_paths_cleanup(View3D *v3d);
 
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, const short dflag);
-int draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
+bool draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 void drawaxes(float size, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4]);
-void view3d_cached_text_draw_end(View3D * v3d, ARegion * ar, int depth_write, float mat[4][4]);
+void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, float mat[4][4]);
 
 enum {
 	V3D_CACHE_TEXT_ZBUF         = (1 << 0),
@@ -140,9 +140,9 @@ enum {
 };
 
 /* drawarmature.c */
-int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
-                  const short dt, const short dflag, const unsigned char ob_wire_col[4],
-                  const short is_outline);
+bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
+                   const short dt, const short dflag, const unsigned char ob_wire_col[4],
+                   const bool is_outline);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
@@ -176,7 +176,7 @@ void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 
-int ED_view3d_boundbox_clip(RegionView3D * rv3d, float obmat[4][4], struct BoundBox *bb);
+bool ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], const struct BoundBox *bb);
 
 void view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
                         float *ofs, float *quat, float *dist, float *lens);
@@ -200,7 +200,7 @@ void view3d_toolshelf_register(struct ARegionType *art);
 void view3d_tool_props_register(struct ARegionType *art);
 
 /* view3d_snap.c */
-int ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);
+bool ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);
 
 void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
@@ -239,7 +239,7 @@ void draw_smoke_heat(struct SmokeDomainSettings *domain, struct Object *ob);
 #define VIEW3D_CAMERA_BORDER_HACK
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 extern unsigned char view3d_camera_border_hack_col[3];
-extern short view3d_camera_border_hack_test;
+extern bool view3d_camera_border_hack_test;
 #endif
 
 #endif /* __VIEW3D_INTERN_H__ */
