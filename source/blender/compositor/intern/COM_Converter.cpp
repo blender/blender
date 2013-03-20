@@ -403,6 +403,7 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			node = new PixelateNode(b_node);
 			break;
 		default:
+			node = new MuteNode(b_node);
 			break;
 	}
 	return node;
