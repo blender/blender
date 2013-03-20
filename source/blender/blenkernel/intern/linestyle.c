@@ -1011,36 +1011,35 @@ void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *list
 	}
 }
 
-/* XXX Do we want to keep that goto? Or use a boolean var? */
 char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
 {
 	LineStyleModifier *m;
+	bool found = false;
 
 	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next) {
 		switch (m->type) {
 		case LS_MODIFIER_ALONG_STROKE:
 			if (color_ramp == ((LineStyleColorModifier_AlongStroke *)m)->color_ramp)
-				goto found;
+				found = true;
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 			if (color_ramp == ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp)
-				goto found;
+				found = true;
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp)
-				goto found;
+				found = true;
 			break;
 		case LS_MODIFIER_MATERIAL:
 			if (color_ramp == ((LineStyleColorModifier_Material *)m)->color_ramp)
-				goto found;
+				found = true;
 			break;
 		}
+		if (found)
+			return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", m->name);
 	}
 	printf("FRS_path_from_ID_to_color_ramp: No color ramps correspond to the given pointer.\n");
 	return NULL;
-
-found:
-	return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", m->name);
 }
 
 void FRS_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob)
