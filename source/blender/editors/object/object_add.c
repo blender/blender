@@ -452,7 +452,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 		if (!ob)
 			return OPERATOR_CANCELLED;
 
-		rename_id(&ob->id, "CurveGuide");
+		rename_id(&ob->id, DATA_("CurveGuide"));
 		((Curve *)ob->data)->flag |= CU_PATH | CU_3D;
 		ED_object_enter_editmode(C, 0);
 		ED_object_new_primitive_matrix(C, ob, loc, rot, mat, FALSE);
@@ -465,7 +465,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 		if (!ob)
 			return OPERATOR_CANCELLED;
 
-		rename_id(&ob->id, "Field");
+		rename_id(&ob->id, DATA_("Field"));
 		if (ELEM(type, PFIELD_WIND, PFIELD_VORTEX))
 			ob->empty_drawtype = OB_SINGLE_ARROW;
 	}
@@ -822,13 +822,13 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 static const char *get_lamp_defname(int type)
 {
 	switch (type) {
-		case LA_LOCAL: return "Point";
-		case LA_SUN: return "Sun";
-		case LA_SPOT: return "Spot";
-		case LA_HEMI: return "Hemi";
-		case LA_AREA: return "Area";
+		case LA_LOCAL: return DATA_("Point");
+		case LA_SUN: return DATA_("Sun");
+		case LA_SPOT: return DATA_("Spot");
+		case LA_HEMI: return DATA_("Hemi");
+		case LA_AREA: return DATA_("Area");
 		default:
-			return "Lamp";
+			return DATA_("Lamp");
 	}
 }
 
@@ -980,7 +980,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 		BKE_nlatrack_add_strip(nlt, strip);
 
 		/* auto-name the strip, and give the track an interesting name  */
-		strcpy(nlt->name, "SoundTrack");
+		strcpy(nlt->name, DATA_("SoundTrack"));
 		BKE_nlastrip_validate_name(adt, strip);
 
 		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);

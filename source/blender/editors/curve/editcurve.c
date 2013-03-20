@@ -6150,20 +6150,20 @@ static const char *get_curve_defname(int type)
 
 	if ((type & CU_TYPE) == CU_BEZIER) {
 		switch (stype) {
-			case CU_PRIM_CURVE: return "BezierCurve";
-			case CU_PRIM_CIRCLE: return "BezierCircle";
-			case CU_PRIM_PATH: return "CurvePath";
+			case CU_PRIM_CURVE: return DATA_("BezierCurve");
+			case CU_PRIM_CIRCLE: return DATA_("BezierCircle");
+			case CU_PRIM_PATH: return DATA_("CurvePath");
 			default:
-				return "Curve";
+				return DATA_("Curve");
 		}
 	}
 	else {
 		switch (stype) {
-			case CU_PRIM_CURVE: return "NurbsCurve";
-			case CU_PRIM_CIRCLE: return "NurbsCircle";
-			case CU_PRIM_PATH: return "NurbsPath";
+			case CU_PRIM_CURVE: return DATA_("NurbsCurve");
+			case CU_PRIM_CIRCLE: return DATA_("NurbsCircle");
+			case CU_PRIM_PATH: return DATA_("NurbsPath");
 			default:
-				return "Curve";
+				return DATA_("Curve");
 		}
 	}
 }
@@ -6173,13 +6173,13 @@ static const char *get_surf_defname(int type)
 	int stype = type & CU_PRIMITIVE;
 
 	switch (stype) {
-		case CU_PRIM_CURVE: return "SurfCurve";
-		case CU_PRIM_CIRCLE: return "SurfCircle";
-		case CU_PRIM_PATCH: return "SurfPatch";
-		case CU_PRIM_SPHERE: return "SurfSphere";
-		case CU_PRIM_DONUT: return "SurfTorus";
+		case CU_PRIM_CURVE: return DATA_("SurfCurve");
+		case CU_PRIM_CIRCLE: return DATA_("SurfCircle");
+		case CU_PRIM_PATCH: return DATA_("SurfPatch");
+		case CU_PRIM_SPHERE: return DATA_("SurfSphere");
+		case CU_PRIM_DONUT: return DATA_("SurfTorus");
 		default:
-			return "Surface";
+			return DATA_("Surface");
 	}
 }
 

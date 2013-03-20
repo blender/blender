@@ -570,7 +570,7 @@ static PyObject *app_translations_pgettext_iface(BlenderAppTranslations *UNUSED(
 }
 
 PyDoc_STRVAR(app_translations_pgettext_tip_doc,
-".. method:: pgettext(msgid, msgctxt)\n"
+".. method:: pgettext_tip(msgid, msgctxt)\n"
 "\n"
 "   Try to translate the given msgid (with optional msgctxt), if tooltips' translation is enabled.\n"
 "   NOTE: See pgettext notes.\n"
@@ -586,6 +586,25 @@ PyDoc_STRVAR(app_translations_pgettext_tip_doc,
 static PyObject *app_translations_pgettext_tip(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	return _py_pgettext(args, kw, BLF_translate_do_tooltip);
+}
+
+PyDoc_STRVAR(app_translations_pgettext_data_doc,
+".. method:: pgettext_data(msgid, msgctxt)\n"
+"\n"
+"   Try to translate the given msgid (with optional msgctxt), if new data name's translation is enabled.\n"
+"   NOTE: See pgettext notes.\n"
+"\n"
+"   :arg msgid: The string to translate.\n"
+"   :type msgid: string\n"
+"   :arg msgctxt: The translation context.\n"
+"   :type msgctxt: string or None\n"
+"   :default msgctxt: BLF_I18NCONTEXT_DEFAULT value.\n"
+"   :return: The translated string (or msgid if no translation was found).\n"
+"\n"
+);
+static PyObject *app_translations_pgettext_data(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	return _py_pgettext(args, kw, BLF_translate_do_new_dataname);
 }
 
 PyDoc_STRVAR(app_translations_locale_explode_doc,
@@ -620,18 +639,20 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations *UNUSED(
 
 PyMethodDef app_translations_methods[] = {
 	/* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
-	{(char *)"register", (PyCFunction)app_translations_py_messages_register, METH_VARARGS | METH_KEYWORDS,
-	                     app_translations_py_messages_register_doc},
-	{(char *)"unregister", (PyCFunction)app_translations_py_messages_unregister, METH_VARARGS | METH_KEYWORDS,
-	                       app_translations_py_messages_unregister_doc},
-	{(char *)"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                     app_translations_pgettext_doc},
-	{(char *)"pgettext_iface", (PyCFunction)app_translations_pgettext_iface, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                           app_translations_pgettext_iface_doc},
-	{(char *)"pgettext_tip", (PyCFunction)app_translations_pgettext_tip, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                         app_translations_pgettext_tip_doc},
-	{(char *)"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                           app_translations_locale_explode_doc},
+	{"register", (PyCFunction)app_translations_py_messages_register, METH_VARARGS | METH_KEYWORDS,
+	              app_translations_py_messages_register_doc},
+	{"unregister", (PyCFunction)app_translations_py_messages_unregister, METH_VARARGS | METH_KEYWORDS,
+	                app_translations_py_messages_unregister_doc},
+	{"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	              app_translations_pgettext_doc},
+	{"pgettext_iface", (PyCFunction)app_translations_pgettext_iface, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                    app_translations_pgettext_iface_doc},
+	{"pgettext_tip", (PyCFunction)app_translations_pgettext_tip, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                  app_translations_pgettext_tip_doc},
+	{"pgettext_data", (PyCFunction)app_translations_pgettext_data, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                   app_translations_pgettext_data_doc},
+	{"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                    app_translations_locale_explode_doc},
 	{NULL}
 };
 
@@ -697,7 +718,7 @@ PyDoc_STRVAR(app_translations_doc,
 static PyTypeObject BlenderAppTranslationsType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	                            /* tp_name */
-	(char *)"bpy.app._translations_type",
+	"bpy.app._translations_type",
 	                            /* tp_basicsize */
 	sizeof(BlenderAppTranslations),
 	0,                          /* tp_itemsize */

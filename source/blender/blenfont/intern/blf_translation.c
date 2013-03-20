@@ -177,6 +177,15 @@ bool BLF_translate_tooltips(void)
 #endif
 }
 
+bool BLF_translate_new_dataname(void)
+{
+#ifdef WITH_INTERNATIONAL
+	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_NEWDATANAME);
+#else
+	return false;
+#endif
+}
+
 const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
@@ -196,6 +205,21 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
 	if (BLF_translate_tooltips()) {
+		return BLF_pgettext(msgctxt, msgid);
+	}
+	else {
+		return msgid;
+	}
+#else
+	(void)msgctxt;
+	return msgid;
+#endif
+}
+
+const char *BLF_translate_do_new_dataname(const char *msgctxt, const char *msgid)
+{
+#ifdef WITH_INTERNATIONAL
+	if (BLF_translate_new_dataname()) {
 		return BLF_pgettext(msgctxt, msgid);
 	}
 	else {

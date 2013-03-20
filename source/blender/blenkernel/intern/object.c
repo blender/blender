@@ -65,6 +65,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_pbvh.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -855,20 +857,20 @@ void *BKE_object_obdata_add_from_type(int type)
 static const char *get_obdata_defname(int type)
 {
 	switch (type) {
-		case OB_MESH: return "Mesh";
-		case OB_CURVE: return "Curve";
-		case OB_SURF: return "Surf";
-		case OB_FONT: return "Text";
-		case OB_MBALL: return "Mball";
-		case OB_CAMERA: return "Camera";
-		case OB_LAMP: return "Lamp";
-		case OB_LATTICE: return "Lattice";
-		case OB_ARMATURE: return "Armature";
-		case OB_SPEAKER: return "Speaker";
-		case OB_EMPTY: return "Empty";
+		case OB_MESH: return DATA_("Mesh");
+		case OB_CURVE: return DATA_("Curve");
+		case OB_SURF: return DATA_("Surf");
+		case OB_FONT: return DATA_("Text");
+		case OB_MBALL: return DATA_("Mball");
+		case OB_CAMERA: return DATA_("Camera");
+		case OB_LAMP: return DATA_("Lamp");
+		case OB_LATTICE: return DATA_("Lattice");
+		case OB_ARMATURE: return DATA_("Armature");
+		case OB_SPEAKER: return DATA_("Speaker");
+		case OB_EMPTY: return DATA_("Empty");
 		default:
 			printf("get_obdata_defname: Internal error, bad type: %d\n", type);
-			return "Empty";
+			return DATA_("Empty");
 	}
 }
 

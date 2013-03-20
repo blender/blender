@@ -77,8 +77,10 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 /* translation */
 bool BLF_translate_iface(void);
 bool BLF_translate_tooltips(void);
+bool BLF_translate_new_dataname(void);
 const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
+const char *BLF_translate_do_new_dataname(const char *msgctxt, const char *msgid);
 
 
 /* The "translation-marker" macro. */
@@ -90,14 +92,18 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 /*#  define _(msgid) BLF_gettext(msgid) */
 #  define IFACE_(msgid) BLF_translate_do_iface(NULL, msgid)
 #  define TIP_(msgid) BLF_translate_do_tooltip(NULL, msgid)
+#  define DATA_(msgid) BLF_translate_do_new_dataname(NULL, msgid)
 #  define CTX_IFACE_(context, msgid) BLF_translate_do_iface(context, msgid)
 #  define CTX_TIP_(context, msgid) BLF_translate_do_tooltip(context, msgid)
+#  define CTX_DATA_(context, msgid) BLF_translate_do_new_dataname(context, msgid)
 #else
 /*#  define _(msgid) msgid */
 #  define IFACE_(msgid) msgid
 #  define TIP_(msgid)   msgid
+#  define DATA_(msgid)  msgid
 #  define CTX_IFACE_(context, msgid) msgid
 #  define CTX_TIP_(context, msgid)   msgid
+#  define CTX_DATA_(context, msgid)  msgid
 #endif
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...

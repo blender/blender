@@ -56,6 +56,8 @@
 #include "BLI_threads.h"
 #include "BLI_linklist.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 
@@ -3488,17 +3490,19 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 	BLI_addtail(&ob->particlesystem, psys);
 
-	psys->part = psys_new_settings("ParticleSettings", NULL);
+	psys->part = psys_new_settings(DATA_("ParticleSettings"), NULL);
 
 	if (BLI_countlist(&ob->particlesystem) > 1)
-		BLI_snprintf(psys->name, sizeof(psys->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+		BLI_snprintf(psys->name, sizeof(psys->name), DATA_("ParticleSystem %i"), BLI_countlist(&ob->particlesystem));
 	else
-		strcpy(psys->name, "ParticleSystem");
+		strcpy(psys->name, DATA_("ParticleSystem"));
 
 	md = modifier_new(eModifierType_ParticleSystem);
 
-	if (name) BLI_strncpy_utf8(md->name, name, sizeof(md->name));
-	else BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+	if (name)
+		BLI_strncpy_utf8(md->name, name, sizeof(md->name));
+	else
+		BLI_snprintf(md->name, sizeof(md->name), DATA_("ParticleSystem %i"), BLI_countlist(&ob->particlesystem));
 	modifier_unique_name(&ob->modifiers, md);
 
 	psmd = (ParticleSystemModifierData *) md;
