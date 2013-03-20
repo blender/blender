@@ -1936,7 +1936,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 	# versions before gcc4.6 give many BLI_math warnings
 	if (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.6")
-		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_REDUNDANT_DECLS -Wredundant-decls)
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_REDUNDANT_DECLS       -Wredundant-decls)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
 	endif()
 
 	# disable because it gives warnings for printf() & friends.
@@ -1953,7 +1954,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
-	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
 
 	# gcc 4.2 gives annoying warnings on every file with this
 	if (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")

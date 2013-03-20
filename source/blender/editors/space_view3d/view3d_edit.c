@@ -3962,7 +3962,7 @@ int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	return 1;
 }
 
-/* no 4x4 sampling, run view_autodist_init first */
+/* no 4x4 sampling, run #ED_view3d_autodist_init first */
 int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldloc[3],
                               int margin, float *force_depth)
 {
