@@ -83,7 +83,7 @@ MatrixAdapter<T, 3, 1> RowMajorAdapter3x3(T* pointer);
 // The implementation may be used with auto-differentiation up to the first
 // derivative, higher derivatives may have unexpected results near the origin.
 template<typename T>
-void AngleAxisToQuaternion(T const* angle_axis, T* quaternion);
+void AngleAxisToQuaternion(const T* angle_axis, T* quaternion);
 
 // Convert a quaternion to the equivalent combined axis-angle representation.
 // The value quaternion must be a unit quaternion - it is not normalized first,
@@ -92,13 +92,13 @@ void AngleAxisToQuaternion(T const* angle_axis, T* quaternion);
 // The implemention may be used with auto-differentiation up to the first
 // derivative, higher derivatives may have unexpected results near the origin.
 template<typename T>
-void QuaternionToAngleAxis(T const* quaternion, T* angle_axis);
+void QuaternionToAngleAxis(const T* quaternion, T* angle_axis);
 
 // Conversions between 3x3 rotation matrix (in column major order) and
 // axis-angle rotation representations.  Templated for use with
 // autodifferentiation.
 template <typename T>
-void RotationMatrixToAngleAxis(T const* R, T* angle_axis);
+void RotationMatrixToAngleAxis(const T* R, T* angle_axis);
 
 template <typename T, int row_stride, int col_stride>
 void RotationMatrixToAngleAxis(
@@ -106,11 +106,11 @@ void RotationMatrixToAngleAxis(
     T* angle_axis);
 
 template <typename T>
-void AngleAxisToRotationMatrix(T const* angle_axis, T* R);
+void AngleAxisToRotationMatrix(const T* angle_axis, T* R);
 
 template <typename T, int row_stride, int col_stride>
 void AngleAxisToRotationMatrix(
-    T const* angle_axis,
+    const T* angle_axis,
     const MatrixAdapter<T, row_stride, col_stride>& R);
 
 // Conversions between 3x3 rotation matrix (in row major order) and
@@ -300,14 +300,14 @@ inline void QuaternionToAngleAxis(const T* quaternion, T* angle_axis) {
 // occurs and deals with them by taking code paths that are guaranteed
 // to not perform division by a small number.
 template <typename T>
-inline void RotationMatrixToAngleAxis(const T * R, T * angle_axis) {
+inline void RotationMatrixToAngleAxis(const T* R, T* angle_axis) {
   RotationMatrixToAngleAxis(ColumnMajorAdapter3x3(R), angle_axis);
 }
 
 template <typename T, int row_stride, int col_stride>
 void RotationMatrixToAngleAxis(
     const MatrixAdapter<const T, row_stride, col_stride>& R,
-    T * angle_axis) {
+    T* angle_axis) {
   // x = k * 2 * sin(theta), where k is the axis of rotation.
   angle_axis[0] = R(2, 1) - R(1, 2);
   angle_axis[1] = R(0, 2) - R(2, 0);
@@ -385,13 +385,13 @@ void RotationMatrixToAngleAxis(
 }
 
 template <typename T>
-inline void AngleAxisToRotationMatrix(const T * angle_axis, T * R) {
+inline void AngleAxisToRotationMatrix(const T* angle_axis, T* R) {
   AngleAxisToRotationMatrix(angle_axis, ColumnMajorAdapter3x3(R));
 }
 
 template <typename T, int row_stride, int col_stride>
 void AngleAxisToRotationMatrix(
-    const T * angle_axis,
+    const T* angle_axis,
     const MatrixAdapter<T, row_stride, col_stride>& R) {
   static const T kOne = T(1.0);
   const T theta2 = DotProduct(angle_axis, angle_axis);

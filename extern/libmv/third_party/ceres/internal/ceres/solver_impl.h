@@ -59,9 +59,28 @@ class SolverImpl {
                                ProblemImpl* problem_impl,
                                Solver::Summary* summary);
 
+  // Run the TrustRegionMinimizer for the given evaluator and configuration.
+  static void TrustRegionMinimize(
+      const Solver::Options &options,
+      Program* program,
+      CoordinateDescentMinimizer* inner_iteration_minimizer,
+      Evaluator* evaluator,
+      LinearSolver* linear_solver,
+      double* parameters,
+      Solver::Summary* summary);
+
+#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
   static void LineSearchSolve(const Solver::Options& options,
                               ProblemImpl* problem_impl,
                               Solver::Summary* summary);
+
+  // Run the LineSearchMinimizer for the given evaluator and configuration.
+  static void LineSearchMinimize(const Solver::Options &options,
+                                 Program* program,
+                                 Evaluator* evaluator,
+                                 double* parameters,
+                                 Solver::Summary* summary);
+#endif  // CERES_NO_LINE_SEARCH_MINIMIZER
 
   // Create the transformed Program, which has all the fixed blocks
   // and residuals eliminated, and in the case of automatic schur
@@ -107,24 +126,6 @@ class SolverImpl {
       const ProblemImpl::ParameterMap& parameter_map,
       Program* program,
       string* error);
-
-  // Run the TrustRegionMinimizer for the given evaluator and configuration.
-  static void TrustRegionMinimize(
-      const Solver::Options &options,
-      Program* program,
-      CoordinateDescentMinimizer* inner_iteration_minimizer,
-      Evaluator* evaluator,
-      LinearSolver* linear_solver,
-      double* parameters,
-      Solver::Summary* summary);
-
-  // Run the LineSearchMinimizer for the given evaluator and configuration.
-  static void LineSearchMinimize(
-      const Solver::Options &options,
-      Program* program,
-      Evaluator* evaluator,
-      double* parameters,
-      Solver::Summary* summary);
 
   // Remove the fixed or unused parameter blocks and residuals
   // depending only on fixed parameters from the problem. Also updates

@@ -28,6 +28,8 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#ifndef CERES_NO_SUITESPARSE
+
 #include "ceres/visibility_based_preconditioner.h"
 
 #include <algorithm>
@@ -62,7 +64,6 @@ namespace internal {
 static const double kSizePenaltyWeight = 3.0;
 static const double kSimilarityPenaltyWeight = 0.0;
 
-#ifndef CERES_NO_SUITESPARSE
 VisibilityBasedPreconditioner::VisibilityBasedPreconditioner(
     const CompressedRowBlockStructure& bs,
     const Preconditioner::Options& options)
@@ -427,7 +428,7 @@ bool VisibilityBasedPreconditioner::Factorize() {
     }
 
     if (VLOG_IS_ON(2)) {
-      cholmod_print_common("Symbolic Analysis", ss_.mutable_cc());
+      cholmod_print_common(const_cast<char*>("Symbolic Analysis"), ss_.mutable_cc());
     }
   }
 
@@ -584,7 +585,7 @@ void VisibilityBasedPreconditioner::FlattenMembershipMap(
   }
 }
 
-#endif  // CERES_NO_SUITESPARSE
-
 }  // namespace internal
 }  // namespace ceres
+
+#endif  // CERES_NO_SUITESPARSE

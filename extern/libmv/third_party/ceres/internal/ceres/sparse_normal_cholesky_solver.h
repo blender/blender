@@ -34,6 +34,8 @@
 #ifndef CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
+#if !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARSE)
+
 #include "ceres/cxsparse.h"
 #include "ceres/internal/macros.h"
 #include "ceres/linear_solver.h"
@@ -90,4 +92,5 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
 }  // namespace internal
 }  // namespace ceres
 
+#endif  // !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARSE)
 #endif  // CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_

@@ -151,7 +151,7 @@ class DenseSchurComplementSolver : public SchurComplementSolver {
   CERES_DISALLOW_COPY_AND_ASSIGN(DenseSchurComplementSolver);
 };
 
-
+#if !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARE)
 // Sparse Cholesky factorization based solver.
 class SparseSchurComplementSolver : public SchurComplementSolver {
  public:
@@ -182,6 +182,7 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
   CERES_DISALLOW_COPY_AND_ASSIGN(SparseSchurComplementSolver);
 };
 
+#endif  // !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARE)
 }  // namespace internal
 }  // namespace ceres
 

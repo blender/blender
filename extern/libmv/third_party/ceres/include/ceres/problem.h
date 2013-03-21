@@ -383,7 +383,7 @@ class Problem {
   //
   //   Problem problem;
   //   double x = 1;
-  //   problem.Add(new MyCostFunction, NULL, &x);
+  //   problem.AddResidualBlock(new MyCostFunction, NULL, &x);
   //
   //   double cost = 0.0;
   //   problem.Evaluate(Problem::EvaluateOptions(), &cost, NULL, NULL, NULL);

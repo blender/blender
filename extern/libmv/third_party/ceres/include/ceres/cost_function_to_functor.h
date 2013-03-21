@@ -68,11 +68,11 @@
 //             new IntrinsicProjection(observation_)));
 //   }
 //   template <typename T>
-//   bool operator(const T* rotation,
-//                 const T* translation,
-//                 const T* intrinsics,
-//                 const T* point,
-//                 T* residual) const {
+//   bool operator()(const T* rotation,
+//                   const T* translation,
+//                   const T* intrinsics,
+//                   const T* point,
+//                   T* residual) const {
 //     T transformed_point[3];
 //     RotateAndTranslatePoint(rotation, translation, point, transformed_point);
 //
