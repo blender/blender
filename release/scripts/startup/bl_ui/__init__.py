@@ -24,7 +24,7 @@ if "bpy" in locals():
     from imp import reload as _reload
     for val in _modules_loaded.values():
         _reload(val)
-_modules = (
+_modules = [
     "properties_animviz",
     "properties_constraint",
     "properties_data_armature",
@@ -75,14 +75,16 @@ _modules = (
     "space_userpref",
     "space_view3d",
     "space_view3d_toolbar",
-)
-__import__(name=__name__, fromlist=_modules)
-_namespace = globals()
-_modules_loaded = {name: _namespace[name] for name in _modules}
-del _namespace
-
+]
 
 import bpy
+
+if bpy.app.build_options.freestyle:
+    _modules.append("properties_freestyle")
+__import__(name=__name__, fromlist=_modules)
+_namespace = globals()
+_modules_loaded = {name: _namespace[name] for name in _modules if name != 'bpy'}
+del _namespace
 
 
 def register():

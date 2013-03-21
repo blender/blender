@@ -55,16 +55,6 @@ class RenderButtonsPanel():
         return scene and (scene.render.engine in cls.COMPAT_ENGINES)
 
 
-class RenderFreestyleButtonsPanel(RenderButtonsPanel):
-    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
-
-    @classmethod
-    def poll(cls, context):
-        if not super().poll(context):
-            return False
-        return bpy.app.build_options.freestyle
-
-
 class RENDER_PT_render(RenderButtonsPanel, Panel):
     bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -306,29 +296,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
         sub.active = rd.use_edge_enhance
         sub.prop(rd, "edge_threshold", text="Threshold", slider=True)
         sub.prop(rd, "edge_color", text="")
-
-
-class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
-    bl_label = "Freestyle"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-        self.layout.prop(rd, "use_freestyle", text="")
-
-    def draw(self, context):
-        rd = context.scene.render
-
-        layout = self.layout
-        layout.active = rd.use_freestyle
-
-        row = layout.row()
-        row.label(text="Line Thickness:")
-        row.prop(rd, "line_thickness_mode", expand=True)
-        row = layout.row()
-        row.active = (rd.line_thickness_mode == 'ABSOLUTE')
-        row.prop(rd, "unit_line_thickness")
 
 
 class RENDER_PT_stamp(RenderButtonsPanel, Panel):
