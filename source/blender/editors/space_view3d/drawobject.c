@@ -603,9 +603,15 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	glScalef(scale * sca_x, scale * sca_y, 1.0f);
 
 	if (ibuf && ibuf->rect) {
+		const bool use_clip = (U.glalphaclip != 1.0f);
 		/* Setup GL params */
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+
+		if (use_clip) {
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, U.glalphaclip);
+		}
 
 		/* Use the object color and alpha */
 		glColor4fv(ob->col);
@@ -615,6 +621,11 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
 		glDisable(GL_BLEND);
+
+		if (use_clip) {
+			glDisable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.0f);
+		}
 	}
 
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
