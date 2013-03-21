@@ -370,9 +370,10 @@ void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int 
 void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count) {}
 void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count) {}
 void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma) {}
-int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me) {return 0;}
-int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me) {return 0;}
+int ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set) { return -1; }
+int ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set) { return -1; }
 bool ED_mesh_color_remove_named(struct Mesh *me, const char *name) { return false; }
+bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name) { return false; }
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob) {}
 void ED_object_constraint_update(struct Object *ob) {}
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name) {return (struct bDeformGroup *) NULL;}

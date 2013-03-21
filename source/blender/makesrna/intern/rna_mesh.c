@@ -1268,12 +1268,12 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 	return me->edit_btmesh ? me->edit_btmesh->bm->totfacesel : 0;
 }
 
-static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, const char *name)
 {
 	PointerRNA ptr;
 	CustomData *ldata;
 	CustomDataLayer *cdl = NULL;
-	int index = ED_mesh_color_add(C, NULL, NULL, me, name, FALSE);
+	int index = ED_mesh_color_add(me, name, false);
 
 	if (index != -1) {
 		ldata = rna_mesh_ldata_helper(me);
@@ -1291,8 +1291,7 @@ static void rna_Mesh_vertex_color_remove(struct Mesh *me, ReportList *reports, C
 	}
 }
 
-static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bContext *C, ReportList *reports,
-                                                     const char *name)
+static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, ReportList *reports, const char *name)
 {
 	PointerRNA ptr;
 	CustomData *fdata;
@@ -1309,7 +1308,7 @@ static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bCo
 		return PointerRNA_NULL;
 	}
 
-	index = ED_mesh_color_add(C, NULL, NULL, me, name, FALSE);
+	index = ED_mesh_color_add(me, name, false);
 
 	if (index != -1) {
 		fdata = rna_mesh_fdata_helper(me);
@@ -1365,12 +1364,12 @@ static PointerRNA rna_Mesh_polygon_string_property_new(struct Mesh *me, struct b
 	return ptr;
 }
 
-static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, const char *name)
 {
 	PointerRNA ptr;
 	CustomData *pdata;
 	CustomDataLayer *cdl = NULL;
-	int index = ED_mesh_uv_texture_add(C, me, name, FALSE);
+	int index = ED_mesh_uv_texture_add(me, name, false);
 
 	if (index != -1) {
 		pdata = rna_mesh_pdata_helper(me);
@@ -1381,11 +1380,17 @@ static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, c
 	return ptr;
 }
 
+static void rna_Mesh_uv_texture_layers_remove(struct Mesh *me, ReportList *reports, CustomDataLayer *layer)
+{
+	if (ED_mesh_uv_texture_remove_named(me, layer->name) == false) {
+		BKE_reportf(reports, RPT_ERROR, "texture layer '%s' not found", layer->name);
+	}
+}
+
 /* while this is supposed to be readonly,
  * keep it to support importers that only make tessfaces */
 
-static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bContext *C, ReportList *reports,
-                                                   const char *name)
+static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, ReportList *reports, const char *name)
 {
 	PointerRNA ptr;
 	CustomData *fdata;
@@ -1402,7 +1407,7 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bCont
 		return PointerRNA_NULL;
 	}
 
-	index = ED_mesh_uv_texture_add(C, me, name, FALSE);
+	index = ED_mesh_uv_texture_add(me, name, false);
 
 	if (index != -1) {
 		fdata = rna_mesh_fdata_helper(me);
@@ -2373,7 +2378,7 @@ static void rna_def_tessface_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* eventually deprecate this */
 	func = RNA_def_function(srna, "new", "rna_Mesh_tessface_vertex_color_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
 	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
 	parm = RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer");
@@ -2408,7 +2413,6 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Loop Colors", "Collection of vertex colors");
 
 	func = RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
 	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
 	parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The newly created layer");
@@ -2547,7 +2551,7 @@ static void rna_def_tessface_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* eventually deprecate this */
 	func = RNA_def_function(srna, "new", "rna_Mesh_tessface_uv_texture_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a UV tessface-texture layer to Mesh (only for meshes with no polygons)");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
 	parm = RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
@@ -2584,21 +2588,17 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "UV Maps", "Collection of UV maps");
 
 	func = RNA_def_function(srna, "new", "rna_Mesh_uv_texture_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a UV map layer to Mesh");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
 	parm = RNA_def_pointer(func, "layer", "MeshTexturePolyLayer", "", "The newly created layer");
 	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 
-#if 0
 	func = RNA_def_function(srna, "remove", "rna_Mesh_uv_texture_layers_remove");
 	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
-#endif
+	parm = RNA_def_pointer(func, "layer", "MeshTexturePolyLayer", "", "The layer to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTexturePolyLayer");
