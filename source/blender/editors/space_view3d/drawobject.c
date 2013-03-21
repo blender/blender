@@ -1416,15 +1416,15 @@ static void draw_limit_line(float sta, float end, const short dflag, unsigned in
 	glVertex3f(0.0, 0.0, -end);
 	glEnd();
 
-	glPointSize(3.0);
-	glBegin(GL_POINTS);
-	if (!(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR | DRAW_SCENESET))) {
+	if (!(dflag & DRAW_PICKING)) {
+		glPointSize(3.0);
+		glBegin(GL_POINTS);
 		cpack(col);
+		glVertex3f(0.0, 0.0, -sta);
+		glVertex3f(0.0, 0.0, -end);
+		glEnd();
+		glPointSize(1.0);
 	}
-	glVertex3f(0.0, 0.0, -sta);
-	glVertex3f(0.0, 0.0, -end);
-	glEnd();
-	glPointSize(1.0);
 }
 
 

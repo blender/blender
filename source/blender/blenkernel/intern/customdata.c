@@ -1458,6 +1458,14 @@ int CustomData_get_stencil_layer_index(const CustomData *data, int type)
 /* -------------------------------------------------------------------- */
 /* index values per layer type */
 
+int CustomData_get_named_layer(const struct CustomData *data, int type, const char *name)
+{
+	const int named_index = CustomData_get_named_layer_index(data, type, name);
+	const int layer_index = data->typemap[type];
+	BLI_assert(customdata_typemap_is_valid(data));
+	return (named_index != -1) ? named_index - layer_index : -1;
+}
+
 int CustomData_get_active_layer(const CustomData *data, int type)
 {
 	const int layer_index = data->typemap[type];

@@ -1284,6 +1284,13 @@ static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C,
 	return ptr;
 }
 
+static void rna_Mesh_vertex_color_remove(struct Mesh *me, ReportList *reports, CustomDataLayer *layer)
+{
+	if (ED_mesh_color_remove_named(me, layer->name) == false) {
+		BKE_reportf(reports, RPT_ERROR, "vertex color '%s' not found", layer->name);
+	}
+}
+
 static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bContext *C, ReportList *reports,
                                                      const char *name)
 {
@@ -2408,14 +2415,12 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 
-#if 0
 	func = RNA_def_function(srna, "remove", "rna_Mesh_vertex_color_remove");
 	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The layer to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
-#endif
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshLoopColorLayer");

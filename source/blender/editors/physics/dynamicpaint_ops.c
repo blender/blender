@@ -225,7 +225,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 			if (!exists)
 				ED_mesh_color_add(C, scene, ob, ob->data, name, 1);
 			else 
-				ED_mesh_color_remove_named(C, ob, ob->data, name);
+				ED_mesh_color_remove_named(ob->data, name);
 		}
 		/* Vertex Weight Layer */
 		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
