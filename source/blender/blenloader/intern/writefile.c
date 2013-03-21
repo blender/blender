@@ -2789,114 +2789,69 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 }
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
-static void customnodes_add_deprecated_nodetree_data(bNodeTree *ntree)
-{
-	bNodeLink *link, *last_link = ntree->links.last;
-	/* Forward compatibility for group nodes: add links to node tree interface sockets.
-	 * These links are invalid by new rules (missing node pointer)!
-	 * They will be removed again in customnodes_free_deprecated_data,
-	 * cannot do this directly lest bNodeLink pointer mapping becomes ambiguous.
-	 * When loading files with such links in a new Blender version
-	 * they will be removed as well.
-	 */
-	for (link = ntree->links.first; link; link = link->next) {
-		bNode *fromnode = link->fromnode, *tonode = link->tonode;
-		bNodeSocket *fromsock = link->fromsock, *tosock = link->tosock;
-		
-		/* check both sides of the link, to handle direct input-to-output links */
-		if (fromnode->type == NODE_GROUP_INPUT) {
-			fromnode = NULL;
-			fromsock = ntreeFindSocketInterface(ntree, SOCK_IN, fromsock->identifier);
-		}
-		/* only the active output node defines links */
-		if (tonode->type == NODE_GROUP_OUTPUT && (tonode->flag & NODE_DO_OUTPUT)) {
-			tonode = NULL;
-			tosock = ntreeFindSocketInterface(ntree, SOCK_OUT, tosock->identifier);
-		}
-		
-		if (!fromnode || !tonode) {
-			/* Note: not using nodeAddLink here, it asserts existing node pointers */
-			bNodeLink *tlink = MEM_callocN(sizeof(bNodeLink), "group node link");
-			tlink->fromnode = fromnode;
-			tlink->fromsock = fromsock;
-			tlink->tonode = tonode;
-			tlink->tosock= tosock;
-			tosock->link = tlink;
-			tlink->flag |= NODE_LINK_VALID;
-			BLI_addtail(&ntree->links, tlink);
-		}
-		
-		/* don't check newly created compatibility links */
-		if (link == last_link)
-			break;
-	}
-}
-
 static void customnodes_add_deprecated_data(Main *mainvar)
 {
-	bNodeTree *ntree;
-	Scene *scene;
-	Material *mat;
-	World *world;
-	Lamp *lamp;
-	Tex *tex;
-	
-	for (ntree = mainvar->nodetree.first; ntree; ntree = ntree->id.next)
-		customnodes_add_deprecated_nodetree_data(ntree);
-	for (scene = mainvar->scene.first; scene; scene = scene->id.next)
-		if (scene->nodetree)
-			customnodes_add_deprecated_nodetree_data(scene->nodetree);
-	for (mat = mainvar->mat.first; mat; mat = mat->id.next)
-		if (mat->nodetree)
-			customnodes_add_deprecated_nodetree_data(mat->nodetree);
-	for (world = mainvar->world.first; world; world = world->id.next)
-		if (world->nodetree)
-			customnodes_add_deprecated_nodetree_data(world->nodetree);
-	for (lamp = mainvar->lamp.first; lamp; lamp = lamp->id.next)
-		if (lamp->nodetree)
-			customnodes_add_deprecated_nodetree_data(lamp->nodetree);
-	for (tex = mainvar->tex.first; tex; tex = tex->id.next)
-		if (tex->nodetree)
-			customnodes_add_deprecated_nodetree_data(tex->nodetree);
-}
-
-static void customnodes_free_deprecated_nodetree_data(bNodeTree *ntree)
-{
-	bNodeLink *link, *next_link;
-	
-	for (link = ntree->links.first; link; link = next_link) {
-		next_link = link->next;
-		if (link->fromnode == NULL || link->tonode == NULL)
-			nodeRemLink(ntree, link);
+	FOREACH_NODETREE(mainvar, ntree, id) {
+		bNodeLink *link, *last_link = ntree->links.last;
+		
+		/* only do this for node groups */
+		if (id != &ntree->id)
+			continue;
+		
+		/* Forward compatibility for group nodes: add links to node tree interface sockets.
+		 * These links are invalid by new rules (missing node pointer)!
+		 * They will be removed again in customnodes_free_deprecated_data,
+		 * cannot do this directly lest bNodeLink pointer mapping becomes ambiguous.
+		 * When loading files with such links in a new Blender version
+		 * they will be removed as well.
+		 */
+		for (link = ntree->links.first; link; link = link->next) {
+			bNode *fromnode = link->fromnode, *tonode = link->tonode;
+			bNodeSocket *fromsock = link->fromsock, *tosock = link->tosock;
+			
+			/* check both sides of the link, to handle direct input-to-output links */
+			if (fromnode->type == NODE_GROUP_INPUT) {
+				fromnode = NULL;
+				fromsock = ntreeFindSocketInterface(ntree, SOCK_IN, fromsock->identifier);
+			}
+			/* only the active output node defines links */
+			if (tonode->type == NODE_GROUP_OUTPUT && (tonode->flag & NODE_DO_OUTPUT)) {
+				tonode = NULL;
+				tosock = ntreeFindSocketInterface(ntree, SOCK_OUT, tosock->identifier);
+			}
+			
+			if (!fromnode || !tonode) {
+				/* Note: not using nodeAddLink here, it asserts existing node pointers */
+				bNodeLink *tlink = MEM_callocN(sizeof(bNodeLink), "group node link");
+				tlink->fromnode = fromnode;
+				tlink->fromsock = fromsock;
+				tlink->tonode = tonode;
+				tlink->tosock= tosock;
+				tosock->link = tlink;
+				tlink->flag |= NODE_LINK_VALID;
+				BLI_addtail(&ntree->links, tlink);
+			}
+			
+			/* don't check newly created compatibility links */
+			if (link == last_link)
+				break;
+		}
 	}
+	FOREACH_NODETREE_END
 }
 
 static void customnodes_free_deprecated_data(Main *mainvar)
 {
-	bNodeTree *ntree;
-	Scene *scene;
-	Material *mat;
-	World *world;
-	Lamp *lamp;
-	Tex *tex;
-	
-	for (ntree = mainvar->nodetree.first; ntree; ntree = ntree->id.next)
-		customnodes_free_deprecated_nodetree_data(ntree);
-	for (scene = mainvar->scene.first; scene; scene = scene->id.next)
-		if (scene->nodetree)
-			customnodes_free_deprecated_nodetree_data(scene->nodetree);
-	for (mat = mainvar->mat.first; mat; mat = mat->id.next)
-		if (mat->nodetree)
-			customnodes_free_deprecated_nodetree_data(mat->nodetree);
-	for (world = mainvar->world.first; world; world = world->id.next)
-		if (world->nodetree)
-			customnodes_free_deprecated_nodetree_data(world->nodetree);
-	for (lamp = mainvar->lamp.first; lamp; lamp = lamp->id.next)
-		if (lamp->nodetree)
-			customnodes_free_deprecated_nodetree_data(lamp->nodetree);
-	for (tex = mainvar->tex.first; tex; tex = tex->id.next)
-		if (tex->nodetree)
-			customnodes_free_deprecated_nodetree_data(tex->nodetree);
+	FOREACH_NODETREE(mainvar, ntree, id) {
+		bNodeLink *link, *next_link;
+		
+		for (link = ntree->links.first; link; link = next_link) {
+			next_link = link->next;
+			if (link->fromnode == NULL || link->tonode == NULL)
+				nodeRemLink(ntree, link);
+		}
+	}
+	FOREACH_NODETREE_END
 }
 #endif
 

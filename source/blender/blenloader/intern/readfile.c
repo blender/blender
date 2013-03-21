@@ -2458,9 +2458,13 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		 *
 		 * XXX this should actually be part of do_versions,
 		 * but needs valid typeinfo pointers to create interface nodes.
+		 *
+		 * Note: theoretically only needed in node groups (main->nodetree),
+		 * but due to a temporary bug such links could have been added in all trees,
+		 * so have to clean up all of them ...
 		 */
 		
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+		FOREACH_NODETREE(main, ntree, id) {
 			if (ntree->flag & NTREE_DO_VERSIONS_CUSTOMNODES_GROUP) {
 				bNode *input_node = NULL, *output_node = NULL;
 				int num_inputs = 0, num_outputs = 0;
@@ -2540,6 +2544,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 				ntree->flag &= ~(NTREE_DO_VERSIONS_CUSTOMNODES_GROUP | NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE);
 			}
 		}
+		FOREACH_NODETREE_END
 	}
 	
 	/* verify all group user nodes */
@@ -9011,8 +9016,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* Set flag for delayed do_versions in lib_verify_nodetree. It needs valid typeinfo pointers ... */
 	{
-		bNodeTree *ntree;
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+		FOREACH_NODETREE(main, ntree, id) {
 			/* XXX This should be kept without version check for now!
 			 * As long as USE_NODE_COMPAT_CUSTOMNODES is active, files will write links
 			 * to tree interface sockets for forward compatibility. These links need to be removed again
@@ -9027,6 +9031,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (!MAIN_VERSION_ATLEAST(main, 266, 2))
 				ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE;
 		}
+		FOREACH_NODETREE_END
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 266, 3)) {
