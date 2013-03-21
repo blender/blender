@@ -3029,7 +3029,7 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
 	BMVert *eve;
 	BMIter iter;
 
-	if (!em->selectmode == SCE_SELECT_VERTEX) {
+	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Does not work out of vertex selection mode");
 		return OPERATOR_CANCELLED;
 	}

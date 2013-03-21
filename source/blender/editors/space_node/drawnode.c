@@ -114,18 +114,18 @@ static void node_add_menu_class(bContext *C, uiLayout *layout, void *arg_nodecla
 				continue;
 			
 			switch (ntree->type) {
-			case NTREE_COMPOSIT:
-				ngroup_type = "CompositorNodeTree";
-				node_type = "CompositorNodeGroup";
-				break;
-			case NTREE_SHADER:
-				ngroup_type = "ShaderNodeTree";
-				node_type = "ShaderNodeGroup";
-				break;
-			case NTREE_TEXTURE:
-				ngroup_type = "TextureNodeTree";
-				node_type = "TextureNodeGroup";
-				break;
+				case NTREE_COMPOSIT:
+					ngroup_type = "CompositorNodeTree";
+					node_type = "CompositorNodeGroup";
+					break;
+				case NTREE_SHADER:
+					ngroup_type = "ShaderNodeTree";
+					node_type = "ShaderNodeGroup";
+					break;
+				case NTREE_TEXTURE:
+					ngroup_type = "TextureNodeTree";
+					node_type = "TextureNodeGroup";
+					break;
 			}
 			
 			ptr = uiItemFullO(layout, "NODE_OT_group_make", "New Group", ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
