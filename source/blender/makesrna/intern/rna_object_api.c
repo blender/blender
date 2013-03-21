@@ -391,6 +391,14 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 		}
 	}
 }
+
+static int rna_Object_update_from_editmode(Object *ob)
+{
+	if (ob->mode & OB_MODE_EDIT) {
+		return ED_object_editmode_load(ob);
+	}
+	return false;
+}
 #endif /* NDEBUG */
 
 #else /* RNA_RUNTIME */
@@ -567,6 +575,11 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 #endif /* NDEBUG */
+
+	func = RNA_def_function(srna, "update_from_editmode", "rna_Object_update_from_editmode");
+	RNA_def_function_ui_description(func, "Load the objects edit-mode data intp the object data");
+	parm = RNA_def_boolean(func, "result", 0, "", "Success");
+	RNA_def_function_return(func, parm);
 }
 
 

@@ -312,29 +312,26 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 
 /* ******************* toggle editmode operator  ***************** */
 
-void ED_object_exit_editmode(bContext *C, int flag)
+/**
+ * Load EditMode data back into the object,
+ * optionally freeing the editmode data.
+ */
+static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
 {
-	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
+	if (obedit == NULL) {
+		return false;
+	}
 
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	int freedata = flag & EM_FREEDATA;
-	
-	if (obedit == NULL) return;
-	
-	if (flag & EM_WAITCURSOR) waitcursor(1);
 	if (obedit->type == OB_MESH) {
 		Mesh *me = obedit->data;
-		
-//		if (EM_texFaceCheck())
-		
+
 		if (me->edit_btmesh->bm->totvert > MESH_MAX_VERTS) {
 			error("Too many vertices");
-			return;
+			return false;
 		}
-		
+
 		EDBM_mesh_load(obedit);
-		
+
 		if (freedata) {
 			EDBM_mesh_free(me->edit_btmesh);
 			MEM_freeN(me->edit_btmesh);
@@ -367,6 +364,29 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if (freedata) free_editMball(obedit);
 	}
 
+	return true;
+}
+
+bool ED_object_editmode_load(Object *obedit)
+{
+	return ED_object_editmode_load_ex(obedit, false);
+}
+
+void ED_object_exit_editmode(bContext *C, int flag)
+{
+	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
+	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	const bool freedata = (flag & EM_FREEDATA) != 0;
+
+	if (flag & EM_WAITCURSOR) waitcursor(1);
+
+	if (ED_object_editmode_load_ex(obedit, freedata) == false) {
+		if (flag & EM_WAITCURSOR) waitcursor(0);
+		return;
+	}
+
 	/* freedata only 0 now on file saves and render */
 	if (freedata) {
 		ListBase pidlist;
@@ -390,13 +410,13 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	
 		if (flag & EM_DO_UNDO)
 			ED_undo_push(C, "Editmode");
-	
-		if (flag & EM_WAITCURSOR) waitcursor(0);
-	
+
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 
 		obedit->mode &= ~OB_MODE_EDIT;
 	}
+
+	if (flag & EM_WAITCURSOR) waitcursor(0);
 }
 
 

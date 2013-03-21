@@ -572,7 +572,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	bScreen *sc = CTX_wm_screen(C);
 
 	/* get editmode results */
-	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
+	ED_object_editmode_load(CTX_data_edit_object(C));
 
 	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL; /* can be NULL */
 	bkr->main = CTX_data_main(C);

@@ -127,7 +127,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	second_life                = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
-	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
+	ED_object_editmode_load(CTX_data_edit_object(C));
 
 	if (collada_export(CTX_data_scene(C),
 	                   filepath,

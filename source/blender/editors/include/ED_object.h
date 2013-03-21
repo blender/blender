@@ -130,6 +130,7 @@ void ED_object_toggle_modes(struct bContext *C, int mode);
 #define EM_IGNORE_LAYER 16
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
+bool ED_object_editmode_load(struct Object *obedit);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3]);
