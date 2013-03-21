@@ -642,13 +642,13 @@ void FRS_finish_stroke_rendering(Render *re)
 
 void FRS_init_freestyle_config(FreestyleConfig *config)
 {
-	config->mode = FREESTYLE_CONTROL_SCRIPT_MODE;
+	config->mode = FREESTYLE_CONTROL_EDITOR_MODE;
 
 	config->modules.first = config->modules.last = NULL;
 	config->flags = 0;
 	config->sphere_radius = DEFAULT_SPHERE_RADIUS;
 	config->dkr_epsilon = DEFAULT_DKR_EPSILON;
-	config->crease_angle = DEG2RADF(120.0f);
+	config->crease_angle = DEG2RADF(134.43f);
 
 	config->linesets.first = config->linesets.last = NULL;
 }
@@ -773,7 +773,7 @@ FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
 
 	lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
 	lineset->flags |= FREESTYLE_LINESET_ENABLED;
-	lineset->selection = FREESTYLE_SEL_IMAGE_BORDER;
+	lineset->selection = FREESTYLE_SEL_VISIBILITY | FREESTYLE_SEL_EDGE_TYPES | FREESTYLE_SEL_IMAGE_BORDER;
 	lineset->qi = FREESTYLE_QI_VISIBLE;
 	lineset->qi_start = 0;
 	lineset->qi_end = 100;
