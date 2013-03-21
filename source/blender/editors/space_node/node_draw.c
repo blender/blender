@@ -359,7 +359,10 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		nsock->locx = locx + NODE_WIDTH(node);
 		/* place the socket circle in the middle of the layout */
 		nsock->locy = 0.5f * (dy + buty);
+		
 		dy = buty;
+		if (nsock->next)
+			dy -= NODE_SOCKDY;
 	}
 
 	node->prvr.xmin = locx + NODE_DYS;
@@ -443,7 +446,10 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		nsock->locx = locx;
 		/* place the socket circle in the middle of the layout */
 		nsock->locy = 0.5f * (dy + buty);
+		
 		dy = buty;
+		if (nsock->next)
+			dy -= NODE_SOCKDY;
 	}
 	
 	/* little bit space in end */

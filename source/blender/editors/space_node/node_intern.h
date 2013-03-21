@@ -230,6 +230,7 @@ extern const char *node_context_dir[];
 #define BASIS_RAD       (0.4f * U.widget_unit)
 #define NODE_DYS        (U.widget_unit / 2)
 #define NODE_DY         U.widget_unit
+#define NODE_SOCKDY     (0.08f * U.widget_unit)
 #define NODE_WIDTH(node)	(node->width * UI_DPI_FAC)
 #define NODE_MARGIN_X   (0.75f * U.widget_unit)
 #define NODE_SOCKSIZE   (0.25f * U.widget_unit)
