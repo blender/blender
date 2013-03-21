@@ -1040,7 +1040,7 @@ static int prefetch_get_final_frame(const bContext *C)
 	int end_frame;
 
 	/* check whether all the frames from prefetch range are cached */
-	end_frame = min_ii(sc->user.framenr + U.prefetchframes - 1, EFRA);
+	end_frame = EFRA;
 
 	if (clip->len)
 		end_frame = min_ii(end_frame, clip->len);
@@ -1057,10 +1057,6 @@ static bool prefetch_check_early_out(const bContext *C)
 	int clip_len;
 
 	if (clip->prefetch_ok)
-		return true;
-
-	/* prefetch is disabled in user preferences */
-	if (U.prefetchframes == 0)
 		return true;
 
 	clip_len = BKE_movieclip_get_duration(clip);
