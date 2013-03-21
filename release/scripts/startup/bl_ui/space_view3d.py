@@ -111,6 +111,11 @@ class VIEW3D_HT_header(Header):
             elif snap_element == 'FACE':
                 row.prop(toolsettings, "use_snap_project", text="")
 
+        # AutoMerge editing
+        if obj:
+            if (mode == 'EDIT' and obj.type == 'MESH'):
+                layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
+
         # OpenGL render
         row = layout.row(align=True)
         row.operator("render.opengl", text="", icon='RENDER_STILL')
