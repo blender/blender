@@ -78,8 +78,20 @@ enum {
 	FLY_MODAL_FREELOOK_ENABLE,
 	FLY_MODAL_FREELOOK_DISABLE,
 	FLY_MODAL_SPEED,	/* mousepan typically */
-
 };
+
+/* relative view axis locking - xlock, zlock */
+typedef enum eFlyPanState {
+	/* disabled */
+	FLY_AXISLOCK_STATE_OFF    = 0,
+
+	/* enabled but not checking because mouse hasn't moved outside the margin since locking was checked an not needed
+	 * when the mouse moves, locking is set to 2 so checks are done. */
+	FLY_AXISLOCK_STATE_IDLE   = 1,
+
+	/* mouse moved and checking needed, if no view altering is done its changed back to #FLY_AXISLOCK_STATE_IDLE */
+	FLY_AXISLOCK_STATE_ACTIVE = 2
+} eFlyPanState;
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void fly_modal_keymap(wmKeyConfig *keyconf)
@@ -184,12 +196,7 @@ typedef struct FlyInfo {
 	short axis; /* Axis index to move along by default Z to move along the view */
 	bool pan_view; /* when true, pan the view instead of rotating */
 
-	/* relative view axis locking - xlock, zlock
-	 * 0) disabled
-	 * 1) enabled but not checking because mouse hasn't moved outside the margin since locking was checked an not needed
-	 *    when the mouse moves, locking is set to 2 so checks are done.
-	 * 2) mouse moved and checking needed, if no view altering is done its changed back to 1 */
-	bool xlock, zlock;
+	eFlyPanState xlock, zlock;
 	float xlock_momentum, zlock_momentum; /* nicer dynamics */
 	float grid; /* world scale 1.0 default */
 
@@ -311,8 +318,8 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	fly->speed = 0.0f;
 	fly->axis = 2;
 	fly->pan_view = false;
-	fly->xlock = false;
-	fly->zlock = false;
+	fly->xlock = FLY_AXISLOCK_STATE_OFF;
+	fly->zlock = FLY_AXISLOCK_STATE_OFF;
 	fly->xlock_momentum = 0.0f;
 	fly->zlock_momentum = 0.0f;
 	fly->grid = 1.0f;
@@ -342,7 +349,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	copy_m3_m4(mat, fly->rv3d->viewinv);
 	mul_m3_v3(mat, upvec);
 	if (fabsf(upvec[2]) < 0.1f) {
-		fly->zlock = 1;
+		fly->zlock = FLY_AXISLOCK_STATE_IDLE;
 	}
 	upvec[0] = 0;
 	upvec[1] = 0;
@@ -677,18 +684,18 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 				break;
 
 			case FLY_MODAL_AXIS_LOCK_X:
-				if (fly->xlock)
-					fly->xlock = 0;
+				if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
+					fly->xlock = FLY_AXISLOCK_STATE_OFF;
 				else {
-					fly->xlock = 2;
+					fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->xlock_momentum = 0.0;
 				}
 				break;
 			case FLY_MODAL_AXIS_LOCK_Z:
-				if (fly->zlock)
-					fly->zlock = 0;
+				if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
+					fly->zlock = FLY_AXISLOCK_STATE_OFF;
 				else {
-					fly->zlock = 2;
+					fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->zlock_momentum = 0.0;
 				}
 				break;
@@ -710,7 +717,8 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 	}
 }
 
-static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orientationChanged, int positionChanged)
+static void flyMoveCamera(bContext *C, RegionView3D *rv3d, FlyInfo *fly,
+                            const bool do_rotate, const bool do_translate)
 {
 	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
 
@@ -764,11 +772,11 @@ static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orien
 		 *	2) on each subsequent frame
 		 *		TODO: need to check in future that frame changed before doing this 
 		 */
-		if (orientationChanged) {
+		if (do_rotate) {
 			KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
 			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		}
-		if (positionChanged) {
+		if (do_translate) {
 			KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		}
@@ -851,7 +859,8 @@ static int flyApply(bContext *C, FlyInfo *fly)
 		/* Should we redraw? */
 		if ((fly->speed != 0.0f) ||
 		    moffset[0] || moffset[1] ||
-		    fly->zlock || fly->xlock ||
+		    (fly->zlock != FLY_AXISLOCK_STATE_OFF) ||
+		    (fly->xlock != FLY_AXISLOCK_STATE_OFF) ||
 		    dvec[0] || dvec[1] || dvec[2])
 		{
 			float dvec_tmp[3];
@@ -904,10 +913,10 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					axis_angle_to_quat(tmp_quat, upvec, (float)moffset[1] * time_redraw * -FLY_ROTATE_FAC);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
-					if (fly->xlock)
-						fly->xlock = 2;  /* check for rotation */
-					if (fly->zlock)
-						fly->zlock = 2;
+					if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
+						fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;  /* check for rotation */
+					if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
+						fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->xlock_momentum = 0.0f;
 				}
 
@@ -940,13 +949,13 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					axis_angle_to_quat(tmp_quat, upvec, (float)moffset[0] * time_redraw * FLY_ROTATE_FAC);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
-					if (fly->xlock)
-						fly->xlock = 2;  /* check for rotation */
-					if (fly->zlock)
-						fly->zlock = 2;
+					if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
+						fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;  /* check for rotation */
+					if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
+						fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
 				}
 
-				if (fly->zlock == 2) {
+				if (fly->zlock == FLY_AXISLOCK_STATE_ACTIVE) {
 					upvec[0] = 1.0f;
 					upvec[1] = 0.0f;
 					upvec[2] = 0.0f;
@@ -968,12 +977,13 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						fly->zlock_momentum += FLY_ZUP_CORRECT_ACCEL;
 					}
 					else {
-						fly->zlock = 1; /* don't check until the view rotates again */
+						fly->zlock = FLY_AXISLOCK_STATE_IDLE; /* don't check until the view rotates again */
 						fly->zlock_momentum = 0.0f;
 					}
 				}
 
-				if (fly->xlock == 2 && moffset[1] == 0) { /* only apply xcorrect when mouse isn't applying x rot */
+				/* only apply xcorrect when mouse isn't applying x rot */
+				if (fly->xlock == FLY_AXISLOCK_STATE_ACTIVE && moffset[1] == 0) {
 					upvec[0] = 0;
 					upvec[1] = 0;
 					upvec[2] = 1;
@@ -995,7 +1005,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						fly->xlock_momentum += 0.05f;
 					}
 					else {
-						fly->xlock = 1; /* see above */
+						fly->xlock = FLY_AXISLOCK_STATE_IDLE; /* see above */
 						fly->xlock_momentum = 0.0f;
 					}
 				}
@@ -1035,8 +1045,13 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 			add_v3_v3(rv3d->ofs, dvec);
 
-			if (rv3d->persp == RV3D_CAMOB)
-				move_camera(C, rv3d, fly, (fly->xlock || fly->zlock || moffset[0] || moffset[1]), fly->speed);
+			if (rv3d->persp == RV3D_CAMOB) {
+				const bool do_rotate = ((fly->xlock != FLY_AXISLOCK_STATE_OFF) ||
+				                        (fly->zlock != FLY_AXISLOCK_STATE_OFF) ||
+				                        ((moffset[0] || moffset[1]) && !fly->pan_view));
+				const bool do_translate = (fly->speed != 0.0f || fly->pan_view);
+				flyMoveCamera(C, rv3d, fly, do_rotate, do_translate);
+			}
 
 		}
 		else {
@@ -1172,7 +1187,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		fly->redraw = true;
 
 		if (rv3d->persp == RV3D_CAMOB) {
-			move_camera(C, rv3d, fly, do_rotate, do_translate);
+			flyMoveCamera(C, rv3d, fly, do_rotate, do_translate);
 		}
 	}
 
