@@ -575,7 +575,6 @@ void bmo_reverse_uvs_exec(BMesh *bm, BMOperator *op)
 			}
 
 			/* now that we have the uvs in the array, reverse! */
-			i = 0;
 			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				/* current loop uv is the previous loop uv */
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);

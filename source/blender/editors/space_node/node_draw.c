@@ -1161,7 +1161,7 @@ void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeT
 	
 	/* draw foreground nodes, last nodes in front */
 	for (a = 0, node = ntree->nodes.first; node; node = node->next, a++) {
-		bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
+		bNodeInstanceKey key;
 		if (node->flag & NODE_BACKGROUND)
 			continue;
 

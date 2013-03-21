@@ -924,7 +924,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 void VIEW3D_OT_ruler(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "3D Ruler & Protractor";
+	ot->name = "Ruler/Protractor";
 	ot->description = "Interactive ruler";
 	ot->idname = "VIEW3D_OT_ruler";
 
