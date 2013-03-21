@@ -63,7 +63,12 @@ private:
 	int m_renderpass;
 	
 	int m_elementsize;
-	
+
+	/**
+	 * @brief render data used for active rendering
+	 */
+	const RenderData *m_rd;
+
 protected:
 	/**
 	 * Constructor
@@ -89,6 +94,7 @@ public:
 	 */
 	void setScene(Scene *scene) { this->m_scene = scene; }
 	Scene *getScene() { return this->m_scene; }
+	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 	void setLayerId(short layerId) { this->m_layerId = layerId; }
 	short getLayerId() { return this->m_layerId; }
 	void initExecution();

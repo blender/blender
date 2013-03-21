@@ -61,6 +61,7 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem *system, CompositorC
 	if (outputSocket->isConnected()) {
 		operation->setScene(scene);
 		operation->setLayerId(layerId);
+		operation->setRenderData(context->getRenderData());
 		outputSocket->relinkConnections(operation->getOutputSocket());
 		system->addOperation(operation);
 		if (outputSocketNumber == 0) { // only do for image socket if connected

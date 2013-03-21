@@ -96,10 +96,8 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 		executionGroup->determineResolution(resolution);
 
 		if (rendering) {
-			/* TODO: would be nice to support cropping as well, but for now
-			 *       don't use border for compo when crop is enabled,
-			 *       otherwise area of interest will be a way off from rendered
-			 *       stuff
+			/* case when cropping to render border happens is handled in
+			 * compositor output and render layer nodes
 			 */
 			if ((rd->mode & R_BORDER) && !(rd->mode & R_CROP)) {
 				executionGroup->setRenderBorder(rd->border.xmin, rd->border.xmax,

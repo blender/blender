@@ -37,6 +37,7 @@ RenderLayersBaseProg::RenderLayersBaseProg(int renderpass, int elementsize) : No
 	this->setScene(NULL);
 	this->m_inputBuffer = NULL;
 	this->m_elementsize = elementsize;
+	this->m_rd = NULL;
 }
 
 
@@ -111,14 +112,29 @@ void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, Pi
 
 void RenderLayersBaseProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	int ix = x;
-	int iy = y;
-	
+	const RenderData *rd = this->m_rd;
+
+	int dx = 0, dy = 0;
+
+	if (rd->mode & R_BORDER && rd->mode & R_CROP) {
+		/* see comment in executeRegion describing coordinate mapping,
+		 * here it simply goes other way around
+		 */
+		int full_width = rd->xsch * rd->size / 100;
+		int full_height =rd->ysch * rd->size / 100;
+
+		dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
+		dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;
+	}
+
+	int ix = x - dx;
+	int iy = y - dy;
+
 	if (this->m_inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() || iy >= (int)this->getHeight() ) {
 		zero_v4(output);
 	}
 	else {
-		doInterpolation(output, x, y, sampler);
+		doInterpolation(output, ix, iy, sampler);
 	}
 }
 
