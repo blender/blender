@@ -459,7 +459,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 	int selOnly = RNA_boolean_get(op->ptr, "selected_mask");
 
 	/* get KeyingSet to use */
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOC_ROT_SCALE_ID);
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 
 	/* sanity checks */
 	if (ELEM(NULL, ob, ob->pose))
