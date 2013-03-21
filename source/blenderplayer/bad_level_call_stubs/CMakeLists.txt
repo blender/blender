@@ -29,6 +29,7 @@ remove_strict_flags()
 set(INC 
 	.
 	..
+	../../blender/blenlib
 	../../blender/blenkernel
 	../../blender/blenloader
 	../../blender/makesdna

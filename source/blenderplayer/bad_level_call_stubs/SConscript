@@ -27,18 +27,19 @@
 
 Import ('env')
 
-sources = 'stubs.c'
+sources = ['stubs.c']
 
-incs = '#/intern/guardedalloc'
-incs += ' #/source/blender/makesdna'
-incs += ' #/source/blender/makesrna'
-incs += ' #/source/blender/blenloader'
+incs = [
+    '#/intern/guardedalloc',
+    '#/source/blender/makesdna',
+    '#/source/blender/makesrna',
+    '#/source/blender/blenloader',
+    '#/source/blender/blenlib',
+    ]
 
-defs = ''
-if env['WITH_BF_INTERNATIONAL']:
-    defs += 'WITH_FREETYPE2'
+defs = []
 
 if env['WITH_BF_GAMEENGINE']:
-    defs += ' WITH_GAMEENGINE'
+    defs.append('WITH_GAMEENGINE')
 
-env.BlenderLib ('blenkernel_blc', sources = Split(sources), includes=Split(incs), defines=Split(defs), libtype=['player'],priority=[220] )
+env.BlenderLib('blenkernel_blc', sources=sources, includes=incs, defines=defs, libtype=['player'], priority=[220])

@@ -34,6 +34,7 @@
 #ifdef WITH_GAMEENGINE
 #include <stdlib.h>
 #include "DNA_listBase.h"
+#include "BLI_utildefines.h"
 #include "RNA_types.h"
 
 struct ARegion;
@@ -340,6 +341,7 @@ int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, stru
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) {}
 void ED_object_editmode_enter(struct bContext *C, int flag) {}
 void ED_object_editmode_exit(struct bContext *C, int flag) {}
+bool ED_object_editmode_load(struct Object *obedit) { return false; }
 int uiLayoutGetActive(struct uiLayout *layout) {return 0;}
 int uiLayoutGetOperatorContext(struct uiLayout *layout) {return 0;}
 int uiLayoutGetAlignment(struct uiLayout *layout) {return 0;}
