@@ -1599,6 +1599,14 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 	else
 		but = uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	
+	/* to compensate for string size padding in ui_text_icon_width,
+	 * make text aligned right if the layout is aligned right.
+	 */
+	if (uiLayoutGetAlignment(layout) == UI_LAYOUT_ALIGN_RIGHT) {
+		but->flag &= ~UI_TEXT_LEFT;	/* default, needs to be unset */
+		but->flag |= UI_TEXT_RIGHT;
+	}
+	
 	return but;
 }
 
