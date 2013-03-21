@@ -429,8 +429,9 @@ static void SetDefaultLightMode(Scene* scene)
 static bool GetMaterialUseVColor(Material *ma, const bool glslmat)
 {
 	if (ma) {
-		/* glsl uses vertex colors, otherwise use material setting */
-		return (glslmat || (ma->mode & MA_VERTEXCOLP) != 0);
+		/* glsl uses vertex colors, otherwise use material setting
+		 * defmaterial doesn't have VERTEXCOLP as default [#34505] */
+		return (glslmat || ma == &defmaterial || (ma->mode & MA_VERTEXCOLP) != 0);
 	}
 	else {
 		/* no material, use vertex colors */
