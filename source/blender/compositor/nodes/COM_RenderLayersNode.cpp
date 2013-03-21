@@ -73,6 +73,7 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem *system, CompositorC
 			system->addOperation(operation);
 			operation->setScene(scene);
 			operation->setLayerId(layerId);
+			operation->setRenderData(context->getRenderData());
 			addPreviewOperation(system, context, operation->getOutputSocket());
 		}
 		else {
