@@ -94,7 +94,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 
 /* Orthographic Camera */
 
-__device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
+__device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
 {
 	/* create ray form raster position */
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
@@ -102,6 +102,22 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 	ray->P = Pcamera;
 	ray->D = make_float3(0.0f, 0.0f, 1.0f);
+
+	/* modify ray for depth of field */
+	float aperturesize = kernel_data.cam.aperturesize;
+
+	if(aperturesize > 0.0f) {
+		/* sample point on aperture */
+		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
+
+		/* compute point on plane of focus */
+		float ft = kernel_data.cam.focaldistance/ray->D.z;
+		float3 Pfocus = ray->P + ray->D*ft;
+
+		/* update ray for effect of lens */
+		ray->P = make_float3(lensuv.x, lensuv.y, 0.0f);
+		ray->D = normalize(Pfocus - ray->P);
+	}
 
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
@@ -223,7 +239,7 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 	if(kernel_data.cam.type == CAMERA_PERSPECTIVE)
 		camera_sample_perspective(kg, raster_x, raster_y, lens_u, lens_v, ray);
 	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
-		camera_sample_orthographic(kg, raster_x, raster_y, ray);
+		camera_sample_orthographic(kg, raster_x, raster_y, lens_u, lens_v, ray);
 	else
 		camera_sample_panorama(kg, raster_x, raster_y, lens_u, lens_v, ray);
 }

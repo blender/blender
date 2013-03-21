@@ -156,7 +156,12 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob, boo
 
 		if(aperture_type == 1) {
 			float fstop = RNA_float_get(&ccamera, "aperture_fstop");
-			bcam->aperturesize = (bcam->lens*1e-3f)/(2.0f*max(fstop, 1e-5f));
+			fstop = max(fstop, 1e-5f);
+
+			if(bcam->type == CAMERA_ORTHOGRAPHIC)
+				bcam->aperturesize = 1.0f/(2.0f*fstop);
+			else
+				bcam->aperturesize = (bcam->lens*1e-3f)/(2.0f*fstop);
 		}
 		else
 			bcam->aperturesize = RNA_float_get(&ccamera, "aperture_size");
