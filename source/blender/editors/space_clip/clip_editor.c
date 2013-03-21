@@ -786,7 +786,7 @@ static bool check_prefetch_allowed(void)
 
 /* read file for specified frame number to the memory */
 static unsigned char *prefetch_read_file_to_memory(MovieClip *clip, int current_frame, short render_size,
-                                                   short render_flag , size_t *size_r)
+                                                   short render_flag, size_t *size_r)
 {
 	MovieClipUser user = {0};
 	char name[FILE_MAX];
