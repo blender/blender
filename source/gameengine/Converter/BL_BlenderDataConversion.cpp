@@ -1137,6 +1137,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		tan[i].setValue(zero_vec);
 	}
 
+	/* we need to manually initialize the uvs (MoTo doesn't do that) [#34550] */
+	for (unsigned int i = 0; i < RAS_TexVert::MAX_UNIT; i++) {
+		uvs[0][i] = uvs[1][i] = uvs[2][i] = uvs[3][i] = MT_Point2(0.f, 0.f);
+	}
+
 	for (int f=0;f<totface;f++,mface++)
 	{
 		/* get coordinates, normals and tangents */
