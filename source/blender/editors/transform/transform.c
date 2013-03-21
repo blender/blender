@@ -1685,7 +1685,7 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 {
 	rcti rect;
-	const char *printable = IFACE_("Auto Keying On");
+	const char printable[] = IFACE_("Auto Keying On");
 	float      printable_size[2];
 	int xco, yco;
 

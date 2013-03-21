@@ -619,6 +619,7 @@ void BLF_width_and_height_default(const char *str, float *width, float *height)
 		return;
 	}
 
+	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_width_and_height(global_font_default, str, width, height);
 }
 
