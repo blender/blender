@@ -70,7 +70,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 		rename_id((ID *)obedit->data, idname);
 
 		/* create editmode */
-		ED_object_enter_editmode(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
+		ED_object_editmode_enter(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
 	}
 
@@ -93,7 +93,7 @@ static void make_prim_finish(bContext *C, Object *obedit, int *state, int enter_
 
 	/* userdef */
 	if (exit_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
+		ED_object_editmode_exit(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
 	}
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }

@@ -6134,8 +6134,8 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	DAG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 	
-	ED_object_enter_editmode(C, EM_WAITCURSOR);
-	ED_object_exit_editmode(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
+	ED_object_editmode_enter(C, EM_WAITCURSOR);
+	ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -6603,7 +6603,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
 	/* userdef */
 	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);

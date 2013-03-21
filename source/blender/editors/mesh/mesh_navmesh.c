@@ -330,7 +330,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		copy_v3_v3(obedit->rot, rot);
 	}
 
-	ED_object_enter_editmode(C, EM_DO_UNDO | EM_IGNORE_LAYER);
+	ED_object_editmode_enter(C, EM_DO_UNDO | EM_IGNORE_LAYER);
 	em = BMEdit_FromObject(obedit);
 
 	if (!createob) {
@@ -416,7 +416,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 
-	ED_object_exit_editmode(C, EM_FREEDATA); 
+	ED_object_editmode_exit(C, EM_FREEDATA); 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 
 	if (createob) {

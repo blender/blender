@@ -372,7 +372,7 @@ bool ED_object_editmode_load(Object *obedit)
 	return ED_object_editmode_load_ex(obedit, false);
 }
 
-void ED_object_exit_editmode(bContext *C, int flag)
+void ED_object_editmode_exit(bContext *C, int flag)
 {
 	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
 	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
@@ -420,7 +420,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 }
 
 
-void ED_object_enter_editmode(bContext *C, int flag)
+void ED_object_editmode_enter(bContext *C, int flag)
 {
 	Scene *scene = CTX_data_scene(C);
 	Base *base = NULL;
@@ -557,9 +557,9 @@ static int editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	ToolSettings *toolsettings =  CTX_data_tool_settings(C);
 
 	if (!CTX_data_edit_object(C))
-		ED_object_enter_editmode(C, EM_WAITCURSOR);
+		ED_object_editmode_enter(C, EM_WAITCURSOR);
 	else
-		ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR);  /* had EM_DO_UNDO but op flag calls undo too [#24685] */
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR);  /* had EM_DO_UNDO but op flag calls undo too [#24685] */
 	
 	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), toolsettings);
 
@@ -609,7 +609,7 @@ static int posemode_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (base->object->type == OB_ARMATURE) {
 		if (base->object == CTX_data_edit_object(C)) {
-			ED_object_exit_editmode(C, EM_FREEDATA | EM_DO_UNDO);
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
 			ED_armature_enter_posemode(C, base);
 		}
 		else if (base->object->mode & OB_MODE_POSE)

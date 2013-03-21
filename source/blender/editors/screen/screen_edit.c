@@ -1458,7 +1458,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 		return;
 	
 	if (ed_screen_used(CTX_wm_manager(C), screen))
-		ED_object_exit_editmode(C, EM_FREEDATA | EM_DO_UNDO);
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
 
 	for (sc = CTX_data_main(C)->screen.first; sc; sc = sc->id.next) {
 		if ((U.flag & USER_SCENEGLOBAL) || sc == screen) {
