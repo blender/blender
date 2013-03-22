@@ -3430,7 +3430,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "prefetch_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "prefetchframes");
-	RNA_def_property_range(prop, 0, 500);
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_range(prop, 0, 500, 1, 0);
 	RNA_def_property_ui_text(prop, "Prefetch Frames", "Number of frames to render ahead during playback (sequencer only)");
 
 	prop = RNA_def_property(srna, "memory_cache_limit", PROP_INT, PROP_NONE);
