@@ -382,7 +382,9 @@ else:
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CPPFLAGS'].append('-DWITH_AVI')
 env['CPPFLAGS'].append('-DWITH_BOOL_COMPAT')
-env['CPPFLAGS'].append('-DHAVE_STDBOOL_H')
+
+if env['OURPLATFORM'] not in ('win32-vc', 'win64-vc'):
+    env['CPPFLAGS'].append('-DHAVE_STDBOOL_H')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
