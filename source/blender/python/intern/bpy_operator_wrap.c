@@ -45,7 +45,7 @@
 
 static void operator_properties_init(wmOperatorType *ot)
 {
-	PyObject *py_class = ot->ext.data;
+	PyTypeObject *py_class = ot->ext.data;
 	RNA_struct_blender_type_set(ot->ext.srna, ot);
 
 	/* only call this so pyrna_deferred_register_class gives a useful error
@@ -62,7 +62,6 @@ static void operator_properties_init(wmOperatorType *ot)
 	{
 		/* picky developers will notice that 'bl_property' won't work with inheritance
 		 * get direct from the dict to avoid raising a load of attribute errors (yes this isnt ideal) - campbell */
-		PyTypeObject *py_class = ot->ext.data;
 		PyObject *py_class_dict = py_class->tp_dict;
 		PyObject *bl_property = PyDict_GetItem(py_class_dict, bpy_intern_str_bl_property);
 		const char *prop_id;
