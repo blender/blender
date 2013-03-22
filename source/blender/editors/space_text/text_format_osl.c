@@ -325,7 +325,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 
 void ED_text_format_register_osl(void)
 {
-	static TextFormatType tft = {0};
+	static TextFormatType tft = {NULL};
 	static const char *ext[] = {"osl", NULL};
 
 	tft.format_identifier = txtfmt_osl_format_identifier;

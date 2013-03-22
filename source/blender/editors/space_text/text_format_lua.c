@@ -307,7 +307,7 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const int do_n
 
 void ED_text_format_register_lua(void)
 {
-	static TextFormatType tft = {0};
+	static TextFormatType tft = {NULL};
 	static const char *ext[] = {"lua", NULL};
 
 	tft.format_identifier = txtfmt_lua_format_identifier;

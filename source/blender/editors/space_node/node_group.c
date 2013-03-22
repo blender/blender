@@ -552,7 +552,7 @@ typedef enum eNodeGroupSeparateType {
 } eNodeGroupSeparateType;
 
 /* Operator Property */
-EnumPropertyItem node_group_separate_types[] = {
+static EnumPropertyItem node_group_separate_types[] = {
 	{NODE_GS_COPY, "COPY", 0, "Copy", "Copy to parent node tree, keep group intact"},
 	{NODE_GS_MOVE, "MOVE", 0, "Move", "Move to parent node tree, remove from group"},
 	{0, NULL, 0, NULL, NULL}

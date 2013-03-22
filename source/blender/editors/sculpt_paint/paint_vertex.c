@@ -293,7 +293,7 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 	/* if no mloopcol: do not do */
 	/* if mtexpoly: only the involved faces, otherwise all */
 
-	if (me->mloopcol == 0 || me->totvert == 0 || me->totpoly == 0) return;
+	if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0) return;
 
 	scol = MEM_callocN(sizeof(float) * me->totvert * 5, "scol");
 

@@ -2445,7 +2445,7 @@ typedef struct bNodeClipboard {
 	int type;
 } bNodeClipboard;
 
-bNodeClipboard node_clipboard = {{0}};
+static bNodeClipboard node_clipboard = {{NULL}};
 
 void BKE_node_clipboard_init(struct bNodeTree *ntree)
 {

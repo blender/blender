@@ -44,7 +44,7 @@
 enum {
 	voronoiEventType_Site = 0,
 	voronoiEventType_Circle = 1
-} voronoiEventType;
+};
 
 typedef struct VoronoiEvent {
 	struct VoronoiEvent *next, *prev;

@@ -672,10 +672,10 @@ static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UN
 	return 0;
 }
 
-extern int wm_start_with_console; /* wm_init_exit.c */
+extern bool wm_start_with_console; /* wm_init_exit.c */
 static int start_with_console(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	wm_start_with_console = 1;
+	wm_start_with_console = true;
 	return 0;
 }
 

@@ -323,7 +323,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
-		MultiresBakeRender bkr = {0};
+		MultiresBakeRender bkr = {NULL};
 
 		ob = base->object;
 
@@ -419,7 +419,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 	}
 
 	for (data = bkj->data.first; data; data = data->next) {
-		MultiresBakeRender bkr = {0};
+		MultiresBakeRender bkr = {NULL};
 
 		/* copy data stored in job descriptor */
 		bkr.bake_filter = bkj->bake_filter;

@@ -441,7 +441,7 @@ PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
 	"A readonly dict mapping contexts' C-identifiers to their py-identifiers."
 );
 
-PyMemberDef app_translations_members[] = {
+static PyMemberDef app_translations_members[] = {
 	{(char *)"contexts", T_OBJECT_EX, offsetof(BlenderAppTranslations, contexts), READONLY,
 	                     app_translations_contexts_doc},
 	{(char *)"contexts_C_to_py", T_OBJECT_EX, offsetof(BlenderAppTranslations, contexts_C_to_py), READONLY,
@@ -486,7 +486,7 @@ static PyObject *app_translations_locales_get(PyObject *UNUSED(self), void *UNUS
 	return ret;
 }
 
-PyGetSetDef app_translations_getseters[] = {
+static PyGetSetDef app_translations_getseters[] = {
 	/* {name, getter, setter, doc, userdata} */
 	{(char *)"locale", (getter)app_translations_locale_get, NULL, app_translations_locale_doc, NULL},
 	{(char *)"locales", (getter)app_translations_locales_get, NULL, app_translations_locales_doc, NULL},
@@ -637,7 +637,7 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations *UNUSED(
 	return Py_BuildValue("sssss", language, country, variant, language_country, language_variant);
 }
 
-PyMethodDef app_translations_methods[] = {
+static PyMethodDef app_translations_methods[] = {
 	/* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
 	{"register", (PyCFunction)app_translations_py_messages_register, METH_VARARGS | METH_KEYWORDS,
 	              app_translations_py_messages_register_doc},

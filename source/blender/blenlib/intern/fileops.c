@@ -423,7 +423,7 @@ enum {
 
 	/* error occured in callback and recursive walking should stop immediately */
 	RecursiveOp_Callback_Error = 2
-} recuresiveOp_Callback_Result;
+};
 
 typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
 
@@ -498,7 +498,7 @@ static int recursive_operation(const char *startfrom, const char *startto,
 			break;
 		}
 
-		n = scandir(startfrom, &dirlist, 0, alphasort);
+		n = scandir(startfrom, &dirlist, NULL, alphasort);
 		if (n < 0) {
 			/* error opening directory for listing */
 			perror("scandir");

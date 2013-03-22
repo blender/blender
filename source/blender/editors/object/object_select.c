@@ -439,7 +439,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if (nr == OBJECT_SELECT_LINKED_OBDATA) {
-		if (ob->data == 0)
+		if (ob->data == NULL)
 			return OPERATOR_CANCELLED;
 
 		changed = object_select_all_by_obdata(C, ob->data);

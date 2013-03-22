@@ -1803,7 +1803,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			if (!save_for_old_blender) {
 
 #ifdef USE_BMESH_SAVE_WITHOUT_MFACE
-				Mesh backup_mesh = {{0}};
+				Mesh backup_mesh = {{NULL}};
 				/* cache only - don't write */
 				backup_mesh.mface = mesh->mface;
 				mesh->mface = NULL;
@@ -1846,7 +1846,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 
-				Mesh backup_mesh = {{0}};
+				Mesh backup_mesh = {{NULL}};
 
 				/* backup */
 				backup_mesh.mpoly = mesh->mpoly;

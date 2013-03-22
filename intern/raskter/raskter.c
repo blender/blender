@@ -420,7 +420,7 @@ int PLX_raskterize(float(*base_verts)[2], int num_base_verts,
 {
 	int i;                                   /* i: Loop counter. */
 	struct PolyVert *ply;                   /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
-	struct r_FillContext ctx = {0};
+	struct r_FillContext ctx = {NULL};
 	const float buf_x_f = (float)(buf_x);
 	const float buf_y_f = (float)(buf_y);
 	/*

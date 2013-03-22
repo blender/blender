@@ -76,7 +76,7 @@ static void fillDpxMainHeader(LogImageFile *dpx, DpxMainHeader *header, const ch
 	header->fileHeader.user_data_size = DPX_UNDEFINED_U32;
 	strncpy(header->fileHeader.file_name, filename, 99);
 	header->fileHeader.file_name[99] = 0;
-	fileClock = time(0);
+	fileClock = time(NULL);
 	fileTime = localtime(&fileClock);
 	strftime(header->fileHeader.creation_date, 24, "%Y:%m:%d:%H:%M:%S%Z", fileTime);
 	header->fileHeader.creation_date[23] = 0;
@@ -138,28 +138,28 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	char *filename = (char *)byteStuff;
 	int i;
 
-	if (dpx == 0) {
+	if (dpx == NULL) {
 		if (verbose) printf("DPX: Failed to malloc dpx file structure.\n");
-		return 0;
+		return NULL;
 	}
 
 	/* zero the header */
 	memset(&header, 0, sizeof(DpxMainHeader));
 
 	/* for close routine */
-	dpx->file = 0;
+	dpx->file = NULL;
 
 	if (fromMemory == 0) {
 		/* byteStuff is then the filename */
 		dpx->file = BLI_fopen(filename, "rb");
-		if (dpx->file == 0) {
+		if (dpx->file == NULL) {
 			if (verbose) printf("DPX: Failed to open file \"%s\".\n", filename);
 			logImageClose(dpx);
-			return 0;
+			return NULL;
 		}
 		/* not used in this case */
-		dpx->memBuffer = 0;
-		dpx->memCursor = 0;
+		dpx->memBuffer = NULL;
+		dpx->memCursor = NULL;
 		dpx->memBufferSize = 0;
 	}
 	else {
@@ -171,7 +171,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	if (logimage_fread(&header, sizeof(header), 1, dpx) == 0) {
 		if (verbose) printf("DPX: Not enough data for header in \"%s\".\n", byteStuff);
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	/* endianness determination */
@@ -187,7 +187,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		if (verbose) printf("DPX: Bad magic number %lu in \"%s\".\n",
 		                    (uintptr_t)header.fileHeader.magic_num, byteStuff);
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	dpx->srcFormat = format_DPX;
@@ -195,7 +195,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	if (dpx->numElements == 0) {
 		if (verbose) printf("DPX: Wrong number of elements: %d\n", dpx->numElements);
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	dpx->width = swap_uint(header.imageHeader.pixels_per_line, dpx->isMSB);
@@ -204,7 +204,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	if (dpx->width == 0 || dpx->height == 0) {
 		if (verbose) printf("DPX: Wrong image dimension: %dx%d\n", dpx->width, dpx->height);
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	dpx->depth = 0;
@@ -251,7 +251,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		if (dpx->depth == 0 || dpx->depth > 4) {
 			if (verbose) printf("DPX: Unsupported image depth: %d\n", dpx->depth);
 			logImageClose(dpx);
-			return 0;
+			return NULL;
 		}
 
 		dpx->element[i].bitsPerSample = header.imageHeader.element[i].bits_per_sample;
@@ -261,7 +261,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		{
 			if (verbose) printf("DPX: Unsupported bitsPerSample for elements %d: %d\n", i, dpx->element[i].bitsPerSample);
 			logImageClose(dpx);
-			return 0;
+			return NULL;
 		}
 
 		dpx->element[i].maxValue = powf(2, dpx->element[i].bitsPerSample) - 1.0f;
@@ -270,7 +270,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		if (dpx->element[i].packing > 2) {
 			if (verbose) printf("DPX: Unsupported packing for element %d: %d\n", i, dpx->element[i].packing);
 			logImageClose(dpx);
-			return 0;
+			return NULL;
 		}
 
 		/* Sometimes, the offset is not set correctly in the header */
@@ -281,7 +281,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		if (dpx->element[i].dataOffset == 0) {
 			if (verbose) printf("DPX: Image header is corrupted.\n");
 			logImageClose(dpx);
-			return 0;
+			return NULL;
 		}
 
 		dpx->element[i].transfer = header.imageHeader.element[i].transfer;
@@ -386,13 +386,13 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
                         const char *creator)
 {
 	DpxMainHeader header;
-	const char *shortFilename = 0;
+	const char *shortFilename = NULL;
 	unsigned char pad[6044];
 
 	LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
-	if (dpx == 0) {
+	if (dpx == NULL) {
 		if (verbose) printf("DPX: Failed to malloc dpx file structure.\n");
-		return 0;
+		return NULL;
 	}
 
 	dpx->width = width;
@@ -418,7 +418,7 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 		default:
 			if (verbose) printf("DPX: bitsPerSample not supported: %d\n", bitsPerSample);
 			logImageClose(dpx);
-			return 0;
+			return NULL;
 	}
 
 	if (hasAlpha == 0) {
@@ -463,17 +463,17 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 
 
 	shortFilename = strrchr(filename, '/');
-	if (shortFilename == 0)
+	if (shortFilename == NULL)
 		shortFilename = filename;
 	else
 		shortFilename++;
 
 	dpx->file = BLI_fopen(filename, "wb");
 
-	if (dpx->file == 0) {
+	if (dpx->file == NULL) {
 		if (verbose) printf("DPX: Couldn't open file %s\n", filename);
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	fillDpxMainHeader(dpx, &header, shortFilename, creator);
@@ -481,7 +481,7 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 	if (fwrite(&header, sizeof(header), 1, dpx->file) == 0) {
 		if (verbose) printf("DPX: Couldn't write image header\n");
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	/* Header should be rounded to next 8k block
@@ -490,7 +490,7 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 	if (fwrite(&pad, 6044, 1, dpx->file) == 0) {
 		if (verbose) printf("DPX: Couldn't write image header\n");
 		logImageClose(dpx);
-		return 0;
+		return NULL;
 	}
 
 	return dpx;

@@ -1681,7 +1681,7 @@ static void *do_scale_thread(void *data_v)
 
 void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
-	ScaleTreadInitData init_data = {0};
+	ScaleTreadInitData init_data = {NULL};
 
 	/* prepare initialization data */
 	init_data.ibuf = ibuf;

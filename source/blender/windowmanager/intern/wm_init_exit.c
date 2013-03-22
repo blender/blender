@@ -125,7 +125,7 @@ static void wm_free_reports(bContext *C)
 	BKE_reports_clear(CTX_wm_reports(C));
 }
 
-int wm_start_with_console = 0; /* used in creator.c */
+bool wm_start_with_console = false; /* used in creator.c */
 
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)

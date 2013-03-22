@@ -97,12 +97,12 @@ LogImageFile *logImageOpenFromFile(const char *filename, int cineon)
 
 	(void)cineon;
 
-	if (f == 0)
-		return 0;
+	if (f == NULL)
+		return NULL;
 
 	if (fread(&magicNum, sizeof(unsigned int), 1, f) != 1) {
 		fclose(f);
-		return 0;
+		return NULL;
 	}
 
 	fclose(f);
@@ -112,7 +112,7 @@ LogImageFile *logImageOpenFromFile(const char *filename, int cineon)
 	else if (logImageIsCineon(&magicNum))
 		return cineonOpen((const unsigned char *)filename, 0, 0);
 
-	return 0;
+	return NULL;
 }
 
 LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int size)
@@ -122,7 +122,7 @@ LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int s
 	else if (logImageIsCineon(buffer))
 		return cineonOpen(buffer, 1, size);
 
-	return 0;
+	return NULL;
 }
 
 LogImageFile *logImageCreate(const char *filename, int cineon, int width, int height, int bitsPerSample,
@@ -136,15 +136,15 @@ LogImageFile *logImageCreate(const char *filename, int cineon, int width, int he
 		return dpxCreate(filename, width, height, bitsPerSample, isLogarithmic, hasAlpha,
 		                 referenceWhite, referenceBlack, gamma, creator);
 
-	return 0;
+	return NULL;
 }
 
 void logImageClose(LogImageFile *logImage)
 {
-	if (logImage != 0) {
+	if (logImage != NULL) {
 		if (logImage->file) {
 			fclose(logImage->file);
-			logImage->file = 0;
+			logImage->file = NULL;
 		}
 		MEM_freeN(logImage);
 	}
@@ -203,7 +203,7 @@ int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 	int returnValue;
 
 	elementData = (float *)MEM_mallocN(logImage->width * logImage->height * logImage->depth * sizeof(float), __func__);
-	if (elementData == 0)
+	if (elementData == NULL)
 		return 1;
 
 	if (convertRGBAToLogElement(data, elementData, logImage, logImage->element[0], dataIsLinearRGB) != 0) {
@@ -244,7 +244,7 @@ static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, 
 	int x, y;
 
 	row = (unsigned char *)MEM_mallocN(rowLength, __func__);
-	if (row == 0) {
+	if (row == NULL) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
 	}
@@ -272,7 +272,7 @@ static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement,
 	int x, y, offset;
 
 	row = (unsigned int *)MEM_mallocN(rowLength, __func__);
-	if (row == 0) {
+	if (row == NULL) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
 	}
@@ -313,7 +313,7 @@ static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement,
 	int x, y;
 
 	row = (unsigned short *)MEM_mallocN(rowLength, __func__);
-	if (row == 0) {
+	if (row == NULL) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
 	}
@@ -339,7 +339,7 @@ static int logImageSetData16(LogImageFile *logImage, LogImageElement logElement,
 	int x, y;
 
 	row = (unsigned short *)MEM_mallocN(rowLength, __func__);
-	if (row == 0) {
+	if (row == NULL) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
 	}
@@ -383,10 +383,10 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 		if (logImage->element[i].descriptor != descriptor_Depth && logImage->element[i].descriptor != descriptor_Composite) {
 			/* Allocate memory */
 			elementData[i] = (float *)MEM_mallocN(logImage->width * logImage->height * logImage->element[i].depth * sizeof(float), __func__);
-			if (elementData[i] == 0) {
+			if (elementData[i] == NULL) {
 				if (verbose) printf("DPX/Cineon: Cannot allocate memory for elementData[%d]\n.", i);
 				for (j = 0; j < i; j++)
-					if (elementData[j] != 0)
+					if (elementData[j] != NULL)
 						MEM_freeN(elementData[j]);
 				return 1;
 			}
@@ -396,7 +396,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 			if (logImageElementGetData(logImage, logImage->element[i], elementData[i]) != 0) {
 				if (verbose) printf("DPX/Cineon: Cannot read elementData[%d]\n.", i);
 				for (j = 0; j < i; j++)
-					if (elementData[j] != 0)
+					if (elementData[j] != NULL)
 						MEM_freeN(elementData[j]);
 				return 1;
 			}
@@ -531,10 +531,10 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 		}
 
 		mergedData = (float *)MEM_mallocN(logImage->width * logImage->height * mergedElement.depth * sizeof(float), __func__);
-		if (mergedData == 0) {
+		if (mergedData == NULL) {
 			if (verbose) printf("DPX/Cineon: Cannot allocate mergedData.\n");
 			for (i = 0; i < logImage->numElements; i++)
-				if (elementData[i] != 0)
+				if (elementData[i] != NULL)
 					MEM_freeN(elementData[i]);
 			return 1;
 		}
@@ -548,7 +548,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 
 		/* Done with elements data, clean-up */
 		for (i = 0; i < logImage->numElements; i++)
-			if (elementData[i] != 0)
+			if (elementData[i] != NULL)
 				MEM_freeN(elementData[i]);
 
 		returnValue = convertLogElementToRGBA(mergedData, data, logImage, mergedElement, dataIsLinearRGB);
@@ -1383,7 +1383,7 @@ static int convertRGBAToLogElement(float *src, float *dst, LogImageFile *logImag
 	if (srcIsLinearRGB != 0) {
 		/* we need to convert src to sRGB */
 		srgbSrc = (float *)MEM_mallocN(4 * logImage->width * logImage->height * sizeof(float), __func__);
-		if (srgbSrc == 0)
+		if (srgbSrc == NULL)
 			return 1;
 
 		memcpy(srgbSrc, src, 4 * logImage->width * logImage->height * sizeof(float));
