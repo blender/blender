@@ -65,8 +65,10 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 
 	/* Make sure node tree has previews.
 	 * Don't create previews in advance, this is done when adding preview operations.
+	 * Reserved preview size is determined by render output for now.
 	 */
-	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, COM_PREVIEW_SIZE, FALSE);
+	float aspect = rd->xsch > 0 ? (float)rd->ysch / (float)rd->xsch : 1.0;
+	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, (int)(COM_PREVIEW_SIZE * aspect), FALSE);
 
 	/* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
 	bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL);
