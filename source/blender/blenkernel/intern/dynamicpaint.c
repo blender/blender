@@ -107,9 +107,9 @@ static int neighX[8] = {1, 1, 0, -1, -1, -1, 0, 1};
 static int neighY[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 
 /* subframe_updateObject() flags */
-#define UPDATE_PARENTS (1 << 0)
+#define SUBFRAME_RECURSION 5
 #define UPDATE_MESH (1 << 1)
-#define UPDATE_EVERYTHING (UPDATE_PARENTS | UPDATE_MESH)
+#define UPDATE_EVERYTHING (UPDATE_MESH) // | UPDATE_PARENTS
 /* surface_getBrushFlags() return vals */
 #define BRUSH_USES_VELOCITY (1 << 0)
 /* brush mesh raycast status */
@@ -509,7 +509,7 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 	BLI_freelistN(&pidlist);
 }
 
-static int subframe_updateObject(Scene *scene, Object *ob, int flags, float frame)
+static int subframe_updateObject(Scene *scene, Object *ob, int flags, int parent_recursion, float frame)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
 	bConstraint *con;
@@ -519,10 +519,11 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 		return 1;
 
 	/* if object has parents, update them too */
-	if (flags & UPDATE_PARENTS) {
+	if (parent_recursion) {
+		int recursion = parent_recursion-1;
 		int is_canvas = 0;
-		if (ob->parent) is_canvas += subframe_updateObject(scene, ob->parent, 0, frame);
-		if (ob->track) is_canvas += subframe_updateObject(scene, ob->track, 0, frame);
+		if (ob->parent) is_canvas += subframe_updateObject(scene, ob->parent, 0, recursion, frame);
+		if (ob->track) is_canvas += subframe_updateObject(scene, ob->track, 0, recursion, frame);
 
 		/* skip subframe if object is parented
 		 *  to vertex of a dynamic paint canvas */
@@ -539,7 +540,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 				cti->get_constraint_targets(con, &targets);
 				for (ct = targets.first; ct; ct = ct->next) {
 					if (ct->tar)
-						subframe_updateObject(scene, ct->tar, 0, frame);
+						subframe_updateObject(scene, ct->tar, 0, recursion, frame);
 				}
 				/* free temp targets */
 				if (cti->flush_constraint_targets)
@@ -3183,7 +3184,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 	scene->r.cfra = prev_fra;
 	scene->r.subframe = prev_sfra;
 
-	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
+	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, SUBFRAME_RECURSION, BKE_scene_frame_get(scene));
 	dm_p = CDDM_copy(brush->dm);
 	numOfVerts_p = dm_p->getNumVerts(dm_p);
 	mvert_p = dm_p->getVertArray(dm_p);
@@ -3193,7 +3194,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 	scene->r.cfra = cur_fra;
 	scene->r.subframe = cur_sfra;
 
-	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
+	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, SUBFRAME_RECURSION, BKE_scene_frame_get(scene));
 	dm_c = brush->dm;
 	numOfVerts_c = dm_c->getNumVerts(dm_c);
 	mvert_c = dm_p->getVertArray(dm_c);
@@ -3243,13 +3244,13 @@ static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, 
 	/* previous frame dm */
 	scene->r.cfra = prev_fra;
 	scene->r.subframe = prev_sfra;
-	subframe_updateObject(scene, ob, UPDATE_PARENTS, BKE_scene_frame_get(scene));
+	subframe_updateObject(scene, ob, 0, SUBFRAME_RECURSION, BKE_scene_frame_get(scene));
 	copy_m4_m4(prev_obmat, ob->obmat);
 
 	/* current frame dm */
 	scene->r.cfra = cur_fra;
 	scene->r.subframe = cur_sfra;
-	subframe_updateObject(scene, ob, UPDATE_PARENTS, BKE_scene_frame_get(scene));
+	subframe_updateObject(scene, ob, 0, SUBFRAME_RECURSION, BKE_scene_frame_get(scene));
 
 	/* calculate speed */
 	mul_m4_v3(prev_obmat, prev_loc);
@@ -4973,7 +4974,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* update object data on this subframe */
 					if (subframe) {
 						scene_setSubframe(scene, subframe);
-						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
+						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, SUBFRAME_RECURSION, BKE_scene_frame_get(scene));
 					}
 					/* Prepare materials if required	*/
 					if (brush_usesMaterial(brush, scene))
@@ -5007,7 +5008,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					if (subframe) {
 						scene->r.cfra = scene_frame;
 						scene->r.subframe = scene_subframe;
-						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
+						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, SUBFRAME_RECURSION, BKE_scene_frame_get(scene));
 					}
 
 					/* process special brush effects, like smudge */
