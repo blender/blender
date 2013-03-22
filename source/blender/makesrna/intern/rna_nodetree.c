@@ -2305,7 +2305,7 @@ static void rna_NodeSocketStandard_float_range(PointerRNA *ptr, float *min, floa
 static void rna_NodeSocketStandard_int_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	bNodeSocket *sock = ptr->data;
-	bNodeSocketValueFloat *dval = sock->default_value;
+	bNodeSocketValueInt *dval = sock->default_value;
 	int subtype = sock->typeinfo->subtype;
 	
 	*min = (subtype == PROP_UNSIGNED ? 0 : INT_MIN);
