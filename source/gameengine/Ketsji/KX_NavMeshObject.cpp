@@ -96,7 +96,7 @@ CValue* KX_NavMeshObject::GetReplica()
 void KX_NavMeshObject::ProcessReplica()
 {
 	KX_GameObject::ProcessReplica();
-
+	m_navMesh = NULL;  /* without this, building frees the navmesh we copied from */
 	BuildNavMesh();
 	KX_Scene* scene = KX_GetActiveScene();
 	KX_ObstacleSimulation* obssimulation = scene->GetObstacleSimulation();
