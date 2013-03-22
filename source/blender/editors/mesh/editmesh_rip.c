@@ -533,7 +533,7 @@ static bool edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
  */
 static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
+	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -855,7 +855,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
  */
 static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
+	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);

@@ -799,7 +799,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
-	float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
@@ -919,10 +919,10 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
 static int edbm_select_mode_exec(bContext *C, wmOperator *op)
 {
-	const int type       = RNA_enum_get(op->ptr,    "type");
-	const int action     = RNA_enum_get(op->ptr,    "action");
-	const int use_extend = RNA_boolean_get(op->ptr, "use_extend");
-	const int use_expand = RNA_boolean_get(op->ptr, "use_expand");
+	const int type        = RNA_enum_get(op->ptr,    "type");
+	const int action      = RNA_enum_get(op->ptr,    "action");
+	const bool use_extend = RNA_boolean_get(op->ptr, "use_extend");
+	const bool use_expand = RNA_boolean_get(op->ptr, "use_expand");
 
 	if (EDBM_selectmode_toggle(C, type, action, use_extend, use_expand)) {
 		return OPERATOR_FINISHED;
@@ -1017,7 +1017,7 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMEdge **edarray;
 	int edindex;
-	int looptype = RNA_boolean_get(op->ptr, "ring");
+	const bool is_ring = RNA_boolean_get(op->ptr, "ring");
 	
 	BMIter iter;
 	int totedgesel = 0;
@@ -1038,7 +1038,7 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if (looptype) {
+	if (is_ring) {
 		for (edindex = 0; edindex < totedgesel; edindex += 1) {
 			eed = edarray[edindex];
 			walker_select(em, BMW_EDGERING, eed, true);
@@ -2712,7 +2712,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int nth = RNA_int_get(op->ptr, "nth");
+	const int nth = RNA_int_get(op->ptr, "nth");
 	int offset = RNA_int_get(op->ptr, "offset");
 
 	/* so input of offset zero ends up being (nth - 1) */
@@ -2827,7 +2827,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	BMFace *f, **stack = NULL;
 	BLI_array_declare(stack);
 	BMLoop *l, *l2;
-	float sharp = RNA_float_get(op->ptr, "sharpness");
+	const float sharp = RNA_float_get(op->ptr, "sharpness");
 	int i;
 
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -2965,7 +2965,7 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMFace *efa;
 	BMIter iter;
-	float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
+	const float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
 
 	BLI_srand(BLI_rand()); /* random seed */
 	
@@ -3332,15 +3332,15 @@ static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMIter iter;
 	BMFace *f;
-	int selbigger = RNA_boolean_get(op->ptr, "select_bigger");
+	const bool select_bigger = RNA_boolean_get(op->ptr, "select_bigger");
 	int a, b;
 
 	/* find the set of regions with smallest number of total faces */
-	a = loop_find_regions(em, selbigger);
-	b = loop_find_regions(em, !selbigger);
+	a = loop_find_regions(em, select_bigger);
+	b = loop_find_regions(em, !select_bigger);
 	
-	if ((a <= b) ^ selbigger) {
-		loop_find_regions(em, selbigger);
+	if ((a <= b) ^ select_bigger) {
+		loop_find_regions(em, select_bigger);
 	}
 	
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);

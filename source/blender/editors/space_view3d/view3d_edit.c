@@ -372,7 +372,7 @@ typedef struct ViewOpsData {
 
 	/* use for orbit selection and auto-dist */
 	float ofs[3], dyn_ofs[3];
-	short use_dyn_ofs;
+	bool use_dyn_ofs;
 
 	int origx, origy, oldx, oldy;
 	int origkey; /* the key that triggered the operator */
@@ -432,7 +432,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 	vod->origx = vod->oldx = event->x;
 	vod->origy = vod->oldy = event->y;
 	vod->origkey = event->type; /* the key that triggered the operator.  */
-	vod->use_dyn_ofs = (U.uiflag & USER_ORBIT_SELECTION) ? 1 : 0;
+	vod->use_dyn_ofs = (U.uiflag & USER_ORBIT_SELECTION) != 0;
 	copy_v3_v3(vod->ofs, rv3d->ofs);
 
 	if (vod->use_dyn_ofs) {
@@ -454,10 +454,11 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
 	else if (U.uiflag & USER_ZBUF_ORBIT) {
+		Scene *scene = CTX_data_scene(C);
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
-		if ((vod->use_dyn_ofs = ED_view3d_autodist(CTX_data_scene(C), vod->ar, vod->v3d, event->mval, vod->dyn_ofs, true))) {
+		if ((vod->use_dyn_ofs = ED_view3d_autodist(scene, vod->ar, vod->v3d, event->mval, vod->dyn_ofs, true))) {
 			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
@@ -1703,7 +1704,7 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const short viewzoom, const short zoom_invert)
 {
 	float zfac = 1.0;
-	short use_cam_zoom;
+	bool use_cam_zoom;
 
 	use_cam_zoom = (vod->rv3d->persp == RV3D_CAMOB) && !(vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d));
 
@@ -1845,9 +1846,9 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d;
 	ScrArea *sa;
 	ARegion *ar;
-	short use_cam_zoom;
+	bool use_cam_zoom;
 
-	int delta = RNA_int_get(op->ptr, "delta");
+	const int delta = RNA_int_get(op->ptr, "delta");
 	int mx, my;
 
 	if (op->customdata) {
@@ -2108,7 +2109,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	float mousevec[3];
 
-	int delta = RNA_int_get(op->ptr, "delta");
+	const int delta = RNA_int_get(op->ptr, "delta");
 
 	if (op->customdata) {
 		ViewOpsData *vod = op->customdata;
@@ -2350,11 +2351,11 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	Scene *scene = CTX_data_scene(C);
 	Base *base;
 	float *curs;
-	const short use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
-	const short skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
-	                           /* any one of the regions may be locked */
-	                           (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
-	int center = RNA_boolean_get(op->ptr, "center");
+	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
+	const bool skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
+	                          /* any one of the regions may be locked */
+	                          (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
+	const bool center = RNA_boolean_get(op->ptr, "center");
 
 	float min[3], max[3];
 	bool change = false;
@@ -2435,10 +2436,10 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	bool ok = false, ok_dist = true;
-	const short use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
-	const short skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
-	                           /* any one of the regions may be locked */
-	                           (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
+	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
+	const bool skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
+	                          /* any one of the regions may be locked */
+	                          (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
 
 	INIT_MINMAX(min, max);
 
@@ -2722,7 +2723,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf vb, border;
 
-	int camera_only = RNA_boolean_get(op->ptr, "camera_only");
+	const bool camera_only = RNA_boolean_get(op->ptr, "camera_only");
 
 	if (camera_only && rv3d->persp != RV3D_CAMOB)
 		return OPERATOR_PASS_THROUGH;
@@ -3581,7 +3582,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 static int background_image_remove_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	int index = RNA_int_get(op->ptr, "index");
+	const int index = RNA_int_get(op->ptr, "index");
 	BGpic *bgpic_rem = BLI_findlink(&v3d->bgpicbase, index);
 
 	if (bgpic_rem) {

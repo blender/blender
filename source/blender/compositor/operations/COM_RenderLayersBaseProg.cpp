@@ -120,8 +120,8 @@ void RenderLayersBaseProg::executePixel(float output[4], float x, float y, Pixel
 		/* see comment in executeRegion describing coordinate mapping,
 		 * here it simply goes other way around
 		 */
-		int full_width = rd->xsch * rd->size / 100;
-		int full_height =rd->ysch * rd->size / 100;
+		int full_width  = rd->xsch * rd->size / 100;
+		int full_height = rd->ysch * rd->size / 100;
 
 		dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
 		dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;

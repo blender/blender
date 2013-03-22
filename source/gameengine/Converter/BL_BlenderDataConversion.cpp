@@ -581,10 +581,9 @@ static bool ConvertMaterial(
 {
 	material->Initialize();
 	int texalpha = 0;
-	bool validmat	= (mat!=0);
-	bool validface	= (tface!=0);
-	
-	const bool use_vcol = GetMaterialUseVColor(mat, glslmat);
+	const bool validmat  = (mat != NULL);
+	const bool validface = (tface != NULL);
+	const bool use_vcol  = GetMaterialUseVColor(mat, glslmat);
 	
 	material->IdMode = DEFAULT_BLENDER;
 	material->glslmat = (validmat) ? glslmat: false;
@@ -1025,9 +1024,9 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		}
 
 		// only zsort alpha + add
-		bool alpha = ELEM3(alpha_blend, GEMAT_ALPHA, GEMAT_ADD, GEMAT_ALPHA_SORT);
-		bool zsort = (alpha_blend == GEMAT_ALPHA_SORT);
-		bool light = (ma)?(ma->mode & MA_SHLESS)==0:default_light_mode;
+		const bool alpha = ELEM3(alpha_blend, GEMAT_ALPHA, GEMAT_ADD, GEMAT_ALPHA_SORT);
+		const bool zsort = (alpha_blend == GEMAT_ALPHA_SORT);
+		const bool light = (ma)?(ma->mode & MA_SHLESS)==0:default_light_mode;
 
 		// don't need zort anymore, deal as if it it's alpha blend
 		if (alpha_blend == GEMAT_ALPHA_SORT) alpha_blend = GEMAT_ALPHA;

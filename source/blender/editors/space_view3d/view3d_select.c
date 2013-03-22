@@ -1031,8 +1031,8 @@ static EnumPropertyItem *object_select_menu_enum_itemf(bContext *C, PointerRNA *
 
 static int object_select_menu_exec(bContext *C, wmOperator *op)
 {
-	int name_index = RNA_enum_get(op->ptr, "name");
-	short toggle = RNA_boolean_get(op->ptr, "toggle");
+	const int name_index = RNA_enum_get(op->ptr, "name");
+	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	bool change = false;
 	const char *name = object_mouse_select_menu_data[name_index].idname;
 
@@ -2762,8 +2762,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
-	int radius = RNA_int_get(op->ptr, "radius");
-	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const int radius = RNA_int_get(op->ptr, "radius");
+	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	int select;
 	const int mval[2] = {RNA_int_get(op->ptr, "x"),
 	                     RNA_int_get(op->ptr, "y")};

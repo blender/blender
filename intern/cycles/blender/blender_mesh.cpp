@@ -464,7 +464,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 
 	/* displacement method */
 	if(cmesh.data) {
-		int method = RNA_enum_get(&cmesh, "displacement_method");
+		const int method = RNA_enum_get(&cmesh, "displacement_method");
 
 		if(method == 0 || !experimental)
 			mesh->displacement_method = Mesh::DISPLACE_BUMP;

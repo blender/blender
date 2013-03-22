@@ -147,7 +147,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
 	int nr = RNA_int_get(op->ptr, "nr");
-	int toggle = RNA_boolean_get(op->ptr, "toggle");
+	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	
 	if (nr < 0)
 		return OPERATOR_CANCELLED;
@@ -218,7 +218,7 @@ static int view3d_layers_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		RNA_boolean_set(op->ptr, "extend", false);
 	
 	if (event->alt) {
-		int nr = RNA_int_get(op->ptr, "nr") + 10;
+		const int nr = RNA_int_get(op->ptr, "nr") + 10;
 		RNA_int_set(op->ptr, "nr", nr);
 	}
 	view3d_layers_exec(C, op);
