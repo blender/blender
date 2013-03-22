@@ -623,7 +623,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	[m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 										  NSStringPboardType, NSTIFFPboardType, nil]];
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	[NSApp setPresentationOptions:(NSApplicationPresentationFullScreen)];
 	[m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 #endif
