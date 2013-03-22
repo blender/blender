@@ -110,6 +110,9 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 	if (node->id)
 		id_us_plus(node->id);
 	
+	if (snode->flag & SNODE_USE_HIDDEN_PREVIEW)
+		node->flag &= ~NODE_PREVIEW;
+	
 	snode_update(snode, node);
 	
 	if (snode->nodetree->type == NTREE_TEXTURE) {

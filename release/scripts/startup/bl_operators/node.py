@@ -44,6 +44,9 @@ class NodeAddOperator():
 
         node = tree.nodes.new(type=node_type)
 
+        if space.use_hidden_preview:
+            node.show_preview = False
+
         node.select = True
         tree.nodes.active = node
         node.location = space.cursor_location
