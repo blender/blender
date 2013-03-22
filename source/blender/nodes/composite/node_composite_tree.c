@@ -162,8 +162,9 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	}
 }
 
-static void local_sync(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
+static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
+	BKE_node_preview_sync_tree(ntree, localtree);
 }
 
 static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
@@ -172,6 +173,8 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 	bNodeSocket *lsock;
 	
 	/* move over the compbufs and previews */
+	BKE_node_preview_merge_tree(ntree, localtree, true);
+	
 	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {

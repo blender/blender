@@ -137,8 +137,14 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 	}
 }
 
-static void local_sync(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
+static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
+	BKE_node_preview_sync_tree(ntree, localtree);
+}
+
+static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
+{
+	BKE_node_preview_merge_tree(ntree, localtree, true);
 }
 
 static void update(bNodeTree *ntree)
@@ -168,6 +174,7 @@ void register_node_tree_type_sh(void)
 	tt->foreach_nodeclass = foreach_nodeclass;
 	tt->localize = localize;
 	tt->local_sync = local_sync;
+	tt->local_merge = local_merge;
 	tt->update = update;
 	tt->poll = shader_tree_poll;
 	tt->get_from_context = shader_get_from_context;

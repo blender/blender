@@ -1453,18 +1453,38 @@ void BKE_node_preview_sync_tree(bNodeTree *to_ntree, bNodeTree *from_ntree)
 	}
 }
 
-void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree)
+void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old)
 {
-	/* free old previews */
-	if (to_ntree->previews)
-		BKE_node_instance_hash_free(to_ntree->previews, (bNodeInstanceValueFP)BKE_node_preview_free);
-	
-	/* transfer previews */
-	to_ntree->previews = from_ntree->previews;
-	from_ntree->previews = NULL;
-	
-	/* clean up, in case any to_ntree nodes have been removed */
-	BKE_node_preview_remove_unused(to_ntree);
+	if (remove_old || !to_ntree->previews) {
+		/* free old previews */
+		if (to_ntree->previews)
+			BKE_node_instance_hash_free(to_ntree->previews, (bNodeInstanceValueFP)BKE_node_preview_free);
+		
+		/* transfer previews */
+		to_ntree->previews = from_ntree->previews;
+		from_ntree->previews = NULL;
+		
+		/* clean up, in case any to_ntree nodes have been removed */
+		BKE_node_preview_remove_unused(to_ntree);
+	}
+	else {
+		bNodeInstanceHashIterator iter;
+		
+		if (from_ntree->previews) {
+			NODE_INSTANCE_HASH_ITER(iter, from_ntree->previews) {
+				bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
+				bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
+				
+				/* replace existing previews */
+				BKE_node_instance_hash_remove(to_ntree->previews, key, (bNodeInstanceValueFP)BKE_node_preview_free);
+				BKE_node_instance_hash_insert(to_ntree->previews, key, preview);
+			}
+			
+			/* Note: NULL free function here, because pointers have already been moved over to to_ntree->previews! */
+			BKE_node_instance_hash_free(from_ntree->previews, NULL);
+			from_ntree->previews = NULL;
+		}
+	}
 }
 
 /* hack warning! this function is only used for shader previews, and 
@@ -1965,12 +1985,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 {
 	if (localtree && ntree) {
-		/* XXX syncing was disabled for compositor nodes.
-		 * It has to be ensured that there is no concurrent read/write access!
-		 * Possibly needs a mutex lock or a flag to disable for certain tree types ...
-		 */
-		BKE_node_preview_sync_tree(ntree, localtree);
-		
 		if (ntree->typeinfo->local_sync)
 			ntree->typeinfo->local_sync(localtree, ntree);
 	}
@@ -1981,8 +1995,6 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 {
 	if (localtree && ntree) {
-		BKE_node_preview_merge_tree(ntree, localtree);
-		
 		if (ntree->typeinfo->local_merge)
 			ntree->typeinfo->local_merge(localtree, ntree);
 		
