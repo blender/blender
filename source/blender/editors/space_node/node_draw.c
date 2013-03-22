@@ -975,7 +975,19 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
-	
+
+    /* custom color inline */
+    if (node->flag & NODE_CUSTOM_COLOR) {
+        glEnable(GL_BLEND);
+        glEnable(GL_LINE_SMOOTH);
+
+        glColor3fv(node->color);
+        uiDrawBox(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad);
+
+        glDisable(GL_LINE_SMOOTH);
+        glDisable(GL_BLEND);
+    }
+
 	/* title */
 	if (node->flag & SELECT) 
 		UI_ThemeColor(TH_SELECT);
