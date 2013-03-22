@@ -500,6 +500,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification;
+- (void)toggleFullScreen:(NSNotification *)notification;
 @end
 
 @implementation CocoaAppDelegate : NSObject
@@ -536,7 +537,13 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 {
 	systemCocoa->handleApplicationBecomeActiveEvent();
 }
+
+- (void)toggleFullScreen:(NSNotification *)notification
+{
+}
+
 @end
+
 
 
 
@@ -655,6 +662,11 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				
 				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
 				
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+				menuItem = [windowMenu addItemWithTitle:@"Enter Full Screen" action:@selector(toggleFullScreen:) keyEquivalent:@"f" ];
+				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+#endif
+
 				menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
 				
