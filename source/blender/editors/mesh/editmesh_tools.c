@@ -96,10 +96,10 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int cuts = RNA_int_get(op->ptr, "number_cuts");
+	const int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
-	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
-	float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
+	const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
@@ -167,7 +167,7 @@ static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
 
-	int iterations = RNA_int_get(op->ptr, "iterations");
+	const int iterations = RNA_int_get(op->ptr, "iterations");
 
 	EDBM_op_init(em, &bmop, op,
 	             "unsubdivide verts=%hv iterations=%i", BM_ELEM_SELECT, iterations);
@@ -435,9 +435,9 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		
-	int steps = RNA_int_get(op->ptr, "steps");
+	const int steps = RNA_int_get(op->ptr, "steps");
 	
-	float offs = RNA_float_get(op->ptr, "offset");
+	const float offs = RNA_float_get(op->ptr, "offset");
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3] = {0.0, 0.0, 0.0};
 	short a;
 
@@ -705,7 +705,7 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int action = RNA_enum_get(op->ptr, "action");
+	const int action = RNA_enum_get(op->ptr, "action");
 	
 	switch (action) {
 		case SEL_TOGGLE:
@@ -805,7 +805,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
 	/* call extrude? */
 	if (done) {
-		const short rot_src = RNA_boolean_get(op->ptr, "rotate_source");
+		const bool rot_src = RNA_boolean_get(op->ptr, "rotate_source");
 		BMEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3] = {0.0, 0.0, 0.0};
@@ -971,7 +971,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int type = RNA_enum_get(op->ptr, "type");
+	const int type = RNA_enum_get(op->ptr, "type");
 
 	if (type == 0) {
 		if (!EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) /* Erase Vertices */
@@ -1308,7 +1308,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMIter iter;
-	int clear = RNA_boolean_get(op->ptr, "clear");
+	const bool clear = RNA_boolean_get(op->ptr, "clear");
 	
 	/* auto-enable seams drawing */
 	if (clear == 0) {
@@ -1362,7 +1362,7 @@ static int edbm_mark_sharp(bContext *C, wmOperator *op)
 	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMIter iter;
-	int clear = RNA_boolean_get(op->ptr, "clear");
+	const bool clear = RNA_boolean_get(op->ptr, "clear");
 
 	/* auto-enable sharp edge drawing */
 	if (clear == 0) {
@@ -1578,7 +1578,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	BMEdge *eed;
 	BMIter iter;
-	const int use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
+	const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
 	int tot = 0;
 
 	if (em->bm->totedgesel == 0) {
@@ -1752,9 +1752,9 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 	int i, repeat;
 	float clip_dist = 0.0f;
 
-	int xaxis = RNA_boolean_get(op->ptr, "xaxis");
-	int yaxis = RNA_boolean_get(op->ptr, "yaxis");
-	int zaxis = RNA_boolean_get(op->ptr, "zaxis");
+	const bool xaxis = RNA_boolean_get(op->ptr, "xaxis");
+	const bool yaxis = RNA_boolean_get(op->ptr, "yaxis");
+	const bool zaxis = RNA_boolean_get(op->ptr, "zaxis");
 
 	/* mirror before smooth */
 	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
@@ -1988,7 +1988,7 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* get the direction from RNA */
-	const int use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
+	const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_op_init(em, &bmop, op, "rotate_uvs faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
@@ -2037,7 +2037,7 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* get the direction from RNA */
-	const int use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
+	const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_op_init(em, &bmop, op, "rotate_colors faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
@@ -2155,7 +2155,7 @@ void MESH_OT_colors_reverse(wmOperatorType *ot)
 }
 
 
-static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *wmop)
+static bool merge_firstlast(BMEditMesh *em, const bool use_first, const bool use_uvmerge, wmOperator *wmop)
 {
 	BMVert *mergevert;
 	BMEditSelection *ese;
@@ -2165,44 +2165,44 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 	 */
 
 	/* do sanity check in mergemenu in edit.c ?*/
-	if (first == 0) {
+	if (use_first == false) {
 		if (!em->bm->selected.last || ((BMEditSelection *)em->bm->selected.last)->htype != BM_VERT)
-			return OPERATOR_CANCELLED;
+			return false;
 
 		ese = em->bm->selected.last;
 		mergevert = (BMVert *)ese->ele;
 	}
 	else {
 		if (!em->bm->selected.first || ((BMEditSelection *)em->bm->selected.first)->htype != BM_VERT)
-			return OPERATOR_CANCELLED;
+			return false;
 
 		ese = em->bm->selected.first;
 		mergevert = (BMVert *)ese->ele;
 	}
 
 	if (!BM_elem_flag_test(mergevert, BM_ELEM_SELECT))
-		return OPERATOR_CANCELLED;
+		return false;
 	
-	if (uvmerge) {
+	if (use_uvmerge) {
 		if (!EDBM_op_callf(em, wmop, "pointmerge_facedata verts=%hv vert_snap=%e", BM_ELEM_SELECT, mergevert))
-			return OPERATOR_CANCELLED;
+			return false;
 	}
 
 	if (!EDBM_op_callf(em, wmop, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, mergevert->co))
-		return OPERATOR_CANCELLED;
+		return false;
 
-	return OPERATOR_FINISHED;
+	return true;
 }
 
-static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob, 
-                        int target, int uvmerge, wmOperator *wmop)
+static bool merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
+                         const bool use_cursor, const bool use_uvmerge, wmOperator *wmop)
 {
 	BMIter iter;
 	BMVert *v;
 	float co[3], cent[3] = {0.0f, 0.0f, 0.0f};
 	const float *vco = NULL;
 
-	if (target) {
+	if (use_cursor) {
 		vco = give_cursor(scene, v3d);
 		copy_v3_v3(co, vco);
 		mul_m4_v3(ob->imat, co);
@@ -2218,7 +2218,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 		}
 		
 		if (!i)
-			return OPERATOR_CANCELLED;
+			return false;
 
 		fac = 1.0f / (float)i;
 		mul_v3_fl(cent, fac);
@@ -2227,17 +2227,17 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 	}
 
 	if (!vco)
-		return OPERATOR_CANCELLED;
+		return false;
 	
-	if (uvmerge) {
+	if (use_uvmerge) {
 		if (!EDBM_op_callf(em, wmop, "average_vert_facedata verts=%hv", BM_ELEM_SELECT))
-			return OPERATOR_CANCELLED;
+			return false;
 	}
 
 	if (!EDBM_op_callf(em, wmop, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, co))
-		return OPERATOR_CANCELLED;
+		return false;
 
-	return OPERATOR_FINISHED;
+	return true;
 }
 
 static int edbm_merge_exec(bContext *C, wmOperator *op)
@@ -2246,30 +2246,35 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int status = 0, uvs = RNA_boolean_get(op->ptr, "uvs");
+	const int type = RNA_enum_get(op->ptr, "type");
+	const bool uvs = RNA_boolean_get(op->ptr, "uvs");
+	bool ok = false;
 
-	switch (RNA_enum_get(op->ptr, "type")) {
+	switch (type) {
 		case 3:
-			status = merge_target(em, scene, v3d, obedit, 0, uvs, op);
+			ok = merge_target(em, scene, v3d, obedit, false, uvs, op);
 			break;
 		case 4:
-			status = merge_target(em, scene, v3d, obedit, 1, uvs, op);
+			ok = merge_target(em, scene, v3d, obedit, true, uvs, op);
 			break;
 		case 1:
-			status = merge_firstlast(em, 0, uvs, op);
+			ok = merge_firstlast(em, false, uvs, op);
 			break;
 		case 6:
-			status = merge_firstlast(em, 1, uvs, op);
+			ok = merge_firstlast(em, true, uvs, op);
 			break;
 		case 5:
-			status = 1;
+			ok = true;
 			if (!EDBM_op_callf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
-				status = 0;
+				ok = false;
 			break;
+		default:
+			BLI_assert(0);
 	}
 
-	if (!status)
+	if (!ok) {
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, true, true);
 
@@ -2355,8 +2360,8 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
 	const float threshold = RNA_float_get(op->ptr, "threshold");
-	int use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
-	int totvert_orig = em->bm->totvert;
+	const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
+	const int totvert_orig = em->bm->totvert;
 	int count;
 
 	if (use_unselected) {
@@ -2438,7 +2443,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	BMEditSelection *sv, *ev;
 
 	/* get the type from RNA */
-	int type = RNA_enum_get(op->ptr, "type");
+	const int type = RNA_enum_get(op->ptr, "type");
 
 	/* first try to find vertices in edit selection */
 	sv = em->bm->selected.last;
@@ -2606,10 +2611,11 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	BMVert *eve;
 	BMIter iter;
 	float co[3], *sco;
-	float blend = RNA_float_get(op->ptr, "blend");
-	int shape = RNA_enum_get(op->ptr, "shape");
-	int add = RNA_boolean_get(op->ptr, "add");
 	int totshape;
+
+	const float blend = RNA_float_get(op->ptr, "blend");
+	const int shape = RNA_enum_get(op->ptr, "shape");
+	const bool use_add = RNA_boolean_get(op->ptr, "add");
 
 	/* sanity check */
 	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
@@ -2630,7 +2636,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
 		copy_v3_v3(co, sco);
 		
-		if (add) {
+		if (use_add) {
 			/* in add mode, we add relative shape key offset */
 			if (kb) {
 				float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
@@ -2729,8 +2735,8 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMEditSelection *ese = em->bm->selected.last;
-	int axis = RNA_enum_get(op->ptr, "axis");
-	int mode = RNA_enum_get(op->ptr, "mode"); /* -1 == aligned, 0 == neg, 1 == pos */
+	const int axis = RNA_enum_get(op->ptr, "axis");
+	const int mode = RNA_enum_get(op->ptr, "mode"); /* -1 == aligned, 0 == neg, 1 == pos */
 
 	if (ese == NULL || ese->htype != BM_VERT) {
 		BKE_report(op->reports, RPT_WARNING, "This operator requires an active vertex (last selected)");
@@ -2814,7 +2820,7 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 
-	float thickness = RNA_float_get(op->ptr, "thickness");
+	const float thickness = RNA_float_get(op->ptr, "thickness");
 
 	if (!EDBM_op_init(em, &bmop, op, "solidify geom=%hf thickness=%f", BM_ELEM_SELECT, thickness)) {
 		return OPERATOR_CANCELLED;
@@ -3060,7 +3066,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	float isect = 0.0f;
 	int len = 0, isected, i;
-	short numcuts = 1, mode = RNA_int_get(op->ptr, "type");
+	short numcuts = 1;
+	const short mode = RNA_int_get(op->ptr, "type");
 	BMOpSlot *slot_edge_percents;
 
 	/* allocd vars */
@@ -3388,7 +3395,8 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	int retval = 0, type = RNA_enum_get(op->ptr, "type");
+	const int type = RNA_enum_get(op->ptr, "type");
+	int retval = 0;
 	
 	if (ED_operator_editmesh(C)) {
 		Base *base = CTX_data_active_base(C);
@@ -3496,7 +3504,7 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
+	const bool use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 	BMOperator bmop;
 	
 	if (!EDBM_op_init(em, &bmop, op,
@@ -3573,7 +3581,7 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
-	int use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
+	const bool use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 
 	EDBM_op_init(em, &bmop, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty);
 	BMO_op_exec(em->bm, &bmop);
@@ -3616,7 +3624,7 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int dosharp, douvs, dovcols, domaterials;
-	float limit = RNA_float_get(op->ptr, "limit");
+	const float limit = RNA_float_get(op->ptr, "limit");
 
 	dosharp = RNA_boolean_get(op->ptr, "sharp");
 	douvs = RNA_boolean_get(op->ptr, "uvs");
@@ -3671,7 +3679,7 @@ static int edbm_dissolve_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-	int use_verts = RNA_boolean_get(op->ptr, "use_verts");
+	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
 
 	if (em->selectmode & SCE_SELECT_FACE) {
 		if (!EDBM_op_callf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
@@ -3716,7 +3724,7 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
-	const int use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
+	const bool use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
 
 	char dissolve_flag;
 
@@ -4646,9 +4654,9 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 
-	int action = RNA_enum_get(op->ptr, "type");
+	const int action = RNA_enum_get(op->ptr, "type");
 	PropertyRNA *prop_elem_types = RNA_struct_find_property(op->ptr, "elements");
-	int reverse = RNA_boolean_get(op->ptr, "reverse");
+	const bool use_reverse = RNA_boolean_get(op->ptr, "reverse");
 	unsigned int seed = RNA_int_get(op->ptr, "seed");
 	int elem_types = 0;
 
@@ -4675,14 +4683,14 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 	}
 
 	sort_bmelem_flag(scene, ob, v3d, rv3d,
-	                 elem_types, BM_ELEM_SELECT, action, reverse, seed);
+	                 elem_types, BM_ELEM_SELECT, action, use_reverse, seed);
 	return OPERATOR_FINISHED;
 }
 
 static bool edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
-	int action = RNA_enum_get(ptr, "type");
+	const int action = RNA_enum_get(ptr, "type");
 
 	/* Only show seed for randomize action! */
 	if (STREQ(prop_id, "seed")) {
@@ -4773,7 +4781,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 	Tex *tex;
 	BMVert *eve;
 	BMIter iter;
-	float fac = RNA_float_get(op->ptr, "factor");
+	const float fac = RNA_float_get(op->ptr, "factor");
 
 	if (em == NULL) {
 		return OPERATOR_FINISHED;
@@ -4898,9 +4906,9 @@ static int edbm_bevel_calc(wmOperator *op)
 	BevelData *opdata = op->customdata;
 	BMEditMesh *em = opdata->em;
 	BMOperator bmop;
-	float offset = RNA_float_get(op->ptr, "offset");
-	int segments = RNA_int_get(op->ptr, "segments");
-	int vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
+	const float offset = RNA_float_get(op->ptr, "offset");
+	const int segments = RNA_int_get(op->ptr, "segments");
+	const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
 
 	/* revert to original mesh */
 	if (opdata->is_modal) {
@@ -5154,7 +5162,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	const int use_merge = RNA_boolean_get(op->ptr, "use_merge");
+	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
 	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
 	
 	EDBM_op_init(em, &bmop, op,
@@ -5309,13 +5317,13 @@ static int edbm_inset_calc(wmOperator *op)
 	BMEditMesh *em;
 	BMOperator bmop;
 
-	int use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
-	int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
-	int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
-	float thickness         = RNA_float_get(op->ptr,   "thickness");
-	float depth             = RNA_float_get(op->ptr,   "depth");
-	int use_outset          = RNA_boolean_get(op->ptr, "use_outset");
-	int use_select_inset    = RNA_boolean_get(op->ptr, "use_select_inset"); /* not passed onto the BMO */
+	const bool use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
+	const bool use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
+	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const float thickness          = RNA_float_get(op->ptr,   "thickness");
+	const float depth              = RNA_float_get(op->ptr,   "depth");
+	const bool use_outset          = RNA_boolean_get(op->ptr, "use_outset");
+	const bool use_select_inset    = RNA_boolean_get(op->ptr, "use_select_inset"); /* not passed onto the BMO */
 
 	opdata = op->customdata;
 	em = opdata->em;
@@ -5511,7 +5519,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 		case OKEY:
 			if (event->val == KM_PRESS) {
-				int use_outset = RNA_boolean_get(op->ptr, "use_outset");
+				const bool use_outset = RNA_boolean_get(op->ptr, "use_outset");
 				RNA_boolean_set(op->ptr, "use_outset", !use_outset);
 				if (edbm_inset_calc(op)) {
 					edbm_inset_update_header(op, C);
@@ -5524,7 +5532,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 		case BKEY:
 			if (event->val == KM_PRESS) {
-				int use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
+				const bool use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
 				RNA_boolean_set(op->ptr, "use_boundary", !use_boundary);
 				if (edbm_inset_calc(op)) {
 					edbm_inset_update_header(op, C);
@@ -5580,12 +5588,12 @@ static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
-	const int use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
-	const int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
-	const int use_replace         = RNA_boolean_get(op->ptr, "use_replace");
-	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
-	const int use_crease          = RNA_boolean_get(op->ptr, "use_crease");
-	const float thickness         = RNA_float_get(op->ptr,   "thickness");
+	const bool use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
+	const bool use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
+	const bool use_replace         = RNA_boolean_get(op->ptr, "use_replace");
+	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const bool use_crease          = RNA_boolean_get(op->ptr, "use_crease");
+	const float thickness          = RNA_float_get(op->ptr,   "thickness");
 
 	EDBM_op_init(em, &bmop, op,
 	             "wireframe faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b use_crease=%b "
