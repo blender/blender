@@ -504,10 +504,13 @@ static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
+	ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+	ED_region_panels_init(wm, ar);
+
+	/* own keymaps */
 	keymap = WM_keymap_find(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	ED_region_panels_init(wm, ar);
 }
 
 static void text_properties_area_draw(const bContext *C, ARegion *ar)
