@@ -68,6 +68,5 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	depthSocket->relinkConnections(viewerOperation->getInputSocket(2));
 	graph->addOperation(viewerOperation);
 
-	if (is_active)
-		addPreviewOperation(graph, context, viewerOperation->getInputSocket(0));
+	addPreviewOperation(graph, context, viewerOperation->getInputSocket(0));
 }
