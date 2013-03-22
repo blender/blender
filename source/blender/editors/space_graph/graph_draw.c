@@ -824,7 +824,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		float y = fcu->curval * unitfac;
 		
 		/* only draw indicators if the point is in range*/
-		if (IN_RANGE(x, v2d->cur.xmin, v2d->cur.xmax)) {
+		if (x >= v2d->cur.xmin) {
 			float co[2];
 			
 			/* draw dotted lines leading towards this point from both axes ....... */
@@ -836,7 +836,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 				co[0] = x;
 				
 				if (y >= v2d->cur.ymin) {
-					co[1] = v2d->cur.ymin;
+					co[1] = v2d->cur.ymin - 1.0f;
 					glVertex2fv(co);
 					
 					co[1] = y;
@@ -846,7 +846,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 				/* y-axis lookup */
 				co[1] = y;
 				
-				co[0] = v2d->cur.xmin;
+				co[0] = v2d->cur.xmin - 1.0f;
 				glVertex2fv(co);
 				
 				co[0] = x;
