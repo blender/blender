@@ -843,7 +843,12 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             col = split.column()
             col.label(text="Timing:")
             col.prop(part, "use_absolute_path_time")
-            col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
+
+            if part.type == 'HAIR' or psys.point_cache.is_baked:
+                col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
+            else:
+                col.prop(part, "trail_count")
+
             col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
             col.prop(part, "length_random", text="Random", slider=True)
 
