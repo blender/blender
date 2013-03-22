@@ -10291,7 +10291,7 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link, const short active_lay)
 {
 	Object *ob;
 	Base *base;
@@ -10335,6 +10335,9 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				if (do_it) {
 					base = MEM_callocN(sizeof(Base), "add_ext_base");
 					BLI_addtail(&sce->base, base);
+					
+					if (active_lay) ob->lay = sce->lay;
+					
 					base->lay = ob->lay;
 					base->object = ob;
 					base->flag = ob->flag;
@@ -10593,7 +10596,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 				/* don't instance anything when linking in scenes, assume the scene its self instances the data */
 			}
 			else {
-				give_base_to_objects(mainvar, scene, curlib, idcode, is_link);
+				give_base_to_objects(mainvar, scene, curlib, idcode, is_link, flag & FILE_ACTIVELAY);
 				
 				if (flag & FILE_GROUP_INSTANCE) {
 					give_base_to_groups(mainvar, scene);
