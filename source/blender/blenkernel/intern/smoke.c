@@ -1303,9 +1303,17 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 	int x, y, z, i;
 	float *density = smoke_get_density(sds->fluid);
 	float *fuel = smoke_get_fuel(sds->fluid);
+	float *bigdensity = smoke_turbulence_get_density(sds->wt);
+	float *bigfuel = smoke_turbulence_get_fuel(sds->wt);
 	float *vx = smoke_get_velocity_x(sds->fluid);
 	float *vy = smoke_get_velocity_y(sds->fluid);
 	float *vz = smoke_get_velocity_z(sds->fluid);
+	int block_size = sds->amplify + 1;
+	int wt_res[3];
+
+	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt) {
+		smoke_turbulence_get_res(sds->wt, wt_res);
+	}
 
 	INIT_MINMAX(min_vel, max_vel);
 
@@ -1317,8 +1325,35 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 				int xn = x - new_shift[0];
 				int yn = y - new_shift[1];
 				int zn = z - new_shift[2];
-				int index = smoke_get_index(x - sds->res_min[0], sds->res[0], y - sds->res_min[1], sds->res[1], z - sds->res_min[2]);
-				float max_den = (fuel) ? MAX2(density[index], fuel[index]) : density[index];
+				int index;
+				float max_den;
+				
+				/* skip if cell already belongs to new area */
+				if (xn >= min[0] && xn <= max[0] && yn >= min[1] && yn <= max[1] && zn >= min[2] && zn <= max[2])
+					continue;
+
+				index = smoke_get_index(x - sds->res_min[0], sds->res[0], y - sds->res_min[1], sds->res[1], z - sds->res_min[2]);
+				max_den = (fuel) ? MAX2(density[index], fuel[index]) : density[index];
+
+				/* check high resolution bounds if max density isnt already high enough */
+				if (max_den < sds->adapt_threshold && sds->flags & MOD_SMOKE_HIGHRES && sds->wt) {
+					int i, j, k;
+					/* high res grid index */
+					int xx = (x - sds->res_min[0]) * block_size;
+					int yy = (y - sds->res_min[1]) * block_size;
+					int zz = (z - sds->res_min[2]) * block_size;
+
+					for (i = 0; i < block_size; i++)
+						for (j = 0; j < block_size; j++)
+							for (k = 0; k < block_size; k++)
+							{
+								int big_index = smoke_get_index(xx + i, wt_res[0], yy + j, wt_res[1], zz + k);
+								float den = (bigfuel) ? MAX2(bigdensity[big_index], bigfuel[big_index]) : bigdensity[big_index];
+								if (den > max_den) {
+									max_den = den;
+								}
+							}
+				}
 
 				/* content bounds (use shifted coordinates) */
 				if (max_den >= sds->adapt_threshold) {
@@ -1329,6 +1364,7 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 					if (max[1] < yn) max[1] = yn;
 					if (max[2] < zn) max[2] = zn;
 				}
+
 				/* velocity bounds */
 				if (min_vel[0] > vx[index]) min_vel[0] = vx[index];
 				if (min_vel[1] > vy[index]) min_vel[1] = vy[index];
