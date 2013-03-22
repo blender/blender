@@ -47,7 +47,7 @@
  *	    and settings for a View2D region, and that set of settings is used in more
  *	    than one specific place
  */
-enum {
+enum eView2D_CommonViewTypes {
 	/* custom view type (region has defined all necessary flags already) */
 	V2D_COMMONVIEW_CUSTOM = -1,
 	/* standard (only use this when setting up a new view, as a sensible base for most settings) */
@@ -60,7 +60,7 @@ enum {
 	V2D_COMMONVIEW_HEADER,
 	/* ui region containing panels */
 	V2D_COMMONVIEW_PANELS_UI
-} eView2D_CommonViewTypes;
+};
 
 /* ---- Defines for Scroller/Grid Arguments ----- */
 
@@ -68,7 +68,7 @@ enum {
 #define V2D_ARG_DUMMY       -1
 
 /* Grid units */
-enum {
+enum eView2D_Units {
 	/* for drawing time */
 	V2D_UNIT_SECONDS = 0,
 	V2D_UNIT_FRAMES,
@@ -79,16 +79,16 @@ enum {
 	V2D_UNIT_DEGREES,
 	V2D_UNIT_TIME,
 	V2D_UNIT_SECONDSSEQ
-} eView2D_Units;
+};
 
 /* clamping of grid values to whole numbers */
-enum {
+enum eView2D_Clamp {
 	V2D_GRID_NOCLAMP = 0,
 	V2D_GRID_CLAMP
-} eView2D_Clamp;
+};
 
 /* flags for grid-lines to draw */
-enum {
+enum eView2D_Gridlines {
 	V2D_HORIZONTAL_LINES        = (1 << 0),
 	V2D_VERTICAL_LINES          = (1 << 1),
 	V2D_HORIZONTAL_AXIS         = (1 << 2),
@@ -97,7 +97,7 @@ enum {
 	
 	V2D_GRIDLINES_MAJOR         = (V2D_VERTICAL_LINES | V2D_VERTICAL_AXIS | V2D_HORIZONTAL_LINES | V2D_HORIZONTAL_AXIS),
 	V2D_GRIDLINES_ALL           = (V2D_GRIDLINES_MAJOR | V2D_HORIZONTAL_FINELINES),
-} eView2D_Gridlines;
+};
 
 /* ------ Defines for Scrollers ----- */
 

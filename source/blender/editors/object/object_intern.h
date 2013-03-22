@@ -40,11 +40,11 @@ struct Mesh;
 struct HookModifierData;
 
 /* add hook menu */
-enum {
+enum eObject_Hook_Add_Mode {
 	OBJECT_ADDHOOK_NEWOB = 1,
 	OBJECT_ADDHOOK_SELOB,
 	OBJECT_ADDHOOK_SELOB_BONE
-} eObject_Hook_Add_Mode;
+};
 
 /* internal exports only */
 

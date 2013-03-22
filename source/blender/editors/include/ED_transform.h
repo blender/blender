@@ -52,7 +52,7 @@ void transform_operatortypes(void);
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
-enum {
+enum TfmMode {
 	TFM_INIT = -1,
 	TFM_DUMMY,
 	TFM_TRANSLATION,
@@ -85,7 +85,7 @@ enum {
 	TFM_EDGE_SLIDE,
 	TFM_VERT_SLIDE,
 	TFM_SEQ_SLIDE
-} TfmMode;
+};
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE            0

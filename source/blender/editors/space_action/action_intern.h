@@ -60,19 +60,19 @@ void ACTION_OT_select_leftright(struct wmOperatorType *ot);
 void ACTION_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
-enum {
+enum eActKeys_LeftRightSelect_Mode {
 	ACTKEYS_LRSEL_TEST = 0,
 	ACTKEYS_LRSEL_LEFT,
 	ACTKEYS_LRSEL_RIGHT
-} eActKeys_LeftRightSelect_Mode;
+};
 
 /* defines for column-select mode */
-enum {
+enum eActKeys_ColumnSelect_Mode {
 	ACTKEYS_COLUMNSEL_KEYS = 0,
 	ACTKEYS_COLUMNSEL_CFRA,
 	ACTKEYS_COLUMNSEL_MARKERS_COLUMN,
 	ACTKEYS_COLUMNSEL_MARKERS_BETWEEN,
-} eActKeys_ColumnSelect_Mode;
+};
 
 /* ***************************************** */
 /* action_edit.c */
@@ -107,22 +107,22 @@ void ACTION_OT_markers_make_local(struct wmOperatorType *ot);
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
  */
-enum {
+enum eActKeys_Snap_Mode {
 	ACTKEYS_SNAP_CFRA = 1,
 	ACTKEYS_SNAP_NEAREST_FRAME,
 	ACTKEYS_SNAP_NEAREST_SECOND,
 	ACTKEYS_SNAP_NEAREST_MARKER,
-} eActKeys_Snap_Mode;
+};
 
 /* defines for mirror keyframes 
  * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
  */
-enum {
+enum eActKeys_Mirror_Mode {
 	ACTKEYS_MIRROR_CFRA = 1,
 	ACTKEYS_MIRROR_YAXIS,
 	ACTKEYS_MIRROR_XAXIS,
 	ACTKEYS_MIRROR_MARKER,
-} eActKeys_Mirror_Mode;
+};
 	
 /* ***************************************** */
 /* action_ops.c */

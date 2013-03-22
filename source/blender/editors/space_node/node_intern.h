@@ -237,7 +237,7 @@ extern const char *node_context_dir[];
 #define NODE_LINK_RESOL 12
 
 // XXX button events (butspace)
-enum {
+enum eNodeSpace_ButEvents {
 	B_NOP = 0,
 	B_REDR = 1,
 	B_NODE_USEMAT,
@@ -254,6 +254,6 @@ enum {
 	B_MATPRV,
 	B_NODE_LOADIMAGE,
 	B_NODE_SETIMAGE,
-} eNodeSpace_ButEvents;
+};
 
 #endif /* __NODE_INTERN_H__ */

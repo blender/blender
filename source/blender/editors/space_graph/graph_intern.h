@@ -69,19 +69,19 @@ void GRAPH_OT_select_leftright(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
-enum {
+enum eGraphKeys_LeftRightSelect_Mode {
 	GRAPHKEYS_LRSEL_TEST    = 0,
 	GRAPHKEYS_LRSEL_LEFT,
 	GRAPHKEYS_LRSEL_RIGHT
-} eGraphKeys_LeftRightSelect_Mode;
+};
 
 /* defines for column-select mode */
-enum {
+enum eGraphKeys_ColumnSelect_Mode {
 	GRAPHKEYS_COLUMNSEL_KEYS    = 0,
 	GRAPHKEYS_COLUMNSEL_CFRA,
 	GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN,
 	GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN,
-} eGraphKeys_ColumnSelect_Mode;
+};
 
 /* ***************************************** */
 /* graph_edit.c */
@@ -119,25 +119,25 @@ void GRAPH_OT_mirror(struct wmOperatorType *ot);
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
  */
-enum {
+enum eGraphKeys_Snap_Mode {
 	GRAPHKEYS_SNAP_CFRA = 1,
 	GRAPHKEYS_SNAP_NEAREST_FRAME,
 	GRAPHKEYS_SNAP_NEAREST_SECOND,
 	GRAPHKEYS_SNAP_NEAREST_MARKER,
 	GRAPHKEYS_SNAP_HORIZONTAL,
 	GRAPHKEYS_SNAP_VALUE,
-} eGraphKeys_Snap_Mode;
+};
 
 /* defines for mirror keyframes 
  * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
  */
-enum {
+enum eGraphKeys_Mirror_Mode {
 	GRAPHKEYS_MIRROR_CFRA = 1,
 	GRAPHKEYS_MIRROR_YAXIS,
 	GRAPHKEYS_MIRROR_XAXIS,
 	GRAPHKEYS_MIRROR_MARKER,
 	GRAPHKEYS_MIRROR_VALUE,
-} eGraphKeys_Mirror_Mode;
+};
 
 /* ----------- */
 
