@@ -27,8 +27,6 @@
  * to access C defined builtin functions.
  * A script writer should never directly access this module.
  */
- 
-#define WITH_PYTHON /* for AUD_PyInit.h, possibly others */
 
 #include <Python.h>
 

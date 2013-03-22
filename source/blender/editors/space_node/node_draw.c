@@ -1132,7 +1132,6 @@ static void node_draw(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTre
 void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNodeInstanceKey parent_key)
 {
 	bNode *node;
-	bNodeInstanceKey key;
 	bNodeLink *link;
 	int a;
 	
@@ -1146,6 +1145,7 @@ void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeT
 
 	/* draw background nodes, last nodes in front */
 	for (a = 0, node = ntree->nodes.first; node; node = node->next, a++) {
+		bNodeInstanceKey key;
 
 #ifdef USE_DRAW_TOT_UPDATE
 		/* unrelated to background nodes, update the v2d->tot,

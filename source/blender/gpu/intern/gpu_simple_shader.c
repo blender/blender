@@ -56,7 +56,7 @@
 
 /* State */
 
-#define NUM_OPENGL_LIGHTS 8
+// #define NUM_OPENGL_LIGHTS 8
 
 static struct {
 	GPUShader *cached_shaders[GPU_SHADER_OPTION_COMBINATIONS];

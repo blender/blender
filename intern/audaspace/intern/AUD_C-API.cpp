@@ -26,15 +26,14 @@
  *  \ingroup audaspaceintern
  */
 
-
 // needed for INT64_C
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
 #endif
 
 #ifdef WITH_PYTHON
-#include "AUD_PyInit.h"
-#include "AUD_PyAPI.h"
+#  include "AUD_PyInit.h"
+#  include "AUD_PyAPI.h"
 #endif
 
 #include <set>
