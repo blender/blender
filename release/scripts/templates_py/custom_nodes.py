@@ -37,8 +37,6 @@ class MyCustomSocket(bpy.types.NodeSocket):
     bl_idname = 'CustomSocketType'
     # Label for nice name display
     bl_label = 'Custom Node Socket'
-    # Socket color
-    bl_color = (1.0, 0.4, 0.216, 0.5)
 
     # Enum items list
     my_items = [
@@ -54,6 +52,9 @@ class MyCustomSocket(bpy.types.NodeSocket):
     def draw(self, context, layout, node):
         layout.prop(self, "myEnumProperty", text=self.name)
 
+    # Socket color
+    def draw_color(self, context, node):
+        return (1.0, 0.4, 0.216, 0.5)
 
 # Base class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
