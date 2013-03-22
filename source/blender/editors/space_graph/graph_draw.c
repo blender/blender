@@ -712,7 +712,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 				v1[1] = prevbezt->vec[1][1];
 				v2[0] = prevbezt->vec[2][0];
 				v2[1] = prevbezt->vec[2][1];
-
+				
 				v3[0] = bezt->vec[0][0];
 				v3[1] = bezt->vec[0][1];
 				v4[0] = bezt->vec[1][0];
@@ -771,6 +771,111 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	
 	glEnd();
 } 
+
+/* Debugging -------------------------------- */
+
+/* Draw indicators which show the value calculated from the driver, 
+ * and how this is mapped to the value that comes out of it. This
+ * is handy for helping users better understand how to interpret
+ * the graphs, and also facilitates debugging. 
+ */
+static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
+{
+	ChannelDriver *driver = fcu->driver;
+	View2D *v2d = &ac->ar->v2d;
+	float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, false);
+	
+	/* for now, only show when debugging driver... */
+	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
+	//	return;
+	
+	/* No curve to modify/visualise the result? 
+	 * => We still want to show the 1-1 default... 
+	 */
+	if ((fcu->totvert == 0) && (fcu->modifiers.first == NULL)) {
+		float t;
+		
+		/* draw with thin dotted lines in style of what curve would have been */
+		glColor3fv(fcu->color);
+		
+		setlinestyle(20);
+		glLineWidth(2.0f);
+		
+		/* draw 1-1 line, stretching just past the screen limits 
+		 * NOTE: we need to scale the y-values to be valid for the units
+		 */
+		glBegin(GL_LINES);
+			t = v2d->cur.xmin;
+			glVertex2f(t, t * unitfac);
+			
+			t = v2d->cur.xmax;
+			glVertex2f(t, t * unitfac); 
+		glEnd();
+		
+		/* cleanup line drawing */
+		setlinestyle(0);
+		glLineWidth(1.0f);
+	}
+	
+	/* draw driver only if actually functional */
+	if ((driver->flag & DRIVER_FLAG_INVALID) == 0) {
+		/* grab "coordinates" for driver outputs */
+		float x = driver->curval;
+		float y = fcu->curval * unitfac;
+		
+		/* only draw indicators if the point is in range*/
+		if (IN_RANGE(x, v2d->cur.xmin, v2d->cur.xmax)) {
+			float co[2];
+			
+			/* draw dotted lines leading towards this point from both axes ....... */
+			glColor3f(0.9f, 0.9f, 0.9f);
+			setlinestyle(5);
+			
+			glBegin(GL_LINES);
+				/* x-axis lookup */
+				co[0] = x;
+				
+				if (y >= v2d->cur.ymin) {
+					co[1] = v2d->cur.ymin;
+					glVertex2fv(co);
+					
+					co[1] = y;
+					glVertex2fv(co);
+				}
+				
+				/* y-axis lookup */
+				co[1] = y;
+				
+				co[0] = v2d->cur.xmin;
+				glVertex2fv(co);
+				
+				co[0] = x;
+				glVertex2fv(co);
+			glEnd();
+			
+			setlinestyle(0);
+			
+			/* x marks the spot .................................................... */
+			/* -> outer frame */
+			glColor3f(0.9f, 0.9f, 0.9f);
+			glPointSize(7.0);
+			
+			glBegin(GL_POINTS);
+				glVertex2f(x, y);
+			glEnd();
+			
+			/* inner frame */
+			glColor3f(0.9f, 0.0f, 0.0f);
+			glPointSize(3.0);
+			
+			glBegin(GL_POINTS);
+				glVertex2f(x, y);
+			glEnd();
+			
+			glPointSize(1.0f);
+		}
+	}
+}
 
 /* Public Curve-Drawing API  ---------------- */
 
@@ -932,6 +1037,11 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				/* unapply unit mapping */
 				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, ANIM_UNITCONV_RESTORE);
 			}
+		}
+		
+		/* 3) draw driver debugging stuff */
+		if ((ac->datatype == ANIMCONT_DRIVERS) && (fcu->flag & FCURVE_ACTIVE)) {
+			graph_draw_driver_debug(ac, ale->id, fcu);
 		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
