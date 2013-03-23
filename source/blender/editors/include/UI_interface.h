@@ -223,7 +223,7 @@ typedef enum {
 	NUMSLI        = (14 << 9),
 	COLOR         = (15 << 9),
 	IDPOIN        = (16 << 9),
-	HSVSLI        = (17 << 9),  /* UNUSED, but code still references */
+	/* HSVSLI     = (17 << 9), */  /* UNUSED */
 	SCROLL        = (18 << 9),
 	BLOCK         = (19 << 9),
 	BUTM          = (20 << 9),
@@ -922,5 +922,4 @@ void UI_template_fix_linking(void);
 int  UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
 
-#endif /*  __UI_INTERFACE_H__ */
-
+#endif  /* __UI_INTERFACE_H__ */

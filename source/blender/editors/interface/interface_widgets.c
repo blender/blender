@@ -3224,7 +3224,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case NUMSLI:
-			case HSVSLI:
 				wt = widget_type(UI_WTYPE_SLIDER);
 				break;
 				
