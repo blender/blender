@@ -697,6 +697,8 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				group_proxy_map[b_input->identifier()] = proxy;
 				
 				input_map[b_input->ptr.data] = proxy->inputs[0];
+				
+				set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
