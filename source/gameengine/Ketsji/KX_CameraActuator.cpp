@@ -36,7 +36,6 @@
 #include "BLI_math_vector.h"
 
 #include "KX_CameraActuator.h"
-#include <iostream>
 #include <math.h>
 #include <float.h>
 #include "KX_GameObject.h"
@@ -197,7 +196,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	MT_Point3 lookat = ((KX_GameObject*)m_ob)->NodeGetWorldPosition();
 	MT_Matrix3x3 actormat = ((KX_GameObject*)m_ob)->NodeGetWorldOrientation();
 
-	float fp1[3], fp2[3], rc[3];
+	float fp1[3]={0}, fp2[3]={0}, rc[3];
 	float inp, fac; //, factor = 0.0; /* some factor...                                    */
 	float mindistsq, maxdistsq, distsq;
 	float mat[3][3];

@@ -310,7 +310,7 @@ void KX_KetsjiEngine::RenderDome()
 		return;
 
 	KX_SceneList::iterator sceneit;
-	KX_Scene* scene;
+	KX_Scene* scene = NULL;
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++) {
