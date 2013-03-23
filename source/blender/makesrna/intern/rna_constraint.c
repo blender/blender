@@ -48,8 +48,8 @@
 EnumPropertyItem constraint_type_items[] = {
 	{0, "", 0, N_("Motion Tracking"), ""},
 	{CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CONSTRAINT_DATA, "Camera Solver", ""},
-	{CONSTRAINT_TYPE_OBJECTSOLVER, "OBJECT_SOLVER", ICON_CONSTRAINT_DATA, "Object Solver", ""},
 	{CONSTRAINT_TYPE_FOLLOWTRACK,  "FOLLOW_TRACK", ICON_CONSTRAINT_DATA, "Follow Track", ""},
+	{CONSTRAINT_TYPE_OBJECTSOLVER, "OBJECT_SOLVER", ICON_CONSTRAINT_DATA, "Object Solver", ""},
 	{0, "", 0, N_("Transform"), ""},
 	{CONSTRAINT_TYPE_LOCLIKE,   "COPY_LOCATION", ICON_CONSTRAINT_DATA, "Copy Location", 
 	                            "Copy the location of a target (with an optional offset), so that they move together"},
@@ -99,8 +99,8 @@ EnumPropertyItem constraint_type_items[] = {
 	                             "Change pivot point for transforms (buggy)"},
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", ICON_CONSTRAINT_DATA, "Rigid Body Joint", 
 	                                 "Use to define a Rigid Body Constraint (for Game Engine use only)"},
-	{CONSTRAINT_TYPE_PYTHON,     "SCRIPT", ICON_CONSTRAINT_DATA, "Script", 
-	                             "Custom constraint(s) written in Python (Not yet implemented)"},
+	/* {CONSTRAINT_TYPE_PYTHON,     "SCRIPT", ICON_CONSTRAINT_DATA, "Script", 
+	                             "Custom constraint(s) written in Python (Not yet implemented)"}, */
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", 
 	                             "Restrict movements to surface of target mesh"},
 	{0, NULL, 0, NULL, NULL}
