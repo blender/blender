@@ -7558,10 +7558,21 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 	
 	if (user == NULL) return;
 	
+	if (MAIN_VERSION_OLDER(bmain, 266, 4)) {
+		bTheme *btheme;
+		
+		/* themes for Node and Sequence editor were not using grid color, but back. we copy this over then */
+		for (btheme = user->themes.first; btheme; btheme = btheme->next) {
+			copy_v4_v4_char(btheme->tnode.grid, btheme->tnode.back);
+			copy_v4_v4_char(btheme->tseq.grid, btheme->tseq.back);
+		}
+	}
+	
 	if (bmain->versionfile < 267) {
 	
 		if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
-			user->image_gpubuffer_limit = 10;
+			user->image_gpubuffer_limit = 20;
+		
 	}
 }
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -8974,13 +8985,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		} FOREACH_NODETREE_END
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 266, 2)) {
+	if (MAIN_VERSION_OLDER(main, 266, 2)) {
 		FOREACH_NODETREE(main, ntree, id) {
 			do_versions_nodetree_customnodes(ntree, ((ID *)ntree == id));
 		} FOREACH_NODETREE_END
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 266, 2)) {
+	if (MAIN_VERSION_OLDER(main, 266, 2)) {
 		bScreen *sc;
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -9028,13 +9039,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			/* Only add interface nodes once.
 			 * In old Blender versions they will be removed automatically due to undefined type */
-			if (!MAIN_VERSION_ATLEAST(main, 266, 2))
+			if (MAIN_VERSION_OLDER(main, 266, 2))
 				ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE;
 		}
 		FOREACH_NODETREE_END
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 266, 3)) {
+	if (MAIN_VERSION_OLDER(main, 266, 3)) {
 		{
 			/* Fix for a very old issue:
 			 * Node names were nominally made unique in r24478 (2.50.8), but the do_versions check
