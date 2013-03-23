@@ -163,12 +163,10 @@ extern EnumPropertyItem clip_editor_mode_items[];
 extern EnumPropertyItem icon_items[];
 extern EnumPropertyItem uilist_layout_type_items[];
 
-#ifdef WITH_FREESTYLE
 extern EnumPropertyItem linestyle_color_modifier_type_items[];
 extern EnumPropertyItem linestyle_alpha_modifier_type_items[];
 extern EnumPropertyItem linestyle_thickness_modifier_type_items[];
 extern EnumPropertyItem linestyle_geometry_modifier_type_items[];
-#endif
 
 struct bContext;
 struct PointerRNA;

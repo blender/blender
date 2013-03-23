@@ -90,6 +90,7 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 #include "BKE_mball.h"
@@ -118,10 +119,6 @@
 #endif
 
 #include "GPU_material.h"
-
-#ifdef WITH_FREESTYLE
-#  include "FRS_freestyle.h"
-#endif
 
 /* Local function protos */
 float originmat[3][3];  /* after BKE_object_where_is_calc(), can be used in other functions (bad!) */
@@ -427,6 +424,8 @@ void BKE_object_unlink(Object *ob)
 	World *wrld;
 	bScreen *sc;
 	Scene *sce;
+	SceneRenderLayer *srl;
+	FreestyleLineSet *lineset;
 	Curve *cu;
 	Tex *tex;
 	Group *group;
@@ -680,15 +679,12 @@ void BKE_object_unlink(Object *ob)
 				SEQ_END
 			}
 
-#ifdef WITH_FREESTYLE
-			{
-				SceneRenderLayer *srl;
-
-				for (srl= sce->r.layers.first; srl; srl= srl->next) {
-					FRS_unlink_target_object(&srl->freestyleConfig, ob);
+			for (srl= sce->r.layers.first; srl; srl= srl->next) {
+				for (lineset = (FreestyleLineSet *)&srl->freestyleConfig.linesets.first;
+				     lineset; lineset = lineset->next) {
+					BKE_unlink_linestyle_target_object(lineset->linestyle, ob);
 				}
 			}
-#endif
 		}
 
 		sce = sce->id.next;

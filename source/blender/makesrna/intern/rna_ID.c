@@ -57,9 +57,7 @@ EnumPropertyItem id_type_items[] = {
 	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
 	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
 	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
-#ifdef WITH_FREESTYLE
 	{ID_LS, "LINESTYLE", ICON_PARTICLE_DATA, "FreestyleLineStyle", ""}, /* FIXME proper icon */
-#endif
 	{ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
 	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
 	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
@@ -135,9 +133,7 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if (RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
 	if (RNA_struct_is_a(type, &RNA_Lamp)) return ID_LA;
 	if (RNA_struct_is_a(type, &RNA_Library)) return ID_LI;
-#ifdef WITH_FREESTYLE
 	if (RNA_struct_is_a(type, &RNA_FreestyleLineStyle)) return ID_LS;
-#endif
 	if (RNA_struct_is_a(type, &RNA_Lattice)) return ID_LT;
 	if (RNA_struct_is_a(type, &RNA_Material)) return ID_MA;
 	if (RNA_struct_is_a(type, &RNA_MetaBall)) return ID_MB;
@@ -174,9 +170,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_KE: return &RNA_Key;
 		case ID_LA: return &RNA_Lamp;
 		case ID_LI: return &RNA_Library;
-#ifdef WITH_FREESTYLE
 		case ID_LS: return &RNA_FreestyleLineStyle;
-#endif
 		case ID_LT: return &RNA_Lattice;
 		case ID_MA: return &RNA_Material;
 		case ID_MB: return &RNA_MetaBall;

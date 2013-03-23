@@ -47,6 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_freestyle.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -56,10 +57,6 @@
 
 #include "render_result.h"
 #include "render_types.h"
-
-#ifdef WITH_FREESTYLE
-#  include "FRS_freestyle_config.h"
-#endif
 
 /********************************** Free *************************************/
 
@@ -568,9 +565,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->lay = (1 << 20) - 1;
 		rl->layflag = 0x7FFF;    /* solid ztra halo strand */
 		rl->passflag = SCE_PASS_COMBINED;
-#ifdef WITH_FREESTYLE
-		FRS_init_freestyle_config(&srl->freestyleConfig);
-#endif
+		BKE_freestyle_config_init(&srl->freestyleConfig);
 		
 		re->r.actlay = 0;
 	}

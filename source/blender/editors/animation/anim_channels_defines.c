@@ -49,9 +49,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
-#ifdef WITH_FREESTYLE
-#  include "DNA_linestyle_types.h"
-#endif
+#include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
@@ -2040,7 +2038,6 @@ static bAnimChannelType ACF_DSNTREE =
 	acf_dsntree_setting_ptr                 /* pointer for setting */
 };
 
-#ifdef WITH_FREESTYLE
 /* LineStyle Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
@@ -2117,7 +2114,6 @@ static bAnimChannelType ACF_DSLINESTYLE=
 	acf_dslinestyle_setting_flag,			/* flag for setting */
 	acf_dslinestyle_setting_ptr				/* pointer for setting */
 };
-#endif
 
 /* Mesh Expander  ------------------------------------------- */
 
@@ -2831,9 +2827,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_DSTEX;        /* Texture Channel */
 		animchannelTypeInfo[type++] = &ACF_DSLAT;        /* Lattice Channel */
 		animchannelTypeInfo[type++] = &ACF_DSSPK;        /* Speaker Channel */
-#ifdef WITH_FREESTYLE
 		animchannelTypeInfo[type++] = &ACF_DSLINESTYLE;  /* LineStyle Channel */
-#endif
 		
 		animchannelTypeInfo[type++] = &ACF_SHAPEKEY;     /* ShapeKey */
 		

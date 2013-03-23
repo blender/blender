@@ -70,9 +70,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
-#ifdef WITH_FREESTYLE
-#  include "DNA_freestyle_types.h"
-#endif
+#include "DNA_freestyle_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -582,7 +580,6 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				}
 				SEQ_END
 			}
-#ifdef WITH_FREESTYLE
 			{
 				SceneRenderLayer *srl = scene->r.layers.first;
 
@@ -593,7 +590,6 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 					}
  				}
  			}
-#endif
 			break;
 		}
 		case ID_ME:

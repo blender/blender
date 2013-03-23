@@ -94,12 +94,12 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->thickness_modifiers.first = linestyle->thickness_modifiers.last = NULL;
 	linestyle->geometry_modifiers.first = linestyle->geometry_modifiers.last = NULL;
 
-	FRS_add_linestyle_geometry_modifier(linestyle, LS_MODIFIER_SAMPLING);
+	BKE_add_linestyle_geometry_modifier(linestyle, LS_MODIFIER_SAMPLING);
 
 	linestyle->caps = LS_CAPS_BUTT;
 }
 
-FreestyleLineStyle *FRS_new_linestyle(const char *name, struct Main *main)
+FreestyleLineStyle *BKE_new_linestyle(const char *name, struct Main *main)
 {
 	FreestyleLineStyle *linestyle;
 
@@ -113,28 +113,28 @@ FreestyleLineStyle *FRS_new_linestyle(const char *name, struct Main *main)
 	return linestyle;
 }
 
-void FRS_free_linestyle(FreestyleLineStyle *linestyle)
+void BKE_free_linestyle(FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *m;
 
 	BKE_free_animdata(&linestyle->id);
 	while ((m = (LineStyleModifier *)linestyle->color_modifiers.first))
-		FRS_remove_linestyle_color_modifier(linestyle, m);
+		BKE_remove_linestyle_color_modifier(linestyle, m);
 	while ((m = (LineStyleModifier *)linestyle->alpha_modifiers.first))
-		FRS_remove_linestyle_alpha_modifier(linestyle, m);
+		BKE_remove_linestyle_alpha_modifier(linestyle, m);
 	while ((m = (LineStyleModifier *)linestyle->thickness_modifiers.first))
-		FRS_remove_linestyle_thickness_modifier(linestyle, m);
+		BKE_remove_linestyle_thickness_modifier(linestyle, m);
 	while ((m = (LineStyleModifier *)linestyle->geometry_modifiers.first))
-		FRS_remove_linestyle_geometry_modifier(linestyle, m);
+		BKE_remove_linestyle_geometry_modifier(linestyle, m);
 }
 
-FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle)
+FreestyleLineStyle *BKE_copy_linestyle(FreestyleLineStyle *linestyle)
 {
 	FreestyleLineStyle *new_linestyle;
 	LineStyleModifier *m;
 
-	new_linestyle = FRS_new_linestyle(linestyle->id.name + 2, NULL);
-	FRS_free_linestyle(new_linestyle);
+	new_linestyle = BKE_new_linestyle(linestyle->id.name + 2, NULL);
+	BKE_free_linestyle(new_linestyle);
 
 	new_linestyle->r = linestyle->r;
 	new_linestyle->g = linestyle->g;
@@ -160,13 +160,13 @@ FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle)
 	new_linestyle->gap3 = linestyle->gap3;
 	new_linestyle->panel = linestyle->panel;
 	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next)
-		FRS_copy_linestyle_color_modifier(new_linestyle, m);
+		BKE_copy_linestyle_color_modifier(new_linestyle, m);
 	for (m = (LineStyleModifier *)linestyle->alpha_modifiers.first; m; m = m->next)
-		FRS_copy_linestyle_alpha_modifier(new_linestyle, m);
+		BKE_copy_linestyle_alpha_modifier(new_linestyle, m);
 	for (m = (LineStyleModifier *)linestyle->thickness_modifiers.first; m; m = m->next)
-		FRS_copy_linestyle_thickness_modifier(new_linestyle, m);
+		BKE_copy_linestyle_thickness_modifier(new_linestyle, m);
 	for (m = (LineStyleModifier *)linestyle->geometry_modifiers.first; m; m = m->next)
-		FRS_copy_linestyle_geometry_modifier(new_linestyle, m);
+		BKE_copy_linestyle_geometry_modifier(new_linestyle, m);
 
 	return new_linestyle;
 }
@@ -214,7 +214,7 @@ static LineStyleModifier *alloc_color_modifier(int type)
 	return new_modifier(type, size);
 }
 
-LineStyleModifier *FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)
+LineStyleModifier *BKE_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)
 {
 	LineStyleModifier *m;
 
@@ -248,7 +248,7 @@ LineStyleModifier *FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyl
 	return m;
 }
 
-LineStyleModifier *FRS_copy_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+LineStyleModifier *BKE_copy_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	LineStyleModifier *new_m;
 
@@ -302,7 +302,7 @@ LineStyleModifier *FRS_copy_linestyle_color_modifier(FreestyleLineStyle *linesty
 	return new_m;
 }
 
-void FRS_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+void BKE_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	switch (m->type) {
 	case LS_MODIFIER_ALONG_STROKE:
@@ -344,7 +344,7 @@ static LineStyleModifier *alloc_alpha_modifier(int type)
 	return new_modifier(type, size);
 }
 
-LineStyleModifier *FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
+LineStyleModifier *BKE_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
 {
 	LineStyleModifier *m;
 
@@ -390,7 +390,7 @@ LineStyleModifier *FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyl
 	return m;
 }
 
-LineStyleModifier *FRS_copy_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+LineStyleModifier *BKE_copy_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	LineStyleModifier *new_m;
 
@@ -444,7 +444,7 @@ LineStyleModifier *FRS_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 	return new_m;
 }
 
-void FRS_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+void BKE_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	switch (m->type) {
 	case LS_MODIFIER_ALONG_STROKE:
@@ -490,7 +490,7 @@ static LineStyleModifier *alloc_thickness_modifier(int type)
 	return new_modifier(type, size);
 }
 
-LineStyleModifier *FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type)
+LineStyleModifier *BKE_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type)
 {
 	LineStyleModifier *m;
 
@@ -552,7 +552,7 @@ LineStyleModifier *FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *line
 	return m;
 }
 
-LineStyleModifier *FRS_copy_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+LineStyleModifier *BKE_copy_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	LineStyleModifier *new_m;
 
@@ -625,7 +625,7 @@ LineStyleModifier *FRS_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 	return new_m;
 }
 
-void FRS_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+void BKE_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	switch (m->type) {
 	case LS_MODIFIER_ALONG_STROKE:
@@ -697,7 +697,7 @@ static LineStyleModifier *alloc_geometry_modifier(int type)
 	return new_modifier(type, size);
 }
 
-LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
+LineStyleModifier *BKE_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 {
 	LineStyleModifier *m;
 
@@ -815,7 +815,7 @@ LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *lines
 	return m;
 }
 
-LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+LineStyleModifier *BKE_copy_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	LineStyleModifier *new_m;
 
@@ -947,7 +947,7 @@ LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 	return new_m;
 }
 
-void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+void BKE_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	BLI_freelinkN(&linestyle->geometry_modifiers, m);
 }
@@ -961,27 +961,27 @@ static void move_modifier(ListBase *lb, LineStyleModifier *modifier, int directi
 		BLI_insertlinkafter(lb, modifier->next, modifier);
 }
 
-void FRS_move_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
+void BKE_move_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
 {
 	move_modifier(&linestyle->color_modifiers, modifier, direction);
 }
 
-void FRS_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
+void BKE_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
 {
 	move_modifier(&linestyle->alpha_modifiers, modifier, direction);
 }
 
-void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
+void BKE_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
 {
 	move_modifier(&linestyle->thickness_modifiers, modifier, direction);
 }
 
-void FRS_move_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
+void BKE_move_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
 {
 	move_modifier(&linestyle->geometry_modifiers, modifier, direction);
 }
 
-void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase)
+void BKE_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase)
 {
 	LineStyleModifier *m;
 	ColorBand *color_ramp;
@@ -1011,7 +1011,7 @@ void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *list
 	}
 }
 
-char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
+char *BKE_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
 {
 	LineStyleModifier *m;
 	bool found = false;
@@ -1038,11 +1038,11 @@ char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *c
 		if (found)
 			return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", m->name);
 	}
-	printf("FRS_path_from_ID_to_color_ramp: No color ramps correspond to the given pointer.\n");
+	printf("BKE_path_from_ID_to_color_ramp: No color ramps correspond to the given pointer.\n");
 	return NULL;
 }
 
-void FRS_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob)
+void BKE_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob)
 {
 	LineStyleModifier *m;
 

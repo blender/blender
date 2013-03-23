@@ -38,14 +38,9 @@
 #include "../application/AppView.h"
 #include "../application/Controller.h"
 
-#include "BKE_global.h"
-
 using namespace std;
 
-// XXX Are those "ifdef __cplusplus" useful here?
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -54,6 +49,7 @@ extern "C" {
 #include "DNA_group_types.h"
 #include "DNA_text_types.h"
 
+#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
@@ -69,7 +65,6 @@ extern "C" {
 #include "pixelblending.h"
 
 #include "FRS_freestyle.h"
-#include "FRS_freestyle_config.h"
 
 #define DEFAULT_SPHERE_RADIUS 1.0f
 #define DEFAULT_DKR_EPSILON   0.0f
@@ -94,10 +89,6 @@ int freestyle_viewport[4];
 Scene *freestyle_scene;
 
 static string default_module_path;
-
-// function declarations
-static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset);
-static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module);
 
 //=======================================================
 //   Initialization 
@@ -640,158 +631,9 @@ void FRS_finish_stroke_rendering(Render *re)
 //   Freestyle Panel Configuration
 //=======================================================
 
-void FRS_init_freestyle_config(FreestyleConfig *config)
-{
-	config->mode = FREESTYLE_CONTROL_EDITOR_MODE;
-
-	config->modules.first = config->modules.last = NULL;
-	config->flags = 0;
-	config->sphere_radius = DEFAULT_SPHERE_RADIUS;
-	config->dkr_epsilon = DEFAULT_DKR_EPSILON;
-	config->crease_angle = DEG2RADF(134.43f);
-
-	config->linesets.first = config->linesets.last = NULL;
-}
-
-void FRS_free_freestyle_config(FreestyleConfig *config)
-{
-	FreestyleLineSet *lineset;
-
-	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
-		if (lineset->group) {
-			lineset->group->id.us--;
-			lineset->group = NULL;
-		}
-		lineset->linestyle->id.us--;
-		lineset->linestyle = NULL;
-	}
-	BLI_freelistN(&config->linesets);
-	BLI_freelistN(&config->modules);
-}
-
-void FRS_copy_freestyle_config(FreestyleConfig *new_config, FreestyleConfig *config)
-{
-	FreestyleLineSet *lineset, *new_lineset;
-	FreestyleModuleConfig *module, *new_module;
-
-	new_config->mode = config->mode;
-	new_config->raycasting_algorithm = config->raycasting_algorithm; /* deprecated */
-	new_config->flags = config->flags;
-	new_config->sphere_radius = config->sphere_radius;
-	new_config->dkr_epsilon = config->dkr_epsilon;
-	new_config->crease_angle = config->crease_angle;
-
-	new_config->linesets.first = new_config->linesets.last = NULL;
-	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
-		new_lineset = FRS_alloc_lineset();
-		copy_lineset(new_lineset, lineset);
-		BLI_addtail(&new_config->linesets, (void *)new_lineset);
-	}
-
-	new_config->modules.first = new_config->modules.last = NULL;
-	for (module = (FreestyleModuleConfig *)config->modules.first; module; module = module->next) {
-		new_module = FRS_alloc_module();
-		copy_module(new_module, module);
-		BLI_addtail(&new_config->modules, (void *)new_module);
-	}
-}
-
-static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset)
-{
-	new_lineset->linestyle = lineset->linestyle;
-	new_lineset->linestyle->id.us++;
-	new_lineset->flags = lineset->flags;
-	new_lineset->selection = lineset->selection;
-	new_lineset->qi = lineset->qi;
-	new_lineset->qi_start = lineset->qi_start;
-	new_lineset->qi_end = lineset->qi_end;
-	new_lineset->edge_types = lineset->edge_types;
-	new_lineset->exclude_edge_types = lineset->exclude_edge_types;
-	new_lineset->group = lineset->group;
-	if (new_lineset->group) {
-		new_lineset->group->id.us++;
-	}
-	strcpy(new_lineset->name, lineset->name);
-}
-
-FreestyleModuleConfig *FRS_alloc_module()
-{
-	return (FreestyleModuleConfig *)MEM_callocN(sizeof(FreestyleModuleConfig), "style module configuration");
-}
-
-void FRS_add_module(FreestyleConfig *config)
-{
-	FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)MEM_callocN(sizeof(FreestyleModuleConfig),
-	                                                                          "style module configuration");
-	BLI_addtail(&config->modules, (void *)module_conf);
-
-	strcpy(module_conf->module_path, default_module_path.c_str());
-	module_conf->is_displayed = 1;
-}
-
-static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module)
-{
-	strcpy(new_module->module_path, module->module_path);
-	new_module->is_displayed = module->is_displayed;
-}
-
-void FRS_delete_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
-{
-	BLI_freelinkN(&config->modules, module_conf);
-}
-
-void FRS_move_module_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
-{
-	BLI_remlink(&config->modules, module_conf);
-	BLI_insertlinkbefore(&config->modules, module_conf->prev, module_conf);
-}
-
-void FRS_move_module_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
-{
-	BLI_remlink(&config->modules, module_conf);
-	BLI_insertlinkafter(&config->modules, module_conf->next, module_conf);
-}
-
-static void unique_lineset_name(FreestyleConfig *config, FreestyleLineSet *lineset)
-{
-	BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', offsetof(FreestyleLineSet, name),
-	               sizeof(lineset->name));
-}
-
-FreestyleLineSet *FRS_alloc_lineset()
-{
-	return (FreestyleLineSet *)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
-}
-
-FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
-{
-	int lineset_index = BLI_countlist(&config->linesets);
-
-	FreestyleLineSet *lineset = FRS_alloc_lineset();
-	BLI_addtail(&config->linesets, (void *)lineset);
-	FRS_set_active_lineset_index(config, lineset_index);
-
-	lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
-	lineset->flags |= FREESTYLE_LINESET_ENABLED;
-	lineset->selection = FREESTYLE_SEL_VISIBILITY | FREESTYLE_SEL_EDGE_TYPES | FREESTYLE_SEL_IMAGE_BORDER;
-	lineset->qi = FREESTYLE_QI_VISIBLE;
-	lineset->qi_start = 0;
-	lineset->qi_end = 100;
-	lineset->edge_types = FREESTYLE_FE_SILHOUETTE | FREESTYLE_FE_BORDER | FREESTYLE_FE_CREASE;
-	lineset->exclude_edge_types = 0;
-	lineset->group = NULL;
-	if (lineset_index > 0)
-		sprintf(lineset->name, "LineSet %i", lineset_index + 1);
-	else
-		strcpy(lineset->name, "LineSet");
-	unique_lineset_name(config, lineset);
-
-	return lineset;
-}
-
 void FRS_copy_active_lineset(FreestyleConfig *config)
 {
-	FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
 		lineset_buffer.linestyle = lineset->linestyle;
@@ -813,7 +655,7 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
 	if (!lineset_copied)
 		return;
 
-	FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
 		lineset->linestyle->id.us--;
@@ -835,14 +677,14 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
 			lineset->group->id.us++;
 		}
 		strcpy(lineset->name, lineset_buffer.name);
-		unique_lineset_name(config, lineset);
+		BKE_freestyle_lineset_unique_name(config, lineset);
 		lineset->flags |= FREESTYLE_LINESET_CURRENT;
 	}
 }
 
 void FRS_delete_active_lineset(FreestyleConfig *config)
 {
-	FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
 		if (lineset->group) {
@@ -853,13 +695,13 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
 		lineset->linestyle = NULL;
 		BLI_remlink(&config->linesets, lineset);
 		MEM_freeN(lineset);
-		FRS_set_active_lineset_index(config, 0);
+		BKE_freestyle_lineset_set_active_index(config, 0);
 	}
 }
 
 void FRS_move_active_lineset_up(FreestyleConfig *config)
 {
-	FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
 		BLI_remlink(&config->linesets, lineset);
@@ -869,7 +711,7 @@ void FRS_move_active_lineset_up(FreestyleConfig *config)
 
 void FRS_move_active_lineset_down(FreestyleConfig *config)
 {
-	FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
 		BLI_remlink(&config->linesets, lineset);
@@ -877,51 +719,4 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 	}
 }
 
-FreestyleLineSet *FRS_get_active_lineset(FreestyleConfig *config)
-{
-	FreestyleLineSet *lineset;
-
-	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
-		if (lineset->flags & FREESTYLE_LINESET_CURRENT)
-			return lineset;
-	}
-	return NULL;
-}
-
-short FRS_get_active_lineset_index(FreestyleConfig *config)
-{
-	FreestyleLineSet *lineset;
-	short i;
-
-	for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset; lineset = lineset->next, i++) {
-		if (lineset->flags & FREESTYLE_LINESET_CURRENT)
-			return i;
-	}
-	return 0;
-}
-
-void FRS_set_active_lineset_index(FreestyleConfig *config, short index)
-{
-	FreestyleLineSet *lineset;
-	short i;
-
-	for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset; lineset = lineset->next, i++) {
-		if (i == index)
-			lineset->flags |= FREESTYLE_LINESET_CURRENT;
-		else
-			lineset->flags &= ~FREESTYLE_LINESET_CURRENT;
-	}
-}
-
-void FRS_unlink_target_object(FreestyleConfig *config, Object *ob)
-{
-	FreestyleLineSet *lineset;
-
-	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
-		FRS_unlink_linestyle_target_object(lineset->linestyle, ob);
-	}
-}
-
-#ifdef __cplusplus
 } // extern "C"
-#endif

@@ -144,9 +144,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 			case ANIMTYPE_DSMESH:
 			case ANIMTYPE_DSTEX:
 			case ANIMTYPE_DSLAT:
-#ifdef WITH_FREESTYLE
 			case ANIMTYPE_DSLINESTYLE:
-#endif
 			case ANIMTYPE_DSSPK:
 			{
 				/* for these channels, we only do AnimData */

@@ -139,8 +139,8 @@ if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
 if env['WITH_BF_FREESTYLE']:
+    # TO BE REMOVED when the trunk merger is done
     defs.append('WITH_FREESTYLE')
-    incs += ' ../../freestyle'
 
 if not env['BF_DEBUG']:
     defs.append('NDEBUG')

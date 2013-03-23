@@ -111,9 +111,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
-#ifdef WITH_FREESTYLE
-#  include "DNA_linestyle_types.h"
-#endif
+#include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -2198,6 +2196,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
 	ToolSettings *tos;
+	FreestyleModuleConfig *fmc;
+	FreestyleLineSet *fls;
 	
 	sce= scebase->first;
 	while (sce) {
@@ -2323,22 +2323,12 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
-			
-#ifdef WITH_FREESTYLE
-			{
-				FreestyleModuleConfig *fmc;
-				FreestyleLineSet *fls;
-
-				for(fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
-					writestruct(wd, DATA, "FreestyleModuleConfig", 1, fmc);
-				}
-			
-				for(fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
-					writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
-				}
-
+			for(fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+				writestruct(wd, DATA, "FreestyleModuleConfig", 1, fmc);
 			}
-#endif
+			for(fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+				writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
+			}
 		}
 		
 		if (sce->nodetree) {
@@ -3061,7 +3051,6 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
-#ifdef WITH_FREESTYLE
 static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 {
 	LineStyleModifier *m;
@@ -3262,7 +3251,6 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 		}
 	}
 }
-#endif
 
 /* context is usually defined by WM, two cases where no WM is available:
  * - for forward compatibility, curscreen has to be saved
@@ -3375,9 +3363,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
-#ifdef WITH_FREESTYLE
 	write_linestyles(wd, &mainvar->linestyle);
-#endif
 	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {

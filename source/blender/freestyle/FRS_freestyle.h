@@ -40,7 +40,6 @@ extern "C" {
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_object.h"
 
 struct Render;
 
@@ -61,27 +60,12 @@ void FRS_finish_stroke_rendering(struct Render *re);
 void FRS_composite_result(struct Render *re, struct SceneRenderLayer *srl, struct Render *freestyle_render);
 void FRS_exit(void);
 
-/* FreestyleConfig.modules */
-FreestyleModuleConfig *FRS_alloc_module(void);
-void FRS_add_module(FreestyleConfig *config);
-void FRS_delete_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-void FRS_move_module_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-void FRS_move_module_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-
 /* FreestyleConfig.linesets */
-FreestyleLineSet *FRS_alloc_lineset(void);
-FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config);
 void FRS_copy_active_lineset(FreestyleConfig *config);
 void FRS_paste_active_lineset(FreestyleConfig *config);
 void FRS_delete_active_lineset(FreestyleConfig *config);
 void FRS_move_active_lineset_up(FreestyleConfig *config);
 void FRS_move_active_lineset_down(FreestyleConfig *config);
-
-FreestyleLineSet *FRS_get_active_lineset(FreestyleConfig *config);
-short FRS_get_active_lineset_index(FreestyleConfig *config);
-void FRS_set_active_lineset_index(FreestyleConfig *config, short index);
-
-void FRS_unlink_target_object(FreestyleConfig *config, struct Object *ob);
 
 #ifdef __cplusplus
 }

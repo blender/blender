@@ -239,9 +239,7 @@ typedef struct wmNotifier {
 #define NC_MOVIECLIP			(20<<24)
 #define NC_MASK				(21<<24)
 #define NC_GPENCIL			(22<<24)
-#ifdef WITH_FREESTYLE
-#  define NC_LINESTYLE			(23<<24)
-#endif
+#define NC_LINESTYLE			(23<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000

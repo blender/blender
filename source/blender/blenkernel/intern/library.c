@@ -93,6 +93,7 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
@@ -110,9 +111,6 @@
 #include "BKE_text.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
-#ifdef WITH_FREESTYLE
-#  include "BKE_linestyle.h"
-#endif
 
 #include "RNA_access.h"
 
@@ -282,10 +280,8 @@ bool id_make_local(ID *id, bool test)
 			return false; /* can't be linked */
 		case ID_GD:
 			return false; /* not implemented */
-#ifdef WITH_FREESTYLE
 		case ID_LS:
 			return 0; /* not implemented */
-#endif
 	}
 
 	return false;
@@ -384,11 +380,9 @@ bool id_copy(ID *id, ID **newid, bool test)
 		case ID_MSK:
 			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
 			return true;
-#ifdef WITH_FREESTYLE
 		case ID_LS:
-			if(!test) *newid= (ID*)FRS_copy_linestyle((FreestyleLineStyle*)id);
+			if (!test) *newid = (ID *)BKE_copy_linestyle((FreestyleLineStyle *)id);
 			return 1;
-#endif
 	}
 	
 	return false;
@@ -519,10 +513,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->movieclip);
 		case ID_MSK:
 			return &(mainlib->mask);
-#ifdef WITH_FREESTYLE
 		case ID_LS:
 			return &(mainlib->linestyle);
-#endif
 	}
 	return NULL;
 }
@@ -613,9 +605,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->wm);
 	lb[a++] = &(main->movieclip);
 	lb[a++] = &(main->mask);
-#ifdef WITH_FREESTYLE
 	lb[a++] = &(main->linestyle);
-#endif
 	
 	lb[a] = NULL;
 
@@ -734,11 +724,9 @@ static ID *alloc_libblock_notest(short type)
 		case ID_MSK:
 			id = MEM_callocN(sizeof(Mask), "Mask");
 			break;
-#ifdef WITH_FREESTYLE
 		case ID_LS:
 			id = MEM_callocN(sizeof(FreestyleLineStyle), "Freestyle Line Style");
 			break;
-#endif
 	}
 	return id;
 }
@@ -974,11 +962,9 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 		case ID_MSK:
 			BKE_mask_free(bmain, (Mask *)id);
 			break;
-#ifdef WITH_FREESTYLE
 		case ID_LS:
-			FRS_free_linestyle((FreestyleLineStyle *)id);
+			BKE_free_linestyle((FreestyleLineStyle *)id);
 			break;
-#endif
 	}
 
 	BLI_remlink(lb, id);

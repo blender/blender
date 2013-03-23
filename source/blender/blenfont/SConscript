@@ -43,7 +43,4 @@ if sys.platform == 'win32' or env['OURPLATFORM'] == 'linuxcross':
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
-if env['WITH_BF_FREESTYLE']:
-    defs.append('WITH_FREESTYLE')
-
 env.BlenderLib ( 'bf_blenfont', sources, Split(incs), defines=defs, libtype=['core','player'], priority=[210,210] )

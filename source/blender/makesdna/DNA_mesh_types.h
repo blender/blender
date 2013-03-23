@@ -203,10 +203,8 @@ typedef struct TFace {
 /* debug only option */
 #define ME_DRAWEXTRA_INDICES (1 << 13)
 
-/* #ifdef WITH_FREESTYLE */
 #define ME_DRAW_FREESTYLE_EDGE (1 << 14)
 #define ME_DRAW_FREESTYLE_FACE (1 << 15)
-/* #endif */
 
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0

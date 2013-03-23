@@ -71,9 +71,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
-#ifdef WITH_FREESTYLE
-#  include "DNA_linestyle_types.h"
-#endif
+#include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -5018,6 +5016,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Sequence *seq;
 	SceneRenderLayer *srl;
 	TimeMarker *marker;
+	FreestyleLineSet *fls;
 	
 	for (sce = main->scene.first; sce; sce = sce->id.next) {
 		if (sce->id.flag & LIB_NEED_LINK) {
@@ -5132,16 +5131,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 			for (srl = sce->r.layers.first; srl; srl = srl->next) {
 				srl->mat_override = newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override = newlibadr_us(fd, sce->id.lib, srl->light_override);
-#ifdef WITH_FREESTYLE
-				{
-					FreestyleLineSet *fls;
-
-					for (fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
-						fls->linestyle = newlibadr_us(fd, sce->id.lib, fls->linestyle);
-						fls->group = newlibadr_us(fd, sce->id.lib, fls->group);
-					}
+				for (fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+					fls->linestyle = newlibadr_us(fd, sce->id.lib, fls->linestyle);
+					fls->group = newlibadr_us(fd, sce->id.lib, fls->group);
 				}
-#endif
 			}
 			/*Game Settings: Dome Warp Text*/
 			sce->gm.dome.warptext = newlibadr(fd, sce->id.lib, sce->gm.dome.warptext);
@@ -5211,6 +5204,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Sequence *seq;
 	MetaStack *ms;
 	RigidBodyWorld *rbw;
+	SceneRenderLayer *srl;
 	
 	sce->theDag = NULL;
 	sce->obedit = NULL;
@@ -5389,18 +5383,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
 
-#ifdef WITH_FREESTYLE
-	{
-		SceneRenderLayer *srl;
-
-		for(srl = sce->r.layers.first; srl; srl = srl->next) {
-			link_list(fd, &(srl->freestyleConfig.modules));
-		}
-		for(srl = sce->r.layers.first; srl; srl = srl->next) {
-			link_list(fd, &(srl->freestyleConfig.linesets));
-		}
+	for(srl = sce->r.layers.first; srl; srl = srl->next) {
+		link_list(fd, &(srl->freestyleConfig.modules));
 	}
-#endif
+	for(srl = sce->r.layers.first; srl; srl = srl->next) {
+		link_list(fd, &(srl->freestyleConfig.linesets));
+	}
 	
 	sce->nodetree = newdataadr(fd, sce->nodetree);
 	if (sce->nodetree) {
@@ -6737,7 +6725,6 @@ static void lib_link_mask(FileData *fd, Main *main)
 	}
 }
 
-#ifdef WITH_FREESTYLE
 /* ************ READ LINE STYLE ***************** */
 
 static void lib_link_linestyle(FileData *fd, Main *main)
@@ -6910,7 +6897,6 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
 	for(modifier = linestyle->geometry_modifiers.first; modifier; modifier = modifier->next)
 		direct_link_linestyle_geometry_modifier(fd, modifier);
 }
-#endif
 
 /* ************** GENERAL & MAIN ******************** */
 
@@ -6946,9 +6932,7 @@ static const char *dataname(short id_code)
 		case ID_PA: return "Data from PA";
 		case ID_GD: return "Data from GD";
 		case ID_MC: return "Data from MC";
-#ifdef WITH_FREESTYLE
 		case ID_LS: return "Data from LS";
-#endif
 	}
 	return "Data from Lib Block";
 	
@@ -7125,11 +7109,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		case ID_MSK:
 			direct_link_mask(fd, (Mask *)id);
 			break;
-#ifdef WITH_FREESTYLE
 		case ID_LS:
 			direct_link_linestyle(fd, (FreestyleLineStyle *)id);
 			break;
-#endif
 	}
 	
 	oldnewmap_free_unused(fd->datamap);
@@ -9247,7 +9229,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	}
 	
-#ifdef WITH_FREESTYLE
 	/* default values in Freestyle settings */
 	{
 		Scene *sce;
@@ -9344,7 +9325,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-#endif
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
@@ -9395,9 +9375,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
 	lib_link_mask(fd, main);
-#ifdef WITH_FREESTYLE
 	lib_link_linestyle(fd, main);
-#endif
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 	
@@ -10340,6 +10318,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
 	Base *base;
 	SceneRenderLayer *srl;
+	FreestyleLineSet *lineset;
 	
 	for (base = sce->base.first; base; base = base->next) {
 		expand_doit(fd, mainvar, base->object);
@@ -10360,18 +10339,11 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
-
-#ifdef WITH_FREESTYLE
-		{
-			FreestyleLineSet *lineset;
-
-			for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
-				if (lineset->group)
-					expand_doit(fd, mainvar, lineset->group);
-				expand_doit(fd, mainvar, lineset->linestyle);
-			}
+		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+			if (lineset->group)
+				expand_doit(fd, mainvar, lineset->group);
+			expand_doit(fd, mainvar, lineset->linestyle);
 		}
-#endif
 	}
 	
 	if (sce->r.dometext)
@@ -10470,7 +10442,6 @@ static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
 	}
 }
 
-#ifdef WITH_FREESTYLE
 static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *m;
@@ -10490,7 +10461,6 @@ static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *li
 			expand_doit(fd, mainvar, ((LineStyleThicknessModifier_DistanceFromObject *)m)->target);
 	}
 }
-#endif
 
 void BLO_main_expander(void (*expand_doit_func)(void *, Main *, void *))
 {
@@ -10582,11 +10552,9 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 					case ID_MSK:
 						expand_mask(fd, mainvar, (Mask *)id);
 						break;
-#ifdef WITH_FREESTYLE
 					case ID_LS:
 						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
 						break;
-#endif
 					}
 					
 					do_it = TRUE;

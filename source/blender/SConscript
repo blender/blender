@@ -66,5 +66,6 @@ if env['WITH_BF_COLLADA']:
     
 if env['WITH_BF_COMPOSITOR']:
     SConscript (['compositor/SConscript'])
+
 if env['WITH_BF_FREESTYLE']:
     SConscript (['freestyle/SConscript'])

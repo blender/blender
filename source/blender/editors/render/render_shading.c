@@ -51,10 +51,12 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
+#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -70,7 +72,6 @@
 #include "GPU_material.h"
 
 #ifdef WITH_FREESTYLE
-#  include "BKE_linestyle.h"
 #  include "FRS_freestyle.h"
 #endif
 
@@ -580,12 +581,13 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 }
 
 #ifdef WITH_FREESTYLE
+
 static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	FRS_add_module(&srl->freestyleConfig);
+	BKE_freestyle_module_add(&srl->freestyleConfig);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -613,7 +615,7 @@ static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module = ptr.data;
 
-	FRS_delete_module(&srl->freestyleConfig, module);
+	BKE_freestyle_module_delete(&srl->freestyleConfig, module);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -643,10 +645,10 @@ static int freestyle_module_move_exec(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	if (dir == 1) {
-		FRS_move_module_up(&srl->freestyleConfig, module);
+		BKE_freestyle_module_move_up(&srl->freestyleConfig, module);
 	}
 	else {
-		FRS_move_module_down(&srl->freestyleConfig, module);
+		BKE_freestyle_module_move_down(&srl->freestyleConfig, module);
 	}
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -681,7 +683,7 @@ static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	FRS_add_lineset(&srl->freestyleConfig);
+	BKE_freestyle_lineset_add(&srl->freestyleConfig);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -707,7 +709,7 @@ static int freestyle_active_lineset_poll(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	return FRS_get_active_lineset(&srl->freestyleConfig) != NULL;
+	return BKE_freestyle_lineset_get_active(&srl->freestyleConfig) != NULL;
 }
 
 static int freestyle_lineset_copy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -836,14 +838,14 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 
 	if (!lineset) {
 		BKE_report(op->reports, RPT_ERROR, "No active lineset to add a new line style to");
 		return OPERATOR_CANCELLED;
 	}
 	lineset->linestyle->id.us--;
-	lineset->linestyle = FRS_copy_linestyle(lineset->linestyle);
+	lineset->linestyle = BKE_copy_linestyle(lineset->linestyle);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -869,14 +871,14 @@ static int freestyle_color_modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (!lineset) {
 		BKE_report(op->reports, RPT_ERROR, "No active lineset and associated line style to add the modifier to");
 		return OPERATOR_CANCELLED;
 	}
-	if (FRS_add_linestyle_color_modifier(lineset->linestyle, type) == NULL) {
+	if (BKE_add_linestyle_color_modifier(lineset->linestyle, type) == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unknown line color modifier type.");
 		return OPERATOR_CANCELLED;
 	}
@@ -908,14 +910,14 @@ static int freestyle_alpha_modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (!lineset) {
 		BKE_report(op->reports, RPT_ERROR, "No active lineset and associated line style to add the modifier to");
 		return OPERATOR_CANCELLED;
 	}
-	if (FRS_add_linestyle_alpha_modifier(lineset->linestyle, type) == NULL) {
+	if (BKE_add_linestyle_alpha_modifier(lineset->linestyle, type) == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unknown alpha transparency modifier type");
 		return OPERATOR_CANCELLED;
 	}
@@ -947,14 +949,14 @@ static int freestyle_thickness_modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (!lineset) {
 		BKE_report(op->reports, RPT_ERROR, "No active lineset and associated line style to add the modifier to");
 		return OPERATOR_CANCELLED;
 	}
-	if (FRS_add_linestyle_thickness_modifier(lineset->linestyle, type) == NULL) {
+	if (BKE_add_linestyle_thickness_modifier(lineset->linestyle, type) == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unknown line thickness modifier type");
 		return OPERATOR_CANCELLED;
 	}
@@ -986,14 +988,14 @@ static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (!lineset) {
 		BKE_report(op->reports, RPT_ERROR, "No active lineset and associated line style to add the modifier to");
 		return OPERATOR_CANCELLED;
 	}
-	if (FRS_add_linestyle_geometry_modifier(lineset->linestyle, type) == NULL) {
+	if (BKE_add_linestyle_geometry_modifier(lineset->linestyle, type) == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unknown stroke geometry modifier type");
 		return OPERATOR_CANCELLED;
 	}
@@ -1038,7 +1040,7 @@ static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
 	LineStyleModifier *modifier = ptr.data;
 
@@ -1049,16 +1051,16 @@ static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
 
 	switch (freestyle_get_modifier_type(&ptr)) {
 	case LS_MODIFIER_TYPE_COLOR:
-		FRS_remove_linestyle_color_modifier(lineset->linestyle, modifier);
+		BKE_remove_linestyle_color_modifier(lineset->linestyle, modifier);
 		break;
 	case LS_MODIFIER_TYPE_ALPHA:
-		FRS_remove_linestyle_alpha_modifier(lineset->linestyle, modifier);
+		BKE_remove_linestyle_alpha_modifier(lineset->linestyle, modifier);
 		break;
 	case LS_MODIFIER_TYPE_THICKNESS:
-		FRS_remove_linestyle_thickness_modifier(lineset->linestyle, modifier);
+		BKE_remove_linestyle_thickness_modifier(lineset->linestyle, modifier);
 		break;
 	case LS_MODIFIER_TYPE_GEOMETRY:
-		FRS_remove_linestyle_geometry_modifier(lineset->linestyle, modifier);
+		BKE_remove_linestyle_geometry_modifier(lineset->linestyle, modifier);
 		break;
 	default:
 		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
@@ -1088,7 +1090,7 @@ static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
 	LineStyleModifier *modifier = ptr.data;
 
@@ -1099,16 +1101,16 @@ static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 
 	switch (freestyle_get_modifier_type(&ptr)) {
 	case LS_MODIFIER_TYPE_COLOR:
-		FRS_copy_linestyle_color_modifier(lineset->linestyle, modifier);
+		BKE_copy_linestyle_color_modifier(lineset->linestyle, modifier);
 		break;
 	case LS_MODIFIER_TYPE_ALPHA:
-		FRS_copy_linestyle_alpha_modifier(lineset->linestyle, modifier);
+		BKE_copy_linestyle_alpha_modifier(lineset->linestyle, modifier);
 		break;
 	case LS_MODIFIER_TYPE_THICKNESS:
-		FRS_copy_linestyle_thickness_modifier(lineset->linestyle, modifier);
+		BKE_copy_linestyle_thickness_modifier(lineset->linestyle, modifier);
 		break;
 	case LS_MODIFIER_TYPE_GEOMETRY:
-		FRS_copy_linestyle_geometry_modifier(lineset->linestyle, modifier);
+		BKE_copy_linestyle_geometry_modifier(lineset->linestyle, modifier);
 		break;
 	default:
 		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
@@ -1138,7 +1140,7 @@ static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&srl->freestyleConfig);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
 	LineStyleModifier *modifier = ptr.data;
 	int dir = RNA_enum_get(op->ptr, "direction");
@@ -1150,16 +1152,16 @@ static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 
 	switch (freestyle_get_modifier_type(&ptr)) {
 	case LS_MODIFIER_TYPE_COLOR:
-		FRS_move_linestyle_color_modifier(lineset->linestyle, modifier, dir);
+		BKE_move_linestyle_color_modifier(lineset->linestyle, modifier, dir);
 		break;
 	case LS_MODIFIER_TYPE_ALPHA:
-		FRS_move_linestyle_alpha_modifier(lineset->linestyle, modifier, dir);
+		BKE_move_linestyle_alpha_modifier(lineset->linestyle, modifier, dir);
 		break;
 	case LS_MODIFIER_TYPE_THICKNESS:
-		FRS_move_linestyle_thickness_modifier(lineset->linestyle, modifier, dir);
+		BKE_move_linestyle_thickness_modifier(lineset->linestyle, modifier, dir);
 		break;
 	case LS_MODIFIER_TYPE_GEOMETRY:
-		FRS_move_linestyle_geometry_modifier(lineset->linestyle, modifier, dir);
+		BKE_move_linestyle_geometry_modifier(lineset->linestyle, modifier, dir);
 		break;
 	default:
 		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
@@ -1193,7 +1195,8 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
 }
-#endif
+
+#endif /* WITH_FREESTYLE */
 
 static int texture_slot_move(bContext *C, wmOperator *op)
 {

@@ -63,6 +63,7 @@
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
+#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_idprop.h"
@@ -86,10 +87,6 @@
 
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
-
-#ifdef WITH_FREESTYLE
-#  include "FRS_freestyle_config.h"
-#endif
 
 #ifdef WIN32
 #else
@@ -144,6 +141,7 @@ static void remove_sequencer_fcurves(Scene *sce)
 Scene *BKE_scene_copy(Scene *sce, int type)
 {
 	Scene *scen;
+	SceneRenderLayer *srl, *new_srl;
 	ToolSettings *ts;
 	Base *base, *obase;
 	
@@ -212,17 +210,12 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		if (type != SCE_COPY_FULL)
 			remove_sequencer_fcurves(scen);
 
-#ifdef WITH_FREESTYLE
-		{
-			SceneRenderLayer *srl, *new_srl;
-
-			new_srl = scen->r.layers.first;
-			for (srl = sce->r.layers.first; srl; srl = srl->next) {
-				FRS_copy_freestyle_config(&new_srl->freestyleConfig, &srl->freestyleConfig);
-				new_srl = new_srl->next;
-			}
+		/* copy Freestyle settings */
+		new_srl = scen->r.layers.first;
+		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+			BKE_freestyle_config_copy(&new_srl->freestyleConfig, &srl->freestyleConfig);
+			new_srl = new_srl->next;
 		}
-#endif
 	}
 
 	/* tool settings */
@@ -305,6 +298,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 void BKE_scene_free(Scene *sce)
 {
 	Base *base;
+	SceneRenderLayer *srl;
 
 	/* check all sequences */
 	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
@@ -351,15 +345,9 @@ void BKE_scene_free(Scene *sce)
 		sce->r.ffcodecdata.properties = NULL;
 	}
 	
-#ifdef WITH_FREESTYLE
-	{
-		SceneRenderLayer *srl;
-
-		for (srl = sce->r.layers.first; srl; srl = srl->next) {
-			FRS_free_freestyle_config(&srl->freestyleConfig);
-		}
+	for (srl = sce->r.layers.first; srl; srl = srl->next) {
+		BKE_freestyle_config_free(&srl->freestyleConfig);
 	}
-#endif
 	
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
@@ -1299,9 +1287,7 @@ SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 	srl->lay = (1 << 20) - 1;
 	srl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
 	srl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
-#ifdef WITH_FREESTYLE
-	FRS_init_freestyle_config(&srl->freestyleConfig);
-#endif
+	BKE_freestyle_config_init(&srl->freestyleConfig);
 
 	return srl;
 }
