@@ -168,19 +168,6 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
         if cscene.filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
 
-        layout.separator()
-
-        rd = scene.render
-        col = layout.column()
-
-        split = col.split(percentage=0.40)
-        split.prop(rd, "use_antialiasing", "OpenGL AA")
-        row = split.row()
-        row.active = rd.use_antialiasing
-        row.prop(rd, "antialiasing_samples", expand=True)
-
-        col.prop(rd, "alpha_mode", text="OpenGL Alpha")
-
 
 class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
@@ -232,7 +219,29 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Final Render:")
         sub.prop(rd, "use_persistent_data", text="Persistent Images")
 
+        
+class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
+    bl_label = "OpenGL Render"
+    bl_options = {'DEFAULT_CLOSED'}
 
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        split = layout.split()
+        
+        col = split.column()
+        col.prop(rd, "use_antialiasing")
+        sub = col.row()
+        sub.active = rd.use_antialiasing
+        sub.prop(rd, "antialiasing_samples", expand=True)
+        
+        col = split.column()
+        col.label(text="Alpha:")
+        col.prop(rd, "alpha_mode", text="")
+        
+        
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
     bl_options = {'DEFAULT_CLOSED'}
