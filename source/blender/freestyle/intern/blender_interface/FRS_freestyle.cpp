@@ -58,6 +58,7 @@ extern "C" {
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_callbacks.h"
 
 #include "BPY_extern.h"
 
@@ -90,6 +91,18 @@ Scene *freestyle_scene;
 
 static string default_module_path;
 
+static void load_post_callback(struct Main *main, struct ID *id, void *arg)
+{
+	lineset_copied = false;
+}
+
+static bCallbackFuncStore load_post_callback_funcstore = {
+	NULL, NULL, /* next, prev */
+	load_post_callback, /* func */
+	NULL, /* arg */
+	0 /* alloc */
+};
+
 //=======================================================
 //   Initialization 
 //=======================================================
@@ -110,6 +123,8 @@ void FRS_initialize()
 	default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" +
 	                      Config::DIR_SEP + "contour.py";
 
+	BLI_callback_add(&load_post_callback_funcstore, BLI_CB_EVT_LOAD_POST);
+
 	freestyle_is_initialized = 1;
 }
 
@@ -119,11 +134,6 @@ void FRS_set_context(bContext *C)
 		cout << "FRS_set_context: context 0x" << C << " scene 0x" << CTX_data_scene(C) << endl;
 	}
 	controller->setContext(C);
-}
-
-void FRS_read_file(bContext *C)
-{
-	lineset_copied = false;
 }
 
 void FRS_exit()

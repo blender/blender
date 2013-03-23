@@ -115,10 +115,6 @@
 #include "BPY_extern.h"
 #endif
 
-#ifdef WITH_FREESTYLE
-#  include "FRS_freestyle.h"
-#endif
-
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -437,9 +433,6 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		BPY_driver_reset();
 		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
-#endif
-#ifdef WITH_FREESTYLE
-		FRS_read_file(C);
 #endif
 
 		/* important to do before NULL'ing the context */
