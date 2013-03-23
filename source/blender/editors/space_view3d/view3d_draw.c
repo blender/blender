@@ -3253,7 +3253,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	/* enables anti-aliasing for 3D view drawing */
 	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
-		// if (!(U.gameflags & USER_DISABLE_AA))
 		glEnable(GL_MULTISAMPLE_ARB);
 	}
 
@@ -3371,7 +3370,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	/* Disable back anti-aliasing */
 	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
-		// if (!(U.gameflags & USER_DISABLE_AA))
 		glDisable(GL_MULTISAMPLE_ARB);
 	}
 
