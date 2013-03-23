@@ -670,15 +670,6 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
 		md->projectors[a] = NULL;
 }
 
-static int rna_OceanModifier_is_build_enabled_get(PointerRNA *UNUSED(ptr))
-{
-#ifdef WITH_OCEANSIM
-	return 1;
-#else /* WITH_OCEANSIM */
-	return 0;
-#endif /* WITH_OCEANSIM */
-}
-
 static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
@@ -3286,12 +3277,6 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Ocean Modifier", "Simulate an ocean surface");
 	RNA_def_struct_sdna(srna, "OceanModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_OCEAN);
-	
-	/* General check if blender was built with OceanSim modifier support */
-	prop = RNA_def_property(srna, "is_build_enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_OceanModifier_is_build_enabled_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Build Enabled", "True if the OceanSim modifier is enabled in this build");
 	
 	prop = RNA_def_property(srna, "geometry_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "geometry_mode");

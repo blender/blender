@@ -157,7 +157,7 @@ class INFO_MT_file_import(Menu):
     bl_label = "Import"
 
     def draw(self, context):
-        if hasattr(bpy.types, "WM_OT_collada_import"):
+        if bpy.app.build_options.collada:
             self.layout.operator("wm.collada_import", text="Collada (Default) (.dae)")
 
 
@@ -166,7 +166,7 @@ class INFO_MT_file_export(Menu):
     bl_label = "Export"
 
     def draw(self, context):
-        if hasattr(bpy.types, "WM_OT_collada_export"):
+        if bpy.app.build_options.collada:
             self.layout.operator("wm.collada_export", text="Collada (Default) (.dae)")
 
 

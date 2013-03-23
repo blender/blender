@@ -509,7 +509,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.label()
 
     def OCEAN(self, layout, ob, md):
-        if not md.is_build_enabled:
+        if not bpy.app.build_options.mod_oceansim:
             layout.label("Built without OceanSim modifier")
             return
 
