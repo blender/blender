@@ -1087,7 +1087,7 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
  */
 int isect_line_plane_v3(float out[3],
                         const float l1[3], const float l2[3],
-                        const float plane_co[3], const float plane_no[3], const short no_flip)
+                        const float plane_co[3], const float plane_no[3], const bool no_flip)
 {
 	float l_vec[3]; /* l1 -> l2 normalized vector */
 	float p_no[3]; /* 'plane_no' normalized */
@@ -1997,7 +1997,7 @@ int clip_line_plane(float p1[3], float p2[3], const float plane[4])
 	}
 }
 
-void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int, void *), void *userData)
+void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int, void *), void *userData)
 {
 	int x1 = p1[0];
 	int y1 = p1[1];

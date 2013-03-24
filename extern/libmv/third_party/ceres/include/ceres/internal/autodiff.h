@@ -38,7 +38,7 @@
 //
 //   struct F {
 //     template<typename T>
-//     bool operator(const T *x, const T *y, ..., T *z) {
+//     bool operator()(const T *x, const T *y, ..., T *z) {
 //       // Compute z[] based on x[], y[], ...
 //       // return true if computation succeeded, false otherwise.
 //     }
@@ -102,7 +102,7 @@
 //
 //   struct F {
 //     template<typename T>
-//     bool operator(const T *p, const T *q, T *z) {
+//     bool operator()(const T *p, const T *q, T *z) {
 //       // ...
 //     }
 //   };

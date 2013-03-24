@@ -97,7 +97,7 @@ static PyGetSetDef bpy_bmtexpoly_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-PyTypeObject BPy_BMTexPoly_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+static PyTypeObject BPy_BMTexPoly_Type = {{{0}}}; /* bm.loops.layers.uv.active */
 
 static void bm_init_types_bmtexpoly(void)
 {

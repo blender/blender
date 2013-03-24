@@ -207,8 +207,10 @@ void BLF_lang_free(void)
 #endif
 }
 
-#define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
-#define LOCALE(_id) (locales ? locales[(_id)] : "")
+#ifdef WITH_INTERNATIONAL
+#  define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
+#  define LOCALE(_id) (locales ? locales[(_id)] : "")
+#endif
 
 void BLF_lang_set(const char *str)
 {

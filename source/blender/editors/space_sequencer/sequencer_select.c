@@ -320,10 +320,10 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	View2D *v2d = UI_view2d_fromcontext(C);
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	short extend = RNA_boolean_get(op->ptr, "extend");
-	short linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
-	short left_right = RNA_boolean_get(op->ptr, "left_right");
-	short linked_time = RNA_boolean_get(op->ptr, "linked_time");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
+	const bool linked_time = RNA_boolean_get(op->ptr, "linked_time");
+	bool left_right = RNA_boolean_get(op->ptr, "left_right");
 	
 	Sequence *seq, *neighbor, *act_orig;
 	int hand, sel_side;
@@ -673,7 +673,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, cons
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
 	
-	short extend = RNA_boolean_get(op->ptr, "extend");
+	bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	Sequence *mouse_seq;
 	int selected, hand;

@@ -460,7 +460,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *UNUSED(o
 
 		/* only touch location */
 		BKE_object_tfm_protected_backup(camera_ob, &obtfm);
-		BKE_object_apply_mat4(camera_ob, obmat_new, TRUE, TRUE);
+		BKE_object_apply_mat4(camera_ob, obmat_new, true, true);
 		BKE_object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
 
 		/* notifiers */
@@ -479,7 +479,7 @@ static int view3d_camera_to_view_selected_poll(bContext *C)
 	if (v3d && v3d->camera && v3d->camera->id.lib == NULL) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		if (rv3d) {
-			if (rv3d->is_persp == FALSE) {
+			if (rv3d->is_persp == false) {
 				CTX_wm_operator_poll_msg_set(C, "Only valid for a perspective camera view");
 			}
 			else if (!rv3d->viewlock) {
@@ -612,7 +612,7 @@ void ED_view3d_clipping_calc(BoundBox *bb, float planes[4][4], bglMats *mats, co
 }
 
 
-int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], BoundBox *bb)
+bool ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], const BoundBox *bb)
 {
 	/* return 1: draw */
 
@@ -620,8 +620,8 @@ int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], BoundBox *bb)
 	float vec[4], min, max;
 	int a, flag = -1, fl;
 
-	if (bb == NULL) return 1;
-	if (bb->flag & OB_BB_DISABLED) return 1;
+	if (bb == NULL) return true;
+	if (bb->flag & OB_BB_DISABLED) return true;
 
 	mult_m4_m4m4(mat, rv3d->persmat, obmat);
 
@@ -641,10 +641,10 @@ int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], BoundBox *bb)
 		if (vec[2] > max) fl += 32;
 
 		flag &= fl;
-		if (flag == 0) return 1;
+		if (flag == 0) return true;
 	}
 
-	return 0;
+	return false;
 }
 
 float ED_view3d_depth_read_cached(ViewContext *vc, int x, int y)
@@ -663,7 +663,7 @@ float ED_view3d_depth_read_cached(ViewContext *vc, int x, int y)
 void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 {
 	if (rv3d->depths)
-		rv3d->depths->damaged = 1;
+		rv3d->depths->damaged = true;
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
@@ -951,7 +951,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						Base tbase;
 						
 						tbase.flag = OB_FROMDUPLI;
-						lb = object_duplilist(scene, base->object, FALSE);
+						lb = object_duplilist(scene, base->object, false);
 						
 						for (dob = lb->first; dob; dob = dob->next) {
 							tbase.object = dob->ob;
@@ -975,7 +975,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 				}
 			}
 		}
-		v3d->xray = FALSE;  /* restore */
+		v3d->xray = false;  /* restore */
 	}
 	
 	glPopName();    /* see above (pushname) */
@@ -1073,14 +1073,14 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 	return lay;
 }
 
-static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportList *reports)
+static bool view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportList *reports)
 {
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
 	float min[3], max[3], box[3];
 	float size = 0.0f, size_persp = 0.0f, size_ortho = 0.0f;
 	unsigned int locallay;
-	int ok = FALSE;
+	bool ok = false;
 
 	if (v3d->localvd) {
 		return ok;
@@ -1092,13 +1092,13 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 
 	if (locallay == 0) {
 		BKE_report(reports, RPT_ERROR, "No more than 8 local views");
-		ok = FALSE;
+		ok = false;
 	}
 	else {
 		if (scene->obedit) {
-			BKE_object_minmax(scene->obedit, min, max, FALSE);
+			BKE_object_minmax(scene->obedit, min, max, false);
 			
-			ok = TRUE;
+			ok = true;
 		
 			BASACT->lay |= locallay;
 			scene->obedit->lay = BASACT->lay;
@@ -1106,10 +1106,10 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		else {
 			for (base = FIRSTBASE; base; base = base->next) {
 				if (TESTBASE(v3d, base)) {
-					BKE_object_minmax(base->object, min, max, FALSE);
+					BKE_object_minmax(base->object, min, max, false);
 					base->lay |= locallay;
 					base->object->lay = base->lay;
-					ok = TRUE;
+					ok = true;
 				}
 			}
 		}
@@ -1125,7 +1125,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		size_ortho = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f) * VIEW3D_MARGIN;
 	}
 	
-	if (ok == TRUE) {
+	if (ok == true) {
 		ARegion *ar;
 		
 		v3d->localvd = MEM_mallocN(sizeof(View3D), "localview");
@@ -1220,7 +1220,7 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	}
 }
 
-static int view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
+static bool view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d = sa->spacedata.first;
 	struct Base *base;
@@ -1247,12 +1247,12 @@ static int view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 			}
 		}
 		
-		DAG_on_visible_update(bmain, FALSE);
+		DAG_on_visible_update(bmain, false);
 
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1262,7 +1262,7 @@ static int localview_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	int change;
+	bool change;
 	
 	if (v3d->localvd) {
 		change = view3d_localview_exit(bmain, scene, sa);
@@ -1403,7 +1403,7 @@ static int game_engine_poll(bContext *C)
 	return 1;
 }
 
-int ED_view3d_context_activate(bContext *C)
+bool ED_view3d_context_activate(bContext *C)
 {
 	bScreen *sc = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -1416,20 +1416,20 @@ int ED_view3d_context_activate(bContext *C)
 				break;
 
 	if (!sa)
-		return 0;
+		return false;
 	
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
 		if (ar->regiontype == RGN_TYPE_WINDOW)
 			break;
 	
 	if (!ar)
-		return 0;
+		return false;
 	
 	/* bad context switch .. */
 	CTX_wm_area_set(C, sa);
 	CTX_wm_region_set(C, ar);
 
-	return 1;
+	return true;
 }
 
 static int game_engine_exec(bContext *C, wmOperator *op)
@@ -1466,7 +1466,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	{
 		/* Letterbox */
 		rctf cam_framef;
-		ED_view3d_calc_camera_border(startscene, ar, CTX_wm_view3d(C), rv3d, &cam_framef, FALSE);
+		ED_view3d_calc_camera_border(startscene, ar, CTX_wm_view3d(C), rv3d, &cam_framef, false);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;

@@ -148,7 +148,7 @@ static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 
 void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree)
 {
-	if (!ntreeIsValid(ntree))
+	if (!ntree)
 		return;
 	
 	/* look through all datablocks, to support groups */
@@ -359,7 +359,10 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		nsock->locx = locx + NODE_WIDTH(node);
 		/* place the socket circle in the middle of the layout */
 		nsock->locy = 0.5f * (dy + buty);
+		
 		dy = buty;
+		if (nsock->next)
+			dy -= NODE_SOCKDY;
 	}
 
 	node->prvr.xmin = locx + NODE_DYS;
@@ -443,7 +446,10 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		nsock->locx = locx;
 		/* place the socket circle in the middle of the layout */
 		nsock->locy = 0.5f * (dy + buty);
+		
 		dy = buty;
+		if (nsock->next)
+			dy -= NODE_SOCKDY;
 	}
 	
 	/* little bit space in end */
@@ -861,7 +867,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	         NULL, 0, 0, 0, 0, "");
 
 	/* body */
-	if (node->flag & NODE_CUSTOM_COLOR)
+	if (!nodeIsRegistered(node))
+		UI_ThemeColor4(TH_REDALERT);	/* use warning color to indicate undefined types */
+	else if (node->flag & NODE_CUSTOM_COLOR)
 		glColor3fv(node->color);
 	else
 		UI_ThemeColor4(TH_NODE);
@@ -967,7 +975,19 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
-	
+
+	/* custom color inline */
+	if (node->flag & NODE_CUSTOM_COLOR) {
+		glEnable(GL_BLEND);
+		glEnable(GL_LINE_SMOOTH);
+
+		glColor3fv(node->color);
+		uiDrawBox(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad);
+
+		glDisable(GL_LINE_SMOOTH);
+		glDisable(GL_BLEND);
+	}
+
 	/* title */
 	if (node->flag & SELECT) 
 		UI_ThemeColor(TH_SELECT);
@@ -1057,7 +1077,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 	bNodeSocket *sock;
 	int cursor = CURSOR_STD;
 	
-	if (ntreeIsValid(ntree)) {
+	if (ntree) {
 		if (node_find_indicated_socket(snode, &node, &sock, SOCK_IN | SOCK_OUT)) {
 			/* pass */
 		}
@@ -1112,7 +1132,6 @@ static void node_draw(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTre
 void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNodeInstanceKey parent_key)
 {
 	bNode *node;
-	bNodeInstanceKey key;
 	bNodeLink *link;
 	int a;
 	
@@ -1126,6 +1145,7 @@ void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeT
 
 	/* draw background nodes, last nodes in front */
 	for (a = 0, node = ntree->nodes.first; node; node = node->next, a++) {
+		bNodeInstanceKey key;
 
 #ifdef USE_DRAW_TOT_UPDATE
 		/* unrelated to background nodes, update the v2d->tot,
@@ -1153,7 +1173,7 @@ void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeT
 	
 	/* draw foreground nodes, last nodes in front */
 	for (a = 0, node = ntree->nodes.first; node; node = node->next, a++) {
-		bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
+		bNodeInstanceKey key;
 		if (node->flag & NODE_BACKGROUND)
 			continue;
 
@@ -1271,7 +1291,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		for (curdepth = depth; curdepth >= 0; path = path->next, --curdepth) {
 			ntree = path->nodetree;
 			
-			if (ntreeIsValid(ntree)) {
+			if (ntree) {
 				snode_setup_v2d(snode, ar, ntree->view_center[0], ntree->view_center[1]);
 				
 				if (curdepth == 0) {

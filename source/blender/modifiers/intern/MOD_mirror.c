@@ -111,7 +111,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	MLoop *ml;
 	MPoly *mp;
 	float mtx[4][4];
-	int i, j;
+	int i;
 	int a, totshape;
 	int *vtargetmap = NULL, *vtmap_a = NULL, *vtmap_b = NULL;
 
@@ -221,7 +221,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	ml = CDDM_get_loops(result);
 	for (i = 0; i < maxPolys; i++, mp++) {
 		MLoop *ml2;
-		int e;
+		int j, e;
 
 		/* reverse the loop, but we keep the first vertex in the face the same,
 		 * to ensure that quads are split the same way as on the other side */
@@ -249,8 +249,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	/* handle uvs,
 	 * let tessface recalc handle updating the MTFace data */
 	if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
-		const int do_mirr_u = (mmd->flag & MOD_MIR_MIRROR_U) != 0;
-		const int do_mirr_v = (mmd->flag & MOD_MIR_MIRROR_V) != 0;
+		const bool do_mirr_u = (mmd->flag & MOD_MIR_MIRROR_U) != 0;
+		const bool do_mirr_v = (mmd->flag & MOD_MIR_MIRROR_V) != 0;
 
 		const int totuv = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
 

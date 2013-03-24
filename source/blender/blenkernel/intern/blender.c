@@ -66,6 +66,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_bpath.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -119,6 +120,8 @@ void free_blender(void)
 	
 	IMB_exit();
 	BKE_images_exit();
+
+	BKE_brush_system_exit();
 
 	BLI_callback_global_finalize();
 

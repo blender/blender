@@ -50,12 +50,16 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->m_depthInput = NULL;
 
 	this->m_ignoreAlpha = false;
+	this->m_active = false;
 
 	this->m_sceneName[0] = '\0';
 }
 
 void CompositorOperation::initExecution()
 {
+	if (!this->m_active)
+		return;
+
 	// When initializing the tree during initial load the width and height can be zero.
 	this->m_imageInput = getInputSocketReader(0);
 	this->m_alphaInput = getInputSocketReader(1);
@@ -70,6 +74,9 @@ void CompositorOperation::initExecution()
 
 void CompositorOperation::deinitExecution()
 {
+	if (!this->m_active)
+		return;
+
 	if (!isBreaked()) {
 		Render *re = RE_GetRender(this->m_sceneName);
 		RenderResult *rr = RE_AcquireResultWrite(re);
@@ -136,23 +143,63 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	int x;
 	int y;
 	bool breaked = false;
+	int dx = 0, dy = 0;
+
+	const RenderData *rd = this->m_rd;
+
+	if (rd->mode & R_BORDER && rd->mode & R_CROP) {
+	/*!
+	   When using cropped render result, need to re-position area of interest,
+	   so it'll natch bounds of render border within frame. By default, canvas
+	   will be centered between full frame and cropped frame, so we use such
+	   scheme to map cropped coordinates to full-frame coordinates
+
+		   ^ Y
+		   |                      Width
+		   +------------------------------------------------+
+		   |                                                |
+		   |                                                |
+		   |  Centered canvas, we map coordinate from it    |
+		   |              +------------------+              |
+		   |              |                  |              |  H
+		   |              |                  |              |  e
+		   |  +------------------+ . Center  |              |  i
+		   |  |           |      |           |              |  g
+		   |  |           |      |           |              |  h
+		   |  |....dx.... +------|-----------+              |  t
+		   |  |           . dy   |                          |
+		   |  +------------------+                          |
+		   |  Render border, we map coordinates to it       |
+		   |                                                |    X
+		   +------------------------------------------------+---->
+		                        Full frame
+		 */
+
+		int full_width = rd->xsch * rd->size / 100;
+		int full_height =rd->ysch * rd->size / 100;
+
+		dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
+		dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;
+	}
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			this->m_imageInput->read(color, x, y, COM_PS_NEAREST);
+			int input_x = x + dx, input_y = y + dy;
+
+			this->m_imageInput->read(color, input_x, input_y, COM_PS_NEAREST);
 			if (this->m_ignoreAlpha) {
 				color[3] = 1.0f;
 			}
 			else {
 				if (this->m_alphaInput != NULL) {
-					this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST);
+					this->m_alphaInput->read(&(color[3]), input_x, input_y, COM_PS_NEAREST);
 				}
 			}
 
 			copy_v4_v4(buffer + offset4, color);
 
 			if (this->m_depthInput != NULL) {
-				this->m_depthInput->read(color, x, y, COM_PS_NEAREST);
+				this->m_depthInput->read(color, input_x, input_y, COM_PS_NEAREST);
 				zbuffer[offset] = color[0];
 			}
 			offset4 += COM_NUMBER_OF_CHANNELS;

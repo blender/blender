@@ -300,7 +300,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te,
 	if (base) {
 		// check also library later
 		if (scene->obedit == base->object)
-			ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
 		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
 		te->directdata = NULL;

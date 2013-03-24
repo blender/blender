@@ -207,7 +207,7 @@ static BMEdge *edbm_ripsel_edge_mark_step(BMVert *v, const int uid)
 
 			BM_edge_loop_pair(e, &l_a, &l_b); /* no need to check, we know this will be true */
 
-			/* so (IS_VISIT_DONE == TRUE) */
+			/* so (IS_VISIT_DONE == true) */
 			BM_elem_index_set(l_a, uid);
 			BM_elem_index_set(l_b, uid);
 
@@ -246,7 +246,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	}
 
 	/* set contiguous loops ordered 'uid' values for walking after split */
-	while (TRUE) {
+	while (true) {
 		int tot = 0;
 		BMIter eiter;
 		BMEdge *e_step;
@@ -373,7 +373,7 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 		e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
 		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
 		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
-			BM_edge_select_set(bm, e, FALSE);
+			BM_edge_select_set(bm, e, false);
 		}
 	}
 }
@@ -486,9 +486,9 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 			}
 
 			/* face should never exist */
-			BLI_assert(BM_face_exists(f_verts, f_verts[3] ? 4 : 3, &f) == FALSE);
+			BLI_assert(BM_face_exists(f_verts, f_verts[3] ? 4 : 3, &f) == false);
 
-			f = BM_face_create_quad_tri_v(bm, f_verts, f_verts[3] ? 4 : 3, f_example, FALSE);
+			f = BM_face_create_quad_tri_v(bm, f_verts, f_verts[3] ? 4 : 3, f_example, false);
 
 			l_iter = BM_FACE_FIRST_LOOP(f);
 
@@ -511,21 +511,21 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 /* --- end 'face-fill' code --- */
 
 
-static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
+static bool edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 {
 	BMOperator bmop;
 
 	if (!EDBM_op_init(em, &bmop, op, "split_edges edges=%he verts=%hv use_verts=%b",
-	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE))
+	                  BM_ELEM_TAG, BM_ELEM_SELECT, true))
 	{
-		return FALSE;
+		return false;
 	}
 	BMO_op_exec(em->bm, &bmop);
-	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
-		return FALSE;
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /**
@@ -533,7 +533,7 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
  */
 static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
+	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -549,7 +549,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX;
 	float d;
-	int is_wire;
+	bool is_wire;
 
 	BMEditSelection ese;
 	int totboundary_edge = 0;
@@ -585,7 +585,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			 * otherwise we can't a face away from a wire edge */
 			totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
 			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-				if (is_boundary == FALSE && BM_edge_is_manifold(e)) {
+				if (is_boundary == false && BM_edge_is_manifold(e)) {
 					d = edbm_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
 					if (d < dist) {
 						dist = d;
@@ -640,22 +640,22 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	 * - the boundary edge total is greater then 2,
 	 *   in this case edge split _can_ work but we get far nicer results if we use this special case.
 	 * - there are only 2 edges but we are a wire vert. */
-	if ((is_wire == FALSE && totboundary_edge > 2) ||
-	    (is_wire == TRUE  && totboundary_edge > 1))
+	if ((is_wire == false && totboundary_edge > 2) ||
+	    (is_wire == true  && totboundary_edge > 1))
 	{
 		BMVert **vout;
 		int vout_len;
 
-		BM_vert_select_set(bm, v, FALSE);
+		BM_vert_select_set(bm, v, false);
 
-		if (bmesh_vert_separate(bm, v, &vout, &vout_len) == FALSE) {
+		if (bmesh_vert_separate(bm, v, &vout, &vout_len) == false) {
 			BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
 			return OPERATOR_CANCELLED;
 		}
 		else if (vout_len < 2) {
 			MEM_freeN(vout);
 			/* set selection back to avoid active-unselected vertex */
-			BM_vert_select_set(bm, v, TRUE);
+			BM_vert_select_set(bm, v, true);
 			/* should never happen */
 			BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
 			return OPERATOR_CANCELLED;
@@ -673,7 +673,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			 * either by its face corner, or connected edge (when no faces are attached) */
 			for (i = 0; i < vout_len; i++) {
 
-				if (BM_vert_is_wire(vout[i]) == FALSE) {
+				if (BM_vert_is_wire(vout[i]) == false) {
 					/* find the best face corner */
 					BM_ITER_ELEM (l, &iter, vout[i], BM_LOOPS_OF_VERT) {
 						if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
@@ -709,7 +709,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 
 			/* select the vert from the best region */
 			v = vout[vi_best];
-			BM_vert_select_set(bm, v, TRUE);
+			BM_vert_select_set(bm, v, true);
 
 			if (ese.ele) {
 				BM_select_history_store(bm, v);
@@ -804,7 +804,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				/* disable by default, re-enable winner at end */
-				BM_vert_select_set(bm, v, FALSE);
+				BM_vert_select_set(bm, v, false);
 
 				BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 					/* calculate a point in the face, rather then calculate the middle,
@@ -829,7 +829,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		}
 
 		if (v_best) {
-			BM_vert_select_set(bm, v_best, TRUE);
+			BM_vert_select_set(bm, v_best, true);
 			if (ese.ele) {
 				BM_select_history_store(bm, v_best);
 			}
@@ -855,7 +855,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
  */
 static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
+	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -878,14 +878,14 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 
 	/* expand edge selection */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		int all_manifold;
+		bool all_manifold;
 		int totedge_manifold;  /* manifold, visible edges */
 		int i;
 
 		e2 = NULL;
 		i = 0;
 		totedge_manifold = 0;
-		all_manifold = TRUE;
+		all_manifold = true;
 		BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 
 			if (!BM_edge_is_wire(e) &&
@@ -901,8 +901,8 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 			}
 
 			/** #BM_vert_other_disk_edge has no hidden checks so don't check hidden here */
-			if ((all_manifold == TRUE) && (BM_edge_is_manifold(e) == FALSE)) {
-				all_manifold = FALSE;
+			if ((all_manifold == true) && (BM_edge_is_manifold(e) == false)) {
+				all_manifold = false;
 			}
 		}
 
@@ -911,7 +911,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 			/* note: if the case of 3 edges has one change in loop stepping,
 			 * if this becomes more involved we may be better off splitting
 			 * the 3 edge case into its own else-if branch */
-			if ((totedge_manifold == 4 || totedge_manifold == 3) || (all_manifold == FALSE)) {
+			if ((totedge_manifold == 4 || totedge_manifold == 3) || (all_manifold == false)) {
 				BMLoop *l_a = e2->l;
 				BMLoop *l_b = l_a->radial_next;
 
@@ -1034,7 +1034,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(em, TRUE, TRUE);
+	EDBM_update_generic(em, true, true);
 
 	return OPERATOR_FINISHED;
 }
@@ -1056,6 +1056,6 @@ void MESH_OT_rip(wmOperatorType *ot)
 
 	/* to give to transform */
 	Transform_Properties(ot, P_PROPORTIONAL);
-	RNA_def_boolean(ot->srna, "mirror", FALSE, "Mirror Editing", "");
-	RNA_def_boolean(ot->srna, "use_fill", FALSE, "Fill", "Fill the ripped region");
+	RNA_def_boolean(ot->srna, "mirror", false, "Mirror Editing", "");
+	RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill the ripped region");
 }

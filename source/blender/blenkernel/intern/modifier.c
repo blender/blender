@@ -95,7 +95,7 @@ ModifierData *modifier_new(int type)
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
 	
 	/* note, this name must be made unique later */
-	BLI_strncpy(md->name, mti->name, sizeof(md->name));
+	BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
 
 	md->type = type;
 	md->mode = eModifierMode_Realtime | eModifierMode_Render | eModifierMode_Expanded;

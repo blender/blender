@@ -234,9 +234,9 @@ void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display);
 void        WM_operator_properties_border(struct wmOperatorType *ot);
 void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
-void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
+void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, bool extend);
 void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
-void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
+void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, bool cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
 int         WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
@@ -356,6 +356,7 @@ enum {
 	WM_JOB_TYPE_CLIP_BUILD_PROXY,
 	WM_JOB_TYPE_CLIP_TRACK_MARKERS,
 	WM_JOB_TYPE_CLIP_SOLVE_CAMERA,
+	WM_JOB_TYPE_CLIP_PREFETCH,
 	WM_JOB_TYPE_SEQ_BUILD_PROXY,
 	/* add as needed, screencast, seq proxy build
 	 * if having hard coded values is a problem */
@@ -385,6 +386,7 @@ void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_kill_type(struct wmWindowManager *wm, int job_type);
 
 int			WM_jobs_has_running(struct wmWindowManager *wm);
+int			WM_jobs_has_running_except(struct wmWindowManager *wm, int job_type);
 
 			/* clipboard */
 char       *WM_clipboard_text_get(int selection);

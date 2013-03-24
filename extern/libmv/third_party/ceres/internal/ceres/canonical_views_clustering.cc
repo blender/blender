@@ -29,6 +29,8 @@
 // Author: David Gallup (dgallup@google.com)
 //         Sameer Agarwal (sameeragarwal@google.com)
 
+#ifndef CERES_NO_SUITESPARSE
+
 #include "ceres/canonical_views_clustering.h"
 
 #include "ceres/collections_port.h"
@@ -236,3 +238,5 @@ void CanonicalViewsClustering::ComputeClusterMembership(
 
 }  // namespace internal
 }  // namespace ceres
+
+#endif  // CERES_NO_SUITESPARSE

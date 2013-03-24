@@ -128,8 +128,9 @@ void ED_object_toggle_modes(struct bContext *C, int mode);
 #define EM_WAITCURSOR   4
 #define EM_DO_UNDO      8
 #define EM_IGNORE_LAYER 16
-void ED_object_exit_editmode(struct bContext *C, int flag);
-void ED_object_enter_editmode(struct bContext *C, int flag);
+void ED_object_editmode_exit(struct bContext *C, int flag);
+void ED_object_editmode_enter(struct bContext *C, int flag);
+bool ED_object_editmode_load(struct Object *obedit);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3]);
@@ -164,7 +165,7 @@ void ED_object_constraint_update(struct Object *ob);
 void ED_object_constraint_dependency_update(struct Main *bmain, struct Object *ob);
 
 /* object_lattice.c */
-int  mouse_lattice(struct bContext *C, const int mval[2], int extend, int deselect, int toggle);
+bool mouse_lattice(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 void undo_push_lattice(struct bContext *C, const char *name);
 
 /* object_lattice.c */
@@ -190,7 +191,7 @@ int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
-int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include_orig,
+int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, const bool include_orig,
                          int (*callback)(struct Object *ob, void *callback_data),
                          void *callback_data);
 

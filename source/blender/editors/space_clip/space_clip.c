@@ -236,6 +236,16 @@ static void clip_stabilization_tag_refresh(ScrArea *sa)
 	}
 }
 
+static void clip_prefetch_tag_refresh(ScrArea *sa)
+{
+	SpaceClip *sc = (SpaceClip *) sa->spacedata.first;
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+
+	if (clip) {
+		clip->prefetch_ok = FALSE;
+	}
+}
+
 /* ******************** default callbacks for clip space ***************** */
 
 static SpaceLink *clip_new(const bContext *C)
@@ -351,6 +361,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_FRAME:
 					clip_scopes_tag_refresh(sa);
+					clip_prefetch_tag_refresh(sa);
 					/* no break! */
 
 				case ND_FRAME_RANGE:
@@ -359,11 +370,19 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_MOVIECLIP:
+			if (wmn->data == 0 && wmn->action == 0) {
+				/* a nit funky, happens from prefetch job to update
+				 * cache line and job progress
+				 */
+				ED_area_tag_redraw(sa);
+			}
+
 			switch (wmn->data) {
 				case ND_DISPLAY:
 				case ND_SELECT:
 					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
+					clip_prefetch_tag_refresh(sa);
 					break;
 			}
 			switch (wmn->action) {
@@ -407,6 +426,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCREEN:
 			switch (wmn->data) {
 				case ND_ANIMPLAY:
+					clip_prefetch_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -415,6 +435,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			if (wmn->data == ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
 				clip_stabilization_tag_refresh(sa);
+				clip_prefetch_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
@@ -423,6 +444,10 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 				clip_scopes_check_gpencil_change(sa);
 				ED_area_tag_redraw(sa);
 			}
+			break;
+		case NC_WM:
+			if (wmn->data == ND_FILEREAD)
+				clip_prefetch_tag_refresh(sa);
 			break;
 	}
 }

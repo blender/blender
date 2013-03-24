@@ -411,7 +411,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
-int mouse_mball(bContext *C, const int mval[2], int extend, int deselect, int toggle)
+bool mouse_mball(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	static MetaElem *startelem = NULL;
 	Object *obedit = CTX_data_edit_object(C);
@@ -487,11 +487,11 @@ int mouse_mball(bContext *C, const int mval[2], int extend, int deselect, int to
 			
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 

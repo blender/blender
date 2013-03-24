@@ -74,7 +74,7 @@ typedef struct GHashKey {
 static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 {
 	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "Py i18n GHashKey");
-	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY);
+	key->msgctxt = BLI_strdup(BLF_is_default_context(msgctxt) ? BLF_I18NCONTEXT_DEFAULT_BPYRNA : msgctxt);
 	key->msgid = BLI_strdup(msgid);
 	return key;
 }
@@ -195,7 +195,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 				else {
 					PyObject *tmp = PyTuple_GET_ITEM(pykey, 0);
 					if (tmp == Py_None) {
-						msgctxt = BLF_I18NCONTEXT_DEFAULT_BPY;
+						msgctxt = BLF_I18NCONTEXT_DEFAULT_BPYRNA;
 					}
 					else if (PyUnicode_Check(tmp)) {
 						msgctxt = _PyUnicode_AsString(tmp);
@@ -433,7 +433,7 @@ static PyObject *app_translations_contexts_make(void)
 
 PyDoc_STRVAR(app_translations_contexts_doc,
 	"A named tuple containing all pre-defined translation contexts.\n"
-	"WARNING: Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPY "\", it would be internally "
+	"WARNING: Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPYRNA "\", it would be internally "
 	"assimilated as the default one!\n"
 );
 
@@ -441,7 +441,7 @@ PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
 	"A readonly dict mapping contexts' C-identifiers to their py-identifiers."
 );
 
-PyMemberDef app_translations_members[] = {
+static PyMemberDef app_translations_members[] = {
 	{(char *)"contexts", T_OBJECT_EX, offsetof(BlenderAppTranslations, contexts), READONLY,
 	                     app_translations_contexts_doc},
 	{(char *)"contexts_C_to_py", T_OBJECT_EX, offsetof(BlenderAppTranslations, contexts_C_to_py), READONLY,
@@ -486,7 +486,7 @@ static PyObject *app_translations_locales_get(PyObject *UNUSED(self), void *UNUS
 	return ret;
 }
 
-PyGetSetDef app_translations_getseters[] = {
+static PyGetSetDef app_translations_getseters[] = {
 	/* {name, getter, setter, doc, userdata} */
 	{(char *)"locale", (getter)app_translations_locale_get, NULL, app_translations_locale_doc, NULL},
 	{(char *)"locales", (getter)app_translations_locales_get, NULL, app_translations_locales_doc, NULL},
@@ -570,7 +570,7 @@ static PyObject *app_translations_pgettext_iface(BlenderAppTranslations *UNUSED(
 }
 
 PyDoc_STRVAR(app_translations_pgettext_tip_doc,
-".. method:: pgettext(msgid, msgctxt)\n"
+".. method:: pgettext_tip(msgid, msgctxt)\n"
 "\n"
 "   Try to translate the given msgid (with optional msgctxt), if tooltips' translation is enabled.\n"
 "   NOTE: See pgettext notes.\n"
@@ -586,6 +586,25 @@ PyDoc_STRVAR(app_translations_pgettext_tip_doc,
 static PyObject *app_translations_pgettext_tip(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	return _py_pgettext(args, kw, BLF_translate_do_tooltip);
+}
+
+PyDoc_STRVAR(app_translations_pgettext_data_doc,
+".. method:: pgettext_data(msgid, msgctxt)\n"
+"\n"
+"   Try to translate the given msgid (with optional msgctxt), if new data name's translation is enabled.\n"
+"   NOTE: See pgettext notes.\n"
+"\n"
+"   :arg msgid: The string to translate.\n"
+"   :type msgid: string\n"
+"   :arg msgctxt: The translation context.\n"
+"   :type msgctxt: string or None\n"
+"   :default msgctxt: BLF_I18NCONTEXT_DEFAULT value.\n"
+"   :return: The translated string (or msgid if no translation was found).\n"
+"\n"
+);
+static PyObject *app_translations_pgettext_data(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	return _py_pgettext(args, kw, BLF_translate_do_new_dataname);
 }
 
 PyDoc_STRVAR(app_translations_locale_explode_doc,
@@ -618,20 +637,22 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations *UNUSED(
 	return Py_BuildValue("sssss", language, country, variant, language_country, language_variant);
 }
 
-PyMethodDef app_translations_methods[] = {
+static PyMethodDef app_translations_methods[] = {
 	/* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
-	{(char *)"register", (PyCFunction)app_translations_py_messages_register, METH_VARARGS | METH_KEYWORDS,
-	                     app_translations_py_messages_register_doc},
-	{(char *)"unregister", (PyCFunction)app_translations_py_messages_unregister, METH_VARARGS | METH_KEYWORDS,
-	                       app_translations_py_messages_unregister_doc},
-	{(char *)"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                     app_translations_pgettext_doc},
-	{(char *)"pgettext_iface", (PyCFunction)app_translations_pgettext_iface, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                           app_translations_pgettext_iface_doc},
-	{(char *)"pgettext_tip", (PyCFunction)app_translations_pgettext_tip, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                         app_translations_pgettext_tip_doc},
-	{(char *)"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                           app_translations_locale_explode_doc},
+	{"register", (PyCFunction)app_translations_py_messages_register, METH_VARARGS | METH_KEYWORDS,
+	              app_translations_py_messages_register_doc},
+	{"unregister", (PyCFunction)app_translations_py_messages_unregister, METH_VARARGS | METH_KEYWORDS,
+	                app_translations_py_messages_unregister_doc},
+	{"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	              app_translations_pgettext_doc},
+	{"pgettext_iface", (PyCFunction)app_translations_pgettext_iface, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                    app_translations_pgettext_iface_doc},
+	{"pgettext_tip", (PyCFunction)app_translations_pgettext_tip, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                  app_translations_pgettext_tip_doc},
+	{"pgettext_data", (PyCFunction)app_translations_pgettext_data, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                   app_translations_pgettext_data_doc},
+	{"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                    app_translations_locale_explode_doc},
 	{NULL}
 };
 
@@ -697,7 +718,7 @@ PyDoc_STRVAR(app_translations_doc,
 static PyTypeObject BlenderAppTranslationsType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	                            /* tp_name */
-	(char *)"bpy.app._translations_type",
+	"bpy.app._translations_type",
 	                            /* tp_basicsize */
 	sizeof(BlenderAppTranslations),
 	0,                          /* tp_itemsize */

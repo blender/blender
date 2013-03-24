@@ -70,7 +70,11 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(struct MovieClip *clip, struct ImB
 float BKE_movieclip_remap_scene_to_clip_frame(struct MovieClip *clip, float framenr);
 float BKE_movieclip_remap_clip_to_scene_frame(struct MovieClip *clip, float framenr);
 
-void BKE_movieclip_filename_for_frame(struct MovieClip *clip, int framenr, char *name);
+void BKE_movieclip_filename_for_frame(struct MovieClip *clip, struct MovieClipUser *user, char *name);
+struct ImBuf *BKE_movieclip_anim_ibuf_for_frame(struct MovieClip *clip, struct MovieClipUser *user);
+
+int BKE_movieclip_has_cached_frame(struct MovieClip *clip, struct MovieClipUser *user);
+int BKE_movieclip_put_frame_if_possible(struct MovieClip *clip, struct MovieClipUser *user, struct ImBuf *ibuf);
 
 /* cacheing flags */
 #define MOVIECLIP_CACHE_SKIP        (1 << 0)

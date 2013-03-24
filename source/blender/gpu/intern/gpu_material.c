@@ -278,6 +278,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 		}
 
 		GPU_pass_bind(material->pass, time, mipmap);
+		GPU_pass_update_uniforms(material->pass);
 		material->bound = 1;
 	}
 }
@@ -338,8 +339,6 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float 
 				mult_m4_m4m4(lamp->dynpersmat, lamp->persmat, viewinv);
 			}
 		}
-
-		GPU_pass_update_uniforms(material->pass);
 	}
 }
 

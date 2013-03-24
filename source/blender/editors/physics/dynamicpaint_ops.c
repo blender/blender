@@ -202,7 +202,6 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 static int output_toggle_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
-	Scene *scene = CTX_data_scene(C);
 	DynamicPaintSurface *surface;
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
 	int output = RNA_enum_get(op->ptr, "output");  /* currently only 1/0 */
@@ -223,9 +222,9 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 		/* Vertex Color Layer */
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			if (!exists)
-				ED_mesh_color_add(C, scene, ob, ob->data, name, 1);
+				ED_mesh_color_add(ob->data, name, true);
 			else 
-				ED_mesh_color_remove_named(C, ob, ob->data, name);
+				ED_mesh_color_remove_named(ob->data, name);
 		}
 		/* Vertex Weight Layer */
 		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {

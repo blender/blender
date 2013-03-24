@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <set>
 #include <string>
 #include <utility>
@@ -56,18 +57,28 @@ namespace internal {
 
 typedef map<double*, internal::ParameterBlock*> ParameterMap;
 
+namespace {
+internal::ParameterBlock* FindParameterBlockOrDie(
+    const ParameterMap& parameter_map,
+    double* parameter_block) {
+  ParameterMap::const_iterator it = parameter_map.find(parameter_block);
+  CHECK(it != parameter_map.end())
+      << "Parameter block not found: " << parameter_block;
+  return it->second;
+}
+
 // Returns true if two regions of memory, a and b, with sizes size_a and size_b
 // respectively, overlap.
-static bool RegionsAlias(const double* a, int size_a,
-                         const double* b, int size_b) {
+bool RegionsAlias(const double* a, int size_a,
+                  const double* b, int size_b) {
   return (a < b) ? b < (a + size_a)
                  : a < (b + size_b);
 }
 
-static void CheckForNoAliasing(double* existing_block,
-                               int existing_block_size,
-                               double* new_block,
-                               int new_block_size) {
+void CheckForNoAliasing(double* existing_block,
+                        int existing_block_size,
+                        double* new_block,
+                        int new_block_size) {
   CHECK(!RegionsAlias(existing_block, existing_block_size,
                       new_block, new_block_size))
       << "Aliasing detected between existing parameter block at memory "
@@ -76,6 +87,8 @@ static void CheckForNoAliasing(double* existing_block,
       << "block that has memory adderss " << new_block << " and would have "
       << "size " << new_block_size << ".";
 }
+
+}  // namespace
 
 ParameterBlock* ProblemImpl::InternalAddParameterBlock(double* values,
                                                        int size) {
@@ -471,7 +484,8 @@ void ProblemImpl::RemoveResidualBlock(ResidualBlock* residual_block) {
 }
 
 void ProblemImpl::RemoveParameterBlock(double* values) {
-  ParameterBlock* parameter_block = FindOrDie(parameter_block_map_, values);
+  ParameterBlock* parameter_block =
+      FindParameterBlockOrDie(parameter_block_map_, values);
 
   if (options_.enable_fast_parameter_block_removal) {
     // Copy the dependent residuals from the parameter block because the set of
@@ -503,17 +517,17 @@ void ProblemImpl::RemoveParameterBlock(double* values) {
 }
 
 void ProblemImpl::SetParameterBlockConstant(double* values) {
-  FindOrDie(parameter_block_map_, values)->SetConstant();
+  FindParameterBlockOrDie(parameter_block_map_, values)->SetConstant();
 }
 
 void ProblemImpl::SetParameterBlockVariable(double* values) {
-  FindOrDie(parameter_block_map_, values)->SetVarying();
+  FindParameterBlockOrDie(parameter_block_map_, values)->SetVarying();
 }
 
 void ProblemImpl::SetParameterization(
     double* values,
     LocalParameterization* local_parameterization) {
-  FindOrDie(parameter_block_map_, values)
+  FindParameterBlockOrDie(parameter_block_map_, values)
       ->SetParameterization(local_parameterization);
 }
 
@@ -557,7 +571,8 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
     parameter_blocks.resize(parameter_block_ptrs.size());
     for (int i = 0; i < parameter_block_ptrs.size(); ++i) {
       parameter_blocks[i] =
-          FindOrDie(parameter_block_map_, parameter_block_ptrs[i]);
+          FindParameterBlockOrDie(parameter_block_map_,
+                                  parameter_block_ptrs[i]);
     }
 
     // 2. The user may have only supplied a subset of parameter

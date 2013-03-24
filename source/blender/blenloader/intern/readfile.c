@@ -1020,7 +1020,7 @@ static int fd_read_gzip_from_memory(FileData *filedata, void *buffer, unsigned i
 	if (err == Z_STREAM_END) {
 		return 0;
 	}
-	else if (err != Z_OK)  {
+	else if (err != Z_OK) {
 		printf("fd_read_gzip_from_memory: zlib error\n");
 		return 0;
 	}
@@ -2459,9 +2459,13 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		 *
 		 * XXX this should actually be part of do_versions,
 		 * but needs valid typeinfo pointers to create interface nodes.
+		 *
+		 * Note: theoretically only needed in node groups (main->nodetree),
+		 * but due to a temporary bug such links could have been added in all trees,
+		 * so have to clean up all of them ...
 		 */
 		
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+		FOREACH_NODETREE(main, ntree, id) {
 			if (ntree->flag & NTREE_DO_VERSIONS_CUSTOMNODES_GROUP) {
 				bNode *input_node = NULL, *output_node = NULL;
 				int num_inputs = 0, num_outputs = 0;
@@ -2541,6 +2545,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 				ntree->flag &= ~(NTREE_DO_VERSIONS_CUSTOMNODES_GROUP | NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE);
 			}
 		}
+		FOREACH_NODETREE_END
 	}
 	
 	/* verify all group user nodes */
@@ -6593,6 +6598,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	clip->tracking.dopesheet.channels.first = clip->tracking.dopesheet.channels.last = NULL;
 	clip->tracking.dopesheet.coverage_segments.first = clip->tracking.dopesheet.coverage_segments.last = NULL;
 
+	clip->prefetch_ok = FALSE;
+
 	link_list(fd, &tracking->objects);
 	
 	for (object = tracking->objects.first; object; object = object->next) {
@@ -7742,10 +7749,21 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 	
 	if (user == NULL) return;
 	
+	if (MAIN_VERSION_OLDER(bmain, 266, 4)) {
+		bTheme *btheme;
+		
+		/* themes for Node and Sequence editor were not using grid color, but back. we copy this over then */
+		for (btheme = user->themes.first; btheme; btheme = btheme->next) {
+			copy_v4_v4_char(btheme->tnode.grid, btheme->tnode.back);
+			copy_v4_v4_char(btheme->tseq.grid, btheme->tseq.back);
+		}
+	}
+	
 	if (bmain->versionfile < 267) {
 	
 		if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
-			user->image_gpubuffer_limit = 10;
+			user->image_gpubuffer_limit = 20;
+		
 	}
 }
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -9158,13 +9176,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		} FOREACH_NODETREE_END
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 266, 2)) {
+	if (MAIN_VERSION_OLDER(main, 266, 2)) {
 		FOREACH_NODETREE(main, ntree, id) {
 			do_versions_nodetree_customnodes(ntree, ((ID *)ntree == id));
 		} FOREACH_NODETREE_END
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 266, 2)) {
+	if (MAIN_VERSION_OLDER(main, 266, 2)) {
 		bScreen *sc;
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -9200,8 +9218,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* Set flag for delayed do_versions in lib_verify_nodetree. It needs valid typeinfo pointers ... */
 	{
-		bNodeTree *ntree;
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+		FOREACH_NODETREE(main, ntree, id) {
 			/* XXX This should be kept without version check for now!
 			 * As long as USE_NODE_COMPAT_CUSTOMNODES is active, files will write links
 			 * to tree interface sockets for forward compatibility. These links need to be removed again
@@ -9213,8 +9230,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			/* Only add interface nodes once.
 			 * In old Blender versions they will be removed automatically due to undefined type */
-			if (!MAIN_VERSION_ATLEAST(main, 266, 2))
+			if (MAIN_VERSION_OLDER(main, 266, 2))
 				ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE;
+		}
+		FOREACH_NODETREE_END
+	}
+
+	if (MAIN_VERSION_OLDER(main, 266, 3)) {
+		{
+			/* Fix for a very old issue:
+			 * Node names were nominally made unique in r24478 (2.50.8), but the do_versions check
+			 * to update existing node names only applied to main->nodetree (i.e. group nodes).
+			 * Uniqueness is now required for proper preview mapping,
+			 * so do this now to ensure old files don't break.
+			 */
+			bNode *node;
+			FOREACH_NODETREE(main, ntree, id) {
+				if (id == &ntree->id)
+					continue;	/* already fixed for node groups */
+				
+				for (node = ntree->nodes.first; node; node = node->next)
+					nodeUniqueName(ntree, node);
+			}
+			FOREACH_NODETREE_END
 		}
 	}
 
@@ -10582,7 +10620,7 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link, const short active_lay)
 {
 	Object *ob;
 	Base *base;
@@ -10626,6 +10664,9 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				if (do_it) {
 					base = MEM_callocN(sizeof(Base), "add_ext_base");
 					BLI_addtail(&sce->base, base);
+					
+					if (active_lay) ob->lay = sce->lay;
+					
 					base->lay = ob->lay;
 					base->object = ob;
 					base->flag = ob->flag;
@@ -10884,7 +10925,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 				/* don't instance anything when linking in scenes, assume the scene its self instances the data */
 			}
 			else {
-				give_base_to_objects(mainvar, scene, curlib, idcode, is_link);
+				give_base_to_objects(mainvar, scene, curlib, idcode, is_link, flag & FILE_ACTIVELAY);
 				
 				if (flag & FILE_GROUP_INSTANCE) {
 					give_base_to_groups(mainvar, scene);

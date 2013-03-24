@@ -84,6 +84,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h" /* for DAG_on_visible_update */
 #include "BKE_font.h"
@@ -675,10 +676,10 @@ static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UN
 	return 0;
 }
 
-extern int wm_start_with_console; /* wm_init_exit.c */
+extern bool wm_start_with_console; /* wm_init_exit.c */
 static int start_with_console(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	wm_start_with_console = 1;
+	wm_start_with_console = true;
 	return 0;
 }
 
@@ -1494,6 +1495,8 @@ int main(int argc, const char **argv)
 
 	IMB_init();
 	BKE_images_init();
+
+	BKE_brush_system_init();
 
 #ifdef WITH_FFMPEG
 	IMB_ffmpeg_init();

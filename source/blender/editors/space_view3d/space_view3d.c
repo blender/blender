@@ -159,7 +159,7 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 
 /* ideally would return an rv3d but in some cases the region is needed too
  * so return that, the caller can then access the ar->regiondata */
-int ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
+bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
@@ -175,7 +175,7 @@ int ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
 			if (rv3d && rv3d->viewlock == 0) {
 				*r_v3d = v3d;
 				*r_ar = ar;
-				return 1;
+				return true;
 			}
 			else {
 				ARegion *ar_unlock_user = NULL;
@@ -198,19 +198,19 @@ int ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
 				if (ar_unlock_user) {
 					*r_v3d = v3d;
 					*r_ar = ar_unlock_user;
-					return 1;
+					return true;
 				}
 
 				if (ar_unlock) {
 					*r_v3d = v3d;
 					*r_ar = ar_unlock;
-					return 1;
+					return true;
 				}
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 /* Most of the time this isn't needed since you could assume the view matrix was

@@ -162,7 +162,10 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
         obj = context.object
 
         row = layout.row(align=True)
-        row.operator("object.group_link", text="Add to Group")
+        if bpy.data.groups:
+            row.operator("object.group_link", text="Add to Group")
+        else:
+            row.operator("object.group_add", text="Add to Group")
         row.operator("object.group_add", text="", icon='ZOOMIN')
 
         # XXX, this is bad practice, yes, I wrote it :( - campbell

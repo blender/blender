@@ -306,7 +306,7 @@ void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGe
 	cache->prioritydeleterfp = prioritydeleterfp;
 }
 
-void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
+static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, int need_lock)
 {
 	MovieCacheKey *key;
 	MovieCacheItem *item;
@@ -341,7 +341,8 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 		memcpy(cache->last_userkey, userkey, cache->keysize);
 	}
 
-	BLI_mutex_lock(&limitor_lock);
+	if (need_lock)
+		BLI_mutex_lock(&limitor_lock);
 
 	item->c_handle = MEM_CacheLimiter_insert(limitor, item);
 
@@ -349,7 +350,8 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	MEM_CacheLimiter_enforce_limits(limitor);
 	MEM_CacheLimiter_unref(item->c_handle);
 
-	BLI_mutex_unlock(&limitor_lock);
+	if (need_lock)
+		BLI_mutex_unlock(&limitor_lock);
 
 	/* cache limiter can't remove unused keys which points to destoryed values */
 	check_unused_keys(cache);
@@ -358,6 +360,32 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 		MEM_freeN(cache->points);
 		cache->points = NULL;
 	}
+}
+
+void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
+{
+	do_moviecache_put(cache, userkey, ibuf, TRUE);
+}
+
+int IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibuf)
+{
+	size_t mem_in_use, mem_limit, elem_size;
+	int result = FALSE;
+
+	elem_size = IMB_get_size_in_memory(ibuf);
+	mem_limit = MEM_CacheLimiter_get_maximum();
+
+	BLI_mutex_lock(&limitor_lock);
+	mem_in_use = MEM_CacheLimiter_get_memory_in_use(limitor);
+
+	if (mem_in_use + elem_size <= mem_limit) {
+		do_moviecache_put(cache, userkey, ibuf, FALSE);
+		result = TRUE;
+	}
+
+	BLI_mutex_unlock(&limitor_lock);
+
+	return result;
 }
 
 ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
@@ -382,6 +410,18 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
 	}
 
 	return NULL;
+}
+
+int IMB_moviecache_has_frame(MovieCache *cache, void *userkey)
+{
+	MovieCacheKey key;
+	MovieCacheItem *item;
+
+	key.cache_owner = cache;
+	key.userkey = userkey;
+	item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
+
+	return item != NULL;
 }
 
 void IMB_moviecache_free(MovieCache *cache)

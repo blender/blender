@@ -237,7 +237,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	if (ob != scene->obedit)
-		ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
 	return 1;
 }
@@ -643,7 +643,7 @@ static int tree_element_active_pose(bContext *C, Scene *scene, TreeElement *UNUS
 	
 	if (set) {
 		if (scene->obedit)
-			ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
 		if (ob->mode & OB_MODE_POSE)
 			ED_armature_exit_posemode(C, base);

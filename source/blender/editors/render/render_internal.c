@@ -542,7 +542,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	BKE_sequencer_cache_cleanup();
 
 	/* get editmode results */
-	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
+	ED_object_editmode_load(CTX_data_edit_object(C));
 
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render

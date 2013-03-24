@@ -259,6 +259,7 @@ int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
 int CustomData_get_clone_layer_index(const struct CustomData *data, int type);
 int CustomData_get_stencil_layer_index(const struct CustomData *data, int type);
+int CustomData_get_named_layer(const struct CustomData *data, int type, const char *name);
 int CustomData_get_active_layer(const struct CustomData *data, int type);
 int CustomData_get_render_layer(const struct CustomData *data, int type);
 int CustomData_get_clone_layer(const struct CustomData *data, int type);

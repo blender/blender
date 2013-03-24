@@ -71,11 +71,11 @@
 //   }
 //
 //   template <typename T>
-//   bool operator(const T* rotation,
-//                 const T* translation,
-//                 const T* intrinsics,
-//                 const T* point,
-//                 T* residuals) const {
+//   bool operator()(const T* rotation,
+//                   const T* translation,
+//                   const T* intrinsics,
+//                   const T* point,
+//                   T* residuals) const {
 //     T transformed_point[3];
 //     RotateAndTranslatePoint(rotation, translation, point, transformed_point);
 //     return (*intrinsic_projection_)(intrinsics, transformed_point, residual);

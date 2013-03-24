@@ -252,9 +252,9 @@ static int select_exec(bContext *C, wmOperator *op)
 	MaskSpline *spline;
 	MaskSplinePoint *point = NULL;
 	float co[2];
-	short extend = RNA_boolean_get(op->ptr, "extend");
-	short deselect = RNA_boolean_get(op->ptr, "deselect");
-	short toggle = RNA_boolean_get(op->ptr, "toggle");
+	bool extend = RNA_boolean_get(op->ptr, "extend");
+	bool deselect = RNA_boolean_get(op->ptr, "deselect");
+	bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	int is_handle = 0;
 	const float threshold = 19;
@@ -263,7 +263,7 @@ static int select_exec(bContext *C, wmOperator *op)
 
 	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
 
-	if (extend == 0 && deselect == 0 && toggle == 0)
+	if (extend == false && deselect == false && toggle == false)
 		ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
 	if (point) {

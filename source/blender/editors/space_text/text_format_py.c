@@ -314,7 +314,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 
 void ED_text_format_register_py(void)
 {
-	static TextFormatType tft = {0};
+	static TextFormatType tft = {NULL};
 	static const char *ext[] = {"py", NULL};
 
 	tft.format_identifier = txtfmt_py_format_identifier;

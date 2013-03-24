@@ -21,9 +21,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../extern/bullet2/src
+)
+
+set(INC_SYS
+
 )
 
 set(SRC

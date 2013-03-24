@@ -119,7 +119,7 @@ void RAS_StorageVA::IndexPrimitives(RAS_MeshSlot& ms)
 void RAS_StorageVA::IndexPrimitivesMulti(class RAS_MeshSlot& ms)
 {
 	static const GLsizei stride = sizeof(RAS_TexVert);
-	bool wireframe = m_drawingmode <= RAS_IRasterizer::KX_WIREFRAME, use_color_array;
+	bool wireframe = m_drawingmode <= RAS_IRasterizer::KX_WIREFRAME, use_color_array = true;
 	RAS_MeshSlot::iterator it;
 	GLenum drawmode;
 

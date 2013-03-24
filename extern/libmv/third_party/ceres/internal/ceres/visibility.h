@@ -35,6 +35,8 @@
 #ifndef CERES_INTERNAL_VISIBILITY_H_
 #define CERES_INTERNAL_VISIBILITY_H_
 
+#ifndef CERES_NO_SUITESPARSE
+
 #include <set>
 #include <vector>
 #include "ceres/graph.h"
@@ -74,4 +76,5 @@ Graph<int>* CreateSchurComplementGraph(const vector<set<int> >& visibility);
 }  // namespace internal
 }  // namespace ceres
 
+#endif  // CERES_NO_SUITESPARSE
 #endif  // CERES_INTERNAL_VISIBILITY_H_

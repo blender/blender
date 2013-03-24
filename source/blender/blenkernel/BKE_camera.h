@@ -112,7 +112,7 @@ void BKE_camera_params_compute_matrix(CameraParams *params);
 
 /* Camera View Frame */
 
-void BKE_camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
+void BKE_camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const bool do_clip, const float scale[3],
                               float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3]);
 
 void BKE_camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4][3]);

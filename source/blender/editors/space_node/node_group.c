@@ -552,7 +552,7 @@ typedef enum eNodeGroupSeparateType {
 } eNodeGroupSeparateType;
 
 /* Operator Property */
-EnumPropertyItem node_group_separate_types[] = {
+static EnumPropertyItem node_group_separate_types[] = {
 	{NODE_GS_COPY, "COPY", 0, "Copy", "Copy to parent node tree, keep group intact"},
 	{NODE_GS_MOVE, "MOVE", 0, "Move", "Move to parent node tree, remove from group"},
 	{0, NULL, 0, NULL, NULL}
@@ -730,7 +730,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 	float min[2], max[2], center[2];
 	int totselect;
 	int expose_all = FALSE;
-	bNode *input_node = NULL, *output_node = NULL;	/* lazy initialized, in case there are no external links */
+	bNode *input_node, *output_node;
 	
 	/* XXX rough guess, not nice but we don't have access to UI constants here ... */
 	static const float offsetx = 200;
@@ -797,6 +797,16 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 	/* node groups don't use internal cached data */
 	ntreeFreeCache(ngroup);
 	
+	/* create input node */
+	input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
+	input_node->locx = min[0] - center[0] - offsetx;
+	input_node->locy = -offsety;
+	
+	/* create output node */
+	output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
+	output_node->locx = max[0] - center[0] + offsetx;
+	output_node->locy = -offsety;
+	
 	/* relink external sockets */
 	for (link = ntree->links.first; link; link = linkn) {
 		int fromselect = node_group_make_use_node(link->fromnode, gnode);
@@ -818,13 +828,6 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 			bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link->tonode, link->tosock);
 			bNodeSocket *input_sock;
 			
-			/* lazy init */
-			if (!input_node) {
-				input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
-				
-				input_node->locx = min[0] - center[0] - offsetx;
-				input_node->locy = -offsety;
-			}
 			/* update the group node and interface node sockets,
 			 * so the new interface socket can be linked.
 			 */
@@ -843,13 +846,6 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 			bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link->fromnode, link->fromsock);
 			bNodeSocket *output_sock;
 			
-			/* lazy init */
-			if (!output_node) {
-				output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
-				
-				output_node->locx = max[0] - center[0] + offsetx;
-				output_node->locy = -offsety;
-			}
 			/* update the group node and interface node sockets,
 			 * so the new interface socket can be linked.
 			 */
@@ -892,13 +888,6 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 					
 					iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
 					
-					/* lazy init */
-					if (!input_node) {
-						input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
-						
-						input_node->locx = min[0] - center[0] - offsetx;
-						input_node->locy = -offsety;
-					}
 					node_group_input_verify(ngroup, input_node, (ID *)ngroup);
 					
 					/* create new internal link */
@@ -916,14 +905,6 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 						continue;
 					
 					iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
-					
-					/* lazy init */
-					if (!output_node) {
-						output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
-						
-						output_node->locx = max[0] - center[0] + offsetx;
-						output_node->locy = -offsety;
-					}
 					
 					node_group_output_verify(ngroup, output_node, (ID *)ngroup);
 					

@@ -1105,10 +1105,28 @@ static int exr_is_multilayer(InputFile *file)
 	const ChannelList &channels = file->header().channels();
 	std::set <std::string> layerNames;
 
+	/* will not include empty layer names */
 	channels.layers(layerNames);
 
 	if (comments || layerNames.size() > 1)
 		return 1;
+
+	if (layerNames.size()) {
+		/* if layerNames is not empty, it means at least one layer is non-empty,
+		 * but it also could be layers without names in the file and such case
+		 * shall be considered a multilayer exr
+		 *
+		 * that's what we do here: test whether there're empty layer names together
+		 * with non-empty ones in the file
+		 */
+		for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
+			std::string layerName = i.name();
+			size_t pos = layerName.rfind ('.');
+
+			if (pos == std::string::npos)
+				return 1;
+		}
+	}
 
 	return 0;
 }

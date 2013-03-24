@@ -372,7 +372,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
-		ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 
 	/* deselects all, sets scene->basact */
 	ob = BKE_object_add(scene, type);
@@ -390,7 +390,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 	}
 
 	if (enter_editmode)
-		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
+		ED_object_editmode_enter(C, EM_IGNORE_LAYER);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
@@ -452,20 +452,20 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 		if (!ob)
 			return OPERATOR_CANCELLED;
 
-		rename_id(&ob->id, "CurveGuide");
+		rename_id(&ob->id, DATA_("CurveGuide"));
 		((Curve *)ob->data)->flag |= CU_PATH | CU_3D;
-		ED_object_enter_editmode(C, 0);
+		ED_object_editmode_enter(C, 0);
 		ED_object_new_primitive_matrix(C, ob, loc, rot, mat, FALSE);
 		BLI_addtail(object_editcurve_get(ob), add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
 		if (!enter_editmode)
-			ED_object_exit_editmode(C, EM_FREEDATA);
+			ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 	else {
 		ob = ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
 		if (!ob)
 			return OPERATOR_CANCELLED;
 
-		rename_id(&ob->id, "Field");
+		rename_id(&ob->id, DATA_("Field"));
 		if (ELEM(type, PFIELD_WIND, PFIELD_VORTEX))
 			ob->empty_drawtype = OB_SINGLE_ARROW;
 	}
@@ -578,7 +578,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 
 	/* userdef */
 	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
@@ -661,7 +661,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 
 	if ((obedit == NULL) || (obedit->type != OB_ARMATURE)) {
 		obedit = ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE, layer);
-		ED_object_enter_editmode(C, 0);
+		ED_object_editmode_enter(C, 0);
 		newob = 1;
 	}
 	else {
@@ -678,7 +678,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 
 	/* userdef */
 	if (newob && !enter_editmode)
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_editmode_exit(C, EM_FREEDATA);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 
@@ -822,13 +822,13 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 static const char *get_lamp_defname(int type)
 {
 	switch (type) {
-		case LA_LOCAL: return "Point";
-		case LA_SUN: return "Sun";
-		case LA_SPOT: return "Spot";
-		case LA_HEMI: return "Hemi";
-		case LA_AREA: return "Area";
+		case LA_LOCAL: return DATA_("Point");
+		case LA_SUN: return DATA_("Sun");
+		case LA_SPOT: return DATA_("Spot");
+		case LA_HEMI: return DATA_("Hemi");
+		case LA_AREA: return DATA_("Area");
 		default:
-			return "Lamp";
+			return DATA_("Lamp");
 	}
 }
 
@@ -980,7 +980,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 		BKE_nlatrack_add_strip(nlt, strip);
 
 		/* auto-name the strip, and give the track an interesting name  */
-		strcpy(nlt->name, "SoundTrack");
+		strcpy(nlt->name, DATA_("SoundTrack"));
 		BKE_nlastrip_validate_name(adt, strip);
 
 		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -1707,7 +1707,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		DAG_relations_tag_update(bmain);
 	}
 
-// XXX	ED_object_enter_editmode(C, 0);
+// XXX	ED_object_editmode_enter(C, 0);
 // XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 
 	if (basact) {

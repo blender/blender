@@ -622,7 +622,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	[m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 										  NSStringPboardType, NSTIFFPboardType, nil]];
-										  
+	
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	if (state != GHOST_kWindowStateFullScreen) {
+		[m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+	}
+#endif
+	
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
 		
@@ -964,9 +970,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
-				//Hide menu & dock if needed
+				//Hide menu & dock if on primary screen. else only menu
 				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
-					[NSApp setPresentationOptions:(NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar)];
+					[NSApp setPresentationOptions:(NSApplicationPresentationAutoHideDock | NSApplicationPresentationAutoHideMenuBar)];
 				}
 				//Make window borderless and enlarge it
 				[m_window setStyleMask:NSBorderlessWindowMask];

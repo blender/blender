@@ -83,6 +83,7 @@ struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 struct bNodeInstanceHash;
 
+
 /* ************** NODE TYPE DEFINITIONS ***** */
 
 /** Compact definition of a node socket.
@@ -331,6 +332,7 @@ typedef struct bNodeTreeType {
 struct bNodeTreeType *ntreeTypeFind(const char *idname);
 void ntreeTypeAdd(struct bNodeTreeType *nt);
 void ntreeTypeFreeLink(struct bNodeTreeType *nt);
+bool ntreeIsRegistered(struct bNodeTree *ntree);
 struct GHashIterator *ntreeTypeGetIterator(void);
 
 /* helper macros for iterating over tree types */
@@ -346,7 +348,6 @@ struct GHashIterator *ntreeTypeGetIterator(void);
 }
 
 void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
-int ntreeIsValid(struct bNodeTree *ntree);
 
 struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname);
 
@@ -407,6 +408,7 @@ void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 struct bNodeType *nodeTypeFind(const char *idname);
 void			nodeRegisterType(struct bNodeType *ntype);
 void			nodeUnregisterType(struct bNodeType *ntype);
+bool			nodeIsRegistered(struct bNode *node);
 struct GHashIterator *nodeTypeGetIterator(void);
 
 /* helper macros for iterating over node types */
@@ -424,6 +426,7 @@ struct GHashIterator *nodeTypeGetIterator(void);
 struct bNodeSocketType *nodeSocketTypeFind(const char *idname);
 void			nodeRegisterSocketType(struct bNodeSocketType *stype);
 void			nodeUnregisterSocketType(struct bNodeSocketType *stype);
+bool			nodeSocketIsRegistered(struct bNodeSocket *sock);
 struct GHashIterator *nodeSocketTypeGetIterator(void);
 const char *	nodeStaticSocketType(int type, int subtype);
 const char *	nodeStaticSocketInterfaceType(int type, int subtype);
@@ -563,7 +566,7 @@ void            BKE_node_preview_clear(struct bNodePreview *preview);
 void            BKE_node_preview_clear_tree(struct bNodeTree *ntree);
 
 void            BKE_node_preview_sync_tree(struct bNodeTree *to_ntree, struct bNodeTree *from_ntree);
-void            BKE_node_preview_merge_tree(struct bNodeTree *to_ntree, struct bNodeTree *from_ntree);
+void            BKE_node_preview_merge_tree(struct bNodeTree *to_ntree, struct bNodeTree *from_ntree, bool remove_old);
 
 void            BKE_node_preview_set_pixel(struct bNodePreview *preview, const float col[4], int x, int y, int do_manage);
 

@@ -107,9 +107,10 @@ static PyObject *make_app_info(void)
 	if (app_info == NULL) {
 		return NULL;
 	}
-
+#if 0
 #define SetIntItem(flag) \
 	PyStructSequence_SET_ITEM(app_info, pos++, PyLong_FromLong(flag))
+#endif
 #define SetStrItem(str) \
 	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(str))
 #define SetBytesItem(str) \

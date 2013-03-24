@@ -38,6 +38,8 @@
 // For details on the theory and implementation see "Numerical
 // Optimization" by Nocedal & Wright.
 
+#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
+
 #include "ceres/line_search_minimizer.h"
 
 #include <algorithm>
@@ -281,3 +283,5 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
 
 }  // namespace internal
 }  // namespace ceres
+
+#endif  // CERES_NO_LINE_SEARCH_MINIMIZER

@@ -187,11 +187,11 @@ public:
 	inline friend bool operator>=(rcSTR_String     lhs, const char      *rhs)	{ return (strcmp(lhs, rhs)>=0); }
 	inline friend bool operator>=(const char      *lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>=0); }
 	inline friend bool operator==(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() == rhs.Length()) && (memcmp(lhs, rhs, lhs.Length()) == 0)); }
-	inline friend bool operator==(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length() + 1) == 0); }
-	inline friend bool operator==(const char      *lhs, rcSTR_String     rhs)	{ return (memcmp(lhs, rhs, rhs.Length() + 1) == 0); }
-	inline friend bool operator!=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() != rhs.Length()) || (memcmp(lhs, rhs, lhs.Length())!=0)); }
-	inline friend bool operator!=(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length() + 1) != 0); }
-	inline friend bool operator!=(const char       *lhs, rcSTR_String    rhs)	{ return (memcmp(lhs, rhs, rhs.Length() + 1) != 0); }
+	inline friend bool operator==(rcSTR_String     lhs, const char      *rhs)	{ return (strncmp(lhs, rhs, lhs.Length() + 1) == 0); }
+	inline friend bool operator==(const char      *lhs, rcSTR_String     rhs)	{ return (strncmp(lhs, rhs, rhs.Length() + 1) == 0); }
+	inline friend bool operator!=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() != rhs.Length()) || (memcmp(lhs, rhs, lhs.Length()) != 0)); }
+	inline friend bool operator!=(rcSTR_String     lhs, const char      *rhs)	{ return (strncmp(lhs, rhs, lhs.Length() + 1) != 0); }
+	inline friend bool operator!=(const char       *lhs, rcSTR_String    rhs)	{ return (strncmp(lhs, rhs, rhs.Length() + 1) != 0); }
 
 	// serializing
 	//int			Serialize(pCStream stream);

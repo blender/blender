@@ -63,24 +63,24 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, size_t size, int us
 
 	image = logImageOpenFromMemory(mem, size);
 
-	if (image == 0) {
+	if (image == NULL) {
 		printf("DPX/Cineon: error opening image.\n");
-		return 0;
+		return NULL;
 	}
 
 	logImageGetSize(image, &width, &height, &depth);
 
 	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags);
-	if (ibuf == 0) {
+	if (ibuf == NULL) {
 		logImageClose(image);
-		return 0;
+		return NULL;
 	}
 
 	if (!(flags & IB_test)) {
 		if (logImageGetDataRGBA(image, ibuf->rect_float, 1) != 0) {
 			logImageClose(image);
 			IMB_freeImBuf(ibuf);
-			return 0;
+			return NULL;
 		}
 		IMB_flipy(ibuf);
 	}
@@ -127,12 +127,12 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 	logImage = logImageCreate(filename, use_cineon, ibuf->x, ibuf->y, bitspersample, (depth == 4),
 	                          (ibuf->ftype & CINEON_LOG), -1, -1, -1, "Blender");
 
-	if (logImage == 0) {
+	if (logImage == NULL) {
 		printf("DPX/Cineon: error creating file.\n");
 		return 0;
 	}
 
-	if (ibuf->rect_float != 0 && bitspersample != 8) {
+	if (ibuf->rect_float != NULL && bitspersample != 8) {
 		/* don't use the float buffer to save 8 bpp picture to prevent color banding
 		 * (there's no dithering algorithm behing the logImageSetDataRGBA function) */
 
@@ -150,11 +150,11 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		MEM_freeN(fbuf);
 	}
 	else {
-		if (ibuf->rect == 0)
+		if (ibuf->rect == NULL)
 			IMB_rect_from_float(ibuf);
 
 		fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float), "fbuf in imb_save_dpx_cineon");
-		if (fbuf == 0) {
+		if (fbuf == NULL) {
 			printf("DPX/Cineon: error allocating memory.\n");
 			logImageClose(logImage);
 			return 0;
@@ -191,7 +191,7 @@ ImBuf *imb_load_cineon(unsigned char *mem, size_t size, int flags, char colorspa
 {
 	if (imb_is_cineon(mem))
 		return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
-	return 0;
+	return NULL;
 }
 
 int imb_save_dpx(struct ImBuf *buf, const char *myfile, int flags)
@@ -208,5 +208,5 @@ ImBuf *imb_load_dpx(unsigned char *mem, size_t size, int flags, char colorspace[
 {
 	if (imb_is_dpx(mem))
 		return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);
-	return 0;
+	return NULL;
 }

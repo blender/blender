@@ -281,7 +281,7 @@ static int rna_Nurb_length(PointerRNA *ptr)
 static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 {
 	Nurb *nu = (Nurb *)ptr->data;
-	ED_nurb_set_spline_type(nu, value);
+	BKE_nurb_type_convert(nu, value, true);
 }
 
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

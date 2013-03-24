@@ -65,6 +65,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_pbvh.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -865,20 +867,20 @@ void *BKE_object_obdata_add_from_type(int type)
 static const char *get_obdata_defname(int type)
 {
 	switch (type) {
-		case OB_MESH: return "Mesh";
-		case OB_CURVE: return "Curve";
-		case OB_SURF: return "Surf";
-		case OB_FONT: return "Text";
-		case OB_MBALL: return "Mball";
-		case OB_CAMERA: return "Camera";
-		case OB_LAMP: return "Lamp";
-		case OB_LATTICE: return "Lattice";
-		case OB_ARMATURE: return "Armature";
-		case OB_SPEAKER: return "Speaker";
-		case OB_EMPTY: return "Empty";
+		case OB_MESH: return DATA_("Mesh");
+		case OB_CURVE: return DATA_("Curve");
+		case OB_SURF: return DATA_("Surf");
+		case OB_FONT: return DATA_("Text");
+		case OB_MBALL: return DATA_("Mball");
+		case OB_CAMERA: return DATA_("Camera");
+		case OB_LAMP: return DATA_("Lamp");
+		case OB_LATTICE: return DATA_("Lattice");
+		case OB_ARMATURE: return DATA_("Armature");
+		case OB_SPEAKER: return DATA_("Speaker");
+		case OB_EMPTY: return DATA_("Empty");
 		default:
 			printf("get_obdata_defname: Internal error, bad type: %d\n", type);
-			return "Empty";
+			return DATA_("Empty");
 	}
 }
 
@@ -1589,7 +1591,7 @@ void BKE_object_scale_to_mat3(Object *ob, float mat[3][3])
 	size_to_mat3(mat, vec);
 }
 
-void BKE_object_rot_to_mat3(Object *ob, float mat[3][3], short use_drot)
+void BKE_object_rot_to_mat3(Object *ob, float mat[3][3], bool use_drot)
 {
 	float rmat[3][3], dmat[3][3];
 	
@@ -1626,7 +1628,7 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[3][3], short use_drot)
 		copy_m3_m3(mat, rmat);
 }
 
-void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], short use_compat)
+void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
 {
 	switch (ob->rotmode) {
 		case ROT_MODE_QUAT:
@@ -1729,7 +1731,7 @@ void BKE_object_tfm_protected_restore(Object *ob,
 }
 
 /* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
-void BKE_object_apply_mat4(Object *ob, float mat[4][4], const short use_compat, const short use_parent)
+void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, const bool use_parent)
 {
 	float rot[3][3];
 
@@ -2370,7 +2372,7 @@ void BKE_object_dimensions_set(Object *ob, const float *value)
 	}
 }
 
-void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const short use_hidden)
+void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool use_hidden)
 {
 	BoundBox bb;
 	float vec[3];
@@ -2474,7 +2476,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const short u
 	}
 }
 
-int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const short use_hidden)
+int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
 {
 	int ok = FALSE;
 	if ((ob->transflag & OB_DUPLI) == 0) {
@@ -2486,7 +2488,7 @@ int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_ma
 		
 		lb = object_duplilist(scene, ob, FALSE);
 		for (dob = lb->first; dob; dob = dob->next) {
-			if ((use_hidden == FALSE) && (dob->no_draw != 0)) {
+			if ((use_hidden == false) && (dob->no_draw != 0)) {
 				/* pass */
 			}
 			else {

@@ -5742,10 +5742,10 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 
 /* * motion tracking * */
 
-enum {
+enum transDataTracking_Mode {
 	transDataTracking_ModeTracks = 0,
-	transDataTracking_ModeCurves = 1,
-} transDataTracking_Mode;
+	transDataTracking_ModeCurves = 1
+};
 
 typedef struct TransDataTracking {
 	int mode, flag;

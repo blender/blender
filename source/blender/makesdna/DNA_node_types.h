@@ -257,6 +257,11 @@ typedef struct bNode {
 	 */
 #define NODE_INIT			(1<<16)
 
+	/* do recalc of output, used to skip recalculation of unwanted
+	 * composite out nodes when editing tree
+	 */
+#define NODE_DO_OUTPUT_RECALC	(1<<17)
+
 /* node->update */
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
  * might be used in the future, but currently all work the same way.

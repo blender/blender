@@ -114,7 +114,7 @@ void BKE_nla_tweakmode_exit(struct AnimData *adt);
 /* Time Mapping */
 
 /* time mapping conversion modes */
-enum {
+enum eNlaTime_ConvertModes {
 	/* convert from global time to strip time - for evaluation */
 	NLATIME_CONVERT_EVAL = 0,
 	/* convert from global time to strip time - for editing corrections */
@@ -123,7 +123,7 @@ enum {
 	/* convert from strip time to global time */
 	// xxx old 1 invert
 	NLATIME_CONVERT_MAP,
-} eNlaTime_ConvertModes;
+};
 
 float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
 

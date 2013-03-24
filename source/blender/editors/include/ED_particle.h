@@ -58,10 +58,10 @@ void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra
 void PE_update_object(struct Scene *scene, struct Object *ob, int useflag);
 
 /* selection tools */
-int PE_mouse_particles(struct bContext *C, const int mval[2], int extend, int deselect, int toggle);
-int PE_border_select(struct bContext *C, struct rcti *rect, int select, int extend);
+int PE_mouse_particles(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+int PE_border_select(struct bContext *C, struct rcti *rect, bool select, bool extend);
 int PE_circle_select(struct bContext *C, int selecting, const int mval[2], float rad);
-int PE_lasso_select(struct bContext *C, const int mcords[][2], const short moves, short extend, short select);
+int PE_lasso_select(struct bContext *C, const int mcords[][2], const short moves, bool extend, bool select);
 void PE_deselect_all_visible(struct PTCacheEdit *edit);
 
 /* undo */

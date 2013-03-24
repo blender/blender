@@ -240,13 +240,13 @@ static struct TextureDrawState {
 	unsigned char obcol[4];
 } Gtexdraw = {NULL, 0, 0, 0, false, {0, 0, 0, 0}};
 
-static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
+static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
 {
 	static Material *c_ma;
 	static int c_textured;
 	static MTFace c_texface;
 	static int c_backculled;
-	static int c_badtex;
+	static bool c_badtex;
 	static int c_lit;
 	static int c_has_texface;
 
@@ -256,12 +256,12 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	int textured = 0;
 	int lit = 0;
 	int has_texface = texface != NULL;
-	int need_set_tpage = FALSE;
+	bool need_set_tpage = false;
 
 	if (clearcache) {
 		c_textured = c_lit = c_backculled = -1;
 		memset(&c_texface, 0, sizeof(MTFace));
-		c_badtex = 0;
+		c_badtex = false;
 		c_has_texface = -1;
 	}
 	else {
@@ -307,7 +307,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 		}
 		else {
 			GPU_set_tpage(NULL, 0, 0);
-			c_badtex = 0;
+			c_badtex = false;
 		}
 		c_textured = textured;
 		c_has_texface = has_texface;
@@ -345,7 +345,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	unsigned char obcol[4];
-	int is_tex, solidtex;
+	bool is_tex, solidtex;
 	Mesh *me = ob->data;
 
 	/* XXX scene->obedit warning */
@@ -353,24 +353,24 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	/* texture draw is abused for mask selection mode, do this so wire draw
 	 * with face selection in weight paint is not lit. */
 	if ((v3d->drawtype <= OB_WIRE) && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))) {
-		solidtex = FALSE;
+		solidtex = false;
 		Gtexdraw.is_lit = 0;
 	}
 	else if (v3d->drawtype == OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype != OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
-		solidtex = TRUE;
+		solidtex = true;
 		Gtexdraw.is_lit = -1;
 	}
 	else {
 		/* draw with lights in the scene otherwise */
-		solidtex = FALSE;
+		solidtex = false;
 		Gtexdraw.is_lit = GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	
 	rgba_float_to_uchar(obcol, ob->col);
 
-	if (solidtex || v3d->drawtype == OB_TEXTURE) is_tex = 1;
-	else is_tex = 0;
+	if (solidtex || v3d->drawtype == OB_TEXTURE) is_tex = true;
+	else is_tex = false;
 
 	Gtexdraw.ob = ob;
 	Gtexdraw.is_tex = is_tex;
@@ -412,7 +412,7 @@ static void draw_textured_end(void)
 static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
-	int invalidtexture = 0;
+	bool invalidtexture = false;
 
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE))
 		return DM_DRAW_OPTION_SKIP;
@@ -867,7 +867,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	if (ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser, &node)) {
 		/* get openl texture */
 		int mipmap = 1;
-		int bindcode = (ima) ? GPU_verify_image(ima, iuser, 0, 0, mipmap, FALSE) : 0;
+		int bindcode = (ima) ? GPU_verify_image(ima, iuser, 0, 0, mipmap, false) : 0;
 		float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 		if (bindcode) {
@@ -1020,7 +1020,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 {
 	DMSetDrawOptions facemask = NULL;
 	Mesh *me = ob->data;
-	const short do_light = (v3d->drawtype >= OB_SOLID);
+	const bool do_light = (v3d->drawtype >= OB_SOLID);
 
 	/* hide faces in face select mode */
 	if (me->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
@@ -1070,7 +1070,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 	if (draw_flags & DRAW_FACE_SELECT) {
 		draw_mesh_face_select(rv3d, me, dm);
 	}
-	else if ((do_light == FALSE) || (ob->dtx & OB_DRAWWIRE)) {
+	else if ((do_light == false) || (ob->dtx & OB_DRAWWIRE)) {
 		const int use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(ob->mode & OB_MODE_WEIGHT_PAINT);
 
 		/* weight paint in solid mode, special case. focus on making the weights clear

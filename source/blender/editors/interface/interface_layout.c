@@ -1599,6 +1599,14 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 	else
 		but = uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	
+	/* to compensate for string size padding in ui_text_icon_width,
+	 * make text aligned right if the layout is aligned right.
+	 */
+	if (uiLayoutGetAlignment(layout) == UI_LAYOUT_ALIGN_RIGHT) {
+		but->flag &= ~UI_TEXT_LEFT;	/* default, needs to be unset */
+		but->flag |= UI_TEXT_RIGHT;
+	}
+	
 	return but;
 }
 
@@ -2914,7 +2922,7 @@ static void ui_layout_operator_buts__reset_cb(bContext *UNUSED(C), void *op_pt, 
 
 /* this function does not initialize the layout, functions can be called on the layout before and after */
 void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
-                          int (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
+                          bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
                           const char label_align, const short flag)
 {
 	if (!op->properties) {

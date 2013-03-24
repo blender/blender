@@ -121,7 +121,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		return 1;
 
 	if (em && em->bm->totface && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY))
-		ED_mesh_uv_texture_add(C, obedit->data, NULL, TRUE);
+		ED_mesh_uv_texture_add(obedit->data, NULL, true);
 
 	if (!ED_uvedit_test(obedit))
 		return 0;

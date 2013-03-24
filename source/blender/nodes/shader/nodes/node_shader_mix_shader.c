@@ -30,7 +30,7 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_mix_shader_in[] = {
-	{	SOCK_FLOAT,  1, N_("Fac"),		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT,  1, N_("Fac"),		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_SHADER, 1, N_("Shader")},
 	{	SOCK_SHADER, 1, N_("Shader")},
 	{	-1, 0, ""	}

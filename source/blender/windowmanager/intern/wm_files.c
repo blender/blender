@@ -829,8 +829,8 @@ int wm_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 	if (G.fileflags & G_AUTOPACK) {
 		packAll(G.main, reports);
 	}
-	
-	ED_object_exit_editmode(C, EM_DO_UNDO);
+
+	ED_object_editmode_load(CTX_data_edit_object(C));
 	ED_sculpt_force_update(C);
 
 	/* don't forget not to return without! */

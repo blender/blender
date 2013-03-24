@@ -62,7 +62,7 @@ static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	return (snode && ntreeIsValid(snode->nodetree));
+	return (snode && snode->nodetree);
 }
 
 /* poll callback for active node */
@@ -70,7 +70,7 @@ static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	return (snode && ntreeIsValid(snode->edittree) && nodeGetActive(snode->edittree));
+	return (snode && snode->edittree && nodeGetActive(snode->edittree));
 }
 
 /* active node */

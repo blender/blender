@@ -51,7 +51,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
         fluid = md.settings
 
         col = layout.column()
-        if fluid is None:
+        if not bpy.app.build_options.mod_fluid:
             col.label("Built without fluids")
             return
 

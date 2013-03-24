@@ -52,7 +52,7 @@ void transform_operatortypes(void);
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
-enum {
+enum TfmMode {
 	TFM_INIT = -1,
 	TFM_DUMMY,
 	TFM_TRANSLATION,
@@ -85,7 +85,7 @@ enum {
 	TFM_EDGE_SLIDE,
 	TFM_VERT_SLIDE,
 	TFM_SEQ_SLIDE
-} TfmMode;
+};
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE            0
@@ -125,7 +125,7 @@ void BIF_createTransformOrientation(struct bContext *C, struct ReportList *repor
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
 void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 
-void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], int activeOnly);
+void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], const bool activeOnly);
 
 struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
 const char *BIF_menustringTransformOrientation(const struct bContext *C, const char *title);  /* the returned value was allocated and needs to be freed after use */

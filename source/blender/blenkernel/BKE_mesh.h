@@ -212,7 +212,7 @@ void BKE_mesh_calc_normals_mapping_ex(
         struct MVert *mverts, int numVerts,
         struct MLoop *mloop, struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
         struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
-        const short only_face_normals);
+        const bool only_face_normals);
 
 void BKE_mesh_calc_normals(
         struct MVert *mverts, int numVerts,

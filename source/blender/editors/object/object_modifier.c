@@ -198,7 +198,7 @@ static int object_has_modifier(const Object *ob, const ModifierData *exclude,
  * If the callback ever returns TRUE, iteration will stop and the
  * function value will be TRUE. Otherwise the function returns FALSE.
  */
-int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
+int ED_object_iter_other(Main *bmain, Object *orig_ob, const bool include_orig,
                          int (*callback)(Object *ob, void *callback_data),
                          void *callback_data)
 {

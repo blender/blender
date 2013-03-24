@@ -215,8 +215,8 @@ bool KX_ObjectActuator::Update()
 			m_previous_error = e;
 			m_error_accumulator = I;
 			parent->ApplyForce(m_force,(m_bitLocalFlag.LinearVelocity) != 0);
-		} else if(m_bitLocalFlag.CharacterMotion)
-		{
+		}
+		else if (m_bitLocalFlag.CharacterMotion) {
 			MT_Vector3 dir = m_dloc;
 
 			if (m_bitLocalFlag.AddOrSetCharLoc) {

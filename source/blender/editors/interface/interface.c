@@ -1492,18 +1492,6 @@ double ui_get_but_val(uiBut *but)
 				break;
 		}
 	}
-	else if (but->type == HSVSLI) {
-		float *fp, hsv[3];
-		
-		fp = (but->editvec) ? but->editvec : (float *)but->poin;
-		rgb_to_hsv_v(fp, hsv);
-
-		switch (but->str[0]) {
-			case 'H': value = hsv[0]; break;
-			case 'S': value = hsv[1]; break;
-			case 'V': value = hsv[2]; break;
-		}
-	}
 	else if (but->pointype == UI_BUT_POIN_CHAR) {
 		value = *(char *)but->poin;
 	}
@@ -1569,21 +1557,6 @@ void ui_set_but_val(uiBut *but, double value)
 	}
 	else if (but->pointype == 0) {
 		/* pass */
-	}
-	else if (but->type == HSVSLI) {
-		float *fp, hsv[3];
-		
-		fp = (but->editvec) ? but->editvec : (float *)but->poin;
-		rgb_to_hsv_v(fp, hsv);
-		
-		switch (but->str[0]) {
-			case 'H': hsv[0] = value; break;
-			case 'S': hsv[1] = value; break;
-			case 'V': hsv[2] = value; break;
-		}
-		
-		hsv_to_rgb_v(hsv, fp);
-		
 	}
 	else {
 		/* first do rounding */
@@ -2300,7 +2273,6 @@ void ui_check_but(uiBut *but)
 		case SLI:
 		case SCROLL:
 		case NUMSLI:
-		case HSVSLI:
 			UI_GET_BUT_VALUE_INIT(but, value);
 			if (value < (double)but->hardmin) ui_set_but_val(but, but->hardmin);
 			else if (value > (double)but->hardmax) ui_set_but_val(but, but->hardmax);
@@ -2360,7 +2332,6 @@ void ui_check_but(uiBut *but)
 	
 		case NUM:
 		case NUMSLI:
-		case HSVSLI:
 		case NUMABS:
 
 			UI_GET_BUT_VALUE_INIT(but, value);
@@ -2786,7 +2757,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	
 	but->pos = -1;   /* cursor invisible */
 
-	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI)) {    /* add a space to name */
+	if (ELEM3(but->type, NUM, NUMABS, NUMSLI)) {    /* add a space to name */
 		/* slen remains unchanged from previous assignment, ensure this stays true */
 		if (slen > 0 && slen < UI_MAX_NAME_STR - 2) {
 			if (but->str[slen - 1] != ' ') {
@@ -3963,7 +3934,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 			}
 		}
 		else if (type == BUT_GET_RNA_LABEL_CONTEXT) {
-			const char *_tmp = NULL;
+			const char *_tmp = BLF_I18NCONTEXT_DEFAULT;
 			if (but->rnaprop)
 				_tmp = RNA_property_translation_context(but->rnaprop);
 			else if (but->optype)
@@ -3973,8 +3944,8 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 				if (mt)
 					_tmp = RNA_struct_translation_context(mt->ext.srna);
 			}
-			if (!_tmp) {  /* _tmp == BLF_I18NCONTEXT_DEFAULT */
-				_tmp = BLF_I18NCONTEXT_DEFAULT_BPY;
+			if (BLF_is_default_context(_tmp)) {
+				_tmp = BLF_I18NCONTEXT_DEFAULT_BPYRNA;
 			}
 			tmp = BLI_strdup(_tmp);
 		}

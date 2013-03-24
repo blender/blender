@@ -230,13 +230,14 @@ extern const char *node_context_dir[];
 #define BASIS_RAD       (0.4f * U.widget_unit)
 #define NODE_DYS        (U.widget_unit / 2)
 #define NODE_DY         U.widget_unit
+#define NODE_SOCKDY     (0.08f * U.widget_unit)
 #define NODE_WIDTH(node)	(node->width * UI_DPI_FAC)
 #define NODE_MARGIN_X   (0.75f * U.widget_unit)
 #define NODE_SOCKSIZE   (0.25f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 
 // XXX button events (butspace)
-enum {
+enum eNodeSpace_ButEvents {
 	B_NOP = 0,
 	B_REDR = 1,
 	B_NODE_USEMAT,
@@ -253,6 +254,6 @@ enum {
 	B_MATPRV,
 	B_NODE_LOADIMAGE,
 	B_NODE_SETIMAGE,
-} eNodeSpace_ButEvents;
+};
 
 #endif /* __NODE_INTERN_H__ */

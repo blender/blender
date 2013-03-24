@@ -168,8 +168,7 @@ PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSI
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
 
-#Could not get numpy-1.6.2 to compile with python-3.3
-NUMPY_VERSION="1.7.0rc1"
+NUMPY_VERSION="1.7.0"
 NUMPY_VERSION_MIN="1.7"
 NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
 NUMPY_FORCE_REBUILD=false
@@ -224,8 +223,6 @@ _ffmpeg_list_sep=";"
 # FFMPEG optional libs.
 VORBIS_USE=false
 VORBIS_DEV=""
-SCHRO_USE=false
-SCRHO_DEV=""
 THEORA_USE=false
 THEORA_DEV=""
 XVID_USE=false
@@ -471,10 +468,10 @@ version_match() {
 detect_distro() {
   if [ -f /etc/debian_version ]; then
     DISTRO="DEB"
-  elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
-    DISTRO="RPM"
   elif [ -f /etc/arch-release ]; then
     DISTRO="ARCH"
+  elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
+    DISTRO="RPM"
   fi
 }
 
@@ -1067,7 +1064,11 @@ compile_OpenCOLLADA() {
     cd $_src
 
     # XXX For now, always update from latest repo...
-    git pull origin
+    git pull origin master
+
+    # XXX We have to stick to this revision, the next one introduced a change to ExtraHandler' parseElement signature :/
+    git checkout c89cf095c40aa2a518b1104c448825eacc92d174
+    git reset --hard
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1142,11 +1143,6 @@ compile_FFmpeg() {
 
     if $THEORA_USE; then
       extra="$extra --enable-libtheora"
-    fi
-
-    # XXX At least under Debian, static schro gives problem at blender linking time... :/
-    if $SCHRO_USE && ! $ALL_STATIC; then
-      extra="$extra --enable-libschroedinger"
     fi
 
     if $XVID_USE; then
@@ -1361,14 +1357,6 @@ install_DEB() {
     if [ $? -eq 0 ]; then
       install_packages_DEB $VPX_DEV
       VPX_USE=true
-    fi
-
-    INFO ""
-    SCHRO_DEV="libschroedinger-dev"
-    check_package_DEB $SCHRO_DEV
-    if [ $? -eq 0 ]; then
-      install_packages_DEB $SCHRO_DEV
-      SCHRO_USE=true
     fi
   fi
 
@@ -1607,9 +1595,10 @@ install_RPM() {
   # Enable non-free repositories for all flavours
   rpm_flavour
   if [ $RPM = "FEDORA" ]; then
+    _fedora_rel="`egrep "[0-9]{1,}" /etc/fedora-release -o`"
     sudo yum -y localinstall --nogpgcheck \
-    http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm \
-    http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm
+    http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$_fedora_rel.noarch.rpm \
+    http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$_fedora_rel.noarch.rpm
 
     sudo yum -y update
 
@@ -1636,6 +1625,11 @@ install_RPM() {
     fi
 
   elif [ $RPM = "SUSE" ]; then
+    # Install this now to avoid using the version from packman repository...
+    if $WITH_ALL; then
+      install_packages_RPM libjack-devel
+    fi
+
     _suse_rel="`grep VERSION /etc/SuSE-release | gawk '{print $3}'`"
     sudo zypper ar -f http://packman.inode.at/suse/openSUSE_$_suse_rel/ packman
 
@@ -1647,11 +1641,10 @@ install_RPM() {
   VORBIS_DEV="libvorbis-devel"
   THEORA_DEV="libtheora-devel"
 
-  _packages="gcc gcc-c++ make scons libpng-devel libtiff-devel \
-             freetype-devel libX11-devel libXi-devel wget ncurses-devel \
+  _packages="gcc gcc-c++ make scons libtiff-devel freetype-devel libjpeg-devel\
+             libpng-devel libX11-devel libXi-devel wget ncurses-devel \
              readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm $THEORA_DEV $VORBIS_DEV SDL-devel fftw-devel \
-             libjpeg-devel patch"
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV patch"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -1659,10 +1652,10 @@ install_RPM() {
 
   if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
 
-    _packages="$_packages libsqlite3-devel openexr-devel"
+    _packages="$_packages libsqlite3x-devel openexr-devel fftw-devel SDL-devel"
 
     if $WITH_ALL; then
-      _packages="$_packages jack-audio-connection-kit-devel libspnav-devel"
+      _packages="$_packages jack-audio-connection-kit-devel"
     fi
 
     INFO ""
@@ -1696,11 +1689,7 @@ install_RPM() {
 
   elif [ $RPM = "SUSE" ]; then
 
-    _packages="$_packages cmake sqlite3-devel libopenexr-devel"
-
-    if $WITH_ALL; then
-      _packages="$_packages libjack-devel libspnav-devel"
-    fi
+    _packages="$_packages cmake sqlite3-devel libopenexr-devel fftw3-devel libSDL-devel"
 
     INFO ""
     install_packages_RPM $_packages
@@ -1740,16 +1729,10 @@ install_RPM() {
       install_packages_RPM $VPX_DEV
       VPX_USE=true
     fi
-
     INFO ""
-    SCHRO_DEV="schroedinger-devel"
-    check_package_RPM $SCHRO_DEV
-    if [ $? -eq 0 ]; then
-      install_packages_RPM $SCHRO_DEV
-      SCHRO_USE=true
-    fi
+    install_packages_RPM libspnav-devel
   fi
- 
+
   INFO ""
   if $PYTHON_SKIP; then
     INFO "WARNING! Skipping Python installation, as requested..."
@@ -1822,22 +1805,27 @@ install_RPM() {
     if $LLVM_SKIP; then
       INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
     else
-      check_package_RPM llvm-$LLVM_VERSION-devel
+      # Problem compiling with LLVM 3.2 so match version 3.1 ...
+      check_package_version_match_RPM llvm $LLVM_VERSION
       if [ $? -eq 0 ]; then
-        install_packages_RPM llvm-$LLVM_VERSION-devel clang
+        if [ $RPM = "SUSE" ]; then
+          install_packages_RPM llvm-devel llvm-clang-devel
+        else
+          install_packages_RPM llvm-devel clang-devel
+        fi
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION
       else
         #
         # Better to compile it than use minimum version from repo...
         #
-      install_packages_RPM libffi-devel
-      # LLVM can't find the fedora ffi header dir...
-      _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-      INFO ""
-      compile_LLVM
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
+        install_packages_RPM libffi-devel
+        # LLVM can't find the fedora ffi header dir...
+        _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+        INFO ""
+        compile_LLVM
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
       fi
     fi
 
@@ -1872,15 +1860,287 @@ install_RPM() {
     fi
   fi
 
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+    check_package_version_ge_RPM ffmpeg $FFMPEG_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM ffmpeg ffmpeg-devel
+    else
+      INFO ""
+      compile_FFmpeg
+    fi
+  fi
+}
+
+
+get_package_version_ARCH() {
+  pacman -Si $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+}
+
+check_package_ARCH() {
+  r=`pacman -Si $1 | grep -c 'Description'`
+
+  if [ $r -ge 1 ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check_package_version_match_ARCH() {
+  v=`get_package_version_ARCH $1`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_match $v $2
+  return $?
+}
+
+check_package_version_ge_ARCH() {
+  v=`get_package_version_ARCH $1`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge $v $2
+  return $?
+}
+
+install_packages_ARCH() {
+  sudo pacman -S --needed --noconfirm $@
+  if [ $? -ge 1 ]; then
+    ERROR "pacman failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
+install_ARCH() {
+  INFO ""
+  INFO "Installing dependencies for ARCH-based distribution"
+  INFO ""
+  INFO "`eval _echo "$COMMON_INFO"`"
+  INFO ""
+
+  read -p "Do you want to continue (Y/n)?"
+  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+
+  # Check for sudo...
+  if [ ! -x "/usr/bin/sudo" ]; then
+    INFO ""
+    INFO "This script requires sudo but it is not installed."
+    INFO "Please setup sudo according to:" 
+    INFO "https://wiki.archlinux.org/index.php/Sudo"
+    INFO "and try again."
+    INFO ""
+    exit
+  fi
+
+  sudo pacman -Sy
+
+  # These libs should always be available in arch official repository...
+  OPENJPEG_DEV="openjpeg"
+  VORBIS_DEV="libvorbis"
+  THEORA_DEV="libtheora"
+
+  _packages="base-devel scons cmake libxi glew libpng libtiff wget openal \
+             $OPENJPEG_DEV $VORBIS_DEV $THEORA_DEV  openexr yasm sdl fftw"
+
+  OPENJPEG_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
+
+  if $WITH_ALL; then
+    # No libspacenav in official arch repos...
+    _packages="$_packages jack"
+  fi
+
+  INFO ""
+  install_packages_ARCH $_packages
+
+  INFO ""
+  X264_DEV="x264"
+  check_package_version_ge_ARCH $X264_DEV $X264_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    install_packages_ARCH $X264_DEV
+    X264_USE=true
+  fi
+
+  if $WITH_ALL; then
+    INFO ""
+    XVID_DEV="xvidcore"
+    check_package_ARCH $XVID_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH $XVID_DEV
+      XVID_USE=true
+    fi
+
+    INFO ""
+    MP3LAME_DEV="lame"
+    check_package_ARCH $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH $MP3LAME_DEV
+      MP3LAME_USE=true
+    fi
+
+    INFO ""
+    VPX_DEV="libvpx"
+    check_package_version_ge_ARCH $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH $VPX_DEV
+      VPX_USE=true
+    fi
+  fi
+
+  INFO ""
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
+  else
+    check_package_version_ge_ARCH python $PYTHON_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH python
+      INFO ""
+      if $WITH_NUMPY; then
+        if $NUMPY_SKIP; then
+          INFO "WARNING! Skipping NumPy installation, as requested..."
+        else
+          check_package_version_ge_ARCH python-numpy $NUMPY_VERSION_MIN
+          if [ $? -eq 0 ]; then
+            install_packages_ARCH python-numpy
+          else
+            INFO "WARNING! Sorry, using python package but no numpy package available!"
+          fi
+        fi
+      fi
+    else
+      compile_Python
+      INFO ""
+      if $WITH_NUMPY; then
+        if $NUMPY_SKIP; then
+          INFO "WARNING! Skipping NumPy installation, as requested..."
+        else
+          compile_Numpy
+        fi
+      fi
+    fi
+  fi
+
+  INFO ""
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
+  else
+    check_package_version_ge_ARCH boost $BOOST_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH boost
+    else
+      compile_Boost
+    fi
+  fi
+
+  INFO ""
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
+  else
+    check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH opencolorio yaml-cpp tinyxml
+    else
+      install_packages_ARCH yaml-cpp tinyxml
+      compile_OCIO
+    fi
+  fi
+
+  INFO ""
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
+  else
+    check_package_version_ge_ARCH openimageio $OIIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH openimageio
+    else
+      compile_OIIO
+    fi
+  fi
+
+  if $WITH_OSL; then
+    have_llvm=false
+
+    INFO ""
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    else
+      check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN
+      if [ $? -eq 0 ]; then
+        install_packages_ARCH llvm clang
+        have_llvm=true
+        LLVM_VERSION=`check_package_version_ge_ARCH llvm`
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+      else
+        install_packages_ARCH libffi
+        # LLVM can't find the arch ffi header dir...
+        _FFI_INCLUDE_DIR=`pacman -Ql libffi | grep -e ".*/ffi.h" | awk '{print $2}' | sed -r 's/(.*)\/ffi.h/\1/'`
+        # LLVM 3.1 needs python2 to build and arch defaults to python3
+        _PYTHON2_BIN="/usr/bin/python2"
+        INFO ""
+        compile_LLVM
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+      fi
+    fi
+
+    if $OSL_SKIP; then
+      INFO ""
+      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
+        if [ $? -eq 0 ]; then
+          install_packages_ARCH openshadinglanguage
+        else
+          #XXX Note: will fail to build with LLVM 3.2! 
+          INFO ""
+          install_packages_ARCH git intel-tbb
+          INFO ""
+          compile_OSL
+        fi
+      fi
+    fi
+  fi
+
+  INFO ""
+  if $WITH_OPENCOLLADA; then
+    if $OPENCOLLADA_SKIP; then
+      INFO "WARNING! Skipping OpenCOLLADA installation, as requested..."
+    else
+      INFO ""
+      check_package_ARCH opencollada
+      if [ $? -eq 0 ]; then
+        install_packages_ARCH opencollada
+      else
+        install_packages_ARCH pcre git
+        INFO ""
+        compile_OpenCOLLADA
+      fi
+    # Find path to libxml shared lib...
+    _XML2_LIB=`pacman -Ql libxml2 | grep -e ".*/libxml2.so$" | gawk '{print $2}'`
+    fi
+  fi
+
   INFO ""
   if $FFMPEG_SKIP; then
     INFO "WARNING! Skipping FFMpeg installation, as requested..."
   else
-    # Always for now, not sure which packages should be installed
-    compile_FFmpeg
+    check_package_version_ge_ARCH ffmpeg $FFMPEG_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH ffmpeg
+    else
+      compile_FFmpeg
+    fi
   fi
 }
-
 
 
 print_info_ffmpeglink_DEB() {
@@ -1898,6 +2158,11 @@ print_info_ffmpeglink_RPM() {
 #  else
   rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
 #  fi
+}
+
+print_info_ffmpeglink_ARCH() {
+# No static libs...
+  pacman -Ql $_packages | grep -e ".*\/lib[^\/]\+\.so$" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", $0)); nlines++ }'
 }
 
 print_info_ffmpeglink() {
@@ -1938,16 +2203,12 @@ print_info_ffmpeglink() {
     _packages="$_packages $OPENJPEG_DEV"
   fi
 
-  if $SCHRO_USE; then
-    _packages="$_packages $SCHRO_DEV"
-  fi
-
   if [ "$DISTRO" = "DEB" ]; then
     print_info_ffmpeglink_DEB
   elif [ "$DISTRO" = "RPM" ]; then
     print_info_ffmpeglink_RPM
-#  elif [ "$DISTRO" = "ARCH" ]; then
-#    print_info_ffmpeglink_ARCH
+  elif [ "$DISTRO" = "ARCH" ]; then
+    print_info_ffmpeglink_ARCH
   # XXX TODO!
   else INFO "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
   fi
@@ -1966,6 +2227,12 @@ print_info() {
     INFO "  $_1"
     INFO "  $_2"
     _buildargs="$_buildargs $_1 $_2"
+    # XXX Arch linux needs to link freetype dynamically...
+    if [ "$DISTRO" = "ARCH" ]; then
+      _1="-D FREETYPE_LIBRARY=/usr/lib/libfreetype.so"
+      INFO "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ -d $INST/boost ]; then
@@ -1978,16 +2245,39 @@ print_info() {
     _1="-D WITH_BOOST_ICU=ON"
     INFO "  $_1"
     _buildargs="$_buildargs $_1"
+    # XXX Arch linux fails static linking without these...
+    if [ "$DISTRO" = "ARCH" ]; then
+      _1="-D ICU_LIBRARY_DATA=/usr/lib/libicudata.so"
+      _2="-D ICU_LIBRARY_I18N=/usr/lib/libicui18n.so"
+      _3="-D ICU_LIBRARY_IO=/usr/lib/libicuio.so"
+      _4="-D ICU_LIBRARY_LE=/usr/lib/libicule.so"
+      _5="-D ICU_LIBRARY_LX=/usr/lib/libiculx.so"
+      _6="-D ICU_LIBRARY_TU=/usr/lib/libicutu.so"
+      _7="-D ICU_LIBRARY_UC=/usr/lib/libicuuc.so"
+      INFO "  $_1"
+      INFO "  $_2"
+      INFO "  $_3"
+      INFO "  $_4"
+      INFO "  $_5"
+      INFO "  $_6"
+      INFO "  $_7"
+      _buildargs="$_buildargs $_1 $_2 $_3 $_4 $_5 $_6 $_7"
+    fi
   fi
 
-  if [ -d $INST/osl -a $WITH_OSL == true ]; then
-    _1="-D CYCLES_OSL=$INST/osl"
-    _2="-D WITH_CYCLES_OSL=ON"
+  if $WITH_OSL; then
+    _1="-D WITH_CYCLES_OSL=ON"
+    _2="-D WITH_LLVM=ON"
     _3="-D LLVM_VERSION=$LLVM_VERSION_FOUND"
     INFO "  $_1"
     INFO "  $_2"
     INFO "  $_3"
     _buildargs="$_buildargs $_1 $_2 $_3"
+    if [ -d $INST/osl ]; then
+      _1="-D CYCLES_OSL=$INST/osl"
+      INFO "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
     if [ -d $INST/llvm ]; then
       _1="-D LLVM_DIRECTORY=$INST/llvm"
       _2="-D LLVM_STATIC=ON"
@@ -1997,7 +2287,7 @@ print_info() {
     fi
   fi
 
-  if [ -d $INST/opencollada -a $WITH_OPENCOLLADA == true ]; then
+  if $WITH_OPENCOLLADA; then
     _1="-D WITH_OPENCOLLADA=ON"
     INFO "  $_1"
     _buildargs="$_buildargs $_1"
@@ -2008,14 +2298,15 @@ print_info() {
     fi
   fi
 
+  _1="-D WITH_CODEC_FFMPEG=ON"
+  _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
+  INFO "  $_1"
+  INFO "  $_2"
+  _buildargs="$_buildargs $_1 $_2"
   if [ -d $INST/ffmpeg ]; then
-    _1="-D WITH_CODEC_FFMPEG=ON"
-    _2="-D FFMPEG=$INST/ffmpeg"
-    _3="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
+    _1="-D FFMPEG=$INST/ffmpeg"
     INFO "  $_1"
-    INFO "  $_2"
-    INFO "  $_3"
-    _buildargs="$_buildargs $_1 $_2 $_3"
+    _buildargs="$_buildargs $_1"
   fi
 
   INFO ""
@@ -2030,27 +2321,37 @@ print_info() {
     INFO "BF_PYTHON_ABI_FLAGS = 'm'"
   fi
 
+  INFO "WITH_BF_OCIO = True"
   if [ -d $INST/ocio ]; then
     INFO "BF_OCIO = '$INST/ocio'"
   fi
 
+  INFO "WITH_BF_OIIO = True"
   if [ -d $INST/oiio ]; then
     INFO "BF_OIIO = '$INST/oiio'"
   fi
+  INFO "WITH_BF_CYCLES = True"
 
   if [ -d $INST/osl ]; then
     INFO "BF_OSL = '$INST/osl'"
   fi
 
+  INFO "WITH_BF_BOOST = True"
   if [ -d $INST/boost ]; then
     INFO "BF_BOOST = '$INST/boost'"
-    INFO "WITH_BF_BOOST = True"
   fi
 
+  _ffmpeg_list_sep=" "
+  INFO "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   if [ -d $INST/ffmpeg ]; then
     INFO "BF_FFMPEG = '$INST/ffmpeg'"
-    _ffmpeg_list_sep=" "
-    INFO "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
+  fi
+
+  if ! $WITH_ALL; then
+    INFO "WITH_BF_3DMOUSE = False"
+  # No libspacenav in official arch repos...
+  elif [ "$DISTRO" = "ARCH" ]; then
+    INFO "WITH_BF_3DMOUSE = False"
   fi
 
   INFO ""
@@ -2073,8 +2374,8 @@ elif [ "$DISTRO" = "DEB" ]; then
   install_DEB
 elif [ "$DISTRO" = "RPM" ]; then
   install_RPM
-#elif [ "$DISTRO" = "ARCH" ]; then
-#  install_ARCH
+elif [ "$DISTRO" = "ARCH" ]; then
+  install_ARCH
 fi
 
 print_info | tee BUILD_NOTES.txt

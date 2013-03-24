@@ -680,66 +680,65 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			}
 		}
 		else if (b_node->is_a(&RNA_ShaderNodeGroup)) {
+			
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
 			ProxyMap group_proxy_map;
 			
-			if (!b_group_ntree)
-				continue;
-			
-			add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_proxy_map);
-			
-			/* map the outer socket to the internal proxy nodes */
+			/* Add a proxy node for each socket
+			 * Do this even if the node group has no internal tree,
+			 * so that links have something to connect to and assert won't fail.
+			 */
 			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
+				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_input));
+				graph->add(proxy);
 				
-				/* get internal proxy node from group proxy map */
-				assert(group_proxy_map.find(b_input->identifier()) != group_proxy_map.end());
-				assert(group_proxy_map[b_input->identifier()]->special_type == SHADER_SPECIAL_TYPE_PROXY);
-				ProxyNode *proxy = group_proxy_map[b_input->identifier()];
+				/* register the proxy node for internal binding */
+				group_proxy_map[b_input->identifier()] = proxy;
 				
 				input_map[b_input->ptr.data] = proxy->inputs[0];
 				
-				/* input value for proxy inputs is defined by group node */
 				set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
 			}
-			
-			/* map the outer socket to the internal proxy nodes */
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
+				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
+				graph->add(proxy);
 				
-				/* get internal proxy node from group node map */
-				assert(group_proxy_map.find(b_output->identifier()) != group_proxy_map.end());
-				assert(group_proxy_map[b_output->identifier()]->special_type == SHADER_SPECIAL_TYPE_PROXY);
-				ProxyNode *proxy = group_proxy_map[b_output->identifier()];
+				/* register the proxy node for internal binding */
+				group_proxy_map[b_output->identifier()] = proxy;
 				
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
+			
+			if (b_group_ntree)
+				add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_proxy_map);
 		}
 		else if (b_node->is_a(&RNA_NodeGroupInput)) {
-			/* add a proxy node for each socket */
+			/* map each socket to a proxy node */
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
-				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
-				
-				output_map[b_output->ptr.data] = proxy->outputs[0];
-				
-				/* register the proxy node for external binding */
-				proxy_map[b_output->identifier()] = proxy;
-				
-				graph->add(proxy);
+				ProxyMap::iterator proxy_it = proxy_map.find(b_output->identifier());
+				if (proxy_it != proxy_map.end()) {
+					ProxyNode *proxy = proxy_it->second;
+					
+					output_map[b_output->ptr.data] = proxy->outputs[0];
+				}
 			}
 		}
 		else if (b_node->is_a(&RNA_NodeGroupOutput)) {
-			/* add a proxy node for each socket */
-			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
-				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_input));
-				
-				input_map[b_input->ptr.data] = proxy->inputs[0];
-				
-				set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
-				
-				/* register the proxy node for external binding */
-				proxy_map[b_input->identifier()] = proxy;
-				
-				graph->add(proxy);
+			BL::NodeGroupOutput b_output_node(*b_node);
+			/* only the active group output is used */
+			if (b_output_node.is_active_output()) {
+				/* map each socket to a proxy node */
+				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
+					ProxyMap::iterator proxy_it = proxy_map.find(b_input->identifier());
+					if (proxy_it != proxy_map.end()) {
+						ProxyNode *proxy = proxy_it->second;
+						
+						input_map[b_input->ptr.data] = proxy->inputs[0];
+						
+						set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
+					}
+				}
 			}
 		}
 		else {

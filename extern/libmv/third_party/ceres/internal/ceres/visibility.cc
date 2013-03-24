@@ -28,6 +28,8 @@
 //
 // Author: kushalav@google.com (Avanish Kushal)
 
+#ifndef CERES_NO_SUITESPARSE
+
 #include "ceres/visibility.h"
 
 #include <cmath>
@@ -150,3 +152,5 @@ Graph<int>* CreateSchurComplementGraph(const vector<set<int> >& visibility) {
 
 }  // namespace internal
 }  // namespace ceres
+
+#endif

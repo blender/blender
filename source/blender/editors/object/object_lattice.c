@@ -638,7 +638,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
 	return data.bp;
 }
 
-int mouse_lattice(bContext *C, const int mval[2], int extend, int deselect, int toggle)
+bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	ViewContext vc;
 	BPoint *bp = NULL;
@@ -663,10 +663,10 @@ int mouse_lattice(bContext *C, const int mval[2], int extend, int deselect, int 
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /******************************** Undo *************************/

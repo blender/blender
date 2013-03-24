@@ -49,7 +49,7 @@ typedef struct NlaEvalStrip {
 } NlaEvalStrip;
 
 /* NlaEvalStrip->strip_mode */
-enum {
+enum eNlaEvalStrip_StripMode {
 	/* standard evaluation */
 	NES_TIME_BEFORE = -1,
 	NES_TIME_WITHIN,
@@ -58,7 +58,7 @@ enum {
 	/* transition-strip evaluations */
 	NES_TIME_TRANSITION_START,
 	NES_TIME_TRANSITION_END,
-} eNlaEvalStrip_StripMode;
+};
 
 
 /* temp channel for accumulating data from NLA (avoids needing to clear all values first) */

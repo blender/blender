@@ -1819,7 +1819,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	}
 
 	/* cleanup the buffer. */
-	BLF_buffer(mono, NULL, NULL, 0, 0, 0, FALSE);
+	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
 
 #undef BUFF_MARGIN_X
 #undef BUFF_MARGIN_Y
@@ -3379,7 +3379,7 @@ void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
 
 unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame)
 {
-	ImageUser iuser = {0};
+	ImageUser iuser = {NULL};
 	void *lock;
 	ImBuf *ibuf;
 	unsigned char *pixels = NULL;
@@ -3406,7 +3406,7 @@ unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame)
 
 float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame)
 {
-	ImageUser iuser = {0};
+	ImageUser iuser = {NULL};
 	void *lock;
 	ImBuf *ibuf;
 	float *pixels = NULL;

@@ -1378,19 +1378,5 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 	}
 
 	ED_region_tag_redraw(ar);
-
-	/* XXX exception handling, 3d window preview panel */
-#if 0
-	if (block->drawextra == BIF_view3d_previewdraw)
-		BIF_view3d_previewrender_clear(curarea);
-#endif
-
-	/* XXX exception handling, 3d window preview panel */
-#if 0
-	if (block->drawextra == BIF_view3d_previewdraw)
-		BIF_view3d_previewrender_signal(curarea, PR_DISPRECT);
-	else if (strcmp(block->name, "image_panel_preview") == 0)
-		image_preview_event(2);
-#endif
 }
 

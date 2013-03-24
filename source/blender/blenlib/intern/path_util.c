@@ -122,6 +122,7 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 			if (found_digit) break;
 		}
 	}
+
 	if (found_digit) {
 		if (tail) strcpy(tail, &string[nume + 1]);
 		if (head) {
@@ -131,13 +132,14 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 		if (numlen) *numlen = nume - nums + 1;
 		return ((int)atoi(&(string[nums])));
 	}
-	if (tail) strcpy(tail, string + name_end);
-	if (head) {
-		strncpy(head, string, name_end);
-		head[name_end] = '\0';
+	else {
+		if (tail) strcpy(tail, string + name_end);
+		if (head) {
+			BLI_strncpy(head, string, name_end);
+		}
+		if (numlen) *numlen = 0;
+		return 0;
 	}
-	if (numlen) *numlen = 0;
-	return 0;
 }
 
 
@@ -1364,7 +1366,12 @@ void BLI_clean(char *path)
 }
 
 /**
- * Replaces occurrences of from with to in *string.
+ * Change every \a from in \a string into \a to. The
+ * result will be in \a string
+ *
+ * \param string The string to work on
+ * \param from The character to replace
+ * \param to The character to replace with
  */
 void BLI_char_switch(char *string, char from, char to) 
 {
@@ -2060,11 +2067,17 @@ void BLI_init_program_path(const char *argv0)
 	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
 }
 
+/**
+ * Path to executable
+ */
 const char *BLI_program_path(void)
 {
 	return bprogname;
 }
 
+/**
+ * Path to directory of executable
+ */
 const char *BLI_program_dir(void)
 {
 	return bprogdir;
@@ -2137,7 +2150,7 @@ void BLI_init_temporary_dir(char *userdir)
 }
 
 /**
- * Returns the path to the temporary directory.
+ * Path to temporary directory (with trailing slash)
  */
 const char *BLI_temporary_dir(void)
 {
@@ -2145,7 +2158,7 @@ const char *BLI_temporary_dir(void)
 }
 
 /**
- * Puts in *dir path to OS-specific temporary directory.
+ * Path to the system temporary directory (with trailing slash)
  */
 void BLI_system_temporary_dir(char *dir)
 {

@@ -454,7 +454,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-int mouse_armature(bContext *C, const int mval[2], int extend, int deselect, int toggle)
+bool mouse_armature(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
@@ -550,10 +550,10 @@ int mouse_armature(bContext *C, const int mval[2], int extend, int deselect, int
 		}
 		
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, vc.obedit);
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 

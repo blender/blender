@@ -3387,156 +3387,14 @@ static void findselectedNurbvert(ListBase *editnurb, Nurb **nu, BezTriple **bezt
 
 /***************** set spline type operator *******************/
 
-static int convertspline(short type, Nurb *nu)
-{
-	BezTriple *bezt;
-	BPoint *bp;
-	int a, c, nr;
-
-	if (nu->type == CU_POLY) {
-		if (type == CU_BEZIER) {  /* to Bezier with vecthandles  */
-			nr = nu->pntsu;
-			bezt = (BezTriple *)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
-			nu->bezt = bezt;
-			a = nr;
-			bp = nu->bp;
-			while (a--) {
-				copy_v3_v3(bezt->vec[1], bp->vec);
-				bezt->f1 = bezt->f2 = bezt->f3 = bp->f1;
-				bezt->h1 = bezt->h2 = HD_VECT;
-				bezt->weight = bp->weight;
-				bezt->radius = bp->radius;
-				bp++;
-				bezt++;
-			}
-			MEM_freeN(nu->bp);
-			nu->bp = NULL;
-			nu->pntsu = nr;
-			nu->type = CU_BEZIER;
-			BKE_nurb_handles_calc(nu);
-		}
-		else if (type == CU_NURBS) {
-			nu->type = CU_NURBS;
-			nu->orderu = 4;
-			nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
-			BKE_nurb_knot_calc_u(nu);
-			a = nu->pntsu * nu->pntsv;
-			bp = nu->bp;
-			while (a--) {
-				bp->vec[3] = 1.0;
-				bp++;
-			}
-		}
-	}
-	else if (nu->type == CU_BEZIER) {   /* Bezier */
-		if (type == CU_POLY || type == CU_NURBS) {
-			nr = 3 * nu->pntsu;
-			nu->bp = MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
-			a = nu->pntsu;
-			bezt = nu->bezt;
-			bp = nu->bp;
-			while (a--) {
-				if (type == CU_POLY && bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) {
-					/* vector handle becomes 1 poly vertice */
-					copy_v3_v3(bp->vec, bezt->vec[1]);
-					bp->vec[3] = 1.0;
-					bp->f1 = bezt->f2;
-					nr -= 2;
-					bp->radius = bezt->radius;
-					bp->weight = bezt->weight;
-					bp++;
-				}
-				else {
-					for (c = 0; c < 3; c++) {
-						copy_v3_v3(bp->vec, bezt->vec[c]);
-						bp->vec[3] = 1.0;
-						if (c == 0) bp->f1 = bezt->f1;
-						else if (c == 1) bp->f1 = bezt->f2;
-						else bp->f1 = bezt->f3;
-						bp->radius = bezt->radius;
-						bp->weight = bezt->weight;
-						bp++;
-					}
-				}
-				bezt++;
-			}
-			MEM_freeN(nu->bezt); 
-			nu->bezt = NULL;
-			nu->pntsu = nr;
-			nu->pntsv = 1;
-			nu->orderu = 4;
-			nu->orderv = 1;
-			nu->type = type;
-
-#if 0       /* UNUSED */
-			if (nu->flagu & CU_NURB_CYCLIC) c = nu->orderu - 1;
-			else c = 0;
-#endif
-
-			if (type == CU_NURBS) {
-				nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
-				nu->flagu |= CU_NURB_BEZIER;
-				BKE_nurb_knot_calc_u(nu);
-			}
-		}
-	}
-	else if (nu->type == CU_NURBS) {
-		if (type == CU_POLY) {
-			nu->type = CU_POLY;
-			if (nu->knotsu) MEM_freeN(nu->knotsu);  /* python created nurbs have a knotsu of zero */
-			nu->knotsu = NULL;
-			if (nu->knotsv) MEM_freeN(nu->knotsv);
-			nu->knotsv = NULL;
-		}
-		else if (type == CU_BEZIER) {     /* to Bezier */
-			nr = nu->pntsu / 3;
-
-			if (nr < 2) {
-				return 1;  /* conversion impossible */
-			}
-			else {
-				bezt = MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
-				nu->bezt = bezt;
-				a = nr;
-				bp = nu->bp;
-				while (a--) {
-					copy_v3_v3(bezt->vec[0], bp->vec);
-					bezt->f1 = bp->f1;
-					bp++;
-					copy_v3_v3(bezt->vec[1], bp->vec);
-					bezt->f2 = bp->f1;
-					bp++;
-					copy_v3_v3(bezt->vec[2], bp->vec);
-					bezt->f3 = bp->f1;
-					bezt->radius = bp->radius;
-					bezt->weight = bp->weight;
-					bp++;
-					bezt++;
-				}
-				MEM_freeN(nu->bp);
-				nu->bp = NULL;
-				MEM_freeN(nu->knotsu);
-				nu->knotsu = NULL;
-				nu->pntsu = nr;
-				nu->type = CU_BEZIER;
-			}
-		}
-	}
-
-	return 0;
-}
-
-void ED_nurb_set_spline_type(Nurb *nu, int type)
-{
-	convertspline(type, nu);
-}
-
 static int set_spline_type_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
-	int changed = 0, type = RNA_enum_get(op->ptr, "type");
+	bool change = false;
+	const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
+	const int type = RNA_enum_get(op->ptr, "type");
 
 	if (type == CU_CARDINAL || type == CU_BSPLINE) {
 		BKE_report(op->reports, RPT_ERROR, "Not yet implemented");
@@ -3545,14 +3403,14 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (isNurbsel(nu)) {
-			if (convertspline(type, nu))
+			if (BKE_nurb_type_convert(nu, type, use_handles) == false)
 				BKE_report(op->reports, RPT_ERROR, "No conversion possible");
 			else
-				changed = 1;
+				change = true;
 		}
 	}
 
-	if (changed) {
+	if (change) {
 		if (ED_curve_updateAnimPaths(obedit->data))
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 
@@ -3592,6 +3450,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
+	RNA_def_boolean(ot->srna, "use_handles", 0, "Handles", "Use handles when converting bezier curves into polygons");
 }
 
 /***************** set handle type operator *******************/
@@ -4201,7 +4060,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 /***************** pick select from 3d view **********************/
 
-int mouse_nurb(bContext *C, const int mval[2], int extend, int deselect, int toggle)
+bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
@@ -4314,10 +4173,10 @@ int mouse_nurb(bContext *C, const int mval[2], int extend, int deselect, int tog
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
-		return 1;
+		return true;
 	}
 	
-	return 0;
+	return false;
 }
 
 /******************** spin operator ***********************/
@@ -6275,8 +6134,8 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	DAG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 	
-	ED_object_enter_editmode(C, EM_WAITCURSOR);
-	ED_object_exit_editmode(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
+	ED_object_editmode_enter(C, EM_WAITCURSOR);
+	ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -6291,20 +6150,20 @@ static const char *get_curve_defname(int type)
 
 	if ((type & CU_TYPE) == CU_BEZIER) {
 		switch (stype) {
-			case CU_PRIM_CURVE: return "BezierCurve";
-			case CU_PRIM_CIRCLE: return "BezierCircle";
-			case CU_PRIM_PATH: return "CurvePath";
+			case CU_PRIM_CURVE: return DATA_("BezierCurve");
+			case CU_PRIM_CIRCLE: return DATA_("BezierCircle");
+			case CU_PRIM_PATH: return DATA_("CurvePath");
 			default:
-				return "Curve";
+				return DATA_("Curve");
 		}
 	}
 	else {
 		switch (stype) {
-			case CU_PRIM_CURVE: return "NurbsCurve";
-			case CU_PRIM_CIRCLE: return "NurbsCircle";
-			case CU_PRIM_PATH: return "NurbsPath";
+			case CU_PRIM_CURVE: return DATA_("NurbsCurve");
+			case CU_PRIM_CIRCLE: return DATA_("NurbsCircle");
+			case CU_PRIM_PATH: return DATA_("NurbsPath");
 			default:
-				return "Curve";
+				return DATA_("Curve");
 		}
 	}
 }
@@ -6314,13 +6173,13 @@ static const char *get_surf_defname(int type)
 	int stype = type & CU_PRIMITIVE;
 
 	switch (stype) {
-		case CU_PRIM_CURVE: return "SurfCurve";
-		case CU_PRIM_CIRCLE: return "SurfCircle";
-		case CU_PRIM_PATCH: return "SurfPatch";
-		case CU_PRIM_SPHERE: return "SurfSphere";
-		case CU_PRIM_DONUT: return "SurfTorus";
+		case CU_PRIM_CURVE: return DATA_("SurfCurve");
+		case CU_PRIM_CIRCLE: return DATA_("SurfCircle");
+		case CU_PRIM_PATCH: return DATA_("SurfPatch");
+		case CU_PRIM_SPHERE: return DATA_("SurfSphere");
+		case CU_PRIM_DONUT: return DATA_("SurfTorus");
 		default:
-			return "Surface";
+			return DATA_("Surface");
 	}
 }
 
@@ -6744,7 +6603,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
 	/* userdef */
 	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);

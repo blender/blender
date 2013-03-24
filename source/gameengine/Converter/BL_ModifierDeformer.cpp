@@ -67,10 +67,6 @@ extern "C"{
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#define __NLA_DEFNORMALS
-//#undef __NLA_DEFNORMALS
-
-
 BL_ModifierDeformer::~BL_ModifierDeformer()
 {
 	if (m_dm) {

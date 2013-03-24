@@ -73,7 +73,7 @@ static void filepath_avi(char *string, RenderData *rd);
 
 bMovieHandle *BKE_movie_handle_get(const char imtype)
 {
-	static bMovieHandle mh = {0};
+	static bMovieHandle mh = {NULL};
 	
 	/* set the default handle, as builtin */
 #ifdef WITH_AVI

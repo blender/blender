@@ -1024,10 +1024,11 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 	id = dtar_id_ensure_proxy_from(dtar->id);
 	
 	/* error check for missing pointer... */
-	/* TODO: tag the specific target too as having issues */
 	if (id == NULL) {
-		printf("Error: driver has an invalid target to use\n");
-		if (G.debug & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
+		if (G.debug & G_DEBUG) {
+			printf("Error: driver has an invalid target to use (path = %s)\n", dtar->rna_path);
+		}
+		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		dtar->flag   |= DTAR_FLAG_INVALID;
 		return 0.0f;
@@ -1089,8 +1090,9 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 	}
 	else {
 		/* path couldn't be resolved */
-		if (G.debug & G_DEBUG)
+		if (G.debug & G_DEBUG) {
 			printf("Driver Evaluation Error: cannot resolve target for %s -> %s\n", id->name, dtar->rna_path);
+		}
 		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		dtar->flag   |= DTAR_FLAG_INVALID;
@@ -1152,19 +1154,25 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 		
 		/* check what the error was */
 		if ((pchan == NULL) && (pchan2 == NULL)) {
-			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid\n");
+			if (G.debug & G_DEBUG) {
+				printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid\n");
+			}
 			
 			dtar1->flag |= DTAR_FLAG_INVALID;
 			dtar2->flag |= DTAR_FLAG_INVALID;
 		}
 		else if (pchan == NULL) {
-			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel\n");
+			if (G.debug & G_DEBUG) {
+				printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel\n");
+			}
 			
 			dtar1->flag |=  DTAR_FLAG_INVALID;
 			dtar2->flag &= ~DTAR_FLAG_INVALID;
 		}
 		else if (pchan2 == NULL) {
-			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel\n");
+			if (G.debug & G_DEBUG) {
+				printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel\n");
+			}
 			
 			dtar1->flag &= ~DTAR_FLAG_INVALID;
 			dtar2->flag |=  DTAR_FLAG_INVALID;

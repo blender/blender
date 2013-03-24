@@ -882,7 +882,7 @@ static void *do_render_thread(void *thread_v)
 		do_part_thread(pa);
 		BLI_thread_queue_push(thread->donequeue, pa);
 		
-		if(R.test_break(R.tbh))
+		if (R.test_break(R.tbh))
 			break;
 	}
 	

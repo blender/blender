@@ -33,6 +33,8 @@ set(INC_SYS
 
 set(SRC
 	wcwidth.c
+
+	wcwidth.h
 )
 
 blender_add_lib(extern_wcwidth "${SRC}" "${INC}" "${INC_SYS}")

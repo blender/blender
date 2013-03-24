@@ -74,6 +74,9 @@ void clip_draw_main(const struct bContext *C, struct SpaceClip *sc, struct ARegi
 void clip_draw_grease_pencil(struct bContext *C, int onlyv2d);
 void clip_draw_curfra_label(const int framenr, const float x, const float y);
 
+/* clip_editor.c */
+void clip_start_prefetch_job(const struct bContext *C);
+
 /* clip_graph_draw.c */
 void clip_draw_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 

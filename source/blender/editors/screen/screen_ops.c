@@ -254,7 +254,7 @@ int ED_operator_node_active(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	if (snode && ntreeIsValid(snode->edittree))
+	if (snode && snode->edittree)
 		return 1;
 	
 	return 0;

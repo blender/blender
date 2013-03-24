@@ -40,6 +40,7 @@
 // This file is generated using generate_eliminator_specializations.py.
 // Editing it manually is not recommended.
 
+
 #include "ceres/schur_eliminator_impl.h"
 #include "ceres/internal/eigen.h"
 
@@ -50,4 +51,3 @@ template class SchurEliminator<Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic>;
 
 }  // namespace internal
 }  // namespace ceres
-

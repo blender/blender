@@ -439,7 +439,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if (nr == OBJECT_SELECT_LINKED_OBDATA) {
-		if (ob->data == 0)
+		if (ob->data == NULL)
 			return OPERATOR_CANCELLED;
 
 		changed = object_select_all_by_obdata(C, ob->data);
@@ -894,13 +894,13 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 {
 	unsigned int layernum;
-	short extend, match;
+	bool extend, match;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
 	layernum = RNA_int_get(op->ptr, "layers");
 	match = RNA_enum_get(op->ptr, "match");
 	
-	if (extend == 0) {
+	if (extend == false) {
 		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 		{
 			ED_base_object_select(base, BA_DESELECT);
@@ -910,12 +910,12 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 		
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		int ok = 0;
+		bool ok = false;
 
-		if (match == 1) /* exact */
+		if (match == true) /* exact */
 			ok = (base->lay == (1 << (layernum - 1)));
 		else /* shared layers */
-			ok = (base->lay & (1 << (layernum - 1)));
+			ok = (base->lay & (1 << (layernum - 1))) != 0;
 
 		if (ok)
 			ED_base_object_select(base, BA_SELECT);
@@ -1072,7 +1072,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 static int object_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	short extend;
+	bool extend;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
@@ -1093,7 +1093,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		if (extend == 0) ED_base_object_select(primbase, BA_DESELECT);
+		if (extend == false) ED_base_object_select(primbase, BA_DESELECT);
 		
 	}
 	CTX_DATA_END;
@@ -1128,11 +1128,11 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
-	short extend;
+	bool extend;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
-	if (extend == 0) {
+	if (extend == false) {
 		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 		{
 			ED_base_object_select(base, BA_DESELECT);

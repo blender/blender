@@ -59,24 +59,24 @@ struct LinkNode;
  */
 
 /*calls a bmesh op, reporting errors to the user, etc*/
-int EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
+bool EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
 
-int EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
-                             const char *selectslot, const char *fmt, ...);
+bool EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
+                              const char *selectslot, const char *fmt, ...);
 
 /* same as above, but doesn't report errors.*/
-int EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
+bool EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
 
 /* these next two functions are the split version of EDBM_op_callf, so you can
  * do stuff with a bmesh operator, after initializing it but before executing
  * it.
  *
  * execute the operator with BM_Exec_Op */
-int EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
-                 struct wmOperator *op, const char *fmt, ...);
+bool EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
+                  struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/
-int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
-                   struct wmOperator *op, const int report);
+bool EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
+                    struct wmOperator *op, const bool do_report);
 
 void EDBM_stats_update(struct BMEditMesh *em);
 

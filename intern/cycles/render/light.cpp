@@ -332,7 +332,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	if(kintegrator->use_direct_light) {
 		/* number of emissives */
-		kintegrator->num_distribution = (totarea > 0.0f)? num_distribution: 0;
+		kintegrator->num_distribution = num_distribution;
 
 		/* precompute pdfs */
 		kintegrator->pdf_triangles = 0.0f;

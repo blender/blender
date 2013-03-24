@@ -69,15 +69,15 @@ EnumPropertyItem node_socket_in_out_items[] = {
 };
 
 EnumPropertyItem node_socket_type_items[] = {
-    {SOCK_CUSTOM,  "CUSTOM",    0,    "Custom",    ""},
-    {SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
-    {SOCK_INT,     "INT",       0,    "Int",       ""},
-    {SOCK_BOOLEAN, "BOOLEAN",   0,    "Boolean",   ""},
-    {SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
-    {SOCK_STRING,  "STRING",    0,    "String",    ""},
-    {SOCK_RGBA,    "RGBA",      0,    "RGBA",      ""},
-    {SOCK_SHADER,  "SHADER",    0,    "Shader",    ""},
-    {0, NULL, 0, NULL, NULL}
+	{SOCK_CUSTOM,  "CUSTOM",    0,    "Custom",    ""},
+	{SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
+	{SOCK_INT,     "INT",       0,    "Int",       ""},
+	{SOCK_BOOLEAN, "BOOLEAN",   0,    "Boolean",   ""},
+	{SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
+	{SOCK_STRING,  "STRING",    0,    "String",    ""},
+	{SOCK_RGBA,    "RGBA",      0,    "RGBA",      ""},
+	{SOCK_SHADER,  "SHADER",    0,    "Shader",    ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem node_quality_items[] = {
@@ -542,9 +542,6 @@ static void rna_NodeTree_draw_add_menu(const bContext *C, struct uiLayout *layou
 	ParameterList list;
 	FunctionRNA *func;
 
-	if (!ntreeIsValid(ntree))
-		return;
-
 	RNA_id_pointer_create(&ntree->id, &ptr);
 	func = &rna_NodeTree_draw_add_menu_func; /* RNA_struct_find_function(&ptr, "draw_add_menu"); */
 
@@ -656,6 +653,18 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 	return nt->ext.srna;
 }
 
+static bool rna_NodeTree_check(bNodeTree *ntree, ReportList *reports)
+{
+	if (!ntreeIsRegistered(ntree)) {
+		if (reports)
+			BKE_reportf(reports, RPT_ERROR, "Node tree '%s' has undefined type %s", ntree->id.name + 2, ntree->idname);
+		
+		return false;
+	}
+	else
+		return true;
+}
+
 static void rna_NodeTree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
@@ -695,10 +704,8 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	bNodeType *ntype;
 	bNode *node;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 	
 	ntype = nodeTypeFind(type);
 	if (!ntype) {
@@ -745,10 +752,8 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, Poin
 {
 	bNode *node = node_ptr->data;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	if (BLI_findindex(&ntree->nodes, node) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in node tree", node->name);
@@ -767,10 +772,8 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNode *node = ntree->nodes.first;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 
 	while (node) {
 		bNode *next_node = node->next;
@@ -800,10 +803,6 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr, const PointerRNA value
 	bNodeTree *ntree = (bNodeTree *)ptr->data;
 	bNode *node = (bNode *)value.data;
 	
-	/* activating node might require valid typeinfo */
-	if (!ntreeIsValid(ntree))
-		return;
-	
 	if (node && BLI_findindex(&ntree->nodes, node) != -1)
 		nodeSetActive(ntree, node);
 	else
@@ -817,10 +816,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 	bNodeLink *ret;
 	bNode *fromnode = NULL, *tonode = NULL;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 
 	nodeFindNode(ntree, fromsock, &fromnode, NULL);
 	nodeFindNode(ntree, tosock, &tonode, NULL);
@@ -832,9 +829,9 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 
 	if (verify_limits) {
 		/* remove other socket links if limit is exceeded */
-		if (nodeCountSocketLinks(ntree, fromsock) > fromsock->limit)
+		if (nodeCountSocketLinks(ntree, fromsock) + 1 > fromsock->limit)
 			nodeRemSocketLinks(ntree, fromsock);
-		if (nodeCountSocketLinks(ntree, tosock) > tosock->limit)
+		if (nodeCountSocketLinks(ntree, tosock) + 1 > tosock->limit)
 			nodeRemSocketLinks(ntree, tosock);
 	}
 
@@ -855,10 +852,8 @@ static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, Poin
 {
 	bNodeLink *link = link_ptr->data;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 
 	if (BLI_findindex(&ntree->links, link) == -1) {
 		BKE_report(reports, RPT_ERROR, "Unable to locate link in node tree");
@@ -876,10 +871,8 @@ static void rna_NodeTree_link_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNodeLink *link = ntree->links.first;
 
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 
 	while (link) {
 		bNodeLink *next_link = link->next;
@@ -971,10 +964,8 @@ static bNodeSocket *rna_NodeTree_inputs_new(bNodeTree *ntree, ReportList *report
 {
 	bNodeSocket *sock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 	
 	sock = ntreeAddSocketInterface(ntree, SOCK_IN, type, name);
 	
@@ -988,10 +979,8 @@ static bNodeSocket *rna_NodeTree_outputs_new(bNodeTree *ntree, ReportList *repor
 {
 	bNodeSocket *sock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return NULL;
-	}
 	
 	sock = ntreeAddSocketInterface(ntree, SOCK_OUT, type, name);
 	
@@ -1003,10 +992,8 @@ static bNodeSocket *rna_NodeTree_outputs_new(bNodeTree *ntree, ReportList *repor
 
 static void rna_NodeTree_socket_remove(bNodeTree *ntree, ReportList *reports, bNodeSocket *sock)
 {
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	if (BLI_findindex(&ntree->inputs, sock) == -1 && BLI_findindex(&ntree->outputs, sock) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket '%s' in node", sock->identifier);
@@ -1023,10 +1010,8 @@ static void rna_NodeTree_inputs_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNodeSocket *sock, *nextsock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	for (sock = ntree->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
@@ -1041,10 +1026,8 @@ static void rna_NodeTree_outputs_clear(bNodeTree *ntree, ReportList *reports)
 {
 	bNodeSocket *sock, *nextsock;
 	
-	if (!ntreeIsValid(ntree)) {
-		BKE_reportf(reports, RPT_ERROR, "Node tree %s invalid", ntree->id.name + 2);
+	if (!rna_NodeTree_check(ntree, reports))
 		return;
-	}
 	
 	for (sock = ntree->outputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
@@ -1057,9 +1040,6 @@ static void rna_NodeTree_outputs_clear(bNodeTree *ntree, ReportList *reports)
 
 static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 {
-	if (!ntreeIsValid(ntree))
-		return;
-	
 	ntree->update |= NTREE_UPDATE_GROUP;
 	ntreeUpdateTree(ntree);
 	
@@ -2325,7 +2305,7 @@ static void rna_NodeSocketStandard_float_range(PointerRNA *ptr, float *min, floa
 static void rna_NodeSocketStandard_int_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	bNodeSocket *sock = ptr->data;
-	bNodeSocketValueFloat *dval = sock->default_value;
+	bNodeSocketValueInt *dval = sock->default_value;
 	int subtype = sock->typeinfo->subtype;
 	
 	*min = (subtype == PROP_UNSIGNED ? 0 : INT_MIN);
@@ -2863,6 +2843,11 @@ static void def_group_output(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "PropertyGroup");
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
+	
+	prop = RNA_def_property(srna, "is_active_output", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
+	RNA_def_property_ui_text(prop, "Active Output", "True if this node is used as the active group output");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_group(StructRNA *srna)
@@ -6964,11 +6949,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing: first calculate fast nodes, "
 	                                           "second pass calculate all nodes");
 
-	prop = RNA_def_property(srna, "is_local_tree", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, FALSE);
-	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Local Scene Tree", "Local scene node tree, eligible for special node types");
-
 	prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_VIEWER_BORDER);
 	RNA_def_property_ui_text(prop, "Viewer Border", "Use boundaries for viewer nodes and composite backdrop");
@@ -6978,34 +6958,22 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 static void rna_def_shader_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "ShaderNodeTree", "NodeTree");
 	RNA_def_struct_ui_text(srna, "Shader Node Tree",
 	                       "Node tree consisting of linked nodes used for materials (and other shading datablocks)");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL);
-
-	prop = RNA_def_property(srna, "is_local_tree", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, FALSE);
-	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Local Material Tree", "Local material node tree, eligible for special node types");
 }
 
 static void rna_def_texture_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "TextureNodeTree", "NodeTree");
 	RNA_def_struct_ui_text(srna, "Texture Node Tree", "Node tree consisting of linked nodes used for textures");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_TEXTURE);
-
-	prop = RNA_def_property(srna, "is_local_tree", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, FALSE);
-	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Local Texture Tree", "Local texture node tree, eligible for special node types");
 }
 
 static void define_specific_node(BlenderRNA *brna, const char *struct_name, const char *base_name,

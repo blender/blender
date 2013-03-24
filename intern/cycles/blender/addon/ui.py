@@ -168,19 +168,6 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
         if cscene.filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
 
-        layout.separator()
-
-        rd = scene.render
-        col = layout.column()
-
-        split = col.split(percentage=0.40)
-        split.prop(rd, "use_antialiasing", "OpenGL AA")
-        row = split.row()
-        row.active = rd.use_antialiasing
-        row.prop(rd, "antialiasing_samples", expand=True)
-
-        col.prop(rd, "alpha_mode", text="OpenGL Alpha")
-
 
 class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
@@ -232,9 +219,9 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Final Render:")
         sub.prop(rd, "use_persistent_data", text="Persistent Images")
 
-
-class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
-    bl_label = "Post Processing"
+        
+class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
+    bl_label = "OpenGL Render"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -243,54 +230,18 @@ class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
         rd = context.scene.render
 
         split = layout.split()
-
+        
         col = split.column()
-        col.prop(rd, "use_compositing")
-        col.prop(rd, "use_sequencer")
-
-        col = split.column()
-        col.prop(rd, "dither_intensity", text="Dither", slider=True)
-
-
-class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
-    bl_label = "Depth of Field"
-    bl_context = "data"
-
-    @classmethod
-    def poll(cls, context):
-        return context.camera and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-
-        cam = context.camera
-        ccam = cam.cycles
-
-        split = layout.split()
-
-        col = split.column()
-        col.label("Focus:")
-        col.prop(cam, "dof_object", text="")
-
+        col.prop(rd, "use_antialiasing")
         sub = col.row()
-        sub.active = cam.dof_object is None
-        sub.prop(cam, "dof_distance", text="Distance")
-
+        sub.active = rd.use_antialiasing
+        sub.prop(rd, "antialiasing_samples", expand=True)
+        
         col = split.column()
-
-        col.label("Aperture:")
-        sub = col.column(align=True)
-        sub.prop(ccam, "aperture_type", text="")
-        if ccam.aperture_type == 'RADIUS':
-            sub.prop(ccam, "aperture_size", text="Size")
-        elif ccam.aperture_type == 'FSTOP':
-            sub.prop(ccam, "aperture_fstop", text="Number")
-
-        sub = col.column(align=True)
-        sub.prop(ccam, "aperture_blades", text="Blades")
-        sub.prop(ccam, "aperture_rotation", text="Rotation")
-
-
+        col.label(text="Alpha:")
+        col.prop(rd, "alpha_mode", text="")
+        
+        
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
     bl_options = {'HIDE_HEADER'}
@@ -399,6 +350,64 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
 
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
+
+
+class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
+    bl_label = "Post Processing"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "use_compositing")
+        col.prop(rd, "use_sequencer")
+
+        col = split.column()
+        col.prop(rd, "dither_intensity", text="Dither", slider=True)
+
+
+class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
+    bl_label = "Depth of Field"
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        return context.camera and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+        ccam = cam.cycles
+
+        split = layout.split()
+
+        col = split.column()
+        col.label("Focus:")
+        col.prop(cam, "dof_object", text="")
+
+        sub = col.row()
+        sub.active = cam.dof_object is None
+        sub.prop(cam, "dof_distance", text="Distance")
+
+        col = split.column()
+
+        col.label("Aperture:")
+        sub = col.column(align=True)
+        sub.prop(ccam, "aperture_type", text="")
+        if ccam.aperture_type == 'RADIUS':
+            sub.prop(ccam, "aperture_size", text="Size")
+        elif ccam.aperture_type == 'FSTOP':
+            sub.prop(ccam, "aperture_fstop", text="Number")
+
+        sub = col.column(align=True)
+        sub.prop(ccam, "aperture_blades", text="Blades")
+        sub.prop(ccam, "aperture_rotation", text="Rotation")
 
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):

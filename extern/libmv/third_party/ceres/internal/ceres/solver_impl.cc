@@ -268,7 +268,7 @@ void SolverImpl::TrustRegionMinimize(
       WallTimeInSeconds() - minimizer_start_time;
 }
 
-
+#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
 void SolverImpl::LineSearchMinimize(
     const Solver::Options& options,
     Program* program,
@@ -309,6 +309,7 @@ void SolverImpl::LineSearchMinimize(
   summary->minimizer_time_in_seconds =
       WallTimeInSeconds() - minimizer_start_time;
 }
+#endif  // CERES_NO_LINE_SEARCH_MINIMIZER
 
 void SolverImpl::Solve(const Solver::Options& options,
                        ProblemImpl* problem_impl,
@@ -316,7 +317,11 @@ void SolverImpl::Solve(const Solver::Options& options,
   if (options.minimizer_type == TRUST_REGION) {
     TrustRegionSolve(options, problem_impl, summary);
   } else {
+#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
     LineSearchSolve(options, problem_impl, summary);
+#else
+    LOG(FATAL) << "Ceres Solver was compiled with -DLINE_SEARCH_MINIMIZER=OFF";
+#endif
   }
 }
 
@@ -608,6 +613,8 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   event_logger.AddEvent("PostProcess");
 }
 
+
+#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
 void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
                                  ProblemImpl* original_problem_impl,
                                  Solver::Summary* summary) {
@@ -661,7 +668,7 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
         << "to single threaded mode.";
     options.num_threads = 1;
   }
-#endif
+#endif  // CERES_USE_OPENMP
 
   summary->num_threads_given = original_options.num_threads;
   summary->num_threads_used = options.num_threads;
@@ -800,7 +807,7 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   summary->postprocessor_time_in_seconds =
       WallTimeInSeconds() - post_process_start_time;
 }
-
+#endif  // CERES_NO_LINE_SEARCH_MINIMIZER
 
 bool SolverImpl::IsOrderingValid(const Solver::Options& options,
                                  const ProblemImpl* problem_impl,

@@ -31,6 +31,9 @@
 
 #include "node_composite_util.h"
 
+#include "BKE_global.h"
+#include "BKE_main.h"
+
 /* **************** IMAGE (and RenderResult, multilayer image) ******************** */
 
 static bNodeSocketTemplate cmp_node_rlayers_out[] = {
@@ -333,11 +336,20 @@ void register_node_type_cmp_image(void)
 
 static int node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
-	PointerRNA ptr;
-	
-	/* render layers node can only be used in local scene->nodetree, since it directly links to the scene */
-	RNA_id_pointer_create((ID *)ntree, &ptr);
-	return (strcmp(ntree->idname, "CompositorNodeTree")==0 && RNA_boolean_get(&ptr, "is_local_tree"));
+	if (strcmp(ntree->idname, "CompositorNodeTree")==0) {
+		Scene *scene;
+		
+		/* XXX ugly: check if ntree is a local scene node tree.
+		 * Render layers node can only be used in local scene->nodetree,
+		 * since it directly links to the scene.
+		 */
+		for (scene = G.main->scene.first; scene; scene = scene->id.next)
+			if (scene->nodetree == ntree)
+				break;
+		
+		return (scene != NULL);
+	}
+	return false;
 }
 
 void register_node_type_cmp_rlayers(void)

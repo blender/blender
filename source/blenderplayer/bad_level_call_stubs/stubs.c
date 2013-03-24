@@ -34,6 +34,7 @@
 #ifdef WITH_GAMEENGINE
 #include <stdlib.h>
 #include "DNA_listBase.h"
+#include "BLI_utildefines.h"
 #include "RNA_types.h"
 
 struct ARegion;
@@ -345,8 +346,9 @@ void ED_base_object_select(struct Base *base, short mode) {}
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md) {return 0;}
 int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type) {return 0;}
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) {}
-void ED_object_enter_editmode(struct bContext *C, int flag) {}
-void ED_object_exit_editmode(struct bContext *C, int flag) {}
+void ED_object_editmode_enter(struct bContext *C, int flag) {}
+void ED_object_editmode_exit(struct bContext *C, int flag) {}
+bool ED_object_editmode_load(struct Object *obedit) { return false; }
 int uiLayoutGetActive(struct uiLayout *layout) {return 0;}
 int uiLayoutGetOperatorContext(struct uiLayout *layout) {return 0;}
 int uiLayoutGetAlignment(struct uiLayout *layout) {return 0;}
@@ -375,8 +377,10 @@ void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int 
 void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count) {}
 void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count) {}
 void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma) {}
-int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me) {return 0;}
-int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me) {return 0;}
+int ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set) { return -1; }
+int ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set) { return -1; }
+bool ED_mesh_color_remove_named(struct Mesh *me, const char *name) { return false; }
+bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name) { return false; }
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob) {}
 void ED_object_constraint_update(struct Object *ob) {}
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name) {return (struct bDeformGroup *) NULL;}

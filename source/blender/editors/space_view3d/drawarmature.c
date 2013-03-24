@@ -144,7 +144,7 @@ static void cp_shade_color3ub(unsigned char cp[3], const int offset)
 }
 
 /* This function sets the gl-color for coloring a certain bone (based on bcolor) */
-static short set_pchan_glColor(short colCode, int boneflag, short constflag)
+static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 {
 	switch (colCode) {
 		case PCHAN_COLOR_NORMAL:
@@ -184,7 +184,7 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 				}
 			}
 	
-			return 1;
+			return true;
 		}
 		break;
 		
@@ -196,7 +196,7 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 			else
 				UI_ThemeColor(TH_BONE_SOLID);
 			
-			return 1;
+			return true;
 		}
 		break;
 		
@@ -208,7 +208,7 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 				else if (constflag & PCHAN_HAS_SPLINEIK) glColor4ub(200, 255, 0, 80);
 				else if (constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 			
-				return 1;
+				return true;
 			}
 			else
 				return 0;
@@ -238,7 +238,7 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 				else UI_ThemeColor(TH_BONE_SOLID);
 			}
 			
-			return 1;
+			return true;
 		}
 		break;
 		case PCHAN_COLOR_SPHEREBONE_END:
@@ -288,12 +288,12 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 					UI_ThemeColorShade(TH_BACK, -30);
 			}
 		
-			return 1;
+			return true;
 		}
 		break;
 	}
 	
-	return 0;
+	return false;
 }
 
 static void set_ebone_glColor(const unsigned int boneflag)
@@ -1660,7 +1660,7 @@ static void bone_matrix_translate_y(float mat[4][4], float y)
 /* assumes object is Armature with pose */
 static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
                             const short dt, const unsigned char ob_wire_col[4],
-                            const short do_const_color, const short is_outline)
+                            const bool do_const_color, const bool is_outline)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = base->object;
@@ -1670,7 +1670,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	GLfloat tmp;
 	float smat[4][4], imat[4][4], bmat[4][4];
 	int index = -1;
-	short do_dashed = 3, draw_wire = FALSE;
+	short do_dashed = 3;
+	bool draw_wire = false;
 	int flag;
 	
 	/* being set below */
@@ -1736,7 +1737,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			    ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0))
 			{
 				if (bone->layer & arm->layer) {
-					int use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
+					const bool use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
 					glPushMatrix();
 					
 					if (use_custom && pchan->custom_tx) {
@@ -1767,7 +1768,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					if (use_custom) {
 						/* if drawwire, don't try to draw in solid */
 						if (pchan->bone->flag & BONE_DRAWWIRE) {
-							draw_wire = 1;
+							draw_wire = true;
 						}
 						else {
 							draw_custom_bone(scene, v3d, rv3d, pchan->custom,
@@ -1801,7 +1802,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet,
 		 * stick bones and/or wire custom-shapes are drawn in next loop 
 		 */
-		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) == 0 && (draw_wire == 0)) {
+		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) == 0 && (draw_wire == false)) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);
 			index = -1;
@@ -1810,7 +1811,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	
 	/* draw custom bone shapes as wireframes */
 	if (!(arm->flag & ARM_NO_CUSTOM) &&
-	    ((draw_wire) || (dt <= OB_WIRE)) )
+	    (draw_wire || (dt <= OB_WIRE)) )
 	{
 		if (arm->flag & ARM_POSEMODE)
 			index = base->selcol;
@@ -2384,7 +2385,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		BKE_pose_where_is(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, TRUE, FALSE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2466,7 +2467,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		BKE_pose_where_is(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, TRUE, FALSE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2539,7 +2540,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				BKE_pose_where_is(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, TRUE, FALSE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, true, false);
 			}
 		}
 		
@@ -2554,7 +2555,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				BKE_pose_where_is(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, TRUE, FALSE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, NULL, true, false);
 			}
 		}
 	}
@@ -2579,16 +2580,16 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 
 /* called from drawobject.c, return 1 if nothing was drawn
  * (ob_wire_col == NULL) when drawing ghost */
-int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
-                  const short dt, const short dflag, const unsigned char ob_wire_col[4],
-                  const short is_outline)
+bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
+                   const short dt, const short dflag, const unsigned char ob_wire_col[4],
+                   const bool is_outline)
 {
 	Object *ob = base->object;
 	bArmature *arm = ob->data;
-	int retval = 0;
+	bool retval = false;
 
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
-		return 1;
+		return true;
 	
 	if (dt > OB_WIRE && !ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		/* we use color for solid lighting */
@@ -2652,7 +2653,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 				UI_ThemeColor(TH_WIRE);  /* restore, for extra draw stuff */
 		}
 		else {
-			retval = 1;
+			retval = true;
 		}
 	}
 	/* restore */

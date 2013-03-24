@@ -95,6 +95,16 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 		ExecutionGroup *executionGroup = this->m_groups[index];
 		executionGroup->determineResolution(resolution);
 
+		if (rendering) {
+			/* case when cropping to render border happens is handled in
+			 * compositor output and render layer nodes
+			 */
+			if ((rd->mode & R_BORDER) && !(rd->mode & R_CROP)) {
+				executionGroup->setRenderBorder(rd->border.xmin, rd->border.xmax,
+				                                rd->border.ymin, rd->border.ymax);
+			}
+		}
+
 		if (use_viewer_border) {
 			executionGroup->setViewerBorder(viewer_border->xmin, viewer_border->xmax,
 			                                viewer_border->ymin, viewer_border->ymax);

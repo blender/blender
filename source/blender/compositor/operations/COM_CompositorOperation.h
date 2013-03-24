@@ -66,19 +66,28 @@ private:
 	 */
 	SocketReader *m_depthInput;
 
-	/* Ignore any alpha input */
+	/**
+	 * @brief Ignore any alpha input
+	 */
 	bool m_ignoreAlpha;
 
+	/**
+	 * @brief operation is active for calculating final compo result
+	 */
+	bool m_active;
 public:
 	CompositorOperation();
+	const bool isActiveCompositorOutput() const { return this->m_active; }
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void setSceneName(const char *sceneName) { BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName)); }
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
-	bool isOutputOperation(bool rendering) const { return true; }
+	bool isOutputOperation(bool rendering) const { return this->isActiveCompositorOutput(); }
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
+	void setActive(bool active) { this->m_active = active; }
 };
 #endif
+

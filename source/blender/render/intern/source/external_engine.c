@@ -132,7 +132,7 @@ RenderEngine *RE_engine_create(RenderEngineType *type)
 	return RE_engine_create_ex(type, FALSE);
 }
 
-RenderEngine *RE_engine_create_ex(RenderEngineType *type, int use_for_viewport)
+RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport)
 {
 	RenderEngine *engine = MEM_callocN(sizeof(RenderEngine), "RenderEngine");
 	engine->type = type;

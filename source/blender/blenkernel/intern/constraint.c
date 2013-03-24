@@ -43,6 +43,8 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
@@ -4353,12 +4355,12 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 			cti->new_data(con->data);
 		
 		/* if no name is provided, use the type of the constraint as the name */
-		newName = (name && name[0]) ? name : cti->name;
+		newName = (name && name[0]) ? name : DATA_(cti->name);
 	}
 	else {
 		/* if no name is provided, use the generic "Const" name */
 		/* NOTE: any constraint type that gets here really shouldn't get added... */
-		newName = (name && name[0]) ? name : "Const";
+		newName = (name && name[0]) ? name : DATA_("Const");
 	}
 	
 	/* copy the name */

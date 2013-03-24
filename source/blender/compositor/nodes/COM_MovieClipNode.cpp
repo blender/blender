@@ -41,10 +41,11 @@ MovieClipNode::MovieClipNode(bNode *editorNode) : Node(editorNode)
 void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	OutputSocket *outputMovieClip = this->getOutputSocket(0);
-	OutputSocket *offsetXMovieClip = this->getOutputSocket(1);
-	OutputSocket *offsetYMovieClip = this->getOutputSocket(2);
-	OutputSocket *scaleMovieClip = this->getOutputSocket(3);
-	OutputSocket *angleMovieClip = this->getOutputSocket(4);
+	OutputSocket *alphaMovieClip = this->getOutputSocket(1);
+	OutputSocket *offsetXMovieClip = this->getOutputSocket(2);
+	OutputSocket *offsetYMovieClip = this->getOutputSocket(3);
+	OutputSocket *scaleMovieClip = this->getOutputSocket(4);
+	OutputSocket *angleMovieClip = this->getOutputSocket(5);
 	
 	bNode *editorNode = this->getbNode();
 	MovieClip *movieClip = (MovieClip *)editorNode->id;
@@ -73,6 +74,16 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	operation->setCacheFrame(cacheFrame);
 	graph->addOperation(operation);
 
+	if (alphaMovieClip->isConnected()) {
+		MovieClipAlphaOperation *alphaOperation = new MovieClipAlphaOperation();
+		alphaOperation->setMovieClip(movieClip);
+		alphaOperation->setMovieClipUser(movieClipUser);
+		alphaOperation->setFramenumber(context->getFramenumber());
+		alphaOperation->setCacheFrame(cacheFrame);
+		alphaMovieClip->relinkConnections(alphaOperation->getOutputSocket());
+		graph->addOperation(alphaOperation);
+	}
+
 	MovieTrackingStabilization *stab = &movieClip->tracking.stabilization;
 	float loc[2], scale, angle;
 	loc[0] = 0.0f;
@@ -87,7 +98,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 			BKE_tracking_stabilization_data_get(&movieClip->tracking, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
 		}
 	}
-	
+
 	if (offsetXMovieClip->isConnected()) {
 		SetValueOperation *operationSetValue = new SetValueOperation();
 		operationSetValue->setValue(loc[0]);

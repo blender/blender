@@ -28,6 +28,7 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
 #include "ceres/line_search.h"
 
 #include <glog/logging.h>
@@ -209,3 +210,5 @@ void ArmijoLineSearch::Search(const LineSearch::Options& options,
 
 }  // namespace internal
 }  // namespace ceres
+
+#endif  // CERES_NO_LINE_SEARCH_MINIMIZER

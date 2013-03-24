@@ -1147,6 +1147,8 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	
 	if (but->editstr || (but->flag & UI_TEXT_LEFT))
 		fstyle->align = UI_STYLE_TEXT_LEFT;
+	else if (but->flag & UI_TEXT_RIGHT)
+		fstyle->align = UI_STYLE_TEXT_RIGHT;
 	else
 		fstyle->align = UI_STYLE_TEXT_CENTER;
 	
@@ -1333,9 +1335,15 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			if (but->editstr || (but->flag & UI_TEXT_LEFT)) {
 				rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 			}
+			else if ((but->flag & UI_TEXT_RIGHT)) {
+				rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+			}
 		}
 		else if ((but->flag & UI_TEXT_LEFT)) {
 			rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+		}
+		else if ((but->flag & UI_TEXT_RIGHT)) {
+			rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 		}
 		
 		/* unlink icon for this button type */
@@ -3216,7 +3224,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case NUMSLI:
-			case HSVSLI:
 				wt = widget_type(UI_WTYPE_SLIDER);
 				break;
 				

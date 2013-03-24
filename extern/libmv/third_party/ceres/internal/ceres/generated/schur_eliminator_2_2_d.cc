@@ -40,6 +40,8 @@
 // This file is generated using generate_eliminator_specializations.py.
 // Editing it manually is not recommended.
 
+#ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
+
 #include "ceres/schur_eliminator_impl.h"
 #include "ceres/internal/eigen.h"
 
@@ -51,3 +53,4 @@ template class SchurEliminator<2, 2, Eigen::Dynamic>;
 }  // namespace internal
 }  // namespace ceres
 
+#endif  // CERES_RESTRICT_SCHUR_SPECIALIZATION

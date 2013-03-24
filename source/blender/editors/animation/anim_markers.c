@@ -1037,7 +1037,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	}
 }
 
-static int ed_marker_select(bContext *C, const wmEvent *event, int extend, int camera)
+static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool camera)
 {
 	ListBase *markers = ED_context_get_markers(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1106,8 +1106,8 @@ static int ed_marker_select(bContext *C, const wmEvent *event, int extend, int c
 
 static int ed_marker_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	short extend = RNA_boolean_get(op->ptr, "extend");
-	short camera = 0;
+	bool extend = RNA_boolean_get(op->ptr, "extend");
+	bool camera = false;
 #ifdef DURIAN_CAMERA_SWITCH
 	camera = RNA_boolean_get(op->ptr, "camera");
 #endif

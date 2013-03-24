@@ -43,9 +43,9 @@ struct MDeformVert;
 void                 defgroup_copy_list(struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup *defgroup_duplicate(struct bDeformGroup *ingroup);
 struct bDeformGroup *defgroup_find_name(struct Object *ob, const char *name);
-int                 *defgroup_flip_map(struct Object *ob, int *flip_map_len, int use_default);
-int                 *defgroup_flip_map_single(struct Object *ob, int *flip_map_len, int use_default, int defgroup);
-int                  defgroup_flip_index(struct Object *ob, int index, int use_default);
+int                 *defgroup_flip_map(struct Object *ob, int *flip_map_len, const bool use_default);
+int                 *defgroup_flip_map_single(struct Object *ob, int *flip_map_len, const bool use_default, int defgroup);
+int                  defgroup_flip_index(struct Object *ob, int index, const bool use_default);
 int                  defgroup_name_index(struct Object *ob, const char *name);
 void                 defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
 
@@ -66,9 +66,9 @@ float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int
 
 void defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src);
 void defvert_copy_index(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const int defgroup);
-void defvert_sync(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, int use_verify);
+void defvert_sync(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const bool use_verify);
 void defvert_sync_mapped(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
-                         const int *flip_map, const int flip_map_len, const int use_verify);
+                         const int *flip_map, const int flip_map_len, const bool use_verify);
 void defvert_remap(struct MDeformVert *dvert, int *map, const int map_len);
 void defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
@@ -84,5 +84,4 @@ void BKE_deform_split_prefix(const char string[MAX_VGROUP_NAME], char base[MAX_V
 
 void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number);
 
-#endif
-
+#endif  /* __BKE_DEFORM_H__ */

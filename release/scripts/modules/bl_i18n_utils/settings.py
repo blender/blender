@@ -101,7 +101,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in /branches we do not want to import in /trunk currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'fi_FI', 'el_GR', 'et_EE', 'ne_NP', 'pl_PL', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic',
+    'am_ET', 'bg_BG', 'fi_FI', 'el_GR', 'et_EE', 'ne_NP', 'nl_NL', 'pl_PL', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic',
 }
 
 # Languages that need RTL pre-processing.
@@ -441,13 +441,13 @@ INTERN_PY_SYS_PATHS = ""
 # Custom override settings must be one dir above i18n tools itself!
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
-    from bl_i18n_override_settings import *
+    from bl_i18n_settings_override import *
 except ImportError:  # If no i18n_override_settings available, it’s no error!
     pass
 
 # Override with custom user settings, if available.
 try:
-    from user_settings import *
+    from settings_user import *
 except ImportError:  # If no user_settings available, it’s no error!
     pass
 

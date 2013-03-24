@@ -81,6 +81,9 @@ private:
 	 */
 	const bNodeTree *m_btree;
 
+	/**
+	 * @brief set to truth when resolution for this operation is set
+	 */
 	bool m_isResolutionSet;
 public:
 	/**

@@ -51,6 +51,7 @@
 
 #include "WM_types.h"
 
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -137,6 +138,12 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 
 		/* select only tagged faces */
 		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+		/* not essential, but switch out of vertex mode since the
+		 * selected regions wont be nicely isolated after flushing.
+		 * note: call after de-select to avoid selection flushing */
+		EDBM_selectmode_disable(scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
+
 		BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, BM_ELEM_TAG);
 
 		BM_mesh_select_mode_flush(em->bm);
@@ -165,4 +172,3 @@ void MESH_OT_knife_project(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 }
-

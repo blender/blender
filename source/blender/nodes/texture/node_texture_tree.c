@@ -83,11 +83,13 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 		}
 	}
 	else if (snode->texfrom == SNODE_TEX_WORLD) {
-		tx = give_current_world_texture(scene->world);
-		if (tx) {
+		if (scene->world) {
 			*r_from = (ID *)scene->world;
-			*r_id = &tx->id;
-			*r_ntree = tx->nodetree;
+			tx = give_current_world_texture(scene->world);
+			if (tx) {
+				*r_id = &tx->id;
+				*r_ntree = tx->nodetree;
+			}
 		}
 	}
 	else {
@@ -138,8 +140,14 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 	}
 }
 
-static void local_sync(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
+static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
+	BKE_node_preview_sync_tree(ntree, localtree);
+}
+
+static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
+{
+	BKE_node_preview_merge_tree(ntree, localtree, true);
 }
 
 static void update(bNodeTree *ntree)
@@ -168,6 +176,7 @@ void register_node_tree_type_tex(void)
 	tt->update = update;
 	tt->localize = localize;
 	tt->local_sync = local_sync;
+	tt->local_merge = local_merge;
 	tt->get_from_context = texture_get_from_context;
 	
 	tt->ext.srna = &RNA_TextureNodeTree;

@@ -2086,13 +2086,8 @@ void UI_view2d_getcenter(struct View2D *v2d, float *x, float *y)
 }
 void UI_view2d_setcenter(struct View2D *v2d, float x, float y)
 {
-	/* get delta from current center */
-	float dx = x - BLI_rctf_cent_x(&v2d->cur);
-	float dy = y - BLI_rctf_cent_y(&v2d->cur);
+	BLI_rctf_recenter(&v2d->cur, x, y);
 
-	/* add to cur */
-	BLI_rctf_translate(&v2d->cur, dx, dy);
-	
 	/* make sure that 'cur' rect is in a valid state as a result of these changes */
 	UI_view2d_curRect_validate(v2d);
 }

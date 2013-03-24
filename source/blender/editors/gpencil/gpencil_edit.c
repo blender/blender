@@ -63,6 +63,7 @@
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "UI_interface.h"
@@ -393,6 +394,7 @@ void GPENCIL_OT_active_frame_delete(wmOperatorType *ot)
 enum {
 	GP_STROKECONVERT_PATH = 1,
 	GP_STROKECONVERT_CURVE,
+	GP_STROKECONVERT_POLY,
 };
 
 /* Defines for possible timing modes */
@@ -407,6 +409,7 @@ enum {
 static EnumPropertyItem prop_gpencil_convertmodes[] = {
 	{GP_STROKECONVERT_PATH, "PATH", 0, "Path", ""},
 	{GP_STROKECONVERT_CURVE, "CURVE", 0, "Bezier Curve", ""},
+	{GP_STROKECONVERT_POLY, "POLY", 0, "Polygon Curve", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1278,13 +1281,14 @@ static void gp_stroke_norm_curve_weights(Curve *cu, float minmax_weights[2])
 static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bGPDlayer *gpl, int mode,
                               int norm_weights, float rad_fac, int link_strokes, tGpTimingData *gtd)
 {
+	struct Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps, *prev_gps = NULL;
 	Object *ob;
 	Curve *cu;
 	Nurb *nu = NULL;
-	Base *base = BASACT, *newbase = NULL;
+	Base *base_orig = BASACT, *base_new = NULL;
 	float minmax_weights[2] = {1.0f, 0.0f};
 
 	/* camera framing */
@@ -1306,15 +1310,11 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	/* init the curve object (remove rotation and get curve data from it)
 	 *	- must clear transforms set on object, as those skew our results
 	 */
-	ob = BKE_object_add(scene, OB_CURVE);
-	zero_v3(ob->loc);
-	zero_v3(ob->rot);
-	cu = ob->data;
+	ob = BKE_object_add_only_object(bmain, OB_CURVE, gpl->info);
+	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);
+	base_new = BKE_scene_base_add(scene, ob);
+
 	cu->flag |= CU_3D;
-	
-	/* rename object and curve to layer name */
-	rename_id((ID *)ob, gpl->info);
-	rename_id((ID *)cu, gpl->info);
 	
 	gtd->inittime = ((bGPDstroke *)gpf->strokes.first)->inittime;
 	
@@ -1344,6 +1344,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 				gp_stroke_to_path(C, gpl, gps, cu, subrect_ptr, &nu, minmax_weights, rad_fac, stitch, gtd);
 				break;
 			case GP_STROKECONVERT_CURVE:
+			case GP_STROKECONVERT_POLY:  /* convert after */
 				gp_stroke_to_bezier(C, gpl, gps, cu, subrect_ptr, &nu, minmax_weights, rad_fac, stitch, gtd);
 				break;
 			default:
@@ -1364,19 +1365,15 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	/* Create the path animation, if needed */
 	gp_stroke_path_animation(C, reports, cu, gtd);
 
-	/* Reset original object as active, else we can't edit operator's settings!!! */
-	/* set layers OK */
-	newbase = BASACT;
-	if (base) {
-		newbase->lay = base->lay;
-		ob->lay = newbase->lay;
+	if (mode == GP_STROKECONVERT_POLY) {
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
+			BKE_nurb_type_convert(nu, CU_POLY, false);
+		}
 	}
-	
-	/* restore, BKE_object_add sets active */
-	BASACT = base;
-	if (base) {
-		base->flag |= SELECT;
-	}
+
+	/* set the layer and select */
+	base_new->lay  = ob->lay  = base_orig ? base_orig->lay : scene->lay;
+	base_new->flag = ob->flag = base_new->flag | SELECT;
 }
 
 /* --- */
@@ -1526,7 +1523,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
 	int link_strokes = RNA_boolean_get(ptr, "use_link_strokes");
@@ -1542,7 +1539,7 @@ static int gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 	    strcmp(prop_id, "radius_multiplier") == 0 ||
 	    strcmp(prop_id, "use_link_strokes") == 0)
 	{
-		return TRUE;
+		return true;
 	}
 	
 	/* Never show this prop */
@@ -1550,44 +1547,44 @@ static int gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 		return FALSE;
 
 	if (link_strokes) {
-		/* Only show when link_stroke is TRUE */
+		/* Only show when link_stroke is true */
 		if (strcmp(prop_id, "timing_mode") == 0)
-			return TRUE;
+			return true;
 		
 		if (timing_mode != GP_STROKECONVERT_TIMING_NONE) {
-			/* Only show when link_stroke is TRUE and stroke timing is enabled */
+			/* Only show when link_stroke is true and stroke timing is enabled */
 			if (strcmp(prop_id, "frame_range") == 0 ||
 			    strcmp(prop_id, "start_frame") == 0)
 			{
-				return TRUE;
+				return true;
 			}
 			
 			/* Only show if we have valid timing data! */
 			if (valid_timing && strcmp(prop_id, "use_realtime") == 0)
-				return TRUE;
+				return true;
 			
 			/* Only show if realtime or valid_timing is FALSE! */
 			if ((!realtime || !valid_timing) && strcmp(prop_id, "end_frame") == 0)
-				return TRUE;
+				return true;
 			
 			if (valid_timing && timing_mode == GP_STROKECONVERT_TIMING_CUSTOMGAP) {
 				/* Only show for custom gaps! */
 				if (strcmp(prop_id, "gap_duration") == 0)
-					return TRUE;
+					return true;
 				
 				/* Only show randomness for non-null custom gaps! */
 				if (strcmp(prop_id, "gap_randomness") == 0 && (gap_duration > 0.0f))
-					return TRUE;
+					return true;
 				
 				/* Only show seed for randomize action! */
 				if (strcmp(prop_id, "seed") == 0 && (gap_duration > 0.0f) && (gap_randomness > 0.0f))
-					return TRUE;
+					return true;
 			}
 		}
 	}
 
 	/* Else, hidden! */
-	return FALSE;
+	return false;
 }
 
 static void gp_convert_ui(bContext *C, wmOperator *op)

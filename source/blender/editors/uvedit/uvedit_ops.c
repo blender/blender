@@ -1013,7 +1013,7 @@ static int select_edgeloop_uv_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, 
 }
 
 static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit *hit,
-                           float limit[2], const short extend)
+                           float limit[2], const bool extend)
 {
 	BMFace *efa;
 	BMIter iter, liter;
@@ -1124,7 +1124,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 
 /*********************** linked select ***********************/
 
-static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float limit[2], NearestHit *hit, int extend)
+static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float limit[2], NearestHit *hit, bool extend)
 {
 	BMFace *efa;
 	BMLoop *l;
@@ -1909,7 +1909,7 @@ static int sticky_select(float *limit, int hitv[4], int v, float *hituv[4], floa
 	return 0;
 }
 
-static int mouse_select(bContext *C, const float co[2], int extend, int loop)
+static int mouse_select(bContext *C, const float co[2], bool extend, bool loop)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2227,11 +2227,11 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 static int select_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
-	int extend, loop;
+	bool extend, loop;
 
 	RNA_float_get_array(op->ptr, "location", co);
 	extend = RNA_boolean_get(op->ptr, "extend");
-	loop = 0;
+	loop = false;
 
 	return mouse_select(C, co, extend, loop);
 }
@@ -2272,11 +2272,11 @@ static void UV_OT_select(wmOperatorType *ot)
 static int select_loop_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
-	int extend, loop;
+	bool extend, loop;
 
 	RNA_float_get_array(op->ptr, "location", co);
 	extend = RNA_boolean_get(op->ptr, "extend");
-	loop = 1;
+	loop = true;
 
 	return mouse_select(C, co, extend, loop);
 }

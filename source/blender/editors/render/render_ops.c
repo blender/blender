@@ -27,13 +27,13 @@
  *  \ingroup edrend
  */
 
-
 #include <stdlib.h>
 
-
-#include "WM_api.h"
+#include "BLI_utildefines.h"
 
 #include "ED_render.h"
+
+#include "WM_api.h"
 
 #include "render_intern.h" // own include
 

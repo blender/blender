@@ -90,6 +90,11 @@
 
 /* ***************** composite job manager ********************** */
 
+enum {
+	COM_RECALC_COMPOSITE = 1,
+	COM_RECALC_VIEWER    = 2
+};
+
 typedef struct CompoJob {
 	Scene *scene;
 	bNodeTree *ntree;
@@ -98,7 +103,54 @@ typedef struct CompoJob {
 	short *do_update;
 	float *progress;
 	short need_sync;
+	int recalc_flags;
 } CompoJob;
+
+static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
+{
+	bNode *node;
+
+	for (node = nodetree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_COMPOSITE) {
+			if (recalc_flags & COM_RECALC_COMPOSITE)
+				node->flag |= NODE_DO_OUTPUT_RECALC;
+		}
+		else if (node->type == CMP_NODE_VIEWER) {
+			if (recalc_flags & COM_RECALC_VIEWER)
+				node->flag |= NODE_DO_OUTPUT_RECALC;
+		}
+		else if (node->type == NODE_GROUP) {
+			if (node->id)
+				compo_tag_output_nodes((bNodeTree *)node->id, recalc_flags);
+		}
+	}
+}
+
+static int compo_get_recalc_flags(const bContext *C)
+{
+	bScreen *sc = CTX_wm_screen(C);
+	ScrArea *sa;
+	int recalc_flags = 0;
+
+	for (sa = sc->areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_IMAGE) {
+			SpaceImage *sima = sa->spacedata.first;
+			if (sima->image) {
+				if (sima->image->type == IMA_TYPE_R_RESULT)
+					recalc_flags |= COM_RECALC_COMPOSITE;
+				else if (sima->image->type == IMA_TYPE_COMPOSITE)
+					recalc_flags |= COM_RECALC_VIEWER;
+			}
+		}
+		else if (sa->spacetype == SPACE_NODE) {
+			SpaceNode *snode = sa->spacedata.first;
+			if (snode->flag & SNODE_BACKDRAW)
+				recalc_flags |= COM_RECALC_VIEWER;
+		}
+	}
+
+	return recalc_flags;
+}
 
 /* called by compo, only to check job 'stop' value */
 static int compo_breakjob(void *cjv)
@@ -148,6 +200,9 @@ static void compo_initjob(void *cjv)
 	CompoJob *cj = cjv;
 
 	cj->localtree = ntreeLocalize(cj->ntree);
+
+	if (cj->recalc_flags)
+		compo_tag_output_nodes(cj->localtree, cj->recalc_flags);
 }
 
 /* called before redraw notifiers, it moves finished previews over */
@@ -234,6 +289,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	/* customdata for preview thread */
 	cj->scene = CTX_data_scene(C);
 	cj->ntree = nodetree;
+	cj->recalc_flags = compo_get_recalc_flags(C);
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, cj, compo_freejob);
@@ -329,14 +385,10 @@ void ED_node_shader_default(const bContext *C, ID *id)
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock, *sock;
 	bNodeTree *ntree;
-	PointerRNA ptr;
 	int output_type, shader_type;
 	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f }, strength = 1.0f;
 	
 	ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-
-	RNA_id_pointer_create((ID *)ntree, &ptr);
-	RNA_boolean_set(&ptr, "is_local_tree", TRUE);
 
 	switch (GS(id->name)) {
 		case ID_MA:
@@ -425,7 +477,6 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
-	PointerRNA ptr;
 	
 	/* but lets check it anyway */
 	if (sce->nodetree) {
@@ -435,9 +486,6 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 	}
 	
 	sce->nodetree = ntreeAddTree(NULL, "Compositing Nodetree", ntreeType_Composite->idname);
-	
-	RNA_id_pointer_create((ID *)sce->nodetree, &ptr);
-	RNA_boolean_set(&ptr, "is_local_tree", TRUE);
 	
 	sce->nodetree->chunksize = 256;
 	sce->nodetree->edit_quality = NTREE_QUALITY_HIGH;
@@ -470,7 +518,6 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
-	PointerRNA ptr;
 	
 	/* but lets check it anyway */
 	if (tx->nodetree) {
@@ -480,9 +527,6 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
 	}
 	
 	tx->nodetree = ntreeAddTree(NULL, "Texture Nodetree", ntreeType_Texture->idname);
-	
-	RNA_id_pointer_create((ID *)tx->nodetree, &ptr);
-	RNA_boolean_set(&ptr, "is_local_tree", TRUE);
 	
 	out = nodeAddStaticNode(C, tx->nodetree, TEX_NODE_OUTPUT);
 	out->locx = 300.0f; out->locy = 300.0f;
@@ -530,11 +574,17 @@ void snode_set_context(const bContext *C)
 	}
 	
 	if (!(snode->flag & SNODE_PIN) || ntree == NULL) {
-		if (treetype->get_from_context)
+		if (treetype->get_from_context) {
+			/* reset and update from context */
+			ntree = NULL;
+			id = NULL;
+			from = NULL;
+			
 			treetype->get_from_context(C, treetype, &ntree, &id, &from);
+		}
 	}
 	
-	if (snode->nodetree != ntree || snode->id != id || snode->from != snode->from) {
+	if (snode->nodetree != ntree || snode->id != id || snode->from != from) {
 		ED_node_tree_start(snode, ntree, id, from);
 	}
 }

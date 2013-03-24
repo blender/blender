@@ -323,7 +323,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
-		MultiresBakeRender bkr = {0};
+		MultiresBakeRender bkr = {NULL};
 
 		ob = base->object;
 
@@ -419,7 +419,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 	}
 
 	for (data = bkj->data.first; data; data = data->next) {
-		MultiresBakeRender bkr = {0};
+		MultiresBakeRender bkr = {NULL};
 
 		/* copy data stored in job descriptor */
 		bkr.bake_filter = bkj->bake_filter;
@@ -572,7 +572,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	bScreen *sc = CTX_wm_screen(C);
 
 	/* get editmode results */
-	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
+	ED_object_editmode_load(CTX_data_edit_object(C));
 
 	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL; /* can be NULL */
 	bkr->main = CTX_data_main(C);
