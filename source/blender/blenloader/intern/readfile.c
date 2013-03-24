@@ -1019,7 +1019,7 @@ static int fd_read_gzip_from_memory(FileData *filedata, void *buffer, unsigned i
 	if (err == Z_STREAM_END) {
 		return 0;
 	}
-	else if (err != Z_OK)  {
+	else if (err != Z_OK) {
 		printf("fd_read_gzip_from_memory: zlib error\n");
 		return 0;
 	}

@@ -41,7 +41,7 @@ void cmp_node_update_default(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	bNodeSocket *sock;
 	for (sock= node->outputs.first; sock; sock= sock->next) {
-		if(sock->cache) {
+		if (sock->cache) {
 			//free_compbuf(sock->cache);
 			//sock->cache= NULL;
 		}

@@ -1092,7 +1092,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 		if (BKE_imtype_valid_depths(rd->im_format.imtype) & (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
 			IMB_float_from_rect(ibuf);
 		}
-		else  {
+		else {
 			/* ensure no float buffer remained from previous frame */
 			ibuf->rect_float = NULL;
 		}

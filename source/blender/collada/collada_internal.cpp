@@ -111,7 +111,7 @@ void UnitConverter::mat4_to_dae_double(double out[4][4], float in[4][4])
 
 float(&UnitConverter::get_rotation())[4][4]
 {
-	switch(up_axis) {
+	switch (up_axis) {
 		case COLLADAFW::FileInfo::X_UP:
 			return x_up_mat4;
 			break;

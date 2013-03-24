@@ -54,7 +54,7 @@ typedef enum {
 } eCbEvent;
 
 
-typedef struct {
+typedef struct bCallbackFuncStore {
 	struct bCallbackFuncStore *next, *prev;
 	void (*func)(struct Main *, struct ID *, void *arg);
 	void *arg;

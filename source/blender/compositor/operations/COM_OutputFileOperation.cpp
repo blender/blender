@@ -166,7 +166,7 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_)
 }
 
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(
-    const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec)
+        const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;

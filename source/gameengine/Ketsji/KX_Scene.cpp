@@ -1172,9 +1172,8 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 					);
 				}
 				newobj->SetDeformer(modifierDeformer);
-			} 
-			else 	if (bHasShapeKey)
-			{
+			}
+			else if (bHasShapeKey) {
 				BL_ShapeDeformer* shapeDeformer;
 				if (bHasArmature) 
 				{

@@ -79,9 +79,9 @@ BLI_INLINE unsigned char f_to_char(const float val)
 } (void)0
 
 #define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
-	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
-	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
-	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
+	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                  \
+	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                  \
+	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                  \
 } (void)0
 
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)

@@ -119,7 +119,7 @@ void CropImageOperation::determineResolution(unsigned int resolution[2], unsigne
 
 void CropImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight())  {
+	if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight()) {
 		this->m_inputOperation->read(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
 	}
 	else {
