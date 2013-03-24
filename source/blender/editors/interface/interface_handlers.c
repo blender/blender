@@ -3261,7 +3261,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3839,7 +3839,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -4036,7 +4036,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
