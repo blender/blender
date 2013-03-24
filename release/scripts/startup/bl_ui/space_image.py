@@ -477,7 +477,6 @@ class IMAGE_PT_game_properties(Panel):
         split = layout.split()
 
         col = split.column()
-
         col.prop(ima, "use_animation")
         sub = col.column(align=True)
         sub.active = ima.use_animation
