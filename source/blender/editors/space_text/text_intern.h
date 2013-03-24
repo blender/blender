@@ -134,10 +134,14 @@ void TEXT_OT_line_number(struct wmOperatorType *ot);
 
 void TEXT_OT_properties(struct wmOperatorType *ot);
 
+/* find = find indicated text */
 void TEXT_OT_find(struct wmOperatorType *ot);
 void TEXT_OT_find_set_selected(struct wmOperatorType *ot);
 void TEXT_OT_replace(struct wmOperatorType *ot);
 void TEXT_OT_replace_set_selected(struct wmOperatorType *ot);
+
+/* text_find = open properties, activate search button */
+void TEXT_OT_start_find(struct wmOperatorType *ot);
 
 void TEXT_OT_to_3d_object(struct wmOperatorType *ot);
 
