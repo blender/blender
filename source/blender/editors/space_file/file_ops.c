@@ -1462,16 +1462,21 @@ static int file_delete_poll(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	struct direntry *file;
 
-	if (sfile && sfile->params) {
-		if (sfile->params->active_file < 0) {
+	if (sfile && sfile->params) {		
+		char dir[FILE_MAX], group[FILE_MAX];
+		int numfiles = filelist_numfiles(sfile->files);
+		int i;
+		int num_selected = 0;
+
+		if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
+		for (i = 0; i < numfiles; i++) {				
+			if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
+				num_selected++;
+			}
+		}
+		if (num_selected <= 0) {
 			poll = 0;
-		}
-		else {
-			char dir[FILE_MAX], group[FILE_MAX];
-			if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
-			file = filelist_file(sfile->files, sfile->params->active_file);
-			if (file && S_ISDIR(file->type)) poll = 0;
-		}
+		}		
 	}
 	else
 		poll = 0;
@@ -1484,12 +1489,18 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	char str[FILE_MAX];
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
-	struct direntry *file;
+	struct direntry *file;	
+	int numfiles = filelist_numfiles(sfile->files);
+	int i;
+
+	for (i = 0; i < numfiles; i++) {
+		if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
+			file = filelist_file(sfile->files, i);
+			BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
+			BLI_delete(str, false, false);
+		}
+	}
 	
-	
-	file = filelist_file(sfile->files, sfile->params->active_file);
-	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
-	BLI_delete(str, false, false);
 	ED_fileselect_clear(wm, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	
@@ -1500,8 +1511,8 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_delete(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Delete File";
-	ot->description = "Delete selected file";
+	ot->name = "Delete Selected Files";
+	ot->description = "Delete selected files";
 	ot->idname = "FILE_OT_delete";
 	
 	/* api callbacks */
