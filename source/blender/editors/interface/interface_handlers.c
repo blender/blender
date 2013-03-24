@@ -7456,18 +7456,20 @@ void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
 	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, FALSE);
 }
 
-void UI_textbutton_activate_event(const bContext *C, ARegion *ar, void *basepoin, const char *identifier)
+void UI_textbutton_activate_event(const bContext *C, ARegion *ar,
+                                  const void *rna_poin_data, const char *rna_prop_id)
 {
 	uiBlock *block;
-	uiBut *but;
+	uiBut *but = NULL;
 	
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		for (but = block->buttons.first; but; but = but->next) {
 			if (but->type == TEX) {
-				if (but->rnaprop && but->rnapoin.data == basepoin)
-					if (strcmp(RNA_property_identifier(but->rnaprop), identifier)==0)
+				if (but->rnaprop && but->rnapoin.data == rna_poin_data) {
+					if (STREQ(RNA_property_identifier(but->rnaprop), rna_prop_id)) {
 						break;
-				
+					}
+				}
 			}
 		}
 		if (but)
@@ -7475,16 +7477,7 @@ void UI_textbutton_activate_event(const bContext *C, ARegion *ar, void *basepoin
 	}
 	
 	if (but) {
-		wmWindow *win = CTX_wm_window(C);
-		wmEvent event;
-		
-		event = *(win->eventstate);  /* XXX huh huh? make api call */
-		event.type = EVT_BUT_OPEN;
-		event.val = KM_PRESS;
-		event.customdata = but;
-		event.customdatafree = FALSE;
-		wm_event_add(win, &event);
-
+		uiButActiveOnly(C, block, but);
 	}
 }
 
