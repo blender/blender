@@ -16,6 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : uniformpruning_zsort.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 08/04/2005
+
 from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, Stroke, StrokeTextureShader
 from PredicatesB1D import pyZBP1D

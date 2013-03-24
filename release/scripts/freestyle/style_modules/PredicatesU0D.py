@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : PredicatesU0D.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 08/04/2005
+#  Purpose  : Unary predicates (functors) to be used for 0D elements
+
 from Freestyle import Curvature2DAngleF0D, Nature, QuantitativeInvisibilityF0D, UnaryPredicate0D
 from Functions0D import pyCurvilinearLengthF0D
 

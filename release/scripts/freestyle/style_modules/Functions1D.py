@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : Functions1D.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 08/04/2005
+#  Purpose  : Functions (functors) to be used for 1D elements
+
 from Freestyle import GetProjectedZF1D, IntegrationType, UnaryFunction1DDouble, integrate
 from Functions0D import pyDensityAnisotropyF0D, pyViewMapGradientNormF0D
 import string 

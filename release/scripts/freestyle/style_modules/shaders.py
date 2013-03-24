@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : shaders.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 11/08/2005
+#  Purpose  : Stroke shaders to be used for creation of stylized strokes
+
 from Freestyle import AdjacencyIterator, Curvature2DAngleF0D, DensityF0D, GetProjectedZF0D, \
     Interface0DIterator, MaterialF0D, Nature, Noise, Normal2DF0D, Orientation2DF1D, \
     StrokeAttribute, StrokeShader, StrokeVertexIterator, ZDiscontinuityF0D

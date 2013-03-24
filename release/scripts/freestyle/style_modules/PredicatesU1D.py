@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : PredicatesU1D.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 08/04/2005
+#  Purpose  : Unary predicates (functors) to be used for 1D elements
+
 from Freestyle import Curvature2DAngleF0D, CurveNatureF1D, DensityF1D, GetCompleteViewMapDensityF1D, \
     GetDirectionalViewMapDensityF1D, GetOccludersF1D, GetProjectedZF1D, GetShapeF1D, GetSteerableViewMapDensityF1D, \
     IntegrationType, ShapeUP1D, TVertex, UnaryPredicate1D

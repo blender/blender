@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : parameter_editor.py
+#  Authors  : Tamito Kajiyama
+#  Date     : 26/07/2010
+#  Purpose  : Interactive manipulation of stylization parameters
+
 import Freestyle
 import math
 import mathutils

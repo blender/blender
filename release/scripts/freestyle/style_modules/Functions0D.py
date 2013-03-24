@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : Functions0D.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 30/06/2005
+#  Purpose  : Functions (functors) to be used for 0D elements
+
 from Freestyle import Curvature2DAngleF0D, CurvePoint, ReadCompleteViewMapPixelF0D, \
     ReadSteerableViewMapPixelF0D, UnaryFunction0DDouble, UnaryFunction0DMaterial, \
     UnaryFunction0DVec2f

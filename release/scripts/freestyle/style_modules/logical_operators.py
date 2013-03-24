@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#  Filename : logical_operators.py
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Date     : 08/04/2005
+#  Purpose  : Logical unary predicates (functors) for 1D elements
+
 from Freestyle import UnaryPredicate1D
 
 class AndUP1D(UnaryPredicate1D):
