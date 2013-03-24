@@ -47,6 +47,12 @@ struct _GSQueue {
 	int elem_size;
 };
 
+/**
+ * Create a new GSQueue.
+ *
+ * \param elem_size The size of the structures in the queue.
+ * \retval The new queue
+ */
 GSQueue *BLI_gsqueue_new(int elem_size)
 {
 	GSQueue *gq = MEM_mallocN(sizeof(*gq), "gqueue_new");
@@ -56,11 +62,17 @@ GSQueue *BLI_gsqueue_new(int elem_size)
 	return gq;
 }
 
+/**
+ * Query if the queue is empty
+ */
 bool BLI_gsqueue_is_empty(GSQueue *gq)
 {
 	return (gq->head == NULL);
 }
 
+/**
+ * Query number elements in the queue
+ */
 int BLI_gsqueue_size(GSQueue *gq)
 { 
 	GSQueueElem *elem;
@@ -72,10 +84,26 @@ int BLI_gsqueue_size(GSQueue *gq)
 	return size;
 }
 
+/**
+ * Access the item at the head of the queue
+ * without removing it.
+ *
+ * \param item_r A pointer to an appropriately
+ * sized structure (the size passed to BLI_gsqueue_new)
+ */
 void BLI_gsqueue_peek(GSQueue *gq, void *item_r)
 {
 	memcpy(item_r, &gq->head[1], gq->elem_size);
 }
+
+/**
+ * Access the item at the head of the queue
+ * and remove it.
+ *
+ * \param item_r A pointer to an appropriately
+ * sized structure (the size passed to BLI_gsqueue_new).
+ * Can be NULL if desired.
+ */
 void BLI_gsqueue_pop(GSQueue *gq, void *item_r)
 {
 	GSQueueElem *elem = gq->head;
@@ -89,6 +117,13 @@ void BLI_gsqueue_pop(GSQueue *gq, void *item_r)
 	if (item_r) memcpy(item_r, &elem[1], gq->elem_size);
 	MEM_freeN(elem);
 }
+
+/**
+ * Push an element onto the tail of the queue.
+ *
+ * \param item A pointer to an appropriately
+ * sized structure (the size passed to BLI_gsqueue_new).
+ */
 void BLI_gsqueue_push(GSQueue *gq, void *item)
 {
 	GSQueueElem *elem;
@@ -109,6 +144,14 @@ void BLI_gsqueue_push(GSQueue *gq, void *item)
 		gq->tail = gq->tail->next = elem;
 	}
 }
+
+/**
+ * Push an element back onto the head of the queue (so
+ * it would be returned from the next call to BLI_gsqueue_pop).
+ *
+ * \param item A pointer to an appropriately
+ * sized structure (the size passed to BLI_gsqueue_new).
+ */
 void BLI_gsqueue_pushback(GSQueue *gq, void *item)
 {
 	GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
@@ -123,6 +166,9 @@ void BLI_gsqueue_pushback(GSQueue *gq, void *item)
 	}
 }
 
+/**
+ * Free the queue
+ */
 void BLI_gsqueue_free(GSQueue *gq)
 {
 	while (gq->head) {

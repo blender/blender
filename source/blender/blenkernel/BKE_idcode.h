@@ -32,47 +32,11 @@
  *  \ingroup bke
  */
 
-/**
- * Convert an idcode into a name.
- * 
- * \param code The code to convert.
- * \return A static string representing the name of
- * the code.
- */
 const char *BKE_idcode_to_name(int code);
-
-/**
- * Convert an idcode into a name (plural).
- * 
- * \param code The code to convert.
- * \return A static string representing the name of
- * the code.
- */
 const char *BKE_idcode_to_name_plural(int code);
-
-/**
- * Convert a name into an idcode (ie. ID_SCE)
- * 
- * \param name The name to convert.
- * \return The code for the name, or 0 if invalid.
- */
-int BKE_idcode_from_name(const char *name);
-
-/**
- * Return non-zero when an ID type is linkable.
- * 
- * \param code The code to check.
- * \return Boolean, 0 when non linkable.
- */
-bool BKE_idcode_is_linkable(int code);
-
-/**
- * Return if the ID code is a valid ID code.
- * 
- * \param code The code to check.
- * \return Boolean, 0 when invalid.
- */
-bool BKE_idcode_is_valid(int code);
+int         BKE_idcode_from_name(const char *name);
+bool        BKE_idcode_is_linkable(int code);
+bool        BKE_idcode_is_valid(int code);
 
 /**
  * Return an ID code and steps the index forward 1.

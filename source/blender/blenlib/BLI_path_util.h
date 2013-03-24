@@ -170,14 +170,6 @@ bool BLI_path_is_rel(const char *path);
 #  define BLI_path_ncmp strncmp
 #endif
 
-/**
- * Change every \a from in \a string into \a to. The
- * result will be in \a string
- *
- * \a string The string to work on
- * \a from The character to replace
- * \a to The character to replace with
- */
 void BLI_char_switch(char *string, char from, char to)
 #ifdef __GNUC__
 __attribute__((nonnull(1)))
@@ -190,13 +182,9 @@ void BLI_init_program_path(const char *argv0);
  * NOTE: On Window userdir will be set to the temporary directory! */
 void BLI_init_temporary_dir(char *userdir);
 
-/* Path to executable */
 const char *BLI_program_path(void);
-/* Path to directory of executable */
 const char *BLI_program_dir(void);
-/* Path to temporary directory (with trailing slash) */
 const char *BLI_temporary_dir(void);
-/* Path to the system temporary directory (with trailing slash) */
 void BLI_system_temporary_dir(char *dir);
 
 #ifdef WITH_ICONV
