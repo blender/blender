@@ -388,7 +388,9 @@ typedef struct RenderData {
 
 	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
-	short size, maximsize;	/* size in %, max in Kb */
+	short size; /* size in % */
+	
+	short maximsize DNA_DEPRECATED; /* max in Kb */
 
 	short pad6;
 
