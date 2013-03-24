@@ -2997,7 +2997,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
