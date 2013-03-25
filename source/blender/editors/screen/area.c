@@ -1847,7 +1847,6 @@ void ED_region_header(const bContext *C, ARegion *ar)
 
 void ED_region_header_init(ARegion *ar)
 {
-	ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
