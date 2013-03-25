@@ -804,6 +804,10 @@ void BKE_texture_make_local(Tex *tex)
 			if (br->id.lib) is_lib = TRUE;
 			else is_local = TRUE;
 		}
+		if (br->mask_mtex.tex == tex) {
+			if (br->id.lib) is_lib = TRUE;
+			else is_local = TRUE;
+		}
 		br = br->id.next;
 	}
 	pa = bmain->particle.first;
@@ -873,6 +877,13 @@ void BKE_texture_make_local(Tex *tex)
 			if (br->mtex.tex == tex) {
 				if (br->id.lib == NULL) {
 					br->mtex.tex = tex_new;
+					tex_new->id.us++;
+					tex->id.us--;
+				}
+			}
+			if (br->mask_mtex.tex == tex) {
+				if (br->id.lib == NULL) {
+					br->mask_mtex.tex = tex_new;
 					tex_new->id.us++;
 					tex->id.us--;
 				}

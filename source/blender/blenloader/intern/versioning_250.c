@@ -1678,6 +1678,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		/* brush texture changes */
 		for (brush = main->brush.first; brush; brush = brush->id.next) {
 			default_mtex(&brush->mtex);
+			default_mtex(&brush->mask_mtex);
 		}
 
 		for (ma = main->mat.first; ma; ma = ma->id.next) {

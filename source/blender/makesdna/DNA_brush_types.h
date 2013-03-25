@@ -56,6 +56,7 @@ typedef struct Brush {
 	struct BrushClone clone;
 	struct CurveMapping *curve; /* falloff curve */
 	struct MTex mtex;
+	struct MTex mask_mtex;
 
 	struct Brush *toggle_brush;
 
@@ -140,7 +141,8 @@ typedef enum BrushFlags {
 	/* temporary flag which sets up automatically for correct brush
 	 * drawing when inverted modal operator is running */
 	BRUSH_INVERTED = (1 << 29),
-	BRUSH_ABSOLUTE_JITTER = (1 << 30)
+	BRUSH_ABSOLUTE_JITTER = (1 << 30),
+	BRUSH_USE_MASK = (1 << 31)
 } BrushFlags;
 
 /* Brush.sculpt_tool */

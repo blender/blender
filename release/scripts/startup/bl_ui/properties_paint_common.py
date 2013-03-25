@@ -112,3 +112,18 @@ def brush_texture_settings(layout, brush, sculpt):
         col = layout.column(align=True)
         col.label(text="Sample Bias:")
         col.prop(brush, "texture_sample_bias", slider=True, text="")
+
+
+def brush_mask_texture_settings(layout, brush):
+    mask_tex_slot = brush.mask_texture_slot
+
+    if(brush.mask_texture):
+        layout.label(text="Mask Mapping:")
+        col = layout.column()
+        col.active = brush.brush_capabilities.has_texture_angle
+        col.prop(mask_tex_slot, "angle", text="")
+
+        # scale and offset
+        split = layout.split()
+        split.prop(mask_tex_slot, "offset")
+        split.prop(mask_tex_slot, "scale")

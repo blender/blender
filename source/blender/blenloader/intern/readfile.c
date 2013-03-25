@@ -146,6 +146,7 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
+#include "BKE_texture.h"
 #include "BKE_tracking.h"
 #include "BKE_sound.h"
 
@@ -1811,6 +1812,7 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->id.flag -= LIB_NEED_LINK;
 			
 			brush->mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
+			brush->mask_mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mask_mtex.tex);
 			brush->clone.image = newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -9062,6 +9064,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					nodeUniqueName(ntree, node);
 			}
 			FOREACH_NODETREE_END
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 266, 4)) {
+		Brush *brush;
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			default_mtex(&brush->mask_mtex);
 		}
 	}
 
