@@ -27,7 +27,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_operators_private.h"
 
 
 #define ELE_NEW		1
