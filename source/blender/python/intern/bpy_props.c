@@ -2527,13 +2527,16 @@ BPY_PROPDEF_DESC_DOC
 "   :arg items: sequence of enum items formatted:\n"
 "      [(identifier, name, description, icon, number), ...] where the identifier is used\n"
 "      for python access and other values are used for the interface.\n"
+"      The three first elements of the tuples are mandatory.\n"
+"      The forth one is either the (unique!) number id of the item or, if followed by a fith element \n"
+"      (which must be the numid), an icon string identifier.\n"
 "      Note the item is optional.\n"
 "      For dynamic values a callback can be passed which returns a list in\n"
 "      the same format as the static list.\n"
 "      This function must take 2 arguments (self, context)\n"
 "      WARNING: Do not use generators here (they will work the first time, but will lead to empty values\n"
-"               in some unload/reload scenarii)!\n"
-"   :type items: sequence of string triples or a function\n"
+"      in some unload/reload scenarii)!\n"
+"   :type items: sequence of string tuples or a function\n"
 BPY_PROPDEF_UPDATE_DOC
 );
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
