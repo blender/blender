@@ -1237,6 +1237,8 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	const int totedge_orig = em->bm->totedge;
+	const int totface_orig = em->bm->totface;
 	/* when this is used to dissolve we could avoid this, but checking isnt too slow */
 
 #ifdef USE_FACE_CREATE_SEL_EXTEND
@@ -1256,6 +1258,14 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	}
 	
 	BMO_op_exec(em->bm, &bmop);
+
+	/* cancel if nothing was done */
+	if ((totedge_orig == em->bm->totedge) &&
+	    (totface_orig == em->bm->totface))
+	{
+		EDBM_op_finish(em, &bmop, op, true);
+		return OPERATOR_CANCELLED;
+	}
 
 #ifdef USE_FACE_CREATE_SEL_EXTEND
 	/* normally we would want to leave the new geometry selected,
@@ -1278,7 +1288,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	}
 
 	EDBM_update_generic(em, true, true);
-	
+
 	return OPERATOR_FINISHED;
 }
 
