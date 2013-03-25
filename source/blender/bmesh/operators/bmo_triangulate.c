@@ -87,10 +87,21 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			v1 = e->l->prev->v;
-			v2 = e->l->v;
-			v3 = e->l->radial_next->prev->v;
-			v4 = e->l->next->v;
+			v1 = e->l->prev->v;               /* first face vert not attached to 'e' */
+			v2 = e->l->v;                     /* e->v1 or e->v2*/
+			v3 = e->l->radial_next->prev->v;  /* second face vert not attached to 'e' */
+			v4 = e->l->next->v;               /* e->v1 or e->v2*/
+
+			if (UNLIKELY(v1 == v3)) {
+				// printf("This should never happen, but does sometimes!\n");
+				continue;
+			}
+
+			// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
+			BLI_assert((ELEM3(v1, v2, v3, v4) == false) &&
+			           (ELEM3(v2, v1, v3, v4) == false) &&
+			           (ELEM3(v3, v1, v2, v4) == false) &&
+			           (ELEM3(v4, v1, v2, v3) == false));
 
 			if (is_quad_convex_v3(v1->co, v2->co, v3->co, v4->co)) {
 				float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
