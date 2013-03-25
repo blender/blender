@@ -3445,7 +3445,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 				but = uiDefButR(block, TEX, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
 				                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(but, achannel_setting_rename_done_cb, ac->ads, NULL);
-				uiButActiveOnly(C, block, but);
+				uiButActiveOnly(C, ac->ar, block, but);
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 			}

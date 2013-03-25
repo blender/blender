@@ -523,8 +523,11 @@ static void text_properties_area_draw(const bContext *C, ARegion *ar)
 	
 	/* this flag trick is make sure buttons have been added already */
 	if (st->flags & ST_FIND_ACTIVATE) {
-		
-		UI_textbutton_activate_event(C, ar, st, "find_text");
+		if (UI_textbutton_activate_event(C, ar, st, "find_text")) {
+			/* if the panel was already open we need to do another redraw */
+			ScrArea *sa = CTX_wm_area(C);
+			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_TEXT, sa);
+		}
 		st->flags &= ~ST_FIND_ACTIVATE;
 	}
 }

@@ -7456,7 +7456,7 @@ void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
 	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, FALSE);
 }
 
-void UI_textbutton_activate_event(const bContext *C, ARegion *ar,
+bool UI_textbutton_activate_event(const bContext *C, ARegion *ar,
                                   const void *rna_poin_data, const char *rna_prop_id)
 {
 	uiBlock *block;
@@ -7477,7 +7477,11 @@ void UI_textbutton_activate_event(const bContext *C, ARegion *ar,
 	}
 	
 	if (but) {
-		uiButActiveOnly(C, block, but);
+		uiButActiveOnly(C, ar, block, but);
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 

@@ -1043,7 +1043,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */
-				if (0 == uiButActiveOnly(C, block, bt) )
+				if (0 == uiButActiveOnly(C, ar, block, bt) )
 					tselem->flag &= ~TSE_TEXTBUT;
 			}
 		}
