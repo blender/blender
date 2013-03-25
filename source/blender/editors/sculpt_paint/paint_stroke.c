@@ -180,10 +180,12 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 	{
 		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
 			(brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
-		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
 		    !(brush->flag & BRUSH_RAKE))
 		{
-			ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
+			if (brush->flag & BRUSH_RANDOM_ROTATION)
+				ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
+			else
+				ups->brush_rotation = 0.0f;
 		}
 
 		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) {
