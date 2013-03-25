@@ -123,7 +123,7 @@ void BL_ActionActuator::ProcessReplica()
 	
 }
 
-void BL_ActionActuator::SetBlendTime (float newtime)
+void BL_ActionActuator::SetBlendTime(float newtime)
 {
 	m_blendframe = newtime;
 }

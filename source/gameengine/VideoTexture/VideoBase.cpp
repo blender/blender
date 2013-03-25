@@ -102,11 +102,11 @@ void VideoBase::process (BYTE * sample)
 
 // exceptions for video source initialization
 ExceptionID SourceVideoEmpty, SourceVideoCreation;
-ExpDesc SourceVideoEmptyDesc (SourceVideoEmpty, "Source Video is empty");
-ExpDesc SourceVideoCreationDesc (SourceVideoCreation, "SourceVideo object was not created");
+ExpDesc SourceVideoEmptyDesc(SourceVideoEmpty, "Source Video is empty");
+ExpDesc SourceVideoCreationDesc(SourceVideoCreation, "SourceVideo object was not created");
 
 // open video source
-void Video_open (VideoBase * self, char * file, short captureID)
+void Video_open(VideoBase * self, char * file, short captureID)
 {
 	// if file is empty, throw exception
 	if (file == NULL) THRWEXCP(SourceVideoEmpty, S_OK);

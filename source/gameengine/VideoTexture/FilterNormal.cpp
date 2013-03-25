@@ -76,7 +76,7 @@ static PyObject *getColor (PyFilter *self, void *closure)
 }
 
 // set index of color used to calculate normal
-static int setColor (PyFilter *self, PyObject *value, void *closure)
+static int setColor(PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PyLong_Check(value))
@@ -98,7 +98,7 @@ static PyObject *getDepth (PyFilter *self, void *closure)
 }
 
 // set depth
-static int setDepth (PyFilter *self, PyObject *value, void *closure)
+static int setDepth(PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value)

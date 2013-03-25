@@ -585,10 +585,11 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 	return intensity;
 }
 
-float BKE_brush_sample_masktex (const Scene *scene, Brush *br,
-                              const float point[3],
-                              const int thread,
-                              struct ImagePool *pool) {
+float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
+                               const float point[3],
+                               const int thread,
+                               struct ImagePool *pool)
+{
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	MTex *mtex = &br->mask_mtex;
 

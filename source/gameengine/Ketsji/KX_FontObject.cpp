@@ -117,7 +117,7 @@ void KX_FontObject::ProcessReplica()
 	KX_GetActiveScene()->AddFont(this);
 }
 
-int GetFontId (VFont *vfont)
+int GetFontId(VFont *vfont)
 {
 	PackedFile *packedfile=NULL;
 	int fontid = -1;

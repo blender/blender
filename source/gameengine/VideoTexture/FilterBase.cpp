@@ -105,7 +105,7 @@ PyObject *Filter_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 // object deallocation
-void Filter_dealloc (PyFilter *self)
+void Filter_dealloc(PyFilter *self)
 {
 	// release object attributes
 	if (self->m_filter != NULL)
@@ -139,7 +139,7 @@ PyObject *Filter_getPrevious (PyFilter *self, void *closure)
 
 
 // set previous pixel filter object
-int Filter_setPrevious (PyFilter *self, PyObject *value, void *closure)
+int Filter_setPrevious(PyFilter *self, PyObject *value, void *closure)
 {
 	// if filter object is available
 	if (self->m_filter != NULL)

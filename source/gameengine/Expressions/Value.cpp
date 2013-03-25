@@ -144,7 +144,7 @@ effect: deletes the object
 #define VALUE_POS(val1)       (val1)->Calc(VALUE_POS_OPERATOR, val1)
 
 
-STR_String CValue::op2str (VALUE_OPERATOR op)
+STR_String CValue::op2str(VALUE_OPERATOR op)
 {
 	//pre:
 	//ret: the stringrepresentation of operator op

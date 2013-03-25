@@ -84,7 +84,7 @@ static PyObject *getColor (PyFilter *self, void *closure)
 }
 
 // set color
-static int setColor (PyFilter *self, PyObject *value, void *closure)
+static int setColor(PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL ||
@@ -114,7 +114,7 @@ static PyObject *getLimits (PyFilter *self, void *closure)
 }
 
 // set limit
-static int setLimits (PyFilter *self, PyObject *value, void *closure)
+static int setLimits(PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL ||

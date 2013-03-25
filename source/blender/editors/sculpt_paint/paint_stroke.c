@@ -179,7 +179,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
 	{
 		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
-			(brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
+		    (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
 		    !(brush->flag & BRUSH_RAKE))
 		{
 			if (brush->flag & BRUSH_RANDOM_ROTATION)
@@ -191,7 +191,8 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) {
 			ups->tex_mouse[0] = BLI_frand() * stroke->vc.ar->sizex;
 			ups->tex_mouse[1] = BLI_frand() * stroke->vc.ar->sizey;;
-		} else {
+		}
+		else {
 			copy_v2_v2(ups->tex_mouse, mouse);
 		}
 	}

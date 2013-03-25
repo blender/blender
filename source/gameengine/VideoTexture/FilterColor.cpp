@@ -130,7 +130,7 @@ static PyObject *getMatrix (PyFilter *self, void *closure)
 }
 
 // set color matrix
-static int setMatrix (PyFilter *self, PyObject *value, void *closure)
+static int setMatrix(PyFilter *self, PyObject *value, void *closure)
 {
 	// matrix to store items
 	ColorMatrix mat;
@@ -263,7 +263,7 @@ static PyObject *getLevels (PyFilter *self, void *closure)
 }
 
 // set color levels
-static int setLevels (PyFilter *self, PyObject *value, void *closure)
+static int setLevels(PyFilter *self, PyObject *value, void *closure)
 {
 	// matrix to store items
 	ColorLevel lev;

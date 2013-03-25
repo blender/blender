@@ -210,7 +210,7 @@ PyObject *ImageViewport_getWhole (PyImage *self, void *closure)
 }
 
 // set whole
-int ImageViewport_setWhole (PyImage *self, PyObject *value, void *closure)
+int ImageViewport_setWhole(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -240,7 +240,7 @@ PyObject *ImageViewport_getAlpha (PyImage *self, void *closure)
 }
 
 // set whole
-int ImageViewport_setAlpha (PyImage *self, PyObject *value, void *closure)
+int ImageViewport_setAlpha(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -266,7 +266,7 @@ static PyObject *ImageViewport_getPosition (PyImage *self, void *closure)
 }
 
 // set position
-static int ImageViewport_setPosition (PyImage *self, PyObject *value, void *closure)
+static int ImageViewport_setPosition(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL ||
@@ -299,7 +299,7 @@ PyObject *ImageViewport_getCaptureSize (PyImage *self, void *closure)
 }
 
 // set capture size
-int ImageViewport_setCaptureSize (PyImage *self, PyObject *value, void *closure)
+int ImageViewport_setCaptureSize(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL ||

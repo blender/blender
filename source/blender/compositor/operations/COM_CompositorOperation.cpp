@@ -175,8 +175,8 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		                        Full frame
 		 */
 
-		int full_width = rd->xsch * rd->size / 100;
-		int full_height =rd->ysch * rd->size / 100;
+		int full_width  = rd->xsch * rd->size / 100;
+		int full_height = rd->ysch * rd->size / 100;
 
 		dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
 		dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;

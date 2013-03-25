@@ -330,10 +330,10 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 	mainl = BLO_library_append_begin(bmain, &(self->blo_handle), self->relpath);
 
 	{
-		int i = 0, code;
-		while ((code = BKE_idcode_iter_step(&i))) {
-			if (BKE_idcode_is_linkable(code)) {
-				const char *name_plural = BKE_idcode_to_name_plural(code);
+		int idcode_step = 0, idcode;
+		while ((idcode = BKE_idcode_iter_step(&idcode_step))) {
+			if (BKE_idcode_is_linkable(idcode)) {
+				const char *name_plural = BKE_idcode_to_name_plural(idcode);
 				PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
 				// printf("lib: %s\n", name_plural);
 				if (ls && PyList_Check(ls)) {
@@ -350,7 +350,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 						// printf("  %s\n", item_str);
 
 						if (item_str) {
-							ID *id = BLO_library_append_named_part(mainl, &(self->blo_handle), item_str, code);
+							ID *id = BLO_library_append_named_part(mainl, &(self->blo_handle), item_str, idcode);
 							if (id) {
 #ifdef USE_RNA_DATABLOCKS
 								PointerRNA id_ptr;

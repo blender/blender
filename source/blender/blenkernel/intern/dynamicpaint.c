@@ -520,7 +520,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, int parent
 
 	/* if object has parents, update them too */
 	if (parent_recursion) {
-		int recursion = parent_recursion-1;
+		int recursion = parent_recursion - 1;
 		int is_canvas = 0;
 		if (ob->parent) is_canvas += subframe_updateObject(scene, ob->parent, 0, recursion, frame);
 		if (ob->track) is_canvas += subframe_updateObject(scene, ob->track, 0, recursion, frame);

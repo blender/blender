@@ -40,8 +40,8 @@
 ExceptionID ErrGeneral, ErrNotFound;
 
 // exception descriptions
-ExpDesc errGenerDesc (ErrGeneral, "General Error");
-ExpDesc errNFoundDesc (ErrNotFound, "Error description not found");
+ExpDesc errGenerDesc(ErrGeneral, "General Error");
+ExpDesc errNFoundDesc(ErrNotFound, "Error description not found");
 
 
 

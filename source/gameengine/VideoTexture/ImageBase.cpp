@@ -182,8 +182,8 @@ void ImageBase::setFilter (PyFilter * filt)
 ExceptionID ImageHasExports;
 ExceptionID InvalidColorChannel;
 
-ExpDesc ImageHasExportsDesc (ImageHasExports, "Image has exported buffers, cannot resize");
-ExpDesc InvalidColorChannelDesc (InvalidColorChannel, "Invalid or too many color channels specified. At most 4 values within R, G, B, A, 0, 1");
+ExpDesc ImageHasExportsDesc(ImageHasExports, "Image has exported buffers, cannot resize");
+ExpDesc InvalidColorChannelDesc(InvalidColorChannel, "Invalid or too many color channels specified. At most 4 values within R, G, B, A, 0, 1");
 
 // initialize image data
 void ImageBase::init (short width, short height)
@@ -375,7 +375,7 @@ PyObject *Image_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 // object deallocation
-void Image_dealloc (PyImage *self)
+void Image_dealloc(PyImage *self)
 {
 	// release object attributes
 	if (self->m_image != NULL)
@@ -514,7 +514,7 @@ PyObject *Image_getScale (PyImage *self, void *closure)
 }
 
 // set scale
-int Image_setScale (PyImage *self, PyObject *value, void *closure)
+int Image_setScale(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -536,7 +536,7 @@ PyObject *Image_getFlip (PyImage *self, void *closure)
 }
 
 // set flip
-int Image_setFlip (PyImage *self, PyObject *value, void *closure)
+int Image_setFlip(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -558,7 +558,7 @@ PyObject * Image_getZbuff (PyImage * self, void * closure)
 }
 
 // set zbuff
-int Image_setZbuff (PyImage * self, PyObject * value, void * closure)
+int Image_setZbuff(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -580,7 +580,7 @@ PyObject * Image_getDepth (PyImage * self, void * closure)
 }
 
 // set depth
-int Image_setDepth (PyImage * self, PyObject * value, void * closure)
+int Image_setDepth(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -678,7 +678,7 @@ PyObject *Image_getFilter (PyImage *self, void *closure)
 
 
 // set pixel filter object
-int Image_setFilter (PyImage *self, PyObject *value, void *closure)
+int Image_setFilter(PyImage *self, PyObject *value, void *closure)
 {
 	// if image object is available
 	if (self->m_image != NULL)

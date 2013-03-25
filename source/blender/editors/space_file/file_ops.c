@@ -1460,23 +1460,22 @@ static int file_delete_poll(bContext *C)
 {
 	int poll = ED_operator_file_active(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
-	struct direntry *file;
 
-	if (sfile && sfile->params) {		
+	if (sfile && sfile->params) {
 		char dir[FILE_MAX], group[FILE_MAX];
 		int numfiles = filelist_numfiles(sfile->files);
 		int i;
 		int num_selected = 0;
 
 		if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
-		for (i = 0; i < numfiles; i++) {				
+		for (i = 0; i < numfiles; i++) {
 			if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
 				num_selected++;
 			}
 		}
 		if (num_selected <= 0) {
 			poll = 0;
-		}		
+		}
 	}
 	else
 		poll = 0;

@@ -81,8 +81,10 @@ static PyObject *make_ffmpeg_info(void)
 #define SetIntItem(flag) \
 	PyStructSequence_SET_ITEM(ffmpeg_info, pos++, PyLong_FromLong(flag))
 #endif
+#ifndef WITH_FFMPEG
 #define SetStrItem(str) \
 	PyStructSequence_SET_ITEM(ffmpeg_info, pos++, PyUnicode_FromString(str))
+#endif
 #define SetObjItem(obj) \
 	PyStructSequence_SET_ITEM(ffmpeg_info, pos++, obj)
 

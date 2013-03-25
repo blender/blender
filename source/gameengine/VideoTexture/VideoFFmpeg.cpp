@@ -1085,7 +1085,7 @@ inline VideoFFmpeg * getVideoFFmpeg (PyImage *self)
 
 
 // object initialization
-static int VideoFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
+static int VideoFFmpeg_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source
@@ -1243,7 +1243,7 @@ PyTypeObject VideoFFmpegType =
 };
 
 // object initialization
-static int ImageFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
+static int ImageFFmpeg_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source

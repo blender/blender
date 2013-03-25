@@ -43,10 +43,11 @@
 #include "bmesh.h"
 #include "./intern/bmesh_private.h"
 
-
-
 #define BEVEL_EPSILON_D  1e-6
 #define BEVEL_EPSILON    1e-6f
+
+/* happens far too often, uncomment for development */
+// #define BEVEL_ASSERT_PROJECT
 
 /* for testing */
 // #pragma GCC diagnostic error "-Wpadded"
@@ -369,7 +370,9 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 
 		/* intersect the lines; by construction they should be on the same plane and not parallel */
 		if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
+#ifdef BEVEL_ASSERT_PROJECT
 			BLI_assert(!"offset_meet failure");
+#endif
 			copy_v3_v3(meetco, off1a);  /* just to do something */
 		}
 	}
@@ -485,7 +488,9 @@ static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3],
 	float otherco[3];
 
 	if (!isect_line_line_v3(e->v1->co, e->v2->co, co_a, co_b, projco, otherco)) {
+#ifdef BEVEL_ASSERT_PROJECT
 		BLI_assert(!"project meet failure");
+#endif
 		copy_v3_v3(projco, e->v1->co);
 	}
 }
