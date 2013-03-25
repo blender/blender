@@ -135,7 +135,7 @@ def print_info(reports, pot):
     _print("{} messages were rejected.".format(len(reports["messages_skipped"])))
     _print("\n")
     _print("Current POT stats:")
-    pot.print_stats(prefix="\t", output=_print)
+    pot.print_info(prefix="\t", output=_print)
     _print("\n")
 
     check_ctxt = reports["check_ctxt"]
