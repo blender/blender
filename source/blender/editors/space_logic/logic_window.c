@@ -1116,7 +1116,7 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row, *col;
 
 	row = uiLayoutRow(layout, FALSE);
-	uiItemL(row, IFACE_("Key:"), ICON_NONE);
+	uiItemL(row, CTX_IFACE_(BLF_I18NCONTEXT_ID_WINDOWMANAGER, "Key:"), ICON_NONE);
 	col = uiLayoutColumn(row, FALSE);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys") == FALSE);
 	uiItemR(col, ptr, "key", UI_ITEM_R_EVENT, "", ICON_NONE);

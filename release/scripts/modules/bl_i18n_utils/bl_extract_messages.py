@@ -365,9 +365,10 @@ def dump_messages_rna(msgs, reports, settings):
         walk_properties(cls)
 
     def walk_keymap_hierarchy(hier, msgsrc_prev):
+        km_i18n_context = bpy.app.translations.contexts.id_windowmanager
         for lvl in hier:
             msgsrc = msgsrc_prev + "." + lvl[1]
-            process_msg(msgs, default_context, lvl[0], msgsrc, reports, None, settings)
+            process_msg(msgs, km_i18n_context, lvl[0], msgsrc, reports, None, settings)
             if lvl[3]:
                 walk_keymap_hierarchy(lvl[3], msgsrc)
 
@@ -396,7 +397,6 @@ def dump_messages_rna(msgs, reports, settings):
 
     # And parse keymaps!
     from bpy_extras.keyconfig_utils import KM_HIERARCHY
-
     walk_keymap_hierarchy(KM_HIERARCHY, "KM_HIERARCHY")
 
 
