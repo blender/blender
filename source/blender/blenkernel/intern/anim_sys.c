@@ -42,6 +42,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -973,8 +975,8 @@ KeyingSet *BKE_keyingset_add(ListBase *list, const char idname[], const char nam
 	/* allocate new KeyingSet */
 	ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-	BLI_strncpy(ks->idname, (idname) ? idname : (name) ? name     : "KeyingSet",  sizeof(ks->idname));
-	BLI_strncpy(ks->name,   (name) ? name     : (idname) ? idname : "Keying Set", sizeof(ks->name));
+	BLI_strncpy(ks->idname, (idname) ? idname : (name) ? name     : DATA_("KeyingSet"),  sizeof(ks->idname));
+	BLI_strncpy(ks->name,   (name) ? name     : (idname) ? idname : DATA_("Keying Set"), sizeof(ks->name));
 
 	ks->flag = flag;
 	ks->keyingflag = keyingflag;
@@ -983,10 +985,10 @@ KeyingSet *BKE_keyingset_add(ListBase *list, const char idname[], const char nam
 	BLI_addtail(list, ks);
 	
 	/* Make sure KeyingSet has a unique idname */
-	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, idname), sizeof(ks->idname));
+	BLI_uniquename(list, ks, DATA_("KeyingSet"), '.', offsetof(KeyingSet, idname), sizeof(ks->idname));
 	
 	/* Make sure KeyingSet has a unique label (this helps with identification) */
-	BLI_uniquename(list, ks, "Keying Set", '.', offsetof(KeyingSet, name), sizeof(ks->name));
+	BLI_uniquename(list, ks, DATA_("Keying Set"), '.', offsetof(KeyingSet, name), sizeof(ks->name));
 	
 	/* return new KeyingSet for further editing */
 	return ks;

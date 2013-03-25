@@ -37,6 +37,10 @@
 
 #define TEXT_DOMAIN_NAME "blender"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* blf_lang.c */
 
 /* Search the path directory to the locale files, this try all
@@ -217,5 +221,9 @@ typedef struct
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_MASK, "id_mask"),                                                         \
 	{NULL, NULL, NULL}                                                                                                 \
 }
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* __BLF_TRANSLATION_H__ */

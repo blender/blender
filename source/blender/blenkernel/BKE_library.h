@@ -119,7 +119,7 @@ void recalc_all_library_objects(struct Main *main);
 void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 
 /* use when "" is given to new_id() */
-#define ID_FALLBACK_NAME "Untitled"
+#define ID_FALLBACK_NAME N_("Untitled")
 
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
 

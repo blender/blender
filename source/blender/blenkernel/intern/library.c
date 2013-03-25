@@ -71,11 +71,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
-#include "BKE_bpath.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_bpath.h"
 #include "BKE_brush.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
@@ -1355,25 +1357,23 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 	char name[MAX_ID_NAME - 2];
 
 	/* if library, don't rename */
-	if (id->lib) return false;
+	if (id->lib)
+		return false;
 
 	/* if no libdata given, look up based on ID */
-	if (lb == NULL) lb = which_libbase(G.main, GS(id->name));
+	if (lb == NULL)
+		lb = which_libbase(G.main, GS(id->name));
 
 	/* if no name given, use name of current ID
 	 * else make a copy (tname args can be const) */
 	if (tname == NULL)
 		tname = id->name + 2;
 
-	strncpy(name, tname, sizeof(name) - 1);
-
-	/* if result > MAX_ID_NAME-3, strncpy don't put the final '\0' to name.
-	 * easier to assign each time then to check if its needed */
-	name[sizeof(name) - 1] = 0;
+	BLI_strncpy(name, tname, sizeof(name));
 
 	if (name[0] == '\0') {
 		/* disallow empty names */
-		strcpy(name, ID_FALLBACK_NAME);
+		BLI_strncpy(name, DATA_(ID_FALLBACK_NAME), sizeof(name));
 	}
 	else {
 		/* disallow non utf8 chars,

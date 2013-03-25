@@ -65,6 +65,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
 
 #include "BKE_ipo.h"
 #include "BKE_animsys.h"
@@ -1117,7 +1118,8 @@ static void fcurve_add_to_list(ListBase *groups, ListBase *list, FCurve *fcu, ch
 			BLI_strncpy(agrp->name, grpname, sizeof(agrp->name));
 
 			BLI_addtail(&tmp_act.groups, agrp);
-			BLI_uniquename(&tmp_act.groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
+			BLI_uniquename(&tmp_act.groups, agrp, DATA_("Group"), '.', offsetof(bActionGroup, name),
+			               sizeof(agrp->name));
 		}
 		
 		/* add F-Curve to group */

@@ -38,6 +38,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -85,7 +87,7 @@ void unique_editbone_name(ListBase *edbo, char *name, EditBone *bone)
 	data.lb = edbo;
 	data.bone = bone;
 
-	BLI_uniquename_cb(editbone_unique_check, &data, "Bone", '.', name, sizeof(bone->name));
+	BLI_uniquename_cb(editbone_unique_check, &data, DATA_("Bone"), '.', name, sizeof(bone->name));
 }
 
 /* ************************************************** */
@@ -98,7 +100,7 @@ static bool bone_unique_check(void *arg, const char *name)
 
 static void unique_bone_name(bArmature *arm, char *name)
 {
-	BLI_uniquename_cb(bone_unique_check, (void *)arm, "Bone", '.', name, sizeof(((Bone *)NULL)->name));
+	BLI_uniquename_cb(bone_unique_check, (void *)arm, DATA_("Bone"), '.', name, sizeof(((Bone *)NULL)->name));
 }
 
 /* helper call for armature_bone_rename */

@@ -52,6 +52,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -135,7 +137,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 
 bDeformGroup *ED_vgroup_add(Object *ob) 
 {
-	return ED_vgroup_add_name(ob, "Group");
+	return ED_vgroup_add_name(ob, DATA_("Group"));
 }
 
 void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup) 

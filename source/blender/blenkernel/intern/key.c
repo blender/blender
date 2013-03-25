@@ -40,6 +40,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -1441,11 +1443,13 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 		BLI_strncpy(kb->name, name, sizeof(kb->name));
 	}
 	else {
-		if (tot == 1) BLI_strncpy(kb->name, "Basis", sizeof(kb->name));
-		else BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", tot - 1);
+		if (tot == 1)
+			BLI_strncpy(kb->name, DATA_("Basis"), sizeof(kb->name));
+		else
+			BLI_snprintf(kb->name, sizeof(kb->name), DATA_("Key %d"), tot - 1);
 	}
 
-	BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), sizeof(kb->name));
+	BLI_uniquename(&key->block, kb, DATA_("Key"), '.', offsetof(KeyBlock, name), sizeof(kb->name));
 
 	kb->uid = key->uidgen++;
 

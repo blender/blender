@@ -2690,7 +2690,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Center View to Mouse";
-	ot->description = "Center the view to the ZDepth Position under the Mouse Cursor";
+	ot->description = "Center the view to the Z-depth position under the mouse cursor";
 	ot->idname = "VIEW3D_OT_view_center_pick";
 
 	/* api callbacks */

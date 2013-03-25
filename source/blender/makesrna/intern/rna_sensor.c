@@ -32,6 +32,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 #include "RNA_access.h"
@@ -113,7 +115,7 @@ static void rna_Sensor_name_set(PointerRNA *ptr, const char *value)
 
 	if (ptr->id.data) {
 		Object *ob = (Object *)ptr->id.data;
-		BLI_uniquename(&ob->sensors, sens, "Sensor", '.', offsetof(bSensor, name), sizeof(sens->name));
+		BLI_uniquename(&ob->sensors, sens, DATA_("Sensor"), '.', offsetof(bSensor, name), sizeof(sens->name));
 	}
 }
 

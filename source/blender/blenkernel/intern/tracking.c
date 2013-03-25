@@ -535,7 +535,8 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking, ListBase *tr
 
 void BKE_tracking_track_unique_name(ListBase *tracksbase, MovieTrackingTrack *track)
 {
-	BLI_uniquename(tracksbase, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
+	BLI_uniquename(tracksbase, track, CTX_DATA_(BLF_I18NCONTEXT_ID_MOVIECLIP, "Track"), '.',
+	               offsetof(MovieTrackingTrack, name), sizeof(track->name));
 }
 
 void BKE_tracking_track_free(MovieTrackingTrack *track)
@@ -1234,7 +1235,7 @@ int BKE_tracking_object_delete(MovieTracking *tracking, MovieTrackingObject *obj
 
 void BKE_tracking_object_unique_name(MovieTracking *tracking, MovieTrackingObject *object)
 {
-	BLI_uniquename(&tracking->objects, object, "Object", '.',
+	BLI_uniquename(&tracking->objects, object, DATA_("Object"), '.',
 	               offsetof(MovieTrackingObject, name), sizeof(object->name));
 }
 
@@ -2095,7 +2096,8 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 		track->next = track->prev = NULL;
 		BLI_addtail(&new_tracks, track);
 
-		BLI_uniquename(&new_tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
+		BLI_uniquename(&new_tracks, track, CTX_DATA_(BLF_I18NCONTEXT_ID_MOVIECLIP, "Track"), '.',
+		               offsetof(MovieTrackingTrack, name), sizeof(track->name));
 
 		track = next;
 	}

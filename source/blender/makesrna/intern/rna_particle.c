@@ -45,6 +45,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BLF_translation.h"
+
 #include "rna_internal.h"
 
 #include "WM_types.h"
@@ -871,7 +873,7 @@ static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(part->name, value, sizeof(part->name));
 
-	BLI_uniquename(&ob->particlesystem, part, "ParticleSystem", '.', offsetof(ParticleSystem, name),
+	BLI_uniquename(&ob->particlesystem, part, DATA_("ParticleSystem"), '.', offsetof(ParticleSystem, name),
 	               sizeof(part->name));
 }
 

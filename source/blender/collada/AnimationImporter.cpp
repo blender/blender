@@ -38,6 +38,8 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_fcurve.h"
@@ -217,7 +219,8 @@ void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve *>&
 					BLI_strncpy(grp->name, bone_name, sizeof(grp->name));
 					
 					BLI_addtail(&act->groups, grp);
-					BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), 64);
+					BLI_uniquename(&act->groups, grp, CTX_DATA_(BLF_I18NCONTEXT_ID_ACTION, "Group"), '.',
+					               offsetof(bActionGroup, name), 64);
 				}
 				
 				/* add F-Curve to group */
@@ -1968,14 +1971,15 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
 	if (grp == NULL) {
 		/* Add a new group, and make it active */
 		grp = (bActionGroup *)MEM_callocN(sizeof(bActionGroup), "bActionGroup");
-					
+
 		grp->flag = AGRP_SELECTED;
 		BLI_strncpy(grp->name, bone_name, sizeof(grp->name));
-					
+
 		BLI_addtail(&act->groups, grp);
-		BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), 64);
+		BLI_uniquename(&act->groups, grp, CTX_DATA_(BLF_I18NCONTEXT_ID_ACTION, "Group"), '.',
+		               offsetof(bActionGroup, name), 64);
 	}
-				
+
 	/* add F-Curve to group */
 	action_groups_add_channel(act, grp, fcu);
 }

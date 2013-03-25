@@ -1113,7 +1113,7 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 	Scene *scene = (Scene *)ptr->id.data;
 	SceneRenderLayer *rl = (SceneRenderLayer *)ptr->data;
 	BLI_strncpy_utf8(rl->name, value, sizeof(rl->name));
-	BLI_uniquename(&scene->r.layers, rl, "RenderLayer", '.', offsetof(SceneRenderLayer, name), sizeof(rl->name));
+	BLI_uniquename(&scene->r.layers, rl, DATA_("RenderLayer"), '.', offsetof(SceneRenderLayer, name), sizeof(rl->name));
 
 	if (scene->nodetree) {
 		bNode *node;

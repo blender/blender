@@ -3520,7 +3520,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (type == SCE_COPY_NEW) {
-		newscene = BKE_scene_add(bmain, "Scene");
+		newscene = BKE_scene_add(bmain, DATA_("Scene"));
 	}
 	else { /* different kinds of copying */
 		newscene = BKE_scene_copy(scene, type);

@@ -122,7 +122,7 @@ static void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
 
 	if (ptr->id.data) {
 		Object *ob = (Object *)ptr->id.data;
-		BLI_uniquename(&ob->actuators, act, "Actuator", '.', offsetof(bActuator, name), sizeof(act->name));
+		BLI_uniquename(&ob->actuators, act, DATA_("Actuator"), '.', offsetof(bActuator, name), sizeof(act->name));
 	}
 }
 

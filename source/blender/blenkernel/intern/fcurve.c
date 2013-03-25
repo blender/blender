@@ -47,6 +47,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -1557,8 +1559,9 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
 	BLI_addtail(&driver->variables, dvar);
 	
 	/* give the variable a 'unique' name */
-	strcpy(dvar->name, "var");
-	BLI_uniquename(&driver->variables, dvar, "var", '_', offsetof(DriverVar, name), sizeof(dvar->name));
+	strcpy(dvar->name, CTX_DATA_(BLF_I18NCONTEXT_ID_ACTION, "var"));
+	BLI_uniquename(&driver->variables, dvar, CTX_DATA_(BLF_I18NCONTEXT_ID_ACTION, "var"), '_',
+	               offsetof(DriverVar, name), sizeof(dvar->name));
 	
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
