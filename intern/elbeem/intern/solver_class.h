@@ -765,19 +765,19 @@ class LbmFsgrSolver :
 
 // lbm testsolver get index define, note - ignores is (set) as flag
 // array is only a single entry
-#define _LBMGI(level, ii,ij,ik, is) ( (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
+#define _LBMGI(level, ii,ij,ik, is) ( (LONGINT)((LONGINT)mLevel[level].lOffsy*(LONGINT)(ik)) + ((LONGINT)mLevel[level].lOffsx*(LONGINT)(ij)) + (LONGINT)(ii) )
 
 //! flag array acces macro
-#define _RFLAG(level,xx,yy,zz,set) mLevel[level].mprsFlags[set][ LBMGI((level),(xx),(yy),(zz),(set)) ]
-#define _RFLAG_NB(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set) ]
-#define _RFLAG_NBINV(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set) ]
+#define _RFLAG(level,xx,yy,zz,set) mLevel[level].mprsFlags[set][ (LONGINT)LBMGI((level),(xx),(yy),(zz),(set)) ]
+#define _RFLAG_NB(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ (LONGINT)LBMGI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set) ]
+#define _RFLAG_NBINV(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ (LONGINT)LBMGI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set) ]
 
 // array handling  -----------------------------------------------------------------------------------------------
 
-#define _LBMQI(level, ii,ij,ik, is, lunused) ( (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
-#define _QCELL(level,xx,yy,zz,set,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx),(yy),(zz),(set), l)*dTotalNum +(l)])
-#define _QCELL_NB(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set, l)*dTotalNum +(l)])
-#define _QCELL_NBINV(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set, l)*dTotalNum +(l)])
+#define _LBMQI(level, ii,ij,ik, is, lunused) ( (LONGINT)((LONGINT)mLevel[level].lOffsy*(LONGINT)(ik)) + (LONGINT)((LONGINT)mLevel[level].lOffsx*(LONGINT)(ij)) + (LONGINT)(ii) )
+#define _QCELL(level,xx,yy,zz,set,l) (mLevel[level].mprsCells[(set)][ (LONGINT)LBMQI((level),(xx),(yy),(zz),(set), l)*(LONGINT)dTotalNum +(LONGINT)(l)])
+#define _QCELL_NB(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ (LONGINT)LBMQI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set, l)*dTotalNum +(l)])
+#define _QCELL_NBINV(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ (LONGINT)LBMQI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set, l)*dTotalNum +(l)])
 
 #define QCELLSTEP dTotalNum
 #define _RACPNT(level, ii,ij,ik, is )  &QCELL(level,ii,ij,ik,is,0)

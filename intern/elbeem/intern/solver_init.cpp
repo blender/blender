@@ -817,16 +817,16 @@ bool LbmFsgrSolver::initializeSolverMemory()
 	mLevel[ mMaxRefine ].nodeSize = ((mvGeoEnd[0]-mvGeoStart[0]) / (LbmFloat)(mSizex));
 	mLevel[ mMaxRefine ].simCellSize = mpParam->getCellSize();
 	mLevel[ mMaxRefine ].lcellfactor = 1.0;
-	LONGINT rcellSize = ((mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*mLevel[mMaxRefine].lSizez) *dTotalNum);
+	LONGINT rcellSize = (LONGINT)((LONGINT)((LONGINT)mLevel[mMaxRefine].lSizex*(LONGINT)mLevel[mMaxRefine].lSizey*(LONGINT)mLevel[mMaxRefine].lSizez) * (LONGINT)dTotalNum);
 
 #if COMPRESSGRIDS==0
 	mLevel[ mMaxRefine ].mprsCells[0] = new LbmFloat[ rcellSize +4 ];
 	mLevel[ mMaxRefine ].mprsCells[1] = new LbmFloat[ rcellSize +4 ];
 	ownMemCheck += 2 * sizeof(LbmFloat) * (rcellSize+4);
 #else // COMPRESSGRIDS==0
-	LONGINT compressOffset = (mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum*2);
-	// D int tmp = ( (rcellSize +compressOffset +4)/(1024*1024) )*4;
-	// D printf("Debug MEMMMM excee: %d\n", tmp);
+	LONGINT compressOffset = (LONGINT)((LONGINT)mLevel[mMaxRefine].lSizex * (LONGINT)mLevel[mMaxRefine].lSizey * (LONGINT)dTotalNum * 2);
+	// LONGINT tmp = ( (rcellSize +compressOffset +4)/(1024*1024) )*sizeof(LbmFloat);
+	// printf("Debug MEMMMM excee: %I64d, %I64d, %I64d, %d, %d\n", tmp, compressOffset, rcellSize, mLevel[mMaxRefine].lSizex, mLevel[mMaxRefine].lSizey );
 	mLevel[ mMaxRefine ].mprsCells[1] = new LbmFloat[ rcellSize +compressOffset +4 ];
 	mLevel[ mMaxRefine ].mprsCells[0] = mLevel[ mMaxRefine ].mprsCells[1]+compressOffset;
 	ownMemCheck += sizeof(LbmFloat) * (rcellSize +compressOffset +4);
