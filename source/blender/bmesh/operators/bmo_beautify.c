@@ -26,45 +26,40 @@
 
 #include "BLI_math.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"
 
+// #define DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#  include "PIL_time.h"
+#endif
 
 #define ELE_NEW		1
 #define FACE_MARK	2
-#define EDGE_MARK	4
 
-void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
+static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len)
 {
-	BMOIter siter;
-	BMIter iter;
-	BMFace *f;
-	BMEdge *e;
-	int stop = 0;
-	
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
-	
-	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
-		if (f->len == 3) {
-			BMO_elem_flag_enable(bm, f, FACE_MARK);
-		}
-	}
+	bool is_breaked;
 
-	while (!stop) {
-		stop = 1;
-		
-		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+#ifdef DEBUG_TIME
+	TIMEIT_START(beautify_fill);
+#endif
+
+	do {
+		int i;
+
+		is_breaked = true;
+
+		for (i = 0; i < edge_array_len; i++) {
 			BMVert *v1, *v2, *v3, *v4;
-			
-			if (!BM_edge_is_manifold(e) || !BMO_elem_flag_test(bm, e, EDGE_MARK)) {
-				continue;
-			}
+			BMEdge *e = edge_array[i];
 
-			if (!BMO_elem_flag_test(bm, e->l->f, FACE_MARK) ||
-			    !BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
-			{
-				continue;
-			}
+			BLI_assert(BM_edge_is_manifold(e) == true);
+			BLI_assert(BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
+			           BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK));
 
 			v1 = e->l->prev->v;               /* first face vert not attached to 'e' */
 			v2 = e->l->v;                     /* e->v1 or e->v2*/
@@ -103,20 +98,68 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				opp2 = area_tri_v3(v2->co, v4->co, v1->co);
 
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
-				
+
 				if (fac1 > fac2) {
+					const int e_index = BM_elem_index_get(e);
 					e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
-					if (e) {
-						BMO_elem_flag_enable(bm, e, ELE_NEW | EDGE_MARK);
+					if (LIKELY(e)) {
+						/* maintain the index array */
+						edge_array[e_index] = e;
+						BM_elem_index_set(e, e_index);
+
+						BMO_elem_flag_enable(bm, e, ELE_NEW);
 
 						BMO_elem_flag_enable(bm, e->l->f, FACE_MARK | ELE_NEW);
 						BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK | ELE_NEW);
-						stop = 0;
+						is_breaked = false;
 					}
 				}
 			}
 		}
+	} while (is_breaked == false);
+
+#ifdef DEBUG_TIME
+	TIMEIT_END(beautify_fill);
+#endif
+}
+
+
+void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMFace *f;
+	BMEdge *e;
+
+	BMEdge **edge_array;
+	int edge_array_len = 0;
+
+	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
+		if (f->len == 3) {
+			BMO_elem_flag_enable(bm, f, FACE_MARK);
+		}
 	}
-	
+
+	/* will over alloc if some edges can't be rotated */
+	edge_array = MEM_mallocN(sizeof(*edge_array) *  BMO_slot_buffer_count(op->slots_in, "edges"), __func__);
+
+	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
+
+		/* edge is manifold and can be rotated */
+		if (BM_edge_rotate_check(e) &&
+			/* faces are tagged */
+			BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
+			BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
+		{
+			BM_elem_index_set(e, edge_array_len);  /* set_dirty */
+			edge_array[edge_array_len] = e;
+			edge_array_len++;
+		}
+	}
+	bm->elem_index_dirty |= BM_EDGE;
+
+	bm_mesh_beautify_fill(bm, edge_array, edge_array_len);
+
+	MEM_freeN(edge_array);
+
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
 }
