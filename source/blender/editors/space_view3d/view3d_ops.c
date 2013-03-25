@@ -146,6 +146,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_lock_clear);
 	WM_operatortype_append(VIEW3D_OT_view_lock_to_active);
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
+	WM_operatortype_append(VIEW3D_OT_view_center_pick);
 	WM_operatortype_append(VIEW3D_OT_view_center_camera);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_select_border);
@@ -245,6 +246,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_cursor", HOMEKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_pick", FKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "center", FALSE); /* only without camera view */

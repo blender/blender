@@ -2665,6 +2665,42 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+static int viewcenter_pick_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	if (rv3d) {
+		float new_ofs[3];
+
+		view3d_operator_needs_opengl(C);
+
+		if (ED_view3d_autodist(scene, ar, v3d, event->mval, new_ofs, false)) {
+			negate_v3(new_ofs);
+			view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Center View to Mouse";
+	ot->description = "Center the view to the ZDepth Position under the Mouse Cursor";
+	ot->idname = "VIEW3D_OT_view_center_pick";
+
+	/* api callbacks */
+	ot->invoke = viewcenter_pick_invoke;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
 	Scene *scene = CTX_data_scene(C);
