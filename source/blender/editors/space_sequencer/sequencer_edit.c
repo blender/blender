@@ -1082,7 +1082,7 @@ void SEQUENCER_OT_insert_gap(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "frames", 10, 0, 1000, "Frames", "Frames to insert after current strip", 0, INT_MAX);
+	RNA_def_int(ot->srna, "frames", 10, 0, INT_MAX, "Frames", "Frames to insert after current strip", 0, 1000);
 }
 
 
