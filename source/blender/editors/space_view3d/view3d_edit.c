@@ -2683,7 +2683,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 		else {
 			/* fallback to simple pan */
 			negate_v3_v3(new_ofs, rv3d->ofs);
-			view3d_get_view_aligned_coordinate(ar, new_ofs, event->mval, true);
+			ED_view3d_win_to_3d_int(ar, new_ofs, event->mval, new_ofs);
 		}
 		negate_v3(new_ofs);
 		view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);

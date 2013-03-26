@@ -199,6 +199,7 @@ float ED_view3d_calc_zfac(const struct RegionView3D *rv3d, const float co[3], bo
 void ED_view3d_win_to_ray(const struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
 void ED_view3d_global_to_vector(const struct RegionView3D *rv3d, const float coord[3], float vec[3]);
 void ED_view3d_win_to_3d(const struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
+void ED_view3d_win_to_3d_int(const struct ARegion *ar, const float depth_pt[3], const int mval[2], float out[3]);
 void ED_view3d_win_to_delta(const struct ARegion *ar, const float mval[2], float out[3], const float zfac);
 void ED_view3d_win_to_vector(const struct ARegion *ar, const float mval[2], float out[3]);
 void ED_view3d_win_to_segment(const struct ARegion *ar, struct View3D *v3d, const float mval[2],
@@ -261,7 +262,6 @@ short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigne
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_region_operator_needs_opengl(struct wmWindow *win, struct ARegion *ar);
-bool view3d_get_view_aligned_coordinate(struct ARegion *ar, float fp[3], const int mval[2], const bool do_fallback);
 void view3d_opengl_read_pixels(struct ARegion *ar, int x, int y, int w, int h, int format, int type, void *data);
 void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
