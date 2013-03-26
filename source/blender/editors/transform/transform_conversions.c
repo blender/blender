@@ -6469,7 +6469,7 @@ void createTransData(bContext *C, TransInfo *t)
 				sort_trans_data_dist(t);
 			}
 		}
-		else {
+		else if (t->obedit) {
 			createTransUVs(C, t);
 			if (t->data && (t->flag & T_PROP_EDIT)) {
 				sort_trans_data(t); // makes selected become first in array
