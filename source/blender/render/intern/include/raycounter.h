@@ -50,7 +50,7 @@ typedef struct RayCounter {
 } RayCounter;
 
 #define RE_RC_INIT(isec, shi) (isec).raycounter = &((shi).shading.raycounter)
-void RE_RC_INFO (RayCounter *rc);
+void RE_RC_INFO(RayCounter *rc);
 void RE_RC_MERGE(RayCounter *rc, RayCounter *tmp);
 #define RE_RC_COUNT(var) (var)++
 

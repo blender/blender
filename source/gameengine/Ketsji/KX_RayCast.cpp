@@ -80,7 +80,7 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 	                                                      frompoint.x(),frompoint.y(),frompoint.z(),
 	                                                      topoint.x(),topoint.y(),topoint.z())) != NULL)
 	{
-		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(hit_controller->getNewClientInfo());
+		KX_ClientObjectInfo *info = static_cast<KX_ClientObjectInfo*>(hit_controller->getNewClientInfo());
 		
 		if (!info)
 		{

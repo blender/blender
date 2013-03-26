@@ -46,7 +46,7 @@ extern "C" {
  *	...
  */	
 
-typedef int  (*RE_rayobjectcontrol_test_break_callback)(void *data);
+typedef int (*RE_rayobjectcontrol_test_break_callback)(void *data);
 
 typedef struct RayObjectControl {
 	void *data;

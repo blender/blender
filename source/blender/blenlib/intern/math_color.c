@@ -457,7 +457,7 @@ float linearrgb_to_srgb(float c)
 		return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
-void minmax_rgb(short c[])
+void minmax_rgb(short c[3])
 {
 	if (c[0] > 255) c[0] = 255;
 	else if (c[0] < 0) c[0] = 0;

@@ -82,7 +82,7 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 							const PHY_CollData *coll_data)
 {
 	PHY_IPhysicsController* ctrl = static_cast<PHY_IPhysicsController*>(object1);
-	KX_ClientObjectInfo* info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
+	KX_ClientObjectInfo *info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
 	// This call back should only be called for controllers of Near and Radar sensor
 	if (!info)
 		return true;

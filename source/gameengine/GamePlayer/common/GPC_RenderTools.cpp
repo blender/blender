@@ -163,7 +163,7 @@ void GPC_RenderTools::SetClientObject(RAS_IRasterizer *rasty, void* obj)
 	}
 }
 
-bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
+bool GPC_RenderTools::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
 	MT_Point3 resultpoint(result->m_hitPoint);

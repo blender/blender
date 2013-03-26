@@ -299,7 +299,7 @@ static int ImageRender_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 	// parameters - scene object
 	PyObject *scene;
 	// camera object
-	PyObject * camera;
+	PyObject *camera;
 	// parameter keywords
 	static const char *kwlist[] = {"sceneObj", "cameraObj", NULL};
 	// get parameters

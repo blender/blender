@@ -51,12 +51,12 @@ extern "C" {
 #endif
 
 #ifdef FFMPEG_CODEC_IS_POINTER
-static inline AVCodecContext* get_codec_from_stream(AVStream* stream)
+static inline AVCodecContext *get_codec_from_stream(AVStream* stream)
 {
 	return stream->codec;
 }
 #else
-static inline AVCodecContext* get_codec_from_stream(AVStream* stream)
+static inline AVCodecContext *get_codec_from_stream(AVStream* stream)
 {
 	return &stream->codec;
 }

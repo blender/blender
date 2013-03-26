@@ -36,7 +36,7 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-unsigned int			KX_Hash(void * inDWord);
+unsigned int			KX_Hash(void *inDWord);
 
 class CHashedPtr
 {

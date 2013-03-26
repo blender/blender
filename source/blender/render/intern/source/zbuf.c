@@ -2062,7 +2062,7 @@ static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)
 
 /* ***************** ZBUFFER MAIN ROUTINES **************** */
 
-void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*, ZSpan*, int, void*), void *data)
+void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart *, ZSpan *, int, void *), void *data)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan; /* 16 = RE_MAX_OSA */
@@ -2531,7 +2531,7 @@ static void zbuffill_sss(ZSpan *zspan, int obi, int zvlnr,
 	}
 }
 
-void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int))
+void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void *, int, int, int, int, int))
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspan;

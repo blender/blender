@@ -79,7 +79,7 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 }
 #endif
 
-void ArmatureImporter::create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
+void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
                                    float parent_mat[4][4], bArmature *arm)
 {
 	//Checking if bone is already made.

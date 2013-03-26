@@ -218,7 +218,7 @@ static NSString *stringWithCodecType(int codecType)
 	return [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
 }
 
-void makeqtstring (RenderData *rd, char *string)
+void makeqtstring(RenderData *rd, char *string)
 {
 	char txt[64];
 

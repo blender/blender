@@ -332,7 +332,7 @@ int sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformma
 			if (!defmats) {
 				Mesh *me = (Mesh *)ob->data;
 				dm = mesh_create_derived(me, ob, NULL);
-				deformedVerts = mesh_getVertexCos(me, &numVerts);
+				deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 				defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
 
 				for (a = 0; a < numVerts; a++)
@@ -413,7 +413,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 		int a, numVerts;
 		Mesh *me = (Mesh *)ob->data;
 
-		*deformcos = mesh_getVertexCos(me, &numVerts);
+		*deformcos = BKE_mesh_vertexCos_get(me, &numVerts);
 		*deformmats = MEM_callocN(sizeof(*(*deformmats)) * numVerts, "defmats");
 
 		for (a = 0; a < numVerts; a++)

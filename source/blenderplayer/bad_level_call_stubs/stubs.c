@@ -189,7 +189,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype) {}
 char stipple_quarttone[1]; //GLubyte stipple_quarttone[128]
 double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, char *retstr) {return 0.0f;}
-struct Render *RE_NewRender(const char *name) {return (struct Render*) NULL;}
+struct Render *RE_NewRender(const char *name) {return (struct Render *) NULL;}
 void RE_SwapResult(struct Render *re, struct RenderResult **rr) {}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame) {}
 int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) { return 0; }
@@ -239,7 +239,7 @@ void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *regionx
 void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, int *regionx, int *region_y) {}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo) {return (struct EditBone *) NULL;}
-struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name) {return (struct EditBone*) NULL;}
+struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name) {return (struct EditBone *) NULL;}
 struct ListBase *get_active_constraints (struct Object *ob) {return (struct ListBase *) NULL;}
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r) {return (struct ListBase *) NULL;}
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan) {return 0;}
@@ -517,8 +517,8 @@ void WM_operator_properties_free(struct PointerRNA *ptr) {}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring) {}
 void WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot) {}
 void WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context) {};
-void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void *), void *userdata) {}
-void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType*, void *), void *userdata) {}
+void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata) {}
+void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata) {}
 void WM_operator_bl_idname(char *to, const char *from) {}
 void WM_operator_py_idname(char *to, const char *from) {}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height) {}

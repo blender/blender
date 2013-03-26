@@ -116,7 +116,7 @@ KX_ConstraintActuator::~KX_ConstraintActuator()
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
-bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
+bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
 {
 
 	m_hitObject = client->m_gameobject;
@@ -150,7 +150,7 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* resu
 /* This function is used to pre-filter the object before casting the ray on them.
  * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
-bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo* client)
+bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo *client)
 {
 	if (client->m_type > KX_ClientObjectInfo::ACTOR)
 	{

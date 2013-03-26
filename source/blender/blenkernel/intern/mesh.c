@@ -2190,7 +2190,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	*mloop_r = mloop;
 }
 
-float (*mesh_getVertexCos(Mesh * me, int *r_numVerts))[3]
+float (*BKE_mesh_vertexCos_get(Mesh *me, int *r_numVerts))[3]
 {
 	int i, numVerts = me->totvert;
 	float (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "vertexcos1");

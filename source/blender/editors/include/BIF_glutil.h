@@ -188,7 +188,7 @@ gla2DDrawInfo  *glaBegin2DDraw(struct rcti *screen_rect, struct rctf *world_rect
 void            gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r);
 
 /** Translate the \a world point from world coordiantes into screen space. */
-void gla2DDrawTranslatePtv(gla2DDrawInfo * di, float world[2], int screen_r[2]);
+void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2]);
 
 /* Restores the previous OpenGL state and free's the auxilary
  * gla data.

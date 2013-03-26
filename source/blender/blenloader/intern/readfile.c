@@ -10510,13 +10510,13 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 	return id;
 }
 
-ID *BLO_library_append_named_part(Main *mainl, BlendHandle** bh, const char *idname, const int idcode)
+ID *BLO_library_append_named_part(Main *mainl, BlendHandle **bh, const char *idname, const int idcode)
 {
 	FileData *fd = (FileData*)(*bh);
 	return append_named_part(mainl, fd, idname, idcode);
 }
 
-ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag)
+ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag)
 {
 	FileData *fd = (FileData*)(*bh);
 	return append_named_part_ex(C, mainl, fd, idname, idcode, flag);
@@ -10564,7 +10564,7 @@ static Main *library_append_begin(Main *mainvar, FileData **fd, const char *file
 	return mainl;
 }
 
-Main *BLO_library_append_begin(Main *mainvar, BlendHandle** bh, const char *filepath)
+Main *BLO_library_append_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
 {
 	FileData *fd = (FileData*)(*bh);
 	return library_append_begin(mainvar, &fd, filepath);
@@ -10638,7 +10638,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	}
 }
 
-void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag)
+void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag)
 {
 	FileData *fd = (FileData*)(*bh);
 	library_append_end(C, mainl, &fd, idcode, flag);

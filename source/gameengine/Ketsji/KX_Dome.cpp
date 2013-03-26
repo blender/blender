@@ -1435,7 +1435,7 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 	*nfaces = n2;
 }
 
-void KX_Dome::CalculateFrustum(KX_Camera * cam)
+void KX_Dome::CalculateFrustum(KX_Camera *cam)
 {
 #if 0
 	// manually creating a 90deg Field of View Frustum 

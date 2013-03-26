@@ -124,7 +124,7 @@ PyObject *Filter_getPrevious (PyFilter *self, void *closure)
 	if (self->m_filter != NULL)
 	{
 		// pixel filter object
-		PyObject * filt = reinterpret_cast<PyObject*>(self->m_filter->getPrevious());
+		PyObject *filt = reinterpret_cast<PyObject*>(self->m_filter->getPrevious());
 		// if filter is present
 		if (filt != NULL)
 		{

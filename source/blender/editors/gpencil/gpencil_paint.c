@@ -877,7 +877,7 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p,
 }
 
 /* eraser tool - check if part of stroke occurs within last segment drawn by eraser */
-static short gp_stroke_eraser_strokeinside(const int mval[], const int UNUSED(mvalo[]),
+static short gp_stroke_eraser_strokeinside(const int mval[2], const int UNUSED(mvalo[2]),
                                            int rad, int x0, int y0, int x1, int y1)
 {
 	/* simple within-radius check for now */
@@ -927,7 +927,7 @@ static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
 static void gp_stroke_eraser_dostroke(tGPsdata *p,
-                                      const int mval[], const int mvalo[],
+                                      const int mval[2], const int mvalo[2],
                                       short rad, const rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;

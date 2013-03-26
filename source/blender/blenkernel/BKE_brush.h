@@ -69,7 +69,7 @@ void BKE_brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
                           const float pos[2], float jitterpos[2]);
 
 /* brush curve */
-void BKE_brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/ int preset);
+void BKE_brush_curve_preset(struct Brush *b, int preset);
 float BKE_brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float BKE_brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 

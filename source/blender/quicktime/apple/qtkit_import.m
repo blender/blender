@@ -78,7 +78,7 @@ void quicktime_exit(void)
 }
 
 
-int anim_is_quicktime (const char *name)
+int anim_is_quicktime(const char *name)
 {
 	NSAutoreleasePool *pool;
 	
@@ -119,7 +119,7 @@ int anim_is_quicktime (const char *name)
 }
 
 
-void free_anim_quicktime (struct anim *anim)
+void free_anim_quicktime(struct anim *anim)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
@@ -143,7 +143,7 @@ void free_anim_quicktime (struct anim *anim)
 	[pool drain];
 }
 
-static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
+static ImBuf *nsImageToiBuf(NSImage *sourceImage, int width, int height)
 {
 	ImBuf *ibuf = NULL;
 	uchar *rasterRGB = NULL;
@@ -260,7 +260,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	return ibuf;
 }
 
-ImBuf * qtime_fetchibuf (struct anim *anim, int position)
+ImBuf *qtime_fetchibuf (struct anim *anim, int position)
 {
 	NSImage *frameImage;
 	QTTime time;
@@ -299,7 +299,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 }
 
 
-int startquicktime (struct anim *anim)
+int startquicktime(struct anim *anim)
 {
 	NSAutoreleasePool *pool;
 	NSArray* videoTracks;
@@ -390,7 +390,7 @@ int startquicktime (struct anim *anim)
 	return 0;
 }
 
-int imb_is_a_quicktime (char *name)
+int imb_is_a_quicktime(char *name)
 {
 	NSImage *image;
 	int result;

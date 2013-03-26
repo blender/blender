@@ -134,7 +134,7 @@ struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
  */
 
 void IMB_refImBuf(struct ImBuf *ibuf);
-struct ImBuf * IMB_makeSingleUser(struct ImBuf *ibuf);
+struct ImBuf *IMB_makeSingleUser(struct ImBuf *ibuf);
 
 /**
  *
@@ -213,9 +213,9 @@ typedef enum IMB_Proxy_Size {
 } IMB_Proxy_Size;
 
 /* defaults to BL_proxy within the directory of the animation */
-void IMB_anim_set_index_dir(struct anim * anim, const char * dir);
+void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
 
-int IMB_anim_index_get_frame_index(struct anim * anim, IMB_Timecode_Type tc,
+int IMB_anim_index_get_frame_index(struct anim *anim, IMB_Timecode_Type tc,
                                    int position);
 
 struct IndexBuildContext;
@@ -241,8 +241,8 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc);
  * Return the fps contained in movie files (function rval is FALSE,
  * and frs_sec and frs_sec_base untouched if none available!)
  */
-int IMB_anim_get_fps(struct anim * anim, 
-                     short * frs_sec, float * frs_sec_base);
+int IMB_anim_get_fps(struct anim *anim,
+                     short *frs_sec, float *frs_sec_base);
 
 /**
  *

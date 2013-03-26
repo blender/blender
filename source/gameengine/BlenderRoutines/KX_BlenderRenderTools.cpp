@@ -154,7 +154,7 @@ void KX_BlenderRenderTools::SetClientObject(RAS_IRasterizer *rasty, void* obj)
 	}
 }
 
-bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
+bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
 	MT_Point3 resultpoint(result->m_hitPoint);

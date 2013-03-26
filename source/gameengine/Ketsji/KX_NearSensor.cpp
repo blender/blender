@@ -186,7 +186,7 @@ bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	assert(obj1==m_physCtrl && obj2);
-	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>((static_cast<PHY_IPhysicsController*>(obj2))->getNewClientInfo());
+	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>((static_cast<PHY_IPhysicsController*>(obj2))->getNewClientInfo());
 
 	KX_GameObject* gameobj = ( client_info ? 
 			client_info->m_gameobject :
@@ -208,14 +208,14 @@ bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
 	return false;
 }
 
-bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData * coll_data)
+bool	KX_NearSensor::NewHandleCollision(void *obj1, void *obj2, const PHY_CollData *coll_data)
 {
 //	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
 //	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
-	KX_ClientObjectInfo* client_info =static_cast<KX_ClientObjectInfo*> (obj1 == m_physCtrl? 
+	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*> (obj1 == m_physCtrl?
 					((PHY_IPhysicsController*)obj2)->getNewClientInfo() : 
 					((PHY_IPhysicsController*)obj1)->getNewClientInfo());
 

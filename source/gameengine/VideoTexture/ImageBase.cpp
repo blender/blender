@@ -364,7 +364,7 @@ PyTypeList pyImageTypes;
 // functions for python interface
 
 // object allocation
-PyObject *Image_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
+PyObject *Image_allocNew(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	// allocate object
 	PyImage *self = reinterpret_cast<PyImage*>(type->tp_alloc(type, 0));
@@ -394,7 +394,7 @@ void Image_dealloc(PyImage *self)
 }
 
 // get image data
-PyObject *Image_getImage (PyImage *self, char * mode)
+PyObject *Image_getImage(PyImage *self, char *mode)
 {
 	try
 	{
@@ -551,7 +551,7 @@ int Image_setFlip(PyImage *self, PyObject *value, void *closure)
 }
 
 // get zbuff
-PyObject * Image_getZbuff (PyImage * self, void * closure)
+PyObject *Image_getZbuff(PyImage * self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getZbuff()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
@@ -573,7 +573,7 @@ int Image_setZbuff(PyImage *self, PyObject *value, void *closure)
 }
 
 // get depth
-PyObject * Image_getDepth (PyImage * self, void * closure)
+PyObject *Image_getDepth(PyImage * self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getDepth()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
@@ -598,7 +598,7 @@ int Image_setDepth(PyImage *self, PyObject *value, void *closure)
 
 
 // get filter source object
-PyObject *Image_getSource (PyImage *self, PyObject *args)
+PyObject *Image_getSource(PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;
@@ -622,7 +622,7 @@ PyObject *Image_getSource (PyImage *self, PyObject *args)
 
 
 // set filter source object
-PyObject *Image_setSource (PyImage *self, PyObject *args)
+PyObject *Image_setSource(PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;
@@ -657,13 +657,13 @@ PyObject *Image_setSource (PyImage *self, PyObject *args)
 
 
 // get pixel filter object
-PyObject *Image_getFilter (PyImage *self, void *closure)
+PyObject *Image_getFilter(PyImage *self, void *closure)
 {
 	// if image object is available
 	if (self->m_image != NULL)
 	{
 		// pixel filter object
-		PyObject * filt = reinterpret_cast<PyObject*>(self->m_image->getFilter());
+		PyObject *filt = reinterpret_cast<PyObject*>(self->m_image->getFilter());
 		// if filter is present
 		if (filt != NULL)
 		{

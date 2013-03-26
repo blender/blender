@@ -221,7 +221,7 @@ void BKE_mesh_calc_normals(
 
 /* Return a newly MEM_malloc'd array of all the mesh vertex locations
  * (_numVerts_r_ may be NULL) */
-float (*mesh_getVertexCos(struct Mesh *me, int *r_numVerts))[3];
+float (*BKE_mesh_vertexCos_get(struct Mesh *me, int *r_numVerts))[3];
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 

@@ -139,7 +139,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 
 void TransformWriter::add_node_transform_identity(COLLADASW::Node& node)
 {
-	float loc[] = {0.0f, 0.0f, 0.0f}, scale[] = {1.0f, 1.0f, 1.0f}, rot[] = {0.0f, 0.0f, 0.0f};
+	float loc[3] = {0.0f, 0.0f, 0.0f}, scale[3] = {1.0f, 1.0f, 1.0f}, rot[3] = {0.0f, 0.0f, 0.0f};
 	add_transform(node, loc, rot, scale);
 }
 

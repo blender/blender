@@ -141,7 +141,7 @@ static int setMatrix(PyFilter *self, PyObject *value, void *closure)
 	for (int r = 0; valid && r < 4; ++r)
 	{
 		// get row object
-		PyObject * row = PySequence_Fast_GET_ITEM(value, r);
+		PyObject *row = PySequence_Fast_GET_ITEM(value, r);
 		// check sequence
 		valid = PySequence_Check(row) && PySequence_Size(row) == 5;
 		// check items
@@ -274,7 +274,7 @@ static int setLevels(PyFilter *self, PyObject *value, void *closure)
 	for (int r = 0; valid && r < 4; ++r)
 	{
 		// get row object
-		PyObject * row = PySequence_Fast_GET_ITEM(value, r);
+		PyObject *row = PySequence_Fast_GET_ITEM(value, r);
 		// check sequence
 		valid = PySequence_Check(row) && PySequence_Size(row) == 2;
 		// check items

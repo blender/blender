@@ -123,7 +123,7 @@ void CListValue::ReleaseAndRemoveAll()
 
 
 
-CValue* CListValue::FindValue(const STR_String & name)
+CValue* CListValue::FindValue(const STR_String &name)
 {
 	for (int i=0; i < GetCount(); i++)
 		if (GetValue(i)->GetName() == name)
@@ -132,7 +132,7 @@ CValue* CListValue::FindValue(const STR_String & name)
 	return NULL;
 }
 
-CValue* CListValue::FindValue(const char * name)
+CValue* CListValue::FindValue(const char *name)
 {
 	for (int i=0; i < GetCount(); i++)
 		if (GetValue(i)->GetName() == name)

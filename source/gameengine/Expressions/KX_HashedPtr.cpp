@@ -32,7 +32,7 @@
 
 #include "KX_HashedPtr.h"
 
-unsigned int KX_Hash(void * inDWord)
+unsigned int KX_Hash(void *inDWord)
 {
 #if defined(_WIN64) && !defined(FREE_WINDOWS64)
 	unsigned __int64 key = (unsigned __int64)inDWord;

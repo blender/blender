@@ -647,7 +647,7 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 }
 
 /* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already */
-static void do_versions_seq_unique_name_all_strips(Scene * sce, ListBase *seqbasep)
+static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
 	Sequence * seq = seqbasep->first;
 

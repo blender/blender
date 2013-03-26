@@ -136,7 +136,7 @@ bool KX_MouseFocusSensor::Evaluate()
 	return result;
 }
 
-bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* result, void * const data)
+bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *result, void * const data)
 {
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
 	

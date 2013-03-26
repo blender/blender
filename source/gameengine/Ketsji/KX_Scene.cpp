@@ -1468,7 +1468,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	}
 }
 
-void KX_Scene::PhysicsCullingCallback(KX_ClientObjectInfo* objectInfo, void* cullingInfo)
+void KX_Scene::PhysicsCullingCallback(KX_ClientObjectInfo *objectInfo, void* cullingInfo)
 {
 	KX_GameObject* gameobj = objectInfo->m_gameobject;
 	if (!gameobj->GetVisible())

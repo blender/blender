@@ -1532,7 +1532,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 	return in;
 }
 
-static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex,
+static void texco_mapping(ShadeInput *shi, Tex *tex, MTex *mtex,
                           const float co[3], const float dx[3], const float dy[3], float texvec[3], float dxt[3], float dyt[3])
 {
 	/* new: first swap coords, then map, then trans/scale */

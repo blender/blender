@@ -125,7 +125,7 @@ void image_undo_restore(struct bContext *C, struct ListBase *lb);
 void image_undo_free(struct ListBase *lb);
 void imapaint_image_update(struct SpaceImage *sima, struct Image *image, struct ImBuf *ibuf, short texpaint);
 struct ImagePaintPartialRedraw *get_imapaintpartial(void);
-void set_imapaintpartial(struct ImagePaintPartialRedraw * ippr);
+void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr);
 void imapaint_clear_partial_redraw(void);
 void imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
 int get_imapaint_zoom(struct bContext *C, float *zoomx, float *zoomy);

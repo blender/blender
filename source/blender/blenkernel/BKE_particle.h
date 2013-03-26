@@ -321,7 +321,7 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct Pa
 ParticleThread *psys_threads_create(struct ParticleSimulationData *sim);
 void psys_threads_free(ParticleThread *threads);
 
-void psys_make_billboard(ParticleBillboardData * bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
+void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
 void psys_apply_hair_lattice(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 
 /* particle_system.c */

@@ -520,9 +520,9 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 uiWidgetColors *ui_tooltip_get_theme(void);
-void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock * block, rcti * rect);
+void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
-int ui_link_bezier_points(const rcti * rect, float coord_array[][2], int resol);
+int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol);
 void ui_draw_link_bezier(const rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);

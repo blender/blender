@@ -59,7 +59,7 @@ extern "C" {
 #include "RNA_define.h"
 }
 
-BL_ActionActuator::BL_ActionActuator(SCA_IObject* gameobj,
+BL_ActionActuator::BL_ActionActuator(SCA_IObject *gameobj,
 					const STR_String& propname,
 					const STR_String& framepropname,
 					float starttime,

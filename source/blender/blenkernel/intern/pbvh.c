@@ -1698,7 +1698,7 @@ void BKE_pbvh_node_layer_disp_free(PBVHNode *node)
 	}
 }
 
-float (*BKE_pbvh_get_vertCos(PBVH * pbvh))[3]
+float (*BKE_pbvh_get_vertCos(PBVH *pbvh))[3]
 {
 	int a;
 	float (*vertCos)[3] = NULL;

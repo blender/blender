@@ -45,10 +45,10 @@ public:
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	
 	
-	CVectorValue(double vec[],const char *name,AllocationTYPE alloctype=CValue::HEAPVALUE);
+	CVectorValue(double vec[3], const char *name,AllocationTYPE alloctype=CValue::HEAPVALUE);
 	CVectorValue() {};
 
-	CVectorValue(double vec[],AllocationTYPE alloctype=CValue::HEAPVALUE);
+	CVectorValue(double vec[3], AllocationTYPE alloctype=CValue::HEAPVALUE);
 	CVectorValue(float x,float y,float z, AllocationTYPE alloctype = CValue::HEAPVALUE);
 	virtual ~CVectorValue();
 	//virtual bool ExportT3D(File *txtfile,bool bNoName=false);

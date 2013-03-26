@@ -63,7 +63,7 @@ static int KX_PythonSeq_clear(KX_PythonSeq *self)
 	return 0;
 }
 
-static void KX_PythonSeq_dealloc(KX_PythonSeq * self)
+static void KX_PythonSeq_dealloc(KX_PythonSeq *self)
 {
 	KX_PythonSeq_clear(self);
 	PyObject_GC_Del(self);
@@ -264,7 +264,7 @@ static PyObjectPlus * KX_PythonSeq_subscript__internal(PyObject *self, const cha
 }
 
 
-static PyObject * KX_PythonSeq_subscript(PyObject *self, PyObject *key)
+static PyObject *KX_PythonSeq_subscript(PyObject *self, PyObject *key)
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	
@@ -394,9 +394,9 @@ static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 }
 
 
-static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b )
+static int KX_PythonSeq_compare(KX_PythonSeq *a, KX_PythonSeq *b)
 {
-	return ( a->type == b->type && a->base == b->base) ? 0 : -1;
+	return (a->type == b->type && a->base == b->base) ? 0 : -1;
 }
 
 static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)
@@ -434,7 +434,7 @@ static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)
  * repr function
  * convert to a list and get its string value
  */
-static PyObject *KX_PythonSeq_repr( KX_PythonSeq * self )
+static PyObject *KX_PythonSeq_repr(KX_PythonSeq *self)
 {
 	PyObject *list = PySequence_List((PyObject *)self);
 	PyObject *repr = PyObject_Repr(list);

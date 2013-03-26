@@ -208,7 +208,7 @@ KX_Camera* KX_SceneActuator::FindCamera(const char *camName)
 
 
 
-KX_Scene* KX_SceneActuator::FindScene(const char * sceneName)
+KX_Scene* KX_SceneActuator::FindScene(const char *sceneName)
 {
 	return m_KetsjiEngine->FindScene(sceneName);
 }
