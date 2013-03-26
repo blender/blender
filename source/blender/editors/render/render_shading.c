@@ -428,10 +428,12 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy texture */
-	if (tex)
+	if (tex) {
 		tex = BKE_texture_copy(tex);
-	else
+	}
+	else {
 		tex = add_texture(bmain, DATA_("Texture"));
+	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -480,7 +482,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 		wo = BKE_world_copy(wo);
 	}
 	else {
-		wo = add_world(bmain, "World");
+		wo = add_world(bmain, DATA_("World"));
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(C, &wo->id);

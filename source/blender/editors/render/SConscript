@@ -35,6 +35,8 @@ incs += ' ../../gpu'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 incs += ' ../../blenloader ../../bmesh ../../blenfont'
 
+defs = []
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
@@ -54,4 +56,7 @@ if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:
        env.Append(CFLAGS=['-DPARALLEL=1'])
 
-env.BlenderLib ( 'bf_editors_render', sources, Split(incs), [], libtype=['core'], priority=[45])
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib('bf_editors_render', sources, Split(incs), defs, libtype=['core'], priority=[45])

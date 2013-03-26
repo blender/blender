@@ -43,6 +43,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -229,7 +231,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 		bGPdata *gpd = (*gpd_ptr);
 		
 		id_us_min(&gpd->id);
-		*gpd_ptr = gpencil_data_addnew("GPencil");
+		*gpd_ptr = gpencil_data_addnew(DATA_("GPencil"));
 	}
 	
 	/* notifiers */
@@ -312,10 +314,10 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	if (*gpd_ptr == NULL)
-		*gpd_ptr = gpencil_data_addnew("GPencil");
-		
+		*gpd_ptr = gpencil_data_addnew(DATA_("GPencil"));
+	
 	/* add new layer now */
-	gpencil_layer_addnew(*gpd_ptr, "GP_Layer", 1);
+	gpencil_layer_addnew(*gpd_ptr, DATA_("GP_Layer"), 1);
 	
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
