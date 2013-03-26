@@ -86,6 +86,9 @@ static GHash *erot_ghash_new(void)
 static void erot_state_ex(const BMEdge *e, int v_index[2], int f_index[2])
 {
 	BLI_assert(BM_edge_is_manifold((BMEdge *)e));
+	BLI_assert(BM_vert_in_edge(e, e->l->prev->v)              == false);
+	BLI_assert(BM_vert_in_edge(e, e->l->radial_next->prev->v) == false);
+
 	/* verts of the edge */
 	v_index[0] = BM_elem_index_get(e->v1);
 	v_index[1] = BM_elem_index_get(e->v2);
@@ -151,9 +154,10 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 		is_breaked = true;
 
 		for (i = 0; i < edge_array_len; i++) {
-			BMVert *v1, *v2, *v3, *v4;
 			BMEdge *e = edge_array[i];
 			GHash *e_state_hash;
+
+			float v1_xy[2], v2_xy[2], v3_xy[2], v4_xy[2];
 
 			BLI_assert(BM_edge_is_manifold(e) == true);
 			BLI_assert(BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
@@ -178,61 +182,105 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 				}
 			}
 
-			v1 = e->l->prev->v;               /* first face vert not attached to 'e' */
-			v2 = e->l->v;                     /* e->v1 or e->v2*/
-			v3 = e->l->radial_next->prev->v;  /* second face vert not attached to 'e' */
-			v4 = e->l->next->v;               /* e->v1 or e->v2*/
+			{
+				const float *v1, *v2, *v3, *v4;
+				bool is_zero_a, is_zero_b;
+				float no[3];
+				float axis_mat[3][3];
 
-			if (UNLIKELY(v1 == v3)) {
-				// printf("This should never happen, but does sometimes!\n");
-				continue;
+				v1 = e->l->prev->v->co;               /* first face co */
+				v2 = e->l->v->co;                     /* e->v1 or e->v2*/
+				v3 = e->l->radial_next->prev->v->co;  /* second face co */
+				v4 = e->l->next->v->co;               /* e->v1 or e->v2*/
+
+				if (UNLIKELY(v1 == v3)) {
+					// printf("This should never happen, but does sometimes!\n");
+					continue;
+				}
+
+				// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
+				BLI_assert((ELEM3(v1, v2, v3, v4) == false) &&
+				           (ELEM3(v2, v1, v3, v4) == false) &&
+				           (ELEM3(v3, v1, v2, v4) == false) &&
+				           (ELEM3(v4, v1, v2, v3) == false));
+
+				is_zero_a = area_tri_v3(v2, v3, v4) <= FLT_EPSILON;
+				is_zero_b = area_tri_v3(v2, v4, v1) <= FLT_EPSILON;
+
+				if (LIKELY(is_zero_a == false && is_zero_b == false)) {
+					float no_a[3], no_b[3];
+					normal_tri_v3(no_a, v2, v3, v4);  /* a */
+					normal_tri_v3(no_b, v2, v4, v1);  /* b */
+					add_v3_v3v3(no, no_a, no_b);
+					if (UNLIKELY(normalize_v3(no) <= FLT_EPSILON)) {
+						continue;
+					}
+				}
+				else if (is_zero_a == false) {
+					normal_tri_v3(no, v2, v3, v4);  /* a */
+				}
+				else if (is_zero_b == false) {
+					normal_tri_v3(no, v2, v4, v1);  /* b */
+				}
+				else {
+					/* both zero area, no useful normal can be calculated */
+					continue;
+				}
+
+				// { float a = angle_normalized_v3v3(no_a, no_b); printf("~ %.7f\n", a); fflush(stdout);}
+
+				axis_dominant_v3_to_m3(axis_mat, no);
+				mul_v2_m3v3(v1_xy, axis_mat, v1);
+				mul_v2_m3v3(v2_xy, axis_mat, v2);
+				mul_v2_m3v3(v3_xy, axis_mat, v3);
+				mul_v2_m3v3(v4_xy, axis_mat, v4);
 			}
 
 			// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
-			BLI_assert((ELEM3(v1, v2, v3, v4) == false) &&
-			           (ELEM3(v2, v1, v3, v4) == false) &&
-			           (ELEM3(v3, v1, v2, v4) == false) &&
-			           (ELEM3(v4, v1, v2, v3) == false));
 
-			if (is_quad_convex_v3(v1->co, v2->co, v3->co, v4->co)) {
+			if (is_quad_convex_v2(v1_xy, v2_xy, v3_xy, v4_xy)) {
 				float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 				/* testing rule:
 				 * the area divided by the total edge lengths
 				 */
-				len1 = len_v3v3(v1->co, v2->co);
-				len2 = len_v3v3(v2->co, v3->co);
-				len3 = len_v3v3(v3->co, v4->co);
-				len4 = len_v3v3(v4->co, v1->co);
-				len5 = len_v3v3(v1->co, v3->co);
-				len6 = len_v3v3(v2->co, v4->co);
+				len1 = len_v2v2(v1_xy, v2_xy);
+				len2 = len_v2v2(v2_xy, v3_xy);
+				len3 = len_v2v2(v3_xy, v4_xy);
+				len4 = len_v2v2(v4_xy, v1_xy);
+				len5 = len_v2v2(v1_xy, v3_xy);
+				len6 = len_v2v2(v2_xy, v4_xy);
 
-				opp1 = area_tri_v3(v1->co, v2->co, v3->co);
-				opp2 = area_tri_v3(v1->co, v3->co, v4->co);
+				opp1 = area_tri_v2(v1_xy, v2_xy, v3_xy);
+				opp2 = area_tri_v2(v1_xy, v3_xy, v4_xy);
 
 				fac1 = opp1 / (len1 + len2 + len5) + opp2 / (len3 + len4 + len5);
 
-				opp1 = area_tri_v3(v2->co, v3->co, v4->co);
-				opp2 = area_tri_v3(v2->co, v4->co, v1->co);
+				opp1 = area_tri_v2(v2_xy, v3_xy, v4_xy);
+				opp2 = area_tri_v2(v2_xy, v4_xy, v1_xy);
 
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 
 				if (fac1 > fac2) {
-
-					EdRotState *e_state = BLI_mempool_alloc(edge_state_pool);
-					erot_state_current(e, e_state);
-
 					e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
 					if (LIKELY(e)) {
-						/* maintain the index array */
-						edge_array[i] = e;
-						BM_elem_index_set(e, i);
 
-
-						/* add this state into the hash */
+						/* add the new state into the hash so we don't move into this state again
+						 * note: we could add the previous state too but this isn't essential)
+						 *       for avoiding eternal loops */
+						EdRotState *e_state = BLI_mempool_alloc(edge_state_pool);
+						erot_state_current(e, e_state);
 						if (UNLIKELY(e_state_hash == NULL)) {
 							edge_state_arr[i] = e_state_hash = erot_ghash_new();  /* store previous state */
 						}
+						BLI_assert(BLI_ghash_haskey(e_state_hash, (void *)e_state) == false);
 						BLI_ghash_insert(e_state_hash, e_state, NULL);
+
+
+						// printf("  %d -> %d, %d\n", i, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2));
+
+						/* maintain the index array */
+						edge_array[i] = e;
+						BM_elem_index_set(e, i);
 
 						/* tag other edges so we know to check them again */
 						bm_edge_tag_rotated(e);
@@ -242,9 +290,6 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 						BMO_elem_flag_enable(bm, e->l->f, FACE_MARK | ELE_NEW);
 						BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK | ELE_NEW);
 						is_breaked = false;
-					}
-					else {
-						BLI_mempool_free(edge_state_pool, e_state);
 					}
 				}
 			}
