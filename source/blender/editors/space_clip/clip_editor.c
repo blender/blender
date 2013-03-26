@@ -1142,6 +1142,9 @@ static bool prefetch_check_early_out(const bContext *C)
 			if ((user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) == 0)
 				return true;
 		}
+		else {
+			return true;
+		}
 	}
 
 	clip_len = BKE_movieclip_get_duration(clip);
