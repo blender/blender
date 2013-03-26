@@ -3593,3 +3593,56 @@ void clear_scene_in_nodes(Main *bmain, Scene *sce)
 		}
 	}
 }
+
+
+/* -------------------------------------------------------------------- */
+/* NodeTree Iterator Helpers (FOREACH_NODETREE) */
+
+void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain)
+{
+	ntreeiter->ngroup = bmain->nodetree.first;
+	ntreeiter->scene = bmain->scene.first;
+	ntreeiter->mat = bmain->mat.first;
+	ntreeiter->tex = bmain->tex.first;
+	ntreeiter->lamp = bmain->lamp.first;
+	ntreeiter->world = bmain->world.first;
+}
+bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
+                             bNodeTree **r_nodetree, struct ID **r_id)
+{
+	if (ntreeiter->ngroup) {
+		*r_nodetree =       ntreeiter->ngroup;
+		*r_id       = (ID *)ntreeiter->ngroup;
+		ntreeiter->ngroup = ntreeiter->ngroup->id.next;
+	}
+	else if (ntreeiter->scene) {
+		*r_nodetree =       ntreeiter->scene->nodetree;
+		*r_id       = (ID *)ntreeiter->scene;
+		ntreeiter->scene =  ntreeiter->scene->id.next;
+	}
+	else if (ntreeiter->mat) {
+		*r_nodetree =       ntreeiter->mat->nodetree;
+		*r_id       = (ID *)ntreeiter->mat;
+		ntreeiter->mat =    ntreeiter->mat->id.next;
+	}
+	else if (ntreeiter->tex) {
+		*r_nodetree =       ntreeiter->tex->nodetree;
+		*r_id       = (ID *)ntreeiter->tex;
+		ntreeiter->tex =    ntreeiter->tex->id.next;
+	}
+	else if (ntreeiter->lamp) {
+		*r_nodetree =       ntreeiter->lamp->nodetree;
+		*r_id       = (ID *)ntreeiter->lamp;
+		ntreeiter->lamp =   ntreeiter->lamp->id.next;
+	}
+	else if (ntreeiter->world) {
+		*r_nodetree =       ntreeiter->world->nodetree;
+		*r_id       = (ID *)ntreeiter->world;
+		ntreeiter->world  = ntreeiter->world->id.next;
+	}
+	else {
+		return false;
+	}
+
+	return true;
+}
