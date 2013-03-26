@@ -345,6 +345,7 @@ static void brush_painter_2d_refresh_cache(BrushPainter *painter, const float po
 	const int diameter = 2 * BKE_brush_size_get(scene, brush);
 	const float alpha = BKE_brush_alpha_get(scene, brush);
 	const bool do_tiled = ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_3D);
+	const bool do_random = brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM;
 	float rotation = -mtex->rot;
 
 	if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
@@ -354,7 +355,8 @@ static void brush_painter_2d_refresh_cache(BrushPainter *painter, const float po
 	if (diameter != cache->lastsize ||
 	    alpha != cache->lastalpha ||
 	    brush->jitter != cache->lastjitter ||
-	    rotation != cache->last_rotation)
+	    rotation != cache->last_rotation ||
+	    do_random)
 	{
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);

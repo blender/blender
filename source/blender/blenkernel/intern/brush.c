@@ -525,21 +525,17 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		float radius = 1.0f; /* Quite warnings */
 		float co[3];
 
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW ||
-		    mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM)
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW)
 		{
 			/* keep coordinates relative to mouse */
 
 			rotation += ups->brush_rotation;
 
-			point_2d[0] -= ups->tex_mouse[0];
-			point_2d[1] -= ups->tex_mouse[1];
+			x = point_2d[0] - ups->tex_mouse[0];
+			y = point_2d[1] - ups->tex_mouse[1];
 
 			/* use pressure adjusted size for fixed mode */
 			radius = ups->pixel_radius;
-
-			x = point_2d[0];
-			y = point_2d[1];
 		}
 		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
 			/* leave the coordinates relative to the screen */
@@ -549,6 +545,13 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 
 			x = point_2d[0];
 			y = point_2d[1];
+		} else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
+			rotation += ups->brush_rotation;
+			/* these contain a random coordinate */
+			x = point_2d[0] - ups->tex_mouse[0];
+			y = point_2d[1] - ups->tex_mouse[1];
+
+			radius = ups->pixel_radius;
 		}
 
 		x /= radius;
@@ -659,6 +662,14 @@ float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			rotation += ups->brush_rotation;
+			radius = ups->pixel_radius;
+		}
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
+			rotation += ups->brush_rotation;
+			/* these contain a random coordinate */
+			x -= ups->tex_mouse[0];
+			y -= ups->tex_mouse[1];
+
 			radius = ups->pixel_radius;
 		}
 
@@ -979,6 +990,13 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 	else {
 		copy_v2_v2(jitterpos, pos);
 	}
+}
+
+void BKE_brush_randomize_texture_coordinates(UnifiedPaintSettings *ups) {
+	/* we multiply with brush radius as an optimization for the brush
+	 * texture sampling functions */
+	ups->tex_mouse[0] = BLI_rng_get_float(brush_rng)*ups->pixel_radius;
+	ups->tex_mouse[1] = BLI_rng_get_float(brush_rng)*ups->pixel_radius;
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
