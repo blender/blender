@@ -9336,6 +9336,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					medge++;
 					fed++;
 				}
+				me->cd_flag |= ME_CDFLAG_FREESTYLE_EDGE;
 				printf("Migrated to CustomData-based Freestyle edge marks\n");
 			}
 			/* Freestyle face marks */
@@ -9359,6 +9360,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					mpoly++;
 					ffa++;
 				}
+				me->cd_flag |= ME_CDFLAG_FREESTYLE_FACE;
 				printf("Migrated to CustomData-based Freestyle face marks\n");
 			}
 		}
