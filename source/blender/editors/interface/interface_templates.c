@@ -2469,7 +2469,7 @@ static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UN
 		uiItemL(layout, name, icon);
 		break;
 	}
-		
+
 	/* free name */
 	if (namebuf) {
 		MEM_freeN(namebuf);
@@ -2559,7 +2559,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	if (ui_list_type == NULL) {
 		RNA_warning("List type %s not found", listtype_name);
 		return;
-			}
+	}
 
 	draw_item = ui_list_type->draw_item ? ui_list_type->draw_item : uilist_draw_item_default;
 
@@ -2574,7 +2574,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		ui_list = MEM_callocN(sizeof(uiList), __func__);
 		BLI_strncpy(ui_list->list_id, ui_list_id, sizeof(ui_list->list_id));
 		BLI_addtail(&ar->ui_lists, ui_list);
-					}
+	}
 
 	/* Because we can't actually pass type across save&load... */
 	ui_list->type = ui_list_type;
@@ -2669,10 +2669,10 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					if (icon == ICON_DOT)
 						icon = ICON_NONE;
 					draw_item(ui_list, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
-	}
+				}
 
 				i++;
-}
+			}
 			RNA_PROP_END;
 		}
 

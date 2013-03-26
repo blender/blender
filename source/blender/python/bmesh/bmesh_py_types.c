@@ -79,11 +79,11 @@ PyC_FlagSet bpy_bm_htype_all_flags[] = {
 };
 
 PyC_FlagSet bpy_bm_hflag_all_flags[] = {
-	{BM_ELEM_SELECT,     "SELECT"},
-	{BM_ELEM_HIDDEN,     "HIDE"},
-	{BM_ELEM_SEAM,       "SEAM"},
-	{BM_ELEM_SMOOTH,     "SMOOTH"},
-	{BM_ELEM_TAG,        "TAG"},
+	{BM_ELEM_SELECT,  "SELECT"},
+	{BM_ELEM_HIDDEN,  "HIDE"},
+	{BM_ELEM_SEAM,    "SEAM"},
+	{BM_ELEM_SMOOTH,  "SMOOTH"},
+	{BM_ELEM_TAG,     "TAG"},
 	{0, NULL}
 };
 
@@ -102,6 +102,7 @@ PyDoc_STRVAR(bpy_bm_elem_hide_doc,    "Hidden state of this element.\n\n:type: b
 PyDoc_STRVAR(bpy_bm_elem_tag_doc,     "Generic attribute scripts can use for own logic\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_smooth_doc,  "Smooth state of this element.\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_seam_doc,    "Seam for UV unwrapping.\n\n:type: boolean");
+
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 {

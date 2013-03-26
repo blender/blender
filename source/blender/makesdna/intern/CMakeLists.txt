@@ -34,6 +34,7 @@ blender_include_dirs(
 	..
 )
 
+
 # -----------------------------------------------------------------------------
 # Build makesdna executable
 set(SRC

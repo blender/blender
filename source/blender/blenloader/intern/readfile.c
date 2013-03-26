@@ -1069,10 +1069,10 @@ FileData *blo_openblendermemory(const void *mem, int memsize, ReportList *report
 			}
 		}
 		else
-		fd->read = fd_read_from_memory;
+			fd->read = fd_read_from_memory;
 			
 		fd->flags |= FD_FLAGS_NOT_MY_BUFFER;
-		
+
 		return blo_decode_and_check(fd, reports);
 	}
 }
@@ -1202,19 +1202,19 @@ static void *newdataadr(FileData *fd, void *adr)		/* only direct databocks */
 	return oldnewmap_lookup_and_inc(fd->datamap, adr);
 }
 
-static void *newglobadr(FileData *fd, void *adr)		/* direct datablocks with global linking */
+static void *newglobadr(FileData *fd, void *adr)	    /* direct datablocks with global linking */
 {
 	return oldnewmap_lookup_and_inc(fd->globmap, adr);
 }
 
-static void *newimaadr(FileData *fd, void *adr)		/* used to restore image data after undo */
+static void *newimaadr(FileData *fd, void *adr)		    /* used to restore image data after undo */
 {
 	if (fd->imamap && adr)
 		return oldnewmap_lookup_and_inc(fd->imamap, adr);
 	return NULL;
 }
 
-static void *newmclipadr(FileData *fd, void *adr)              /* used to restore movie clip data after undo */
+static void *newmclipadr(FileData *fd, void *adr)      /* used to restore movie clip data after undo */
 {
 	if (fd->movieclipmap && adr)
 		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr);
@@ -1225,7 +1225,7 @@ static void *newpackedadr(FileData *fd, void *adr)      /* used to restore packe
 {
 	if (fd->packedmap && adr)
 		return oldnewmap_lookup_and_inc(fd->packedmap, adr);
-
+	
 	return oldnewmap_lookup_and_inc(fd->datamap, adr);
 }
 
@@ -3423,7 +3423,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->env = newdataadr(fd, tex->env);
 	if (tex->env) {
 		tex->env->ima = NULL;
-		memset(tex->env->cube, 0, 6*sizeof(void *));
+		memset(tex->env->cube, 0, 6 * sizeof(void *));
 		tex->env->ok= 0;
 	}
 	tex->pd = newdataadr(fd, tex->pd);
@@ -5249,7 +5249,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		if (sce->toolsettings->vpaint) {
 			sce->toolsettings->vpaint->vpaint_prev = NULL;
 			sce->toolsettings->vpaint->tot = 0;
-	}
+		}
 		if (sce->toolsettings->wpaint) {
 			sce->toolsettings->wpaint->wpaint_prev = NULL;
 			sce->toolsettings->wpaint->tot = 0;
@@ -6048,7 +6048,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		pa->activedata = NULL;
 		pa->type = NULL;
 	}
-	
+
 	link_list(fd, &ar->ui_lists);
 
 	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
@@ -6363,7 +6363,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sclip->scopes.track_preview = NULL;
 				sclip->draw_context = NULL;
 				sclip->scopes.ok = 0;
-		}
+			}
 		}
 		
 		sa->actionzones.first = sa->actionzones.last = NULL;
@@ -7236,7 +7236,7 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 			/* Convert degrees to radians. */
 			NodeDefocus *nqd = node->storage;
 			/* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
-			nqd->rotation = DEG2RADF(nqd->rotation*255.0f);
+			nqd->rotation = DEG2RADF(nqd->rotation * 255.0f);
 		}
 		else if (node->type == CMP_NODE_CHROMA_MATTE) {
 			/* Convert degrees to radians. */
@@ -7248,7 +7248,7 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 			/* Convert degrees to radians. */
 			NodeGlare *ndg = node->storage;
 			/* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
-			ndg->angle_ofs = DEG2RADF(ndg->angle_ofs*255.0f);
+			ndg->angle_ofs = DEG2RADF(ndg->angle_ofs * 255.0f);
 		}
 		/* XXX TexMapping struct is used by other nodes too (at least node_composite_mapValue),
 		 *     but not the rot part...
@@ -9049,7 +9049,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			SEQ_END
 
 			if (scene->r.bake_samples == 0)
-				scene->r.bake_samples = 256;
+			scene->r.bake_samples = 256;
 
 			if (scene->world) {
 				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);
@@ -9396,8 +9396,8 @@ static void lib_link_all(FileData *fd, Main *main)
 	
 	/* No load UI for undo memfiles */
 	if (fd->memfile == NULL) {
-	lib_link_windowmanager(fd, main);
-	lib_link_screen(fd, main);
+		lib_link_windowmanager(fd, main);
+		lib_link_screen(fd, main);
 	}
 	lib_link_scene(fd, main);
 	lib_link_object(fd, main);
@@ -9488,7 +9488,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 		for (kmi=keymap->items.first; kmi; kmi=kmi->next)
 			direct_link_keymapitem(fd, kmi);
 	}
-	
+
 	for (addon = user->addons.first; addon; addon = addon->next) {
 		addon->prop = newdataadr(fd, addon->prop);
 		if (addon->prop) {
@@ -9710,7 +9710,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 					return;
 				}
 				else
-				id = is_yet_read(fd, ptr, bhead);
+					id = is_yet_read(fd, ptr, bhead);
 				
 				if (id == NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
