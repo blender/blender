@@ -2547,21 +2547,25 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         split = layout.split()
 
+        with_freestyle = context.scene and bpy.app.build_options.freestyle
+
         col = split.column()
         col.label(text="Overlays:")
         col.prop(mesh, "show_faces", text="Faces")
         col.prop(mesh, "show_edges", text="Edges")
         col.prop(mesh, "show_edge_crease", text="Creases")
+        if with_freestyle:
+            col.prop(mesh, "show_edge_seams", text="Seams")
 
         col = split.column()
         col.label()
-        col.prop(mesh, "show_edge_seams", text="Seams")
+        if not with_freestyle:
+            col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp")
         col.prop(mesh, "show_edge_bevel_weight", text="Weights")
-
-        if context.scene and bpy.app.build_options.freestyle:
-            col.prop(mesh, "show_freestyle_edge_marks", text="Freestyle Edge Marks")
-            col.prop(mesh, "show_freestyle_face_marks", text="Freestyle Face Marks")
+        if with_freestyle:
+            col.prop(mesh, "show_freestyle_edge_marks", text="Edge Marks")
+            col.prop(mesh, "show_freestyle_face_marks", text="Face Marks")
         
         col = layout.column()
 
