@@ -1339,7 +1339,9 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
-		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
+		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat,
+		                                                       scene->r.xsch * scene->r.xasp,
+		                                                       scene->r.ysch * scene->r.yasp);
 		
 		if (uci) {
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
