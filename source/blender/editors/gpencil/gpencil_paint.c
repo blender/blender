@@ -1965,12 +1965,12 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 */
 			/* printf("\t\tGP - resize eraser\n"); */
 			switch (event->type) {
-				case WHEELUPMOUSE: /* larger */
+				case WHEELDOWNMOUSE: /* larger */
 				case PADPLUSKEY:
 					p->radius += 5;
 					break;
 					
-				case WHEELDOWNMOUSE: /* smaller */
+				case WHEELUPMOUSE: /* smaller */
 				case PADMINUS:
 					p->radius -= 5;
 					
