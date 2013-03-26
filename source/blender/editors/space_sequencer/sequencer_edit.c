@@ -988,29 +988,103 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene *scene)
 }
 
 
-static void UNUSED_FUNCTION(no_gaps) (Scene *scene)
+static int sequencer_no_gap_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	int cfra, first = 0, done;
-
+	rctf rectf;
+	int cfra, efra, sfra, first = 0, done;
+	int do_all = RNA_boolean_get(op->ptr, "all");
 	
-	if (ed == NULL) return;
+	if (ed == NULL) return OPERATOR_CANCELLED;
 
-	for (cfra = CFRA; cfra <= EFRA; cfra++) {
+	/* get first and last frame */
+	boundbox_seq(scene, &rectf);
+	sfra = (int)rectf.xmin;
+	efra = (int)rectf.xmax;
+	
+	/* first check if the current frame has a gap already */
+	for (cfra = CFRA; cfra >= sfra; cfra--) {
+		if (BKE_sequencer_evaluate_frame(scene, cfra)) {
+			first = 1;
+			break;
+		}
+	}
+	
+	for ( ; cfra < efra; cfra++) {
+		/* first == 0 means there's still no strip to remove a gap for */
 		if (first == 0) {
 			if (BKE_sequencer_evaluate_frame(scene, cfra) ) first = 1;
 		}
-		else {
+		else if (BKE_sequencer_evaluate_frame(scene, cfra) == 0) {
 			done = TRUE;
 			while (BKE_sequencer_evaluate_frame(scene, cfra) == 0) {
 				done = insert_gap(scene, -1, cfra);
 				if (done == 0) break;
 			}
-			if (done == 0) break;
+			if (done == 0 || do_all == 0) break;
 		}
 	}
 
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+	
+	return OPERATOR_FINISHED;
+
 }
+
+
+void SEQUENCER_OT_no_gap(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Gap";
+	ot->idname = "SEQUENCER_OT_no_gap";
+	ot->description = "Remove gap at current frame to first strip at the right";
+	
+	/* api callbacks */
+//	ot->invoke = sequencer_snap_invoke;
+	ot->exec = sequencer_no_gap_exec;
+	ot->poll = sequencer_edit_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "all", 0, "All Gaps", "Do all gaps to right of current frame");
+}
+
+static int sequencer_insert_gap_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	int frames = RNA_int_get(op->ptr, "frames");
+	
+	if (ed == NULL) return OPERATOR_CANCELLED;
+	
+	insert_gap(scene, frames, CFRA);
+	
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+	
+	return OPERATOR_FINISHED;
+	
+}
+
+void SEQUENCER_OT_insert_gap(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Insert Gap";
+	ot->idname = "SEQUENCER_OT_insert_gap";
+	ot->description = "Insert gap at current frame to first strips at the right";
+	
+	/* api callbacks */
+	//	ot->invoke = sequencer_snap_invoke;
+	ot->exec = sequencer_insert_gap_exec;
+	ot->poll = sequencer_edit_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "frames", 10, 0, 1000, "Frames", "Frames to insert after current strip", 0, INT_MAX);
+}
+
 
 #if 0
 static int seq_get_snaplimit(View2D *v2d)
