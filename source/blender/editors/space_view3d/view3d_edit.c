@@ -2678,9 +2678,15 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 		view3d_operator_needs_opengl(C);
 
 		if (ED_view3d_autodist(scene, ar, v3d, event->mval, new_ofs, false)) {
-			negate_v3(new_ofs);
-			view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
+			/* pass */
 		}
+		else {
+			/* fallback to simple pan */
+			negate_v3_v3(new_ofs, rv3d->ofs);
+			view3d_get_view_aligned_coordinate(ar, new_ofs, event->mval, true);
+		}
+		negate_v3(new_ofs);
+		view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
 	}
 
 	return OPERATOR_FINISHED;
