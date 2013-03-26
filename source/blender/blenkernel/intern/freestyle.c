@@ -41,9 +41,9 @@
 #include "BLI_math.h"
 
 // function declarations
-static FreestyleLineSet *alloc_lineset();
+static FreestyleLineSet *alloc_lineset(void);
 static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset);
-static FreestyleModuleConfig *alloc_module();
+static FreestyleModuleConfig *alloc_module(void);
 static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module);
 
 void BKE_freestyle_config_init(FreestyleConfig *config)
@@ -120,7 +120,7 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
 	strcpy(new_lineset->name, lineset->name);
 }
 
-static FreestyleModuleConfig *alloc_module()
+static FreestyleModuleConfig *alloc_module(void)
 {
 	return (FreestyleModuleConfig *)MEM_callocN(sizeof(FreestyleModuleConfig), "style module configuration");
 }
@@ -166,7 +166,7 @@ void BKE_freestyle_lineset_unique_name(FreestyleConfig *config, FreestyleLineSet
 	               sizeof(lineset->name));
 }
 
-static FreestyleLineSet *alloc_lineset()
+static FreestyleLineSet *alloc_lineset(void)
 {
 	return (FreestyleLineSet *)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
 }
