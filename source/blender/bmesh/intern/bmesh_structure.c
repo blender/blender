@@ -40,7 +40,7 @@
  *	MISC utility functions.
  */
 
-bool bmesh_vert_in_edge(BMEdge *e, BMVert *v)
+bool bmesh_vert_in_edge(const BMEdge *e, const BMVert *v)
 {
 	if (e->v1 == v || e->v2 == v) return true;
 	return false;

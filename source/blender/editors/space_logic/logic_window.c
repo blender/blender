@@ -2155,7 +2155,11 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(row, ptr, "update_period", 0, NULL, ICON_NONE);
 		row = uiLayoutRow(layout, FALSE);
 	}
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "show_visualization", 0, NULL, ICON_NONE);
+	if (RNA_enum_get(ptr, "mode") != ACT_STEERING_PATHFOLLOWING) {
+		uiLayoutSetActive(row, FALSE);
+	}
 }
 
 static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)

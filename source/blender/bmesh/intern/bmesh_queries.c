@@ -43,7 +43,7 @@
  * Returns whether or not a given vertex is
  * is part of a given edge.
  */
-bool BM_vert_in_edge(BMEdge *e, BMVert *v)
+bool BM_vert_in_edge(const BMEdge *e, const BMVert *v)
 {
 	return bmesh_vert_in_edge(e, v);
 }

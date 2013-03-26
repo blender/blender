@@ -2075,7 +2075,7 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_visualization", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_ENABLEVISUALIZATION);
-	RNA_def_property_ui_text(prop, "Visualize", "Enable debug visualization");
+	RNA_def_property_ui_text(prop, "Visualize", "Enable debug visualization for 'Path following'");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "update_period", PROP_INT, PROP_NONE);
