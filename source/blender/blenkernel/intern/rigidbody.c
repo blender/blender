@@ -1001,26 +1001,26 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 		/* get effectors present in the group specified by effector_weights */
 		effectors = pdInitEffectors(scene, ob, NULL, effector_weights);
 		if (effectors) {
-			float force[3] = {0.0f, 0.0f, 0.0f};
-			float loc[3], vel[3];
+			float eff_force[3] = {0.0f, 0.0f, 0.0f};
+			float eff_loc[3], eff_vel[3];
 
 			/* create dummy 'point' which represents last known position of object as result of sim */
 			// XXX: this can create some inaccuracies with sim position, but is probably better than using unsimulated vals?
-			RB_body_get_position(rbo->physics_object, loc);
-			RB_body_get_linear_velocity(rbo->physics_object, vel);
+			RB_body_get_position(rbo->physics_object, eff_loc);
+			RB_body_get_linear_velocity(rbo->physics_object, eff_vel);
 
-			pd_point_from_loc(scene, loc, vel, 0, &epoint);
+			pd_point_from_loc(scene, eff_loc, eff_vel, 0, &epoint);
 
 			/* calculate net force of effectors, and apply to sim object
 			 *	- we use 'central force' since apply force requires a "relative position" which we don't have...
 			 */
-			pdDoEffectors(effectors, NULL, effector_weights, &epoint, force, NULL);
+			pdDoEffectors(effectors, NULL, effector_weights, &epoint, eff_force, NULL);
 			if (G.f & G_DEBUG)
-				printf("\tapplying force (%f,%f,%f) to '%s'\n", force[0], force[1], force[2], ob->id.name + 2);
+				printf("\tapplying force (%f,%f,%f) to '%s'\n", eff_force[0], eff_force[1], eff_force[2], ob->id.name + 2);
 			/* activate object in case it is deactivated */
-			if (!is_zero_v3(force))
+			if (!is_zero_v3(eff_force))
 				RB_body_activate(rbo->physics_object);
-			RB_body_apply_central_force(rbo->physics_object, force);
+			RB_body_apply_central_force(rbo->physics_object, eff_force);
 		}
 		else if (G.f & G_DEBUG)
 			printf("\tno forces to apply to '%s'\n", ob->id.name + 2);

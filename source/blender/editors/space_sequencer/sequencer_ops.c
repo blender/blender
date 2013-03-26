@@ -73,8 +73,8 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
 	
-	WM_operatortype_append(SEQUENCER_OT_no_gap);
-	WM_operatortype_append(SEQUENCER_OT_insert_gap);
+	WM_operatortype_append(SEQUENCER_OT_gap_remove);
+	WM_operatortype_append(SEQUENCER_OT_gap_insert);
 	WM_operatortype_append(SEQUENCER_OT_snap);
 	WM_operatortype_append(SEQUENCER_OT_strip_jump);
 	WM_operatortype_append(SEQUENCER_OT_swap);
@@ -216,9 +216,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", LEFTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_LEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);
 
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_no_gap", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "all", FALSE);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_no_gap", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "all", TRUE);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_insert_gap", EQUALKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_gap_remove", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "all", FALSE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_gap_remove", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "all", TRUE);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_gap_insert", EQUALKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_inputs", SKEY, KM_PRESS, KM_ALT, 0);

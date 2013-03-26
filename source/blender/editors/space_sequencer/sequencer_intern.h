@@ -98,8 +98,8 @@ void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 
-void SEQUENCER_OT_no_gap(struct wmOperatorType *ot);
-void SEQUENCER_OT_insert_gap(struct wmOperatorType *ot);
+void SEQUENCER_OT_gap_remove(struct wmOperatorType *ot);
+void SEQUENCER_OT_gap_insert(struct wmOperatorType *ot);
 void SEQUENCER_OT_snap(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_strip_jump(struct wmOperatorType *ot);
