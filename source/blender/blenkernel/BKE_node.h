@@ -628,17 +628,17 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
  *
  * Examples:
  *
- * FOREACH_NODETREE(bmain, nodetree)
+ * FOREACH_NODETREE(bmain, nodetree) {
  *     if (id == nodetree)
  *         printf("This is a linkable node tree");
- * FOREACH_NODETREE_END
+ * } FOREACH_NODETREE_END
  *
- * FOREACH_NODETREE(bmain, nodetree)
+ * FOREACH_NODETREE(bmain, nodetree) {
  *     if (nodetree->idname == "ShaderNodeTree")
  *         printf("This is a shader node tree);
  *     if (GS(id) == ID_MA)
  *         printf(" and it's owned by a material");
- * FOREACH_NODETREE_END
+ * } FOREACH_NODETREE_END
  */
 
 /* should be an opaque type, only for internal use by BKE_node_tree_iter_*** */

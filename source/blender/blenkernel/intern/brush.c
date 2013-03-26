@@ -525,8 +525,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		float radius = 1.0f; /* Quite warnings */
 		float co[3];
 
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW)
-		{
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* keep coordinates relative to mouse */
 
 			rotation += ups->brush_rotation;
@@ -545,7 +544,8 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 
 			x = point_2d[0];
 			y = point_2d[1];
-		} else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
+		}
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
 			rotation += ups->brush_rotation;
 			/* these contain a random coordinate */
 			x = point_2d[0] - ups->tex_mouse[0];
@@ -992,11 +992,12 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 	}
 }
 
-void BKE_brush_randomize_texture_coordinates(UnifiedPaintSettings *ups) {
+void BKE_brush_randomize_texture_coordinates(UnifiedPaintSettings *ups)
+{
 	/* we multiply with brush radius as an optimization for the brush
 	 * texture sampling functions */
-	ups->tex_mouse[0] = BLI_rng_get_float(brush_rng)*ups->pixel_radius;
-	ups->tex_mouse[1] = BLI_rng_get_float(brush_rng)*ups->pixel_radius;
+	ups->tex_mouse[0] = BLI_rng_get_float(brush_rng) * ups->pixel_radius;
+	ups->tex_mouse[1] = BLI_rng_get_float(brush_rng) * ups->pixel_radius;
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
@@ -1039,7 +1040,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
 
 		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
 
-		/*do normalized cannonical view coords for texture*/
+		/* do normalized cannonical view coords for texture */
 		for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
 			for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
 				co[0] = x;

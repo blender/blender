@@ -8685,7 +8685,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Fix for bug #32982, internal_links list could get corrupted from r51630 onward.
 		 * Simply remove bad internal_links lists to avoid NULL pointers.
 		 */
-		FOREACH_NODETREE(main, ntree, id)
+		FOREACH_NODETREE(main, ntree, id) {
 			bNode *node;
 			bNodeLink *link, *nextlink;
 			
@@ -8697,7 +8697,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-		FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END
 	}
 	
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {
