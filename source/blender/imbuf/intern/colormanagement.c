@@ -2401,15 +2401,15 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffer, const float *linear_buffer,
                                        const unsigned char *byte_buffer, int display_stride, int linear_stride,
                                        int linear_offset_x, int linear_offset_y, ColormanageProcessor *cm_processor,
-                                       int xmin, int ymin, int xmax, int ymax)
+                                       const int xmin, const int ymin, const int xmax, const int ymax)
 {
 	int x, y;
 	int channels = ibuf->channels;
 	float dither = ibuf->dither;
 	ColorSpace *rect_colorspace = ibuf->rect_colorspace;
 	float *display_buffer_float = NULL;
-	int width = xmax - xmin;
-	int height = ymax - ymin;
+	const int width = xmax - xmin;
+	const int height = ymax - ymin;
 	int is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
 
 	if (dither != 0.0f) {
@@ -2467,7 +2467,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 			                           width, height, width, display_stride);
 		}
 		else {
-			int i, width = xmax - xmin;
+			int i;
 
 			for (i = ymin; i < ymax; i++) {
 				int byte_offset = (linear_stride * i + xmin) * 4;

@@ -126,7 +126,7 @@ void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt);
 void sk_insertStrokePoints(SK_Stroke *stk, SK_Point *pts, int len, int start, int end);
 
 void sk_trimStroke(SK_Stroke *stk, int start, int end);
-void sk_straightenStroke(SK_Stroke * stk, int start, int end, float p_start[3], float p_end[3]);
+void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], float p_end[3]);
 void sk_polygonizeStroke(SK_Stroke *stk, int start, int end);
 void sk_flattenStroke(SK_Stroke *stk, int start, int end);
 void sk_reverseStroke(SK_Stroke *stk);

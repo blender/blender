@@ -277,8 +277,9 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso, tPChanFCurveLink *pfl, floa
 	/* using this path, find each matching F-Curve for the variables we're interested in */
 	while ( (ld = poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path)) ) {
 		FCurve *fcu = (FCurve *)ld->data;
-		
+
 		/* just work on these channels one by one... there's no interaction between values */
+		BLI_assert(fcu->array_index < 3);
 		pose_slide_apply_val(pso, fcu, &vec[fcu->array_index]);
 	}
 	

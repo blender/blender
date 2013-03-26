@@ -538,7 +538,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			uiButClearFlag(but, UI_BUT_UNDO);
-			if (0 == uiButActiveOnly(C, block, but)) {
+			if (0 == uiButActiveOnly(C, ar, block, but)) {
 				file->selflag &= ~EDITING_FILE;
 			}
 		}

@@ -33,6 +33,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -110,7 +112,7 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(gpl->info, value, sizeof(gpl->info));
 
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
+	BLI_uniquename(&gpd->layers, gpl, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 }
 
 static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count)

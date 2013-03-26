@@ -248,7 +248,7 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 
 
 
-void KX_BlenderCanvas::MakeScreenShot(const char* filename)
+void KX_BlenderCanvas::MakeScreenShot(const char *filename)
 {
 	ScrArea area_dummy= {0};
 	area_dummy.totrct.xmin = m_frame_rect.GetLeft();

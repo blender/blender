@@ -682,7 +682,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 /* needed for temporarily rename buttons, such as in outliner or file-select,
  * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
-int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
+int uiButActiveOnly(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
 {
 	uiBlock *oldblock;
 	uiBut *oldbut;
@@ -704,7 +704,7 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 		}
 	}
 	if ((activate == TRUE) || (found == FALSE)) {
-		ui_button_activate_do((bContext *)C, CTX_wm_region(C), but);
+		ui_button_activate_do((bContext *)C, ar, but);
 	}
 	else if ((found == TRUE) && (isactive == FALSE)) {
 		BLI_remlink(&block->buttons, but);

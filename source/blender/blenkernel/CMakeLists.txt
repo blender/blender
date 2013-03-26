@@ -65,7 +65,6 @@ set(SRC
 	intern/blender.c
 	intern/bmfont.c
 	intern/boids.c
-	intern/booleanops_mesh.c
 	intern/bpath.c
 	intern/brush.c
 	intern/bullet.c
@@ -166,7 +165,6 @@ set(SRC
 	BKE_bmfont.h
 	BKE_bmfont_types.h
 	BKE_boids.h
-	BKE_booleanops_mesh.h
 	BKE_bpath.h
 	BKE_brush.h
 	BKE_bullet.h

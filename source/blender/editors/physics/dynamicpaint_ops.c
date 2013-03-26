@@ -66,12 +66,14 @@ static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Make sure we're dealing with a canvas */
 	pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
-	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
+	if (!pmd || !pmd->canvas)
+		return OPERATOR_CANCELLED;
 
 	canvas = pmd->canvas;
 	surface = dynamicPaint_createNewSurface(canvas, CTX_data_scene(C));
 
-	if (!surface) return OPERATOR_CANCELLED;
+	if (!surface)
+		return OPERATOR_CANCELLED;
 
 	/* set preview for this surface only and set active */
 	canvas->active_sur = 0;

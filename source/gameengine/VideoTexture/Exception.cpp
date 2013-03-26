@@ -40,15 +40,15 @@
 ExceptionID ErrGeneral, ErrNotFound;
 
 // exception descriptions
-ExpDesc errGenerDesc (ErrGeneral, "General Error");
-ExpDesc errNFoundDesc (ErrNotFound, "Error description not found");
+ExpDesc errGenerDesc(ErrGeneral, "General Error");
+ExpDesc errNFoundDesc(ErrNotFound, "Error description not found");
 
 
 
 // implementation of ExpDesc
 
 // constructor
-ExpDesc::ExpDesc (ExceptionID & exp, const char * desc, RESULT hres)
+ExpDesc::ExpDesc (ExceptionID & exp, const char *desc, RESULT hres)
 : m_expID(exp), m_hRslt(hres), m_description(desc)
 {
 }
@@ -105,7 +105,7 @@ const char * Exception::what()
 
 
 // debug version - with file and line of exception
-Exception::Exception (ExceptionID & expID, RESULT rslt, const char * fil, int lin)
+Exception::Exception (ExceptionID & expID, RESULT rslt, const char *fil, int lin)
 : m_expID (&expID), m_hRslt (rslt)
 {
 	// set file and line
@@ -115,7 +115,7 @@ Exception::Exception (ExceptionID & expID, RESULT rslt, const char * fil, int li
 
 
 // set file and line
-void Exception::setFileLine (const char * fil, int lin)
+void Exception::setFileLine (const char *fil, int lin)
 {
 	if (fil != NULL) m_fileName = fil;
 	m_line = lin;

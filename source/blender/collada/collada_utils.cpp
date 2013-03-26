@@ -327,8 +327,8 @@ std::string bc_replace_string(std::string data, const std::string& pattern,
  */
 void bc_match_scale(std::vector<Object *> *objects_done, 
                     Scene &sce,
-                    UnitConverter &bc_unit) {
-
+                    UnitConverter &bc_unit)
+{
 	Object *ob = NULL;
 
 	PointerRNA scene_ptr, unit_settings;

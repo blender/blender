@@ -845,7 +845,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 	
 	if (mti->type == eModifierTypeType_OnlyDeform) {
 		int numVerts;
-		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
+		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
 		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0);
 		dm = mesh_create_derived(me, ob, deformedVerts);
@@ -1451,7 +1451,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
 				if (!deformedVerts)
-					deformedVerts = mesh_getVertexCos(me, &numVerts);
+					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 
 				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, deform_app_flags);
 			}
@@ -1485,7 +1485,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		if (inputVertexCos)
 			deformedVerts = inputVertexCos;
 		else
-			deformedVerts = mesh_getVertexCos(me, &numVerts);
+			deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 	}
 
 
@@ -1557,7 +1557,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					dm->getVertCos(dm, deformedVerts);
 				}
 				else {
-					deformedVerts = mesh_getVertexCos(me, &numVerts);
+					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 				}
 			}
 
@@ -2441,30 +2441,30 @@ static int GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_
 	return pMesh->mface[face_num].v4 != 0 ? 4 : 3;
 }
 
-static void GetPosition(const SMikkTSpaceContext *pContext, float fPos[], const int face_num, const int vert_index)
+static void GetPosition(const SMikkTSpaceContext *pContext, float r_co[3], const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 	const float *co = pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].co;
-	copy_v3_v3(fPos, co);
+	copy_v3_v3(r_co, co);
 }
 
-static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float fUV[], const int face_num, const int vert_index)
+static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float r_uv[2], const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 
 	if (pMesh->mtface != NULL) {
-		float *uv = pMesh->mtface[face_num].uv[vert_index];
-		fUV[0] = uv[0]; fUV[1] = uv[1];
+		const float *uv = pMesh->mtface[face_num].uv[vert_index];
+		copy_v2_v2(r_uv, uv);
 	}
 	else {
 		const float *orco = pMesh->orco[(&pMesh->mface[face_num].v1)[vert_index]];
-		map_to_sphere(&fUV[0], &fUV[1], orco[0], orco[1], orco[2]);
+		map_to_sphere(&r_uv[0], &r_uv[1], orco[0], orco[1], orco[2]);
 	}
 }
 
-static void GetNormal(const SMikkTSpaceContext *pContext, float fNorm[], const int face_num, const int vert_index)
+static void GetNormal(const SMikkTSpaceContext *pContext, float r_no[3], const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
@@ -2472,29 +2472,29 @@ static void GetNormal(const SMikkTSpaceContext *pContext, float fNorm[], const i
 	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
 	if (!smoothnormal) {    // flat
 		if (pMesh->precomputedFaceNormals) {
-			copy_v3_v3(fNorm, &pMesh->precomputedFaceNormals[3 * face_num]);
+			copy_v3_v3(r_no, &pMesh->precomputedFaceNormals[3 * face_num]);
 		}
 		else {
 			MFace *mf = &pMesh->mface[face_num];
-			float *p0 = pMesh->mvert[mf->v1].co;
-			float *p1 = pMesh->mvert[mf->v2].co;
-			float *p2 = pMesh->mvert[mf->v3].co;
+			const float *p0 = pMesh->mvert[mf->v1].co;
+			const float *p1 = pMesh->mvert[mf->v2].co;
+			const float *p2 = pMesh->mvert[mf->v3].co;
 
 			if (mf->v4) {
-				float *p3 = pMesh->mvert[mf->v4].co;
-				normal_quad_v3(fNorm, p0, p1, p2, p3);
+				const float *p3 = pMesh->mvert[mf->v4].co;
+				normal_quad_v3(r_no, p0, p1, p2, p3);
 			}
 			else {
-				normal_tri_v3(fNorm, p0, p1, p2);
+				normal_tri_v3(r_no, p0, p1, p2);
 			}
 		}
 	}
 	else {
 		const short *no = pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].no;
-		normal_short_to_float_v3(fNorm, no);
+		normal_short_to_float_v3(r_no, no);
 	}
 }
-static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
+static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[3], const float fSign, const int face_num, const int iVert)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;

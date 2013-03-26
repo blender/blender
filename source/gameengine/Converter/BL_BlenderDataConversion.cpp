@@ -2107,7 +2107,7 @@ struct parentChildLink {
 #include "DNA_constraint_types.h"
 //XXX #include "BIF_editconstraint.h"
 
-static bPoseChannel *get_active_posechannel2 (Object *ob)
+static bPoseChannel *get_active_posechannel2(Object *ob)
 {
 	bArmature *arm= (bArmature*)ob->data;
 	bPoseChannel *pchan;

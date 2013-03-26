@@ -754,7 +754,8 @@ static void stitch_set_face_preview_buffer_position(BMFace *efa, StitchPreviewer
 
 /* setup face preview for all coincident uvs and their faces */
 static void stitch_setup_face_preview_for_uv_group(UvElement *element, StitchState *state, IslandStitchData *island_stitch_data,
-                                                   PreviewPosition *preview_position) {
+                                                   PreviewPosition *preview_position)
+{
 	StitchPreviewer *preview = state->stitch_preview;
 
 	/* static island does not change so returning immediately */
@@ -774,7 +775,8 @@ static void stitch_setup_face_preview_for_uv_group(UvElement *element, StitchSta
 
 /* checks if uvs are indeed stitchable and registers so that they can be shown in preview */
 static void stitch_validate_uv_stichability(UvElement *element, StitchState *state, IslandStitchData *island_stitch_data,
-                                         PreviewPosition *preview_position) {
+                                            PreviewPosition *preview_position)
+{
 	UvElement *element_iter;
 	StitchPreviewer *preview = state->stitch_preview;
 	int vert_index;
@@ -809,7 +811,8 @@ static void stitch_validate_uv_stichability(UvElement *element, StitchState *sta
 
 
 static void stitch_validate_edge_stichability(UvEdge *edge, StitchState *state, IslandStitchData *island_stitch_data,
-                                              PreviewPosition *preview_position) {
+                                              PreviewPosition *preview_position)
+{
 	UvEdge *edge_iter = edge->first;
 	StitchPreviewer *preview = state->stitch_preview;
 

@@ -190,7 +190,7 @@ void BL_print_game_line(int fontid, const char *text, int size, int dpi, float *
 	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
 }
 
-void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height)
+void BL_print_gamedebug_line(const char *text, int xco, int yco, int width, int height)
 {
 	/* gl prepping */
 	DisableForText();
@@ -219,7 +219,7 @@ void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int 
 	glEnable(GL_DEPTH_TEST);
 }
 
-void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int width, int height)
+void BL_print_gamedebug_line_padded(const char *text, int xco, int yco, int width, int height)
 {
 	/* This is a rather important line :( The gl-mode hasn't been left
 	 * behind quite as neatly as we'd have wanted to. I don't know
@@ -296,7 +296,7 @@ static unsigned int *screenshot(ScrArea *curarea, int *dumpsx, int *dumpsy)
 }
 
 /* based on screendump.c::screenshot_exec */
-void BL_MakeScreenShot(ScrArea *curarea, const char* filename)
+void BL_MakeScreenShot(ScrArea *curarea, const char *filename)
 {
 	char path[MAX_FILE_LENGTH];
 	strcpy(path,filename);

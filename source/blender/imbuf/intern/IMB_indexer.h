@@ -81,7 +81,7 @@ typedef struct anim_index_builder {
 	                   struct anim_index_entry *entry);
 } anim_index_builder;
 
-anim_index_builder * IMB_index_builder_create(const char * name);
+anim_index_builder * IMB_index_builder_create(const char *name);
 void IMB_index_builder_add_entry(
         anim_index_builder * fp,
         int frameno, unsigned long long seek_pos,
@@ -96,25 +96,25 @@ void IMB_index_builder_proc_frame(
         unsigned long long seek_pos_dts,
         unsigned long long pts);
 
-void IMB_index_builder_finish(anim_index_builder * fp, int rollback);
+void IMB_index_builder_finish(anim_index_builder *fp, int rollback);
 
-struct anim_index *IMB_indexer_open(const char * name);
+struct anim_index *IMB_indexer_open(const char *name);
 unsigned long long IMB_indexer_get_seek_pos(
 	struct anim_index *idx, int frameno_index);
 unsigned long long IMB_indexer_get_seek_pos_dts(
 	struct anim_index *idx, int frameno_index);
 
-int IMB_indexer_get_frame_index(struct anim_index * idx, int frameno);
+int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno);
 unsigned long long IMB_indexer_get_pts(struct anim_index *idx, 
                                        int frame_index);
-int IMB_indexer_get_duration(struct anim_index * idx);
+int IMB_indexer_get_duration(struct anim_index *idx);
 
-int IMB_indexer_can_scan(struct anim_index * idx, 
+int IMB_indexer_can_scan(struct anim_index *idx,
                          int old_frame_index, int new_frame_index);
 
-void IMB_indexer_close(struct anim_index * idx);
+void IMB_indexer_close(struct anim_index *idx);
 
-void IMB_free_indices(struct anim * anim);
+void IMB_free_indices(struct anim *anim);
 
 struct anim *IMB_anim_open_proxy(
 	struct anim *anim, IMB_Proxy_Size preview_size);

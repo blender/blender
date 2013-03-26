@@ -39,6 +39,7 @@ set(INC_SYS
 )
 
 set(SRC
+	operators/bmo_beautify.c
 	operators/bmo_bevel.c
 	operators/bmo_connect.c
 	operators/bmo_create.c

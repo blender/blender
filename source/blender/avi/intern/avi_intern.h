@@ -34,8 +34,8 @@
 
 #include <stdio.h> /* for FILE */
 
-unsigned int GET_FCC (FILE *fp);
-unsigned int GET_TCC (FILE *fp);
+unsigned int GET_FCC(FILE *fp);
+unsigned int GET_TCC(FILE *fp);
 
 #define PUT_FCC(ch4, fp) \
 { \

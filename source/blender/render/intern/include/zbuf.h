@@ -55,10 +55,10 @@ int testclip(const float v[3]);
 
 void zbuffer_shadow(struct Render *re, float winmat[4][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
 void zbuffer_abuf_shadow(struct Render *re, struct LampRen *lar, float winmat[4][4], struct APixstr *APixbuf, struct APixstrand *apixbuf, struct ListBase *apsmbase, int size, int samples, float (*jit)[2]);
-void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart *, struct ZSpan *, int, void*), void *data);
+void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart *, struct ZSpan *, int, void *), void *data);
 
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass, struct ListBase *psmlist);
-void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int));
+void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void *, int, int, int, int, int));
 int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct APixstrand *apixbuf, struct ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[4][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, struct StrandShadeCache *cache);
 
 typedef struct APixstr {

@@ -47,7 +47,7 @@ extern "C" {
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-int imb_save_dds(struct ImBuf * ibuf, const char *name, int flags)
+int imb_save_dds(struct ImBuf *ibuf, const char *name, int flags)
 {
 	return(0); /* todo: finish this function */
 
@@ -85,7 +85,7 @@ int imb_is_a_dds(unsigned char *mem) // note: use at most first 32 bytes
 
 struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
-	struct ImBuf * ibuf = 0;
+	struct ImBuf *ibuf = NULL;
 	DirectDrawSurface dds(mem, size); /* reads header */
 	unsigned char bits_per_pixel;
 	unsigned int *rect;

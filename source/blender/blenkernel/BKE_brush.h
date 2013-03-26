@@ -69,7 +69,7 @@ void BKE_brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
                           const float pos[2], float jitterpos[2]);
 
 /* brush curve */
-void BKE_brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/ int preset);
+void BKE_brush_curve_preset(struct Brush *b, int preset);
 float BKE_brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float BKE_brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 
@@ -78,6 +78,8 @@ float BKE_brush_sample_tex_3D(const Scene *scene, struct Brush *br, const float 
                               float rgba[4], const int thread, struct ImagePool *pool);
 float BKE_brush_sample_tex_2D(const struct Scene *scene, struct Brush *brush, const float xy[2],
                               float rgba[4]);
+float BKE_brush_sample_masktex(const Scene *scene, struct Brush *br, const float point[3],
+                               const int thread, struct ImagePool *pool);
 void BKE_brush_imbuf_new(const struct Scene *scene, struct Brush *brush, short flt, short texfalloff, int size,
                          struct ImBuf **imbuf, int use_color_correction);
 

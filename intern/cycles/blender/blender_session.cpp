@@ -126,8 +126,8 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
 
-	width = b_render.resolution_x();
-	height = b_render.resolution_y();
+	width = (int)(b_render.resolution_x()*b_render.resolution_percentage()/100);
+	height = (int)(b_render.resolution_y()*b_render.resolution_percentage()/100);
 
 	if(scene->params.modified(scene_params) ||
 	   session->params.modified(session_params) ||

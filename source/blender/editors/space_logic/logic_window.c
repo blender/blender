@@ -1116,7 +1116,7 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row, *col;
 
 	row = uiLayoutRow(layout, FALSE);
-	uiItemL(row, IFACE_("Key:"), ICON_NONE);
+	uiItemL(row, CTX_IFACE_(BLF_I18NCONTEXT_ID_WINDOWMANAGER, "Key:"), ICON_NONE);
 	col = uiLayoutColumn(row, FALSE);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys") == FALSE);
 	uiItemR(col, ptr, "key", UI_ITEM_R_EVENT, "", ICON_NONE);
@@ -2155,7 +2155,11 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(row, ptr, "update_period", 0, NULL, ICON_NONE);
 		row = uiLayoutRow(layout, FALSE);
 	}
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "show_visualization", 0, NULL, ICON_NONE);
+	if (RNA_enum_get(ptr, "mode") != ACT_STEERING_PATHFOLLOWING) {
+		uiLayoutSetActive(row, FALSE);
+	}
 }
 
 static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)

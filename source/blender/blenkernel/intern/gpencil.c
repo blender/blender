@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_gpencil_types.h"
 
 #include "BKE_global.h"
@@ -184,7 +186,7 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 	
 	/* auto-name */
 	BLI_strncpy(gpl->info, name, sizeof(gpl->info));
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
+	BLI_uniquename(&gpd->layers, gpl, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 	
 	/* make this one the active one */
 	if (setactive)

@@ -69,8 +69,11 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 		nodelink = nodelink->next;
 	}
 
-	/* Expand group nodes */
-	for (unsigned int i = nodes_start; i < nodes.size(); ++i) {
+	/* Expand group nodes
+	 * Only go up to nodes_end, to avoid ungrouping nested node groups repeatedly.
+	 */
+	int nodes_end = nodes.size();
+	for (unsigned int i = nodes_start; i < nodes_end; ++i) {
 		Node *execnode = nodes[i];
 		if (execnode->isGroupNode()) {
 			GroupNode *groupNode = (GroupNode *)execnode;

@@ -57,7 +57,7 @@
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_operators_private.h"
 
 /* The formatting of these bmesh operators is parsed by
  * 'doc/python_api/rst_from_bmesh_opdefines.py'

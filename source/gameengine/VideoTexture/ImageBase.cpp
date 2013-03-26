@@ -182,8 +182,8 @@ void ImageBase::setFilter (PyFilter * filt)
 ExceptionID ImageHasExports;
 ExceptionID InvalidColorChannel;
 
-ExpDesc ImageHasExportsDesc (ImageHasExports, "Image has exported buffers, cannot resize");
-ExpDesc InvalidColorChannelDesc (InvalidColorChannel, "Invalid or too many color channels specified. At most 4 values within R, G, B, A, 0, 1");
+ExpDesc ImageHasExportsDesc(ImageHasExports, "Image has exported buffers, cannot resize");
+ExpDesc InvalidColorChannelDesc(InvalidColorChannel, "Invalid or too many color channels specified. At most 4 values within R, G, B, A, 0, 1");
 
 // initialize image data
 void ImageBase::init (short width, short height)
@@ -364,7 +364,7 @@ PyTypeList pyImageTypes;
 // functions for python interface
 
 // object allocation
-PyObject *Image_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
+PyObject *Image_allocNew(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	// allocate object
 	PyImage *self = reinterpret_cast<PyImage*>(type->tp_alloc(type, 0));
@@ -375,7 +375,7 @@ PyObject *Image_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 // object deallocation
-void Image_dealloc (PyImage *self)
+void Image_dealloc(PyImage *self)
 {
 	// release object attributes
 	if (self->m_image != NULL)
@@ -394,7 +394,7 @@ void Image_dealloc (PyImage *self)
 }
 
 // get image data
-PyObject *Image_getImage (PyImage *self, char * mode)
+PyObject *Image_getImage(PyImage *self, char *mode)
 {
 	try
 	{
@@ -514,7 +514,7 @@ PyObject *Image_getScale (PyImage *self, void *closure)
 }
 
 // set scale
-int Image_setScale (PyImage *self, PyObject *value, void *closure)
+int Image_setScale(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -536,7 +536,7 @@ PyObject *Image_getFlip (PyImage *self, void *closure)
 }
 
 // set flip
-int Image_setFlip (PyImage *self, PyObject *value, void *closure)
+int Image_setFlip(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -551,14 +551,14 @@ int Image_setFlip (PyImage *self, PyObject *value, void *closure)
 }
 
 // get zbuff
-PyObject * Image_getZbuff (PyImage * self, void * closure)
+PyObject *Image_getZbuff(PyImage * self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getZbuff()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set zbuff
-int Image_setZbuff (PyImage * self, PyObject * value, void * closure)
+int Image_setZbuff(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -573,14 +573,14 @@ int Image_setZbuff (PyImage * self, PyObject * value, void * closure)
 }
 
 // get depth
-PyObject * Image_getDepth (PyImage * self, void * closure)
+PyObject *Image_getDepth(PyImage * self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getDepth()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set depth
-int Image_setDepth (PyImage * self, PyObject * value, void * closure)
+int Image_setDepth(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -598,7 +598,7 @@ int Image_setDepth (PyImage * self, PyObject * value, void * closure)
 
 
 // get filter source object
-PyObject *Image_getSource (PyImage *self, PyObject *args)
+PyObject *Image_getSource(PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;
@@ -622,7 +622,7 @@ PyObject *Image_getSource (PyImage *self, PyObject *args)
 
 
 // set filter source object
-PyObject *Image_setSource (PyImage *self, PyObject *args)
+PyObject *Image_setSource(PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;
@@ -657,13 +657,13 @@ PyObject *Image_setSource (PyImage *self, PyObject *args)
 
 
 // get pixel filter object
-PyObject *Image_getFilter (PyImage *self, void *closure)
+PyObject *Image_getFilter(PyImage *self, void *closure)
 {
 	// if image object is available
 	if (self->m_image != NULL)
 	{
 		// pixel filter object
-		PyObject * filt = reinterpret_cast<PyObject*>(self->m_image->getFilter());
+		PyObject *filt = reinterpret_cast<PyObject*>(self->m_image->getFilter());
 		// if filter is present
 		if (filt != NULL)
 		{
@@ -678,7 +678,7 @@ PyObject *Image_getFilter (PyImage *self, void *closure)
 
 
 // set pixel filter object
-int Image_setFilter (PyImage *self, PyObject *value, void *closure)
+int Image_setFilter(PyImage *self, PyObject *value, void *closure)
 {
 	// if image object is available
 	if (self->m_image != NULL)

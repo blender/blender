@@ -138,7 +138,8 @@ enum {
 /* Runtime flags */
 enum {
 	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),    /* operator just started */
-	GP_PAINTFLAG_STROKEADDED    = (1 << 1)
+	GP_PAINTFLAG_STROKEADDED    = (1 << 1),
+	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2)
 };
 
 /* ------ */
@@ -842,8 +843,41 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 	}
 }
 
+/* which which point is infront (result should only be used for comparison) */
+static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
+{
+	if (rv3d->is_persp) {
+		return ED_view3d_calc_zfac(rv3d, co, NULL);
+	}
+	else {
+		return -dot_v3v3(rv3d->viewinv[2], co);
+	}
+}
+
+static bool gp_stroke_eraser_is_occluded(tGPsdata *p,
+                                         const bGPDspoint *pt, const int x, const int y)
+{
+	if ((p->sa->spacetype == SPACE_VIEW3D) &&
+	    (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH))
+	{
+		RegionView3D *rv3d = p->ar->regiondata;
+		const int mval[2] = {x, y};
+		float mval_3d[3];
+
+		if (ED_view3d_autodist_simple(p->ar, mval, mval_3d, 0, NULL)) {
+			const float depth_mval = view3d_point_depth(rv3d, mval_3d);
+			const float depth_pt   = view3d_point_depth(rv3d, &pt->x);
+
+			if (depth_pt > depth_mval) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /* eraser tool - check if part of stroke occurs within last segment drawn by eraser */
-static short gp_stroke_eraser_strokeinside(const int mval[], const int UNUSED(mvalo[]),
+static short gp_stroke_eraser_strokeinside(const int mval[2], const int UNUSED(mvalo[2]),
                                            int rad, int x0, int y0, int x1, int y1)
 {
 	/* simple within-radius check for now */
@@ -893,7 +927,7 @@ static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
 static void gp_stroke_eraser_dostroke(tGPsdata *p,
-                                      const int mval[], const int mvalo[],
+                                      const int mval[2], const int mvalo[2],
                                       short rad, const rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
@@ -940,9 +974,13 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				 *  - this assumes that linewidth is irrelevant
 				 */
 				if (gp_stroke_eraser_strokeinside(mval, mvalo, rad, x0, y0, x1, y1)) {
-					/* if function returns true, break this loop (as no more point to check) */
-					if (gp_stroke_eraser_splitdel(gpf, gps, i))
-						break;
+					if ((gp_stroke_eraser_is_occluded(p, pt1, x0, y0) == false) ||
+					    (gp_stroke_eraser_is_occluded(p, pt2, x1, y1) == false))
+					{
+						/* if function returns true, break this loop (as no more point to check) */
+						if (gp_stroke_eraser_splitdel(gpf, gps, i))
+							break;
+					}
 				}
 			}
 		}
@@ -961,7 +999,16 @@ static void gp_stroke_doeraser(tGPsdata *p)
 	rect.ymin = p->mval[1] - p->radius;
 	rect.xmax = p->mval[0] + p->radius;
 	rect.ymax = p->mval[1] + p->radius;
-	
+
+	if (p->sa->spacetype == SPACE_VIEW3D) {
+		if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
+			View3D *v3d = p->sa->spacedata.first;
+
+			view3d_region_operator_needs_opengl(p->win, p->ar);
+			ED_view3d_autodist_init(p->scene, p->ar, v3d, 0);
+		}
+	}
+
 	/* loop over strokes, checking segments for intersections */
 	for (gps = gpf->strokes.first; gps; gps = gpn) {
 		gpn = gps->next;
@@ -1213,9 +1260,17 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	
 	/* set 'eraser' for this stroke if using eraser */
 	p->paintmode = paintmode;
-	if (p->paintmode == GP_PAINTMODE_ERASER)
+	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		p->gpd->sbuffer_sflag |= GP_STROKE_ERASER;
-		
+
+		/* check if we should respect depth while erasing */
+		if (p->sa->spacetype == SPACE_VIEW3D) {
+			if (p->gpl->flag & GP_LAYER_NO_XRAY) {
+				p->flags |= GP_PAINTFLAG_V3D_ERASER_DEPTH;
+			}
+		}
+	}
+
 	/* set 'initial run' flag, which is only used to denote when a new stroke is starting */
 	p->flags |= GP_PAINTFLAG_FIRSTRUN;
 	
@@ -1910,12 +1965,12 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 */
 			/* printf("\t\tGP - resize eraser\n"); */
 			switch (event->type) {
-				case WHEELUPMOUSE: /* larger */
+				case WHEELDOWNMOUSE: /* larger */
 				case PADPLUSKEY:
 					p->radius += 5;
 					break;
 					
-				case WHEELDOWNMOUSE: /* smaller */
+				case WHEELUPMOUSE: /* smaller */
 				case PADMINUS:
 					p->radius -= 5;
 					

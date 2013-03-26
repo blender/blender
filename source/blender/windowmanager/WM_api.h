@@ -193,7 +193,7 @@ int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
 int			WM_operator_props_popup_call(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
-int 		WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height);
+int 		WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width, int height);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 int			WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
 

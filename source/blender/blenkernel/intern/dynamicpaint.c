@@ -520,7 +520,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, int parent
 
 	/* if object has parents, update them too */
 	if (parent_recursion) {
-		int recursion = parent_recursion-1;
+		int recursion = parent_recursion - 1;
 		int is_canvas = 0;
 		if (ob->parent) is_canvas += subframe_updateObject(scene, ob->parent, 0, recursion, frame);
 		if (ob->track) is_canvas += subframe_updateObject(scene, ob->track, 0, recursion, frame);
@@ -1024,7 +1024,8 @@ void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd)
 DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas, Scene *scene)
 {
 	DynamicPaintSurface *surface = MEM_callocN(sizeof(DynamicPaintSurface), "DynamicPaintSurface");
-	if (!surface) return NULL;
+	if (!surface)
+		return NULL;
 
 	surface->canvas = canvas;
 	surface->format = MOD_DPAINT_SURFACE_F_VERTEX;
@@ -1080,7 +1081,8 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 
 	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
-	dynamicPaintSurface_setUniqueName(surface, "Surface");
+	/* Using ID_BRUSH i18n context, as we have no physics/dpaint one for now... */
+	dynamicPaintSurface_setUniqueName(surface, CTX_DATA_(BLF_I18NCONTEXT_ID_BRUSH, "Surface"));
 
 	surface->effector_weights = BKE_add_effector_weights(NULL);
 

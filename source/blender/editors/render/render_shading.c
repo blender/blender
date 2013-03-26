@@ -46,6 +46,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -383,7 +385,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 		ma = BKE_material_copy(ma);
 	}
 	else {
-		ma = BKE_material_add(bmain, "Material");
+		ma = BKE_material_add(bmain, DATA_("Material"));
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(C, &ma->id);
@@ -436,7 +438,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	if (tex)
 		tex = BKE_texture_copy(tex);
 	else
-		tex = add_texture(bmain, "Texture");
+		tex = add_texture(bmain, DATA_("Texture"));
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);

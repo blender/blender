@@ -31,7 +31,7 @@ effect: constucts an empty COperator1Expr
 	m_lhs = NULL;
 }
 
-COperator1Expr::COperator1Expr(VALUE_OPERATOR op, CExpression * lhs)
+COperator1Expr::COperator1Expr(VALUE_OPERATOR op, CExpression *lhs)
 /*
 pre:
 effect: constucts a COperator1Expr with op and lhs in it

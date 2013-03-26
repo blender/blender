@@ -249,7 +249,7 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 
 
 
-void* SCA_LogicManager::GetActionByName (const STR_String& actname)
+void *SCA_LogicManager::GetActionByName(const STR_String& actname)
 {
 	STR_HashedString an = actname;
 	void** actptr = m_mapStringToActions[an];

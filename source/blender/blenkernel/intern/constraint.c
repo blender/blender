@@ -100,7 +100,7 @@
 /* Find the first available, non-duplicate name for a given constraint */
 void BKE_unique_constraint_name(bConstraint *con, ListBase *list)
 {
-	BLI_uniquename(list, con, "Const", '.', offsetof(bConstraint, name), sizeof(con->name));
+	BLI_uniquename(list, con, DATA_("Const"), '.', offsetof(bConstraint, name), sizeof(con->name));
 }
 
 /* ----------------- Evaluation Loop Preparation --------------- */

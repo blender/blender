@@ -793,7 +793,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op)
 	return s;
 }
 
-void paint_2d_redraw (const bContext *C, void *ps, int final)
+void paint_2d_redraw(const bContext *C, void *ps, int final)
 {
 	ImagePaintState *s = ps;
 

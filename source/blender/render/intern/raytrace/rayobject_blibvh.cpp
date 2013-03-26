@@ -44,7 +44,7 @@ static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec);
 static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob);
 static void RE_rayobject_blibvh_done(RayObject *o);
 static void RE_rayobject_blibvh_free(RayObject *o);
-static void RE_rayobject_blibvh_bb(RayObject * o, float min[3], float max[3]);
+static void RE_rayobject_blibvh_bb(RayObject *o, float min[3], float max[3]);
 
 static float RE_rayobject_blibvh_cost(RayObject *UNUSED(o))
 {

@@ -40,6 +40,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
@@ -187,7 +189,8 @@ void BKE_mask_layer_remove(Mask *mask, MaskLayer *masklay)
 
 void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
 {
-	BLI_uniquename(&mask->masklayers, masklay, "MaskLayer", '.', offsetof(MaskLayer, name), sizeof(masklay->name));
+	BLI_uniquename(&mask->masklayers, masklay, DATA_("MaskLayer"), '.', offsetof(MaskLayer, name),
+	               sizeof(masklay->name));
 }
 
 MaskLayer *BKE_mask_layer_copy(MaskLayer *masklay)

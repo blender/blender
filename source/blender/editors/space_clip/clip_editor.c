@@ -741,13 +741,15 @@ void ED_space_clip_free_texture_buffer(SpaceClip *sc)
 
 typedef struct PrefetchJob {
 	MovieClip *clip;
-	int start_frame, end_frame;
+	int start_frame, current_frame, end_frame;
 	short render_size, render_flag;
 } PrefetchJob;
 
 typedef struct PrefetchQueue {
-	int current_frame, start_frame, end_frame;
+	int initial_frame, current_frame, start_frame, end_frame;
 	short render_size, render_flag;
+
+	short direction;
 
 	SpinLock spin;
 
@@ -828,19 +830,29 @@ static unsigned char *prefetch_read_file_to_memory(MovieClip *clip, int current_
 
 /* find first uncached frame within prefetching frame range */
 static int prefetch_find_uncached_frame(MovieClip *clip, int from_frame, int end_frame,
-                                        short render_size, short render_flag)
+                                        short render_size, short render_flag, short direction)
 {
 	int current_frame;
+	MovieClipUser user = {0};
 
-	for (current_frame = from_frame; current_frame <= end_frame; current_frame++) {
-		MovieClipUser user = {0};
+	user.render_size = render_size;
+	user.render_flag = render_flag;
 
-		user.framenr = current_frame;
-		user.render_size = render_size;
-		user.render_flag = render_flag;
+	if (direction > 0) {
+		for (current_frame = from_frame; current_frame <= end_frame; current_frame++) {
+			user.framenr = current_frame;
 
-		if (!BKE_movieclip_has_cached_frame(clip, &user))
-			break;
+			if (!BKE_movieclip_has_cached_frame(clip, &user))
+				break;
+		}
+	}
+	else {
+		for (current_frame = from_frame; current_frame >= end_frame; current_frame--) {
+			user.framenr = current_frame;
+
+			if (!BKE_movieclip_has_cached_frame(clip, &user))
+				break;
+		}
 	}
 
 	return current_frame;
@@ -853,12 +865,23 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 	unsigned char *mem = NULL;
 
 	BLI_spin_lock(&queue->spin);
-	if (!*queue->stop && queue->current_frame <= queue->end_frame && check_prefetch_allowed()) {
+	if (!*queue->stop && check_prefetch_allowed() &&
+	    IN_RANGE_INCL(queue->current_frame, queue->start_frame, queue->end_frame))
+	{
 		int current_frame;
-		current_frame = prefetch_find_uncached_frame(clip, queue->current_frame + 1, queue->end_frame,
-		                                             queue->render_size, queue->render_flag);
 
-		if (current_frame <= queue->end_frame) {
+		if (queue->direction > 0) {
+			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame + 1, queue->end_frame,
+			                                             queue->render_size, queue->render_flag, 1);
+		}
+		else {
+			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame - 1, queue->start_frame,
+			                                             queue->render_size, queue->render_flag, -1);
+		}
+
+		if (IN_RANGE_INCL(current_frame, queue->start_frame, queue->end_frame)) {
+			int frames_processed;
+
 			mem = prefetch_read_file_to_memory(clip, current_frame, queue->render_size,
 			                                   queue->render_flag, size_r);
 
@@ -866,9 +889,22 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 
 			queue->current_frame = current_frame;
 
+			if (queue->direction > 0) {
+				frames_processed = queue->current_frame - queue->initial_frame;
+			}
+			else {
+				frames_processed = (queue->end_frame - queue->initial_frame) +
+				                   (queue->initial_frame - queue->current_frame);
+			}
+
 			*queue->do_update = 1;
-			*queue->progress = (float)(queue->current_frame - queue->start_frame) /
-				(queue->end_frame - queue->start_frame);
+			*queue->progress = (float)frames_processed / (queue->end_frame - queue->start_frame);
+
+			/* switch direction if read frames from current up to scene end frames */
+			if (current_frame == queue->end_frame) {
+				queue->current_frame = queue->initial_frame;
+				queue->direction = -1;
+			}
 		}
 	}
 	BLI_spin_unlock(&queue->spin);
@@ -911,8 +947,9 @@ static void *do_prefetch_thread(void *data_v)
 	return NULL;
 }
 
-static void start_prefetch_threads(MovieClip *clip, int start_frame, int end_frame, short render_size,
-                                   short render_flag, short *stop, short *do_update, float *progress)
+static void start_prefetch_threads(MovieClip *clip, int start_frame, int current_frame, int end_frame,
+                                   short render_size, short render_flag, short *stop, short *do_update,
+                                   float *progress)
 {
 	ListBase threads;
 	PrefetchQueue queue;
@@ -927,11 +964,13 @@ static void start_prefetch_threads(MovieClip *clip, int start_frame, int end_fra
 	/* initialize queue */
 	BLI_spin_init(&queue.spin);
 
-	queue.current_frame = start_frame;
+	queue.current_frame = current_frame;
+	queue.initial_frame = current_frame;
 	queue.start_frame = start_frame;
 	queue.end_frame = end_frame;
 	queue.render_size = render_size;
 	queue.render_flag = render_flag;
+	queue.direction = 1;
 
 	queue.stop = stop;
 	queue.do_update = do_update;
@@ -962,45 +1001,70 @@ static void start_prefetch_threads(MovieClip *clip, int start_frame, int end_fra
 	MEM_freeN(handles);
 }
 
-static void do_prefetch_movie(MovieClip *clip, int start_frame, int end_frame, short render_size,
-                              short render_flag, short *stop, short *do_update, float *progress)
+static bool prefetch_movie_frame(MovieClip *clip, int frame, short render_size,
+                                 short render_flag, short *stop)
 {
-	int current_frame;
+	MovieClipUser user = {0};
+	ImBuf *ibuf;
 
-	for (current_frame = start_frame; current_frame <= end_frame; current_frame++) {
-		MovieClipUser user = {0};
-		ImBuf *ibuf;
+	if (!check_prefetch_allowed() || *stop)
+		return false;
 
-		if (!check_prefetch_allowed() || *stop)
-			break;
+	user.framenr = frame;
+	user.render_size = render_size;
+	user.render_flag = render_flag;
 
-		user.framenr = current_frame;
-		user.render_size = render_size;
-		user.render_flag = render_flag;
+	if (!BKE_movieclip_has_cached_frame(clip, &user)) {
+		ibuf = BKE_movieclip_anim_ibuf_for_frame(clip, &user);
 
-		if (!BKE_movieclip_has_cached_frame(clip, &user)) {
-			ibuf = BKE_movieclip_anim_ibuf_for_frame(clip, &user);
+		if (ibuf) {
+			int result;
 
-			if (ibuf) {
-				int result;
+			result = BKE_movieclip_put_frame_if_possible(clip, &user, ibuf);
 
-				result = BKE_movieclip_put_frame_if_possible(clip, &user, ibuf);
-
-				if (!result) {
-					/* no more space in the cache, we could stop prefetching here */
-					*stop = 1;
-				}
-
-				IMB_freeImBuf(ibuf);
-			}
-			else {
-				/* error reading frame, fair enough stop attempting further reading */
+			if (!result) {
+				/* no more space in the cache, we could stop prefetching here */
 				*stop = 1;
 			}
+
+			IMB_freeImBuf(ibuf);
 		}
+		else {
+			/* error reading frame, fair enough stop attempting further reading */
+			*stop = 1;
+		}
+	}
+
+	return true;
+}
+
+static void do_prefetch_movie(MovieClip *clip, int start_frame, int current_frame, int end_frame,
+                              short render_size, short render_flag, short *stop, short *do_update,
+                              float *progress)
+{
+	int frame;
+	int frames_processed = 0;
+
+	/* read frames starting from current frame up to scene end frame */
+	for (frame = current_frame; frame <= end_frame; frame++) {
+		if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop))
+			return;
+
+		frames_processed++;
 
 		*do_update = 1;
-		*progress = (float)(current_frame - start_frame) / (end_frame - start_frame);
+		*progress = (float) frames_processed / (end_frame - start_frame);
+	}
+
+	/* read frames starting from current frame up to scene start frame */
+	for (frame = current_frame; frame >= start_frame; frame--) {
+		if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop))
+			return;
+
+		frames_processed++;
+
+		*do_update = 1;
+		*progress = (float) frames_processed / (end_frame - start_frame);
 	}
 }
 
@@ -1010,13 +1074,13 @@ static void prefetch_startjob(void *pjv, short *stop, short *do_update, float *p
 
 	if (pj->clip->source == MCLIP_SRC_SEQUENCE) {
 		/* read sequence files in multiple threads */
-		start_prefetch_threads(pj->clip, pj->start_frame, pj->end_frame,
+		start_prefetch_threads(pj->clip, pj->start_frame, pj->current_frame, pj->end_frame,
 		                       pj->render_size, pj->render_flag,
 		                       stop, do_update, progress);
 	}
 	else if (pj->clip->source == MCLIP_SRC_MOVIE) {
 		/* read movie in a single thread */
-		do_prefetch_movie(pj->clip, pj->start_frame, pj->end_frame,
+		do_prefetch_movie(pj->clip, pj->start_frame, pj->current_frame, pj->end_frame,
 		                  pj->render_size, pj->render_flag,
 		                  stop, do_update, progress);
 	}
@@ -1030,6 +1094,13 @@ static void prefetch_freejob(void *pjv)
 	PrefetchJob *pj = pjv;
 
 	MEM_freeN(pj);
+}
+
+static int prefetch_get_start_frame(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	return SFRA;
 }
 
 static int prefetch_get_final_frame(const bContext *C)
@@ -1059,6 +1130,20 @@ static bool prefetch_check_early_out(const bContext *C)
 	if (clip->prefetch_ok)
 		return true;
 
+	if (clip->source == MCLIP_SRC_MOVIE) {
+		/* for movies we only prefetch undistorted proxy,
+		 * in other cases prefetching could lead to issues
+		 * due to timecodes issues.
+		 */
+
+		if (clip->flag & MCLIP_USE_PROXY) {
+			MovieClipUser *user = &sc->user;
+
+			if ((user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) == 0)
+				return true;
+		}
+	}
+
 	clip_len = BKE_movieclip_get_duration(clip);
 
 	/* check whether all the frames from prefetch range are cached */
@@ -1066,10 +1151,18 @@ static bool prefetch_check_early_out(const bContext *C)
 
 	first_uncached_frame =
 		prefetch_find_uncached_frame(clip, sc->user.framenr, end_frame,
-		                             sc->user.render_size, sc->user.render_flag);
+		                             sc->user.render_size, sc->user.render_flag, 1);
 
-	if (first_uncached_frame > end_frame || first_uncached_frame == clip_len)
-		return true;
+	if (first_uncached_frame > end_frame || first_uncached_frame == clip_len) {
+		int start_frame = prefetch_get_start_frame(C);
+
+		first_uncached_frame =
+			prefetch_find_uncached_frame(clip, sc->user.framenr, start_frame,
+			                             sc->user.render_size, sc->user.render_flag, -1);
+
+		if (first_uncached_frame < start_frame)
+			return true;
+	}
 
 	return false;
 }
@@ -1101,7 +1194,8 @@ void clip_start_prefetch_job(const bContext *C)
 	/* create new job */
 	pj = MEM_callocN(sizeof(PrefetchJob), "prefetch job");
 	pj->clip = ED_space_clip_get_clip(sc);
-	pj->start_frame = sc->user.framenr;
+	pj->start_frame = prefetch_get_start_frame(C);
+	pj->current_frame = sc->user.framenr;
 	pj->end_frame = prefetch_get_final_frame(C);
 	pj->render_size = sc->user.render_size;
 	pj->render_flag = sc->user.render_flag;

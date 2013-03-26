@@ -504,7 +504,7 @@ void VideoFFmpeg::stopCache()
 	}
 }
 
-void VideoFFmpeg::releaseFrame(AVFrame* frame)
+void VideoFFmpeg::releaseFrame(AVFrame *frame)
 {
 	if (frame == m_frameRGB)
 	{
@@ -521,7 +521,7 @@ void VideoFFmpeg::releaseFrame(AVFrame* frame)
 }
 
 // open video file
-void VideoFFmpeg::openFile (char * filename)
+void VideoFFmpeg::openFile (char *filename)
 {
 	if (openStream(filename, NULL, NULL) != 0)
 		return;
@@ -578,7 +578,7 @@ void VideoFFmpeg::openFile (char * filename)
 
 
 // open video capture device
-void VideoFFmpeg::openCam (char * file, short camIdx)
+void VideoFFmpeg::openCam (char *file, short camIdx)
 {
 	// open camera source
 	AVInputFormat		*inputFormat;
@@ -1085,7 +1085,7 @@ inline VideoFFmpeg * getVideoFFmpeg (PyImage *self)
 
 
 // object initialization
-static int VideoFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
+static int VideoFFmpeg_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source
@@ -1243,7 +1243,7 @@ PyTypeObject VideoFFmpegType =
 };
 
 // object initialization
-static int ImageFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
+static int ImageFFmpeg_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source

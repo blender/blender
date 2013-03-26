@@ -70,12 +70,12 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags);
 /* targa */
 int imb_is_a_targa(unsigned char *buf);
 struct ImBuf *imb_loadtarga(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
-int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags);
+int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags);
 
 /* iris */
 int imb_is_a_iris(unsigned char *mem);
 struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
-int imb_saveiris(struct ImBuf * ibuf, const char *name, int flags);
+int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags);
 
 /* jp2 */
 int imb_is_a_jp2(unsigned char *buf);
@@ -85,7 +85,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags);
 /* jpeg */
 int imb_is_a_jpeg(unsigned char *mem);
 int imb_savejpeg(struct ImBuf *ibuf, const char *name, int flags);
-struct ImBuf * imb_load_jpeg (unsigned char * buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
+struct ImBuf *imb_load_jpeg (unsigned char *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
 
 /* bmp */
 int imb_is_a_bmp(unsigned char *buf);
@@ -109,7 +109,7 @@ int imb_is_dpx(unsigned char *buf);
 /* hdr */
 int imb_is_a_hdr(unsigned char *buf);
 struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
-int imb_savehdr(struct ImBuf * ibuf, const char *name, int flags);
+int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags);
 
 /* tiff */
 void imb_inittiff(void);

@@ -105,7 +105,7 @@ void BL_ShapeActionActuator::ProcessReplica()
 	m_lastUpdate=-1;
 }
 
-void BL_ShapeActionActuator::SetBlendTime (float newtime)
+void BL_ShapeActionActuator::SetBlendTime(float newtime)
 {
 	m_blendframe = newtime;
 }

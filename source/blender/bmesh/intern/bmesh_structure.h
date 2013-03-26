@@ -68,7 +68,7 @@ BMLoop *bmesh_radial_faceloop_find_vert(BMFace *f, BMVert *v);
 bool    bmesh_radial_validate(int radlen, BMLoop *l);
 
 /* EDGE UTILITIES */
-bool    bmesh_vert_in_edge(BMEdge *e, BMVert *v);
+bool    bmesh_vert_in_edge(const BMEdge *e, const BMVert *v);
 bool    bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
 bool    bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv);  /* relink edge */
 BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v);

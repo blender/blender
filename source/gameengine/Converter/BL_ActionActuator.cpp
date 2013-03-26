@@ -59,7 +59,7 @@ extern "C" {
 #include "RNA_define.h"
 }
 
-BL_ActionActuator::BL_ActionActuator(SCA_IObject* gameobj,
+BL_ActionActuator::BL_ActionActuator(SCA_IObject *gameobj,
 					const STR_String& propname,
 					const STR_String& framepropname,
 					float starttime,
@@ -123,7 +123,7 @@ void BL_ActionActuator::ProcessReplica()
 	
 }
 
-void BL_ActionActuator::SetBlendTime (float newtime)
+void BL_ActionActuator::SetBlendTime(float newtime)
 {
 	m_blendframe = newtime;
 }

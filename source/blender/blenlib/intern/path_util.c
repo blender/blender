@@ -232,7 +232,7 @@ void BLI_newname(char *name, int add)
  * \param name_len  Maximum length of name area
  * \return true if there if the name was changed
  */
-bool BLI_uniquename_cb(bool (*unique_check)(void * arg, const char *name),
+bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
                        void *arg, const char *defname, char delim, char *name, short name_len)
 {
 	if (name[0] == '\0') {

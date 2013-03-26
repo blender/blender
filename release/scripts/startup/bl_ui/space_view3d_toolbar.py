@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Menu, Panel
 from bl_ui.properties_paint_common import UnifiedPaintPanel
 from bl_ui.properties_paint_common import brush_texture_settings
+from bl_ui.properties_paint_common import brush_mask_texture_settings
 
 
 class View3DPanel():
@@ -780,6 +781,34 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
             row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
         sub = row.row()
         sub.prop(brush, "texture_overlay_alpha", text="Alpha")
+
+
+class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
+    bl_context = "imagepaint"
+    bl_label = "Texture Mask"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.image_paint.brush
+        return (context.image_paint_object and brush and brush.image_tool != 'SOFTEN')
+
+    def draw_header(self, context):
+        brush = context.tool_settings.image_paint.brush
+        tex_slot_alpha = brush.mask_texture_slot
+        self.layout.prop(brush, 'use_mask', text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        brush = context.tool_settings.image_paint.brush
+        tex_slot_alpha = brush.mask_texture_slot
+
+        col = layout.column()
+
+        col.template_ID_preview(brush, "mask_texture", new="texture.new", rows=3, cols=8)
+
+        brush_mask_texture_settings(col, brush)
 
 
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):

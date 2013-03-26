@@ -2875,6 +2875,7 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
 			
 			writestruct(wd, DATA, "MTex", 1, &brush->mtex);
+			writestruct(wd, DATA, "MTex", 1, &brush->mask_mtex);
 			
 			if (brush->curve)
 				write_curvemapping(wd, brush->curve);

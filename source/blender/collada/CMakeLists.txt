@@ -29,6 +29,7 @@ set(INC
 	.
 	../blenkernel
 	../blenlib
+	../blenfont
 	../blenloader
 	../editors/include
 	../makesdna
@@ -105,6 +106,10 @@ set(SRC
 
 if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)

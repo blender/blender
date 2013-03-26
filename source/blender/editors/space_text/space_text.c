@@ -220,6 +220,8 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_replace);
 	WM_operatortype_append(TEXT_OT_replace_set_selected);
 
+	WM_operatortype_append(TEXT_OT_start_find);
+	
 	WM_operatortype_append(TEXT_OT_to_3d_object);
 
 	WM_operatortype_append(TEXT_OT_resolve_conflict);
@@ -233,9 +235,9 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	
 	keymap = WM_keymap_find(keyconf, "Text Generic", SPACE_TEXT, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_start_find", FKEY, KM_PRESS, KM_CTRL, 0);
 #ifdef __APPLE__
-	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_start_find", FKEY, KM_PRESS, KM_OSKEY, 0);
 #endif
 	
 	keymap = WM_keymap_find(keyconf, "Text", SPACE_TEXT, 0);
@@ -515,7 +517,19 @@ static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void text_properties_area_draw(const bContext *C, ARegion *ar)
 {
+	SpaceText *st = CTX_wm_space_text(C);
+	
 	ED_region_panels(C, ar, 1, NULL, -1);
+	
+	/* this flag trick is make sure buttons have been added already */
+	if (st->flags & ST_FIND_ACTIVATE) {
+		if (UI_textbutton_activate_event(C, ar, st, "find_text")) {
+			/* if the panel was already open we need to do another redraw */
+			ScrArea *sa = CTX_wm_area(C);
+			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_TEXT, sa);
+		}
+		st->flags &= ~ST_FIND_ACTIVATE;
+	}
 }
 
 /********************* registration ********************/

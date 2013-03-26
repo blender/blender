@@ -347,6 +347,39 @@ void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], 
 	normalize_v3(vec);
 }
 
+/* very similar to ED_view3d_win_to_3d() but has no advantage, de-duplicating */
+#if 0
+bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval[2], const bool do_fallback)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	float dvec[3];
+	int mval_cpy[2];
+	eV3DProjStatus ret;
+
+	ret = ED_view3d_project_int_global(ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
+
+	if (ret == V3D_PROJ_RET_OK) {
+		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
+		                         (float)(mval_cpy[1] - mval[1])};
+		const float zfac = ED_view3d_calc_zfac(rv3d, fp, NULL);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
+		sub_v3_v3(fp, dvec);
+
+		return true;
+	}
+	else {
+		/* fallback to the view center */
+		if (do_fallback) {
+			negate_v3_v3(fp, rv3d->ofs);
+			return view3d_get_view_aligned_coordinate(ar, fp, mval, false);
+		}
+		else {
+			return false;
+		}
+	}
+}
+#endif
+
 /**
  * Calculate a 3d location from 2d window coordinates.
  * \param ar The region (used for the window width and height).
@@ -357,7 +390,7 @@ void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], 
 void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float mval[2], float out[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
-	
+
 	float line_sta[3];
 	float line_end[3];
 
@@ -382,6 +415,12 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 		add_v3_v3v3(line_end, line_sta, rv3d->viewinv[2]);
 		closest_to_line_v3(out, depth_pt, line_sta, line_end);
 	}
+}
+
+void ED_view3d_win_to_3d_int(const ARegion *ar, const float depth_pt[3], const int mval[2], float out[3])
+{
+	const float mval_fl[2] = {mval[0], mval[1]};
+	ED_view3d_win_to_3d(ar, depth_pt, mval_fl, out);
 }
 
 /**

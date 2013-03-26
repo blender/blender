@@ -96,7 +96,8 @@ static bool uniqueOrientationNameCheck(void *arg, const char *name)
 
 static void uniqueOrientationName(ListBase *lb, char *name)
 {
-	BLI_uniquename_cb(uniqueOrientationNameCheck, lb, "Space", '.', name, sizeof(((TransformOrientation *)NULL)->name));
+	BLI_uniquename_cb(uniqueOrientationNameCheck, lb, CTX_DATA_(BLF_I18NCONTEXT_ID_SCENE, "Space"), '.', name,
+	                  sizeof(((TransformOrientation *)NULL)->name));
 }
 
 void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name, int use, int overwrite)

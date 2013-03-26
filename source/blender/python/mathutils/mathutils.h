@@ -64,12 +64,12 @@ typedef struct {
 #include "mathutils_geometry.h"
 #include "mathutils_noise.h"
 
-PyObject *BaseMathObject_owner_get(BaseMathObject * self, void *);
+PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *);
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
-void BaseMathObject_dealloc(BaseMathObject * self);
+void BaseMathObject_dealloc(BaseMathObject *self);
 
 PyMODINIT_FUNC PyInit_mathutils(void);
 

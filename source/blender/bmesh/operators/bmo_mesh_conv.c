@@ -28,28 +28,16 @@
  * into a Bmesh, and back again.
  */
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
-#include "DNA_modifier_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
-
-#include "BKE_mesh.h"
-#include "BLI_listbase.h"
-#include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_main.h"
-#include "BKE_customdata.h"
 
 #include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_operators_private.h"
 
-#include "intern/bmesh_operators_private.h" /* own include */
 
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {

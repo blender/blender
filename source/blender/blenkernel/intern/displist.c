@@ -850,7 +850,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	*numVerts_r = numVerts;
 }
 
-static float (*displist_get_allverts(ListBase * dispbase, int *totvert))[3]
+static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
 {
 	DispList *dl;
 	float (*allverts)[3], *fp;

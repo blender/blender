@@ -499,9 +499,7 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 			continue;
 		
 		/* check which stroke-drawer to use */
-		if (gps->totpoints == 1)
-			gp_draw_stroke_point(gps->points, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
-		else if (dflag & GP_DRAWDATA_ONLY3D) {
+		if (dflag & GP_DRAWDATA_ONLY3D) {
 			const int no_xray = (dflag & GP_DRAWDATA_NO_XRAY);
 			int mask_orig = 0;
 			
@@ -519,7 +517,12 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 #endif
 			}
 			
-			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
+			if (gps->totpoints == 1) {
+				gp_draw_stroke_point(gps->points, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
+			}
+			else {
+				gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
+			}
 			
 			if (no_xray) {
 				glDepthMask(mask_orig);
@@ -532,8 +535,14 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 #endif
 			}
 		}
-		else if (gps->totpoints > 1)
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
+		else {
+			if (gps->totpoints == 1) {
+				gp_draw_stroke_point(gps->points, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
+			}
+			else {
+				gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
+			}
+		}
 	}
 }
 

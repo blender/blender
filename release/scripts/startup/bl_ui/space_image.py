@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from bl_ui.properties_paint_common import UnifiedPaintPanel, brush_texture_settings
+from bl_ui.properties_paint_common import UnifiedPaintPanel, brush_texture_settings, brush_mask_texture_settings
 from bpy.app.translations import pgettext_iface as iface_
 
 
@@ -477,7 +477,6 @@ class IMAGE_PT_game_properties(Panel):
         split = layout.split()
 
         col = split.column()
-
         col.prop(ima, "use_animation")
         sub = col.column(align=True)
         sub.active = ima.use_animation
@@ -728,6 +727,28 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
 
         brush_texture_settings(col, brush, 0)
+
+
+class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
+    bl_label = "Texture Mask"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        brush = context.tool_settings.image_paint.brush
+        tex_slot_alpha = brush.mask_texture_slot
+        self.layout.prop(brush, 'use_mask', text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        brush = context.tool_settings.image_paint.brush
+        tex_slot_alpha = brush.mask_texture_slot
+
+        col = layout.column()
+
+        col.template_ID_preview(brush, "mask_texture", new="texture.new", rows=3, cols=8)
+
+        brush_mask_texture_settings(col, brush)
 
 
 class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):

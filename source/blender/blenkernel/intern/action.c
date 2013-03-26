@@ -47,17 +47,18 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-#include "BKE_animsys.h"
+#include "BLF_translation.h"
+
 #include "BKE_action.h"
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_constraint.h"
-#include "BKE_global.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-
-#include "BKE_idprop.h"
 
 #include "BIK_api.h"
 
@@ -296,11 +297,11 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 	
 	/* make it selected, with default name */
 	agrp->flag = AGRP_SELECTED;
-	BLI_strncpy(agrp->name, name[0] ? name : "Group", sizeof(agrp->name));
+	BLI_strncpy(agrp->name, name[0] ? name : DATA_("Group"), sizeof(agrp->name));
 	
 	/* add to action, and validate */
 	BLI_addtail(&act->groups, agrp);
-	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
+	BLI_uniquename(&act->groups, agrp, DATA_("Group"), '.', offsetof(bActionGroup, name), sizeof(agrp->name));
 	
 	/* return the new group */
 	return agrp;
@@ -825,9 +826,9 @@ void BKE_pose_add_group(Object *ob)
 		return;
 	
 	grp = MEM_callocN(sizeof(bActionGroup), "PoseGroup");
-	BLI_strncpy(grp->name, "Group", sizeof(grp->name));
+	BLI_strncpy(grp->name, DATA_("Group"), sizeof(grp->name));
 	BLI_addtail(&pose->agroups, grp);
-	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
+	BLI_uniquename(&pose->agroups, grp, DATA_("Group"), '.', offsetof(bActionGroup, name), sizeof(grp->name));
 	
 	pose->active_group = BLI_countlist(&pose->agroups);
 }

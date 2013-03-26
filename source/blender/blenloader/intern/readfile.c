@@ -147,6 +147,7 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
+#include "BKE_texture.h"
 #include "BKE_tracking.h"
 #include "BKE_sound.h"
 
@@ -1812,6 +1813,7 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->id.flag -= LIB_NEED_LINK;
 			
 			brush->mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
+			brush->mask_mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mask_mtex.tex);
 			brush->clone.image = newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -9256,6 +9258,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 266, 4)) {
+		Brush *brush;
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			default_mtex(&brush->mask_mtex);
+		}
+	}
+
 	if (main->versionfile < 267) {
 		
 		/* TIP: to initialize new variables added, use the new function
@@ -10821,13 +10830,13 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 	return id;
 }
 
-ID *BLO_library_append_named_part(Main *mainl, BlendHandle** bh, const char *idname, const int idcode)
+ID *BLO_library_append_named_part(Main *mainl, BlendHandle **bh, const char *idname, const int idcode)
 {
 	FileData *fd = (FileData*)(*bh);
 	return append_named_part(mainl, fd, idname, idcode);
 }
 
-ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag)
+ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag)
 {
 	FileData *fd = (FileData*)(*bh);
 	return append_named_part_ex(C, mainl, fd, idname, idcode, flag);
@@ -10875,7 +10884,7 @@ static Main *library_append_begin(Main *mainvar, FileData **fd, const char *file
 	return mainl;
 }
 
-Main *BLO_library_append_begin(Main *mainvar, BlendHandle** bh, const char *filepath)
+Main *BLO_library_append_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
 {
 	FileData *fd = (FileData*)(*bh);
 	return library_append_begin(mainvar, &fd, filepath);
@@ -10949,7 +10958,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	}
 }
 
-void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag)
+void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag)
 {
 	FileData *fd = (FileData*)(*bh);
 	library_append_end(C, mainl, &fd, idcode, flag);

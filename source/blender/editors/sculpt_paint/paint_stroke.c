@@ -178,13 +178,22 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 	      ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
 	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
 	{
-		copy_v2_v2(ups->tex_mouse, mouse);
-
-		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
-		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
+		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
+		    (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
 		    !(brush->flag & BRUSH_RAKE))
 		{
-			ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
+			if (brush->flag & BRUSH_RANDOM_ROTATION)
+				ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
+			else
+				ups->brush_rotation = 0.0f;
+		}
+
+		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) {
+			ups->tex_mouse[0] = BLI_frand() * stroke->vc.ar->sizex;
+			ups->tex_mouse[1] = BLI_frand() * stroke->vc.ar->sizey;;
+		}
+		else {
+			copy_v2_v2(ups->tex_mouse, mouse);
 		}
 	}
 

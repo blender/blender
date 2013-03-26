@@ -264,7 +264,8 @@ typedef struct ProjPaintState {
 
 	short is_ortho;
 	bool do_masking;              /* use masking during painting. Some operations such as airbrush may disable */
-	short is_texbrush;              /* only to avoid running  */
+	bool is_texbrush;              /* only to avoid running  */
+	bool is_maskbrush;
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
 #endif
@@ -3905,6 +3906,10 @@ static void *do_projectpaint_thread(void *ph_v)
 							alpha = 1.0f;
 						}
 
+						if (ps->is_maskbrush) {
+							alpha *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+						}
+
 						if (!ps->do_masking) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
 							alpha *= falloff * BKE_brush_alpha_get(ps->scene, brush);
@@ -4153,14 +4158,15 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 		ps->blend = brush->blend;
 
 		/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
-		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
-		                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
-		ps->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? 1 : 0;
+		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode != MTEX_MAP_MODE_TILED) ? false : true;
+		ps->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? true : false;
+		ps->is_maskbrush = (brush->flag & BRUSH_USE_MASK && brush->mask_mtex.tex) ? true : false;
 	}
 	else {
 		/* brush may be NULL*/
 		ps->do_masking = false;
 		ps->is_texbrush = false;
+		ps->is_maskbrush = false;
 	}
 
 	/* sizeof(ProjPixel), since we alloc this a _lot_ */
@@ -4321,7 +4327,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	}
 
 	/* override */
-	ps.is_texbrush = 0;
+	ps.is_texbrush = false;
+	ps.is_maskbrush = false;
 	ps.do_masking = false;
 	orig_brush_size = BKE_brush_size_get(scene, ps.brush);
 	BKE_brush_size_set(scene, ps.brush, 32); /* cover the whole image */

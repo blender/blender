@@ -107,6 +107,7 @@ static void brush_defaults(Brush *brush)
 
 	/* BRUSH TEXTURE SETTINGS */
 	default_mtex(&brush->mtex);
+	default_mtex(&brush->mask_mtex);
 
 	brush->texture_sample_bias = 0; /* value to added to texture samples */
 	brush->texture_overlay_alpha = 33;
@@ -152,6 +153,9 @@ Brush *BKE_brush_copy(Brush *brush)
 	if (brush->mtex.tex)
 		id_us_plus((ID *)brush->mtex.tex);
 
+	if (brush->mask_mtex.tex)
+		id_us_plus((ID *)brush->mask_mtex.tex);
+
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf = IMB_dupImBuf(brush->icon_imbuf);
 
@@ -174,6 +178,9 @@ void BKE_brush_free(Brush *brush)
 	if (brush->mtex.tex)
 		brush->mtex.tex->id.us--;
 
+	if (brush->mask_mtex.tex)
+		brush->mask_mtex.tex->id.us--;
+
 	if (brush->icon_imbuf)
 		IMB_freeImBuf(brush->icon_imbuf);
 
@@ -185,6 +192,7 @@ void BKE_brush_free(Brush *brush)
 static void extern_local_brush(Brush *brush)
 {
 	id_lib_extern((ID *)brush->mtex.tex);
+	id_lib_extern((ID *)brush->mask_mtex.tex);
 	id_lib_extern((ID *)brush->clone.image);
 }
 
@@ -409,8 +417,11 @@ void BKE_brush_sculpt_reset(Brush *br)
 	}
 }
 
-/* Library Operations */
-void BKE_brush_curve_preset(Brush *b, /*CurveMappingPreset*/ int preset)
+/**
+ * Library Operations
+ * \param preset  CurveMappingPreset
+ */
+void BKE_brush_curve_preset(Brush *b, int preset)
 {
 	CurveMap *cm = NULL;
 
@@ -514,7 +525,9 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		float radius = 1.0f; /* Quite warnings */
 		float co[3];
 
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW ||
+		    mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM)
+		{
 			/* keep coordinates relative to mouse */
 
 			rotation += ups->brush_rotation;
@@ -575,6 +588,61 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 	return intensity;
 }
 
+float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
+                               const float point[3],
+                               const int thread,
+                               struct ImagePool *pool)
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	MTex *mtex = &br->mask_mtex;
+
+	if (mtex && mtex->tex) {
+		float rotation = -mtex->rot;
+		float point_2d[2] = {point[0], point[1]};
+		float x = 0.0f, y = 0.0f; /* Quite warnings */
+		float radius = 1.0f; /* Quite warnings */
+		float co[3];
+		float rgba[4], intensity = 1.0;
+
+		point_2d[0] -= ups->tex_mouse[0];
+		point_2d[1] -= ups->tex_mouse[1];
+
+		/* use pressure adjusted size for fixed mode */
+		radius = ups->pixel_radius;
+
+		x = point_2d[0];
+		y = point_2d[1];
+
+		x /= radius;
+		y /= radius;
+
+		/* it is probably worth optimizing for those cases where
+		 * the texture is not rotated by skipping the calls to
+		 * atan2, sqrtf, sin, and cos. */
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
+			const float flen     = sqrtf(x * x + y * y);
+
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
+		}
+
+		x *= br->mask_mtex.size[0];
+		y *= br->mask_mtex.size[1];
+
+		co[0] = x + br->mask_mtex.ofs[0];
+		co[1] = y + br->mask_mtex.ofs[1];
+		co[2] = 0.0f;
+
+		externtex(mtex, co, &intensity,
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
+
+		return intensity;
+	}
+	else {
+		return 1.0f;
+	}
+}
 
 /* Brush Sampling for 2D brushes. when we unify the brush systems this will be necessarily a separate function */
 float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4])

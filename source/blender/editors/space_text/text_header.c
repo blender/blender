@@ -113,6 +113,38 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	ot->poll = text_properties_poll;
 }
 
+static int text_text_search_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = text_has_properties_region(sa);
+	SpaceText *st = CTX_wm_space_text(C);
+	
+	if (ar) {
+		if (ar->flag & RGN_FLAG_HIDDEN)
+			ED_region_toggle_hidden(C, ar);
+		
+		/* cannot send a button activate yet for case when region wasn't visible yet */
+		/* flag gets checked and cleared in main draw callback */
+		st->flags |= ST_FIND_ACTIVATE;
+		
+		ED_region_tag_redraw(ar);
+	}
+	return OPERATOR_FINISHED;
+}
+
+
+void TEXT_OT_start_find(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Find";
+	ot->description = "Start searching text";
+	ot->idname = "TEXT_OT_start_find";
+	
+	/* api callbacks */
+	ot->exec = text_text_search_exec;
+	ot->poll = text_properties_poll;
+}
+
 /******************** XXX popup menus *******************/
 
 #if 0

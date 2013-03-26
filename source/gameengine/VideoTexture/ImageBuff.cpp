@@ -51,7 +51,7 @@ FilterRGB24 defFilter;
 // forward declaration;
 extern PyTypeObject ImageBuffType;
 
-static int ImageBuff_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
+static int ImageBuff_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	short width = -1;
 	short height = -1;

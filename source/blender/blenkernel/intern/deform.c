@@ -47,6 +47,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_deform.h"  /* own include */
 
 void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
@@ -459,7 +461,7 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 	data.ob = ob;
 	data.dg = dg;
 
-	BLI_uniquename_cb(defgroup_unique_check, &data, "Group", '.', dg->name, sizeof(dg->name));
+	BLI_uniquename_cb(defgroup_unique_check, &data, DATA_("Group"), '.', dg->name, sizeof(dg->name));
 }
 
 static int is_char_sep(const char c)

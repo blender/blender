@@ -68,8 +68,8 @@ BlendType<KX_LightObject> lightObjectType ("KX_LightObject");
 
 
 // load texture
-void loadTexture (unsigned int texId, unsigned int * texture, short * size,
-				  bool mipmap)
+void loadTexture(unsigned int texId, unsigned int *texture, short *size,
+                 bool mipmap)
 {
 	// load texture for rendering
 	glBindTexture(GL_TEXTURE_2D, texId);
@@ -171,8 +171,8 @@ static PyObject *Texture_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 
 // forward declaration
-PyObject *Texture_close(Texture * self);
-int Texture_setSource (Texture * self, PyObject *value, void *closure);
+PyObject *Texture_close(Texture *self);
+int Texture_setSource(Texture *self, PyObject *value, void *closure);
 
 
 // Texture object deallocation
@@ -191,7 +191,7 @@ static void Texture_dealloc(Texture *self)
 
 
 ExceptionID MaterialNotAvail;
-ExpDesc MaterialNotAvailDesc (MaterialNotAvail, "Texture material is not available");
+ExpDesc MaterialNotAvailDesc(MaterialNotAvail, "Texture material is not available");
 
 // Texture object initialization
 static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
@@ -439,7 +439,7 @@ static PyObject *Texture_getSource(Texture *self, PyObject *value, void *closure
 
 
 // set source object
-int Texture_setSource (Texture * self, PyObject *value, void *closure)
+int Texture_setSource(Texture *self, PyObject *value, void *closure)
 {
 	// check new value
 	if (value == NULL || !pyImageTypes.in(Py_TYPE(value)))

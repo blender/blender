@@ -187,7 +187,7 @@ KX_GameObject::~KX_GameObject()
 #endif // WITH_PYTHON
 }
 
-KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo* info)
+KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo *info)
 {
 	if (!info)
 		return NULL;
@@ -2987,7 +2987,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 	return returnValue;
 }
 
-bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
+bool KX_GameObject::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
 {
 	KX_GameObject* hitKXObj = client->m_gameobject;
 	
@@ -3006,7 +3006,7 @@ bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void
 /* this function is used to pre-filter the object before casting the ray on them.
  * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
-bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo* client)
+bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo *client)
 {
 	KX_GameObject* hitKXObj = client->m_gameobject;
 	

@@ -946,7 +946,8 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 }
 
 static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
-                               IMB_Timecode_Type tc) {
+                               IMB_Timecode_Type tc)
+{
 	int64_t pts_to_search = 0;
 	double frame_rate;
 	double pts_time_base;
@@ -1303,7 +1304,8 @@ struct ImBuf *IMB_anim_previewframe(struct anim *anim)
 
 struct ImBuf *IMB_anim_absolute(struct anim *anim, int position,
                                 IMB_Timecode_Type tc,
-                                IMB_Proxy_Size preview_size) {
+                                IMB_Proxy_Size preview_size)
+{
 	struct ImBuf *ibuf = NULL;
 	char head[256], tail[256];
 	unsigned short digits;

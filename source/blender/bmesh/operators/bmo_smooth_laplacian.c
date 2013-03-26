@@ -26,16 +26,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_meshdata_types.h"
 
-#include "BLI_array.h"
 #include "BLI_math.h"
-#include "BLI_math_geom.h"
-#include "BLI_smallhash.h"
-#include "BLI_heap.h"
 
-#include "BKE_customdata.h"
-#include "BKE_mesh.h"
 
 #include "bmesh.h"
 

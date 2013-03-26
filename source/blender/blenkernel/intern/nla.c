@@ -45,6 +45,8 @@
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
@@ -264,7 +266,7 @@ NlaTrack *add_nlatrack(AnimData *adt, NlaTrack *prev)
 	
 	/* must have unique name, but we need to seed this */
 	strcpy(nlt->name, "NlaTrack");
-	BLI_uniquename(&adt->nla_tracks, nlt, "NlaTrack", '.', offsetof(NlaTrack, name), sizeof(nlt->name));
+	BLI_uniquename(&adt->nla_tracks, nlt, DATA_("NlaTrack"), '.', offsetof(NlaTrack, name), sizeof(nlt->name));
 	
 	/* return the new track */
 	return nlt;
@@ -1320,7 +1322,7 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 	/* if the hash-table has a match for this name, try other names... 
 	 *	- in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
 	 */
-	BLI_uniquename_cb(nla_editbone_name_check, (void *)gh, "NlaStrip", '.', strip->name, sizeof(strip->name));
+	BLI_uniquename_cb(nla_editbone_name_check, (void *)gh, DATA_("NlaStrip"), '.', strip->name, sizeof(strip->name));
 
 	/* free the hash... */
 	BLI_ghash_free(gh, NULL, NULL);

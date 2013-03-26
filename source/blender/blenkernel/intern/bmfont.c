@@ -38,7 +38,7 @@
  *   detects if an image buffer contains a bitmap font. It makes the
  *   specific bitmap data which is stored in the bitmap invisible to blender.
  *
- * void matrixGlyph(ImBuf * ibuf, unsigned short unicode, *float x 7)
+ * void matrixGlyph(ImBuf *ibuf, unsigned short unicode, *float x 7)
  *   returns all the information about the character (unicode) in the floats
  *
  * Room for improvement:
@@ -248,7 +248,7 @@ int locateGlyph(bmFont *bmfont, unsigned short unicode)
 }
 
 void matrixGlyph(
-        ImBuf * ibuf, unsigned short unicode,
+        ImBuf *ibuf, unsigned short unicode,
         float *centerx, float *centery,
         float *sizex,   float *sizey,
         float *transx,  float *transy,

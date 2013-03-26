@@ -50,7 +50,7 @@ CEmptyValue::~CEmptyValue()
 
 
 
-CValue * CEmptyValue::Calc(VALUE_OPERATOR op, CValue * val)
+CValue *CEmptyValue::Calc(VALUE_OPERATOR op, CValue *val)
 /*
  * pre:
  * ret: a new object containing the result of applying operator op to this
@@ -63,7 +63,7 @@ CValue * CEmptyValue::Calc(VALUE_OPERATOR op, CValue * val)
 
 
 
-CValue * CEmptyValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue * val)
+CValue * CEmptyValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val)
 /*
  * pre: the type of val is dtype
  * ret: a new object containing the result of applying operator op to val and

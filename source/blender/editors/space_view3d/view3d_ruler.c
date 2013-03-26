@@ -653,7 +653,7 @@ static void view3d_ruler_free(RulerInfo *ruler_info)
 static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3],
                                       const int xy[2])
 {
-	view3d_get_view_aligned_coordinate(ruler_info->ar, r_co, xy, true);
+	ED_view3d_win_to_3d_int(ruler_info->ar, r_co, xy, r_co);
 }
 
 /* use for mousemove events */

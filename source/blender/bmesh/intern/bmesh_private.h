@@ -77,6 +77,5 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"
-#include "bmesh_operators_private.h"
 
 #endif /* __BMESH_PRIVATE_H__ */

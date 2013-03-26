@@ -2997,7 +2997,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3261,7 +3261,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3839,7 +3839,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -4036,7 +4036,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
+		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
 			data->cancel = TRUE;
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -7456,4 +7456,32 @@ void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
 	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, FALSE);
 }
 
+bool UI_textbutton_activate_event(const bContext *C, ARegion *ar,
+                                  const void *rna_poin_data, const char *rna_prop_id)
+{
+	uiBlock *block;
+	uiBut *but = NULL;
+	
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		for (but = block->buttons.first; but; but = but->next) {
+			if (but->type == TEX) {
+				if (but->rnaprop && but->rnapoin.data == rna_poin_data) {
+					if (STREQ(RNA_property_identifier(but->rnaprop), rna_prop_id)) {
+						break;
+					}
+				}
+			}
+		}
+		if (but)
+			break;
+	}
+	
+	if (but) {
+		uiButActiveOnly(C, ar, block, but);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 

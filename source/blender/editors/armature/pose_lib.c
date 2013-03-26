@@ -462,7 +462,7 @@ static int poselib_add_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* validate name */
-	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
+	BLI_uniquename(&act->markers, marker, DATA_("Pose"), '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* use Keying Set to determine what to store for the pose */
 	/* FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't
@@ -666,7 +666,7 @@ static int poselib_rename_exec(bContext *C, wmOperator *op)
 	
 	/* copy name and validate it */
 	BLI_strncpy(marker->name, newname, sizeof(marker->name));
-	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
+	BLI_uniquename(&act->markers, marker, DATA_("Pose"), '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* send notifiers for this - using keyframe editing notifiers, since action 
 	 * may be being shown in anim editors as active action 

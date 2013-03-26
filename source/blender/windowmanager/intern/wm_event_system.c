@@ -339,7 +339,7 @@ void wm_event_do_notifiers(bContext *C)
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE) || (event->type == EVT_BUT_OPEN);
 }
 
 /* ********************* ui handler ******************* */

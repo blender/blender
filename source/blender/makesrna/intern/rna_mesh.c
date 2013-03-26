@@ -1287,7 +1287,7 @@ static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, const char *name)
 static void rna_Mesh_vertex_color_remove(struct Mesh *me, ReportList *reports, CustomDataLayer *layer)
 {
 	if (ED_mesh_color_remove_named(me, layer->name) == false) {
-		BKE_reportf(reports, RPT_ERROR, "vertex color '%s' not found", layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Vertex color '%s' not found", layer->name);
 	}
 }
 
@@ -1383,7 +1383,7 @@ static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, const char *name)
 static void rna_Mesh_uv_texture_layers_remove(struct Mesh *me, ReportList *reports, CustomDataLayer *layer)
 {
 	if (ED_mesh_uv_texture_remove_named(me, layer->name) == false) {
-		BKE_reportf(reports, RPT_ERROR, "texture layer '%s' not found", layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Texture layer '%s' not found", layer->name);
 	}
 }
 

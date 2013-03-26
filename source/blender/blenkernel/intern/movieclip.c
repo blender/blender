@@ -357,6 +357,8 @@ typedef struct MovieClipCache {
 		int proxy, filter;
 		short render_flag;
 	} stabilized;
+
+	int sequence_offset;
 } MovieClipCache;
 
 typedef struct MovieClipImBufCacheKey {
@@ -368,6 +370,32 @@ typedef struct MovieClipImBufCacheKey {
 typedef struct MovieClipCachePriorityData {
 	int framenr;
 } MovieClipCachePriorityData;
+
+static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
+{
+	int index;
+
+	index = framenr - clip->start_frame + clip->frame_offset;
+
+	if (clip->source == MCLIP_SRC_SEQUENCE) {
+		if (clip->cache->sequence_offset == -1) {
+			unsigned short numlen;
+			char head[FILE_MAX], tail[FILE_MAX];
+
+			BLI_stringdec(clip->name, head, tail, &numlen);
+
+			/* see comment in get_sequence_fname */
+			clip->cache->sequence_offset = sequence_guess_offset(clip->name, strlen(head), numlen);
+		}
+
+		index += clip->cache->sequence_offset;
+	}
+
+	if (index < 0)
+		return framenr - index;
+
+	return framenr;
+}
 
 static void moviecache_keydata(void *userkey, int *framenr, int *proxy, int *render_flags)
 {
@@ -440,7 +468,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 	if (clip->cache) {
 		MovieClipImBufCacheKey key;
 
-		key.framenr = user->framenr;
+		key.framenr = user_frame_to_cache_frame(clip, user->framenr);
 
 		if (flag & MCLIP_USE_PROXY) {
 			key.proxy = rendersize_to_proxy(user, flag);
@@ -462,7 +490,7 @@ static int has_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 	if (clip->cache) {
 		MovieClipImBufCacheKey key;
 
-		key.framenr = user->framenr;
+		key.framenr = user_frame_to_cache_frame(clip, user->framenr);
 
 		if (flag & MCLIP_USE_PROXY) {
 			key.proxy = rendersize_to_proxy(user, flag);
@@ -498,9 +526,10 @@ static bool put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 		                                     moviecache_prioritydeleter);
 
 		clip->cache->moviecache = moviecache;
+		clip->cache->sequence_offset = -1;
 	}
 
-	key.framenr = user->framenr;
+	key.framenr = user_frame_to_cache_frame(clip, user->framenr);
 
 	if (flag & MCLIP_USE_PROXY) {
 		key.proxy = rendersize_to_proxy(user, flag);

@@ -144,7 +144,7 @@ effect: deletes the object
 #define VALUE_POS(val1)       (val1)->Calc(VALUE_POS_OPERATOR, val1)
 
 
-STR_String CValue::op2str (VALUE_OPERATOR op)
+STR_String CValue::op2str(VALUE_OPERATOR op)
 {
 	//pre:
 	//ret: the stringrepresentation of operator op
@@ -531,7 +531,7 @@ PyAttributeDef CValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject *CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *CValue::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	CValue * self = static_cast<CValue *> (self_v);
 	return PyUnicode_From_STR_String(self->GetName());

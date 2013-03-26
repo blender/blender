@@ -220,7 +220,7 @@ void BlockDXT1::evaluatePalette4(Color32 color_array[4]) const
 }
 
 
-void BlockDXT1::decodeBlock(ColorBlock * block) const
+void BlockDXT1::decodeBlock(ColorBlock *block) const
 {
 	// Decode color block.
 	Color32 color_array[4];
@@ -235,7 +235,7 @@ void BlockDXT1::decodeBlock(ColorBlock * block) const
 	}
 }
 
-void BlockDXT1::decodeBlockNV5x(ColorBlock * block) const
+void BlockDXT1::decodeBlockNV5x(ColorBlock *block) const
 {
 	// Decode color block.
 	Color32 color_array[4];
@@ -277,7 +277,7 @@ inline void BlockDXT1::flip2()
 	BlockDXT3
 ----------------------------------------------------------------------------*/
 
-void BlockDXT3::decodeBlock(ColorBlock * block) const
+void BlockDXT3::decodeBlock(ColorBlock *block) const
 {
 	// Decode color.
 	color.decodeBlock(block);
@@ -286,13 +286,13 @@ void BlockDXT3::decodeBlock(ColorBlock * block) const
 	alpha.decodeBlock(block);
 }
 
-void BlockDXT3::decodeBlockNV5x(ColorBlock * block) const
+void BlockDXT3::decodeBlockNV5x(ColorBlock *block) const
 {
 	color.decodeBlockNV5x(block);
 	alpha.decodeBlock(block);
 }
 
-void AlphaBlockDXT3::decodeBlock(ColorBlock * block) const
+void AlphaBlockDXT3::decodeBlock(ColorBlock *block) const
 {
 	block->color(0x0).a = (alpha0 << 4) | alpha0;
 	block->color(0x1).a = (alpha1 << 4) | alpha1;
@@ -415,7 +415,7 @@ void AlphaBlockDXT5::setIndex(uint index, uint value)
 	this->u = (this->u & ~mask) | (uint64(value) << offset);
 }
 
-void AlphaBlockDXT5::decodeBlock(ColorBlock * block) const
+void AlphaBlockDXT5::decodeBlock(ColorBlock *block) const
 {
 	uint8 alpha_array[8];
 	evaluatePalette(alpha_array);
@@ -454,7 +454,7 @@ void AlphaBlockDXT5::flip2()
 	*b = tmp;
 }
 
-void BlockDXT5::decodeBlock(ColorBlock * block) const
+void BlockDXT5::decodeBlock(ColorBlock *block) const
 {
 	// Decode color.
 	color.decodeBlock(block);
@@ -463,7 +463,7 @@ void BlockDXT5::decodeBlock(ColorBlock * block) const
 	alpha.decodeBlock(block);
 }
 
-void BlockDXT5::decodeBlockNV5x(ColorBlock * block) const
+void BlockDXT5::decodeBlockNV5x(ColorBlock *block) const
 {
 	// Decode color.
 	color.decodeBlockNV5x(block);
@@ -488,7 +488,7 @@ void BlockDXT5::flip2()
 
 
 /// Decode ATI1 block.
-void BlockATI1::decodeBlock(ColorBlock * block) const
+void BlockATI1::decodeBlock(ColorBlock *block) const
 {
 	uint8 alpha_array[8];
 	alpha.evaluatePalette(alpha_array);
@@ -517,7 +517,7 @@ void BlockATI1::flip2()
 
 
 /// Decode ATI2 block.
-void BlockATI2::decodeBlock(ColorBlock * block) const
+void BlockATI2::decodeBlock(ColorBlock *block) const
 {
 	uint8 alpha_array[8];
 	uint8 index_array[16];
@@ -580,7 +580,7 @@ void BlockCTX1::evaluatePalette(Color32 color_array[4]) const
 	color_array[3].a = 0xFF;
 }
 
-void BlockCTX1::decodeBlock(ColorBlock * block) const
+void BlockCTX1::decodeBlock(ColorBlock *block) const
 {
 	// Decode color block.
 	Color32 color_array[4];

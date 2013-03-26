@@ -3204,7 +3204,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
 }
 
 
-float (*BKE_curve_vertexCos_get(Curve * UNUSED(cu), ListBase * lb, int *numVerts_r))[3]
+float (*BKE_curve_vertexCos_get(Curve *UNUSED(cu), ListBase *lb, int *numVerts_r))[3]
 {
 	int i, numVerts = *numVerts_r = BKE_nurbList_verts_count(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "cu_vcos");
@@ -3261,7 +3261,7 @@ void BK_curve_vertexCos_apply(Curve *UNUSED(cu), ListBase *lb, float (*vertexCos
 	}
 }
 
-float (*BKE_curve_keyVertexCos_get(Curve * UNUSED(cu), ListBase * lb, float *key))[3]
+float (*BKE_curve_keyVertexCos_get(Curve *UNUSED(cu), ListBase *lb, float *key))[3]
 {
 	int i, numVerts = BKE_nurbList_verts_count(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "cu_vcos");

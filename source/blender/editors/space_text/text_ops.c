@@ -2966,7 +2966,7 @@ static int text_find_exec(bContext *C, wmOperator *op)
 void TEXT_OT_find(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Find";
+	ot->name = "Find Next";
 	ot->idname = "TEXT_OT_find";
 	ot->description = "Find specified text";
 	
