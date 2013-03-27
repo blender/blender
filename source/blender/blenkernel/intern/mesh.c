@@ -2636,6 +2636,16 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		}
 	}
 
+#ifdef WITH_FREESTYLE
+	if (CustomData_has_layer(pdata, CD_FREESTYLE_FACE)) {
+		FreestyleEdge *poly_ffa = CustomData_get_layer(pdata, CD_FREESTYLE_FACE);
+		FreestyleEdge *face_ffa = CustomData_add_layer(fdata, CD_FREESTYLE_FACE, CD_CALLOC, NULL, totface);
+		for (mface_index = 0; mface_index < totface; mface_index++) {
+			face_ffa[mface_index] = poly_ffa[mface_to_poly_map[mface_index]];
+		}
+	}
+#endif
+
 	mf = mface;
 	for (mface_index = 0; mface_index < totface; mface_index++, mf++) {
 
