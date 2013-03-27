@@ -45,6 +45,7 @@ set(SRC
 	operators/bmo_create.c
 	operators/bmo_dissolve.c
 	operators/bmo_dupe.c
+	operators/bmo_edgenet.c
 	operators/bmo_edgesplit.c
 	operators/bmo_extrude.c
 	operators/bmo_hull.c
