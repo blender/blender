@@ -734,13 +734,13 @@ static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, 
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MLoopCol), me->totloop, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MLoopCol), (me->edit_btmesh) ? 0 : me->totloop, 0, NULL);
 }
 
 static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	return me->totloop;
+	return (me->edit_btmesh) ? 0 : me->totloop;
 }
 
 static int rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
