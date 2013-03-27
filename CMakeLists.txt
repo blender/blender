@@ -408,11 +408,6 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
-# auto enable openimageio for cycles
-if(WITH_CYCLES)
-	set(WITH_OPENIMAGEIO ON)
-endif()
-
 # enable boost for cycles, booleans, audaspace or i18n
 # otherwise if the user disabled
 if(NOT WITH_BOOST)
@@ -429,6 +424,17 @@ elseif(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
 else()
 	# Enabled but we don't need it
 	set(WITH_BOOST OFF)
+endif()
+
+# auto enable openimageio for cycles
+if(WITH_CYCLES)
+	set(WITH_OPENIMAGEIO ON)
+endif()
+
+# auto enable openimageio linking dependencies
+if(WITH_OPENIMAGEIO)
+	set(WITH_IMAGE_OPENEXR ON)
+	set(WITH_IMAGE_TIFF ON)
 endif()
 
 # auto enable llvm for cycles_osl
