@@ -66,7 +66,7 @@
 
 /* **************** View All Operator ************** */
 
-static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag)
+int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag)
 {
 	bNode *node;
 	rctf cur_new;

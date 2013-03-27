@@ -816,3 +816,94 @@ void NODE_OT_select_same_type_prev(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/* ************************** */
+
+
+static int node_activate_connected_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ARegion *ar = CTX_wm_region(C);
+	bNode **node_array;
+	bNode *active = nodeGetActive(snode->edittree);
+	int totnodes;
+	int revert = RNA_boolean_get(op->ptr, "prev");
+	int same_type = 1;
+	
+	ntreeGetDependencyList(snode->edittree, &node_array, &totnodes);
+	
+	if (totnodes > 1) {
+		int a;
+		
+		for (a = 0; a < totnodes; a++) {
+			if (node_array[a] == active)
+				break;
+		}
+		
+		if (same_type) {
+			bNode *node = NULL;
+			
+			while (node == NULL) {
+				if (revert) a--;
+				else a++;
+				
+				if (a < 0 || a >= totnodes)
+					break;
+				
+				node = node_array[a];
+				
+				if (node->type == active->type)
+					break;
+				else node = NULL;
+			}
+			if (node)
+				active = node;
+		}
+		else {
+			if (revert) {
+				if (a == 0)
+					active = node_array[totnodes - 1];
+				else
+					active = node_array[a - 1];
+			}
+			else {
+				if (a == totnodes - 1)
+					active = node_array[0];
+				else
+					active = node_array[a + 1];
+			}
+		}
+		
+		node_select_single(C, active);
+
+		/* is note outside view? */
+		if (active->totr.xmax < ar->v2d.cur.xmin || active->totr.xmin > ar->v2d.cur.xmax ||
+			active->totr.ymax < ar->v2d.cur.ymin || active->totr.ymin > ar->v2d.cur.ymax)
+				space_node_view_flag(C, snode, CTX_wm_region(C), NODE_SELECT);
+
+	}
+	
+	if (node_array)
+		MEM_freeN(node_array);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_activate_connected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Activate/View Connected";
+	ot->description = "Activate and view connected nodes, step by step";
+	ot->idname = "NODE_OT_activate_connected";
+	
+	/* api callbacks */
+	ot->exec = node_activate_connected_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "prev", 0, "Previous", "");
+
+}
+
