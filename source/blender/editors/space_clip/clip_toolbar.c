@@ -257,7 +257,8 @@ void ED_clip_tool_props_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel last operator");
 	strcpy(pt->idname, "CLIP_PT_last_operator");
-	strcpy(pt->label, "Operator");
+	strcpy(pt->label, N_("Operator"));
+	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw_header = clip_panel_operator_redo_header;
 	pt->draw = clip_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);

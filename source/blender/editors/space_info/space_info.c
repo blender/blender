@@ -300,6 +300,7 @@ static void recent_files_menu_register(void)
 	mt = MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
 	strcpy(mt->idname, "INFO_MT_file_open_recent");
 	strcpy(mt->label, N_("Open Recent..."));
+	strcpy(mt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	mt->draw = recent_files_menu_draw;
 	WM_menutype_add(mt);
 }
