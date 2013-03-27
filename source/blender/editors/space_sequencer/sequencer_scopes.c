@@ -107,20 +107,20 @@ static void wform_put_border(unsigned char *tgt, int w, int h)
 
 	for (x = 0; x < w; x++) {
 		unsigned char *p = tgt + 4 * x;
-		p[1] = p[3] = 255.0;
-		p[4 * w + 1] = p[4 * w + 3] = 255.0;
+		p[1] = p[3] = 155;
+		p[4 * w + 1] = p[4 * w + 3] = 155;
 		p = tgt + 4 * (w * (h - 1) + x);
-		p[1] = p[3] = 255.0;
-		p[-4 * w + 1] = p[-4 * w + 3] = 255.0;
+		p[1] = p[3] = 155;
+		p[-4 * w + 1] = p[-4 * w + 3] = 155;
 	}
 
 	for (y = 0; y < h; y++) {
 		unsigned char *p = tgt + 4 * w * y;
-		p[1] = p[3] = 255.0;
-		p[4 + 1] = p[4 + 3] = 255.0;
+		p[1] = p[3] = 155;
+		p[4 + 1] = p[4 + 3] = 155;
 		p = tgt + 4 * (w * y + w - 1);
-		p[1] = p[3] = 255.0;
-		p[-4 + 1] = p[-4 + 3] = 255.0;
+		p[1] = p[3] = 155;
+		p[-4 + 1] = p[-4 + 3] = 155;
 	}
 }
 
@@ -156,7 +156,8 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 	unsigned char wtable[256];
 
 	wform_put_grid(tgt, w, h);
-
+	wform_put_border(tgt, w, h);
+	
 	for (x = 0; x < 256; x++) {
 		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256, waveform_gamma) * 255);
 	}
@@ -181,8 +182,6 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 		}
 	}
 
-	wform_put_border(tgt, w, h);
-	
 	return rval;
 }
 
@@ -454,8 +453,8 @@ static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int c, x, y;
-	unsigned int n;
+	int x, y;
+	unsigned int nr, ng, nb;
 	unsigned char *src = (unsigned char *) ibuf->rect;
 
 	unsigned int bins[3][HIS_STEPS];
@@ -487,19 +486,28 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 		}
 	}
 
-	n = 0;
-	for (c = 0; c < 3; c++) {
-		for (x = 0; x < HIS_STEPS; x++) {
-			if (bins[c][x] > n) {
-				n = bins[c][x];
-			}
-		}
+	nr = nb = ng = 0;
+	for (x = 0; x < HIS_STEPS; x++) {
+		if (bins[0][x] > nr)
+			nr = bins[0][x];
+		if (bins[1][x] > ng)
+			ng = bins[1][x];
+		if (bins[2][x] > nb)
+			nb = bins[2][x];
 	}
 
-	for (c = 0; c < 3; c++) {
-		for (x = 0; x < HIS_STEPS; x++) {
-			draw_histogram_bar(rval, x * 2 + 1, ((float) bins[c][x]) / n, c);
-			draw_histogram_bar(rval, x * 2 + 2, ((float) bins[c][x]) / n, c);
+	for (x = 0; x < HIS_STEPS; x++) {
+		if (nr) {
+			draw_histogram_bar(rval, x * 2 + 1, ((float) bins[0][x]) / nr, 0);
+			draw_histogram_bar(rval, x * 2 + 2, ((float) bins[0][x]) / nr, 0);
+		}
+		if (ng) {
+			draw_histogram_bar(rval, x * 2 + 1, ((float) bins[1][x]) / ng, 1);
+			draw_histogram_bar(rval, x * 2 + 2, ((float) bins[1][x]) / ng, 1);
+		}
+		if (nb) {
+			draw_histogram_bar(rval, x * 2 + 1, ((float) bins[2][x]) / nb, 2);
+			draw_histogram_bar(rval, x * 2 + 2, ((float) bins[2][x]) / nb, 2);
 		}
 	}
 

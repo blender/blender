@@ -43,7 +43,7 @@ BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short
 	return oflags[bm->stackdepth - 1].f & oflag;
 }
 
-BLI_INLINE short _bmo_elem_flag_test_bool(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE bool _bmo_elem_flag_test_bool(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
 	return (oflags[bm->stackdepth - 1].f & oflag) != 0;
 }

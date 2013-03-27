@@ -2373,6 +2373,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	char name[FILE_MAX];
 	RenderResult rres;
 	Object *camera = RE_GetCamera(re);
+	double render_time;
 	int ok = 1;
 	
 	RE_AcquireResultImage(re, &rres);
@@ -2456,11 +2457,17 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	
 	RE_ReleaseResultImage(re);
 
+	render_time = re->i.lastframetime;
+	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
+	
 	BLI_timestr(re->i.lastframetime, name);
 	printf(" Time: %s", name);
-
+	
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
+	BLI_timestr(re->i.lastframetime - render_time, name);
+	printf(" (Saving: %s)\n", name);
+	
 	fputc('\n', stdout);
 	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
 

@@ -126,11 +126,11 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 	/* initialize the node name with the node label.
 	 * note: do this after the initfunc so nodes get their data set which may be used in naming
 	 * (node groups for example) */
-	/* XXX Do not use nodeLabel() here, it returns translated content, which should *only* be used
-	 *     in UI, *never* in data...
+	/* XXX Do not use nodeLabel() here, it returns translated content for UI, which should *only* be used
+	 *     in UI, *never* in data... Data have their own translation option!
 	 *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
-	 *     than adding a "no translate" flag to this func (and labelfunc() as well). */
-	BLI_strncpy(node->name, ntype->ui_name, NODE_MAXSTR);
+	 *     than adding "do_translate" flags to this func (and labelfunc() as well). */
+	BLI_strncpy(node->name, DATA_(ntype->ui_name), NODE_MAXSTR);
 	nodeUniqueName(ntree, node);
 	
 	node_add_sockets_from_type(ntree, node, ntype);
@@ -816,7 +816,7 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 	
 	NODE_TYPES_BEGIN(ntype)
 		if (ntype->type == type) {
-			idname = ntype->idname;
+			idname = DATA_(ntype->idname);
 			break;
 		}
 	NODE_TYPES_END
@@ -3592,4 +3592,57 @@ void clear_scene_in_nodes(Main *bmain, Scene *sce)
 			}
 		}
 	}
+}
+
+
+/* -------------------------------------------------------------------- */
+/* NodeTree Iterator Helpers (FOREACH_NODETREE) */
+
+void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain)
+{
+	ntreeiter->ngroup = bmain->nodetree.first;
+	ntreeiter->scene = bmain->scene.first;
+	ntreeiter->mat = bmain->mat.first;
+	ntreeiter->tex = bmain->tex.first;
+	ntreeiter->lamp = bmain->lamp.first;
+	ntreeiter->world = bmain->world.first;
+}
+bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
+                             bNodeTree **r_nodetree, struct ID **r_id)
+{
+	if (ntreeiter->ngroup) {
+		*r_nodetree =       ntreeiter->ngroup;
+		*r_id       = (ID *)ntreeiter->ngroup;
+		ntreeiter->ngroup = ntreeiter->ngroup->id.next;
+	}
+	else if (ntreeiter->scene) {
+		*r_nodetree =       ntreeiter->scene->nodetree;
+		*r_id       = (ID *)ntreeiter->scene;
+		ntreeiter->scene =  ntreeiter->scene->id.next;
+	}
+	else if (ntreeiter->mat) {
+		*r_nodetree =       ntreeiter->mat->nodetree;
+		*r_id       = (ID *)ntreeiter->mat;
+		ntreeiter->mat =    ntreeiter->mat->id.next;
+	}
+	else if (ntreeiter->tex) {
+		*r_nodetree =       ntreeiter->tex->nodetree;
+		*r_id       = (ID *)ntreeiter->tex;
+		ntreeiter->tex =    ntreeiter->tex->id.next;
+	}
+	else if (ntreeiter->lamp) {
+		*r_nodetree =       ntreeiter->lamp->nodetree;
+		*r_id       = (ID *)ntreeiter->lamp;
+		ntreeiter->lamp =   ntreeiter->lamp->id.next;
+	}
+	else if (ntreeiter->world) {
+		*r_nodetree =       ntreeiter->world->nodetree;
+		*r_id       = (ID *)ntreeiter->world;
+		ntreeiter->world  = ntreeiter->world->id.next;
+	}
+	else {
+		return false;
+	}
+
+	return true;
 }

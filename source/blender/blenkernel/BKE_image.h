@@ -232,6 +232,8 @@ void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, in
 unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame);
 float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame);
 
+/* Guess offset for the first frame in the sequence */
+int BKE_image_sequence_guess_offset(struct Image *image);
 #ifdef __cplusplus
 }
 #endif

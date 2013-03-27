@@ -174,11 +174,24 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 {
 	Image *ima= (Image *)node->id;
 	if (ima) {
-		ImageUser *iuser= node->storage;
+		ImageUser *iuser = node->storage;
+		ImageUser load_iuser = {NULL};
 		ImBuf *ibuf;
-		
+		int offset = BKE_image_sequence_guess_offset(ima);
+
+		/* It is possible that image user in this node is not
+		 * properly updated yet. In this case loading image will
+		 * fail and sockets detection will go wrong.
+		 *
+		 * So we manually construct image user to be sure first
+		 * image from sequence (that one which is set as fileanme
+		 * for image datablock) is used for sockets detection
+		 */
+		load_iuser.ok = 1;
+		load_iuser.framenr = offset;
+
 		/* make sure ima->type is correct */
-		ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+		ibuf = BKE_image_acquire_ibuf(ima, &load_iuser, NULL);
 		
 		if (ima->rr) {
 			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);

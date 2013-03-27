@@ -253,9 +253,15 @@ if(WITH_JACK)
 	)
 	list(APPEND SRC
 		jack/AUD_JackDevice.cpp
+		jack/AUD_JackLibrary.cpp
 
 		jack/AUD_JackDevice.h
+		jack/AUD_JackLibrary.h
 	)	
+
+	if(WITH_JACK_DYNLOAD)
+		add_definitions(-DWITH_JACK_DYNLOAD)
+	endif()
 endif()
 
 if(WITH_CODEC_SNDFILE)

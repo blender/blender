@@ -4775,11 +4775,14 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base_to_objects too */
 	ob->flag &= ~OB_FROMGROUP;
-	
+
 	/* loading saved files with editmode enabled works, but for undo we like
-	 * to stay in object mode during undo presses so keep editmode disabled */
-	if (fd->memfile)
+	 * to stay in object mode during undo presses so keep editmode disabled.
+	 *
+	 * Also when linking in a file don't allow editmode: [#34776] */
+	if (fd->memfile || (ob->id.flag & (LIB_EXTERN | LIB_INDIRECT))) {
 		ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
+	}
 	
 	ob->disp.first = ob->disp.last = NULL;
 	
@@ -8876,7 +8879,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Fix for bug #32982, internal_links list could get corrupted from r51630 onward.
 		 * Simply remove bad internal_links lists to avoid NULL pointers.
 		 */
-		FOREACH_NODETREE(main, ntree, id)
+		FOREACH_NODETREE(main, ntree, id) {
 			bNode *node;
 			bNodeLink *link, *nextlink;
 			
@@ -8888,7 +8891,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-		FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END
 	}
 	
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {

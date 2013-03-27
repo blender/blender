@@ -83,7 +83,7 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 	
 	/* generics */
 	node->locx = locx;
-	node->locy = locy + 60.0f;		// arbitrary.. so its visible, (0,0) is top of node
+	node->locy = locy + 60.0f;     /* arbitrary... so its visible, (0,0) is top of node */
 	nodeSetSelected(node, TRUE);
 	
 	/* node location is mapped */
@@ -436,7 +436,8 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 	const char *idname;
-	char treename[MAX_ID_NAME - 2] = "NodeTree";
+	char _treename[MAX_ID_NAME - 2];
+	char *treename = _treename;
 	
 	if (RNA_struct_property_is_set(op->ptr, "type")) {
 		prop = RNA_struct_find_property(op->ptr, "type");
@@ -445,8 +446,12 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	else if (snode)
 		idname = snode->tree_idname;
 	
-	if (RNA_struct_property_is_set(op->ptr, "name"))
+	if (RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", treename);
+	}
+	else {
+		treename = (char *)DATA_("NodeTree");
+	}
 	
 	if (!ntreeTypeFind(idname)) {
 		BKE_reportf(op->reports, RPT_ERROR, "Node tree type %s undefined", idname);

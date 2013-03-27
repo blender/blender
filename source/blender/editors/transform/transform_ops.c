@@ -721,7 +721,7 @@ static void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel = transform_cancel;
-	ot->poll   = ED_operator_view3d_active;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
 

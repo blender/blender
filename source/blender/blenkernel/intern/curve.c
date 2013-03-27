@@ -1653,7 +1653,7 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
 }
 
 
-static short bevelinside(BevList *bl1, BevList *bl2)
+static bool bevelinside(BevList *bl1, BevList *bl2)
 {
 	/* is bl2 INSIDE bl1 ? with left-right method and "lambda's" */
 	/* returns '1' if correct hole  */
@@ -1701,9 +1701,7 @@ static short bevelinside(BevList *bl1, BevList *bl2)
 		bevp++;
 	}
 
-	if ( (links & 1) && (rechts & 1) )
-		return 1;
-	return 0;
+	return (links & 1) && (rechts & 1);
 }
 
 

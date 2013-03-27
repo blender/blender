@@ -202,8 +202,6 @@ float noise_basis_hard(point p, string basis, int hard)
 
 float noise_wave(string wave, float a)
 {
-	float result = 0.0;
-
 	if (wave == "Sine") {
 		return 0.5 + 0.5 * sin(a);
 	}

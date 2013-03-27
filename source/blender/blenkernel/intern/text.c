@@ -804,7 +804,7 @@ int txt_utf8_offset_to_column(const char *str, int offset)
 int txt_utf8_column_to_offset(const char *str, int column)
 {
 	int offset = 0, pos = 0, col;
-	while (pos < column) {
+	while (*(str + offset) && pos < column) {
 		col = BLI_str_utf8_char_width_safe(str + offset);
 		if (pos + col > column)
 			break;
@@ -827,17 +827,6 @@ static int txt_utf8_len(const char *src)
 	return len;
 }
 
-static int txt_utf8_width(const char *src)
-{
-	int col = 0;
-
-	for (; *src; src += BLI_str_utf8_size(src)) {
-		col += BLI_str_utf8_char_width(src);
-	}
-
-	return col;
-}
-
 void txt_move_up(Text *text, short sel)
 {
 	TextLine **linep;
@@ -851,8 +840,7 @@ void txt_move_up(Text *text, short sel)
 	if ((*linep)->prev) {
 		int column = txt_utf8_offset_to_column((*linep)->line, *charp);
 		*linep = (*linep)->prev;
-		if (column > txt_utf8_width((*linep)->line)) *charp = (*linep)->len;
-		else *charp = txt_utf8_column_to_offset((*linep)->line, column);
+		*charp = txt_utf8_column_to_offset((*linep)->line, column);
 		
 	}
 	else {
@@ -875,8 +863,7 @@ void txt_move_down(Text *text, short sel)
 	if ((*linep)->next) {
 		int column = txt_utf8_offset_to_column((*linep)->line, *charp);
 		*linep = (*linep)->next;
-		if (column > txt_utf8_width((*linep)->line)) *charp = (*linep)->len;
-		else *charp = txt_utf8_column_to_offset((*linep)->line, column);
+		*charp = txt_utf8_column_to_offset((*linep)->line, column);
 	}
 	else {
 		txt_move_eol(text, sel);

@@ -61,9 +61,14 @@ typedef struct
 #endif
 
 /**
- * Initializes FFMPEG if it is enabled.
+ * Initializes audio rutines (FFMPEG/Jack if it is enabled).
  */
 extern void AUD_initOnce(void);
+
+/**
+ * Unitinitializes an audio routines.
+ */
+extern void AUD_exitOnce(void);
 
 /**
  * Initializes an audio device.
@@ -751,6 +756,8 @@ extern void *AUD_getPythonFactory(AUD_Sound *sound);
  */
 extern AUD_Sound *AUD_getPythonSound(void *sound);
 #endif
+
+extern int AUD_isJackSupported(void);
 
 #ifdef __cplusplus
 }

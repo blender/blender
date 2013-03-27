@@ -219,30 +219,35 @@ void file_panels_register(ARegionType *art)
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file system directories");
 	strcpy(pt->idname, "FILE_PT_system");
 	strcpy(pt->label, N_("System"));
+	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = file_panel_system;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file system bookmarks");
 	strcpy(pt->idname, "FILE_PT_system_bookmarks");
 	strcpy(pt->label, N_("System Bookmarks"));
+	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = file_panel_system_bookmarks;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file bookmarks");
 	strcpy(pt->idname, "FILE_PT_bookmarks");
 	strcpy(pt->label, N_("Bookmarks"));
+	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = file_panel_bookmarks;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file recent directories");
 	strcpy(pt->idname, "FILE_PT_recent");
 	strcpy(pt->label, N_("Recent"));
+	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = file_panel_recent;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file operator properties");
 	strcpy(pt->idname, "FILE_PT_operator");
 	strcpy(pt->label, N_("Operator"));
+	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->poll = file_panel_operator_poll;
 	pt->draw_header = file_panel_operator_header;
 	pt->draw = file_panel_operator;

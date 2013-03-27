@@ -21,7 +21,7 @@
 
 float ramp_lookup(color ramp[RAMP_TABLE_SIZE], float at, int component)
 {
-	float f = clamp((at + 1.0)*0.5, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
+	float f = clamp((at + 1.0) * 0.5, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
 
 	/* clamp int as well in case of NaN */
 	int i = (int)f;
@@ -34,7 +34,7 @@ float ramp_lookup(color ramp[RAMP_TABLE_SIZE], float at, int component)
 	if (t > 0.0)
 		result = (1.0 - t) * result + t * ramp[i + 1][component];
 	
-	return result*2.0 - 1.0;
+	return result * 2.0 - 1.0;
 }
 
 shader node_vector_curves(

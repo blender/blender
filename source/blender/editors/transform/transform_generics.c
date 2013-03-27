@@ -1160,7 +1160,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 			t->options |= CTX_MASK;
 		}
 		else {
-			BLI_assert(0);
+			/* image not in uv edit, nor in mask mode, can happen for some tools */
 		}
 	}
 	else if (t->spacetype == SPACE_NODE) {

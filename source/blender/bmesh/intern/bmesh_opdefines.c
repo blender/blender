@@ -527,6 +527,30 @@ static BMOpDefine bmo_bridge_loops_def = {
 };
 
 /*
+ * Edge Loop Fill.
+ *
+ * Create faces defined by one or more non overlapping edge loops.
+ */
+static BMOpDefine bmo_edgeloop_fill_def = {
+	"edgeloop_fill",
+	/* slots_in */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
+	/* restricts edges to groups.  maps edges to integer */
+	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
+	 {"use_smooth",        BMO_OP_SLOT_BOOL},  /* smooth state to use */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	/* maps new faces to the group numbers they came from */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
+	 {{'\0'}},
+	},
+	bmo_edgeloop_fill_exec,
+	0,
+};
+
+
+/*
  * Edge Net Fill.
  *
  * Create faces defined by enclosed edges.
@@ -541,7 +565,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	 {"use_fill_check",        BMO_OP_SLOT_BOOL},
 	 {"exclude_faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* list of faces to ignore for manifold check */
 	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
-	 {"use_smooth",        BMO_OP_SLOT_BOOL},  /* material to use */
+	 {"use_smooth",        BMO_OP_SLOT_BOOL},  /* smooth state to use */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1615,6 +1639,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_dissolve_limit_def,
 	&bmo_dissolve_verts_def,
 	&bmo_duplicate_def,
+	&bmo_edgeloop_fill_def,
 	&bmo_edgenet_fill_def,
 	&bmo_edgenet_prepare_def,
 	&bmo_extrude_discrete_faces_def,

@@ -374,6 +374,7 @@ class SpellChecker():
         "fluidsim",
         "frameserver",
         "enum",
+        "gpencil",
         "idcol",
         "keyframe", "keyframes", "keyframing", "keyframed",
         "metaball", "metaballs", "mball",

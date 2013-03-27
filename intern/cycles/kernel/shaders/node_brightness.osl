@@ -25,10 +25,10 @@ shader node_brightness(
 	output color ColorOut = 0.8)
 {
 	float a = 1.0 + Contrast;
-	float b = Bright - Contrast*0.5;
+	float b = Bright - Contrast * 0.5;
 
-	ColorOut[0] = max(a*ColorIn[0] + b, 0.0);
-	ColorOut[1] = max(a*ColorIn[1] + b, 0.0);
-	ColorOut[2] = max(a*ColorIn[2] + b, 0.0);
+	ColorOut[0] = max(a * ColorIn[0] + b, 0.0);
+	ColorOut[1] = max(a * ColorIn[1] + b, 0.0);
+	ColorOut[2] = max(a * ColorIn[2] + b, 0.0);
 }
 

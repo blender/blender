@@ -36,12 +36,7 @@
 
 #include <string>
 
-#if defined(__APPLE__) // always first include for jack weaklinking !
-#include <weakjack.h>
-#endif
-
-#include <jack.h>
-#include <ringbuffer.h>
+#include <AUD_JackLibrary.h>
 
 typedef void (*AUD_syncFunction)(void*, int, float);
 

@@ -107,7 +107,7 @@ void precompute_sunsky(vector dir, float turbidity, output KernelSunSky sunsky)
 	sunsky.dir = dir;
 
 	float theta2 = theta * theta;
-	float theta3 = theta * theta * theta;
+	float theta3 = theta2 * theta;
 	float T = turbidity;
 	float T2 = T * T;
 

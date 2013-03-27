@@ -308,7 +308,13 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm, const eBMCreateFlag creat
 }
 
 /**
- * \brief Main face creation function
+ * Main face creation function
+ *
+ * \param bm  The mesh
+ * \param verts  A sorted array of verts size of len
+ * \param edges  A sorted array of edges size of len
+ * \param len  Length of the face
+ * \param create_flag  Options for creating the face
  */
 BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, const eBMCreateFlag create_flag)
 {

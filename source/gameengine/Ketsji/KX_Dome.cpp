@@ -199,7 +199,7 @@ void KX_Dome::CreateGLImages(void)
 	for (int j=0;j<m_numfaces;j++) {
 		glBindTexture(GL_TEXTURE_2D, domefacesId[j]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, m_imagesize, m_imagesize, 0, GL_RGB8,
-				GL_UNSIGNED_BYTE, 0);
+		             GL_UNSIGNED_BYTE, NULL);
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, m_imagesize, m_imagesize, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -209,7 +209,7 @@ void KX_Dome::CreateGLImages(void)
 	if (warp.usemesh) {
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, warp.imagesize, warp.imagesize, 0, GL_RGB8,
-				GL_UNSIGNED_BYTE, 0);
+		             GL_UNSIGNED_BYTE, NULL);
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, warp.imagesize, warp.imagesize, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

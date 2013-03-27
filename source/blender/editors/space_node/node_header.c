@@ -81,7 +81,8 @@ void node_menus_register(void)
 
 	mt = MEM_callocN(sizeof(MenuType), "spacetype node menu add");
 	strcpy(mt->idname, "NODE_MT_add");
-	strcpy(mt->label, "Add");
+	strcpy(mt->label, N_("Add"));
+	strcpy(mt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	mt->draw = node_menu_add;
 	WM_menutype_add(mt);
 }

@@ -135,7 +135,10 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	else {
 		if (tail) strcpy(tail, string + name_end);
 		if (head) {
-			BLI_strncpy(head, string, name_end);
+			/* name_end points to last character of head,
+			 * make it +1 so null-terminator is nicely placed
+			 */
+			BLI_strncpy(head, string, name_end + 1);
 		}
 		if (numlen) *numlen = 0;
 		return 0;

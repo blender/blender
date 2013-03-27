@@ -628,70 +628,46 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
  *
  * Examples:
  *
- * FOREACH_NODETREE(bmain, nodetree)
+ * FOREACH_NODETREE(bmain, nodetree) {
  *     if (id == nodetree)
  *         printf("This is a linkable node tree");
- * FOREACH_NODETREE_END
+ * } FOREACH_NODETREE_END
  *
- * FOREACH_NODETREE(bmain, nodetree)
+ * FOREACH_NODETREE(bmain, nodetree) {
  *     if (nodetree->idname == "ShaderNodeTree")
  *         printf("This is a shader node tree);
  *     if (GS(id) == ID_MA)
  *         printf(" and it's owned by a material");
- * FOREACH_NODETREE_END
+ * } FOREACH_NODETREE_END
  */
+
+/* should be an opaque type, only for internal use by BKE_node_tree_iter_*** */
+struct NodeTreeIterStore {
+	bNodeTree *ngroup;
+	Scene *scene;
+	Material *mat;
+	Tex *tex;
+	Lamp *lamp;
+	World *world;
+};
+
+void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain);
+bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
+                             struct bNodeTree **r_nodetree, struct ID **r_id);
 
 #define FOREACH_NODETREE(bmain, _nodetree, _id) \
 { \
+	struct NodeTreeIterStore _nstore; \
 	bNodeTree *_nodetree; \
 	ID *_id; \
-	bNodeTree *_ngroup = bmain->nodetree.first; \
-	Scene *_scene = bmain->scene.first; \
-	Material *_mat = bmain->mat.first; \
-	Tex *_tex = bmain->tex.first; \
-	Lamp *_lamp = bmain->lamp.first; \
-	World *_world = bmain->world.first; \
 	/* avoid compiler warning about unused variables */ \
-	(void)_id; \
-	(void)_nodetree; \
-	do { \
-		if (_ngroup) { \
-			_nodetree = _ngroup; \
-			_id = (ID *)_ngroup; \
-			_ngroup = _ngroup->id.next; \
-		} \
-		else if (_scene) { \
-			_nodetree = _scene->nodetree; \
-			_id = (ID *)_scene; \
-			_scene = _scene->id.next; \
-		} \
-		else if (_mat) { \
-			_nodetree = _mat->nodetree; \
-			_id = (ID *)_mat; \
-			_mat = _mat->id.next; \
-		} \
-		else if (_tex) { \
-			_nodetree = _tex->nodetree; \
-			_id = (ID *)_tex; \
-			_tex = _tex->id.next; \
-		} \
-		else if (_lamp) { \
-			_nodetree = _lamp->nodetree; \
-			_id = (ID *)_lamp; \
-			_lamp = _lamp->id.next; \
-		} \
-		else if (_world) { \
-			_nodetree = _world->nodetree; \
-			_id = (ID *)_world; \
-			_world = _world->id.next; \
-		} \
-		else \
-			break; \
+	BKE_node_tree_iter_init(&_nstore, bmain); \
+	while (BKE_node_tree_iter_step(&_nstore, &_nodetree, &_id) == true) { \
 		if (_nodetree) {
 
 #define FOREACH_NODETREE_END \
 		} \
-	} while (TRUE); \
+	} \
 }
 
 /* ************** SHADER NODES *************** */

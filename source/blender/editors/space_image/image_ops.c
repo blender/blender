@@ -1707,6 +1707,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 }
 
 /********************** new image operator *********************/
+#define IMA_DEF_NAME N_("Untitled")
 
 static int image_new_exec(bContext *C, wmOperator *op)
 {
@@ -1717,7 +1718,8 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	Main *bmain;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
-	char name[MAX_ID_NAME - 2];
+	char _name[MAX_ID_NAME - 2];
+	char *name = _name;
 	float color[4];
 	int width, height, floatbuf, gen_type, alpha;
 
@@ -1727,7 +1729,12 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	obedit = CTX_data_edit_object(C);
 	bmain = CTX_data_main(C);
 
-	RNA_string_get(op->ptr, "name", name);
+	prop = RNA_struct_find_property(op->ptr, "name");
+	RNA_property_string_get(op->ptr, prop, name);
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		/* Default value, we can translate! */
+		name = (char *)DATA_(name);
+	}
 	width = RNA_int_get(op->ptr, "width");
 	height = RNA_int_get(op->ptr, "height");
 	floatbuf = RNA_boolean_get(op->ptr, "float");
@@ -1775,8 +1782,9 @@ static int image_new_exec(bContext *C, wmOperator *op)
 /* XXX Note: the WM_operator_props_dialog_popup() doesn't work for uiIDContextProperty(), image is not being that way */
 static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	/* Better for user feedback. */
+	RNA_string_set(op->ptr, "name", DATA_(IMA_DEF_NAME));
 	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
-
 }
 
 void IMAGE_OT_new(wmOperatorType *ot)
@@ -1797,7 +1805,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME - 2, "Name", "Image datablock name");
+	RNA_def_string(ot->srna, "name", IMA_DEF_NAME, MAX_ID_NAME - 2, "Name", "Image datablock name");
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height", 1, 16384);
 	prop = RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
@@ -1808,6 +1816,8 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	             "Generated Type", "Fill the image with a grid for UV map testing");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
 }
+
+#undef IMA_DEF_NAME
 
 /********************* invert operators *********************/
 

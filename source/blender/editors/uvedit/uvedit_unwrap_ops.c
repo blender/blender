@@ -1339,8 +1339,14 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
-		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
+		const bool camera_bounds = RNA_boolean_get(op->ptr, "camera_bounds");
+		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat,
+		                                                       camera_bounds ? (scene->r.xsch * scene->r.xasp) : 1.0f,
+		                                                       camera_bounds ? (scene->r.ysch * scene->r.yasp) : 1.0f);
 		
+
+		// BLI_uvproject_camera_info_scale
+
 		if (uci) {
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
@@ -1401,7 +1407,10 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 	ot->poll = uv_from_view_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection");
+	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic",
+	                "Use orthographic projection");
+	RNA_def_boolean(ot->srna, "camera_bounds", 1, "Camera Bounds",
+	                "Map UVs to the camera region taking resolution and aspect into account");
 	uv_map_clip_correct_properties(ot);
 }
 
