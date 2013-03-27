@@ -84,7 +84,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 	for (i = 0; i < totv; i++) {
 		v = verts[i];
 		/* count how many flagged edges this vertex uses */
-		if (BMO_vert_edge_flags_count(bm, v, EDGE_MARK) != 2) {
+		if (BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, v, EDGE_MARK, true) != 2) {
 			ok = false;
 			break;
 		}

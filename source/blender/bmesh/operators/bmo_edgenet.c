@@ -1112,7 +1112,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 	 * disk cycle around each of it's vertices */
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 		for (i = 0; i < 2; i++) {
-			count = BMO_vert_edge_flags_count(bm, i ? e->v2 : e->v1, EDGE_MARK);
+			count = BMO_iter_elem_count_flag(bm,  BM_EDGES_OF_VERT, (i ? e->v2 : e->v1), EDGE_MARK, true);
 			if (count > 2) {
 				ok = 0;
 				break;
@@ -1134,8 +1134,8 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 	while (1) {
 		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 			if (!BMO_elem_flag_test(bm, e, EDGE_VIS)) {
-				if (BMO_vert_edge_flags_count(bm, e->v1, EDGE_MARK) == 1 ||
-				    BMO_vert_edge_flags_count(bm, e->v2, EDGE_MARK) == 1)
+				if (BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v1, EDGE_MARK, true) == 1 ||
+				    BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v2, EDGE_MARK, true) == 1)
 				{
 					break;
 				}

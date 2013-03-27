@@ -132,6 +132,7 @@ __attribute__((warn_unused_result))
 #endif
 ;
 int     BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value);
+int     BMO_iter_elem_count_flag(BMesh *bm, const char itype, void *data, const short oflag, const bool value);
 int     BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const bool value);
 
 /* private for bmesh_iterators_inline.c */

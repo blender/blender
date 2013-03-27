@@ -1075,25 +1075,6 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
 	}
 }
 
-int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
-{
-	int count = 0;
-
-	if (v->e) {
-		BMEdge *curedge;
-		const int len = bmesh_disk_count(v);
-		int i;
-		
-		for (i = 0, curedge = v->e; i < len; i++) {
-			if (BMO_elem_flag_test(bm, curedge, oflag))
-				count++;
-			curedge = bmesh_disk_edge_next(curedge, v);
-		}
-	}
-
-	return count;
-}
-
 /**
  * \brief BMO_FLAG_BUFFER
  *
