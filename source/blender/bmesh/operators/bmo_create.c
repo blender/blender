@@ -889,7 +889,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMOIter siter;
 	BMFace *f;
-	BMEdge *e, *edge;
+	BMEdge *e;
 	BMVert **verts = NULL;
 	BLI_array_declare(verts);
 	EPath *path;
@@ -903,7 +903,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	const bool use_fill_check = BMO_slot_bool_get(op->slots_in, "use_fill_check");
 	const short mat_nr        = BMO_slot_int_get(op->slots_in,  "mat_nr");
 	const bool use_smooth     = BMO_slot_bool_get(op->slots_in, "use_smooth");
-	int i, j, group = 0;
+	int i, j;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 	BMOpSlot *slot_restrict          = BMO_slot_get(op->slots_in, "restrict");
 	BMOpSlot *slot_face_groupmap_out = BMO_slot_get(op->slots_out, "face_groupmap.out");
@@ -937,8 +937,8 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	init_rotsys(bm, edata, vdata);
 
 	while (1) {
-		edge = NULL;
-		group = 0;
+		BMEdge *edge = NULL;
+		int group = 0;
 		
 		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 			/* if restrict is on, only start on faces in the restrict map */
@@ -949,16 +949,16 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				edge = e;
 
 				if (use_restrict) {
-					int i = 0, j = 0, gi = 0;
+					int gi_iter = 0, gi_count = 0, gi = 0;
 					
 					group = BMO_slot_map_int_get(slot_restrict, e);
 					
-					for (i = 0; i < 30; i++) {
-						if (group & (1 << i)) {
-							j++;
-							gi = i;
+					for (gi_iter = 0; gi_iter < 30; gi_iter++) {
+						if (group & (1 << gi_iter)) {
+							gi_count++;
+							gi = gi_iter;
 
-							if (j - 1 == edata[BM_elem_index_get(e)].tag) {
+							if (gi_count - 1 == edata[BM_elem_index_get(e)].tag) {
 								break;
 							}
 						}
@@ -1361,6 +1361,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 			e = BM_edge_create(bm, v_free, v_b, NULL, BM_CREATE_NO_DOUBLE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
+			tote += 2;
 		}
 	}
 	/* --- end special case support, continue as normal --- */
@@ -1419,6 +1420,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/* create edge */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, BM_CREATE_NO_DOUBLE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
+		tote += 1;
 		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
 	}
 	else if (0) { /* nice feature but perhaps it should be a different tool? */
@@ -1493,4 +1495,6 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 		MEM_freeN(vert_arr);
 	}
+
+	(void)tote;
 }
