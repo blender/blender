@@ -121,9 +121,7 @@ void NODE_OT_select_linked_from(struct wmOperatorType *ot);
 void NODE_OT_select_border(struct wmOperatorType *ot);
 void NODE_OT_select_lasso(struct wmOperatorType *ot);
 void NODE_OT_select_same_type(struct wmOperatorType *ot);
-void NODE_OT_select_same_type_next(struct wmOperatorType *ot);
-void NODE_OT_select_same_type_prev(struct wmOperatorType *ot);
-void NODE_OT_activate_connected(struct wmOperatorType *ot);
+void NODE_OT_select_same_type_step(struct wmOperatorType *ot);
 
 /* node_view.c */
 int space_node_view_flag(struct bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag);

@@ -762,65 +762,10 @@ void NODE_OT_select_same_type(wmOperatorType *ot)
 
 /* ****** Select The Next/Prev Node Of The Same Type ****** */
 
-static int node_select_same_type_next_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-
-	node_select_same_type_np(snode, 0);
-
-	ED_node_sort(snode->edittree);
-
-	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_select_same_type_next(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Same Type Next";
-	ot->description = "Select the next node of the same type";
-	ot->idname = "NODE_OT_select_same_type_next";
-	
-	/* api callbacks */
-	ot->exec = node_select_same_type_next_exec;
-	ot->poll = ED_operator_node_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-
-	node_select_same_type_np(snode, 1);
-
-	ED_node_sort(snode->edittree);
-
-	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_select_same_type_prev(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Same Type Prev";
-	ot->description = "Select the prev node of the same type";
-	ot->idname = "NODE_OT_select_same_type_prev";
-	
-	/* api callbacks */
-	ot->exec = node_select_same_type_prev_exec;
-	ot->poll = ED_operator_node_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 /* ************************** */
 
 
-static int node_activate_connected_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -889,15 +834,15 @@ static int node_activate_connected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_activate_connected(wmOperatorType *ot)
+void NODE_OT_select_same_type_step(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Activate/View Connected";
-	ot->description = "Activate and view connected nodes, step by step";
-	ot->idname = "NODE_OT_activate_connected";
+	ot->name = "Activate Same Type Next/Prev";
+	ot->description = "Activate and view same node type, step by step";
+	ot->idname = "NODE_OT_select_same_type_step";
 	
 	/* api callbacks */
-	ot->exec = node_activate_connected_exec;
+	ot->exec = node_select_same_type_step_exec;
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
