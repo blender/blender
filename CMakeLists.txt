@@ -229,6 +229,9 @@ option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org
 option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
 option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
 option(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
+if(UNIX AND NOT APPLE)
+	option(WITH_JACK_DYNLOAD  "Enable runtime dynamic Jack libraries loading" OFF)
+endif()
 
 # Compression
 option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
@@ -2202,6 +2205,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_OPENAL)
 	info_cfg_option(WITH_SDL)
 	info_cfg_option(WITH_JACK)
+	info_cfg_option(WITH_JACK_DYNLOAD)
 	info_cfg_option(WITH_CODEC_AVI)
 	info_cfg_option(WITH_CODEC_FFMPEG)
 	info_cfg_option(WITH_CODEC_SNDFILE)

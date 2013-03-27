@@ -58,6 +58,20 @@ static EnumPropertyItem compute_device_type_items[] = {
 };
 #endif
 
+static EnumPropertyItem audio_device_items[] = {
+	{0, "NONE", 0, "None", "Null device - there will be no audio output"},
+#ifdef WITH_SDL
+	{1, "SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage"},
+#endif
+#ifdef WITH_OPENAL
+	{2, "OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage"},
+#endif
+#ifdef WITH_JACK
+	{3, "JACK", 0, "Jack", "JACK - Audio Connection Kit, recommended for pro audio users"},
+#endif
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_object_types.h"
@@ -433,6 +447,41 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 	return item;
 }
 #endif
+
+static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+                                                        PropertyRNA *UNUSED(prop), int *free)
+{
+#ifdef WITH_JACK
+	int jack_supported = sound_is_jack_supported();
+
+	if (jack_supported) {
+		return audio_device_items;
+	}
+	else {
+		int index = 0;
+		int totitem = 0;
+		EnumPropertyItem *item = NULL;
+
+		/* NONE */
+		RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
+
+#ifdef WITH_SDL
+		RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
+#endif
+
+#ifdef WITH_OPENAL
+		RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
+#endif
+
+		RNA_enum_item_end(&item, &totitem);
+		*free = 1;
+
+		return item;
+	}
+#else
+	return audio_device_items;
+#endif
+}
 
 #ifdef WITH_INTERNATIONAL
 static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
@@ -3234,20 +3283,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem audio_device_items[] = {
-		{0, "NONE", 0, "None", "Null device - there will be no audio output"},
-#ifdef WITH_SDL
-		{1, "SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage"},
-#endif
-#ifdef WITH_OPENAL
-		{2, "OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage"},
-#endif
-#ifdef WITH_JACK
-		{3, "JACK", 0, "Jack", "JACK - Audio Connection Kit, recommended for pro audio users"},
-#endif
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem audio_rate_items[] = {
 /*		{8000, "RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second"}, */
 /*		{11025, "RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second"}, */
@@ -3524,6 +3559,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "audio_device", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "audiodevice");
 	RNA_def_property_enum_items(prop, audio_device_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_userdef_audio_device_itemf");
 	RNA_def_property_ui_text(prop, "Audio Device", "Audio output device");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 

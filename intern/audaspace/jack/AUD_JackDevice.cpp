@@ -56,17 +56,17 @@ void AUD_JackDevice::updateRingBuffers()
 		{
 			if(m_syncFunc)
 			{
-				state = jack_transport_query(m_client, &position);
+				state = AUD_jack_transport_query(m_client, &position);
 				m_syncFunc(m_syncFuncData, state != JackTransportStopped, position.frame / (float) m_specs.rate);
 			}
 
 			for(i = 0; i < channels; i++)
-				jack_ringbuffer_reset(m_ringbuffers[i]);
+				AUD_jack_ringbuffer_reset(m_ringbuffers[i]);
 		}
 
-		size = jack_ringbuffer_write_space(m_ringbuffers[0]);
+		size = AUD_jack_ringbuffer_write_space(m_ringbuffers[0]);
 		for(i = 1; i < channels; i++)
-			if((temp = jack_ringbuffer_write_space(m_ringbuffers[i])) < size)
+			if((temp = AUD_jack_ringbuffer_write_space(m_ringbuffers[i])) < size)
 				size = temp;
 
 		while(size > samplesize)
@@ -77,12 +77,12 @@ void AUD_JackDevice::updateRingBuffers()
 			{
 				for(j = 0; j < size; j++)
 					deinterleave[i * size + j] = buffer[i + j * channels];
-				jack_ringbuffer_write(m_ringbuffers[i], (char*)(deinterleave + i * size), size * sizeof(float));
+				AUD_jack_ringbuffer_write(m_ringbuffers[i], (char*)(deinterleave + i * size), size * sizeof(float));
 			}
 
-			size = jack_ringbuffer_write_space(m_ringbuffers[0]);
+			size = AUD_jack_ringbuffer_write_space(m_ringbuffers[0]);
 			for(i = 1; i < channels; i++)
-				if((temp = jack_ringbuffer_write_space(m_ringbuffers[i])) < size)
+				if((temp = AUD_jack_ringbuffer_write_space(m_ringbuffers[i])) < size)
 					size = temp;
 		}
 
@@ -107,22 +107,22 @@ int AUD_JackDevice::jack_mix(jack_nframes_t length, void *data)
 	{
 		// play silence while syncing
 		for(unsigned int i = 0; i < count; i++)
-			memset(jack_port_get_buffer(device->m_ports[i], length), 0, length * sizeof(float));
+			memset(AUD_jack_port_get_buffer(device->m_ports[i], length), 0, length * sizeof(float));
 	}
 	else
 	{
 		size_t temp;
-		size_t readsamples = jack_ringbuffer_read_space(device->m_ringbuffers[0]);
+		size_t readsamples = AUD_jack_ringbuffer_read_space(device->m_ringbuffers[0]);
 		for(i = 1; i < count; i++)
-			if((temp = jack_ringbuffer_read_space(device->m_ringbuffers[i])) < readsamples)
+			if((temp = AUD_jack_ringbuffer_read_space(device->m_ringbuffers[i])) < readsamples)
 				readsamples = temp;
 
 		readsamples = AUD_MIN(readsamples / sizeof(float), length);
 
 		for(unsigned int i = 0; i < count; i++)
 		{
-			buffer = (char*)jack_port_get_buffer(device->m_ports[i], length);
-			jack_ringbuffer_read(device->m_ringbuffers[i], buffer, readsamples * sizeof(float));
+			buffer = (char*)AUD_jack_port_get_buffer(device->m_ports[i], length);
+			AUD_jack_ringbuffer_read(device->m_ringbuffers[i], buffer, readsamples * sizeof(float));
 			if(readsamples < length)
 				memset(buffer + readsamples * sizeof(float), 0, (length - readsamples) * sizeof(float));
 		}
@@ -193,14 +193,14 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 	jack_status_t status;
 
 	// open client
-	m_client = jack_client_open(name.c_str(), options, &status);
+	m_client = AUD_jack_client_open(name.c_str(), options, &status);
 	if(m_client == NULL)
 		AUD_THROW(AUD_ERROR_JACK, clientopen_error);
 
 	// set callbacks
-	jack_set_process_callback(m_client, AUD_JackDevice::jack_mix, this);
-	jack_on_shutdown(m_client, AUD_JackDevice::jack_shutdown, this);
-	jack_set_sync_callback(m_client, AUD_JackDevice::jack_sync, this);
+	AUD_jack_set_process_callback(m_client, AUD_JackDevice::jack_mix, this);
+	AUD_jack_on_shutdown(m_client, AUD_JackDevice::jack_shutdown, this);
+	AUD_jack_set_sync_callback(m_client, AUD_JackDevice::jack_sync, this);
 
 	// register our output channels which are called ports in jack
 	m_ports = new jack_port_t*[m_specs.channels];
@@ -211,7 +211,7 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 		for(int i = 0; i < m_specs.channels; i++)
 		{
 			sprintf(portname, "out %d", i+1);
-			m_ports[i] = jack_port_register(m_client, portname,
+			m_ports[i] = AUD_jack_port_register(m_client, portname,
 											JACK_DEFAULT_AUDIO_TYPE,
 											JackPortIsOutput, 0);
 			if(m_ports[i] == NULL)
@@ -220,17 +220,17 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 	}
 	catch(AUD_Exception&)
 	{
-		jack_client_close(m_client);
+		AUD_jack_client_close(m_client);
 		delete[] m_ports;
 		throw;
 	}
 
-	m_specs.rate = (AUD_SampleRate)jack_get_sample_rate(m_client);
+	m_specs.rate = (AUD_SampleRate)AUD_jack_get_sample_rate(m_client);
 
 	buffersize *= sizeof(sample_t);
 	m_ringbuffers = new jack_ringbuffer_t*[specs.channels];
 	for(unsigned int i = 0; i < specs.channels; i++)
-		m_ringbuffers[i] = jack_ringbuffer_create(buffersize);
+		m_ringbuffers[i] = AUD_jack_ringbuffer_create(buffersize);
 	buffersize *= specs.channels;
 	m_deinterleavebuf.resize(buffersize);
 	m_buffer.resize(buffersize);
@@ -240,18 +240,18 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 	m_valid = true;
 	m_sync = 0;
 	m_syncFunc = NULL;
-	m_nextState = m_state = jack_transport_query(m_client, NULL);
+	m_nextState = m_state = AUD_jack_transport_query(m_client, NULL);
 
 	pthread_mutex_init(&m_mixingLock, NULL);
 	pthread_cond_init(&m_mixingCondition, NULL);
 
 	// activate the client
-	if(jack_activate(m_client))
+	if(AUD_jack_activate(m_client))
 	{
-		jack_client_close(m_client);
+		AUD_jack_client_close(m_client);
 		delete[] m_ports;
 		for(unsigned int i = 0; i < specs.channels; i++)
-			jack_ringbuffer_free(m_ringbuffers[i]);
+			AUD_jack_ringbuffer_free(m_ringbuffers[i]);
 		delete[] m_ringbuffers;
 		pthread_mutex_destroy(&m_mixingLock);
 		pthread_cond_destroy(&m_mixingCondition);
@@ -260,12 +260,12 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 		AUD_THROW(AUD_ERROR_JACK, activate_error);
 	}
 
-	const char** ports = jack_get_ports(m_client, NULL, NULL,
+	const char** ports = AUD_jack_get_ports(m_client, NULL, NULL,
 										JackPortIsPhysical | JackPortIsInput);
 	if(ports != NULL)
 	{
 		for(int i = 0; i < m_specs.channels && ports[i]; i++)
-			jack_connect(m_client, jack_port_name(m_ports[i]), ports[i]);
+			AUD_jack_connect(m_client, AUD_jack_port_name(m_ports[i]), ports[i]);
 
 		free(ports);
 	}
@@ -282,7 +282,7 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 AUD_JackDevice::~AUD_JackDevice()
 {
 	if(m_valid)
-		jack_client_close(m_client);
+		AUD_jack_client_close(m_client);
 	m_valid = false;
 
 	delete[] m_ports;
@@ -295,7 +295,7 @@ AUD_JackDevice::~AUD_JackDevice()
 	pthread_cond_destroy(&m_mixingCondition);
 	pthread_mutex_destroy(&m_mixingLock);
 	for(unsigned int i = 0; i < m_specs.channels; i++)
-		jack_ringbuffer_free(m_ringbuffers[i]);
+		AUD_jack_ringbuffer_free(m_ringbuffers[i]);
 	delete[] m_ringbuffers;
 
 	destroy();
@@ -308,20 +308,20 @@ void AUD_JackDevice::playing(bool playing)
 
 void AUD_JackDevice::startPlayback()
 {
-	jack_transport_start(m_client);
+	AUD_jack_transport_start(m_client);
 	m_nextState = JackTransportRolling;
 }
 
 void AUD_JackDevice::stopPlayback()
 {
-	jack_transport_stop(m_client);
+	AUD_jack_transport_stop(m_client);
 	m_nextState = JackTransportStopped;
 }
 
 void AUD_JackDevice::seekPlayback(float time)
 {
 	if(time >= 0.0f)
-		jack_transport_locate(m_client, time * m_specs.rate);
+		AUD_jack_transport_locate(m_client, time * m_specs.rate);
 }
 
 void AUD_JackDevice::setSyncCallback(AUD_syncFunction sync, void* data)
@@ -333,13 +333,13 @@ void AUD_JackDevice::setSyncCallback(AUD_syncFunction sync, void* data)
 float AUD_JackDevice::getPlaybackPosition()
 {
 	jack_position_t position;
-	jack_transport_query(m_client, &position);
+	AUD_jack_transport_query(m_client, &position);
 	return position.frame / (float) m_specs.rate;
 }
 
 bool AUD_JackDevice::doesPlayback()
 {
-	jack_transport_state_t state = jack_transport_query(m_client, NULL);
+	jack_transport_state_t state = AUD_jack_transport_query(m_client, NULL);
 
 	if(state != m_state)
 		m_nextState = m_state = state;

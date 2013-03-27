@@ -47,6 +47,7 @@ typedef struct SoundWaveform {
 } SoundWaveform;
 
 void sound_init_once(void);
+void sound_exit_once(void);
 
 void sound_init(struct Main *main);
 
@@ -138,5 +139,7 @@ void sound_update_scene(struct Scene *scene);
 void *sound_get_factory(void *sound);
 
 float sound_get_length(struct bSound *sound);
+
+int sound_is_jack_supported(void);
 
 #endif

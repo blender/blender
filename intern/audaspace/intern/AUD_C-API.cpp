@@ -79,6 +79,7 @@
 
 #ifdef WITH_JACK
 #include "AUD_JackDevice.h"
+#include "AUD_JackLibrary.h"
 #endif
 
 
@@ -109,6 +110,16 @@ void AUD_initOnce()
 {
 #ifdef WITH_FFMPEG
 	av_register_all();
+#endif
+#ifdef WITH_JACK
+	AUD_jack_init();
+#endif
+}
+
+void AUD_exitOnce()
+{
+#ifdef WITH_JACK
+	AUD_jack_exit();
 #endif
 }
 
@@ -144,13 +155,15 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 				// No break, fall through to default, to return false
 			}
 			else
-			{
 #endif
+			if (!AUD_jack_supported()) {
+				printf("Warning: Jack cllient not installed\n");
+				// No break, fall through to default, to return false
+			}
+			else {
 				dev = boost::shared_ptr<AUD_IDevice>(new AUD_JackDevice("Blender", specs, buffersize));
 				break;
-#ifdef __APPLE__
 			}
-#endif
 #endif
 		default:
 			return false;
@@ -1261,4 +1274,13 @@ boost::shared_ptr<AUD_IDevice> AUD_getDevice()
 AUD_I3DDevice *AUD_get3DDevice()
 {
 	return AUD_3ddevice;
+}
+
+int AUD_isJackSupported(void)
+{
+#ifdef WITH_JACK
+	return AUD_jack_supported();
+#else
+	return 0;
+#endif
 }

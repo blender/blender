@@ -46,6 +46,8 @@ if env['WITH_BF_JACK']:
     sources += env.Glob('jack/*.cpp')
     incs += ' jack ' + env['BF_JACK_INC']
     defs.append('WITH_JACK')
+    if env['WITH_BF_JACK_DYNLOAD']:
+        defs.append('WITH_JACK_DYNLOAD')
 
 if env['WITH_BF_SNDFILE']:
     sources += env.Glob('sndfile/*.cpp')

@@ -172,7 +172,7 @@ void sound_force_device(int device)
 void sound_init_once(void)
 {
 	AUD_initOnce();
-	atexit(sound_exit);
+	atexit(sound_exit_once);
 }
 
 void sound_init(struct Main *bmain)
@@ -219,6 +219,12 @@ void sound_init_main(struct Main *bmain)
 void sound_exit(void)
 {
 	AUD_exit();
+}
+
+void sound_exit_once(void)
+{
+	AUD_exit();
+	AUD_exitOnce();
 }
 
 // XXX unused currently
@@ -766,6 +772,11 @@ float sound_get_length(bSound *sound)
 	return info.length;
 }
 
+int sound_is_jack_supported(void)
+{
+	return AUD_isJackSupported();
+}
+
 #else // WITH_AUDASPACE
 
 #include "BLI_utildefines.h"
@@ -775,6 +786,7 @@ void sound_force_device(int UNUSED(device)) {}
 void sound_init_once(void) {}
 void sound_init(struct Main *UNUSED(bmain)) {}
 void sound_exit(void) {}
+void sound_exit_once(void) {}
 void sound_cache(struct bSound *UNUSED(sound)) { }
 void sound_delete_cache(struct bSound *UNUSED(sound)) {}
 void sound_load(struct Main *UNUSED(bmain), struct bSound *UNUSED(sound)) {}
@@ -807,4 +819,5 @@ void sound_set_scene_sound_pan(void *handle, float pan, char animated) { (void)h
 void sound_set_scene_volume(struct Scene *scene, float volume) { (void)scene; (void)volume; }
 void sound_set_scene_sound_pitch(void *handle, float pitch, char animated) { (void)handle; (void)pitch; (void)animated; }
 float sound_get_length(struct bSound *sound) { (void)sound; return 0; }
+int sound_is_jack_supported(void) { return 0; }
 #endif // WITH_AUDASPACE
