@@ -1036,7 +1036,7 @@ void SEQUENCER_OT_gap_remove(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Gaps";
 	ot->idname = "SEQUENCER_OT_gap_remove";
-	ot->description = "Remove gap at current frame to first strip at the right";
+	ot->description = "Remove gap at current frame to first strip at the right, independent of selection or locked state of strips";
 	
 	/* api callbacks */
 //	ot->invoke = sequencer_snap_invoke;
@@ -1067,7 +1067,7 @@ void SEQUENCER_OT_gap_insert(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Insert Gaps";
 	ot->idname = "SEQUENCER_OT_gap_insert";
-	ot->description = "Insert gap at current frame to first strips at the right";
+	ot->description = "Insert gap at current frame to first strips at the right, independent of selection or locked state of strips";
 	
 	/* api callbacks */
 	//	ot->invoke = sequencer_snap_invoke;
