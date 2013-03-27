@@ -3430,3 +3430,15 @@ float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame)
 
 	return pixels;
 }
+
+int BKE_image_sequence_guess_offset(Image *image)
+{
+	unsigned short numlen;
+	char head[FILE_MAX], tail[FILE_MAX];
+	char num[FILE_MAX] = {0};
+
+	BLI_stringdec(image->name, head, tail, &numlen);
+	BLI_strncpy(num, image->name + strlen(head), numlen + 1);
+
+	return atoi(num);
+}
