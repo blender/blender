@@ -2328,6 +2328,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	View2D *v2d = UI_view2d_fromcontext(C);
 	ARegion *ar = CTX_wm_region(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	Sequence *seq;
 	rctf cur_new = v2d->cur;
 
@@ -2344,7 +2345,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		if (seq->flag & SELECT) {
+		if ((seq->flag & SELECT) || (seq == last_seq)) {
 			xmin = min_ii(xmin, seq->startdisp);
 			xmax = max_ii(xmax, seq->enddisp);
 
