@@ -402,7 +402,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	}
 	else {
 		glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0,
-			format, type, NULL);
+		             format, type, NULL);
 
 		if (fpixels) {
 			glTexSubImage2D(tex->target, 0, 0, 0, w, h,
@@ -677,7 +677,7 @@ GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256])
 		/* Now we tweak some of the settings */
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, size, size, 0, GL_RG, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, size, size, 0, GL_RG, GL_FLOAT, NULL);
 
 		GPU_texture_unbind(tex);
 	}

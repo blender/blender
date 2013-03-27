@@ -175,7 +175,7 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 	Image *ima= (Image *)node->id;
 	if (ima) {
 		ImageUser *iuser = node->storage;
-		ImageUser load_iuser = {0};
+		ImageUser load_iuser = {NULL};
 		ImBuf *ibuf;
 		int offset = BKE_image_sequence_guess_offset(ima);
 
