@@ -132,7 +132,10 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 	/* --- end special case support, continue as normal --- */
 
-	/* call edgenet create */
+
+	/* -------------------------------------------------------------------- */
+	/* EdgeNet Create */
+
 	/* call edgenet prepare op so additional face creation cases wore */
 	BMO_op_initf(bm, &op2, op->flag, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
@@ -154,8 +157,10 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_op_finish(bm, &op2);
-	
-	/* now call dissolve face */
+
+
+	/* -------------------------------------------------------------------- */
+	/* Dissolve Face */
 	BMO_op_initf(bm, &op2, op->flag, "dissolve_faces faces=%ff", ELE_NEW);
 	BMO_op_exec(bm, &op2);
 	
@@ -168,6 +173,32 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_op_finish(bm, &op2);
+
+
+	/* -------------------------------------------------------------------- */
+	/* Fill EdgeLoop's - fills isolated loops, different from edgenet */
+
+	/* note: in most cases 'edgenet_fill' will handle this case since in common cases
+	 * users fill in empty spaces, however its possible to have an edge selection around
+	 * existing geometry that makes 'edgenet_fill' fail. */
+	BMO_op_initf(bm, &op2, op->flag, "edgeloop_fill edges=%fe", ELE_NEW);
+	BMO_op_exec(bm, &op2);
+
+	/* return if edge loop fill did something */
+	if (BMO_slot_buffer_count(op2.slots_out, "faces.out")) {
+		BMO_slot_copy(&op2, slots_out, "faces.out",
+		              op,   slots_out, "faces.out");
+		BMO_op_finish(bm, &op2);
+		return;
+	}
+
+	BMO_op_finish(bm, &op2);
+
+
+
+	/* -------------------------------------------------------------------- */
+	/* Continue with ad-hoc fill methods since operators fail,
+	 * edge, vcloud... may add more */
 
 	/* now, count how many verts we have */
 	amount = 0;
@@ -237,8 +268,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/* done creating edges */
 	}
 	else if (amount > 2) {
-		/* TODO, all these verts may be connected by edges.
-		 * we should check on this before assuming they are a random set of verts */
+		/* TODO, some of these vertes may be connected by edges,
+		 * this connectivity could be used rather then treating
+		 * them as a bunch of isolated verts. */
 
 		BMVert **vert_arr = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
 		int i = 0;
