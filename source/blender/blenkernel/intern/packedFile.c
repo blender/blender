@@ -263,7 +263,7 @@ void packAll(Main *bmain, ReportList *reports)
 	}
 	
 	if (tot == 0)
-		BKE_report(reports, RPT_INFO, "No files have been packed");
+		BKE_report(reports, RPT_INFO, "No new files have been packed");
 	else
 		BKE_reportf(reports, RPT_INFO, "Packed %d files", tot);
 
