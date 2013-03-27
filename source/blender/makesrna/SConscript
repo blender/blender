@@ -97,6 +97,15 @@ if env['WITH_BF_OCEANSIM']:
 if env['WITH_BF_CYCLES']:
     defs.append('WITH_CYCLES')
 
+if env['WITH_BF_SDL']:
+    defs.append('WITH_SDL')
+
+if env['WITH_BF_OPENAL']:
+    defs.append('WITH_OPENAL')
+
+if env['WITH_BF_JACK']:
+    defs.append('WITH_JACK')
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
