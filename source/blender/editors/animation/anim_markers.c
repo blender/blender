@@ -1121,6 +1121,8 @@ static int ed_marker_select_invoke_wrapper(bContext *C, wmOperator *op, const wm
 
 static void MARKER_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Time Marker";
 	ot->description = "Select time marker(s)";
@@ -1133,9 +1135,11 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #ifdef DURIAN_CAMERA_SWITCH
-	RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+	prop = RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #endif
 }
 
