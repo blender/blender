@@ -229,7 +229,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		 * however python is not initialized when called from this function.
 		 *
 		 * unlikey any handlers are set but its possible,
-		 * note that recovering the last session does its own callbacks callbacks. */
+		 * note that recovering the last session does its own callbacks. */
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 	}
 }

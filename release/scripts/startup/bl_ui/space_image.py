@@ -778,7 +778,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
-        
+
         col = layout.column()
         col.prop(toolsettings, "input_samples")
 

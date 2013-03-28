@@ -93,7 +93,7 @@ def brush_texture_settings(layout, brush, sculpt):
                 col.prop(brush, "texture_angle_source_random", text="")
             else:
                 col.prop(brush, "texture_angle_source_no_random", text="")
-        
+
         else:
             col.prop(brush, "texture_angle_source_random", text="")
     else:

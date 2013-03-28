@@ -446,7 +446,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             nds_ls.extend(nds)
         ret = _extract_string_merge(estr_ls, nds_ls)
         return ret
-    
+
     def extract_strings_split(node):
         """
         Returns a list args as returned by 'extract_strings()', But split into groups based on separate_nodes, this way

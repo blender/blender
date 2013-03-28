@@ -830,7 +830,7 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
                 rna = "bpy.ops.%s.%s" % (class_name, class_prop)
         else:
             rna_class = getattr(bpy.types, class_name)
-            
+
             # an operator setting (selected from a running operator), rare case
             # note: Py defined operators are subclass of Operator,
             #       C defined operators are subclass of OperatorProperties.

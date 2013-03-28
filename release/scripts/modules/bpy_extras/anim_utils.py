@@ -169,7 +169,7 @@ def bake_action(frame_start,
         euler_prev = None
 
         for (f, matrix) in zip(frame_range, obj_info):
-            name = "Action Bake" # XXX: placeholder
+            name = "Action Bake"  # XXX: placeholder
             obj.matrix_basis = matrix
 
             obj.keyframe_insert("location", -1, f, name, options)

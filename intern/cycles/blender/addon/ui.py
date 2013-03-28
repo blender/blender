@@ -219,7 +219,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Final Render:")
         sub.prop(rd, "use_persistent_data", text="Persistent Images")
 
-        
+
 class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
     bl_label = "OpenGL Render"
     bl_options = {'DEFAULT_CLOSED'}
@@ -230,18 +230,18 @@ class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
         rd = context.scene.render
 
         split = layout.split()
-        
+
         col = split.column()
         col.prop(rd, "use_antialiasing")
         sub = col.row()
         sub.active = rd.use_antialiasing
         sub.prop(rd, "antialiasing_samples", expand=True)
-        
+
         col = split.column()
         col.label(text="Alpha:")
         col.prop(rd, "alpha_mode", text="")
-        
-        
+
+
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
     bl_options = {'DEFAULT_CLOSED'}
@@ -872,8 +872,8 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 split = layout.split(percentage=0.2)
                 split.label(text="Type:")
                 split.prop(tex, "type", text="")
-                
-                
+
+
 class CyclesTexture_PT_node(CyclesButtonsPanel, Panel):
     bl_label = "Node"
     bl_context = "texture"
@@ -902,7 +902,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         node = context.texture_node
 
         mapping = node.texture_mapping
@@ -934,7 +934,7 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         node = context.texture_node
 
         mapping = node.color_mapping

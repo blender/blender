@@ -146,7 +146,7 @@ class BakeToKeyframes(Operator):
                         # this is a little roundabout but there's no better way right now
                         aa = mat.to_quaternion().to_axis_angle()
                         obj.rotation_axis_angle = (aa[1], ) + aa[0][:]
-                    else: # euler
+                    else:  # euler
                         # make sure euler rotation is compatible to previous frame
                         obj.rotation_euler = mat.to_euler(rot_mode, obj_prev.rotation_euler)
 
@@ -275,10 +275,10 @@ class ConnectRigidBodies(Operator):
                 self._add_constraint(context, objs_sorted[i-1], objs_sorted[i])
                 change = True
 
-        else: # SELECTED_TO_ACTIVE
+        else:  # SELECTED_TO_ACTIVE
             for obj in objects:
                 self._add_constraint(context, obj_act, obj)
-                change = True;
+                change = True
 
         if change:
             # restore selection
