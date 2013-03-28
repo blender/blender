@@ -1273,11 +1273,15 @@ class WM_OT_copy_prev_settings(Operator):
         else:
             shutil.copytree(path_src, path_dst, symlinks=True)
 
+            # reload recent-files.txt
+            bpy.ops.wm.read_history()
+
             # don't loose users work if they open the splash later.
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
             else:
                 self.report({'INFO'}, "Reload Start-Up file to restore settings")
+
             return {'FINISHED'}
 
         return {'CANCELLED'}
