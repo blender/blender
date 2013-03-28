@@ -47,22 +47,13 @@ incs = [
     '../bmesh',
     '#/intern/guardedalloc',
 ]
-if  env['OURPLATFORM']=='darwin':
-    incs += [
-        env['BF_OPENCOLLADA_INC'] + '/COLLADAStreamWriter',
-        env['BF_OPENCOLLADA_INC'] + '/COLLADABaseUtils',
-        env['BF_OPENCOLLADA_INC'] + '/COLLADAFramework',
-        env['BF_OPENCOLLADA_INC'] + '/COLLADASaxFrameworkLoader',
-        env['BF_OPENCOLLADA_INC'] + '/GeneratedSaxParser',
-    ]
-else:
-    incs += [
-        env['BF_OPENCOLLADA_INC'] + '/COLLADAStreamWriter/include',
-        env['BF_OPENCOLLADA_INC'] + '/COLLADABaseUtils/include',
-        env['BF_OPENCOLLADA_INC'] + '/COLLADAFramework/include',
-        env['BF_OPENCOLLADA_INC'] + '/COLLADASaxFrameworkLoader/include',
-        env['BF_OPENCOLLADA_INC'] + '/GeneratedSaxParser/include',
-    ]
+incs += [
+    env['BF_OPENCOLLADA_INC'] + '/COLLADAStreamWriter',
+    env['BF_OPENCOLLADA_INC'] + '/COLLADABaseUtils',
+    env['BF_OPENCOLLADA_INC'] + '/COLLADAFramework',
+    env['BF_OPENCOLLADA_INC'] + '/COLLADASaxFrameworkLoader',
+    env['BF_OPENCOLLADA_INC'] + '/GeneratedSaxParser',
+]
 
 if env['BF_BUILDINFO']:
     defs.append('WITH_BUILDINFO')
