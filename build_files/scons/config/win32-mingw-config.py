@@ -141,9 +141,9 @@ BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 
 BF_OPENCOLLADA = LIBDIR + '/opencollada'
-BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
+BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include/opencollada'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa'
-BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
+BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib/opencollada'
 
 #Cycles
 WITH_BF_CYCLES = True 

@@ -1067,28 +1067,28 @@ elseif(WIN32)
 			set(OPENCOLLADA ${LIBDIR}/opencollada)
 
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
-				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
-				${LIBDIR}/opencollada/include/COLLADAFramework/include
-				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
-				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
+				${OPENCOLLADA}/include/opencollada/COLLADAStreamWriter
+				${OPENCOLLADA}/include/opencollada/COLLADABaseUtils
+				${OPENCOLLADA}/include/opencollada/COLLADAFramework
+				${OPENCOLLADA}/include/opencollada/COLLADASaxFrameworkLoader
+				${OPENCOLLADA}/include/opencollada/GeneratedSaxParser
 			)
 			set_lib_path(OPENCOLLADA_LIBPATH "opencollada")
 
 			set(OPENCOLLADA_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADASaxFrameworkLoader.lib
-				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADAFramework.lib
-				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADABaseUtils.lib
-				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADAStreamWriter.lib
-				${OPENCOLLADA_LIBPATH}/lib/MathMLSolver.lib
-				${OPENCOLLADA_LIBPATH}/lib/GeneratedSaxParser.lib
-				${OPENCOLLADA_LIBPATH}/lib/xml2.lib
-				${OPENCOLLADA_LIBPATH}/lib/buffer.lib
-				${OPENCOLLADA_LIBPATH}/lib/ftoa.lib
-				${OPENCOLLADA_LIBPATH}/lib/UTF.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADAFramework.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADABaseUtils.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADAStreamWriter.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/MathMLSolver.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/GeneratedSaxParser.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/xml.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/buffer.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/ftoa.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/UTF.lib
 			)
 			set(PCRE_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/lib/pcre.lib
+				${OPENCOLLADA_LIBPATH}/lib/opencollada/pcre.lib
 			)
 			
 			unset(OPENCOLLADA_LIBPATH)
@@ -1289,13 +1289,13 @@ elseif(WIN32)
 		if(WITH_OPENCOLLADA)
 			set(OPENCOLLADA ${LIBDIR}/opencollada)
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
-				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
-				${LIBDIR}/opencollada/include/COLLADAFramework/include
-				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
-				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
+				${OPENCOLLADA}/include/COLLADAStreamWriter
+				${OPENCOLLADA}/include/COLLADABaseUtils
+				${OPENCOLLADA}/include/COLLADAFramework
+				${OPENCOLLADA}/include/COLLADASaxFrameworkLoader
+				${OPENCOLLADA}/include/GeneratedSaxParser
 			)
-			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
+			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib/opencollada)
 			if(WITH_MINGW64)
 				set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre buffer ftoa xml)
 			else()

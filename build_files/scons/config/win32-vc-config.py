@@ -139,9 +139,9 @@ BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 
 BF_OPENCOLLADA = LIBDIR + '/opencollada'
-BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
-BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml2 pcre buffer ftoa UTF'
-BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
+BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include/opencollada'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml pcre buffer ftoa UTF'
+BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib/opencollada'
 
 WITH_BF_3DMOUSE = True
 
