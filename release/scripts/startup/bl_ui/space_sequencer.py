@@ -514,9 +514,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     layout.prop(strip, "speed_factor", text="Frame number")
                     layout.prop(strip, "scale_to_length")
 
-            #doesn't work currently
-            #layout.prop(strip, "use_frame_blend")
-
         elif strip.type == 'TRANSFORM':
             layout = self.layout
             col = layout.column()

@@ -314,7 +314,7 @@ typedef struct SequencerScopes {
 
 /* SpeedControlVars->flags */
 #define SEQ_SPEED_INTEGRATE      1
-#define SEQ_SPEED_BLEND          2
+/* #define SEQ_SPEED_BLEND          2 */ /* DEPRECATED */
 #define SEQ_SPEED_COMPRESS_IPO_Y 4
 
 /* ***************** SEQUENCE ****************** */
