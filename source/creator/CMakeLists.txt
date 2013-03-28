@@ -974,7 +974,7 @@ endif()
 		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_intern_rigidbody")
 	endif()
 
-	if(WITH_BULLET AND NOT WITH_BULLET_SYSTEM)
+	if(WITH_BULLET AND NOT WITH_SYSTEM_BULLET)
 		list_insert_after(BLENDER_SORTED_LIBS "ge_logic_ngnetwork" "extern_bullet")
 	endif()
 
