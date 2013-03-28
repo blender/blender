@@ -20,8 +20,7 @@
 
 import bpy
 from bpy.types import Panel
-
-i18n_default_ctxt = bpy.app.translations.contexts.default
+from bpy.app.translations import contexts as i18n_contexts
 
 
 class PhysicButtonsPanel():
@@ -39,20 +38,20 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
     sub = layout.row(align=True)
     if md:
         sub.context_pointer_set("modifier", md)
-        sub.operator("object.modifier_remove", text=name, text_ctxt=i18n_default_ctxt, icon='X')
+        sub.operator("object.modifier_remove", text=name, text_ctxt=i18n_contexts.default, icon='X')
         if(toggles):
             sub.prop(md, "show_render", text="")
             sub.prop(md, "show_viewport", text="")
     else:
-        sub.operator("object.modifier_add", text=name, text_ctxt=i18n_default_ctxt, icon=typeicon).type = type
+        sub.operator("object.modifier_add", text=name, text_ctxt=i18n_contexts.default, icon=typeicon).type = type
 
 
 def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
     sub = layout.row(align=True)
     if data:
-        sub.operator(removeop, text=name, text_ctxt=i18n_default_ctxt, icon='X')
+        sub.operator(removeop, text=name, text_ctxt=i18n_contexts.default, icon='X')
     else:
-        sub.operator(addop, text=name, text_ctxt=i18n_default_ctxt, icon=typeicon)
+        sub.operator(addop, text=name, text_ctxt=i18n_context.default, icon=typeicon)
 
 
 class PHYSICS_PT_add(PhysicButtonsPanel, Panel):

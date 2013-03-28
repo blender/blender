@@ -43,6 +43,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
@@ -375,6 +377,7 @@ static int brush_curve_preset_poll(bContext *C)
 
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	static EnumPropertyItem prop_shape_items[] = {
 		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
 		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
@@ -391,7 +394,8 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 	ot->exec = brush_curve_preset_exec;
 	ot->poll = brush_curve_preset_poll;
 
-	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+	prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 }
 
 

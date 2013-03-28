@@ -24,6 +24,7 @@ from bpy.props import (FloatProperty,
                        IntProperty,
                        BoolProperty,
                        )
+from bpy.app.translations import pgettext_data as data_
 
 from bpy_extras import object_utils
 
@@ -142,7 +143,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
                                      self.major_segments,
                                      self.minor_segments)
 
-        mesh = bpy.data.meshes.new("Torus")
+        mesh = bpy.data.meshes.new(data_("Torus"))
 
         mesh.vertices.add(len(verts_loc) // 3)
 
