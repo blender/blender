@@ -3221,15 +3221,23 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		float (*vertCos)[3] = NULL;
 
 		if (ss->kb)
-			vertCos = MEM_callocN(sizeof(*vertCos) * me->totvert, "flushStrokeDeofrm keyVerts");
+			vertCos = MEM_mallocN(sizeof(*vertCos) * me->totvert, "flushStrokeDeofrm keyVerts");
 
 		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
 			PBVHVertexIter vd;
+			int mode = PBVH_ITER_UNIQUE;
 
-			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			/* when sculpting on a shape key, we need to gather all vertices, even
+			 * hidden one, so key block update happens correct (otherwise we'll
+			 * miss coordinates for hidden vertices)
+			 */
+			if (ss->kb)
+				mode = PBVH_ITER_ALL;
+
+			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, mode)
 			{
 				sculpt_flush_pbvhvert_deform(ob, &vd);
 
