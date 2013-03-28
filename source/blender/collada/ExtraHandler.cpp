@@ -65,7 +65,8 @@ bool ExtraHandler::textData(const char *text, size_t textLength)
 bool ExtraHandler::parseElement(
         const char *profileName,
         const unsigned long& elementHash,
-        const COLLADAFW::UniqueId& uniqueId)
+        const COLLADAFW::UniqueId& uniqueId,
+		COLLADAFW::Object* object)
 {
 	if (BLI_strcaseeq(profileName, "blender")) {
 		//printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
