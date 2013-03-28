@@ -105,6 +105,33 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
 
 	return i;
 }
+/**
+ * \brief Operator Iterator as Array
+ *
+ * Sometimes its convenient to get the iterator as an array.
+ */
+int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
+                      void **array, const int len)
+{
+	int i = 0;
+
+	/* sanity check */
+	if (len > 0) {
+		BMOIter oiter;
+		void *ele;
+
+		for (ele = BMO_iter_new(&oiter, slot_args, slot_name, restrictmask); ele; ele = BMO_iter_step(&oiter)) {
+			array[i] = ele;
+			i++;
+			if (i == len) {
+				return len;
+			}
+		}
+	}
+
+	return i;
+}
+
 
 /**
  * \brief Iterator as Array
