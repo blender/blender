@@ -6058,13 +6058,32 @@ static void rna_def_node_socket_float(BlenderRNA *brna, const char *idname, cons
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	
-	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	/* socket interface */
 	srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
 	RNA_def_struct_ui_text(srna, "Float Node Socket Interface", "Floating point number socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocketValueFloat", "default_value");
+	
+	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocketStandard_float_range");
+	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	prop = RNA_def_property(srna, "min_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "min");
+	RNA_def_property_ui_text(prop, "Minimum Value", "Minimum value");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	prop = RNA_def_property(srna, "max_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "max");
+	RNA_def_property_ui_text(prop, "Maximum Value", "Maximum value");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node_socket_int(BlenderRNA *brna, const char *identifier, const char *interface_idname, PropertySubType subtype)
@@ -6085,13 +6104,32 @@ static void rna_def_node_socket_int(BlenderRNA *brna, const char *identifier, co
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	
-	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	/* socket interface */
 	srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
 	RNA_def_struct_ui_text(srna, "Integer Node Socket Interface", "Integer number socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+
+	RNA_def_struct_sdna_from(srna, "bNodeSocketValueInt", "default_value");
+	
+	prop = RNA_def_property(srna, "default_value", PROP_INT, subtype);
+	RNA_def_property_int_sdna(prop, NULL, "value");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_NodeSocketStandard_int_range");
+	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	prop = RNA_def_property(srna, "min_value", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "min");
+	RNA_def_property_ui_text(prop, "Minimum Value", "Minimum value");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	prop = RNA_def_property(srna, "max_value", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "max");
+	RNA_def_property_ui_text(prop, "Maximum Value", "Maximum value");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node_socket_bool(BlenderRNA *brna, const char *identifier, const char *interface_idname)
@@ -6111,13 +6149,21 @@ static void rna_def_node_socket_bool(BlenderRNA *brna, const char *identifier, c
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	
-	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	/* socket interface */
 	srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
 	RNA_def_struct_ui_text(srna, "Boolean Node Socket Interface", "Boolean value socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocketValueBoolean", "default_value");
+	
+	prop = RNA_def_property(srna, "default_value", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "value", 1);
+	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node_socket_vector(BlenderRNA *brna, const char *identifier, const char *interface_idname, PropertySubType subtype)
@@ -6138,13 +6184,32 @@ static void rna_def_node_socket_vector(BlenderRNA *brna, const char *identifier,
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	
-	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	/* socket interface */
 	srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
 	RNA_def_struct_ui_text(srna, "Vector Node Socket Interface", "3D vector socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocketValueVector", "default_value");
+	
+	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocketStandard_vector_range");
+	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	prop = RNA_def_property(srna, "min_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "min");
+	RNA_def_property_ui_text(prop, "Minimum Value", "Minimum value");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	prop = RNA_def_property(srna, "max_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "max");
+	RNA_def_property_ui_text(prop, "Maximum Value", "Maximum value");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node_socket_color(BlenderRNA *brna, const char *identifier, const char *interface_idname)
@@ -6164,13 +6229,21 @@ static void rna_def_node_socket_color(BlenderRNA *brna, const char *identifier, 
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	
-	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	/* socket interface */
 	srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
 	RNA_def_struct_ui_text(srna, "Color Node Socket Interface", "RGBA color socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocketValueRGBA", "default_value");
+	
+	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node_socket_string(BlenderRNA *brna, const char *identifier, const char *interface_idname)
@@ -6190,13 +6263,21 @@ static void rna_def_node_socket_string(BlenderRNA *brna, const char *identifier,
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	
-	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	/* socket interface */
 	srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
 	RNA_def_struct_ui_text(srna, "String Node Socket Interface", "String socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocketValueString", "default_value");
+	
+	prop = RNA_def_property(srna, "default_value", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "value");
+	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+	
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node_socket_shader(BlenderRNA *brna, const char *identifier, const char *interface_idname)

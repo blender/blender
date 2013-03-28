@@ -124,6 +124,9 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, bNode *gnode, bNodeSoc
 	}
 	if (sock) {
 		strcpy(sock->name, iosock->name);
+		
+		if (iosock->typeinfo->interface_verify_socket)
+			iosock->typeinfo->interface_verify_socket(ntree, iosock, gnode, sock, "interface");
 	}
 	else {
 		sock = nodeAddSocket(ntree, gnode, in_out, iosock->idname, iosock->identifier, iosock->name);

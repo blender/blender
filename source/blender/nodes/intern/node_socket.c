@@ -260,11 +260,107 @@ void node_socket_init_default_value(bNodeSocket *sock)
 	}
 }
 
+void node_socket_copy_default_value(bNodeSocket *to, bNodeSocket *from)
+{
+	/* sanity check */
+	if (!STREQ(to->idname, from->idname))
+		return;
+	
+	/* make sure both exist */
+	if (!from->default_value)
+		return;
+	node_socket_init_default_value(to);
+	
+	switch (from->typeinfo->type) {
+		case SOCK_FLOAT: {
+			bNodeSocketValueFloat *toval = to->default_value;
+			bNodeSocketValueFloat *fromval = from->default_value;
+			*toval = *fromval;
+			break;
+		}
+		case SOCK_INT: {
+			bNodeSocketValueInt *toval = to->default_value;
+			bNodeSocketValueInt *fromval = from->default_value;
+			*toval = *fromval;
+			break;
+		}
+		case SOCK_BOOLEAN: {
+			bNodeSocketValueBoolean *toval = to->default_value;
+			bNodeSocketValueBoolean *fromval = from->default_value;
+			*toval = *fromval;
+			break;
+		}
+		case SOCK_VECTOR: {
+			bNodeSocketValueVector *toval = to->default_value;
+			bNodeSocketValueVector *fromval = from->default_value;
+			*toval = *fromval;
+			break;
+		}
+		case SOCK_RGBA: {
+			bNodeSocketValueRGBA *toval = to->default_value;
+			bNodeSocketValueRGBA *fromval = from->default_value;
+			*toval = *fromval;
+			break;
+		}
+		case SOCK_STRING: {
+			bNodeSocketValueString *toval = to->default_value;
+			bNodeSocketValueString *fromval = from->default_value;
+			*toval = *fromval;
+			break;
+		}
+	}
+}
 
-static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree), bNodeSocket *UNUSED(stemp), bNode *UNUSED(node), bNodeSocket *sock, const char *UNUSED(data_path))
+static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree), bNodeSocket *stemp, bNode *UNUSED(node), bNodeSocket *sock, const char *UNUSED(data_path))
 {
 	/* initialize the type value */
 	sock->type = sock->typeinfo->type;
+	
+	/* copy default_value settings */
+	node_socket_copy_default_value(sock, stemp);
+}
+
+/* copies settings that are not changed for each socket instance */
+static void standard_node_socket_interface_verify_socket(bNodeTree *UNUSED(ntree), bNodeSocket *stemp, bNode *UNUSED(node), bNodeSocket *sock, const char *UNUSED(data_path))
+{
+	/* sanity check */
+	if (!STREQ(sock->idname, stemp->idname))
+		return;
+	
+	/* make sure both exist */
+	if (!stemp->default_value)
+		return;
+	node_socket_init_default_value(sock);
+	
+	switch (stemp->typeinfo->type) {
+		case SOCK_FLOAT: {
+			bNodeSocketValueFloat *toval = sock->default_value;
+			bNodeSocketValueFloat *fromval = stemp->default_value;
+			toval->min = fromval->min;
+			toval->max = fromval->max;
+			break;
+		}
+		case SOCK_INT: {
+			bNodeSocketValueInt *toval = sock->default_value;
+			bNodeSocketValueInt *fromval = stemp->default_value;
+			toval->min = fromval->min;
+			toval->max = fromval->max;
+			break;
+		}
+		case SOCK_VECTOR: {
+			bNodeSocketValueVector *toval = sock->default_value;
+			bNodeSocketValueVector *fromval = stemp->default_value;
+			toval->min = fromval->min;
+			toval->max = fromval->max;
+			break;
+		}
+	}
+}
+
+static void standard_node_socket_interface_from_socket(bNodeTree *UNUSED(ntree), bNodeSocket *stemp, bNode *UNUSED(node), bNodeSocket *sock)
+{
+	/* initialize settings */
+	node_socket_copy_default_value(stemp, sock);
 }
 
 static bNodeSocketType *make_standard_socket_type(int type, int subtype)
@@ -300,6 +396,8 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
 	ED_init_standard_node_socket_type(stype);
 	
 	stype->interface_init_socket = standard_node_socket_interface_init_socket;
+	stype->interface_from_socket = standard_node_socket_interface_from_socket;
+	stype->interface_verify_socket = standard_node_socket_interface_verify_socket;
 	
 	return stype;
 }

@@ -1668,7 +1668,6 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *so
 		MEM_freeN(sock->prop);
 	}
 	
-	/* can be left over from old files */
 	if (sock->default_value)
 		MEM_freeN(sock->default_value);
 }
@@ -2006,21 +2005,16 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 
 /* ************ NODE TREE INTERFACE *************** */
 
-static bNodeSocket *make_socket_template(bNodeTree *ntree, int in_out,
+static bNodeSocket *make_socket_interface(bNodeTree *ntree, int in_out,
                                          const char *idname, const char *name)
 {
 	bNodeSocketType *stype = nodeSocketTypeFind(idname);
 	bNodeSocket *sock;
 	int own_index = ntree->cur_index++;
 	
-	if (stype == NULL) {
-		printf("Error: node socket type '%s' undefined\n", idname);
-		return NULL;
-	}
-	
 	sock = MEM_callocN(sizeof(bNodeSocket), "socket template");
-	sock->typeinfo = stype;
 	BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
+	node_socket_set_typeinfo(ntree, sock, stype);
 	sock->in_out = in_out;
 	sock->type = SOCK_CUSTOM;	/* int type undefined by default */
 	
@@ -2073,7 +2067,7 @@ bNodeSocket *ntreeAddSocketInterface(bNodeTree *ntree, int in_out, const char *i
 {
 	bNodeSocket *iosock;
 	
-	iosock = make_socket_template(ntree, in_out, idname, name);
+	iosock = make_socket_interface(ntree, in_out, idname, name);
 	if (in_out == SOCK_IN) {
 		BLI_addtail(&ntree->inputs, iosock);
 		ntree->update |= NTREE_UPDATE_GROUP_IN;
@@ -2091,7 +2085,7 @@ bNodeSocket *ntreeInsertSocketInterface(bNodeTree *ntree, int in_out, const char
 {
 	bNodeSocket *iosock;
 	
-	iosock = make_socket_template(ntree, in_out, idname, name);
+	iosock = make_socket_interface(ntree, in_out, idname, name);
 	if (in_out == SOCK_IN) {
 		BLI_insertlinkbefore(&ntree->inputs, next_sock, iosock);
 		ntree->update |= NTREE_UPDATE_GROUP_IN;
