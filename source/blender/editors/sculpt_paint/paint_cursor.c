@@ -117,7 +117,7 @@ static void make_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 	snap->winy = vc->ar->winy;
 }
 
-static int load_tex(Brush *br, ViewContext *vc)
+static int load_tex(Brush *br, ViewContext *vc, float zoom)
 {
 	static GLuint overlay_texture = 0;
 	static int init = 0;
@@ -125,6 +125,7 @@ static int load_tex(Brush *br, ViewContext *vc)
 	static int curve_changed_timestamp = -1;
 	static Snapshot snap;
 	static int old_size = -1;
+	static int old_zoom = -1;
 
 	GLubyte *buffer = NULL;
 
@@ -141,10 +142,13 @@ static int load_tex(Brush *br, ViewContext *vc)
 	      br->mtex.tex->preview->changed_timestamp[0] != tex_changed_timestamp)) ||
 	    !br->curve ||
 	    br->curve->changed_timestamp != curve_changed_timestamp ||
+	    old_zoom != zoom ||
 	    !same_snap(&snap, br, vc);
 
 	if (refresh) {
 		struct ImagePool *pool = NULL;
+		const float rotation = -br->mtex.rot;
+		float radius = BKE_brush_size_get(vc->scene, br) * zoom;
 
 		if (br->mtex.tex && br->mtex.tex->preview)
 			tex_changed_timestamp = br->mtex.tex->preview->changed_timestamp[0];
@@ -152,6 +156,7 @@ static int load_tex(Brush *br, ViewContext *vc)
 		if (br->curve)
 			curve_changed_timestamp = br->curve->changed_timestamp;
 
+		old_zoom = zoom;
 		make_snap(&snap, br, vc);
 
 		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
@@ -198,8 +203,6 @@ static int load_tex(Brush *br, ViewContext *vc)
 
 				// largely duplicated from tex_strength
 
-				const float rotation = -br->mtex.rot;
-				float radius = BKE_brush_size_get(vc->scene, br);
 				int index = j * size + i;
 				float x;
 				float avg;
@@ -382,7 +385,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
  * have on brush strength */
 /* TODO: sculpt only for now */
 static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                     ViewContext *vc, int x, int y)
+                                     ViewContext *vc, int x, int y, float zoom)
 {
 	rctf quad;
 
@@ -406,7 +409,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	             GL_VIEWPORT_BIT |
 	             GL_TEXTURE_BIT);
 
-	if (load_tex(brush, vc)) {
+	if (load_tex(brush, vc, zoom)) {
 		glEnable(GL_BLEND);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -439,7 +442,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 				quad.ymax = aim[1] + ups->anchored_size;
 			}
 			else {
-				const int radius = BKE_brush_size_get(vc->scene, brush);
+				const int radius = BKE_brush_size_get(vc->scene, brush)*zoom;
 				quad.xmin = x - radius;
 				quad.ymin = y - radius;
 				quad.xmax = x + radius;
@@ -519,14 +522,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	float final_radius;
 	float translation[2];
 	float outline_alpha, *outline_col;
+	float zoomx, zoomy;
 	
-	/* set various defaults */
-	translation[0] = x;
-	translation[1] = y;
-	outline_alpha = 0.5;
-	outline_col = brush->add_col;
-	final_radius = BKE_brush_size_get(scene, brush);
-
 	/* check that brush drawing is enabled */
 	if (!(paint->flags & PAINT_SHOW_BRUSH))
 		return;
@@ -535,12 +532,24 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	 * mouse over too, not just during a stroke */
 	view3d_set_viewcontext(C, &vc);
 
+	get_imapaint_zoom(C, &zoomx, &zoomy);
+	zoomx = max_ff(zoomx, zoomy);
+
+	/* set various defaults */
+	translation[0] = x;
+	translation[1] = y;
+	outline_alpha = 0.5;
+	outline_col = brush->add_col;
+	final_radius = BKE_brush_size_get(scene, brush)*zoomx;
+
 	if (brush->flag & BRUSH_RAKE)
 		/* here, translation contains the mouse coordinates. */
 		paint_calculate_rake_rotation(ups, translation);
+	else if (!(brush->flag & BRUSH_ANCHORED))
+		ups->brush_rotation = 0.0;
 
 	/* draw overlay */
-	paint_draw_alpha_overlay(ups, brush, &vc, x, y);
+	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx);
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
@@ -610,4 +619,10 @@ void paint_cursor_start(bContext *C, int (*poll)(bContext *C))
 
 	if (p && !p->paint_cursor)
 		p->paint_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), poll, paint_draw_cursor, NULL);
+}
+
+void paint_cursor_start_explicit(Paint *p, wmWindowManager *wm, int (*poll)(bContext *C))
+{
+	if (p && !p->paint_cursor)
+		p->paint_cursor = WM_paint_cursor_activate(wm, poll, paint_draw_cursor, NULL);
 }

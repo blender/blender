@@ -721,8 +721,7 @@ static void toggle_paint_cursor(bContext *C, int enable)
 		settings->imapaint.paintcursor = NULL;
 	}
 	else if (enable)
-		settings->imapaint.paintcursor =
-			WM_paint_cursor_activate(wm, image_paint_poll, brush_drawcursor_texpaint_uvsculpt, NULL);
+		paint_cursor_start(C, image_paint_poll);
 }
 
 /* enable the paint cursor if it isn't already.
@@ -746,11 +745,7 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 	if (enabled) {
 		BKE_paint_init(&imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
 
-		if (!imapaint->paintcursor) {
-			imapaint->paintcursor =
-			        WM_paint_cursor_activate(wm, image_paint_poll,
-			                                 brush_drawcursor_texpaint_uvsculpt, NULL);
-		}
+		paint_cursor_start_explicit(&imapaint->paint, wm, image_paint_poll);
 	}
 }
 

@@ -174,9 +174,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		ups->pixel_radius *= stroke->cached_pressure;
 	}
 
-	if (!(brush->flag & BRUSH_ANCHORED ||
-	      ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
-	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
+	if (paint_supports_dynamic_tex_coords(brush, mode))
 	{
 		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
 		    (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
