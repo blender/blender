@@ -311,7 +311,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 			spos += sprintf(spos, IFACE_("Blur %d "), rs->curblur);
 	}
 
-	BLI_timestr(rs->lastframetime, info_time_str);
+	BLI_timestr(rs->lastframetime, info_time_str, sizeof(info_time_str));
 	spos += sprintf(spos, IFACE_("Time:%s "), info_time_str);
 
 	if (rs->curfsa)

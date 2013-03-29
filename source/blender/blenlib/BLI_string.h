@@ -150,7 +150,7 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
 ;
-void BLI_timestr(double _time, char *str)
+void BLI_timestr(double _time, char *str, size_t maxlen)
 #ifdef __GNUC__
 __attribute__((nonnull))
 #endif

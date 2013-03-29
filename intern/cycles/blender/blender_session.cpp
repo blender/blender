@@ -576,7 +576,7 @@ void BlenderSession::update_status_progress()
 		timestatus += ", "  + b_rlay_name;
 	timestatus += " | ";
 
-	BLI_timestr(total_time, time_str);
+	BLI_timestr(total_time, time_str, sizeof(time_str));
 	timestatus += "Elapsed: " + string(time_str) + " | ";
 
 	if(substatus.size() > 0)

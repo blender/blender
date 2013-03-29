@@ -442,7 +442,7 @@ static void paint_redraw(const bContext *C, PaintOperation *pop, int final)
 	}
 }
 
-static PaintOperation * texture_paint_init(bContext *C, wmOperator *op, const wmEvent *event)
+static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;

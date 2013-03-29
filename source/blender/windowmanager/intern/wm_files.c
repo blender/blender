@@ -956,7 +956,7 @@ void wm_autosave_location(char *filepath)
 {
 	char pidstr[32];
 #ifdef WIN32
-	char *savedir;
+	const char *savedir;
 #endif
 
 	BLI_snprintf(pidstr, sizeof(pidstr), "%d.blend", abs(getpid()));

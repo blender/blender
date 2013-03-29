@@ -394,7 +394,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 		/* Format time string */
 		char time_str[30];
 		double time = PIL_check_seconds_timer() - timer;
-		BLI_timestr(time, time_str);
+		BLI_timestr(time, time_str, sizeof(time_str));
 
 		/* Show bake info */
 		BKE_reportf(op->reports, RPT_INFO, "Bake complete! (%s)", time_str);

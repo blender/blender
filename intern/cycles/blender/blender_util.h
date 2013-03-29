@@ -30,7 +30,7 @@
  * todo: clean this up ... */
 
 extern "C" {
-void BLI_timestr(double _time, char *str);
+void BLI_timestr(double _time, char *str, size_t maxlen);
 void BKE_image_user_frame_calc(void *iuser, int cfra, int fieldnr);
 void BKE_image_user_file_path(void *iuser, void *ima, char *path);
 unsigned char *BKE_image_get_pixels_for_frame(void *image, int frame);

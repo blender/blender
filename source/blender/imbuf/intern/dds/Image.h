@@ -56,9 +56,9 @@ public:
 	
 	void allocate(uint w, uint h);
 #if 0
-	bool load(const char * name);
+	bool load(const char *name);
 	
-	void wrap(void * data, uint w, uint h);
+	void wrap(void *data, uint w, uint h);
 	void unwrap();
 #endif
 	

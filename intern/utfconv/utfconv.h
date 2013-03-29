@@ -23,6 +23,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __UTFCONV_H__
+#define __UTFCONV_H__
+
 #include <wchar.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,3 +101,5 @@ wchar_t *alloc_utf16_from_8(const char *in8, size_t add);
 #ifdef __cplusplus 
 }
 #endif
+
+#endif  /* __UTFCONV_H__ */

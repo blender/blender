@@ -148,20 +148,20 @@ public:
 #endif
 
 	void translate_Animations(COLLADAFW::Node * Node,
-							  std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-							  std::multimap<COLLADAFW::UniqueId, Object*>& object_map,
-							  std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
+	                          std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+	                          std::multimap<COLLADAFW::UniqueId, Object*>& object_map,
+	                          std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
 
 	AnimMix* get_animation_type( const COLLADAFW::Node * node, std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map );
 
-	void apply_matrix_curves(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node,
+	void apply_matrix_curves(Object *ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node,
 	                         COLLADAFW::Transformation * tm );
 	
-	void add_bone_animation_sampled(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
+	void add_bone_animation_sampled(Object *ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
 
 	void Assign_transform_animations(COLLADAFW::Transformation* transform,
-	                                 const COLLADAFW::AnimationList::AnimationBinding * binding,
-	                                 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
+	                                 const COLLADAFW::AnimationList::AnimationBinding *binding,
+	                                 std::vector<FCurve*>* curves, bool is_joint, char *joint_path);
 
 	void Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
 	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);

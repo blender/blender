@@ -34,7 +34,7 @@
 #include <wchar.h>
 
 
-FILE * ufopen(const char * filename, const char * mode)
+FILE *ufopen(const char *filename, const char *mode)
 {
 	FILE *f = NULL;
 	UTF16_ENCODE(filename);
@@ -120,7 +120,7 @@ int umkdir(const char *pathname)
 	return r ? 0 : -1;
 }
 
-char * u_alloc_getenv(const char *varname)
+char *u_alloc_getenv(const char *varname)
 {
 	char * r = 0;
 	wchar_t * str;

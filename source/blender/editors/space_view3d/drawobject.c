@@ -2671,8 +2671,8 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 				                   /* special case, this is useful to show when vertes connected to this edge via a
 				                    * face are being transformed */
 				                   BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
-				                   BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)       ||
-				                   BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT)       ||
+				                   BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
 				                   BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)
 				                   )))
 				{

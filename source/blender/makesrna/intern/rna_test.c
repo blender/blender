@@ -57,12 +57,12 @@
     (void)0
 
 #define DEF_GET_SET(type, arr)                                          \
-    void rna_Test_ ## arr ## _get(PointerRNA * ptr, type * values)      \
+    void rna_Test_ ## arr ## _get(PointerRNA *ptr, type * values)       \
 	{                                                                   \
 		memcpy(values, arr, sizeof(arr));                               \
 	}                                                                   \
-                                                                        \
-    void rna_Test_ ## arr ## _set(PointerRNA * ptr, const type * values)  \
+	                                                                    \
+	void rna_Test_ ## arr ## _set(PointerRNA *ptr, const type * values) \
 	{                                                                   \
 		memcpy(arr, values, sizeof(arr));                               \
 	}                                                                   \
@@ -73,14 +73,14 @@
 	{                                                                   \
 		return arr ## _len;                                             \
 	}                                                                   \
-                                                                        \
-    static int rna_Test_ ## arr ## _set_length(PointerRNA * ptr, int length) \
+	                                                                    \
+	static int rna_Test_ ## arr ## _set_length(PointerRNA *ptr, int length) \
 	{                                                                   \
 		if (length > max)                                               \
 			return 0;                                                   \
-                                                                        \
+		                                                                \
 		arr ## _len = length;                                           \
-                                                                        \
+		                                                                \
 		return 1;                                                       \
 	}                                                                   \
     (void)0

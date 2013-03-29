@@ -235,19 +235,19 @@ struct DerivedMesh {
 	 * from the derived mesh (this gives a pointer to the actual data, not
 	 * a copy)
 	 */
-	void *(*getVertData)(DerivedMesh * dm, int index, int type);
-	void *(*getEdgeData)(DerivedMesh * dm, int index, int type);
-	void *(*getTessFaceData)(DerivedMesh * dm, int index, int type);
-	void *(*getPolyData)(DerivedMesh * dm, int index, int type);
+	void *(*getVertData)(DerivedMesh *dm, int index, int type);
+	void *(*getEdgeData)(DerivedMesh *dm, int index, int type);
+	void *(*getTessFaceData)(DerivedMesh *dm, int index, int type);
+	void *(*getPolyData)(DerivedMesh *dm, int index, int type);
 
 	/** Return a pointer to the entire array of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
 	 * a copy)
 	 */
-	void *(*getVertDataArray)(DerivedMesh * dm, int type);
-	void *(*getEdgeDataArray)(DerivedMesh * dm, int type);
-	void *(*getTessFaceDataArray)(DerivedMesh * dm, int type);
-	void *(*getPolyDataArray)(DerivedMesh * dm, int type);
+	void *(*getVertDataArray)(DerivedMesh *dm, int type);
+	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
+	void *(*getTessFaceDataArray)(DerivedMesh *dm, int type);
+	void *(*getPolyDataArray)(DerivedMesh *dm, int type);
 
 	/** Retrieves the base CustomData structures for
 	 * verts/edges/tessfaces/loops/facdes*/
