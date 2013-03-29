@@ -2945,6 +2945,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                         "Display selected edge lengths, using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
+	prop = RNA_def_property(srna, "show_extra_edge_angle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGEANG);
+	RNA_def_property_ui_text(prop, "Edge Angle",
+	                         "Display selected edge angle, using global values when set in the transform panel");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
 	prop = RNA_def_property(srna, "show_extra_face_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_FACEANG);
 	RNA_def_property_ui_text(prop, "Face Angles",

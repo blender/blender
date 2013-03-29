@@ -197,9 +197,10 @@ typedef struct TFace {
 #define ME_DRAWEXTRA_EDGELEN  (1 << 10)
 #define ME_DRAWEXTRA_FACEAREA (1 << 11)
 #define ME_DRAWEXTRA_FACEANG  (1 << 12)
+#define ME_DRAWEXTRA_EDGEANG  (1 << 13)
 
 /* debug only option */
-#define ME_DRAWEXTRA_INDICES (1 << 13)
+#define ME_DRAWEXTRA_INDICES (1 << 14)
 
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0
