@@ -35,6 +35,7 @@ defs = []
 if env['WITH_BF_OCIO']:
     defs.append('WITH_OCIO')
     incs += ' ' + env['BF_OCIO_INC']
+    incs += ' ' + '#/extern/glew/include'
 
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         incs += ' ' + env['BF_BOOST_INC']
