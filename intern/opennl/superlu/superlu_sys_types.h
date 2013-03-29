@@ -98,8 +98,6 @@ typedef unsigned long uintptr_t;
 #include <inttypes.h>
 
 #elif defined(FREE_WINDOWS)
-/* define htoln here, there must be a syntax error in winsock2.h in MinGW */
-unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
 #include <stdint.h>
 
 #else

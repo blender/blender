@@ -28,6 +28,7 @@
 #endif
 
 #include "utf_winfunc.h"
+#include "utfconv.h"
 #include <io.h>
 #include <windows.h>
 #include <wchar.h>

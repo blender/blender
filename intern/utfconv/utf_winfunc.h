@@ -27,7 +27,6 @@
 #  error "This file can only compile on windows"
 #endif
 
-#include "utfconv.h"
 #include <stdio.h>
 
 FILE * ufopen(const char * filename, const char * mode);

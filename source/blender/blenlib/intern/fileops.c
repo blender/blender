@@ -45,7 +45,7 @@
 #ifdef __MINGW32__
 #include <ctype.h>
 #endif
-#include <io.h>
+#  include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
 #  include "utf_winfunc.h"
@@ -374,7 +374,7 @@ void BLI_dir_create_recursive(const char *dirname)
 	 * blah1/blah2 (without slash) */
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
-	lslash = BLI_last_slash(tmp);
+	lslash = (char *)BLI_last_slash(tmp);
 
 	if (lslash && (*(lslash + 1) == '\0')) {
 		*lslash = '\0';
@@ -385,7 +385,7 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	if (BLI_exists(tmp)) return;
 
-	lslash = BLI_last_slash(tmp);
+	lslash = (char *)BLI_last_slash(tmp);
 
 	if (lslash) {
 		/* Split about the last slash and recurse */
