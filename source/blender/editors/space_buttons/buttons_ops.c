@@ -120,6 +120,8 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 		BLI_path_abs(path, id ? ID_BLEND_PATH(G.main, id) : G.main->name);
 		
 		if (BLI_is_dir(path)) {
+			/* do this first so '//' isnt converted to '//\' on windows */
+			BLI_add_slash(path);
 			if (is_relative) {
 				BLI_strncpy(path, str, FILE_MAX);
 				BLI_path_rel(path, G.main->name);
@@ -129,7 +131,6 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 			else {
 				str = MEM_reallocN(str, strlen(str) + 2);
 			}
-			BLI_add_slash(str);
 		}
 		else {
 			char * const lslash = (char *)BLI_last_slash(str);
