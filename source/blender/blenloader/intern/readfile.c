@@ -6350,7 +6350,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				sclip->scopes.track_search = NULL;
 				sclip->scopes.track_preview = NULL;
-				sclip->draw_context = NULL;
 				sclip->scopes.ok = 0;
 			}
 		}

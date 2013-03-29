@@ -519,6 +519,15 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	nsubparts_x = (img_w + (offset_x - 1)) / (offset_x);
 	nsubparts_y = (img_h + (offset_y - 1)) / (offset_y);
 
+	if (format == GL_FLOAT) {
+		/* need to set internal format to higher range float */
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, tex_w, tex_h, 0, GL_RGBA, GL_FLOAT, NULL);
+	}
+	else {
+		/* switch to 8bit RGBA for byte buffer  */
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	}
+
 	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
 		for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
 			int remainder_x = img_w - subpart_x * offset_x;

@@ -148,6 +148,14 @@ void IMB_colormanagement_processor_apply(struct ColormanageProcessor *cm_process
                                          int channels, int predivide);
 void IMB_colormanagement_processor_free(struct ColormanageProcessor *cm_processor);
 
+/* ** OpenGL drawing routines using GLSL for color space transform ** */
+
+int IMB_coloemanagement_setup_glsl_draw(const struct ColorManagedViewSettings *view_settings,
+                                        const struct ColorManagedDisplaySettings *display_settings);
+
+int IMB_coloemanagement_setup_glsl_draw_from_ctx(const struct bContext *C);
+void IMB_coloemanagement_finish_glsl_draw(void);
+
 /* Roles */
 enum {
 	COLOR_ROLE_SCENE_LINEAR = 0,

@@ -1072,8 +1072,6 @@ typedef struct SpaceClip {
 	/* grease pencil */
 	short gpencil_src, pad2;
 
-	void *draw_context;
-
 	int around, pad4;             /* pivot point for transforms */
 
 	MaskSpaceInfo mask_info;
