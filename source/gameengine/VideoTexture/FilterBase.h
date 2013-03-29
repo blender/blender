@@ -79,7 +79,7 @@ public:
 	/// get previous filter
 	PyFilter * getPrevious (void) { return m_previous; }
 	/// set previous filter
-	void setPrevious (PyFilter * filt, bool useRefCnt = true);
+	void setPrevious (PyFilter *filt, bool useRefCnt = true);
 
 	/// find first filter in chain
 	FilterBase * findFirst (void);
@@ -92,20 +92,20 @@ protected:
 	PyFilter * m_previous;
 
 	/// filter pixel, source byte buffer
-	virtual unsigned int filter (unsigned char * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val = 0)
+	virtual unsigned int filter(unsigned char *src, short x, short y,
+	                            short *size, unsigned int pixSize, unsigned int val = 0)
 	{ return val; }
 	/// filter pixel, source int buffer
-	virtual unsigned int filter (unsigned int * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val = 0)
+	virtual unsigned int filter(unsigned int *src, short x, short y,
+	                            short *size, unsigned int pixSize, unsigned int val = 0)
 	{ return val; }
 	/// filter pixel, source float buffer
-	virtual unsigned int filter (float * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val = 0)
+	virtual unsigned int filter(float *src, short x, short y,
+	                            short *size, unsigned int pixSize, unsigned int val = 0)
 	{ return val; }
 
 	/// get source pixel size
-	virtual unsigned int getPixelSize (void) { return 1; }
+	virtual unsigned int getPixelSize(void) { return 1; }
 
 	/// get converted pixel from previous filters
 	template <class SRC> unsigned int convertPrevious (SRC src, short x, short y,

@@ -52,7 +52,7 @@ void VideoBase::init(short width, short height)
 
 
 // process video frame
-void VideoBase::process (BYTE * sample)
+void VideoBase::process (BYTE *sample)
 {
 	// if scale was changed
 	if (m_scaleChange)
@@ -106,7 +106,7 @@ ExpDesc SourceVideoEmptyDesc(SourceVideoEmpty, "Source Video is empty");
 ExpDesc SourceVideoCreationDesc(SourceVideoCreation, "SourceVideo object was not created");
 
 // open video source
-void Video_open(VideoBase * self, char * file, short captureID)
+void Video_open(VideoBase *self, char *file, short captureID)
 {
 	// if file is empty, throw exception
 	if (file == NULL) THRWEXCP(SourceVideoEmpty, S_OK);

@@ -49,8 +49,8 @@ class ImageRender : public ImageViewport
 {
 public:
 	/// constructor
-	ImageRender (KX_Scene * scene, KX_Camera * camera);
-	ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObject * mirror, RAS_IPolyMaterial * mat);
+	ImageRender(KX_Scene *scene, KX_Camera *camera);
+	ImageRender(KX_Scene *scene, KX_GameObject *observer, KX_GameObject *mirror, RAS_IPolyMaterial * mat);
 
 	/// destructor
 	virtual ~ImageRender (void);

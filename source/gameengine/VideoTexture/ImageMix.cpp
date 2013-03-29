@@ -42,12 +42,12 @@
 
 
 // cast ImageSource pointer to ImageSourceMix
-inline ImageSourceMix * getImageSourceMix (ImageSource * src)
+inline ImageSourceMix *getImageSourceMix(ImageSource *src)
 { return static_cast<ImageSourceMix*>(src); }
 
 
 // get weight
-short ImageMix::getWeight (const char * id)
+short ImageMix::getWeight(const char *id)
 {
 	// find source
 	ImageSourceList::iterator src = findSource(id);
@@ -56,7 +56,7 @@ short ImageMix::getWeight (const char * id)
 }
 
 // set weight
-bool ImageMix::setWeight (const char * id, short weight)
+bool ImageMix::setWeight(const char *id, short weight)
 {
 	// find source
 	ImageSourceList::iterator src = findSource(id);
@@ -72,7 +72,7 @@ ExceptionID ImageSizesNotMatch;
 ExpDesc ImageSizesNotMatchDesc(ImageSizesNotMatch, "Image sizes of sources are different");
 
 // calculate image from sources and set its availability
-void ImageMix::calcImage (unsigned int texId, double ts)
+void ImageMix::calcImage(unsigned int texId, double ts)
 {
 	// check source sizes
 	if (!checkSourceSizes()) THRWEXCP(ImageSizesNotMatch, S_OK);
@@ -105,19 +105,19 @@ void ImageMix::calcImage (unsigned int texId, double ts)
 
 
 // cast Image pointer to ImageMix
-inline ImageMix * getImageMix (PyImage *self)
+inline ImageMix * getImageMix(PyImage *self)
 { return static_cast<ImageMix*>(self->m_image); }
 
 
 // python methods
 
 // get source weight
-static PyObject *getWeight (PyImage *self, PyObject *args)
+static PyObject *getWeight(PyImage *self, PyObject *args)
 {
 	// weight
 	short weight = 0;
 	// get arguments
-	char * id;
+	char *id;
 	if (!PyArg_ParseTuple(args, "s:getWeight", &id))
 		return NULL;
 	if (self->m_image != NULL)
@@ -129,10 +129,10 @@ static PyObject *getWeight (PyImage *self, PyObject *args)
 
 
 // set source weight
-static PyObject *setWeight (PyImage *self, PyObject *args)
+static PyObject *setWeight(PyImage *self, PyObject *args)
 {
 	// get arguments
-	char * id;
+	char *id;
 	short weight = 0;
 	if (!PyArg_ParseTuple(args, "sh:setWeight", &id, &weight))
 		return NULL;
@@ -150,8 +150,7 @@ static PyObject *setWeight (PyImage *self, PyObject *args)
 
 
 // methods structure
-static PyMethodDef imageMixMethods[] =
-{ 
+static PyMethodDef imageMixMethods[] = {
 	{"getSource", (PyCFunction)Image_getSource, METH_VARARGS, "get image source"},
 	{"setSource", (PyCFunction)Image_setSource, METH_VARARGS, "set image source"},
 	{"getWeight", (PyCFunction)getWeight, METH_VARARGS, "get image source weight"},
@@ -161,8 +160,8 @@ static PyMethodDef imageMixMethods[] =
 	{NULL}
 };
 // attributes structure
-static PyGetSetDef imageMixGetSets[] =
-{ // attributes from ImageBase class
+static PyGetSetDef imageMixGetSets[] = {
+	// attributes from ImageBase class
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
@@ -174,11 +173,10 @@ static PyGetSetDef imageMixGetSets[] =
 
 
 // define python type
-PyTypeObject ImageMixType =
-{ 
+PyTypeObject ImageMixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.ImageMix",   /*tp_name*/
-	sizeof(PyImage),          /*tp_basicsize*/
+	sizeof(PyImage),           /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
 	(destructor)Image_dealloc, /*tp_dealloc*/
 	0,                         /*tp_print*/
@@ -196,16 +194,16 @@ PyTypeObject ImageMixType =
 	0,                         /*tp_setattro*/
 	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-	"Image mixer",       /* tp_doc */
-	0,		               /* tp_traverse */
-	0,		               /* tp_clear */
-	0,		               /* tp_richcompare */
-	0,		               /* tp_weaklistoffset */
-	0,		               /* tp_iter */
-	0,		               /* tp_iternext */
-	imageMixMethods,    /* tp_methods */
-	0,                   /* tp_members */
-	imageMixGetSets,          /* tp_getset */
+	"Image mixer",             /* tp_doc */
+	0,		                   /* tp_traverse */
+	0,		                   /* tp_clear */
+	0,		                   /* tp_richcompare */
+	0,		                   /* tp_weaklistoffset */
+	0,		                   /* tp_iter */
+	0,		                   /* tp_iternext */
+	imageMixMethods,           /* tp_methods */
+	0,                         /* tp_members */
+	imageMixGetSets,           /* tp_getset */
 	0,                         /* tp_base */
 	0,                         /* tp_dict */
 	0,                         /* tp_descr_get */
@@ -213,6 +211,6 @@ PyTypeObject ImageMixType =
 	0,                         /* tp_dictoffset */
 	(initproc)Image_init<ImageMix>,     /* tp_init */
 	0,                         /* tp_alloc */
-	Image_allocNew,           /* tp_new */
+	Image_allocNew,            /* tp_new */
 };
 

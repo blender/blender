@@ -189,7 +189,7 @@ static PyObject *KX_PythonSeq_getIndex(PyObject *self, Py_ssize_t index)
 	return NULL;
 }
 
-static PyObjectPlus * KX_PythonSeq_subscript__internal(PyObject *self, const char *key)
+static PyObjectPlus *KX_PythonSeq_subscript__internal(PyObject *self, const char *key)
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	

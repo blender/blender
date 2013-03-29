@@ -58,7 +58,7 @@ void FilterBase::release (void)
 
 
 // set new previous filter
-void FilterBase::setPrevious (PyFilter * filt, bool useRefCnt)
+void FilterBase::setPrevious(PyFilter *filt, bool useRefCnt)
 {
 	// if reference counting has to be used
 	if (useRefCnt)

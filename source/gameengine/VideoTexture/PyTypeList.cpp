@@ -58,7 +58,7 @@ bool PyTypeList::in (PyTypeObject *type)
 }
 
 /// add type to list
-void PyTypeList::add (PyTypeObject *type, const char * name)
+void PyTypeList::add (PyTypeObject *type, const char *name)
 {
 	// if list doesn't exist, create it
 	if (m_list.get() == NULL) 

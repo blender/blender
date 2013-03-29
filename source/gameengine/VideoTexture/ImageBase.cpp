@@ -124,7 +124,7 @@ void ImageBase::refresh (void)
 
 
 // get source object
-PyImage * ImageBase::getSource (const char * id)
+PyImage * ImageBase::getSource (const char *id)
 {
 	// find source
 	ImageSourceList::iterator src = findSource(id);
@@ -134,7 +134,7 @@ PyImage * ImageBase::getSource (const char * id)
 
 
 // set source object
-bool ImageBase::setSource (const char * id, PyImage *source)
+bool ImageBase::setSource (const char *id, PyImage *source)
 {
 	// find source
 	ImageSourceList::iterator src = findSource(id);
@@ -223,7 +223,7 @@ void ImageBase::init (short width, short height)
 
 
 // find source
-ImageSourceList::iterator ImageBase::findSource (const char * id)
+ImageSourceList::iterator ImageBase::findSource (const char *id)
 {
 	// iterate sources
 	ImageSourceList::iterator it;
@@ -294,7 +294,7 @@ bool ImageBase::loopDetect (ImageBase * img)
 // ImageSource class implementation
 
 // constructor
-ImageSource::ImageSource (const char * id) : m_source(NULL), m_image(NULL)
+ImageSource::ImageSource (const char *id) : m_source(NULL), m_image(NULL)
 {
 	// copy id
 	int idx;
@@ -312,9 +312,9 @@ ImageSource::~ImageSource (void)
 
 
 // compare id
-bool ImageSource::is (const char * id)
+bool ImageSource::is (const char *id)
 {
-	for (char * myId = m_id; *myId != '\0'; ++myId, ++id)
+	for (char *myId = m_id; *myId != '\0'; ++myId, ++id)
 		if (*myId != *id) return false;
 	return *id == '\0';
 }
@@ -551,7 +551,7 @@ int Image_setFlip(PyImage *self, PyObject *value, void *closure)
 }
 
 // get zbuff
-PyObject *Image_getZbuff(PyImage * self, void *closure)
+PyObject *Image_getZbuff(PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getZbuff()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
@@ -573,7 +573,7 @@ int Image_setZbuff(PyImage *self, PyObject *value, void *closure)
 }
 
 // get depth
-PyObject *Image_getDepth(PyImage * self, void *closure)
+PyObject *Image_getDepth(PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getDepth()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
@@ -601,7 +601,7 @@ int Image_setDepth(PyImage *self, PyObject *value, void *closure)
 PyObject *Image_getSource(PyImage *self, PyObject *args)
 {
 	// get arguments
-	char * id;
+	char *id;
 	if (!PyArg_ParseTuple(args, "s:getSource", &id))
 		return NULL;
 	if (self->m_image != NULL)
@@ -625,7 +625,7 @@ PyObject *Image_getSource(PyImage *self, PyObject *args)
 PyObject *Image_setSource(PyImage *self, PyObject *args)
 {
 	// get arguments
-	char * id;
+	char *id;
 	PyObject *obj;
 	if (!PyArg_ParseTuple(args, "sO:setSource", &id, &obj))
 		return NULL;

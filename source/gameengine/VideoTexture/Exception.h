@@ -105,7 +105,7 @@ public:
 	// returns 0, if exception identification don't match at all
 	// returns 1, if only exception identification is matching
 	// returns 2, if both exception identification and result are matching
-	int isExp (ExceptionID * exp, RESULT hres = S_OK) throw()
+	int isExp (ExceptionID *exp, RESULT hres = S_OK) throw()
 	{
 		// check exception identification
 		if (&m_expID == exp)

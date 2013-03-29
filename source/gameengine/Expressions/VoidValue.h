@@ -46,7 +46,7 @@ class CVoidValue : public CPropValue
 public:
 	/// Construction/destruction
 	CVoidValue() : m_bDeleteOnDestruct(false), m_pAnything(NULL) { }
-	CVoidValue(void * voidptr, bool bDeleteOnDestruct, AllocationTYPE alloctype) :
+	CVoidValue(void *voidptr, bool bDeleteOnDestruct, AllocationTYPE alloctype) :
 	    m_bDeleteOnDestruct(bDeleteOnDestruct),
 	    m_pAnything(voidptr)
 	{

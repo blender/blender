@@ -92,12 +92,12 @@ protected:
 	}
 
 	/// virtual filtering function for byte source
-	virtual unsigned int filter (unsigned char * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val = 0)
+	virtual unsigned int filter (unsigned char *src, short x, short y,
+	                             short * size, unsigned int pixSize, unsigned int val = 0)
 	{ return tFilter(src, x, y, size, pixSize, val); }
 	/// virtual filtering function for unsigned int source
-	virtual unsigned int filter (unsigned int * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val = 0)
+	virtual unsigned int filter (unsigned int *src, short x, short y,
+	                             short * size, unsigned int pixSize, unsigned int val = 0)
 	{ return tFilter(src, x, y, size, pixSize, val); }
 };
 
