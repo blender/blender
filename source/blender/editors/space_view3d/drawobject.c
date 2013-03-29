@@ -2662,13 +2662,20 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 		eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 		for (; eed; eed = BM_iter_step(&iter)) {
-			/* draw selected edges, or edges next to selected verts while draging */
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
-			    (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-			                   BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))))
-			{
-				BMFace *f_a, *f_b;
-				if (BM_edge_face_pair(eed, &f_a, &f_b)) {
+			BMLoop *l_a, *l_b;
+			if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
+				/* draw selected edges, or edges next to selected verts while draging */
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
+				    (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ||
+				                   /* special case, this is useful to show when vertes connected to this edge via a
+				                    * face are being transformed */
+				                   BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)       ||
+				                   BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)
+				                   )))
+				{
 					float angle;
 					copy_v3_v3(v1, eed->v1->co);
 					copy_v3_v3(v2, eed->v2->co);
@@ -2678,14 +2685,14 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					if (do_global) {
 						float no_a[3];
 						float no_b[3];
-						copy_v3_v3(no_a, f_a->no);
-						copy_v3_v3(no_b, f_b->no);
+						copy_v3_v3(no_a, l_a->f->no);
+						copy_v3_v3(no_b, l_b->f->no);
 						mul_mat3_m4_v3(ob->imat, no_a);
 						mul_mat3_m4_v3(ob->imat, no_b);
 						angle = angle_v3v3(no_a, no_b);
 					}
 					else {
-						angle = angle_normalized_v3v3(f_a->no, f_b->no);
+						angle = angle_normalized_v3v3(l_a->f->no, l_b->f->no);
 					}
 
 					BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
