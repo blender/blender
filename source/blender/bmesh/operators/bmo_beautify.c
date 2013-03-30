@@ -38,6 +38,7 @@
  */
 
 #include "BLI_math.h"
+#include "BLI_heap.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -125,28 +126,10 @@ static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 }
 
 /* -------------------------------------------------------------------- */
-/* Util for setting edge tag once rotated */
-
-/* we have rotated an edge, tag other egdes and clear this one */
-static void bm_edge_tag_rotated(BMEdge *e)
-{
-	BMLoop *l;
-	BLI_assert(e->l->f->len == 3 &&
-	           e->l->radial_next->f->len == 3);
-
-	l = e->l;
-	BM_elem_flag_enable(l->next->e, BM_ELEM_TAG);
-	BM_elem_flag_enable(l->prev->e, BM_ELEM_TAG);
-	l = l->radial_next;
-	BM_elem_flag_enable(l->next->e, BM_ELEM_TAG);
-	BM_elem_flag_enable(l->prev->e, BM_ELEM_TAG);
-}
-
-/* -------------------------------------------------------------------- */
 /* Calculate the improvement of rotating the edge */
 
 /**
- * \return a positive value means the edge can be rotated.
+ * \return a negative value means the edge can be rotated.
  */
 static float bm_edge_calc_rotate_beauty(const BMEdge *e)
 {
@@ -232,11 +215,70 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e)
 			opp2 = area_tri_v2(v2_xy, v4_xy, v1_xy);
 
 			fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
-			return fac1 - fac2;
+			/* negative number if we're OK */
+			return fac2 - fac1;
 		}
 	} while (false);
 
-	return -1.0f;
+	return FLT_MAX;
+}
+
+/* -------------------------------------------------------------------- */
+/* Update the edge cost of rotation in the heap */
+
+/* recalc an edge in the heap (surrounding geometry has changed) */
+static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr)
+{
+	if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+		const int i = BM_elem_index_get(e);
+		GHash *e_state_hash = edge_state_arr[i];
+
+		if (eheap_table[i]) {
+			BLI_heap_remove(eheap, eheap_table[i]);
+			eheap_table[i] = NULL;
+		}
+
+		/* check if we can add it back */
+		BLI_assert(BM_edge_is_manifold(e) == true);
+		//BLI_assert(BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
+		//           BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK));
+
+		/* check we're not moving back into a state we have been in before */
+		if (e_state_hash != NULL) {
+			EdRotState e_state_alt;
+			erot_state_alternate(e, &e_state_alt);
+			if (BLI_ghash_haskey(e_state_hash, (void *)&e_state_alt)) {
+				// printf("  skipping, we already have this state\n");
+				return;
+			}
+		}
+
+		{
+			/* recalculate edge */
+			const float cost = bm_edge_calc_rotate_beauty(e);
+			if (cost < 0.0f) {
+				eheap_table[i] = BLI_heap_insert(eheap, cost, e);
+			}
+			else {
+				eheap_table[i] = NULL;
+			}
+		}
+	}
+}
+
+/* we have rotated an edge, tag other egdes and clear this one */
+static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr)
+{
+	BMLoop *l;
+	BLI_assert(e->l->f->len == 3 &&
+	           e->l->radial_next->f->len == 3);
+
+	l = e->l;
+	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr);
+	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr);
+	l = l->radial_next;
+	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr);
+	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr);
 }
 
 /* -------------------------------------------------------------------- */
@@ -251,79 +293,71 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e)
  */
 static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len)
 {
+	Heap *eheap;             /* edge heap */
+	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
+
 	GHash      **edge_state_arr  = MEM_callocN(edge_array_len * sizeof(GHash *), __func__);
 	BLI_mempool *edge_state_pool = BLI_mempool_create(sizeof(EdRotState), 512, 512, BLI_MEMPOOL_SYSMALLOC);
-	bool is_breaked;
 	int i;
 
 #ifdef DEBUG_TIME
 	TIMEIT_START(beautify_fill);
 #endif
 
-	do {
-		is_breaked = true;
+	eheap = BLI_heap_new_ex(edge_array_len);
+	eheap_table = MEM_mallocN(sizeof(HeapNode *) * bm->totedge, __func__);
 
-		for (i = 0; i < edge_array_len; i++) {
-			BMEdge *e = edge_array[i];
-			GHash *e_state_hash;
-
-			BLI_assert(BM_edge_is_manifold(e) == true);
-			BLI_assert(BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
-			           BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK));
-
-			if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
-				continue;
-			}
-			else {
-				/* don't check this edge again, unless adjaced edges are rotated */
-				BM_elem_flag_disable(e, BM_ELEM_TAG);
-			}
-
-			/* check we're not moving back into a state we have been in before */
-			e_state_hash = edge_state_arr[i];
-			if (e_state_hash != NULL) {
-				EdRotState e_state_alt;
-				erot_state_alternate(e, &e_state_alt);
-				if (BLI_ghash_haskey(e_state_hash, (void *)&e_state_alt)) {
-					// printf("  skipping, we already have this state\n");
-					continue;
-				}
-			}
-
-			if (bm_edge_calc_rotate_beauty(e) > 0.0f) {
-				e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
-				if (LIKELY(e)) {
-
-					/* add the new state into the hash so we don't move into this state again
-					 * note: we could add the previous state too but this isn't essential)
-					 *       for avoiding eternal loops */
-					EdRotState *e_state = BLI_mempool_alloc(edge_state_pool);
-					erot_state_current(e, e_state);
-					if (UNLIKELY(e_state_hash == NULL)) {
-						edge_state_arr[i] = e_state_hash = erot_ghash_new();  /* store previous state */
-					}
-					BLI_assert(BLI_ghash_haskey(e_state_hash, (void *)e_state) == false);
-					BLI_ghash_insert(e_state_hash, e_state, NULL);
-
-
-					// printf("  %d -> %d, %d\n", i, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2));
-
-					/* maintain the index array */
-					edge_array[i] = e;
-					BM_elem_index_set(e, i);
-
-					/* tag other edges so we know to check them again */
-					bm_edge_tag_rotated(e);
-
-					/* update flags */
-					BMO_elem_flag_enable(bm, e, ELE_NEW);
-					BMO_elem_flag_enable(bm, e->l->f, FACE_MARK | ELE_NEW);
-					BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK | ELE_NEW);
-					is_breaked = false;
-				}
-			}
+	/* build heap */
+	for (i = 0; i < edge_array_len; i++) {
+		BMEdge *e = edge_array[i];
+		const float cost = bm_edge_calc_rotate_beauty(e);
+		if (cost < 0.0f) {
+			eheap_table[i] = BLI_heap_insert(eheap, cost, e);
 		}
-	} while (is_breaked == false);
+		else {
+			eheap_table[i] = NULL;
+		}
+	}
+
+	while (BLI_heap_is_empty(eheap) == false) {
+		BMEdge *e = BLI_heap_popmin(eheap);
+		i = BM_elem_index_get(e);
+		eheap_table[i] = NULL;
+
+		e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
+		if (LIKELY(e)) {
+			GHash *e_state_hash = edge_state_arr[i];
+
+			/* add the new state into the hash so we don't move into this state again
+			 * note: we could add the previous state too but this isn't essential)
+			 *       for avoiding eternal loops */
+			EdRotState *e_state = BLI_mempool_alloc(edge_state_pool);
+			erot_state_current(e, e_state);
+			if (UNLIKELY(e_state_hash == NULL)) {
+				edge_state_arr[i] = e_state_hash = erot_ghash_new();  /* store previous state */
+			}
+			BLI_assert(BLI_ghash_haskey(e_state_hash, (void *)e_state) == false);
+			BLI_ghash_insert(e_state_hash, e_state, NULL);
+
+
+			// printf("  %d -> %d, %d\n", i, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2));
+
+			/* maintain the index array */
+			edge_array[i] = e;
+			BM_elem_index_set(e, i);
+
+			/* recalculate faces connected on the heap */
+			bm_edge_update_beauty_cost(e, eheap, eheap_table, edge_state_arr);
+
+			/* update flags */
+			BMO_elem_flag_enable(bm, e, ELE_NEW);
+			BMO_elem_flag_enable(bm, e->l->f, FACE_MARK | ELE_NEW);
+			BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK | ELE_NEW);
+		}
+	}
+
+	BLI_heap_free(eheap, NULL);
+	MEM_freeN(eheap_table);
 
 	for (i = 0; i < edge_array_len; i++) {
 		if (edge_state_arr[i]) {
