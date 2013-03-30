@@ -278,9 +278,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 
 	paint_brush_update(C, brush, mode, stroke, mouse_in, pressure);
 
-	/* TODO: as sculpt and other paint modes are unified, this
-	 * separation will go away */
-	if (paint_supports_jitter(mode)) {
+	{
 		float delta[2];
 		float factor = stroke->zoom_2d;
 
@@ -297,9 +295,6 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 			mul_v2_fl(delta, factor);
 			add_v2_v2v2(mouse_out, mouse_in, delta);
 		}
-	}
-	else {
-		copy_v2_v2(mouse_out, mouse_in);
 	}
 
 	/* TODO: can remove the if statement once all modes have this */
@@ -523,11 +518,6 @@ bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 			;
 		}
 	return true;
-}
-
-bool paint_supports_jitter(PaintMode mode)
-{
-	return ELEM3(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
 }
 
 #define PAINT_STROKE_MODAL_CANCEL 1
