@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_extrude.c
  *  \ingroup bmesh
+ *
+ * Extrude faces and solidify.
  */
 
 #include "MEM_guardedalloc.h"

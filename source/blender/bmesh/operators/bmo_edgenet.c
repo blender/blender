@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_edgenet.c
  *  \ingroup bmesh
+ *
+ * Edge-Net for filling in open edge-loops.
  */
 
 #include "MEM_guardedalloc.h"

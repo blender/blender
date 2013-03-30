@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_bevel.c
  *  \ingroup bmesh
+ *
+ * Bevel wrapper around #BM_mesh_bevel
  */
 
 #include "BLI_utildefines.h"

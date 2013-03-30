@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_edgeloop_fill.c
  *  \ingroup bmesh
+ *
+ * Fill discreet edge loop(s) with faces.
  */
 
 #include "MEM_guardedalloc.h"

@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_removedoubles.c
  *  \ingroup bmesh
+ *
+ * Welding and merging functionality.
  */
 
 #include "MEM_guardedalloc.h"

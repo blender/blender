@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_smooth_laplacian.c
  *  \ingroup bmesh
+ *
+ * Advanced smoothing.
  */
 
 #include "MEM_guardedalloc.h"

@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_triangulate.c
  *  \ingroup bmesh
+ *
+ * Triangulate faces, also defines triangle fill.
  */
 
 #include "MEM_guardedalloc.h"

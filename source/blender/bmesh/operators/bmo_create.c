@@ -15,13 +15,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Joseph Eagar.
+ * Contributor(s): Joseph Eagar, Campbell Barton.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/bmesh/operators/bmo_create.c
- *  \ingroup bmesh
+ *  \ingroup bmesh 
+ *
+ * Create faces or edges (Fkey by default).
  */
 
 #include "MEM_guardedalloc.h"

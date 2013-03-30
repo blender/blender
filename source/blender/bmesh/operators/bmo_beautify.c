@@ -22,6 +22,19 @@
 
 /** \file blender/bmesh/operators/bmo_beautify.c
  *  \ingroup bmesh
+ *
+ * Beautify the mesh by rotating edes between triangles
+ * to more attractive positions until no more rotations can be made.
+ *
+ * In princible this is very simple however there is the possability of
+ * going into an eternal loop where edges keep rotating.
+ * To avoid this - each edge stores a hash of it previous
+ * states so as not to rotate back.
+ *
+ * TODO
+ * - Take face normals into account.
+ * - Use a stack of rotations to perform the best onces first
+ *   similar to edge-collapse-decimate.
  */
 
 #include "BLI_math.h"

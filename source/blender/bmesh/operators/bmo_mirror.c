@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_mirror.c
  *  \ingroup bmesh
+ *
+ * Basic mirror, optionally with UVs's.
  */
 
 #include "MEM_guardedalloc.h"

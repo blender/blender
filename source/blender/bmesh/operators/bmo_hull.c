@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_hull.c
  *  \ingroup bmesh
+ *
+ * Create a convex hull using bullet physics library.
  */
 
 #ifdef WITH_BULLET

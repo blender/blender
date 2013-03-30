@@ -22,6 +22,11 @@
 
 /** \file blender/bmesh/operators/bmo_join_triangles.c
  *  \ingroup bmesh
+ *
+ * Convert triangle to quads.
+ *
+ * TODO
+ * - convert triangles to any sided faces, not just quads.
  */
 
 #include "MEM_guardedalloc.h"
