@@ -76,9 +76,9 @@ static const char *modifier_name[LS_MODIFIER_NUM] = {
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
 	linestyle->panel = LS_PANEL_STROKES;
-	linestyle->r = linestyle->g = linestyle->b = 1.0f;
+	linestyle->r = linestyle->g = linestyle->b = 0.0f;
 	linestyle->alpha = 1.0f;
-	linestyle->thickness = 1.0f;
+	linestyle->thickness = 3.0f;
 	linestyle->thickness_position = LS_THICKNESS_CENTER;
 	linestyle->thickness_ratio = 0.5f;
 	linestyle->chaining = LS_CHAINING_PLAIN;
