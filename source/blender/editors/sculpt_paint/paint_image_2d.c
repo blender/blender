@@ -156,8 +156,7 @@ static BrushPainter *brush_painter_2d_new(Scene *scene, Brush *brush)
 
 static void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt, int size)
 {
-	if ((painter->cache.flt != flt) || (painter->cache.size != size))
-	{
+	if ((painter->cache.flt != flt) || (painter->cache.size != size)) {
 		if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
 		if (painter->cache.maskibuf) IMB_freeImBuf(painter->cache.maskibuf);
 		painter->cache.ibuf = painter->cache.maskibuf = NULL;

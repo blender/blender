@@ -174,8 +174,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		ups->pixel_radius *= stroke->cached_pressure;
 	}
 
-	if (paint_supports_dynamic_tex_coords(brush, mode))
-	{
+	if (paint_supports_dynamic_tex_coords(brush, mode)) {
 		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
 		    (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
 		    !(brush->flag & BRUSH_RAKE))

@@ -442,7 +442,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 				quad.ymax = aim[1] + ups->anchored_size;
 			}
 			else {
-				const int radius = BKE_brush_size_get(vc->scene, brush)*zoom;
+				const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
 				quad.xmin = x - radius;
 				quad.ymin = y - radius;
 				quad.xmax = x + radius;
@@ -540,7 +540,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	translation[1] = y;
 	outline_alpha = 0.5;
 	outline_col = brush->add_col;
-	final_radius = BKE_brush_size_get(scene, brush)*zoomx;
+	final_radius = BKE_brush_size_get(scene, brush) * zoomx;
 
 	if (brush->flag & BRUSH_RAKE)
 		/* here, translation contains the mouse coordinates. */

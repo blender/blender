@@ -1314,7 +1314,7 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		glShadeModel(GL_SMOOTH);
 		gluSphere(qobj, 100.0, 32, 24);
 		glShadeModel(GL_FLAT);
-		gluDeleteQuadric(qobj);  
+		gluDeleteQuadric(qobj);
 		
 		if (use_displist) {
 			glEndList();
