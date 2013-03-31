@@ -37,6 +37,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_world_types.h"
@@ -6957,6 +6958,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* not for sets, duplicators or picking */
 	if (dflag == 0 && (v3d->flag & V3D_HIDE_HELPLINES) == 0 && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		ListBase *list;
+		RigidBodyCon *rbc = ob ? ob->rigidbody_constraint : NULL;
 		
 		/* draw hook center and offset line */
 		if (ob != scene->obedit) draw_hooks(ob);
@@ -7041,6 +7043,22 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 			
 			BKE_constraints_clear_evalob(cob);
+		}
+		/* draw rigid body constraint lines */
+		if (rbc) {
+			UI_ThemeColor(TH_WIRE);
+			setlinestyle(3);
+			glBegin(GL_LINES);
+			if (rbc->ob1) {
+				glVertex3fv(ob->obmat[3]);
+				glVertex3fv(rbc->ob1->obmat[3]);
+			}
+			if (rbc->ob2) {
+				glVertex3fv(ob->obmat[3]);
+				glVertex3fv(rbc->ob2->obmat[3]);
+			}
+			glEnd();
+			setlinestyle(0);
 		}
 	}
 
