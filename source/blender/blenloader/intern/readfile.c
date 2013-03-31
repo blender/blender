@@ -9077,7 +9077,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 267) {
-		
+		//if(!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "stencil_pos")) {
+		Brush *brush;
+
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			if (brush->stencil_dimension[0] == 0) {
+				brush->stencil_dimension[0] = 256;
+				brush->stencil_dimension[1] = 256;
+				brush->stencil_pos[0] = 256;
+				brush->stencil_pos[1] = 256;
+			}
+		}
+
 		/* TIP: to initialize new variables added, use the new function
 		   DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")
 		   example: 

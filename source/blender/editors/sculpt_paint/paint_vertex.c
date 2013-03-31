@@ -866,6 +866,7 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 	{
 		float delta[2];
 		float dist_squared;
+		float factor = 1.0;
 
 		sub_v2_v2v2(delta, mval, co_ss);
 		dist_squared = dot_v2v2(delta, delta); /* len squared */
@@ -880,8 +881,9 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 					const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
 					BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
 				}
+				factor = rgba[3];
 			}
-			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+			return factor*BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}
 	}
 	if (rgba)

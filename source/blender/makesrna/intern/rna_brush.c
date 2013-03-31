@@ -433,6 +433,7 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
 		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
 		{MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
+		{MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -441,6 +442,7 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
 		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
 		{MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
+		{MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

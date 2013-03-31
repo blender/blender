@@ -59,6 +59,7 @@
 #include "BIF_glutil.h"
 
 #include "RE_shader_ext.h"
+#include "RE_render_ext.h"
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
@@ -176,18 +177,35 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 	return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(Brush *br, float u, float v, struct ImagePool *pool)
+float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool)
 {
 	TexResult texres = {0};
 	float co[3] = {u, v, 0.0f};
 	int hasrgb;
 
-	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres, pool);
+	hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, pool);
 
 	if (hasrgb & TEX_RGB)
 		texres.tin = rgb_to_grayscale(&texres.tr) * texres.ta;
 
 	return texres.tin;
+}
+
+void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool)
+{
+	float co[3] = {u, v, 0.0f};
+	int hasrgb;
+	float intensity;
+
+	hasrgb = externtex(mtex, co, &intensity,
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+
+	if (!hasrgb) {
+		rgba[0] = intensity;
+		rgba[1] = intensity;
+		rgba[2] = intensity;
+		rgba[3] = 1.0f;
+	}
 }
 
 /* 3D Paint */

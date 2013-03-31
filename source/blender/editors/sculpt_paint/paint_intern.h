@@ -39,6 +39,7 @@ struct Brush;
 struct ImagePool;
 struct ListBase;
 struct Mesh;
+struct MTex;
 struct Object;
 struct PaintStroke;
 struct Paint;
@@ -179,7 +180,8 @@ void paint_calc_redraw_planes(float planes[4][4],
 
 void projectf(struct bglMats *mats, const float v[3], float p[2]);
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
-float paint_get_tex_pixel(struct Brush *br, float u, float v, struct ImagePool *pool);
+float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool *pool);
+void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool);
 int imapaint_pick_face(struct ViewContext *vc, const int mval[2], unsigned int *index, unsigned int totface);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);
 void brush_drawcursor_texpaint_uvsculpt(struct bContext *C, int x, int y, void *customdata);
@@ -204,7 +206,7 @@ int facemask_paint_poll(struct bContext *C);
 typedef enum BrushStrokeMode {
 	BRUSH_STROKE_NORMAL,
 	BRUSH_STROKE_INVERT,
-	BRUSH_STROKE_SMOOTH,
+	BRUSH_STROKE_SMOOTH
 } BrushStrokeMode;
 
 /* paint_undo.c */

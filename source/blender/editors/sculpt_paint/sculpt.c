@@ -968,7 +968,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			x += br->mtex.ofs[0];
 			y += br->mtex.ofs[1];
 
-			avg = paint_get_tex_pixel(br, x, y, ss->tex_pool);
+			avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool);
 
 			avg += br->texture_sample_bias;
 		}
