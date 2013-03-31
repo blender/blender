@@ -2364,7 +2364,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 
 	RE_engine_free(engine);
 
-	return (found)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+	return (found) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void NODE_OT_shader_script_update(wmOperatorType *ot)

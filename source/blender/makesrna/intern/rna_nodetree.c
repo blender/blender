@@ -2736,7 +2736,7 @@ static void rna_ShaderNodeScript_bytecode_get(PointerRNA *ptr, char *value)
 	bNode *node = (bNode *)ptr->data;
 	NodeShaderScript *nss = node->storage;
 
-	strcpy(value, (nss->bytecode)? nss->bytecode: "");
+	strcpy(value, (nss->bytecode) ? nss->bytecode : "");
 }
 
 static int rna_ShaderNodeScript_bytecode_length(PointerRNA *ptr)

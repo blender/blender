@@ -7935,7 +7935,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if (ba->axis==(float) 'x') ba->axis=OB_POSX;
 						else if (ba->axis==(float)'y') ba->axis=OB_POSY;
 						/* don't do an if/else to avoid imediate subversion bump*/
-//					ba->axis=((ba->axis == (float) 'x')?OB_POSX_X:OB_POSY);
+//						ba->axis=((ba->axis == (float)'x') ? OB_POSX_X : OB_POSY);
 					}
 				}
 			}

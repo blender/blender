@@ -574,13 +574,13 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 			y = point_2d[1] - ups->tex_mouse[1];
 
 			/* use pressure adjusted size for fixed mode */
-			invradius = 1.0/ups->pixel_radius;
+			invradius = 1.0f / ups->pixel_radius;
 		}
 		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
 			/* leave the coordinates relative to the screen */
 
 			/* use unadjusted size for tiled mode */
-			invradius = 1.0/BKE_brush_size_get(scene, br);
+			invradius = 1.0f / BKE_brush_size_get(scene, br);
 
 			x = point_2d[0];
 			y = point_2d[1];
@@ -591,7 +591,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 			x = point_2d[0] - ups->tex_mouse[0];
 			y = point_2d[1] - ups->tex_mouse[1];
 
-			invradius = 1.0/ups->pixel_radius;
+			invradius = 1.0f / ups->pixel_radius;
 		}
 
 		x *= invradius;

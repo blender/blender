@@ -133,7 +133,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 	int size;
 	int j;
 	int refresh;
-	int format = col? GL_RGBA : GL_ALPHA;
+	GLenum format = col ? GL_RGBA : GL_ALPHA;
 	
 	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED && !br->mtex.tex) return 0;
 	
@@ -151,7 +151,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 	if (refresh) {
 		struct ImagePool *pool = NULL;
 		/* stencil is rotated later */
-		const float rotation = (br->mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL)?
+		const float rotation = (br->mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL) ?
 		                       -br->mtex.rot : 0;
 
 		float radius = BKE_brush_size_get(vc->scene, br) * zoom;
@@ -257,10 +257,10 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
 							mul_v4_fl(rgba, BKE_brush_curve_strength(br, len, 1));  /* Falloff curve */
 
-						buffer[index*4] = rgba[0]*255;
-						buffer[index*4 + 1] = rgba[1]*255;
-						buffer[index*4 + 2] = rgba[2]*255;
-						buffer[index*4 + 3] = rgba[3]*255;
+						buffer[index * 4]     = rgba[0] * 255;
+						buffer[index * 4 + 1] = rgba[1] * 255;
+						buffer[index * 4 + 2] = rgba[2] * 255;
+						buffer[index * 4 + 3] = rgba[3] * 255;
 					}
 					else {
 						float avg = br->mtex.tex ? paint_get_tex_pixel(&br->mtex, x, y, pool) : 1;
@@ -275,13 +275,14 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 				}
 				else {
 					if (col) {
-						buffer[index*4] = 0;
-						buffer[index*4 + 1] = 0;
-						buffer[index*4 + 2] = 0;
-						buffer[index*4 + 3] = 0;
+						buffer[index * 4]     = 0;
+						buffer[index * 4 + 1] = 0;
+						buffer[index * 4 + 2] = 0;
+						buffer[index * 4 + 3] = 0;
 					}
-					else
+					else {
 						buffer[index] = 0;
+					}
 				}
 			}
 		}
@@ -424,14 +425,13 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	/* check for overlay mode */
 
 	if (brush->mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL &&
-		(!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
+	    (!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
 	    !ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED)))
 	{
 		return;
 	}
 
-	col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX)?
-			true: false;
+	col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true: false;
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
 	glPushAttrib(GL_COLOR_BUFFER_BIT |
@@ -485,7 +485,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 				quad.ymax = y + radius;
 			}
 		}
-		else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_TILED){
+		else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) {
 			quad.xmin = 0;
 			quad.ymin = 0;
 			quad.xmax = BLI_rcti_size_x(&vc->ar->winrct);
@@ -500,7 +500,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
 			glTranslatef(brush->stencil_pos[0], brush->stencil_pos[1], 0);
-			glRotatef(brush->mtex.rot/M_PI*180, 0, 0, 1);
+			glRotatef(RAD2DEGF(brush->mtex.rot), 0, 0, 1);
 			glMatrixMode(GL_TEXTURE);
 		}
 

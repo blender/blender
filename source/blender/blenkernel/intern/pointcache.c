@@ -1396,7 +1396,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
-	Library *lib= (pid->ob)? pid->ob->id.lib: NULL;
+	Library *lib = (pid->ob) ? pid->ob->id.lib : NULL;
 	const char *blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.main->name;
 	size_t i;
 

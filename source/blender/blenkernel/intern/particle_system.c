@@ -1346,7 +1346,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	ctx->jitoff= jitter_offset;
 	ctx->weight= element_weight;
 	ctx->maxweight= maxweight;
-	ctx->from= (children)? PART_FROM_CHILD: from;
+	ctx->from= (children) ? PART_FROM_CHILD : from;
 	ctx->cfrom= cfrom;
 	ctx->distr= distr;
 	ctx->dm= dm;
@@ -2039,7 +2039,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 
 		ksim.psys->flag |= keyed_flag;
 
-		pt = (pt->next && pt->next->flag & PTARGET_VALID)? pt->next : psys->targets.first;
+		pt = (pt->next && pt->next->flag & PTARGET_VALID) ? pt->next : psys->targets.first;
 	}
 
 	psys->flag |= PSYS_KEYED;

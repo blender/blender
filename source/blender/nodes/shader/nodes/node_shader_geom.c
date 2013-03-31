@@ -116,7 +116,7 @@ static void node_shader_exec_geom(void *data, int UNUSED(thread), bNode *node, b
 		}
 		
 		/* front/back, normal flipping was stored */
-		out[GEOM_OUT_FRONTBACK]->vec[0] = (shi->flippednor)? 0.0f: 1.0f;
+		out[GEOM_OUT_FRONTBACK]->vec[0] = (shi->flippednor) ? 0.0f : 1.0f;
 	}
 }
 

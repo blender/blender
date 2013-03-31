@@ -138,7 +138,7 @@ static void blend_color_add_alpha(char cp[4], const char cp1[4], const char cp2[
 	cp[0] = cp1[0];
 	cp[1] = cp1[1];
 	cp[2] = cp1[2];
-	cp[3] = (temp > 255)? 255 : ((temp < 0) ? 0 : temp);
+	cp[3] = (temp > 255) ? 255 : ((temp < 0) ? 0 : temp);
 }
 
 

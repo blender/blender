@@ -475,7 +475,7 @@ static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 				/* create exactly one sampler for each texture */
 				if (codegen_input_has_texture(input) && input->bindtex)
 					BLI_dynstr_appendf(ds, "uniform %s samp%d;\n",
-						(input->textype == GPU_TEX2D)? "sampler2D": "sampler2DShadow",
+						(input->textype == GPU_TEX2D) ? "sampler2D" : "sampler2DShadow",
 						input->texid);
 			}
 			else if (input->source == GPU_SOURCE_BUILTIN) {

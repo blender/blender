@@ -156,9 +156,9 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e)
 
 			// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
 			BLI_assert((ELEM3(v1, v2, v3, v4) == false) &&
-					   (ELEM3(v2, v1, v3, v4) == false) &&
-					   (ELEM3(v3, v1, v2, v4) == false) &&
-					   (ELEM3(v4, v1, v2, v3) == false));
+			           (ELEM3(v2, v1, v3, v4) == false) &&
+			           (ELEM3(v3, v1, v2, v4) == false) &&
+			           (ELEM3(v4, v1, v2, v3) == false));
 
 			is_zero_a = area_tri_v3(v2, v3, v4) <= FLT_EPSILON;
 			is_zero_b = area_tri_v3(v2, v4, v1) <= FLT_EPSILON;

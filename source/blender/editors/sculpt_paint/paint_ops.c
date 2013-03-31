@@ -476,7 +476,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	copy_v2_v2_int(scd->init_sdim, br->stencil_dimension);
 	copy_v2_v2_int(scd->init_spos, br->stencil_pos);
 	sub_v2_v2v2_int(mdiff, event->mval, br->stencil_pos);
-	scd->lenorig = sqrtf(mdiff[0]*mdiff[0] + mdiff[1]*mdiff[1]);
+	scd->lenorig = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
 	scd->br = br;
 	scd->init_rot = br->mtex.rot;
 	scd->init_angle = atan2(mdiff[1], mdiff[0]);
@@ -519,10 +519,10 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 					{
 						float len, factor;
 						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
-						len = sqrtf(mdiff[0]*mdiff[0] + mdiff[1]*mdiff[1]);
+						len = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
 						factor = len/scd->lenorig;
-						mdiff[0] = factor*scd->init_sdim[0];
-						mdiff[1] = factor*scd->init_sdim[1];
+						mdiff[0] = factor * scd->init_sdim[0];
+						mdiff[1] = factor * scd->init_sdim[1];
 						copy_v2_v2_int(scd->br->stencil_dimension, mdiff);
 						break;
 					}
@@ -532,10 +532,10 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
 						angle = atan2(mdiff[1], mdiff[0]);
 						angle = scd->init_rot + angle - scd->init_angle;
-						if (angle < 0)
-							angle += 2*M_PI;
-						if (angle > 2*M_PI)
-							angle -= 2*M_PI;
+						if (angle < 0.0f)
+							angle += (float)(2 * M_PI);
+						if (angle > (float)(2 * M_PI))
+							angle -= (float)(2 * M_PI);
 						scd->br->mtex.rot = angle;
 						break;
 					}
@@ -543,12 +543,12 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 			}
 			break;
 		case LEFTMOUSE:
-			if(event->val == KM_PRESS) {
+			if (event->val == KM_PRESS) {
 				MEM_freeN(op->customdata);
 				return OPERATOR_FINISHED;
 			}
 		case RIGHTMOUSE:
-			if(event->val == KM_PRESS) {
+			if (event->val == KM_PRESS) {
 				return stencil_control_cancel(C, op);
 			}
 		default:

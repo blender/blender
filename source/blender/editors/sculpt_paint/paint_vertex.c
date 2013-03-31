@@ -883,7 +883,7 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 				}
 				factor = rgba[3];
 			}
-			return factor*BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+			return factor * BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}
 	}
 	if (rgba)

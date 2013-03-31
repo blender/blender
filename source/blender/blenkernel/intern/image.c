@@ -3011,7 +3011,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 					*lock_r = ima;
 
 					/* XXX anim play for viewer nodes not yet supported */
-					frame = 0; // XXX iuser?iuser->framenr:0;
+					frame = 0; // XXX iuser ? iuser->framenr : 0;
 					ibuf = image_get_ibuf(ima, 0, frame);
 
 					if (!ibuf) {

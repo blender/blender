@@ -528,7 +528,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		
 		if ( ELEM(fsmesh.type, OB_FLUIDSIM_FLUID, OB_FLUIDSIM_INFLOW)) {
 			fsmesh.channelInitialVel = fobj->InitialVelocity;
-			fsmesh.localInivelCoords = ((fluidmd->fss->typeFlags & OB_FSINFLOW_LOCALCOORD)?1:0);
+			fsmesh.localInivelCoords = ((fluidmd->fss->typeFlags & OB_FSINFLOW_LOCALCOORD) ? 1 : 0);
 		}
 		
 		if (fluidmd->fss->typeFlags & OB_FSBND_NOSLIP)

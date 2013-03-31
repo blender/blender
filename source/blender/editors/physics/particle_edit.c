@@ -2287,13 +2287,13 @@ static void subdivide_particle(PEData *data, int pa_index)
 		nekey++;
 
 		if (ekey->flag & PEK_SELECT && (ekey+1)->flag & PEK_SELECT) {
-			nkey->time= (key->time + (key+1)->time)*0.5f;
-			state.time= (endtime != 0.0f)? nkey->time/endtime: 0.0f;
+			nkey->time = (key->time + (key + 1)->time) * 0.5f;
+			state.time = (endtime != 0.0f) ? nkey->time / endtime: 0.0f;
 			psys_get_particle_on_path(&sim, pa_index, &state, 0);
 			copy_v3_v3(nkey->co, state.co);
 
 			nekey->co= nkey->co;
-			nekey->time= &nkey->time;
+			nekey->time = &nkey->time;
 			nekey->flag |= PEK_SELECT;
 			if (!(psys->flag & PSYS_GLOBAL_HAIR))
 				nekey->flag |= PEK_USE_WCO;

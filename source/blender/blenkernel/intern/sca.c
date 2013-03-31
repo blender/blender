@@ -705,7 +705,7 @@ void sca_move_sensor(bSensor *sens_to_move, Object *ob, int move_up)
 	bSensor *sens, *tmp;
 
 	int val;
-	val = move_up ? 1:2;
+	val = move_up ? 1 : 2;
 
 	/* make sure this sensor belongs to this object */
 	sens= ob->sensors.first;
@@ -744,7 +744,7 @@ void sca_move_controller(bController *cont_to_move, Object *ob, int move_up)
 	bController *cont, *tmp;
 
 	int val;
-	val = move_up ? 1:2;
+	val = move_up ? 1 : 2;
 
 	/* make sure this controller belongs to this object */
 	cont= ob->controllers.first;
@@ -787,7 +787,7 @@ void sca_move_actuator(bActuator *act_to_move, Object *ob, int move_up)
 	bActuator *act, *tmp;
 	int val;
 
-	val = move_up ? 1:2;
+	val = move_up ? 1 : 2;
 
 	/* make sure this actuator belongs to this object */
 	act= ob->actuators.first;
