@@ -51,7 +51,7 @@ def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
     if data:
         sub.operator(removeop, text=name, text_ctxt=i18n_contexts.default, icon='X')
     else:
-        sub.operator(addop, text=name, text_ctxt=i18n_context.default, icon=typeicon)
+        sub.operator(addop, text=name, text_ctxt=i18n_contexts.default, icon=typeicon)
 
 
 class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
