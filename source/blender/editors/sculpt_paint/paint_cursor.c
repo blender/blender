@@ -85,7 +85,8 @@ static int same_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 	return (((mtex->tex) &&
 	         equals_v3v3(mtex->ofs, snap->ofs) &&
 	         equals_v3v3(mtex->size, snap->size) &&
-	         mtex->rot == snap->rot) &&
+	         (brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL ||
+	         mtex->rot == snap->rot)) &&
 
 	        /* make brush smaller shouldn't cause a resample */
 	        ((mtex->brush_map_mode == MTEX_MAP_MODE_VIEW &&
