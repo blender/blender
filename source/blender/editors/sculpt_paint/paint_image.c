@@ -877,8 +877,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
-		case LEFTMOUSE:
-		case RIGHTMOUSE: // XXX hardcoded
+		case SKEY: // XXX hardcoded
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
 			RNA_int_set_array(op->ptr, "location", event->mval);

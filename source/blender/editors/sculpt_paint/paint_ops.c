@@ -542,14 +542,18 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 				}
 			}
 			break;
-		case LEFTMOUSE:
-			if (event->val == KM_PRESS) {
+		/* XXX hardcoded! */
+		case RIGHTMOUSE:
+			if (event->val == KM_RELEASE) {
 				MEM_freeN(op->customdata);
+				WM_event_add_notifier(C, NC_WINDOW, NULL);
 				return OPERATOR_FINISHED;
 			}
-		case RIGHTMOUSE:
+		case ESCKEY:
 			if (event->val == KM_PRESS) {
-				return stencil_control_cancel(C, op);
+				stencil_control_cancel(C, op);
+				WM_event_add_notifier(C, NC_WINDOW, NULL);
+				return OPERATOR_CANCELLED;
 			}
 		default:
 			break;
@@ -558,6 +562,14 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_RUNNING_MODAL;
+}
+
+static int stencil_control_poll(bContext *C)
+{
+	Paint *paint = paint_get_active_from_context(C);
+	Brush *br = paint->brush;
+
+	return br->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL;
 }
 
 static void BRUSH_OT_stencil_control(wmOperatorType *ot)
@@ -577,6 +589,7 @@ static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 	ot->invoke = stencil_control_invoke;
 	ot->modal = stencil_control_modal;
 	ot->cancel = stencil_control_cancel;
+	ot->poll = stencil_control_poll;
 
 	/* flags */
 	ot->flag = 0;
@@ -588,11 +601,11 @@ static void ed_keymap_stencil(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
 
-	kmi = WM_keymap_add_item(keymap, "BRUSH_OT_stencil_control", QKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "BRUSH_OT_stencil_control", RIGHTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", STENCIL_TRANSLATE);
-	kmi = WM_keymap_add_item(keymap, "BRUSH_OT_stencil_control", QKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "BRUSH_OT_stencil_control", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "mode", STENCIL_SCALE);
-	kmi = WM_keymap_add_item(keymap, "BRUSH_OT_stencil_control", QKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "BRUSH_OT_stencil_control", RIGHTMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", STENCIL_ROTATE);
 
 }
@@ -852,7 +865,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap->poll = vertex_paint_mode_poll;
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_vertex_paint", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", SKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap,
 	                   "PAINT_OT_vertex_color_set", KKEY, KM_PRESS, KM_SHIFT, 0);
@@ -932,7 +945,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, KM_CTRL,  0)->ptr, "mode", BRUSH_STROKE_INVERT);
 	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", SKEY, KM_PRESS, 0, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "image_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.image_paint.brush.size");
