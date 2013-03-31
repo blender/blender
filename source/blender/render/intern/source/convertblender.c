@@ -2660,6 +2660,8 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 	MFace *mface;
 	Material *ma;
 #ifdef WITH_FREESTYLE
+	const int *index_mf_to_mpoly = NULL;
+	const int *index_mp_to_orig = NULL;
 	FreestyleFace *ffa;
 #endif
 	/* Curve *cu= ELEM(ob->type, OB_FONT, OB_CURVE) ? ob->data : NULL; */
@@ -2692,7 +2694,9 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 			end= dm->getNumTessFaces(dm);
 			mface= dm->getTessFaceArray(dm);
 #ifdef WITH_FREESTYLE
-			ffa= dm->getTessFaceDataArray(dm, CD_FREESTYLE_FACE);
+			index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+			index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+			ffa= dm->getPolyDataArray(dm, CD_FREESTYLE_FACE);
 #endif
 
 			for (a=0; a<end; a++, mface++) {
@@ -2724,7 +2728,12 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					vlr->flag= flag;
 					vlr->ec= 0; /* mesh edges rendered separately */
 #ifdef WITH_FREESTYLE
-					vlr->freestyle_face_mark= (ffa && (ffa[a].flag & FREESTYLE_FACE_MARK)) ? 1 : 0;
+					if (ffa) {
+						int index = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
+						vlr->freestyle_face_mark= (ffa[index].flag & FREESTYLE_FACE_MARK) ? 1 : 0;
+					} else {
+						vlr->freestyle_face_mark= 0;
+					}
 #endif
 
 					if (len==0) obr->totvlak--;
@@ -3240,14 +3249,26 @@ static EdgeHash *make_freestyle_edge_mark_hash(DerivedMesh *dm)
 	FreestyleEdge *fed;
 	MEdge *medge;
 	int totedge, a;
+	int *index;
 
 	medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);
+	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	fed = dm->getEdgeDataArray(dm, CD_FREESTYLE_EDGE);
 	if (fed) {
-		for (a = 0; a < totedge; a++) {
-			if (fed[a].flag & FREESTYLE_EDGE_MARK)
-				BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+		if (!index) {
+			for (a = 0; a < totedge; a++) {
+				if (fed[a].flag & FREESTYLE_EDGE_MARK)
+					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+			}
+		}
+		else {
+			for (a = 0; a < totedge; a++) {
+				if (index[a] == ORIGINDEX_NONE)
+					continue;
+				if (fed[index[a]].flag & FREESTYLE_EDGE_MARK)
+					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+			}
 		}
 	}
 	return edge_hash;
@@ -3280,6 +3301,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
 #ifdef WITH_FREESTYLE
+	const int *index_mf_to_mpoly = NULL;
+	const int *index_mp_to_orig = NULL;
 	FreestyleFace *ffa;
 #endif
 
@@ -3451,7 +3474,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 					end= dm->getNumTessFaces(dm);
 					mface= dm->getTessFaceArray(dm);
 #ifdef WITH_FREESTYLE
-					ffa= dm->getTessFaceDataArray(dm, CD_FREESTYLE_FACE);
+					index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+					index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+					ffa= dm->getPolyDataArray(dm, CD_FREESTYLE_FACE);
 #endif
 					
 					for (a=0; a<end; a++, mface++) {
@@ -3489,7 +3514,12 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 								}
 								vlr->freestyle_edge_mark= edge_mark;
 							}
-							vlr->freestyle_face_mark= (ffa && (ffa[a].flag & FREESTYLE_FACE_MARK)) ? 1 : 0;
+							if (ffa) {
+								int index = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
+								vlr->freestyle_face_mark= (ffa[index].flag & FREESTYLE_FACE_MARK) ? 1 : 0;
+							} else {
+								vlr->freestyle_face_mark= 0;
+							}
 #endif
 
 							/* render normals are inverted in render */

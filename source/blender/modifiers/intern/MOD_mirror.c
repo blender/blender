@@ -161,6 +161,15 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		dm->copyPolyArray(dm, CDDM_get_polys(result));
 	}
 
+#if 1 /* WITH_FREESTYLE generic changes */
+	/* if the source DM does not have edge CD_ORIGINDEX layer, then
+	 * the corresponding layer of the result DM is filled with zeros
+	 * (see CDDM_from_template()) */
+	if (!CustomData_has_layer(&dm->edgeData, CD_ORIGINDEX)) {
+		range_vn_i(DM_get_edge_data_layer(result, CD_ORIGINDEX), maxEdges, 0);
+	}
+#endif
+
 	/* copy customdata to new geometry,
 	 * copy from its self because this data may have been created in the checks above */
 	DM_copy_vert_data(result, result, 0, maxVerts, maxVerts);

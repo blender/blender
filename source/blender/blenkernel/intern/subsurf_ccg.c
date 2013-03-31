@@ -3108,10 +3108,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	MEdge *medge = NULL;
 	/* MFace *mface = NULL; */
 	MPoly *mpoly = NULL;
-#ifdef WITH_FREESTYLE
-	FreestyleEdge *fed = NULL, *ccgdm_fed = NULL;
-	FreestyleFace *ffa = NULL, *ccgdm_ffa = NULL;
-#endif
 
 	DM_from_template(&ccgdm->dm, dm, DM_TYPE_CCGDM,
 	                 ccgSubSurf_getNumFinalVerts(ss),
@@ -3286,19 +3282,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	has_edge_origindex = CustomData_has_layer(&ccgdm->dm.edgeData, CD_ORIGINDEX);
 
-#ifdef WITH_FREESTYLE
-	fed = DM_get_edge_data_layer(dm, CD_FREESTYLE_EDGE);
-	if (fed) {
-		ccgdm_fed = CustomData_add_layer(&ccgdm->dm.edgeData, CD_FREESTYLE_EDGE, CD_CALLOC, NULL,
-		                                 ccgSubSurf_getNumFinalEdges(ss));
-	}
-	ffa = DM_get_poly_data_layer(dm, CD_FREESTYLE_FACE);
-	if (ffa) {
-		ccgdm_ffa = CustomData_add_layer(&ccgdm->dm.faceData, CD_FREESTYLE_FACE, CD_CALLOC, NULL,
-		                                 ccgSubSurf_getNumFinalFaces(ss));
-	}
-#endif
-
 	loopindex = loopindex2 = 0; /* current loop index */
 	for (index = 0; index < totface; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
@@ -3435,12 +3418,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					/* This is a simple one to one mapping, here... */
 					polyidx[faceNum] = faceNum;
 
-#ifdef WITH_FREESTYLE
-					if (ffa && ffa[index].flag & FREESTYLE_FACE_MARK) {
-						ccgdm_ffa[faceNum].flag |= FREESTYLE_FACE_MARK;
-					}
-#endif
-
 					faceNum++;
 				}
 			}
@@ -3489,14 +3466,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 				*(int *)DM_get_edge_data(&ccgdm->dm, edgeNum + i, CD_ORIGINDEX) = mapIndex;
 			}
 		}
-
-#ifdef WITH_FREESTYLE
-		if (fed && fed[index].flag & FREESTYLE_EDGE_MARK) {
-			for (i = 0; i < numFinalEdges; ++i) {
-				ccgdm_fed[edgeNum + i].flag |= FREESTYLE_EDGE_MARK;
-			}
-		}
-#endif
 
 		edgeNum += numFinalEdges;
 	}
