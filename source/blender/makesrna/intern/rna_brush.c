@@ -145,9 +145,10 @@ static int rna_SculptToolCapabilities_has_normal_weight_get(PointerRNA *ptr)
 static int rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->mtex.brush_map_mode,
+	return ELEM3(br->mtex.brush_map_mode,
 	            MTEX_MAP_MODE_VIEW,
-	            MTEX_MAP_MODE_TILED);
+	            MTEX_MAP_MODE_TILED,
+	            MTEX_MAP_MODE_STENCIL);
 }
 
 static int rna_SculptToolCapabilities_has_persistence_get(PointerRNA *ptr)
@@ -237,10 +238,11 @@ static int rna_SculptToolCapabilities_has_strength_get(PointerRNA *ptr)
 static int rna_BrushCapabilities_has_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM3(br->mtex.brush_map_mode,
+	return ELEM4(br->mtex.brush_map_mode,
 	             MTEX_MAP_MODE_VIEW,
 	             MTEX_MAP_MODE_AREA,
-	             MTEX_MAP_MODE_TILED);
+	             MTEX_MAP_MODE_TILED,
+	             MTEX_MAP_MODE_STENCIL);
 }
 
 static int rna_BrushCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
@@ -929,11 +931,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Restore Mesh", "Allow a single dot to be carefully positioned");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "use_mask", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_USE_MASK);
-	RNA_def_property_ui_text(prop, "Mask Texture", "Use a texture as mask for the brush");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-	
 	/* only for projection paint, TODO, other paint modes */
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BRUSH_LOCK_ALPHA);

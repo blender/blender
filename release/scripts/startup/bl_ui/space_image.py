@@ -739,11 +739,6 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw_header(self, context):
-        brush = context.tool_settings.image_paint.brush
-        tex_slot_alpha = brush.mask_texture_slot
-        self.layout.prop(brush, 'use_mask', text="")
-
     def draw(self, context):
         layout = self.layout
 

@@ -779,11 +779,6 @@ class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
         brush = context.tool_settings.image_paint.brush
         return (context.image_paint_object and brush and brush.image_tool != 'SOFTEN')
 
-    def draw_header(self, context):
-        brush = context.tool_settings.image_paint.brush
-        tex_slot_alpha = brush.mask_texture_slot
-        self.layout.prop(brush, 'use_mask', text="")
-
     def draw(self, context):
         layout = self.layout
 
