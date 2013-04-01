@@ -146,29 +146,6 @@ void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
 			BM_data_layer_free(bm, &bm->edata, CD_CREASE);
 		}
 	}
-#ifdef WITH_FREESTYLE
-	if (cd_flag & ME_CDFLAG_FREESTYLE_EDGE) {
-		if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-			BM_data_layer_add(bm, &bm->edata, CD_FREESTYLE_EDGE);
-		}
-	}
-	else {
-		if (CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-			BM_data_layer_free(bm, &bm->edata, CD_FREESTYLE_EDGE);
-		}
-	}
-
-	if (cd_flag & ME_CDFLAG_FREESTYLE_FACE) {
-		if (!CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
-			BM_data_layer_add(bm, &bm->pdata, CD_FREESTYLE_FACE);
-		}
-	}
-	else {
-		if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
-			BM_data_layer_free(bm, &bm->pdata, CD_FREESTYLE_FACE);
-		}
-	}
-#endif
 }
 
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
@@ -183,14 +160,6 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 	if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
 		cd_flag |= ME_CDFLAG_EDGE_CREASE;
 	}
-#ifdef WITH_FREESTYLE
-	if (CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-		cd_flag |= ME_CDFLAG_FREESTYLE_EDGE;
-	}
-	if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
-		cd_flag |= ME_CDFLAG_FREESTYLE_FACE;
-	}
-#endif
 	return cd_flag;
 }
 

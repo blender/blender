@@ -179,8 +179,6 @@ typedef struct TFace {
 #define ME_CDFLAG_VERT_BWEIGHT (1 << 0)
 #define ME_CDFLAG_EDGE_BWEIGHT (1 << 1)
 #define ME_CDFLAG_EDGE_CREASE  (1 << 2)
-#define ME_CDFLAG_FREESTYLE_EDGE (1 << 3)
-#define ME_CDFLAG_FREESTYLE_FACE (1 << 4)
 
 /* me->drawflag, short */
 #define ME_DRAWEDGES	(1 << 0)
