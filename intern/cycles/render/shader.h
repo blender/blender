@@ -75,6 +75,7 @@ public:
 	bool has_surface_transparent;
 	bool has_volume;
 	bool has_displacement;
+	bool has_surface_bssrdf;
 
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;
@@ -116,11 +117,11 @@ public:
 
 	/* device update */
 	virtual void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress) = 0;
-	virtual void device_free(Device *device, DeviceScene *dscene) = 0;
+	virtual void device_free(Device *device, DeviceScene *dscene, Scene *scene) = 0;
 
 	void device_update_shaders_used(Scene *scene);
 	void device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_free_common(Device *device, DeviceScene *dscene);
+	void device_free_common(Device *device, DeviceScene *dscene, Scene *scene);
 
 	/* get globally unique id for a type of attribute */
 	uint get_attribute_id(ustring name);
@@ -138,6 +139,8 @@ protected:
 
 	typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
 	AttributeIDMap unique_attribute_id;
+
+	size_t bssrdf_table_offset;
 };
 
 CCL_NAMESPACE_END

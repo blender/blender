@@ -50,11 +50,13 @@ class ShaderOutput;
 
 struct OSLShaderInfo {
 	OSLShaderInfo()
-	: has_surface_emission(false), has_surface_transparent(false)
+	: has_surface_emission(false), has_surface_transparent(false),
+	  has_surface_bssrdf(false)
 	{}
 
 	bool has_surface_emission;
 	bool has_surface_transparent;
+	bool has_surface_bssrdf;
 };
 
 /* Shader Manage */
@@ -69,7 +71,7 @@ public:
 	bool use_osl() { return true; }
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_free(Device *device, DeviceScene *dscene);
+	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 	/* osl compile and query */
 	static bool osl_compile(const string& inputfile, const string& outputfile);

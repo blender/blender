@@ -306,6 +306,59 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			}
 			break;
 		}
+#ifdef __SUBSURFACE__
+		case CLOSURE_BSSRDF_ID: {
+			ShaderClosure *sc = &sd->closure[sd->num_closure];
+			float3 weight = sc->weight * mix_weight;
+			float sample_weight = fabsf(average(weight));
+
+			if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {
+				/* radius * scale */
+				float3 radius = stack_load_float3(stack, data_node.w)*param1;
+				/* index of refraction */
+				float eta = fmaxf(param2, 1.0f + 1e-5f);
+
+				/* create one closure per color channel */
+				if(fabsf(weight.x) > 0.0f) {
+					sc->weight = make_float3(weight.x, 0.0f, 0.0f);
+					sc->sample_weight = sample_weight;
+					sc->data0 = radius.x;
+					sc->data1 = eta;
+					sc->N = N;
+					sd->flag |= bssrdf_setup(sc);
+
+					sd->num_closure++;
+					sc++;
+				}
+
+				if(fabsf(weight.y) > 0.0f) {
+					sc->weight = make_float3(0.0f, weight.y, 0.0f);
+					sc->sample_weight = sample_weight;
+					sc->data0 = radius.y;
+					sc->data1 = eta;
+					sc->N = N;
+					sd->flag |= bssrdf_setup(sc);
+
+					sd->num_closure++;
+					sc++;
+				}
+
+				if(fabsf(weight.z) > 0.0f) {
+					sc->weight = make_float3(0.0f, 0.0f, weight.z);
+					sc->sample_weight = sample_weight;
+					sc->data0 = radius.z;
+					sc->data1 = eta;
+					sc->N = N;
+					sd->flag |= bssrdf_setup(sc);
+
+					sd->num_closure++;
+					sc++;
+				}
+			}
+
+			break;
+		}
+#endif
 		default:
 			break;
 	}

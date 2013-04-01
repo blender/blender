@@ -3438,6 +3438,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_holdout();
 	//register_node_type_sh_volume_transparent();
 	//register_node_type_sh_volume_isotropic();
+	register_node_type_sh_subsurface_scattering();
 	register_node_type_sh_mix_shader();
 	register_node_type_sh_add_shader();
 

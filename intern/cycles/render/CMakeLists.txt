@@ -17,6 +17,7 @@ set(SRC
 	attribute.cpp
 	background.cpp
 	buffers.cpp
+	bssrdf.cpp
 	camera.cpp
 	film.cpp
 	# film_response.cpp (code unused)
@@ -44,6 +45,7 @@ set(SRC_HEADERS
 	attribute.h
 	background.h
 	buffers.h
+	bssrdf.h
 	camera.h
 	film.h
 	# film_response.h (code unused)

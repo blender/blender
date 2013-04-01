@@ -101,6 +101,7 @@ void register_node_type_sh_emission(void);
 void register_node_type_sh_holdout(void);
 void register_node_type_sh_volume_transparent(void);
 void register_node_type_sh_volume_isotropic(void);
+void register_node_type_sh_subsurface_scattering(void);
 void register_node_type_sh_mix_shader(void);
 void register_node_type_sh_add_shader(void);
 

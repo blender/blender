@@ -196,6 +196,7 @@ void BlenderSync::sync_integrator()
 	integrator->transmission_samples = get_int(cscene, "transmission_samples");
 	integrator->ao_samples = get_int(cscene, "ao_samples");
 	integrator->mesh_light_samples = get_int(cscene, "mesh_light_samples");
+	integrator->subsurface_samples = get_int(cscene, "subsurface_samples");
 	integrator->progressive = get_boolean(cscene, "progressive");
 
 	if(integrator->modified(previntegrator))

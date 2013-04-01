@@ -923,6 +923,322 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const ui
 #endif
 }
 
+/* Special ray intersection routines for subsurface scattering. In that case we
+ * only want to intersect with primitives in the same object, and if case of
+ * multiple hits we pick a single random primitive as the intersection point. */
+
+__device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Intersection *isect,
+	float3 P, float3 idir, int object, int triAddr, float tmax, int *num_hits, float subsurface_random)
+{
+	/* compute and check intersection t-value */
+	float4 v00 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0);
+	float4 v11 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1);
+	float3 dir = 1.0f/idir;
+
+	float Oz = v00.w - P.x*v00.x - P.y*v00.y - P.z*v00.z;
+	float invDz = 1.0f/(dir.x*v00.x + dir.y*v00.y + dir.z*v00.z);
+	float t = Oz * invDz;
+
+	if(t > 0.0f && t < tmax) {
+		/* compute and check barycentric u */
+		float Ox = v11.w + P.x*v11.x + P.y*v11.y + P.z*v11.z;
+		float Dx = dir.x*v11.x + dir.y*v11.y + dir.z*v11.z;
+		float u = Ox + t*Dx;
+
+		if(u >= 0.0f) {
+			/* compute and check barycentric v */
+			float4 v22 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+2);
+			float Oy = v22.w + P.x*v22.x + P.y*v22.y + P.z*v22.z;
+			float Dy = dir.x*v22.x + dir.y*v22.y + dir.z*v22.z;
+			float v = Oy + t*Dy;
+
+			if(v >= 0.0f && u + v <= 1.0f) {
+				(*num_hits)++;
+
+				if(subsurface_random * (*num_hits) <= 1.0f) {
+					/* record intersection */
+					isect->prim = triAddr;
+					isect->object = object;
+					isect->u = u;
+					isect->v = v;
+					isect->t = t;
+				}
+			}
+		}
+	}
+}
+
+__device_inline int bvh_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, float subsurface_random)
+{
+	/* traversal stack in CUDA thread-local memory */
+	int traversalStack[BVH_STACK_SIZE];
+	traversalStack[0] = ENTRYPOINT_SENTINEL;
+
+	/* traversal variables in registers */
+	int stackPtr = 0;
+	int nodeAddr = kernel_data.bvh.root;
+
+	/* ray parameters in registers */
+	const float tmax = ray->t;
+	float3 P = ray->P;
+	float3 idir = bvh_inverse_direction(ray->D);
+	int object = ~0;
+
+	int num_hits = 0;
+
+	isect->t = tmax;
+	isect->object = ~0;
+	isect->prim = ~0;
+	isect->u = 0.0f;
+	isect->v = 0.0f;
+
+	/* traversal loop */
+	do {
+		do
+		{
+			/* traverse internal nodes */
+			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL)
+			{
+				bool traverseChild0, traverseChild1, closestChild1;
+				int nodeAddrChild1;
+
+				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
+					&closestChild1, &nodeAddr, &nodeAddrChild1,
+					P, idir, isect->t, ~0, nodeAddr);
+
+				if(traverseChild0 != traverseChild1) {
+					/* one child was intersected */
+					if(traverseChild1) {
+						nodeAddr = nodeAddrChild1;
+					}
+				}
+				else {
+					if(!traverseChild0) {
+						/* neither child was intersected */
+						nodeAddr = traversalStack[stackPtr];
+						--stackPtr;
+					}
+					else {
+						/* both children were intersected, push the farther one */
+						if(closestChild1) {
+							int tmp = nodeAddr;
+							nodeAddr = nodeAddrChild1;
+							nodeAddrChild1 = tmp;
+						}
+
+						++stackPtr;
+						traversalStack[stackPtr] = nodeAddrChild1;
+					}
+				}
+			}
+
+			/* if node is leaf, fetch triangle list */
+			if(nodeAddr < 0) {
+				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_NODE_SIZE+(BVH_NODE_SIZE-1));
+				int primAddr = __float_as_int(leaf.x);
+
+#ifdef __INSTANCING__
+				if(primAddr >= 0) {
+#endif
+					int primAddr2 = __float_as_int(leaf.y);
+
+					/* pop */
+					nodeAddr = traversalStack[stackPtr];
+					--stackPtr;
+
+					/* primitive intersection */
+					while(primAddr < primAddr2) {
+						/* only primitives from the same object */
+						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
+
+						if(tri_object == subsurface_object) {
+							/* intersect ray against primitive */
+#ifdef __HAIR__
+							uint segment = kernel_tex_fetch(__prim_segment, primAddr);
+							if(segment == ~0) /* ignore hair for sss */
+#endif
+								bvh_triangle_intersect_subsurface(kg, isect, P, idir, object, primAddr, tmax, &num_hits, subsurface_random);
+						}
+
+						primAddr++;
+					}
+#ifdef __INSTANCING__
+				}
+				else {
+					/* instance push */
+					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
+						object = subsurface_object;
+						bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
+
+						++stackPtr;
+						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+
+						nodeAddr = kernel_tex_fetch(__object_node, object);
+					}
+				}
+#endif
+			}
+		} while(nodeAddr != ENTRYPOINT_SENTINEL);
+
+#ifdef __INSTANCING__
+		if(stackPtr >= 0) {
+			kernel_assert(object != ~0);
+
+			/* instance pop */
+			bvh_instance_pop(kg, object, ray, &P, &idir, &isect->t, tmax);
+			object = ~0;
+			nodeAddr = traversalStack[stackPtr];
+			--stackPtr;
+		}
+#endif
+	} while(nodeAddr != ENTRYPOINT_SENTINEL);
+
+	return num_hits;
+}
+
+#ifdef __OBJECT_MOTION__
+__device bool bvh_intersect_motion_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, float subsurface_random)
+{
+	/* traversal stack in CUDA thread-local memory */
+	int traversalStack[BVH_STACK_SIZE];
+	traversalStack[0] = ENTRYPOINT_SENTINEL;
+
+	/* traversal variables in registers */
+	int stackPtr = 0;
+	int nodeAddr = kernel_data.bvh.root;
+
+	/* ray parameters in registers */
+	const float tmax = ray->t;
+	float3 P = ray->P;
+	float3 idir = bvh_inverse_direction(ray->D);
+	int object = ~0;
+
+	int num_hits = 0;
+
+	Transform ob_tfm;
+
+	isect->t = tmax;
+	isect->object = ~0;
+	isect->prim = ~0;
+	isect->u = 0.0f;
+	isect->v = 0.0f;
+
+	/* traversal loop */
+	do {
+		do
+		{
+			/* traverse internal nodes */
+			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL)
+			{
+				bool traverseChild0, traverseChild1, closestChild1;
+				int nodeAddrChild1;
+
+				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
+					&closestChild1, &nodeAddr, &nodeAddrChild1,
+					P, idir, isect->t, ~0, nodeAddr);
+
+				if(traverseChild0 != traverseChild1) {
+					/* one child was intersected */
+					if(traverseChild1) {
+						nodeAddr = nodeAddrChild1;
+					}
+				}
+				else {
+					if(!traverseChild0) {
+						/* neither child was intersected */
+						nodeAddr = traversalStack[stackPtr];
+						--stackPtr;
+					}
+					else {
+						/* both children were intersected, push the farther one */
+						if(closestChild1) {
+							int tmp = nodeAddr;
+							nodeAddr = nodeAddrChild1;
+							nodeAddrChild1 = tmp;
+						}
+
+						++stackPtr;
+						traversalStack[stackPtr] = nodeAddrChild1;
+					}
+				}
+			}
+
+			/* if node is leaf, fetch triangle list */
+			if(nodeAddr < 0) {
+				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_NODE_SIZE+(BVH_NODE_SIZE-1));
+				int primAddr = __float_as_int(leaf.x);
+
+				if(primAddr >= 0) {
+					int primAddr2 = __float_as_int(leaf.y);
+
+					/* pop */
+					nodeAddr = traversalStack[stackPtr];
+					--stackPtr;
+
+					/* primitive intersection */
+					while(primAddr < primAddr2) {
+						/* only primitives from the same object */
+						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
+
+						if(tri_object == subsurface_object) {
+							/* intersect ray against primitive */
+#ifdef __HAIR__
+							uint segment = kernel_tex_fetch(__prim_segment, primAddr);
+							if(segment == ~0) /* ignore hair for sss */
+#endif
+								bvh_triangle_intersect_subsurface(kg, isect, P, idir, object, primAddr, tmax, &num_hits, subsurface_random);
+						}
+
+						primAddr++;
+					}
+				}
+				else {
+					/* instance push */
+					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
+						object = subsurface_object;
+						object = kernel_tex_fetch(__prim_object, -primAddr-1);
+						bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+
+						++stackPtr;
+						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+
+						nodeAddr = kernel_tex_fetch(__object_node, object);
+					}
+				}
+			}
+		} while(nodeAddr != ENTRYPOINT_SENTINEL);
+
+		if(stackPtr >= 0) {
+			kernel_assert(object != ~0);
+
+			/* instance pop */
+			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+			object = ~0;
+			nodeAddr = traversalStack[stackPtr];
+			--stackPtr;
+		}
+	} while(nodeAddr != ENTRYPOINT_SENTINEL);
+
+	return num_hits;
+}
+#endif
+
+__device_inline int scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, float subsurface_random)
+{
+#ifdef __OBJECT_MOTION__
+	if(kernel_data.bvh.have_motion)
+		return bvh_intersect_motion_subsurface(kg, ray, isect, subsurface_object, subsurface_random);
+	else
+		return bvh_intersect_subsurface(kg, ray, isect, subsurface_object, subsurface_random);
+#else
+	return bvh_intersect_subsurface(kg, ray, isect, subsurface_object, subsurface_random);
+#endif
+}
+
+
+
+/* Ray offset to avoid self intersection */
+
 __device_inline float3 ray_offset(float3 P, float3 Ng)
 {
 #ifdef __INTERSECTION_REFINE__
@@ -970,6 +1286,10 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 	return P + epsilon_f*Ng;
 #endif
 }
+
+/* Refine triangle intersection to more precise hit point. For rays that travel
+ * far the precision is often not so good, this reintersects the primitive from
+ * a closer distance. */
 
 __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray)
 {

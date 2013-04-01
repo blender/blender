@@ -54,6 +54,7 @@ Integrator::Integrator()
 	transmission_samples = 1;
 	ao_samples = 1;
 	mesh_light_samples = 1;
+	subsurface_samples = 1;
 	progressive = true;
 
 	need_update = true;
@@ -108,6 +109,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->transmission_samples = transmission_samples;
 	kintegrator->ao_samples = ao_samples;
 	kintegrator->mesh_light_samples = mesh_light_samples;
+	kintegrator->subsurface_samples = subsurface_samples;
 
 	/* sobol directions table */
 	int max_samples = 1;
@@ -163,6 +165,7 @@ bool Integrator::modified(const Integrator& integrator)
 		transmission_samples == integrator.transmission_samples &&
 		ao_samples == integrator.ao_samples &&
 		mesh_light_samples == integrator.mesh_light_samples &&
+		subsurface_samples == integrator.subsurface_samples &&
 		motion_blur == integrator.motion_blur);
 }
 

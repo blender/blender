@@ -200,5 +200,19 @@ __device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng)
 
 #endif
 
+__device float lcg_step(uint *rng)
+{
+	/* implicit mod 2^32 */
+	*rng = (1103515245*(*rng) + 12345);
+	return (float)*rng * (1.0f/(float)0xFFFFFFFF);
+}
+
+__device uint lcg_init(float seed)
+{
+	uint rng = __float_as_int(seed);
+	lcg_step(&rng);
+	return rng;
+}
+
 CCL_NAMESPACE_END
 

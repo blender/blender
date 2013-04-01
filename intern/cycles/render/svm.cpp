@@ -50,7 +50,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		return;
 
 	/* test if we need to update */
-	device_free(device, dscene);
+	device_free(device, dscene, scene);
 
 	/* determine which shaders are in use */
 	device_update_shaders_used(scene);
@@ -99,9 +99,9 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	need_update = false;
 }
 
-void SVMShaderManager::device_free(Device *device, DeviceScene *dscene)
+void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
 {
-	device_free_common(device, dscene);
+	device_free_common(device, dscene, scene);
 
 	device->tex_free(dscene->svm_nodes);
 	dscene->svm_nodes.clear();
@@ -486,6 +486,8 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 			current_shader->has_surface_emission = true;
 		if(node->has_surface_transparent())
 			current_shader->has_surface_transparent = true;
+		if(node->has_surface_bssrdf())
+			current_shader->has_surface_bssrdf = true;
 
 		/* end node is added outside of this */
 	}
@@ -546,6 +548,8 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			current_shader->has_surface_emission = true;
 		if(node->has_surface_transparent())
 			current_shader->has_surface_transparent = true;
+		if(node->has_surface_bssrdf())
+			current_shader->has_surface_bssrdf = true;
 	}
 
 	done.insert(node);
@@ -654,6 +658,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	shader->has_surface = false;
 	shader->has_surface_emission = false;
 	shader->has_surface_transparent = false;
+	shader->has_surface_bssrdf = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
 

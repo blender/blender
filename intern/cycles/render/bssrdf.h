@@ -16,41 +16,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __TABLES_H__
-#define __TABLES_H__
+#ifndef __BSSRDF_H__
+#define __BSSRDF_H__
 
-#include <util_list.h>
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
-class Device;
-class DeviceScene;
-class Scene;
-
-enum { TABLE_CHUNK_SIZE = 256 };
-enum { TABLE_OFFSET_INVALID = -1 };
-
-class LookupTables {
-public:
-	struct Table {
-		size_t offset;
-		size_t size;
-	};
-
-	bool need_update;
-	list<Table> lookup_tables;
-
-	LookupTables();
-	~LookupTables();
-
-	void device_update(Device *device, DeviceScene *dscene);
-	void device_free(Device *device, DeviceScene *dscene);
-
-	size_t add_table(DeviceScene *dscene, vector<float>& data);
-	void remove_table(size_t offset);
-};
+void bssrdf_table_build(vector<float>& table);
 
 CCL_NAMESPACE_END
 
-#endif /* __TABLES_H__ */
+#endif /* __BSSRDF_H__ */
 

@@ -201,6 +201,8 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bsdf_diffuse_toon_params(), closure_bsdf_diffuse_toon_prepare);
 	register_closure(ss, "specular_toon", id++,
 		closure_bsdf_specular_toon_params(), closure_bsdf_specular_toon_prepare);
+	register_closure(ss, "bssrdf_cubic", id++,
+		closure_bssrdf_params(), closure_bssrdf_prepare);
 }
 
 CCL_NAMESPACE_END

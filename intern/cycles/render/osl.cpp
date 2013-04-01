@@ -73,7 +73,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	if(!need_update)
 		return;
 
-	device_free(device, dscene);
+	device_free(device, dscene, scene);
 
 	/* determine which shaders are in use */
 	device_update_shaders_used(scene);
@@ -114,11 +114,11 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	device_update_common(device, dscene, scene, progress);
 }
 
-void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
+void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
 {
 	OSLGlobals *og = (OSLGlobals*)device->osl_memory();
 
-	device_free_common(device, dscene);
+	device_free_common(device, dscene, scene);
 
 	/* clear shader engine */
 	og->use = false;
@@ -328,6 +328,7 @@ const char *OSLShaderManager::shader_load_bytecode(const string& hash, const str
 	OSLShaderInfo info;
 	info.has_surface_emission = (bytecode.find("\"emission\"") != string::npos);
 	info.has_surface_transparent = (bytecode.find("\"transparent\"") != string::npos);
+	info.has_surface_bssrdf = (bytecode.find("\"bssrdf\"") != string::npos);
 	loaded_shaders[hash] = info;
 
 	return loaded_shaders.find(hash)->first.c_str();
@@ -511,6 +512,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 			current_shader->has_surface_emission = true;
 		if(info->has_surface_transparent)
 			current_shader->has_surface_transparent = true;
+		if(info->has_surface_bssrdf)
+			current_shader->has_surface_bssrdf = true;
 	}
 }
 
@@ -671,6 +674,8 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 						current_shader->has_surface_emission = true;
 					if(node->has_surface_transparent())
 						current_shader->has_surface_transparent = true;
+					if(node->has_surface_bssrdf())
+						current_shader->has_surface_bssrdf = true;
 				}
 				else
 					nodes_done = false;
@@ -736,6 +741,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 		shader->has_surface = false;
 		shader->has_surface_emission = false;
 		shader->has_surface_transparent = false;
+		shader->has_surface_bssrdf = false;
 		shader->has_volume = false;
 		shader->has_displacement = false;
 

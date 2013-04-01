@@ -187,6 +187,7 @@ public:
 
 	virtual bool has_surface_emission() { return false; }
 	virtual bool has_surface_transparent() { return false; }
+	virtual bool has_surface_bssrdf() { return false; }
 
 	vector<ShaderInput*> inputs;
 	vector<ShaderOutput*> outputs;

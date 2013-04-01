@@ -51,6 +51,7 @@ OSL::ClosureParam *closure_bsdf_diffuse_ramp_params();
 OSL::ClosureParam *closure_bsdf_phong_ramp_params();
 OSL::ClosureParam *closure_bsdf_diffuse_toon_params();
 OSL::ClosureParam *closure_bsdf_specular_toon_params();
+OSL::ClosureParam *closure_bssrdf_params();
 
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);
@@ -60,6 +61,7 @@ void closure_bsdf_diffuse_ramp_prepare(OSL::RendererServices *, int id, void *da
 void closure_bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_diffuse_toon_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_specular_toon_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bssrdf_prepare(OSL::RendererServices *, int id, void *data);
 
 enum {
 	AmbientOcclusion = 100

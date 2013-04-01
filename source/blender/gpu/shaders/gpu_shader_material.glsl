@@ -2074,6 +2074,11 @@ void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
+void node_subsurface_scattering(vec4 color, float roughness, vec3 N, out vec4 result)
+{
+	node_bsdf_diffuse(color, 0.0, N, result);
+}
+
 /* emission */
 
 void node_emission(vec4 color, float strength, vec3 N, out vec4 result)

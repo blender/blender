@@ -461,6 +461,7 @@ closure color emission() BUILTIN;
 closure color background() BUILTIN;
 closure color holdout() BUILTIN;
 closure color ambient_occlusion() BUILTIN;
+closure color bssrdf_cubic(normal N, vector radius) BUILTIN;
 
 // Renderer state
 int raytype (string typename) BUILTIN;

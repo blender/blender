@@ -24,6 +24,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Lookup Tables */
+
 LookupTables::LookupTables()
 {
 	need_update = true;
@@ -39,7 +41,7 @@ void LookupTables::device_update(Device *device, DeviceScene *dscene)
 	if(!need_update)
 		return;
 
-	device->tex_alloc("__lookup_table", dscene->lookup_table, true); // XXX interpolation
+	device->tex_alloc("__lookup_table", dscene->lookup_table);
 
 	need_update = false;
 }
@@ -73,6 +75,8 @@ size_t LookupTables::add_table(DeviceScene *dscene, vector<float>& data)
 			lookup_tables.insert(table, new_table);
 			break;
 		}
+		else
+			new_table.offset = table->offset + table->size;
 	}
 
 	if(table == lookup_tables.end()) {

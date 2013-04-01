@@ -83,6 +83,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "transmission_samples", text="Transmission")
             sub.prop(cscene, "ao_samples", text="AO")
             sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
+            sub.prop(cscene, "subsurface_samples", text="Subsurface")
 
 
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):

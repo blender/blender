@@ -57,19 +57,6 @@ template<typename T> struct texture  {
 	}
 #endif
 
-	float lookup(float x, int offset, int size)
-	{
-		kernel_assert(size == width);
-
-		x = clamp(x, 0.0f, 1.0f)*width;
-
-		int index = min((int)x, width-1);
-		int nindex = min(index+1, width-1);
-		float t = x - index;
-
-		return (1.0f - t)*data[index + offset] + t*data[nindex + offset];
-	}
-
 	T *data;
 	int width;
 };

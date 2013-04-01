@@ -99,7 +99,7 @@ void Scene::free_memory(bool final)
 
 		object_manager->device_free(device, &dscene);
 		mesh_manager->device_free(device, &dscene);
-		shader_manager->device_free(device, &dscene);
+		shader_manager->device_free(device, &dscene, this);
 		light_manager->device_free(device, &dscene);
 
 		particle_system_manager->device_free(device, &dscene);
@@ -186,7 +186,6 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	progress.set_status("Updating Particle Systems");
 	particle_system_manager->device_update(device, &dscene, this, progress);
-
 
 	if(progress.get_cancel()) return;
 

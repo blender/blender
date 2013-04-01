@@ -205,6 +205,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=1,
                 )
 
+        cls.subsurface_samples = IntProperty(
+                name="Subsurface Samples",
+                description="Number of subsurface scattering samples to render for each AA sample",
+                min=1, max=10000,
+                default=1,
+                )
+
         cls.no_caustics = BoolProperty(
                 name="No Caustics",
                 description="Leave out caustics, resulting in a darker image with less noise",

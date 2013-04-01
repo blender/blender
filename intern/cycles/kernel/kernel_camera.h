@@ -225,8 +225,8 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 {
 	/* pixel filter */
 	int filter_table_offset = kernel_data.film.filter_table_offset;
-	float raster_x = x + kernel_tex_lookup(__lookup_table, filter_u, filter_table_offset, FILTER_TABLE_SIZE);
-	float raster_y = y + kernel_tex_lookup(__lookup_table, filter_v, filter_table_offset, FILTER_TABLE_SIZE);
+	float raster_x = x + lookup_table_read(kg, filter_u, filter_table_offset, FILTER_TABLE_SIZE);
+	float raster_y = y + lookup_table_read(kg, filter_v, filter_table_offset, FILTER_TABLE_SIZE);
 
 #ifdef __CAMERA_MOTION__
 	/* motion blur */

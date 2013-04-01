@@ -198,11 +198,13 @@ public:
 
 class BsdfNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(BsdfNode)
+	BsdfNode(bool scattering = false);
+	SHADER_NODE_BASE_CLASS(BsdfNode);
 
 	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL);
 
 	ClosureType closure;
+	bool scattering;
 };
 
 class WardBsdfNode : public BsdfNode {
@@ -255,6 +257,12 @@ public:
 
 	ustring distribution;
 	static ShaderEnum distribution_enum;
+};
+
+class SubsurfaceScatteringNode : public BsdfNode {
+public:
+	SHADER_NODE_CLASS(SubsurfaceScatteringNode)
+	bool has_surface_bssrdf() { return true; }
 };
 
 class EmissionNode : public ShaderNode {

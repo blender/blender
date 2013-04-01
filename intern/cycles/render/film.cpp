@@ -250,7 +250,7 @@ Film::Film()
 
 	filter_type = FILTER_BOX;
 	filter_width = 1.0f;
-	filter_table_offset = -1;
+	filter_table_offset = TABLE_OFFSET_INVALID;
 
 	need_update = true;
 }
@@ -371,8 +371,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 void Film::device_free(Device *device, DeviceScene *dscene, Scene *scene)
 {
-	if(filter_table_offset != -1)
+	if(filter_table_offset != TABLE_OFFSET_INVALID) {
 		scene->lookup_tables->remove_table(filter_table_offset);
+		filter_table_offset = TABLE_OFFSET_INVALID;
+	}
 }
 
 bool Film::modified(const Film& film)

@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "bssrdf.h"
 #include "device.h"
 #include "graph.h"
 #include "light.h"
@@ -25,6 +26,7 @@
 #include "scene.h"
 #include "shader.h"
 #include "svm.h"
+#include "tables.h"
 
 #include "util_foreach.h"
 
@@ -46,6 +48,7 @@ Shader::Shader()
 	has_surface = false;
 	has_surface_transparent = false;
 	has_surface_emission = false;
+	has_surface_bssrdf = false;
 	has_volume = false;
 	has_displacement = false;
 
@@ -115,6 +118,7 @@ void Shader::tag_used(Scene *scene)
 ShaderManager::ShaderManager()
 {
 	need_update = true;
+	bssrdf_table_offset = TABLE_OFFSET_INVALID;
 }
 
 ShaderManager::~ShaderManager()
@@ -196,7 +200,8 @@ void ShaderManager::device_update_shaders_used(Scene *scene)
 
 void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
-	device_free_common(device, dscene);
+	device->tex_free(dscene->shader_flag);
+	dscene->shader_flag.clear();
 
 	if(scene->shaders.size() == 0)
 		return;
@@ -204,6 +209,7 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	uint shader_flag_size = scene->shaders.size()*4;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
+	bool has_surface_bssrdf = false;
 
 	foreach(Shader *shader, scene->shaders) {
 		uint flag = 0;
@@ -216,6 +222,8 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_HAS_VOLUME;
 		if(shader->homogeneous_volume)
 			flag |= SD_HOMOGENEOUS_VOLUME;
+		if(shader->has_surface_bssrdf)
+			has_surface_bssrdf = true;
 
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
@@ -224,10 +232,32 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
+
+	/* bssrdf lookup table */
+	KernelBSSRDF *kbssrdf = &dscene->data.bssrdf;
+
+	if(has_surface_bssrdf && bssrdf_table_offset == TABLE_OFFSET_INVALID) {
+		vector<float> table;
+
+		bssrdf_table_build(table);
+		bssrdf_table_offset = scene->lookup_tables->add_table(dscene, table);
+
+		kbssrdf->table_offset = (int)bssrdf_table_offset;
+		kbssrdf->num_attempts = BSSRDF_MAX_ATTEMPTS;
+	}
+	else if(!has_surface_bssrdf && bssrdf_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(bssrdf_table_offset);
+		bssrdf_table_offset = TABLE_OFFSET_INVALID;
+	}
 }
 
-void ShaderManager::device_free_common(Device *device, DeviceScene *dscene)
+void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
 {
+	if(bssrdf_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(bssrdf_table_offset);
+		bssrdf_table_offset = TABLE_OFFSET_INVALID;
+	}
+
 	device->tex_free(dscene->shader_flag);
 	dscene->shader_flag.clear();
 }

@@ -54,6 +54,7 @@ public:
 	int transmission_samples;
 	int ao_samples;
 	int mesh_light_samples;
+	int subsurface_samples;
 
 	bool progressive;
 
