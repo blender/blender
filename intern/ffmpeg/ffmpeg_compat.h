@@ -110,6 +110,16 @@ int av_opt_set_double(void *obj, const char *name, double val, int search_flags)
 #define AV_OPT_TYPE_FLOAT   FF_OPT_TYPE_FLOAT
 #endif
 
+#if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 54))
+static inline
+enum AVSampleFormat av_get_packed_sample_fmt(enum AVSampleFormat sample_fmt)
+{
+    if (sample_fmt < 0 || sample_fmt >= AV_SAMPLE_FMT_NB)
+        return AV_SAMPLE_FMT_NONE;
+    return sample_fmt;
+}
+#endif
+
 #if ((LIBAVFORMAT_VERSION_MAJOR < 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24) && (LIBAVFORMAT_VERSION_MICRO < 2)))
 #define avformat_close_input(x) av_close_input_file(*(x))
 #endif
