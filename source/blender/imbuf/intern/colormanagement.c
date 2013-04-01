@@ -2753,12 +2753,27 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
                                         const ColorManagedDisplaySettings *display_settings)
 {
+	ColorManagedViewSettings default_view_settings;
+	const ColorManagedViewSettings *applied_view_settings;
+
+	if (view_settings) {
+		applied_view_settings = view_settings;
+	}
+	else {
+		/* if no view settings were specified, use default display transformation
+		 * this happens for images which don't want to be displayed with render settings
+		 */
+
+		init_default_view_settings(display_settings,  &default_view_settings);
+		applied_view_settings = &default_view_settings;
+	}
+
 	/* RGB curves mapping is not supported on GPU yet. */
-	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
+	if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
 		return FALSE;
 
 	/* Make sure OCIO processor is up-to-date. */
-	update_glsl_display_processor(view_settings, display_settings);
+	update_glsl_display_processor(applied_view_settings, display_settings);
 
 	OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor);
 
