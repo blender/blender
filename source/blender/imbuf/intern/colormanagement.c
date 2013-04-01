@@ -1895,7 +1895,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		/* early out: no float buffer and byte buffer is already in display space,
 		 * let's just use if
 		 */
-		if (ibuf->rect_float == NULL && ibuf->rect_colorspace) {
+		if (ibuf->rect_float == NULL && ibuf->rect_colorspace && ibuf->channels == 4) {
 			if (is_ibuf_rect_in_display_space(ibuf, applied_view_settings, display_settings))
 				return (unsigned char *) ibuf->rect;
 		}
