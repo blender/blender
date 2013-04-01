@@ -29,14 +29,13 @@
  *  \ingroup bli
  */
 
-
+#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_gsqueue.h"
 #include "BLI_threads.h"
 

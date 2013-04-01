@@ -30,8 +30,8 @@
  */
 
 
+#include <stdlib.h>  /* malloc */
 #include <string.h>
-#include <stdio.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,9 +42,9 @@
 #include "zlib.h"
 
 #ifdef WIN32
-#ifdef __MINGW32__
-#include <ctype.h>
-#endif
+#  ifdef __MINGW32__
+#    include <ctype.h>
+#  endif
 #  include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
@@ -60,8 +60,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
 
 #include "MEM_sys_types.h" // for intptr_t support
 

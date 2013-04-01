@@ -30,12 +30,11 @@
  *  \ingroup bli
  */
 
-
-#include <stdarg.h>
+#include <stdlib.h>  /* malloc */
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_dynstr.h"
 
 #ifdef _WIN32
