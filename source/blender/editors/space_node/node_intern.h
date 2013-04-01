@@ -122,6 +122,7 @@ void NODE_OT_select_border(struct wmOperatorType *ot);
 void NODE_OT_select_lasso(struct wmOperatorType *ot);
 void NODE_OT_select_same_type(struct wmOperatorType *ot);
 void NODE_OT_select_same_type_step(struct wmOperatorType *ot);
+void NODE_OT_find_node(struct wmOperatorType *ot);
 
 /* node_view.c */
 int space_node_view_flag(struct bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag);
