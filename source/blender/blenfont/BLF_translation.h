@@ -138,6 +138,9 @@ const char *BLF_translate_do_new_dataname(const char *msgctxt, const char *msgid
 /* Default context for operator names/labels. */
 #define BLF_I18NCONTEXT_OPERATOR_DEFAULT "Operator"
 
+/* Mark the msgid applies to several elements (needed in some cases, as english adjectives have no plural mark. :( */
+#define BLF_I18NCONTEXT_PLURAL "Plural"
+
 /* ID-types contexts. */
 /* WARNING! Keep it in sync with idtypes in blenkernel/intern/idcode.c */
 #define BLF_I18NCONTEXT_ID_ACTION               "Action"
@@ -188,6 +191,7 @@ typedef struct
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT, "default_real"),                                                    \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT_BPYRNA, "default"),                                                  \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"),                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_PLURAL, "plural"),                                                           \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ACTION, "id_action"),                                                     \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ARMATURE, "id_armature"),                                                 \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_BRUSH, "id_brush"),                                                       \

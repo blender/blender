@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_edgeloop_fill.c
  *  \ingroup bmesh
+ *
+ * Fill discreet edge loop(s) with faces.
  */
 
 #include "MEM_guardedalloc.h"
@@ -54,6 +56,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 	const bool use_smooth  = BMO_slot_bool_get(op->slots_in, "use_smooth");
 
 	/* 'VERT_USED' will be disabled, so enable and fill the array */
+	i = 0;
 	BMO_ITER (e, &oiter, op->slots_in, "edges", BM_EDGE) {
 		BMIter viter;
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
@@ -61,7 +64,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 			if (BMO_elem_flag_test(bm, v, VERT_USED) == false) {
 				BMO_elem_flag_enable(bm, v, VERT_USED);
 				verts[i++] = v;
-				if (i > tote) {
+				if (i == tote) {
 					break;
 				}
 			}

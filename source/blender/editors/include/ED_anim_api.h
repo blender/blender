@@ -409,7 +409,7 @@ typedef struct bAnimChannelType {
 	 * with type being  sizeof(ptr_data) which should be fine for runtime use...
 	 *	- assume that setting has been checked to be valid for current context
 	 */
-	void *(*setting_ptr)(bAnimListElem * ale, int setting, short *type);
+	void *(*setting_ptr)(bAnimListElem *ale, int setting, short *type);
 } bAnimChannelType;
 
 /* ------------------------ Drawing API -------------------------- */

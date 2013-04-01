@@ -30,8 +30,8 @@
  */
 
 
+#include <stdlib.h>  /* malloc */
 #include <string.h>
-#include <stdio.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,10 +42,10 @@
 #include "zlib.h"
 
 #ifdef WIN32
-#ifdef __MINGW32__
-#include <ctype.h>
-#endif
-#include <io.h>
+#  ifdef __MINGW32__
+#    include <ctype.h>
+#  endif
+#  include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
 #  include "utf_winfunc.h"
@@ -60,8 +60,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
 
 #include "MEM_sys_types.h" // for intptr_t support
 
@@ -374,7 +377,7 @@ void BLI_dir_create_recursive(const char *dirname)
 	 * blah1/blah2 (without slash) */
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
-	lslash = BLI_last_slash(tmp);
+	lslash = (char *)BLI_last_slash(tmp);
 
 	if (lslash && (*(lslash + 1) == '\0')) {
 		*lslash = '\0';
@@ -385,7 +388,7 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	if (BLI_exists(tmp)) return;
 
-	lslash = BLI_last_slash(tmp);
+	lslash = (char *)BLI_last_slash(tmp);
 
 	if (lslash) {
 		/* Split about the last slash and recurse */

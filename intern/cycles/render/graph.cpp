@@ -365,6 +365,45 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 				}
 			}
 		}
+		
+		/* remove unused mix closure input when factor is 0.0 or 1.0 */
+		if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
+			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
+			/* Check for closure links and make sure factor link is disconnected */
+			if(mix->outputs[0]->links.size() && mix->inputs[1]->link && mix->inputs[2]->link && !mix->inputs[0]->link) {
+			
+				/* Factor 0.0 */
+				if(mix->inputs[0]->value.x == 0.0f) {
+					ShaderOutput *output = mix->inputs[1]->link;
+					vector<ShaderInput*> inputs = mix->outputs[0]->links;
+					
+					foreach(ShaderInput *sock, mix->inputs)
+					if(sock->link)
+						disconnect(sock);
+
+					foreach(ShaderInput *input, inputs) {
+						disconnect(input);
+						if (output)
+						connect(output, input);
+					}
+				}
+				/* Factor 1.0 */
+				else if (mix->inputs[0]->value.x == 1.0f) {
+					ShaderOutput *output = mix->inputs[2]->link;
+					vector<ShaderInput*> inputs = mix->outputs[0]->links;
+					
+					foreach(ShaderInput *sock, mix->inputs)
+					if(sock->link)
+						disconnect(sock);
+
+					foreach(ShaderInput *input, inputs) {
+						disconnect(input);
+						if (output)
+							connect(output, input);
+					}
+				}
+			}
+		}
 	}
 }
 

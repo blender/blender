@@ -29,9 +29,6 @@
  *  \ingroup edmesh
  */
 
-#define IN_EDITMESHBVH
-
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -39,17 +36,17 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-
 #include "BLI_math.h"
 #include "BLI_smallhash.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_tessmesh.h"
 
-#include "ED_mesh.h"
 #include "ED_view3d.h"
 
+#define IN_EDITMESHBVH     /* needed for typedef workaround */
 #include "editmesh_bvh.h"  /* own include */
+
 
 typedef struct BMBVHTree {
 	BMEditMesh *em;

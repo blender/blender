@@ -215,18 +215,18 @@ BLI_INLINE void bicubic_interpolation(const unsigned char *byte_buffer, const fl
 	}
 	else {
 		if (components == 1) {
-			byte_output[0] = out[0];
+			byte_output[0] = out[0] + 0.5f;
 		}
 		else if (components == 3) {
-			byte_output[0] = out[0];
-			byte_output[1] = out[1];
-			byte_output[2] = out[2];
+			byte_output[0] = out[0] + 0.5f;
+			byte_output[1] = out[1] + 0.5f;
+			byte_output[2] = out[2] + 0.5f;
 		}
 		else {
-			byte_output[0] = out[0];
-			byte_output[1] = out[1];
-			byte_output[2] = out[2];
-			byte_output[3] = out[3];
+			byte_output[0] = out[0] + 0.5f;
+			byte_output[1] = out[1] + 0.5f;
+			byte_output[2] = out[2] + 0.5f;
+			byte_output[3] = out[3] + 0.5f;
 		}
 	}
 }
@@ -322,18 +322,18 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 		a_b = a * b; ma_b = (1.0f - a) * b; a_mb = a * (1.0f - b); ma_mb = (1.0f - a) * (1.0f - b);
 
 		if (components == 1) {
-			byte_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
+			byte_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] + 0.5f;
 		}
 		else if (components == 3) {
-			byte_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
-			byte_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
-			byte_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
+			byte_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] + 0.5f;
+			byte_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] + 0.5f;
+			byte_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] + 0.5f;
 		}
 		else {
-			byte_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
-			byte_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
-			byte_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
-			byte_output[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
+			byte_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] + 0.5f;
+			byte_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] + 0.5f;
+			byte_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] + 0.5f;
+			byte_output[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3] + 0.5f;
 		}
 	}
 }

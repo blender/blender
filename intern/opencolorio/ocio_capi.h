@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+struct OCIO_GLSLDrawState;
+
 #define OCIO_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
 #define OCIO_ROLE_SCENE_LINEAR       "scene_linear"
@@ -118,6 +120,10 @@ void OCIO_matrixTransformSetValue(OCIO_MatrixTransformRcPtr *et, const float *m4
 void OCIO_matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt);
 
 void OCIO_matrixTransformScale(float * m44, float * offset4, const float * scale4);
+
+void OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor);
+void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state);
+void OCIO_freeOGLState(struct OCIO_GLSLDrawState *state);
 
 #ifdef __cplusplus
 }

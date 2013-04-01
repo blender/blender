@@ -30,7 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_dlrbTree.h"
 
 /* *********************************************** */

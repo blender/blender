@@ -409,6 +409,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     import ast
 
     bpy_struct = bpy.types.ID.__base__
+    i18n_contexts = bpy.app.translations.contexts
 
     root_paths = tuple(bpy.utils.resource_path(t) for t in ('USER', 'LOCAL', 'SYSTEM'))
     def make_rel(path):
@@ -445,7 +446,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             nds_ls.extend(nds)
         ret = _extract_string_merge(estr_ls, nds_ls)
         return ret
-    
+
     def extract_strings_split(node):
         """
         Returns a list args as returned by 'extract_strings()', But split into groups based on separate_nodes, this way
@@ -468,20 +469,33 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         return [_extract_string_merge(estr_ls, nds_ls) for estr_ls, nds_ls in bag]
 
 
+    i18n_ctxt_ids = {v for v in bpy.app.translations.contexts_C_to_py.values()}
     def _ctxt_to_ctxt(node):
-        return extract_strings(node)[0]
+        # We must try, to some extend, to get contexts from vars instead of only literal strings...
+        ctxt = extract_strings(node)[0]
+        if ctxt:
+            return ctxt
+        # Basically, we search for attributes matching py context names, for now.
+        # So non-literal contexts should be used that way:
+        #     i18n_ctxt = bpy.app.translations.contexts
+        #     foobar(text="Foo", text_ctxt=i18n_ctxt.id_object)
+        if type(node) == ast.Attribute:
+            if node.attr in i18n_ctxt_ids:
+                #print(node, node.attr, getattr(i18n_contexts, node.attr))
+                return getattr(i18n_contexts, node.attr)
+        return i18n_contexts.default
 
     def _op_to_ctxt(node):
         opname, _ = extract_strings(node)
         if not opname:
-            return settings.DEFAULT_CONTEXT
+            return i18n_contexts.default
         op = bpy.ops
         for n in opname.split('.'):
             op = getattr(op, n)
         try:
             return op.get_rna().bl_rna.translation_context
         except Exception as e:
-            default_op_context = bpy.app.translations.contexts.operator_default
+            default_op_context = i18n_contexts.operator_default
             print("ERROR: ", str(e))
             print("       Assuming default operator context '{}'".format(default_op_context))
             return default_op_context
@@ -492,7 +506,8 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     pgettext_variants = (
         ("pgettext", ("_",)),
         ("pgettext_iface", ("iface_",)),
-        ("pgettext_tip", ("tip_",))
+        ("pgettext_tip", ("tip_",)),
+        ("pgettext_data", ("data_",)),
     )
     pgettext_variants_args = {"msgid": (0, {"msgctxt": 1})}
 
@@ -858,9 +873,8 @@ def dump_addon_messages(module_name, messages_formats, do_checks, settings):
 
     # and make the diff!
     for key in minus_msgs:
-        if key == settings.PO_HEADER_KEY:
-            continue
-        del msgs[key]
+        if key != settings.PO_HEADER_KEY:
+            del msgs[key]
 
     if check_ctxt:
         for key in check_ctxt:
@@ -873,7 +887,7 @@ def dump_addon_messages(module_name, messages_formats, do_checks, settings):
 
     # get strings from UI layout definitions text="..." args
     reports["check_ctxt"] = check_ctxt
-    dump_messages_pytext(msgs, reports, addons, settings, addons_only=True)
+    dump_py_messages(msgs, reports, {addon}, settings, addons_only=True)
 
     print_info(reports, pot)
 

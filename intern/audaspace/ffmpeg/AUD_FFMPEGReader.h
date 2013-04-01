@@ -112,12 +112,17 @@ private:
 	int64_t m_membufferpos;
 
 	/**
+	 * Whether the audio data has to be interleaved after reading.
+	 */
+	bool m_tointerleave;
+
+	/**
 	 * Decodes a packet into the given buffer.
 	 * \param packet The AVPacket to decode.
 	 * \param buffer The target buffer.
 	 * \return The count of read bytes.
 	 */
-	int decode(AVPacket* packet, AUD_Buffer& buffer);
+	int decode(AVPacket& packet, AUD_Buffer& buffer);
 
 	/**
 	 * Initializes the object.

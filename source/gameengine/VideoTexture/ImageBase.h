@@ -92,9 +92,9 @@ public:
 	void setDepth(bool depth) { m_depth = depth; }
 
 	/// get source object
-	PyImage * getSource(const char * id);
+	PyImage * getSource(const char *id);
 	/// set source object, return true, if source was set
-	bool setSource(const char * id, PyImage *source);
+	bool setSource(const char *id, PyImage *source);
 
 	/// get pixel filter
 	PyFilter * getFilter(void) { return m_pyfilter; }
@@ -236,7 +236,7 @@ protected:
 	}
 
 	// template for specific filter preprocessing
-	template <class F, class SRC> void filterImage (F & filt, SRC srcBuff, short * srcSize)
+	template <class F, class SRC> void filterImage (F & filt, SRC srcBuff, short *srcSize)
 	{
 		// find first filter in chain
 		FilterBase * firstFilter = NULL;
@@ -280,14 +280,14 @@ class ImageSource
 {
 public:
 	/// constructor
-	ImageSource (const char * id);
+	ImageSource (const char *id);
 	/// destructor
 	virtual ~ImageSource (void);
 
 	/// get id
 	const char * getId (void) { return m_id; }
 	/// compare id to argument
-	bool is (const char * id);
+	bool is (const char *id);
 
 	/// get source object
 	PyImage * getSource (void) { return m_source; }
@@ -330,7 +330,7 @@ extern PyTypeList pyImageTypes;
 // object initialization
 template <class T> static int Image_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage *>(pySelf);
 	// create source object
 	if (self->m_image != NULL) delete self->m_image;
 	self->m_image = new T();
@@ -344,7 +344,7 @@ PyObject *Image_allocNew(PyTypeObject *type, PyObject *args, PyObject *kwds);
 void Image_dealloc(PyImage *self);
 
 // get image data
-PyObject *Image_getImage(PyImage *self, char * mode);
+PyObject *Image_getImage(PyImage *self, char *mode);
 // get image size
 PyObject *Image_getSize(PyImage *self, void *closure);
 // refresh image - invalidate current content
@@ -364,13 +364,13 @@ PyObject *Image_getSource(PyImage *self, PyObject *args);
 // set filter source object
 PyObject *Image_setSource(PyImage *self, PyObject *args);
 // get Z buffer
-PyObject *Image_getZbuff(PyImage * self, void *closure);
+PyObject *Image_getZbuff(PyImage *self, void *closure);
 // set Z buffer
-int Image_setZbuff(PyImage * self, PyObject *value, void *closure);
+int Image_setZbuff(PyImage *self, PyObject *value, void *closure);
 // get depth
-PyObject *Image_getDepth(PyImage * self, void *closure);
+PyObject *Image_getDepth(PyImage *self, void *closure);
 // set depth
-int Image_setDepth(PyImage * self, PyObject *value, void *closure);
+int Image_setDepth(PyImage *self, PyObject *value, void *closure);
  
 // get pixel filter object
 PyObject *Image_getFilter(PyImage *self, void *closure);

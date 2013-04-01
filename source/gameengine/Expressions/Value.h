@@ -222,7 +222,7 @@ public:
 
 	virtual CValue *ConvertPythonToValue(PyObject *pyobj, const char *error_prefix);
 	
-	static PyObject *pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject *pyattr_get_name(void *self, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	virtual PyObject *ConvertKeysToPython( void );
 #endif  /* WITH_PYTHON */

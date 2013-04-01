@@ -675,7 +675,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 		return;
 	}
 
-	lastd = bp->vertex_only? bv->offset : e->offset;
+	lastd = bp->vertex_only ? bv->offset : e->offset;
 	vm->boundstart = NULL;
 	do {
 		if (e->is_bev) {

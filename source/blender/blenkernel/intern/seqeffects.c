@@ -965,10 +965,13 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 			straight_uchar_to_premul_float(rt1, cp1);
 			straight_uchar_to_premul_float(rt2, cp2);
 
-			tempc[0] = rt1[0] - fac1 * rt2[0];
-			tempc[1] = rt1[1] - fac1 * rt2[1];
-			tempc[2] = rt1[2] - fac1 * rt2[2];
-			tempc[3] = rt1[3] - fac1 * rt2[3];
+			tempc[0] = max_ff(rt1[0] - fac1 * rt2[0], 0.0f);
+			tempc[1] = max_ff(rt1[1] - fac1 * rt2[1], 0.0f);
+			tempc[2] = max_ff(rt1[2] - fac1 * rt2[2], 0.0f);
+			tempc[3] = max_ff(rt1[3] - fac1 * rt2[3], 0.0f);
+
+			if (tempc[3] < 1e-6f)
+				tempc[3] = 0.0f;
 
 			premul_float_to_straight_uchar(rt, tempc);
 
@@ -984,10 +987,13 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 			straight_uchar_to_premul_float(rt1, cp1);
 			straight_uchar_to_premul_float(rt2, cp2);
 
-			tempc[0] = rt1[0] - fac3 * rt2[0];
-			tempc[1] = rt1[1] - fac3 * rt2[1];
-			tempc[2] = rt1[2] - fac3 * rt2[2];
-			tempc[3] = rt1[3] - fac3 * rt2[3];
+			tempc[0] = max_ff(rt1[0] - fac3 * rt2[0], 0.0f);
+			tempc[1] = max_ff(rt1[1] - fac3 * rt2[1], 0.0f);
+			tempc[2] = max_ff(rt1[2] - fac3 * rt2[2], 0.0f);
+			tempc[3] = max_ff(rt1[3] - fac3 * rt2[3], 0.0f);
+
+			if (tempc[3] < 1e-6f)
+				tempc[3] = 0.0f;
 
 			premul_float_to_straight_uchar(rt, tempc);
 
@@ -1011,22 +1017,34 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *r
 	fac3 = facf1;
 
 	while (y--) {
-		x = xo * 4;
+		x = xo;
 		while (x--) {
-			*rt = *rt1 - fac1 * (*rt2);
+			rt[0] = max_ff(rt1[0] - fac1 * rt2[0], 0.0f);
+			rt[1] = max_ff(rt1[1] - fac1 * rt2[1], 0.0f);
+			rt[2] = max_ff(rt1[2] - fac1 * rt2[2], 0.0f);
+			rt[3] = max_ff(rt1[3] - fac1 * rt2[3], 0.0f);
 
-			rt1++; rt2++; rt++;
+			if (rt[3] < 1e-6f)
+				rt[3] = 0.0f;
+
+			rt1 += 4; rt2 += 4; rt += 4;
 		}
 
 		if (y == 0)
 			break;
 		y--;
 
-		x = xo * 4;
+		x = xo;
 		while (x--) {
-			*rt = *rt1 - fac3 * (*rt2);
+			rt[0] = max_ff(rt1[0] - fac3 * rt2[0], 0.0f);
+			rt[1] = max_ff(rt1[1] - fac3 * rt2[1], 0.0f);
+			rt[2] = max_ff(rt1[2] - fac3 * rt2[2], 0.0f);
+			rt[3] = max_ff(rt1[3] - fac3 * rt2[3], 0.0f);
 
-			rt1++; rt2++; rt++;
+			if (rt[3] < 1e-6f)
+				rt[3] = 0.0f;
+
+			rt1 += 4; rt2 += 4; rt += 4;
 		}
 	}
 }

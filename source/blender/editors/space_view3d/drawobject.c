@@ -37,6 +37,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_world_types.h"
@@ -2660,9 +2661,9 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 	unsigned char col[4] = {0, 0, 0, 255}; /* color of the text to draw */
 	float area; /* area of the face */
 	float grid = unit->system ? unit->scale_length : v3d->grid;
-	const int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
-	const int do_global = v3d->flag & V3D_GLOBAL_STATS;
-	const int do_moving = G.moving;
+	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
+	const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
+	const bool do_moving = G.moving;
 
 	BMIter iter;
 	int i;
@@ -2703,10 +2704,61 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					               unit->system, B_UNIT_LENGTH, do_split, false);
 				}
 				else {
-					sprintf(numstr, conv_float, len_v3v3(v1, v2));
+					BLI_snprintf(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
 				}
 
 				view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
+			}
+		}
+	}
+
+	if (me->drawflag & ME_DRAWEXTRA_EDGEANG) {
+		const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
+		BMEdge *eed;
+
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
+
+		// invert_m4_m4(ob->imat, ob->obmat);  // this is already called
+
+		eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for (; eed; eed = BM_iter_step(&iter)) {
+			BMLoop *l_a, *l_b;
+			if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
+				/* draw selected edges, or edges next to selected verts while draging */
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
+				    (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ||
+				                   /* special case, this is useful to show when vertes connected to this edge via a
+				                    * face are being transformed */
+				                   BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT)       ||
+				                   BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
+				                   BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)
+				                   )))
+				{
+					float angle;
+					copy_v3_v3(v1, eed->v1->co);
+					copy_v3_v3(v2, eed->v2->co);
+
+					mid_v3_v3v3(vmid, v1, v2);
+
+					if (do_global) {
+						float no_a[3];
+						float no_b[3];
+						copy_v3_v3(no_a, l_a->f->no);
+						copy_v3_v3(no_b, l_b->f->no);
+						mul_mat3_m4_v3(ob->imat, no_a);
+						mul_mat3_m4_v3(ob->imat, no_b);
+						angle = angle_v3v3(no_a, no_b);
+					}
+					else {
+						angle = angle_normalized_v3v3(l_a->f->no, l_b->f->no);
+					}
+
+					BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
+
+					view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
+				}
 			}
 		}
 	}
@@ -2773,7 +2825,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 	if (me->drawflag & ME_DRAWEXTRA_FACEANG) {
 		BMFace *efa;
-		int is_rad = unit->system_rotation == USER_UNIT_ROT_RADIANS;
+		const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
@@ -2846,7 +2898,7 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-				sprintf(numstr, "%d", i);
+				BLI_snprintf(numstr, sizeof(numstr), "%d", i);
 				view3d_cached_text_draw_add(v->co, numstr, 0, txt_flag, col);
 			}
 			i++;
@@ -2858,7 +2910,7 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-				sprintf(numstr, "%d", i);
+				BLI_snprintf(numstr, sizeof(numstr), "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
 				view3d_cached_text_draw_add(pos, numstr, 0, txt_flag, col);
 			}
@@ -2872,7 +2924,7 @@ static void draw_em_indices(BMEditMesh *em)
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 				BM_face_calc_center_mean(f, pos);
-				sprintf(numstr, "%d", i);
+				BLI_snprintf(numstr, sizeof(numstr), "%d", i);
 				view3d_cached_text_draw_add(pos, numstr, 0, txt_flag, col);
 			}
 			i++;
@@ -3091,7 +3143,10 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			draw_dm_vert_normals(em, scene, ob, cageDM);
 		}
 
-		if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_FACEAREA | ME_DRAWEXTRA_FACEANG)) &&
+		if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN |
+		                     ME_DRAWEXTRA_FACEAREA |
+		                     ME_DRAWEXTRA_FACEANG |
+		                     ME_DRAWEXTRA_EDGEANG)) &&
 		    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
 			draw_em_measure_stats(v3d, ob, em, &scene->unit);
@@ -3148,7 +3203,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
-	const short is_obact = (ob == OBACT);
+	const bool is_obact = (ob == OBACT);
 	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if (!dm)
@@ -4485,15 +4540,15 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 						if (part->draw & PART_DRAW_NUM) {
 							if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype == PART_PHYS_BOIDS)) {
-								sprintf(val_pos, "%d:%.2f", a, pa_health);
+								BLI_snprintf(val_pos, sizeof(numstr), "%d:%.2f", a, pa_health);
 							}
 							else {
-								sprintf(val_pos, "%d", a);
+								BLI_snprintf(val_pos, sizeof(numstr), "%d", a);
 							}
 						}
 						else {
 							if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype == PART_PHYS_BOIDS)) {
-								sprintf(val_pos, "%.2f", pa_health);
+								BLI_snprintf(val_pos, sizeof(numstr), "%.2f", pa_health);
 							}
 						}
 
@@ -6368,7 +6423,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	short dtx;
 	char  dt;
 	short zbufoff = 0;
-	const short is_obact = (ob == OBACT);
+	const bool is_obact = (ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -6992,6 +7047,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* not for sets, duplicators or picking */
 	if (dflag == 0 && (v3d->flag & V3D_HIDE_HELPLINES) == 0 && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		ListBase *list;
+		RigidBodyCon *rbc = ob ? ob->rigidbody_constraint : NULL;
 		
 		/* draw hook center and offset line */
 		if (ob != scene->obedit) draw_hooks(ob);
@@ -7076,6 +7132,22 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 			
 			BKE_constraints_clear_evalob(cob);
+		}
+		/* draw rigid body constraint lines */
+		if (rbc) {
+			UI_ThemeColor(TH_WIRE);
+			setlinestyle(3);
+			glBegin(GL_LINES);
+			if (rbc->ob1) {
+				glVertex3fv(ob->obmat[3]);
+				glVertex3fv(rbc->ob1->obmat[3]);
+			}
+			if (rbc->ob2) {
+				glVertex3fv(ob->obmat[3]);
+				glVertex3fv(rbc->ob2->obmat[3]);
+			}
+			glEnd();
+			setlinestyle(0);
 		}
 	}
 

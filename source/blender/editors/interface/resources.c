@@ -309,6 +309,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = &ts->facedot_size; break;
 				case TH_DRAWEXTRA_EDGELEN:
 					cp = ts->extra_edge_len; break;
+				case TH_DRAWEXTRA_EDGEANG:
+					cp = ts->extra_edge_angle; break;
 				case TH_DRAWEXTRA_FACEAREA:
 					cp = ts->extra_face_area; break;
 				case TH_DRAWEXTRA_FACEANG:
@@ -772,6 +774,7 @@ void ui_theme_init_default(void)
 	btheme->tv3d.facedot_size = 4;
 
 	rgba_char_args_set(btheme->tv3d.extra_edge_len, 32, 0, 0, 255);
+	rgba_char_args_set(btheme->tv3d.extra_edge_angle, 32, 32, 0, 255);
 	rgba_char_args_set(btheme->tv3d.extra_face_area, 0, 32, 0, 255);
 	rgba_char_args_set(btheme->tv3d.extra_face_angle, 0, 0, 128, 255);
 

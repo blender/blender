@@ -272,7 +272,9 @@ project_eclipse:
 check_cppcheck:
 	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; \
-	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
+	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py 2> \
+	$(BLENDER_DIR)/check_cppcheck.txt
+	@echo "written: check_cppcheck.txt"
 
 check_clang_array:
 	$(CMAKE_CONFIG)

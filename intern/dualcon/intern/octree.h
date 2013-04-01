@@ -374,14 +374,14 @@ class Octree
 	/**
 	 * Functions to patch rings in a node
 	 */
-	Node *patch(Node * node, int st[3], int len, PathList * rings);
-	Node *patchSplit(Node * node, int st[3], int len, PathList * rings, int dir, PathList * &nrings1, PathList * &nrings2);
-	Node *patchSplitSingle(Node * node, int st[3], int len, PathElement * head, int dir, PathList * &nrings1, PathList * &nrings2);
-	Node *connectFace(Node * node, int st[3], int len, int dir, PathElement * f1, PathElement * f2);
-	Node *locateCell(InternalNode * node, int st[3], int len, int ori[3], int dir, int side, Node * &rleaf, int rst[3], int& rlen);
+	Node *patch(Node *node, int st[3], int len, PathList * rings);
+	Node *patchSplit(Node *node, int st[3], int len, PathList * rings, int dir, PathList * &nrings1, PathList * &nrings2);
+	Node *patchSplitSingle(Node *node, int st[3], int len, PathElement *head, int dir, PathList * &nrings1, PathList * &nrings2);
+	Node *connectFace(Node *node, int st[3], int len, int dir, PathElement * f1, PathElement * f2);
+	Node *locateCell(InternalNode *node, int st[3], int len, int ori[3], int dir, int side, Node * &rleaf, int rst[3], int& rlen);
 	void compressRing(PathElement *& ring);
 	void getFacePoint(PathElement *leaf, int dir, int& x, int& y, float& p, float& q);
-	LeafNode *patchAdjacent(InternalNode * node, int len, int st1[3], LeafNode * leaf1, int st2[3], LeafNode * leaf2, int walkdir, int inc, int dir, int side, float alpha);
+	LeafNode *patchAdjacent(InternalNode *node, int len, int st1[3], LeafNode * leaf1, int st2[3], LeafNode * leaf2, int walkdir, int inc, int dir, int side, float alpha);
 	int findPair(PathElement *head, int pos, int dir, PathElement *& pre1, PathElement *& pre2);
 	int getSide(PathElement *e, int pos, int dir);
 	int isEqual(PathElement *e1, PathElement *e2);
@@ -412,8 +412,8 @@ class Octree
 	/************************************************************************/
 	void floodFill();
 	void clearProcessBits(Node *node, int height);
-	int floodFill(LeafNode * leaf, int st[3], int len, int height, int threshold);
-	int floodFill(Node * node, int st[3], int len, int height, int threshold);
+	int floodFill(LeafNode *leaf, int st[3], int len, int height, int threshold);
+	int floodFill(Node *node, int st[3], int len, int height, int threshold);
 
 	/**
 	 * Write out polygon file
@@ -421,9 +421,9 @@ class Octree
 	void writeOut();
 
 	void countIntersection(Node *node, int height, int& nedge, int& ncell, int& nface);
-	void generateMinimizer(Node * node, int st[3], int len, int height, int& offset);
+	void generateMinimizer(Node *node, int st[3], int len, int height, int& offset);
 	void computeMinimizer(const LeafNode * leaf, int st[3], int len,
-						  float rvalue[3]) const;
+	                      float rvalue[3]) const;
 	/**
 	 * Traversal functions to generate polygon model
 	 * op: 0 for counting, 1 for writing OBJ, 2 for writing OFF, 3 for writing PLY

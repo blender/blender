@@ -35,6 +35,8 @@
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -680,6 +682,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "falloff");
 	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
 
 }

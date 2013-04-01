@@ -20,6 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_symmetrize.c
+ *  \ingroup bmesh
+ *
+ * Makes the mesh symmetrical by splitting along an axis and duplicating the geometry.
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"

@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_removedoubles.c
  *  \ingroup bmesh
+ *
+ * Welding and merging functionality.
  */
 
 #include "MEM_guardedalloc.h"
@@ -99,11 +101,11 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMVert *v, *v2;
-	BMEdge *e, *e2, **edges = NULL;
+	BMEdge *e, *e_new, **edges = NULL;
 	BLI_array_declare(edges);
-	BMLoop *l, *l2, **loops = NULL;
+	BMLoop *l, *l_new, **loops = NULL;
 	BLI_array_declare(loops);
-	BMFace *f, *f2;
+	BMFace *f, *f_new;
 	int a, b;
 	BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
 
@@ -180,10 +182,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 			}
 			
-			e2 = v != v2 ? BM_edge_exists(v, v2) : NULL;
-			if (e2) {
+			e_new = v != v2 ? BM_edge_exists(v, v2) : NULL;
+			if (e_new) {
 				for (b = 0; b < a; b++) {
-					if (edges[b] == e2) {
+					if (edges[b] == e_new) {
 						break;
 					}
 				}
@@ -194,7 +196,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				BLI_array_grow_one(edges);
 				BLI_array_grow_one(loops);
 
-				edges[a] = e2;
+				edges[a] = e_new;
 				loops[a] = l;
 
 				a++;
@@ -213,14 +215,14 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 		}
 		
-		f2 = BM_face_create_ngon(bm, v, v2, edges, a, BM_CREATE_NO_DOUBLE);
-		if (f2 && (f2 != f)) {
-			BM_elem_attrs_copy(bm, bm, f, f2);
+		f_new = BM_face_create_ngon(bm, v, v2, edges, a, BM_CREATE_NO_DOUBLE);
+		if (f_new && (f_new != f)) {
+			BM_elem_attrs_copy(bm, bm, f, f_new);
 
 			a = 0;
-			BM_ITER_ELEM (l, &liter, f2, BM_LOOPS_OF_FACE) {
-				l2 = loops[a];
-				BM_elem_attrs_copy(bm, bm, l2, l);
+			BM_ITER_ELEM (l, &liter, f_new, BM_LOOPS_OF_FACE) {
+				l_new = loops[a];
+				BM_elem_attrs_copy(bm, bm, l_new, l);
 
 				a++;
 			}

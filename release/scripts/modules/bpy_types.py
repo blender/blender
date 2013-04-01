@@ -729,6 +729,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                        self.preset_operator,
                        filter_ext=lambda ext: ext.lower() in {".py", ".xml"})
 
+
 class Region(StructRNA):
     __slots__ = ()
 
@@ -782,8 +783,10 @@ def gen_valid_identifier(seq):
         if ch == '_' or ch.isalpha() or ch.isdigit():
             yield ch
 
+
 def sanitize_identifier(name):
     return ''.join(gen_valid_identifier(name))
+
 
 def unique_identifier(name, identifier_list):
     # First some basic sanitation, to make a usable identifier string from the name
@@ -795,6 +798,7 @@ def unique_identifier(name, identifier_list):
         index += 1
         identifier = base + str(index)
     return identifier
+
 
 class RNAMetaNode(RNAMetaPropGroup):
     def __new__(cls, name, bases, classdict, **args):
@@ -846,7 +850,7 @@ class Node(StructRNA, metaclass=RNAMetaNode):
 
     @classmethod
     def poll(cls, ntree):
-	    return True
+        return True
 
 
 class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
@@ -870,17 +874,18 @@ class CompositorNode(Node):
 
     @classmethod
     def poll(cls, ntree):
-	    return ntree.bl_idname == 'CompositorNodeTree'
+        return ntree.bl_idname == 'CompositorNodeTree'
 
     def update(self):
         self.tag_need_exec()
+
 
 class ShaderNode(Node):
     __slots__ = ()
 
     @classmethod
     def poll(cls, ntree):
-	    return ntree.bl_idname == 'ShaderNodeTree'
+        return ntree.bl_idname == 'ShaderNodeTree'
 
 
 class TextureNode(Node):
@@ -888,5 +893,4 @@ class TextureNode(Node):
 
     @classmethod
     def poll(cls, ntree):
-	    return ntree.bl_idname == 'TextureNodeTree'
-
+        return ntree.bl_idname == 'TextureNodeTree'

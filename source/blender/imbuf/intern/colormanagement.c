@@ -102,6 +102,19 @@ typedef struct ColormanageProcessor {
 	int is_data_result;
 } ColormanageProcessor;
 
+static struct global_glsl_state {
+	/* Actual processor used for GLSL baked LUTs. */
+	OCIO_ConstProcessorRcPtr *processor;
+
+	/* Settings of processor for comparison. */
+	char view[MAX_COLORSPACE_NAME];
+	char display[MAX_COLORSPACE_NAME];
+	float exposure, gamma;
+
+	/* Container for GLSL state needed for OCIO module. */
+	struct OCIO_GLSLDrawState *ocio_glsl_state;
+} global_glsl_state;
+
 /*********************** Color managed cache *************************/
 
 /* Cache Implementation Notes
@@ -607,6 +620,12 @@ void colormanagement_init(void)
 
 void colormanagement_exit(void)
 {
+	if (global_glsl_state.processor)
+		OCIO_processorRelease(global_glsl_state.processor);
+
+	if (global_glsl_state.ocio_glsl_state)
+		OCIO_freeOGLState(global_glsl_state.ocio_glsl_state);
+
 	colormanage_free_config();
 }
 
@@ -1876,7 +1895,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		/* early out: no float buffer and byte buffer is already in display space,
 		 * let's just use if
 		 */
-		if (ibuf->rect_float == NULL && ibuf->rect_colorspace) {
+		if (ibuf->rect_float == NULL && ibuf->rect_colorspace && ibuf->channels == 4) {
 			if (is_ibuf_rect_in_display_space(ibuf, applied_view_settings, display_settings))
 				return (unsigned char *) ibuf->rect;
 		}
@@ -2690,4 +2709,88 @@ void IMB_colormanagement_processor_free(ColormanageProcessor *cm_processor)
 		OCIO_processorRelease(cm_processor->processor);
 
 	MEM_freeN(cm_processor);
+}
+
+/* **** OpenGL drawing routines using GLSL for color space transform ***** */
+
+static bool check_glsl_display_processor_changed(const ColorManagedViewSettings *view_settings,
+                                                 const ColorManagedDisplaySettings *display_settings)
+{
+	return !(global_glsl_state.exposure == view_settings->exposure &&
+	         global_glsl_state.gamma == view_settings->gamma &&
+	         STREQ(global_glsl_state.view, view_settings->view_transform) &&
+	         STREQ(global_glsl_state.display, display_settings->display_device));
+}
+
+static void update_glsl_display_processor(const ColorManagedViewSettings *view_settings,
+                                          const ColorManagedDisplaySettings *display_settings)
+{
+	/* Update state if there's no processor yet or
+	 * processor settings has been changed.
+	 */
+	if (global_glsl_state.processor == NULL ||
+	    check_glsl_display_processor_changed(view_settings, display_settings))
+	{
+		/* Store settings of processor for further comparison. */
+		strcpy(global_glsl_state.view, view_settings->view_transform);
+		strcpy(global_glsl_state.display, display_settings->display_device);
+		global_glsl_state.exposure = view_settings->exposure;
+		global_glsl_state.gamma = view_settings->gamma;
+
+		/* Free old processor, if any. */
+		if (global_glsl_state.processor)
+			OCIO_processorRelease(global_glsl_state.processor);
+
+		/* We're using display OCIO processor, no RGB curves yet. */
+		global_glsl_state.processor =
+			create_display_buffer_processor(global_glsl_state.view,
+			                                global_glsl_state.display,
+			                                global_glsl_state.exposure,
+			                                global_glsl_state.gamma);
+	}
+}
+
+int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
+                                        const ColorManagedDisplaySettings *display_settings)
+{
+	ColorManagedViewSettings default_view_settings;
+	const ColorManagedViewSettings *applied_view_settings;
+
+	if (view_settings) {
+		applied_view_settings = view_settings;
+	}
+	else {
+		/* if no view settings were specified, use default display transformation
+		 * this happens for images which don't want to be displayed with render settings
+		 */
+
+		init_default_view_settings(display_settings,  &default_view_settings);
+		applied_view_settings = &default_view_settings;
+	}
+
+	/* RGB curves mapping is not supported on GPU yet. */
+	if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
+		return FALSE;
+
+	/* Make sure OCIO processor is up-to-date. */
+	update_glsl_display_processor(applied_view_settings, display_settings);
+
+	OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor);
+
+	return TRUE;
+}
+
+int IMB_coloemanagement_setup_glsl_draw_from_ctx(const bContext *C)
+{
+	ColorManagedViewSettings *view_settings;
+	ColorManagedDisplaySettings *display_settings;
+
+	display_transform_get_from_ctx(C, &view_settings, &display_settings);
+
+	return IMB_coloemanagement_setup_glsl_draw(view_settings, display_settings);
+}
+
+void IMB_coloemanagement_finish_glsl_draw(void)
+{
+	OCIO_finishGLSLDraw(global_glsl_state.ocio_glsl_state);
 }

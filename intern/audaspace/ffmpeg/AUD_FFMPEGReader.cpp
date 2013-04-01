@@ -41,52 +41,64 @@ extern "C" {
 #include "ffmpeg_compat.h"
 }
 
-int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer& buffer)
+int AUD_FFMPEGReader::decode(AVPacket& packet, AUD_Buffer& buffer)
 {
-	// save packet parameters
-	uint8_t *audio_pkg_data = packet->data;
-	int audio_pkg_size = packet->size;
+	AVFrame* frame = NULL;
+	int got_frame;
+	int read_length;
+	uint8_t* orig_data = packet.data;
+	int orig_size = packet.size;
 
 	int buf_size = buffer.getSize();
 	int buf_pos = 0;
 
-	int read_length, data_size;
-
-	AVPacket tmp_pkt;
-	
-	av_init_packet(&tmp_pkt);
-
-	// as long as there is still data in the package
-	while(audio_pkg_size > 0)
+	while(packet.size > 0)
 	{
-		// resize buffer if needed
-		if(buf_size - buf_pos < AVCODEC_MAX_AUDIO_FRAME_SIZE)
-		{
-			buffer.resize(buf_size + AVCODEC_MAX_AUDIO_FRAME_SIZE, true);
-			buf_size += AVCODEC_MAX_AUDIO_FRAME_SIZE;
-		}
+		got_frame = 0;
 
-		// read samples from the packet
-		data_size = buf_size - buf_pos;
+		if(!frame)
+			frame = avcodec_alloc_frame();
+		else
+			avcodec_get_frame_defaults(frame);
 
-		tmp_pkt.data = audio_pkg_data;
-		tmp_pkt.size = audio_pkg_size;
-
-		read_length = avcodec_decode_audio3(
-			m_codecCtx,
-			(int16_t*)(((data_t*)buffer.getBuffer()) + buf_pos),
-			&data_size, &tmp_pkt);
-
-		// read error, next packet!
+		read_length = avcodec_decode_audio4(m_codecCtx, frame, &got_frame, &packet);
 		if(read_length < 0)
 			break;
 
-		buf_pos += data_size;
+		if(got_frame)
+		{
+			int data_size = av_samples_get_buffer_size(NULL, m_codecCtx->channels, frame->nb_samples, m_codecCtx->sample_fmt, 1);
 
-		// move packet parameters
-		audio_pkg_data += read_length;
-		audio_pkg_size -= read_length;
+			if(buf_size - buf_pos < data_size)
+			{
+				buffer.resize(buf_size + data_size, true);
+				buf_size += data_size;
+			}
+
+			if(m_tointerleave)
+			{
+				int single_size = data_size / m_codecCtx->channels / frame->nb_samples;
+				for(int channel = 0; channel < m_codecCtx->channels; channel++)
+				{
+					for(int i = 0; i < frame->nb_samples; i++)
+					{
+						memcpy(((data_t*)buffer.getBuffer()) + buf_pos + ((m_codecCtx->channels * i) + channel) * single_size,
+							   frame->data[channel] + i * single_size, single_size);
+					}
+				}
+			}
+			else
+				memcpy(((data_t*)buffer.getBuffer()) + buf_pos, frame->data[1], data_size);
+
+			buf_pos += data_size;
+		}
+		packet.size -= read_length;
+		packet.data += read_length;
 	}
+
+	packet.data = orig_data;
+	packet.size = orig_size;
+	av_free(frame);
 
 	return buf_pos;
 }
@@ -133,11 +145,6 @@ void AUD_FFMPEGReader::init()
 	if(!aCodec)
 		AUD_THROW(AUD_ERROR_FFMPEG, nodecoder_error);
 
-#ifdef FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
-	if(m_codecCtx->sample_fmt == AV_SAMPLE_FMT_S16P)
-		m_codecCtx->request_sample_fmt = AV_SAMPLE_FMT_S16;
-#endif
-
 	if(avcodec_open2(m_codecCtx, aCodec, NULL) < 0)
 		AUD_THROW(AUD_ERROR_FFMPEG, codecopen_error);
 
@@ -145,8 +152,9 @@ void AUD_FFMPEGReader::init()
 	//dump_format(m_formatCtx, 0, NULL, 0);
 
 	m_specs.channels = (AUD_Channels) m_codecCtx->channels;
+	m_tointerleave = av_sample_fmt_is_planar(m_codecCtx->sample_fmt);
 
-	switch(m_codecCtx->sample_fmt)
+	switch(av_get_packed_sample_fmt(m_codecCtx->sample_fmt))
 	{
 	case AV_SAMPLE_FMT_U8:
 		m_convert = AUD_convert_u8_float;
@@ -320,7 +328,7 @@ void AUD_FFMPEGReader::seek(int position)
 				if(packet.stream_index == m_stream)
 				{
 					// decode the package
-					m_pkgbuf_left = decode(&packet, m_pkgbuf);
+					m_pkgbuf_left = decode(packet, m_pkgbuf);
 					search = false;
 
 					// check position
@@ -405,7 +413,7 @@ void AUD_FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 		if(packet.stream_index == m_stream)
 		{
 			// decode the package
-			pkgbuf_pos = decode(&packet, m_pkgbuf);
+			pkgbuf_pos = decode(packet, m_pkgbuf);
 
 			// copy to output buffer
 			data_size = AUD_MIN(pkgbuf_pos, left * sample_size);

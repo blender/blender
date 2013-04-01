@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import contexts as i18n_contexts
 
 
 def ui_style_items(col, context):
@@ -528,7 +529,7 @@ class USERPREF_PT_system(Panel):
             if system.use_international_fonts:
                 column.prop(system, "language")
                 row = column.row()
-                row.label(text="Translate:", text_ctxt=bpy.app.translations.contexts.id_windowmanager)
+                row.label(text="Translate:", text_ctxt=i18n_contexts.id_windowmanager)
                 row = column.row(True)
                 row.prop(system, "use_translate_interface", text="Interface", toggle=True)
                 row.prop(system, "use_translate_tooltips", text="Tooltips", toggle=True)

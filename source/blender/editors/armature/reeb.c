@@ -52,9 +52,11 @@ static ReebGraph *FILTERED_RG = NULL;
  * SIGGRAPH 2007
  * 
  * */
- 
+
+#if 0
 #define DEBUG_REEB
 #define DEBUG_REEB_NODE
+#endif
 
 /* place-holders! */
 typedef struct EditEdge {

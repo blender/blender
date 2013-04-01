@@ -88,7 +88,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 7: /* Arc-Sine */
 		{
 			/* Can't do the impossible... */
-			if ( in0 <= 1 && in0 >= -1 )
+			if (in0 <= 1 && in0 >= -1)
 				*out= asin(in0);
 			else
 				*out= 0.0;
@@ -97,7 +97,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 8: /* Arc-Cosine */
 		{
 			/* Can't do the impossible... */
-			if ( in0 <= 1 && in0 >= -1 )
+			if (in0 <= 1 && in0 >= -1)
 				*out= acos(in0);
 			else
 				*out= 0.0;
@@ -111,7 +111,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
-			if ( in0 >= 0 ) {
+			if (in0 >= 0) {
 				out[0] = pow(in0, in1);
 			}
 			else {
@@ -128,7 +128,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 11: /* Logarithm */
 		{
 			/* Don't want any imaginary numbers... */
-			if ( in0 > 0  && in1 > 0 )
+			if (in0 > 0  && in1 > 0)
 				*out= log(in0) / log(in1);
 			else
 				*out= 0.0;
@@ -136,7 +136,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 12: /* Minimum */
 		{
-			if ( in0 < in1 )
+			if (in0 < in1)
 				*out= in0;
 			else
 				*out= in1;
@@ -144,7 +144,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 13: /* Maximum */
 		{
-			if ( in0 > in1 )
+			if (in0 > in1)
 				*out= in0;
 			else
 				*out= in1;
@@ -152,13 +152,13 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 14: /* Round */
 		{
-			*out= (in0<0)?(int)(in0 - 0.5f):(int)(in0 + 0.5f);
+			*out= (in0 < 0) ? (int)(in0 - 0.5f) : (int)(in0 + 0.5f);
 		}
 		break; 
 		
 	case 15: /* Less Than */
 		{
-			if ( in0 < in1 )
+			if (in0 < in1)
 				*out= 1.0f;
 			else
 				*out= 0.0f;
@@ -167,7 +167,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		
 	case 16: /* Greater Than */
 		{
-			if ( in0 > in1 )
+			if (in0 > in1)
 				*out= 1.0f;
 			else
 				*out= 0.0f;

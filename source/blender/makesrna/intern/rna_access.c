@@ -6194,8 +6194,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 				int *array_a, *array_b;
 				int equals;
 
-				array_a = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_a;
-				array_b = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_b;
+				array_a = (len > 16) ? MEM_callocN(sizeof(int) * len, "RNA equals") : fixed_a;
+				array_b = (len > 16) ? MEM_callocN(sizeof(int) * len, "RNA equals") : fixed_b;
 
 				RNA_property_boolean_get_array(a, prop, array_a);
 				RNA_property_boolean_get_array(b, prop, array_b);
@@ -6220,8 +6220,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 				int *array_a, *array_b;
 				int equals;
 
-				array_a = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_a;
-				array_b = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_b;
+				array_a = (len > 16) ? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_a;
+				array_b = (len > 16) ? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_b;
 
 				RNA_property_int_get_array(a, prop, array_a);
 				RNA_property_int_get_array(b, prop, array_b);
@@ -6246,8 +6246,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 				float *array_a, *array_b;
 				int equals;
 
-				array_a = (len > 16)? MEM_callocN(sizeof(float) * len, "RNA equals"): fixed_a;
-				array_b = (len > 16)? MEM_callocN(sizeof(float) * len, "RNA equals"): fixed_b;
+				array_a = (len > 16) ? MEM_callocN(sizeof(float) * len, "RNA equals") : fixed_a;
+				array_b = (len > 16) ? MEM_callocN(sizeof(float) * len, "RNA equals") : fixed_b;
 
 				RNA_property_float_get_array(a, prop, array_a);
 				RNA_property_float_get_array(b, prop, array_b);

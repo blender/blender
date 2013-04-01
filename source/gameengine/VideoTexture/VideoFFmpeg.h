@@ -79,9 +79,9 @@ public:
 	/// set initial parameters
 	void initParams (short width, short height, float rate, bool image=false);
 	/// open video/image file
-	virtual void openFile (char * file);
+	virtual void openFile(char *file);
 	/// open video capture device
-	virtual void openCam (char * driver, short camIdx);
+	virtual void openCam(char *driver, short camIdx);
 
 	/// release video source
 	virtual bool release (void);

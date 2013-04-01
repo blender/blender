@@ -75,6 +75,37 @@ void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src);
 /* create a generic list node containing link to provided data */
 struct LinkData *BLI_genericNodeN(void *data);
 
+/**
+ * Does a full loop on the list, with any value acting as first
+ * (handy for cycling items)
+ *
+ * \code{.c}
+ *
+ * LISTBASE_CIRCULAR_FORWARD_BEGIN (listbase, item, item_init) {
+ *     ...operate on marker...
+ * }
+ * LISTBASE_CIRCULAR_FORWARD_END (listbase, item, item_init);
+ *
+ * \endcode
+ */
+#define LISTBASE_CIRCULAR_FORWARD_BEGIN(lb, lb_iter, lb_init) \
+if ((lb)->first && (lb_init || (lb_init = (lb)->first))) { \
+	lb_iter = lb_init; \
+	do {
+#define LISTBASE_CIRCULAR_FORWARD_END(lb, lb_iter, lb_init) \
+	} while ((lb_iter  = (lb_iter)->next ? (lb_iter)->next : (lb)->first), \
+	         (lb_iter != lb_init)); \
+}
+
+#define LISTBASE_CIRCULAR_BACKWARD_BEGIN(lb, lb_iter, lb_init) \
+if ((lb)->last && (lb_init || (lb_init = (lb)->last))) { \
+	lb_iter = lb_init; \
+	do {
+#define LISTBASE_CIRCULAR_BACKWARD_END(lb, lb_iter, lb_init) \
+	} while ((lb_iter  = (lb_iter)->prev ? (lb_iter)->prev : (lb)->last), \
+	         (lb_iter != lb_init)); \
+}
+
 #ifdef __cplusplus
 }
 #endif

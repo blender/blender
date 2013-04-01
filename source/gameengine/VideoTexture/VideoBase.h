@@ -66,13 +66,13 @@ public:
 	virtual ~VideoBase (void) {}
 
 	/// open video file
-	virtual void openFile (char * file)
+	virtual void openFile(char *file)
 	{
 		m_isFile = true;
 		m_status = SourceReady;
 	}
 	/// open video capture device
-	virtual void openCam (char * file, short camIdx)
+	virtual void openCam(char *file, short camIdx)
 	{
 		m_isFile = false;
 		m_status = SourceReady;
@@ -186,7 +186,7 @@ template <class T> void Video_init(PyImage *self)
 
 
 // video functions
-void      Video_open(VideoBase * self, char * file, short captureID);
+void      Video_open(VideoBase *self, char *file, short captureID);
 PyObject *Video_play(PyImage *self);
 PyObject *Video_pause(PyImage *self);
 PyObject *Video_stop(PyImage *self);

@@ -691,7 +691,8 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		calculateMemreqEstimate( mSizex, mSizey, mSizez, 
 				mMaxRefine, mFarFieldSize, &memEstFromFunc, &memEstFine, &memreqStr );
 		
-		double memLimit;
+		bool noLimit = false;
+		double memLimit = 0.;
 		string memLimStr("-");
 		if(sizeof(void*)==4) {
 			// 32bit system, limit to 2GB
@@ -699,8 +700,9 @@ bool LbmFsgrSolver::initializeSolverMemory()
 			memLimStr = string("2GB");
 		} else {
 			// 64bit, just take 16GB as limit for now...
-			memLimit = 16.0* 1024.0*1024.0*1024.0;
-			memLimStr = string("16GB");
+			// memLimit = 16.0* 1024.0*1024.0*1024.0;
+			// memLimStr = string("16GB");
+			noLimit = true;
 		}
 
 		// restrict max. chunk of 1 mem block to 1GB for windos
@@ -724,7 +726,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 			memBlockAllocProblem = true;
 		}
 
-		if(memEstFromFunc>memLimit || memBlockAllocProblem) {
+		if(!noLimit && (memEstFromFunc>memLimit || memBlockAllocProblem)) {
 			sizeReduction *= 0.9;
 			mSizex = (int)(orgSx * sizeReduction);
 			mSizey = (int)(orgSy * sizeReduction);

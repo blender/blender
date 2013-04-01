@@ -61,7 +61,7 @@
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
-#include "mesh_intern.h"
+#include "mesh_intern.h"  /* own include */
 
 
 static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)

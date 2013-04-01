@@ -39,6 +39,7 @@ struct Main;
 struct Mask;
 struct MovieClip;
 struct SpaceClip;
+struct Scene;
 
 /*  ** clip_editor.c ** */
 
@@ -80,12 +81,6 @@ void ED_space_clip_set_clip(struct bContext *C, struct bScreen *screen, struct S
 
 struct Mask *ED_space_clip_get_mask(struct SpaceClip *sc);
 void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask);
-
-/* textures buffer */
-int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
-int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf, const unsigned char *display_buffer);
-void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
-void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
 
 /* ** clip_ops.c ** */
 void ED_operatormacros_clip(void);

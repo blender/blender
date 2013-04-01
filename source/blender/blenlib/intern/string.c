@@ -490,22 +490,20 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 	return 0;
 }
 
-void BLI_timestr(double _time, char *str)
+void BLI_timestr(double _time, char *str, size_t maxlen)
 {
 	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
 	int  hr = ( (int)  _time) / (60 * 60);
 	int min = (((int)  _time) / 60 ) % 60;
-	int sec = ( (int) (_time)) % 60;
+	int sec = ( (int)  _time) % 60;
 	int hun = ( (int) (_time   * 100.0)) % 100;
-	
+
 	if (hr) {
-		sprintf(str, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
+		BLI_snprintf(str, maxlen, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
 	}
 	else {
-		sprintf(str, "%.2d:%.2d.%.2d", min, sec, hun);
+		BLI_snprintf(str, maxlen, "%.2d:%.2d.%.2d", min, sec, hun);
 	}
-	
-	str[11] = 0;
 }
 
 /* determine the length of a fixed-size string */

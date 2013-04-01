@@ -697,13 +697,6 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
-            if(brush.use_relative_jitter):
-                row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
-                row.prop(brush, "jitter", slider=True)
-            else:
-                row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
-                row.prop(brush, "jitter_absolute")
-            row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             col.prop(brush, "blend", text="Blend")
 
@@ -728,15 +721,23 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
         brush_texture_settings(col, brush, 0)
 
+        # use_texture_overlay and texture_overlay_alpha
+        col = layout.column(align=True)
+        col.active = brush.brush_capabilities.has_overlay
+        col.label(text="Overlay:")
+
+        row = col.row()
+        if brush.use_texture_overlay:
+            row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
+        else:
+            row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+        sub = row.row()
+        sub.prop(brush, "texture_overlay_alpha", text="Alpha")
+
 
 class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        brush = context.tool_settings.image_paint.brush
-        tex_slot_alpha = brush.mask_texture_slot
-        self.layout.prop(brush, 'use_mask', text="")
 
     def draw(self, context):
         layout = self.layout
@@ -778,32 +779,52 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
-        
+
         col = layout.column()
         col.prop(toolsettings, "input_samples")
 
-        col.prop(brush, "use_airbrush")
-        row = col.row()
-        row.active = brush.use_airbrush
-        row.prop(brush, "rate", slider=True)
+        col = layout.column()
 
+        col.label(text="Stroke Method:")
+        
+        col.prop(brush, "stroke_method", text="")
+
+        if brush.use_anchor:
+            col.separator()
+            col.prop(brush, "use_edge_to_edge", "Edge To Edge")
+
+        if brush.use_airbrush:
+            col.separator()
+            col.prop(brush, "rate", text="Rate", slider=True)
+
+        if brush.use_space:
+            col.separator()
+            row = col.row(align=True)
+            row.active = brush.use_space
+            row.prop(brush, "spacing", text="Spacing")
+            row.prop(brush, "use_pressure_spacing", toggle=True, text="")
+
+
+        col = layout.column()
         col.separator()
 
         col.prop(brush, "use_smooth_stroke")
 
-        col = layout.column()
-        col.active = brush.use_smooth_stroke
-        col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
-        col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+        sub = col.column()
+        sub.active = brush.use_smooth_stroke
+        sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+        sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
         col.separator()
 
-        col = layout.column()
-        col.prop(brush, "use_space")
         row = col.row(align=True)
-        row.active = brush.use_space
-        row.prop(brush, "spacing", text="Distance", slider=True)
-        row.prop(brush, "use_pressure_spacing", toggle=True, text="")
+        if brush.use_relative_jitter:
+            row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
+            row.prop(brush, "jitter", slider=True)
+        else:
+            row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
+            row.prop(brush, "jitter_absolute")
+        row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
         col.prop(brush, "use_wrap")
 

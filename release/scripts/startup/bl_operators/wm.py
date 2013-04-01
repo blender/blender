@@ -830,7 +830,7 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
                 rna = "bpy.ops.%s.%s" % (class_name, class_prop)
         else:
             rna_class = getattr(bpy.types, class_name)
-            
+
             # an operator setting (selected from a running operator), rare case
             # note: Py defined operators are subclass of Operator,
             #       C defined operators are subclass of OperatorProperties.
@@ -1273,11 +1273,15 @@ class WM_OT_copy_prev_settings(Operator):
         else:
             shutil.copytree(path_src, path_dst, symlinks=True)
 
+            # reload recent-files.txt
+            bpy.ops.wm.read_history()
+
             # don't loose users work if they open the splash later.
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
             else:
                 self.report({'INFO'}, "Reload Start-Up file to restore settings")
+
             return {'FINISHED'}
 
         return {'CANCELLED'}

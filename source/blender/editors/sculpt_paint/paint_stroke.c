@@ -174,10 +174,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		ups->pixel_radius *= stroke->cached_pressure;
 	}
 
-	if (!(brush->flag & BRUSH_ANCHORED ||
-	      ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
-	            SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)))
-	{
+	if (paint_supports_dynamic_tex_coords(brush, mode)) {
 		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
 		    (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
 		    !(brush->flag & BRUSH_RAKE))
@@ -188,7 +185,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 				ups->brush_rotation = 0.0f;
 		}
 
-		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM))
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)
 			BKE_brush_randomize_texture_coordinates(ups);
 		else
 			copy_v2_v2(ups->tex_mouse, mouse);
@@ -281,9 +278,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 
 	paint_brush_update(C, brush, mode, stroke, mouse_in, pressure);
 
-	/* TODO: as sculpt and other paint modes are unified, this
-	 * separation will go away */
-	if (paint_supports_jitter(mode)) {
+	{
 		float delta[2];
 		float factor = stroke->zoom_2d;
 
@@ -300,9 +295,6 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 			mul_v2_fl(delta, factor);
 			add_v2_v2v2(mouse_out, mouse_in, delta);
 		}
-	}
-	else {
-		copy_v2_v2(mouse_out, mouse_in);
 	}
 
 	/* TODO: can remove the if statement once all modes have this */
@@ -526,11 +518,6 @@ bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 			;
 		}
 	return true;
-}
-
-bool paint_supports_jitter(PaintMode mode)
-{
-	return ELEM3(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
 }
 
 #define PAINT_STROKE_MODAL_CANCEL 1

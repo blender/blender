@@ -1070,7 +1070,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			sce->gm.dome.warptext = sce->r.dometext;
 
 			/* Stand Alone */
-			sce->gm.playerflag |= (sce->r.fullscreen?GAME_PLAYER_FULLSCREEN:0);
+			sce->gm.playerflag |= (sce->r.fullscreen ? GAME_PLAYER_FULLSCREEN : 0);
 			sce->gm.xplay = sce->r.xplay;
 			sce->gm.yplay = sce->r.yplay;
 			sce->gm.freqplay = sce->r.freqplay;

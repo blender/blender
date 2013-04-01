@@ -1831,7 +1831,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			 * glaDrawPixelsSafe in some cases, which will end up in misssing
 			 * alpha transparency for the background image (sergey)
 			 */
-			glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect);
+			glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
 
 			glPixelZoom(1.0, 1.0);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);

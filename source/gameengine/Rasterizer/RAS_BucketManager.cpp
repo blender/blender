@@ -254,7 +254,7 @@ void RAS_BucketManager::Renderbuckets(
 	rendertools->SetClientObject(rasty, NULL);
 }
 
-RAS_MaterialBucket* RAS_BucketManager::FindBucket(RAS_IPolyMaterial * material, bool &bucketCreated)
+RAS_MaterialBucket *RAS_BucketManager::FindBucket(RAS_IPolyMaterial *material, bool &bucketCreated)
 {
 	BucketList::iterator it;
 

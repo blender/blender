@@ -115,7 +115,7 @@ static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
 			if (recalc_flags & COM_RECALC_COMPOSITE)
 				node->flag |= NODE_DO_OUTPUT_RECALC;
 		}
-		else if (node->type == CMP_NODE_VIEWER) {
+		else if (node->type == CMP_NODE_VIEWER || node->type == CMP_NODE_SPLITVIEWER) {
 			if (recalc_flags & COM_RECALC_VIEWER)
 				node->flag |= NODE_DO_OUTPUT_RECALC;
 		}
@@ -2364,7 +2364,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 
 	RE_engine_free(engine);
 
-	return (found)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+	return (found) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void NODE_OT_shader_script_update(wmOperatorType *ot)

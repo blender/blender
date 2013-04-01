@@ -309,7 +309,7 @@ static inline void swapfunc(char* a, char* b, int n, int swaptype)
 #define vecswap(a, b, n) 	if ((n) > 0) swapfunc(a, b, n, swaptype)
 #define	CMP(t, x, y) (cmp((t), (x), (y)))
 
-static inline char * med3(char *a, char *b, char *c, cmp_t *cmp, void *thunk)
+static inline char *med3(char *a, char *b, char *c, cmp_t *cmp, void *thunk)
 {
 	return CMP(thunk, a, b) < 0 ?
 		(CMP(thunk, b, c) < 0 ? b : (CMP(thunk, a, c) < 0 ? c : a ))

@@ -22,6 +22,9 @@
 
 /** \file blender/bmesh/operators/bmo_unsubdivide.c
  *  \ingroup bmesh
+ *
+ * Pattern based geometry reduction which has the result similar to undoing
+ * a subdivide operation.
  */
 
 #include "BLI_math.h"

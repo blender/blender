@@ -1017,24 +1017,35 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 /* ************************** selection ************************************/
 
 /* select/deselect TimeMarker at current frame */
-static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned char shift)
+static void select_timeline_marker_frame(ListBase *markers, int frame, bool extend)
 {
-	TimeMarker *marker;
-	int select = 0;
-	
+	TimeMarker *marker, *marker_first = NULL;
+
+	/* support for selection cycling */
 	for (marker = markers->first; marker; marker = marker->next) {
-		/* if Shift is not set, then deselect Markers */
-		if (!shift) marker->flag &= ~SELECT;
-		
-		/* this way a not-shift select will allways give 1 selected marker */
-		if ((marker->frame == frame) && (!select)) {
-			if (marker->flag & SELECT) 
-				marker->flag &= ~SELECT;
-			else
-				marker->flag |= SELECT;
-			select = 1;
+		if (marker->frame == frame) {
+			if (marker->flag & SELECT) {
+				marker_first = marker->next;
+				break;
+			}
 		}
 	}
+
+	/* if extend is not set, then deselect markers */
+	if (extend == false) {
+		for (marker = markers->first; marker; marker = marker->next) {
+			marker->flag &= ~SELECT;
+		}
+	}
+
+	LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_first) {
+		/* this way a not-extend select will allways give 1 selected marker */
+		if (marker->frame == frame) {
+			marker->flag ^= SELECT;
+			break;
+		}
+	}
+	LISTBASE_CIRCULAR_FORWARD_END (markers, marker, marker_first);
 }
 
 static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool camera)
@@ -1121,6 +1132,8 @@ static int ed_marker_select_invoke_wrapper(bContext *C, wmOperator *op, const wm
 
 static void MARKER_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Time Marker";
 	ot->description = "Select time marker(s)";
@@ -1133,9 +1146,11 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #ifdef DURIAN_CAMERA_SWITCH
-	RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+	prop = RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #endif
 }
 

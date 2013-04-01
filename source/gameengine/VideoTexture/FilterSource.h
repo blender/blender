@@ -49,7 +49,7 @@ public:
 
 protected:
 	/// filter pixel, source byte buffer
-	virtual unsigned int filter (unsigned char * src, short x, short y,
+	virtual unsigned int filter (unsigned char *src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
 	{ VT_RGBA(val,src[0],src[1],src[2],0xFF); return val; }
 };
@@ -68,7 +68,7 @@ public:
 
 protected:
 	/// filter pixel, source byte buffer
-	virtual unsigned int filter (unsigned char * src, short x, short y,
+	virtual unsigned int filter (unsigned char *src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
 	{ 
 		if ((intptr_t(src)&0x3) == 0) 
@@ -95,8 +95,8 @@ public:
 
 protected:
 	/// filter pixel, source byte buffer
-	virtual unsigned int filter (unsigned char * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val)
+	virtual unsigned int filter (unsigned char *src, short x, short y,
+	                             short * size, unsigned int pixSize, unsigned int val)
 	{ VT_RGBA(val,src[2],src[1],src[0],0xFF); return val; }
 };
 
@@ -114,11 +114,11 @@ public:
 
 protected:
 	/// filter pixel, source float buffer
-	virtual unsigned int filter (float * src, short x, short y,
+	virtual unsigned int filter (float *src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
 	{
 		// calculate gray value
-        // convert float to unsigned char
+		// convert float to unsigned char
 		unsigned int depth = int(src[0] * 255);
 		// return depth scale value
 		VT_R(val) = depth;
@@ -145,8 +145,8 @@ public:
 
 protected:
 	/// filter pixel, source float buffer
-	virtual unsigned int filter (float * src, short x, short y,
-	                             short * size, unsigned int pixSize, unsigned int val)
+	virtual unsigned int filter (float *src, short x, short y,
+	                             short *size, unsigned int pixSize, unsigned int val)
 	{
 		/* Copy the float value straight away
 		 * The user can retrieve the original float value by using
@@ -193,59 +193,59 @@ protected:
 	{ return (9 * (b + c) - a - d + 8) >> 4; }
 
 	/// common horizontal interpolation
-	int interpolH (unsigned char * src)
+	int interpolH (unsigned char *src)
 	{ return interpol(*(src-1), *src, *(src+1), *(src+2)); }
 
 	/// common vertical interpolation
-	int interpolV (unsigned char * src)
+	int interpolV (unsigned char *src)
 	{ return interpol(*(src-m_pitchUV), *src, *(src+m_pitchUV), *(src+2*m_pitchUV)); }
 
 	/// common joined vertical and horizontal interpolation
-	int interpolVH (unsigned char * src)
+	int interpolVH (unsigned char *src)
 	{
 		return interpol(interpolV(src-1), interpolV(src), interpolV(src+1),
-			interpolV(src+2));
+		                interpolV(src+2));
 	}
 
 	/// is pixel on edge
-	bool isEdge (short x, short y, short * size)
+	bool isEdge (short x, short y, const short size[2])
 	{ return x <= 1 || x >= size[0] - 4 || y <= 1 || y >= size[1] - 4; }
 
 	/// get the first parameter on the low edge
-	unsigned char * interParA (unsigned char * src, short x, short size, short shift)
+	unsigned char * interParA (unsigned char *src, short x, short size, short shift)
 	{ return x > 1 ? src - shift : src; }
 	/// get the third parameter on the high edge
-	unsigned char * interParC (unsigned char * src, short x, short size, short shift)
+	unsigned char * interParC (unsigned char *src, short x, short size, short shift)
 	{ return x < size - 2 ? src + shift : src; }
 	/// get the fourth parameter on the high edge
-	unsigned char * interParD (unsigned char * src, short x, short size, short shift)
+	unsigned char * interParD (unsigned char *src, short x, short size, short shift)
 	{ return x < size - 4 ? src + 2 * shift : x < size - 2 ? src + shift : src; }
 
 	/// horizontal interpolation on edges
-	int interpolEH (unsigned char * src, short x, short size)
-	{ 
+	int interpolEH (unsigned char *src, short x, short size)
+	{
 		return interpol(*interParA(src, x, size, 1), *src,
-			*interParC(src, x, size, 1), *interParD(src, x, size, 1));
+		                *interParC(src, x, size, 1), *interParD(src, x, size, 1));
 	}
 
 	/// vertical interpolation on edges
-	int interpolEV (unsigned char * src, short y, short size)
-	{ 
+	int interpolEV (unsigned char *src, short y, short size)
+	{
 		return interpol(*interParA(src, y, size, m_pitchUV), *src,
-			*interParC(src, y, size, m_pitchUV), *interParD(src, y, size, m_pitchUV));
+		                *interParC(src, y, size, m_pitchUV), *interParD(src, y, size, m_pitchUV));
 	}
 
 	/// joined vertical and horizontal interpolation on edges
-	int interpolEVH (unsigned char * src, short x, short y, short * size)
+	int interpolEVH (unsigned char *src, short x, short y, short * size)
 	{
 		return interpol(interpolEV(interParA(src, x, size[0], 1), y, size[1]),
-			interpolEV(src, y, size[1]), interpolEV(interParC(src, x, size[0], 1), y, size[1]),
-			interpolEV(interParD(src, x, size[0], 1), y, size[1]));
+		        interpolEV(src, y, size[1]), interpolEV(interParC(src, x, size[0], 1), y, size[1]),
+		        interpolEV(interParD(src, x, size[0], 1), y, size[1]));
 	}
 
 
 	/// filter pixel, source byte buffer
-	virtual unsigned int filter (unsigned char * src, short x, short y,
+	virtual unsigned int filter (unsigned char *src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
 	{
 		// V & U offset
@@ -325,5 +325,4 @@ protected:
 	}
 };
 
-
-#endif
+#endif  /* __FILTERSOURCE_H__ */

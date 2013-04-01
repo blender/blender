@@ -70,8 +70,8 @@ protected:
 	unsigned short m_colIdx;
 
 	/// filter pixel, source int buffer
-	template <class SRC> unsigned int tFilter (SRC * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val = 0)
+	template <class SRC> unsigned int tFilter (SRC *src, short x, short y,
+	                                           short * size, unsigned int pixSize, unsigned int val = 0)
 	{
 		// get value of required color
 		int actPix = int(VT_C(val,m_colIdx));

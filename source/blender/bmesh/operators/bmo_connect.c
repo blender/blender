@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_connect.c
  *  \ingroup bmesh
+ *
+ * Connect verts across faces (splits faces) and bridge tool.
  */
 
 #include "MEM_guardedalloc.h"

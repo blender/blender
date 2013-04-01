@@ -602,7 +602,7 @@ size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf)
  *
  * Return value: a pointer to the found character or %NULL.
  **/
-char * BLI_str_find_prev_char_utf8(const char *str, const char *p)
+char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
 {
 	for (--p; p >= str; --p) {
 		if ((*p & 0xc0) != 0x80) {

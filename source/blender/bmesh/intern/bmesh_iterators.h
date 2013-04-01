@@ -131,6 +131,9 @@ void   *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
 __attribute__((warn_unused_result))
 #endif
 ;
+int     BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
+                          void **array, const int len);
+
 int     BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value);
 int     BMO_iter_elem_count_flag(BMesh *bm, const char itype, void *data, const short oflag, const bool value);
 int     BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const bool value);

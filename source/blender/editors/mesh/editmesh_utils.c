@@ -33,7 +33,6 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 
@@ -51,10 +50,10 @@
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+#include "ED_screen.h"
 #include "ED_util.h"
 
-
-#include "mesh_intern.h"
+#include "mesh_intern.h"  /* own include */
 
 /* mesh backup implementation. This would greatly benefit from some sort of binary diffing
  * just as the undo stack would. So leaving this as an interface for further work */
@@ -1366,4 +1365,13 @@ void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_d
 		/* in debug mode double check we didn't need to recalculate */
 		BLI_assert(EDBM_index_arrays_check(em) == true);
 	}
+}
+
+/* poll call for mesh operators requiring a view3d context */
+int EDBM_view3d_poll(bContext *C)
+{
+	if (ED_operator_editmesh(C) && ED_operator_view3d_active(C))
+		return 1;
+
+	return 0;
 }

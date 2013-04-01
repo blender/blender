@@ -43,6 +43,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
@@ -57,6 +59,7 @@
 #include "BIF_glutil.h"
 
 #include "RE_shader_ext.h"
+#include "RE_render_ext.h"
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
@@ -174,18 +177,35 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 	return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(Brush *br, float u, float v, struct ImagePool *pool)
+float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool)
 {
 	TexResult texres = {0};
 	float co[3] = {u, v, 0.0f};
 	int hasrgb;
 
-	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres, pool);
+	hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, pool);
 
 	if (hasrgb & TEX_RGB)
 		texres.tin = rgb_to_grayscale(&texres.tr) * texres.ta;
 
 	return texres.tin;
+}
+
+void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool)
+{
+	float co[3] = {u, v, 0.0f};
+	int hasrgb;
+	float intensity;
+
+	hasrgb = externtex(mtex, co, &intensity,
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+
+	if (!hasrgb) {
+		rgba[0] = intensity;
+		rgba[1] = intensity;
+		rgba[2] = intensity;
+		rgba[3] = 1.0f;
+	}
 }
 
 /* 3D Paint */
@@ -375,6 +395,7 @@ static int brush_curve_preset_poll(bContext *C)
 
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	static EnumPropertyItem prop_shape_items[] = {
 		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
 		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
@@ -391,7 +412,8 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 	ot->exec = brush_curve_preset_exec;
 	ot->poll = brush_curve_preset_poll;
 
-	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+	prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 }
 
 

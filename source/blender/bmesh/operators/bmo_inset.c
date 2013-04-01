@@ -22,6 +22,11 @@
 
 /** \file blender/bmesh/operators/bmo_inset.c
  *  \ingroup bmesh
+ *
+ * Inset face regions.
+ *
+ * TODO
+ * - Inset indervidual faces.
  */
 
 #include "MEM_guardedalloc.h"

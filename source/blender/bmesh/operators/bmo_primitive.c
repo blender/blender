@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_primitive.c
  *  \ingroup bmesh
+ *
+ * Primitive shapes.
  */
 
 #include "MEM_guardedalloc.h"

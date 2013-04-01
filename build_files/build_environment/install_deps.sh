@@ -1066,8 +1066,8 @@ compile_OpenCOLLADA() {
     # XXX For now, always update from latest repo...
     git pull origin master
 
-    # XXX We have to stick to this revision, the next one introduced a change to ExtraHandler' parseElement signature :/
-    git checkout c89cf095c40aa2a518b1104c448825eacc92d174
+    # Stick to same rev as windows' libs...
+    git checkout e886e196673222f2f4bc32b936dc96419fff815f
     git reset --hard
 
     # Always refresh the whole build!

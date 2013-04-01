@@ -70,7 +70,7 @@ void main()
 
 #ifndef NO_SPECULAR
 	/* view vector computation, depends on orthographics or perspective */
-	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(varying_position): vec3(0.0, 0.0, -1.0);
+	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ? normalize(varying_position): vec3(0.0, 0.0, -1.0);
 #endif
 
 	for (int i = 0; i < NUM_SCENE_LIGHTS; i++) {

@@ -121,6 +121,12 @@ static void brush_defaults(Brush *brush)
 	brush->sub_col[0] = 0.39; /* subtract mode color is light blue */
 	brush->sub_col[1] = 0.39;
 	brush->sub_col[2] = 1.00;
+
+	brush->stencil_pos[0] = 256;
+	brush->stencil_pos[1] = 256;
+
+	brush->stencil_dimension[0] = 256;
+	brush->stencil_dimension[1] = 256;
 }
 
 /* Datablock add/copy/free/make_local */
@@ -518,11 +524,45 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		hasrgb = externtex(mtex, point, &intensity,
 		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	}
+	else if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
+		float rotation = -mtex->rot;
+		float point_2d[2] = {point[0], point[1]};
+		float x = 0.0f, y = 0.0f; /* Quite warnings */
+		float co[3];
+
+		x = point_2d[0] - br->stencil_pos[0];
+		y = point_2d[1] - br->stencil_pos[1];
+
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
+			const float flen     = sqrtf(x * x + y * y);
+
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
+		}
+
+		if (fabs(x) > br->stencil_dimension[0] || fabs(y) > br->stencil_dimension[1]) {
+			rgba[0] = rgba[1] = rgba[2] = rgba[3] = 0.0;
+			return 0.0;
+		}
+		x /= (br->stencil_dimension[0]);
+		y /= (br->stencil_dimension[1]);
+
+		x *= br->mtex.size[0];
+		y *= br->mtex.size[1];
+
+		co[0] = x + br->mtex.ofs[0];
+		co[1] = y + br->mtex.ofs[1];
+		co[2] = 0.0f;
+
+		hasrgb = externtex(mtex, co, &intensity,
+		                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
+	}
 	else {
 		float rotation = -mtex->rot;
 		float point_2d[2] = {point[0], point[1]};
 		float x = 0.0f, y = 0.0f; /* Quite warnings */
-		float radius = 1.0f; /* Quite warnings */
+		float invradius = 1.0f; /* Quite warnings */
 		float co[3];
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
@@ -534,13 +574,13 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 			y = point_2d[1] - ups->tex_mouse[1];
 
 			/* use pressure adjusted size for fixed mode */
-			radius = ups->pixel_radius;
+			invradius = 1.0f / ups->pixel_radius;
 		}
 		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
 			/* leave the coordinates relative to the screen */
 
 			/* use unadjusted size for tiled mode */
-			radius = BKE_brush_size_get(scene, br);
+			invradius = 1.0f / BKE_brush_size_get(scene, br);
 
 			x = point_2d[0];
 			y = point_2d[1];
@@ -551,11 +591,11 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 			x = point_2d[0] - ups->tex_mouse[0];
 			y = point_2d[1] - ups->tex_mouse[1];
 
-			radius = ups->pixel_radius;
+			invradius = 1.0f / ups->pixel_radius;
 		}
 
-		x /= radius;
-		y /= radius;
+		x *= invradius;
+		y *= invradius;
 
 		/* it is probably worth optimizing for those cases where
 		 * the texture is not rotated by skipping the calls to

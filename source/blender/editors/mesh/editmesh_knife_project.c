@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
+ * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
  *
  *
@@ -29,17 +29,12 @@
  */
 
 #include "DNA_curve_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 
-#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -55,7 +50,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "mesh_intern.h"
+#include "mesh_intern.h"  /* own include */
 
 
 static LinkNode *knifeproject_poly_from_object(ARegion *ar, Scene *scene, Object *ob, LinkNode *polys)

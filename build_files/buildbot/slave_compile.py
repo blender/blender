@@ -156,9 +156,9 @@ else:
         if builder.find('win') != -1:
             dlls = ('msvcm90.dll', 'msvcp90.dll', 'msvcr90.dll', 'vcomp90.dll', 'Microsoft.VC90.CRT.manifest', 'Microsoft.VC90.OpenMP.manifest')
             if builder.find('win64') == -1:
-               dlls_path = 'C:\\b\\redist\\x86'
+                dlls_path = 'C:\\b\\redist\\x86'
             else:
-               dlls_path = 'C:\\b\\redist\\amd64'
+                dlls_path = 'C:\\b\\redist\\amd64'
             for dll in dlls:
                 shutil.copyfile(os.path.join(dlls_path, dll), os.path.join(install_dir, dll))
 

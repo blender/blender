@@ -734,13 +734,13 @@ static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, 
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MLoopCol), me->totloop, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MLoopCol), (me->edit_btmesh) ? 0 : me->totloop, 0, NULL);
 }
 
 static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	return me->totloop;
+	return (me->edit_btmesh) ? 0 : me->totloop;
 }
 
 static int rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
@@ -2972,6 +2972,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length",
 	                         "Display selected edge lengths, using global values when set in the transform panel");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+	prop = RNA_def_property(srna, "show_extra_edge_angle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGEANG);
+	RNA_def_property_ui_text(prop, "Edge Angle",
+	                         "Display selected edge angle, using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	prop = RNA_def_property(srna, "show_extra_face_angle", PROP_BOOLEAN, PROP_NONE);

@@ -15,13 +15,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Joseph Eagar.
+ * Contributor(s): Joseph Eagar, Campbell Barton.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/bmesh/operators/bmo_create.c
- *  \ingroup bmesh
+ *  \ingroup bmesh 
+ *
+ * Create faces or edges (Fkey by default).
  */
 
 #include "MEM_guardedalloc.h"
@@ -41,14 +43,9 @@
  */
 void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
-	BMOperator op2;
 	BMOIter oiter;
-	BMIter iter;
 	BMHeader *h;
-	BMVert *v, *verts[4];
-	BMEdge *e;
-	BMFace *f;
-	int totv = 0, tote = 0, totf = 0, amount;
+	int totv = 0, tote = 0, totf = 0;
 	const short mat_nr     = BMO_slot_int_get(op->slots_in,  "mat_nr");
 	const bool use_smooth  = BMO_slot_bool_get(op->slots_in, "use_smooth");
 
@@ -63,6 +60,24 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, (BMElemF *)h, ELE_NEW);
 	}
 	
+	/* --- Support Edge Creation ---
+	 * simple case when we only have 2 verts selected.
+	 */
+	if (totv == 2 && tote == 0 && totf == 0) {
+		BMVert *verts[2];
+		BMEdge *e;
+
+		BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)verts, 2);
+
+		/* create edge */
+		e = BM_edge_create(bm, verts[0], verts[1], NULL, BM_CREATE_NO_DOUBLE);
+		BMO_elem_flag_enable(bm, e, ELE_OUT);
+		tote += 1;
+		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
+		return;
+	}
+
+
 	/* --- Support for Special Case ---
 	 * where there is a contiguous edge ring with one isolated vertex.
 	 *
@@ -83,29 +98,20 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* Here we check for consistency and create 2 edges */
 	if (totf == 0 && totv >= 4 && totv == tote + 2) {
 		/* find a free standing vertex and 2 endpoint verts */
-		BMVert *v_free = NULL, *v_a = NULL, *v_b = NULL;
+		BMVert *v, *v_free = NULL, *v_a = NULL, *v_b = NULL;
 		bool ok = true;
 
 
 		BMO_ITER (v, &oiter, op->slots_in, "geom", BM_VERT) {
 			/* count how many flagged edges this vertex uses */
-			int tot_edges = 0;
-			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-				if (BMO_elem_flag_test(bm, e, ELE_NEW)) {
-					tot_edges++;
-					if (tot_edges > 2) {
-						break;
-					}
-				}
-			}
-
+			const int tot_edges = BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, v, ELE_NEW, true);
 			if (tot_edges == 0) {
 				/* only accept 1 free vert */
 				if (v_free == NULL)  v_free = v;
 				else                 ok = false;  /* only ever want one of these */
 			}
 			else if (tot_edges == 1) {
-				if (v_a == NULL)       v_a = v;
+				if      (v_a == NULL)  v_a = v;
 				else if (v_b == NULL)  v_b = v;
 				else                   ok = false;  /* only ever want 2 of these */
 			}
@@ -122,6 +128,8 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (ok == true && v_free && v_a && v_b) {
+			BMEdge *e;
+
 			e = BM_edge_create(bm, v_free, v_a, NULL, BM_CREATE_NO_DOUBLE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
 
@@ -135,64 +143,73 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	/* -------------------------------------------------------------------- */
 	/* EdgeNet Create */
+	if (tote != 0) {
+		/* call edgenet prepare op so additional face creation cases work */
+		BMOperator op_sub;
+		BMO_op_initf(bm, &op_sub, op->flag, "edgenet_prepare edges=%fe", ELE_NEW);
+		BMO_op_exec(bm, &op_sub);
+		BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "edges.out", BM_EDGE, ELE_NEW);
+		BMO_op_finish(bm, &op_sub);
 
-	/* call edgenet prepare op so additional face creation cases wore */
-	BMO_op_initf(bm, &op2, op->flag, "edgenet_prepare edges=%fe", ELE_NEW);
-	BMO_op_exec(bm, &op2);
-	BMO_slot_buffer_flag_enable(bm, op2.slots_out, "edges.out", BM_EDGE, ELE_NEW);
-	BMO_op_finish(bm, &op2);
+		BMO_op_initf(bm, &op_sub, op->flag,
+		             "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i use_smooth=%b",
+		             ELE_NEW, true, mat_nr, use_smooth);
 
-	BMO_op_initf(bm, &op2, op->flag,
-	             "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i use_smooth=%b",
-	             ELE_NEW, true, mat_nr, use_smooth);
+		BMO_op_exec(bm, &op_sub);
 
-	BMO_op_exec(bm, &op2);
+		/* return if edge net create did something */
+		if (BMO_slot_buffer_count(op_sub.slots_out, "faces.out")) {
+			BMO_slot_copy(&op_sub, slots_out, "faces.out",
+			              op,   slots_out, "faces.out");
+			BMO_op_finish(bm, &op_sub);
+			return;
+		}
 
-	/* return if edge net create did something */
-	if (BMO_slot_buffer_count(op2.slots_out, "faces.out")) {
-		BMO_slot_copy(&op2, slots_out, "faces.out",
-		              op,   slots_out, "faces.out");
-		BMO_op_finish(bm, &op2);
-		return;
+		BMO_op_finish(bm, &op_sub);
 	}
-
-	BMO_op_finish(bm, &op2);
 
 
 	/* -------------------------------------------------------------------- */
 	/* Dissolve Face */
-	BMO_op_initf(bm, &op2, op->flag, "dissolve_faces faces=%ff", ELE_NEW);
-	BMO_op_exec(bm, &op2);
-	
-	/* if we dissolved anything, then return */
-	if (BMO_slot_buffer_count(op2.slots_out, "region.out")) {
-		BMO_slot_copy(&op2, slots_out, "region.out",
-		              op,   slots_out,  "faces.out");
-		BMO_op_finish(bm, &op2);
-		return;
-	}
+	if (totf != 0) {  /* should be (totf > 1)... see below */
+		/* note: allow this to run on single faces so running on a single face
+		 * won't go on to create a face, treating them as random */
+		BMOperator op_sub;
+		BMO_op_initf(bm, &op_sub, op->flag, "dissolve_faces faces=%ff", ELE_NEW);
+		BMO_op_exec(bm, &op_sub);
 
-	BMO_op_finish(bm, &op2);
+		/* if we dissolved anything, then return */
+		if (BMO_slot_buffer_count(op_sub.slots_out, "region.out")) {
+			BMO_slot_copy(&op_sub, slots_out, "region.out",
+			              op,   slots_out,  "faces.out");
+			BMO_op_finish(bm, &op_sub);
+			return;
+		}
+
+		BMO_op_finish(bm, &op_sub);
+	}
 
 
 	/* -------------------------------------------------------------------- */
 	/* Fill EdgeLoop's - fills isolated loops, different from edgenet */
+	if (tote > 2) {
+		BMOperator op_sub;
+		/* note: in most cases 'edgenet_fill' will handle this case since in common cases
+		 * users fill in empty spaces, however its possible to have an edge selection around
+		 * existing geometry that makes 'edgenet_fill' fail. */
+		BMO_op_initf(bm, &op_sub, op->flag, "edgeloop_fill edges=%fe", ELE_NEW);
+		BMO_op_exec(bm, &op_sub);
 
-	/* note: in most cases 'edgenet_fill' will handle this case since in common cases
-	 * users fill in empty spaces, however its possible to have an edge selection around
-	 * existing geometry that makes 'edgenet_fill' fail. */
-	BMO_op_initf(bm, &op2, op->flag, "edgeloop_fill edges=%fe", ELE_NEW);
-	BMO_op_exec(bm, &op2);
+		/* return if edge loop fill did something */
+		if (BMO_slot_buffer_count(op_sub.slots_out, "faces.out")) {
+			BMO_slot_copy(&op_sub, slots_out, "faces.out",
+			              op,   slots_out, "faces.out");
+			BMO_op_finish(bm, &op_sub);
+			return;
+		}
 
-	/* return if edge loop fill did something */
-	if (BMO_slot_buffer_count(op2.slots_out, "faces.out")) {
-		BMO_slot_copy(&op2, slots_out, "faces.out",
-		              op,   slots_out, "faces.out");
-		BMO_op_finish(bm, &op2);
-		return;
+		BMO_op_finish(bm, &op_sub);
 	}
-
-	BMO_op_finish(bm, &op2);
 
 
 
@@ -200,27 +217,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* Continue with ad-hoc fill methods since operators fail,
 	 * edge, vcloud... may add more */
 
-	/* now, count how many verts we have */
-	amount = 0;
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if (BMO_elem_flag_test(bm, v, ELE_NEW)) {
-			verts[amount] = v;
-			if (amount == 3) {
-				break;
-			}
-			amount++;
-
-		}
-	}
-
-	if (amount == 2) {
-		/* create edge */
-		e = BM_edge_create(bm, verts[0], verts[1], NULL, BM_CREATE_NO_DOUBLE);
-		BMO_elem_flag_enable(bm, e, ELE_OUT);
-		tote += 1;
-		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
-	}
-	else if (0) { /* nice feature but perhaps it should be a different tool? */
+	 if (0) { /* nice feature but perhaps it should be a different tool? */
 
 		/* tricky feature for making a line/edge from selection history...
 		 *
@@ -255,9 +252,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 			for (ese = bm->selected.first; ese; ese = ese->next) {
 				if (ese->htype == BM_VERT) {
-					v = (BMVert *)ese->ele;
+					BMVert *v = (BMVert *)ese->ele;
 					if (v_prev) {
-						e = BM_edge_create(bm, v, v_prev, NULL, BM_CREATE_NO_DOUBLE);
+						BMEdge *e = BM_edge_create(bm, v, v_prev, NULL, BM_CREATE_NO_DOUBLE);
 						BMO_elem_flag_enable(bm, e, ELE_OUT);
 					}
 					v_prev = v;
@@ -266,20 +263,25 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
 		/* done creating edges */
+
+		return;
 	}
-	else if (amount > 2) {
+
+
+	/* -------------------------------------------------------------------- */
+	/* Fill Vertex Cloud
+	 *
+	 * last resort when all else fails.
+	 */
+	if (totv > 2) {
 		/* TODO, some of these vertes may be connected by edges,
 		 * this connectivity could be used rather then treating
 		 * them as a bunch of isolated verts. */
 
 		BMVert **vert_arr = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
-		int i = 0;
+		BMFace *f;
 
-		BMO_ITER (v, &oiter, op->slots_in, "geom", BM_VERT) {
-			vert_arr[i] = v;
-			i++;
-		}
-
+		BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)vert_arr, totv);
 		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, BM_CREATE_NO_DOUBLE);
 
 		if (f) {
@@ -293,6 +295,4 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 		MEM_freeN(vert_arr);
 	}
-
-	(void)tote;
 }

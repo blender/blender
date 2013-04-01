@@ -1906,6 +1906,19 @@ static void WM_OT_save_userpref(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
+static void WM_OT_read_history(wmOperatorType *ot)
+{
+	ot->name = "Reload History File";
+	ot->idname = "WM_OT_read_history";
+	ot->description = "Reloads history and bookmarks";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_history_read_exec;
+
+	/* this operator is only used for loading settings from a previous blender install */
+	ot->flag = OPTYPE_INTERNAL;
+}
+
 static void WM_OT_read_homefile(wmOperatorType *ot)
 {
 	ot->name = "Reload Start-Up File";
@@ -4043,6 +4056,7 @@ void wm_operatortype_init(void)
 	global_ops_hash = BLI_ghash_str_new("wm_operatortype_init gh");
 
 	WM_operatortype_append(WM_OT_window_duplicate);
+	WM_operatortype_append(WM_OT_read_history);
 	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);

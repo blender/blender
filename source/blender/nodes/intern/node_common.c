@@ -84,7 +84,7 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identif
 /* groups display their internal tree name as label */
 const char *node_group_label(bNode *node)
 {
-	return (node->id)? node->id->name + 2: IFACE_("Missing Datablock");
+	return (node->id) ? node->id->name + 2 : IFACE_("Missing Datablock");
 }
 
 int node_group_poll_instance(bNode *node, bNodeTree *nodetree)
@@ -124,6 +124,9 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, bNode *gnode, bNodeSoc
 	}
 	if (sock) {
 		strcpy(sock->name, iosock->name);
+		
+		if (iosock->typeinfo->interface_verify_socket)
+			iosock->typeinfo->interface_verify_socket(ntree, iosock, gnode, sock, "interface");
 	}
 	else {
 		sock = nodeAddSocket(ntree, gnode, in_out, iosock->idname, iosock->identifier, iosock->name);

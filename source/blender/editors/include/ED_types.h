@@ -40,7 +40,7 @@
 
 /* proposal = put scene pointers on function calls? */
 // #define BASACT                    (scene->basact)
-// #define OBACT                     (BASACT? BASACT->object: NULL)
+// #define OBACT                     (BASACT ? BASACT->object : NULL)
 
 
 

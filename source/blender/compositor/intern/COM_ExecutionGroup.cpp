@@ -435,7 +435,7 @@ void ExecutionGroup::printBackgroundStats(void)
 	fprintf(stdout, "Mem:%.2fM (%.2fM, Peak %.2fM) ",
 	        megs_used_memory, mmap_used_memory, megs_peak_memory);
 
-	BLI_timestr(execution_time, timestr);
+	BLI_timestr(execution_time, timestr, sizeof(timestr));
 	printf("| Elapsed %s ", timestr);
 	printf("| Tree %s, Tile %d-%d ", this->m_bTree->id.name + 2,
 	       this->m_chunksFinished, this->m_numberOfChunks);

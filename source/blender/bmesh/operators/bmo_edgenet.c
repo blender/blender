@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_edgenet.c
  *  \ingroup bmesh
+ *
+ * Edge-Net for filling in open edge-loops.
  */
 
 #include "MEM_guardedalloc.h"
@@ -43,7 +45,6 @@
 #define FACE_NEW	1
 
 #define ELE_NEW		1
-#define ELE_OUT		2
 #define ELE_ORIG	4
 
 #define FACE_IGNORE	16

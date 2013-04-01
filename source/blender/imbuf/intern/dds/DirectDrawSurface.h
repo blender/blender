@@ -171,9 +171,9 @@ public:
 	void setHasAlphaFlag(bool b);
 	void setUserVersion(int version);
 	
-	void mipmap(Image * img, uint f, uint m);
+	void mipmap(Image *img, uint f, uint m);
 	void *readData(uint &size);
-	//	void mipmap(FloatImage * img, uint f, uint m);
+	//	void mipmap(FloatImage *img, uint f, uint m);
 	
 	void printInfo() const;
 

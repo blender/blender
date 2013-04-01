@@ -442,7 +442,7 @@ static void paint_redraw(const bContext *C, PaintOperation *pop, int final)
 	}
 }
 
-static PaintOperation * texture_paint_init(bContext *C, wmOperator *op, const wmEvent *event)
+static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
@@ -721,8 +721,7 @@ static void toggle_paint_cursor(bContext *C, int enable)
 		settings->imapaint.paintcursor = NULL;
 	}
 	else if (enable)
-		settings->imapaint.paintcursor =
-			WM_paint_cursor_activate(wm, image_paint_poll, brush_drawcursor_texpaint_uvsculpt, NULL);
+		paint_cursor_start(C, image_paint_poll);
 }
 
 /* enable the paint cursor if it isn't already.
@@ -746,11 +745,7 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 	if (enabled) {
 		BKE_paint_init(&imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
 
-		if (!imapaint->paintcursor) {
-			imapaint->paintcursor =
-			        WM_paint_cursor_activate(wm, image_paint_poll,
-			                                 brush_drawcursor_texpaint_uvsculpt, NULL);
-		}
+		paint_cursor_start_explicit(&imapaint->paint, wm, image_paint_poll);
 	}
 }
 
@@ -882,8 +877,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	switch (event->type) {
-		case LEFTMOUSE:
-		case RIGHTMOUSE: // XXX hardcoded
+		case SKEY: // XXX hardcoded
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
 			RNA_int_set_array(op->ptr, "location", event->mval);

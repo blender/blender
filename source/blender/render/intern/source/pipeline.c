@@ -2460,12 +2460,12 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	render_time = re->i.lastframetime;
 	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
 	
-	BLI_timestr(re->i.lastframetime, name);
+	BLI_timestr(re->i.lastframetime, name, sizeof(name));
 	printf(" Time: %s", name);
 	
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
-	BLI_timestr(re->i.lastframetime - render_time, name);
+	BLI_timestr(re->i.lastframetime - render_time, name, sizeof(name));
 	printf(" (Saving: %s)\n", name);
 	
 	fputc('\n', stdout);

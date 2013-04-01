@@ -74,9 +74,9 @@ public:
 	KX_PYMETHOD(KX_MeshProxy,Transform);
 	KX_PYMETHOD(KX_MeshProxy,TransformUV);
 	
-	static PyObject *pyattr_get_materials(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject *pyattr_get_numMaterials(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
-	static PyObject *pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject *pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_numMaterials(void *self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject *pyattr_get_numPolygons(void *self, const KX_PYATTRIBUTE_DEF * attrdef);
 };
 
 #endif  /* WITH_PYTHON */

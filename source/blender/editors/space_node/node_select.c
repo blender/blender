@@ -823,9 +823,10 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 
 		/* is note outside view? */
 		if (active->totr.xmax < ar->v2d.cur.xmin || active->totr.xmin > ar->v2d.cur.xmax ||
-			active->totr.ymax < ar->v2d.cur.ymin || active->totr.ymin > ar->v2d.cur.ymax)
-				space_node_view_flag(C, snode, CTX_wm_region(C), NODE_SELECT);
-
+		    active->totr.ymax < ar->v2d.cur.ymin || active->totr.ymin > ar->v2d.cur.ymax)
+		{
+			space_node_view_flag(C, snode, CTX_wm_region(C), NODE_SELECT);
+		}
 	}
 	
 	if (node_array)

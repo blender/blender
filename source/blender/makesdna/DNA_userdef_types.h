@@ -234,7 +234,7 @@ typedef struct ThemeSpace {
 	char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4];
 	char face[4], face_select[4];	/* solid faces */
 	char face_dot[4];				/*  selected color */
-	char extra_edge_len[4], extra_face_angle[4], extra_face_area[4], pad3[4];
+	char extra_edge_len[4], extra_edge_angle[4], extra_face_angle[4], extra_face_area[4];
 	char normal[4];
 	char vertex_normal[4];
 	char bone_solid[4], bone_pose[4], bone_pose_active[4];

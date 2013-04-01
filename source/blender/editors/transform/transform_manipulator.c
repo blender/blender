@@ -948,7 +948,6 @@ static void postOrtho(int ortho)
 
 static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving, int drawflags, int combo)
 {
-	GLUquadricObj *qobj;
 	double plane[4];
 	float matt[4][4];
 	float size, unitmat[4][4];
@@ -967,9 +966,6 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	/* Init stuff */
 	glDisable(GL_DEPTH_TEST);
 	unit_m4(unitmat);
-
-	qobj = gluNewQuadric();
-	gluQuadricDrawStyle(qobj, GLU_FILL);
 
 	/* prepare for screen aligned draw */
 	size = len_v3(rv3d->twmat[0]);
@@ -1195,7 +1191,6 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 	/* restore */
 	glLoadMatrixf(rv3d->viewmat);
-	gluDeleteQuadric(qobj);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 }

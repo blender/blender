@@ -94,14 +94,14 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
 				/* Can't do the impossible... */
-				if ( in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1 )
+				if (in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1)
 					out[0]->vec[0] = asin(in[0]->vec[0]);
 				else
 					out[0]->vec[0] = 0.0;
 			}
 			else {
 				/* Can't do the impossible... */
-				if ( in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1 )
+				if (in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1)
 					out[0]->vec[0] = asin(in[1]->vec[0]);
 				else
 					out[0]->vec[0] = 0.0;
@@ -112,14 +112,14 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
 				/* Can't do the impossible... */
-				if ( in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1 )
+				if (in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1)
 					out[0]->vec[0] = acos(in[0]->vec[0]);
 				else
 					out[0]->vec[0] = 0.0;
 			}
 			else {
 				/* Can't do the impossible... */
-				if ( in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1 )
+				if (in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1)
 					out[0]->vec[0] = acos(in[1]->vec[0]);
 				else
 					out[0]->vec[0] = 0.0;
@@ -137,7 +137,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 	case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
-			if ( in[0]->vec[0] >= 0 ) {
+			if (in[0]->vec[0] >= 0) {
 				out[0]->vec[0] = pow(in[0]->vec[0], in[1]->vec[0]);
 			}
 			else {
@@ -157,7 +157,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 	case 11: /* Logarithm */
 		{
 			/* Don't want any imaginary numbers... */
-			if ( in[0]->vec[0] > 0  && in[1]->vec[0] > 0 )
+			if (in[0]->vec[0] > 0  && in[1]->vec[0] > 0)
 				out[0]->vec[0] = log(in[0]->vec[0]) / log(in[1]->vec[0]);
 			else
 				out[0]->vec[0] = 0.0;
@@ -165,7 +165,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		break;
 	case 12: /* Minimum */
 		{
-			if ( in[0]->vec[0] < in[1]->vec[0] )
+			if (in[0]->vec[0] < in[1]->vec[0])
 				out[0]->vec[0] = in[0]->vec[0];
 			else
 				out[0]->vec[0] = in[1]->vec[0];
@@ -173,7 +173,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		break;
 	case 13: /* Maximum */
 		{
-			if ( in[0]->vec[0] > in[1]->vec[0] )
+			if (in[0]->vec[0] > in[1]->vec[0])
 				out[0]->vec[0] = in[0]->vec[0];
 			else
 				out[0]->vec[0] = in[1]->vec[0];
@@ -182,14 +182,14 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 	case 14: /* Round */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0] = (in[0]->vec[0]<0)?(int)(in[0]->vec[0] - 0.5f):(int)(in[0]->vec[0] + 0.5f);
+				out[0]->vec[0] = (in[0]->vec[0] < 0) ? (int)(in[0]->vec[0] - 0.5f) : (int)(in[0]->vec[0] + 0.5f);
 			else
-				out[0]->vec[0] = (in[1]->vec[0]<0)?(int)(in[1]->vec[0] - 0.5f):(int)(in[1]->vec[0] + 0.5f);
+				out[0]->vec[0] = (in[1]->vec[0] < 0) ? (int)(in[1]->vec[0] - 0.5f) : (int)(in[1]->vec[0] + 0.5f);
 		}
 		break;
 	case 15: /* Less Than */
 		{
-			if ( in[0]->vec[0] < in[1]->vec[0] )
+			if (in[0]->vec[0] < in[1]->vec[0])
 				out[0]->vec[0] = 1.0f;
 			else
 				out[0]->vec[0] = 0.0f;
@@ -197,7 +197,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		break;
 	case 16: /* Greater Than */
 		{
-			if ( in[0]->vec[0] > in[1]->vec[0] )
+			if (in[0]->vec[0] > in[1]->vec[0])
 				out[0]->vec[0] = 1.0f;
 			else
 				out[0]->vec[0] = 0.0f;

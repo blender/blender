@@ -61,6 +61,15 @@
 /* own include */
 #include "interface_intern.h"
 
+/* only for bug workaround [#34346] */
+#if !defined(WIN32) && !defined(__APPLE__)
+#  define GPU_OSS_BUG_WOKAROUND
+#endif
+
+#ifdef GPU_OSS_BUG_WOKAROUND
+#  include "GPU_extensions.h"
+#endif
+
 static int roundboxtype = UI_CNR_ALL;
 
 void uiSetRoundBox(int type)
@@ -1236,6 +1245,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 
 void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
+	static int use_displist = -1;
 	static GLuint displist = 0;
 	int a, old[8];
 	GLfloat diff[4], diffn[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -1285,20 +1295,30 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	glScalef(size, size, size);
 	
-	if (displist == 0) {
-		GLUquadricObj   *qobj;
-		
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+#ifdef GPU_OSS_BUG_WOKAROUND
+	if (use_displist == -1) {
+		use_displist = !GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE);
+	}
+#endif
+
+	if (displist == 0 || use_displist == 0) {
+		GLUquadricObj *qobj;
+
+		if (use_displist) {
+			displist = glGenLists(1);
+			glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		}
 		
 		qobj = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_FILL); 
+		gluQuadricDrawStyle(qobj, GLU_FILL);
 		glShadeModel(GL_SMOOTH);
 		gluSphere(qobj, 100.0, 32, 24);
 		glShadeModel(GL_FLAT);
-		gluDeleteQuadric(qobj);  
+		gluDeleteQuadric(qobj);
 		
-		glEndList();
+		if (use_displist) {
+			glEndList();
+		}
 	}
 	else {
 		glCallList(displist);

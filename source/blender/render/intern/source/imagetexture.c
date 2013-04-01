@@ -119,7 +119,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
 	
 	/* we need to set retval OK, otherwise texture code generates normals itself... */
-	retval= texres->nor?3:1;
+	retval= texres->nor ? 3 : 1;
 	
 	/* quick tests */
 	if (ibuf==NULL && ima==NULL)
@@ -1500,7 +1500,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
 	
 	/* we need to set retval OK, otherwise texture code generates normals itself... */
-	retval= texres->nor?3:1;
+	retval = texres->nor ? 3 : 1;
 	
 	/* quick tests */
 	if (ibuf==NULL && ima==NULL)

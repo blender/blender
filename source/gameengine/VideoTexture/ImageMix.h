@@ -43,7 +43,7 @@ class ImageSourceMix : public ImageSource
 {
 public:
 	/// constructor
-	ImageSourceMix (const char * id) : ImageSource(id), m_weight(0x100) {}
+	ImageSourceMix (const char *id) : ImageSource(id), m_weight(0x100) {}
 	/// destructor
 	virtual ~ImageSourceMix (void) {}
 
@@ -76,14 +76,14 @@ public:
 	virtual ~ImageMix (void) {}
 
 	/// get weight
-	short getWeight (const char * id);
+	short getWeight(const char *id);
 	/// set weight
-	bool setWeight (const char * id, short weight);
+	bool setWeight(const char *id, short weight);
 
 protected:
 
 	/// create new source
-	virtual ImageSource * newSource (const char * id) { return new ImageSourceMix(id); }
+	virtual ImageSource *newSource(const char *id) { return new ImageSourceMix(id); }
 
 	/// calculate image from sources and set its availability
 	virtual void calcImage (unsigned int texId, double ts);

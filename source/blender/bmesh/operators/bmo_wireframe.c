@@ -22,6 +22,8 @@
 
 /** \file blender/bmesh/operators/bmo_wireframe.c
  *  \ingroup bmesh
+ *
+ * Creates a solid wireframe from conected faces.
  */
 
 #include "MEM_guardedalloc.h"

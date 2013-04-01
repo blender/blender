@@ -28,12 +28,7 @@
  *  \ingroup edmesh
  */
 
-
-
-
-
 #include "BLI_math.h"
-
 
 #include "RNA_access.h"
 
@@ -44,8 +39,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 
-
-#include "mesh_intern.h"
+#include "mesh_intern.h"  /* own include */
 
 /**************************** registration **********************************/
 

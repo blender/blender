@@ -173,7 +173,7 @@ class I18nMessage:
                 self.comment_lines.remove(l)
         lines_src = []
         lines_src_custom = []
-        for src in  sources:
+        for src in sources:
             if is_valid_po_path(src):
                 lines_src.append(self.settings.PO_COMMENT_PREFIX_SOURCE + src)
             else:

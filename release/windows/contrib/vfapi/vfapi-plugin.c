@@ -111,7 +111,7 @@ __declspec(dllexport) HRESULT vfGetPluginInfo(
 	return VF_OK;
 }
 
-static unsigned long getipaddress(const char * ipaddr)
+static unsigned long getipaddress(const char *ipaddr)
 {
 	struct hostent  *host;
 	unsigned long   ip;

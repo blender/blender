@@ -25,17 +25,15 @@
  *  \ingroup bli
  */
 
-
-#include <float.h> 
+#include <float.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_graph.h"
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
-
+#include "BLI_listbase.h"
+#include "BLI_graph.h"
+#include "BLI_math.h"
 
 
 static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring, int total, float axis[3], float limit, int group);

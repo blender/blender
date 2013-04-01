@@ -87,11 +87,8 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)
 
 typedef struct BrushPainterCache {
-	short enabled;
-
 	int size;           /* size override, if 0 uses 2*BKE_brush_size_get(brush) */
 	short flt;          /* need float imbuf? */
-	short texonly;      /* no alpha, color or fallof, only texture in imbuf */
 
 	int lastsize;
 	float lastalpha;
@@ -157,11 +154,9 @@ static BrushPainter *brush_painter_2d_new(Scene *scene, Brush *brush)
 }
 
 
-static void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt, short texonly, int size)
+static void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt, int size)
 {
-	if ((painter->cache.flt != flt) || (painter->cache.size != size) ||
-	    ((painter->cache.texonly != texonly) && texonly))
-	{
+	if ((painter->cache.flt != flt) || (painter->cache.size != size)) {
 		if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
 		if (painter->cache.maskibuf) IMB_freeImBuf(painter->cache.maskibuf);
 		painter->cache.ibuf = painter->cache.maskibuf = NULL;
@@ -176,8 +171,6 @@ static void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt, sho
 
 	painter->cache.size = size;
 	painter->cache.flt = flt;
-	painter->cache.texonly = texonly;
-	painter->cache.enabled = 1;
 }
 
 static void brush_painter_2d_free(BrushPainter *painter)
@@ -738,10 +731,9 @@ int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int era
 	/* OCIO_TODO: float buffers are now always linear, so always use color correction
 	 *            this should probably be changed when texture painting color space is supported
 	 */
-	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
+	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0);
 
-	if (painter->cache.enabled)
-		brush_painter_2d_refresh_cache(painter, newuv, is_data == false);
+	brush_painter_2d_refresh_cache(painter, newuv, is_data == false);
 
 	if (paint_2d_op(s, painter->cache.ibuf, olduv, newuv)) {
 		imapaint_image_update(s->sima, s->image, ibuf, false);

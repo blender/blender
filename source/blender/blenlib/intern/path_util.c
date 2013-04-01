@@ -61,7 +61,8 @@
 #endif
 
 #ifdef WIN32
-#include "utf_winfunc.h"
+#  include "utf_winfunc.h"
+#  include "utfconv.h"
 #  include <io.h>
 #  ifdef _WIN32_IE
 #    undef _WIN32_IE

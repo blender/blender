@@ -602,6 +602,13 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	return TRUE;
 }
 
+int wm_history_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	/* TODO, read bookmarks */
+	wm_read_history();
+	return OPERATOR_FINISHED;
+}
+
 int wm_homefile_read_exec(bContext *C, wmOperator *op)
 {
 	int from_memory = strcmp(op->type->idname, "WM_OT_read_factory_settings") == 0;
@@ -637,7 +644,6 @@ void wm_read_history(void)
 	}
 	
 	BLI_file_free_lines(lines);
-
 }
 
 static void write_history(void)
@@ -950,7 +956,7 @@ void wm_autosave_location(char *filepath)
 {
 	char pidstr[32];
 #ifdef WIN32
-	char *savedir;
+	const char *savedir;
 #endif
 
 	BLI_snprintf(pidstr, sizeof(pidstr), "%d.blend", abs(getpid()));

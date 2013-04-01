@@ -801,9 +801,9 @@ static void current_screen_compat(Main *mainvar, bScreen **screen)
 
 	/* find a global current screen in the first open window, to have
 	 * a reasonable default for reading in older versions */
-	wm= mainvar->wm.first;
-	window= (wm)? wm->windows.first: NULL;
-	*screen= (window)? window->screen: NULL;
+	wm = mainvar->wm.first;
+	window = (wm) ? wm->windows.first : NULL;
+	*screen = (window) ? window->screen : NULL;
 }
 
 typedef struct RenderInfo {
@@ -3225,7 +3225,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 
 	/* XXX still remap G */
 	fg.curscreen= screen;
-	fg.curscene= screen? screen->scene : NULL;
+	fg.curscene= screen ? screen->scene : NULL;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
 
@@ -3286,7 +3286,11 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	}
 #endif
 
-	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
+	sprintf(buf, "BLENDER%c%c%.3d",
+	        (sizeof(void *) == 8)      ? '-' : '_',
+	        (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+	        BLENDER_VERSION);
+
 	mywrite(wd, buf, 12);
 
 	write_renderinfo(wd, mainvar);

@@ -271,6 +271,12 @@ MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2])
 	r[1] = a[1] + b[1];
 }
 
+MINLINE void add_v2_v2v2_int(int r[2], const int a[2], const int b[2])
+{
+	r[0] = a[0] + b[0];
+	r[1] = a[1] + b[1];
+}
+
 MINLINE void add_v3_v3(float r[3], const float a[3])
 {
 	r[0] += a[0];
@@ -308,6 +314,12 @@ MINLINE void sub_v2_v2(float r[2], const float a[2])
 }
 
 MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2])
+{
+	r[0] = a[0] - b[0];
+	r[1] = a[1] - b[1];
+}
+
+MINLINE void sub_v2_v2v2_int(int r[2], const int a[2], const int b[2])
 {
 	r[0] = a[0] - b[0];
 	r[1] = a[1] - b[1];

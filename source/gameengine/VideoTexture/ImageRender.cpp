@@ -62,7 +62,7 @@ ExpDesc MirrorHorizontalDesc(MirrorHorizontal, "Mirror is horizontal in local sp
 ExpDesc MirrorTooSmallDesc(MirrorTooSmall, "Mirror is too small");
 
 // constructor
-ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) : 
+ImageRender::ImageRender (KX_Scene *scene, KX_Camera * camera) :
     ImageViewport(),
     m_render(true),
     m_scene(scene),
@@ -562,7 +562,7 @@ static PyGetSetDef imageMirrorGetSets[] =
 
 
 // constructor
-ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObject * mirror, RAS_IPolyMaterial * mat) :
+ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObject *mirror, RAS_IPolyMaterial *mat) :
     ImageViewport(),
     m_render(false),
     m_scene(scene),

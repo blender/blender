@@ -85,7 +85,8 @@ static int same_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 	return (((mtex->tex) &&
 	         equals_v3v3(mtex->ofs, snap->ofs) &&
 	         equals_v3v3(mtex->size, snap->size) &&
-	         mtex->rot == snap->rot) &&
+	         (brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL ||
+	         mtex->rot == snap->rot)) &&
 
 	        /* make brush smaller shouldn't cause a resample */
 	        ((mtex->brush_map_mode == MTEX_MAP_MODE_VIEW &&
@@ -117,7 +118,7 @@ static void make_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 	snap->winy = vc->ar->winy;
 }
 
-static int load_tex(Brush *br, ViewContext *vc)
+static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 {
 	static GLuint overlay_texture = 0;
 	static int init = 0;
@@ -125,12 +126,15 @@ static int load_tex(Brush *br, ViewContext *vc)
 	static int curve_changed_timestamp = -1;
 	static Snapshot snap;
 	static int old_size = -1;
+	static int old_zoom = -1;
+	static bool old_col = -1;
 
 	GLubyte *buffer = NULL;
 
 	int size;
 	int j;
 	int refresh;
+	GLenum format = col ? GL_RGBA : GL_ALPHA;
 	
 	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED && !br->mtex.tex) return 0;
 	
@@ -141,10 +145,17 @@ static int load_tex(Brush *br, ViewContext *vc)
 	      br->mtex.tex->preview->changed_timestamp[0] != tex_changed_timestamp)) ||
 	    !br->curve ||
 	    br->curve->changed_timestamp != curve_changed_timestamp ||
+	    old_zoom != zoom ||
+	    old_col != col ||
 	    !same_snap(&snap, br, vc);
 
 	if (refresh) {
 		struct ImagePool *pool = NULL;
+		/* stencil is rotated later */
+		const float rotation = (br->mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL) ?
+		                       -br->mtex.rot : 0;
+
+		float radius = BKE_brush_size_get(vc->scene, br) * zoom;
 
 		if (br->mtex.tex && br->mtex.tex->preview)
 			tex_changed_timestamp = br->mtex.tex->preview->changed_timestamp[0];
@@ -152,6 +163,7 @@ static int load_tex(Brush *br, ViewContext *vc)
 		if (br->curve)
 			curve_changed_timestamp = br->curve->changed_timestamp;
 
+		old_zoom = zoom;
 		make_snap(&snap, br, vc);
 
 		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
@@ -182,8 +194,10 @@ static int load_tex(Brush *br, ViewContext *vc)
 
 			old_size = size;
 		}
-
-		buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
+		if (col)
+			buffer = MEM_mallocN(sizeof(GLubyte) * size * size * 4, "load_tex");
+		else
+			buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
 
 		if (br->mtex.tex)
 			pool = BKE_image_pool_new();
@@ -198,11 +212,8 @@ static int load_tex(Brush *br, ViewContext *vc)
 
 				// largely duplicated from tex_strength
 
-				const float rotation = -br->mtex.rot;
-				float radius = BKE_brush_size_get(vc->scene, br);
 				int index = j * size + i;
 				float x;
-				float avg;
 
 				x = (float)i / size;
 				y = (float)j / size;
@@ -221,7 +232,7 @@ static int load_tex(Brush *br, ViewContext *vc)
 
 				len = sqrtf(x * x + y * y);
 
-				if ((br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) || len <= 1) {
+				if (ELEM(br->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL) || len <= 1) {
 					/* it is probably worth optimizing for those cases where 
 					 * the texture is not rotated by skipping the calls to
 					 * atan2, sqrtf, sin, and cos. */
@@ -238,17 +249,41 @@ static int load_tex(Brush *br, ViewContext *vc)
 					x += br->mtex.ofs[0];
 					y += br->mtex.ofs[1];
 
-					avg = br->mtex.tex ? paint_get_tex_pixel(br, x, y, pool) : 1;
+					if (col) {
+						float rgba[4];
 
-					avg += br->texture_sample_bias;
+						if (br->mtex.tex)
+							paint_get_tex_pixel_col(&br->mtex, x, y, rgba, pool);
 
-					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
-						avg *= BKE_brush_curve_strength(br, len, 1);  /* Falloff curve */
+						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
+							mul_v4_fl(rgba, BKE_brush_curve_strength(br, len, 1));  /* Falloff curve */
 
-					buffer[index] = 255 - (GLubyte)(255 * avg);
+						buffer[index * 4]     = rgba[0] * 255;
+						buffer[index * 4 + 1] = rgba[1] * 255;
+						buffer[index * 4 + 2] = rgba[2] * 255;
+						buffer[index * 4 + 3] = rgba[3] * 255;
+					}
+					else {
+						float avg = br->mtex.tex ? paint_get_tex_pixel(&br->mtex, x, y, pool) : 1;
+
+						avg += br->texture_sample_bias;
+
+						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
+							avg *= BKE_brush_curve_strength(br, len, 1);  /* Falloff curve */
+
+						buffer[index] = 255 - (GLubyte)(255 * avg);
+					}
 				}
 				else {
-					buffer[index] = 0;
+					if (col) {
+						buffer[index * 4]     = 0;
+						buffer[index * 4 + 1] = 0;
+						buffer[index * 4 + 2] = 0;
+						buffer[index * 4 + 3] = 0;
+					}
+					else {
+						buffer[index] = 0;
+					}
 				}
 			}
 		}
@@ -266,16 +301,18 @@ static int load_tex(Brush *br, ViewContext *vc)
 	glBindTexture(GL_TEXTURE_2D, overlay_texture);
 
 	if (refresh) {
-		if (!init) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, size, size, 0, GL_ALPHA, GL_UNSIGNED_BYTE, buffer);
+		if (!init || (old_col != col)) {
+			glTexImage2D(GL_TEXTURE_2D, 0, format, size, size, 0, format, GL_UNSIGNED_BYTE, buffer);
 			init = 1;
 		}
 		else {
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_ALPHA, GL_UNSIGNED_BYTE, buffer);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, format, GL_UNSIGNED_BYTE, buffer);
 		}
 
 		if (buffer)
 			MEM_freeN(buffer);
+
+		old_col = col;
 	}
 
 	glEnable(GL_TEXTURE_2D);
@@ -382,17 +419,20 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
  * have on brush strength */
 /* TODO: sculpt only for now */
 static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                     ViewContext *vc, int x, int y)
+                                     ViewContext *vc, int x, int y, float zoom, PaintMode mode)
 {
 	rctf quad;
-
+	bool col;
 	/* check for overlay mode */
-	if (!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
-	    !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED)))
+
+	if (!((brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL && brush->mtex.tex) ||
+	    ((brush->flag & BRUSH_TEXTURE_OVERLAY) &&
+	    ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
 	{
 		return;
 	}
 
+	col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true: false;
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
 	glPushAttrib(GL_COLOR_BUFFER_BIT |
@@ -406,7 +446,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	             GL_VIEWPORT_BIT |
 	             GL_TEXTURE_BIT);
 
-	if (load_tex(brush, vc)) {
+	if (load_tex(brush, vc, zoom, col)) {
 		glEnable(GL_BLEND);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -439,25 +479,43 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 				quad.ymax = aim[1] + ups->anchored_size;
 			}
 			else {
-				const int radius = BKE_brush_size_get(vc->scene, brush);
+				const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
 				quad.xmin = x - radius;
 				quad.ymin = y - radius;
 				quad.xmax = x + radius;
 				quad.ymax = y + radius;
 			}
 		}
-		else {
+		else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) {
 			quad.xmin = 0;
 			quad.ymin = 0;
 			quad.xmax = BLI_rcti_size_x(&vc->ar->winrct);
 			quad.ymax = BLI_rcti_size_y(&vc->ar->winrct);
 		}
+		else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL) {
+			quad.xmin = -brush->stencil_dimension[0];
+			quad.ymin = -brush->stencil_dimension[1];
+			quad.xmax = brush->stencil_dimension[0];
+			quad.ymax = brush->stencil_dimension[1];
 
-		/* set quad color */
-		glColor4f(U.sculpt_paint_overlay_col[0],
-		          U.sculpt_paint_overlay_col[1],
-		          U.sculpt_paint_overlay_col[2],
-		          brush->texture_overlay_alpha / 100.0f);
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glTranslatef(brush->stencil_pos[0], brush->stencil_pos[1], 0);
+			glRotatef(RAD2DEGF(brush->mtex.rot), 0, 0, 1);
+			glMatrixMode(GL_TEXTURE);
+		}
+
+		/* set quad color. Colored overlay does not get blending */
+		if (col)
+			glColor4f(1.0,
+				      1.0,
+				      1.0,
+				      brush->texture_overlay_alpha / 100.0f);
+		else
+			glColor4f(U.sculpt_paint_overlay_col[0],
+				      U.sculpt_paint_overlay_col[1],
+				      U.sculpt_paint_overlay_col[2],
+				      brush->texture_overlay_alpha / 100.0f);
 
 		/* draw textured quad */
 		glBegin(GL_QUADS);
@@ -472,6 +530,11 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glEnd();
 
 		glPopMatrix();
+
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL) {
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
 	}
 
 	glPopAttrib();
@@ -516,17 +579,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	ViewContext vc;
+	PaintMode mode;
 	float final_radius;
 	float translation[2];
 	float outline_alpha, *outline_col;
+	float zoomx, zoomy;
 	
-	/* set various defaults */
-	translation[0] = x;
-	translation[1] = y;
-	outline_alpha = 0.5;
-	outline_col = brush->add_col;
-	final_radius = BKE_brush_size_get(scene, brush);
-
 	/* check that brush drawing is enabled */
 	if (!(paint->flags & PAINT_SHOW_BRUSH))
 		return;
@@ -535,12 +593,25 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	 * mouse over too, not just during a stroke */
 	view3d_set_viewcontext(C, &vc);
 
+	get_imapaint_zoom(C, &zoomx, &zoomy);
+	zoomx = max_ff(zoomx, zoomy);
+	mode = paintmode_get_active_from_context(C);
+
+	/* set various defaults */
+	translation[0] = x;
+	translation[1] = y;
+	outline_alpha = 0.5;
+	outline_col = brush->add_col;
+	final_radius = BKE_brush_size_get(scene, brush) * zoomx;
+
 	if (brush->flag & BRUSH_RAKE)
 		/* here, translation contains the mouse coordinates. */
 		paint_calculate_rake_rotation(ups, translation);
+	else if (!(brush->flag & BRUSH_ANCHORED))
+		ups->brush_rotation = 0.0;
 
 	/* draw overlay */
-	paint_draw_alpha_overlay(ups, brush, &vc, x, y);
+	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
@@ -610,4 +681,10 @@ void paint_cursor_start(bContext *C, int (*poll)(bContext *C))
 
 	if (p && !p->paint_cursor)
 		p->paint_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), poll, paint_draw_cursor, NULL);
+}
+
+void paint_cursor_start_explicit(Paint *p, wmWindowManager *wm, int (*poll)(bContext *C))
+{
+	if (p && !p->paint_cursor)
+		p->paint_cursor = WM_paint_cursor_activate(wm, poll, paint_draw_cursor, NULL);
 }
