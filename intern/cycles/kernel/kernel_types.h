@@ -611,8 +611,9 @@ typedef struct KernelFilm {
 
 	int pass_shadow;
 	float pass_shadow_scale;
-	int pass_pad1;
-	int pass_pad2;
+
+	int filter_table_offset;
+	int filter_pad;
 } KernelFilm;
 
 typedef struct KernelBackground {

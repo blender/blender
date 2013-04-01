@@ -66,8 +66,8 @@ KERNEL_TEX(uint4, texture_uint4, __svm_nodes)
 KERNEL_TEX(uint, texture_uint, __shader_flag)
 KERNEL_TEX(uint, texture_uint, __object_flag)
 
-/* camera/film */
-KERNEL_TEX(float, texture_float, __filter_table)
+/* lookup tables */
+KERNEL_TEX(float, texture_float, __lookup_table)
 
 /* sobol */
 KERNEL_TEX(uint, texture_uint, __sobol_directions)

@@ -22,9 +22,12 @@
 #include "integrator.h"
 #include "mesh.h"
 #include "scene.h"
+#include "tables.h"
 
 #include "util_algorithm.h"
+#include "util_debug.h"
 #include "util_foreach.h"
+#include "util_math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -171,12 +174,84 @@ bool Pass::contains(const vector<Pass>& passes, PassType type)
 	return false;
 }
 
+/* Pixel Filter */
+
+static float filter_func_box(float v, float width)
+{
+	return (float)1;
+}
+
+static float filter_func_gaussian(float v, float width)
+{
+	v *= (float)2/width;
+	return (float)expf((float)-2*v*v);
+}
+
+static vector<float> filter_table(FilterType type, float width)
+{
+	const int filter_table_size = FILTER_TABLE_SIZE-1;
+	vector<float> filter_table_cdf(filter_table_size+1);
+	vector<float> filter_table(filter_table_size+1);
+	float (*filter_func)(float, float) = NULL;
+	int i, half_size = filter_table_size/2;
+
+	switch(type) {
+		case FILTER_BOX:
+			filter_func = filter_func_box;
+			break;
+		case FILTER_GAUSSIAN:
+			filter_func = filter_func_gaussian;
+			break;
+		default:
+			assert(0);
+	}
+
+	/* compute cumulative distribution function */
+	filter_table_cdf[0] = 0.0f;
+	
+	for(i = 0; i < filter_table_size; i++) {
+		float x = i*width*0.5f/(filter_table_size-1);
+		float y = filter_func(x, width);
+		filter_table_cdf[i+1] += filter_table_cdf[i] + fabsf(y);
+	}
+
+	for(i = 0; i <= filter_table_size; i++)
+		filter_table_cdf[i] /= filter_table_cdf[filter_table_size];
+	
+	/* create importance sampling table */
+	for(i = 0; i <= half_size; i++) {
+		float x = i/(float)half_size;
+		int index = upper_bound(filter_table_cdf.begin(), filter_table_cdf.end(), x) - filter_table_cdf.begin();
+		float t;
+
+		if(index < filter_table_size+1) {
+			t = (x - filter_table_cdf[index])/(filter_table_cdf[index+1] - filter_table_cdf[index]);
+		}
+		else {
+			t = 0.0f;
+			index = filter_table_size;
+		}
+
+		float y = ((index + t)/(filter_table_size))*width;
+
+		filter_table[half_size+i] = 0.5f*(1.0f + y);
+		filter_table[half_size-i] = 0.5f*(1.0f - y);
+	}
+
+	return filter_table;
+}
+
 /* Film */
 
 Film::Film()
 {
 	exposure = 0.8f;
 	Pass::add(PASS_COMBINED, passes);
+
+	filter_type = FILTER_BOX;
+	filter_width = 1.0f;
+	filter_table_offset = -1;
+
 	need_update = true;
 }
 
@@ -184,10 +259,12 @@ Film::~Film()
 {
 }
 
-void Film::device_update(Device *device, DeviceScene *dscene)
+void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
 	if(!need_update)
 		return;
+	
+	device_free(device, dscene, scene);
 
 	KernelFilm *kfilm = &dscene->data.film;
 
@@ -284,17 +361,26 @@ void Film::device_update(Device *device, DeviceScene *dscene)
 
 	kfilm->pass_stride = align_up(kfilm->pass_stride, 4);
 
+	/* update filter table */
+	vector<float> table = filter_table(filter_type, filter_width);
+	filter_table_offset = scene->lookup_tables->add_table(dscene, table);
+	kfilm->filter_table_offset = (int)filter_table_offset;
+
 	need_update = false;
 }
 
-void Film::device_free(Device *device, DeviceScene *dscene)
+void Film::device_free(Device *device, DeviceScene *dscene, Scene *scene)
 {
+	if(filter_table_offset != -1)
+		scene->lookup_tables->remove_table(filter_table_offset);
 }
 
 bool Film::modified(const Film& film)
 {
 	return !(exposure == film.exposure
-		&& Pass::equals(passes, film.passes));
+		&& Pass::equals(passes, film.passes)
+		&& filter_type == film.filter_type
+		&& filter_width == film.filter_width);
 }
 
 void Film::tag_passes_update(Scene *scene, const vector<Pass>& passes_)

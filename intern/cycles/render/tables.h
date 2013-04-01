@@ -16,8 +16,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FILTER_H__
-#define __FILTER_H__
+#ifndef __TABLES_H__
+#define __TABLES_H__
+
+#include <util_list.h>
 
 CCL_NAMESPACE_BEGIN
 
@@ -25,29 +27,29 @@ class Device;
 class DeviceScene;
 class Scene;
 
-typedef enum FilterType {
-	FILTER_BOX,
-	FILTER_GAUSSIAN
-} FilterType;
+enum { TABLE_CHUNK_SIZE = 256 };
 
-class Filter {
+class LookupTables {
 public:
-	/* pixel filter */
-	FilterType filter_type;
-	float filter_width;
-	bool need_update;
+	struct Table {
+		size_t offset;
+		size_t size;
+	};
 
-	Filter();
-	~Filter();
+	bool need_update;
+	list<Table> lookup_tables;
+
+	LookupTables();
+	~LookupTables();
 
 	void device_update(Device *device, DeviceScene *dscene);
 	void device_free(Device *device, DeviceScene *dscene);
 
-	bool modified(const Filter& filter);
-	void tag_update(Scene *scene);
+	size_t add_table(DeviceScene *dscene, vector<float>& data);
+	void remove_table(size_t offset);
 };
 
 CCL_NAMESPACE_END
 
-#endif /* __FILTER_H__ */
+#endif /* __TABLES_H__ */
 
