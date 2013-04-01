@@ -42,7 +42,10 @@ set(INC_SYS
 set(SRC
 	editface.c
 	editmesh_add.c
+	editmesh_bevel.c
 	editmesh_bvh.c
+	editmesh_extrude.c
+	editmesh_inset.c
 	editmesh_knife.c
 	editmesh_knife_project.c
 	editmesh_loopcut.c

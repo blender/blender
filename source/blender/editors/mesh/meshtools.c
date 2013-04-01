@@ -60,7 +60,6 @@
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 
-
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_view3d.h"

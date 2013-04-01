@@ -50,7 +50,7 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "mesh_intern.h"
+#include "mesh_intern.h"  /* own include */
 
 /**
  * helper to find edge for edge_rip,
@@ -1049,7 +1049,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = edbm_rip_invoke;
-	ot->poll = EM_view3d_poll;
+	ot->poll = EDBM_view3d_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

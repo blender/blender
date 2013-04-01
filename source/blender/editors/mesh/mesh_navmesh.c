@@ -52,8 +52,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "mesh_intern.h"
 #include "recast-capi.h"
+
+#include "mesh_intern.h"  /* own include */
 
 
 static void createVertsTrisData(bContext *C, LinkNode *obs,
