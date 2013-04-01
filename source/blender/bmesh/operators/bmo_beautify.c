@@ -33,8 +33,6 @@
  *
  * TODO
  * - Take face normals into account.
- * - Use a stack of rotations to perform the best onces first
- *   similar to edge-collapse-decimate.
  */
 
 #include "BLI_math.h"
@@ -305,7 +303,7 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 #endif
 
 	eheap = BLI_heap_new_ex(edge_array_len);
-	eheap_table = MEM_mallocN(sizeof(HeapNode *) * bm->totedge, __func__);
+	eheap_table = MEM_mallocN(sizeof(HeapNode *) * edge_array_len, __func__);
 
 	/* build heap */
 	for (i = 0; i < edge_array_len; i++) {

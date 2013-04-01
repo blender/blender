@@ -185,7 +185,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 				ups->brush_rotation = 0.0f;
 		}
 
-		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM))
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)
 			BKE_brush_randomize_texture_coordinates(ups);
 		else
 			copy_v2_v2(ups->tex_mouse, mouse);
