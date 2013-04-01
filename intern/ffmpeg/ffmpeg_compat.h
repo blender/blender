@@ -171,6 +171,20 @@ void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 }
 #endif
 
+#if ((LIBAVCODEC_VERSION_MAJOR < 54) || (LIBAVCODEC_VERSION_MAJOR == 54 && LIBAVCODEC_VERSION_MINOR < 28))
+static inline
+void avcodec_free_frame(AVFrame **frame)
+{
+	/* don't need to do anything with old AVFrame
+	 * since it does not have malloced members */
+	(void)frame;
+}
+#endif
+
+#if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR == 54 && LIBAVCODEC_VERSION_MINOR >= 13))
+#define FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
+#endif
+
 #ifndef FFMPEG_HAVE_AVIO
 #define AVIO_FLAG_WRITE URL_WRONLY
 #define avio_open url_fopen

@@ -135,7 +135,9 @@ static int write_audio_frame(void)
 	frame = avcodec_alloc_frame();
 	frame->nb_samples = audio_input_samples;
 	frame->format = c->sample_fmt;
+#ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
 	frame->channel_layout = c->channel_layout;
+#endif
 
 	AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_samples);
 	audio_time += (double) audio_input_samples / (double) c->sample_rate;
