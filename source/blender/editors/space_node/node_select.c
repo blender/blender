@@ -28,6 +28,8 @@
  *  \ingroup spnode
  */
 
+#include <stdlib.h>
+
 #include "DNA_node_types.h"
 
 #include "BLI_rect.h"
