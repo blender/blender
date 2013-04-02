@@ -575,7 +575,7 @@ static int stencil_control_poll(bContext *C)
 static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 {
 	static EnumPropertyItem stencil_control_items[] = {
-		{STENCIL_TRANSLATE, "TRANSLATION", 0, "Transation", ""},
+		{STENCIL_TRANSLATE, "TRANSLATION", 0, "Translation", ""},
 		{STENCIL_SCALE, "SCALE", 0, "Scale", ""},
 		{STENCIL_ROTATE, "ROTATION", 0, "Rotation", ""},
 		{0, NULL, 0, NULL, NULL}
