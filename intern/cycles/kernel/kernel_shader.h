@@ -906,7 +906,7 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 			ShaderClosure *scj = &sd->closure[j];
 
 #ifdef __OSL__
-			if(!sci->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+			if(!sci->prim && !scj->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
 #else
 			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
 #endif
@@ -918,6 +918,7 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 					memmove(scj, scj+1, size*sizeof(ShaderClosure));
 
 				sd->num_closure--;
+				j--;
 			}
 		}
 	}

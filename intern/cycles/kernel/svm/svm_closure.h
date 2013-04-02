@@ -25,6 +25,7 @@ __device void svm_node_glass_setup(ShaderData *sd, ShaderClosure *sc, int type, 
 	if(type == CLOSURE_BSDF_SHARP_GLASS_ID) {
 		if(refract) {
 			sc->data0 = eta;
+			sc->data1 = 0.0f;
 			sd->flag |= bsdf_refraction_setup(sc);
 		}
 		else
@@ -58,6 +59,9 @@ __device_inline ShaderClosure *svm_node_closure_get_non_bsdf(ShaderData *sd, Clo
 	if(sd->num_closure < MAX_CLOSURE) {
 		sc->weight *= mix_weight;
 		sc->type = type;
+#ifdef __OSL__
+		sc->prim = NULL;
+#endif
 		sd->num_closure++;
 		return sc;
 	}
@@ -79,6 +83,9 @@ __device_inline ShaderClosure *svm_node_closure_get_bsdf(ShaderData *sd, float m
 		sc->weight = weight;
 		sc->sample_weight = sample_weight;
 		sd->num_closure++;
+#ifdef __OSL__
+		sc->prim = NULL;
+#endif
 		return sc;
 	}
 
@@ -125,10 +132,13 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 				float roughness = param1;
 
 				if(roughness == 0.0f) {
+					sc->data0 = 0.0f;
+					sc->data1 = 0.0f;
 					sd->flag |= bsdf_diffuse_setup(sc);
 				}
 				else {
 					sc->data0 = roughness;
+					sc->data1 = 0.0f;
 					sd->flag |= bsdf_oren_nayar_setup(sc);
 				}
 			}
@@ -138,6 +148,8 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
 
 			if(sc) {
+				sc->data0 = 0.0f;
+				sc->data1 = 0.0f;
 				sc->N = N;
 				sd->flag |= bsdf_translucent_setup(sc);
 			}
@@ -147,6 +159,8 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
 
 			if(sc) {
+				sc->data0 = 0.0f;
+				sc->data1 = 0.0f;
 				sc->N = N;
 				sd->flag |= bsdf_transparent_setup(sc);
 			}
@@ -164,6 +178,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			if(sc) {
 				sc->N = N;
 				sc->data0 = param1;
+				sc->data1 = 0.0f;
 
 				/* setup bsdf */
 				if(type == CLOSURE_BSDF_REFLECTION_ID)
@@ -302,6 +317,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 
 				/* sigma */
 				sc->data0 = clamp(param1, 0.0f, 1.0f);
+				sc->data1 = 0.0f;
 				sd->flag |= bsdf_ashikhmin_velvet_setup(sc);
 			}
 			break;
@@ -324,6 +340,9 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.x;
 					sc->data1 = eta;
+#ifdef __OSL__
+					sc->prim = NULL;
+#endif
 					sc->N = N;
 					sd->flag |= bssrdf_setup(sc);
 
@@ -336,6 +355,9 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.y;
 					sc->data1 = eta;
+#ifdef __OSL__
+					sc->prim = NULL;
+#endif
 					sc->N = N;
 					sd->flag |= bssrdf_setup(sc);
 
@@ -348,6 +370,9 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.z;
 					sc->data1 = eta;
+#ifdef __OSL__
+					sc->prim = NULL;
+#endif
 					sc->N = N;
 					sd->flag |= bssrdf_setup(sc);
 
