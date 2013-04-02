@@ -1092,10 +1092,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	if (is_float)
 		rf = ibuf->rect_float;
 	else {
-		if (view_settings)
-			rc = (unsigned char *)IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
-		else
-			rc = (unsigned char *)ibuf->rect;
+		rc = (unsigned char *)IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 	}
 	
 	if (ibuf->rect_float)
@@ -1178,11 +1175,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 		if (bin_b[x]   > nb) nb = bin_b[x];
 		if (bin_a[x]   > na) na = bin_a[x];
 	}
-	divl = 1.0 / (double)nl;
-	diva = 1.0 / (double)na;
-	divr = 1.0 / (double)nr;
-	divg = 1.0 / (double)ng;
-	divb = 1.0 / (double)nb;
+	divl = nl ? 1.0 / (double)nl : 1.0;
+	diva = na ? 1.0 / (double)na : 1.0;
+	divr = nr ? 1.0 / (double)nr : 1.0;
+	divg = ng ? 1.0 / (double)ng : 1.0;
+	divb = nb ? 1.0 / (double)nb : 1.0;
+	
 	for (x = 0; x < 256; x++) {
 		scopes->hist.data_luma[x] = bin_lum[x] * divl;
 		scopes->hist.data_r[x] = bin_r[x] * divr;
