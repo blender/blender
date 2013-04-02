@@ -38,6 +38,8 @@ static float cdf_lookup_inverse(const vector<float>& table, float2 range, float 
 
 	if(index == 0)
 		return range[0];
+	else if(index == table.size())
+		return range[1];
 	else
 		index--;
 	
