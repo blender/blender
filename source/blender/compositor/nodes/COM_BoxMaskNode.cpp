@@ -24,6 +24,9 @@
 #include "COM_BoxMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 
+#include "COM_SetValueOperation.h"
+#include "COM_ScaleOperation.h"
+
 BoxMaskNode::BoxMaskNode(bNode *editorNode) : Node(editorNode)
 {
 	/* pass */
@@ -34,9 +37,41 @@ void BoxMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	BoxMaskOperation *operation;
 	operation = new BoxMaskOperation();
 	operation->setData((NodeBoxMask *)this->getbNode()->storage);
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+
+	InputSocket *inputSocket = this->getInputSocket(0);
+	OutputSocket *outputSocket = this->getOutputSocket(0);
+
+	if (inputSocket->isConnected()) {
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+		outputSocket->relinkConnections(operation->getOutputSocket());
+	}
+	else {
+		/* Value operation to produce original transparent image */
+		SetValueOperation *valueOperation = new SetValueOperation();
+		valueOperation->setValue(0.0f);
+		graph->addOperation(valueOperation);
+
+		/* Scale that image up to render resolution */
+		const RenderData *rd = context->getRenderData();
+		ScaleFixedSizeOperation *scaleOperation = new ScaleFixedSizeOperation();
+
+		scaleOperation->setIsAspect(false);
+		scaleOperation->setIsCrop(false);
+		scaleOperation->setOffset(0.0f, 0.0f);
+
+		scaleOperation->setNewWidth(rd->xsch * rd->size / 100.0f);
+		scaleOperation->setNewHeight(rd->ysch * rd->size / 100.0f);
+
+		addLink(graph, valueOperation->getOutputSocket(0), scaleOperation->getInputSocket(0));
+		addLink(graph, scaleOperation->getOutputSocket(0), operation->getInputSocket(0));
+		outputSocket->relinkConnections(operation->getOutputSocket(0));
+
+		scaleOperation->getInputSocket(0)->getConnection()->setIgnoreResizeCheck(true);
+
+		graph->addOperation(scaleOperation);
+	}
+
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 	operation->setMaskType(this->getbNode()->custom1);
 	
 	graph->addOperation(operation);
