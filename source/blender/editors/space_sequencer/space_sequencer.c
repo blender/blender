@@ -330,6 +330,7 @@ static void sequencer_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_WINDOW:
 		case NC_SPACE:
 			if (wmn->data == ND_SPACE_SEQUENCER)
 				sequencer_scopes_tag_refresh(sa);

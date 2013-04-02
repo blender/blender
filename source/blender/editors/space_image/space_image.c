@@ -435,6 +435,12 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	
 	/* context changes */
 	switch (wmn->category) {
+		case NC_WINDOW:
+			/* notifier comes from editing color space */
+			image_scopes_tag_refresh(sa);
+			ED_area_tag_refresh(sa);
+			ED_area_tag_redraw(sa);
+			break;
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
@@ -801,11 +807,15 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	Scene *scene = CTX_data_scene(C);
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
+	
 	if (ibuf) {
 		if (!sima->scopes.ok) {
 			BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, &scene->view_settings, &scene->display_settings);
 		}
-		scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
+		if (sima->image->flag & IMA_VIEW_AS_RENDER)
+			scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
+		else
+			scopes_update(&sima->scopes, ibuf, NULL, &scene->display_settings);
 	}
 	ED_space_image_release_buffer(sima, ibuf, lock);
 	
