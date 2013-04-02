@@ -69,6 +69,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "GPU_extensions.h"
 
@@ -261,11 +263,14 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	 */
 
 	if (!oglrender->is_sequencer) {
-		/* sequencer has got tricker ocnversion happened above */
-
-		IMB_buffer_float_from_float(rr->rectf, rr->rectf,
-		                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, TRUE,
-		                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
+		/* sequencer has got trickier conversion happened above
+		 * also assume opengl's space matches byte buffer color space
+		 */
+		if (!glaBufferTransformFromRole_glsl(rr->rectf, oglrender->sizex, oglrender->sizey, COLOR_ROLE_DEFAULT_BYTE)) {
+			IMB_buffer_float_from_float(rr->rectf, rr->rectf,
+			                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, TRUE,
+			                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
+		}
 	}
 
 	/* rr->rectf is now filled with image data */

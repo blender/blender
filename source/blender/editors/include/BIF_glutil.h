@@ -33,6 +33,9 @@
 struct rcti;
 struct rctf;
 
+struct ImBuf;
+struct bContext;
+
 void fdrawbezier(float vec[4][3]);
 void fdrawline(float x1, float y1, float x2, float y2);
 void fdrawbox(float x1, float y1, float x2, float y2);
@@ -222,6 +225,14 @@ typedef struct bglMats {
 	int viewport[4];
 } bglMats;
 void bgl_get_mats(bglMats *mats);
+
+/* **** Color management helper functions for GLSL display/transform ***** */
+
+/* Draw imbuf on a screen, preferably using GLSL display transform */
+void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter);
+
+/* Transform buffer from role to scene linear space using GLSL OCIO conversion */
+int glaBufferTransformFromRole_glsl(float *buffer, int width, int height, int role);
 
 #endif /* __BIF_GLUTIL_H__ */
 

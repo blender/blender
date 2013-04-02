@@ -43,9 +43,15 @@
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "GPU_extensions.h"
+
+#include "IMB_colormanagement.h"
+#include "IMB_imbuf_types.h"
 
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE                        0x812F
@@ -983,3 +989,89 @@ void bglFlush(void)
 #endif
 }
 #endif
+
+/* **** Color management helper functions for GLSL display/transform ***** */
+
+/* Draw given image buffer on a screen using GLSL for display transform */
+void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter)
+{
+	bool need_fallback = true;
+
+	/* Bytes and dithering are not supported on GLSL yet */
+	if (ibuf->rect_float && ibuf->dither == 0.0f) {
+		if (IMB_colormanagement_setup_glsl_draw_from_ctx(C)) {
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+
+			glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, zoomfilter, ibuf->rect_float);
+
+			IMB_colormanagement_finish_glsl_draw();
+
+			need_fallback = false;
+		}
+	}
+
+	if (need_fallback) {
+		unsigned char *display_buffer;
+		void *cache_handle;
+
+		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+
+		if (display_buffer)
+			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, zoomfilter, display_buffer);
+
+		IMB_display_buffer_release(cache_handle);
+	}
+}
+
+/* Transform buffer from role to scene linear space using GLSL OCIO conversion
+ *
+ * See IMB_colormanagement_setup_transform_from_role_glsl description for
+ * some more details
+ */
+int glaBufferTransformFromRole_glsl(float *buffer, int width, int height, int role)
+{
+	GPUOffScreen *ofs;
+	char err_out[256];
+	rcti display_rect;
+
+	ofs = GPU_offscreen_create(width, height, err_out);
+
+	if (!ofs)
+		return FALSE;
+
+	GPU_offscreen_bind(ofs);
+
+	if (!IMB_colormanagement_setup_transform_from_role_glsl(role)) {
+		GPU_offscreen_unbind(ofs);
+		GPU_offscreen_free(ofs);
+		return FALSE;
+	}
+
+	BLI_rcti_init(&display_rect, 0, width, 0, height);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	glaDefine2DArea(&display_rect);
+	glLoadIdentity();
+
+	glaDrawPixelsTex(0, 0, width, height, GL_FLOAT, GL_NEAREST, buffer);
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	GPU_offscreen_read_pixels(ofs, GL_FLOAT, buffer);
+
+	IMB_colormanagement_finish_glsl_transform();
+
+	/* unbind */
+	GPU_offscreen_unbind(ofs);
+	GPU_offscreen_free(ofs);
+
+	return TRUE;
+}

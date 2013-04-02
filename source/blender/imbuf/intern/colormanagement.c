@@ -113,6 +113,7 @@ static struct global_glsl_state {
 
 	/* Container for GLSL state needed for OCIO module. */
 	struct OCIO_GLSLDrawState *ocio_glsl_state;
+	struct OCIO_GLSLDrawState *transform_ocio_glsl_state;
 } global_glsl_state;
 
 /*********************** Color managed cache *************************/
@@ -625,6 +626,9 @@ void colormanagement_exit(void)
 
 	if (global_glsl_state.ocio_glsl_state)
 		OCIO_freeOGLState(global_glsl_state.ocio_glsl_state);
+
+	if (global_glsl_state.transform_ocio_glsl_state)
+		OCIO_freeOGLState(global_glsl_state.transform_ocio_glsl_state);
 
 	colormanage_free_config();
 }
@@ -2750,7 +2754,20 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 	}
 }
 
-int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
+/**
+ * Configures GLSL shader for conversion from scene linear
+ * to display space
+ *
+ * Will create appropriate OCIO processor and setup GLSL shader,
+ * so further 2D texture usage will use this conversion.
+ *
+ * When there's no need to apply transform on 2D textures, use
+ * IMB_colormanagement_finish_glsl_draw().
+ *
+ * This is low-level function, use glaDrawImBuf_glsl_ctx if you
+ * only need to display given image buffer
+ */
+int IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
                                         const ColorManagedDisplaySettings *display_settings)
 {
 	ColorManagedViewSettings default_view_settings;
@@ -2778,17 +2795,52 @@ int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_set
 	return OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor);
 }
 
-int IMB_coloemanagement_setup_glsl_draw_from_ctx(const bContext *C)
+/* Same as above, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_from_ctx(const bContext *C)
 {
 	ColorManagedViewSettings *view_settings;
 	ColorManagedDisplaySettings *display_settings;
 
 	display_transform_get_from_ctx(C, &view_settings, &display_settings);
 
-	return IMB_coloemanagement_setup_glsl_draw(view_settings, display_settings);
+	return IMB_colormanagement_setup_glsl_draw(view_settings, display_settings);
 }
 
-void IMB_coloemanagement_finish_glsl_draw(void)
+/* Finish GLSL-based display space conversion */
+void IMB_colormanagement_finish_glsl_draw(void)
 {
 	OCIO_finishGLSLDraw(global_glsl_state.ocio_glsl_state);
+}
+
+/* ** Color space conversion using GLSL shader  ** */
+
+/**
+ * Configures GLSL shader for conversion from space defined by role
+ * to scene linear space
+ *
+ * Will create appropriate OCIO processor and setup GLSL shader,
+ * so further 2D texture usage will use this conversion.
+ *
+ * Role is an pseudonym for a color space, see bottom of file
+ * IMB_colormanagement.h for list of available roles.
+ *
+ * When there's no need to apply transform on 2D textures, use
+ * IMB_colormanagement_finish_glsl_transform().
+ */
+int IMB_colormanagement_setup_transform_from_role_glsl(int role)
+{
+	OCIO_ConstProcessorRcPtr *processor;
+	ColorSpace *colorspace;
+
+	colorspace = colormanage_colorspace_get_roled(role);
+
+	processor = colorspace_to_scene_linear_processor(colorspace);
+
+	return OCIO_setupGLSLDraw(&global_glsl_state.transform_ocio_glsl_state, processor);
+}
+
+/* Finish GLSL-based color space conversion */
+void IMB_colormanagement_finish_glsl_transform(void)
+{
+	OCIO_finishGLSLDraw(global_glsl_state.transform_ocio_glsl_state);
 }

@@ -248,53 +248,6 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 		ED_region_info_draw(ar, str, block, 0.6f);
 }
 
-static void draw_movieclip_buffer_glsl(SpaceClip *sc, ImBuf *ibuf, int x, int y,
-                                       float zoomx, float zoomy)
-{
-	MovieClip *clip = ED_space_clip_get_clip(sc);
-	int filter = GL_LINEAR;
-
-	glPushMatrix();
-	glTranslatef(x, y, 0.0f);
-	glScalef(zoomx, zoomy, 1.0f);
-
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	glColor4f(1.0, 1.0, 1.0, 1.0);
-
-	/* non-scaled proxy shouldn;t use diltering */
-	if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
-	    ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100))
-	{
-		filter = GL_NEAREST;
-	}
-
-	glaDrawPixelsTex(0, 0, ibuf->x, ibuf->y, GL_FLOAT, filter, ibuf->rect_float);
-
-	glPopMatrix();
-}
-
-static void draw_movieclip_buffer_fallback(const bContext *C, ImBuf *ibuf, int x, int y,
-                                           int width, int height, float zoomx, float zoomy)
-{
-	unsigned char *display_buffer;
-	void *cache_handle;
-
-	display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-
-	if (display_buffer) {
-		/* set zoom */
-		glPixelZoom(zoomx * width / ibuf->x, zoomy * height / ibuf->y);
-
-		glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer);
-
-		/* reset zoom */
-		glPixelZoom(1.0f, 1.0f);
-	}
-
-	IMB_display_buffer_release(cache_handle);
-}
-
 static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
                                   int width, int height, float zoomx, float zoomy)
 {
@@ -308,7 +261,8 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 		glRectf(x, y, x + zoomx * width, y + zoomy * height);
 	}
 	else {
-		bool need_fallback = true;
+		MovieClip *clip = ED_space_clip_get_clip(sc);
+		int filter = GL_LINEAR;
 
 		/* checkerboard for case alpha */
 		if (ibuf->planes == 32) {
@@ -318,19 +272,14 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 			fdrawcheckerboard(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
 		}
 
-		/* GLSL display transform for byte buffers is not supported yet */
-		if (ibuf->rect_float && IMB_coloemanagement_setup_glsl_draw_from_ctx(C)) {
-			draw_movieclip_buffer_glsl(sc, ibuf, x, y, zoomx, zoomy);
+		/* non-scaled proxy shouldn't use filtering */
+		if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
+		    ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100))
+			{
+				filter = GL_NEAREST;
+			}
 
-			IMB_coloemanagement_finish_glsl_draw();
-
-			need_fallback = false;
-		}
-
-		/* if GLSL display failed, fallback to regular glaDrawPixelsAuto method */
-		if (need_fallback) {
-			draw_movieclip_buffer_fallback(C, ibuf, x, y, width, height, zoomx, zoomy);
-		}
+		glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
 
 		if (ibuf->planes == 32)
 			glDisable(GL_BLEND);
