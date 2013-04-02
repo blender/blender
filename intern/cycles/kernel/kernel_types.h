@@ -452,6 +452,8 @@ enum ShaderDataFlag {
 	SD_VOLUME = 128,		/* have volume closure? */
 	SD_AO = 256,			/* have ao closure? */
 
+	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_VOLUME|SD_AO),
+
 	/* shader flags */
 	SD_SAMPLE_AS_LIGHT = 512,			/* direct light sample */
 	SD_HAS_SURFACE_TRANSPARENT = 1024,	/* has surface transparency */

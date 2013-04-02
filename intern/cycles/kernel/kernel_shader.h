@@ -925,12 +925,5 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 }
 #endif
 
-/* Free ShaderData */
-
-__device void shader_release(KernelGlobals *kg, ShaderData *sd)
-{
-	/* nothing to do currently */
-}
-
 CCL_NAMESPACE_END
 

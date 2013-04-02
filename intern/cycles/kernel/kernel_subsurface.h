@@ -143,6 +143,7 @@ __device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 weigh
 	sc->data0 = 0.0f;
 	sc->data1 = 0.0f;
 	sc->N = sd->N;
+	sd->flag &= ~SD_CLOSURE_FLAGS;
 	sd->flag |= bsdf_diffuse_setup(sc);
 	sd->randb_closure = 0.0f;
 
