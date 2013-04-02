@@ -44,6 +44,7 @@ set(SRC
 if(WITH_OPENCOLORIO)
 	add_definitions(
 		-DWITH_OCIO
+		-DGLEW_STATIC
 	)
 
 	list(APPEND INC_SYS

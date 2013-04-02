@@ -1289,17 +1289,17 @@ elseif(WIN32)
 		if(WITH_OPENCOLLADA)
 			set(OPENCOLLADA ${LIBDIR}/opencollada)
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${OPENCOLLADA}/include/COLLADAStreamWriter
-				${OPENCOLLADA}/include/COLLADABaseUtils
-				${OPENCOLLADA}/include/COLLADAFramework
-				${OPENCOLLADA}/include/COLLADASaxFrameworkLoader
-				${OPENCOLLADA}/include/GeneratedSaxParser
+				${OPENCOLLADA}/include/opencollada/COLLADAStreamWriter
+				${OPENCOLLADA}/include/opencollada/COLLADABaseUtils
+				${OPENCOLLADA}/include/opencollada/COLLADAFramework
+				${OPENCOLLADA}/include/opencollada/COLLADASaxFrameworkLoader
+				${OPENCOLLADA}/include/opencollada/GeneratedSaxParser
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib/opencollada)
 			if(WITH_MINGW64)
-				set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre buffer ftoa xml)
+				set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver buffer ftoa xml)
 			else()
-				set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
+				set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat buffer ftoa)
 			endif()
 			set(PCRE_LIBRARIES pcre)
 		endif()
