@@ -62,7 +62,7 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/*int type = RNA_enum_get(op->ptr, "type");*/
 	Paint *paint = paint_get_active_from_context(C);
-	struct Brush *br = paint_brush(paint);
+	Brush *br = paint_brush(paint);
 	Main *bmain = CTX_data_main(C);
 
 	if (br)
@@ -94,7 +94,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint  *paint =  paint_get_active_from_context(C);
-	struct Brush  *brush =  paint_brush(paint);
+	Brush  *brush =  paint_brush(paint);
 	// Object *ob = CTX_data_active_object(C);
 	float scalar = RNA_float_get(op->ptr, "scalar");
 
@@ -176,10 +176,10 @@ static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Paint *paint = paint_get_active_from_context(C);
-	struct Brush *brush = paint_brush(paint);
+	Brush *brush = paint_brush(paint);
 	Object *ob = CTX_data_active_object(C);
 
-	if (!ob) return OPERATOR_CANCELLED;
+	if (!ob || !brush) return OPERATOR_CANCELLED;
 
 	if (ob->mode & OB_MODE_SCULPT)
 		BKE_brush_sculpt_reset(brush);
@@ -215,7 +215,7 @@ static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
 /* generic functions for setting the active brush based on the tool */
 static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
 {
-	struct Brush *brush;
+	Brush *brush;
 
 	if (!brush_orig && !(brush_orig = bmain->brush.first)) {
 		return NULL;
@@ -266,7 +266,7 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
                                   const char *tool_name, int create_missing,
                                   int toggle)
 {
-	struct Brush *brush, *brush_orig = paint_brush(paint);
+	Brush *brush, *brush_orig = paint_brush(paint);
 
 	if (toggle)
 		brush = brush_tool_toggle(bmain, brush_orig, tool, tool_offset, ob_mode);
@@ -467,7 +467,7 @@ typedef struct {
 static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Paint *paint = paint_get_active_from_context(C);
-	Brush *br = paint->brush;
+	Brush *br = paint_brush(paint);
 	int mdiff[2];
 
 	StencilControlData *scd = MEM_mallocN(sizeof(StencilControlData), "stencil_control");
@@ -567,9 +567,9 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 static int stencil_control_poll(bContext *C)
 {
 	Paint *paint = paint_get_active_from_context(C);
-	Brush *br = paint->brush;
+	Brush *br = paint_brush(paint);
 
-	return br->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL;
+	return (br && br->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL);
 }
 
 static void BRUSH_OT_stencil_control(wmOperatorType *ot)

@@ -381,7 +381,9 @@ void paint_sample_color(const bContext *C, ARegion *ar, int x, int y)    /* fron
 static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
 	Brush *br = paint_brush(paint_get_active_from_context(C));
-	BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
+
+	if(br)
+		BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
 
 	return OPERATOR_FINISHED;
 }
