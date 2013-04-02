@@ -130,7 +130,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
     int msPixelFormat)
 	:
 	GHOST_Window(width, height, state, GHOST_kDrawingContextTypeNone,
-	             stereoVisual, numOfAASamples),
+	             stereoVisual, false, numOfAASamples),
 	m_system(system),
 	m_hDC(0),
 	m_hGlRc(0),
