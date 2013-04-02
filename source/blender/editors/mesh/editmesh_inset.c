@@ -34,6 +34,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_tessmesh.h"
 
 #include "RNA_define.h"
@@ -45,6 +46,7 @@
 #include "ED_mesh.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
@@ -56,16 +58,20 @@
 typedef struct {
 	float old_thickness;
 	float old_depth;
-	int mcenter[2];
-	int modify_depth;
+	bool modify_depth;
 	float initial_length;
 	float pixel_size;  /* use when mouse input is interpreted as spatial distance */
-	int is_modal;
-	int shift;
+	bool is_modal;
+	bool shift;
 	float shift_amount;
-	BMBackup backup;
 	BMEditMesh *em;
 	NumInput num_input;
+
+	/* modal only */
+	int mcenter[2];
+	BMBackup mesh_backup;
+	void *draw_handle_pixel;
+	short twtype;
 } InsetData;
 
 
@@ -100,7 +106,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 }
 
 
-static int edbm_inset_init(bContext *C, wmOperator *op, int is_modal)
+static int edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	InsetData *opdata;
 	Object *obedit = CTX_data_edit_object(C);
@@ -119,8 +125,16 @@ static int edbm_inset_init(bContext *C, wmOperator *op, int is_modal)
 	initNumInput(&opdata->num_input);
 	opdata->num_input.idx_max = 1; /* Two elements. */
 
-	if (is_modal)
-		opdata->backup = EDBM_redo_state_store(em);
+	if (is_modal) {
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+
+		opdata->mesh_backup = EDBM_redo_state_store(em);
+		opdata->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
+		G.moving = true;
+		opdata->twtype = v3d->twtype;
+		v3d->twtype = 0;
+	}
 
 	return 1;
 }
@@ -132,8 +146,14 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 
 	opdata = op->customdata;
 
-	if (opdata->is_modal)
-		EDBM_redo_state_free(&opdata->backup, NULL, false);
+	if (opdata->is_modal) {
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+		EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
+		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
+		v3d->twtype = opdata->twtype;
+		G.moving = false;
+	}
 
 	if (sa) {
 		ED_area_headerprint(sa, NULL);
@@ -147,7 +167,7 @@ static int edbm_inset_cancel(bContext *C, wmOperator *op)
 
 	opdata = op->customdata;
 	if (opdata->is_modal) {
-		EDBM_redo_state_free(&opdata->backup, opdata->em, true);
+		EDBM_redo_state_free(&opdata->mesh_backup, opdata->em, true);
 		EDBM_update_generic(opdata->em, false, true);
 	}
 
@@ -176,7 +196,7 @@ static int edbm_inset_calc(wmOperator *op)
 	em = opdata->em;
 
 	if (opdata->is_modal) {
-		EDBM_redo_state_restore(opdata->backup, em, false);
+		EDBM_redo_state_restore(opdata->mesh_backup, em, false);
 	}
 
 	EDBM_op_init(em, &bmop, op,

@@ -34,6 +34,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_tessmesh.h"
 
 #include "RNA_define.h"
@@ -45,6 +46,7 @@
 #include "ED_mesh.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
@@ -55,13 +57,17 @@
 
 typedef struct {
 	BMEditMesh *em;
-	BMBackup mesh_backup;
-	int mcenter[2];
 	float initial_length;
 	float pixel_size;  /* use when mouse input is interpreted as spatial distance */
-	int is_modal;
+	bool is_modal;
 	NumInput num_input;
 	float shift_factor; /* The current factor when shift is pressed. Negative when shift not active. */
+
+	/* modal only */
+	int mcenter[2];
+	BMBackup mesh_backup;
+	void *draw_handle_pixel;
+	short twtype;
 } BevelData;
 
 #define HEADER_LENGTH 180
@@ -85,7 +91,7 @@ static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 	}
 }
 
-static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
+static int edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -105,8 +111,16 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 	opdata->num_input.flag = NUM_NO_NEGATIVE;
 
 	/* avoid the cost of allocating a bm copy */
-	if (is_modal)
+	if (is_modal) {
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+
 		opdata->mesh_backup = EDBM_redo_state_store(em);
+		opdata->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
+		G.moving = true;
+		opdata->twtype = v3d->twtype;
+		v3d->twtype = 0;
+	}
 
 	return 1;
 }
@@ -163,7 +177,12 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 	}
 
 	if (opdata->is_modal) {
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
 		EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
+		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
+		v3d->twtype = opdata->twtype;
+		G.moving = false;
 	}
 	MEM_freeN(opdata);
 	op->customdata = NULL;
