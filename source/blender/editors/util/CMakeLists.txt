@@ -90,6 +90,8 @@ set(SRC
 	../include/UI_view2d.h
 )
 
+add_definitions(-DGLEW_STATIC)
+
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
