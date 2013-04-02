@@ -190,7 +190,10 @@ static void node_socket_set_typeinfo(bNodeTree *ntree, bNodeSocket *sock, bNodeS
 {
 	if (typeinfo) {
 		sock->typeinfo = typeinfo;
-	
+		
+		/* deprecated integer type */
+		sock->type = typeinfo->type;
+		
 		if (sock->default_value == NULL) {
 			/* initialize the default_value pointer used by standard socket types */
 			node_socket_init_default_value(sock);
