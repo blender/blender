@@ -1101,7 +1101,6 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	if (ibuf->rect_float)
 		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
-	printf("update %p\n", cm_processor);
 	for (y = 0; y < ibuf->y; y++) {
 		if (savedlines < scopes->sample_lines && y >= ((savedlines) * ibuf->y) / (scopes->sample_lines + 1)) {
 			saveline = 1;
