@@ -1075,6 +1075,11 @@ __device_inline int bvh_intersect_subsurface(KernelGlobals *kg, const Ray *ray, 
 
 						nodeAddr = kernel_tex_fetch(__object_node, object);
 					}
+					else {
+						/* pop */
+						nodeAddr = traversalStack[stackPtr];
+						--stackPtr;
+					}
 				}
 #endif
 			}
@@ -1204,6 +1209,11 @@ __device bool bvh_intersect_motion_subsurface(KernelGlobals *kg, const Ray *ray,
 
 						nodeAddr = kernel_tex_fetch(__object_node, object);
 					}
+					else {
+						/* pop */
+						nodeAddr = traversalStack[stackPtr];
+						--stackPtr;
+					}
 				}
 			}
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
@@ -1234,8 +1244,6 @@ __device_inline int scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray
 	return bvh_intersect_subsurface(kg, ray, isect, subsurface_object, subsurface_random);
 #endif
 }
-
-
 
 /* Ray offset to avoid self intersection */
 
