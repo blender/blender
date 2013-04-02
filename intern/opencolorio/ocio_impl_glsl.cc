@@ -187,7 +187,7 @@ static void ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
  * When all drawing is finished, finishGLSLDraw shall be called to
  * restore OpenGL context to it's pre-GLSL draw state.
  */
-void OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
+bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
 {
 	ConstProcessorRcPtr ocio_processor = *(ConstProcessorRcPtr *) processor;
 
@@ -232,22 +232,35 @@ void OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 		if (state->fragShader)
 			glDeleteShader(state->fragShader);
+
 		state->fragShader = compileShaderText(GL_FRAGMENT_SHADER, os.str().c_str());
 
-		if (state->program)
-			glDeleteProgram(state->program);
+		if (state->fragShader) {
+			if (state->program)
+				glDeleteProgram(state->program);
 
-		state->program = linkShaders(state->fragShader);
+			state->program = linkShaders(state->fragShader);
+		}
 	}
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_3D, state->lut3d_texture);
+	if (state->program) {
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_3D, state->lut3d_texture);
 
-	glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 
-	glUseProgram(state->program);
-	glUniform1i(glGetUniformLocation(state->program, "tex1"), 0);
-	glUniform1i(glGetUniformLocation(state->program, "tex2"), 1);
+		glUseProgram(state->program);
+		glUniform1i(glGetUniformLocation(state->program, "tex1"), 0);
+		glUniform1i(glGetUniformLocation(state->program, "tex2"), 1);
+
+		return true;
+	}
+	else {
+		glActiveTexture(state->last_texture_unit);
+		glBindTexture(GL_TEXTURE_2D, state->last_texture);
+
+		return false;
+	}
 }
 
 void OCIOImpl::finishGLSLDraw(OCIO_GLSLDrawState *state)
@@ -266,6 +279,12 @@ void OCIOImpl::freeGLState(struct OCIO_GLSLDrawState *state)
 
 	if (state->lut3d)
 		MEM_freeN(state->lut3d);
+
+	if (state->program)
+		glDeleteProgram(state->program);
+
+	if (state->fragShader)
+		glDeleteShader(state->fragShader);
 
 	state->lut3dcacheid.~string();
 	state->shadercacheid.~string();

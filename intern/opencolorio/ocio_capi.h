@@ -121,7 +121,7 @@ void OCIO_matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt);
 
 void OCIO_matrixTransformScale(float * m44, float * offset4, const float * scale4);
 
-void OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor);
+int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor);
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state);
 void OCIO_freeOGLState(struct OCIO_GLSLDrawState *state);
 

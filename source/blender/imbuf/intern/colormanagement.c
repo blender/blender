@@ -2775,9 +2775,7 @@ int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_set
 	/* Make sure OCIO processor is up-to-date. */
 	update_glsl_display_processor(applied_view_settings, display_settings);
 
-	OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor);
-
-	return TRUE;
+	return OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor);
 }
 
 int IMB_coloemanagement_setup_glsl_draw_from_ctx(const bContext *C)

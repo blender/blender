@@ -381,8 +381,9 @@ void FallbackImpl::matrixTransformScale(float * , float * , const float *)
 {
 }
 
-void FallbackImpl::setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
+bool FallbackImpl::setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
 {
+	return false;
 }
 
 void FallbackImpl::finishGLSLDraw(OCIO_GLSLDrawState *state)

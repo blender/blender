@@ -283,9 +283,9 @@ void OCIO_matrixTransformScale(float * m44, float * offset4, const float *scale4
 	impl->matrixTransformScale(m44, offset4, scale4f);
 }
 
-void OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
+int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
 {
-	impl->setupGLSLDraw(state_r, processor);
+	return (int) impl->setupGLSLDraw(state_r, processor);
 }
 
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state)
