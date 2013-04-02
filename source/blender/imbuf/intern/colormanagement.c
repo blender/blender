@@ -1847,10 +1847,10 @@ static void imbuf_verify_float(ImBuf *ibuf)
 	 */
 	BLI_lock_thread(LOCK_COLORMANAGE);
 
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID))) {
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)))) {
 		IMB_rect_from_float(ibuf);
 
-		ibuf->userflags &= ~IB_RECT_INVALID;
+		ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
 	}
 
 	BLI_unlock_thread(LOCK_COLORMANAGE);
