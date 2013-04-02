@@ -205,7 +205,6 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 
 		/* particle systems */
 		if (psys) {
-			/* todo: these slots are not in the UI */
 			for (a = 0; a < MAX_MTEX; a++) {
 				mtex = psys->part->mtex[a];
 
@@ -333,6 +332,17 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 		tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? texptr.data : NULL;
 
 		ct->texture = tex;
+
+		if(user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
+			/* stupid exception for particle systems which still uses influence
+			 * from the old texture system, set the active texture slots as well */
+			ParticleSettings *part = user->ptr.id.data;
+			int a;
+
+			for(a = 0; a < MAX_MTEX; a++)
+				if(user->ptr.data == part->mtex[a])
+					part->texact = a;
+		}
 	}
 
 	ct->user = user;
