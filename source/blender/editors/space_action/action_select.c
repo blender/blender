@@ -277,7 +277,7 @@ static void borderselect_action(bAnimContext *ac, rcti rect, short mode, short s
 					Mask *mask = ale->data;
 					MaskLayer *masklay;
 					for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-						ED_masklayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+						ED_masklayer_frames_select_border(masklay, rectf.xmin, rectf.xmax, selectmode);
 					}
 					break;
 				}
