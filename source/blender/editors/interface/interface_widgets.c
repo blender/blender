@@ -1349,8 +1349,8 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		/* unlink icon for this button type */
 		if (but->type == SEARCH_MENU_UNLINK && but->drawstr[0]) {
 			rcti temp = *rect;
-			
-			temp.xmin = temp.xmax - BLI_rcti_size_y(rect);
+
+			temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
 			widget_draw_icon(but, ICON_X, alpha, &temp);
 		}
 
