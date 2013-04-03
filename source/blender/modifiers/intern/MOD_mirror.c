@@ -162,11 +162,15 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 #if 1 /* WITH_FREESTYLE generic changes */
-	/* if the source DM does not have edge CD_ORIGINDEX layer, then
+	/* if the source DM does not have edge/poly CD_ORIGINDEX layer, then
 	 * the corresponding layer of the result DM is filled with zeros
 	 * (see CDDM_from_template()) */
 	if (!CustomData_has_layer(&dm->edgeData, CD_ORIGINDEX)) {
 		range_vn_i(DM_get_edge_data_layer(result, CD_ORIGINDEX), maxEdges, 0);
+	}
+	if (!CustomData_has_layer(&dm->polyData, CD_ORIGINDEX)) {
+		DM_add_poly_layer(result, CD_ORIGINDEX, CD_CALLOC, NULL);
+		range_vn_i(DM_get_poly_data_layer(result, CD_ORIGINDEX), maxPolys, 0);
 	}
 #endif
 
