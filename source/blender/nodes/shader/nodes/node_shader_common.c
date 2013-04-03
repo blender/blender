@@ -231,6 +231,7 @@ void register_node_type_sh_group(void)
 	node_type_base_custom(&ntype, "ShaderNodeGroup", "Group", NODE_CLASS_GROUP, NODE_OPTIONS | NODE_CONST_OUTPUT);
 	ntype.type = NODE_GROUP;
 	ntype.poll = sh_node_poll_default;
+	ntype.poll_instance = node_group_poll_instance;
 	ntype.update_internal_links = node_update_internal_links_default;
 	ntype.ext.srna = RNA_struct_find("ShaderNodeGroup");
 	BLI_assert(ntype.ext.srna != NULL);
