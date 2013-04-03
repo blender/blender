@@ -420,6 +420,9 @@ static bNodeSocketType *make_socket_type_virtual(void)
 	/* associate the RNA type with the socket type */
 	RNA_struct_blender_type_set(srna, stype);
 	
+	/* extra type info for standard socket types */
+	stype->type = SOCK_CUSTOM;
+	
 	ED_init_node_socket_type_virtual(stype);
 	
 	return stype;
