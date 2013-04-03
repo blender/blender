@@ -333,14 +333,14 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 
 		ct->texture = tex;
 
-		if(user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
+		if (user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
 			/* stupid exception for particle systems which still uses influence
 			 * from the old texture system, set the active texture slots as well */
 			ParticleSettings *part = user->ptr.id.data;
 			int a;
 
-			for(a = 0; a < MAX_MTEX; a++)
-				if(user->ptr.data == part->mtex[a])
+			for (a = 0; a < MAX_MTEX; a++)
+				if (user->ptr.data == part->mtex[a])
 					part->texact = a;
 		}
 	}

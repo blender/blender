@@ -520,7 +520,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 						float len, factor;
 						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
 						len = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
-						factor = len/scd->lenorig;
+						factor = len / scd->lenorig;
 						mdiff[0] = factor * scd->init_sdim[0];
 						mdiff[1] = factor * scd->init_sdim[1];
 						copy_v2_v2_int(scd->br->stencil_dimension, mdiff);

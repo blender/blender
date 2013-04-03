@@ -540,7 +540,7 @@ static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 {
 	Scene *scene = ((bScreen *)ptr->id.data)->scene;
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	View3D *v3d= (View3D*)ptr->data;
+	View3D *v3d = (View3D *)ptr->data;
 	int drawtype = v3d->drawtype;
 
 	if (drawtype == OB_MATERIAL && !BKE_scene_use_new_shading_nodes(scene))

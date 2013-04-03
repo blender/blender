@@ -382,7 +382,7 @@ static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
 	Brush *br = paint_brush(paint_get_active_from_context(C));
 
-	if(br)
+	if (br)
 		BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
 
 	return OPERATOR_FINISHED;

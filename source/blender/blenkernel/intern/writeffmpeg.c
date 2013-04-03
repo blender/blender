@@ -123,7 +123,7 @@ static int write_audio_frame(void)
 {
 	AVCodecContext *c = NULL;
 	AVPacket pkt;
-	AVFrame* frame;
+	AVFrame *frame;
 	int got_output = 0;
 
 	c = audio_stream->codec;
@@ -142,12 +142,12 @@ static int write_audio_frame(void)
 	AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_samples);
 	audio_time += (double) audio_input_samples / (double) c->sample_rate;
 
-	if(audio_deinterleave) {
+	if (audio_deinterleave) {
 		int channel, i;
-		uint8_t* temp;
+		uint8_t *temp;
 
-		for(channel = 0; channel < c->channels; channel++) {
-			for(i = 0; i < frame->nb_samples; i++) {
+		for (channel = 0; channel < c->channels; channel++) {
+			for (i = 0; i < frame->nb_samples; i++) {
 				memcpy(audio_deinterleave_buffer + (i + channel * frame->nb_samples) * audio_sample_size,
 					   audio_input_buffer + (c->channels * i + channel) * audio_sample_size, audio_sample_size);
 			}
@@ -159,14 +159,14 @@ static int write_audio_frame(void)
 	}
 
 	avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, audio_input_buffer,
-							 audio_input_samples * c->channels * audio_sample_size, 0);
+	                         audio_input_samples * c->channels * audio_sample_size, 0);
 
-	if(avcodec_encode_audio2(c, &pkt, frame, &got_output) < 0) {
+	if (avcodec_encode_audio2(c, &pkt, frame, &got_output) < 0) {
 		// XXX error("Error writing audio packet");
 		return -1;
 	}
 
-	if(got_output) {
+	if (got_output) {
 		if (c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE) {
 			pkt.pts = av_rescale_q(c->coded_frame->pts, c->time_base, audio_stream->time_base);
 			PRINT("Audio Frame PTS: %d\n", (int) pkt.pts);
@@ -733,7 +733,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	audio_input_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * audio_sample_size);
 
-	if(audio_deinterleave)
+	if (audio_deinterleave)
 		audio_deinterleave_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * audio_sample_size);
 
 	audio_time = 0.0f;
@@ -1036,8 +1036,7 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
 
-		switch(av_get_packed_sample_fmt(c->sample_fmt))
-		{
+		switch (av_get_packed_sample_fmt(c->sample_fmt)) {
 		case AV_SAMPLE_FMT_U8:
 			specs.format = AUD_FORMAT_U8;
 			break;
