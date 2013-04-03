@@ -742,22 +742,6 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 	}
 }
 
-static void do_versions_nodetree_default_value_259(bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	for (node=ntree->nodes.first; node; node=node->next) {
-		for (sock = node->inputs.first; sock; sock = sock->next)
-			do_versions_socket_default_value_259(sock);
-		for (sock = node->outputs.first; sock; sock = sock->next)
-			do_versions_socket_default_value_259(sock);
-	}
-	for (sock = ntree->inputs.first; sock; sock = sock->next)
-		do_versions_socket_default_value_259(sock);
-	for (sock = ntree->outputs.first; sock; sock = sock->next)
-		do_versions_socket_default_value_259(sock);
-}
-
 void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -2736,33 +2720,25 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 2)) {
 		{
 			/* Convert default socket values from bNodeStack */
-			Scene *sce;
-			Material *mat;
-			Tex *tex;
-			bNodeTree *ntree;
-
-			for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
-				do_versions_nodetree_default_value_259(ntree);
+			FOREACH_NODETREE(main, ntree, id) {
+				bNode *node;
+				bNodeSocket *sock;
+				
+				for (node=ntree->nodes.first; node; node=node->next) {
+					for (sock = node->inputs.first; sock; sock = sock->next)
+						do_versions_socket_default_value_259(sock);
+					for (sock = node->outputs.first; sock; sock = sock->next)
+						do_versions_socket_default_value_259(sock);
+				}
+				
+				for (sock = ntree->inputs.first; sock; sock = sock->next)
+					do_versions_socket_default_value_259(sock);
+				for (sock = ntree->outputs.first; sock; sock = sock->next)
+					do_versions_socket_default_value_259(sock);
+				
 				ntree->update |= NTREE_UPDATE;
 			}
-
-			for (sce = main->scene.first; sce; sce = sce->id.next)
-				if (sce->nodetree) {
-					do_versions_nodetree_default_value_259(sce->nodetree);
-					sce->nodetree->update |= NTREE_UPDATE;
-				}
-
-			for (mat = main->mat.first; mat; mat = mat->id.next)
-				if (mat->nodetree) {
-					do_versions_nodetree_default_value_259(mat->nodetree);
-					mat->nodetree->update |= NTREE_UPDATE;
-				}
-
-			for (tex = main->tex.first; tex; tex = tex->id.next)
-				if (tex->nodetree) {
-					do_versions_nodetree_default_value_259(tex->nodetree);
-					tex->nodetree->update |= NTREE_UPDATE;
-				}
+			FOREACH_NODETREE_END
 		}
 
 		{
