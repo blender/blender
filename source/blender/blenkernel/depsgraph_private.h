@@ -124,7 +124,6 @@ void push_queue(DagNodeQueue *queue, DagNode *node);
 void push_stack(DagNodeQueue *queue, DagNode *node);
 DagNode *pop_queue(DagNodeQueue *queue);
 DagNode *get_top_node_queue(DagNodeQueue *queue);
-int queue_count(DagNodeQueue *queue);
 void queue_delete(DagNodeQueue *queue);
 
 // Dag management
@@ -137,9 +136,6 @@ DagNode *dag_get_node(DagForest *forest, void *fob);
 DagNode *dag_get_sub_node(DagForest *forest, void *fob);
 void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name);
 
-DagNodeQueue *graph_dfs(void);
-
-void set_node_xy(DagNode *node, float x, float y);
 void graph_print_queue(DagNodeQueue *nqueue);
 void graph_print_queue_dist(DagNodeQueue *nqueue);
 void graph_print_adj_list(DagForest *dag);

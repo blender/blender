@@ -158,9 +158,6 @@ typedef struct RenderStats {
 struct Render *RE_NewRender (const char *name);
 struct Render *RE_GetRender(const char *name);
 
-/* returns 1 while render is working (or renders called from within render) */
-int RE_RenderInProgress(struct Render *re);
-
 /* assign default dummy callbacks */
 void RE_InitRenderCB(struct Render *re);
 

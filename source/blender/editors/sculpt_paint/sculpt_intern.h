@@ -54,8 +54,6 @@ struct SculptUndoNode;
 /* Interface */
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 
-void sculpt(struct Sculpt *sd);
-
 int sculpt_mode_poll(struct bContext *C);
 int sculpt_mode_poll_view3d(struct bContext *C);
 int sculpt_poll(struct bContext *C);

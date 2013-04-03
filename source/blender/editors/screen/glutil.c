@@ -759,6 +759,18 @@ void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
 	di->wo_to_sc[1] = sc_h / wo_h;
 }
 
+/** Save the current OpenGL state and initialize OpenGL for 2D
+ * rendering. glaEnd2DDraw should be called on the returned structure
+ * to free it and to return OpenGL to its previous state. The
+ * scissor rectangle is set to match the viewport.
+ *
+ * See glaDefine2DArea for an explanation of why this function uses integers.
+ *
+ * \param screen_rect The screen rectangle to be used for 2D drawing.
+ * \param world_rect The world rectangle that the 2D area represented
+ * by \a screen_rect is supposed to represent. If NULL it is assumed the
+ * world has a 1 to 1 mapping to the screen.
+ */
 gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect) 
 {
 	gla2DDrawInfo *di = MEM_mallocN(sizeof(*di), "gla2DDrawInfo");
@@ -794,17 +806,27 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 	return di;
 }
 
+/**
+ * Translate the (\a wo_x, \a wo_y) point from world coordinates into screen space.
+ */
 void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r)
 {
 	*sc_x_r = (wo_x - di->world_rect.xmin) * di->wo_to_sc[0];
 	*sc_y_r = (wo_y - di->world_rect.ymin) * di->wo_to_sc[1];
 }
+
+/**
+ * Translate the \a world point from world coordiantes into screen space.
+ */
 void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2])
 {
 	screen_r[0] = (world[0] - di->world_rect.xmin) * di->wo_to_sc[0];
 	screen_r[1] = (world[1] - di->world_rect.ymin) * di->wo_to_sc[1];
 }
 
+/**
+ * Restores the previous OpenGL state and free's the auxilary gla data.
+ */
 void glaEnd2DDraw(gla2DDrawInfo *di)
 {
 	glViewport(di->orig_vp[0], di->orig_vp[1], di->orig_vp[2], di->orig_vp[3]);

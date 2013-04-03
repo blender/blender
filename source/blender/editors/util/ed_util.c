@@ -162,17 +162,6 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 	}
 }
 
-#if 0 /* UNUSED */
-int GetButStringLength(const char *str) 
-{
-	int rt;
-	
-	rt = UI_GetStringWidth(str);
-	
-	return rt + 15;
-}
-#endif
-
 void unpack_menu(bContext *C, const char *opname, const char *id_name, const char *abs_name, const char *folder, struct PackedFile *pf)
 {
 	PointerRNA props_ptr;

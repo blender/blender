@@ -92,7 +92,6 @@ typedef struct ShaderCallData {
 } ShaderCallData;
 
 
-extern void node_ID_title_cb(void *node_v, void *unused_v);
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeStack *ns);

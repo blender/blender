@@ -113,7 +113,8 @@ struct Base;
 struct Scene;
 struct Object;
 
-int BIF_snappingSupported(struct Object *obedit);
+/* UNUSED */
+// int BIF_snappingSupported(struct Object *obedit);
 
 struct TransformOrientation;
 struct bContext;

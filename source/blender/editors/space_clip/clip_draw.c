@@ -275,9 +275,9 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 		/* non-scaled proxy shouldn't use filtering */
 		if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
 		    ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100))
-			{
-				filter = GL_NEAREST;
-			}
+		{
+			filter = GL_NEAREST;
+		}
 
 		glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
 

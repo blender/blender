@@ -438,28 +438,6 @@ GHashIterator *nodeSocketTypeGetIterator(void)
 	return BLI_ghashIterator_new(nodesockettypes_hash);
 }
 
-void nodeMakeDynamicType(bNode *UNUSED(node))
-{
-	#if 0	/* XXX deprecated */
-	/* find SH_DYNAMIC_NODE ntype */
-	bNodeType *ntype = ntreeType_Shader->node_types.first;
-	while (ntype) {
-		if (ntype->type == NODE_DYNAMIC)
-			break;
-		ntype = ntype->next;
-	}
-
-	/* make own type struct to fill */
-	if (ntype) {
-		/*node->typeinfo= MEM_dupallocN(ntype);*/
-		bNodeType *newtype = MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
-		*newtype = *ntype;
-		BLI_strncpy(newtype->name, ntype->name, sizeof(newtype->name));
-		node->typeinfo = newtype;
-	}
-	#endif
-}
-
 struct bNodeSocket *nodeFindSocket(bNode *node, int in_out, const char *identifier)
 {
 	bNodeSocket *sock = (in_out == SOCK_IN ? node->inputs.first : node->outputs.first);

@@ -54,7 +54,8 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
 void draw_image_seq(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, int draw_overlay);
 
-void seq_reset_imageofs(struct SpaceSeq *sseq);
+/* UNUSED */
+// void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 struct ImBuf *sequencer_ibuf_get(struct Main *bmain, struct Scene *scene, struct SpaceSeq *sseq, int cfra, int frame_ofs);
 
@@ -69,7 +70,8 @@ int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, in
 
 /* operator helpers */
 int sequencer_edit_poll(struct bContext *C);
-int sequencer_strip_poll(struct bContext *C);
+/* UNUSED */
+//int sequencer_strip_poll(struct bContext *C);
 int sequencer_strip_has_path_poll(struct bContext *C);
 int sequencer_view_poll(struct bContext *C);
 
