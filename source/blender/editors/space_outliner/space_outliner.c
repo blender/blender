@@ -94,7 +94,6 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te = NULL;
 	float fmval[2];
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
@@ -102,25 +101,25 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_OB) {
 			/* Ensure item under cursor is valid drop target */
-			/* Find object hovered over */
-			for (te = soops->tree.first; te; te = te->next) {
-				TreeElement *te_valid;
-				te_valid = outliner_dropzone_parent(C, event, te, fmval);
-				if (te_valid) {
-					/* check that parent/child are both in the same scene */
-					Scene *scene = (Scene *)outliner_search_back(soops, te_valid, ID_SCE);
+			TreeElement *te = outliner_dropzone_find(soops, fmval, 1);
 
-					if (!scene) {
-						/* currently outlier organized in a way, that if there's no parent scene
-						 * element for object it means that all displayed objects belong to
-						 * active scene and parenting them is allowed (sergey)
-						 */
-						return 1;
-					}
+			if (te && te->idcode == ID_OB && TREESTORE(te)->type == 0) {
+				Scene *scene;
+				ID *te_id = TREESTORE(te)->id;
 
-					if (scene && BKE_scene_base_find(scene, (Object *)id)) {
-						return 1;
-					}
+				/* check if dropping self or parent */
+				if (te_id == id || (Object *)te_id == ((Object *)id)->parent)
+					return 0;
+
+				/* check that parent/child are both in the same scene */
+				scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
+
+				/* currently outliner organized in a way that if there's no parent scene
+				 * element for object it means that all displayed objects belong to
+				 * active scene and parenting them is allowed (sergey)
+				 */
+				if (!scene || BKE_scene_base_find(scene, (Object *)id)) {
+					return 1;
 				}
 			}
 		}
@@ -147,19 +146,20 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_OB) {
-			if (((Object *)id)->parent == NULL) {
-				return 0;
+			if (((Object *)id)->parent) {
+				if ((te = outliner_dropzone_find(soops, fmval, 1))) {
+					TreeStoreElem *tselem = TREESTORE(te);
+
+					switch (te->idcode) {
+						case ID_SCE:
+							return (ELEM3(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS));
+						case ID_OB:
+							return (ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE));
+						/* Other codes to ignore? */
+					}
+				}
+				return (te == NULL);
 			}
-			/* Ensure location under cursor is valid dropzone */
-			for (te = soops->tree.first; te; te = te->next) {
-				if (outliner_dropzone_parent_clear(C, event, te, fmval)) return 1;
-			}
-			/* Check if mouse cursor is below the tree */
-			te = soops->tree.last;
-			while (((te->flag & TE_LAZY_CLOSED) == 0) && (te->subtree.last)) {
-				te = te->subtree.last;
-			}
-			if (fmval[1] < te->ys) return 1;
 		}
 	}
 	return 0;
@@ -180,7 +180,6 @@ static int outliner_scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te = NULL;
 	float fmval[2];
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
@@ -188,11 +187,8 @@ static int outliner_scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_OB) {
 			/* Ensure item under cursor is valid drop target */
-			/* Find object hovered over */
-			for (te = soops->tree.first; te; te = te->next) {
-				if (outliner_dropzone_scene(C, event, te, fmval))
-					return 1;
-			}
+			TreeElement *te = outliner_dropzone_find(soops, fmval, 0);
+			return (te && te->idcode == ID_SCE && TREESTORE(te)->type == 0);
 		}
 	}
 	return 0;
@@ -209,7 +205,6 @@ static int outliner_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te = NULL;
 	float fmval[2];
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
@@ -217,11 +212,8 @@ static int outliner_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_MA) {
 			/* Ensure item under cursor is valid drop target */
-			/* Find object hovered over */
-			for (te = soops->tree.first; te; te = te->next) {
-				if (outliner_dropzone_parent(C, event, te, fmval))
-					return 1;
-			}
+			TreeElement *te = outliner_dropzone_find(soops, fmval, 1);
+			return (te && te->idcode == ID_OB && TREESTORE(te)->type == 0);
 		}
 	}
 	return 0;
