@@ -43,7 +43,7 @@
 
 #include "BKE_paint.h"
 #include "BKE_tessmesh.h"
-#include "BKE_group.h" /* needed for object_in_group() */
+#include "BKE_group.h" /* needed for BKE_group_object_exists() */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -520,7 +520,7 @@ static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 	/* must not let this be set if the object belongs in this group already,
 	 * thus causing a cycle/infinite-recursion leading to crashes on load [#25298]
 	 */
-	if (object_in_group(ob, grp) == 0)
+	if (BKE_group_object_exists(grp, ob) == 0)
 		ob->dup_group = grp;
 	else
 		BKE_report(NULL, RPT_ERROR,

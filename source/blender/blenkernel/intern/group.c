@@ -94,7 +94,9 @@ void BKE_group_unlink(Group *group)
 		
 		/* ensure objects are not in this group */
 		for (; base; base = base->next) {
-			if (rem_from_group(group, base->object, sce, base) && find_group(base->object, NULL) == NULL) {
+			if (BKE_group_object_unlink(group, base->object, sce, base) &&
+			    BKE_group_object_find(NULL, base->object) == NULL)
+			{
 				base->object->flag &= ~OB_FROMGROUP;
 				base->flag &= ~OB_FROMGROUP;
 			}
@@ -127,7 +129,7 @@ void BKE_group_unlink(Group *group)
 	group->id.us = 0;
 }
 
-Group *add_group(Main *bmain, const char *name)
+Group *BKE_group_add(Main *bmain, const char *name)
 {
 	Group *group;
 	
@@ -147,7 +149,7 @@ Group *BKE_group_copy(Group *group)
 }
 
 /* external */
-static int add_to_group_internal(Group *group, Object *ob)
+static int group_object_add_internal(Group *group, Object *ob)
 {
 	GroupObject *go;
 	
@@ -168,9 +170,9 @@ static int add_to_group_internal(Group *group, Object *ob)
 	return TRUE;
 }
 
-int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
+bool BKE_group_object_add(Group *group, Object *object, Scene *scene, Base *base)
 {
-	if (add_to_group_internal(group, object)) {
+	if (group_object_add_internal(group, object)) {
 		if ((object->flag & OB_FROMGROUP) == 0) {
 
 			if (scene && base == NULL)
@@ -181,15 +183,15 @@ int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
 			if (base)
 				base->flag |= OB_FROMGROUP;
 		}
-		return 1;
+		return true;
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 
 /* also used for (ob == NULL) */
-static int rem_from_group_internal(Group *group, Object *ob)
+static int group_object_unlink_internal(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
 	int removed = 0;
@@ -209,11 +211,11 @@ static int rem_from_group_internal(Group *group, Object *ob)
 	return removed;
 }
 
-int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
+bool BKE_group_object_unlink(Group *group, Object *object, Scene *scene, Base *base)
 {
-	if (rem_from_group_internal(group, object)) {
+	if (group_object_unlink_internal(group, object)) {
 		/* object can be NULL */
-		if (object && find_group(object, NULL) == NULL) {
+		if (object && BKE_group_object_find(NULL, object) == NULL) {
 			if (scene && base == NULL)
 				base = BKE_scene_base_find(scene, object);
 
@@ -222,23 +224,24 @@ int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
 			if (base)
 				base->flag &= ~OB_FROMGROUP;
 		}
-		return 1;
+		return true;
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 
-int object_in_group(Object *ob, Group *group)
+bool BKE_group_object_exists(Group *group, Object *ob)
 {
 	if (group == NULL || ob == NULL) {
-		return FALSE;
+		return false;
 	}
-
-	return (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob)) != NULL);
+	else {
+		return (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob)) != NULL);
+	}
 }
 
-Group *find_group(Object *ob, Group *group)
+Group *BKE_group_object_find(Group *group, Object *ob)
 {
 	if (group)
 		group = group->id.next;
@@ -246,14 +249,14 @@ Group *find_group(Object *ob, Group *group)
 		group = G.main->group.first;
 	
 	while (group) {
-		if (object_in_group(ob, group))
+		if (BKE_group_object_exists(group, ob))
 			return group;
 		group = group->id.next;
 	}
 	return NULL;
 }
 
-void group_tag_recalc(Group *group)
+void BKE_group_tag_recalc(Group *group)
 {
 	GroupObject *go;
 	
@@ -265,7 +268,7 @@ void group_tag_recalc(Group *group)
 	}
 }
 
-int group_is_animated(Object *UNUSED(parent), Group *group)
+bool BKE_group_is_animated(Group *group, Object *UNUSED(parent))
 {
 	GroupObject *go;
 
@@ -276,9 +279,9 @@ int group_is_animated(Object *UNUSED(parent), Group *group)
 
 	for (go = group->gobject.first; go; go = go->next)
 		if (go->ob && go->ob->proxy)
-			return 1;
+			return true;
 
-	return 0;
+	return false;
 }
 
 #if 0 // add back when timeoffset & animsys work again
@@ -327,7 +330,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
  * you can draw everything, leaves tags in objects to signal it needs further updating */
 
 /* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
-void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group *group)
+void BKE_group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group *group)
 {
 	GroupObject *go;
 	

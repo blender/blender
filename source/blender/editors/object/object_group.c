@@ -78,7 +78,7 @@ static EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUS
 		Group *group = NULL;
 		int i = 0;
 
-		while ((group = find_group(ob, group))) {
+		while ((group = BKE_group_object_find(group, ob))) {
 			item_tmp.identifier = item_tmp.name = group->id.name + 2;
 			/* item_tmp.icon = ICON_ARMATURE_DATA; */
 			item_tmp.value = i;
@@ -98,7 +98,7 @@ static Group *group_object_active_find_index(Object *ob, const int group_object_
 {
 	Group *group = NULL;
 	int i = 0;
-	while ((group = find_group(ob, group))) {
+	while ((group = BKE_group_object_find(group, ob))) {
 		if (i == group_object_index) {
 			break;
 		}
@@ -125,7 +125,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
 				if (base->object->dup_group != group) {
-					add_to_group(group, base->object, scene, base);
+					BKE_group_object_add(group, base->object, scene, base);
 				}
 				else {
 					is_cycle = TRUE;
@@ -184,11 +184,11 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	 * looking up the active objects groups each time */
 
 	for (group = bmain->group.first; group; group = group->id.next) {
-		if (object_in_group(ob, group)) {
+		if (BKE_group_object_exists(group, ob)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
-				rem_from_group(group, base->object, scene, base);
+				BKE_group_object_unlink(group, base->object, scene, base);
 				ok = 1;
 			}
 			CTX_DATA_END;
@@ -265,7 +265,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
-				rem_from_group(group, base->object, scene, base);
+				BKE_group_object_unlink(group, base->object, scene, base);
 			}
 			CTX_DATA_END;
 
@@ -311,11 +311,11 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	group = add_group(bmain, name);
+	group = BKE_group_add(bmain, name);
 		
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		add_to_group(group, base->object, scene, base);
+		BKE_group_object_add(group, base->object, scene, base);
 	}
 	CTX_DATA_END;
 
@@ -354,8 +354,8 @@ static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
-	group = add_group(bmain, "Group");
-	add_to_group(group, ob, scene, NULL);
+	group = BKE_group_add(bmain, "Group");
+	BKE_group_object_add(group, ob, scene, NULL);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -386,7 +386,7 @@ static int group_link_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, ob, group))
 		return OPERATOR_CANCELLED;
 
-	add_to_group(group, ob, scene, NULL);
+	BKE_group_object_add(group, ob, scene, NULL);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -425,7 +425,7 @@ static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!ob || !group)
 		return OPERATOR_CANCELLED;
 
-	rem_from_group(group, ob, scene, NULL); /* base will be used if found */
+	BKE_group_object_unlink(group, ob, scene, NULL); /* base will be used if found */
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	

@@ -111,7 +111,7 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 		scene->rigidbody_world = rbw;
 	}
 	if (rbw->group == NULL) {
-		rbw->group = add_group(G.main, "RigidBodyWorld");
+		rbw->group = BKE_group_add(G.main, "RigidBodyWorld");
 	}
 
 	/* make rigidbody object settings */
@@ -122,7 +122,7 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 	ob->rigidbody_object->flag |= RBO_FLAG_NEEDS_VALIDATE;
 
 	/* add object to rigid body group */
-	add_to_group(rbw->group, ob, scene, NULL);
+	BKE_group_object_add(rbw->group, ob, scene, NULL);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
@@ -133,7 +133,7 @@ void ED_rigidbody_ob_remove(Scene *scene, Object *ob)
 
 	BKE_rigidbody_remove_object(scene, ob);
 	if (rbw)
-		rem_from_group(rbw->group, ob, scene, NULL);
+		BKE_group_object_unlink(rbw->group, ob, scene, NULL);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }

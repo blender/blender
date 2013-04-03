@@ -6535,7 +6535,7 @@ static void lib_link_group(FileData *fd, Main *main)
 				}
 			}
 			if (add_us) group->id.us++;
-			rem_from_group(group, NULL, NULL, NULL);	/* removes NULL entries */
+			BKE_group_object_unlink(group, NULL, NULL, NULL);	/* removes NULL entries */
 		}
 	}
 }

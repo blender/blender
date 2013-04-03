@@ -766,10 +766,10 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 	if (flag & DUPLILIST_DO_UPDATE) {
 		/* note: update is optional because we don't always need object
 		 * transformations to be correct. Also fixes bug [#29616]. */
-		group_handle_recalc_and_update(scene, ob, group);
+		BKE_group_handle_recalc_and_update(scene, ob, group);
 	}
 
-	if (group_is_animated(ob, group))
+	if (BKE_group_is_animated(group, ob))
 		flag |= DUPLILIST_ANIMATED;
 	
 	for (go = group->gobject.first, id = 0; go; go = go->next, id++) {
@@ -1331,7 +1331,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		/* gather list of objects or single object */
 		if (part->ren_as == PART_DRAW_GR) {
 			if (flag & DUPLILIST_DO_UPDATE) {
-				group_handle_recalc_and_update(scene, par, part->dup_group);
+				BKE_group_handle_recalc_and_update(scene, par, part->dup_group);
 			}
 
 			if (part->draw & PART_DRAW_COUNT_GR) {

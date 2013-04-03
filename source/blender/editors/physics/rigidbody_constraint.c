@@ -88,14 +88,14 @@ void ED_rigidbody_con_add(wmOperator *op, Scene *scene, Object *ob, int type)
 	}
 	/* create constraint group if it doesn't already exits */
 	if (rbw->constraints == NULL) {
-		rbw->constraints = add_group(G.main, "RigidBodyConstraints");
+		rbw->constraints = BKE_group_add(G.main, "RigidBodyConstraints");
 	}
 	/* make rigidbody constraint settings */
 	ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);
 	ob->rigidbody_constraint->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
 	/* add constraint to rigid body constraint group */
-	add_to_group(rbw->constraints, ob, scene, NULL);
+	BKE_group_object_add(rbw->constraints, ob, scene, NULL);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
@@ -106,7 +106,7 @@ void ED_rigidbody_con_remove(Scene *scene, Object *ob)
 
 	BKE_rigidbody_remove_constraint(scene, ob);
 	if (rbw)
-		rem_from_group(rbw->constraints, ob, scene, NULL);
+		BKE_group_object_unlink(rbw->constraints, ob, scene, NULL);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }

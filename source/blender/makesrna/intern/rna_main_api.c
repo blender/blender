@@ -680,7 +680,7 @@ static void rna_Main_worlds_remove(Main *bmain, ReportList *reports, PointerRNA 
 
 static Group *rna_Main_groups_new(Main *bmain, const char *name)
 {
-	return add_group(bmain, name);
+	return BKE_group_add(bmain, name);
 }
 static void rna_Main_groups_remove(Main *bmain, PointerRNA *group_ptr)
 {

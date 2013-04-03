@@ -760,7 +760,7 @@ void BKE_object_unlink(Object *ob)
 	/* groups */
 	group = bmain->group.first;
 	while (group) {
-		rem_from_group(group, ob, NULL, NULL);
+		BKE_group_object_unlink(group, ob, NULL, NULL);
 		group = group->id.next;
 	}
 	
@@ -3392,7 +3392,7 @@ struct LinkNode *BKE_object_groups(Object *ob)
 {
 	LinkNode *group_linknode = NULL;
 	Group *group = NULL;
-	while ((group = find_group(ob, group))) {
+	while ((group = BKE_group_object_find(group, ob))) {
 		BLI_linklist_prepend(&group_linknode, group);
 	}
 
@@ -3409,7 +3409,7 @@ void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
 		base = BKE_scene_base_find(scene, object);
 	}
 
-	while ((group = find_group(base->object, group))) {
-		rem_from_group(group, object, scene, base);
+	while ((group = BKE_group_object_find(group, base->object))) {
+		BKE_group_object_unlink(group, object, scene, base);
 	}
 }

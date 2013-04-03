@@ -314,7 +314,7 @@ void psys_check_group_weights(ParticleSettings *part)
 		/* first remove all weights that don't have an object in the group */
 		dw = part->dupliweights.first;
 		while (dw) {
-			if (!object_in_group(dw->ob, part->dup_group)) {
+			if (!BKE_group_object_exists(part->dup_group, dw->ob)) {
 				tdw = dw->next;
 				BLI_freelinkN(&part->dupliweights, dw);
 				dw = tdw;
