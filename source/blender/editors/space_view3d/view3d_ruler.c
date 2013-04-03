@@ -65,7 +65,7 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2],
                               bool use_vert, bool use_edge, bool use_face)
 {
 	TransInfo t = {0};
-	int dist = 12;  /* snap dist */
+	float dist_px = 12;  /* snap dist */
 	float r_no_dummy[3];
 	bool ret = false;
 	char  backup_snap_mode;
@@ -83,15 +83,15 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2],
 	/* try snap edge, then face if it fails */
 	if (use_vert) {
 		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_VERTEX;
-		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsTransform(&t, co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 	}
 	if (use_edge && (ret == false)) {
 		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_EDGE;
-		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsTransform(&t, co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 	}
 	if (use_face && (ret == false)) {
 		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_FACE;
-		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsTransform(&t, co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 	}
 
 	t.scene->toolsettings->snap_mode = backup_snap_mode;

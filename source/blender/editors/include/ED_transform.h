@@ -179,10 +179,10 @@ typedef enum SnapMode {
 
 bool peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
 bool peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
-bool snapObjectsTransform(struct TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
-bool snapObjectsContext(struct bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
-bool snapNodesTransform(struct TransInfo *t, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode);
-bool snapNodesContext(struct bContext *C, const int mval[2], int *r_dist, float r_loc[2], char *r_node_border, SnapMode mode);
+bool snapObjectsTransform(struct TransInfo *t, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+bool snapObjectsContext(struct bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+bool snapNodesTransform(struct TransInfo *t, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);
+bool snapNodesContext(struct bContext *C, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);
 
 #endif
 

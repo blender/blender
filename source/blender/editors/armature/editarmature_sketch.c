@@ -626,7 +626,7 @@ static void sk_drawStrokeSubdivision(ToolSettings *toolsettings, SK_Stroke *stk)
 	}
 }
 
-static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], int *dist, int *index, int all_pts)
+static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], float *r_dist_px, int *index, int all_pts)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SK_Point *pt = NULL;
@@ -641,8 +641,8 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], in
 
 				pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
-				if (pdist < *dist) {
-					*dist = pdist;
+				if (pdist < *r_dist_px) {
+					*r_dist_px = pdist;
 					pt = stk->points + i;
 
 					if (index != NULL) {
@@ -729,13 +729,13 @@ static void sk_updateOverdraw(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK
 	if (sketch->over.target == NULL) {
 		SK_Stroke *target;
 		int closest_index = -1;
-		int dist = SNAP_MIN_DISTANCE * 2;
+		float dist_px = SNAP_MIN_DISTANCE * 2;
 
 		for (target = sketch->strokes.first; target; target = target->next) {
 			if (target != stk) {
 				int index;
 
-				SK_Point *spt = sk_snapPointStroke(C, target, dd->mval, &dist, &index, 1);
+				SK_Point *spt = sk_snapPointStroke(C, target, dd->mval, &dist_px, &index, 1);
 
 				if (spt != NULL) {
 					sketch->over.target = target;
@@ -764,10 +764,10 @@ static void sk_updateOverdraw(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK
 	}
 	else if (sketch->over.target != NULL) {
 		SK_Point *closest_pt = NULL;
-		int dist = SNAP_MIN_DISTANCE * 2;
+		float dist_px = SNAP_MIN_DISTANCE * 2;
 		int index;
 
-		closest_pt = sk_snapPointStroke(C, sketch->over.target, dd->mval, &dist, &index, 1);
+		closest_pt = sk_snapPointStroke(C, sketch->over.target, dd->mval, &dist_px, &index, 1);
 
 		if (closest_pt != NULL) {
 			if (sk_lastStrokePoint(stk)->type == PT_EXACT) {
@@ -1064,17 +1064,17 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		float no[3];
 		float mval[2];
 		int found = 0;
-		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
+		float dist_px = SNAP_MIN_DISTANCE; // Use a user defined value here
 
 		/* snap to strokes */
 		// if (ts->snap_mode == SCE_SNAP_MODE_VERTEX) /* snap all the time to strokes */
 		for (snap_stk = sketch->strokes.first; snap_stk; snap_stk = snap_stk->next) {
 			SK_Point *spt = NULL;
 			if (snap_stk == stk) {
-				spt = sk_snapPointStroke(C, snap_stk, dd->mval, &dist, NULL, 0);
+				spt = sk_snapPointStroke(C, snap_stk, dd->mval, &dist_px, NULL, 0);
 			}
 			else {
-				spt = sk_snapPointStroke(C, snap_stk, dd->mval, &dist, NULL, 1);
+				spt = sk_snapPointStroke(C, snap_stk, dd->mval, &dist_px, NULL, 1);
 			}
 
 			if (spt != NULL) {
@@ -1087,7 +1087,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		mval[1] = dd->mval[1];
 
 		/* try to snap to closer object */
-		found = snapObjectsContext(C, mval, &dist, vec, no, SNAP_NOT_SELECTED);
+		found = snapObjectsContext(C, mval, &dist_px, vec, no, SNAP_NOT_SELECTED);
 		if (found == 1) {
 			pt->type = dd->type;
 			pt->mode = PT_SNAP;
