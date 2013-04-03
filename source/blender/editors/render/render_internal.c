@@ -429,10 +429,38 @@ static void render_endjob(void *rjv)
 		nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
 	}
-	
+
 	/* XXX render stability hack */
 	G.is_rendering = FALSE;
 	WM_main_add_notifier(NC_WINDOW, NULL);
+
+	/* Partial render result will always update display buffer
+	 * for first render layer only. This is nice because you'll
+	 * see render progress during rendering, but it ends up in
+	 * wrong display buffer shown after rendering.
+	 *
+	 * The code below will mark display buffer as invalid after
+	 * rendering in case multiple layers were rendered, which
+	 * ensures display buffer matches render layer after
+	 * rendering.
+	 *
+	 * Perhaps proper way would be to toggle active render
+	 * layer in image editor and job, so we always display
+	 * layer being currently rendered. But this is not so much
+	 * trivial at this moment, especially because of external
+	 * engine API, so lets use simple and robust way for now
+	 *                                          - sergey -
+	 */
+	if (rj->scene->r.layers.first != rj->scene->r.layers.last) {
+		void *lock;
+		Image *ima = rj->image;
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
+
+		if (ibuf)
+			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
+		BKE_image_release_ibuf(ima, ibuf, lock);
+	}
 }
 
 /* called by render, check job 'stop' value or the global */

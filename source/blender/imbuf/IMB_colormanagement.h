@@ -152,14 +152,22 @@ void IMB_colormanagement_processor_free(struct ColormanageProcessor *cm_processo
 
 /* Configures GLSL shader for conversion from scene linear to display space */
 int IMB_colormanagement_setup_glsl_draw(const struct ColorManagedViewSettings *view_settings,
-                                        const struct ColorManagedDisplaySettings *display_settings);
-/* Same as above, but color management settings are guessing from a given context */
-int IMB_colormanagement_setup_glsl_draw_from_ctx(const struct bContext *C);
+                                        const struct ColorManagedDisplaySettings *display_settings,
+                                        int predivide);
+/* Same as above, but display space conversion happens from a specified space */
+int IMB_colormanagement_setup_glsl_draw_from_space(const struct ColorManagedViewSettings *view_settings,
+                                                   const struct ColorManagedDisplaySettings *display_settings,
+                                                   struct ColorSpace *colorspace,
+                                                   int predivide);
+/* Same as setup_glsl_draw, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C, int predivide);
+/* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C, struct ColorSpace *colorspace, int predivide);
 /* Finish GLSL-based display space conversion */
 void IMB_colormanagement_finish_glsl_draw(void);
 
 /* Configures GLSL shader for conversion from space defined by role to scene linear space */
-int IMB_colormanagement_setup_transform_from_role_glsl(int role);
+int IMB_colormanagement_setup_transform_from_role_glsl(int role, int predivide);
 /* Finish GLSL-based color space conversion */
 void IMB_colormanagement_finish_glsl_transform(void);
 

@@ -77,15 +77,33 @@ typedef struct OCIO_GLSLDrawState {
 	GLint last_texture, last_texture_unit;
 } OCIO_GLSLDrawState;
 
-static const char * g_fragShaderText = ""
+/* Hardcoded to do alpha predivide before color space conversion */
+static const char *g_fragShaderText = ""
 "\n"
 "uniform sampler2D tex1;\n"
 "uniform sampler3D tex2;\n"
+"uniform bool predivide;\n"
 "\n"
 "void main()\n"
 "{\n"
 "    vec4 col = texture2D(tex1, gl_TexCoord[0].st);\n"
-"    gl_FragColor = OCIODisplay(col, tex2);\n"
+"    if (predivide == false || col[3] == 1.0f || col[3] == 0.0f) {\n"
+"      gl_FragColor = OCIODisplay(col, tex2);\n"
+"    } else {\n"
+"      float alpha = col[3];\n"
+"      float inv_alpha = 1.0f / alpha;\n"
+"\n"
+"      col[0] *= inv_alpha;\n"
+"      col[1] *= inv_alpha;\n"
+"      col[2] *= inv_alpha;\n"
+"\n"
+"      gl_FragColor = OCIODisplay(col, tex2);\n"
+"\n"
+"      col[0] *= alpha;\n"
+"      col[1] *= alpha;\n"
+"      col[2] *= alpha;\n"
+"    }\n"
+"\n"
 "}\n";
 
 static GLuint compileShaderText(GLenum shaderType, const char *text)
@@ -187,7 +205,7 @@ static void ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
  * When all drawing is finished, finishGLSLDraw shall be called to
  * restore OpenGL context to it's pre-GLSL draw state.
  */
-bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
+bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor, bool predivide)
 {
 	ConstProcessorRcPtr ocio_processor = *(ConstProcessorRcPtr *) processor;
 
@@ -252,6 +270,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		glUseProgram(state->program);
 		glUniform1i(glGetUniformLocation(state->program, "tex1"), 0);
 		glUniform1i(glGetUniformLocation(state->program, "tex2"), 1);
+		glUniform1i(glGetUniformLocation(state->program, "predivide"), predivide);
 
 		return true;
 	}
