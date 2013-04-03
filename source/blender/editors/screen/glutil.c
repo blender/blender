@@ -533,8 +533,10 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 		components = 3;
 	else if (format == GL_LUMINANCE)
 		components = 1;
-	else
+	else {
 		BLI_assert(!"Incompatible format passed to glaDrawPixelsTexScaled");
+		return;
+	}
 
 	if (type == GL_FLOAT) {
 		/* need to set internal format to higher range float */
@@ -1088,7 +1090,7 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 			glColor4f(1.0, 1.0, 1.0, 1.0);
 
 			if (ibuf->rect_float) {
-				int format;
+				int format = 0;
 
 				if (ibuf->channels == 3)
 					format = GL_RGB;
@@ -1097,8 +1099,10 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 				else
 					BLI_assert(!"Incompatible number of channels for GLSL display");
 
-				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, format, GL_FLOAT,
-				                 zoomfilter, ibuf->rect_float);
+				if (format != 0) {
+					glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, format, GL_FLOAT,
+					                 zoomfilter, ibuf->rect_float);
+				}
 			}
 			else if (ibuf->rect) {
 				/* ibuf->rect is always RGBA */
