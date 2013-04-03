@@ -5026,6 +5026,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Sequence *seq;
 	SceneRenderLayer *srl;
 	TimeMarker *marker;
+	FreestyleModuleConfig *fmc;
 	FreestyleLineSet *fls;
 	
 	for (sce = main->scene.first; sce; sce = sce->id.next) {
@@ -5141,6 +5142,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			for (srl = sce->r.layers.first; srl; srl = srl->next) {
 				srl->mat_override = newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override = newlibadr_us(fd, sce->id.lib, srl->light_override);
+				for (fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+					fmc->script = newlibadr(fd, sce->id.lib, fmc->script);
+				}
 				for (fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
 					fls->linestyle = newlibadr_us(fd, sce->id.lib, fls->linestyle);
 					fls->group = newlibadr_us(fd, sce->id.lib, fls->group);
@@ -9331,6 +9335,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	   For now it is kept for backward compatibility, giving branch users time
 	   to migrate to the new CustomData-based edge/face marks. */
 	{
+		Scene *sce;
+		SceneRenderLayer *srl;
+		FreestyleModuleConfig *fmc;
 		Mesh *me;
 		MEdge *medge;
 		MPoly *mpoly;
@@ -9382,6 +9389,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ffa++;
 				}
 				printf("Migrated to CustomData-based Freestyle face marks\n");
+			}
+		}
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			for (srl = sce->r.layers.first; srl; srl = srl->next) {
+				i = 1;
+				for (fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+					if (fmc->module_path[0] != '\0' && !fmc->script) {
+						fprintf(stderr, "The external style module below needs to be reconfigured using text datablock:\n");
+						fprintf(stderr, "  %s\n", fmc->module_path);
+						fprintf(stderr, "  in scene \"%s\", render layer \"%s\", style module #%d (%s)\n",
+						        sce->id.name+2, srl->name, i, (fmc->is_displayed) ? "enabled" : "disabled");
+					}
+					i++;
+				}
 			}
 		}
 	}
@@ -10378,6 +10399,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
 	Base *base;
 	SceneRenderLayer *srl;
+	FreestyleModuleConfig *module;
 	FreestyleLineSet *lineset;
 	
 	for (base = sce->base.first; base; base = base->next) {
@@ -10399,6 +10421,10 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
+		for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
+			if (module->script)
+				expand_doit(fd, mainvar, module->script);
+		}
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			if (lineset->group)
 				expand_doit(fd, mainvar, lineset->group);

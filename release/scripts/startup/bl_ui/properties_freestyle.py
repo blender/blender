@@ -159,7 +159,7 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
                 box.context_pointer_set("freestyle_module", module)
                 row = box.row(align=True)
                 row.prop(module, "use", text="")
-                row.prop(module, "module_path", text="")
+                row.prop(module, "script", text="")
                 row.operator("scene.freestyle_module_remove", icon='X', text="")
                 row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
                 row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'

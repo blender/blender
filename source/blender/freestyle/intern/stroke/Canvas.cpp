@@ -145,10 +145,8 @@ void Canvas::Clear()
 
 	if (!_StyleModules.empty()) {
 		for (deque<StyleModule*>::iterator s = _StyleModules.begin(), send = _StyleModules.end(); s != send; ++s) {
-			if (*s) {
-				(*s)->close();
+			if (*s)
 				delete (*s);
-			}
 		}
 		_StyleModules.clear();
 	}

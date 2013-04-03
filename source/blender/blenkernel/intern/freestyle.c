@@ -128,18 +128,14 @@ static FreestyleModuleConfig *alloc_module(void)
 void BKE_freestyle_module_add(FreestyleConfig *config)
 {
 	FreestyleModuleConfig *module_conf = alloc_module();
-	const size_t maxlen = sizeof(module_conf->module_path);
 	BLI_addtail(&config->modules, (void *)module_conf);
-
-	BLI_strncpy(module_conf->module_path, BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "freestyle"), maxlen);
-	BLI_join_dirfile(module_conf->module_path, maxlen, module_conf->module_path, "style_modules");
-	BLI_join_dirfile(module_conf->module_path, maxlen, module_conf->module_path, "contour.py");
+	module_conf->script = NULL;
 	module_conf->is_displayed = 1;
 }
 
 static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module)
 {
-	strcpy(new_module->module_path, module->module_path);
+	new_module->script = module->script;
 	new_module->is_displayed = module->is_displayed;
 }
 

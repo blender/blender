@@ -321,11 +321,15 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		     module_conf;
 		     module_conf = module_conf->next)
 		{
-			if (module_conf->is_displayed) {
+			if (module_conf->script && module_conf->is_displayed) {
+				const char *id_name = module_conf->script->id.name + 2;
 				if (G.debug & G_DEBUG_FREESTYLE) {
-					cout << "  " << layer_count + 1 << ": " << module_conf->module_path << endl;
+					cout << "  " << layer_count + 1 << ": " << id_name;
+					if (module_conf->script->name)
+						cout << " (" << module_conf->script->name << ")";
+					cout << endl;
 				}
-				controller->InsertStyleModule(layer_count, module_conf->module_path);
+				controller->InsertStyleModule(layer_count, id_name, module_conf->script);
 				controller->toggleLayer(layer_count, true);
 				layer_count++;
 			}
@@ -537,7 +541,7 @@ static int displayed_layer_count(SceneRenderLayer *srl)
 		     module;
 		     module = module->next)
 		{
-			if (module->is_displayed)
+			if (module->script && module->is_displayed)
 				count++;
 		}
 		break;

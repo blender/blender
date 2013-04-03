@@ -2680,10 +2680,18 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "FreestyleModuleConfig");
 	RNA_def_struct_ui_text(srna, "Freestyle Module", "Style module configuration for specifying a style module");
 
+	prop = RNA_def_property(srna, "script", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Text");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Style Module", "Python script to define a style module");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+#if 1 /* TO BE REMOVED when the trunk merger is done */
 	prop = RNA_def_property(srna, "module_path", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "module_path");
 	RNA_def_property_ui_text(prop, "Module Path", "Path to a style module file");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+#endif
 
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "is_displayed", 1);
