@@ -998,7 +998,14 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 	bool need_fallback = true;
 
 	/* Bytes and dithering are not supported on GLSL yet */
-	if (ibuf->rect_float && ibuf->dither == 0.0f) {
+
+	/* WORKAROUND: only use GLSL if there's no byte buffer at all,
+	 *             this is because of how render results are handled,
+	 *             they're not updating image buffer's float buffer,
+	 *             but writes data directly to it's byte buffer and
+	 *             modifies display buffer.
+	 */
+	if (ibuf->rect == NULL && ibuf->rect_float && ibuf->dither == 0.0f) {
 		if (IMB_colormanagement_setup_glsl_draw_from_ctx(C)) {
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glColor4f(1.0, 1.0, 1.0, 1.0);

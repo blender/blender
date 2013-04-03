@@ -140,23 +140,15 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 		}
 	}
 	if (rectf == NULL) return;
-	
+
+	if (ibuf->rect == NULL)
+		imb_addrectImBuf(ibuf);
+
 	rectf += 4 * (rr->rectx * ymin + xmin);
 
-	if (ibuf->rect) {
-		IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
-		                                  &scene->view_settings, &scene->display_settings,
-		                                  rxmin, rymin, rxmin + xmax, rymin + ymax, TRUE);
-	}
-
-	/* update float buffer as well, so fast GLSL display could use it
-	 *
-	 * TODO(sergey): not actually sure it is nice thing to modify something here
-	 *               but ibuf->rect used to be modified here
-	 */
-	IMB_buffer_float_from_float(ibuf->rect_float + 4 * (ibuf->x * rymin + rxmin), rectf,
-	                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_LINEAR_RGB, FALSE,
-	                            xmax, ymax, ibuf->x, rr->rectx);
+	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
+	                                  &scene->view_settings, &scene->display_settings,
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, TRUE);
 }
 
 /* ****************************** render invoking ***************** */
