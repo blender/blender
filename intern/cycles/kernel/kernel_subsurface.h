@@ -63,69 +63,85 @@ __device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, Shade
 			bssrdf_sum += sc->sample_weight;
 	}
 
-	/* pick a random bsdf or bssrdf */
+	/* use bsdf or bssrdf? */
 	float r = sd->randb_closure*(bsdf_sum + bssrdf_sum);
-	float sum = 0.0f;
 
-	int sampled;
-
-	for(sampled = 0; sampled < sd->num_closure; sampled++) {
-		ShaderClosure *sc = &sd->closure[sampled];
-		
-		if(CLOSURE_IS_BSDF(sc->type) || CLOSURE_IS_BSSRDF(sc->type)) {
-			sum += sc->sample_weight;
-
-			if(r <= sum) {
-				/* if we picked a bssrdf, return the closure. also return probability
-				 * to adjust throughput depending if we picked a bsdf or bssrdf */
-				if(CLOSURE_IS_BSSRDF(sc->type)) {
-					sd->randb_closure = 0.0f; /* not needed anymore */
-#ifdef BSSRDF_MULTI_EVAL
-					*probability = (bssrdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/bssrdf_sum: 1.0f;
-#else
-					*probability = (bssrdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/sc->sample_weight: 1.0f;
-#endif
-					return sc;
-				}
-				else {
-					/* reuse randb for picking a bsdf */
-					sd->randb_closure = (sd->randb_closure - sum - sc->sample_weight)/sc->sample_weight;
-					*probability = (bsdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/bsdf_sum: 1.0f;
-					return NULL;
-				}
-			}
-		}
+	if(r < bsdf_sum) {
+		/* use bsdf, and adjust randb so we can reuse it for picking a bsdf */
+		sd->randb_closure = r/bsdf_sum;
+		*probability = (bsdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/bsdf_sum: 1.0f;
+		return NULL;
 	}
 
-	*probability = 1.0f;
-	return NULL;
-}
+	/* use bssrdf */
+	r -= bsdf_sum;
+	sd->randb_closure = 0.0f; /* not needed anymore */
 
-#ifdef BSSRDF_MULTI_EVAL
-__device float3 subsurface_scatter_multi_eval(KernelGlobals *kg, ShaderData *sd, bool hit, float refl, float *r, int num_r)
-{
-	/* compute pdf */
-	float3 eval_sum = make_float3(0.0f, 0.0f, 0.0f);
-	float pdf_sum = 0.0f;
-	float sample_weight_sum = 0.0f;
+	float sum = 0.0f;
 
 	for(int i = 0; i < sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 		
 		if(CLOSURE_IS_BSSRDF(sc->type)) {
-			float pdf = 1.0f;
-			for(int i = 0; i < num_r; i++)
-				pdf *= bssrdf_pdf(kg, sc->data0, refl, r[i]);
-			//float pdf = bssrdf_pdf(kg, sc->data0, refl, r[num_r-1]);
+			sum += sc->sample_weight;
 
-			eval_sum += sc->weight*pdf;
-			pdf_sum += sc->sample_weight*pdf;
-
-			sample_weight_sum += sc->sample_weight;
+			if(r <= sum) {
+#ifdef BSSRDF_MULTI_EVAL
+				*probability = (bssrdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/bssrdf_sum: 1.0f;
+#else
+				*probability = (bssrdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/sc->sample_weight: 1.0f;
+#endif
+				return sc;
+			}
 		}
 	}
 
-	float inv_pdf_sum = (pdf_sum > 0.0f)? sample_weight_sum/pdf_sum: 0.0f;
+	/* should never happen */
+	*probability = 1.0f;
+	return NULL;
+}
+
+#ifdef BSSRDF_MULTI_EVAL
+__device float3 subsurface_scatter_multi_eval(KernelGlobals *kg, ShaderData *sd, bool hit, float refl, float *r, int num_r, bool all)
+{
+	/* compute pdf */
+	float3 eval_sum = make_float3(0.0f, 0.0f, 0.0f);
+	float pdf_sum = 0.0f;
+	float sample_weight_sum = 0.0f;
+	int num_bssrdf = 0;
+
+	for(int i = 0; i < sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+		
+		if(CLOSURE_IS_BSSRDF(sc->type)) {
+			float sample_weight = (all)? 1.0f: sc->sample_weight;
+
+			/* compute pdf */
+			float pdf = 1.0f;
+			for(int i = 0; i < num_r; i++)
+				pdf *= bssrdf_pdf(kg, sc->data0, refl, r[i]);
+
+			eval_sum += sc->weight*pdf;
+			pdf_sum += sample_weight*pdf;
+
+			sample_weight_sum += sample_weight;
+			num_bssrdf++;
+		}
+	}
+
+	float inv_pdf_sum;
+	
+	if(pdf_sum > 0.0f) {
+		/* in case of non-progressive integrate we sample all bssrdf's once,
+		 * for progressive we pick one, so adjust pdf for that */
+		if(all)
+			inv_pdf_sum = 1.0f/pdf_sum;
+		else
+			inv_pdf_sum = sample_weight_sum/pdf_sum;
+	}
+	else
+		inv_pdf_sum = 0.0f;
+
 	float3 weight = eval_sum * inv_pdf_sum;
 
 	return weight;
@@ -152,7 +168,7 @@ __device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 weigh
 }
 
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
-__device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, int state_flag, ShaderClosure *sc, uint *lcg_state)
+__device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, int state_flag, ShaderClosure *sc, uint *lcg_state, bool all)
 {
 	float radius = sc->data0;
 	float refl = max(average(sc->weight)*3.0f, 0.0f);
@@ -207,7 +223,7 @@ __device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, int sta
 
 	/* evaluate subsurface scattering closures */
 #ifdef BSSRDF_MULTI_EVAL
-	weight *= subsurface_scatter_multi_eval(kg, sd, hit, refl, r_attempts, num_attempts);
+	weight *= subsurface_scatter_multi_eval(kg, sd, hit, refl, r_attempts, num_attempts, all);
 #else
 	weight *= sc->weight;
 #endif

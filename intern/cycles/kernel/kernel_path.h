@@ -363,7 +363,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
 				uint lcg_state = lcg_init(rbsdf);
-				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state);
+				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
 #endif
@@ -587,7 +587,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
 				uint lcg_state = lcg_init(rbsdf);
-				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state);
+				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
 #endif
@@ -996,7 +996,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				 * replace the BSSRDF with a diffuse BSDF closure */
 				for(int j = 0; j < num_samples; j++) {
 					ShaderData bssrdf_sd = sd;
-					subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state);
+					subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state, true);
 
 					/* compute lighting with the BSDF closure */
 					kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
