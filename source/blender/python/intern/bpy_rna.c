@@ -1778,8 +1778,10 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 							if (flag & PROP_THICK_WRAP) {
 								if (value == Py_None)
 									memset(data, 0, sizeof(PointerRNA));
-								else
+								else if (RNA_struct_is_a(param->ptr.type, ptr_type))
 									*((PointerRNA *)data) = param->ptr;
+								else
+									raise_error = true;
 							}
 							else {
 								/* for function calls, we sometimes want to pass the 'ptr' directly,
@@ -1787,8 +1789,10 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 								BLI_assert(value_new == NULL);
 								if (value == Py_None)
 									*((void **)data) = NULL;
-								else
+								else if (RNA_struct_is_a(param->ptr.type, ptr_type))
 									*((PointerRNA **)data) = &param->ptr;
+								else
+									raise_error = true;
 							}
 						}
 						else if (value == Py_None) {

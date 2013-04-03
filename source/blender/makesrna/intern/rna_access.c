@@ -609,6 +609,9 @@ bool RNA_struct_is_a(StructRNA *type, StructRNA *srna)
 {
 	StructRNA *base;
 
+	if (srna == &RNA_AnyType)
+		return true;
+
 	if (!type)
 		return false;
 
