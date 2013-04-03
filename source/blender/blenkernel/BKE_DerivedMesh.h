@@ -247,6 +247,7 @@ struct DerivedMesh {
 	void *(*getVertDataArray)(DerivedMesh *dm, int type);
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
 	void *(*getTessFaceDataArray)(DerivedMesh *dm, int type);
+	void *(*getLoopDataArray)(DerivedMesh *dm, int type);
 	void *(*getPolyDataArray)(DerivedMesh *dm, int type);
 
 	/** Retrieves the base CustomData structures for
