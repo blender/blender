@@ -78,6 +78,9 @@
 
 #include "transform.h"
 
+/* this should be passed as an arg for use in snap functions */
+#undef BASACT
+
 #define TRANSFORM_DIST_MAX_PX 1000.0f
 #define TRANSFORM_SNAP_MAX_PX 100.0f
 
@@ -405,6 +408,7 @@ static void initSnappingMode(TransInfo *t)
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
+	Base *base_act = scene->basact;
 
 	if (t->spacetype == SPACE_NODE) {
 		/* force project off when not supported */
@@ -445,7 +449,7 @@ static void initSnappingMode(TransInfo *t)
 		}
 		/* Particles edit mode*/
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-		         (obedit == NULL && BASACT && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT))
+		         (obedit == NULL && base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT))
 		{
 			t->tsnap.modeSelect = SNAP_ALL;
 		}
@@ -1512,11 +1516,10 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 	return retval;
 } 
 
-static bool snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obmat[4][4],
+static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, int editobject, float obmat[4][4],
                        const float ray_start[3], const float ray_normal[3], const float mval[2],
                        float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
 {
-	ToolSettings *ts = scene->toolsettings;
 	bool retval = false;
 	
 	if (ob->type == OB_MESH) {
@@ -1533,31 +1536,29 @@ static bool snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, fl
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 		}
 		
-		retval = snapDerivedMesh(ts->snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
+		retval = snapDerivedMesh(snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
 
 		dm->release(dm);
 	}
 	else if (ob->type == OB_ARMATURE) {
-		retval = snapArmature(ts->snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
+		retval = snapArmature(snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
 	}
 	
 	return retval;
 }
 
-static bool snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, const float mval[2],
-                        float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
+static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit,
+                           const float ray_start[3], const float ray_normal[3],
+                           const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	Base *base;
 	float depth = (FLT_MAX / 2.0f);  /* use half of flt-max so we can scale up without an exception */
 	bool retval = false;
-	float ray_start[3], ray_normal[3];
-	
-	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
 	if (mode == SNAP_ALL && obedit) {
 		Object *ob = obedit;
 
-		retval |= snapObject(scene, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+		retval |= snapObject(scene, snap_mode, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
 	}
 
 	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
@@ -1565,10 +1566,10 @@ static bool snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, 
 	 *
 	 * To solve that problem, we do it first as an exception. 
 	 * */
-	base = BASACT;
+	base = base_act;
 	if (base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT) {
 		Object *ob = base->object;
-		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+		retval |= snapObject(scene, snap_mode, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
 	}
 
 	for (base = FIRSTBASE; base != NULL; base = base->next) {
@@ -1576,7 +1577,7 @@ static bool snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, 
 		    (base->flag & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&
 
 		    ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT | BA_WAS_SEL)) == 0) ||
-		     (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT)))
+		     (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != base_act)))
 		{
 			Object *ob = base->object;
 			
@@ -1587,30 +1588,58 @@ static bool snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, 
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;
 					
-					retval |= snapObject(scene, ar, dob, 0, dupli_ob->mat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+					retval |= snapObject(scene, snap_mode, ar, dob, 0, dupli_ob->mat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
 				}
 				
 				free_object_duplilist(lb);
 			}
 			
-			retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+			retval |= snapObject(scene, snap_mode, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
 		}
 	}
 	
 	return retval;
 }
+static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit,
+                        const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
+{
+	float ray_start[3], ray_normal[3];
+
+	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
+
+	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
+	                      ray_start, ray_normal,
+	                      mval, r_dist_px, r_loc, r_no, mode);
+}
 
 bool snapObjectsTransform(TransInfo *t, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
-	return snapObjects(t->scene, t->view, t->ar, t->obedit, mval, r_dist_px, r_loc, r_no, mode);
+	return snapObjects(t->scene, t->scene->toolsettings->snap_mode, t->scene->basact, t->view, t->ar, t->obedit,
+	                   mval, r_dist_px, r_loc, r_no, mode);
 }
 
 bool snapObjectsContext(bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
+	Scene *scene = CTX_data_scene(C);
 
-	return snapObjects(CTX_data_scene(C), v3d, CTX_wm_region(C), CTX_data_edit_object(C), mval, r_dist_px, r_loc, r_no, mode);
+	return snapObjects(scene, scene->toolsettings->snap_mode, scene->basact, v3d, CTX_wm_region(C), CTX_data_edit_object(C), mval, r_dist_px, r_loc, r_no, mode);
+}
+
+bool snapObjectsEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit, short snap_mode,
+                   const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
+{
+	return snapObjects(scene, snap_mode, base_act, v3d, ar, obedit,
+	                   mval, r_dist_px, r_loc, r_no, mode);
+}
+bool snapObjectsRayEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit, short snap_mode,
+                      const float ray_start[3], const float ray_normal[3],
+                      const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
+{
+	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
+	                      ray_start, ray_normal,
+	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 
 /******************** PEELING *********************************/

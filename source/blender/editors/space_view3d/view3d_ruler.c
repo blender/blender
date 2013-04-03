@@ -59,43 +59,32 @@
 /* Snapping (could be own function) */
 /* NOTE - this is not very nice use of transform snapping */
 #include "ED_transform.h"
-#include "../transform/transform.h"
 
 static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2],
                               bool use_vert, bool use_edge, bool use_face)
 {
-	TransInfo t = {0};
 	float dist_px = 12;  /* snap dist */
 	float r_no_dummy[3];
 	bool ret = false;
-	char  backup_snap_mode;
-	Base *backup_baseact;
 
-	t.scene  = CTX_data_scene(C);
-	t.view   = CTX_wm_view3d(C);
-	t.ar     = CTX_wm_region(C);
-	t.obedit = CTX_data_edit_object(C);
-
-	backup_snap_mode = t.scene->toolsettings->snap_mode;
-	backup_baseact = t.scene->basact;
-	t.scene->basact = NULL;
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	struct Object *obedit = CTX_data_edit_object(C);
 
 	/* try snap edge, then face if it fails */
 	if (use_vert) {
-		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_VERTEX;
-		ret = snapObjectsTransform(&t, co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
+		                    co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 	}
 	if (use_edge && (ret == false)) {
-		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_EDGE;
-		ret = snapObjectsTransform(&t, co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
+		                    co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 	}
 	if (use_face && (ret == false)) {
-		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_FACE;
-		ret = snapObjectsTransform(&t, co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
+		                    co_ss, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 	}
-
-	t.scene->toolsettings->snap_mode = backup_snap_mode;
-	t.scene->basact = backup_baseact;
 
 	return ret;
 }

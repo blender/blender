@@ -34,17 +34,18 @@
 
 /* ******************* Registration Function ********************** */
 
-struct wmWindowManager;
-struct wmOperatorType;
-struct ListBase;
-struct wmEvent;
-struct bContext;
-struct Object;
-struct uiLayout;
+struct ARegion;
 struct EnumPropertyItem;
-struct wmOperatorType;
-struct wmKeyMap;
+struct ListBase;
+struct Object;
+struct View3D;
+struct bContext;
+struct uiLayout;
+struct wmEvent;
 struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperatorType;
+struct wmWindowManager;
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -181,6 +182,13 @@ bool peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, con
 bool peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
 bool snapObjectsTransform(struct TransInfo *t, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
 bool snapObjectsContext(struct bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+/* taks args for all settings */
+bool snapObjectsEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
+                   const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
+                      const float ray_start[3], const float ray_normal[3],
+                      const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+
 bool snapNodesTransform(struct TransInfo *t, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);
 bool snapNodesContext(struct bContext *C, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);
 
