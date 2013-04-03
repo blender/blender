@@ -6363,6 +6363,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				ED_view3d_after_add(&v3d->afterdraw_xray, base, dflag);
 				return;
 			}
+
+			/* allow transp option for empty images */
+			if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+				if (!v3d->xray && !v3d->transp && !(ob->dtx & OB_DRAWXRAY) && (ob->dtx & OB_DRAWTRANSP)) {
+					ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
+					return;
+				}
+			}
 		}
 	}
 
