@@ -776,6 +776,27 @@ bool BM_edge_is_contiguous(BMEdge *e)
 }
 
 /**
+ * Check if the edge is convex or concave
+ * (depends on face winding)
+ */
+bool BM_edge_is_convex(BMEdge *e)
+{
+	if (BM_edge_is_manifold(e)) {
+		BMLoop *l1 = e->l;
+		BMLoop *l2 = e->l->radial_next;
+		if (!equals_v3v3(l1->f->no, l2->f->no)) {
+			float cross[3];
+			float l_dir[3];
+			cross_v3_v3v3(cross, l1->f->no, l2->f->no);
+			/* we assume contiguous normals, otherwise the result isn't meaningful */
+			sub_v3_v3v3(l_dir, l1->next->v->co, l1->v->co);
+			return (dot_v3v3(l_dir, cross) > 0.0f);
+		}
+	}
+	return true;
+}
+
+/**
  * Tests whether or not an edge is on the boundary
  * of a shell (has one face associated with it)
  */
@@ -1146,6 +1167,27 @@ float BM_edge_calc_face_angle(BMEdge *e)
 		BMLoop *l1 = e->l;
 		BMLoop *l2 = e->l->radial_next;
 		return angle_normalized_v3v3(l1->f->no, l2->f->no);
+	}
+	else {
+		return DEG2RADF(90.0f);
+	}
+}
+
+/**
+ * \brief BMESH EDGE/FACE ANGLE
+ *
+ *  Calculates the angle between two faces.
+ *  Assumes the face normals are correct.
+ *
+ * \return angle in radians
+ */
+float BM_edge_calc_face_angle_signed(BMEdge *e)
+{
+	if (BM_edge_is_manifold(e)) {
+		BMLoop *l1 = e->l;
+		BMLoop *l2 = e->l->radial_next;
+		const float angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
+		return BM_edge_is_convex(e) ? angle : -angle;
 	}
 	else {
 		return DEG2RADF(90.0f);
