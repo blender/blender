@@ -2808,7 +2808,7 @@ int IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSetting
 /* Configures GLSL shader for conversion from scene linear to display space */
 int IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
                                         const ColorManagedDisplaySettings *display_settings,
-										int predivide)
+                                        int predivide)
 {
 	return IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
 	                                                      NULL, predivide);

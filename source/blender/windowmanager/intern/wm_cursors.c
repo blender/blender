@@ -164,7 +164,7 @@ void WM_cursor_restore(wmWindow *win)
 }
 
 /* to allow usage all over, we do entire WM */
-void WM_cursor_wait(int val)
+void WM_cursor_wait(bool val)
 {
 	if (!G.background) {
 		wmWindowManager *wm = G.main->wm.first;

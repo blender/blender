@@ -2005,7 +2005,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	for (node = clipboard_nodes_lb->first; node; node = node->next) {
 		if (!node->typeinfo->poll_instance(node, ntree)) {
 			all_nodes_valid = FALSE;
-			BKE_reportf(op->reports, RPT_ERROR, "Cannot add node %s into node tree %s", node->name, ntree->id.name+2);
+			BKE_reportf(op->reports, RPT_ERROR, "Cannot add node %s into node tree %s", node->name, ntree->id.name + 2);
 		}
 	}
 	if (!all_nodes_valid)

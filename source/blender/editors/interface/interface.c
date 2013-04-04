@@ -549,22 +549,22 @@ static void ui_draw_links(uiBlock *block)
 /* ************** BLOCK ENDING FUNCTION ************* */
 
 /* NOTE: if but->poin is allocated memory for every defbut, things fail... */
-static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
+static bool ui_but_equals_old(uiBut *but, uiBut *oldbut)
 {
 	/* various properties are being compared here, hopefully sufficient
 	 * to catch all cases, but it is simple to add more checks later */
-	if (but->retval != oldbut->retval) return 0;
-	if (but->rnapoin.data != oldbut->rnapoin.data) return 0;
+	if (but->retval != oldbut->retval) return false;
+	if (but->rnapoin.data != oldbut->rnapoin.data) return false;
 	if (but->rnaprop != oldbut->rnaprop)
-		if (but->rnaindex != oldbut->rnaindex) return 0;
-	if (but->func != oldbut->func) return 0;
-	if (but->funcN != oldbut->funcN) return 0;
-	if (oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
-	if (oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return 0;
-	if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) || but->pointype != oldbut->pointype)) return 0;
-	if (but->optype != oldbut->optype) return 0;
+		if (but->rnaindex != oldbut->rnaindex) return false;
+	if (but->func != oldbut->func) return false;
+	if (but->funcN != oldbut->funcN) return false;
+	if (oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return false;
+	if (oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return false;
+	if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) || but->pointype != oldbut->pointype)) return false;
+	if (but->optype != oldbut->optype) return false;
 
-	return 1;
+	return true;
 }
 
 /* oldbut is being inserted in new block, so we use the lines from new button, and replace button pointers */
@@ -682,37 +682,38 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 /* needed for temporarily rename buttons, such as in outliner or file-select,
  * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
-int uiButActiveOnly(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
+bool uiButActiveOnly(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
 {
 	uiBlock *oldblock;
 	uiBut *oldbut;
-	int activate = FALSE, found = FALSE, isactive = FALSE;
+	bool activate = false, found = false, isactive = false;
 	
 	oldblock = block->oldblock;
-	if (!oldblock)
-		activate = TRUE;
+	if (!oldblock) {
+		activate = true;
+	}
 	else {
 		for (oldbut = oldblock->buttons.first; oldbut; oldbut = oldbut->next) {
 			if (ui_but_equals_old(oldbut, but)) {
-				found = TRUE;
+				found = true;
 				
 				if (oldbut->active)
-					isactive = TRUE;
+					isactive = true;
 				
 				break;
 			}
 		}
 	}
-	if ((activate == TRUE) || (found == FALSE)) {
+	if ((activate == true) || (found == false)) {
 		ui_button_activate_do((bContext *)C, ar, but);
 	}
-	else if ((found == TRUE) && (isactive == FALSE)) {
+	else if ((found == true) && (isactive == false)) {
 		BLI_remlink(&block->buttons, but);
 		ui_free_but(C, but);
-		return 0;
+		return false;
 	}
 	
-	return 1;
+	return true;
 }
 
 /* simulate button click */
@@ -1243,17 +1244,17 @@ void uiComposeLinks(uiBlock *block)
 
 /* ************************************************ */
 
-void uiBlockSetButLock(uiBlock *block, int val, const char *lockstr)
+void uiBlockSetButLock(uiBlock *block, bool val, const char *lockstr)
 {
 	if (val) {
-		block->lock = val ? TRUE : FALSE;
+		block->lock = val;
 		block->lockstr = lockstr;
 	}
 }
 
 void uiBlockClearButLock(uiBlock *block)
 {
-	block->lock = FALSE;
+	block->lock = false;
 	block->lockstr = NULL;
 }
 
@@ -1392,63 +1393,63 @@ void ui_set_but_vectorf(uiBut *but, const float vec[3])
 	}
 }
 
-int ui_is_but_float(uiBut *but)
+bool ui_is_but_float(uiBut *but)
 {
 	if (but->pointype == UI_BUT_POIN_FLOAT && but->poin)
-		return 1;
+		return true;
 	
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_FLOAT)
-		return 1;
+		return true;
 	
-	return 0;
+	return false;
 }
 
-int ui_is_but_bool(uiBut *but)
+bool ui_is_but_bool(uiBut *but)
 {
 	if (ELEM5(but->type, TOG, TOGN, TOGR, ICONTOG, ICONTOGN))
-		return 1;
+		return true;
 
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 }
 
 
-int ui_is_but_unit(uiBut *but)
+bool ui_is_but_unit(uiBut *but)
 {
 	UnitSettings *unit = but->block->unit;
 	const int unit_type = uiButGetUnitType(but);
 
 	if (unit_type == PROP_UNIT_NONE)
-		return 0;
+		return false;
 
 #if 1 /* removed so angle buttons get correct snapping */
 	if (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
-		return 0;
+		return false;
 #endif
 	
 	/* for now disable time unit conversion */
 	if (unit_type == PROP_UNIT_TIME)
-		return 0;
+		return false;
 
 	if (unit->system == USER_UNIT_NONE) {
 		if (unit_type != PROP_UNIT_ROTATION) {
-			return 0;
+			return false;
 		}
 	}
 
-	return 1;
+	return true;
 }
 
-int ui_is_but_rna_valid(uiBut *but)
+bool ui_is_but_rna_valid(uiBut *but)
 {
 	if (but->rnaprop == NULL || RNA_struct_contains_property(&but->rnapoin, but->rnaprop)) {
-		return TRUE;
+		return true;
 	}
 	else {
 		printf("property removed %s: %p\n", but->drawstr, but->rnaprop);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1789,7 +1790,7 @@ void ui_get_but_string(uiBut *but, char *str, const size_t maxlen)
 
 #ifdef WITH_PYTHON
 
-static int ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *str, double *value)
+static bool ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *str, double *value)
 {
 	char str_unit_convert[256];
 	const int unit_type = uiButGetUnitType(but);
@@ -1807,9 +1808,9 @@ static int ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *
 #endif /* WITH_PYTHON */
 
 
-int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double *value)
+bool ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double *value)
 {
-	int ok = FALSE;
+	bool ok = false;
 
 #ifdef WITH_PYTHON
 
@@ -1825,7 +1826,7 @@ int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double 
 				ok = ui_set_but_string_eval_num_unit(C, but, str_new, value);
 			}
 			else {
-				ok = TRUE; /* parse normal string via py (no unit conversion needed) */
+				ok = true; /* parse normal string via py (no unit conversion needed) */
 			}
 		}
 		else if (is_unit_but) {
@@ -1848,7 +1849,7 @@ int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double 
 }
 
 
-int ui_set_but_string(bContext *C, uiBut *but, const char *str)
+bool ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
 	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
@@ -1859,7 +1860,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 			if (type == PROP_STRING) {
 				/* RNA string */
 				RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
-				return 1;
+				return true;
 			}
 			else if (type == PROP_POINTER) {
 				/* RNA pointer */
@@ -1868,7 +1869,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 				if (str == NULL || str[0] == '\0') {
 					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, PointerRNA_NULL);
-					return 1;
+					return true;
 				}
 				else {
 					ptr = but->rnasearchpoin;
@@ -1877,18 +1878,18 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 					if (prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr))
 						RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
 
-					return 1;
+					return true;
 				}
 
-				return 0;
+				return false;
 			}
 			else if (type == PROP_ENUM) {
 				int value;
 				if (RNA_property_enum_value(but->block->evil_C, &but->rnapoin, but->rnaprop, str, &value)) {
 					RNA_property_enum_set(&but->rnapoin, but->rnaprop, value);
-					return 1;
+					return true;
 				}
-				return 0;
+				return false;
 			}
 			else {
 				BLI_assert(0);
@@ -1898,23 +1899,23 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	else if (but->type == IDPOIN) {
 		/* ID pointer */
 		but->idpoin_func(C, str, but->idpoin_idpp);
-		return 1;
+		return true;
 	}
 	else if (but->type == TEX) {
 		/* string */
 		if (ui_is_but_utf8(but)) BLI_strncpy_utf8(but->poin, str, but->hardmax);
 		else BLI_strncpy(but->poin, str, but->hardmax);
 
-		return 1;
+		return true;
 	}
 	else if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* string */
 		BLI_strncpy(but->poin, str, but->hardmax);
-		return 1;
+		return true;
 	}
 	else if (ui_but_anim_expression_set(but, str)) {
 		/* driver expression */
-		return 1;
+		return true;
 	}
 	else if (str[0] == '#') {
 		/* shortcut to create new driver expression (versus immediate Py-execution) */
@@ -1924,8 +1925,8 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* number editing */
 		double value;
 
-		if (ui_set_but_string_eval_num(C, but, str, &value) == FALSE) {
-			return 0;
+		if (ui_set_but_string_eval_num(C, but, str, &value) == false) {
+			return false;
 		}
 
 		if (!ui_is_but_float(but)) value = (int)floor(value + 0.5);
@@ -1936,10 +1937,10 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		if (value > (double)but->hardmax) value = but->hardmax;
 
 		ui_set_but_val(but, value);
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 void ui_set_but_default(bContext *C, short all)
@@ -2464,15 +2465,14 @@ void uiBlockBeginAlign(uiBlock *block)
 	/* buttons declared after this call will get this align nr */ // XXX flag?
 }
 
-static int buts_are_horiz(uiBut *but1, uiBut *but2)
+static bool buts_are_horiz(uiBut *but1, uiBut *but2)
 {
 	float dx, dy;
 	
 	dx = fabs(but1->rect.xmax - but2->rect.xmin);
 	dy = fabs(but1->rect.ymin - but2->rect.ymax);
 	
-	if (dx > dy) return 0;
-	return 1;
+	return (dx <= dy);
 }
 
 void uiBlockEndAlign(uiBlock *block)

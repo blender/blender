@@ -70,7 +70,7 @@ typedef struct wmJob wmJob;
 void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);
 void		WM_init_state_fullscreen_set(void);
 void		WM_init_state_normal_set(void);
-void		WM_init_native_pixels(int do_it);
+void		WM_init_native_pixels(bool do_it);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
@@ -87,7 +87,7 @@ __attribute__((noreturn))
 #endif
 ;
 
-int 		WM_init_game		(struct bContext *C);
+bool 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
 
 
@@ -106,7 +106,7 @@ int			WM_window_pixels_y		(struct wmWindow *win);
 void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 			
 			/* returns true if draw method is triple buffer */
-int			WM_is_draw_triple(struct wmWindow *win);
+bool		WM_is_draw_triple(struct wmWindow *win);
 
 
 
@@ -118,7 +118,7 @@ void		WM_autosave_init(struct wmWindowManager *wm);
 void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
-void		WM_cursor_wait		(int val);
+void		WM_cursor_wait		(bool val);
 void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int bounds[4]);
 void		WM_cursor_grab_disable(struct wmWindow *win, int mouse_ungrab_xy[2]);
 void		WM_cursor_time		(struct wmWindow *win, int nr);
@@ -204,7 +204,7 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 void		WM_operator_handlers_clear(wmWindowManager *wm, struct wmOperatorType *ot);
 
-struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
+struct wmOperatorType *WM_operatortype_find(const char *idnamem, bool quiet);
 struct GHashIterator  *WM_operatortype_iter(void);
 void		WM_operatortype_append(void (*opfunc)(struct wmOperatorType *));
 void		WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
@@ -225,8 +225,8 @@ int			WM_operator_name_call	(struct bContext *C, const char *opstring, short con
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties, struct ReportList *reports, short is_undo);
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
-void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context); /* make props context sensitive or not */
-int         WM_operator_properties_default(struct PointerRNA *ptr, const int do_update);
+void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const bool no_context); /* make props context sensitive or not */
+int         WM_operator_properties_default(struct PointerRNA *ptr, const bool do_update);
 void        WM_operator_properties_reset(struct wmOperator *op);
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
@@ -239,11 +239,11 @@ void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, bool cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
-int         WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
+bool        WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 
-int         WM_operator_last_properties_init(struct wmOperator *op);
-int         WM_operator_last_properties_store(struct wmOperator *op);
+bool        WM_operator_last_properties_init(struct wmOperator *op);
+bool        WM_operator_last_properties_store(struct wmOperator *op);
 
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0
@@ -269,14 +269,14 @@ void		WM_operator_py_idname(char *to, const char *from);
 
 /* *************** uilist types ******************** */
 void                WM_uilisttype_init(void);
-struct uiListType  *WM_uilisttype_find(const char *idname, int quiet);
+struct uiListType  *WM_uilisttype_find(const char *idname, bool quiet);
 int                 WM_uilisttype_add(struct uiListType *ult);
 void                WM_uilisttype_freelink(struct uiListType *ult);
 void                WM_uilisttype_free(void);
 
 /* *************** menu types ******************** */
 void                WM_menutype_init(void);
-struct MenuType    *WM_menutype_find(const char *idname, int quiet);
+struct MenuType    *WM_menutype_find(const char *idname, bool quiet);
 int                 WM_menutype_add(struct MenuType *mt);
 void                WM_menutype_freelink(struct MenuType *mt);
 void                WM_menutype_free(void);

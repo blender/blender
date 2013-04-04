@@ -1050,6 +1050,7 @@ ID *BKE_libblock_find_name(const short type, const char *name)      /* type: "OB
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
+#if 0 /* UNUSED */
 static void get_flags_for_id(ID *id, char *buf) 
 {
 	int isfake = id->flag & LIB_FAKEUSER;
@@ -1130,7 +1131,6 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 	}
 }
 
-#if 0 /* unused */
 /* used by headerbuttons.c buttons.c editobject.c editseq.c */
 /* if (nr == NULL) no MAX_IDPUP, this for non-header browsing */
 void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)

@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef IMB_COLORMANAGEMENT_H
-#define IMB_COLORMANAGEMENT_H
+#ifndef __IMB_COLORMANAGEMENT_H__
+#define __IMB_COLORMANAGEMENT_H__
 
 #define BCM_CONFIG_FILE "config.ocio"
 
@@ -181,4 +181,4 @@ enum {
 	COLOR_ROLE_DEFAULT_FLOAT,
 };
 
-#endif  /* IMB_COLORMANAGEMENT_H */
+#endif  /* __IMB_COLORMANAGEMENT_H__ */

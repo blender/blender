@@ -875,7 +875,7 @@ static void node_find_cb(const struct bContext *C, void *UNUSED(arg), const char
 				BLI_snprintf(name, 256, "%s (%s)", node->name, node->label);
 			else
 				BLI_strncpy(name, node->name, 256);
-			if (0 == uiSearchItemAdd(items, name, node, 0))
+			if (false == uiSearchItemAdd(items, name, node, 0))
 				break;
 		}
 	}

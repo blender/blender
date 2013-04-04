@@ -890,7 +890,8 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		{
 			if (ruler_info->state == RULER_STATE_DRAG) {
 				if (view3d_ruler_item_mousemove(C, ruler_info, event->mval,
-				                                event->shift != 0, event->ctrl != 0)) {
+				                                event->shift != 0, event->ctrl != 0))
+				{
 					do_draw = true;
 				}
 			}

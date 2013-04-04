@@ -140,11 +140,11 @@ struct uiLayout {
 	int x, y, w, h;
 	float scale[2];
 	short space;
-	char align;
-	char active;
-	char enabled;
-	char redalert;
-	char keepaspect;
+	bool align;
+	bool active;
+	bool enabled;
+	bool redalert;
+	bool keepaspect;
 	char alignment;
 };
 
@@ -1333,7 +1333,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 			BLI_strncpy(name_ui, id->name + 2, sizeof(name_ui));
 #endif
 			name = BLI_strdup(name_ui);
-			iconid = ui_id_icon_get((bContext *)C, id, 0);
+			iconid = ui_id_icon_get((bContext *)C, id, false);
 		}
 		else {
 			name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */
@@ -1359,7 +1359,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 	
 	/* add search items from temporary list */
 	for (cis = items_list->first; cis; cis = cis->next) {
-		if (!uiSearchItemAdd(items, cis->name, SET_INT_IN_POINTER(cis->index), cis->iconid)) {
+		if (false == uiSearchItemAdd(items, cis->name, SET_INT_IN_POINTER(cis->index), cis->iconid)) {
 			break;
 		}
 	}
@@ -2267,8 +2267,8 @@ uiLayout *uiLayoutRow(uiLayout *layout, int align)
 	litem->item.type = ITEM_LAYOUT_ROW;
 	litem->root = layout->root;
 	litem->align = align;
-	litem->active = 1;
-	litem->enabled = 1;
+	litem->active = true;
+	litem->enabled = true;
 	litem->context = layout->context;
 	litem->space = (align) ? 0 : layout->root->style->buttonspacex;
 	litem->redalert = layout->redalert;
@@ -2288,8 +2288,8 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 	litem->item.type = ITEM_LAYOUT_COLUMN;
 	litem->root = layout->root;
 	litem->align = align;
-	litem->active = 1;
-	litem->enabled = 1;
+	litem->active = true;
+	litem->enabled = true;
 	litem->context = layout->context;
 	litem->space = (litem->align) ? 0 : layout->root->style->buttonspacey;
 	litem->redalert = layout->redalert;
@@ -2309,8 +2309,8 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	flow->litem.item.type = ITEM_LAYOUT_COLUMN_FLOW;
 	flow->litem.root = layout->root;
 	flow->litem.align = align;
-	flow->litem.active = 1;
-	flow->litem.enabled = 1;
+	flow->litem.active = true;
+	flow->litem.enabled = true;
 	flow->litem.context = layout->context;
 	flow->litem.space = (flow->litem.align) ? 0 : layout->root->style->columnspace;
 	flow->litem.redalert = layout->redalert;
@@ -2402,8 +2402,8 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 	litem = MEM_callocN(sizeof(uiLayout), "uiLayoutOverlap");
 	litem->item.type = ITEM_LAYOUT_OVERLAP;
 	litem->root = layout->root;
-	litem->active = 1;
-	litem->enabled = 1;
+	litem->active = true;
+	litem->enabled = true;
 	litem->context = layout->context;
 	litem->redalert = layout->redalert;
 	BLI_addtail(&layout->items, litem);
@@ -2421,8 +2421,8 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 	split->litem.item.type = ITEM_LAYOUT_SPLIT;
 	split->litem.root = layout->root;
 	split->litem.align = align;
-	split->litem.active = 1;
-	split->litem.enabled = 1;
+	split->litem.active = true;
+	split->litem.enabled = true;
 	split->litem.context = layout->context;
 	split->litem.space = layout->root->style->columnspace;
 	split->litem.redalert = layout->redalert;
@@ -2435,27 +2435,27 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 	return &split->litem;
 }
 
-void uiLayoutSetActive(uiLayout *layout, int active)
+void uiLayoutSetActive(uiLayout *layout, bool active)
 {
 	layout->active = active;
 }
 
-void uiLayoutSetEnabled(uiLayout *layout, int enabled)
+void uiLayoutSetEnabled(uiLayout *layout, bool enabled)
 {
 	layout->enabled = enabled;
 }
 
-void uiLayoutSetRedAlert(uiLayout *layout, int redalert)
+void uiLayoutSetRedAlert(uiLayout *layout, bool redalert)
 {
 	layout->redalert = redalert;
 }
 
-void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect)
+void uiLayoutSetKeepAspect(uiLayout *layout, bool keepaspect)
 {
 	layout->keepaspect = keepaspect;
 }
 
-void uiLayoutSetAlignment(uiLayout *layout, int alignment)
+void uiLayoutSetAlignment(uiLayout *layout, char alignment)
 {
 	layout->alignment = alignment;
 }
@@ -2470,22 +2470,22 @@ void uiLayoutSetScaleY(uiLayout *layout, float scale)
 	layout->scale[1] = scale;
 }
 
-int uiLayoutGetActive(uiLayout *layout)
+bool uiLayoutGetActive(uiLayout *layout)
 {
 	return layout->active;
 }
 
-int uiLayoutGetEnabled(uiLayout *layout)
+bool uiLayoutGetEnabled(uiLayout *layout)
 {
 	return layout->enabled;
 }
 
-int uiLayoutGetRedAlert(uiLayout *layout)
+bool uiLayoutGetRedAlert(uiLayout *layout)
 {
 	return layout->redalert;
 }
 
-int uiLayoutGetKeepAspect(uiLayout *layout)
+bool uiLayoutGetKeepAspect(uiLayout *layout)
 {
 	return layout->keepaspect;
 }
@@ -2937,7 +2937,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if (!WM_operator_repeat_check(C, op)) {
-		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator can't' redo");
+		uiBlockSetButLock(uiLayoutGetBlock(layout), true, "Operator can't' redo");
 
 		/* XXX, could give some nicer feedback or not show redo panel at all? */
 		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE);

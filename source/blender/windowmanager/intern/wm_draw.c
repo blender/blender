@@ -769,12 +769,12 @@ static int wm_automatic_draw_method(wmWindow *win)
 		return win->drawmethod;
 }
 
-int WM_is_draw_triple(wmWindow *win)
+bool WM_is_draw_triple(wmWindow *win)
 {
 	/* function can get called before this variable is set in drawing code below */
 	if (win->drawmethod != U.wmdrawmethod)
 		win->drawmethod = U.wmdrawmethod;
-	return USER_DRAW_TRIPLE == wm_automatic_draw_method(win);
+	return (USER_DRAW_TRIPLE == wm_automatic_draw_method(win));
 }
 
 void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)

@@ -754,7 +754,7 @@ static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(ar
 			/* display name for menu */
 			WM_operator_py_idname(name, ot->idname);
 			
-			if (0 == uiSearchItemAdd(items, name, ot, 0))
+			if (false == uiSearchItemAdd(items, name, ot, 0))
 				break;
 		}
 	}
@@ -1043,8 +1043,9 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */
-				if (0 == uiButActiveOnly(C, ar, block, bt) )
+				if (false == uiButActiveOnly(C, ar, block, bt)) {
 					tselem->flag &= ~TSE_TEXTBUT;
+				}
 			}
 		}
 		

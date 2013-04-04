@@ -179,7 +179,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 
 static GHash *uilisttypes_hash = NULL;
 
-uiListType *WM_uilisttype_find(const char *idname, int quiet)
+uiListType *WM_uilisttype_find(const char *idname, bool quiet)
 {
 	uiListType *ult;
 
@@ -234,7 +234,7 @@ void WM_uilisttype_free(void)
 
 static GHash *menutypes_hash = NULL;
 
-MenuType *WM_menutype_find(const char *idname, int quiet)
+MenuType *WM_menutype_find(const char *idname, bool quiet)
 {
 	MenuType *mt;
 

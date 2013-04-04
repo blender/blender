@@ -656,7 +656,7 @@ static int prefsize(int argc, const char **argv, void *UNUSED(data))
 
 static int native_pixels(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	WM_init_native_pixels(0);
+	WM_init_native_pixels(false);
 	return 0;
 }
 

@@ -162,7 +162,7 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 		if (BLI_strcasestr(ot->name, str)) {
 			if (WM_operator_poll((bContext *)C, ot)) {
 				
-				if (0 == uiSearchItemAdd(items, ot->name, ot, 0))
+				if (false == uiSearchItemAdd(items, ot->name, ot, 0))
 					break;
 			}
 		}

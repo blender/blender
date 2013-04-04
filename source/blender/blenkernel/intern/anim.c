@@ -1092,7 +1092,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	/* get derived mesh */
 	dm_mask = CD_MASK_BAREMESH;
 	if (flag & DUPLILIST_FOR_RENDER)
-		dm_mask |= CD_MASK_ORCO|CD_MASK_MLOOPUV;
+		dm_mask |= CD_MASK_ORCO | CD_MASK_MLOOPUV;
 
 	if (em) {
 		dm = editbmesh_get_derived_cage(scene, par, em, dm_mask);

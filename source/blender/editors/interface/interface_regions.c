@@ -514,7 +514,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		opptr = uiButGetOperatorPtrRNA(but); /* allocated when needed, the button owns it */
 
 		/* so the context is passed to itemf functions (some py itemf functions use it) */
-		WM_operator_properties_sanitize(opptr, FALSE);
+		WM_operator_properties_sanitize(opptr, false);
 
 		str = WM_operator_pystring(C, but->optype, opptr, 0);
 
@@ -751,12 +751,12 @@ typedef struct uiSearchboxData {
 
 /* exported for use by search callbacks */
 /* returns zero if nothing to add */
-int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
+bool uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
 {
 	/* hijack for autocomplete */
 	if (items->autocpl) {
 		autocomplete_do_name(items->autocpl, name);
-		return 1;
+		return true;
 	}
 	
 	/* hijack for finding active item */
@@ -764,18 +764,18 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int icon
 		if (poin == items->active)
 			items->offset_i = items->totitem;
 		items->totitem++;
-		return 1;
+		return true;
 	}
 	
 	if (items->totitem >= items->maxitem) {
 		items->more = 1;
-		return 0;
+		return false;
 	}
 	
 	/* skip first items in list */
 	if (items->offset_i > 0) {
 		items->offset_i--;
-		return 1;
+		return true;
 	}
 	
 	if (items->names)
@@ -787,7 +787,7 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int icon
 	
 	items->totitem++;
 	
-	return 1;
+	return true;
 }
 
 int uiSearchBoxHeight(void)
@@ -867,11 +867,11 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 }
 
 /* x and y in screencoords */
-int ui_searchbox_inside(ARegion *ar, int x, int y)
+bool ui_searchbox_inside(ARegion *ar, int x, int y)
 {
 	uiSearchboxData *data = ar->regiondata;
 	
-	return(BLI_rcti_isect_pt(&data->bbox, x - ar->winrct.xmin, y - ar->winrct.ymin));
+	return BLI_rcti_isect_pt(&data->bbox, x - ar->winrct.xmin, y - ar->winrct.ymin);
 }
 
 /* string validated to be of correct length (but->hardmax) */
@@ -2236,7 +2236,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 {
 	uiBut *but = arg_but;
 	uiBlock *block;
-	int show_picker = TRUE;
+	bool show_picker = true;
 	
 	block = uiBeginBlock(C, handle->region, __func__, UI_EMBOSS);
 	
@@ -2703,7 +2703,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	Menu menu;
-	MenuType *mt = WM_menutype_find(idname, TRUE);
+	MenuType *mt = WM_menutype_find(idname, true);
 
 	if (mt == NULL) {
 		printf("%s: named menu \"%s\" not found\n", __func__, idname);

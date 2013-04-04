@@ -248,7 +248,7 @@ void WM_init_splash(bContext *C)
 	}
 }
 
-int WM_init_game(bContext *C)
+bool WM_init_game(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
@@ -318,7 +318,7 @@ int WM_init_game(bContext *C)
 
 		sound_exit();
 
-		return 1;
+		return true;
 	}
 	else {
 		ReportTimerInfo *rti;
@@ -333,8 +333,9 @@ int WM_init_game(bContext *C)
 
 		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
 		wm->reports.reporttimer->customdata = rti;
+
+		return false;
 	}
-	return 0;
 }
 
 /* free strings of open recent files */

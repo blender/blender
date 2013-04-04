@@ -393,32 +393,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA);
 }
 
-
-/* ************** generic embossed rect, for window sliders etc ************* */
-
-
-/* text_draw.c uses this */
-void uiEmboss(float x1, float y1, float x2, float y2, int sel)
-{
-	
-	/* below */
-	if (sel) glColor3ub(200, 200, 200);
-	else glColor3ub(50, 50, 50);
-	fdrawline(x1, y1, x2, y1);
-
-	/* right */
-	fdrawline(x2, y1, x2, y2);
-	
-	/* top */
-	if (sel) glColor3ub(50, 50, 50);
-	else glColor3ub(200, 200, 200);
-	fdrawline(x1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1, x1, y2);
-	
-}
-
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
 void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
