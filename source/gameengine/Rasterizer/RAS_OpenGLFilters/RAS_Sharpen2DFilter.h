@@ -32,7 +32,7 @@
 #ifndef __RAS_SHARPEN2DFILTER_H__
 #define __RAS_SHARPEN2DFILTER_H__
 
-const char * SharpenFragmentShader=STRINGIFY(
+static const char *SharpenFragmentShader = STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 
@@ -53,4 +53,3 @@ void main(void)
 }
 );
 #endif
-

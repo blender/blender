@@ -63,8 +63,8 @@
 
 
 // Blender GameObject type
-BlendType<KX_GameObject> gameObjectType ("KX_GameObject");
-BlendType<KX_LightObject> lightObjectType ("KX_LightObject");
+static BlendType<KX_GameObject> gameObjectType ("KX_GameObject");
+static BlendType<KX_LightObject> lightObjectType ("KX_LightObject");
 
 
 // load texture

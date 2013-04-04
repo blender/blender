@@ -32,9 +32,9 @@
 #ifndef __RAS_EROSION2DFILTER_H__
 #define __RAS_EROSION2DFILTER_H__
 
-const char * ErosionFragmentShader = STRINGIFY(
-            uniform sampler2D bgl_RenderedTexture;
-        uniform vec2 bgl_TextureCoordinateOffset[9];
+static const char *ErosionFragmentShader = STRINGIFY(
+uniform sampler2D bgl_RenderedTexture;
+uniform vec2 bgl_TextureCoordinateOffset[9];
 
 void main(void)
 {

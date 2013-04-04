@@ -358,8 +358,7 @@ static PyGetSetDef imageViewportGetSets[] =
 
 
 // define python type
-PyTypeObject ImageViewportType =
-{ 
+static PyTypeObject ImageViewportType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.ImageViewport",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/

@@ -74,7 +74,7 @@ static Py_ssize_t KX_PythonSeq_len( PyObject *self )
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 
 	if (self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, "len(seq): "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "len(seq): " BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
@@ -105,7 +105,7 @@ static PyObject *KX_PythonSeq_getIndex(PyObject *self, Py_ssize_t index)
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	 
 	if (self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, "val = seq[i]: "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val = seq[i]: " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -269,7 +269,7 @@ static PyObject *KX_PythonSeq_subscript(PyObject *self, PyObject *key)
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	
 	if (self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, "val = seq[key], KX_PythonSeq: "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val = seq[key], KX_PythonSeq: " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -299,7 +299,7 @@ static int KX_PythonSeq_contains(PyObject *self, PyObject *key)
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	
 	if (self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, "key in seq, KX_PythonSeq: "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "key in seq, KX_PythonSeq: " BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	if (!PyUnicode_Check(key)) {
@@ -362,7 +362,7 @@ PyMethodDef KX_PythonSeq_methods[] = {
 static PyObject *KX_PythonSeq_getIter(KX_PythonSeq *self)
 {
 	if (BGE_PROXY_REF(self->base)==NULL) {
-		PyErr_SetString(PyExc_SystemError, "for i in seq: "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "for i in seq: " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	

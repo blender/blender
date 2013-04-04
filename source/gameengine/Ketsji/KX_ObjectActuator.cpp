@@ -496,7 +496,7 @@ static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, i
 	return mathutils_obactu_vector_set(bmo, subtype);
 }
 
-Mathutils_Callback mathutils_obactu_vector_cb = {
+static Mathutils_Callback mathutils_obactu_vector_cb = {
 	mathutils_obactu_generic_check,
 	mathutils_obactu_vector_get,
 	mathutils_obactu_vector_set,

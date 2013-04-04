@@ -24,7 +24,6 @@
  *  \ingroup bgerast
  */
 
- 
 #define STRINGIFY(A)  #A
 
 #include "RAS_OpenGLFilters/RAS_Blur2DFilter.h"

@@ -32,7 +32,7 @@
 #ifndef __RAS_LAPLACIAN2DFILTER_H__
 #define __RAS_LAPLACIAN2DFILTER_H__
 
-const char * LaplacionFragmentShader=STRINGIFY(
+static const char *LaplacionFragmentShader = STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

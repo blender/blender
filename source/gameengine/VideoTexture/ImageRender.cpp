@@ -288,9 +288,9 @@ inline ImageRender * getImageRender (PyImage *self)
 // python methods
 
 // Blender Scene type
-BlendType<KX_Scene> sceneType ("KX_Scene");
+static BlendType<KX_Scene> sceneType ("KX_Scene");
 // Blender Camera type
-BlendType<KX_Camera> cameraType ("KX_Camera");
+static BlendType<KX_Camera> cameraType ("KX_Camera");
 
 
 // object initialization
@@ -398,8 +398,7 @@ static PyGetSetDef imageRenderGetSets[] =
 
 
 // define python type
-PyTypeObject ImageRenderType =
-{ 
+static PyTypeObject ImageRenderType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.ImageRender",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
@@ -733,8 +732,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
 
 
 // define python type
-PyTypeObject ImageMirrorType =
-{ 
+static PyTypeObject ImageMirrorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.ImageMirror",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
