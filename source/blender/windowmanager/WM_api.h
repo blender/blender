@@ -386,7 +386,6 @@ void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_kill_type(struct wmWindowManager *wm, int job_type);
 
 int			WM_jobs_has_running(struct wmWindowManager *wm);
-int			WM_jobs_has_running_except(struct wmWindowManager *wm, int job_type);
 
 			/* clipboard */
 char       *WM_clipboard_text_get(int selection);
