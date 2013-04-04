@@ -35,6 +35,8 @@ struct rctf;
 
 struct ImBuf;
 struct bContext;
+struct ColorManagedViewSettings;
+struct ColorManagedDisplaySettings;
 
 void fdrawbezier(float vec[4][3]);
 void fdrawline(float x1, float y1, float x2, float y2);
@@ -211,6 +213,11 @@ typedef struct bglMats {
 void bgl_get_mats(bglMats *mats);
 
 /* **** Color management helper functions for GLSL display/transform ***** */
+
+/* Draw imbuf on a screen, preferably using GLSL display transform */
+void glaDrawImBuf_glsl(struct ImBuf *ibuf, float x, float y, int zoomfilter,
+                       struct ColorManagedViewSettings *view_settings,
+                       struct ColorManagedDisplaySettings *display_settings);
 
 /* Draw imbuf on a screen, preferably using GLSL display transform */
 void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter);
