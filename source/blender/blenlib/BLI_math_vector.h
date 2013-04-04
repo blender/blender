@@ -244,6 +244,8 @@ void minmax_v2v2_v2(float min[2], float max[2], const float vec[2]);
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist);
 void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);
 
+void axis_sort_v3(const float axis_values[3], int r_axis_order[3]);
+
 /***************************** Array Functions *******************************/
 /* attempted to follow fixed length vertex functions. names could be improved*/
 double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size);

@@ -841,27 +841,6 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned c
 	glColor4ubv(col);
 }
 
-static void axis_sort_v3(const float axis_values[3], int r_axis_order[3])
-{
-	float v[3];
-	copy_v3_v3(v, axis_values);
-
-#define SWAP_AXIS(a, b) { \
-	SWAP(float, v[a],            v[b]); \
-	SWAP(int,   r_axis_order[a], r_axis_order[b]); \
-} (void)0
-
-	if (v[0] < v[1]) {
-		if (v[2] < v[0]) {  SWAP_AXIS(0, 2); }
-	}
-	else {
-		if (v[1] < v[2]) { SWAP_AXIS(0, 1); }
-		else             { SWAP_AXIS(0, 2); }
-	}
-	if (v[2] < v[1])     { SWAP_AXIS(1, 2); }
-
-#undef SWAP_AXIS
-}
 static void manipulator_axis_order(RegionView3D *rv3d, int r_axis_order[3])
 {
 	float axis_values[3];
