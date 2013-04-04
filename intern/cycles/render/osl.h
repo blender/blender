@@ -21,6 +21,7 @@
 
 #include "util_set.h"
 #include "util_string.h"
+#include "util_thread.h"
 
 #include "shader.h"
 
@@ -92,6 +93,10 @@ protected:
 	OSLRenderServices *services;
 	OSL::ErrorHandler errhandler;
 	map<string, OSLShaderInfo> loaded_shaders;
+
+	static OSL::TextureSystem *ts_shared;
+	static thread_mutex ts_shared_mutex;
+	static int ts_shared_users;
 };
 
 #endif
