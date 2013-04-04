@@ -41,6 +41,18 @@
 #include "RAS_IPolygonMaterial.h"
 #include "GPC_Canvas.h"
 
+#include "BLI_string.h"
+
+#include "DNA_scene_types.h"
+#include "DNA_space_types.h"
+
+#include "BKE_image.h"
+
+extern "C" {
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+}
+
 GPC_Canvas::TBannerId GPC_Canvas::s_bannerId = 0;
 
 
@@ -425,114 +437,35 @@ GPC_Canvas::
 MakeScreenShot(
 	const char* filename
 ) {
-	png_structp png_ptr;
-	png_infop info_ptr;
-	unsigned char *pixels = 0;
-	png_bytepp row_pointers = 0;
-	int i, bytesperpixel = 3, color_type = PNG_COLOR_TYPE_RGB;
-	FILE *fp = 0;
-
-	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr) 
-	{
-		std::cout << "Cannot png_create_write_struct." << std::endl;
-		return;
-	}
-
-	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr) 
-	{
-		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		std::cout << "Cannot png_create_info_struct." << std::endl;
-		return;
-	}
-
-	if (setjmp(png_jmpbuf(png_ptr))) {
-		png_destroy_write_struct(&png_ptr, &info_ptr);
-		delete [] pixels;
-		delete [] row_pointers;
-		// printf("Aborting\n");
-		if (fp) {
-			fflush(fp);
-			fclose(fp);
-		}
-		return;
-	}
-
 	// copy image data
+	unsigned char *pixels = new unsigned char[GetWidth() * GetHeight() * 4];
 
-	pixels = new unsigned char[GetWidth() * GetHeight() * bytesperpixel * sizeof(unsigned char)];
 	if (!pixels) {
 		std::cout << "Cannot allocate pixels array" << std::endl;
 		return;
 	}
 
-	glReadPixels(0, 0, GetWidth(), GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	glReadPixels(0, 0, GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-	fp = fopen(filename, "wb");
-	if (!fp)
-	{
-		std::cout << "Couldn't open " << filename << " for writing." << std::endl;
-		longjmp(png_jmpbuf(png_ptr), 1);
-	}
+	// initialize image file format data
+	ImageFormatData im_format;
+	BKE_imformat_defaults(&im_format);
 
-	png_init_io(png_ptr, fp);
+	// create file path 
+	char path[FILE_MAX];
+	BLI_strncpy(path, filename, sizeof(path));
+	BKE_add_image_extension_from_type(path, im_format.imtype);
 
-#if 0
-	png_set_filter(png_ptr, 0,
-	               PNG_FILTER_NONE  | PNG_FILTER_VALUE_NONE |
-	               PNG_FILTER_SUB   | PNG_FILTER_VALUE_SUB  |
-	               PNG_FILTER_UP    | PNG_FILTER_VALUE_UP   |
-	               PNG_FILTER_AVG   | PNG_FILTER_VALUE_AVG  |
-	               PNG_FILTER_PAETH | PNG_FILTER_VALUE_PAETH|
-	               PNG_ALL_FILTERS);
+	// create and save imbuf 
+	ImBuf *ibuf = IMB_allocImBuf(GetWidth(), GetHeight(), 24, 0);
+	ibuf->rect = (unsigned int*)pixels;
 
-	png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
-#endif
+	BKE_imbuf_write_as(ibuf, path, &im_format, false);
 
-	// png image settings
-	png_set_IHDR(png_ptr,
-	             info_ptr,
-	             GetWidth(),
-	             GetHeight(),
-	             8,
-	             color_type,
-	             PNG_INTERLACE_NONE,
-	             PNG_COMPRESSION_TYPE_DEFAULT,
-	             PNG_FILTER_TYPE_DEFAULT);
-
-	// write the file header information
-	png_write_info(png_ptr, info_ptr);
-
-	// allocate memory for an array of row-pointers
-	row_pointers = new png_bytep [(GetHeight() * sizeof(png_bytep))];
-	if (!row_pointers) 
-	{
-		std::cout << "Cannot allocate row-pointers array" << std::endl;
-		longjmp(png_jmpbuf(png_ptr), 1);
-	}
-
-	// set the individual row-pointers to point at the correct offsets
-	for (i = 0; i < GetHeight(); i++) {
-		row_pointers[GetHeight()-1-i] = (png_bytep)
-			((unsigned char *)pixels + (i * GetWidth()) * bytesperpixel * sizeof(unsigned char));
-	}
-
-	// write out the entire image data in one call
-	png_write_image(png_ptr, row_pointers);
-
-	// write the additional chunks to the PNG file (not really needed)
-	png_write_end(png_ptr, info_ptr);
+	ibuf->rect = NULL;
+	IMB_freeImBuf(ibuf);
 
 	// clean up
 	delete [] (pixels);
-	delete [] (row_pointers);
-	png_destroy_write_struct(&png_ptr, &info_ptr);
-
-	if (fp) 
-	{
-		fflush(fp);
-		fclose(fp);
-	}
 }
 

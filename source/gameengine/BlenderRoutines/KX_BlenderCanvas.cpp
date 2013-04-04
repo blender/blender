@@ -32,6 +32,7 @@
 
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 #include <stdio.h>
 #include <assert.h>
 
@@ -256,5 +257,5 @@ void KX_BlenderCanvas::MakeScreenShot(const char *filename)
 	area_dummy.totrct.ymin = m_frame_rect.GetBottom();
 	area_dummy.totrct.ymax = m_frame_rect.GetTop();
 
-	BL_MakeScreenShot(&area_dummy, filename);
+	BL_MakeScreenShot(m_win->screen, &area_dummy, filename);
 }

@@ -97,7 +97,7 @@ Functions
    The standalone player saves .png files. It does not support color space conversion 
    or gamma correction.
    
-   When run from Blender, makeScreenshot supports Iris, IrisZ, TGA, Raw TGA, PNG, HamX, and Jpeg.
+   When run from Blender, makeScreenshot supports all Blender image file formats like PNG, TGA, Jpeg and OpenEXR.
    Gamma, Colorspace conversion and Jpeg compression are taken from the Render settings panels.
    
    :type filename: string

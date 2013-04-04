@@ -60,6 +60,7 @@
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_material_types.h"
+#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_global.h"
@@ -68,6 +69,7 @@
 #include "BKE_image.h"
 
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 extern "C" {
 #include "IMB_imbuf_types.h"
@@ -270,8 +272,6 @@ void BL_NormalMouse(wmWindow *win)
 {
 	WM_cursor_set(win, CURSOR_STD);
 }
-#define MAX_FILE_LENGTH 512
-
 /* get shot from frontbuffer sort of a copy from screendump.c */
 static unsigned int *screenshot(ScrArea *curarea, int *dumpsx, int *dumpsy)
 {
@@ -296,27 +296,36 @@ static unsigned int *screenshot(ScrArea *curarea, int *dumpsx, int *dumpsy)
 }
 
 /* based on screendump.c::screenshot_exec */
-void BL_MakeScreenShot(ScrArea *curarea, const char *filename)
+void BL_MakeScreenShot(bScreen *screen, ScrArea *curarea, const char *filename)
 {
-	char path[MAX_FILE_LENGTH];
-	strcpy(path,filename);
-
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
 	
-	dumprect= screenshot(curarea, &dumpsx, &dumpsy);
+	dumprect = screenshot(curarea, &dumpsx, &dumpsy);
+
 	if (dumprect) {
-		ImBuf *ibuf;
+		/* initialize image file format data */
+		Scene *scene = (screen)? screen->scene: NULL;
+		ImageFormatData im_format;
+
+		if(scene)
+			im_format = scene->r.im_format;
+		else
+			BKE_imformat_defaults(&im_format);
+
+		/* create file path */
+		char path[FILE_MAX];
+		BLI_strncpy(path, filename, sizeof(path));
 		BLI_path_abs(path, G.main->name);
-		/* BKE_add_image_extension() checks for if extension was already set */
-		BKE_add_image_extension_from_type(path, R_IMF_IMTYPE_PNG); /* scene->r.im_format.imtype */
-		ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0);
-		ibuf->rect= dumprect;
-		ibuf->ftype= PNG;
+		BKE_add_image_extension_from_type(path, im_format.imtype);
 
-		IMB_saveiff(ibuf, path, IB_rect);
+		/* create and save imbuf */
+		ImBuf *ibuf = IMB_allocImBuf(dumpsx, dumpsy, 24, 0);
+		ibuf->rect = dumprect;
 
-		ibuf->rect= NULL;
+		BKE_imbuf_write_as(ibuf, path, &im_format, false);
+
+		ibuf->rect = NULL;
 		IMB_freeImBuf(ibuf);
 		MEM_freeN(dumprect);
 	}
