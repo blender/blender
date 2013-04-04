@@ -117,7 +117,7 @@ def brush_texture_settings(layout, brush, sculpt):
 def brush_mask_texture_settings(layout, brush):
     mask_tex_slot = brush.mask_texture_slot
 
-    if(brush.mask_texture):
+    if brush.mask_texture:
         layout.label(text="Mask Mapping:")
         col = layout.column()
         col.active = brush.brush_capabilities.has_texture_angle

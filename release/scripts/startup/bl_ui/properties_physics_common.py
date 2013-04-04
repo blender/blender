@@ -39,7 +39,7 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
     if md:
         sub.context_pointer_set("modifier", md)
         sub.operator("object.modifier_remove", text=name, text_ctxt=i18n_contexts.default, icon='X')
-        if(toggles):
+        if toggles:
             sub.prop(md, "show_render", text="")
             sub.prop(md, "show_viewport", text="")
     else:
@@ -59,40 +59,39 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
     bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
-        ob = context.object
+        obj = context.object
 
         layout = self.layout
         layout.label("Enable physics for:")
         split = layout.split()
         col = split.column()
 
-        if(context.object.field.type == 'NONE'):
+        if obj.field.type == 'NONE':
             col.operator("object.forcefield_toggle", text="Force Field", icon='FORCE_FORCE')
         else:
             col.operator("object.forcefield_toggle", text="Force Field", icon='X')
 
-        if(ob.type == 'MESH'):
+        if obj.type == 'MESH':
             physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
             physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
             physics_add(self, col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True)
 
         col = split.column()
 
-        if(ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE'):
+        if obj.type in {'MESH', 'LATTICE', 'CURVE'}:
             physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
 
-        if(ob.type == 'MESH'):
+        if obj.type == 'MESH':
             physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
             physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
 
-        if(ob.type == 'MESH'):
-            physics_add_special(self, col, ob.rigid_body, "Rigid Body",
+            physics_add_special(self, col, obj.rigid_body, "Rigid Body",
                                 "rigidbody.object_add",
                                 "rigidbody.object_remove",
                                 'MESH_ICOSPHERE')  # XXX: need dedicated icon
 
         # all types of objects can have rigid body constraint
-        physics_add_special(self, col, ob.rigid_body_constraint, "Rigid Body Constraint",
+        physics_add_special(self, col, obj.rigid_body_constraint, "Rigid Body Constraint",
                             "rigidbody.constraint_add",
                             "rigidbody.constraint_remove",
                             'CONSTRAINT')  # RB_TODO needs better icon
