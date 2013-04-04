@@ -2734,7 +2734,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = frame_jump_exec;
-	ot->poll = ED_space_clip_tracking_poll;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
