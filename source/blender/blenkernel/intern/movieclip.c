@@ -1168,7 +1168,6 @@ void BKE_movieclip_reload(MovieClip *clip)
 	free_buffers(clip);
 
 	clip->tracking.stabilization.ok = FALSE;
-	clip->prefetch_ok = FALSE;
 
 	/* update clip source */
 	detect_clip_source(clip);

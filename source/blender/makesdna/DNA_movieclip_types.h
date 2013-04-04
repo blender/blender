@@ -98,11 +98,6 @@ typedef struct MovieClip {
 
 	/* color management */
 	ColorManagedColorspaceSettings colorspace_settings;
-
-	/* runtime prefetching stuff */
-	char prefetch_ok;
-
-	char pad[7];
 } MovieClip;
 
 typedef struct MovieClipScopes {

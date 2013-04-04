@@ -886,6 +886,7 @@ class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):
 
         layout.operator("clip.set_viewport_background")
         layout.operator("clip.setup_tracking_scene")
+        layout.operator("clip.prefetch")
 
 
 class CLIP_MT_view(Menu):
@@ -945,6 +946,7 @@ class CLIP_MT_clip(Menu):
         layout.operator("clip.open")
 
         if clip:
+            layout.operator("clip.prefetch")
             layout.operator("clip.reload")
             layout.menu("CLIP_MT_proxy")
 

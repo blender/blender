@@ -1456,8 +1456,6 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 	if (ibuf) {
 		draw_movieclip_buffer(C, sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
-
-		clip_start_prefetch_job(C);
 	}
 	else {
 		ED_region_grid_draw(ar, zoomx, zoomy);

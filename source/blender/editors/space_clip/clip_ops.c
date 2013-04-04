@@ -1378,6 +1378,47 @@ void CLIP_OT_view_ndof(wmOperatorType *ot)
 	ot->invoke = clip_view_ndof_invoke;
 }
 
+/********************** Prefetch operator *********************/
+
+static int clip_prefetch_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	/* no running blender, remove handler and pass through */
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_CLIP_PREFETCH))
+		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+
+	/* running render */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_RUNNING_MODAL;
+			break;
+	}
+
+	return OPERATOR_PASS_THROUGH;
+}
+
+static int clip_prefetch_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(_event))
+{
+	clip_start_prefetch_job(C);
+
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void CLIP_OT_prefetch(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Prefetch Frames";
+	ot->idname = "CLIP_OT_prefetch";
+	ot->description = "Prefetch frames from disk for faster playback/tracking";
+
+	/* api callbacks */
+	ot->poll = ED_space_clip_view_clip_poll;
+	ot->invoke = clip_prefetch_invoke;
+	ot->modal = clip_prefetch_modal;
+}
+
 /********************** macroses *********************/
 
 void ED_operatormacros_clip(void)
