@@ -376,7 +376,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		
 		/* the image */
 		glColor4f(1.0, 1.0, 1.0, 1.0);
-		glaDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect, scale, scale);
+		glaDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect, scale, scale);
 		
 		/* border */
 		if (dropshadow) {
@@ -538,7 +538,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			uiButClearFlag(but, UI_BUT_UNDO);
-			if (0 == uiButActiveOnly(C, ar, block, but)) {
+			if (false == uiButActiveOnly(C, ar, block, but)) {
 				file->selflag &= ~EDITING_FILE;
 			}
 		}

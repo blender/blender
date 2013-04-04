@@ -1408,17 +1408,23 @@ void ED_node_link_insert(ScrArea *sa)
 			break;
 
 	if (link) {
-		node = link->tonode;
-		sockto = link->tosock;
-
-		link->tonode = select;
-		link->tosock = socket_best_match(&select->inputs);
-		node_remove_extra_links(snode, link->tosock, link);
-		link->flag &= ~NODE_LINKFLAG_HILITE;
-
-		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs), node, sockto);
-		ntreeUpdateTree(snode->edittree);   /* needed for pointers */
-		snode_update(snode, select);
-		ED_node_tag_update_id(snode->id);
+		bNodeSocket *best_input = socket_best_match(&select->inputs);
+		bNodeSocket *best_output = socket_best_match(&select->outputs);
+		
+		if (best_input && best_output) {
+			node = link->tonode;
+			sockto = link->tosock;
+			
+			link->tonode = select;
+			link->tosock = best_input;
+			node_remove_extra_links(snode, link->tosock, link);
+			link->flag &= ~NODE_LINKFLAG_HILITE;
+			
+			nodeAddLink(snode->edittree, select, best_output, node, sockto);
+			
+			ntreeUpdateTree(snode->edittree);   /* needed for pointers */
+			snode_update(snode, select);
+			ED_node_tag_update_id(snode->id);
+		}
 	}
 }

@@ -115,7 +115,7 @@ static GHash *global_ops_hash = NULL;
 /* ************ operator API, exported ********** */
 
 
-wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
+wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
 {
 	if (idname[0]) {
 		wmOperatorType *ot;
@@ -779,7 +779,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 }
 
-void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
+void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
 {
 	RNA_STRUCT_BEGIN(ptr, prop)
 	{
@@ -815,7 +815,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
  * \note, theres nothing specific to operators here.
  * this could be made a general function.
  */
-int WM_operator_properties_default(PointerRNA *ptr, const int do_update)
+int WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 {
 	int is_change = FALSE;
 	RNA_STRUCT_BEGIN(ptr, prop)
@@ -831,7 +831,7 @@ int WM_operator_properties_default(PointerRNA *ptr, const int do_update)
 				break;
 			}
 			default:
-				if ((do_update == FALSE) || (RNA_property_is_set(ptr, prop) == FALSE)) {
+				if ((do_update == false) || (RNA_property_is_set(ptr, prop) == FALSE)) {
 					if (RNA_property_reset(ptr, prop, -1)) {
 						is_change = 1;
 					}
@@ -964,7 +964,7 @@ static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, cons
 		for (item = item_array; item->identifier; item++) {
 			/* note: need to give the index rather than the identifier because the enum can be freed */
 			if (BLI_strcasestr(item->name, str))
-				if (0 == uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
+				if (false == uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
 					break;
 		}
 
@@ -1226,7 +1226,7 @@ int WM_operator_winactive(bContext *C)
 }
 
 /* return FALSE, if the UI should be disabled */
-int WM_operator_check_ui_enabled(const bContext *C, const char *idname)
+bool WM_operator_check_ui_enabled(const bContext *C, const char *idname)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);

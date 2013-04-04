@@ -77,15 +77,33 @@ typedef struct OCIO_GLSLDrawState {
 	GLint last_texture, last_texture_unit;
 } OCIO_GLSLDrawState;
 
-static const char * g_fragShaderText = ""
+/* Hardcoded to do alpha predivide before color space conversion */
+static const char *g_fragShaderText = ""
 "\n"
 "uniform sampler2D tex1;\n"
 "uniform sampler3D tex2;\n"
+"uniform bool predivide;\n"
 "\n"
 "void main()\n"
 "{\n"
 "    vec4 col = texture2D(tex1, gl_TexCoord[0].st);\n"
-"    gl_FragColor = OCIODisplay(col, tex2);\n"
+"    if (predivide == false || col[3] == 1.0f || col[3] == 0.0f) {\n"
+"      gl_FragColor = OCIODisplay(col, tex2);\n"
+"    } else {\n"
+"      float alpha = col[3];\n"
+"      float inv_alpha = 1.0f / alpha;\n"
+"\n"
+"      col[0] *= inv_alpha;\n"
+"      col[1] *= inv_alpha;\n"
+"      col[2] *= inv_alpha;\n"
+"\n"
+"      gl_FragColor = OCIODisplay(col, tex2);\n"
+"\n"
+"      col[0] *= alpha;\n"
+"      col[1] *= alpha;\n"
+"      col[2] *= alpha;\n"
+"    }\n"
+"\n"
 "}\n";
 
 static GLuint compileShaderText(GLenum shaderType, const char *text)
@@ -187,7 +205,7 @@ static void ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
  * When all drawing is finished, finishGLSLDraw shall be called to
  * restore OpenGL context to it's pre-GLSL draw state.
  */
-void OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor)
+bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor, bool predivide)
 {
 	ConstProcessorRcPtr ocio_processor = *(ConstProcessorRcPtr *) processor;
 
@@ -232,22 +250,36 @@ void OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 		if (state->fragShader)
 			glDeleteShader(state->fragShader);
+
 		state->fragShader = compileShaderText(GL_FRAGMENT_SHADER, os.str().c_str());
 
-		if (state->program)
-			glDeleteProgram(state->program);
+		if (state->fragShader) {
+			if (state->program)
+				glDeleteProgram(state->program);
 
-		state->program = linkShaders(state->fragShader);
+			state->program = linkShaders(state->fragShader);
+		}
 	}
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_3D, state->lut3d_texture);
+	if (state->program) {
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_3D, state->lut3d_texture);
 
-	glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 
-	glUseProgram(state->program);
-	glUniform1i(glGetUniformLocation(state->program, "tex1"), 0);
-	glUniform1i(glGetUniformLocation(state->program, "tex2"), 1);
+		glUseProgram(state->program);
+		glUniform1i(glGetUniformLocation(state->program, "tex1"), 0);
+		glUniform1i(glGetUniformLocation(state->program, "tex2"), 1);
+		glUniform1i(glGetUniformLocation(state->program, "predivide"), predivide);
+
+		return true;
+	}
+	else {
+		glActiveTexture(state->last_texture_unit);
+		glBindTexture(GL_TEXTURE_2D, state->last_texture);
+
+		return false;
+	}
 }
 
 void OCIOImpl::finishGLSLDraw(OCIO_GLSLDrawState *state)
@@ -266,6 +298,12 @@ void OCIOImpl::freeGLState(struct OCIO_GLSLDrawState *state)
 
 	if (state->lut3d)
 		MEM_freeN(state->lut3d);
+
+	if (state->program)
+		glDeleteProgram(state->program);
+
+	if (state->fragShader)
+		glDeleteShader(state->fragShader);
 
 	state->lut3dcacheid.~string();
 	state->shadercacheid.~string();

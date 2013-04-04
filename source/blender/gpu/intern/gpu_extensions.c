@@ -1136,6 +1136,18 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 	fprintf(stderr, "%s\n", log);
 }
 
+static const char *gpu_shader_standard_extensions(void)
+{
+	/* need this extensions for high quality bump mapping */
+	if(GPU_bicubic_bump_support()) {
+		return "#version 130\n"
+		       "#extension GL_ARB_texture_query_lod: enable\n"
+		       "#define BUMP_BICUBIC\n";
+	}
+
+	return "";
+}
+
 static const char *gpu_shader_standard_defines(void)
 {
 	/* some useful defines to detect GPU type */
@@ -1177,9 +1189,10 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	}
 
 	if (vertexcode) {
-		const char *source[3];
+		const char *source[4];
 		int num_source = 0;
 
+		source[num_source++] = gpu_shader_standard_extensions();
 		source[num_source++] = gpu_shader_standard_defines();
 
 		if (defines) source[num_source++] = defines;
@@ -1201,9 +1214,10 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	}
 
 	if (fragcode) {
-		const char *source[4];
+		const char *source[5];
 		int num_source = 0;
 
+		source[num_source++] = gpu_shader_standard_extensions();
 		source[num_source++] = gpu_shader_standard_defines();
 
 		if (defines) source[num_source++] = defines;

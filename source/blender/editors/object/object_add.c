@@ -1786,8 +1786,8 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 		if ((basen->flag & OB_FROMGROUP) || ob->rigidbody_object || ob->rigidbody_constraint) {
 			Group *group;
 			for (group = bmain->group.first; group; group = group->id.next) {
-				if (object_in_group(ob, group))
-					add_to_group(group, obn, scene, basen);
+				if (BKE_group_object_exists(group, ob))
+					BKE_group_object_add(group, obn, scene, basen);
 			}
 		}
 

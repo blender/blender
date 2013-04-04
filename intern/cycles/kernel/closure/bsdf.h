@@ -29,6 +29,7 @@
 #include "../closure/bsdf_ward.h"
 #endif
 #include "../closure/bsdf_westin.h"
+#include "../closure/bssrdf.h"
 
 CCL_NAMESPACE_BEGIN
 

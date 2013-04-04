@@ -45,7 +45,6 @@ void smokeModifier_reset_turbulence(struct SmokeModifierData *smd);
 void smokeModifier_createType(struct SmokeModifierData *smd);
 void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData *tsmd);
 
-long long smoke_get_mem_req(int xres, int yres, int zres, int amplify);
 float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity[3]);
 int smoke_get_data_flags(struct SmokeDomainSettings *sds);
 

@@ -107,10 +107,12 @@ __attribute__((nonnull))
 ;
 void clear_id_newpoins(void);
 
+#if 0
 void IDnames_to_pupstring(const char **str, const char *title, const char *extraops,
                           struct ListBase *lb, struct ID *link, short *nr);
 void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops,
                            struct ListBase *lb, struct ID *link, short *nr);
+#endif
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);

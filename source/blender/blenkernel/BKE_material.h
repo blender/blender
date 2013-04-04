@@ -59,7 +59,8 @@ struct Material *give_node_material(struct Material *ma); /* returns node materi
 void BKE_material_make_local(struct Material *ma);
 void extern_local_matarar(struct Material **matar, short totcol);
 
-void automatname(struct Material *);
+/* UNUSED */
+// void automatname(struct Material *);
 
 /* material slots */
 

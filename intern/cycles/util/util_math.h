@@ -1151,14 +1151,7 @@ __device float safe_logf(float a, float b)
 
 __device float safe_divide(float a, float b)
 {
-	float result;
-
-	if(b == 0.0f)
-		result = 0.0f;
-	else
-		result = a/b;
-	
-	return result;
+	return (b != 0.0f)? a/b: 0.0f;
 }
 
 /* Ray Intersection */

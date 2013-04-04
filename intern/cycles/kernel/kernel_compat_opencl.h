@@ -45,18 +45,6 @@
 /* no assert in opencl */
 #define kernel_assert(cond)
 
-/* manual implementation of interpolated 1D lookup */
-__device float kernel_tex_interp_(__global float *data, int width, float x)
-{
-	x = clamp(x, 0.0f, 1.0f)*width;
-
-	int index = min((int)x, width-1);
-	int nindex = min(index+1, width-1);
-	float t = x - index;
-
-	return (1.0f - t)*data[index] + t*data[nindex];
-}
-
 /* make_type definitions with opencl style element initializers */
 #ifdef make_float2
 #undef make_float2
@@ -114,7 +102,7 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 
 /* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_interp(t, x, size) kernel_tex_interp_(kg->t, size, x)
+#define kernel_tex_lookup(t, x, offset, size) kernel_tex_lookup_(kg->t, offset, size, x)
 #define kernel_tex_fetch(t, index) kg->t[index]
 
 /* define NULL */

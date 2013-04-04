@@ -680,12 +680,6 @@ void GPU_code_generate_glsl_lib(void)
 
 	ds = BLI_dynstr_new();
 
-	if (GPU_bicubic_bump_support()) {
-		BLI_dynstr_append(ds, "/* These are needed for high quality bump mapping */\n"
-				"#version 130\n"
-				"#extension GL_ARB_texture_query_lod: enable\n"
-				"#define BUMP_BICUBIC\n");
-	}
 	BLI_dynstr_append(ds, datatoc_gpu_shader_material_glsl);
 
 

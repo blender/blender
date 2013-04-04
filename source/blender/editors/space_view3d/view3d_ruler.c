@@ -59,43 +59,53 @@
 /* Snapping (could be own function) */
 /* NOTE - this is not very nice use of transform snapping */
 #include "ED_transform.h"
-#include "../transform/transform.h"
 
-static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2],
+static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2], float r_no[3],
                               bool use_vert, bool use_edge, bool use_face)
 {
-	TransInfo t = {0};
-	int dist = 12;  /* snap dist */
+	float dist_px = 12;  /* snap dist */
 	float r_no_dummy[3];
 	bool ret = false;
-	char  backup_snap_mode;
-	Base *backup_baseact;
+	float *r_no_ptr = r_no ? r_no : r_no_dummy;
 
-	t.scene  = CTX_data_scene(C);
-	t.view   = CTX_wm_view3d(C);
-	t.ar     = CTX_wm_region(C);
-	t.obedit = CTX_data_edit_object(C);
-
-	backup_snap_mode = t.scene->toolsettings->snap_mode;
-	backup_baseact = t.scene->basact;
-	t.scene->basact = NULL;
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	struct Object *obedit = CTX_data_edit_object(C);
 
 	/* try snap edge, then face if it fails */
 	if (use_vert) {
-		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_VERTEX;
-		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
+		                    co_ss, &dist_px, r_co, r_no_ptr, SNAP_ALL);
 	}
 	if (use_edge && (ret == false)) {
-		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_EDGE;
-		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
+		                    co_ss, &dist_px, r_co, r_no_ptr, SNAP_ALL);
 	}
 	if (use_face && (ret == false)) {
-		t.scene->toolsettings->snap_mode = SCE_SNAP_MODE_FACE;
-		ret = snapObjectsTransform(&t, co_ss, &dist, r_co, r_no_dummy, SNAP_ALL);
+		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
+		                    co_ss, &dist_px, r_co, r_no_ptr, SNAP_ALL);
 	}
 
-	t.scene->toolsettings->snap_mode = backup_snap_mode;
-	t.scene->basact = backup_baseact;
+	return ret;
+}
+
+static bool ED_view3d_snap_ray(bContext *C, float r_co[3],
+                               const float ray_start[3], const float ray_normal[3])
+{
+	float dist_px = 12;  /* snap dist */
+	float r_no_dummy[3];
+	bool ret = false;
+
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	struct Object *obedit = CTX_data_edit_object(C);
+
+	/* try snap edge, then face if it fails */
+	ret = snapObjectsRayEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
+	                       ray_start, ray_normal,
+	                       NULL, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 
 	return ret;
 }
@@ -657,16 +667,36 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3],
 }
 
 /* use for mousemove events */
-static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const int mval[2], const bool do_snap)
+static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const int mval[2],
+                                        const bool do_thickness, const bool do_snap)
 {
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 
 	if (ruler_item) {
 		float *co = ruler_item->co[ruler_item->co_index];
 		view3d_ruler_item_project(ruler_info, co, mval);
-		if (do_snap) {
+		if (do_thickness && ruler_item->co_index != 1) {
 			const float mval_fl[2] = {UNPACK2(mval)};
-			ED_view3d_snap_co(C, co, mval_fl, true, true, true);
+			float ray_normal[3];
+			float ray_start[3];
+			float *co_other;
+
+			co_other = ruler_item->co[ruler_item->co_index == 0 ? 2 : 0];
+
+			if (ED_view3d_snap_co(C, co, mval_fl, ray_normal,
+			                      false, false, true))
+			{
+				negate_v3(ray_normal);
+				/* add some bias */
+				madd_v3_v3v3fl(ray_start, co, ray_normal, 0.0001f);
+				ED_view3d_snap_ray(C, co_other,
+				                   ray_start, ray_normal);
+			}
+		}
+		else if (do_snap) {
+			const float mval_fl[2] = {UNPACK2(mval)};
+			ED_view3d_snap_co(C, co, mval_fl, NULL,
+			                  true, true, true);
 		}
 		return true;
 	}
@@ -680,6 +710,7 @@ static void view3d_ruler_header_update(ScrArea *sa)
 	const char *text = "Ctrl+LMB: Add, "
 	                   "Del: Remove, "
 	                   "Ctrl+Drag: Snap, "
+	                   "Shift+Drag: Thickness, "
 	                   "Ctrl+C: Copy Value, "
 	                   "Enter: Store,  "
 	                   "Esc: Cancel";
@@ -774,7 +805,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						/* snap the first point added, not essential but handy */
 						{
 							ruler_item->co_index = 0;
-							view3d_ruler_item_mousemove(C, ruler_info, event->mval, true);
+							view3d_ruler_item_mousemove(C, ruler_info, event->mval, event->shift != 0, true);
 						}
 
 						copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
@@ -814,7 +845,8 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 									}
 
 									/* update the new location */
-									view3d_ruler_item_mousemove(C, ruler_info, event->mval, event->ctrl != 0);
+									view3d_ruler_item_mousemove(C, ruler_info, event->mval,
+									                            event->shift != 0, event->ctrl != 0);
 									do_draw = true;
 								}
 							}
@@ -857,7 +889,9 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case MOUSEMOVE:
 		{
 			if (ruler_info->state == RULER_STATE_DRAG) {
-				if (view3d_ruler_item_mousemove(C, ruler_info, event->mval, event->ctrl != 0)) {
+				if (view3d_ruler_item_mousemove(C, ruler_info, event->mval,
+				                                event->shift != 0, event->ctrl != 0))
+				{
 					do_draw = true;
 				}
 			}

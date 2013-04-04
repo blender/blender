@@ -30,6 +30,11 @@ class Device;
 class DeviceScene;
 class Scene;
 
+typedef enum FilterType {
+	FILTER_BOX,
+	FILTER_GAUSSIAN
+} FilterType;
+
 class Pass {
 public:
 	PassType type;
@@ -47,13 +52,18 @@ class Film {
 public:
 	float exposure;
 	vector<Pass> passes;
+
+	FilterType filter_type;
+	float filter_width;
+	size_t filter_table_offset;
+
 	bool need_update;
 
 	Film();
 	~Film();
 
-	void device_update(Device *device, DeviceScene *dscene);
-	void device_free(Device *device, DeviceScene *dscene);
+	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
+	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 	bool modified(const Film& film);
 	void tag_passes_update(Scene *scene, const vector<Pass>& passes_);

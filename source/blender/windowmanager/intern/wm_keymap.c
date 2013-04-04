@@ -958,7 +958,7 @@ static wmKeyMapItem *wm_keymap_item_find(
 
 			RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
 
-			if (WM_operator_properties_default(&opptr, TRUE)) {
+			if (WM_operator_properties_default(&opptr, true)) {
 				found = wm_keymap_item_find_props(C, opname, opcontext, properties_default, 0, hotkey, keymap_r);
 			}
 

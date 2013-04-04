@@ -622,7 +622,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		glColor4fv(ob->col);
 
 		/* Draw the Image on the screen */
-		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
+		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
 		glDisable(GL_BLEND);
@@ -6451,6 +6451,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
 				ED_view3d_after_add(&v3d->afterdraw_xray, base, dflag);
 				return;
+			}
+
+			/* allow transp option for empty images */
+			if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+				if (!v3d->xray && !v3d->transp && !(ob->dtx & OB_DRAWXRAY) && (ob->dtx & OB_DRAWTRANSP)) {
+					ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
+					return;
+				}
 			}
 		}
 	}

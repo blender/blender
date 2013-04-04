@@ -66,7 +66,7 @@ colorspaces:
       Rec. 709 (Full Range), Blender native linear space
     isdata: false
     allocation: lg2
-    allocationvars: [-8.5, 5]
+    allocationvars: [-15, 6]
 
   - !<ColorSpace>
     name: Raw

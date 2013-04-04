@@ -151,9 +151,16 @@ class NODE_MT_select(Menu):
         layout.operator("node.select_all", text="Inverse").action = 'INVERT'
         layout.operator("node.select_linked_from")
         layout.operator("node.select_linked_to")
+	
+        layout.separator()
+
         layout.operator("node.select_same_type")
         layout.operator("node.select_same_type_step").prev = True
         layout.operator("node.select_same_type_step").prev = False
+
+        layout.separator()
+
+        layout.operator("node.find_node")
 
 
 class NODE_MT_node(Menu):

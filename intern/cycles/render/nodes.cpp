@@ -1262,16 +1262,19 @@ void ProxyNode::compile(OSLCompiler& compiler)
 
 /* BSDF Closure */
 
-BsdfNode::BsdfNode()
-: ShaderNode("bsdf")
+BsdfNode::BsdfNode(bool scattering_)
+: ShaderNode("subsurface_scattering"), scattering(scattering_)
 {
-	closure = ccl::CLOSURE_BSDF_DIFFUSE_ID;
+	closure = ccl::CLOSURE_BSSRDF_ID;
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
 	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
 
-	add_output("BSDF", SHADER_SOCKET_CLOSURE);
+	if(scattering)
+		add_output("BSSRDF", SHADER_SOCKET_CLOSURE);
+	else
+		add_output("BSDF", SHADER_SOCKET_CLOSURE);
 }
 
 void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3)
@@ -1313,7 +1316,8 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 			(param3)? param3->stack_offset: SVM_STACK_INVALID);
 	}
 	else {
-		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset);
+		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset, SVM_STACK_INVALID,
+			(param3)? param3->stack_offset: SVM_STACK_INVALID);
 	}
 }
 
@@ -1546,6 +1550,29 @@ void TransparentBsdfNode::compile(SVMCompiler& compiler)
 void TransparentBsdfNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_transparent_bsdf");
+}
+
+/* Subsurface Scattering Closure */
+
+SubsurfaceScatteringNode::SubsurfaceScatteringNode()
+: BsdfNode(true)
+{
+	name = "subsurface_scattering";
+	closure = CLOSURE_BSSRDF_ID;
+
+	add_input("Scale", SHADER_SOCKET_FLOAT, 0.01f);
+	add_input("Radius", SHADER_SOCKET_VECTOR, make_float3(0.1f, 0.1f, 0.1f));
+	add_input("IOR", SHADER_SOCKET_FLOAT, 1.3f);
+}
+
+void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
+{
+	BsdfNode::compile(compiler, input("Scale"), input("IOR"), input("Radius"));
+}
+
+void SubsurfaceScatteringNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_subsurface_scattering");
 }
 
 /* Emissive Closure */

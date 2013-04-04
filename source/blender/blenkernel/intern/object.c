@@ -771,7 +771,7 @@ void BKE_object_unlink(Object *ob)
 	/* groups */
 	group = bmain->group.first;
 	while (group) {
-		rem_from_group(group, ob, NULL, NULL);
+		BKE_group_object_unlink(group, ob, NULL, NULL);
 		group = group->id.next;
 	}
 	
@@ -1848,8 +1848,8 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 			
 			/* the tilt */
 			normalize_v3(dir);
-			q[0] = (float)cos(0.5 * vec[3]);
-			si = (float)sin(0.5 * vec[3]);
+			q[0] = cosf(0.5 * vec[3]);
+			si = sinf(0.5 * vec[3]);
 			q[1] = -si * dir[0];
 			q[2] = -si * dir[1];
 			q[3] = -si * dir[2];
@@ -3403,7 +3403,7 @@ struct LinkNode *BKE_object_groups(Object *ob)
 {
 	LinkNode *group_linknode = NULL;
 	Group *group = NULL;
-	while ((group = find_group(ob, group))) {
+	while ((group = BKE_group_object_find(group, ob))) {
 		BLI_linklist_prepend(&group_linknode, group);
 	}
 
@@ -3420,7 +3420,7 @@ void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
 		base = BKE_scene_base_find(scene, object);
 	}
 
-	while ((group = find_group(base->object, group))) {
-		rem_from_group(group, object, scene, base);
+	while ((group = BKE_group_object_find(group, base->object))) {
+		BKE_group_object_unlink(group, object, scene, base);
 	}
 }

@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef IMB_COLORMANAGEMENT_H
-#define IMB_COLORMANAGEMENT_H
+#ifndef __IMB_COLORMANAGEMENT_H__
+#define __IMB_COLORMANAGEMENT_H__
 
 #define BCM_CONFIG_FILE "config.ocio"
 
@@ -150,11 +150,26 @@ void IMB_colormanagement_processor_free(struct ColormanageProcessor *cm_processo
 
 /* ** OpenGL drawing routines using GLSL for color space transform ** */
 
-int IMB_coloemanagement_setup_glsl_draw(const struct ColorManagedViewSettings *view_settings,
-                                        const struct ColorManagedDisplaySettings *display_settings);
+/* Configures GLSL shader for conversion from scene linear to display space */
+int IMB_colormanagement_setup_glsl_draw(const struct ColorManagedViewSettings *view_settings,
+                                        const struct ColorManagedDisplaySettings *display_settings,
+                                        int predivide);
+/* Same as above, but display space conversion happens from a specified space */
+int IMB_colormanagement_setup_glsl_draw_from_space(const struct ColorManagedViewSettings *view_settings,
+                                                   const struct ColorManagedDisplaySettings *display_settings,
+                                                   struct ColorSpace *colorspace,
+                                                   int predivide);
+/* Same as setup_glsl_draw, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C, int predivide);
+/* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C, struct ColorSpace *colorspace, int predivide);
+/* Finish GLSL-based display space conversion */
+void IMB_colormanagement_finish_glsl_draw(void);
 
-int IMB_coloemanagement_setup_glsl_draw_from_ctx(const struct bContext *C);
-void IMB_coloemanagement_finish_glsl_draw(void);
+/* Configures GLSL shader for conversion from space defined by role to scene linear space */
+int IMB_colormanagement_setup_transform_from_role_glsl(int role, int predivide);
+/* Finish GLSL-based color space conversion */
+void IMB_colormanagement_finish_glsl_transform(void);
 
 /* Roles */
 enum {
@@ -166,4 +181,4 @@ enum {
 	COLOR_ROLE_DEFAULT_FLOAT,
 };
 
-#endif  /* IMB_COLORMANAGEMENT_H */
+#endif  /* __IMB_COLORMANAGEMENT_H__ */

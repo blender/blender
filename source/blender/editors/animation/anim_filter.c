@@ -2326,7 +2326,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 			 *	- used to ease the process of doing multiple-character choreographies
 			 */
 			if (ads->filterflag & ADS_FILTER_ONLYOBGROUP) {
-				if (object_in_group(ob, ads->filter_grp) == 0)
+				if (BKE_group_object_exists(ads->filter_grp, ob) == 0)
 					continue;
 			}
 				

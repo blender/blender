@@ -454,7 +454,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual, const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual, numOfAASamples),
+	GHOST_Window(width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual, false, numOfAASamples),
 	m_customCursor(0)
 {
 	NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[40];

@@ -536,6 +536,21 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 	}
 }
 
+static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
+{
+	Scene *scene = ((bScreen *)ptr->id.data)->scene;
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	View3D *v3d = (View3D *)ptr->data;
+	int drawtype = v3d->drawtype;
+
+	if (drawtype == OB_MATERIAL && !BKE_scene_use_new_shading_nodes(scene))
+		return OB_SOLID;
+	else if (drawtype == OB_RENDER && !(type && type->view_draw))
+		return OB_SOLID;
+
+	return drawtype;
+}
+
 static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                               PropertyRNA *UNUSED(prop), int *free)
 {
@@ -553,7 +568,7 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C
 	if (BKE_scene_use_new_shading_nodes(scene))
 		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
 	
-	if (type->view_draw)
+	if (type && type->view_draw)
 		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
 
 	RNA_enum_item_end(&item, &totitem);
@@ -1696,7 +1711,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceView3D_viewport_shade_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_SpaceView3D_viewport_shade_get", NULL, "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 

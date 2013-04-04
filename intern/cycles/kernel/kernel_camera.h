@@ -53,7 +53,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 
 		/* compute point on plane of focus */
 		float ft = kernel_data.cam.focaldistance/ray->D.z;
-		float3 Pfocus = ray->P + ray->D*ft;
+		float3 Pfocus = ray->D*ft;
 
 		/* update ray for effect of lens */
 		ray->P = make_float3(lensuv.x, lensuv.y, 0.0f);
@@ -112,11 +112,13 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 		/* compute point on plane of focus */
 		float ft = kernel_data.cam.focaldistance/ray->D.z;
-		float3 Pfocus = ray->P + ray->D*ft;
+		float3 Pfocus = ray->D*ft;
 
 		/* update ray for effect of lens */
 		ray->P = make_float3(lensuv.x, lensuv.y, 0.0f);
 		ray->D = normalize(Pfocus - ray->P);
+
+		ray->P += Pcamera;
 	}
 
 	/* transform ray from camera to world */
@@ -224,8 +226,9 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 	float lens_u, float lens_v, float time, Ray *ray)
 {
 	/* pixel filter */
-	float raster_x = x + kernel_tex_interp(__filter_table, filter_u, FILTER_TABLE_SIZE);
-	float raster_y = y + kernel_tex_interp(__filter_table, filter_v, FILTER_TABLE_SIZE);
+	int filter_table_offset = kernel_data.film.filter_table_offset;
+	float raster_x = x + lookup_table_read(kg, filter_u, filter_table_offset, FILTER_TABLE_SIZE);
+	float raster_y = y + lookup_table_read(kg, filter_v, filter_table_offset, FILTER_TABLE_SIZE);
 
 #ifdef __CAMERA_MOTION__
 	/* motion blur */

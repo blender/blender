@@ -61,15 +61,6 @@
 /* own include */
 #include "interface_intern.h"
 
-/* only for bug workaround [#34346] */
-#if !defined(WIN32) && !defined(__APPLE__)
-#  define GPU_OSS_BUG_WOKAROUND
-#endif
-
-#ifdef GPU_OSS_BUG_WOKAROUND
-#  include "GPU_extensions.h"
-#endif
-
 static int roundboxtype = UI_CNR_ALL;
 
 void uiSetRoundBox(int type)
@@ -402,32 +393,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA);
 }
 
-
-/* ************** generic embossed rect, for window sliders etc ************* */
-
-
-/* text_draw.c uses this */
-void uiEmboss(float x1, float y1, float x2, float y2, int sel)
-{
-	
-	/* below */
-	if (sel) glColor3ub(200, 200, 200);
-	else glColor3ub(50, 50, 50);
-	fdrawline(x1, y1, x2, y1);
-
-	/* right */
-	fdrawline(x2, y1, x2, y2);
-	
-	/* top */
-	if (sel) glColor3ub(50, 50, 50);
-	else glColor3ub(200, 200, 200);
-	fdrawline(x1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1, x1, y2);
-	
-}
-
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
 void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
@@ -463,7 +428,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 		float facy = (float)h / (float)ibuf->y;
 		glPixelZoom(facx, facy);
 	}
-	glaDrawPixelsAuto((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect);
+	glaDrawPixelsAuto((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect);
 	
 	glPixelZoom(1.0f, 1.0f);
 	
@@ -1245,7 +1210,6 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 
 void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
-	static int use_displist = -1;
 	static GLuint displist = 0;
 	int a, old[8];
 	GLfloat diff[4], diffn[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -1294,20 +1258,12 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		size = BLI_rcti_size_y(rect) / 200.f;
 	
 	glScalef(size, size, size);
-	
-#ifdef GPU_OSS_BUG_WOKAROUND
-	if (use_displist == -1) {
-		use_displist = !GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE);
-	}
-#endif
 
-	if (displist == 0 || use_displist == 0) {
+	if (displist == 0) {
 		GLUquadricObj *qobj;
 
-		if (use_displist) {
-			displist = glGenLists(1);
-			glNewList(displist, GL_COMPILE_AND_EXECUTE);
-		}
+		displist = glGenLists(1);
+		glNewList(displist, GL_COMPILE);
 		
 		qobj = gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL);
@@ -1316,13 +1272,10 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		glShadeModel(GL_FLAT);
 		gluDeleteQuadric(qobj);
 		
-		if (use_displist) {
-			glEndList();
-		}
+		glEndList();
 	}
-	else {
-		glCallList(displist);
-	}
+
+	glCallList(displist);
 
 	/* restore */
 	glDisable(GL_LIGHTING);

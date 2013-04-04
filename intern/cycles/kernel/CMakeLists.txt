@@ -42,6 +42,7 @@ set(SRC_HEADERS
 	kernel_projection.h
 	kernel_random.h
 	kernel_shader.h
+	kernel_subsurface.h
 	kernel_textures.h
 	kernel_triangle.h
 	kernel_types.h
@@ -62,6 +63,7 @@ set(SRC_CLOSURE_HEADERS
 	closure/bsdf_util.h
 	closure/bsdf_ward.h
 	closure/bsdf_westin.h
+	closure/bssrdf.h
 	closure/emissive.h
 	closure/volume.h
 )

@@ -109,10 +109,12 @@ static struct global_glsl_state {
 	/* Settings of processor for comparison. */
 	char view[MAX_COLORSPACE_NAME];
 	char display[MAX_COLORSPACE_NAME];
+	char input[MAX_COLORSPACE_NAME];
 	float exposure, gamma;
 
 	/* Container for GLSL state needed for OCIO module. */
 	struct OCIO_GLSLDrawState *ocio_glsl_state;
+	struct OCIO_GLSLDrawState *transform_ocio_glsl_state;
 } global_glsl_state;
 
 /*********************** Color managed cache *************************/
@@ -626,6 +628,9 @@ void colormanagement_exit(void)
 	if (global_glsl_state.ocio_glsl_state)
 		OCIO_freeOGLState(global_glsl_state.ocio_glsl_state);
 
+	if (global_glsl_state.transform_ocio_glsl_state)
+		OCIO_freeOGLState(global_glsl_state.transform_ocio_glsl_state);
+
 	colormanage_free_config();
 }
 
@@ -699,8 +704,10 @@ static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettin
 	return NULL;
 }
 
-static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform, const char *display,
-                                                                 float exposure, float gamma)
+static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform,
+                                                                 const char *display,
+                                                                 float exposure, float gamma,
+                                                                 const char *from_colorspace)
 {
 	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	OCIO_DisplayTransformRcPtr *dt;
@@ -708,8 +715,7 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *vie
 
 	dt = OCIO_createDisplayTransform();
 
-	/* assuming handling buffer was already converted to scene linear space */
-	OCIO_displayTransformSetInputColorSpaceName(dt, global_role_scene_linear);
+	OCIO_displayTransformSetInputColorSpaceName(dt, from_colorspace);
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
 
@@ -1843,10 +1849,10 @@ static void imbuf_verify_float(ImBuf *ibuf)
 	 */
 	BLI_lock_thread(LOCK_COLORMANAGE);
 
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID))) {
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)))) {
 		IMB_rect_from_float(ibuf);
 
-		ibuf->userflags &= ~IB_RECT_INVALID;
+		ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
 	}
 
 	BLI_unlock_thread(LOCK_COLORMANAGE);
@@ -2617,7 +2623,8 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 		cm_processor->is_data_result = display_space->is_data;
 
 	cm_processor->processor = create_display_buffer_processor(applied_view_settings->view_transform, display_settings->display_device,
-	                                                          applied_view_settings->exposure, applied_view_settings->gamma);
+	                                                          applied_view_settings->exposure, applied_view_settings->gamma,
+	                                                          global_role_scene_linear);
 
 	if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
 		cm_processor->curve_mapping = curvemapping_copy(applied_view_settings->curve_mapping);
@@ -2714,26 +2721,30 @@ void IMB_colormanagement_processor_free(ColormanageProcessor *cm_processor)
 /* **** OpenGL drawing routines using GLSL for color space transform ***** */
 
 static bool check_glsl_display_processor_changed(const ColorManagedViewSettings *view_settings,
-                                                 const ColorManagedDisplaySettings *display_settings)
+                                                 const ColorManagedDisplaySettings *display_settings,
+                                                 const char *from_colorspace)
 {
 	return !(global_glsl_state.exposure == view_settings->exposure &&
 	         global_glsl_state.gamma == view_settings->gamma &&
 	         STREQ(global_glsl_state.view, view_settings->view_transform) &&
-	         STREQ(global_glsl_state.display, display_settings->display_device));
+	         STREQ(global_glsl_state.display, display_settings->display_device) &&
+	         STREQ(global_glsl_state.input, from_colorspace));
 }
 
 static void update_glsl_display_processor(const ColorManagedViewSettings *view_settings,
-                                          const ColorManagedDisplaySettings *display_settings)
+                                          const ColorManagedDisplaySettings *display_settings,
+                                          const char *from_colorspace)
 {
 	/* Update state if there's no processor yet or
 	 * processor settings has been changed.
 	 */
 	if (global_glsl_state.processor == NULL ||
-	    check_glsl_display_processor_changed(view_settings, display_settings))
+	    check_glsl_display_processor_changed(view_settings, display_settings, from_colorspace))
 	{
 		/* Store settings of processor for further comparison. */
 		strcpy(global_glsl_state.view, view_settings->view_transform);
 		strcpy(global_glsl_state.display, display_settings->display_device);
+		strcpy(global_glsl_state.input, from_colorspace);
 		global_glsl_state.exposure = view_settings->exposure;
 		global_glsl_state.gamma = view_settings->gamma;
 
@@ -2746,12 +2757,27 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 			create_display_buffer_processor(global_glsl_state.view,
 			                                global_glsl_state.display,
 			                                global_glsl_state.exposure,
-			                                global_glsl_state.gamma);
+			                                global_glsl_state.gamma,
+			                                global_glsl_state.input);
 	}
 }
 
-int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
-                                        const ColorManagedDisplaySettings *display_settings)
+/**
+ * Configures GLSL shader for conversion from specified to
+ * display color space
+ *
+ * Will create appropriate OCIO processor and setup GLSL shader,
+ * so further 2D texture usage will use this conversion.
+ *
+ * When there's no need to apply transform on 2D textures, use
+ * IMB_colormanagement_finish_glsl_draw().
+ *
+ * This is low-level function, use glaDrawImBuf_glsl_ctx if you
+ * only need to display given image buffer
+ */
+int IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSettings *view_settings,
+                                                   const ColorManagedDisplaySettings *display_settings,
+                                                   struct ColorSpace *from_colorspace, int predivide)
 {
 	ColorManagedViewSettings default_view_settings;
 	const ColorManagedViewSettings *applied_view_settings;
@@ -2773,24 +2799,73 @@ int IMB_coloemanagement_setup_glsl_draw(const ColorManagedViewSettings *view_set
 		return FALSE;
 
 	/* Make sure OCIO processor is up-to-date. */
-	update_glsl_display_processor(applied_view_settings, display_settings);
+	update_glsl_display_processor(applied_view_settings, display_settings,
+	                              from_colorspace ? from_colorspace->name : global_role_scene_linear);
 
-	OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor);
-
-	return TRUE;
+	return OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor, predivide);
 }
 
-int IMB_coloemanagement_setup_glsl_draw_from_ctx(const bContext *C)
+/* Configures GLSL shader for conversion from scene linear to display space */
+int IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
+                                        const ColorManagedDisplaySettings *display_settings,
+                                        int predivide)
+{
+	return IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
+	                                                      NULL, predivide);
+}
+
+/* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C, struct ColorSpace *from_colorspace, int predivide)
 {
 	ColorManagedViewSettings *view_settings;
 	ColorManagedDisplaySettings *display_settings;
 
 	display_transform_get_from_ctx(C, &view_settings, &display_settings);
 
-	return IMB_coloemanagement_setup_glsl_draw(view_settings, display_settings);
+	return IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings, from_colorspace, predivide);
 }
 
-void IMB_coloemanagement_finish_glsl_draw(void)
+/* Same as setup_glsl_draw, but color management settings are guessing from a given context */
+int IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, int predivide)
+{
+	return IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, NULL, predivide);
+}
+
+/* Finish GLSL-based display space conversion */
+void IMB_colormanagement_finish_glsl_draw(void)
 {
 	OCIO_finishGLSLDraw(global_glsl_state.ocio_glsl_state);
+}
+
+/* ** Color space conversion using GLSL shader  ** */
+
+/**
+ * Configures GLSL shader for conversion from space defined by role
+ * to scene linear space
+ *
+ * Will create appropriate OCIO processor and setup GLSL shader,
+ * so further 2D texture usage will use this conversion.
+ *
+ * Role is an pseudonym for a color space, see bottom of file
+ * IMB_colormanagement.h for list of available roles.
+ *
+ * When there's no need to apply transform on 2D textures, use
+ * IMB_colormanagement_finish_glsl_transform().
+ */
+int IMB_colormanagement_setup_transform_from_role_glsl(int role, int predivide)
+{
+	OCIO_ConstProcessorRcPtr *processor;
+	ColorSpace *colorspace;
+
+	colorspace = colormanage_colorspace_get_roled(role);
+
+	processor = colorspace_to_scene_linear_processor(colorspace);
+
+	return OCIO_setupGLSLDraw(&global_glsl_state.transform_ocio_glsl_state, processor, predivide);
+}
+
+/* Finish GLSL-based color space conversion */
+void IMB_colormanagement_finish_glsl_transform(void)
+{
+	OCIO_finishGLSLDraw(global_glsl_state.transform_ocio_glsl_state);
 }

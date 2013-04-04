@@ -39,10 +39,10 @@ class Camera;
 class Device;
 class DeviceInfo;
 class Film;
-class Filter;
 class Integrator;
 class Light;
 class LightManager;
+class LookupTables;
 class Mesh;
 class MeshManager;
 class Object;
@@ -99,8 +99,8 @@ public:
 	device_vector<uint> shader_flag;
 	device_vector<uint> object_flag;
 
-	/* filter */
-	device_vector<float> filter_table;
+	/* lookup tables */
+	device_vector<float> lookup_table;
 
 	/* integrator */
 	device_vector<uint> sobol_directions;
@@ -155,7 +155,7 @@ class Scene {
 public:
 	/* data */
 	Camera *camera;
-	Filter *filter;
+	LookupTables *lookup_tables;
 	Film *film;
 	Background *background;
 	Integrator *integrator;

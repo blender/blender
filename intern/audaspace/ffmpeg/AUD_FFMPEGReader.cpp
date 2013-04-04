@@ -88,7 +88,7 @@ int AUD_FFMPEGReader::decode(AVPacket& packet, AUD_Buffer& buffer)
 				}
 			}
 			else
-				memcpy(((data_t*)buffer.getBuffer()) + buf_pos, frame->data[1], data_size);
+				memcpy(((data_t*)buffer.getBuffer()) + buf_pos, frame->data[0], data_size);
 
 			buf_pos += data_size;
 		}

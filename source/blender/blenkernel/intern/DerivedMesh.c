@@ -270,6 +270,7 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 	dm->getPolyDataArray = DM_get_poly_data_layer;
+	dm->getLoopDataArray = DM_get_loop_data_layer;
 
 	bvhcache_init(&dm->bvhCache);
 }

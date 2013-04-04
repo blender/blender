@@ -444,9 +444,6 @@ const char *	nodeStaticSocketInterfaceType(int type, int subtype);
 	BLI_ghashIterator_free(__node_socket_type_iter__); \
 }
 
-void			nodeMakeDynamicType(struct bNode *node);
-int				nodeDynamicUnlinkText(struct ID *txtid);
-
 struct bNodeSocket *nodeFindSocket(struct bNode *node, int in_out, const char *identifier);
 struct bNodeSocket *nodeAddSocket(struct bNodeTree *ntree, struct bNode *node, int in_out, const char *idname,
                                   const char *identifier, const char *name);
@@ -575,9 +572,6 @@ void            BKE_node_preview_set_pixel(struct bNodePreview *preview, const f
 /* ************** NODE TYPE ACCESS *************** */
 
 const char     *nodeLabel(struct bNode *node);
-struct bNodeTree *nodeGroupEditGet(struct bNode *node);
-struct bNodeTree *nodeGroupEditSet(struct bNode *node, int edit);
-void            nodeGroupEditClear(struct bNode *node);
 
 int				nodeGroupPoll(struct bNodeTree *nodetree, struct bNodeTree *grouptree);
 
@@ -752,6 +746,7 @@ struct ShadeResult;
 #define SH_NODE_TANGENT					174
 #define SH_NODE_NORMAL_MAP				175
 #define SH_NODE_HAIR_INFO				176
+#define SH_NODE_SUBSURFACE_SCATTERING	177
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

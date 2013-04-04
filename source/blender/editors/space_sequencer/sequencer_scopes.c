@@ -531,7 +531,7 @@ BLI_INLINE int get_bin_float(float f)
 static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int n, c, x, y;
+	int nr, ng, nb, x, y;
 	float *src = ibuf->rect_float;
 
 	unsigned int bins[3][HIS_STEPS];
@@ -563,23 +563,30 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 		}
 	}
 
+	nr = nb = ng = 0;
+	for (x = 0; x < HIS_STEPS; x++) {
+		if (bins[0][x] > nr)
+			nr = bins[0][x];
+		if (bins[1][x] > ng)
+			ng = bins[1][x];
+		if (bins[2][x] > nb)
+			nb = bins[2][x];
+	}
+	
+	for (x = 0; x < HIS_STEPS; x++) {
+		if (nr) {
+			draw_histogram_bar(rval, x + 1, ((float) bins[0][x]) / nr, 0);
+		}
+		if (ng) {
+			draw_histogram_bar(rval, x + 1, ((float) bins[1][x]) / ng, 1);
+		}
+		if (nb) {
+			draw_histogram_bar(rval, x + 1, ((float) bins[2][x]) / nb, 2);
+		}
+	}
+	
 	draw_histogram_marker(rval, get_bin_float(0.0));
 	draw_histogram_marker(rval, get_bin_float(1.0));
-
-	n = 0;
-	for (c = 0; c < 3; c++) {
-		for (x = 0; x < HIS_STEPS; x++) {
-			if (bins[c][x] > n) {
-				n = bins[c][x];
-			}
-		}
-	}
-	for (c = 0; c < 3; c++) {
-		for (x = 0; x < HIS_STEPS; x++) {
-			draw_histogram_bar(rval, x + 1, (float) bins[c][x] / n, c);
-		}
-	}
-
 	wform_put_border((unsigned char *) rval->rect, rval->x, rval->y);
 	
 	return rval;

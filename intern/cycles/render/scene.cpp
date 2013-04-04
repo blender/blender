@@ -20,19 +20,19 @@
 
 #include "background.h"
 #include "camera.h"
+#include "curves.h"
 #include "device.h"
 #include "film.h"
-#include "filter.h"
 #include "integrator.h"
 #include "light.h"
-#include "shader.h"
 #include "mesh.h"
 #include "object.h"
-#include "particles.h"
-#include "curves.h"
-#include "scene.h"
-#include "svm.h"
 #include "osl.h"
+#include "particles.h"
+#include "scene.h"
+#include "shader.h"
+#include "svm.h"
+#include "tables.h"
 
 #include "util_foreach.h"
 #include "util_progress.h"
@@ -46,7 +46,7 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	memset(&dscene.data, 0, sizeof(dscene.data));
 
 	camera = new Camera();
-	filter = new Filter();
+	lookup_tables = new LookupTables();
 	film = new Film();
 	background = new Background();
 	light_manager = new LightManager();
@@ -93,14 +93,13 @@ void Scene::free_memory(bool final)
 
 	if(device) {
 		camera->device_free(device, &dscene);
-		filter->device_free(device, &dscene);
-		film->device_free(device, &dscene);
+		film->device_free(device, &dscene, this);
 		background->device_free(device, &dscene);
 		integrator->device_free(device, &dscene);
 
 		object_manager->device_free(device, &dscene);
 		mesh_manager->device_free(device, &dscene);
-		shader_manager->device_free(device, &dscene);
+		shader_manager->device_free(device, &dscene, this);
 		light_manager->device_free(device, &dscene);
 
 		particle_system_manager->device_free(device, &dscene);
@@ -108,10 +107,12 @@ void Scene::free_memory(bool final)
 
 		if(!params.persistent_data || final)
 			image_manager->device_free(device, &dscene);
+
+		lookup_tables->device_free(device, &dscene);
 	}
 
 	if(final) {
-		delete filter;
+		delete lookup_tables;
 		delete camera;
 		delete film;
 		delete background;
@@ -188,18 +189,18 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	if(progress.get_cancel()) return;
 
-	progress.set_status("Updating Filter");
-	filter->device_update(device, &dscene);
-
-	if(progress.get_cancel()) return;
-
 	progress.set_status("Updating Film");
-	film->device_update(device, &dscene);
+	film->device_update(device, &dscene, this);
 
 	if(progress.get_cancel()) return;
 
 	progress.set_status("Updating Integrator");
 	integrator->device_update(device, &dscene, this);
+
+	if(progress.get_cancel()) return;
+
+	progress.set_status("Updating Lookup Tables");
+	lookup_tables->device_update(device, &dscene);
 
 	if(progress.get_cancel()) return;
 
@@ -247,7 +248,7 @@ bool Scene::need_reset()
 		|| object_manager->need_update
 		|| mesh_manager->need_update
 		|| light_manager->need_update
-		|| filter->need_update
+		|| lookup_tables->need_update
 		|| integrator->need_update
 		|| shader_manager->need_update
 		|| particle_system_manager->need_update
@@ -261,7 +262,6 @@ void Scene::reset()
 
 	/* ensure all objects are updated */
 	camera->tag_update();
-	filter->tag_update(this);
 	film->tag_update(this);
 	background->tag_update(this);
 	integrator->tag_update(this);

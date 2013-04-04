@@ -215,8 +215,8 @@ typedef struct uiAfterFunc {
 	int autokey;
 } uiAfterFunc;
 
-static int ui_but_contains_pt(uiBut *but, int mx, int my);
-static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
+static bool ui_but_contains_pt(uiBut *but, int mx, int my);
+static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *userdata);
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
@@ -333,7 +333,7 @@ static void ui_mouse_scale_warp(uiHandleButtonData *data,
 }
 
 /* file selectors are exempt from utf-8 checks */
-int ui_is_but_utf8(uiBut *but)
+bool ui_is_but_utf8(uiBut *but)
 {
 	if (but->rnaprop) {
 		const int subtype = RNA_property_subtype(but->rnaprop);
@@ -5507,7 +5507,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
 /* ************************ button utilities *********************** */
 
-static int ui_but_contains_pt(uiBut *but, int mx, int my)
+static bool ui_but_contains_pt(uiBut *but, int mx, int my)
 {
 	return BLI_rctf_isect_pt(&but->rect, mx, my);
 }
@@ -5525,7 +5525,7 @@ static uiBut *ui_but_find_activated(ARegion *ar)
 	return NULL;
 }
 
-int ui_button_is_active(ARegion *ar)
+bool ui_button_is_active(ARegion *ar)
 {
 	return (ui_but_find_activated(ar) != NULL);
 }
@@ -5580,7 +5580,7 @@ static void ui_blocks_set_tooltips(ARegion *ar, int enable)
 		block->tooltipdisabled = !enable;
 }
 
-static int ui_mouse_inside_region(ARegion *ar, int x, int y)
+static bool ui_mouse_inside_region(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	
@@ -5589,7 +5589,7 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 		for (block = ar->uiblocks.first; block; block = block->next)
 			block->auto_open = FALSE;
 		
-		return 0;
+		return false;
 	}
 
 	/* also, check that with view2d, that the mouse is not over the scrollbars 
@@ -5608,23 +5608,23 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 
 		/* check if in the rect */
 		if (!BLI_rcti_isect_pt(&v2d->mask, mx, my))
-			return 0;
+			return false;
 	}
 	
-	return 1;
+	return true;
 }
 
-static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
+static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 {
 	if (!ui_mouse_inside_region(ar, x, y))
-		return 0;
+		return false;
 
 	ui_window_to_block(ar, but->block, &x, &y);
 
 	if (!ui_but_contains_pt(but, x, y))
-		return 0;
+		return false;
 	
-	return 1;
+	return true;
 }
 
 /**

@@ -88,5 +88,39 @@ typedef struct KernelGlobals {
 
 #endif
 
+/* Interpolated lookup table access */
+
+__device float lookup_table_read(KernelGlobals *kg, float x, int offset, int size)
+{
+	x = clamp(x, 0.0f, 1.0f)*(size-1);
+
+	int index = min((int)x, size-1);
+	int nindex = min(index+1, size-1);
+	float t = x - index;
+
+	float data0 = kernel_tex_fetch(__lookup_table, index + offset);
+	if(t == 0.0f)
+		return data0;
+
+	float data1 = kernel_tex_fetch(__lookup_table, nindex + offset);
+	return (1.0f - t)*data0 + t*data1;
+}
+
+__device float lookup_table_read_2D(KernelGlobals *kg, float x, float y, int offset, int xsize, int ysize)
+{
+	y = clamp(y, 0.0f, 1.0f)*(ysize-1);
+
+	int index = min((int)y, ysize-1);
+	int nindex = min(index+1, ysize-1);
+	float t = y - index;
+
+	float data0 = lookup_table_read(kg, x, offset + xsize*index, xsize);
+	if(t == 0.0f)
+		return data0;
+
+	float data1 = lookup_table_read(kg, x, offset + xsize*nindex, xsize);
+	return (1.0f - t)*data0 + t*data1;
+}
+
 CCL_NAMESPACE_END
 

@@ -796,10 +796,10 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-#if 1 /* disabling for 2.63 release, since we keep getting reports some menu items are leaving props undefined */
-int WM_operator_last_properties_init(wmOperator *op)
+#if 1 /* may want to disable operator remembering previous state for testing */
+bool WM_operator_last_properties_init(wmOperator *op)
 {
-	int change = FALSE;
+	bool change = false;
 
 	if (op->type->last_properties) {
 		PropertyRNA *iterprop;
@@ -825,7 +825,7 @@ int WM_operator_last_properties_init(wmOperator *op)
 						idp_dst->flag |= IDP_FLAG_GHOST;
 
 						IDP_ReplaceInGroup(op->properties, idp_dst);
-						change = TRUE;
+						change = true;
 					}
 				}
 			}
@@ -836,7 +836,7 @@ int WM_operator_last_properties_init(wmOperator *op)
 	return change;
 }
 
-int WM_operator_last_properties_store(wmOperator *op)
+bool WM_operator_last_properties_store(wmOperator *op)
 {
 	if (op->type->last_properties) {
 		IDP_FreeProperty(op->type->last_properties);
@@ -849,10 +849,10 @@ int WM_operator_last_properties_store(wmOperator *op)
 			printf("%s: storing properties for '%s'\n", __func__, op->type->idname);
 		}
 		op->type->last_properties = IDP_CopyProperty(op->properties);
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 

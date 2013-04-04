@@ -49,6 +49,11 @@
 
 #include "BKE_depsgraph.h"
 
+#include "ED_clip.h"
+
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+
 static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
@@ -63,6 +68,39 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 
 	values[0] = clip->lastsize[0];
 	values[1] = clip->lastsize[1];
+}
+
+static void rna_MovieClipUser_proxy_render_settings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = (ID *) ptr->id.data;
+	MovieClipUser *user = (MovieClipUser *) ptr->data;
+
+	/* when changing render settings of space clip user
+	 * clear cache for clip, so all the memory is available
+	 * for new render settings
+	 */
+	if (GS(id->name) == ID_SCR) {
+		bScreen *screen = (bScreen *) id;
+		ScrArea *area;
+		SpaceLink *sl;
+
+		for (area = screen->areabase.first; area; area = area->next) {
+			for (sl = area->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_CLIP) {
+					SpaceClip *sc = (SpaceClip *) sl;
+
+					if (&sc->user == user) {
+						MovieClip *clip = ED_space_clip_get_clip(sc);
+
+						if (clip && (clip->flag & MCLIP_USE_PROXY))
+							BKE_movieclip_clear_cache(clip);
+
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 #else
@@ -197,13 +235,13 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, clip_render_size_items);
 	RNA_def_property_ui_text(prop, "Proxy render size",
 	                         "Draw preview using full resolution or different proxy resolutions");
-	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClipUser_proxy_render_settings_update");
 
 	/* render undistorted */
 	prop = RNA_def_property(srna, "use_render_undistorted", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "render_flag", MCLIP_PROXY_RENDER_UNDISTORT);
 	RNA_def_property_ui_text(prop, "Render Undistorted", "Render preview using undistorted proxy");
-	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClipUser_proxy_render_settings_update");
 }
 
 static void rna_def_movieClipScopes(BlenderRNA *brna)

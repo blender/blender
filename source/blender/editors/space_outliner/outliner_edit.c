@@ -113,6 +113,37 @@ static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *te
 }
 #endif
 
+static TreeElement *outliner_dropzone_element(const SpaceOops *soops, TreeElement *te, const float fmval[2], const int children)
+{
+	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
+		/* name and first icon */
+		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend))
+			return te;
+	}
+	/* Not it.  Let's look at its children. */
+	if (children && (TREESTORE(te)->flag & TSE_CLOSED) == 0 && (te->subtree.first)) {
+		for (te = te->subtree.first; te; te = te->next) {
+			TreeElement *te_valid = outliner_dropzone_element(soops, te, fmval, children);
+			if (te_valid)
+				return te_valid;
+		}
+	}
+	return NULL;
+}
+
+/* Used for drag and drop parenting */
+TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float fmval[2], const int children)
+{
+	TreeElement *te;
+
+	for (te = soops->tree.first; te; te = te->next) {
+		TreeElement *te_valid = outliner_dropzone_element(soops, te, fmval, children);
+		if (te_valid)
+			return te_valid;
+	}
+	return NULL;
+}
+
 /* ************************************************************** */
 /* Click Activated */
 
@@ -1447,36 +1478,6 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* Used for drag and drop parenting */
-TreeElement *outliner_dropzone_parent(bContext *C, const wmEvent *event, TreeElement *te, const float fmval[2])
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeStoreElem *tselem = TREESTORE(te);
-
-	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
-		/* name and first icon */
-		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
-			/* always makes active object */
-			if (te->idcode == ID_OB && tselem->type == 0) {
-				return te;
-			}
-			else {
-				return NULL;
-			}
-		}
-	}
-
-	/* Not it.  Let's look at its children. */
-	if ((tselem->flag & TSE_CLOSED) == 0 && (te->subtree.first)) {
-		for (te = te->subtree.first; te; te = te->next) {
-			TreeElement *te_valid;
-			te_valid = outliner_dropzone_parent(C, event, te, fmval);
-			if (te_valid) return te_valid;
-		}
-	}
-	return NULL;
-}
-
 static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *par = NULL;
@@ -1486,7 +1487,6 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = NULL;
 	TreeElement *te = NULL;
-	TreeElement *te_found = NULL;
 	char childname[MAX_ID_NAME];
 	char parname[MAX_ID_NAME];
 	int partype = 0;
@@ -1495,13 +1495,10 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	for (te = soops->tree.first; te; te = te->next) {
-		te_found = outliner_dropzone_parent(C, event, te, fmval);
-		if (te_found) break;
-	}
+	te = outliner_dropzone_find(soops, fmval, 1);
 
-	if (te_found) {
-		RNA_string_set(op->ptr, "parent", te_found->name);
+	if (te) {
+		RNA_string_set(op->ptr, "parent", te->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);
 		ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
@@ -1516,7 +1513,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			return OPERATOR_CANCELLED;
 		}
 		
-		scene = (Scene *)outliner_search_back(soops, te_found, ID_SCE);
+		scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
 		if (scene == NULL) {
 			/* currently outlier organized in a way, that if there's no parent scene
@@ -1651,44 +1648,6 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
-int outliner_dropzone_parent_clear(bContext *C, const wmEvent *event, TreeElement *te, const float fmval[2])
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeStoreElem *tselem = TREESTORE(te);
-
-	/* Check for row */
-	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
-		/* Ignore drop on scene tree elements */
-		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
-			if ((te->idcode == ID_SCE) && 
-			    !ELEM3(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS))
-			{
-				return 0;
-			}
-			// Other codes to ignore?
-		}
-		
-		/* Left or right of: (+), first icon, and name */
-		if ((fmval[0] < (te->xs + UI_UNIT_X)) || (fmval[0] > te->xend)) {
-			return 1;
-		}
-		else if (te->idcode != ID_OB || ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE)) {
-			return 1;
-		}
-		
-		return 0;       // ID_OB, but mouse in undefined dropzone.
-	}
-
-	/* Not this row.  Let's look at its children. */
-	if ((tselem->flag & TSE_CLOSED) == 0 && (te->subtree.first)) {
-		for (te = te->subtree.first; te; te = te->next) {
-			if (outliner_dropzone_parent_clear(C, event, te, fmval)) 
-				return 1;
-		}
-	}
-	return 0;
-}
-
 static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Main *bmain = CTX_data_main(C);
@@ -1738,22 +1697,6 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
-TreeElement *outliner_dropzone_scene(bContext *C, const wmEvent *UNUSED(event), TreeElement *te, const float fmval[2])
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeStoreElem *tselem = TREESTORE(te);
-
-	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
-		/* name and first icon */
-		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
-			if (te->idcode == ID_SCE && tselem->type == 0) {
-				return te;
-			}
-		}
-	}
-	return NULL;
-}
-
 static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = NULL;
@@ -1762,24 +1705,19 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 	Main *bmain = CTX_data_main(C);
 	TreeElement *te = NULL;
-	TreeElement *te_found = NULL;
 	char obname[MAX_ID_NAME];
 	float fmval[2];
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	for (te = soops->tree.first; te; te = te->next) {
-		te_found = outliner_dropzone_scene(C, event, te, fmval);
-		if (te_found)
-			break;
-	}
+	te = outliner_dropzone_find(soops, fmval, 0);
 
-	if (te_found) {
+	if (te) {
 		Base *base;
 
-		RNA_string_set(op->ptr, "scene", te_found->name);
-		scene = (Scene *)BKE_libblock_find_name(ID_SCE, te_found->name);
+		RNA_string_set(op->ptr, "scene", te->name);
+		scene = (Scene *)BKE_libblock_find_name(ID_SCE, te->name);
 
 		RNA_string_get(op->ptr, "object", obname);
 		ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
@@ -1837,22 +1775,17 @@ static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 	TreeElement *te = NULL;
-	TreeElement *te_found = NULL;
 	char mat_name[MAX_ID_NAME - 2];
 	float fmval[2];
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	for (te = soops->tree.first; te; te = te->next) {
-		te_found = outliner_dropzone_parent(C, event, te, fmval);
-		if (te_found)
-			break;
-	}
+	te = outliner_dropzone_find(soops, fmval, 1);
 
-	if (te_found) {
-		RNA_string_set(op->ptr, "object", te_found->name);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, te_found->name);
+	if (te) {
+		RNA_string_set(op->ptr, "object", te->name);
+		ob = (Object *)BKE_libblock_find_name(ID_OB, te->name);
 
 		RNA_string_get(op->ptr, "material", mat_name);
 		ma = (Material *)BKE_libblock_find_name(ID_MA, mat_name);

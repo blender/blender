@@ -55,6 +55,7 @@ set(SRC_OSL
 	node_separate_rgb.osl
 	node_set_normal.osl
 	node_sky_texture.osl
+	node_subsurface_scattering.osl
 	node_tangent.osl
 	node_texture_coordinate.osl
 	node_translucent_bsdf.osl

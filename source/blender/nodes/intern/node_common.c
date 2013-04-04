@@ -89,11 +89,15 @@ const char *node_group_label(bNode *node)
 
 int node_group_poll_instance(bNode *node, bNodeTree *nodetree)
 {
-	bNodeTree *grouptree = (bNodeTree*)node->id;
-	if (grouptree)
-		return nodeGroupPoll(nodetree, grouptree);
+	if (node->typeinfo->poll(node->typeinfo, nodetree)) {
+		bNodeTree *grouptree = (bNodeTree*)node->id;
+		if (grouptree)
+			return nodeGroupPoll(nodetree, grouptree);
+		else
+			return TRUE;	/* without a linked node tree, group node is always ok */
+	}
 	else
-		return 1;
+		return FALSE;
 }
 
 int nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree)

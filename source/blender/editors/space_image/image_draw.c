@@ -505,9 +505,6 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
 	else {
-		unsigned char *display_buffer;
-		void *cache_handle;
-
 		if (sima->flag & SI_USE_ALPHA) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -515,12 +512,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			fdrawcheckerboard(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 		}
 
-		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-
-		if (display_buffer)
-			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer);
-
-		IMB_display_buffer_release(cache_handle);
+		glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
 
 		if (sima->flag & SI_USE_ALPHA)
 			glDisable(GL_BLEND);

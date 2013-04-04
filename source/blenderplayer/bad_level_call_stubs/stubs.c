@@ -413,11 +413,11 @@ void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, in
 
 struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag) {struct PointerRNA a = {{0}}; return a;}
 PointerRNA uiItemFullO_ptr(struct uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag) {struct PointerRNA a = {{0}}; return a;}
-struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align) {return (struct uiLayout *) NULL;}
-struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align) {return (struct uiLayout *) NULL;}
-struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align) {return (struct uiLayout *) NULL;}
+struct uiLayout *uiLayoutRow(struct uiLayout *layout, bool align) {return (struct uiLayout *) NULL;}
+struct uiLayout *uiLayoutColumn(struct uiLayout *layout, bool align) {return (struct uiLayout *) NULL;}
+struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, bool align) {return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutBox(struct uiLayout *layout) {return (struct uiLayout *) NULL;}
-struct uiLayout *uiLayoutSplit(struct uiLayout *layout, float percentage, int align) {return (struct uiLayout *) NULL;}
+struct uiLayout *uiLayoutSplit(struct uiLayout *layout, float percentage, bool align) {return (struct uiLayout *) NULL;}
 int uiLayoutGetRedAlert(struct uiLayout *layout) {return 0;}
 void uiLayoutSetRedAlert(struct uiLayout *layout, int redalert) {}
 void uiItemsEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname) {}
@@ -439,7 +439,7 @@ void uiItemFullR(struct uiLayout *layout, struct PointerRNA *ptr, struct Propert
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr) {}
 char *uiLayoutIntrospect(struct uiLayout *layout) {return (char *)NULL;}
 void UI_reinit_font(void) {}
-int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, int big) {return 0;}
+int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big) {return 0;}
 struct bTheme *UI_GetTheme(void) {return (struct bTheme *) NULL;};
 
 /* rna template */
@@ -462,9 +462,7 @@ void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C) {}
 void uiTemplateOperatorSearch(struct uiLayout *layout) {}
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C) {}
 void uiTemplateEditModeSelection(struct uiLayout *layout, struct bContext *C) {}
-void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct Tex *tex) {}
 void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact) {}
-void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr) {}
 void uiTemplateColorPicker(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider) {}
 void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand) {}
 void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op) {}

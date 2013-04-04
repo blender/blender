@@ -37,10 +37,14 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_packedFile_types.h"
 
 #include "BLI_blenlib.h"
+
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "BLF_translation.h"
 
@@ -54,6 +58,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
+#include "ED_space_api.h"
 #include "ED_util.h"
 
 #include "UI_interface.h"
@@ -157,17 +162,6 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 	}
 }
 
-#if 0 /* UNUSED */
-int GetButStringLength(const char *str) 
-{
-	int rt;
-	
-	rt = UI_GetStringWidth(str);
-	
-	return rt + 15;
-}
-#endif
-
 void unpack_menu(bContext *C, const char *opname, const char *id_name, const char *abs_name, const char *folder, struct PackedFile *pf)
 {
 	PointerRNA props_ptr;
@@ -254,4 +248,25 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 	}
 
 	uiPupMenuEnd(C, pup);
+}
+
+/* ********************* generic callbacks for drawcall api *********************** */
+
+/**
+ * Callback that draws a line between the mouse and a position given as the initial argument.
+ */
+void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info)
+{
+	wmWindow *win = CTX_wm_window(C);
+	const int *mval_src = (int *)arg_info;
+	const int mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
+	                         win->eventstate->y - ar->winrct.ymin};
+
+	UI_ThemeColor(TH_WIRE);
+	setlinestyle(3);
+	glBegin(GL_LINE_STRIP);
+	glVertex2iv(mval_dst);
+	glVertex2iv(mval_src);
+	glEnd();
+	setlinestyle(0);
 }

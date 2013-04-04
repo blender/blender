@@ -1008,6 +1008,7 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const ColorM
 		IMB_colormanagement_processor_free(cm_processor);
 }
 
+/* if view_settings, it also applies this to byte buffers */
 void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                    const ColorManagedDisplaySettings *display_settings)
 {
@@ -1021,7 +1022,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	float rgba[4], ycc[3], luma;
 	int ycc_mode = -1;
 	const short is_float = (ibuf->rect_float != NULL);
-
+	void *cache_handle = NULL;
 	struct ColormanageProcessor *cm_processor = NULL;
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
@@ -1090,9 +1091,10 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	
 	if (is_float)
 		rf = ibuf->rect_float;
-	else
-		rc = (unsigned char *)ibuf->rect;
-
+	else {
+		rc = (unsigned char *)IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
+	}
+	
 	if (ibuf->rect_float)
 		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
@@ -1173,11 +1175,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 		if (bin_b[x]   > nb) nb = bin_b[x];
 		if (bin_a[x]   > na) na = bin_a[x];
 	}
-	divl = 1.0 / (double)nl;
-	diva = 1.0 / (double)na;
-	divr = 1.0 / (double)nr;
-	divg = 1.0 / (double)ng;
-	divb = 1.0 / (double)nb;
+	divl = nl ? 1.0 / (double)nl : 1.0;
+	diva = na ? 1.0 / (double)na : 1.0;
+	divr = nr ? 1.0 / (double)nr : 1.0;
+	divg = ng ? 1.0 / (double)ng : 1.0;
+	divb = nb ? 1.0 / (double)nb : 1.0;
+	
 	for (x = 0; x < 256; x++) {
 		scopes->hist.data_luma[x] = bin_lum[x] * divl;
 		scopes->hist.data_r[x] = bin_r[x] * divr;
@@ -1193,7 +1196,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 
 	if (cm_processor)
 		IMB_colormanagement_processor_free(cm_processor);
-
+	if (cache_handle)
+		IMB_display_buffer_release(cache_handle);
+	
 	scopes->ok = 1;
 }
 

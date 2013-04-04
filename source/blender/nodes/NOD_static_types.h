@@ -84,6 +84,7 @@ DefNode( ShaderNode,     SH_NODE_BSDF_REFRACTION,    def_glossy,             "BS
 DefNode( ShaderNode,     SH_NODE_BSDF_TRANSLUCENT,   0,                      "BSDF_TRANSLUCENT",   BsdfTranslucent,  "Translucent BSDF",  ""       )
 DefNode( ShaderNode,     SH_NODE_BSDF_TRANSPARENT,   0,                      "BSDF_TRANSPARENT",   BsdfTransparent,  "Transparent BSDF",  ""       )
 DefNode( ShaderNode,     SH_NODE_BSDF_VELVET,        0,                      "BSDF_VELVET",        BsdfVelvet,       "Velvet BSDF",       ""       )
+DefNode( ShaderNode,     SH_NODE_SUBSURFACE_SCATTERING, 0,                   "SUBSURFACE_SCATTERING",SubsurfaceScattering,"Subsurface Scattering","")
 DefNode( ShaderNode,     SH_NODE_VOLUME_TRANSPARENT, 0,                      "VOLUME_TRANSPARENT", VolumeTransparent,"Transparent Volume",""       )
 DefNode( ShaderNode,     SH_NODE_VOLUME_ISOTROPIC,   0,                      "VOLUME_ISOTROPIC",   VolumeIsotropic,  "Isotropic Volume",  ""       )
 DefNode( ShaderNode,     SH_NODE_EMISSION,           0,                      "EMISSION",           Emission,         "Emission",          ""       )

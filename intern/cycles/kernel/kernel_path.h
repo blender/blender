@@ -37,6 +37,10 @@
 #include "kernel_random.h"
 #include "kernel_passes.h"
 
+#ifdef __SUBSURFACE__
+#include "kernel_subsurface.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct PathState {
@@ -149,7 +153,7 @@ __device_inline float path_state_terminate_probability(KernelGlobals *kg, PathSt
 	}
 
 	/* probalistic termination */
-	return average(throughput);
+	return average(throughput); /* todo: try using max here */
 }
 
 __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
@@ -211,8 +215,6 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 				ray->P = ray_offset(sd.P, -sd.Ng);
 				if(ray->t != FLT_MAX)
 					ray->D = normalize_len(Pend - ray->P, &ray->t);
-
-				shader_release(kg, &sd);
 
 				bounce++;
 			}
@@ -323,10 +325,8 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 				L_transparent += average(holdout_weight*throughput);
 			}
 
-			if(sd.flag & SD_HOLDOUT_MASK) {
-				shader_release(kg, &sd);
+			if(sd.flag & SD_HOLDOUT_MASK)
 				break;
-			}
 		}
 #endif
 
@@ -345,12 +345,28 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		float probability = path_state_terminate_probability(kg, &state, throughput);
 		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
-		if(terminate >= probability) {
-			shader_release(kg, &sd);
+		if(terminate >= probability)
 			break;
-		}
 
 		throughput /= probability;
+
+#ifdef __SUBSURFACE__
+		/* bssrdf scatter to a different location on the same object, replacing
+		 * the closures with a diffuse BSDF */
+		if(sd.flag & SD_BSSRDF) {
+			float bssrdf_probability;
+			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, &sd, &bssrdf_probability);
+
+			/* modify throughput for picking bssrdf or bsdf */
+			throughput *= bssrdf_probability;
+
+			/* do bssrdf scatter step if we picked a bssrdf closure */
+			if(sc) {
+				uint lcg_state = lcg_init(rbsdf);
+				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
+			}
+		}
+#endif
 
 #ifdef __AO__
 		/* ambient occlusion */
@@ -415,10 +431,8 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 #endif
 
 		/* no BSDF? we can stop here */
-		if(!(sd.flag & SD_BSDF)) {
-			shader_release(kg, &sd);
+		if(!(sd.flag & SD_BSDF))
 			break;
-		}
 
 		/* sample BSDF */
 		float bsdf_pdf;
@@ -431,8 +445,6 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 		label = shader_bsdf_sample(kg, &sd, bsdf_u, bsdf_v, &bsdf_eval,
 			&bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
-
-		shader_release(kg, &sd);
 
 		if(bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval))
 			break;
@@ -481,7 +493,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __NON_PROGRESSIVE__
 
 __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
-	float3 throughput, float throughput_normalize,
+	float3 throughput, float num_samples_adjust,
 	float min_ray_pdf, float ray_pdf, PathState state, int rng_offset, PathRadiance *L)
 {
 #ifdef __LAMP_MIS__
@@ -554,15 +566,31 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate */
-		float probability = path_state_terminate_probability(kg, &state, throughput*throughput_normalize);
+		float probability = path_state_terminate_probability(kg, &state, throughput*num_samples_adjust);
 		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
-		if(terminate >= probability) {
-			shader_release(kg, &sd);
+		if(terminate >= probability)
 			break;
-		}
 
 		throughput /= probability;
+
+#ifdef __SUBSURFACE__
+		/* bssrdf scatter to a different location on the same object, replacing
+		 * the closures with a diffuse BSDF */
+		if(sd.flag & SD_BSSRDF) {
+			float bssrdf_probability;
+			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, &sd, &bssrdf_probability);
+
+			/* modify throughput for picking bssrdf or bsdf */
+			throughput *= bssrdf_probability;
+
+			/* do bssrdf scatter step if we picked a bssrdf closure */
+			if(sc) {
+				uint lcg_state = lcg_init(rbsdf);
+				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
+			}
+		}
+#endif
 
 #ifdef __AO__
 		/* ambient occlusion */
@@ -628,10 +656,8 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 #endif
 
 		/* no BSDF? we can stop here */
-		if(!(sd.flag & SD_BSDF)) {
-			shader_release(kg, &sd);
+		if(!(sd.flag & SD_BSDF))
 			break;
-		}
 
 		/* sample BSDF */
 		float bsdf_pdf;
@@ -644,8 +670,6 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 		label = shader_bsdf_sample(kg, &sd, bsdf_u, bsdf_v, &bsdf_eval,
 			&bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
-
-		shader_release(kg, &sd);
 
 		if(bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval))
 			break;
@@ -673,6 +697,193 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		ray.dP = sd.dP;
 		ray.dD = bsdf_domega_in;
 #endif
+	}
+}
+
+__device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, RNG *rng, int sample,
+	ShaderData *sd, float3 throughput, float num_samples_adjust,
+	float min_ray_pdf, float ray_pdf, PathState state,
+	int rng_offset, PathRadiance *L, __global float *buffer)
+{
+#ifdef __AO__
+	/* ambient occlusion */
+	if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
+		int num_samples = ceil(kernel_data.integrator.ao_samples*num_samples_adjust);
+		float num_samples_inv = num_samples_adjust/num_samples;
+		float ao_factor = kernel_data.background.ao_factor;
+		float3 ao_N;
+		float3 ao_bsdf = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
+
+		for(int j = 0; j < num_samples; j++) {
+			/* todo: solve correlation */
+			float bsdf_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_U);
+			float bsdf_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_V);
+
+			float3 ao_D;
+			float ao_pdf;
+
+			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+
+			if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+				Ray light_ray;
+				float3 ao_shadow;
+
+				light_ray.P = ray_offset(sd->P, sd->Ng);
+				light_ray.D = ao_D;
+				light_ray.t = kernel_data.background.ao_distance;
+#ifdef __OBJECT_MOTION__
+				light_ray.time = sd->time;
+#endif
+
+				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
+					path_radiance_accum_ao(L, throughput*num_samples_inv, ao_bsdf, ao_shadow, state.bounce);
+			}
+		}
+	}
+#endif
+
+
+#ifdef __EMISSION__
+	/* sample illumination from lights to find path contribution */
+	if(sd->flag & SD_BSDF_HAS_EVAL) {
+		Ray light_ray;
+		BsdfEval L_light;
+		bool is_lamp;
+
+#ifdef __OBJECT_MOTION__
+		light_ray.time = sd->time;
+#endif
+
+		/* lamp sampling */
+		for(int i = 0; i < kernel_data.integrator.num_all_lights; i++) {
+			int num_samples = ceil(num_samples_adjust*light_select_num_samples(kg, i));
+			float num_samples_inv = num_samples_adjust/(num_samples*kernel_data.integrator.num_all_lights);
+
+			if(kernel_data.integrator.pdf_triangles != 0.0f)
+				num_samples_inv *= 0.5f;
+
+			for(int j = 0; j < num_samples; j++) {
+				float light_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_U);
+				float light_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_V);
+
+				if(direct_emission(kg, sd, i, 0.0f, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
+					/* trace shadow ray */
+					float3 shadow;
+
+					if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
+						/* accumulate */
+						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state.bounce, is_lamp);
+					}
+				}
+			}
+		}
+
+		/* mesh light sampling */
+		if(kernel_data.integrator.pdf_triangles != 0.0f) {
+			int num_samples = ceil(num_samples_adjust*kernel_data.integrator.mesh_light_samples);
+			float num_samples_inv = num_samples_adjust/num_samples;
+
+			if(kernel_data.integrator.num_all_lights)
+				num_samples_inv *= 0.5f;
+
+			for(int j = 0; j < num_samples; j++) {
+				float light_t = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT);
+				float light_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_U);
+				float light_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_V);
+
+				/* only sample triangle lights */
+				if(kernel_data.integrator.num_all_lights)
+					light_t = 0.5f*light_t;
+
+				if(direct_emission(kg, sd, -1, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
+					/* trace shadow ray */
+					float3 shadow;
+
+					if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
+						/* accumulate */
+						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state.bounce, is_lamp);
+					}
+				}
+			}
+		}
+	}
+#endif
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		const ShaderClosure *sc = &sd->closure[i];
+
+		if(!CLOSURE_IS_BSDF(sc->type))
+			continue;
+		/* transparency is not handled here, but in outer loop */
+		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID)
+			continue;
+
+		int num_samples;
+
+		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
+			num_samples = kernel_data.integrator.diffuse_samples;
+		else if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
+			num_samples = kernel_data.integrator.glossy_samples;
+		else
+			num_samples = kernel_data.integrator.transmission_samples;
+
+		num_samples = ceil(num_samples_adjust*num_samples);
+
+		float num_samples_inv = num_samples_adjust/num_samples;
+
+		for(int j = 0; j < num_samples; j++) {
+			/* sample BSDF */
+			float bsdf_pdf;
+			BsdfEval bsdf_eval;
+			float3 bsdf_omega_in;
+			differential3 bsdf_domega_in;
+			float bsdf_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_U);
+			float bsdf_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_V);
+			int label;
+
+			label = shader_bsdf_sample_closure(kg, sd, sc, bsdf_u, bsdf_v, &bsdf_eval,
+				&bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
+
+			if(bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval))
+				continue;
+
+			/* modify throughput */
+			float3 tp = throughput;
+			path_radiance_bsdf_bounce(L, &tp, &bsdf_eval, bsdf_pdf, state.bounce, label);
+
+			/* set labels */
+			float min_ray_pdf = FLT_MAX;
+
+			if(!(label & LABEL_TRANSPARENT))
+				min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
+
+			/* modify path state */
+			PathState ps = state;
+			path_state_next(kg, &ps, label);
+
+			/* setup ray */
+			Ray bsdf_ray;
+
+			bsdf_ray.P = ray_offset(sd->P, (label & LABEL_TRANSMIT)? -sd->Ng: sd->Ng);
+			bsdf_ray.D = bsdf_omega_in;
+			bsdf_ray.t = FLT_MAX;
+#ifdef __RAY_DIFFERENTIALS__
+			bsdf_ray.dP = sd->dP;
+			bsdf_ray.dD = bsdf_domega_in;
+#endif
+#ifdef __OBJECT_MOTION__
+			bsdf_ray.time = sd->time;
+#endif
+
+			kernel_path_indirect(kg, rng, sample*num_samples + j, bsdf_ray, buffer,
+				tp*num_samples_inv, num_samples,
+				min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, L);
+
+			/* for render passes, sum and reset indirect light pass variables
+			 * for the next samples */
+			path_radiance_sum_indirect(L);
+			path_radiance_reset_indirect(L);
+		}
 	}
 }
 
@@ -740,10 +951,8 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				L_transparent += average(holdout_weight*throughput);
 			}
 
-			if(sd.flag & SD_HOLDOUT_MASK) {
-				shader_release(kg, &sd);
+			if(sd.flag & SD_HOLDOUT_MASK)
 				break;
-			}
 		}
 #endif
 
@@ -763,195 +972,47 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			float probability = path_state_terminate_probability(kg, &state, throughput);
 			float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
-			if(terminate >= probability) {
-				shader_release(kg, &sd);
+			if(terminate >= probability)
 				break;
-			}
 
 			throughput /= probability;
 		}
 
-#ifdef __AO__
-		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
-			int num_samples = kernel_data.integrator.ao_samples;
-			float num_samples_inv = 1.0f/num_samples;
-			float ao_factor = kernel_data.background.ao_factor;
-			float3 ao_N;
-			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
+#ifdef __SUBSURFACE__
+		/* bssrdf scatter to a different location on the same object */
+		if(sd.flag & SD_BSSRDF) {
+			for(int i = 0; i< sd.num_closure; i++) {
+				ShaderClosure *sc = &sd.closure[i];
 
-			for(int j = 0; j < num_samples; j++) {
-				/* todo: solve correlation */
-				float bsdf_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_U);
-				float bsdf_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_V);
-
-				float3 ao_D;
-				float ao_pdf;
-
-				sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
-
-				if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
-					Ray light_ray;
-					float3 ao_shadow;
-
-					light_ray.P = ray_offset(sd.P, sd.Ng);
-					light_ray.D = ao_D;
-					light_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
-					light_ray.time = sd.time;
-#endif
-
-					if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
-						path_radiance_accum_ao(&L, throughput*num_samples_inv, ao_bsdf, ao_shadow, state.bounce);
-				}
-			}
-		}
-#endif
-
-#ifdef __EMISSION__
-		/* sample illumination from lights to find path contribution */
-		if(sd.flag & SD_BSDF_HAS_EVAL) {
-			Ray light_ray;
-			BsdfEval L_light;
-			bool is_lamp;
-
-#ifdef __OBJECT_MOTION__
-			light_ray.time = sd.time;
-#endif
-
-			/* lamp sampling */
-			for(int i = 0; i < kernel_data.integrator.num_all_lights; i++) {
-				int num_samples = light_select_num_samples(kg, i);
-				float num_samples_inv = 1.0f/(num_samples*kernel_data.integrator.num_all_lights);
-
-				if(kernel_data.integrator.pdf_triangles != 0.0f)
-					num_samples_inv *= 0.5f;
-
-				for(int j = 0; j < num_samples; j++) {
-					float light_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_U);
-					float light_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_V);
-
-					if(direct_emission(kg, &sd, i, 0.0f, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
-						/* trace shadow ray */
-						float3 shadow;
-
-						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
-							/* accumulate */
-							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state.bounce, is_lamp);
-						}
-					}
-				}
-			}
-
-			/* mesh light sampling */
-			if(kernel_data.integrator.pdf_triangles != 0.0f) {
-				int num_samples = kernel_data.integrator.mesh_light_samples;
-				float num_samples_inv = 1.0f/num_samples;
-
-				if(kernel_data.integrator.num_all_lights)
-					num_samples_inv *= 0.5f;
-
-				for(int j = 0; j < num_samples; j++) {
-					float light_t = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT);
-					float light_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_U);
-					float light_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_V);
-
-					/* only sample triangle lights */
-					if(kernel_data.integrator.num_all_lights)
-						light_t = 0.5f*light_t;
-
-					if(direct_emission(kg, &sd, -1, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
-						/* trace shadow ray */
-						float3 shadow;
-
-						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
-							/* accumulate */
-							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state.bounce, is_lamp);
-						}
-					}
-				}
-			}
-		}
-#endif
-
-		for(int i = 0; i< sd.num_closure; i++) {
-			const ShaderClosure *sc = &sd.closure[i];
-
-			if(!CLOSURE_IS_BSDF(sc->type))
-				continue;
-			/* transparency is not handled here, but in outer loop */
-			if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID)
-				continue;
-
-			int num_samples;
-
-			if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
-				num_samples = kernel_data.integrator.diffuse_samples;
-			else if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
-				num_samples = kernel_data.integrator.glossy_samples;
-			else
-				num_samples = kernel_data.integrator.transmission_samples;
-
-			float num_samples_inv = 1.0f/num_samples;
-
-			for(int j = 0; j < num_samples; j++) {
-				/* sample BSDF */
-				float bsdf_pdf;
-				BsdfEval bsdf_eval;
-				float3 bsdf_omega_in;
-				differential3 bsdf_domega_in;
-				float bsdf_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_U);
-				float bsdf_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_BSDF_V);
-				int label;
-
-				label = shader_bsdf_sample_closure(kg, &sd, sc, bsdf_u, bsdf_v, &bsdf_eval,
-					&bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
-
-				if(bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval))
+				if(!CLOSURE_IS_BSSRDF(sc->type))
 					continue;
 
-				/* modify throughput */
-				float3 tp = throughput;
-				path_radiance_bsdf_bounce(&L, &tp, &bsdf_eval, bsdf_pdf, state.bounce, label);
+				/* set up random number generator */
+				uint lcg_state = lcg_init(rbsdf);
+				int num_samples = kernel_data.integrator.subsurface_samples;
+				float num_samples_inv = 1.0f/num_samples;
 
-				/* set labels */
-				float min_ray_pdf = FLT_MAX;
+				/* do subsurface scatter step with copy of shader data, this will
+				 * replace the BSSRDF with a diffuse BSDF closure */
+				for(int j = 0; j < num_samples; j++) {
+					ShaderData bssrdf_sd = sd;
+					subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state, true);
 
-				if(!(label & LABEL_TRANSPARENT))
-					min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
-
-				/* modify path state */
-				PathState ps = state;
-				path_state_next(kg, &ps, label);
-
-				/* setup ray */
-				Ray bsdf_ray;
-
-				bsdf_ray.P = ray_offset(sd.P, (label & LABEL_TRANSMIT)? -sd.Ng: sd.Ng);
-				bsdf_ray.D = bsdf_omega_in;
-				bsdf_ray.t = FLT_MAX;
-#ifdef __RAY_DIFFERENTIALS__
-				bsdf_ray.dP = sd.dP;
-				bsdf_ray.dD = bsdf_domega_in;
-#endif
-#ifdef __OBJECT_MOTION__
-				bsdf_ray.time = sd.time;
-#endif
-
-				kernel_path_indirect(kg, rng, sample*num_samples + j, bsdf_ray, buffer,
-					tp*num_samples_inv, num_samples,
-					min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
-
-				/* for render passes, sum and reset indirect light pass variables
-				 * for the next samples */
-				path_radiance_sum_indirect(&L);
-				path_radiance_reset_indirect(&L);
+					/* compute lighting with the BSDF closure */
+					kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
+						&bssrdf_sd, throughput, num_samples_inv,
+						ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
+				}
 			}
 		}
+#endif
+
+		/* lighting */
+		kernel_path_non_progressive_lighting(kg, rng, sample, &sd, throughput,
+			1.0f, ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 
 		/* continue in case of transparency */
 		throughput *= shader_bsdf_transparency(kg, &sd);
-		shader_release(kg, &sd);
 
 		if(is_zero(throughput))
 			break;

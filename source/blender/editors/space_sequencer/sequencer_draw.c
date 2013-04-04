@@ -896,11 +896,9 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 {
 	ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 	ImBuf *scope;
-
-	if (display_ibuf->rect_float) {
-		IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+	
+	IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
 		                                             &scene->display_settings);
-	}
 
 	scope = make_scope_cb(display_ibuf);
 

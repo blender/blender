@@ -664,13 +664,13 @@ void IMB_float_from_rect(ImBuf *ibuf)
 /* no profile conversion */
 void IMB_color_to_bw(ImBuf *ibuf)
 {
-	float *rctf = ibuf->rect_float;
+	float *rct_fl = ibuf->rect_float;
 	uchar *rct = (uchar *)ibuf->rect;
 	int i;
 
-	if (rctf) {
-		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf += 4)
-			rctf[0] = rctf[1] = rctf[2] = rgb_to_grayscale(rctf);
+	if (rct_fl) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rct_fl += 4)
+			rct_fl[0] = rct_fl[1] = rct_fl[2] = rgb_to_grayscale(rct_fl);
 	}
 
 	if (rct) {
@@ -713,7 +713,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 {
 	int i;
 	unsigned char *rct = (unsigned char *)ibuf->rect;
-	float *rctf = ibuf->rect_float;
+	float *rct_fl = ibuf->rect_float;
 	float hsv[3];
 
 	if (rct) {
@@ -726,10 +726,10 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 		}
 	}
 
-	if (rctf) {
-		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf += 4) {
-			rgb_to_hsv_v(rctf, hsv);
-			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf + 1, rctf + 2);
+	if (rct_fl) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rct_fl += 4) {
+			rgb_to_hsv_v(rct_fl, hsv);
+			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rct_fl, rct_fl + 1, rct_fl + 2);
 		}
 	}
 }

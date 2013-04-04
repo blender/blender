@@ -16,38 +16,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FILTER_H__
-#define __FILTER_H__
+#include "stdosl.h"
 
-CCL_NAMESPACE_BEGIN
+shader node_subsurface_scattering(
+	color Color = 0.8,
+	float Scale = 1.0,
+	vector Radius = vector(0.1, 0.1, 0.1),
+	float IOR = 1.3,
+	normal Normal = N,
+	output closure color BSSRDF = 0)
+{
+	float eta = max(IOR, 1.0 + 1e-5);
 
-class Device;
-class DeviceScene;
-class Scene;
-
-typedef enum FilterType {
-	FILTER_BOX,
-	FILTER_GAUSSIAN
-} FilterType;
-
-class Filter {
-public:
-	/* pixel filter */
-	FilterType filter_type;
-	float filter_width;
-	bool need_update;
-
-	Filter();
-	~Filter();
-
-	void device_update(Device *device, DeviceScene *dscene);
-	void device_free(Device *device, DeviceScene *dscene);
-
-	bool modified(const Filter& filter);
-	void tag_update(Scene *scene);
-};
-
-CCL_NAMESPACE_END
-
-#endif /* __FILTER_H__ */
+	BSSRDF = Color * bssrdf_cubic(N, Scale * Radius);
+}
 

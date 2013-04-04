@@ -216,6 +216,14 @@ public:
 		return mem;
 	}
 
+	void copy_at(T *ptr, size_t offset, size_t size)
+	{
+		if(size > 0) {
+			size_t mem_size = size*data_elements*datatype_size(data_type);
+			memcpy(&data[0] + offset, ptr, mem_size);
+		}
+	}
+
 	void reference(T *ptr, size_t width, size_t height = 0)
 	{
 		data.clear();

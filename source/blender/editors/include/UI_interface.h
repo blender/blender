@@ -280,7 +280,6 @@ typedef enum {
  * Functions to draw various shapes, taking theme settings into account.
  * Used for code that draws its own UI style elements. */
 
-void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 int uiGetRoundBox(void);
@@ -398,7 +397,7 @@ void uiFreeActiveButtons(const struct bContext *C, struct bScreen *screen);
 
 void uiBlockSetRegion(uiBlock *block, struct ARegion *region);
 
-void uiBlockSetButLock(uiBlock *block, int val, const char *lockstr);
+void uiBlockSetButLock(uiBlock *block, bool val, const char *lockstr);
 void uiBlockClearButLock(uiBlock *block);
 
 /* automatic aligning, horiz or verical */
@@ -448,7 +447,7 @@ void    uiButSetDrawFlag(uiBut *but, int flag);
 void    uiButClearDrawFlag(uiBut *but, int flag);
 
 /* special button case, only draw it when used actively, for outliner etc */
-int     uiButActiveOnly(const struct bContext *C, struct ARegion *ar, uiBlock *block, uiBut *but);
+bool    uiButActiveOnly(const struct bContext *C, struct ARegion *ar, uiBlock *block, uiBut *but);
 
 void    uiButExecute(const struct bContext *C, uiBut *but);
 
@@ -621,7 +620,7 @@ void uiComposeLinks(uiBlock *block);
 uiBut *uiFindInlink(uiBlock *block, void *poin);
 
 /* use inside searchfunc to add items */
-int     uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
+bool    uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
 void    uiButSetSearchFunc(uiBut *but,        uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc, void *active);
 /* height in pixels, it's using hardcoded values still */
@@ -770,20 +769,20 @@ void uiLayoutOperatorButs(const struct bContext *C, struct uiLayout *layout, str
 struct MenuType *uiButGetMenuType(uiBut *but);
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
-void uiLayoutSetActive(uiLayout *layout, int active);
-void uiLayoutSetEnabled(uiLayout *layout, int enabled);
-void uiLayoutSetRedAlert(uiLayout *layout, int redalert);
-void uiLayoutSetAlignment(uiLayout *layout, int alignment);
-void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
+void uiLayoutSetActive(uiLayout *layout, bool active);
+void uiLayoutSetEnabled(uiLayout *layout, bool enabled);
+void uiLayoutSetRedAlert(uiLayout *layout, bool redalert);
+void uiLayoutSetAlignment(uiLayout *layout, char alignment);
+void uiLayoutSetKeepAspect(uiLayout *layout, bool keepaspect);
 void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 
 int uiLayoutGetOperatorContext(uiLayout *layout);
-int uiLayoutGetActive(uiLayout *layout);
-int uiLayoutGetEnabled(uiLayout *layout);
-int uiLayoutGetRedAlert(uiLayout *layout);
+bool uiLayoutGetActive(uiLayout *layout);
+bool uiLayoutGetEnabled(uiLayout *layout);
+bool uiLayoutGetRedAlert(uiLayout *layout);
 int uiLayoutGetAlignment(uiLayout *layout);
-int uiLayoutGetKeepAspect(uiLayout *layout);
+bool uiLayoutGetKeepAspect(uiLayout *layout);
 int uiLayoutGetWidth(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
@@ -803,7 +802,6 @@ uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
-void uiTemplateDopeSheetFilter(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
                   const char *newop, const char *openop, const char *unlinkop);
 void uiTemplateIDBrowse(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
@@ -836,7 +834,6 @@ void uiOperatorSearch_But(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
-void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplateComponentMenu(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name);
@@ -922,7 +919,7 @@ uiStyle *UI_GetStyleDraw(void);	/* DPI scaled settings for drawing */
 void UI_template_fix_linking(void);
 
 /* UI_OT_editsource helpers */
-int  UI_editsource_enable_check(void);
+bool UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
 
 #endif  /* __UI_INTERFACE_H__ */

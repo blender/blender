@@ -30,7 +30,7 @@ Import('env')
 sources = env.Glob('*.cc')
 
 incs = '. ../guardedalloc ../../source/blender/blenlib'
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_OCIO']:
     defs.append('WITH_OCIO')

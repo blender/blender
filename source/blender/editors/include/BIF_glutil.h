@@ -33,6 +33,9 @@
 struct rcti;
 struct rctf;
 
+struct ImBuf;
+struct bContext;
+
 void fdrawbezier(float vec[4][3]);
 void fdrawline(float x1, float y1, float x2, float y2);
 void fdrawbox(float x1, float y1, float x2, float y2);
@@ -141,17 +144,17 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
  * 1-to-1 mapping to screen space.
  */
 
-void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect);
+void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect);
 
 /**
  * glaDrawPixelsAuto - Switches between texture or pixel drawing using UserDef.
  * only RGBA
  * needs glaDefine2DArea to be set.
  */
-void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect);
+void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect);
 
 
-void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int zoomfilter, void *rect, float scaleX, float scaleY);
+void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY);
 
 /* 2D Drawing Assistance */
 
@@ -170,35 +173,19 @@ void glaDefine2DArea(struct rcti *screen_rect);
 
 typedef struct gla2DDrawInfo gla2DDrawInfo;
 
-/** Save the current OpenGL state and initialize OpenGL for 2D
- * rendering. glaEnd2DDraw should be called on the returned structure
- * to free it and to return OpenGL to its previous state. The
- * scissor rectangle is set to match the viewport.
- *
- * See glaDefine2DArea for an explanation of why this function uses integers.
- *
- * \param screen_rect The screen rectangle to be used for 2D drawing.
- * \param world_rect The world rectangle that the 2D area represented
- * by \a screen_rect is supposed to represent. If NULL it is assumed the
- * world has a 1 to 1 mapping to the screen.
- */
+/* UNUSED */
+#if 0
+
 gla2DDrawInfo  *glaBegin2DDraw(struct rcti *screen_rect, struct rctf *world_rect);
-
-/** Translate the (\a wo_x, \a wo_y) point from world coordinates into screen space. */
-void            gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r);
-
-/** Translate the \a world point from world coordiantes into screen space. */
+void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r);
 void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2]);
 
-/* Restores the previous OpenGL state and free's the auxilary
- * gla data.
- */
-void            glaEnd2DDraw(gla2DDrawInfo *di);
+void glaEnd2DDraw(gla2DDrawInfo *di);
 
 /** Adjust the transformation mapping of a 2d area */
 void gla2DGetMap(gla2DDrawInfo *di, struct rctf *rect);
 void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
-
+#endif
 
 /* use this for platform hacks. glPointSize is solved here */
 void bglBegin(int mode);
@@ -222,6 +209,14 @@ typedef struct bglMats {
 	int viewport[4];
 } bglMats;
 void bgl_get_mats(bglMats *mats);
+
+/* **** Color management helper functions for GLSL display/transform ***** */
+
+/* Draw imbuf on a screen, preferably using GLSL display transform */
+void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter);
+
+/* Transform buffer from role to scene linear space using GLSL OCIO conversion */
+int glaBufferTransformFromRole_glsl(float *buffer, int width, int height, int role);
 
 #endif /* __BIF_GLUTIL_H__ */
 

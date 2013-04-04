@@ -1162,13 +1162,17 @@ static void free_buffers(MovieClip *clip)
 	BKE_free_animdata((ID *) clip);
 }
 
+void BKE_movieclip_clear_cache(MovieClip *clip)
+{
+	free_buffers(clip);
+}
+
 void BKE_movieclip_reload(MovieClip *clip)
 {
 	/* clear cache */
 	free_buffers(clip);
 
 	clip->tracking.stabilization.ok = FALSE;
-	clip->prefetch_ok = FALSE;
 
 	/* update clip source */
 	detect_clip_source(clip);

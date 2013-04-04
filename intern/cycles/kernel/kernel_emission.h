@@ -69,8 +69,6 @@ __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 	
 	eval *= ls->eval_fac;
 
-	shader_release(kg, &sd);
-
 	return eval;
 }
 
@@ -207,7 +205,6 @@ __device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int pa
 	ShaderData sd;
 	shader_setup_from_background(kg, &sd, ray);
 	float3 L = shader_eval_background(kg, &sd, path_flag, SHADER_CONTEXT_EMISSION);
-	shader_release(kg, &sd);
 
 #ifdef __BACKGROUND_MIS__
 	/* check if background light exists or if we should skip pdf */

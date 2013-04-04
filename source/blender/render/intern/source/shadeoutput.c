@@ -1743,15 +1743,15 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				shr->col[0]= shr->col[1]= shr->col[2]= shr->col[3]= 1.0f;
 			}
 			else {
-				shi->r= pow(shi->r, ma->sss_texfac);
-				shi->g= pow(shi->g, ma->sss_texfac);
-				shi->b= pow(shi->b, ma->sss_texfac);
-				shi->alpha= pow(shi->alpha, ma->sss_texfac);
+				shi->r= pow(max_ff(shi->r, 0.0f), ma->sss_texfac);
+				shi->g= pow(max_ff(shi->g, 0.0f), ma->sss_texfac);
+				shi->b= pow(max_ff(shi->b, 0.0f), ma->sss_texfac);
+				shi->alpha= pow(max_ff(shi->alpha, 0.0f), ma->sss_texfac);
 				
-				shr->col[0]= pow(shr->col[0], ma->sss_texfac);
-				shr->col[1]= pow(shr->col[1], ma->sss_texfac);
-				shr->col[2]= pow(shr->col[2], ma->sss_texfac);
-				shr->col[3]= pow(shr->col[3], ma->sss_texfac);
+				shr->col[0]= pow(max_ff(shr->col[0], 0.0f), ma->sss_texfac);
+				shr->col[1]= pow(max_ff(shr->col[1], 0.0f), ma->sss_texfac);
+				shr->col[2]= pow(max_ff(shr->col[2], 0.0f), ma->sss_texfac);
+				shr->col[3]= pow(max_ff(shr->col[3], 0.0f), ma->sss_texfac);
 			}
 		}
 	}
@@ -1841,9 +1841,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				else {
 					copy_v3_v3(col, shr->col);
 					mul_v3_fl(col, invalpha);
-					col[0]= pow(col[0], 1.0f-texfac);
-					col[1]= pow(col[1], 1.0f-texfac);
-					col[2]= pow(col[2], 1.0f-texfac);
+					col[0]= pow(max_ff(col[0], 0.0f), 1.0f-texfac);
+					col[1]= pow(max_ff(col[1], 0.0f), 1.0f-texfac);
+					col[2]= pow(max_ff(col[2], 0.0f), 1.0f-texfac);
 				}
 
 				shr->diff[0]= sss[0]*col[0];

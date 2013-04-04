@@ -21,6 +21,7 @@
 #include "kernel_globals.h"
 #include "kernel_object.h"
 
+#include "osl_bssrdf.h"
 #include "osl_closures.h"
 #include "osl_globals.h"
 #include "osl_services.h"
@@ -201,7 +202,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					}
 					break;
 				}
-				case OSL::ClosurePrimitive::Holdout:
+				case OSL::ClosurePrimitive::Holdout: {
 					sc.sample_weight = 0.0f;
 					sc.type = CLOSURE_HOLDOUT_ID;
 					sc.prim = NULL;
@@ -211,7 +212,43 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 						sd->flag |= SD_HOLDOUT;
 					}
 					break;
-				case OSL::ClosurePrimitive::BSSRDF:
+				}
+				case OSL::ClosurePrimitive::BSSRDF: {
+					CBSSRDFClosure *bssrdf = (CBSSRDFClosure *)prim;
+					float sample_weight = fabsf(average(weight));
+
+					if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {
+						sc.sample_weight = sample_weight;
+
+						sc.type = bssrdf->sc.type;
+						sc.N = bssrdf->sc.N;
+						sc.data1 = bssrdf->sc.data1;
+						sc.prim = NULL;
+
+						/* create one closure for each color channel */
+						if(fabsf(weight.x) > 0.0f) {
+							sc.weight = make_float3(weight.x, 0.0f, 0.0f);
+							sc.data0 = bssrdf->radius.x;
+							sd->closure[sd->num_closure++] = sc;
+							sd->flag |= bssrdf->shaderdata_flag();
+						}
+
+						if(fabsf(weight.y) > 0.0f) {
+							sc.weight = make_float3(0.0f, weight.y, 0.0f);
+							sc.data0 = bssrdf->radius.y;
+							sd->closure[sd->num_closure++] = sc;
+							sd->flag |= bssrdf->shaderdata_flag();
+						}
+
+						if(fabsf(weight.z) > 0.0f) {
+							sc.weight = make_float3(0.0f, 0.0f, weight.z);
+							sc.data0 = bssrdf->radius.z;
+							sd->closure[sd->num_closure++] = sc;
+							sd->flag |= bssrdf->shaderdata_flag();
+						}
+					}
+					break;
+				}
 				case OSL::ClosurePrimitive::Debug:
 					break; /* not implemented */
 				case OSL::ClosurePrimitive::Background:

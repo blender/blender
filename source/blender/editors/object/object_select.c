@@ -586,7 +586,7 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 	uiLayout *layout;
 
 	for (group = CTX_data_main(C)->group.first; group && group_count < GROUP_MENU_MAX; group = group->id.next) {
-		if (object_in_group(ob, group)) {
+		if (BKE_group_object_exists(group, ob)) {
 			ob_groups[group_count] = group;
 			group_count++;
 		}
@@ -598,7 +598,7 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 		group = ob_groups[0];
 		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 		{
-			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+			if (!(base->flag & SELECT) && BKE_group_object_exists(group, base->object)) {
 				ED_base_object_select(base, BA_SELECT);
 				changed = 1;
 			}
@@ -1040,7 +1040,7 @@ static int object_select_same_group_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (!(base->flag & SELECT) && object_in_group(base->object, group))
+		if (!(base->flag & SELECT) && BKE_group_object_exists(group, base->object))
 			ED_base_object_select(base, BA_SELECT);
 	}
 	CTX_DATA_END;

@@ -32,7 +32,7 @@ set(INC
 )
 
 set(INC_SYS
-
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
@@ -89,6 +89,8 @@ set(SRC
 	../include/UI_resources.h
 	../include/UI_view2d.h
 )
+
+add_definitions(-DGLEW_STATIC)
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)

@@ -37,6 +37,13 @@ CCL_NAMESPACE_BEGIN
 #define PARTICLE_SIZE 		5
 #define TIME_INVALID		FLT_MAX
 
+#define BSSRDF_RADIUS_TABLE_SIZE	1024
+#define BSSRDF_REFL_TABLE_SIZE		256
+#define BSSRDF_PDF_TABLE_OFFSET		(BSSRDF_RADIUS_TABLE_SIZE*BSSRDF_REFL_TABLE_SIZE)
+#define BSSRDF_LOOKUP_TABLE_SIZE	(BSSRDF_RADIUS_TABLE_SIZE*BSSRDF_REFL_TABLE_SIZE*2)
+#define BSSRDF_MIN_RADIUS			1e-8f
+#define BSSRDF_MAX_ATTEMPTS			8
+
 #define TEX_NUM_FLOAT_IMAGES	5
 
 /* device capabilities */
@@ -48,6 +55,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef WITH_OSL
 #define __OSL__
 #endif
+#define __SUBSURFACE__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -423,7 +431,8 @@ typedef enum ShaderContext {
 	SHADER_CONTEXT_INDIRECT = 1,
 	SHADER_CONTEXT_EMISSION = 2,
 	SHADER_CONTEXT_SHADOW = 3,
-	SHADER_CONTEXT_NUM = 4
+	SHADER_CONTEXT_SSS = 4,
+	SHADER_CONTEXT_NUM = 5
 } ShaderContext;
 
 /* Shader Data
@@ -438,20 +447,23 @@ enum ShaderDataFlag {
 	SD_BSDF = 4,			/* have bsdf closure? */
 	SD_BSDF_HAS_EVAL = 8,	/* have non-singular bsdf closure? */
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
-	SD_HOLDOUT = 32,		/* have holdout closure? */
-	SD_VOLUME = 64,			/* have volume closure? */
-	SD_AO = 128,			/* have ao closure? */
+	SD_BSSRDF = 32,			/* have bssrdf */
+	SD_HOLDOUT = 64,		/* have holdout closure? */
+	SD_VOLUME = 128,		/* have volume closure? */
+	SD_AO = 256,			/* have ao closure? */
+
+	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_VOLUME|SD_AO),
 
 	/* shader flags */
-	SD_SAMPLE_AS_LIGHT = 256,			/* direct light sample */
-	SD_HAS_SURFACE_TRANSPARENT = 512,	/* has surface transparency */
-	SD_HAS_VOLUME = 1024,				/* has volume shader */
-	SD_HOMOGENEOUS_VOLUME = 2048,		/* has homogeneous volume */
+	SD_SAMPLE_AS_LIGHT = 512,			/* direct light sample */
+	SD_HAS_SURFACE_TRANSPARENT = 1024,	/* has surface transparency */
+	SD_HAS_VOLUME = 2048,				/* has volume shader */
+	SD_HOMOGENEOUS_VOLUME = 4096,		/* has homogeneous volume */
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 4096,				/* holdout for camera rays */
-	SD_OBJECT_MOTION = 8192,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 16384 		/* vertices have transform applied */
+	SD_HOLDOUT_MASK = 8192,				/* holdout for camera rays */
+	SD_OBJECT_MOTION = 16384,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 32768 		/* vertices have transform applied */
 };
 
 typedef struct ShaderData {
@@ -611,8 +623,9 @@ typedef struct KernelFilm {
 
 	int pass_shadow;
 	float pass_shadow_scale;
-	int pass_pad1;
-	int pass_pad2;
+
+	int filter_table_offset;
+	int filter_pad;
 } KernelFilm;
 
 typedef struct KernelBackground {
@@ -680,6 +693,9 @@ typedef struct KernelIntegrator {
 	int ao_samples;
 	int mesh_light_samples;
 	int use_lamp_mis;
+	int subsurface_samples;
+
+	int pad1, pad2, pad3;
 } KernelIntegrator;
 
 typedef struct KernelBVH {
@@ -711,8 +727,13 @@ typedef struct KernelCurves {
 	float encasing_ratio;
 	int curveflags;
 	int subdivisions;
-
 } KernelCurves;
+
+typedef struct KernelBSSRDF {
+	int table_offset;
+	int num_attempts;
+	int pad1, pad2;
+} KernelBSSRDF;
 
 typedef struct KernelData {
 	KernelCamera cam;
@@ -722,6 +743,7 @@ typedef struct KernelData {
 	KernelIntegrator integrator;
 	KernelBVH bvh;
 	KernelCurves curve_kernel_data;
+	KernelBSSRDF bssrdf;
 } KernelData;
 
 CCL_NAMESPACE_END

@@ -97,8 +97,8 @@ static struct WMInitStruct {
 	int windowstate;
 	WinOverrideFlag override_flag;
 	
-	int native_pixels;
-} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0, 1};
+	bool native_pixels;
+} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0, true};
 
 /* ******** win open & close ************ */
 
@@ -1332,7 +1332,7 @@ void WM_init_state_normal_set(void)
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
-void WM_init_native_pixels(int do_it)
+void WM_init_native_pixels(bool do_it)
 {
 	wm_init_state.native_pixels = do_it;
 }

@@ -106,7 +106,7 @@ typedef struct TemplateID {
 
 	ListBase *idlb;
 	int prv_rows, prv_cols;
-	int preview;
+	bool preview;
 } TemplateID;
 
 /* Search browse menu, assign  */
@@ -156,7 +156,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 
 				iconid = ui_id_icon_get((bContext *)C, id, template->preview);
 
-				if (!uiSearchItemAdd(items, name_ui, id, iconid))
+				if (false == uiSearchItemAdd(items, name_ui, id, iconid))
 					break;
 			}
 		}
@@ -413,13 +413,13 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		type = idptr.type;
 
 	if (flag & UI_ID_PREVIEWS) {
-		template->preview = TRUE;
+		template->preview = true;
 
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
 		                     TIP_(template_id_browse_tip(type)));
 		if (type) {
 			but->icon = RNA_struct_ui_icon(type);
-			if (id) but->icon = ui_id_icon_get(C, id, 1);
+			if (id) but->icon = ui_id_icon_get(C, id, true);
 			uiButSetFlag(but, UI_HAS_ICON | UI_ICON_PREVIEW);
 		}
 		if ((idfrom && idfrom->lib) || !editable)
@@ -1217,7 +1217,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* Set but-locks for protected settings (magic numbers are used here!) */
 	if (proxy_protected)
-		uiBlockSetButLock(block, 1, IFACE_("Cannot edit Proxy-Protected Constraint"));
+		uiBlockSetButLock(block, true, IFACE_("Cannot edit Proxy-Protected Constraint"));
 
 	/* Draw constraint data */
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
@@ -2631,7 +2631,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 					sub = uiLayoutRow(overlap, FALSE);
 
-					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
+					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
 					if (icon == ICON_DOT)
 						icon = ICON_NONE;
 					draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
@@ -2665,7 +2665,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 				found = (activei == i);
 
 				if (found) {
-					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
+					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
 					if (icon == ICON_DOT)
 						icon = ICON_NONE;
 					draw_item(ui_list, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
@@ -2712,7 +2712,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 				sub = uiLayoutRow(overlap, FALSE);
 
-				icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
+				icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
 				draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
 
 				i++;
@@ -2760,7 +2760,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 					}
 				}
 				
-				if (0 == uiSearchItemAdd(items, name, ot, 0))
+				if (false == uiSearchItemAdd(items, name, ot, 0))
 					break;
 			}
 		}
