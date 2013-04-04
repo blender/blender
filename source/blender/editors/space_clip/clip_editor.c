@@ -528,6 +528,7 @@ MovieClip *ED_space_clip_get_clip(SpaceClip *sc)
 void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *clip)
 {
 	MovieClip *old_clip;
+	bool old_clip_visible = false;
 
 	if (!screen && C)
 		screen = CTX_wm_screen(C);
@@ -546,14 +547,25 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
 				if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *cur_sc = (SpaceClip *) sl;
 
-					if (cur_sc != sc && cur_sc->view != SC_VIEW_CLIP) {
-						if (cur_sc->clip == old_clip || cur_sc->clip == NULL) {
-							cur_sc->clip = clip;
+					if (cur_sc != sc) {
+						if (cur_sc->view == SC_VIEW_CLIP) {
+							if (cur_sc->clip == old_clip)
+								old_clip_visible = true;
+						}
+						else {
+							if (cur_sc->clip == old_clip || cur_sc->clip == NULL) {
+								cur_sc->clip = clip;
+							}
 						}
 					}
 				}
 			}
 		}
+	}
+
+	/* If clip is no longer visible on screen, free memory used by it's cache */
+	if (old_clip && old_clip != clip && !old_clip_visible) {
+		BKE_movieclip_clear_cache(old_clip);
 	}
 
 	if (C)
