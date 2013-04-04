@@ -72,7 +72,7 @@ typedef struct TransSnap {
 	short	target;
 	short	modePoint;
 	short	modeSelect;
-	short	align;
+	bool	align;
 	char	project;
 	char	snap_self;
 	short	peel;
@@ -593,7 +593,7 @@ void flushTransGraphData(TransInfo *t);
 void remake_graph_transdata(TransInfo *t, struct ListBase *anim_data);
 void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);
-int clipUVTransform(TransInfo *t, float *vec, int resize);
+bool clipUVTransform(TransInfo *t, float vec[2], const bool resize);
 void clipUVData(TransInfo *t);
 void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
@@ -628,8 +628,8 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char tex
 
 void constraintNumInput(TransInfo *t, float vec[3]);
 
-int isLockConstraint(TransInfo *t);
-int getConstraintSpaceDimension(TransInfo *t);
+bool isLockConstraint(TransInfo *t);
+int  getConstraintSpaceDimension(TransInfo *t);
 char constraintModeToChar(TransInfo *t);
 
 void startConstraint(TransInfo *t);
@@ -652,21 +652,21 @@ typedef enum {
 void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
-int activeSnap(TransInfo *t);
-int validSnap(TransInfo *t);
+bool activeSnap(TransInfo *t);
+bool validSnap(TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
-int  handleSnapping(TransInfo *t, const struct wmEvent *event);
+bool handleSnapping(TransInfo *t, const struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
-int usingSnappingNormal(TransInfo *t);
-int validSnappingNormal(TransInfo *t);
+bool usingSnappingNormal(TransInfo *t);
+bool validSnappingNormal(TransInfo *t);
 
 void getSnapPoint(TransInfo *t, float vec[3]);
 void addSnapPoint(TransInfo *t);
-int updateSelectedSnapPoint(TransInfo *t);
+bool updateSelectedSnapPoint(TransInfo *t);
 void removeSnapPoint(TransInfo *t);
 
 /********************** Mouse Input ******************************/
@@ -729,8 +729,8 @@ struct TransformOrientation *createMeshSpace(struct bContext *C, struct ReportLi
 struct TransformOrientation *createBoneSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
 
 /* Those two fill in mat and return non-zero on success */
-int createSpaceNormal(float mat[3][3], float normal[3]);
-int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+bool createSpaceNormal(float mat[3][3], const float normal[3]);
+bool createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
 struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
 void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);

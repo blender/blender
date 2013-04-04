@@ -124,13 +124,13 @@ int BIF_snappingSupported(Object *obedit)
 }
 #endif
 
-int validSnap(TransInfo *t)
+bool validSnap(TransInfo *t)
 {
 	return (t->tsnap.status & (POINT_INIT | TARGET_INIT)) == (POINT_INIT | TARGET_INIT) ||
 	       (t->tsnap.status & (MULTI_POINTS | TARGET_INIT)) == (MULTI_POINTS | TARGET_INIT);
 }
 
-int activeSnap(TransInfo *t)
+bool activeSnap(TransInfo *t)
 {
 	return (t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP || (t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT;
 }
@@ -264,9 +264,9 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	}
 }
 
-int  handleSnapping(TransInfo *t, const wmEvent *event)
+bool handleSnapping(TransInfo *t, const wmEvent *event)
 {
-	int status = 0;
+	bool status = false;
 
 #if 0 // XXX need a proper selector for all snap mode
 	if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift) {
@@ -372,7 +372,7 @@ void applySnapping(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
 	t->tsnap.status = 0;
-	t->tsnap.align = 0;
+	t->tsnap.align = false;
 	t->tsnap.project = 0;
 	t->tsnap.mode = 0;
 	t->tsnap.modeSelect = 0;
@@ -387,20 +387,20 @@ void resetSnapping(TransInfo *t)
 	t->tsnap.snapNodeBorder = 0;
 }
 
-int usingSnappingNormal(TransInfo *t)
+bool usingSnappingNormal(TransInfo *t)
 {
 	return t->tsnap.align;
 }
 
-int validSnappingNormal(TransInfo *t)
+bool validSnappingNormal(TransInfo *t)
 {
 	if (validSnap(t)) {
 		if (dot_v3v3(t->tsnap.snapNormal, t->tsnap.snapNormal) > 0) {
-			return 1;
+			return true;
 		}
 	}
 	
-	return 0;
+	return false;
 }
 
 static void initSnappingMode(TransInfo *t)
@@ -603,9 +603,9 @@ void addSnapPoint(TransInfo *t)
 	}
 }
 
-int updateSelectedSnapPoint(TransInfo *t)
+bool updateSelectedSnapPoint(TransInfo *t)
 {
-	int status = 0;
+	bool status = false;
 	if (t->tsnap.status & MULTI_POINTS) {
 		TransSnapPoint *p, *closest_p = NULL;
 		float closest_dist = TRANSFORM_SNAP_MAX_PX;
@@ -628,7 +628,7 @@ int updateSelectedSnapPoint(TransInfo *t)
 		}
 
 		if (closest_p) {
-			status = t->tsnap.selectedPoint == closest_p ? 0 : 1;
+			status = (t->tsnap.selectedPoint != closest_p);
 			t->tsnap.selectedPoint = closest_p;
 		}
 	}

@@ -213,13 +213,13 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 	return addMatrixSpace(C, mat, name, overwrite);
 }
 
-int createSpaceNormal(float mat[3][3], float normal[3])
+bool createSpaceNormal(float mat[3][3], const float normal[3])
 {
 	float tangent[3] = {0.0f, 0.0f, 1.0f};
 	
 	copy_v3_v3(mat[2], normal);
 	if (normalize_v3(mat[2]) == 0.0f) {
-		return 0; /* error return */
+		return false;  /* error return */
 	}
 
 	cross_v3_v3v3(mat[0], mat[2], tangent);
@@ -233,14 +233,14 @@ int createSpaceNormal(float mat[3][3], float normal[3])
 
 	normalize_m3(mat);
 	
-	return 1;
+	return true;
 }
 
-int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
+bool createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 {
 	copy_v3_v3(mat[2], normal);
 	if (normalize_v3(mat[2]) == 0.0f) {
-		return 0; /* error return */
+		return false;  /* error return */
 	}
 	
 	/* preempt zero length tangent from causing trouble */
@@ -250,14 +250,14 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 
 	cross_v3_v3v3(mat[0], mat[2], tangent);
 	if (normalize_v3(mat[0]) == 0.0f) {
-		return 0; /* error return */
+		return false;  /* error return */
 	}
 	
 	cross_v3_v3v3(mat[1], mat[2], mat[0]);
 
 	normalize_m3(mat);
 	
-	return 1;
+	return true;
 }
 
 TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3], char name[], int overwrite)

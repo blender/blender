@@ -557,13 +557,17 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 
 void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
+	/* edit-mode now allows local transforms too */
+#if 0
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		copy_m3_m4(obmat, t->scene->obedit->obmat);
 		normalize_m3(obmat);
 		setConstraint(t, obmat, mode, text);
 	}
-	else {
+	else
+#endif
+	{
 		if (t->total == 1) {
 			setConstraint(t, t->data->axismtx, mode, text);
 		}
@@ -743,37 +747,42 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 static void drawObjectConstraint(TransInfo *t)
 {
-	int i;
-	TransData *td = t->data;
-
 	/* Draw the first one lighter because that's the one who controls the others.
 	 * Meaning the transformation is projected on that one and just copied on the others
 	 * constraint space.
 	 * In a nutshell, the object with light axis is controlled by the user and the others follow.
 	 * Without drawing the first light, users have little clue what they are doing.
 	 */
-	if (t->con.mode & CON_AXIS0) {
-		drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', DRAWLIGHT);
-	}
-	if (t->con.mode & CON_AXIS1) {
-		drawLine(t, td->ob->obmat[3], td->axismtx[1], 'Y', DRAWLIGHT);
-	}
-	if (t->con.mode & CON_AXIS2) {
-		drawLine(t, td->ob->obmat[3], td->axismtx[2], 'Z', DRAWLIGHT);
-	}
+	short options = DRAWLIGHT;
+	TransData *td = t->data;
+	int i;
 
-	td++;
+	for (i = 0; i < t->total; i++, td++) {
+		float co[3];
 
-	for (i = 1; i < t->total; i++, td++) {
+		if (t->flag & T_OBJECT) {
+			copy_v3_v3(co, td->ob->obmat[3]);
+		}
+		else if (t->flag & T_EDIT) {
+			mul_v3_m4v3(co, t->obedit->obmat, td->center);
+		}
+		else if (t->flag & T_POSE) {
+			mul_v3_m4v3(co, t->poseobj->obmat, td->center);
+		}
+		else {
+			copy_v3_v3(co, td->center);
+		}
+
 		if (t->con.mode & CON_AXIS0) {
-			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', 0);
+			drawLine(t, td->center, td->axismtx[0], 'X', options);
 		}
 		if (t->con.mode & CON_AXIS1) {
-			drawLine(t, td->ob->obmat[3], td->axismtx[1], 'Y', 0);
+			drawLine(t, td->center, td->axismtx[1], 'Y', options);
 		}
 		if (t->con.mode & CON_AXIS2) {
-			drawLine(t, td->ob->obmat[3], td->axismtx[2], 'Z', 0);
+			drawLine(t, td->center, td->axismtx[2], 'Z', options);
 		}
+		options &= ~DRAWLIGHT;
 	}
 }
 
@@ -992,20 +1001,20 @@ char constraintModeToChar(TransInfo *t)
 }
 
 
-int isLockConstraint(TransInfo *t)
+bool isLockConstraint(TransInfo *t)
 {
 	int mode = t->con.mode;
 
 	if ((mode & (CON_AXIS0 | CON_AXIS1)) == (CON_AXIS0 | CON_AXIS1))
-		return 1;
+		return true;
 
 	if ((mode & (CON_AXIS1 | CON_AXIS2)) == (CON_AXIS1 | CON_AXIS2))
-		return 1;
+		return true;
 
 	if ((mode & (CON_AXIS0 | CON_AXIS2)) == (CON_AXIS0 | CON_AXIS2))
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 }
 
 /*
