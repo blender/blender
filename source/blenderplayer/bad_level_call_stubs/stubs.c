@@ -253,6 +253,7 @@ struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima) {return (struct ImB
 void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings) {}
 
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene) {}
+struct MovieClip *ED_space_clip_get_clip(struct SpaceClip *sc) {return (struct MovieClip *) NULL;}
 void ED_space_clip_set_clip(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip) {}
 void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask) {}
 void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask) {}
