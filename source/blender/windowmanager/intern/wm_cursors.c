@@ -184,7 +184,7 @@ void WM_cursor_wait(bool val)
 /**
  * \param bounds can be NULL
  */
-void WM_cursor_grab_enable(wmWindow *win, int wrap, int hide, int bounds[4])
+void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 {
 	/* Only grab cursor when not running debug.
 	 * It helps not to get a stuck WM when hitting a breakpoint  

@@ -119,7 +119,7 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(bool val);
-void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int bounds[4]);
+void		WM_cursor_grab_enable(struct wmWindow *win, bool wrap, bool hide, int bounds[4]);
 void		WM_cursor_grab_disable(struct wmWindow *win, int mouse_ungrab_xy[2]);
 void		WM_cursor_time		(struct wmWindow *win, int nr);
 
@@ -154,7 +154,7 @@ struct wmEventHandler *WM_event_add_ui_handler(
 void		WM_event_remove_ui_handler(ListBase *handlers,
                                        int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
                                        void (*remove)(struct bContext *C, void *userdata),
-                                       void *userdata, int postpone);
+                                       void *userdata, const bool postpone);
 void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);

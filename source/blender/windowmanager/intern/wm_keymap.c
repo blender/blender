@@ -972,7 +972,7 @@ static wmKeyMapItem *wm_keymap_item_find(
 
 char *WM_key_event_operator_string(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const short sloppy, char *str, int len)
+        IDProperty *properties, const bool sloppy, char *str, int len)
 {
 	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, 0, sloppy, NULL);
 	

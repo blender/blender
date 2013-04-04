@@ -815,7 +815,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 		if (data->items.more) {
 			data->items.offset++;
 			data->active = data->items.totitem;
-			ui_searchbox_update(C, ar, but, 0);
+			ui_searchbox_update(C, ar, but, false);
 		}
 		else
 			data->active = data->items.totitem;
@@ -824,7 +824,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 		if (data->items.offset) {
 			data->items.offset--;
 			data->active = 1;
-			ui_searchbox_update(C, ar, but, 0);
+			ui_searchbox_update(C, ar, but, false);
 		}
 		else if (data->active < 0)
 			data->active = 0;
@@ -931,14 +931,14 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *eve
 }
 
 /* ar is the search box itself */
-void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
+void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 {
 	uiSearchboxData *data = ar->regiondata;
 	
 	/* reset vars */
 	data->items.totitem = 0;
 	data->items.more = 0;
-	if (reset == 0) {
+	if (reset == false) {
 		data->items.offset_i = data->items.offset;
 	}
 	else {
@@ -2481,7 +2481,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
 
 	if (!but) {
-		handle->popup = 1;
+		handle->popup = true;
 
 		UI_add_popup_handlers(C, &window->modalhandlers, handle);
 		WM_event_add_mousemove(C);
@@ -2536,12 +2536,12 @@ void uiPupMenuEnd(bContext *C, uiPopupMenu *pup)
 	wmWindow *window = CTX_wm_window(C);
 	uiPopupBlockHandle *menu;
 	
-	pup->popup = 1;
+	pup->popup = true;
 	pup->mx = window->eventstate->x;
 	pup->my = window->eventstate->y;
 	
 	menu = ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_POPUP, pup);
-	menu->popup = 1;
+	menu->popup = true;
 	
 	UI_add_popup_handlers(C, &window->modalhandlers, menu);
 	WM_event_add_mousemove(C);
@@ -2737,7 +2737,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, const char *opn
 	uiPopupBlockHandle *handle;
 	
 	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
-	handle->popup = 1;
+	handle->popup = true;
 	handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
 	handle->opcontext = opcontext;
 	
@@ -2756,7 +2756,7 @@ void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_f
 	uiPopupBlockHandle *handle;
 	
 	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
-	handle->popup = 1;
+	handle->popup = true;
 	handle->retvalue = 1;
 
 	handle->popup_arg = arg;
