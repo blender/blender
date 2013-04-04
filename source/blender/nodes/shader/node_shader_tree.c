@@ -272,10 +272,12 @@ void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec)
 void ntreeShaderEndExecTree(bNodeTreeExec *exec)
 {
 	if (exec) {
+		/* exec may get freed, so assign ntree */
+		bNodeTree *ntree = exec->nodetree;
 		ntreeShaderEndExecTree_internal(exec);
 		
 		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-		exec->nodetree->execdata = NULL;
+		ntree->execdata = NULL;
 	}
 }
 
