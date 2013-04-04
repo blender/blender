@@ -365,7 +365,8 @@ typedef struct ViewOpsData {
 	float viewquat[4]; /* working copy of rv3d->viewquat */
 	float trackvec[3];
 	float mousevec[3]; /* dolly only */
-	float reverse, dist0, camzoom0;
+	float reverse;
+	float dist_prev, camzoom_prev;
 	float grid, far;
 	bool axis_snap;  /* view rotate only */
 	float zfac;
@@ -425,8 +426,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 	 * we may want to make this optional but for now its needed always */
 	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
 
-	vod->dist0 = rv3d->dist;
-	vod->camzoom0 = rv3d->camzoom;
+	vod->dist_prev = rv3d->dist;
+	vod->camzoom_prev = rv3d->camzoom;
 	copy_qt_qt(vod->viewquat, rv3d->viewquat);
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
 	vod->origx = vod->oldx = event->x;
@@ -484,7 +485,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 
 				/* find a new ofs value that is along the view axis (rather than the mouse location) */
 				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
-				vod->dist0 = rv3d->dist = len_v3v3(my_pivot, dvec);
+				vod->dist_prev = rv3d->dist = len_v3v3(my_pivot, dvec);
 
 				negate_v3_v3(rv3d->ofs, dvec);
 			}
@@ -1711,7 +1712,7 @@ static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const sho
 	if (use_cam_zoom) {
 		float delta;
 		delta = (x - vod->origx + y - vod->origy) / 10.0f;
-		vod->rv3d->camzoom = vod->camzoom0 + (zoom_invert ? -delta : delta);
+		vod->rv3d->camzoom = vod->camzoom_prev + (zoom_invert ? -delta : delta);
 
 		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 	}
@@ -1746,7 +1747,7 @@ static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const sho
 		len1 = (int)sqrt((ctr[0] - x) * (ctr[0] - x) + (ctr[1] - y) * (ctr[1] - y)) + 5;
 		len2 = (int)sqrt((ctr[0] - vod->origx) * (ctr[0] - vod->origx) + (ctr[1] - vod->origy) * (ctr[1] - vod->origy)) + 5;
 
-		zfac = vod->dist0 * ((float)len2 / len1) / vod->rv3d->dist;
+		zfac = vod->dist_prev * ((float)len2 / len1) / vod->rv3d->dist;
 	}
 	else {  /* USER_ZOOM_DOLLY */
 		float len1, len2;
@@ -1766,11 +1767,11 @@ static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const sho
 		if (use_cam_zoom) {
 			/* zfac is ignored in this case, see below */
 #if 0
-			zfac = vod->camzoom0 * (2.0f * ((len1 / len2) - 1.0f) + 1.0f) / vod->rv3d->camzoom;
+			zfac = vod->camzoom_prev * (2.0f * ((len1 / len2) - 1.0f) + 1.0f) / vod->rv3d->camzoom;
 #endif
 		}
 		else {
-			zfac = vod->dist0 * (2.0f * ((len1 / len2) - 1.0f) + 1.0f) / vod->rv3d->dist;
+			zfac = vod->dist_prev * (2.0f * ((len1 / len2) - 1.0f) + 1.0f) / vod->rv3d->dist;
 		}
 	}
 

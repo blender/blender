@@ -1573,8 +1573,8 @@ static void draw_pose_dofs(Object *ob)
 									
 									for (i = 0; i < 3; i++) {
 										/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
-										amin[i] = (float)sin(pchan->limitmin[i] * 0.5f);
-										amax[i] = (float)sin(pchan->limitmax[i] * 0.5f);
+										amin[i] = sinf(pchan->limitmin[i] * 0.5f);
+										amax[i] = sinf(pchan->limitmax[i] * 0.5f);
 									}
 									
 									glScalef(1.0f, -1.0f, 1.0f);
@@ -1605,8 +1605,8 @@ static void draw_pose_dofs(Object *ob)
 									phi = fac * (pchan->limitmax[2] - pchan->limitmin[2]);
 									
 									i = (a == -16) ? 0 : 1;
-									corner[i][0] = (float)sin(phi);
-									corner[i][1] = (float)cos(phi);
+									corner[i][0] = sinf(phi);
+									corner[i][1] = cosf(phi);
 									corner[i][2] = 0.0f;
 									glVertex3fv(corner[i]);
 								}
@@ -1629,8 +1629,8 @@ static void draw_pose_dofs(Object *ob)
 									
 									i = (a == -16) ? 2 : 3;
 									corner[i][0] = 0.0f;
-									corner[i][1] = (float)sin(phi);
-									corner[i][2] = (float)cos(phi);
+									corner[i][1] = sinf(phi);
+									corner[i][2] = cosf(phi);
 									glVertex3fv(corner[i]);
 								}
 								glEnd();

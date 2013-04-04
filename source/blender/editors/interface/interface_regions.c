@@ -742,8 +742,8 @@ typedef struct uiSearchboxData {
 	uiFontStyle fstyle;
 	uiSearchItems items;
 	int active;     /* index in items array */
-	int noback;     /* when menu opened with enough space for this */
-	int preview;    /* draw thumbnail previews, rather than list */
+	bool noback;    /* when menu opened with enough space for this */
+	bool preview;   /* draw thumbnail previews, rather than list */
 	int prv_rows, prv_cols;
 } uiSearchboxData;
 
@@ -1023,7 +1023,7 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	/* pixel space */
 	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
 
-	if (!data->noback)
+	if (data->noback == false)
 		ui_draw_search_back(NULL, NULL, &data->bbox);  /* style not used yet */
 	
 	/* draw text */
@@ -1136,10 +1136,10 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* special case, hardcoded feature, not draw backdrop when called from menus,
 	 * assume for design that popup already added it */
 	if (but->block->flag & UI_BLOCK_SEARCH_MENU)
-		data->noback = 1;
+		data->noback = true;
 	
 	if (but->a1 > 0 && but->a2 > 0) {
-		data->preview = 1;
+		data->preview = true;
 		data->prv_rows = but->a1;
 		data->prv_cols = but->a2;
 	}

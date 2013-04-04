@@ -2757,8 +2757,8 @@ int Warp(TransInfo *t, const int UNUSED(mval[2]))
 		
 		vec[1] = (vec[1] - cursor[1]);
 		
-		co = (float)cos(phi0);
-		si = (float)sin(phi0);
+		co = cosf(phi0);
+		si = sinf(phi0);
 		loc[0] = -si * vec[1] + cursor[0];
 		loc[1] = co * vec[1] + cursor[1];
 		loc[2] = vec[2];

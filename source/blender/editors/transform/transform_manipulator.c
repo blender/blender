@@ -719,13 +719,13 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 	side_delta = 2.0f * (float)M_PI / (float)nsides;
 
 	theta = (float)M_PI + 0.5f * ring_delta;
-	cos_theta = (float)cos(theta);
-	sin_theta = (float)sin(theta);
+	cos_theta = cosf(theta);
+	sin_theta = sinf(theta);
 
 	for (i = nrings - 1; i >= 0; i--) {
 		theta1 = theta + ring_delta;
-		cos_theta1 = (float)cos(theta1);
-		sin_theta1 = (float)sin(theta1);
+		cos_theta1 = cosf(theta1);
+		sin_theta1 = sinf(theta1);
 
 		if (do_caps && i == start) {  // cap
 			glBegin(GL_POLYGON);
@@ -766,8 +766,8 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 				float cos_phi, sin_phi, dist;
 
 				phi -= side_delta;
-				cos_phi = (float)cos(phi);
-				sin_phi = (float)sin(phi);
+				cos_phi = cosf(phi);
+				sin_phi = sinf(phi);
 				dist = radhole + radring * cos_phi;
 
 				glVertex3f(cos_theta * dist, -sin_theta * dist,  radring * sin_phi);
@@ -1635,15 +1635,18 @@ void BIF_draw_manipulator(const bContext *C)
 		switch (v3d->around) {
 			case V3D_CENTER:
 			case V3D_ACTIVE:
-				rv3d->twmat[3][0] = (scene->twmin[0] + scene->twmax[0]) / 2.0f;
-				rv3d->twmat[3][1] = (scene->twmin[1] + scene->twmax[1]) / 2.0f;
-				rv3d->twmat[3][2] = (scene->twmin[2] + scene->twmax[2]) / 2.0f;
-				if (v3d->around == V3D_ACTIVE && scene->obedit == NULL) {
-					Object *ob = OBACT;
-					if (ob && !(ob->mode & OB_MODE_POSE))
-						copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
+			{
+				Object *ob;
+				if (((v3d->around == V3D_ACTIVE) && (scene->obedit == NULL)) &&
+				    ((ob = OBACT) && !(ob->mode & OB_MODE_POSE)))
+				{
+					copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
+				}
+				else {
+					mid_v3_v3v3(rv3d->twmat[3], scene->twmin, scene->twmax);
 				}
 				break;
+			}
 			case V3D_LOCAL:
 			case V3D_CENTROID:
 				copy_v3_v3(rv3d->twmat[3], scene->twcent);

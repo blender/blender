@@ -1837,8 +1837,8 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 			
 			/* the tilt */
 			normalize_v3(dir);
-			q[0] = (float)cos(0.5 * vec[3]);
-			si = (float)sin(0.5 * vec[3]);
+			q[0] = cosf(0.5 * vec[3]);
+			si = sinf(0.5 * vec[3]);
 			q[1] = -si * dir[0];
 			q[2] = -si * dir[1];
 			q[3] = -si * dir[2];

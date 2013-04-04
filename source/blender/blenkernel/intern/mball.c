@@ -1426,7 +1426,8 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p[0] = 0.5f * (pos[0] + neg[0]);
-			if ((function(p[0], p[1], p[2])) > 0.0f) pos[0] = p[0]; else neg[0] = p[0];
+			if ((function(p[0], p[1], p[2])) > 0.0f) pos[0] = p[0];
+			else                                     neg[0] = p[0];
 		}
 	}
 
@@ -1436,7 +1437,8 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p[1] = 0.5f * (pos[1] + neg[1]);
-			if ((function(p[0], p[1], p[2])) > 0.0f) pos[1] = p[1]; else neg[1] = p[1];
+			if ((function(p[0], p[1], p[2])) > 0.0f) pos[1] = p[1];
+			else                                     neg[1] = p[1];
 		}
 	}
 
@@ -1446,7 +1448,8 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p[2] = 0.5f * (pos[2] + neg[2]);
-			if ((function(p[0], p[1], p[2])) > 0.0f) pos[2] = p[2]; else neg[2] = p[2];
+			if ((function(p[0], p[1], p[2])) > 0.0f) pos[2] = p[2];
+			else                                     neg[2] = p[2];
 		}
 	}
 

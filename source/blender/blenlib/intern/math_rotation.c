@@ -539,9 +539,9 @@ void QuatInterpolW(float *result, float quat1[4], float quat2[4], float t)
 
 		if ((1.0f - cosom) > 0.0001f) {
 			omega = (float)acos(cosom);
-			sinom = (float)sin(omega);
-			sc1 = (float)sin((1.0 - t) * omega) / sinom;
-			sc2 = (float)sin(t * omega) / sinom;
+			sinom = sinf(omega);
+			sc1 = sinf((1.0 - t) * omega) / sinom;
+			sc2 = sinf(t * omega) / sinom;
 		}
 		else {
 			sc1 = 1.0f - t;
@@ -558,8 +558,8 @@ void QuatInterpolW(float *result, float quat1[4], float quat2[4], float t)
 		result[2] = quat2[1];
 		result[3] = -quat2[0];
 
-		sc1 = (float)sin((1.0 - t) * M_PI_2);
-		sc2 = (float)sin(t * M_PI_2);
+		sc1 = sinf((1.0 - t) * M_PI_2);
+		sc2 = sinf(t * M_PI_2);
 
 		result[0] = sc1 * quat1[0] + sc2 * result[0];
 		result[1] = sc1 * quat1[1] + sc2 * result[1];
