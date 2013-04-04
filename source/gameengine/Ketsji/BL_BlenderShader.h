@@ -78,7 +78,7 @@ public:
 		// same as VerifyShared
 		return (NULL != mGPUMat);
 	}
-	void				SetProg(bool enable, double time=0.0);
+	void				SetProg(bool enable, double time=0.0, RAS_IRasterizer* rasty=NULL);
 
 	int GetAttribNum();
 	void SetAttribs(class RAS_IRasterizer* ras, const BL_Material *mat);
