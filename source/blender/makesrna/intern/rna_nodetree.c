@@ -6872,6 +6872,11 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_NodeTree_refine");
 	RNA_def_struct_register_funcs(srna, "rna_NodeTree_register", "rna_NodeTree_unregister", NULL);
 
+	prop = RNA_def_property(srna, "view_center", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_sdna(prop, NULL, "view_center");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	
 	/* AnimData */
 	rna_def_animdata_common(srna);
 

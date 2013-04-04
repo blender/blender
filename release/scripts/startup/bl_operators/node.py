@@ -29,10 +29,14 @@ class NodeAddOperator():
     def store_mouse_cursor(context, event):
         space = context.space_data
         v2d = context.region.view2d
+        tree = space.edit_tree
 
         # convert mouse position to the View2D for later node placement
-        space.cursor_location = v2d.region_to_view(event.mouse_region_x,
+        if context.region.type == 'WINDOW':
+            space.cursor_location = v2d.region_to_view(event.mouse_region_x,
                                                    event.mouse_region_y)
+        else:
+            space.cursor_location = tree.view_center
 
     def create_node(self, context, node_type):
         space = context.space_data

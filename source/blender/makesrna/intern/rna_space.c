@@ -3356,7 +3356,8 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
 	/* the mx/my "cursor" in the node editor is used only by operators to store the mouse position */
-	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
 	RNA_def_property_ui_text(prop, "Cursor Location", "Location for adding new nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
