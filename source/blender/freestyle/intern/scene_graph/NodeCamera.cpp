@@ -51,11 +51,13 @@ NodeCamera::NodeCamera(CameraType camera_type) : camera_type_(camera_type)
 	loadIdentity(projection_matrix_);
 }
 
+#if 0  /* UNUSED, gives warning in gcc */
 NodeCamera::NodeCamera(const NodeCamera& iBrother) : camera_type_(iBrother.camera_type_)
 {
 	memcpy(modelview_matrix_, iBrother.modelview_matrix_, 16 * sizeof(double));
 	memcpy(projection_matrix_, iBrother.projection_matrix_, 16 * sizeof(double));
 }
+#endif
 
 void NodeCamera::accept(SceneVisitor& v)
 {

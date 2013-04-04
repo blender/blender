@@ -580,16 +580,19 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				}
 				SEQ_END
 			}
+			/* TODO, keep this or not? - campbell */
+#if 0
 			{
 				SceneRenderLayer *srl = scene->r.layers.first;
 
 				for(; srl; srl = srl->next) {
-					FreestyleModuleConfig* module = srl->freestyleConfig.modules.first;
+					FreestyleModuleConfig *module = srl->freestyleConfig.modules.first;
 					for (; module; module = module->next) {
 						rewrite_path_fixed(module->module_path, visit_cb, absbase, bpath_user_data);
 					}
  				}
  			}
+#endif
 			break;
 		}
 		case ID_ME:

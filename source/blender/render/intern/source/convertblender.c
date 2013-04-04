@@ -3301,8 +3301,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
 #ifdef WITH_FREESTYLE
-	const int *index_mf_to_mpoly = NULL;
-	const int *index_mp_to_orig = NULL;
 	FreestyleFace *ffa;
 #endif
 
