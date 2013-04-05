@@ -67,7 +67,8 @@ void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContex
 				system->addOperation(zoperation);
 			}
 		}
-	} else {
+	}
+	else {
 		// not full anti alias, use masking for Z combine. be aware it uses anti aliasing.
 		// step 1 create mask
 		MathGreaterThanOperation *maskoperation = new MathGreaterThanOperation();
