@@ -3363,6 +3363,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_orco)
 			mask |= CD_MASK_ORCO;
 
+#ifdef WITH_FREESTYLE
+	mask |= CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
+#endif
+
 	dm= mesh_create_derived_render(re->scene, ob, mask);
 	if (dm==NULL) return;	/* in case duplicated object fails? */
 
