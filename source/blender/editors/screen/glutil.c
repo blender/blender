@@ -540,6 +540,13 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 
 	if (type == GL_FLOAT) {
 		/* need to set internal format to higher range float */
+
+		/* NOTE: this could fail on some drivers, like mesa,
+		 *       but currently this code is only used by color
+		 *       management stuff which already checks on whether
+		 *       it's possible to use GL_RGBA16F_ARB
+		 */
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, tex_w, tex_h, 0, format, GL_FLOAT, NULL);
 	}
 	else {

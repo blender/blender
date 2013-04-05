@@ -60,6 +60,7 @@ typedef struct OCIO_GLSLDrawState {
 	bool lut3d_texture_allocated;  /* boolean flag indicating whether
 	                                * lut texture is allocated
 	                                */
+	bool lut3d_texture_valid;
 
 	GLuint lut3d_texture;  /* OGL texture ID for 3D LUT */
 
@@ -170,12 +171,12 @@ static OCIO_GLSLDrawState *allocateOpenGLState(void)
 }
 
 /* Ensure LUT texture and array are allocated */
-static void ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
+static bool ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
 {
 	int num_3d_entries = 3 * LUT3D_EDGE_SIZE * LUT3D_EDGE_SIZE * LUT3D_EDGE_SIZE;
 
 	if (state->lut3d_texture_allocated)
-		return;
+		return state->lut3d_texture_valid;
 
 	glGenTextures(1, &state->lut3d_texture);
 
@@ -188,11 +189,22 @@ static void ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	/* clean glError buffer */
+	while (glGetError() != GL_NO_ERROR) {}
+
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
 	             LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE,
 	             0, GL_RGB,GL_FLOAT, &state->lut3d);
 
 	state->lut3d_texture_allocated = true;
+
+	/* GL_RGB16F_ARB could be not supported at some drivers
+	 * in this case we could not use GLSL display
+	 */
+	state->lut3d_texture_valid = glGetError() == GL_NO_ERROR;
+
+	return state->lut3d_texture_valid;
 }
 
 /**
@@ -218,7 +230,12 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 	glGetIntegerv(GL_TEXTURE_2D, &state->last_texture);
 	glGetIntegerv(GL_ACTIVE_TEXTURE, &state->last_texture_unit);
 
-	ensureLUT3DAllocated(state);
+	if (!ensureLUT3DAllocated(state)) {
+		glActiveTexture(state->last_texture_unit);
+		glBindTexture(GL_TEXTURE_2D, state->last_texture);
+
+		return false;
+	}
 
 	/* Step 1: Create a GPU Shader Description */
 	GpuShaderDesc shaderDesc;
