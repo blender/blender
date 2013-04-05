@@ -38,9 +38,11 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_main.h"
+#include "BKE_image.h"
 
 #include "ED_sculpt.h"
 #include "ED_screen.h"
+#include "ED_image.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -447,11 +449,16 @@ static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 
 /***** Stencil Control *****/
 
-enum {
+typedef enum {
 STENCIL_TRANSLATE,
 STENCIL_SCALE,
 STENCIL_ROTATE
 } StencilControlMode;
+
+typedef enum {
+STENCIL_CONSTRAINT_X = 1,
+STENCIL_CONSTRAINT_Y = 2
+} StencilConstraint;
 
 typedef struct {
 	float init_mouse[2];
@@ -460,7 +467,8 @@ typedef struct {
 	float init_rot;
 	float init_angle;
 	float lenorig;
-	int mode;
+	StencilControlMode mode;
+	StencilConstraint constrain_mode;
 	Brush *br;
 } StencilControlData;
 
@@ -523,8 +531,11 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
 						len = len_v2(mdiff);
 						factor = len / scd->lenorig;
-						mdiff[0] = factor * scd->init_sdim[0];
-						mdiff[1] = factor * scd->init_sdim[1];
+						copy_v2_v2(mdiff, scd->init_sdim);
+						if (scd->constrain_mode != STENCIL_CONSTRAINT_Y)
+							mdiff[0] = factor * scd->init_sdim[0];
+						if (scd->constrain_mode != STENCIL_CONSTRAINT_X)
+							mdiff[1] = factor * scd->init_sdim[1];
 						copy_v2_v2(scd->br->stencil_dimension, mdiff);
 						break;
 					}
@@ -557,6 +568,23 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 				WM_event_add_notifier(C, NC_WINDOW, NULL);
 				return OPERATOR_CANCELLED;
 			}
+		case XKEY:
+			if (event->val == KM_PRESS) {
+
+				if (scd->constrain_mode == STENCIL_CONSTRAINT_X)
+					scd->constrain_mode = 0;
+				else
+					scd->constrain_mode = STENCIL_CONSTRAINT_X;
+			}
+			break;
+		case YKEY:
+			if (event->val == KM_PRESS) {
+				if (scd->constrain_mode == STENCIL_CONSTRAINT_Y)
+					scd->constrain_mode = 0;
+				else
+					scd->constrain_mode = STENCIL_CONSTRAINT_Y;
+			}
+			break;
 		default:
 			break;
 	}
@@ -599,6 +627,48 @@ static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "mode", stencil_control_items, 0, "Tool", "");
 }
 
+
+static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Paint *paint = paint_get_active_from_context(C);
+	Brush *br = paint_brush(paint);
+	Tex *tex = (br)? br->mtex.tex : NULL;
+
+	if (tex && tex->type == TEX_IMAGE && tex->ima) {
+		float aspx, aspy;
+		Image *ima = tex->ima;
+		float orig_area, stencil_area, factor;
+		ED_image_get_uv_aspect(ima, NULL, &aspx, &aspy);
+
+		orig_area = aspx*aspy;
+		stencil_area = br->stencil_dimension[0]*br->stencil_dimension[1];
+
+		factor = sqrt(stencil_area/orig_area);
+
+		br->stencil_dimension[0] = factor*aspx;
+		br->stencil_dimension[1] = factor*aspy;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+
+static void BRUSH_OT_stencil_fit_image_aspect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Image Aspect";
+	ot->description = "Adjust the stencil size to fit image aspect ratio";
+	ot->idname = "BRUSH_OT_stencil_fit_image_aspect";
+
+	/* api callbacks */
+	ot->exec = stencil_fit_image_aspect_exec;
+	ot->poll = stencil_control_poll;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+
 static void ed_keymap_stencil(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
@@ -622,6 +692,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(BRUSH_OT_curve_preset);
 	WM_operatortype_append(BRUSH_OT_reset);
 	WM_operatortype_append(BRUSH_OT_stencil_control);
+	WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
 
 	/* note, particle uses a different system, can be added with existing operators in wm.py */
 	WM_operatortype_append(PAINT_OT_brush_select);

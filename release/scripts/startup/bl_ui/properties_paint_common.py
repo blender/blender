@@ -82,6 +82,9 @@ def brush_texture_settings(layout, brush, sculpt):
     else:
         layout.row().prop(tex_slot, "tex_paint_map_mode", text="")
         layout.separator()
+    
+    if tex_slot.map_mode == 'STENCIL':
+        layout.operator("brush.stencil_fit_image_aspect")
 
     # angle and texture_angle_source
     col = layout.column()

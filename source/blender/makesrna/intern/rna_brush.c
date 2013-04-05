@@ -793,13 +793,13 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Autosmooth", "Amount of smoothing to automatically apply to each stroke");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "stencil_pos", PROP_FLOAT, PROP_DISTANCE);
+	prop = RNA_def_property(srna, "stencil_pos", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "stencil_pos");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Stencil Position", "Position of stencil in viewport");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "stencil_dimension", PROP_FLOAT, PROP_DISTANCE);
+	prop = RNA_def_property(srna, "stencil_dimension", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "stencil_dimension");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Stencil Dimensions", "Dimensions of stencil in viewport");
