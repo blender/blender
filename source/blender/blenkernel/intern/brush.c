@@ -541,9 +541,9 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 			y = flen * sinf(angle);
 		}
 
-		if (fabs(x) > br->stencil_dimension[0] || fabs(y) > br->stencil_dimension[1]) {
-			rgba[0] = rgba[1] = rgba[2] = rgba[3] = 0.0;
-			return 0.0;
+		if (fabsf(x) > br->stencil_dimension[0] || fabsf(y) > br->stencil_dimension[1]) {
+			zero_v4(rgba);
+			return 0.0f;
 		}
 		x /= (br->stencil_dimension[0]);
 		y /= (br->stencil_dimension[1]);

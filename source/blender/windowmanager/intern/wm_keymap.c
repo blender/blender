@@ -964,10 +964,12 @@ static wmKeyMapItem *wm_keymap_item_find(
 			RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
 
 			if (WM_operator_properties_default(&opptr, true) ||
-			    (ot->prop && RNA_property_is_set(&opptr, ot->prop))) {
+			    (ot->prop && RNA_property_is_set(&opptr, ot->prop)))
+			{
 				/* for operator that has enum menu, unset it so it always matches */
-				if (ot->prop)
+				if (ot->prop) {
 					RNA_property_unset(&opptr, ot->prop);
+				}
 
 				found = wm_keymap_item_find_props(C, opname, opcontext, properties_default, 0, hotkey, keymap_r);
 			}
