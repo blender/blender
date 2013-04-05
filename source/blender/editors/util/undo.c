@@ -186,6 +186,11 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 			//#ifdef WITH_PYTHON
 			// XXX		BPY_scripts_clear_pyobjects();
 			//#endif
+			
+			/* for global undo/redo we should just clear the editmode stack */
+			/* for example, texface stores image pointers */
+			undo_editmode_clear();
+			
 			if (undoname)
 				BKE_undo_name(C, undoname);
 			else
