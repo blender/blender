@@ -758,7 +758,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			 * also display the info on CPU, when using 1 tile only
 			 */
 
-			int sample = progress.get_sample(), num_samples = tile_manager.state.num_samples;
+			int sample = progress.get_sample(), num_samples = tile_manager.num_samples;
 
 			if(tile > 1) {
 				/* sample counter is global for all tiles, subtract samples
@@ -771,10 +771,10 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			substatus += string_printf(", Sample %d/%d", sample, num_samples);
 		}
 	}
-	else if(params.samples == INT_MAX)
+	else if(tile_manager.num_samples == INT_MAX)
 		substatus = string_printf("Path Tracing Sample %d", sample+1);
 	else
-		substatus = string_printf("Path Tracing Sample %d/%d", sample+1, params.samples);
+		substatus = string_printf("Path Tracing Sample %d/%d", sample+1, tile_manager.num_samples);
 	
 	if(show_pause)
 		status = "Paused";
@@ -846,7 +846,7 @@ void Session::tonemap()
 bool Session::update_progressive_refine(bool cancel)
 {
 	int sample = tile_manager.state.sample + 1;
-	bool write = sample == params.samples || cancel;
+	bool write = sample == tile_manager.num_samples || cancel;
 
 	double current_time = time_dt();
 

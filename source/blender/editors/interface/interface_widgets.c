@@ -2506,8 +2506,8 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 	
 	/* make the progress bar a proportion of the original height */
 	/* hardcoded 4px high for now */
-	rect_prog.ymax = rect_prog.ymin + 4;
-	rect_bar.ymax = rect_bar.ymin + 4;
+	rect_prog.ymax = rect_prog.ymin + 4 * UI_DPI_FAC;
+	rect_bar.ymax = rect_bar.ymin + 4 * UI_DPI_FAC;
 	
 	w = value * BLI_rcti_size_x(&rect_prog);
 	
@@ -2520,8 +2520,8 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 	uiWidgetScrollDraw(wcol, &rect_prog, &rect_bar, UI_SCROLL_NO_OUTLINE);
 	
 	/* raise text a bit */
-	rect->ymin += 6;
-	rect->xmin -= 6;
+	rect->ymin += 6 * UI_DPI_FAC;
+	rect->xmin -= 6 * UI_DPI_FAC;
 }
 
 static void widget_link(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))

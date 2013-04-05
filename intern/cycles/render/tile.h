@@ -58,6 +58,8 @@ public:
 		list<Tile> tiles;
 	} state;
 
+	int num_samples;
+
 	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
 	            bool preserve_tile_device, bool background, int tile_order, int num_devices = 1);
 	~TileManager();
@@ -82,7 +84,6 @@ protected:
 	void set_tiles();
 
 	bool progressive;
-	int num_samples;
 	int2 tile_size;
 	int tile_order;
 	int start_resolution;
