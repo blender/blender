@@ -23,8 +23,6 @@
 #include <list>
 #include <stdio.h>
 
-#include "BKE_global.h"
-
 #include "COM_compositor.h"
 #include "COM_WorkScheduler.h"
 #include "COM_CPUDevice.h"
@@ -37,6 +35,8 @@
 
 #include "PIL_time.h"
 #include "BLI_threads.h"
+
+#include "BKE_global.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
 #  ifndef DEBUG  /* test this so we dont get warnings in debug builds */

@@ -38,11 +38,11 @@
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
-
-#include "BLI_listbase.h"
 
 #include "ED_gpencil.h"
 

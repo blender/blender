@@ -45,11 +45,11 @@
 #  include <unistd.h>       // read
 #endif
 
-#include "BLO_readfile.h"
-#include "BLO_runtime.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+
+#include "BLO_readfile.h"
+#include "BLO_runtime.h"
 
 #include "BKE_blender.h"
 #include "BKE_report.h"

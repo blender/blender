@@ -30,7 +30,6 @@
  *  \ingroup blenloader
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -40,13 +39,10 @@
 
 #include "DNA_listBase.h"
 
-
-#include "BLO_undofile.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
-
+#include "BLO_undofile.h"
 
 /* **************** support for memory-write, for undo buffers *************** */
 

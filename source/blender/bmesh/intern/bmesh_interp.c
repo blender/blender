@@ -36,11 +36,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_multires.h"
-
 #include "BLI_array.h"
 #include "BLI_math.h"
+
+#include "BKE_customdata.h"
+#include "BKE_multires.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

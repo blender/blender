@@ -43,12 +43,12 @@
 #endif   
 #include "MEM_guardedalloc.h"
 
-#include "BLO_readfile.h" 
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+
+#include "BLO_readfile.h"
 
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"

@@ -29,9 +29,9 @@
  *  \ingroup shdnodes
  */
 
-#include "BKE_idprop.h"
-
 #include "node_shader_util.h"
+
+#include "BKE_idprop.h"
 
 /* **************** Script ******************** */
 

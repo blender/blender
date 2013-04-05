@@ -37,11 +37,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
-#include "BKE_mask.h"
-
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -51,6 +46,11 @@
 #include "BLI_string.h"
 #include "BLI_rect.h"
 #include "BLI_math_base.h"
+
+#include "BKE_context.h"
+#include "BKE_movieclip.h"
+#include "BKE_tracking.h"
+#include "BKE_mask.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
