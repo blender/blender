@@ -426,13 +426,7 @@ bool VisibilityBasedPreconditioner::Factorize() {
     } else {
       factor_ = ss_.AnalyzeCholesky(lhs);
     }
-
-    if (VLOG_IS_ON(2)) {
-      cholmod_print_common(const_cast<char*>("Symbolic Analysis"), ss_.mutable_cc());
-    }
   }
-
-  CHECK_NOTNULL(factor_);
 
   bool status = ss_.Cholesky(lhs, factor_);
   ss_.Free(lhs);

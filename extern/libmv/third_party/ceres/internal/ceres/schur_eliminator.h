@@ -321,9 +321,25 @@ class SchurEliminator : public SchurEliminatorBase {
   // see the documentation of the Chunk object above.
   vector<Chunk> chunks_;
 
+  // TODO(sameeragarwal): The following two arrays contain per-thread
+  // storage. They should be refactored into a per thread struct.
+
   // Buffer to store the products of the y and z blocks generated
-  // during the elimination phase.
+  // during the elimination phase. buffer_ is of size num_threads *
+  // buffer_size_. Each thread accesses the chunk
+  //
+  //   [thread_id * buffer_size_ , (thread_id + 1) * buffer_size_]
+  //
   scoped_array<double> buffer_;
+
+  // Buffer to store per thread matrix matrix products used by
+  // ChunkOuterProduct. Like buffer_ it is of size num_threads *
+  // buffer_size_. Each thread accesses the chunk
+  //
+  //   [thread_id * buffer_size_ , (thread_id + 1) * buffer_size_]
+  //
+  scoped_array<double> chunk_outer_product_buffer_;
+
   int buffer_size_;
   int num_threads_;
   int uneliminated_row_begins_;

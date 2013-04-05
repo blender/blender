@@ -141,6 +141,7 @@ set(SRC
 	include/ceres/solver.h
 	include/ceres/types.h
 	internal/ceres/array_utils.h
+	internal/ceres/blas.h
 	internal/ceres/block_evaluate_preparer.h
 	internal/ceres/block_jacobian_writer.h
 	internal/ceres/block_jacobi_preconditioner.h

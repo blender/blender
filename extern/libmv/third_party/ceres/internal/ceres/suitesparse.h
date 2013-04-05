@@ -56,8 +56,8 @@ class TripletSparseMatrix;
 // for all cholmod function calls.
 class SuiteSparse {
  public:
-  SuiteSparse()  { cholmod_start(&cc_);  }
-  ~SuiteSparse() { cholmod_finish(&cc_); }
+  SuiteSparse();
+  ~SuiteSparse();
 
   // Functions for building cholmod_sparse objects from sparse
   // matrices stored in triplet form. The matrix A is not

@@ -1,3 +1,185 @@
+commit 520d35ef22dbcb05e344451c03ae64304e524a06
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Apr 4 08:16:02 2013 -0700
+
+    Further BLAS improvements.
+    
+    1. Switch to Eigen's implementation when all dimensions are fixed.
+    2. Use lazyProduct for eigen matrix-vector product. This brings
+       eigen's performance on iterative_schur closer to what it used
+       to be before the last commit. There is however still an
+       improvement to be had by using the naive implementation when
+       the matrix and vector have dynamic dimensions.
+    
+    BENCHMARK
+                                          HEAD                                       CHANGE
+    
+    problem-16-22106-pre.txt
+    gcc-eigen       sparse_schur         0.859    gcc-eigen       sparse_schur        0.853
+    clang-eigen     sparse_schur         0.848    clang-eigen     sparse_schur        0.850
+    gcc-blas        sparse_schur         0.956    gcc-blas        sparse_schur        0.865
+    clang-blas      sparse_schur         0.954    clang-blas      sparse_schur        0.858
+    gcc-eigen       iterative_schur      4.656    gcc-eigen       iterative_schur     3.271
+    clang-eigen     iterative_schur      4.664    clang-eigen     iterative_schur     3.307
+    gcc-blas        iterative_schur      2.598    gcc-blas        iterative_schur     2.620
+    clang-blas      iterative_schur      2.554    clang-blas      iterative_schur     2.567
+    
+    problem-49-7776-pre.txt
+    gcc-eigen       sparse_schur         0.477    gcc-eigen       sparse_schur        0.472
+    clang-eigen     sparse_schur         0.475    clang-eigen     sparse_schur        0.479
+    gcc-blas        sparse_schur         0.521    gcc-blas        sparse_schur        0.469
+    clang-blas      sparse_schur         0.508    clang-blas      sparse_schur        0.471
+    gcc-eigen       iterative_schur      3.172    gcc-eigen       iterative_schur     2.088
+    clang-eigen     iterative_schur      3.161    clang-eigen     iterative_schur     2.079
+    gcc-blas        iterative_schur      1.701    gcc-blas        iterative_schur     1.720
+    clang-blas      iterative_schur      1.708    clang-blas      iterative_schur     1.694
+    
+    problem-245-198739-pre.txt
+    gcc-eigen       sparse_schur        28.092    gcc-eigen       sparse_schur       28.233
+    clang-eigen     sparse_schur        28.148    clang-eigen     sparse_schur       28.400
+    gcc-blas        sparse_schur        30.919    gcc-blas        sparse_schur       28.110
+    clang-blas      sparse_schur        31.001    clang-blas      sparse_schur       28.407
+    gcc-eigen       iterative_schur     63.095    gcc-eigen       iterative_schur    43.694
+    clang-eigen     iterative_schur     63.412    clang-eigen     iterative_schur    43.473
+    gcc-blas        iterative_schur     33.353    gcc-blas        iterative_schur    33.321
+    clang-blas      iterative_schur     33.276    clang-blas      iterative_schur    33.278
+    
+    problem-257-65132-pre.txt
+    gcc-eigen       sparse_schur         3.687    gcc-eigen       sparse_schur        3.629
+    clang-eigen     sparse_schur         3.669    clang-eigen     sparse_schur        3.652
+    gcc-blas        sparse_schur         3.947    gcc-blas        sparse_schur        3.673
+    clang-blas      sparse_schur         3.952    clang-blas      sparse_schur        3.678
+    gcc-eigen       iterative_schur    121.512    gcc-eigen       iterative_schur    76.833
+    clang-eigen     iterative_schur    123.547    clang-eigen     iterative_schur    78.763
+    gcc-blas        iterative_schur     68.334    gcc-blas        iterative_schur    68.612
+    clang-blas      iterative_schur     67.793    clang-blas      iterative_schur    68.266
+    
+    Notes:
+    
+    1. Naive BLAS was a bit worse than eigen on fixed sized matrices. We did not see this
+       before because of the different inlining thresholds. Fixing this boosted eigen's
+       performance. Also the disparity between gcc and clang has gone away.
+    
+    2. SPARSE_SCHUR performance remains the same, since it is only testing static sized
+       matrices.
+    
+    3. ITERATIVE_SCHUR performance goes up substantially due to the lazyProduct change,
+       but even there, since most of the products are dynamic sized, the naive implementation
+       wins handily.
+    
+    Change-Id: Idc17f35b9c68aaebb1b2e131adf3af8374a85a4c
+
+commit 25ac54807eedf16fd6c34efc390901ee549a7d14
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Apr 3 18:51:27 2013 -0700
+
+    Speed up Jets.
+    
+    Change-Id: I101bac1b1a1cf72ca49ffcf843b73c0ef5a6dfcb
+
+commit 3d6eceb45cf27024865908f0c10a5c2b0f8719cf
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 2 21:45:48 2013 -0700
+
+    Replace more instances of Eigen GEMV with Ceres BLAS.
+    
+    With this ITERATIVE_SCHUR with JACOBI preconditioner went down from
+    280 seconds to 150 seconds on problem-744-543562-pre.txt.
+    
+    Change-Id: I4f319c1108421e8d59f58654a4c0576ad65df609
+
+commit 296fa9b1279ee1900c8ae32d70e97cd10fc0b46b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 2 09:44:15 2013 -0700
+
+    Replace Eigen block operations with small GEMM and GEMV loops.
+    
+    1. Add Matrix-Matrix and Matrix-Vector multiply functions.
+    2. Replace Eigen usage in SchurEliminator with these custom
+       matrix operations.
+    3. Save on some memory allocations in ChunkOuterProduct.
+    4. Replace LDLT with LLT.
+    
+    As a result on problem-16-22106-pre.txt, the linear solver time
+    goes down from 1.2s to 0.64s.
+    
+    Change-Id: I2daa667960e0a1e8834489965a30be31f37fd87f
+
+commit 222ca20e8facf706582fe696b7f41247391eac12
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Apr 1 09:11:07 2013 -0700
+
+    SuiteSparse cleanup.
+    
+    1. Silence CHOLMOD's indefiniteness warnings.
+    2. Add a comment about how the error handling in suitesparse.cc
+       needs to be improved.
+    3. Move the analysis logging into suitesparse.cc and out of the
+       three callsites.
+    
+    Change-Id: Idd396b8ea4bf59fc1ffc7f9fcbbc7b38ed71643c
+
+commit b7ba93459b7f584eedb1a9f42f3d06bccabd33dc
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Tue Feb 19 12:52:58 2013 +0100
+
+    Enable larger tuple sizes for Visual Studio 2012.
+    
+    Visual Studio 2012 does not have variadic templates and implements
+    tuples differently. By default, only sizes up to 5 are supported,
+    which conflicts with Gtest.
+    
+    Change-Id: Ieb8d59e4329863cbfa2729d8a76db0714c08d259
+
+commit 564a83fcc690ac8383bf52a782c45757ae7fa2ad
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Mar 26 11:11:43 2013 -0700
+
+    Lint cleanup from William Rucklidge.
+    
+    Change-Id: I8d4a0aa3e264775d20e99a6b5265f3023de92560
+
+commit cbe64827becbbaab5b435a71bf00353b4ddd026b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 25 17:39:53 2013 -0700
+
+    Update documentation
+    
+    Change-Id: Iea3c4b5409e593b1fb070a491ba8a479db32ca58
+
+commit 802639c89603c9541e624766349d1989a1f641c0
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Mon Mar 25 20:53:45 2013 -0700
+
+    ceresproblem label was incorrect
+    
+    Change-Id: I3e210375adba4fa50ff3c25398b20a65d241cb35
+
+commit 6bcb8d9c304a3b218f8788018dfdfe368bb7d60c
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Mon Mar 25 16:40:26 2013 -0700
+
+    Compiling against static or shared library
+    
+    Change-Id: I3fb35e9a49f90b8894f59dde49c90a7c2dd74b0a
+
+commit 619cfe692020c078275b68eac2167232fafdfffb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 25 14:03:41 2013 -0700
+
+    Update version history
+    
+    Change-Id: I1d036efad1507efd19d8581f147b38170b1f0543
+
+commit 6ae34757850a5fa8213e0d1a540d9d75d6840a08
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Sun Mar 24 22:30:52 2013 -0700
+
+    Added documentation regarding the use of Ceres with cmake (once installed)
+    Commets about the flag ``BUILD_DOCUMENTATION=ON``
+    
+    Change-Id: I8814927e60af190c8043bfc36e77fe76bfe6f562
+
 commit f46de9e697eb5b8756084615e29ded48600a4d39
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Mar 21 15:31:35 2013 +0600
@@ -437,171 +619,3 @@ Date:   Sun Feb 24 14:15:45 2013 -0800
     Minor release script fixes.
     
     Change-Id: Ifd0a7f4f584c85d4d9574eca46094b372a8d7aff
-
-commit b53c9667f508c125b8aa833e7a063fa44ef8a98e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Feb 25 01:14:26 2013 +0600
-
-    Solve No Previous Prototype GCC warning
-    
-    In some cases there were missing includes of own
-    header files from implementation files.
-    
-    In other cases moved function which are only used
-    within single file into an anonymous namespace.
-    
-    Change-Id: I2c6b411bcfbc521e2a5f21265dc8e009a548b1c8
-
-commit 267ccc45a3e875bf87832a8ad615be690b4926d3
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Feb 25 01:04:16 2013 +0600
-
-    Fix for MinGW build on Windows
-    
-    GG_LONGLONG and GG_ULONGLONG shall use LL and ULL suffixes,
-    since MinGW is actuall a GCC compiler.
-    
-    Solved by checking whether compilation happens with MinGW
-    or not using standard MinGW's __MINGW32__ and __MINGW64__
-    definitions.
-    
-    Change-Id: I789b34f6342a56ba42f4b280f7242700022ab7a1
-
-commit 509f68cfe3fd13b794c4e67ff38c761407c858cf
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Feb 20 01:39:03 2013 -0800
-
-    Problem::Evaluate implementation.
-    
-    1. Add Problem::Evaluate and tests.
-    2. Remove Solver::Summary::initial/final_*
-    3. Remove Solver::Options::return_* members.
-    4. Various cpplint cleanups.
-    
-    Change-Id: I4266de53489896f72d9c6798c5efde6748d68a47
-
-commit d4a0bf86d688d1b68e00ff302858de5a4e0d9727
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Feb 24 10:35:44 2013 -0800
-
-    Fix threading build on Windows.
-    
-    On Windows, including the "windows.h" header defines an enormous number of
-    symbols; some of which are macros with common names. In particular, "ERROR" and
-    "min" and "max" get defined. This causes clashes when user code references
-    these names in a context other than the intended use in windows.h.
-    
-    To deal with this, the Microsoft engineers added the ability to control the
-    definition of these symbols by adding extra defines. In particular, including
-    windows.h in the following way
-    
-      #define NOGDI
-      #define NOMINMAX
-    
-    will reduce the number of macros defined. This way they will not conflict with
-    other uses in Ceres. For example, numeric_limits<double>::max() is impossible
-    to call without defining NOMINMAX.
-    
-    Change-Id: I166f5d3bb6dc0e2e4b2ebf800fb19e49206f7874
-
-commit beb4505311011130a7e54632137b0fbb5824cc9b
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Feb 22 13:37:01 2013 -0800
-
-    Minor fixes
-    
-    Based on William Rucklidge's review, including
-    a nasty bug in parameter block removal.
-    
-    Change-Id: I3a692e589f600ff560ecae9fa85bb0b76063d403
-
-commit 9a88bd7c4b40e2a1e0cd9b0dc09a3517c467e04e
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Feb 19 13:09:12 2013 -0800
-
-    Minor bug fixes
-    
-    Change-Id: I94e4521adf76a6c77db954c4a8955168e9d37b55
-
-commit 956ed7e8f2054623615e6ae3601055d613897f26
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Feb 19 07:06:15 2013 -0800
-
-    Various minor fixes.
-    
-    1. Unused variable warnings and fixes.
-    2. Minor documentation update.
-    
-    Change-Id: I815588a5806df1030a7c8750f4fb594c503f8998
-
-commit 3e2c4ef9ad35e94198f4f3367b99fd91e26996a1
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Feb 17 12:37:55 2013 -0800
-
-    Add adapters for column/row-major matrices to rotation.h
-    
-    This patch introduces a matrix wrapper (MatrixAdapter) that allows to
-    transparently pass pointers to row-major or column-major matrices
-    to the conversion functions.
-    
-    Change-Id: I7f1683a8722088cffcc542f593ce7eb46fca109b
-
-commit 04938efe4bedec112083c5ceb227ba004f96bd01
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Feb 17 12:37:55 2013 -0800
-
-    Add support for removing parameter and residual blocks.
-    
-    This adds support for removing parameter and residual blocks.
-    There are two modes of operation: in the first, removals of
-    paremeter blocks are expensive, since each remove requires
-    scanning all residual blocks to find ones that depend on the
-    removed parameter. In the other, extra memory is sacrificed to
-    maintain a list of the residuals a parameter block depends on,
-    removing the need to scan. In both cases, removing residual blocks
-    is fast.
-    
-    As a caveat, any removals destroys the ordering of the parameters,
-    so the residuals or jacobian returned from Solver::Solve() is
-    meaningless. There is some debate on the best way to handle this;
-    the details remain for a future change.
-    
-    This also adds some overhead, even in the case that fast removals
-    are not requested:
-    
-    - 1 int32 to each residual, to track its position in the program.
-    - 1 pointer to each parameter, to store the dependent residuals.
-    
-    Change-Id: I71dcac8656679329a15ee7fc12c0df07030c12af
-
-commit fa21df8cd969bb257b87c9ef7c0147d8d5ea8725
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Feb 18 08:48:52 2013 -0800
-
-    Add script for building documentation.
-    
-    Update make_release
-    
-    Minor documentation fixes.
-    
-    Change-Id: I1248ec3f58be66b5929aee6f2aa392c15d53ed83
-
-commit 290b975d1d4eba44205bbeb0fa6b3ce8a6fa4a0c
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Feb 17 16:50:37 2013 -0800
-
-    Preconditioner refactoring.
-    
-    1. Added a Preconditioner interface.
-    2. SCHUR_JACOBI is now its own class and is independent of
-    SuiteSparse.
-    
-    Change-Id: Id912ab19cf3736e61d1b90ddaf5bfba33e877ec4
-
-commit d010de543530001fa917501a13ba02879c8ea52f
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Feb 15 14:26:56 2013 -0800
-
-    Solver::Summary::FullReport() supports line search now.
-    
-    Change-Id: Ib08d300198b85d9732cfb5785af4235ca4bd5226
