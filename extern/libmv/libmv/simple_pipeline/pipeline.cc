@@ -18,10 +18,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/pipeline.h"
+
 #include <cstdio>
 
 #include "libmv/logging/logging.h"
-#include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/intersect.h"
 #include "libmv/simple_pipeline/resect.h"
@@ -92,6 +93,9 @@ struct ProjectivePipelineRoutines {
   static bool Resect(const ReconstructionOptions &options,
                      const vector<Marker> &markers,
                      ProjectiveReconstruction *reconstruction, bool final_pass) {
+    (void) options;  // Ignored.
+    (void) final_pass;  // Ignored.
+
     return ProjectiveResect(markers, reconstruction);
   }
 
@@ -120,17 +124,19 @@ struct ProjectivePipelineRoutines {
 
 }  // namespace
 
-static void CompleteReconstructionLogProress(ProgressUpdateCallback *update_callback,
+static void CompleteReconstructionLogProress(
+    ProgressUpdateCallback *update_callback,
     double progress,
-    const char *step = NULL)
-{
-  if(update_callback) {
+    const char *step = NULL) {
+  if (update_callback) {
     char message[256];
 
-    if(step)
-      snprintf(message, sizeof(message), "Completing solution %d%% | %s", (int)(progress*100), step);
+    if (step)
+      snprintf(message, sizeof(message), "Completing solution %d%% | %s",
+               (int)(progress*100), step);
     else
-      snprintf(message, sizeof(message), "Completing solution %d%%", (int)(progress*100));
+      snprintf(message, sizeof(message), "Completing solution %d%%",
+               (int)(progress*100));
 
     update_callback->invoke(progress, message);
   }
@@ -207,7 +213,8 @@ void InternalCompleteReconstruction(
       if (reconstructed_markers.size() >= 5) {
         CompleteReconstructionLogProress(update_callback,
                                          (double)tot_resects/(max_image));
-        if (PipelineRoutines::Resect(options, reconstructed_markers, reconstruction, false)) {
+        if (PipelineRoutines::Resect(options, reconstructed_markers,
+                                     reconstruction, false)) {
           num_resects++;
           tot_resects++;
           LG << "Ran Resect() for image " << image;
@@ -243,7 +250,8 @@ void InternalCompleteReconstruction(
     if (reconstructed_markers.size() >= 5) {
       CompleteReconstructionLogProress(update_callback,
                                        (double)tot_resects/(max_image));
-      if (PipelineRoutines::Resect(options, reconstructed_markers, reconstruction, true)) {
+      if (PipelineRoutines::Resect(options, reconstructed_markers,
+                                   reconstruction, true)) {
         num_resects++;
         LG << "Ran final Resect() for image " << image;
       } else {
@@ -260,9 +268,10 @@ void InternalCompleteReconstruction(
 }
 
 template<typename PipelineRoutines>
-double InternalReprojectionError(const Tracks &image_tracks,
-                                 const typename PipelineRoutines::Reconstruction &reconstruction,
-                                 const CameraIntrinsics &intrinsics) {
+double InternalReprojectionError(
+        const Tracks &image_tracks,
+        const typename PipelineRoutines::Reconstruction &reconstruction,
+        const CameraIntrinsics &intrinsics) {
   int num_skipped = 0;
   int num_reprojected = 0;
   double total_error = 0.0;

@@ -54,4 +54,20 @@ class ZCombineAlphaOperation : public ZCombineOperation {
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class ZCombineMaskOperation : public NodeOperation {
+protected:
+	SocketReader *m_maskReader;
+	SocketReader *m_image1Reader;
+	SocketReader *m_image2Reader;
+public:
+	ZCombineMaskOperation();
+
+	void initExecution();
+	void deinitExecution();
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+};
+class ZCombineMaskAlphaOperation : public ZCombineMaskOperation {
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+};
+
 #endif

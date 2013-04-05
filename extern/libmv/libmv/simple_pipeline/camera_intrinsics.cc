@@ -25,7 +25,7 @@ namespace libmv {
 
 struct Offset {
   short ix, iy;
-  unsigned char fx,fy;
+  unsigned char fx, fy;
 };
 
 struct Grid {
@@ -34,8 +34,7 @@ struct Grid {
   double overscan;
 };
 
-static struct Grid *copyGrid(struct Grid *from)
-{
+static struct Grid *copyGrid(struct Grid *from) {
   struct Grid *to = NULL;
 
   if (from) {
@@ -74,8 +73,7 @@ CameraIntrinsics::CameraIntrinsics(const CameraIntrinsics &from)
       k3_(from.k3_),
       p1_(from.p1_),
       p2_(from.p2_),
-      threads_(from.threads_)
-{
+      threads_(from.threads_) {
   distort_ = copyGrid(from.distort_);
   undistort_ = copyGrid(from.undistort_);
 }
@@ -122,9 +120,8 @@ void CameraIntrinsics::SetTangentialDistortion(double p1, double p2) {
   FreeLookupGrid();
 }
 
-void CameraIntrinsics::SetThreads(int threads)
-{
-	threads_ = threads;
+void CameraIntrinsics::SetThreads(int threads) {
+  threads_ = threads;
 }
 
 void CameraIntrinsics::ApplyIntrinsics(double normalized_x,
@@ -189,68 +186,76 @@ void CameraIntrinsics::InvertIntrinsics(double image_x,
 
 // TODO(MatthiasF): downsample lookup
 template<typename WarpFunction>
-void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height, double overscan) {
+void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height,
+                                         double overscan) {
   double w = (double)width / (1 + overscan);
   double h = (double)height / (1 + overscan);
   double aspx = (double)w / image_width_;
   double aspy = (double)h / image_height_;
-
+#if defined(_OPENMP)
   #pragma omp parallel for schedule(dynamic) num_threads(threads_) if (threads_ > 1 && height > 100)
+#endif
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      double src_x = (x - 0.5 * overscan * w) / aspx, src_y = (y - 0.5 * overscan * h) / aspy;
+      double src_x = (x - 0.5 * overscan * w) / aspx,
+             src_y = (y - 0.5 * overscan * h) / aspy;
       double warp_x, warp_y;
-      WarpFunction(this,src_x,src_y,&warp_x,&warp_y);
+      WarpFunction(this, src_x, src_y, &warp_x, &warp_y);
       warp_x = warp_x*aspx + 0.5 * overscan * w;
       warp_y = warp_y*aspy + 0.5 * overscan * h;
       int ix = int(warp_x), iy = int(warp_y);
       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
-      if(fx == 256) { fx=0; ix++; }
-      if(fy == 256) { fy=0; iy++; }
+      if (fx == 256) { fx = 0; ix++; }  // NOLINT
+      if (fy == 256) { fy = 0; iy++; }  // NOLINT
       // Use nearest border pixel
-      if( ix < 0 ) { ix = 0, fx = 0; }
-      if( iy < 0 ) { iy = 0, fy = 0; }
-      if( ix >= width-2 ) ix = width-2;
-      if( iy >= height-2 ) iy = height-2;
+      if (ix < 0) { ix = 0, fx = 0; }  // NOLINT
+      if (iy < 0) { iy = 0, fy = 0; }  // NOLINT
+      if (ix >= width - 2) ix = width-2;
+      if (iy >= height - 2) iy = height-2;
 
-      Offset offset = { (short)(ix-x), (short)(iy-y), (unsigned char)fx, (unsigned char)fy };
+      Offset offset = { (short)(ix-x), (short)(iy-y),
+                        (unsigned char)fx, (unsigned char)fy };
       grid->offset[y*width+x] = offset;
     }
   }
 }
 
 // TODO(MatthiasF): cubic B-Spline image sampling, bilinear lookup
-template<typename T,int N>
+template<typename T, int N>
 static void Warp(const Grid* grid, const T* src, T* dst,
                  int width, int height, int threads) {
+  (void) threads;  // Ignored if OpenMP is disabled
+#if defined(_OPENMP)
   #pragma omp parallel for schedule(dynamic) num_threads(threads) if (threads > 1 && height > 100)
+#endif
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       Offset offset = grid->offset[y*width+x];
       const T* s = &src[((y+offset.iy)*width+(x+offset.ix))*N];
       for (int i = 0; i < N; i++) {
-        dst[(y*width+x)*N+i] = ((s[        i] * (256-offset.fx) + s[        N+i] * offset.fx) * (256-offset.fy)
-                               +(s[width*N+i] * (256-offset.fx) + s[width*N+N+i] * offset.fx) * offset.fy) / (256*256);
+        dst[(y*width+x)*N+i] = ((s[        i] * (256-offset.fx) + s[        N+i] * offset.fx) * (256-offset.fy)         // NOLINT
+                               +(s[width*N+i] * (256-offset.fx) + s[width*N+N+i] * offset.fx) * offset.fy) / (256*256); // NOLINT
       }
     }
   }
 }
 
 void CameraIntrinsics::FreeLookupGrid() {
-  if(distort_) {
+  if (distort_) {
     delete distort_->offset;
     delete distort_;
     distort_ = NULL;
   }
 
-  if(undistort_) {
+  if (undistort_) {
     delete undistort_->offset;
     delete undistort_;
     undistort_ = NULL;
   }
 }
 
-// FIXME: C++ templates limitations makes thing complicated, but maybe there is a simpler method.
+// FIXME: C++ templates limitations makes thing complicated,
+//        but maybe there is a simpler method.
 struct ApplyIntrinsicsFunction {
   ApplyIntrinsicsFunction(CameraIntrinsics* intrinsics, double x, double y,
                            double *warp_x, double *warp_y) {
@@ -263,16 +268,21 @@ struct ApplyIntrinsicsFunction {
 struct InvertIntrinsicsFunction {
   InvertIntrinsicsFunction(CameraIntrinsics* intrinsics, double x, double y,
                            double *warp_x, double *warp_y) {
-    intrinsics->InvertIntrinsics(x,y,warp_x,warp_y);
-    *warp_x = *warp_x*intrinsics->focal_length_x()+intrinsics->principal_point_x();
-    *warp_y = *warp_y*intrinsics->focal_length_y()+intrinsics->principal_point_y();
+    intrinsics->InvertIntrinsics(x, y, warp_x, warp_y);
+
+    *warp_x = *warp_x * intrinsics->focal_length_x() +
+              intrinsics->principal_point_x();
+
+    *warp_y = *warp_y * intrinsics->focal_length_y() +
+              intrinsics->principal_point_y();
   }
 };
 
-void CameraIntrinsics::CheckDistortLookupGrid(int width, int height, double overscan)
-{
-  if(distort_) {
-    if(distort_->width != width || distort_->height != height || distort_->overscan != overscan) {
+void CameraIntrinsics::CheckDistortLookupGrid(int width, int height,
+                                              double overscan) {
+  if (distort_) {
+    if (distort_->width != width || distort_->height != height ||
+        distort_->overscan != overscan) {
       delete [] distort_->offset;
       distort_->offset = NULL;
     }
@@ -281,9 +291,10 @@ void CameraIntrinsics::CheckDistortLookupGrid(int width, int height, double over
     distort_->offset = NULL;
   }
 
-  if(!distort_->offset) {
-      distort_->offset = new Offset[width*height];
-      ComputeLookupGrid<InvertIntrinsicsFunction>(distort_,width,height,overscan);
+  if (!distort_->offset) {
+      distort_->offset = new Offset[width * height];
+      ComputeLookupGrid<InvertIntrinsicsFunction>(distort_, width,
+                                                  height, overscan);
   }
 
   distort_->width = width;
@@ -291,10 +302,11 @@ void CameraIntrinsics::CheckDistortLookupGrid(int width, int height, double over
   distort_->overscan = overscan;
 }
 
-void CameraIntrinsics::CheckUndistortLookupGrid(int width, int height, double overscan)
-{
-  if(undistort_) {
-    if(undistort_->width != width || undistort_->height != height || undistort_->overscan != overscan) {
+void CameraIntrinsics::CheckUndistortLookupGrid(int width, int height,
+                                                double overscan) {
+  if (undistort_) {
+    if (undistort_->width != width || undistort_->height != height ||
+        undistort_->overscan != overscan) {
       delete [] undistort_->offset;
       undistort_->offset = NULL;
     }
@@ -303,9 +315,10 @@ void CameraIntrinsics::CheckUndistortLookupGrid(int width, int height, double ov
     undistort_->offset = NULL;
   }
 
-  if(!undistort_->offset) {
-      undistort_->offset = new Offset[width*height];
-      ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_,width,height,overscan);
+  if (!undistort_->offset) {
+      undistort_->offset = new Offset[width * height];
+      ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_, width,
+                                                 height, overscan);
   }
 
   undistort_->width = width;
@@ -313,39 +326,53 @@ void CameraIntrinsics::CheckUndistortLookupGrid(int width, int height, double ov
   undistort_->overscan = overscan;
 }
 
-void CameraIntrinsics::Distort(const float* src, float* dst, int width, int height, double overscan, int channels) {
+void CameraIntrinsics::Distort(const float* src, float* dst,
+                               int width, int height,
+                               double overscan,
+                               int channels) {
   CheckDistortLookupGrid(width, height, overscan);
-       if(channels==1) Warp<float,1>(distort_,src,dst,width,height,threads_);
-  else if(channels==2) Warp<float,2>(distort_,src,dst,width,height,threads_);
-  else if(channels==3) Warp<float,3>(distort_,src,dst,width,height,threads_);
-  else if(channels==4) Warp<float,4>(distort_,src,dst,width,height,threads_);
+       if (channels==1) Warp<float,1>(distort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels==2) Warp<float,2>(distort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels==3) Warp<float,3>(distort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels==4) Warp<float,4>(distort_, src, dst, width, height, threads_);  // NOLINT
   //else assert("channels must be between 1 and 4");
 }
 
-void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int width, int height, double overscan, int channels) {
+void CameraIntrinsics::Distort(const unsigned char* src,
+                               unsigned char* dst,
+                               int width, int height,
+                               double overscan,
+                               int channels) {
   CheckDistortLookupGrid(width, height, overscan);
-       if(channels==1) Warp<unsigned char,1>(distort_,src,dst,width,height,threads_);
-  else if(channels==2) Warp<unsigned char,2>(distort_,src,dst,width,height,threads_);
-  else if(channels==3) Warp<unsigned char,3>(distort_,src,dst,width,height,threads_);
-  else if(channels==4) Warp<unsigned char,4>(distort_,src,dst,width,height,threads_);
+       if (channels == 1) Warp<unsigned char,1>(distort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 2) Warp<unsigned char,2>(distort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 3) Warp<unsigned char,3>(distort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 4) Warp<unsigned char,4>(distort_, src, dst, width, height, threads_);  // NOLINT
   //else assert("channels must be between 1 and 4");
 }
 
-void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int height, double overscan, int channels) {
+void CameraIntrinsics::Undistort(const float* src, float* dst,
+                                 int width, int height,
+                                 double overscan,
+                                 int channels) {
   CheckUndistortLookupGrid(width, height, overscan);
-       if(channels==1) Warp<float,1>(undistort_,src,dst,width,height,threads_);
-  else if(channels==2) Warp<float,2>(undistort_,src,dst,width,height,threads_);
-  else if(channels==3) Warp<float,3>(undistort_,src,dst,width,height,threads_);
-  else if(channels==4) Warp<float,4>(undistort_,src,dst,width,height,threads_);
+       if (channels == 1) Warp<float,1>(undistort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 2) Warp<float,2>(undistort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 3) Warp<float,3>(undistort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 4) Warp<float,4>(undistort_, src, dst, width, height, threads_);  // NOLINT
   //else assert("channels must be between 1 and 4");
 }
 
-void CameraIntrinsics::Undistort(const unsigned char* src, unsigned char* dst, int width, int height, double overscan, int channels) {
+void CameraIntrinsics::Undistort(const unsigned char* src,
+                                 unsigned char* dst,
+                                 int width, int height,
+                                 double overscan,
+                                 int channels) {
   CheckUndistortLookupGrid(width, height, overscan);
-       if(channels==1) Warp<unsigned char,1>(undistort_,src,dst,width,height,threads_);
-  else if(channels==2) Warp<unsigned char,2>(undistort_,src,dst,width,height,threads_);
-  else if(channels==3) Warp<unsigned char,3>(undistort_,src,dst,width,height,threads_);
-  else if(channels==4) Warp<unsigned char,4>(undistort_,src,dst,width,height,threads_);
+       if (channels == 1) Warp<unsigned char,1>(undistort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 2) Warp<unsigned char,2>(undistort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 3) Warp<unsigned char,3>(undistort_, src, dst, width, height, threads_);  // NOLINT
+  else if (channels == 4) Warp<unsigned char,4>(undistort_, src, dst, width, height, threads_);  // NOLINT
   //else assert("channels must be between 1 and 4");
 }
 

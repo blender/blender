@@ -2948,8 +2948,6 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 		if (ibuf) {
 			float x, y; 
-			unsigned char *display_buffer;
-			void *cache_handle;
 			
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
@@ -2967,13 +2965,15 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			
 			x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
-			
 
-			display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+			if (ibuf->rect || ibuf->rect_float) {
+				unsigned char *display_buffer = NULL;
+				void *cache_handle = NULL;
 
-			if (display_buffer) {
 				if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {
 					int ofs;
+
+					display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
 #ifdef __BIG_ENDIAN__
 					if      (snode->flag & SNODE_SHOW_R) ofs = 2;
@@ -2994,6 +2994,8 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					glPixelZoom(1.0f, 1.0f);
 				}
 				else if (snode->flag & SNODE_SHOW_ALPHA) {
+					display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+
 					glPixelZoom(snode->zoom, snode->zoom);
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 #ifdef __BIG_ENDIAN__
@@ -3011,7 +3013,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glPixelZoom(snode->zoom, snode->zoom);
 					
-					glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer);
+					glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
 					
 					glPixelZoom(1.0f, 1.0f);
 					glDisable(GL_BLEND);
@@ -3019,13 +3021,14 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 				else {
 					glPixelZoom(snode->zoom, snode->zoom);
 
-					glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer);
+					glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
 					
 					glPixelZoom(1.0f, 1.0f);
 				}
-			}
 
-			IMB_display_buffer_release(cache_handle);
+				if (cache_handle)
+					IMB_display_buffer_release(cache_handle);
+			}
 
 			/** @note draw selected info on backdrop */
 			if (snode->edittree) {

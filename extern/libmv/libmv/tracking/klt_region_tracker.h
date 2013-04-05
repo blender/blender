@@ -33,7 +33,7 @@ struct KltRegionTracker : public RegionTracker {
         min_determinant(1e-6),
         min_update_squared_distance(1e-6),
         sigma(0.9) {}
-  
+
   virtual ~KltRegionTracker() {}
 
   // Tracker interface.

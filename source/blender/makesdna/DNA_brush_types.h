@@ -106,8 +106,8 @@ typedef struct Brush {
 	float add_col[3];
 	float sub_col[3];
 
-	int stencil_pos[2];
-	int stencil_dimension[2];
+	float stencil_pos[2];
+	float stencil_dimension[2];
 } Brush;
 
 /* Brush.flag */

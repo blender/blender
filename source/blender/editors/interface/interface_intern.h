@@ -424,9 +424,9 @@ struct uiPopupBlockHandle {
 	struct ARegion *region;
 	int towardsx, towardsy;
 	double towardstime;
-	int dotowards;
+	bool dotowards;
 
-	int popup;
+	bool popup;
 	void (*popup_func)(struct bContext *C, void *arg, int event);
 	void (*cancel_func)(struct bContext *C, void *arg);
 	void *popup_arg;
@@ -465,7 +465,7 @@ void ui_popup_block_scrolltest(struct uiBlock *block);
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 bool ui_searchbox_inside(struct ARegion *ar, int x, int y);
-void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but, int reset);
+void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but, const bool reset);
 void ui_searchbox_autocomplete(struct bContext *C, struct ARegion *ar, uiBut *but, char *str);
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, const struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
@@ -556,7 +556,7 @@ void ui_resources_free(void);
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
 int ui_but_can_align(uiBut *but);
 void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop);
-void ui_but_add_shortcut(uiBut *but, const char *key_str, const short do_strip);
+void ui_but_add_shortcut(uiBut *but, const char *key_str, const bool do_strip);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

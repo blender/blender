@@ -121,15 +121,15 @@ void HorizontalStack(const Mat &left, const Mat &right, Mat *stacked) {
 
 void MatrixColumn(const Mat &A, int i, Vec2 *v) {
   assert(A.rows() == 2);
-  *v << A(0,i), A(1,i);
+  *v << A(0, i), A(1, i);
 }
 void MatrixColumn(const Mat &A, int i, Vec3 *v) {
   assert(A.rows() == 3);
-  *v << A(0,i), A(1,i), A(2,i);
+  *v << A(0, i), A(1, i), A(2, i);
 }
 void MatrixColumn(const Mat &A, int i, Vec4 *v) {
   assert(A.rows() == 4);
-  *v << A(0,i), A(1,i), A(2,i), A(3,i);
+  *v << A(0, i), A(1, i), A(2, i), A(3, i);
 }
 
 }  // namespace libmv

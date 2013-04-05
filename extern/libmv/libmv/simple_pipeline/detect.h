@@ -88,8 +88,10 @@ std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height
     \note \a You can crop the image (to avoid detecting markers near the borders) without copying:
              image += marginY*stride+marginX, width -= 2*marginX, height -= 2*marginY;
 */
-void DetectMORAVEC(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance /*=32*/, ubyte* pattern /*=0*/);
+void DetectMORAVEC(ubyte* image, int stride, int width, int height,
+                   Feature* detected, int* count, int distance /*=32*/,
+                   ubyte* pattern /*=0*/);
 
-}
+}  // namespace libmv
 
 #endif

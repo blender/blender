@@ -66,7 +66,7 @@ void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	}
 	
 	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-	inputImageSocket->relinkConnections(operation->getInputSocket(1), 0, graph);
+	inputImageSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
 	graph->addOperation(operation);
 }

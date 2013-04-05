@@ -39,7 +39,7 @@ namespace libmv {
 // - doesn't support iterators.
 // - impede compatibility with code using STL.
 // - the STL already provide support for custom allocators
-// it could be replaced with a simple 
+// it could be replaced with a simple
 // template <T> class vector : std::vector<T, aligned_allocator> {} declaration
 // provided it doesn't break code relying on libmv::vector specific behavior
 template <typename T,

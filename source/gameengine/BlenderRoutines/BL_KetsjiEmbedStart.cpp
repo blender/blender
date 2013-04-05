@@ -182,7 +182,7 @@ static int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWind
 	return exitrequested;
 }
 
-struct BL_KetsjiNextFrameState {
+static struct BL_KetsjiNextFrameState {
 	class KX_KetsjiEngine* ketsjiengine;
 	struct bContext *C;
 	struct wmWindow* win;

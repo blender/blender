@@ -26,9 +26,10 @@
 
 namespace libmv {
 
-inline double PearsonProductMomentCorrelation(Array3Df image_and_gradient1_sampled,
-                                              Array3Df image_and_gradient2_sampled,
-                                              int width) {
+inline double PearsonProductMomentCorrelation(
+        Array3Df image_and_gradient1_sampled,
+        Array3Df image_and_gradient2_sampled,
+        int width) {
   double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
 
   for (int r = 0; r < width; ++r) {

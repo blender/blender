@@ -63,13 +63,13 @@ void *aligned_malloc(int size, int alignment) {
 #elif __FreeBSD__
   void *result;
 
-  if(posix_memalign(&result, alignment, size)) {
+  if (posix_memalign(&result, alignment, size)) {
     // non-zero means allocation error
     // either no allocation or bad alignment value
     return NULL;
   }
   return result;
-#else // This is for Linux.
+#else  // This is for Linux.
   return memalign(alignment, size);
 #endif
 }
@@ -107,7 +107,7 @@ bool RegionIsInBounds(const FloatImage &image1,
 
 #ifdef __SSE2__
 
-// Compute the sub of absolute differences between the arrays "a" and "b". 
+// Compute the sub of absolute differences between the arrays "a" and "b".
 // The array "a" is assumed to be 16-byte aligned, while "b" is not. The
 // result is returned as the first and third elements of __m128i if
 // interpreted as a 4-element 32-bit integer array. The SAD is the sum of the
@@ -122,7 +122,7 @@ inline static __m128i SumOfAbsoluteDifferencesContiguousSSE(
     unsigned int size,
     __m128i sad) {
   // Do the bulk of the work as 16-way integer operations.
-  for(unsigned int j = 0; j < size / 16; j++) {
+  for (unsigned int j = 0; j < size / 16; j++) {
     sad = _mm_add_epi32(sad, _mm_sad_epu8( _mm_load_si128 ((__m128i*)(a + 16 * j)),
                                            _mm_loadu_si128((__m128i*)(b + 16 * j))));
   }
@@ -307,7 +307,8 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   // Convert the search area directly to bytes without sampling.
   unsigned char *search_area;
   int search_area_stride;
-  FloatArrayToByteArrayWithPadding(image_and_gradient2, &search_area, &search_area_stride);
+  FloatArrayToByteArrayWithPadding(image_and_gradient2, &search_area,
+                                   &search_area_stride);
 
   // Try all possible locations inside the search area. Yes, everywhere.
   int best_i = -1, best_j = -1, best_sad = INT_MAX;
@@ -361,9 +362,11 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
 
   // Compute the Pearson product-moment correlation coefficient to check
   // for sanity.
-  double correlation = PearsonProductMomentCorrelation(image_and_gradient1_sampled,
-                                                       image_and_gradient2_sampled,
-                                                       pattern_width);
+  double correlation = PearsonProductMomentCorrelation(
+          image_and_gradient1_sampled,
+          image_and_gradient2_sampled,
+          pattern_width);
+
   LG << "Final correlation: " << correlation;
 
   if (correlation < minimum_correlation) {

@@ -18,12 +18,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/tracks.h"
+
 #include <algorithm>
 #include <vector>
 #include <iterator>
 
 #include "libmv/numeric/numeric.h"
-#include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 
@@ -82,7 +83,8 @@ vector<Marker> Tracks::MarkersInBothImages(int image1, int image2) const {
   return markers;
 }
 
-vector<Marker> Tracks::MarkersForTracksInBothImages(int image1, int image2) const {
+vector<Marker> Tracks::MarkersForTracksInBothImages(int image1,
+                                                    int image2) const {
   std::vector<int> image1_tracks;
   std::vector<int> image2_tracks;
 
@@ -106,7 +108,7 @@ vector<Marker> Tracks::MarkersForTracksInBothImages(int image1, int image2) cons
   vector<Marker> markers;
   for (int i = 0; i < markers_.size(); ++i) {
     if ((markers_[i].image == image1 || markers_[i].image == image2) &&
-        std::binary_search(intersection.begin(),intersection.end(),
+        std::binary_search(intersection.begin(), intersection.end(),
                            markers_[i].track)) {
       markers.push_back(markers_[i]);
     }

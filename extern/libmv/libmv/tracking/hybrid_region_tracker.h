@@ -34,7 +34,7 @@ class HybridRegionTracker : public RegionTracker {
                       RegionTracker *fine_tracker)
     : coarse_tracker_(coarse_tracker),
       fine_tracker_(fine_tracker) {}
-  
+
   virtual ~HybridRegionTracker() {}
 
   // Tracker interface.

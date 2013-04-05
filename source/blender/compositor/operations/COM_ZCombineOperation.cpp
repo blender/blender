@@ -92,3 +92,71 @@ void ZCombineOperation::deinitExecution()
 	this->m_image2Reader = NULL;
 	this->m_depth2Reader = NULL;
 }
+
+// MASK combine
+ZCombineMaskOperation::ZCombineMaskOperation() : NodeOperation()
+{
+	this->addInputSocket(COM_DT_VALUE); //mask
+	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_COLOR);
+	this->addOutputSocket(COM_DT_COLOR);
+
+	this->m_maskReader = NULL;
+	this->m_image1Reader = NULL;
+	this->m_image2Reader = NULL;
+}
+
+void ZCombineMaskOperation::initExecution()
+{
+	this->m_maskReader = this->getInputSocketReader(0);
+	this->m_image1Reader = this->getInputSocketReader(1);
+	this->m_image2Reader = this->getInputSocketReader(2);
+}
+
+void ZCombineMaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+{
+	float mask[4];
+	float color1[4];
+	float color2[4];
+
+	this->m_maskReader->read(mask, x, y, sampler);
+	this->m_image1Reader->read(color1, x, y, sampler);
+	this->m_image2Reader->read(color2, x, y, sampler);
+
+	float fac = mask[0];
+	// multiply mask with alpha, if mask == 0 color1, else color2 make sure
+	float mfac = 1.0f-fac;
+	output[0] = color1[0]*mfac + color2[0]*fac;
+	output[1] = color1[1]*mfac + color2[1]*fac;
+	output[2] = color1[2]*mfac + color2[2]*fac;
+	output[3] = max(color1[3], color2[3]);
+}
+
+void ZCombineMaskAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+{
+	float mask[4];
+	float color1[4];
+	float color2[4];
+
+	this->m_maskReader->read(mask, x, y, sampler);
+	this->m_image1Reader->read(color1, x, y, sampler);
+	this->m_image2Reader->read(color2, x, y, sampler);
+
+	float fac = mask[0];
+	// multiply mask with alpha, if mask == 0 color1, else color2 make sure
+	float mfac = 1.0f-fac;
+	float alpha = color1[3]*mfac + color2[3]*fac;
+	float facalpha = fac * alpha;
+	mfac = 1.0f-facalpha;
+	output[0] = color1[0]*mfac + color2[0]*facalpha;
+	output[1] = color1[1]*mfac + color2[1]*facalpha;
+	output[2] = color1[2]*mfac + color2[2]*facalpha;
+	output[3] = max(color1[3], color2[3]);
+}
+
+void ZCombineMaskOperation::deinitExecution()
+{
+	this->m_image1Reader = NULL;
+	this->m_maskReader = NULL;
+	this->m_image2Reader = NULL;
+}

@@ -32,7 +32,7 @@
 #ifndef __RAS_GRAYSCALE2DFILTER_H__
 #define __RAS_GRAYSCALE2DFILTER_H__
 
-const char * GrayScaleFragmentShader=STRINGIFY(
+static const char *GrayScaleFragmentShader = STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 
 void main(void)

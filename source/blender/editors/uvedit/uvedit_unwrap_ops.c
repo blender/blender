@@ -1427,9 +1427,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!ED_mesh_uv_loop_reset(C, me)) {
-		return OPERATOR_CANCELLED;
-	}
+	ED_mesh_uv_loop_reset(C, me);
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

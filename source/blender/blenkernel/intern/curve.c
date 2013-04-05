@@ -1418,7 +1418,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob)
 
 /* ***************** BEVEL ****************** */
 
-void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRender)
+void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRender, int renderResolution)
 {
 	DispList *dl, *dlnew;
 	Curve *bevcu, *cu;
@@ -1442,7 +1442,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 			facy = cu->bevobj->size[1];
 
 			if (forRender) {
-				BKE_displist_make_curveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
+				BKE_displist_make_curveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0, renderResolution);
 				dl = bevdisp.first;
 			}
 			else {

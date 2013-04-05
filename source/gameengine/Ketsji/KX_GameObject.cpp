@@ -1572,7 +1572,7 @@ static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype,
 	return mathutils_kxgameob_vector_set(bmo, subtype);
 }
 
-Mathutils_Callback mathutils_kxgameob_vector_cb = {
+static Mathutils_Callback mathutils_kxgameob_vector_cb = {
 	mathutils_kxgameob_generic_check,
 	mathutils_kxgameob_vector_get,
 	mathutils_kxgameob_vector_set,
@@ -1628,7 +1628,7 @@ static int mathutils_kxgameob_matrix_set(BaseMathObject *bmo, int subtype)
 	return 0;
 }
 
-Mathutils_Callback mathutils_kxgameob_matrix_cb = {
+static Mathutils_Callback mathutils_kxgameob_matrix_cb = {
 	mathutils_kxgameob_generic_check,
 	mathutils_kxgameob_matrix_get,
 	mathutils_kxgameob_matrix_set,
@@ -1800,7 +1800,7 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 	PyObject *pyconvert;
 	
 	if (self == NULL) {
-		PyErr_SetString(PyExc_SystemError, "val = gameOb[key]: KX_GameObject, "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val = gameOb[key]: KX_GameObject, " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -1834,7 +1834,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		PyErr_Clear();
 	
 	if (self == NULL) {
-		PyErr_SetString(PyExc_SystemError, "gameOb[key] = value: KX_GameObject, "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "gameOb[key] = value: KX_GameObject, " BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
@@ -1919,7 +1919,7 @@ static int Seq_Contains(PyObject *self_v, PyObject *value)
 	KX_GameObject* self = static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	
 	if (self == NULL) {
-		PyErr_SetString(PyExc_SystemError, "val in gameOb: KX_GameObject, "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val in gameOb: KX_GameObject, " BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	

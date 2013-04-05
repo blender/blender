@@ -22,7 +22,7 @@
 #include "libmv/multiview/projection.h"
 
 namespace libmv {
- 
+
 // HZ 4.4.4 pag.109: Point conditioning (non isotropic)
 void PreconditionerFromPoints(const Mat &points, Mat3 *T) {
   Vec mean, variance;
@@ -66,7 +66,7 @@ void ApplyTransformationToPoints(const Mat &points,
                                  const Mat3 &T,
                                  Mat *transformed_points) {
   int n = points.cols();
-  transformed_points->resize(2,n);
+  transformed_points->resize(2, n);
   Mat3X p(3, n);
   EuclideanToHomogeneous(points, &p);
   p = T * p;
@@ -96,4 +96,4 @@ void UnnormalizerI::Unnormalize(const Mat3 &T1, const Mat3 &T2, Mat3 *H)  {
   *H = T2.inverse() * (*H) * T1;
 }
 
-} // namespace libmv
+}  // namespace libmv

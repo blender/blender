@@ -95,6 +95,10 @@ struct ImBuf *IMB_colormanagement_imbuf_for_write(struct ImBuf *ibuf, int save_a
 
 /* ** Public display buffers interfaces ** */
 
+void IMB_colormanagement_display_settings_from_ctx(const struct bContext *C,
+                                                   struct ColorManagedViewSettings **view_settings_r,
+                                                   struct ColorManagedDisplaySettings **display_settings_r);
+
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
 unsigned char *IMB_display_buffer_acquire_ctx(const struct bContext *C, struct ImBuf *ibuf, void **cache_handle);

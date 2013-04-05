@@ -213,13 +213,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
     } else {
       factor_ = ss_.AnalyzeCholesky(lhs.get());
     }
-
-    if (VLOG_IS_ON(2)) {
-      cholmod_print_common(const_cast<char*>("Symbolic Analysis"), ss_.mutable_cc());
-    }
   }
-
-  CHECK_NOTNULL(factor_);
   event_logger.AddEvent("Analysis");
 
   cholmod_dense* sol = ss_.SolveCholesky(lhs.get(), factor_, rhs);

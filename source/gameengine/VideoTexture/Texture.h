@@ -94,7 +94,4 @@ short getMaterialID(PyObject *obj, const char *name);
 // Exceptions
 extern ExceptionID MaterialNotAvail;
 
-// object type
-extern BlendType<KX_GameObject> gameObjectType;
-
 #endif

@@ -2122,7 +2122,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	/* curve itself */
 	size = uiLayoutGetWidth(layout);
 	row = uiLayoutRow(layout, FALSE);
-	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 10.0f * UI_UNIT_X), cumap, 0.0f, 1.0f, bg, 0, "");
+	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, bg, 0, "");
 
 	/* sliders for selected point */
 	for (i = 0; i < cm->totpoint; i++) {

@@ -48,6 +48,10 @@ from _bpy_path import (extensions_audio,
                        )
 
 
+def _getattr_bytes(var, attr):
+    return var.path_resolve(attr, False).as_bytes()
+
+
 def abspath(path, start=None, library=None):
     """
     Returns the absolute path relative to the current blend file
@@ -60,13 +64,22 @@ def abspath(path, start=None, library=None):
        convenience, when the library is not None its path replaces *start*.
     :type library: :class:`bpy.types.Library`
     """
-    if path.startswith("//"):
-        if library:
-            start = _os.path.dirname(abspath(library.filepath))
-        return _os.path.join(_os.path.dirname(_bpy.data.filepath)
-                             if start is None else start,
-                             path[2:],
-                             )
+    if isinstance(path, bytes):
+        if path.startswith(b"//"):
+            if library:
+                start = _os.path.dirname(abspath(_getattr_bytes(library, "filepath")))
+            return _os.path.join(_os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
+                                 if start is None else start,
+                                 path[2:],
+                                 )
+    else:
+        if path.startswith("//"):
+            if library:
+                start = _os.path.dirname(abspath(library.filepath))
+            return _os.path.join(_os.path.dirname(_bpy.data.filepath)
+                                 if start is None else start,
+                                 path[2:],
+                                 )
 
     return path
 
@@ -79,10 +92,16 @@ def relpath(path, start=None):
        when not set the current filename is used.
     :type start: string
     """
-    if not path.startswith("//"):
-        if start is None:
-            start = _os.path.dirname(_bpy.data.filepath)
-        return "//" + _os.path.relpath(path, start)
+    if isinstance(path, bytes):
+        if not path.startswith(b"//"):
+            if start is None:
+                start = _os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
+            return b"//" + _os.path.relpath(path, start)
+    else:
+        if not path.startswith("//"):
+            if start is None:
+                start = _os.path.dirname(_bpy.data.filepath)
+            return "//" + _os.path.relpath(path, start)
 
     return path
 

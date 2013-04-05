@@ -38,9 +38,11 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_main.h"
+#include "BKE_image.h"
 
 #include "ED_sculpt.h"
 #include "ED_screen.h"
+#include "ED_image.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -447,20 +449,26 @@ static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 
 /***** Stencil Control *****/
 
-enum {
+typedef enum {
 STENCIL_TRANSLATE,
 STENCIL_SCALE,
 STENCIL_ROTATE
 } StencilControlMode;
 
+typedef enum {
+STENCIL_CONSTRAINT_X = 1,
+STENCIL_CONSTRAINT_Y = 2
+} StencilConstraint;
+
 typedef struct {
-	int init_mouse[2];
-	int init_spos[2];
-	int init_sdim[2];
+	float init_mouse[2];
+	float init_spos[2];
+	float init_sdim[2];
 	float init_rot;
 	float init_angle;
 	float lenorig;
-	int mode;
+	StencilControlMode mode;
+	StencilConstraint constrain_mode;
 	Brush *br;
 } StencilControlData;
 
@@ -468,15 +476,16 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *br = paint_brush(paint);
-	int mdiff[2];
+	float mdiff[2];
+	float mvalf[2] = {event->mval[0], event->mval[1]};
 
 	StencilControlData *scd = MEM_mallocN(sizeof(StencilControlData), "stencil_control");
 
-	copy_v2_v2_int(scd->init_mouse, event->mval);
-	copy_v2_v2_int(scd->init_sdim, br->stencil_dimension);
-	copy_v2_v2_int(scd->init_spos, br->stencil_pos);
-	sub_v2_v2v2_int(mdiff, event->mval, br->stencil_pos);
-	scd->lenorig = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
+	copy_v2_v2(scd->init_mouse, mvalf);
+	copy_v2_v2(scd->init_sdim, br->stencil_dimension);
+	copy_v2_v2(scd->init_spos, br->stencil_pos);
+	sub_v2_v2v2(mdiff, mvalf, br->stencil_pos);
+	scd->lenorig = len_v2(mdiff);
 	scd->br = br;
 	scd->init_rot = br->mtex.rot;
 	scd->init_angle = atan2(mdiff[1], mdiff[0]);
@@ -494,8 +503,8 @@ static int stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
 	StencilControlData *scd = op->customdata;
 	Brush *br = scd->br;
 
-	copy_v2_v2_int(br->stencil_dimension, scd->init_sdim);
-	copy_v2_v2_int(br->stencil_pos, scd->init_spos);
+	copy_v2_v2(br->stencil_dimension, scd->init_sdim);
+	copy_v2_v2(br->stencil_pos, scd->init_spos);
 	br->mtex.rot = scd->init_rot;
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;
@@ -508,28 +517,32 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 	switch (event->type) {
 		case MOUSEMOVE:
 			{
-				int mdiff[2];
+				float mdiff[2];
+				float mvalf[2] = {event->mval[0], event->mval[1]};
 				switch (scd->mode) {
 					case STENCIL_TRANSLATE:
-						sub_v2_v2v2_int(mdiff, event->mval, scd->init_mouse);
-						add_v2_v2v2_int(scd->br->stencil_pos, scd->init_spos,
+						sub_v2_v2v2(mdiff, mvalf, scd->init_mouse);
+						add_v2_v2v2(scd->br->stencil_pos, scd->init_spos,
 						            mdiff);
 						break;
 					case STENCIL_SCALE:
 					{
 						float len, factor;
-						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
-						len = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
+						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
+						len = len_v2(mdiff);
 						factor = len / scd->lenorig;
-						mdiff[0] = factor * scd->init_sdim[0];
-						mdiff[1] = factor * scd->init_sdim[1];
-						copy_v2_v2_int(scd->br->stencil_dimension, mdiff);
+						copy_v2_v2(mdiff, scd->init_sdim);
+						if (scd->constrain_mode != STENCIL_CONSTRAINT_Y)
+							mdiff[0] = factor * scd->init_sdim[0];
+						if (scd->constrain_mode != STENCIL_CONSTRAINT_X)
+							mdiff[1] = factor * scd->init_sdim[1];
+						copy_v2_v2(scd->br->stencil_dimension, mdiff);
 						break;
 					}
 					case STENCIL_ROTATE:
 					{
 						float angle;
-						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
+						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
 						angle = atan2(mdiff[1], mdiff[0]);
 						angle = scd->init_rot + angle - scd->init_angle;
 						if (angle < 0.0f)
@@ -555,6 +568,23 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 				WM_event_add_notifier(C, NC_WINDOW, NULL);
 				return OPERATOR_CANCELLED;
 			}
+		case XKEY:
+			if (event->val == KM_PRESS) {
+
+				if (scd->constrain_mode == STENCIL_CONSTRAINT_X)
+					scd->constrain_mode = 0;
+				else
+					scd->constrain_mode = STENCIL_CONSTRAINT_X;
+			}
+			break;
+		case YKEY:
+			if (event->val == KM_PRESS) {
+				if (scd->constrain_mode == STENCIL_CONSTRAINT_Y)
+					scd->constrain_mode = 0;
+				else
+					scd->constrain_mode = STENCIL_CONSTRAINT_Y;
+			}
+			break;
 		default:
 			break;
 	}
@@ -597,6 +627,48 @@ static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "mode", stencil_control_items, 0, "Tool", "");
 }
 
+
+static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Paint *paint = paint_get_active_from_context(C);
+	Brush *br = paint_brush(paint);
+	Tex *tex = (br)? br->mtex.tex : NULL;
+
+	if (tex && tex->type == TEX_IMAGE && tex->ima) {
+		float aspx, aspy;
+		Image *ima = tex->ima;
+		float orig_area, stencil_area, factor;
+		ED_image_get_uv_aspect(ima, NULL, &aspx, &aspy);
+
+		orig_area = aspx*aspy;
+		stencil_area = br->stencil_dimension[0]*br->stencil_dimension[1];
+
+		factor = sqrt(stencil_area/orig_area);
+
+		br->stencil_dimension[0] = factor*aspx;
+		br->stencil_dimension[1] = factor*aspy;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+
+static void BRUSH_OT_stencil_fit_image_aspect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Image Aspect";
+	ot->description = "Adjust the stencil size to fit image aspect ratio";
+	ot->idname = "BRUSH_OT_stencil_fit_image_aspect";
+
+	/* api callbacks */
+	ot->exec = stencil_fit_image_aspect_exec;
+	ot->poll = stencil_control_poll;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+
 static void ed_keymap_stencil(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
@@ -620,6 +692,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(BRUSH_OT_curve_preset);
 	WM_operatortype_append(BRUSH_OT_reset);
 	WM_operatortype_append(BRUSH_OT_stencil_control);
+	WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
 
 	/* note, particle uses a different system, can be added with existing operators in wm.py */
 	WM_operatortype_append(PAINT_OT_brush_select);

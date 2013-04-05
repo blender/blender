@@ -540,6 +540,13 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 
 	if (type == GL_FLOAT) {
 		/* need to set internal format to higher range float */
+
+		/* NOTE: this could fail on some drivers, like mesa,
+		 *       but currently this code is only used by color
+		 *       management stuff which already checks on whether
+		 *       it's possible to use GL_RGBA16F_ARB
+		 */
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, tex_w, tex_h, 0, format, GL_FLOAT, NULL);
 	}
 	else {
@@ -1028,7 +1035,9 @@ void bglFlush(void)
 /* **** Color management helper functions for GLSL display/transform ***** */
 
 /* Draw given image buffer on a screen using GLSL for display transform */
-void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter)
+void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
+                       ColorManagedViewSettings *view_settings,
+                       ColorManagedDisplaySettings *display_settings)
 {
 	bool force_fallback = false;
 	bool need_fallback = true;
@@ -1080,10 +1089,19 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 	if (force_fallback == false) {
 		int ok;
 
-		if (ibuf->rect_float)
-			ok = IMB_colormanagement_setup_glsl_draw_ctx(C, TRUE);
-		else
-			ok = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->rect_colorspace, FALSE);
+		if (ibuf->rect_float) {
+			if (ibuf->float_colorspace) {
+				ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
+				                                                    ibuf->float_colorspace, TRUE);
+			}
+			else {
+				ok = IMB_colormanagement_setup_glsl_draw(view_settings, display_settings, TRUE);
+			}
+		}
+		else {
+			ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
+			                                                    ibuf->rect_colorspace, FALSE);
+		}
 
 		if (ok) {
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -1121,7 +1139,7 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 		unsigned char *display_buffer;
 		void *cache_handle;
 
-		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 
 		if (display_buffer)
 			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -1129,6 +1147,16 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 
 		IMB_display_buffer_release(cache_handle);
 	}
+}
+
+void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter)
+{
+	ColorManagedViewSettings *view_settings;
+	ColorManagedDisplaySettings *display_settings;
+
+	IMB_colormanagement_display_settings_from_ctx(C, &view_settings, &display_settings);
+
+	glaDrawImBuf_glsl(ibuf, x, y, zoomfilter, view_settings, display_settings);
 }
 
 /* Transform buffer from role to scene linear space using GLSL OCIO conversion

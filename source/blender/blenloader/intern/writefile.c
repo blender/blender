@@ -727,6 +727,9 @@ static void write_node_socket_interface(WriteData *wd, bNodeTree *UNUSED(ntree),
 
 	if (sock->prop)
 		IDP_WriteProperty(sock->prop, wd);
+	
+	if (sock->default_value)
+		writedata(wd, DATA, MEM_allocN_len(sock->default_value), sock->default_value);
 }
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)

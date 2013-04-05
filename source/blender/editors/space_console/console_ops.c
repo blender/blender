@@ -225,7 +225,12 @@ static void console_line_verify_length(ConsoleLine *ci, int len)
 {
 	/* resize the buffer if needed */
 	if (len >= ci->len_alloc) {
-		int new_len = len * 2; /* new length */
+		/* new length */
+#ifndef NDEBUG
+		int new_len = len + 1;
+#else
+		int new_len = (len + 1) * 2;
+#endif
 		char *new_line = MEM_callocN(new_len, "console line");
 		memcpy(new_line, ci->line, ci->len);
 		MEM_freeN(ci->line);
@@ -582,7 +587,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				stride = ci->cursor - pos;
 				if (stride) {
 					ci->cursor -= stride; /* same as above */
-					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
+					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - (ci->cursor + stride)) + 1);
 					ci->len -= stride;
 					BLI_assert(ci->len >= 0);
 					done = TRUE;

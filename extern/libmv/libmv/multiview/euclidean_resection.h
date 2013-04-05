@@ -26,7 +26,7 @@
 
 namespace libmv {
 namespace euclidean_resection {
-  
+
 enum ResectionMethod {
   RESECTION_ANSAR_DANIILIDIS,
 
@@ -48,7 +48,7 @@ enum ResectionMethod {
  * \param success_threshold  Threshold of an error which is still considered a success
  *                           (currently used by EPnP algorithm only)
  */
-bool EuclideanResection(const Mat2X &x_camera, 
+bool EuclideanResection(const Mat2X &x_camera,
                         const Mat3X &X_world,
                         Mat3 *R, Vec3 *t,
                         ResectionMethod method = RESECTION_EPNP,
@@ -67,7 +67,7 @@ bool EuclideanResection(const Mat2X &x_camera,
  * \param t         Solution for the camera translation vector
  * \param method    Resection method
  */
-bool EuclideanResection(const Mat &x_image, 
+bool EuclideanResection(const Mat &x_image,
                         const Mat3X &X_world,
                         const Mat3 &K,
                         Mat3 *R, Vec3 *t,
@@ -101,7 +101,7 @@ void AbsoluteOrientation(const Mat3X &X,
  * This is the algorithm described in: "Linear Pose Estimation from Points or
  * Lines", by Ansar, A. and Daniilidis, PAMI 2003. vol. 25, no. 5.
  */
-void EuclideanResectionAnsarDaniilidis(const Mat2X &x_camera, 
+void EuclideanResectionAnsarDaniilidis(const Mat2X &x_camera,
                                        const Mat3X &X_world,
                                        Mat3 *R, Vec3 *t);
 /**
@@ -121,12 +121,12 @@ void EuclideanResectionAnsarDaniilidis(const Mat2X &x_camera,
  * \note: the non-linear optimization is not implemented here.
  */
 bool EuclideanResectionEPnP(const Mat2X &x_camera,
-                            const Mat3X &X_world, 
+                            const Mat3X &X_world,
                             Mat3 *R, Vec3 *t,
                             double success_threshold = 1e-3);
 
-} // namespace euclidean_resection
-} // namespace libmv
+}  // namespace euclidean_resection
+}  // namespace libmv
 
 
 #endif /* LIBMV_MULTIVIEW_EUCLIDEAN_RESECTION_H_ */

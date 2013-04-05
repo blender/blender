@@ -104,7 +104,7 @@ void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, bool extend)
 	EDBM_verts_mirror_cache_end(em);
 }
 
-void EDBM_automerge(Scene *scene, Object *obedit, int update)
+void EDBM_automerge(Scene *scene, Object *obedit, bool update)
 {
 	
 	if ((scene->toolsettings->automerge) &&
@@ -377,13 +377,11 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
 
 
 
-static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int index)
+static bool findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
 	BMEditMesh *em = (BMEditMesh *)handle;
 	BMVert *eve = BM_vert_at_index(em->bm, index - 1);
-
-	if (eve && BM_elem_flag_test(eve, BM_ELEM_SELECT)) return 0;
-	return 1;
+	return !(eve && BM_elem_flag_test(eve, BM_ELEM_SELECT));
 }
 /**
  * findnearestvert
@@ -2346,7 +2344,7 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 //	if (EM_texFaceCheck())
 }
 
-int EDBM_select_interior_faces(BMEditMesh *em)
+bool EDBM_select_interior_faces(BMEditMesh *em)
 {
 	BMesh *bm = em->bm;
 	BMIter iter;
@@ -2954,7 +2952,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	}
 }
 
-static int edbm_deselect_nth(BMEditMesh *em, int nth, int offset)
+static bool edbm_deselect_nth(BMEditMesh *em, int nth, int offset)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -2964,18 +2962,18 @@ static int edbm_deselect_nth(BMEditMesh *em, int nth, int offset)
 
 	if (v) {
 		walker_deselect_nth(em, nth, offset, &v->head);
-		return 1;
+		return true;
 	}
 	else if (e) {
 		walker_deselect_nth(em, nth, offset, &e->head);
-		return 1;
+		return true;
 	}
 	else if (f) {
 		walker_deselect_nth(em, nth, offset, &f->head);
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 static int edbm_select_nth_exec(bContext *C, wmOperator *op)
@@ -2988,7 +2986,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 	/* so input of offset zero ends up being (nth - 1) */
 	offset = (offset + (nth - 1)) % nth;
 
-	if (edbm_deselect_nth(em, nth, offset) == 0) {
+	if (edbm_deselect_nth(em, nth, offset) == false) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
 		return OPERATOR_CANCELLED;
 	}

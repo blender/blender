@@ -95,7 +95,11 @@ void BoxFilter(const FloatImage &in,
 
     \note Make sure the search region is filtered with the same strength as the pattern.
 */
-void LaplaceFilter(unsigned char* src, unsigned char* dst, int width, int height, int strength);
+void LaplaceFilter(unsigned char* src,
+                   unsigned char* dst,
+                   int width,
+                   int height,
+                   int strength);
 
 }  // namespace libmv
 

@@ -27,39 +27,72 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
 #include "COM_MathBaseOperation.h"
+#include "COM_AntiAliasOperation.h"
+#include "COM_MixBlendOperation.h"
 
 #include "DNA_material_types.h" // the ramp types
 
 void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
 {
-	if (this->getOutputSocket(0)->isConnected()) {
-		ZCombineOperation *operation = NULL;
-		if (this->getbNode()->custom1) {
-			operation = new ZCombineAlphaOperation();
+	if (context->getRenderData()->scemode & R_FULL_SAMPLE) {
+		if (this->getOutputSocket(0)->isConnected()) {
+			ZCombineOperation *operation = NULL;
+			if (this->getbNode()->custom1) {
+				operation = new ZCombineAlphaOperation();
+			}
+			else {
+				operation = new ZCombineOperation();
+			}
+
+			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
+			this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
+			this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, system);
+			this->getInputSocket(3)->relinkConnections(operation->getInputSocket(3), 3, system);
+			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+			system->addOperation(operation);
+			if (this->getOutputSocket(1)->isConnected()) {
+				MathMinimumOperation *zoperation = new MathMinimumOperation();
+				addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), zoperation->getInputSocket(0));
+				addLink(system, operation->getInputSocket(3)->getConnection()->getFromSocket(), zoperation->getInputSocket(1));
+				this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());
+				system->addOperation(zoperation);
+			}
 		}
 		else {
-			operation = new ZCombineOperation();
+			if (this->getOutputSocket(1)->isConnected()) {
+				MathMinimumOperation *zoperation = new MathMinimumOperation();
+				this->getInputSocket(1)->relinkConnections(zoperation->getInputSocket(0), 1, system);
+				this->getInputSocket(3)->relinkConnections(zoperation->getInputSocket(1), 3, system);
+				this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());
+				system->addOperation(zoperation);
+			}
 		}
+	} else {
+		// not full anti alias, use masking for Z combine. be aware it uses anti aliasing.
+		// step 1 create mask
+		MathGreaterThanOperation *maskoperation = new MathGreaterThanOperation();
+		this->getInputSocket(1)->relinkConnections(maskoperation->getInputSocket(0), 1, system);
+		this->getInputSocket(3)->relinkConnections(maskoperation->getInputSocket(1), 3, system);
 
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
-		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, system);
-		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(3), 3, system);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-		system->addOperation(operation);
+		// step 2 anti alias mask bit of an expensive operation, but does the trick
+		AntiAliasOperation *antialiasoperation = new AntiAliasOperation();
+		addLink(system, maskoperation->getOutputSocket(), antialiasoperation->getInputSocket(0));
+
+		// use mask to blend between the input colors.
+		ZCombineMaskOperation *zcombineoperation = this->getbNode()->custom1?new ZCombineMaskAlphaOperation():new ZCombineMaskOperation();
+		addLink(system, antialiasoperation->getOutputSocket(), zcombineoperation->getInputSocket(0));
+		this->getInputSocket(0)->relinkConnections(zcombineoperation->getInputSocket(1), 0, system);
+		this->getInputSocket(2)->relinkConnections(zcombineoperation->getInputSocket(2), 2, system);
+		this->getOutputSocket(0)->relinkConnections(zcombineoperation->getOutputSocket());
+
+		system->addOperation(maskoperation);
+		system->addOperation(antialiasoperation);
+		system->addOperation(zcombineoperation);
+
 		if (this->getOutputSocket(1)->isConnected()) {
 			MathMinimumOperation *zoperation = new MathMinimumOperation();
-			addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), zoperation->getInputSocket(0));
-			addLink(system, operation->getInputSocket(3)->getConnection()->getFromSocket(), zoperation->getInputSocket(1));
-			this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());
-			system->addOperation(zoperation);
-		}
-	}
-	else {
-		if (this->getOutputSocket(1)->isConnected()) {
-			MathMinimumOperation *zoperation = new MathMinimumOperation();
-			this->getInputSocket(1)->relinkConnections(zoperation->getInputSocket(0), 1, system);
-			this->getInputSocket(3)->relinkConnections(zoperation->getInputSocket(1), 3, system);
+			addLink(system, maskoperation->getInputSocket(0)->getConnection()->getFromSocket(), zoperation->getInputSocket(0));
+			addLink(system, maskoperation->getInputSocket(1)->getConnection()->getFromSocket(), zoperation->getInputSocket(1));
 			this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());
 			system->addOperation(zoperation);
 		}

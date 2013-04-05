@@ -36,7 +36,7 @@ enum NumericJacobianMode {
   FORWARD,
 };
 
-template<typename Function, NumericJacobianMode mode=CENTRAL>
+template<typename Function, NumericJacobianMode mode = CENTRAL>
 class NumericJacobian {
  public:
   typedef typename Function::XMatrixType Parameters;
@@ -58,7 +58,7 @@ class NumericJacobian {
     XScalar mean_eps = eps.sum() / eps.rows();
     if (mean_eps == XScalar(0)) {
       // TODO(keir): Do something better here.
-      mean_eps = 1e-8; // ~sqrt(machine precision).
+      mean_eps = 1e-8;  // ~sqrt(machine precision).
     }
     // TODO(keir): Elimininate this needless function evaluation for the
     // central difference case.

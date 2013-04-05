@@ -57,6 +57,7 @@
 #include <utility>
 #include <vector>
 
+#include "gflags/gflags_completions.h"
 #include "gflags/gflags.h"
 #include "util.h"
 

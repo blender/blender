@@ -1407,11 +1407,15 @@ int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], int c
 
 	t->state = TRANS_RUNNING;
 
-	t->options = CTX_NONE;
+	/* avoid calculating PET */
+	t->options = CTX_NONE | CTX_NO_PET;
 
 	t->mode = TFM_DUMMY;
 
 	initTransInfo(C, t, NULL, NULL);    // internal data, mouse, vectors
+
+	/* avoid doing connectivity lookups (when V3D_LOCAL is set) */
+	t->around = V3D_CENTER;
 
 	createTransData(C, t);              // make TransData structs from selection
 

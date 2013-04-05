@@ -1585,7 +1585,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 	float fuel_flow = emission_value * sfs->fuel_amount;
 	/* add heat */
 	if (heat) {
-		heat[index] = MAX2(emission_value * sfs->temp, heat[index]);
+		heat[index] = ADD_IF_LOWER(heat[index], emission_value * sfs->temp);
 	}
 	/* absolute */
 	if (absolute_flow) {

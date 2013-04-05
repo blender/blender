@@ -32,7 +32,7 @@
 #ifndef __RAS_SOBEL2DFILTER_H__
 #define __RAS_SOBEL2DFILTER_H__
 
-const char * SobelFragmentShader=STRINGIFY(
+static const char *SobelFragmentShader = STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

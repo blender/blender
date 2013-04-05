@@ -41,6 +41,12 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef WITH_OSL
 
+/* Shared Texture System */
+
+OSL::TextureSystem *OSLShaderManager::ts_shared = NULL;
+int OSLShaderManager::ts_shared_users = 0;
+thread_mutex OSLShaderManager::ts_shared_mutex;
+
 /* Shader Manager */
 
 OSLShaderManager::OSLShaderManager()
@@ -54,7 +60,17 @@ OSLShaderManager::OSLShaderManager()
 OSLShaderManager::~OSLShaderManager()
 {
 	OSL::ShadingSystem::destroy(ss);
-	OSL::TextureSystem::destroy(ts);
+
+	/* shared texture system decrease users and destroy if no longer used */
+	{
+		thread_scoped_lock lock(ts_shared_mutex);
+		ts_shared_users--;
+
+		if(ts_shared_users == 0) {
+			OSL::TextureSystem::destroy(ts_shared);
+			ts_shared = NULL;
+		}
+	}
 
 	delete services;
 }
@@ -133,14 +149,22 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 
 void OSLShaderManager::texture_system_init()
 {
-	/* if we let OSL create it, it leaks */
-	ts = TextureSystem::create(true);
-	ts->attribute("automip",  1);
-	ts->attribute("autotile", 64);
-	ts->attribute("gray_to_rgb", 1);
+	/* create texture system, shared between different renders to reduce memory usage */
+	thread_scoped_lock lock(ts_shared_mutex);
 
-	/* effectively unlimited for now, until we support proper mipmap lookups */
-	ts->attribute("max_memory_MB", 16384);
+	if(ts_shared_users == 0) {
+		ts_shared = TextureSystem::create(true);
+
+		ts_shared->attribute("automip",  1);
+		ts_shared->attribute("autotile", 64);
+		ts_shared->attribute("gray_to_rgb", 1);
+
+		/* effectively unlimited for now, until we support proper mipmap lookups */
+		ts_shared->attribute("max_memory_MB", 16384);
+	}
+
+	ts = ts_shared;
+	ts_shared_users++;
 }
 
 void OSLShaderManager::shading_system_init()

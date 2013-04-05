@@ -79,7 +79,7 @@ bool LmickltRegionTracker::Track(const FloatImage &image1,
        << ", hw=" << half_window_size << ".";
     return false;
   }
-  
+
   int width = 2 * half_window_size + 1;
 
   // TODO(keir): Avoid recomputing gradients for e.g. the pyramid tracker.
@@ -100,7 +100,7 @@ bool LmickltRegionTracker::Track(const FloatImage &image1,
                 &image_and_gradient1_sampled);
 
   // Step 0: Initialize delta = 0.01.
-  // 
+  //
   // Ignored for my "normal" LM loop.
 
   double reasonable_error =
@@ -152,8 +152,7 @@ bool LmickltRegionTracker::Track(const FloatImage &image1,
     }
   }
 
-  double tau = 1e-3, eps1, eps2, eps3;
-  eps1 = eps2 = eps3 = 1e-15;
+  double tau = 1e-3;
 
   double mu = tau * std::max(H(0, 0), H(1, 1));
   double nu = 2.0;

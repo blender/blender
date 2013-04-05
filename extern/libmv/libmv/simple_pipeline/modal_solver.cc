@@ -34,7 +34,7 @@
 namespace libmv {
 
 namespace {
-void ProjectMarkerOnSphere(Marker &marker, Vec3 &X) {
+void ProjectMarkerOnSphere(const Marker &marker, Vec3 &X) {
   X(0) = marker.x;
   X(1) = marker.y;
   X(2) = 1.0;
@@ -43,8 +43,7 @@ void ProjectMarkerOnSphere(Marker &marker, Vec3 &X) {
 }
 
 void ModalSolverLogProress(ProgressUpdateCallback *update_callback,
-                           double progress)
-{
+                           double progress) {
   if (update_callback) {
     char message[256];
 
@@ -56,13 +55,14 @@ void ModalSolverLogProress(ProgressUpdateCallback *update_callback,
 }
 
 struct ModalReprojectionError {
-  ModalReprojectionError(double observed_x, double observed_y, Vec3 &bundle)
+  ModalReprojectionError(double observed_x,
+                         double observed_y,
+                         const Vec3 &bundle)
     : observed_x(observed_x), observed_y(observed_y), bundle(bundle) { }
 
   template <typename T>
   bool operator()(const T* quaternion,   // Rotation quaternion
                   T* residuals) const {
-
     T R[9];
     ceres::QuaternionToRotation(quaternion, R);
 
@@ -96,7 +96,7 @@ struct ModalReprojectionError {
 };
 }  // namespace
 
-void ModalSolver(Tracks &tracks,
+void ModalSolver(const Tracks &tracks,
                  EuclideanReconstruction *reconstruction,
                  ProgressUpdateCallback *update_callback) {
   int max_image = tracks.MaxImage();

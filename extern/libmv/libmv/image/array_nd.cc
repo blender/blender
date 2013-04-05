@@ -35,8 +35,8 @@ void FloatArrayToScaledByteArray(const Array3Df &float_array,
     for (int i = 0; i < float_array.Height(); ++i) {
       for (int j = 0; j < float_array.Width(); ++j) {
         for (int k = 0; k < float_array.Depth(); ++k) {
-          minval = std::min(minval, float_array(i,j,k));
-          maxval = std::max(maxval, float_array(i,j,k));
+          minval = std::min(minval, float_array(i, j, k));
+          maxval = std::max(maxval, float_array(i, j, k));
         }
       }
     }
@@ -47,8 +47,8 @@ void FloatArrayToScaledByteArray(const Array3Df &float_array,
   for (int i = 0; i < float_array.Height(); ++i) {
     for (int j = 0; j < float_array.Width(); ++j) {
       for (int k = 0; k < float_array.Depth(); ++k) {
-        float unscaled = (float_array(i,j,k) - minval) / (maxval - minval);
-        (*byte_array)(i,j,k) = (unsigned char)(255 * unscaled);
+        float unscaled = (float_array(i, j, k) - minval) / (maxval - minval);
+        (*byte_array)(i, j, k) = (unsigned char)(255 * unscaled);
       }
     }
   }
@@ -60,7 +60,7 @@ void ByteArrayToScaledFloatArray(const Array3Du &byte_array,
   for (int i = 0; i < byte_array.Height(); ++i) {
     for (int j = 0; j < byte_array.Width(); ++j) {
       for (int k = 0; k < byte_array.Depth(); ++k) {
-	      (*float_array)(i,j,k) = float(byte_array(i,j,k)) / 255.0f;
+        (*float_array)(i, j, k) = float(byte_array(i, j, k)) / 255.0f;
       }
     }
   }

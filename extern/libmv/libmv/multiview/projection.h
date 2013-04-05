@@ -94,7 +94,7 @@ inline Vec3 EuclideanToHomogeneous(const Vec2 &x) {
 inline Vec4 EuclideanToHomogeneous(const Vec3 &x) {
   return Vec4(x(0), x(1), x(2), 1);
 }
-// Conversion from image coordinates to normalized camera coordinates 
+// Conversion from image coordinates to normalized camera coordinates
 void EuclideanToNormalizedCamera(const Mat2X &x, const Mat3 &K, Mat2X *n);
 void HomogeneousToNormalizedCamera(const Mat3X &x, const Mat3 &K, Mat2X *n);
 
@@ -180,16 +180,16 @@ double Depth(const Mat3 &R, const Vec3 &t, const Vec4 &X);
 * Returns true if the homogenious 3D point X is in front of
 * the camera P.
 */
-inline bool isInFrontOfCamera(const Mat34 &P, const Vec4 &X){
+inline bool isInFrontOfCamera(const Mat34 &P, const Vec4 &X) {
   double condition_1 = P.row(2).dot(X) * X[3];
   double condition_2 = X[2] * X[3];
-  if( condition_1 > 0 && condition_2 > 0 )
+  if (condition_1 > 0 && condition_2 > 0)
     return true;
   else
     return false;
 }
 
-inline bool isInFrontOfCamera(const Mat34 &P, const Vec3 &X){
+inline bool isInFrontOfCamera(const Mat34 &P, const Vec3 &X) {
   Vec4 X_homo;
   X_homo.segment<3>(0) = X;
   X_homo(3) = 1;
@@ -200,14 +200,14 @@ inline bool isInFrontOfCamera(const Mat34 &P, const Vec3 &X){
 * Transforms a 2D point from pixel image coordinates to a 2D point in
 * normalized image coordinates.
 */
-inline Vec2 ImageToNormImageCoordinates(Mat3 &Kinverse, Vec2 &x){
+inline Vec2 ImageToNormImageCoordinates(Mat3 &Kinverse, Vec2 &x) {
   Vec3 x_h = Kinverse*EuclideanToHomogeneous(x);
   return HomogeneousToEuclidean( x_h );
 }
 
 /// Estimates the root mean square error (2D)
-inline double RootMeanSquareError(const Mat2X &x_image, 
-                                  const Mat4X &X_world,               
+inline double RootMeanSquareError(const Mat2X &x_image,
+                                  const Mat4X &X_world,
                                   const Mat34 &P) {
   size_t num_points = x_image.cols();
   Mat2X dx = Project(P, X_world) - x_image;
@@ -215,10 +215,10 @@ inline double RootMeanSquareError(const Mat2X &x_image,
 }
 
 /// Estimates the root mean square error (2D)
-inline double RootMeanSquareError(const Mat2X &x_image, 
-                                  const Mat3X &X_world,               
-                                  const Mat3 &K, 
-                                  const Mat3 &R, 
+inline double RootMeanSquareError(const Mat2X &x_image,
+                                  const Mat3X &X_world,
+                                  const Mat3 &K,
+                                  const Mat3 &R,
                                   const Vec3 &t) {
   Mat34 P;
   P_From_KRt(K, R, t, &P);
@@ -226,6 +226,6 @@ inline double RootMeanSquareError(const Mat2X &x_image,
   Mat2X dx = Project(P, X_world) - x_image;
   return dx.norm() / num_points;
 }
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_PROJECTION_H_

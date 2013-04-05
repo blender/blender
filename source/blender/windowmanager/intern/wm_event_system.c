@@ -987,7 +987,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 					}
 				}
 
-				WM_cursor_grab_enable(CTX_wm_window(C), wrap, FALSE, bounds);
+				WM_cursor_grab_enable(CTX_wm_window(C), wrap, false, bounds);
 			}
 
 			/* cancel UI handlers, typically tooltips that can hang around
@@ -2403,9 +2403,17 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers,
 	handler->ui_handle = func;
 	handler->ui_remove = remove;
 	handler->ui_userdata = userdata;
-	handler->ui_area = (C) ? CTX_wm_area(C) : NULL;
-	handler->ui_region = (C) ? CTX_wm_region(C) : NULL;
-	handler->ui_menu = (C) ? CTX_wm_menu(C) : NULL;
+	if (C) {
+		handler->ui_area    = CTX_wm_area(C);
+		handler->ui_region  = CTX_wm_region(C);
+		handler->ui_menu    = CTX_wm_menu(C);
+	}
+	else {
+		handler->ui_area    = NULL;
+		handler->ui_region  = NULL;
+		handler->ui_menu    = NULL;
+	}
+
 	
 	BLI_addhead(handlers, handler);
 	
@@ -2414,7 +2422,7 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers,
 
 /* set "postpone" for win->modalhandlers, this is in a running for () loop in wm_handlers_do() */
 void WM_event_remove_ui_handler(ListBase *handlers,
-                                wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, int postpone)
+                                wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, const bool postpone)
 {
 	wmEventHandler *handler;
 	

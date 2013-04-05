@@ -5182,7 +5182,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					 * during cleanup - psy-fi */
 					freeEdgeSlideTempFaces(sld);
 				}
-				EDBM_automerge(t->scene, t->obedit, TRUE);
+				EDBM_automerge(t->scene, t->obedit, true);
 			}
 			else {
 				if (t->mode == TFM_EDGE_SLIDE) {

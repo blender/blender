@@ -1,8 +1,7 @@
 /*This is mechanically generated code*/
 #include <stdlib.h>
 
-typedef struct { int x, y; } xy; 
-typedef unsigned char byte;
+#include "fast.h"
 
 int fast11_corner_score(const byte* p, const int pixel[], int bstart)
 {    

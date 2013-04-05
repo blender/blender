@@ -291,13 +291,7 @@ bool SparseSchurComplementSolver::SolveReducedLinearSystemUsingSuiteSparse(
     } else {
       factor_ = ss_.AnalyzeCholesky(cholmod_lhs);
     }
-
-    if (VLOG_IS_ON(2)) {
-      cholmod_print_common(const_cast<char*>("Symbolic Analysis"), ss_.mutable_cc());
-    }
   }
-
-  CHECK_NOTNULL(factor_);
 
   cholmod_dense* cholmod_solution =
       ss_.SolveCholesky(cholmod_lhs, factor_, cholmod_rhs);

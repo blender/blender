@@ -115,10 +115,10 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 		float3 Pfocus = ray->D*ft;
 
 		/* update ray for effect of lens */
-		ray->P = make_float3(lensuv.x, lensuv.y, 0.0f);
-		ray->D = normalize(Pfocus - ray->P);
+		float3 lensuvw = make_float3(lensuv.x, lensuv.y, 0.0f);
 
-		ray->P += Pcamera;
+		ray->P += lensuvw;
+		ray->D = normalize(Pfocus - lensuvw);
 	}
 
 	/* transform ray from camera to world */

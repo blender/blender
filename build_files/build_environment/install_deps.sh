@@ -1207,7 +1207,7 @@ get_package_version_DEB() {
 }
 
 check_package_DEB() {
-  r=`apt-cache policy $1 | grep -c 'Candidate:'`
+  r=`apt-cache show $1 | grep -c 'Package:'`
 
   if [ $r -ge 1 ]; then
     return 0
@@ -1298,15 +1298,35 @@ install_DEB() {
   THEORA_USE=true
 
   # Install newest libtiff-dev in debian/ubuntu.
-  TIFF="libtiff5"
+  TIFF="libtiff"
   check_package_DEB $TIFF
   if [ $? -eq 0 ]; then
     _packages="$_packages $TIFF-dev"
   else
-    TIFF="libtiff"
+    TIFF="libtiff5"
     check_package_DEB $TIFF
     if [ $? -eq 0 ]; then
       _packages="$_packages $TIFF-dev"
+    else
+      TIFF="libtiff4"  # Some old distro, like e.g. ubuntu 10.04 :/
+      check_package_DEB $TIFF
+      if [ $? -eq 0 ]; then
+        _packages="$_packages $TIFF-dev"
+      fi
+    fi
+  fi
+
+  GIT="git"
+  check_package_DEB $GIT
+  if [ $? -eq 0 ]; then
+    INFO $GIT
+    _packages="$_packages $GIT"
+  else
+    GIT="git-core"  # Some old distro, like e.g. ubuntu 10.04 :/
+    check_package_DEB $GIT
+    if [ $? -eq 0 ]; then
+      INFO $GIT
+      _packages="$_packages $GIT"
     fi
   fi
 
@@ -1471,7 +1491,7 @@ install_DEB() {
     else
       if $have_llvm; then
         INFO ""
-        install_packages_DEB flex bison libtbb-dev git
+        install_packages_DEB flex bison libtbb-dev
         # No package currently!
         INFO ""
         compile_OSL
@@ -1484,7 +1504,7 @@ install_DEB() {
       INFO "WARNING! Skipping OpenCOLLADA installation, as requested..."
     else
       INFO ""
-      install_packages_DEB git libpcre3-dev libxml2-dev
+      install_packages_DEB libpcre3-dev libxml2-dev
       # Find path to libxml shared lib...
       _XML2_LIB=`dpkg -L libxml2-dev | grep -e ".*/libxml2.so"`
       # No package

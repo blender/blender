@@ -819,7 +819,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 /* XXX, this code will shorten any allocated string to 'UI_MAX_NAME_STR'
  * since this is really long its unlikely to be an issue,
  * but this could be supported */
-void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const short do_strip)
+void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_strip)
 {
 
 	if (do_strip) {

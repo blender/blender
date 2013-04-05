@@ -32,7 +32,7 @@
 #ifndef __RAS_PREWITT2DFILTER_H__
 #define __RAS_PREWITT2DFILTER_H__
 
-const char * PrewittFragmentShader=STRINGIFY(
+static const char *PrewittFragmentShader = STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

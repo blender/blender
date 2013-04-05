@@ -199,6 +199,9 @@ int       Video_setRepeat(PyImage *self, PyObject *value, void *closure);
 PyObject *Video_getFrameRate(PyImage *self, void *closure);
 int       Video_setFrameRate(PyImage *self, PyObject *value, void *closure);
 
+/* py api */
+extern PyTypeObject ImageRenderType;
+extern PyTypeObject ImageMirrorType;
+extern PyTypeObject ImageViewportType;
 
-#endif
-
+#endif  /* __VIDEOBASE_H__ */

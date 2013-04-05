@@ -3324,6 +3324,40 @@ static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 	return ret;
 }
 
+PyDoc_STRVAR(pyrna_prop_as_bytes_doc,
+".. method:: as_bytes()\n"
+"\n"
+"   Returns this string property as a byte rather then a python string.\n"
+"\n"
+"   :return: The string as bytes.\n"
+"   :rtype: bytes\n"
+);
+static PyObject *pyrna_prop_as_bytes(BPy_PropertyRNA *self)
+{
+
+	if (RNA_property_type(self->prop) != PROP_STRING) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s.%.200s.as_bytes() must be a string",
+		             RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
+		return NULL;
+	}
+	else {
+		PyObject *ret;
+		char buf_fixed[256], *buf;
+		int buf_len;
+
+		buf = RNA_property_string_get_alloc(&self->ptr, self->prop, buf_fixed, sizeof(buf_fixed), &buf_len);
+
+		ret = PyBytes_FromStringAndSize(buf, buf_len);
+
+		if (buf_fixed != buf) {
+			MEM_freeN(buf);
+		}
+
+		return ret;
+	}
+}
+
 PyDoc_STRVAR(pyrna_struct_type_recast_doc,
 ".. method:: type_recast()\n"
 "\n"
@@ -4685,6 +4719,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 static struct PyMethodDef pyrna_prop_methods[] = {
 	{"path_from_id", (PyCFunction)pyrna_prop_path_from_id, METH_NOARGS, pyrna_prop_path_from_id_doc},
+	{"as_bytes", (PyCFunction)pyrna_prop_as_bytes, METH_NOARGS, pyrna_prop_as_bytes_doc},
 	{"__dir__", (PyCFunction)pyrna_prop_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };

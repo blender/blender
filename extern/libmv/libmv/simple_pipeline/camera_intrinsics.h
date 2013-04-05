@@ -135,7 +135,10 @@ class CameraIntrinsics {
                  int width, int height, double overscan, int channels);
 
  private:
-  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid, int width, int height, double overscan);
+  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid,
+                                                         int width,
+                                                         int height,
+                                                         double overscan);
   void CheckUndistortLookupGrid(int width, int height, double overscan);
   void CheckDistortLookupGrid(int width, int height, double overscan);
   void FreeLookupGrid();

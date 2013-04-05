@@ -293,7 +293,7 @@ static PyObject *listvalue_buffer_item(PyObject *self, Py_ssize_t index)
 	CValue *cval;
 	
 	if (list==NULL) {
-		PyErr_SetString(PyExc_SystemError, "val = CList[i], "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val = CList[i], " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -350,7 +350,7 @@ static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *key)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL) {
-		PyErr_SetString(PyExc_SystemError, "value = CList[i], "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "value = CList[i], " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -398,7 +398,7 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 	Py_ssize_t i, numitems, numitems_orig;
 	
 	if (listval==NULL) {
-		PyErr_SetString(PyExc_SystemError, "CList+other, "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "CList+other, " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -447,7 +447,7 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 		CListValue* otherval = static_cast<CListValue *>(BGE_PROXY_REF(other));
 		if (otherval==NULL) {
 			listval_new->Release();
-			PyErr_SetString(PyExc_SystemError, "CList+other, "BGE_PROXY_ERROR_MSG);
+			PyErr_SetString(PyExc_SystemError, "CList+other, " BGE_PROXY_ERROR_MSG);
 			return NULL;
 		}
 		
@@ -471,7 +471,7 @@ static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
 	CListValue *self = static_cast<CListValue *>(BGE_PROXY_REF(self_v));
 	
 	if (self == NULL) {
-		PyErr_SetString(PyExc_SystemError, "val in CList, "BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val in CList, " BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	

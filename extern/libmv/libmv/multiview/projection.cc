@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,10 +38,11 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
 
   // Set K(2,1) to zero.
   if (K(2, 1) != 0) {
-    double c = -K(2,2);
-    double s = K(2,1);
+    double c = -K(2, 2);
+    double s = K(2, 1);
     double l = sqrt(c * c + s * s);
-    c /= l; s /= l;
+    c /= l;
+    s /= l;
     Mat3 Qx;
     Qx << 1, 0,  0,
           0, c, -s,
@@ -54,7 +55,8 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
     double c = K(2, 2);
     double s = K(2, 0);
     double l = sqrt(c * c + s * s);
-    c /= l; s /= l;
+    c /= l;
+    s /= l;
     Mat3 Qy;
     Qy << c, 0, s,
           0, 1, 0,
@@ -67,11 +69,12 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
     double c = -K(1, 1);
     double s = K(1, 0);
     double l = sqrt(c * c + s * s);
-    c /= l; s /= l;
+    c /= l;
+    s /= l;
     Mat3 Qz;
-    Qz << c,-s, 0,
-          s, c, 0,
-          0, 0, 1;
+    Qz << c, -s,  0,
+          s,  c,  0,
+          0,  0,  1;
     K = K * Qz;
     Q = Qz.transpose() * Q;
   }
@@ -83,19 +86,19 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   //  - K(0,0) > 0
   //  - K(2,2) = 1
   //  - det(R) = 1
-  if (K(2,2) < 0) {
+  if (K(2, 2) < 0) {
     K = -K;
     R = -R;
   }
-  if (K(1,1) < 0) {
+  if (K(1, 1) < 0) {
     Mat3 S;
-    S << 1, 0, 0,
-         0,-1, 0,
-         0, 0, 1;
+    S << 1,  0,  0,
+         0, -1,  0,
+         0,  0,  1;
     K = K * S;
     R = S * R;
   }
-  if (K(0,0) < 0) {
+  if (K(0, 0) < 0) {
     Mat3 S;
     S << -1, 0, 0,
           0, 1, 0,
@@ -106,13 +109,13 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
 
   // Compute translation.
   Vec p(3);
-  p << P(0,3), P(1,3), P(2,3);
+  p << P(0, 3), P(1, 3), P(2, 3);
   // TODO(pau) This sould be done by a SolveLinearSystem(A, b, &x) call.
   // TODO(keir) use the eigen LU solver syntax...
   Vec3 t = K.inverse() * p;
 
   // scale K so that K(2,2) = 1
-  K = K / K(2,2);
+  K = K / K(2, 2);
 
   *Kp = K;
   *Rp = R;
@@ -140,10 +143,10 @@ void ProjectionChangeAspectRatio(const Mat34 &P,
        0, aspect_ratio_new / aspect_ratio, 0,
        0,                               0, 1;
   Mat34 P_temp;
-  
-  ProjectionShiftPrincipalPoint(P, principal_point, Vec2(0,0), &P_temp);
+
+  ProjectionShiftPrincipalPoint(P, principal_point, Vec2(0, 0), &P_temp);
   P_temp = T * P_temp;
-  ProjectionShiftPrincipalPoint(P_temp, Vec2(0,0), principal_point, P_new);
+  ProjectionShiftPrincipalPoint(P_temp, Vec2(0, 0), principal_point, P_new);
 }
 
 void HomogeneousToEuclidean(const Mat &H, Mat *X) {
@@ -198,15 +201,15 @@ void EuclideanToHomogeneous(const Vec3 &X, Vec4 *H) {
 
 // TODO(julien) Call conditioning.h/ApplyTransformationToPoints ?
 void EuclideanToNormalizedCamera(const Mat2X &x, const Mat3 &K, Mat2X *n) {
- Mat3X x_image_h;
- EuclideanToHomogeneous(x, &x_image_h);
- Mat3X x_camera_h = K.inverse() * x_image_h;
- HomogeneousToEuclidean(x_camera_h, n);
+  Mat3X x_image_h;
+  EuclideanToHomogeneous(x, &x_image_h);
+  Mat3X x_camera_h = K.inverse() * x_image_h;
+  HomogeneousToEuclidean(x_camera_h, n);
 }
 
 void HomogeneousToNormalizedCamera(const Mat3X &x, const Mat3 &K, Mat2X *n) {
- Mat3X x_camera_h = K.inverse() * x;
- HomogeneousToEuclidean(x_camera_h, n);
+  Mat3X x_camera_h = K.inverse() * x;
+  HomogeneousToEuclidean(x_camera_h, n);
 }
 
 double Depth(const Mat3 &R, const Vec3 &t, const Vec3 &X) {

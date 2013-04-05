@@ -35,8 +35,18 @@
 #include "cholmod.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/triplet_sparse_matrix.h"
+
 namespace ceres {
 namespace internal {
+
+SuiteSparse::SuiteSparse() {
+  cholmod_start(&cc_);
+}
+
+SuiteSparse::~SuiteSparse() {
+  cholmod_finish(&cc_);
+}
+
 cholmod_sparse* SuiteSparse::CreateSparseMatrix(TripletSparseMatrix* A) {
   cholmod_triplet triplet;
 
@@ -117,10 +127,16 @@ cholmod_factor* SuiteSparse::AnalyzeCholesky(cholmod_sparse* A) {
   cc_.nmethods = 1;
   cc_.method[0].ordering = CHOLMOD_AMD;
   cc_.supernodal = CHOLMOD_AUTO;
+
   cholmod_factor* factor = cholmod_analyze(A, &cc_);
   CHECK_EQ(cc_.status, CHOLMOD_OK)
       << "Cholmod symbolic analysis failed " << cc_.status;
   CHECK_NOTNULL(factor);
+
+  if (VLOG_IS_ON(2)) {
+    cholmod_print_common(const_cast<char*>("Symbolic Analysis"), &cc_);
+  }
+
   return factor;
 }
 
@@ -139,13 +155,20 @@ cholmod_factor* SuiteSparse::AnalyzeCholeskyWithUserOrdering(
     cholmod_sparse* A,
     const vector<int>& ordering) {
   CHECK_EQ(ordering.size(), A->nrow);
+
   cc_.nmethods = 1;
   cc_.method[0].ordering = CHOLMOD_GIVEN;
+
   cholmod_factor* factor  =
       cholmod_analyze_p(A, const_cast<int*>(&ordering[0]), NULL, 0, &cc_);
   CHECK_EQ(cc_.status, CHOLMOD_OK)
       << "Cholmod symbolic analysis failed " << cc_.status;
   CHECK_NOTNULL(factor);
+
+  if (VLOG_IS_ON(2)) {
+    cholmod_print_common(const_cast<char*>("Symbolic Analysis"), &cc_);
+  }
+
   return factor;
 }
 
@@ -276,36 +299,52 @@ bool SuiteSparse::Cholesky(cholmod_sparse* A, cholmod_factor* L) {
   CHECK_NOTNULL(A);
   CHECK_NOTNULL(L);
 
+  // Save the current print level and silence CHOLMOD, otherwise
+  // CHOLMOD is prone to dumping stuff to stderr, which can be
+  // distracting when the error (matrix is indefinite) is not a fatal
+  // failure.
+  const int old_print_level = cc_.print;
+  cc_.print = 0;
+
   cc_.quick_return_if_not_posdef = 1;
   int status = cholmod_factorize(A, L, &cc_);
+  cc_.print = old_print_level;
+
+  // TODO(sameeragarwal): This switch statement is not consistent. It
+  // treats all kinds of CHOLMOD failures as warnings. Some of these
+  // like out of memory are definitely not warnings. The problem is
+  // that the return value Cholesky is two valued, but the state of
+  // the linear solver is really three valued. SUCCESS,
+  // NON_FATAL_FAILURE (e.g., indefinite matrix) and FATAL_FAILURE
+  // (e.g. out of memory).
   switch (cc_.status) {
     case CHOLMOD_NOT_INSTALLED:
-      LOG(WARNING) << "Cholmod failure: method not installed.";
+      LOG(WARNING) << "CHOLMOD failure: Method not installed.";
       return false;
     case CHOLMOD_OUT_OF_MEMORY:
-      LOG(WARNING) << "Cholmod failure: out of memory.";
+      LOG(WARNING) << "CHOLMOD failure: Out of memory.";
       return false;
     case CHOLMOD_TOO_LARGE:
-      LOG(WARNING) << "Cholmod failure: integer overflow occured.";
+      LOG(WARNING) << "CHOLMOD failure: Integer overflow occured.";
       return false;
     case CHOLMOD_INVALID:
-      LOG(WARNING) << "Cholmod failure: invalid input.";
+      LOG(WARNING) << "CHOLMOD failure: Invalid input.";
       return false;
     case CHOLMOD_NOT_POSDEF:
       // TODO(sameeragarwal): These two warnings require more
       // sophisticated handling going forward. For now we will be
       // strict and treat them as failures.
-      LOG(WARNING) << "Cholmod warning: matrix not positive definite.";
+      LOG(WARNING) << "CHOLMOD warning: Matrix not positive definite.";
       return false;
     case CHOLMOD_DSMALL:
-      LOG(WARNING) << "Cholmod warning: D for LDL' or diag(L) or "
+      LOG(WARNING) << "CHOLMOD warning: D for LDL' or diag(L) or "
                    << "LL' has tiny absolute value.";
       return false;
     case CHOLMOD_OK:
       if (status != 0) {
         return true;
       }
-      LOG(WARNING) << "Cholmod failure: cholmod_factorize returned zero "
+      LOG(WARNING) << "CHOLMOD failure: cholmod_factorize returned zero "
                    << "but cholmod_common::status is CHOLMOD_OK."
                    << "Please report this to ceres-solver@googlegroups.com.";
       return false;

@@ -18,8 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/logging/logging.h"
 #include "libmv/multiview/homography.h"
+
+#include "libmv/logging/logging.h"
 #include "libmv/multiview/homography_parameterization.h"
 
 namespace libmv {
@@ -55,30 +56,30 @@ static bool Homography2DFromCorrespondencesLinearEuc(
   Mat b = Mat::Zero(n * 3, 1);
   for (int i = 0; i < n; ++i) {
     int j = 3 * i;
-    L(j, 0) =  x1(0, i);            // a
-    L(j, 1) =  x1(1, i);            // b
-    L(j, 2) =  1.0;                 // c
-    L(j, 6) = -x2(0, i) * x1(0, i); // g
-    L(j, 7) = -x2(0, i) * x1(1, i); // h
-    b(j, 0) =  x2(0, i);            // i
+    L(j, 0) =  x1(0, i);             // a
+    L(j, 1) =  x1(1, i);             // b
+    L(j, 2) =  1.0;                  // c
+    L(j, 6) = -x2(0, i) * x1(0, i);  // g
+    L(j, 7) = -x2(0, i) * x1(1, i);  // h
+    b(j, 0) =  x2(0, i);             // i
 
     ++j;
-    L(j, 3) =  x1(0, i);            // d
-    L(j, 4) =  x1(1, i);            // e
-    L(j, 5) =  1.0;                 // f
-    L(j, 6) = -x2(1, i) * x1(0, i); // g
-    L(j, 7) = -x2(1, i) * x1(1, i); // h
-    b(j, 0) =  x2(1, i);            // i
-    
+    L(j, 3) =  x1(0, i);             // d
+    L(j, 4) =  x1(1, i);             // e
+    L(j, 5) =  1.0;                  // f
+    L(j, 6) = -x2(1, i) * x1(0, i);  // g
+    L(j, 7) = -x2(1, i) * x1(1, i);  // h
+    b(j, 0) =  x2(1, i);             // i
+
     // This ensures better stability
     // TODO(julien) make a lite version without this 3rd set
     ++j;
-    L(j, 0) =  x2(1, i) * x1(0, i); // a
-    L(j, 1) =  x2(1, i) * x1(1, i); // b
-    L(j, 2) =  x2(1, i);            // c
-    L(j, 3) = -x2(0, i) * x1(0, i); // d
-    L(j, 4) = -x2(0, i) * x1(1, i); // e
-    L(j, 5) = -x2(0, i) ;           // f
+    L(j, 0) =  x2(1, i) * x1(0, i);  // a
+    L(j, 1) =  x2(1, i) * x1(1, i);  // b
+    L(j, 2) =  x2(1, i);             // c
+    L(j, 3) = -x2(0, i) * x1(0, i);  // d
+    L(j, 4) = -x2(0, i) * x1(1, i);  // e
+    L(j, 5) = -x2(0, i);             // f
   }
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
@@ -103,7 +104,7 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
                                            Mat3 *H,
                                            double expected_precision) {
   if (x1.rows() == 2) {
-    return Homography2DFromCorrespondencesLinearEuc(x1, x2, H, 
+    return Homography2DFromCorrespondencesLinearEuc(x1, x2, H,
                                                     expected_precision);
   }
   assert(3 == x1.rows());
@@ -119,29 +120,29 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
   Mat b = Mat::Zero(n * 3, 1);
   for (int i = 0; i < n; ++i) {
     int j = 3 * i;
-    L(j, 0) =  x2(w, i) * x1(x, i);//a
-    L(j, 1) =  x2(w, i) * x1(y, i);//b
-    L(j, 2) =  x2(w, i) * x1(w, i);//c
-    L(j, 6) = -x2(x, i) * x1(x, i);//g
-    L(j, 7) = -x2(x, i) * x1(y, i);//h
+    L(j, 0) =  x2(w, i) * x1(x, i);  // a
+    L(j, 1) =  x2(w, i) * x1(y, i);  // b
+    L(j, 2) =  x2(w, i) * x1(w, i);  // c
+    L(j, 6) = -x2(x, i) * x1(x, i);  // g
+    L(j, 7) = -x2(x, i) * x1(y, i);  // h
     b(j, 0) =  x2(x, i) * x1(w, i);
 
     ++j;
-    L(j, 3) =  x2(w, i) * x1(x, i);//d
-    L(j, 4) =  x2(w, i) * x1(y, i);//e
-    L(j, 5) =  x2(w, i) * x1(w, i);//f
-    L(j, 6) = -x2(y, i) * x1(x, i);//g
-    L(j, 7) = -x2(y, i) * x1(y, i);//h
+    L(j, 3) =  x2(w, i) * x1(x, i);  // d
+    L(j, 4) =  x2(w, i) * x1(y, i);  // e
+    L(j, 5) =  x2(w, i) * x1(w, i);  // f
+    L(j, 6) = -x2(y, i) * x1(x, i);  // g
+    L(j, 7) = -x2(y, i) * x1(y, i);  // h
     b(j, 0) =  x2(y, i) * x1(w, i);
 
     // This ensures better stability
     ++j;
-    L(j, 0) =  x2(y, i) * x1(x, i);//a
-    L(j, 1) =  x2(y, i) * x1(y, i);//b
-    L(j, 2) =  x2(y, i) * x1(w, i);//c
-    L(j, 3) = -x2(x, i) * x1(x, i);//d
-    L(j, 4) = -x2(x, i) * x1(y, i);//e
-    L(j, 5) = -x2(x, i) * x1(w, i);//f
+    L(j, 0) =  x2(y, i) * x1(x, i);  // a
+    L(j, 1) =  x2(y, i) * x1(y, i);  // b
+    L(j, 2) =  x2(y, i) * x1(w, i);  // c
+    L(j, 3) = -x2(x, i) * x1(x, i);  // d
+    L(j, 4) = -x2(x, i) * x1(y, i);  // e
+    L(j, 5) = -x2(x, i) * x1(w, i);  // f
   }
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
@@ -165,11 +166,11 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
  *  |0 0 0 1|  -> |-x2w|  |-1 0 0 0|  -> | x2x|   |0 0 0 0|  -> |  0 |
  *  |0 0 0 0|     |  0 |  | 0 0 0 0|     |  0 |   |0 0 0 1|     |-x2w|
  *  |0-1 0 0|     | x2y|  | 0 0 0 0|     |  0 |   |0 0-1 0|     | x2z|
- *     |a b c d| 
- * A = |e f g h| 
+ *     |a b c d|
+ * A = |e f g h|
  *     |i j k l|
- *     |m n o 1| 
- *     
+ *     |m n o 1|
+ *
  * x2^t * H1 * A *x1 = (-x2w*a +x2x*m )*x1x + (-x2w*b +x2x*n )*x1y + (-x2w*c +x2x*o )*x1z + (-x2w*d +x2x*1 )*x1w = 0
  * x2^t * H2 * A *x1 = (-x2z*e +x2y*i )*x1x + (-x2z*f +x2y*j )*x1y + (-x2z*g +x2y*k )*x1z + (-x2z*h +x2y*l )*x1w = 0
  * x2^t * H3 * A *x1 = (-x2z*a +x2x*i )*x1x + (-x2z*b +x2x*j )*x1y + (-x2z*c +x2x*k )*x1z + (-x2z*d +x2x*l )*x1w = 0
@@ -196,64 +197,64 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
   Mat b = Mat::Zero(n * 6, 1);
   for (int i = 0; i < n; ++i) {
     int j = 6 * i;
-    L(j, 0) = -x2(w, i) * x1(x, i);//a
-    L(j, 1) = -x2(w, i) * x1(y, i);//b
-    L(j, 2) = -x2(w, i) * x1(z, i);//c
-    L(j, 3) = -x2(w, i) * x1(w, i);//d
-    L(j,12) =  x2(x, i) * x1(x, i);//m
-    L(j,13) =  x2(x, i) * x1(y, i);//n
-    L(j,14) =  x2(x, i) * x1(z, i);//o
-    b(j, 0) = -x2(x, i) * x1(w, i);
-    
+    L(j,  0) = -x2(w, i) * x1(x, i);  // a
+    L(j,  1) = -x2(w, i) * x1(y, i);  // b
+    L(j,  2) = -x2(w, i) * x1(z, i);  // c
+    L(j,  3) = -x2(w, i) * x1(w, i);  // d
+    L(j, 12) =  x2(x, i) * x1(x, i);  // m
+    L(j, 13) =  x2(x, i) * x1(y, i);  // n
+    L(j, 14) =  x2(x, i) * x1(z, i);  // o
+    b(j,  0) = -x2(x, i) * x1(w, i);
+
     ++j;
-    L(j, 4) = -x2(z, i) * x1(x, i);//e
-    L(j, 5) = -x2(z, i) * x1(y, i);//f
-    L(j, 6) = -x2(z, i) * x1(z, i);//g
-    L(j, 7) = -x2(z, i) * x1(w, i);//h
-    L(j, 8) =  x2(y, i) * x1(x, i);//i
-    L(j, 9) =  x2(y, i) * x1(y, i);//j
-    L(j,10) =  x2(y, i) * x1(z, i);//k
-    L(j,11) =  x2(y, i) * x1(w, i);//l
-    
+    L(j,  4) = -x2(z, i) * x1(x, i);  // e
+    L(j,  5) = -x2(z, i) * x1(y, i);  // f
+    L(j,  6) = -x2(z, i) * x1(z, i);  // g
+    L(j,  7) = -x2(z, i) * x1(w, i);  // h
+    L(j,  8) =  x2(y, i) * x1(x, i);  // i
+    L(j,  9) =  x2(y, i) * x1(y, i);  // j
+    L(j, 10) =  x2(y, i) * x1(z, i);  // k
+    L(j, 11) =  x2(y, i) * x1(w, i);  // l
+
     ++j;
-    L(j, 0) = -x2(z, i) * x1(x, i);//a
-    L(j, 1) = -x2(z, i) * x1(y, i);//b
-    L(j, 2) = -x2(z, i) * x1(z, i);//c
-    L(j, 3) = -x2(z, i) * x1(w, i);//d
-    L(j, 8) =  x2(x, i) * x1(x, i);//i
-    L(j, 9) =  x2(x, i) * x1(y, i);//j
-    L(j,10) =  x2(x, i) * x1(z, i);//k
-    L(j,11) =  x2(x, i) * x1(w, i);//l
-    
+    L(j,  0) = -x2(z, i) * x1(x, i);  // a
+    L(j,  1) = -x2(z, i) * x1(y, i);  // b
+    L(j,  2) = -x2(z, i) * x1(z, i);  // c
+    L(j,  3) = -x2(z, i) * x1(w, i);  // d
+    L(j,  8) =  x2(x, i) * x1(x, i);  // i
+    L(j,  9) =  x2(x, i) * x1(y, i);  // j
+    L(j, 10) =  x2(x, i) * x1(z, i);  // k
+    L(j, 11) =  x2(x, i) * x1(w, i);  // l
+
     ++j;
-    L(j, 4) = -x2(w, i) * x1(x, i);//e
-    L(j, 5) = -x2(w, i) * x1(y, i);//f
-    L(j, 6) = -x2(w, i) * x1(z, i);//g
-    L(j, 7) = -x2(w, i) * x1(w, i);//h
-    L(j,12) =  x2(y, i) * x1(x, i);//m
-    L(j,13) =  x2(y, i) * x1(y, i);//n
-    L(j,14) =  x2(y, i) * x1(z, i);//o
-    b(j, 0) = -x2(y, i) * x1(w, i);
-    
+    L(j,  4) = -x2(w, i) * x1(x, i);  // e
+    L(j,  5) = -x2(w, i) * x1(y, i);  // f
+    L(j,  6) = -x2(w, i) * x1(z, i);  // g
+    L(j,  7) = -x2(w, i) * x1(w, i);  // h
+    L(j, 12) =  x2(y, i) * x1(x, i);  // m
+    L(j, 13) =  x2(y, i) * x1(y, i);  // n
+    L(j, 14) =  x2(y, i) * x1(z, i);  // o
+    b(j,  0) = -x2(y, i) * x1(w, i);
+
     ++j;
-    L(j, 0) = -x2(y, i) * x1(x, i);//a
-    L(j, 1) = -x2(y, i) * x1(y, i);//b
-    L(j, 2) = -x2(y, i) * x1(z, i);//c
-    L(j, 3) = -x2(y, i) * x1(w, i);//d
-    L(j, 4) =  x2(x, i) * x1(x, i);//e
-    L(j, 5) =  x2(x, i) * x1(y, i);//f
-    L(j, 6) =  x2(x, i) * x1(z, i);//g
-    L(j, 7) =  x2(x, i) * x1(w, i);//h
-    
+    L(j, 0) = -x2(y, i) * x1(x, i);  // a
+    L(j, 1) = -x2(y, i) * x1(y, i);  // b
+    L(j, 2) = -x2(y, i) * x1(z, i);  // c
+    L(j, 3) = -x2(y, i) * x1(w, i);  // d
+    L(j, 4) =  x2(x, i) * x1(x, i);  // e
+    L(j, 5) =  x2(x, i) * x1(y, i);  // f
+    L(j, 6) =  x2(x, i) * x1(z, i);  // g
+    L(j, 7) =  x2(x, i) * x1(w, i);  // h
+
     ++j;
-    L(j, 8) = -x2(w, i) * x1(x, i);//i
-    L(j, 9) = -x2(w, i) * x1(y, i);//j
-    L(j,10) = -x2(w, i) * x1(z, i);//k
-    L(j,11) = -x2(w, i) * x1(w, i);//l
-    L(j,12) =  x2(z, i) * x1(x, i);//m
-    L(j,13) =  x2(z, i) * x1(y, i);//n
-    L(j,14) =  x2(z, i) * x1(z, i);//o
-    b(j, 0) = -x2(z, i) * x1(w, i);
+    L(j,  8) = -x2(w, i) * x1(x, i);  // i
+    L(j,  9) = -x2(w, i) * x1(y, i);  // j
+    L(j, 10) = -x2(w, i) * x1(z, i);  // k
+    L(j, 11) = -x2(w, i) * x1(w, i);  // l
+    L(j, 12) =  x2(z, i) * x1(x, i);  // m
+    L(j, 13) =  x2(z, i) * x1(y, i);  // n
+    L(j, 14) =  x2(z, i) * x1(z, i);  // o
+    b(j,  0) = -x2(z, i) * x1(w, i);
   }
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
