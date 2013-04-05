@@ -195,7 +195,7 @@ static bool ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
 	             LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE,
-	             0, GL_RGB,GL_FLOAT, &state->lut3d);
+	             0, GL_RGB, GL_FLOAT, state->lut3d);
 
 	state->lut3d_texture_allocated = true;
 
