@@ -6181,14 +6181,16 @@ void _RNA_warning(const char *format, ...)
 
 bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, bool is_strict)
 {
+	int len, fromlen;
+
 	/* if not strict, uninitialized properties are assumed to match */
 	if (!is_strict)
 		if (!(RNA_property_is_set(a, prop) && RNA_property_is_set(b, prop)))
 			return true;
 
 	/* get the length of the array to work with */
-	int len = RNA_property_array_length(a, prop);
-	int fromlen = RNA_property_array_length(b, prop);
+	len = RNA_property_array_length(a, prop);
+	fromlen = RNA_property_array_length(b, prop);
 
 	if (len != fromlen)
 		return false;
