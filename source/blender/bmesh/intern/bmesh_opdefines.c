@@ -1508,26 +1508,26 @@ static BMOpDefine bmo_inset_individual_def = {
 	"inset_individual",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
-	{"thickness", BMO_OP_SLOT_FLT},
-	{"depth", BMO_OP_SLOT_FLT},
-	{"use_even_offset", BMO_OP_SLOT_BOOL},
-	{{'\0'}},
+	 {"thickness", BMO_OP_SLOT_FLT},
+	 {"depth", BMO_OP_SLOT_FLT},
+	 {"use_even_offset", BMO_OP_SLOT_BOOL},
+	 {{'\0'}},
 	},
 	/* slots_out */
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
-	{{'\0'}},
+	 {{'\0'}},
 	},
 	bmo_inset_individual_exec,
 	0
 };
 
 /*
- * Face Inset.
+ * Face Inset (Regions).
  *
- * Inset or outset faces.
+ * Inset or outset face regions.
  */
-static BMOpDefine bmo_inset_def = {
-	"inset",
+static BMOpDefine bmo_inset_region_def = {
+	"inset_region",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
 	 {"use_boundary", BMO_OP_SLOT_BOOL},
@@ -1542,7 +1542,7 @@ static BMOpDefine bmo_inset_def = {
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
 	 {{'\0'}},
 	},
-	bmo_inset_exec,
+	bmo_inset_region_exec,
 	0
 };
 
@@ -1670,7 +1670,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_extrude_vert_indiv_def,
 	&bmo_find_doubles_def,
 	&bmo_inset_individual_def,
-	&bmo_inset_def,
+	&bmo_inset_region_def,
 	&bmo_join_triangles_def,
 	&bmo_mesh_to_bmesh_def,
 	&bmo_mirror_def,

@@ -42,7 +42,7 @@
 
 
 /* -------------------------------------------------------------------- */
-/* Inset Indervidual */
+/* Inset Individual */
 
 
 /* Holds Per-Face Inset Edge Data */
@@ -316,7 +316,7 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
  * - inset the new edges into their faces.
  */
 
-void bmo_inset_exec(BMesh *bm, BMOperator *op)
+void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 {
 	const bool use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
 	const bool use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == false);

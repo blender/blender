@@ -66,7 +66,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op);
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op);
 void bmo_find_doubles_exec(BMesh *bm, BMOperator *op);
 void bmo_inset_individual_exec(BMesh *bm, BMOperator *op);
-void bmo_inset_exec(BMesh *bm, BMOperator *op);
+void bmo_inset_region_exec(BMesh *bm, BMOperator *op);
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op);
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op);
 void bmo_mirror_exec(BMesh *bm, BMOperator *op);
