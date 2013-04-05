@@ -220,7 +220,7 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 }
 
 /* without bContext, called in uvedit */
-int ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
+void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em = me->edit_btmesh;
 	MLoopUV *luv;
@@ -323,20 +323,16 @@ int ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 	BLI_array_free(polylengths);
 
 	DAG_id_tag_update(&me->id, 0);
-
-	return 1;
 }
 
-int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
+void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 {
 	/* could be ldata or pdata */
 	CustomData *pdata = GET_CD_DATA(me, pdata);
 	const int layernum = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
-	int retval = ED_mesh_uv_loop_reset_ex(me, layernum);
+	ED_mesh_uv_loop_reset_ex(me, layernum);
 	
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
-	
-	return retval;
 }
 
 /* note: keep in sync with ED_mesh_color_add */

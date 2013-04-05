@@ -114,19 +114,19 @@ void EDBM_select_flush(struct BMEditMesh *em);
 
 void undo_push_mesh(struct bContext *C, const char *name);
 
-int  EDBM_vert_color_check(struct BMEditMesh *em);
+bool EDBM_vert_color_check(struct BMEditMesh *em);
 
-void EDBM_mesh_hide(struct BMEditMesh *em, int swap);
+void EDBM_mesh_hide(struct BMEditMesh *em, bool swap);
 void EDBM_mesh_reveal(struct BMEditMesh *em);
 
 void EDBM_update_generic(struct BMEditMesh *em, const bool do_tessface, const bool is_destructive);
 
-struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, int selected, int doIslands);
+struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, const bool selected, const bool do_islands);
 void                 EDBM_uv_element_map_free(struct UvElementMap *vmap);
 struct UvElement *ED_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 
-int              EDBM_mtexpoly_check(struct BMEditMesh *em);
-struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, int sloppy, int selected);
+bool             EDBM_mtexpoly_check(struct BMEditMesh *em);
+struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, const bool sloppy, const bool selected);
 
 void              EDBM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *EDBM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
@@ -138,7 +138,7 @@ void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 
 /* editmesh_select.c */
 void EDBM_select_mirrored(struct Object *obedit, struct BMEditMesh *em, bool extend);
-void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
+void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update);
 
 bool EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int  EDBM_backbuf_check(unsigned int index);
@@ -170,7 +170,7 @@ void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const s
 void EDBM_select_toggle_all(struct BMEditMesh *em);
 
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
-int  EDBM_select_interior_faces(struct BMEditMesh *em);
+bool EDBM_select_interior_faces(struct BMEditMesh *em);
 void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* rename? */
 
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
@@ -192,7 +192,7 @@ void paintface_deselect_all_visible(struct Object *ob, int action, bool flush_fl
 void paintface_select_linked(struct bContext *C, struct Object *ob, const int mval[2], int mode);
 bool paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
-void paintface_hide(struct Object *ob, const int unselected);
+void paintface_hide(struct Object *ob, const bool unselected);
 void paintface_reveal(struct Object *ob);
 
 void paintvert_deselect_all_visible(struct Object *ob, int action, bool flush_flags);
@@ -223,13 +223,14 @@ struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, const char *name);
 void                 ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup);
 void                 ED_vgroup_clear(struct Object *ob);
 void                 ED_vgroup_select_by_name(struct Object *ob, const char *name);
-int                  ED_vgroup_data_create(struct ID *id);
+bool                 ED_vgroup_data_create(struct ID *id);
 void                 ED_vgroup_data_clamp_range(struct ID *id, const int total);
-int                  ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
-int                  ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
-void                 ED_vgroup_mirror(struct Object *ob, const short mirror_weights, const short flip_vgroups, const short all_vgroups);
+bool                 ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
+bool                 ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
+void                 ED_vgroup_mirror(struct Object *ob,
+                                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups);
 
-int                  ED_vgroup_object_is_edit_mode(struct Object *ob);
+bool                 ED_vgroup_object_is_edit_mode(struct Object *ob);
 
 void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
@@ -253,13 +254,13 @@ void ED_mesh_calc_normals(struct Mesh *me);
 void ED_mesh_calc_tessface(struct Mesh *mesh);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges, int calc_tessface);
 
-int ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set);
+int  ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set);
 bool ED_mesh_uv_texture_remove_index(struct Mesh *me, const int n);
 bool ED_mesh_uv_texture_remove_active(struct Mesh *me);
 bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name);
-int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
-int ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum);
-int ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set);
+void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
+void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum);
+int  ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set);
 bool ED_mesh_color_remove_index(struct Mesh *me, const int n);
 bool ED_mesh_color_remove_active(struct Mesh *me);
 bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);

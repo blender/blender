@@ -126,7 +126,7 @@ void paintface_flush_flags(Object *ob)
 	}
 }
 
-void paintface_hide(Object *ob, const int unselected)
+void paintface_hide(Object *ob, const bool unselected)
 {
 	Mesh *me;
 	MPoly *mpoly;
