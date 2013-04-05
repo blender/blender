@@ -302,7 +302,7 @@ bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, i
 
 /* ****************** make displists ********************* */
 
-static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, int forRender)
+static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, int forRender, int renderResolution)
 {
 	Nurb *nu;
 	DispList *dl;
@@ -315,7 +315,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 	nu = nubase->first;
 	while (nu) {
 		if (nu->hide == 0 || editmode == 0) {
-			if (forRender && cu->resolu_ren != 0)
+			if (renderResolution && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else
 				resolu = nu->resolu;
@@ -731,13 +731,13 @@ void BKE_displist_make_mball_forRender(Scene *scene, Object *ob, ListBase *dispb
 	object_deform_mball(ob, dispbase);
 }
 
-static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int forRender, int editmode)
+static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int renderResolution, int editmode)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *pretessellatePoint;
 	int required_mode;
 
-	if (forRender)
+	if (renderResolution)
 		required_mode = eModifierMode_Render;
 	else
 		required_mode = eModifierMode_Realtime;
@@ -771,7 +771,8 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int fo
 	return pretessellatePoint;
 }
 
-static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, float (**originalVerts_r)[3],
+static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, int renderResolution,
+                                     float (**originalVerts_r)[3],
                                      float (**deformedVerts_r)[3], int *numVerts_r)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
@@ -788,14 +789,14 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 
 	if (editmode)
 		app_flag |= MOD_APPLY_USECACHE;
-	if (forRender) {
+	if (renderResolution) {
 		app_flag |= MOD_APPLY_RENDER;
 		required_mode = eModifierMode_Render;
 	}
 	else
 		required_mode = eModifierMode_Realtime;
 
-	pretessellatePoint = curve_get_tessellate_point(scene, ob, forRender, editmode);
+	pretessellatePoint = curve_get_tessellate_point(scene, ob, renderResolution, editmode);
 
 	if (editmode)
 		required_mode |= eModifierMode_Editmode;
@@ -885,7 +886,8 @@ static void displist_apply_allverts(ListBase *dispbase, float (*allverts)[3])
 }
 
 static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispbase, DerivedMesh **derivedFinal,
-                                      int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
+                                      int forRender, int renderResolution,
+                                      float (*originalVerts)[3], float (*deformedVerts)[3])
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *pretessellatePoint;
@@ -898,14 +900,14 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	int useCache = !forRender;
 	ModifierApplyFlag app_flag = 0;
 
-	if (forRender) {
+	if (renderResolution) {
 		app_flag |= MOD_APPLY_RENDER;
 		required_mode = eModifierMode_Render;
 	}
 	else
 		required_mode = eModifierMode_Realtime;
 
-	pretessellatePoint = curve_get_tessellate_point(scene, ob, forRender, editmode);
+	pretessellatePoint = curve_get_tessellate_point(scene, ob, renderResolution, editmode);
 
 	if (editmode)
 		required_mode |= eModifierMode_Editmode;
@@ -1109,7 +1111,7 @@ static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
 }
 
-static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender)
+static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender, int renderResolution)
 {
 	/* this function represents logic of mesh's orcodm calculation
 	 * for displist-based objects
@@ -1121,14 +1123,14 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	int required_mode;
 	int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	DerivedMesh *ndm, *orcodm = NULL;
-	const ModifierApplyFlag app_flag = forRender ? MOD_APPLY_RENDER : 0;
+	const ModifierApplyFlag app_flag = renderResolution ? MOD_APPLY_RENDER : 0;
 
-	if (forRender)
+	if (renderResolution)
 		required_mode = eModifierMode_Render;
 	else
 		required_mode = eModifierMode_Realtime;
 
-	pretessellatePoint = curve_get_tessellate_point(scene, ob, forRender, editmode);
+	pretessellatePoint = curve_get_tessellate_point(scene, ob, renderResolution, editmode);
 
 	if (editmode)
 		required_mode |= eModifierMode_Editmode;
@@ -1169,7 +1171,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 }
 
 void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
-                            DerivedMesh **derivedFinal, int forRender, int forOrco)
+                            DerivedMesh **derivedFinal, int forRender, int forOrco, int renderResolution)
 {
 	ListBase *nubase;
 	Nurb *nu;
@@ -1187,13 +1189,13 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 		nubase = &cu->nurb;
 
 	if (!forOrco)
-		curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
+		curve_calc_modifiers_pre(scene, ob, forRender, renderResolution, &originalVerts, &deformedVerts, &numVerts);
 
 	for (nu = nubase->first; nu; nu = nu->next) {
 		if (forRender || nu->hide == 0) {
 			int resolu = nu->resolu, resolv = nu->resolv;
 
-			if (forRender) {
+			if (renderResolution) {
 				if (cu->resolu_ren)
 					resolu = cu->resolu_ren;
 				if (cu->resolv_ren)
@@ -1263,7 +1265,8 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 
 	if (!forOrco) {
 		curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal,
-		                          forRender, originalVerts, deformedVerts);
+		                          forRender, renderResolution,
+		                          originalVerts, deformedVerts);
 	}
 }
 
@@ -1350,7 +1353,7 @@ static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *disp
 }
 
 static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispbase,
-                                      DerivedMesh **derivedFinal, int forRender, int forOrco)
+                                      DerivedMesh **derivedFinal, int forRender, int forOrco, int renderResolution)
 {
 	Curve *cu = ob->data;
 
@@ -1358,7 +1361,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 
 	if (ob->type == OB_SURF) {
-		BKE_displist_make_surf(scene, ob, dispbase, derivedFinal, forRender, forOrco);
+		BKE_displist_make_surf(scene, ob, dispbase, derivedFinal, forRender, forOrco, renderResolution);
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 		ListBase dlbev;
@@ -1378,16 +1381,16 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			BKE_vfont_to_curve(G.main, scene, ob, 0);
 
 		if (!forOrco)
-			curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
+			curve_calc_modifiers_pre(scene, ob, forRender, renderResolution, &originalVerts, &deformedVerts, &numVerts);
 
 		BKE_curve_bevelList_make(ob);
 
 		/* If curve has no bevel will return nothing */
-		BKE_curve_bevel_make(scene, ob, &dlbev, forRender);
+		BKE_curve_bevel_make(scene, ob, &dlbev, forRender, renderResolution);
 
 		/* no bevel or extrude, and no width correction? */
 		if (!dlbev.first && cu->width == 1.0f) {
-			curve_to_displist(cu, nubase, dispbase, forRender);
+			curve_to_displist(cu, nubase, dispbase, forRender, renderResolution);
 		}
 		else {
 			float widfac = cu->width - 1.0f;
@@ -1569,7 +1572,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		}
 
 		if (!forOrco)
-			curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
+			curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, renderResolution, originalVerts, deformedVerts);
 
 		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
 			curve_to_filledpoly(cu, nubase, dispbase);
@@ -1595,7 +1598,7 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 	/* free displist used for textspace */
 	BKE_displist_free(&cu->disp);
 
-	do_makeDispListCurveTypes(scene, ob, dispbase, &ob->derivedFinal, 0, forOrco);
+	do_makeDispListCurveTypes(scene, ob, dispbase, &ob->derivedFinal, 0, forOrco, 0);
 
 	if (ob->derivedFinal) {
 		DM_set_object_boundbox(ob, ob->derivedFinal);
@@ -1612,18 +1615,18 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 }
 
 void BKE_displist_make_curveTypes_forRender(Scene *scene, Object *ob, ListBase *dispbase,
-                                      DerivedMesh **derivedFinal, int forOrco)
+                                      DerivedMesh **derivedFinal, int forOrco, int renderResolution)
 {
-	do_makeDispListCurveTypes(scene, ob, dispbase, derivedFinal, 1, forOrco);
+	do_makeDispListCurveTypes(scene, ob, dispbase, derivedFinal, 1, forOrco, renderResolution);
 }
 
 void BKE_displist_make_curveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase)
 {
-	do_makeDispListCurveTypes(scene, ob, dispbase, NULL, 1, 1);
+	do_makeDispListCurveTypes(scene, ob, dispbase, NULL, 1, 1, 1);
 }
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
-float *BKE_displist_make_orco(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender)
+float *BKE_displist_make_orco(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender, int renderResolution)
 {
 	float *orco;
 
@@ -1631,7 +1634,7 @@ float *BKE_displist_make_orco(Scene *scene, Object *ob, DerivedMesh *derivedFina
 		derivedFinal = ob->derivedFinal;
 
 	if (!derivedFinal->getVertDataArray(derivedFinal, CD_ORCO)) {
-		curve_calc_orcodm(scene, ob, derivedFinal, forRender);
+		curve_calc_orcodm(scene, ob, derivedFinal, forRender, renderResolution);
 	}
 
 	orco = derivedFinal->getVertDataArray(derivedFinal, CD_ORCO);

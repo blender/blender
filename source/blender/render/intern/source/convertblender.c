@@ -2781,11 +2781,11 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	BKE_displist_make_surf(re->scene, ob, &displist, &dm, 1, 0);
+	BKE_displist_make_surf(re->scene, ob, &displist, &dm, 1, 0, 1);
 
 	if (dm) {
 		if (need_orco) {
-			orco= BKE_displist_make_orco(re->scene, ob, dm, 1);
+			orco= BKE_displist_make_orco(re->scene, ob, dm, 1, 1);
 			if (orco) {
 				set_object_orco(re, ob, orco);
 			}
@@ -2831,7 +2831,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	if (ob->type==OB_FONT && cu->str==NULL) return;
 	else if (ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
-	BKE_displist_make_curveTypes_forRender(re->scene, ob, &disp, &dm, 0);
+	BKE_displist_make_curveTypes_forRender(re->scene, ob, &disp, &dm, 0, 1);
 	dl= disp.first;
 	if (dl==NULL) return;
 	
@@ -2856,7 +2856,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (dm) {
 		if (need_orco) {
-			orco= BKE_displist_make_orco(re->scene, ob, dm, 1);
+			orco= BKE_displist_make_orco(re->scene, ob, dm, 1, 1);
 			if (orco) {
 				set_object_orco(re, ob, orco);
 			}
