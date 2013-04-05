@@ -37,10 +37,10 @@ class Tuple {
   Tuple(D *values) { Reset(values); }
 
   template <typename D>
-  Tuple(const Tuple<D,N> &b) { Reset(b); }
+  Tuple(const Tuple<D, N> &b) { Reset(b); }
 
   template <typename D>
-  Tuple& operator=(const Tuple<D,N>& b) {
+  Tuple& operator=(const Tuple<D, N>& b) {
     Reset(b);
     return *this;
   }
@@ -50,14 +50,14 @@ class Tuple {
 
   template <typename D>
   void Reset(D *values) {
-    for(int i=0;i<N;i++) {
+    for (int i = 0;i < N; i++) {
       data_[i] = T(values[i]);
     }
   }
 
   // Set all tuple values to the same thing.
   void Reset(T value) {
-    for(int i=0;i<N;i++) {
+    for (int i = 0;i < N; i++) {
       data_[i] = value;
     }
   }

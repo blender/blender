@@ -40,7 +40,7 @@ struct EsmRegionTracker : public RegionTracker {
         min_update_squared_distance(1e-4),
         sigma(0.9),
         minimum_correlation(0.78) {}
-  
+
   virtual ~EsmRegionTracker() {}
 
   // Tracker interface.

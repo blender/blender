@@ -41,7 +41,7 @@ namespace libmv {
 template<typename Function,
          typename Jacobian = NumericJacobian<Function>,
          typename Solver = Eigen::PartialPivLU<
-           Matrix<typename Function::FMatrixType::RealScalar, 
+           Matrix<typename Function::FMatrixType::RealScalar,
                   Function::XMatrixType::RowsAtCompileTime,
                   Function::XMatrixType::RowsAtCompileTime> > >
 class Dogleg {
@@ -52,8 +52,8 @@ class Dogleg {
   typedef Matrix<typename Function::FMatrixType::RealScalar,
                  Function::FMatrixType::RowsAtCompileTime,
                  Function::XMatrixType::RowsAtCompileTime> JMatrixType;
-  typedef Matrix<typename JMatrixType::RealScalar, 
-                 JMatrixType::ColsAtCompileTime, 
+  typedef Matrix<typename JMatrixType::RealScalar,
+                 JMatrixType::ColsAtCompileTime,
                  JMatrixType::ColsAtCompileTime> AMatrixType;
 
   enum Status {
@@ -75,7 +75,7 @@ class Dogleg {
       : f_(f), df_(f) {}
 
   struct SolverParameters {
-   SolverParameters()
+    SolverParameters()
        : gradient_threshold(1e-16),
          relative_step_threshold(1e-16),
          error_threshold(1e-16),

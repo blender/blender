@@ -1464,6 +1464,10 @@ void LogToStderr() {
 namespace base {
 namespace internal {
 
+/* Put prototypes here to suppress strict compiler warnings */
+bool GetExitOnDFatal();
+void SetExitOnDFatal(bool value);
+
 bool GetExitOnDFatal() {
   MutexLock l(&log_mutex);
   return exit_on_dfatal;

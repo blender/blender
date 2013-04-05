@@ -34,11 +34,11 @@
 #include <Eigen/SVD>
 
 #if (defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__)) && !defined(__MINGW64__)
-  void static sincos (double x, double *sinx, double *cosx) {
+  static void sincos(double x, double *sinx, double *cosx) {
     *sinx = sin(x);
     *cosx = cos(x);
   }
-#endif //_WIN32 || __APPLE__
+#endif  // _WIN32 || __APPLE__
 
 #if (defined(WIN32) || defined(WIN64)) && !defined(__MINGW32__)
   inline long lround(double d) {
@@ -48,7 +48,7 @@
     return (d>0) ? int(d+0.5) : int(d-0.5);
   }
   typedef unsigned int uint;
-#endif //_WIN32
+#endif  // _WIN32
 
 namespace libmv {
 
@@ -86,16 +86,16 @@ typedef Eigen::Matrix<double, 4, 4, Eigen::RowMajor> RMat4;
 typedef Eigen::Matrix<double, 2, Eigen::Dynamic> Mat2X;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> Mat3X;
 typedef Eigen::Matrix<double, 4, Eigen::Dynamic> Mat4X;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 2> MatX2;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 3> MatX3;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 4> MatX4;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 5> MatX5;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 6> MatX6;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 7> MatX7;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 8> MatX8;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 9> MatX9;
-typedef Eigen::Matrix<double, Eigen::Dynamic,15> MatX15;
-typedef Eigen::Matrix<double, Eigen::Dynamic,16> MatX16;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  2> MatX2;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  3> MatX3;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  4> MatX4;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  5> MatX5;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  6> MatX6;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  7> MatX7;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  8> MatX8;
+typedef Eigen::Matrix<double, Eigen::Dynamic,  9> MatX9;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 15> MatX15;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 16> MatX16;
 
 typedef Eigen::Vector2d Vec2;
 typedef Eigen::Vector3d Vec3;
@@ -286,18 +286,21 @@ void MeanAndVarianceAlongRows(const Mat &A,
 
 #if _WIN32
   // TODO(bomboze): un-#if this for both platforms once tested under Windows
-  /* This solution was extensively discussed here http://forum.kde.org/viewtopic.php?f=74&t=61940 */
-  #define SUM_OR_DYNAMIC(x,y) (x==Eigen::Dynamic||y==Eigen::Dynamic)?Eigen::Dynamic:(x+y)
+  /* This solution was extensively discussed here
+     http://forum.kde.org/viewtopic.php?f=74&t=61940 */
+  #define SUM_OR_DYNAMIC(x, y) (x == Eigen::Dynamic || y == Eigen::Dynamic) ? Eigen::Dynamic : (x+y)
 
   template<typename Derived1, typename Derived2>
   struct hstack_return {
     typedef typename Derived1::Scalar Scalar;
     enum {
          RowsAtCompileTime = Derived1::RowsAtCompileTime,
-         ColsAtCompileTime = SUM_OR_DYNAMIC(Derived1::ColsAtCompileTime, Derived2::ColsAtCompileTime),
+         ColsAtCompileTime = SUM_OR_DYNAMIC(Derived1::ColsAtCompileTime,
+                                            Derived2::ColsAtCompileTime),
          Options = Derived1::Flags&Eigen::RowMajorBit ? Eigen::RowMajor : 0,
          MaxRowsAtCompileTime = Derived1::MaxRowsAtCompileTime,
-         MaxColsAtCompileTime = SUM_OR_DYNAMIC(Derived1::MaxColsAtCompileTime, Derived2::MaxColsAtCompileTime)
+         MaxColsAtCompileTime = SUM_OR_DYNAMIC(Derived1::MaxColsAtCompileTime,
+                                               Derived2::MaxColsAtCompileTime)
     };
     typedef Eigen::Matrix<Scalar,
                 RowsAtCompileTime,
@@ -308,9 +311,10 @@ void MeanAndVarianceAlongRows(const Mat &A,
   };
 
   template<typename Derived1, typename Derived2>
-  typename hstack_return<Derived1,Derived2>::type
-  HStack (const Eigen::MatrixBase<Derived1>& lhs, const Eigen::MatrixBase<Derived2>& rhs) {
-    typename hstack_return<Derived1,Derived2>::type res;
+  typename hstack_return<Derived1, Derived2>::type
+  HStack(const Eigen::MatrixBase<Derived1>& lhs,
+         const Eigen::MatrixBase<Derived2>& rhs) {
+    typename hstack_return<Derived1, Derived2>::type res;
     res.resize(lhs.rows(), lhs.cols()+rhs.cols());
     res << lhs, rhs;
     return res;
@@ -321,10 +325,12 @@ void MeanAndVarianceAlongRows(const Mat &A,
   struct vstack_return {
     typedef typename Derived1::Scalar Scalar;
     enum {
-         RowsAtCompileTime = SUM_OR_DYNAMIC(Derived1::RowsAtCompileTime, Derived2::RowsAtCompileTime),
+         RowsAtCompileTime = SUM_OR_DYNAMIC(Derived1::RowsAtCompileTime,
+                                            Derived2::RowsAtCompileTime),
          ColsAtCompileTime = Derived1::ColsAtCompileTime,
          Options = Derived1::Flags&Eigen::RowMajorBit ? Eigen::RowMajor : 0,
-         MaxRowsAtCompileTime = SUM_OR_DYNAMIC(Derived1::MaxRowsAtCompileTime, Derived2::MaxRowsAtCompileTime),
+         MaxRowsAtCompileTime = SUM_OR_DYNAMIC(Derived1::MaxRowsAtCompileTime,
+                                               Derived2::MaxRowsAtCompileTime),
          MaxColsAtCompileTime = Derived1::MaxColsAtCompileTime
     };
     typedef Eigen::Matrix<Scalar,
@@ -336,16 +342,17 @@ void MeanAndVarianceAlongRows(const Mat &A,
   };
 
   template<typename Derived1, typename Derived2>
-  typename vstack_return<Derived1,Derived2>::type
-  VStack (const Eigen::MatrixBase<Derived1>& lhs, const Eigen::MatrixBase<Derived2>& rhs) {
-    typename vstack_return<Derived1,Derived2>::type res;
+  typename vstack_return<Derived1, Derived2>::type
+  VStack(const Eigen::MatrixBase<Derived1>& lhs,
+         const Eigen::MatrixBase<Derived2>& rhs) {
+    typename vstack_return<Derived1, Derived2>::type res;
     res.resize(lhs.rows()+rhs.rows(), lhs.cols());
     res << lhs, rhs;
     return res;
   };
 
 
-#else //_WIN32
+#else  // _WIN32
 
   // Since it is not possible to typedef privately here, use a macro.
   // Always take dynamic columns if either side is dynamic.
@@ -400,7 +407,7 @@ void MeanAndVarianceAlongRows(const Mat &A,
   }
   #undef COLS
   #undef ROWS
-#endif //_WIN32
+#endif  // _WIN32
 
 
 
@@ -454,7 +461,7 @@ inline bool isnan(double i) {
 /// and negative values
 template <typename FloatType>
 FloatType ceil0(const FloatType& value) {
-    FloatType result = std::ceil( std::fabs( value ) );
+    FloatType result = std::ceil(std::fabs(value));
     return (value < 0.0) ? -result : result;
 }
 
@@ -470,8 +477,8 @@ inline Mat3 SkewMat(const Vec3 &x) {
 /// the first two (independent) lines
 inline Mat23 SkewMatMinimal(const Vec2 &x) {
   Mat23 skew;
-  skew << 0,-1,  x(1),
-          1, 0, -x(0);
+  skew << 0, -1,  x(1),
+          1,  0, -x(0);
   return skew;
 }
 
@@ -485,6 +492,6 @@ inline Mat3 RotationFromEulerVector(Vec3 euler_vector) {
   Mat3 w_hat = CrossProductMatrix(w);
   return Mat3::Identity() + w_hat*sin(theta) + w_hat*w_hat*(1 - cos(theta));
 }
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_NUMERIC_NUMERIC_H

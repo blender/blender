@@ -18,13 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/tracking/pyramid_region_tracker.h"
+
 #include <vector>
 
 #include "libmv/image/convolve.h"
 #include "libmv/image/image.h"
 #include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
-#include "libmv/tracking/pyramid_region_tracker.h"
 
 namespace libmv {
 

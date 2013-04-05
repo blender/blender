@@ -21,6 +21,7 @@ libmv/multiview/homography.cc
 libmv/multiview/homography.h
 libmv/multiview/homography_parameterization.h
 libmv/multiview/nviewtriangulation.h
+libmv/multiview/panography.cc
 libmv/multiview/panography.h
 libmv/multiview/projection.cc
 libmv/multiview/projection.h
@@ -36,7 +37,6 @@ libmv/numeric/poly.cc
 libmv/numeric/poly.h
 libmv/simple_pipeline/bundle.cc
 libmv/simple_pipeline/bundle.h
-libmv/simple_pipeline/callbacks.cc
 libmv/simple_pipeline/callbacks.h
 libmv/simple_pipeline/camera_intrinsics.cc
 libmv/simple_pipeline/camera_intrinsics.h

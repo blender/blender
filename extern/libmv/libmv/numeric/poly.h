@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ namespace libmv {
 //
 // The GSL cubic solver was used as a reference for this routine.
 template<typename Real>
-int SolveCubicPolynomial(Real a, Real b, Real c, 
+int SolveCubicPolynomial(Real a, Real b, Real c,
                          Real *x0, Real *x1, Real *x2) {
   Real q = a * a - 3 * b;
   Real r = 2 * a * a * a - 9 * a * b + 27 * c;
@@ -52,7 +52,7 @@ int SolveCubicPolynomial(Real a, Real b, Real c,
 
   if (R == 0 && Q == 0) {
     // Tripple root in one place.
-    *x0 = *x1 = *x2 = -a / 3 ;
+    *x0 = *x1 = *x2 = -a / 3;
     return 3;
 
   } else if (CR2 == CQ3) {
@@ -62,7 +62,7 @@ int SolveCubicPolynomial(Real a, Real b, Real c,
     // Due to finite precision some double roots may be missed, and considered
     // to be a pair of complex roots z = x +/- epsilon i close to the real
     // axis.
-    Real sqrtQ = sqrt (Q);
+    Real sqrtQ = sqrt(Q);
     if (R > 0) {
       *x0 = -2 * sqrtQ - a / 3;
       *x1 =      sqrtQ - a / 3;
@@ -76,13 +76,13 @@ int SolveCubicPolynomial(Real a, Real b, Real c,
 
   } else if (CR2 < CQ3) {
     // This case is equivalent to R2 < Q3.
-    Real sqrtQ = sqrt (Q);
+    Real sqrtQ = sqrt(Q);
     Real sqrtQ3 = sqrtQ * sqrtQ * sqrtQ;
-    Real theta = acos (R / sqrtQ3);
+    Real theta = acos(R / sqrtQ3);
     Real norm = -2 * sqrtQ;
-    *x0 = norm * cos (theta / 3) - a / 3;
-    *x1 = norm * cos ((theta + 2.0 * M_PI) / 3) - a / 3;
-    *x2 = norm * cos ((theta - 2.0 * M_PI) / 3) - a / 3;
+    *x0 = norm * cos(theta / 3) - a / 3;
+    *x1 = norm * cos((theta + 2.0 * M_PI) / 3) - a / 3;
+    *x2 = norm * cos((theta - 2.0 * M_PI) / 3) - a / 3;
 
     // Put the roots in ascending order.
     if (*x0 > *x1) {
@@ -95,10 +95,10 @@ int SolveCubicPolynomial(Real a, Real b, Real c,
       }
     }
     return 3;
-  } 
+  }
   Real sgnR = (R >= 0 ? 1 : -1);
-  Real A = -sgnR * pow (fabs (R) + sqrt (R2 - Q3), 1.0/3.0);
-  Real B = Q / A ;
+  Real A = -sgnR * pow(fabs(R) + sqrt(R2 - Q3), 1.0/3.0);
+  Real B = Q / A;
   *x0 = A + B - a / 3;
   return 1;
 }

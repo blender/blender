@@ -158,7 +158,8 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
       LG << "Determinant " << determinant << " is too small; failing tracking.";
       return false;
     }
-    LG << "x=" << *x2 << ", y=" << *y2 << ", dx=" << d[0] << ", dy=" << d[1] << ", det=" << determinant;
+    LG << "x=" << *x2 << ", y=" << *y2 << ", dx=" << d[0] << ", dy=" << d[1]
+       << ", det=" << determinant;
 
 
     // If the update is small, then we probably found the target.

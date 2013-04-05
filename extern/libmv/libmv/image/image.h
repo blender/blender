@@ -60,8 +60,7 @@ class Image {
   // Size in bytes that the image takes in memory.
   int MemorySizeInBytes() {
     int size;
-    switch (array_type_)
-    {
+    switch (array_type_) {
       case BYTE:
         size = reinterpret_cast<Array3Du *>(array_)->MemorySizeInBytes();
       break;
@@ -83,8 +82,7 @@ class Image {
   }
 
   ~Image() {
-    switch (array_type_)
-      {
+    switch (array_type_) {
         case BYTE:
           delete reinterpret_cast<Array3Du *>(array_);
 
@@ -109,23 +107,22 @@ class Image {
   Image& operator= (const Image& f)  {
     if (this != &f) {
       array_type_ = f.array_type_;
-      switch (array_type_)
-      {
+      switch (array_type_) {
         case BYTE:
           delete reinterpret_cast<Array3Du *>(array_);
-          array_ = new Array3Du( *(Array3Du *)f.array_);
+          array_ = new Array3Du(*(Array3Du *)f.array_);
         break;
         case FLOAT:
           delete reinterpret_cast<Array3Df *>(array_);
-          array_ = new Array3Df( *(Array3Df *)f.array_);
+          array_ = new Array3Df(*(Array3Df *)f.array_);
         break;
         case INT:
           delete reinterpret_cast<Array3Di *>(array_);
-          array_ = new Array3Di( *(Array3Di *)f.array_);
+          array_ = new Array3Di(*(Array3Di *)f.array_);
         break;
         case SHORT:
           delete reinterpret_cast<Array3Ds *>(array_);
-          array_ = new Array3Ds( *(Array3Ds *)f.array_);
+          array_ = new Array3Ds(*(Array3Ds *)f.array_);
         break;
         default:
           assert(0);

@@ -72,7 +72,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
        << ", hw=" << half_window_size << ".";
     return false;
   }
-  
+
   // XXX
   // TODO(keir): Delete the block between the XXX's once the planar tracker is
   // integrated into blender.
@@ -101,7 +101,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
   options.max_iterations = 20;
   options.sigma = sigma;
   options.use_esm = true;
-  
+
   TrackRegionResult result;
   TrackRegion(image1, image2, xx1, yy1, options, xx2, yy2, &result);
 
@@ -129,7 +129,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
                 &image_and_gradient1_sampled);
 
   // Step 0: Initialize delta = 0.01.
-  // 
+  //
   // Ignored for my "normal" LM loop.
 
   // Step 1: Warp I with W(x, p) to compute I(W(x; p).
@@ -179,8 +179,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
     }
   }
 
-  double tau = 1e-4, eps1, eps2, eps3;
-  eps1 = eps2 = eps3 = 1e-15;
+  double tau = 1e-4;
 
   double mu = tau * std::max(H_image1(0, 0), H_image1(1, 1));
   double nu = M_E;
@@ -201,7 +200,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
                 image_and_gradient1_sampled(r, c, 2));
         Vec2 g2(image_and_gradient2_sampled[current_image](r, c, 1),
                 image_and_gradient2_sampled[current_image](r, c, 2));
-        Vec2 g = g1 + g2; // Should be / 2.0, but do that outside the loop.
+        Vec2 g = g1 + g2;  // Should be / 2.0, but do that outside the loop.
         H += g * g.transpose();
       }
     }
@@ -282,9 +281,10 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
     if (d.squaredNorm() < min_update_squared_distance) {
       // Compute the Pearson product-moment correlation coefficient to check
       // for sanity.
-      double correlation = PearsonProductMomentCorrelation(image_and_gradient1_sampled,
-                                                           image_and_gradient2_sampled[new_image],
-                                                           width);
+      double correlation = PearsonProductMomentCorrelation(
+              image_and_gradient1_sampled,
+              image_and_gradient2_sampled[new_image],
+              width);
       LG << "Final correlation: " << correlation;
 
       // Note: Do the comparison here to handle nan's correctly (since all

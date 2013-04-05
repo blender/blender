@@ -18,10 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/tracking/retrack_region_tracker.h"
+
 #include <cmath>
 #include <vector>
-
-#include "libmv/tracking/retrack_region_tracker.h"
 
 namespace libmv {
 

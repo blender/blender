@@ -1,15 +1,15 @@
 // Copyright (c) 2011 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,13 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/initialize_reconstruction.h"
+
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/levenberg_marquardt.h"
 #include "libmv/numeric/numeric.h"
-#include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
 
@@ -109,7 +110,8 @@ namespace {
 Mat3 DecodeF(const Vec9 &encoded_F) {
   // Decode F and force it to be rank 2.
   Map<const Mat3> full_rank_F(encoded_F.data(), 3, 3);
-  Eigen::JacobiSVD<Mat3> svd(full_rank_F, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  Eigen::JacobiSVD<Mat3> svd(full_rank_F,
+                             Eigen::ComputeFullU | Eigen::ComputeFullV);
   Vec3 diagonal = svd.singularValues();
   diagonal(2) = 0;
   Mat3 F = svd.matrixU() * diagonal.asDiagonal() * svd.matrixV().transpose();
@@ -130,7 +132,7 @@ struct FundamentalSampsonCostFunction {
   Vec operator()(const Vec9 &encoded_F) const {
     // Decode F and force it to be rank 2.
     Mat3 F = DecodeF(encoded_F);
-    
+
     Vec residuals(markers.size() / 2);
     residuals.setZero();
     for (int i = 0; i < markers.size() / 2; ++i) {

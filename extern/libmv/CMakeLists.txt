@@ -45,12 +45,12 @@ set(SRC
 	libmv/multiview/euclidean_resection.cc
 	libmv/multiview/fundamental.cc
 	libmv/multiview/homography.cc
+	libmv/multiview/panography.cc
 	libmv/multiview/projection.cc
 	libmv/multiview/triangulation.cc
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
 	libmv/simple_pipeline/bundle.cc
-	libmv/simple_pipeline/callbacks.cc
 	libmv/simple_pipeline/camera_intrinsics.cc
 	libmv/simple_pipeline/detect.cc
 	libmv/simple_pipeline/initialize_reconstruction.cc

@@ -49,10 +49,11 @@ namespace libmv {
 
     \sa EuclideanResect, EuclideanIntersect, EuclideanBundle
 */
-void EuclideanCompleteReconstruction(const ReconstructionOptions &options,
-                                     const Tracks &tracks,
-                                     EuclideanReconstruction *reconstruction,
-                                     ProgressUpdateCallback *update_callback = NULL);
+void EuclideanCompleteReconstruction(
+        const ReconstructionOptions &options,
+        const Tracks &tracks,
+        EuclideanReconstruction *reconstruction,
+        ProgressUpdateCallback *update_callback = NULL);
 
 /*!
     Estimate camera matrices and homogeneous 3D coordinates for all frames and

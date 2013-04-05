@@ -30,7 +30,7 @@ struct BruteRegionTracker : public RegionTracker {
   BruteRegionTracker()
       : half_window_size(4),
       minimum_correlation(0.78) {}
-  
+
   virtual ~BruteRegionTracker() {}
 
   // Tracker interface.

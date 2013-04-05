@@ -1,3 +1,169 @@
+commit e3b2bccba6145290738a6677c14f7369ec7a38cd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 4 02:59:58 2013 +0600
+
+    Suppress strict compiler warnings in glags/glog libraries
+
+commit 5fca459adcf0a3419fa9cd8d983dc2c952d02647
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 4 01:20:18 2013 +0600
+
+    Lint cleanup, mostly white space and line width.
+    
+    Also moved own includes to the top of files.
+    
+    Should be no functional changes :)
+
+commit 9a9dd458a622928b91dbd3c79900577923283838
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 29 00:20:29 2013 +0600
+
+    Fix for TransformTracks in uncalibrated pipeline
+    
+    Transformation matrix was completely ignored by
+    TransformTracks() and final marker coordinate
+    exactly matched it's source coordinates.
+    
+    Seems to be just a typo in vector usage: need to
+    use "b" (which is transformed one) instead of "a"
+    when converting projective coordinate to 2D space.
+
+commit d35766cc9901609e32f4d80faba715695bea3c40
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 29 00:19:11 2013 +0600
+
+    Revert part of e2eb58c4230f94ef0c72fb4005e5434088d52e80
+    
+    That commit included one change which shall have been
+    go as separate commit with more detailed description.
+
+commit e8d71b4e96fd78eb60773b6557d66da672e65753
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 20:37:05 2013 +0600
+
+    Silenced more warnings
+    
+    - Added includes of own header to fast implementation files.
+    
+    - Camera intrinsics wouldn't complain about unknown pragma when
+      building without OpenMP support.
+    
+    TODO: Make it a CMake option to build libmv with OpenMP support.
+    	  Currently multi-threaded intrinsics only available when
+          using custom CMake rules for bundled libmv version
+          (as it's done in Blender).
+
+commit ad442812654f270dc088394410fda1b81b8dc450
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 20:18:51 2013 +0600
+
+    Multithreaded camera intrinsics
+    
+    Implemented multithreaded buffer (un)distortion
+    for camera intrinsics using OpenMP.
+    
+    By default, (un)distortion is single-threaded,
+    but it is possible to as CameraIntrinsics to
+    use more threads by calling SetThreads method.
+
+commit c88b4881096174a16a9f9e6fc2c9dcad3e255b25
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 18:45:09 2013 +0600
+
+    Movie functions implementation from panography header
+    into own CC implementation file.
+    
+    Before this all panography functions were declared as
+    static, which is not so much useful from re-useability
+    point of view.
+
+commit 2d2faf9104bc035722cff6775e1b8e7c93143aba
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 18:37:36 2013 +0600
+
+    Build shared Ceres library only if BUILD_SHARED_LIBS is enabled
+
+commit daa3ddd3260ccaf2bf9c72eadb89213d91e549ec
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 18:21:52 2013 +0600
+
+    Update Ceres to upstream version 1.5.0
+
+commit cf5dc678878345ea3f221ce50cb2b9e539c2ab38
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 15:06:24 2013 +0600
+
+    Code cleanup: removed more deprecated FFmpeg API usage
+    
+    This time in qt-tracker application.
+
+commit e2eb58c4230f94ef0c72fb4005e5434088d52e80
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 17:19:51 2013 +0600
+
+    Code cleanup: silent unused variables warnings
+
+commit af89bb24667e39b7e655173ea807fdcfbeef4422
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 16:54:14 2013 +0600
+
+    Code cleanup: no need to declare empty body for ProgressUpdateCallback:invoke
+    
+    Make force this method to be overridden by derivative classes.
+    Also removed currently unneeded callbacks.cc.
+
+commit 0441d4ee06fad0219256a5704f931eec916a3868
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 16:37:27 2013 +0600
+
+    Code cleanup: silent type narrowing in qt-tracker
+
+commit cd4b61c976448d0fdedefb3ed4b21d70e078f94b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 16:26:39 2013 +0600
+
+    Changes to unit testing
+    
+    - Move ceres test binaries to ${LIBMV_TESTS_OUTPUT_DIR}/ceres,
+      so they don't mess with libmv's application binaries and
+      tests.
+    
+    - Removed ceres_ prefix from ceres unit tests, only use this
+      prefix for targets (targets need to be unique name).
+    
+    - Added unit tests data for ceres, otherwise system_test fails.
+    
+    - Restored "test" makefile target.
+
+commit cf704ada08acc8b26167e7bfb3e1e88fd278de23
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 15:01:15 2013 +0600
+
+    Code cleanup: use rw-rw-r-- mode for source files
+
+commit 64b31e3e43acb52aaf6f591b9d1c2449bf6ef3bd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 14:57:46 2013 +0600
+
+    Code cleanup: don't use deprecated FFmpeg API functions
+
+commit 2a3676499548ad5dba5a5c5eadf3bb71e640b612
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 5 17:40:52 2013 +0600
+
+    Switch from DENSE_NORMAL_CHOLESKY to DENSE_QR
+    
+    DENSE_QR is better behaved numerically and after recent
+    changes from Sameer there's no big difference in speed.
+
+commit bcb920df02133da5b7e55fbc74edb9222004eecc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 5 17:15:43 2013 +0600
+
+    Update Ceres to 1.5RC3
+    
+    It brings optimization of DENSE_QR and DENSE_SCHUR solvers.
+
 commit 473996468a4e67e7c860169181a4ff31ce9b8c80
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri Mar 1 17:44:54 2013 +0600
@@ -533,268 +699,3 @@ Date:   Fri Jun 8 17:42:17 2012 +0000
       aborts immediately. The workaround for now is to disable the
       correlation checking, and examine your tracks carefully. A
       fix will get added shortly.
-
-commit 81d028f13738ebe2304287dfce90e91bc782e2cf
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 18 20:04:43 2012 +0000
-
-    Remove an unnecessary template<> line in libmv. Convert debug logs to LG.
-
-commit 238aaba241ef99995d254aadc974db719da04b96
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 18 12:05:10 2012 +0000
-
-    Support normalization in the tracking prepass
-    
-    The last tracker commit added normalized tracking. This makes
-    tracking patches undergoing uniform illumination change easier.
-    However, the prepass which computes a quick translation-only
-    estimate of the warp did not take this into account. This commit
-    fixes that.
-    
-    This works reasonably well but in some examples the brute
-    initialization fails. I suspect this is due to the warped template
-    estimate in the current  frame being too different from the
-    original, so there are multiple peaks in the normalized-SAD
-    correlation function.
-    
-    The solution is to use the previous frame for the brute
-    initialization and the keyframe for refinement, but that requires
-    architecture changes.
-
-commit 981ca4f6a679cd9ac3d086eae3cd946ce72ca8a5
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 18 02:12:47 2012 +0000
-
-    Add light-normalized tracking to the planar tracker
-    
-    This commit adds the ability to normalize patterns by their
-    average value while tracking, to make them invariant to global
-    illumination changes.
-    
-    To see this in action, check out the "Lobby" scene from Hollywood
-    VFX. If you track the markers that are shadowed by the actress,
-    previously they would not track. With the scale adaption on, the
-    tracker would shrink the area to compensate for the changed
-    illumination, losing the track. With "Normalize" turned on, the
-    patch is correctly tracked and scale is maintained.
-    
-    A remaining problem is that only the Ceres cost function is
-    updated to handle the normalization. The brute translation search
-    does not take this into account. Perhaps "Prepass" (see below)
-    should get disabled if normalization is enabled until I fix the
-    prepass to normalize as well.
-    
-    There are a few other changes:
-    
-    - Bail out of the sampling loop early if the mask is zero; this
-      saves expensive samples of the image derivatives.
-    
-    - Fix a bug where the mask was ignored when sampling in the cost
-      functor.
-
-commit e9384b15fb2a6a5b81346d5758fa136f0911e945
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 17 23:53:32 2012 +0000
-
-    Implement support for affine tracking in the planar tracker; cleanups.
-
-commit 021d41eed8b4ce6a4e37786ccd357ed5dc83a13f
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 17 21:26:06 2012 +0000
-
-    For the planar tracker, initialize the warp from the four correspondences
-    after brute force translation search.
-
-commit 003d1bf6145cfd30938b35f6e10d43708dbf916c
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 16:56:01 2012 +0600
-
-    Correction to region tracker options initialization.
-    
-    Based on patch from Keir to Blender:
-    https://svn.blender.org/svnroot/bf-blender/branches/soc-2011-tomato@46743
-
-commit 6af47b218cfdf5219f0ebb3cb95459817cf9abf2
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 17 02:31:52 2012 +0000
-
-    Add new planar tracker features and use the new planar API
-    
-    This commit removes the use of the legacy RegionTracker API from
-    Blender, and replaces it with the new TrackRegion API. This also
-    adds several features to the planar tracker in libmv:
-    
-    - Do a brute-force initialization of tracking similar to "Hybrid"
-      mode in the stable release, but using all floats. This is slower
-      but more accurate. It is still necessary to evaluate if the
-      performance loss is worth it. In particular, this change is
-      necessary to support high bit depth imagery.
-    
-    - Add support for masks over the search window. This is a step
-      towards supporting user-defined tracker masks. The tracker masks
-      will make it easy for users to make a mask for e.g. a ball.
-    
-    - Add Pearson product moment correlation coefficient checking (aka
-      "Correlation" in the UI. This causes tracking failure if the
-      tracked patch is not linearly related to the template.
-    
-    - Add support for warping a few points in addition to the supplied
-      points. This is useful because the tracking code deliberately
-      does not expose the underlying warp representation. Instead,
-      warps are specified in an aparametric way via the correspondences.
-    
-    - Remove the "num_samples_xy" concept and replace it with
-      automatic determination of the number of samples. This makes the
-      API easier for users.
-    
-    - Fix various bugs in the parameterizations.
-    
-    There remains a bug with subpixel precision tracking when in
-    "keyframe" mode; this will get fixed shortly.
-
-commit 16a46db104468cec80bd31ca9d5f8bffbe3e003e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 14 12:15:38 2012 +0000
-
-    "Efficient Second-order Minimization" for the planar tracker
-    
-    This implements the "Efficient Second-order Minimization"
-    scheme, as supported by the existing translation tracker.
-    This increases the amount of per-iteration work, but
-    decreases the number of iterations required to converge and
-    also increases the size of the basin of attraction for the
-    optimization.
-
-commit 23243b1b1f3e1ab3ef862b47bca06ee876ac2cf4
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun May 13 23:08:56 2012 +0000
-
-    Add a planar tracking implementation to libmv
-    
-    This adds a new planar tracking implementation to libmv. The
-    tracker is based on Ceres[1], the new nonlinear minimizer that
-    myself and Sameer released from Google as open source. Since
-    the motion model is more involved, the interface is
-    different than the RegionTracker interface used previously
-    in Blender.
-    
-    The ESM tracker, also known as the KLT tracker in the UI, is
-    temporarily changed to use the new Ceres-based planar
-    tracker in translation-only mode. Currently it is a bit
-    slower than ESM and also doesn't have all the bells and
-    whistles implemented. Those will come soon. Longer term,
-    both trackers will remain since Ceres is unlikely to be as
-    fast as ESM for pure translation solving, due to its
-    generality.
-    
-    The next step is to implement a new tracking UI. The current
-    UI assumes a translational motion model; the new one must
-    support arbitrary perspective transforms of the pattern
-    regions.
-    
-    [1] http://code.google.com/p/ceres-solver
-
-commit 52be92b53eb4decb1a316690b162196f227cc441
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 16:06:08 2012 +0600
-
-    Initial Ceres integration
-    
-    Currently only put sources to src/third_party/ceres and made sure they're
-    not giving compilation issues.
-    
-    Used Ceres upstream version 1.3.0.
-    
-    Needed to make some modifications to it's CMakeLists.txt also to glog and
-    fglags. They're described in README.libmv of this libraries.
-    
-    Basically:
-    
-    - Added -fPIC to glog/gflags, so shared ceres library could be linked
-      statically against this libraries.
-    
-    - Tweaked Ceres's build rules to use needed libraries from libmv's
-      third_party folder.
-
-commit b13f9d13122e091cb85855c2094386ccdef6e5a4
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 5 19:05:34 2012 +0600
-
-    Update Eigen to version 3.1.2
-    
-    Mainly because of lots of warnings generating by gcc-4.7 which are
-    resolved in newer eigen version.
-
-commit 1f0dd94e8e37d3fe2df89282ec16a6a685fdde0b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri May 25 16:36:44 2012 +0600
-
-    - Added avutil to qt-tracker linking when building with FFmpeg support.
-      On some platforms it seems to be required
-    - Synchronized QT Creator project for qt-tracker with changes in sources,
-      so no it might be compiled from QT Creator.
-
-commit b813dbe3f46bbbc7e73ac791d4665622e4fc7ba5
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 9 19:01:10 2012 +0600
-
-    Modal solver: Detect rigid transformation between initial frame and current
-    instead of detecting it between two neighbour frames.
-    
-    This prevents accumulation of error and seems to be working better in footages i've tested.
-
-commit 9254621c76daaf239ec1f535e197ca792eea97b6
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 9 18:57:00 2012 +0600
-
-    Backport changes made by Keir in Blender:
-    
-    - Enhance logging in libmv's trackers.
-    - Cleanups in brute_region_tracker.cc.
-
-commit d9c56b9d3c63f886d83129ca0ebed1e76d9c93d7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Apr 27 16:20:41 2012 +0600
-
-    Fixes for MinGW64 support by Caleb Joseph with slight modifications by Antony Riakiotakis
-    
-    - Functions snprintf and sincos shouldn't be redefined for MinGW64
-    - Type  pid_t shouldn't be re-defined for MinGW64
-
-commit e1902b6938676011607ac99986b8b140bdbf090e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Apr 27 16:04:19 2012 +0600
-
-    Fixes for Qt calibration tool
-    
-    - Passing directory with images via command line argument now isn't
-      required -- it there's no such directory specified  standard open
-      dialog might be used for this (before application used to abort
-      due to accessing to non-existing list element).
-    - Conversion of source images to grayscale now happens correct.
-      It was needed to build grayscale palette for 8bit indexed buffer.
-
-commit 05f1a0a78ad8ff6646d1e8da97e6f7575b891536
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 14 17:21:29 2012 +0600
-
-    Make QtTracker compilable again porting it to recent API change and code cleanup:
-    
-    - It was using SAD tracker with own API, now it's using standard RegionTracker API
-      which should make it easier to switch between different trackers.
-    - Restored LaplaceFilter from old SAD module which convolves images with the
-      discrete laplacian operator.
-
-commit a44312a7beb2963b8e3bf8015c516d2eff40cc3d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 12 13:56:02 2012 +0600
-
-    Added solver for modal camera motion, currently supports only tripod solving
-    
-    This solver is intended to deal with such camera motions as tripod and panning,
-    where it's impossible to reconstruct exact position of markers in 3d view.
-    
-    It projects markers onto sphere and uses rigid registration of rotation to
-    find rotation angles which makes bundles from previous and current frame be
-    as closest as it's possible.

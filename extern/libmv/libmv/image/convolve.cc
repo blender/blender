@@ -18,10 +18,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/image/convolve.h"
+
 #include <cmath>
 
 #include "libmv/image/image.h"
-#include "libmv/image/convolve.h"
 
 namespace libmv {
 
@@ -118,7 +119,7 @@ void Convolve(const Array3Df &in,
   // fast path.
   int half_width = kernel.size() / 2;
   switch (half_width) {
-#define static_convolution( size ) case size: \
+#define static_convolution(size) case size: \
   FastConvolve<size, vertical>(kernel, width, height, src, src_stride, \
                                src_line_stride, dst, dst_stride); break;
     static_convolution(1)
@@ -136,13 +137,15 @@ void Convolve(const Array3Df &in,
           double sum = 0;
           // Slow path: this loop cannot be unrolled.
           for (int k = -dynamic_size; k <= dynamic_size; ++k) {
-            if(vertical) {
+            if (vertical) {
               if (y + k >= 0 && y + k < height) {
-                sum += src[k * src_line_stride] * kernel(2 * dynamic_size - (k + dynamic_size));
+                sum += src[k * src_line_stride] *
+                    kernel(2 * dynamic_size - (k + dynamic_size));
               }
             } else {
               if (x + k >= 0 && x + k < width) {
-                sum += src[k * src_stride] * kernel(2 * dynamic_size - (k + dynamic_size));
+                sum += src[k * src_stride] *
+                    kernel(2 * dynamic_size - (k + dynamic_size));
               }
             }
           }
@@ -234,25 +237,25 @@ void BoxFilterHorizontal(const Array3Df &in,
   int half_width = (window_size - 1) / 2;
 
   for (int k = 0; k < in.Depth(); ++k) {
-    for (int i=0; i<in.Height(); ++i) {
+    for (int i = 0; i < in.Height(); ++i) {
       float sum = 0;
       // Init sum.
-      for (int j=0; j<half_width; ++j) {
+      for (int j = 0; j < half_width; ++j) {
         sum += in(i, j, k);
       }
       // Fill left border.
-      for (int j=0; j < half_width + 1; ++j) {
+      for (int j = 0; j < half_width + 1; ++j) {
         sum += in(i, j + half_width, k);
         out(i, j, k) = sum;
       }
       // Fill interior.
-      for (int j = half_width + 1; j<in.Width()-half_width; ++j) {
+      for (int j = half_width + 1; j < in.Width()-half_width; ++j) {
         sum -= in(i, j - half_width - 1, k);
         sum += in(i, j + half_width, k);
         out(i, j, k) = sum;
       }
       // Fill right border.
-      for (int j = in.Width() - half_width; j<in.Width(); ++j) {
+      for (int j = in.Width() - half_width; j < in.Width(); ++j) {
         sum -= in(i, j - half_width - 1, k);
         out(i, j, k) = sum;
       }
@@ -271,22 +274,22 @@ void BoxFilterVertical(const Array3Df &in,
     for (int j = 0; j < in.Width(); ++j) {
       float sum = 0;
       // Init sum.
-      for (int i=0; i<half_width; ++i) {
+      for (int i = 0; i < half_width; ++i) {
         sum += in(i, j, k);
       }
       // Fill left border.
-      for (int i=0; i < half_width + 1; ++i) {
+      for (int i = 0; i < half_width + 1; ++i) {
         sum += in(i + half_width, j, k);
         out(i, j, k) = sum;
       }
       // Fill interior.
-      for (int i = half_width + 1; i<in.Height()-half_width; ++i) {
+      for (int i = half_width + 1; i < in.Height()-half_width; ++i) {
         sum -= in(i - half_width - 1, j, k);
         sum += in(i + half_width, j, k);
         out(i, j, k) = sum;
       }
       // Fill right border.
-      for (int i = in.Height() - half_width; i<in.Height(); ++i) {
+      for (int i = in.Height() - half_width; i < in.Height(); ++i) {
         sum -= in(i - half_width - 1, j, k);
         out(i, j, k) = sum;
       }
@@ -302,18 +305,23 @@ void BoxFilter(const Array3Df &in,
   BoxFilterVertical(tmp, box_width, out);
 }
 
-void LaplaceFilter(unsigned char* src, unsigned char* dst, int width, int height, int strength) {
-  for(int y=1; y<height-1; y++) for(int x=1; x<width-1; x++) {
-    const unsigned char* s = &src[y*width+x];
-    int l = 128 +
-        s[-width-1] + s[-width] + s[-width+1] +
-        s[1]        - 8*s[0]    + s[1]        +
-        s[ width-1] + s[ width] + s[ width+1] ;
-    int d = ((256-strength)*s[0] + strength*l) / 256;
-    if(d < 0) d=0;
-    if(d > 255) d=255;
-    dst[y*width+x] = d;
-  }
+void LaplaceFilter(unsigned char* src,
+                   unsigned char* dst,
+                   int width,
+                   int height,
+                   int strength) {
+  for (int y = 1; y < height-1; y++)
+    for (int x = 1; x < width-1; x++) {
+      const unsigned char* s = &src[y*width+x];
+      int l = 128 +
+          s[-width-1] + s[-width] + s[-width+1] +
+          s[1]        - 8*s[0]    + s[1]        +
+          s[ width-1] + s[ width] + s[ width+1];
+      int d = ((256-strength)*s[0] + strength*l) / 256;
+      if (d < 0) d=0;
+      if (d > 255) d=255;
+      dst[y*width+x] = d;
+    }
 }
 
 }  // namespace libmv

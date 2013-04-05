@@ -40,7 +40,7 @@ namespace libmv {
 template<typename Function,
          typename Jacobian = NumericJacobian<Function>,
          typename Solver = Eigen::PartialPivLU<
-           Matrix<typename Function::FMatrixType::RealScalar, 
+           Matrix<typename Function::FMatrixType::RealScalar,
                   Function::XMatrixType::RowsAtCompileTime,
                   Function::XMatrixType::RowsAtCompileTime> > >
 class LevenbergMarquardt {
@@ -51,8 +51,8 @@ class LevenbergMarquardt {
   typedef Matrix<typename Function::FMatrixType::RealScalar,
                  Function::FMatrixType::RowsAtCompileTime,
                  Function::XMatrixType::RowsAtCompileTime> JMatrixType;
-  typedef Matrix<typename JMatrixType::RealScalar, 
-                 JMatrixType::ColsAtCompileTime, 
+  typedef Matrix<typename JMatrixType::RealScalar,
+                 JMatrixType::ColsAtCompileTime,
                  JMatrixType::ColsAtCompileTime> AMatrixType;
 
   // TODO(keir): Some of these knobs can be derived from each other and
@@ -69,7 +69,7 @@ class LevenbergMarquardt {
       : f_(f), df_(f) {}
 
   struct SolverParameters {
-   SolverParameters()
+    SolverParameters()
        : gradient_threshold(1e-16),
          relative_step_threshold(1e-16),
          error_threshold(1e-16),
@@ -140,7 +140,7 @@ class LevenbergMarquardt {
       if (solved && dx.norm() <= params.relative_step_threshold * x.norm()) {
         results.status = RELATIVE_STEP_SIZE_TOO_SMALL;
         break;
-      } 
+      }
       if (solved) {
         x_new = x + dx;
         // Rho is the ratio of the actual reduction in error to the reduction
@@ -156,8 +156,8 @@ class LevenbergMarquardt {
           u = u*std::max(1/3., 1 - (tmp*tmp*tmp));
           v = 2;
           continue;
-        } 
-      } 
+        }
+      }
       // Reject the update because either the normal equations failed to solve
       // or the local linear model was not good (rho < 0). Instead, increase u
       // to move closer to gradient descent.

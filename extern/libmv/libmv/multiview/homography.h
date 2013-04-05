@@ -50,12 +50,12 @@ namespace libmv {
 bool Homography2DFromCorrespondencesLinear(const Mat &x1,
                                            const Mat &x2,
                                            Mat3 *H,
-                                           double expected_precision = 
+                                           double expected_precision =
                                              EigenDouble::dummy_precision());
 
 /**
  * 3D Homography transformation estimation.
- * 
+ *
  * This function can be used in order to estimate the homography transformation
  * from a list of 3D correspondences.
  *
@@ -68,16 +68,16 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
  *                                        |m n o 1| 
  * \param[in] expected_precision The expected precision in order for instance 
  *        to accept almost homography matrices.
- * 
+ *
  * \return true if the transformation estimation has succeeded
- * 
+ *
  * \note Need at least 5 non coplanar points 
  * \note Points coordinates must be in homogeneous coordinates
  */
 bool Homography3DFromCorrespondencesLinear(const Mat &x1,
                                            const Mat &x2,
                                            Mat4 *H,
-                                           double expected_precision = 
+                                           double expected_precision =
                                              EigenDouble::dummy_precision());
 
 /**
@@ -87,6 +87,6 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
  */
 double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2);
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_HOMOGRAPHY_H_

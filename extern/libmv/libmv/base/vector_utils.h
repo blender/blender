@@ -31,4 +31,4 @@ void DeleteElements(Array *array)  {
   array->clear();
 }
 
-#endif // LIBMV_BASE_VECTOR_UTILS_H_
+#endif  // LIBMV_BASE_VECTOR_UTILS_H_

@@ -1,15 +1,15 @@
 // Copyright (c) 2011 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,7 +40,7 @@ class Homography2DNormalizedParameterization {
   typedef Eigen::Matrix<T, 3, 3> Parameterized;  // H
 
   /// Convert from the 8 parameters to a H matrix.
-  static void To(const Parameters &p, Parameterized *h) {    
+  static void To(const Parameters &p, Parameterized *h) {
     *h << p(0), p(1), p(2),
           p(3), p(4), p(5),
           p(6), p(7), 1.0;
@@ -70,7 +70,7 @@ class Homography3DNormalizedParameterization {
   typedef Eigen::Matrix<T, 4, 4>  Parameterized;  // H
 
   /// Convert from the 15 parameters to a H matrix.
-  static void To(const Parameters &p, Parameterized *h) {   
+  static void To(const Parameters &p, Parameterized *h) {
     *h << p(0), p(1), p(2), p(3),
           p(4), p(5), p(6), p(7),
           p(8), p(9), p(10), p(11),
@@ -86,6 +86,6 @@ class Homography3DNormalizedParameterization {
   }
 };
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_HOMOGRAPHY_PARAMETERIZATION_H_
