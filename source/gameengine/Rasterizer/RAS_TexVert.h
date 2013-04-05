@@ -56,9 +56,10 @@ class RAS_TexVert
 	short			m_softBodyIndex;		//2
 	unsigned int	m_unit;			//		  4
 	unsigned int	m_origindex;		//    4
+	char			m_padding[8];		//    8
 									//---------
-									//      120
-	// 32 bytes total size, fits nice = 120 = not fit nice.
+									//      128
+	// 32 bytes alignment improves performance on ATI cards.
 
 public:
 	enum {

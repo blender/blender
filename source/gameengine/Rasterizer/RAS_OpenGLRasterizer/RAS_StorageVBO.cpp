@@ -35,7 +35,7 @@ VBO::VBO(RAS_DisplayArray *data, unsigned int indices)
 	this->data = data;
 	this->size = data->m_vertex.size();
 	this->indices = indices;
-	this->stride = 32*sizeof(GLfloat); // ATI cards really like 32byte aligned VBOs, so we add a little padding
+	this->stride = sizeof(RAS_TexVert);
 
 	//	Determine drawmode
 	if (data->m_type == data->QUAD)
@@ -54,11 +54,11 @@ VBO::VBO(RAS_DisplayArray *data, unsigned int indices)
 	UpdateData();
 
 	// Establish offsets
-	this->vertex_offset = 0;
-	this->normal_offset = (void*)(3*sizeof(GLfloat));
-	this->tangent_offset = (void*)(6*sizeof(GLfloat));
-	this->color_offset = (void*)(10*sizeof(GLfloat));
-	this->uv_offset = (void*)(11*sizeof(GLfloat));
+	this->vertex_offset = (void*)(((RAS_TexVert*)0)->getXYZ());
+	this->normal_offset = (void*)(((RAS_TexVert*)0)->getNormal());
+	this->tangent_offset = (void*)(((RAS_TexVert*)0)->getTangent());
+	this->color_offset = (void*)(((RAS_TexVert*)0)->getRGBA());;
+	this->uv_offset = (void*)(((RAS_TexVert*)0)->getUV(0));
 }
 
 VBO::~VBO()
@@ -69,36 +69,15 @@ VBO::~VBO()
 
 void VBO::UpdateData()
 {
-	unsigned int i, j, k;
-	
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, this->vbo_id);
-	glBufferData(GL_ARRAY_BUFFER, this->stride*this->size, NULL, GL_STATIC_DRAW);
-
-	// Map the buffer
-	GLfloat *vbo_map = (GLfloat*)glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-
-	// Gather data
-	for (i = 0, j = 0; i < data->m_vertex.size(); i++, j += this->stride/sizeof(GLfloat))
-	{
-		memcpy(&vbo_map[j], data->m_vertex[i].getXYZ(), sizeof(float)*3);
-		memcpy(&vbo_map[j+3], data->m_vertex[i].getNormal(), sizeof(float)*3);
-		memcpy(&vbo_map[j+6], data->m_vertex[i].getTangent(), sizeof(float)*4);
-		memcpy(&vbo_map[j+10], data->m_vertex[i].getRGBA(), sizeof(char)*4);
-
-		for (k = 0; k < RAS_TexVert::MAX_UNIT; k++)
-			memcpy(&vbo_map[j+11+(k*2)], data->m_vertex[i].getUV(k), sizeof(float)*2);
-	}
-	
-	glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+	glBufferData(GL_ARRAY_BUFFER, this->stride*this->size, &this->data->m_vertex[0], GL_STATIC_DRAW);
 }
 
 void VBO::UpdateIndices()
 {
-	int space = data->m_index.size() * sizeof(GLushort);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, this->ibo);
-
-	// Upload Data to VBO
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, space, &data->m_index[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, data->m_index.size() * sizeof(GLushort),
+					&data->m_index[0], GL_STATIC_DRAW);
 }
 
 void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, RAS_IRasterizer::TexCoGen* attrib, int *attrib_layer, bool multi)
