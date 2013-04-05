@@ -590,8 +590,8 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 					for (; module; module = module->next) {
 						rewrite_path_fixed(module->module_path, visit_cb, absbase, bpath_user_data);
 					}
- 				}
- 			}
+				}
+			}
 #endif
 			break;
 		}

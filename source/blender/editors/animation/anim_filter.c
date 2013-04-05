@@ -1577,7 +1577,7 @@ static size_t animdata_filter_ds_linestyle (bAnimContext *ac, ListBase *anim_dat
 				/* include anim-expand widget first */
 				if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 					/* check if filtering by active status */
-					if ANIMCHANNEL_ACTIVEOK(linestyle) {
+					if (ANIMCHANNEL_ACTIVEOK(linestyle)) {
 						ANIMCHANNEL_NEW_CHANNEL(linestyle, ANIMTYPE_DSLINESTYLE, sce);
 					}
 				}

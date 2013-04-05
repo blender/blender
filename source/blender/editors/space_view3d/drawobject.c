@@ -3116,7 +3116,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	
 			draw_dm_edges_freestyle(em, cageDM);
 	
-			glColor3ub(0,0,0);
+			glColor3ub(0, 0, 0);
 			glLineWidth(1);
 		}
 #endif

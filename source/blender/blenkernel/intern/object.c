@@ -681,7 +681,7 @@ void BKE_object_unlink(Object *ob)
 				SEQ_END
 			}
 
-			for (srl= sce->r.layers.first; srl; srl= srl->next) {
+			for (srl = sce->r.layers.first; srl; srl = srl->next) {
 				for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first;
 				     lineset; lineset = lineset->next)
 				{

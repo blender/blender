@@ -614,7 +614,7 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	/* Freestyle */
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
-			for (module = srl->freestyleConfig.modules.first; module; module= module->next) {
+			for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
 				if (module->script == text)
 					module->script = NULL;
 			}

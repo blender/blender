@@ -846,7 +846,7 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, Poin
 		            gpd->id.name + 2, ID_REAL_USERS(gpd));
 }
 
-FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char* name)
+FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
 {
 	FreestyleLineStyle *linestyle = BKE_new_linestyle(name, bmain);
 	id_us_min(&linestyle->id);
@@ -855,10 +855,11 @@ FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char* name)
 
 void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
 {
-	if(ID_REAL_USERS(linestyle) <= 0)
+	if (ID_REAL_USERS(linestyle) <= 0)
 		BKE_libblock_free(&bmain->linestyle, linestyle);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Line style '%s' must have zero users to be removed, found %d", linestyle->id.name+2, ID_REAL_USERS(linestyle));
+		BKE_reportf(reports, RPT_ERROR, "Line style '%s' must have zero users to be removed, found %d",
+		            linestyle->id.name + 2, ID_REAL_USERS(linestyle));
 
 	/* XXX python now has invalid pointer? */
 }

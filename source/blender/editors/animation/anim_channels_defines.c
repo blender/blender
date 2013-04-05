@@ -2097,7 +2097,7 @@ static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale, int setting, short 
 }
 
 /* node tree expander type define */
-static bAnimChannelType ACF_DSLINESTYLE= 
+static bAnimChannelType ACF_DSLINESTYLE =
 {
 	"Line Style Expander",			/* type name */
 	

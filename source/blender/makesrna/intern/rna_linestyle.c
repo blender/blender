@@ -504,7 +504,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	rna_def_alpha_modifier(srna);
 	rna_def_modifier_curve_common(srna, TRUE, FALSE);
 
-	srna= RNA_def_struct(brna, "LineStyleAlphaModifier_DistanceFromObject", "LineStyleAlphaModifier");
+	srna = RNA_def_struct(brna, "LineStyleAlphaModifier_DistanceFromObject", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Object",
 	                       "Change alpha transparency based on the distance from an object");
 	rna_def_alpha_modifier(srna);

@@ -1465,7 +1465,7 @@ static PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
 
 static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value)
 {
-	FreestyleLineSet *lineset = (FreestyleLineSet*)ptr->data;
+	FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 
 	lineset->linestyle->id.us--;
 	lineset->linestyle = (FreestyleLineStyle *)value.data;
@@ -2434,7 +2434,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem visibility_items[] ={
+	static EnumPropertyItem visibility_items[] = {
 		{FREESTYLE_QI_VISIBLE, "VISIBLE", 0, "Visible", "Select visible feature edges"},
 		{FREESTYLE_QI_HIDDEN, "HIDDEN", 0, "Hidden", "Select hidden feature edges"},
 		{FREESTYLE_QI_RANGE, "RANGE", 0, "QI Range",
@@ -2473,7 +2473,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	 */
 	prop = RNA_def_property(srna, "linestyle", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FreestyleLineStyle");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
 	RNA_def_property_pointer_funcs(prop, "rna_FreestyleLineSet_linestyle_get",
 	                               "rna_FreestyleLineSet_linestyle_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Line Style", "Line style settings");
@@ -3927,7 +3927,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_LINE_THICKNESS_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Specify unit line thickness in pixels"},
 		{R_LINE_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative",
 		                            "Unit line thickness is scaled by the proportion of the present vertical image "
-                                    "resolution to 480 pixels"},
+		                            "resolution to 480 pixels"},
 		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_scene_ffmpeg_settings(brna);

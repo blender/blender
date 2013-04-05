@@ -336,7 +336,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 			break;
 			case ID_LS:
 			{
-				FreestyleLineStyle *linestyle= ptr->id.data;
+				FreestyleLineStyle *linestyle = ptr->id.data;
 
 				WM_main_add_notifier(NC_LINESTYLE, linestyle);
 				break;
