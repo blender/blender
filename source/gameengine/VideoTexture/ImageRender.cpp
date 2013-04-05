@@ -398,7 +398,7 @@ static PyGetSetDef imageRenderGetSets[] =
 
 
 // define python type
-static PyTypeObject ImageRenderType = {
+PyTypeObject ImageRenderType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.ImageRender",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
@@ -732,7 +732,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
 
 
 // define python type
-static PyTypeObject ImageMirrorType = {
+PyTypeObject ImageMirrorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.ImageMirror",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/

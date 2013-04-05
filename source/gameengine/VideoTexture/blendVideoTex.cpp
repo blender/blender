@@ -134,11 +134,6 @@ extern PyTypeObject FilterRGBA32Type;
 extern PyTypeObject FilterBGR24Type;
 extern PyTypeObject ImageBuffType;
 extern PyTypeObject ImageMixType;
-extern PyTypeObject ImageRenderType;
-extern PyTypeObject ImageMirrorType;
-extern PyTypeObject ImageViewportType;
-extern PyTypeObject ImageViewportType;
-
 
 static void registerAllTypes(void)
 {
