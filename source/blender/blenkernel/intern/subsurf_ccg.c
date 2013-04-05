@@ -1015,7 +1015,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	}
 	else {
 		mf->flag = ME_SMOOTH;
-}
+	}
 
 	mf->edcode = 0;
 }
@@ -3281,6 +3281,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 #endif
 
 	has_edge_origindex = CustomData_has_layer(&ccgdm->dm.edgeData, CD_ORIGINDEX);
+
 
 	loopindex = loopindex2 = 0; /* current loop index */
 	for (index = 0; index < totface; index++) {

@@ -833,7 +833,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 
 	/* line styles */
 	ANIMDATA_IDS_CB(mainptr->linestyle.first);
-	}
+}
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
