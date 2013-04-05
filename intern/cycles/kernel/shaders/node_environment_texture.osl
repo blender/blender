@@ -66,6 +66,9 @@ shader node_environment_texture(
 	/* todo: use environment for better texture filtering of equirectangular */
 	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "alpha", Alpha);
 
+	if (isconnected(Alpha))
+		Color = color_unpremultiply(Color, Alpha);
+
 	if (color_space == "sRGB")
 		Color = color_srgb_to_scene_linear(Color);
 }

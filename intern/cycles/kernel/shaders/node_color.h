@@ -48,6 +48,14 @@ color color_scene_linear_to_srgb(color c)
 		color_scene_linear_to_srgb(c[2]));
 }
 
+color color_unpremultiply(color c, float alpha)
+{
+	if(alpha != 1.0 && alpha != 0.0)
+		return c/alpha;
+
+	return c;
+}
+
 /* Color Operations */
 
 color rgb_to_hsv(color rgb)
