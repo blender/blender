@@ -454,9 +454,9 @@ STENCIL_ROTATE
 } StencilControlMode;
 
 typedef struct {
-	int init_mouse[2];
-	int init_spos[2];
-	int init_sdim[2];
+	float init_mouse[2];
+	float init_spos[2];
+	float init_sdim[2];
 	float init_rot;
 	float init_angle;
 	float lenorig;
@@ -468,15 +468,16 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *br = paint_brush(paint);
-	int mdiff[2];
+	float mdiff[2];
+	float mvalf[2] = {event->mval[0], event->mval[1]};
 
 	StencilControlData *scd = MEM_mallocN(sizeof(StencilControlData), "stencil_control");
 
-	copy_v2_v2_int(scd->init_mouse, event->mval);
-	copy_v2_v2_int(scd->init_sdim, br->stencil_dimension);
-	copy_v2_v2_int(scd->init_spos, br->stencil_pos);
-	sub_v2_v2v2_int(mdiff, event->mval, br->stencil_pos);
-	scd->lenorig = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
+	copy_v2_v2(scd->init_mouse, mvalf);
+	copy_v2_v2(scd->init_sdim, br->stencil_dimension);
+	copy_v2_v2(scd->init_spos, br->stencil_pos);
+	sub_v2_v2v2(mdiff, mvalf, br->stencil_pos);
+	scd->lenorig = len_v2(mdiff);
 	scd->br = br;
 	scd->init_rot = br->mtex.rot;
 	scd->init_angle = atan2(mdiff[1], mdiff[0]);
@@ -494,8 +495,8 @@ static int stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
 	StencilControlData *scd = op->customdata;
 	Brush *br = scd->br;
 
-	copy_v2_v2_int(br->stencil_dimension, scd->init_sdim);
-	copy_v2_v2_int(br->stencil_pos, scd->init_spos);
+	copy_v2_v2(br->stencil_dimension, scd->init_sdim);
+	copy_v2_v2(br->stencil_pos, scd->init_spos);
 	br->mtex.rot = scd->init_rot;
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;
@@ -508,28 +509,29 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 	switch (event->type) {
 		case MOUSEMOVE:
 			{
-				int mdiff[2];
+				float mdiff[2];
+				float mvalf[2] = {event->mval[0], event->mval[1]};
 				switch (scd->mode) {
 					case STENCIL_TRANSLATE:
-						sub_v2_v2v2_int(mdiff, event->mval, scd->init_mouse);
-						add_v2_v2v2_int(scd->br->stencil_pos, scd->init_spos,
+						sub_v2_v2v2(mdiff, mvalf, scd->init_mouse);
+						add_v2_v2v2(scd->br->stencil_pos, scd->init_spos,
 						            mdiff);
 						break;
 					case STENCIL_SCALE:
 					{
 						float len, factor;
-						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
-						len = sqrtf(mdiff[0] * mdiff[0] + mdiff[1] * mdiff[1]);
+						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
+						len = len_v2(mdiff);
 						factor = len / scd->lenorig;
 						mdiff[0] = factor * scd->init_sdim[0];
 						mdiff[1] = factor * scd->init_sdim[1];
-						copy_v2_v2_int(scd->br->stencil_dimension, mdiff);
+						copy_v2_v2(scd->br->stencil_dimension, mdiff);
 						break;
 					}
 					case STENCIL_ROTATE:
 					{
 						float angle;
-						sub_v2_v2v2_int(mdiff, event->mval, scd->br->stencil_pos);
+						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
 						angle = atan2(mdiff[1], mdiff[0]);
 						angle = scd->init_rot + angle - scd->init_angle;
 						if (angle < 0.0f)
