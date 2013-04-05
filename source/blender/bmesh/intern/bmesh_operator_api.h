@@ -482,6 +482,8 @@ typedef struct BMOElemMapping {
 
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
+int BMO_opcode_from_opname(const char *opname);
+
 #ifdef __cplusplus
 }
 #endif
