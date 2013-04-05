@@ -628,6 +628,26 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		wm_triple_copy_textures(win, triple);
 	}
 
+	if (paintcursor && wm->paintcursors.first) {
+		for (sa = screen->areabase.first; sa; sa = sa->next) {
+			for (ar = sa->regionbase.first; ar; ar = ar->next) {
+				if (ar->swinid && ar->swinid == screen->subwinactive) {
+					CTX_wm_area_set(C, sa);
+					CTX_wm_region_set(C, ar);
+
+					/* make region ready for draw, scissor, pixelspace */
+					ED_region_set(C, ar);
+					wm_paintcursor_draw(C, ar);
+
+					CTX_wm_region_set(C, NULL);
+					CTX_wm_area_set(C, NULL);
+				}
+			}
+		}
+
+		wmSubWindowSet(win, screen->mainwin);
+	}
+
 	/* draw overlapping area regions (always like popups) */
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		CTX_wm_area_set(C, sa);
@@ -662,26 +682,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	/* always draw, not only when screen tagged */
 	if (win->gesture.first)
 		wm_gesture_draw(win);
-
-	if (paintcursor && wm->paintcursors.first) {
-		for (sa = screen->areabase.first; sa; sa = sa->next) {
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->swinid && ar->swinid == screen->subwinactive) {
-					CTX_wm_area_set(C, sa);
-					CTX_wm_region_set(C, ar);
-
-					/* make region ready for draw, scissor, pixelspace */
-					ED_region_set(C, ar);
-					wm_paintcursor_draw(C, ar);
-
-					CTX_wm_region_set(C, NULL);
-					CTX_wm_area_set(C, NULL);
-				}
-			}
-		}
-
-		wmSubWindowSet(win, screen->mainwin);
-	}
 	
 	/* needs pixel coords in screen */
 	if (wm->drags.first) {
