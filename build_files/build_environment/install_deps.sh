@@ -1303,10 +1303,16 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     _packages="$_packages $TIFF-dev"
   else
-    TIFF="libtiff"
+    TIFF="libtiff4"  # Some old distro, like e.g. ubuntu 10.04 :/
     check_package_DEB $TIFF
     if [ $? -eq 0 ]; then
       _packages="$_packages $TIFF-dev"
+    else
+      TIFF="libtiff"
+      check_package_DEB $TIFF
+      if [ $? -eq 0 ]; then
+        _packages="$_packages $TIFF-dev"
+      fi
     fi
   fi
 
