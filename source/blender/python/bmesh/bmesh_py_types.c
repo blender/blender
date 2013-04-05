@@ -3643,7 +3643,8 @@ char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 	if (htype & BM_FACE) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
 	if (htype & BM_LOOP) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
 	ret[0]   = '(';
-	*ret_ptr = ')';
+	*ret_ptr++ = ')';
+	*ret_ptr   = '\0';
 	return ret;
 }
 char *BPy_BMElem_StringFromHType(const char htype)
