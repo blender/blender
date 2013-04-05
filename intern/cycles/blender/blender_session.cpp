@@ -549,7 +549,7 @@ void BlenderSession::get_progress(float& progress, double& total_time)
 	session->progress.get_tile(tile, total_time, tile_time);
 
 	sample = session->progress.get_sample();
-	samples_per_tile = session->params.samples;
+	samples_per_tile = session->tile_manager.state.num_samples;
 
 	if(samples_per_tile && tile_total)
 		progress = ((float)sample / (float)(tile_total * samples_per_tile));
