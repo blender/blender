@@ -1077,10 +1077,11 @@ __attribute__ ((format(printf, 1, 2)))
 #endif
 ;
 
-/* Equals test (skips pointers and collections) */
+/* Equals test (skips pointers and collections)
+ * is_strict false assumes uninitialized properties are equal */
 
-int RNA_property_equals(struct PointerRNA *a, struct PointerRNA *b, struct PropertyRNA *prop);
-int RNA_struct_equals(struct PointerRNA *a, struct PointerRNA *b);
+bool RNA_property_equals(struct PointerRNA *a, struct PointerRNA *b, struct PropertyRNA *prop, bool is_strict);
+bool RNA_struct_equals(struct PointerRNA *a, struct PointerRNA *b, bool is_strict);
 
 #ifdef __cplusplus
 }

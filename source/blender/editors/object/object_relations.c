@@ -549,7 +549,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_clear_parent_types, CLEAR_PARENT_ALL, "Type", "");
 }
 
 /* ******************** Make Parent Operator *********************** */
