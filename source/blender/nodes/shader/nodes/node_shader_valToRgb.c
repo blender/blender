@@ -34,7 +34,7 @@
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate sh_node_valtorgb_in[] = {
-	{	SOCK_FLOAT, 1, N_("Fac"),			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Fac"),			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_valtorgb_out[] = {
