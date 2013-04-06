@@ -1841,36 +1841,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		}
 	}
 
-#ifdef WITH_FREESTYLE
-	/* This Freestyle-specific code still needs to get the Subdivision Surface modifier working */
-	if (CustomData_has_layer(&me->edata, CD_FREESTYLE_EDGE)) {
-		FreestyleEdge *fed = DM_get_edge_data_layer(finaldm, CD_FREESTYLE_EDGE);
-		if (fed) {
-			FreestyleEdge *source = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
-			int a;
-			for (a = 0; a < me->totedge; a++) {
-				fed[a].flag = source[a].flag;
-			}
-			for (; a < finaldm->numEdgeData; a++) {
-				fed[a].flag = 0;
-			}
-		}
-	}
-	if (CustomData_has_layer(&me->pdata, CD_FREESTYLE_FACE)) {
-		FreestyleFace *ffa = DM_get_poly_data_layer(finaldm, CD_FREESTYLE_FACE);
-		if (ffa) {
-			FreestyleFace *source = CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
-			int a;
-			for (a = 0; a < me->totpoly; a++) {
-				ffa[a].flag = source[a].flag;
-			}
-			for (; a < finaldm->numPolyData; a++) {
-				ffa[a].flag = 0;
-			}
-		}
-	}
-#endif
-
 #ifdef WITH_GAMEENGINE
 	/* NavMesh - this is a hack but saves having a NavMesh modifier */
 	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {

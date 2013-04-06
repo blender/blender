@@ -2696,7 +2696,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 #ifdef WITH_FREESTYLE
 			index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 			index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
-			ffa= dm->getPolyDataArray(dm, CD_FREESTYLE_FACE);
+			ffa= CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_FREESTYLE_FACE);
 #endif
 
 			for (a=0; a<end; a++, mface++) {
@@ -3243,7 +3243,7 @@ static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 }
 
 #ifdef WITH_FREESTYLE
-static EdgeHash *make_freestyle_edge_mark_hash(DerivedMesh *dm)
+static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 {
 	EdgeHash *edge_hash= BLI_edgehash_new();
 	FreestyleEdge *fed;
@@ -3254,7 +3254,7 @@ static EdgeHash *make_freestyle_edge_mark_hash(DerivedMesh *dm)
 	medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-	fed = dm->getEdgeDataArray(dm, CD_FREESTYLE_EDGE);
+	fed = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
 	if (fed) {
 		if (!index) {
 			for (a = 0; a < totedge; a++) {
@@ -3436,7 +3436,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			EdgeHash *edge_hash;
 
 			/* create a hash table of Freestyle edge marks */
-			edge_hash = make_freestyle_edge_mark_hash(dm);
+			edge_hash = make_freestyle_edge_mark_hash(me, dm);
 #endif
 
 			/* store customdata names, because DerivedMesh is freed */
@@ -3478,7 +3478,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 #ifdef WITH_FREESTYLE
 					index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 					index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
-					ffa= dm->getPolyDataArray(dm, CD_FREESTYLE_FACE);
+					ffa= CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_FREESTYLE_FACE);
 #endif
 					
 					for (a=0; a<end; a++, mface++) {
