@@ -244,27 +244,39 @@ class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
-    bl_label = "Layers"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    bl_label = "Layer List"
+    bl_context = "render_layer"
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         rd = scene.render
+        rl = rd.layers.active
 
         row = layout.row()
-        row.template_list("RENDER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
+        row.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
         col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
         row = layout.row()
-        rl = rd.layers.active
-        row.prop(rl, "name")
+        if rl:
+            row.prop(rl, "name")
         row.prop(rd, "use_single_layer", text="", icon_only=True)
+
+class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
+    bl_label = "Layer"
+    bl_context = "render_layer"
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rl = rd.layers.active
 
         split = layout.split()
 
@@ -274,8 +286,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
-        col.label(text="Mask Layers:")
-        col.prop(rl, "layers_zmask", text="")
+        col.prop(rl, "layers_zmask", text="Mask Layer")
 
         split = layout.split()
 
@@ -286,11 +297,22 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(rl, "samples")
         col.prop(rl, "use_sky", "Use Environment")
+        
+class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
+    bl_label = "Passes"
+    bl_context = "render_layer"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rl = rd.layers.active
 
         split = layout.split()
 
         col = split.column()
-        col.label(text="Passes:")
         col.prop(rl, "use_pass_combined")
         col.prop(rl, "use_pass_z")
         col.prop(rl, "use_pass_normal")

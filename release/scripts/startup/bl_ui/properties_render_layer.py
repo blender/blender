@@ -52,7 +52,7 @@ class RENDERLAYER_UL_renderlayers(UIList):
 
 
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
-    bl_label = "Layers"
+    bl_label = "Layer List"
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -98,8 +98,7 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
-        col.label(text="Mask Layers:")
-        col.prop(rl, "layers_zmask", text="")
+        col.prop(rl, "layers_zmask", text="Mask Layer")
 
         layout.separator()
         layout.label(text="Include:")
