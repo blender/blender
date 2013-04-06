@@ -209,7 +209,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	/* find associated base in current scene */
-	base = BKE_scene_base_find(scene, ob);
+	base = BKE_scene_base_find(sce, ob);
 
 	if (base) {
 		if (set == 2) {
@@ -221,22 +221,22 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 		}
 		else {
 			/* deleselect all */
-			BKE_scene_base_deselect_all(scene);
+			BKE_scene_base_deselect_all(sce);
 			ED_base_object_select(base, BA_SELECT);
 		}
 
 		if (recursive) {
 			/* Recursive select/deselect for Object hierarchies */
-			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
+			do_outliner_object_select_recursive(sce, ob, (ob->flag & SELECT) != 0);
 		}
 
 		if (C) {
 			ED_base_object_activate(C, base); /* adds notifier */
-			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, sce);
 		}
 	}
 	
-	if (ob != scene->obedit)
+	if (ob != sce->obedit)
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
 	return 1;
