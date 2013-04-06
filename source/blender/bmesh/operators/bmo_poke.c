@@ -52,8 +52,8 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 
 	const float offset = BMO_slot_float_get(op->slots_in, "offset");
+	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in,  "use_relative_offset");
 	const int center_mode = BMO_slot_int_get(op->slots_in, "center_mode");
-
 	void (*bm_face_calc_center_fn)(BMFace *f, float r_cent[3]);
 
 	switch (center_mode) {
@@ -80,6 +80,9 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 		 * then copy to all others in the fan */
 		BMLoop *l_center_example;
 
+		/* 1.0 or the average length from the center to the face verts */
+		float offset_fac;
+
 		int i;
 
 		bm_face_calc_center_fn(f, f_center);
@@ -88,6 +91,13 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 
 		/* handled by BM_loop_interp_from_face */
 		// BM_vert_interp_from_face(bm, v_center, f);
+
+		if (use_relative_offset) {
+			offset_fac = 0.0f;
+		}
+		else {
+			offset_fac = 1.0f;
+		}
 
 		i = 0;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -110,10 +120,20 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l_iter->next, l_new->next);
 
 			BMO_elem_flag_enable(bm, f_new, ELE_NEW);
+
+			if (use_relative_offset) {
+				offset_fac += len_v3v3(f_center, l_iter->v->co);
+			}
+
 		} while (i++, (l_iter = l_iter->next) != l_first);
 
+		if (use_relative_offset) {
+			offset_fac /= (float)f->len;
+		}
+		/* else remain at 1.0 */
+
 		copy_v3_v3(v_center->no, f->no);
-		madd_v3_v3fl(v_center->co, v_center->no, offset);
+		madd_v3_v3fl(v_center->co, v_center->no, offset * offset_fac);
 
 		/* Kill Face */
 		BM_face_kill(bm, f);

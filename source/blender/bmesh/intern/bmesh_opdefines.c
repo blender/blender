@@ -1581,7 +1581,8 @@ static BMOpDefine bmo_poke_def = {
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},   /* input faces */
 	 {"offset", BMO_OP_SLOT_FLT}, /* center vertex offset along normal */
-	{"center_mode", BMO_OP_SLOT_INT}, /* calculation mode for center vertex */
+	 {"center_mode", BMO_OP_SLOT_INT}, /* calculation mode for center vertex */
+	 {"use_relative_offset", BMO_OP_SLOT_BOOL}, /* apply offset */
 	 {{'\0'}},
 	},
 	/* slots_out */

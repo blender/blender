@@ -2641,9 +2641,11 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	const float offset = RNA_float_get(op->ptr, "offset");
+	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const int center_mode = RNA_enum_get(op->ptr, "center_mode");
 
-	EDBM_op_init(em, &bmop, op, "poke faces=%hf offset=%f center_mode=%i", BM_ELEM_SELECT, offset, center_mode);
+	EDBM_op_init(em, &bmop, op, "poke faces=%hf offset=%f use_relative_offset=%b center_mode=%i",
+	             BM_ELEM_SELECT, offset, use_relative_offset, center_mode);
 	BMO_op_exec(em->bm, &bmop);
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -2662,6 +2664,34 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 
 }
+
+void MESH_OT_poke(wmOperatorType *ot)
+{
+
+	static EnumPropertyItem poke_center_modes[] = {
+		{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED", 0, "Weighted Mean", "Weighted Mean Face Center"},
+		{BMOP_POKE_MEAN, "MEAN", 0, "Mean", "Mean Face Center"},
+		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face Bounds Center"},
+		{0, NULL, 0, NULL, NULL}};
+
+
+	/* identifiers */
+	ot->name = "Poke Faces";
+	ot->idname = "MESH_OT_poke";
+	ot->description = "Splits a face into a fan";
+
+	/* api callbacks */
+	ot->exec = edbm_poke_face_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
+	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
+	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEAN_WEIGHTED, "Poke Center", "Poke Face Center Calculation");
+}
+
 /********************** Quad/Tri Operators *************************/
 
 static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
@@ -2690,31 +2720,6 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_poke(wmOperatorType *ot)
-{
-
-	static EnumPropertyItem poke_center_modes[] = {
-		{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED", 0, "Weighted Mean", "Weighted Mean Face Center"},
-		{BMOP_POKE_MEAN, "MEAN", 0, "Mean", "Mean Face Center"},
-		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face Bounds Center"},
-		{0, NULL, 0, NULL, NULL}};
-
-
-	/* identifiers */
-	ot->name = "Poke Faces";
-	ot->idname = "MESH_OT_poke";
-	ot->description = "Splits a face into a fan";
-
-	/* api callbacks */
-	ot->exec = edbm_poke_face_exec;
-	ot->poll = ED_operator_editmesh;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
-	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEAN_WEIGHTED, "Poke Center", "Poke Face Center Calculation");
-}
 
 void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 {
