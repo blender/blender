@@ -110,6 +110,9 @@ if CC[:-2].endswith('4.6'):
 else:
     WITH_BF_OPENMP = False
 
+# enable freestyle  support
+WITH_BF_FREESTYLE = True
+
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True
 BF_FFMPEG = LIBDIR + '/ffmpeg'
