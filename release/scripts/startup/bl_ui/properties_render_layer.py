@@ -44,12 +44,6 @@ class RENDERLAYER_UL_renderlayers(UIList):
             layout.alignment = 'CENTER'
             layout.label("", icon_value=icon)
 
-#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
-#		uiItemL(sub, name, icon);
-#		uiBlockSetEmboss(block, UI_EMBOSS);
-#		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
-#	}
-
 
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
     bl_label = "Layer List"
