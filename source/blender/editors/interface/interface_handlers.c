@@ -2233,6 +2233,17 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 				
+			case AKEY:
+				/* Ctrl + A: Select all */
+				if (event->ctrl && !(event->alt || event->shift || event->oskey)) {
+					ui_textedit_move(but, data, STRCUR_DIR_PREV,
+					                 false, STRCUR_JUMP_ALL);
+					ui_textedit_move(but, data, STRCUR_DIR_NEXT,
+					                 true, STRCUR_JUMP_ALL);
+					retval = WM_UI_HANDLER_BREAK;
+				}
+				break;
+
 			case TABKEY:
 				/* there is a key conflict here, we can't tab with autocomplete */
 				if (but->autocomplete_func || data->searchbox) {

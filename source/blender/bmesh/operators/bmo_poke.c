@@ -28,10 +28,7 @@
  * Splits a face into a triangle fan.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math.h"
-#include "BLI_array.h"
 
 #include "bmesh.h"
 
