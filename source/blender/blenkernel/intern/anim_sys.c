@@ -88,6 +88,7 @@ short id_type_can_have_animdata(ID *id)
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
+		case ID_LS:
 		case ID_SPK:
 		case ID_SCE:
 		case ID_MC:
@@ -829,6 +830,9 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 
 	/* scenes */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
+
+	/* line styles */
+	ANIMDATA_IDS_CB(mainptr->linestyle.first);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
@@ -913,6 +917,9 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 	
 	/* worlds */
 	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->world.first, World);
+	
+	/* linestyles */
+	RENAMEFIX_ANIM_IDS(mainptr->linestyle.first);
 	
 	/* scenes */
 	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->scene.first, Scene);
@@ -2399,6 +2406,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	/* movie clips */
 	EVAL_ANIM_IDS(main->movieclip.first, ADT_RECALC_ANIM);
 
+	/* linestyles */
+	EVAL_ANIM_IDS(main->linestyle.first, ADT_RECALC_ANIM);
+	
 	/* objects */
 	/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets
 	 * this tagged by Depsgraph on framechange. This optimization means that objects

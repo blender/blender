@@ -98,6 +98,10 @@ if env['WITH_BF_CYCLES']:
 if env['WITH_BF_CYCLES_OSL']:
     defs.append('WITH_CYCLES_OSL')
 
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../freestyle/intern/python'
+    defs.append('WITH_FREESTYLE')
+
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
 

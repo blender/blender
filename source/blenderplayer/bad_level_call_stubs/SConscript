@@ -42,4 +42,7 @@ defs = []
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append(' WITH_FREESTYLE')
+
 env.BlenderLib('blenkernel_blc', sources=sources, includes=incs, defines=defs, libtype=['player'], priority=[220])

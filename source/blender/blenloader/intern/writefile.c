@@ -111,6 +111,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -2198,6 +2199,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
 	ToolSettings *tos;
+	FreestyleModuleConfig *fmc;
+	FreestyleLineSet *fls;
 	
 	sce= scebase->first;
 	while (sce) {
@@ -2321,8 +2324,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		for (ts = sce->transform_spaces.first; ts; ts = ts->next)
 			writestruct(wd, DATA, "TransformOrientation", 1, ts);
 		
-		for (srl= sce->r.layers.first; srl; srl= srl->next)
+		for (srl = sce->r.layers.first; srl; srl = srl->next) {
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
+			for(fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+				writestruct(wd, DATA, "FreestyleModuleConfig", 1, fmc);
+			}
+			for(fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+				writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
+			}
+		}
 		
 		if (sce->nodetree) {
 			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
@@ -3000,6 +3010,207 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	const char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			struct_name = "LineStyleColorModifier_AlongStroke";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			struct_name = "LineStyleColorModifier_DistanceFromCamera";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			struct_name = "LineStyleColorModifier_DistanceFromObject";
+			break;
+		case LS_MODIFIER_MATERIAL:
+			struct_name = "LineStyleColorModifier_Material";
+			break;
+		default:
+			struct_name = "LineStyleColorModifier"; /* this should not happen */
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_AlongStroke *)m)->color_ramp);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp);
+			break;
+		case LS_MODIFIER_MATERIAL:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_Material *)m)->color_ramp);
+			break;
+		}
+	}
+}
+
+static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	const char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			struct_name = "LineStyleAlphaModifier_AlongStroke";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			struct_name = "LineStyleAlphaModifier_DistanceFromCamera";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			struct_name = "LineStyleAlphaModifier_DistanceFromObject";
+			break;
+		case LS_MODIFIER_MATERIAL:
+			struct_name = "LineStyleAlphaModifier_Material";
+			break;
+		default:
+			struct_name = "LineStyleAlphaModifier"; /* this should not happen */
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_AlongStroke *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
+			break;
+		case LS_MODIFIER_MATERIAL:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_Material *)m)->curve);
+			break;
+		}
+	}
+}
+
+static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	const char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			struct_name = "LineStyleThicknessModifier_AlongStroke";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			struct_name = "LineStyleThicknessModifier_DistanceFromCamera";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			struct_name = "LineStyleThicknessModifier_DistanceFromObject";
+			break;
+		case LS_MODIFIER_MATERIAL:
+			struct_name = "LineStyleThicknessModifier_Material";
+			break;
+		case LS_MODIFIER_CALLIGRAPHY:
+			struct_name = "LineStyleThicknessModifier_Calligraphy";
+			break;
+		default:
+			struct_name = "LineStyleThicknessModifier"; /* this should not happen */
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_AlongStroke *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+			break;
+		case LS_MODIFIER_MATERIAL:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_Material *)m)->curve);
+			break;
+		}
+	}
+}
+
+static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	const char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_SAMPLING:
+			struct_name = "LineStyleGeometryModifier_Sampling";
+			break;
+		case LS_MODIFIER_BEZIER_CURVE:
+			struct_name = "LineStyleGeometryModifier_BezierCurve";
+			break;
+		case LS_MODIFIER_SINUS_DISPLACEMENT:
+			struct_name = "LineStyleGeometryModifier_SinusDisplacement";
+			break;
+		case LS_MODIFIER_SPATIAL_NOISE:
+			struct_name = "LineStyleGeometryModifier_SpatialNoise";
+			break;
+		case LS_MODIFIER_PERLIN_NOISE_1D:
+			struct_name = "LineStyleGeometryModifier_PerlinNoise1D";
+			break;
+		case LS_MODIFIER_PERLIN_NOISE_2D:
+			struct_name = "LineStyleGeometryModifier_PerlinNoise2D";
+			break;
+		case LS_MODIFIER_BACKBONE_STRETCHER:
+			struct_name = "LineStyleGeometryModifier_BackboneStretcher";
+			break;
+		case LS_MODIFIER_TIP_REMOVER:
+			struct_name = "LineStyleGeometryModifier_TipRemover";
+			break;
+		case LS_MODIFIER_POLYGONIZATION:
+			struct_name = "LineStyleGeometryModifier_Polygonalization";
+			break;
+		case LS_MODIFIER_GUIDING_LINES:
+			struct_name = "LineStyleGeometryModifier_GuidingLines";
+			break;
+		case LS_MODIFIER_BLUEPRINT:
+			struct_name = "LineStyleGeometryModifier_Blueprint";
+			break;
+		case LS_MODIFIER_2D_OFFSET:
+			struct_name = "LineStyleGeometryModifier_2DOffset";
+			break;
+		case LS_MODIFIER_2D_TRANSFORM:
+			struct_name = "LineStyleGeometryModifier_2DTransform";
+			break;
+		default:
+			struct_name = "LineStyleGeometryModifier"; /* this should not happen */
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+}
+
+static void write_linestyles(WriteData *wd, ListBase *idbase)
+{
+	FreestyleLineStyle *linestyle;
+
+	for (linestyle = idbase->first; linestyle; linestyle = linestyle->id.next) {
+		if (linestyle->id.us>0 || wd->current) {
+			writestruct(wd, ID_LS, "FreestyleLineStyle", 1, linestyle);
+			if (linestyle->id.properties)
+				IDP_WriteProperty(linestyle->id.properties, wd);
+			if (linestyle->adt)
+				write_animdata(wd, linestyle->adt);
+			write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
+			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
+			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);
+			write_linestyle_geometry_modifiers(wd, &linestyle->geometry_modifiers);
+		}
+	}
+}
+
 /* context is usually defined by WM, two cases where no WM is available:
  * - for forward compatibility, curscreen has to be saved
  * - for undofile, curscene needs to be saved */
@@ -3118,6 +3329,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
+	write_linestyles(wd, &mainvar->linestyle);
 	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {

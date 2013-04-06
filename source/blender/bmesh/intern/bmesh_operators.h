@@ -60,7 +60,10 @@ enum {
 	SIMFACE_SIDES,
 	SIMFACE_PERIMETER,
 	SIMFACE_NORMAL,
-	SIMFACE_COPLANAR
+	SIMFACE_COPLANAR,
+#ifdef WITH_FREESTYLE
+	SIMFACE_FREESTYLE
+#endif
 };
 
 /* similar edge selection slot values */
@@ -72,7 +75,10 @@ enum {
 	SIMEDGE_CREASE,
 	SIMEDGE_BEVEL,
 	SIMEDGE_SEAM,
-	SIMEDGE_SHARP
+	SIMEDGE_SHARP,
+#ifdef WITH_FREESTYLE
+	SIMEDGE_FREESTYLE
+#endif
 };
 
 /* similar vertex selection slot values */

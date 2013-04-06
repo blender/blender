@@ -128,7 +128,11 @@ typedef struct drawDMEdgesSel_userData {
 } drawDMEdgesSel_userData;
 
 typedef struct drawDMFacesSel_userData {
+#ifdef WITH_FREESTYLE
+	unsigned char *cols[4];
+#else
 	unsigned char *cols[3];
+#endif
 
 	DerivedMesh *dm;
 	BMEditMesh *em;
@@ -2307,6 +2311,44 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, em);
 }
 
+#ifdef WITH_FREESTYLE
+
+static int draw_dm_test_freestyle_edge_mark(BMEditMesh *em, BMEdge *eed)
+{
+	FreestyleEdge *fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
+	if (!fed)
+		return 0;
+	return (fed->flag & FREESTYLE_EDGE_MARK) != 0;
+}
+
+/* Draw only Freestyle feature edges */
+static DMDrawOption draw_dm_edges_freestyle__setDrawOptions(void *userData, int index)
+{
+	BMEdge *eed = EDBM_edge_at_index(userData, index);
+
+	if (!eed)
+		return DM_DRAW_OPTION_SKIP;
+
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && draw_dm_test_freestyle_edge_mark(userData, eed))
+		return DM_DRAW_OPTION_NORMAL;
+	else
+		return DM_DRAW_OPTION_SKIP;
+}
+
+static void draw_dm_edges_freestyle(BMEditMesh *em, DerivedMesh *dm)
+{
+	dm->drawMappedEdges(dm, draw_dm_edges_freestyle__setDrawOptions, em);
+}
+
+static int draw_dm_test_freestyle_face_mark(BMEditMesh *em, BMFace *efa)
+{
+	FreestyleFace *ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
+	if (!ffa)
+		return 0;
+	return (ffa->flag & FREESTYLE_FACE_MARK) != 0;
+}
+
+#endif
 
 /* Draw faces with color set based on selection
  * return 2 for the active face so it renders with stipple enabled */
@@ -2325,7 +2367,11 @@ static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 			return DM_DRAW_OPTION_STIPPLE;
 		}
 		else {
+#ifdef WITH_FREESTYLE
+			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : draw_dm_test_freestyle_face_mark(data->em, efa) ? 3 : 0];
+#else
 			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : 0];
+#endif
 			if (col[3] == 0)
 				return DM_DRAW_OPTION_SKIP;
 			glColor4ubv(col);
@@ -2356,8 +2402,13 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 	if (efa == data->efa_act || next_efa == data->efa_act)
 		return 0;
 
+#ifdef WITH_FREESTYLE
+	col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : draw_dm_test_freestyle_face_mark(data->em, efa) ? 3 : 0];
+	next_col = data->cols[BM_elem_flag_test(next_efa, BM_ELEM_SELECT) ? 1 : draw_dm_test_freestyle_face_mark(data->em, efa) ? 3 : 0];
+#else
 	col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT) ? 1 : 0];
 	next_col = data->cols[BM_elem_flag_test(next_efa, BM_ELEM_SELECT) ? 1 : 0];
+#endif
 
 	if (col[3] == 0 || next_col[3] == 0)
 		return 0;
@@ -2366,8 +2417,13 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 }
 
 /* also draws the active face */
+#ifdef WITH_FREESTYLE
+static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
+                              unsigned char *selCol, unsigned char *actCol, unsigned char *markCol, BMFace *efa_act)
+#else
 static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
                               unsigned char *selCol, unsigned char *actCol, BMFace *efa_act)
+#endif
 {
 	drawDMFacesSel_userData data;
 	data.dm = dm;
@@ -2375,6 +2431,9 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 	data.em = em;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
+#ifdef WITH_FREESTYLE
+	data.cols[3] = markCol;
+#endif
 	data.efa_act = efa_act;
 	/* double lookup */
 	data.orig_index_mf_to_mpoly = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
@@ -2968,10 +3027,16 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	
 	if (me->drawflag & ME_DRAWFACES) {  /* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
+#ifdef WITH_FREESTYLE
+		unsigned char col4[4];
+#endif
 
 		UI_GetThemeColor4ubv(TH_FACE, col1);
 		UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
+#ifdef WITH_FREESTYLE
+		UI_GetThemeColor4ubv(TH_FREESTYLE_FACE_MARK, col4);
+#endif
 
 		glEnable(GL_BLEND);
 		glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
@@ -2980,7 +3045,14 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if (check_object_draw_texture(scene, v3d, dt))
 			col1[3] = 0;
 
+#ifdef WITH_FREESTYLE
+		if (!(me->drawflag & ME_DRAW_FREESTYLE_FACE) || !CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE))
+			col4[3] = 0;
+
+		draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
+#else
 		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
+#endif
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);  /* restore write in zbuffer */
@@ -2989,14 +3061,19 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		/* even if draw faces is off it would be nice to draw the stipple face
 		 * Make all other faces zero alpha except for the active
 		 * */
-		unsigned char col1[4], col2[4], col3[4];
-		col1[3] = col2[3] = 0; /* don't draw */
+		/* col4 is only used by WITH_FREESTYLE, but keeping it here spares some #ifdef's... */
+		unsigned char col1[4], col2[4], col3[4], col4[4];
+		col1[3] = col2[3] = col4[3] = 0; /* don't draw */
 		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
 
 		glEnable(GL_BLEND);
 		glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
 
+#ifdef WITH_FREESTYLE
+		draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
+#else
 		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
+#endif
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);  /* restore write in zbuffer */
@@ -3032,6 +3109,18 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			glLineWidth(1);
 		}
 
+#ifdef WITH_FREESTYLE
+		if (me->drawflag & ME_DRAW_FREESTYLE_EDGE && CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
+			UI_ThemeColor(TH_FREESTYLE_EDGE_MARK);
+			glLineWidth(2);
+	
+			draw_dm_edges_freestyle(em, cageDM);
+	
+			glColor3ub(0, 0, 0);
+			glLineWidth(1);
+		}
+#endif
+	
 		if (me->drawflag & ME_DRAWCREASES && CustomData_has_layer(&em->bm->edata, CD_CREASE)) {
 			draw_dm_creases(em, cageDM);
 		}

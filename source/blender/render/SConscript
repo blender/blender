@@ -83,6 +83,10 @@ if env['WITH_BF_QUICKTIME']:
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../freestyle'
+    defs.append('WITH_FREESTYLE')
+
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
 

@@ -144,6 +144,13 @@ if(WITH_MOD_SMOKE)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
+if(WITH_FREESTYLE)
+	list(APPEND INC
+		../freestyle
+	)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
+
 if(WITH_CODEC_QUICKTIME)
 	list(APPEND INC
 		../quicktime

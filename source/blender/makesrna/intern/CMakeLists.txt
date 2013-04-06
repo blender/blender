@@ -54,6 +54,7 @@ set(DEFSRC
 	rna_key.c
 	rna_lamp.c
 	rna_lattice.c
+	rna_linestyle.c
 	rna_main.c
 	rna_mask.c
 	rna_material.c
@@ -269,6 +270,11 @@ blender_include_dirs(
 	../../../../intern/memutil
 	../../../../intern/smoke/extern
 )
+
+if(WITH_FREESTYLE)
+	# TO BE REMOVED when the trunk merger is done
+	add_definitions(-DWITH_FREESTYLE)
+endif()
 
 blender_include_dirs_sys(
 	${GLEW_INCLUDE_PATH}

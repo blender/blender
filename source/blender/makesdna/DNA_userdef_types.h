@@ -240,6 +240,7 @@ typedef struct ThemeSpace {
 	char bone_solid[4], bone_pose[4], bone_pose_active[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
+	char freestyle_edge_mark[4], freestyle_face_mark[4];
 	
 	char nurb_uline[4], nurb_vline[4];
 	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];

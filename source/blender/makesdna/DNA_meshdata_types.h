@@ -279,6 +279,22 @@ typedef struct MVertSkin {
 	int flag;
 } MVertSkin;
 
+typedef struct FreestyleEdge {
+	char flag;
+	char pad[3];
+} FreestyleEdge;
+
+/* FreestyleEdge->flag */
+#define FREESTYLE_EDGE_MARK	1
+
+typedef struct FreestyleFace {
+	char flag;
+	char pad[3];
+} FreestyleFace;
+
+/* FreestyleFace->flag */
+#define FREESTYLE_FACE_MARK	1
+
 /* mvert->flag (1=SELECT) */
 #define ME_SPHERETEST		2
 #define ME_VERT_TMP_TAG		4

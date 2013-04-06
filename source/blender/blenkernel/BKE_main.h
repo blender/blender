@@ -88,6 +88,7 @@ typedef struct Main {
 	ListBase gpencil;
 	ListBase movieclip;
 	ListBase mask;
+	ListBase linestyle;
 
 	char id_tag_update[256];
 } Main;

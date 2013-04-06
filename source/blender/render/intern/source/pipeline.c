@@ -77,6 +77,11 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#ifdef WITH_FREESTYLE
+#  include "BKE_library.h"
+#  include "FRS_freestyle.h"
+#endif
+
 /* internal */
 #include "render_result.h"
 #include "render_types.h"
@@ -1038,6 +1043,10 @@ void RE_TileProcessor(Render *re)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
+#ifdef WITH_FREESTYLE
+static void add_freestyle(Render *re);
+#endif
+
 static void do_render_3d(Render *re)
 {
 	float cfra;
@@ -1078,6 +1087,13 @@ static void do_render_3d(Render *re)
 		if (!re->test_break(re->tbh))
 			add_halo_flare(re);
 	
+#ifdef WITH_FREESTYLE
+	/* Freestyle  */
+	if( re->r.mode & R_EDGE_FRS)
+		if(!re->test_break(re->tbh))
+			add_freestyle(re);
+#endif
+		
 	/* free all render verts etc */
 	RE_Database_Free(re);
 	
@@ -1546,6 +1562,74 @@ static void render_composit_stats(void *UNUSED(arg), char *str)
 	R.i.infostr = NULL;
 }
 
+#ifdef WITH_FREESTYLE
+/* invokes Freestyle stroke rendering */
+static void add_freestyle(Render *re)
+{
+	SceneRenderLayer *srl, *actsrl;
+	LinkData *link;
+
+	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
+
+	FRS_init_stroke_rendering(re);
+
+	for (srl= (SceneRenderLayer *)re->r.layers.first; srl; srl= srl->next) {
+
+		link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
+		BLI_addtail(&re->freestyle_renders, link);
+
+		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
+			continue;
+		if (FRS_is_freestyle_enabled(srl)) {
+			link->data = (void *)FRS_do_stroke_rendering(re, srl);
+		}
+	}
+
+	FRS_finish_stroke_rendering(re);
+}
+
+/* merges the results of Freestyle stroke rendering into a given render result */
+static void composite_freestyle_renders(Render *re, int sample)
+{
+	Render *freestyle_render;
+	SceneRenderLayer *srl, *actsrl;
+	LinkData *link;
+
+	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
+
+	link = (LinkData *)re->freestyle_renders.first;
+	for (srl= (SceneRenderLayer *)re->r.layers.first; srl; srl= srl->next) {
+		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
+			continue;
+		if (FRS_is_freestyle_enabled(srl)) {
+			freestyle_render = (Render *)link->data;
+			render_result_exr_file_read(freestyle_render, sample);
+			FRS_composite_result(re, srl, freestyle_render);
+			RE_FreeRenderResult(freestyle_render->result);
+			freestyle_render->result = NULL;
+		}
+		link = link->next;
+	}
+}
+
+/* releases temporary scenes and renders for Freestyle stroke rendering */
+static void free_all_freestyle_renders(Scene *scene)
+{
+	Render *re1, *freestyle_render;
+	LinkData *link;
+
+	for (re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
+		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
+			if (link->data) {
+				freestyle_render = (Render *)link->data;
+				BKE_scene_unlink(G.main, freestyle_render->scene, scene);
+				RE_FreeRender(freestyle_render);
+			}
+		}
+		BLI_freelistN( &re1->freestyle_renders );
+	}
+}
+#endif
 
 /* reads all buffers, calls optional composite, merges in first result->rectf */
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
@@ -1587,6 +1671,10 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 					if (sample) {
 						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 						render_result_exr_file_read(re1, sample);
+#ifdef WITH_FREESTYLE
+						if( re1->r.mode & R_EDGE_FRS)
+							composite_freestyle_renders(re1, sample);
+#endif
 						BLI_rw_mutex_unlock(&re->resultmutex);
 					}
 					ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
@@ -1788,6 +1876,10 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		else if (re->r.scemode & R_FULL_SAMPLE)
 			do_merge_fullsample(re, NULL);
 	}
+
+#ifdef WITH_FREESTYLE
+	free_all_freestyle_renders(re->scene);
+#endif
 
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
@@ -2264,6 +2356,17 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	/* UGLY WARNING */
 	G.is_rendering = FALSE;
 }
+
+#ifdef WITH_FREESTYLE
+void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene)
+{
+	re->result_ok= 0;
+	if(render_initialize_from_main(re, bmain, scene, NULL, NULL, scene->lay, 0, 0)) {
+		do_render_fields_blur_3d(re);
+	}
+	re->result_ok= 1;
+}
+#endif
 
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {

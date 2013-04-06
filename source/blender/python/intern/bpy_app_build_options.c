@@ -41,6 +41,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
 	{(char *)"compositor", NULL},
 	{(char *)"cycles", NULL},
 	{(char *)"cycles_osl", NULL},
+	{(char *)"freestyle", NULL},
 	{(char *)"gameengine", NULL},
 	{(char *)"image_cineon", NULL},
 	{(char *)"image_dds", NULL},
@@ -132,6 +133,12 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_CYCLES_OSL
+	SetObjIncref(Py_True);
+#else
+	SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_FREESTYLE
 	SetObjIncref(Py_True);
 #else
 	SetObjIncref(Py_False);

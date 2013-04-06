@@ -112,6 +112,14 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__uv_doc,
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__color_doc,
 "Accessor for vertex color layer.\n\ntype: :class:`BMLayerCollection`"
 );
+#ifdef WITH_FREESTYLE
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_edge_doc,
+"Accessor for Freestyle edge layer.\n\ntype: :class:`BMLayerCollection`"
+);
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_face_doc,
+"Accessor for Freestyle face layer.\n\ntype: :class:`BMLayerCollection`"
+);
+#endif
 
 static PyObject *bpy_bmlayeraccess_collection_get(BPy_BMLayerAccess *self, void *flag)
 {
@@ -194,6 +202,9 @@ static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
 
 	{(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
 	{(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__crease_doc, (void *)CD_CREASE},
+#ifdef WITH_FREESTYLE
+	{(char *)"freestyle_edge", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_edge_doc, (void *)CD_FREESTYLE_EDGE},
+#endif
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -204,6 +215,10 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
 	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
 
 	{(char *)"tex",   (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__tex_doc, (void *)CD_MTEXPOLY},
+
+#ifdef WITH_FREESTYLE
+	{(char *)"freestyle_face", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_face_doc, (void *)CD_FREESTYLE_FACE},
+#endif
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

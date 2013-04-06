@@ -259,6 +259,12 @@ static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->mask, NULL);
 }
 
+static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain = (Main *)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->linestyle, NULL);
+}
+
 #ifdef UNIT_TEST
 
 static PointerRNA rna_Test_test_get(PointerRNA *ptr)
@@ -323,6 +329,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks", RNA_def_main_gpencil},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks", RNA_def_main_movieclips},
 		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks datablocks", RNA_def_main_masks},
+		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style datablocks", RNA_def_main_linestyles},
 		{NULL, NULL, NULL, NULL, NULL, NULL}
 	};
 

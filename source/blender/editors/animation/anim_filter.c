@@ -55,6 +55,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -727,6 +728,19 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				AnimData *adt = ntree->adt;
 				
 				ale->flag = FILTER_NTREE_DATA(ntree);
+				
+				ale->key_data = (adt) ? adt->action : NULL;
+				ale->datatype = ALE_ACT;
+				
+				ale->adt = BKE_animdata_from_id(data);
+			}
+			break;
+			case ANIMTYPE_DSLINESTYLE:
+			{
+				FreestyleLineStyle *linestyle = (FreestyleLineStyle *)data;
+				AnimData *adt = linestyle->adt;
+				
+				ale->flag = FILTER_LS_SCED(linestyle); 
 				
 				ale->key_data = (adt) ? adt->action : NULL;
 				ale->datatype = ALE_ACT;
@@ -1532,6 +1546,54 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 	return items;
 }
 
+static size_t animdata_filter_ds_linestyle (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
+{
+	SceneRenderLayer *srl;
+	size_t items = 0;
+
+	for (srl = sce->r.layers.first; srl; srl = srl->next) {
+		FreestyleLineSet *lineset;
+
+		/* skip render layers without Freestyle enabled */
+		if (!(srl->layflag & SCE_LAY_FRS))
+			continue;
+
+		/* loop over linesets defined in the render layer */
+		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+			FreestyleLineStyle *linestyle = lineset->linestyle;
+			ListBase tmp_data = {NULL, NULL};
+			size_t tmp_items = 0;
+
+			/* add scene-level animation channels */
+			BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_LS_SCED(linestyle))
+			{
+				/* animation data filtering */
+				tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)linestyle, filter_mode);
+			}
+			END_ANIMFILTER_SUBCHANNELS;
+
+			/* did we find anything? */
+			if (tmp_items) {
+				/* include anim-expand widget first */
+				if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+					/* check if filtering by active status */
+					if (ANIMCHANNEL_ACTIVEOK(linestyle)) {
+						ANIMCHANNEL_NEW_CHANNEL(linestyle, ANIMTYPE_DSLINESTYLE, sce);
+					}
+				}
+				
+				/* now add the list of collected channels */
+				BLI_movelisttolist(anim_data, &tmp_data);
+				BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+				items += tmp_items;
+			}
+		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
 /* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
 static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
 {
@@ -2164,6 +2226,11 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 		/* nodetree */
 		if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
 			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)sce, ntree, filter_mode);
+		}
+		
+		/* line styles */
+		if ((ads->filterflag & ADS_FILTER_NOLINESTYLE) == 0) {
+			tmp_items += animdata_filter_ds_linestyle(ac, &tmp_data, ads, sce, filter_mode);
 		}
 		
 		/* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */

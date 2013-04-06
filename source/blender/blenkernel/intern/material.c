@@ -153,6 +153,7 @@ void init_material(Material *ma)
 	ma->tx_limit = 0.0;
 	ma->tx_falloff = 1.0;
 	ma->shad_alpha = 1.0f;
+	ma->vcol_alpha = 0;
 	
 	ma->gloss_mir = ma->gloss_tra = 1.0;
 	ma->samp_gloss_mir = ma->samp_gloss_tra = 18;

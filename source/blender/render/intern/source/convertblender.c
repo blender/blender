@@ -42,6 +42,9 @@
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#ifdef WITH_FREESTYLE
+#  include "BLI_edgehash.h"
+#endif
 
 #include "BLF_translation.h"
 
@@ -2656,6 +2659,11 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 	MVert *mvert = NULL;
 	MFace *mface;
 	Material *ma;
+#ifdef WITH_FREESTYLE
+	const int *index_mf_to_mpoly = NULL;
+	const int *index_mp_to_orig = NULL;
+	FreestyleFace *ffa;
+#endif
 	/* Curve *cu= ELEM(ob->type, OB_FONT, OB_CURVE) ? ob->data : NULL; */
 
 	mvert= dm->getVertArray(dm);
@@ -2685,6 +2693,11 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 			ma= give_render_material(re, ob, mat_iter+1);
 			end= dm->getNumTessFaces(dm);
 			mface= dm->getTessFaceArray(dm);
+#ifdef WITH_FREESTYLE
+			index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+			index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+			ffa= CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_FREESTYLE_FACE);
+#endif
 
 			for (a=0; a<end; a++, mface++) {
 				int v1, v2, v3, v4, flag;
@@ -2714,6 +2727,14 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					vlr->mat= ma;
 					vlr->flag= flag;
 					vlr->ec= 0; /* mesh edges rendered separately */
+#ifdef WITH_FREESTYLE
+					if (ffa) {
+						int index = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
+						vlr->freestyle_face_mark= (ffa[index].flag & FREESTYLE_FACE_MARK) ? 1 : 0;
+					} else {
+						vlr->freestyle_face_mark= 0;
+					}
+#endif
 
 					if (len==0) obr->totvlak--;
 					else {
@@ -3221,6 +3242,45 @@ static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 	BLI_addtail(&re->volumes, vo);
 }
 
+#ifdef WITH_FREESTYLE
+static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
+{
+	EdgeHash *edge_hash= BLI_edgehash_new();
+	FreestyleEdge *fed;
+	MEdge *medge;
+	int totedge, a;
+	int *index;
+
+	medge = dm->getEdgeArray(dm);
+	totedge = dm->getNumEdges(dm);
+	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
+	fed = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
+	if (fed) {
+		if (!index) {
+			for (a = 0; a < totedge; a++) {
+				if (fed[a].flag & FREESTYLE_EDGE_MARK)
+					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+			}
+		}
+		else {
+			for (a = 0; a < totedge; a++) {
+				if (index[a] == ORIGINDEX_NONE)
+					continue;
+				if (fed[index[a]].flag & FREESTYLE_EDGE_MARK)
+					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+			}
+		}
+	}
+	return edge_hash;
+}
+
+static int has_freestyle_edge_mark(EdgeHash *edge_hash, int v1, int v2)
+{
+	MEdge *medge= BLI_edgehash_lookup(edge_hash, v1, v2);
+	return (!medge) ? 0 : 1;
+}
+#endif
+
 static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
@@ -3240,6 +3300,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int use_original_normals = FALSE;
 	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
+#ifdef WITH_FREESTYLE
+	FreestyleFace *ffa;
+#endif
 
 	me= ob->data;
 
@@ -3299,6 +3362,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if (!timeoffset)
 		if (need_orco)
 			mask |= CD_MASK_ORCO;
+
+#ifdef WITH_FREESTYLE
+	mask |= CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
+#endif
 
 	dm= mesh_create_derived_render(re->scene, ob, mask);
 	if (dm==NULL) return;	/* in case duplicated object fails? */
@@ -3365,6 +3432,13 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		}
 		
 		if (!timeoffset) {
+#ifdef WITH_FREESTYLE
+			EdgeHash *edge_hash;
+
+			/* create a hash table of Freestyle edge marks */
+			edge_hash = make_freestyle_edge_mark_hash(me, dm);
+#endif
+
 			/* store customdata names, because DerivedMesh is freed */
 			RE_set_customdata_names(obr, &dm->faceData);
 
@@ -3401,6 +3475,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				if (ok) {
 					end= dm->getNumTessFaces(dm);
 					mface= dm->getTessFaceArray(dm);
+#ifdef WITH_FREESTYLE
+					index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+					index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+					ffa= CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_FREESTYLE_FACE);
+#endif
 					
 					for (a=0; a<end; a++, mface++) {
 						int v1, v2, v3, v4, flag;
@@ -3421,6 +3500,29 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							vlr->v3= RE_findOrAddVert(obr, vertofs+v3);
 							if (v4) vlr->v4= RE_findOrAddVert(obr, vertofs+v4);
 							else vlr->v4= 0;
+
+#ifdef WITH_FREESTYLE
+							/* Freestyle edge/face marks */
+							{
+								int edge_mark = 0;
+
+								if(has_freestyle_edge_mark(edge_hash, v1, v2)) edge_mark |= R_EDGE_V1V2;
+								if(has_freestyle_edge_mark(edge_hash, v2, v3)) edge_mark |= R_EDGE_V2V3;
+								if (!v4) {
+									if(has_freestyle_edge_mark(edge_hash, v3, v1)) edge_mark |= R_EDGE_V3V1;
+								} else {
+									if(has_freestyle_edge_mark(edge_hash, v3, v4)) edge_mark |= R_EDGE_V3V4;
+									if(has_freestyle_edge_mark(edge_hash, v4, v1)) edge_mark |= R_EDGE_V4V1;
+								}
+								vlr->freestyle_edge_mark= edge_mark;
+							}
+							if (ffa) {
+								int index = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
+								vlr->freestyle_face_mark= (ffa[index].flag & FREESTYLE_FACE_MARK) ? 1 : 0;
+							} else {
+								vlr->freestyle_face_mark= 0;
+							}
+#endif
 
 							/* render normals are inverted in render */
 							if (use_original_normals) {
@@ -3503,6 +3605,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 					}
 				}
 			}
+
+#ifdef WITH_FREESTYLE
+			/* release the hash table of Freestyle edge marks */
+			BLI_edgehash_free(edge_hash, NULL);
+#endif
 			
 			/* exception... we do edges for wire mode. potential conflict when faces exist... */
 			end= dm->getNumEdges(dm);
@@ -4294,6 +4401,26 @@ static void check_non_flat_quads(ObjectRen *obr)
 					/* new normals */
 					normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 					normal_tri_v3(vlr1->n, vlr1->v3->co, vlr1->v2->co, vlr1->v1->co);
+
+#ifdef WITH_FREESTYLE
+					/* Freestyle edge marks */
+					if (vlr->flag & R_DIVIDE_24) {
+						vlr1->freestyle_edge_mark=
+							((vlr->freestyle_edge_mark & R_EDGE_V2V3) ? R_EDGE_V1V2 : 0) |
+							((vlr->freestyle_edge_mark & R_EDGE_V3V4) ? R_EDGE_V2V3 : 0);
+						vlr->freestyle_edge_mark=
+							((vlr->freestyle_edge_mark & R_EDGE_V1V2) ? R_EDGE_V1V2 : 0) |
+							((vlr->freestyle_edge_mark & R_EDGE_V4V1) ? R_EDGE_V3V1 : 0);
+					}
+					else {
+						vlr1->freestyle_edge_mark=
+							((vlr->freestyle_edge_mark & R_EDGE_V3V4) ? R_EDGE_V2V3 : 0) |
+							((vlr->freestyle_edge_mark & R_EDGE_V4V1) ? R_EDGE_V3V1 : 0);
+						vlr->freestyle_edge_mark=
+							((vlr->freestyle_edge_mark & R_EDGE_V1V2) ? R_EDGE_V1V2 : 0) |
+							((vlr->freestyle_edge_mark & R_EDGE_V2V3) ? R_EDGE_V2V3 : 0);
+					}
+#endif
 				}
 				/* clear the flag when not divided */
 				else vlr->flag &= ~R_DIVIDE_24;

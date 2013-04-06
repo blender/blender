@@ -70,6 +70,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_freestyle_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

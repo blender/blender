@@ -62,6 +62,25 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
 
+#ifdef WITH_FREESTYLE
+	WM_operatortype_append(SCENE_OT_freestyle_module_add);
+	WM_operatortype_append(SCENE_OT_freestyle_module_remove);
+	WM_operatortype_append(SCENE_OT_freestyle_module_move);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_add);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_copy);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_paste);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_remove);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_move);
+	WM_operatortype_append(SCENE_OT_freestyle_linestyle_new);
+	WM_operatortype_append(SCENE_OT_freestyle_color_modifier_add);
+	WM_operatortype_append(SCENE_OT_freestyle_alpha_modifier_add);
+	WM_operatortype_append(SCENE_OT_freestyle_thickness_modifier_add);
+	WM_operatortype_append(SCENE_OT_freestyle_geometry_modifier_add);
+	WM_operatortype_append(SCENE_OT_freestyle_modifier_remove);
+	WM_operatortype_append(SCENE_OT_freestyle_modifier_move);
+	WM_operatortype_append(SCENE_OT_freestyle_modifier_copy);
+#endif
+
 #if (defined(WITH_QUICKTIME) && !defined(USE_QTKIT))
 	WM_operatortype_append(SCENE_OT_render_data_set_quicktime_codec);
 #endif

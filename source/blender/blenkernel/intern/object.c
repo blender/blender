@@ -92,6 +92,7 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 #include "BKE_mball.h"
@@ -425,6 +426,8 @@ void BKE_object_unlink(Object *ob)
 	World *wrld;
 	bScreen *sc;
 	Scene *sce;
+	SceneRenderLayer *srl;
+	FreestyleLineSet *lineset;
 	Curve *cu;
 	Tex *tex;
 	Group *group;
@@ -676,6 +679,14 @@ void BKE_object_unlink(Object *ob)
 					}
 				}
 				SEQ_END
+			}
+
+			for (srl = sce->r.layers.first; srl; srl = srl->next) {
+				for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first;
+				     lineset; lineset = lineset->next)
+				{
+					BKE_unlink_linestyle_target_object(lineset->linestyle, ob);
+				}
 			}
 		}
 

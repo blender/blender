@@ -45,6 +45,7 @@ extern "C" {
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_freestyle_types.h"
 
 struct Object;
 struct Brush;
@@ -187,6 +188,8 @@ typedef struct SceneRenderLayer {
 
 	int samples;
 	int pad;
+	
+	struct FreestyleConfig freestyleConfig;
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -196,7 +199,8 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_EDGE	8
 #define SCE_LAY_SKY		16
 #define SCE_LAY_STRAND	32
-	/* flags between 32 and 0x8000 are set to 1 already, for future options */
+#define SCE_LAY_FRS		64
+	/* flags between 128 and 0x8000 are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z		0x8000
 #define SCE_LAY_XOR			0x10000
@@ -545,6 +549,10 @@ typedef struct RenderData {
 	float domeresbuf  DNA_DEPRECATED;	//  XXX deprecated since 2.5
 	float pad2;
 	struct Text *dometext  DNA_DEPRECATED;	//  XXX deprecated since 2.5
+
+	/* Freestyle line thickness options */
+	int line_thickness_mode;
+	float unit_line_thickness; /* in pixels */
 
 	/* render engine */
 	char engine[32];
@@ -1340,6 +1348,10 @@ typedef struct Scene {
 /* simplify_flag */
 #define R_SIMPLE_NO_TRIANGULATE		1
 
+/* line_thickness_mode */
+#define R_LINE_THICKNESS_ABSOLUTE 1
+#define R_LINE_THICKNESS_RELATIVE 2
+
 /* sequencer seq_prev_type seq_rend_type */
 
 
@@ -1548,6 +1560,7 @@ typedef enum SculptFlags {
 #define EDGE_MODE_TAG_SHARP				2
 #define EDGE_MODE_TAG_CREASE			3
 #define EDGE_MODE_TAG_BEVEL				4
+#define EDGE_MODE_TAG_FREESTYLE			5
 
 /* toolsettings->gpencil_flags */
 #define GP_TOOL_FLAG_PAINTSESSIONS_ON	(1<<0)

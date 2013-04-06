@@ -43,6 +43,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_dynamicpaint_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_effect_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fileglobal_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_freestyle_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_genfile.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_group_types.h
@@ -51,6 +52,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_key_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lamp_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lattice_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_linestyle_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_listBase.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_material_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mesh_types.h
@@ -138,3 +140,8 @@ endif()
 if(WITH_OPENCOLLADA)
 	add_subdirectory(collada)
 endif()
+
+if(WITH_FREESTYLE)
+	add_subdirectory(freestyle)
+endif()
+

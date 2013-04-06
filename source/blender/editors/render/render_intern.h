@@ -54,6 +54,25 @@ void MATERIAL_OT_paste(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 
+#ifdef WITH_FREESTYLE
+void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_move(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_copy(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_paste(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_remove(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_move(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_linestyle_new(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_color_modifier_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_alpha_modifier_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_thickness_modifier_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_geometry_modifier_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_modifier_remove(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_modifier_move(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_modifier_copy(struct wmOperatorType *ot);
+#endif
+
 
 void TEXTURE_OT_slot_copy(struct wmOperatorType *ot);
 void TEXTURE_OT_slot_paste(struct wmOperatorType *ot);

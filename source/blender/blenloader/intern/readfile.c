@@ -71,6 +71,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -5025,6 +5026,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Sequence *seq;
 	SceneRenderLayer *srl;
 	TimeMarker *marker;
+	FreestyleModuleConfig *fmc;
+	FreestyleLineSet *fls;
 	
 	for (sce = main->scene.first; sce; sce = sce->id.next) {
 		if (sce->id.flag & LIB_NEED_LINK) {
@@ -5139,6 +5142,13 @@ static void lib_link_scene(FileData *fd, Main *main)
 			for (srl = sce->r.layers.first; srl; srl = srl->next) {
 				srl->mat_override = newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override = newlibadr_us(fd, sce->id.lib, srl->light_override);
+				for (fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+					fmc->script = newlibadr(fd, sce->id.lib, fmc->script);
+				}
+				for (fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+					fls->linestyle = newlibadr_us(fd, sce->id.lib, fls->linestyle);
+					fls->group = newlibadr_us(fd, sce->id.lib, fls->group);
+				}
 			}
 			/*Game Settings: Dome Warp Text*/
 			sce->gm.dome.warptext = newlibadr(fd, sce->id.lib, sce->gm.dome.warptext);
@@ -5208,6 +5218,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Sequence *seq;
 	MetaStack *ms;
 	RigidBodyWorld *rbw;
+	SceneRenderLayer *srl;
 	
 	sce->theDag = NULL;
 	sce->obedit = NULL;
@@ -5385,6 +5396,13 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->markers));
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
+
+	for(srl = sce->r.layers.first; srl; srl = srl->next) {
+		link_list(fd, &(srl->freestyleConfig.modules));
+	}
+	for(srl = sce->r.layers.first; srl; srl = srl->next) {
+		link_list(fd, &(srl->freestyleConfig.linesets));
+	}
 	
 	sce->nodetree = newdataadr(fd, sce->nodetree);
 	if (sce->nodetree) {
@@ -6720,6 +6738,179 @@ static void lib_link_mask(FileData *fd, Main *main)
 	}
 }
 
+/* ************ READ LINE STYLE ***************** */
+
+static void lib_link_linestyle(FileData *fd, Main *main)
+{
+	FreestyleLineStyle *linestyle;
+	LineStyleModifier *m;
+
+	linestyle = main->linestyle.first;
+	while (linestyle) {
+		if (linestyle->id.flag & LIB_NEED_LINK) {
+			linestyle->id.flag -= LIB_NEED_LINK;
+
+			if (linestyle->id.properties)
+				IDP_LibLinkProperty(linestyle->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (linestyle->adt)
+				lib_link_animdata(fd, &linestyle->id, linestyle->adt);
+			for (m = linestyle->color_modifiers.first; m; m = m->next) {
+				switch (m->type) {
+				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+					{
+						LineStyleColorModifier_DistanceFromObject *cm = (LineStyleColorModifier_DistanceFromObject *)m;
+						cm->target = newlibadr(fd, linestyle->id.lib, cm->target);
+					}
+					break;
+				}
+			}
+			for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+				switch (m->type) {
+				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+					{
+						LineStyleAlphaModifier_DistanceFromObject *am = (LineStyleAlphaModifier_DistanceFromObject *)m;
+						am->target = newlibadr(fd, linestyle->id.lib, am->target);
+					}
+					break;
+				}
+			}
+			for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+				switch (m->type) {
+				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+					{
+						LineStyleThicknessModifier_DistanceFromObject *tm = (LineStyleThicknessModifier_DistanceFromObject *)m;
+						tm->target = newlibadr(fd, linestyle->id.lib, tm->target);
+					}
+					break;
+				}
+			}
+		}
+		linestyle = linestyle->id.next;
+	}
+}
+
+static void direct_link_linestyle_color_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+	switch (modifier->type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		{
+			LineStyleColorModifier_AlongStroke *m = (LineStyleColorModifier_AlongStroke *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		{
+			LineStyleColorModifier_DistanceFromCamera *m = (LineStyleColorModifier_DistanceFromCamera *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		{
+			LineStyleColorModifier_DistanceFromObject *m = (LineStyleColorModifier_DistanceFromObject *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	case LS_MODIFIER_MATERIAL:
+		{
+			LineStyleColorModifier_Material *m = (LineStyleColorModifier_Material *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	}
+}
+
+static void direct_link_linestyle_alpha_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+	switch (modifier->type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		{
+			LineStyleAlphaModifier_AlongStroke *m = (LineStyleAlphaModifier_AlongStroke *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		{
+			LineStyleAlphaModifier_DistanceFromCamera *m = (LineStyleAlphaModifier_DistanceFromCamera *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		{
+			LineStyleAlphaModifier_DistanceFromObject *m = (LineStyleAlphaModifier_DistanceFromObject *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_MATERIAL:
+		{
+			LineStyleAlphaModifier_Material *m = (LineStyleAlphaModifier_Material *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	}
+}
+
+static void direct_link_linestyle_thickness_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+	switch (modifier->type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		{
+			LineStyleThicknessModifier_AlongStroke *m = (LineStyleThicknessModifier_AlongStroke *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		{
+			LineStyleThicknessModifier_DistanceFromCamera *m = (LineStyleThicknessModifier_DistanceFromCamera *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		{
+			LineStyleThicknessModifier_DistanceFromObject *m = (LineStyleThicknessModifier_DistanceFromObject *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_MATERIAL:
+		{
+			LineStyleThicknessModifier_Material *m = (LineStyleThicknessModifier_Material *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	}
+}
+
+static void direct_link_linestyle_geometry_modifier(FileData *UNUSED(fd), LineStyleModifier *UNUSED(modifier))
+{
+}
+
+static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
+{
+	LineStyleModifier *modifier;
+
+	linestyle->adt= newdataadr(fd, linestyle->adt);
+	direct_link_animdata(fd, linestyle->adt);
+	link_list(fd, &linestyle->color_modifiers);
+	for(modifier = linestyle->color_modifiers.first; modifier; modifier = modifier->next)
+		direct_link_linestyle_color_modifier(fd, modifier);
+	link_list(fd, &linestyle->alpha_modifiers);
+	for(modifier = linestyle->alpha_modifiers.first; modifier; modifier = modifier->next)
+		direct_link_linestyle_alpha_modifier(fd, modifier);
+	link_list(fd, &linestyle->thickness_modifiers);
+	for(modifier = linestyle->thickness_modifiers.first; modifier; modifier = modifier->next)
+		direct_link_linestyle_thickness_modifier(fd, modifier);
+	link_list(fd, &linestyle->geometry_modifiers);
+	for(modifier = linestyle->geometry_modifiers.first; modifier; modifier = modifier->next)
+		direct_link_linestyle_geometry_modifier(fd, modifier);
+}
+
 /* ************** GENERAL & MAIN ******************** */
 
 
@@ -6754,6 +6945,7 @@ static const char *dataname(short id_code)
 		case ID_PA: return "Data from PA";
 		case ID_GD: return "Data from GD";
 		case ID_MC: return "Data from MC";
+		case ID_LS: return "Data from LS";
 	}
 	return "Data from Lib Block";
 	
@@ -6929,6 +7121,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_MSK:
 			direct_link_mask(fd, (Mask *)id);
+			break;
+		case ID_LS:
+			direct_link_linestyle(fd, (FreestyleLineStyle *)id);
 			break;
 	}
 	
@@ -9096,6 +9291,45 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	}
 	
+	/* default values in Freestyle settings */
+	{
+		Scene *sce;
+		SceneRenderLayer *srl;
+		FreestyleLineStyle *linestyle;
+
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if (sce->r.line_thickness_mode == 0) {
+				sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
+				sce->r.unit_line_thickness = 1.0f;
+			}
+			for(srl = sce->r.layers.first; srl; srl = srl->next) {
+				if (srl->freestyleConfig.mode == 0)
+					srl->freestyleConfig.mode = FREESTYLE_CONTROL_EDITOR_MODE;
+				if (srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE ||
+				    srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL) {
+					srl->freestyleConfig.raycasting_algorithm = 0; /* deprecated */
+					srl->freestyleConfig.flags |= FREESTYLE_CULLING;
+				}
+			}
+		}
+		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+#if 1
+			/* disable the Misc panel for now */
+			if (linestyle->panel == LS_PANEL_MISC) {
+				linestyle->panel = LS_PANEL_STROKES;
+			}
+#endif
+			if (linestyle->thickness_position == 0) {
+				linestyle->thickness_position = LS_THICKNESS_CENTER;
+				linestyle->thickness_ratio = 0.5f;
+			}
+			if (linestyle->chaining == 0)
+				linestyle->chaining = LS_CHAINING_PLAIN;
+			if (linestyle->rounds == 0)
+				linestyle->rounds = 3;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
@@ -9145,6 +9379,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
 	lib_link_mask(fd, main);
+	lib_link_linestyle(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 	
@@ -10087,6 +10322,8 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
 	Base *base;
 	SceneRenderLayer *srl;
+	FreestyleModuleConfig *module;
+	FreestyleLineSet *lineset;
 	
 	for (base = sce->base.first; base; base = base->next) {
 		expand_doit(fd, mainvar, base->object);
@@ -10107,6 +10344,15 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
+		for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
+			if (module->script)
+				expand_doit(fd, mainvar, module->script);
+		}
+		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+			if (lineset->group)
+				expand_doit(fd, mainvar, lineset->group);
+			expand_doit(fd, mainvar, lineset->linestyle);
+		}
 	}
 	
 	if (sce->r.dometext)
@@ -10205,6 +10451,26 @@ static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
 	}
 }
 
+static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
+{
+	LineStyleModifier *m;
+
+	if (linestyle->adt)
+		expand_animdata(fd, mainvar, linestyle->adt);
+	for (m = linestyle->color_modifiers.first; m; m = m->next) {
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
+			expand_doit(fd, mainvar, ((LineStyleColorModifier_DistanceFromObject *)m)->target);
+	}
+	for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
+			expand_doit(fd, mainvar, ((LineStyleAlphaModifier_DistanceFromObject *)m)->target);
+	}
+	for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
+			expand_doit(fd, mainvar, ((LineStyleThicknessModifier_DistanceFromObject *)m)->target);
+	}
+}
+
 void BLO_main_expander(void (*expand_doit_func)(void *, Main *, void *))
 {
 	expand_doit = expand_doit_func;
@@ -10294,6 +10560,9 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 						break;
 					case ID_MSK:
 						expand_mask(fd, mainvar, (Mask *)id);
+						break;
+					case ID_LS:
+						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
 						break;
 					}
 					

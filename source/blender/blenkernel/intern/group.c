@@ -103,8 +103,14 @@ void BKE_group_unlink(Group *group)
 		}
 		
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+			FreestyleLineSet *lineset;
+
 			if (srl->light_override == group)
 				srl->light_override = NULL;
+			for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+				if (lineset->group == group)
+					lineset->group = NULL;
+			}
 		}
 	}
 	

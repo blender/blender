@@ -51,4 +51,8 @@ set(SRC
 	bmesh_py_utils.h
 )
 
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
+
 blender_add_lib(bf_python_bmesh "${SRC}" "${INC}" "${INC_SYS}")

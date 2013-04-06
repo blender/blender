@@ -688,6 +688,9 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMEDGE_BEVEL, "BEVEL", 0, "Bevel", ""},
 	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
 	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
+#ifdef WITH_FREESTYLE
+	{SIMEDGE_FREESTYLE, "FREESTYLE_EDGE", 0, "Freestyle Edge Marks", ""},
+#endif
 
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
@@ -696,6 +699,9 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
 	{SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
+#ifdef WITH_FREESTYLE
+	{SIMFACE_FREESTYLE, "FREESTYLE_FACE", 0, "Freestyle Face Marks", ""},
+#endif
 
 	{0, NULL, 0, NULL, NULL}
 };
@@ -867,7 +873,11 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 			}
 		}
 		else if (em->selectmode & SCE_SELECT_FACE) {
+#ifdef WITH_FREESTYLE
+			for (a = SIMFACE_MATERIAL; a <= SIMFACE_FREESTYLE; a++) {
+#else
 			for (a = SIMFACE_MATERIAL; a <= SIMFACE_COPLANAR; a++) {
+#endif
 				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
 			}
 		}
@@ -1404,6 +1414,23 @@ static void edgetag_context_set(BMesh *bm, Scene *scene, BMEdge *e, int val)
 		case EDGE_MODE_TAG_BEVEL:
 			BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (val) ? 1.0f : 0.0f);
 			break;
+#ifdef WITH_FREESTYLE
+		case EDGE_MODE_TAG_FREESTYLE:
+			{
+				FreestyleEdge *fed;
+
+				if (!CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
+					BM_data_layer_add(bm, &bm->pdata, CD_FREESTYLE_FACE);
+				}
+
+				fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+				if (!val)
+					fed->flag &= ~FREESTYLE_EDGE_MARK;
+				else
+					fed->flag |= FREESTYLE_EDGE_MARK;
+			}
+			break;
+#endif
 	}
 }
 
@@ -1420,6 +1447,14 @@ static int edgetag_context_check(Scene *scene, BMesh *bm, BMEdge *e)
 			return BM_elem_float_data_get(&bm->edata, e, CD_CREASE) ? true : false;
 		case EDGE_MODE_TAG_BEVEL:
 			return BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) ? true : false;
+#ifdef WITH_FREESTYLE
+		case EDGE_MODE_TAG_FREESTYLE:
+			{
+				FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+				return (!fed) ? FALSE : (fed->flag & FREESTYLE_EDGE_MARK) ? TRUE : FALSE;
+			}
+			break;
+#endif
 	}
 	return 0;
 }
@@ -1589,6 +1624,11 @@ static int mouse_mesh_shortest_path_edge(ViewContext *vc)
 			case EDGE_MODE_TAG_BEVEL:
 				me->drawflag |= ME_DRAWBWEIGHTS;
 				break;
+#ifdef WITH_FREESTYLE
+			case EDGE_MODE_TAG_FREESTYLE:
+				me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
+				break;
+#endif
 		}
 		
 		EDBM_update_generic(em, false, false);

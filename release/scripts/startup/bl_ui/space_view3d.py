@@ -1912,6 +1912,12 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
+        if context.scene and bpy.app.build_options.freestyle:
+            layout.operator("mesh.mark_freestyle_edge").clear = False
+            layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
+
+        layout.separator()
+
         layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
         layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").use_ccw = True
 
@@ -1949,6 +1955,12 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.solidify")
         layout.operator("mesh.wireframe")
         layout.operator("mesh.sort_elements", text="Sort Faces").elements = {'FACE'}
+
+        layout.separator()
+
+        if context.scene and bpy.app.build_options.freestyle:
+            layout.operator("mesh.mark_freestyle_face").clear = False
+            layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
         layout.separator()
 
@@ -2541,17 +2553,25 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         split = layout.split()
 
+        with_freestyle = context.scene and bpy.app.build_options.freestyle
+
         col = split.column()
         col.label(text="Overlays:")
         col.prop(mesh, "show_faces", text="Faces")
         col.prop(mesh, "show_edges", text="Edges")
         col.prop(mesh, "show_edge_crease", text="Creases")
+        if with_freestyle:
+            col.prop(mesh, "show_edge_seams", text="Seams")
 
         col = split.column()
         col.label()
-        col.prop(mesh, "show_edge_seams", text="Seams")
+        if not with_freestyle:
+            col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural)
         col.prop(mesh, "show_edge_bevel_weight", text="Weights")
+        if with_freestyle:
+            col.prop(mesh, "show_freestyle_edge_marks", text="Edge Marks")
+            col.prop(mesh, "show_freestyle_face_marks", text="Face Marks")
 
         col = layout.column()
 

@@ -76,6 +76,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
 #include "BKE_gpencil.h"
+#include "BKE_linestyle.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -845,6 +846,24 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, Poin
 		            gpd->id.name + 2, ID_REAL_USERS(gpd));
 }
 
+FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
+{
+	FreestyleLineStyle *linestyle = BKE_new_linestyle(name, bmain);
+	id_us_min(&linestyle->id);
+	return linestyle;
+}
+
+void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
+{
+	if (ID_REAL_USERS(linestyle) <= 0)
+		BKE_libblock_free(&bmain->linestyle, linestyle);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Line style '%s' must have zero users to be removed, found %d",
+		            linestyle->id.name + 2, ID_REAL_USERS(linestyle));
+
+	/* XXX python now has invalid pointer? */
+}
+
 /* tag functions, all the same */
 static void rna_Main_cameras_tag(Main *bmain, int value) { tag_main_lb(&bmain->camera, value); }
 static void rna_Main_scenes_tag(Main *bmain, int value) { tag_main_lb(&bmain->scene, value); }
@@ -876,6 +895,7 @@ static void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain-
 static void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
 static void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->movieclip, value); }
 static void rna_Main_masks_tag(Main *bmain, int value) { tag_main_lb(&bmain->mask, value); }
+static void rna_Main_linestyle_tag(Main *bmain, int value) { tag_main_lb(&bmain->linestyle, value); }
 
 static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
 static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
@@ -1916,6 +1936,32 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+}
+
+void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BlendDataLineStyles");
+	srna = RNA_def_struct(brna, "BlendDataLineStyles", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Line Styles", "Collection of line styles");
+
+	func = RNA_def_function(srna, "new", "rna_Main_linestyles_new");
+	RNA_def_function_ui_description(func, "Add a new line style instance to the main database");
+	parm = RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the datablock");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "New line style datablock");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_Main_linestyles_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a line style instance from the current blendfile");
+	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "Line style to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

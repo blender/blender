@@ -53,6 +53,9 @@ else:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
 if env['WITH_BF_BULLET']:
     defs.append('WITH_BULLET')
 

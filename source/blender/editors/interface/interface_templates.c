@@ -334,6 +334,7 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_MA:  return N_("Browse Material to be linked");
 			case ID_TE:  return N_("Browse Texture to be linked");
 			case ID_IM:  return N_("Browse Image to be linked");
+			case ID_LS:  return N_("Browse Line Style Data to be linked");
 			case ID_LT:  return N_("Browse Lattice Data to be linked");
 			case ID_LA:  return N_("Browse Lamp Data to be linked");
 			case ID_CA:  return N_("Browse Camera Data to be linked");
@@ -369,6 +370,7 @@ static const char *template_id_context(StructRNA *type)
 			case ID_MA:  return BLF_I18NCONTEXT_ID_MATERIAL;
 			case ID_TE:  return BLF_I18NCONTEXT_ID_TEXTURE;
 			case ID_IM:  return BLF_I18NCONTEXT_ID_IMAGE;
+			case ID_LS:  return BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE;
 			case ID_LT:  return BLF_I18NCONTEXT_ID_LATTICE;
 			case ID_LA:  return BLF_I18NCONTEXT_ID_LAMP;
 			case ID_CA:  return BLF_I18NCONTEXT_ID_CAMERA;
@@ -526,6 +528,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		                                 BLF_I18NCONTEXT_ID_BRUSH,
 		                                 BLF_I18NCONTEXT_ID_PARTICLESETTINGS,
 		                                 BLF_I18NCONTEXT_ID_GPENCIL,
+		                                 BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE,
 		);
 		
 		if (newop) {

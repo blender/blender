@@ -132,10 +132,12 @@ enum {
 	G_DEBUG_EVENTS =    (1 << 3), /* input/window/screen events */
 	G_DEBUG_HANDLERS =  (1 << 4), /* events handling */
 	G_DEBUG_WM =        (1 << 5), /* operator, undo */
-	G_DEBUG_JOBS =      (1 << 6)  /* jobs time profiling */
+	G_DEBUG_JOBS =      (1 << 6), /* jobs time profiling */
+	G_DEBUG_FREESTYLE = (1 << 7), /* freestyle messages */
 };
 
-#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS)
+#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
+                      G_DEBUG_FREESTYLE)
 
 
 /* G.fileflags */

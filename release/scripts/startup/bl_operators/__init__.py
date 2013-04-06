@@ -22,7 +22,7 @@ if "bpy" in locals():
     from imp import reload as _reload
     for val in _modules_loaded.values():
         _reload(val)
-_modules = (
+_modules = [
     "add_mesh_torus",
     "anim",
     "clip",
@@ -44,14 +44,16 @@ _modules = (
     "vertexpaint_dirt",
     "view3d",
     "wm",
-)
-__import__(name=__name__, fromlist=_modules)
-_namespace = globals()
-_modules_loaded = {name: _namespace[name] for name in _modules}
-del _namespace
-
+]
 
 import bpy
+
+if bpy.app.build_options.freestyle:
+    _modules.append("freestyle")
+__import__(name=__name__, fromlist=_modules)
+_namespace = globals()
+_modules_loaded = {name: _namespace[name] for name in _modules if name != 'bpy'}
+del _namespace
 
 
 def register():
