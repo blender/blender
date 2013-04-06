@@ -356,8 +356,8 @@ static void get_marker_coords_for_tracking(int frame_width, int frame_height,
 	/* Convert the corners into search space coordinates. */
 	for (i = 0; i < 4; i++) {
 		marker_unified_to_search_pixel(frame_width, frame_height, marker, marker->pattern_corners[i], pixel_coords);
-		search_pixel_x[i] = pixel_coords[0];
-		search_pixel_y[i] = pixel_coords[1];
+		search_pixel_x[i] = pixel_coords[0] - 0.5;
+		search_pixel_y[i] = pixel_coords[1] - 0.5;
 	}
 
 	/* Convert the center position (aka "pos"); this is the origin */
@@ -365,8 +365,8 @@ static void get_marker_coords_for_tracking(int frame_width, int frame_height,
 	unified_coords[1] = 0.0;
 	marker_unified_to_search_pixel(frame_width, frame_height, marker, unified_coords, pixel_coords);
 
-	search_pixel_x[4] = pixel_coords[0];
-	search_pixel_y[4] = pixel_coords[1];
+	search_pixel_x[4] = pixel_coords[0] - 0.5;
+	search_pixel_y[4] = pixel_coords[1] - 0.5;
 }
 
 /* Inverse of above. */
@@ -379,14 +379,14 @@ static void set_marker_coords_from_tracking(int frame_width, int frame_height, M
 
 	/* Convert the corners into search space coordinates. */
 	for (i = 0; i < 4; i++) {
-		search_pixel[0] = search_pixel_x[i];
-		search_pixel[1] = search_pixel_y[i];
+		search_pixel[0] = search_pixel_x[i] + 0.5;
+		search_pixel[1] = search_pixel_y[i] + 0.5;
 		search_pixel_to_marker_unified(frame_width, frame_height, marker, search_pixel, marker->pattern_corners[i]);
 	}
 
 	/* Convert the center position (aka "pos"); this is the origin */
-	search_pixel[0] = search_pixel_x[4];
-	search_pixel[1] = search_pixel_y[4];
+	search_pixel[0] = search_pixel_x[4] + 0.5;
+	search_pixel[1] = search_pixel_y[4] + 0.5;
 	search_pixel_to_marker_unified(frame_width, frame_height, marker, search_pixel, marker_unified);
 
 	/* If the tracker tracked nothing, then "marker_unified" would be zero.
