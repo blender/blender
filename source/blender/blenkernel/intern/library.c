@@ -602,12 +602,12 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->world);
 	lb[a++] = &(main->screen);
 	lb[a++] = &(main->object);
+	lb[a++] = &(main->linestyle); /* referenced by scenes */
 	lb[a++] = &(main->scene);
 	lb[a++] = &(main->library);
 	lb[a++] = &(main->wm);
 	lb[a++] = &(main->movieclip);
 	lb[a++] = &(main->mask);
-	lb[a++] = &(main->linestyle);
 	
 	lb[a] = NULL;
 
