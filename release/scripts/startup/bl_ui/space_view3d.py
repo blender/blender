@@ -1946,6 +1946,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.poke")
         layout.operator("mesh.quads_convert_to_tris")
         layout.operator("mesh.tris_convert_to_quads")
 

@@ -89,6 +89,13 @@ enum {
 	VPATH_SELECT_TOPOLOGICAL
 };
 
+/* Poke face center calculation */
+enum {
+	BMOP_POKE_MEAN_WEIGHTED = 0,
+	BMOP_POKE_MEAN,
+	BMOP_POKE_BOUNDS
+};
+
 extern const BMOpDefine *bmo_opdefines[];
 extern const int         bmo_opdefines_total;
 

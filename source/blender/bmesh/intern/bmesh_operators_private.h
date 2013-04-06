@@ -74,6 +74,7 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op);
 void bmo_pointmerge_exec(BMesh *bm, BMOperator *op);
 void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op);
 void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op);
+void bmo_poke_exec(BMesh *bm, BMOperator *op);
 void bmo_region_extend_exec(BMesh *bm, BMOperator *op);
 void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op);
 void bmo_reverse_colors_exec(BMesh *bm, BMOperator *op);

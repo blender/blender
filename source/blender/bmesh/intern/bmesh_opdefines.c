@@ -1571,6 +1571,28 @@ static BMOpDefine bmo_wireframe_def = {
 	0
 };
 
+/*
+ * Pokes a face.
+ *
+ * Splits a face into a triangle fan.
+ */
+static BMOpDefine bmo_poke_def = {
+	"poke",
+	/* slots_in */
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},   /* input faces */
+	 {"offset", BMO_OP_SLOT_FLT}, /* center vertex offset along normal */
+	{"center_mode", BMO_OP_SLOT_INT}, /* calculation mode for center vertex */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* output verts */
+	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
+	 {{'\0'}},
+	},
+	bmo_poke_exec,
+	0
+};
+
 #ifdef WITH_BULLET
 /*
  * Convex Hull
@@ -1677,6 +1699,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_object_load_bmesh_def,
 	&bmo_pointmerge_def,
 	&bmo_pointmerge_facedata_def,
+	&bmo_poke_def,
 	&bmo_recalc_face_normals_def,
 	&bmo_region_extend_def,
 	&bmo_remove_doubles_def,
