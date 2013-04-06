@@ -206,10 +206,11 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	sce = (Scene *)outliner_search_back(soops, te, ID_SCE);
 	if (sce && scene != sce) {
 		ED_screen_set_scene(C, CTX_wm_screen(C), sce);
+		scene = sce;
 	}
 	
 	/* find associated base in current scene */
-	base = BKE_scene_base_find(sce, ob);
+	base = BKE_scene_base_find(scene, ob);
 
 	if (base) {
 		if (set == 2) {
@@ -221,22 +222,22 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 		}
 		else {
 			/* deleselect all */
-			BKE_scene_base_deselect_all(sce);
+			BKE_scene_base_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
 
 		if (recursive) {
 			/* Recursive select/deselect for Object hierarchies */
-			do_outliner_object_select_recursive(sce, ob, (ob->flag & SELECT) != 0);
+			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
 		}
 
 		if (C) {
 			ED_base_object_activate(C, base); /* adds notifier */
-			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, sce);
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 	}
 	
-	if (ob != sce->obedit)
+	if (ob != scene->obedit)
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
 	return 1;
