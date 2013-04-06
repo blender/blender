@@ -28,7 +28,6 @@
 #ifndef __DNA_FREESTYLE_TYPES_H__
 #define __DNA_FREESTYLE_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 struct FreestyleLineStyle;
@@ -111,7 +110,6 @@ typedef struct FreestyleModuleConfig {
 	struct FreestyleModuleConfig *next, *prev;
 
 	struct Text *script;
-	char module_path[1024] DNA_DEPRECATED; /* FILE_MAX */
 	short is_displayed;
 	short pad[3];
 } FreestyleModuleConfig;

@@ -374,27 +374,6 @@ static DerivedMesh *applyModifier(
 	DM_copy_poly_data(dm, result, 0, 0, numFaces);
 	DM_copy_poly_data(dm, result, 0, numFaces, numFaces);
 
-#if 1 /* WITH_FREESTYLE generic changes */
-	/* When the input DM has no edge CD_ORIGINDEX layer (i.e., the corresponding
-	 * layer of the result DM is filled with zeros; see CDDM_from_template()),
-	 * set the layer to an identity mapping */
-	if (!CustomData_has_layer(&dm->edgeData, CD_ORIGINDEX)) {
-		int *index = DM_get_edge_data_layer(result, CD_ORIGINDEX);
-		range_vn_i(index, numEdges, 0);
-		range_vn_i(index+numEdges, numEdges, 0);
-	}
-	/* Do the same for poly CD_ORIGINDEX layer */
-	if (!CustomData_has_layer(&dm->polyData, CD_ORIGINDEX)) {
-		int *index, a;
-		DM_add_poly_layer(result, CD_ORIGINDEX, CD_CALLOC, NULL);
-		index = DM_get_poly_data_layer(result, CD_ORIGINDEX);
-		range_vn_i(index, numFaces, 0);
-		range_vn_i(index+numFaces, numFaces, 0);
-		for (a = 0; a < newFaces; a++)
-			index[numFaces*2+a] = ORIGINDEX_NONE;
-	}
-#endif
-
 	/* if the original has it, get the result so we can update it */
 	face_nors_result = CustomData_get_layer(&result->polyData, CD_NORMAL);
 
