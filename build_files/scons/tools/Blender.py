@@ -388,6 +388,10 @@ def creator(env):
         defs.append('WITH_PYTHON')
         if env['BF_DEBUG']:
             defs.append('_DEBUG')
+            
+    if env['WITH_BF_FREESTYLE']:
+        incs.append('#/source/blender/freestyle')
+        defs.append('WITH_FREESTYLE')
 
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
         incs.append(env['BF_PTHREADS_INC'])
