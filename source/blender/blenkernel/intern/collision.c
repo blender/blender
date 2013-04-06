@@ -32,8 +32,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cloth.h"
-
 #include "DNA_cloth_types.h"
 #include "DNA_group_types.h"
 #include "DNA_mesh_types.h"
@@ -52,11 +50,12 @@
 #include "BLI_rand.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_cloth.h"
 #include "BKE_global.h"
-#include "BKE_scene.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "BKE_DerivedMesh.h"
 #ifdef WITH_BULLET

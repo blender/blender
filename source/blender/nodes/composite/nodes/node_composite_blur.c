@@ -36,7 +36,7 @@
 /* **************** BLUR ******************** */
 static bNodeSocketTemplate cmp_node_blur_in[] = {
 	{   SOCK_RGBA, 1, N_("Image"),          1.0f, 1.0f, 1.0f, 1.0f},
-	{   SOCK_FLOAT, 1, N_("Size"),          1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{   SOCK_FLOAT, 1, N_("Size"),          1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
 	{   -1, 0, ""   }
 };
 static bNodeSocketTemplate cmp_node_blur_out[] = {

@@ -72,20 +72,33 @@ size_t Attribute::data_sizeof() const
 
 size_t Attribute::element_size(int numverts, int numtris, int numcurves, int numkeys) const
 {
-	if(element == ATTR_ELEMENT_VALUE)
-		return 1;
-	if(element == ATTR_ELEMENT_VERTEX)
-		return numverts;
-	else if(element == ATTR_ELEMENT_FACE)
-		return numtris;
-	else if(element == ATTR_ELEMENT_CORNER)
-		return numtris*3;
-	else if(element == ATTR_ELEMENT_CURVE)
-		return numcurves;
-	else if(element == ATTR_ELEMENT_CURVE_KEY)
-		return numkeys;
+	size_t size;
 	
-	return 0;
+	switch(element) {
+		case ATTR_ELEMENT_VALUE:
+			size = 1;
+			break;
+		case ATTR_ELEMENT_VERTEX:
+			size = numverts;
+			break;
+		case ATTR_ELEMENT_FACE:
+			size = numtris;
+			break;
+		case ATTR_ELEMENT_CORNER:
+			size = numtris*3;
+			break;
+		case ATTR_ELEMENT_CURVE:
+			size = numcurves;
+			break;
+		case ATTR_ELEMENT_CURVE_KEY:
+			size = numkeys;
+			break;
+		default:
+			size = 0;
+			break;
+	}
+	
+	return size;
 }
 
 size_t Attribute::buffer_size(int numverts, int numtris, int numcurves, int numkeys) const
@@ -214,44 +227,66 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 		name = Attribute::standard_name(std);
 
 	if(triangle_mesh) {
-		if(std == ATTR_STD_VERTEX_NORMAL)
-			attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
-		else if(std == ATTR_STD_FACE_NORMAL)
-			attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
-		else if(std == ATTR_STD_UV)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
-		else if(std == ATTR_STD_UV_TANGENT)
-			attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
-		else if(std == ATTR_STD_UV_TANGENT_SIGN)
-			attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
-		else if(std == ATTR_STD_GENERATED)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-		else if(std == ATTR_STD_POSITION_UNDEFORMED)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-		else if(std == ATTR_STD_POSITION_UNDISPLACED)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-		else if(std == ATTR_STD_MOTION_PRE)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-		else if(std == ATTR_STD_MOTION_POST)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-		else
-			assert(0);
+		switch(std) {
+			case ATTR_STD_VERTEX_NORMAL:
+				attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_FACE_NORMAL:
+				attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
+				break;
+			case ATTR_STD_UV:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+				break;
+			case ATTR_STD_UV_TANGENT:
+				attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
+				break;
+			case ATTR_STD_UV_TANGENT_SIGN:
+				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
+				break;
+			case ATTR_STD_GENERATED:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_POSITION_UNDEFORMED:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_POSITION_UNDISPLACED:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_MOTION_PRE:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_MOTION_POST:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			default:
+				assert(0);
+				break;
+		}
 	}
 	else if(curve_mesh) {
-		if(std == ATTR_STD_UV)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
-		else if(std == ATTR_STD_GENERATED)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
-		else if(std == ATTR_STD_MOTION_PRE)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
-		else if(std == ATTR_STD_MOTION_POST)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
-		else if(std == ATTR_STD_CURVE_TANGENT)
-			attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CURVE_KEY);
-		else if(std == ATTR_STD_CURVE_INTERCEPT)
-			attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
-		else
-			assert(0);
+		switch(std) {
+			case ATTR_STD_UV:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
+				break;
+			case ATTR_STD_GENERATED:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
+				break;
+			case ATTR_STD_MOTION_PRE:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
+				break;
+			case ATTR_STD_MOTION_POST:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
+				break;
+			case ATTR_STD_CURVE_TANGENT:
+				attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CURVE_KEY);
+				break;
+			case ATTR_STD_CURVE_INTERCEPT:
+				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
+				break;
+			default:
+				assert(0);
+				break;
+		}
 	}
 
 	attr->std = std;

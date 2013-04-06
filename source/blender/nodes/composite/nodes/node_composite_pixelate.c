@@ -37,7 +37,7 @@
 /* **************** Pixelate ******************** */
 
 static bNodeSocketTemplate cmp_node_pixelate_in[] = {
-	{   SOCK_RGBA, 1, N_("Color"),      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{   SOCK_RGBA, 1, N_("Color"),      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{   -1, 0, ""   }
 };
 static bNodeSocketTemplate cmp_node_pixelate_out[] = {

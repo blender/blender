@@ -37,6 +37,7 @@ float BM_face_calc_area(BMFace *f);
 float BM_face_calc_perimeter(BMFace *f);
 void  BM_face_calc_center_bounds(BMFace *f, float center[3]);
 void  BM_face_calc_center_mean(BMFace *f, float center[3]);
+void  BM_face_calc_center_mean_weighted(BMFace *f, float center[3]);
 
 void  BM_face_normal_update(BMFace *f);
 void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],

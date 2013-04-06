@@ -438,7 +438,6 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_WINDOW:
 			/* notifier comes from editing color space */
 			image_scopes_tag_refresh(sa);
-			ED_area_tag_refresh(sa);
 			ED_area_tag_redraw(sa);
 			break;
 		case NC_SCENE:

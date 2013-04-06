@@ -35,16 +35,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+
+#include "BKE_context.h"
+#include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"

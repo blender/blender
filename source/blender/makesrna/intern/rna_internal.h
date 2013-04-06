@@ -27,11 +27,11 @@
 #ifndef __RNA_INTERNAL_H__
 #define __RNA_INTERNAL_H__
 
-#include "UI_resources.h"
-
 #include "BLI_utildefines.h"
 
 #include "rna_internal_types.h"
+
+#include "UI_resources.h"
 
 #define RNA_MAGIC ((int)~0)
 

@@ -24,20 +24,241 @@
  *  \ingroup bmesh
  *
  * Inset face regions.
+ * Inset individual faces.
  *
- * TODO
- * - Inset indervidual faces.
  */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
 #define ELE_NEW		1
+
+
+
+/* -------------------------------------------------------------------- */
+/* Inset Individual */
+
+
+/* Holds Per-Face Inset Edge Data */
+typedef struct EdgeInsetInfo {
+	float no[3];
+	BMEdge *e_old;
+	BMEdge *e_new;
+} EdgeInsetInfo;
+
+/**
+ * Individual Face Inset.
+ * Find all tagged faces (f), duplicate edges around faces, inset verts of
+ * created edges, create new faces between old and new edges, fill face
+ * between connected new edges, kill old face (f).
+ */
+void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
+{
+	BMEdge **f_edges = NULL;
+	BMVert **f_verts = NULL;
+	BMFace *f;
+
+	BMOIter oiter;
+	EdgeInsetInfo *eiinfo_arr = NULL;
+
+	BLI_array_declare(eiinfo_arr);
+	BLI_array_declare(f_edges);
+	BLI_array_declare(f_verts);
+
+	const float thickness = BMO_slot_float_get(op->slots_in, "thickness");
+	const float depth = BMO_slot_float_get(op->slots_in, "depth");
+	const bool use_even_offset = BMO_slot_bool_get(op->slots_in, "use_even_offset");
+
+	/* Only tag faces in slot */
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+
+	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
+
+	BMO_ITER(f, &oiter, op->slots_in, "faces", BM_FACE) {
+		BMLoop *l_iter, *l_first;
+		BMLoop *l_iter_inner = NULL;
+		int i;
+
+		BLI_array_empty(f_verts);
+		BLI_array_empty(f_edges);
+		BLI_array_empty(eiinfo_arr);
+		BLI_array_grow_items(f_verts, f->len);
+		BLI_array_grow_items(f_edges, f->len);
+		BLI_array_grow_items(eiinfo_arr, f->len);
+
+		/* create verts */
+		i = 0;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			f_verts[i] = BM_vert_create(bm, l_iter->v->co, l_iter->v, 0);
+			i++;
+		} while ((l_iter = l_iter->next) != l_first);
+
+		/* make edges */
+		i = 0;
+		l_iter = l_first;
+		do {
+			f_edges[i] = BM_edge_create(bm, f_verts[i], f_verts[(i + 1) % f->len], l_iter->e, 0);
+
+			eiinfo_arr[i].e_new = f_edges[i];
+			eiinfo_arr[i].e_old = l_iter->e;
+			BM_edge_calc_face_tangent(l_iter->e, l_iter, eiinfo_arr[i].no);
+
+			/* Tagging (old elements) required when iterating over edges
+			 * connected to verts for translation vector calculation */
+			BM_elem_flag_enable(l_iter->e, BM_ELEM_TAG);
+			BM_elem_index_set(l_iter->e, i);  /* set_dirty! */
+			i++;
+		} while ((l_iter = l_iter->next) != l_first);
+		/* done with edges */
+
+		bm->elem_index_dirty |= BM_EDGE;
+
+		/* Calculate translation vector for new  */
+		l_iter = l_first;
+		do {
+			EdgeInsetInfo *ei_prev = &eiinfo_arr[BM_elem_index_get(l_iter->prev->e)];
+			EdgeInsetInfo *ei_next = &eiinfo_arr[BM_elem_index_get(l_iter->e)];
+			float tvec[3];
+			float v_new_co[3];
+			int index = 0;
+
+			add_v3_v3v3(tvec, ei_prev->no, ei_next->no);
+			normalize_v3(tvec);
+
+			/* l->e is traversed in order */
+			index = BM_elem_index_get(l_iter->e);
+
+			copy_v3_v3(v_new_co, eiinfo_arr[index].e_new->v1->co);
+
+			if (use_even_offset) {
+				mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(ei_prev->no,  ei_next->no) / 2.0f));
+			}
+
+			/* Modify vertices and their normals */
+			madd_v3_v3fl(v_new_co, tvec, thickness);
+
+			/* Set normal, add depth and write new vertex position*/
+			copy_v3_v3(eiinfo_arr[index].e_new->v1->no, f->no);
+
+			madd_v3_v3fl(v_new_co, f->no, depth);
+
+			copy_v3_v3(eiinfo_arr[index].e_new->v1->co, v_new_co);
+		} while ((l_iter = l_iter->next) != l_first);
+
+		{
+			BMFace *f_new_inner;
+			/* Create New Inset Faces */
+			f_new_inner = BM_face_create(bm, f_verts, f_edges, f->len, 0);
+			if (UNLIKELY(f_new_inner == NULL)) {
+				BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Inset failed: could not create inner face.");
+				BLI_array_free(f_edges);
+				BLI_array_free(f_verts);
+				BLI_array_free(eiinfo_arr);
+				return;
+			}
+
+			/* Copy Face Data */
+			BM_elem_attrs_copy(bm, bm, f, f_new_inner);
+			// Don't tag, gives more useful inner/outer select option
+			// BMO_elem_flag_enable(bm, f_new_inner, ELE_NEW);
+
+			l_iter_inner = BM_FACE_FIRST_LOOP(f_new_inner);
+		}
+
+		l_iter = l_first;
+		do {
+			BMFace *f_new_outer;
+
+			BMLoop *l_iter_sub;
+			BMLoop *l_a = NULL;
+			BMLoop *l_b = NULL;
+			BMLoop *l_a_other = NULL;
+			BMLoop *l_b_other = NULL;
+			BMLoop *l_shared = NULL;
+
+			BM_elem_attrs_copy(bm, bm, l_iter, l_iter_inner);
+
+			f_new_outer = BM_face_create_quad_tri(bm,
+			                                      l_iter->v,
+			                                      l_iter->next->v,
+			                                      l_iter_inner->next->v,
+			                                      l_iter_inner->v,
+			                                      f, false);
+
+			if (UNLIKELY(f_new_outer == NULL)) {
+				BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Inset failed: could not create an outer face.");
+				BLI_array_free(f_edges);
+				BLI_array_free(f_verts);
+				BLI_array_free(eiinfo_arr);
+				return;
+			}
+
+			BM_elem_attrs_copy(bm, bm, f, f_new_outer);
+			BMO_elem_flag_enable(bm, f_new_outer, ELE_NEW);
+			BM_elem_flag_enable(f_new_outer, BM_ELEM_TAG);
+
+			/* Copy Loop Data */
+			l_a = BM_FACE_FIRST_LOOP(f_new_outer);
+			l_b = l_a->next;
+
+			l_iter_sub = l_iter;
+
+			/* Skip old face f and new inset face.
+			 * If loop if found we are a boundary. This
+			 * is required as opposed to BM_edge_is_boundary()
+			 * Because f_new_outer shares an edge with f */
+			do {
+				if (l_iter_sub->f != f && l_iter_sub->f != f_new_outer) {
+					l_shared = l_iter_sub;
+					break;
+				}
+			} while ((l_iter_sub = l_iter_sub->radial_next) != l_iter);
+
+			if (l_shared) {
+				BM_elem_attrs_copy(bm, bm, l_shared, l_a->next);
+				BM_elem_attrs_copy(bm, bm, l_shared->next, l_a);
+			}
+			else {
+				l_a_other = BM_edge_other_loop(l_a->e, l_a);
+				l_b_other = l_a_other->next;
+				BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
+				BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
+			}
+
+			/* Move to the last two loops in new face */
+			l_a = l_b->next;
+			l_b = l_a->next;
+
+			/* This loop should always have >1 radials
+			 * (associated edge connects new and old face) */
+			BM_elem_attrs_copy(bm, bm, l_iter, l_b);
+			BM_elem_attrs_copy(bm, bm, l_iter->next, l_a);
+
+		} while ((l_iter_inner = l_iter_inner->next),
+		         (l_iter = l_iter->next) != l_first);
+
+		BM_face_kill(bm, f);
+	}
+
+	/* we could flag new edges/verts too, is it useful? */
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_NEW);
+
+	BLI_array_free(f_verts);
+	BLI_array_free(f_edges);
+	BLI_array_free(eiinfo_arr);
+}
+
+
+
+/* -------------------------------------------------------------------- */
+/* Inset Region */
 
 typedef struct SplitEdgeInfo {
 	float   no[3];
@@ -95,7 +316,7 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
  * - inset the new edges into their faces.
  */
 
-void bmo_inset_exec(BMesh *bm, BMOperator *op)
+void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 {
 	const bool use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
 	const bool use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == false);

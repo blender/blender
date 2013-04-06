@@ -337,6 +337,34 @@ void BM_face_calc_center_mean(BMFace *f, float r_cent[3])
 }
 
 /**
+ * computes the center of a face, using the mean average
+ * weighted by edge length
+ */
+void BM_face_calc_center_mean_weighted(BMFace *f, float r_cent[3])
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+	float totw = 0.0f;
+	float w_prev;
+
+	zero_v3(r_cent);
+
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	w_prev = BM_edge_calc_length(l_iter->prev->e);
+	do {
+		const float w_curr = BM_edge_calc_length(l_iter->e);
+		const float w = (w_curr + w_prev);
+		madd_v3_v3fl(r_cent, l_iter->v->co, w);
+		totw += w;
+		w_prev = w_curr;
+	} while ((l_iter = l_iter->next) != l_first);
+
+	if (totw != 0.0f)
+		mul_v3_fl(r_cent, 1.0f / (float) totw);
+}
+
+/**
  * COMPUTE POLY PLANE
  *
  * Projects a set polygon's vertices to

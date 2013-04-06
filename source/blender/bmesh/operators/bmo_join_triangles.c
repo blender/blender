@@ -33,10 +33,10 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
-
 #include "BLI_math.h"
 #include "BLI_array.h"
+
+#include "BKE_customdata.h"
 
 #include "bmesh.h"
 

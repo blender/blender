@@ -33,6 +33,7 @@
 #include <Python.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -68,6 +69,76 @@ static PyObject *bpy_bmesh_op_repr(BPy_BMeshOpFunc *self)
 }
 
 
+/* methods
+ * ======= */
+
+
+/* __doc__
+ * ------- */
+
+static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], const bool is_out)
+{
+	DynStr *dyn_str = BLI_dynstr_new();
+	char *ret;
+
+	int i = 0;
+
+	while (*slot_types[i].name) {
+		/* cut off '.out' by using a string size arg */
+		const int name_len = is_out ?
+		        (strchr(slot_types[i].name, '.') - slot_types[i].name) :
+		        sizeof(slot_types[i].name);
+		const char *value = "<Unknown>";
+		switch (slot_types[i].type) {
+			case BMO_OP_SLOT_BOOL:          value = "False"; break;
+			case BMO_OP_SLOT_INT:           value = "0"; break;
+			case BMO_OP_SLOT_FLT:           value = "0.0"; break;
+			case BMO_OP_SLOT_PTR:           value = "None"; break;
+			case BMO_OP_SLOT_MAT:           value = "Matrix()"; break;
+			case BMO_OP_SLOT_VEC:           value = "Vector()"; break;
+			case BMO_OP_SLOT_ELEMENT_BUF:   value =
+			     (slot_types[i].subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) ? "None" : "[]"; break;
+			case BMO_OP_SLOT_MAPPING:       value = "{}"; break;
+		}
+		BLI_dynstr_appendf(dyn_str, i ? ", %.*s=%s" : "%.*s=%s", name_len, slot_types[i].name, value);
+		i++;
+	};
+
+	ret = BLI_dynstr_get_cstring(dyn_str);
+	BLI_dynstr_free(dyn_str);
+	return ret;
+}
+
+static PyObject *bpy_bmesh_op_doc_get(BPy_BMeshOpFunc *self, void *UNUSED(closure))
+{
+	PyObject *ret;
+	char *slot_in;
+	char *slot_out;
+	int i;
+
+	i = BMO_opcode_from_opname(self->opname);
+
+	slot_in  = bmp_slots_as_args(bmo_opdefines[i]->slot_types_in, false);
+	slot_out = bmp_slots_as_args(bmo_opdefines[i]->slot_types_out, true);
+
+	ret = PyUnicode_FromFormat("%.200s bmesh.ops.%.200s(bmesh, %s)\n  -> dict(%s)",
+	                           Py_TYPE(self)->tp_name,
+	                           self->opname, slot_in, slot_out);
+
+	MEM_freeN(slot_in);
+	MEM_freeN(slot_out);
+
+	return ret;
+}
+
+static PyGetSetDef bpy_bmesh_op_getseters[] = {
+	{(char *)"__doc__", (getter)bpy_bmesh_op_doc_get, (setter)NULL, NULL, NULL},
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+
+/* Types
+ * ===== */
 
 PyTypeObject bmesh_op_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -126,7 +197,7 @@ PyTypeObject bmesh_op_Type = {
 	/*** Attribute descriptor and subclassing stuff ***/
 	NULL,                       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	bpy_bmesh_op_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -154,20 +225,17 @@ PyTypeObject bmesh_op_Type = {
 
 static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject *pyname)
 {
-	const unsigned int tot = bmo_opdefines_total;
-	unsigned int i;
 	const char *opname = _PyUnicode_AsString(pyname);
 
-	for (i = 0; i < tot; i++) {
-		if (STREQ(bmo_opdefines[i]->opname, opname)) {
-			return bpy_bmesh_op_CreatePyObject(opname);
-		}
+	if (BMO_opcode_from_opname(opname) != -1) {
+		return bpy_bmesh_op_CreatePyObject(opname);
 	}
-
-	PyErr_Format(PyExc_AttributeError,
-	             "BMeshOpsModule: operator \"%.200s\" doesn't exist",
-	             opname);
-	return NULL;
+	else {
+		PyErr_Format(PyExc_AttributeError,
+		             "BMeshOpsModule: operator \"%.200s\" doesn't exist",
+		             opname);
+		return NULL;
+	}
 }
 
 static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))

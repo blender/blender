@@ -31,19 +31,16 @@
  * a context manager.
  */
 
-/* nifty feature. swap out strings for RNA data */
-#define USE_RNA_DATABLOCKS
-
 #include <Python.h>
 #include <stddef.h>
-
-#include "BLO_readfile.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_listbase.h"
+
+#include "BLO_readfile.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -56,6 +53,9 @@
 
 #include "bpy_util.h"
 #include "bpy_library.h"
+
+/* nifty feature. swap out strings for RNA data */
+#define USE_RNA_DATABLOCKS
 
 #ifdef USE_RNA_DATABLOCKS
 #  include "bpy_rna.h"

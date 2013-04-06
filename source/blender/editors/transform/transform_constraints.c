@@ -49,11 +49,11 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BKE_context.h"
-
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+
+#include "BKE_context.h"
 
 #include "ED_image.h"
 #include "ED_view3d.h"

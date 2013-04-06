@@ -47,7 +47,6 @@ static void bmo_flag_layer_free(BMesh *bm);
 static void bmo_flag_layer_clear(BMesh *bm);
 static int bmo_name_to_slotcode(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier);
 static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier);
-static int bmo_opname_to_opcode(const char *opname);
 
 static const char *bmo_error_messages[] = {
 	NULL,
@@ -145,7 +144,7 @@ static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args
  */
 void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 {
-	int opcode = bmo_opname_to_opcode(opname);
+	int opcode = BMO_opcode_from_opname(opname);
 
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", opname);
@@ -1522,18 +1521,25 @@ static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], cons
 	return i;
 }
 
-static int bmo_opname_to_opcode(const char *opname)
+int BMO_opcode_from_opname(const char *opname)
 {
-	int i;
 
-	for (i = 0; i < bmo_opdefines_total; i++) {
-		if (STREQ(opname, bmo_opdefines[i]->opname)) {
+	const unsigned int tot = bmo_opdefines_total;
+	unsigned int i;
+	for (i = 0; i < tot; i++) {
+		if (STREQ(bmo_opdefines[i]->opname, opname)) {
 			return i;
 		}
 	}
-
-	fprintf(stderr, "%s: could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
 	return -1;
+}
+
+static int BMO_opcode_from_opname_check(const char *opname)
+{
+	int i = BMO_opcode_from_opname(opname);
+	if (i == -1)
+		fprintf(stderr, "%s: could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
+	return i;
 }
 
 /**
@@ -1628,10 +1634,11 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
 
 	fmt += i + (noslot ? 0 : 1);
 	
-	i = bmo_opname_to_opcode(opname);
+	i = BMO_opcode_from_opname_check(opname);
 
 	if (i == -1) {
 		MEM_freeN(ofmt);
+		BLI_assert(0);
 		return false;
 	}
 

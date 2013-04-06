@@ -1718,6 +1718,22 @@ static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
+PyDoc_STRVAR(bpy_bmface_calc_center_mean_weighted_doc,
+".. method:: calc_center_median_weighted()\n"
+"\n"
+"   Return median center of the face weighted by edge lengths.\n"
+"\n"
+"   :return: a 3D vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmface_calc_center_mean_weighted(BPy_BMFace *self)
+{
+	float cent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_calc_center_mean_weighted(self->f, cent);
+	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
+}
 
 PyDoc_STRVAR(bpy_bmface_calc_center_bounds_doc,
 ".. method:: calc_center_bounds()\n"
@@ -2573,6 +2589,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
 	{"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
 	{"calc_perimeter",     (PyCFunction)bpy_bmface_calc_perimeter,     METH_NOARGS, bpy_bmface_calc_perimeter_doc},
 	{"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
+	{"calc_center_median_weighted", (PyCFunction)bpy_bmface_calc_center_mean_weighted, METH_NOARGS, bpy_bmface_calc_center_mean_weighted_doc},
 	{"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
 
 	{"normal_update",  (PyCFunction)bpy_bmface_normal_update,  METH_NOARGS,  bpy_bmface_normal_update_doc},

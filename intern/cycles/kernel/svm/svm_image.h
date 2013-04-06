@@ -50,7 +50,7 @@ __device_inline float svm_image_texture_frac(float x, int *ix)
 	return x - (float)i;
 }
 
-__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb)
+__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 	/* first slots are used by float textures, which are not supported here */
 	if(id < TEX_NUM_FLOAT_IMAGES)
@@ -88,6 +88,13 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 	r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
 	r += ty*tx*svm_image_texture_read(kg, offset + nix + niy*width);
 
+	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
+		float invw = 1.0f/r.w;
+		r.x *= invw;
+		r.y *= invw;
+		r.z *= invw;
+	}
+
 	if(srgb) {
 		r.x = color_srgb_to_scene_linear(r.x);
 		r.y = color_srgb_to_scene_linear(r.y);
@@ -99,7 +106,7 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 
 #else
 
-__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb)
+__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 	float4 r;
 
@@ -222,6 +229,13 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 	}
 #endif
 
+	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
+		float invw = 1.0f/r.w;
+		r.x *= invw;
+		r.y *= invw;
+		r.z *= invw;
+	}
+
 	if(srgb) {
 		r.x = color_srgb_to_scene_linear(r.x);
 		r.y = color_srgb_to_scene_linear(r.y);
@@ -241,7 +255,8 @@ __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack
 	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
-	float4 f = svm_image_texture(kg, id, co.x, co.y, srgb);
+	uint use_alpha = stack_valid(alpha_offset);
+	float4 f = svm_image_texture(kg, id, co.x, co.y, srgb, use_alpha);
 
 	if(stack_valid(out_offset))
 		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
@@ -322,13 +337,14 @@ __device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *s
 	uint id = node.y;
 
 	float4 f = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	uint use_alpha = stack_valid(alpha_offset);
 
 	if(weight.x > 0.0f)
-		f += weight.x*svm_image_texture(kg, id, co.y, co.z, srgb);
+		f += weight.x*svm_image_texture(kg, id, co.y, co.z, srgb, use_alpha);
 	if(weight.y > 0.0f)
-		f += weight.y*svm_image_texture(kg, id, co.x, co.z, srgb);
+		f += weight.y*svm_image_texture(kg, id, co.x, co.z, srgb, use_alpha);
 	if(weight.z > 0.0f)
-		f += weight.z*svm_image_texture(kg, id, co.y, co.x, srgb);
+		f += weight.z*svm_image_texture(kg, id, co.y, co.x, srgb, use_alpha);
 
 	if(stack_valid(out_offset))
 		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
@@ -355,7 +371,8 @@ __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float 
 	else
 		uv = direction_to_mirrorball(co);
 
-	float4 f = svm_image_texture(kg, id, uv.x, uv.y, srgb);
+	uint use_alpha = stack_valid(alpha_offset);
+	float4 f = svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
 
 	if(stack_valid(out_offset))
 		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));

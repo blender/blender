@@ -27,9 +27,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "BKE_cloth.h"
-#include "BKE_modifier.h"
-
 #include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -37,6 +34,9 @@
 #include "RNA_define.h"
 
 #include "rna_internal.h"
+
+#include "BKE_cloth.h"
+#include "BKE_modifier.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

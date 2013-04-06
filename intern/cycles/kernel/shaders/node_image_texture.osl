@@ -19,9 +19,12 @@
 #include "stdosl.h"
 #include "node_color.h"
 
-color image_texture_lookup(string filename, string color_space, float u, float v, output float Alpha)
+color image_texture_lookup(string filename, string color_space, float u, float v, output float Alpha, int use_alpha)
 {
 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", "periodic", "alpha", Alpha);
+
+	if (use_alpha)
+		rgb = color_unpremultiply(rgb, Alpha);
 
 	if (color_space == "sRGB")
 		rgb = color_srgb_to_scene_linear(rgb);
@@ -44,9 +47,11 @@ shader node_image_texture(
 
 	if (use_mapping)
 		p = transform(mapping, p);
+	
+	int use_alpha = isconnected(Alpha);
 
 	if (projection == "Flat") {
-		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha);
+		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha, use_alpha);
 	}
 	else if (projection == "Box") {
 		/* object space normal */
@@ -111,15 +116,15 @@ shader node_image_texture(
 		float tmp_alpha;
 
 		if (weight[0] > 0.0) {
-			Color += weight[0] * image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha);
+			Color += weight[0] * image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha, use_alpha);
 			Alpha += weight[0] * tmp_alpha;
 		}
 		if (weight[1] > 0.0) {
-			Color += weight[1] * image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha);
+			Color += weight[1] * image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha, use_alpha);
 			Alpha += weight[1] * tmp_alpha;
 		}
 		if (weight[2] > 0.0) {
-			Color += weight[2] * image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha);
+			Color += weight[2] * image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha, use_alpha);
 			Alpha += weight[2] * tmp_alpha;
 		}
 	}

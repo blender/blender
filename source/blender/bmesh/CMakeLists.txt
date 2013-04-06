@@ -54,6 +54,7 @@ set(SRC
 	operators/bmo_join_triangles.c
 	operators/bmo_mesh_conv.c
 	operators/bmo_mirror.c
+	operators/bmo_poke.c
 	operators/bmo_primitive.c
 	operators/bmo_removedoubles.c
 	operators/bmo_similar.c

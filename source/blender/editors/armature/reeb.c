@@ -26,12 +26,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
+
+#include "BKE_context.h"
 
 #include "reeb.h"
 
