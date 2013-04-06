@@ -2565,7 +2565,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         if with_freestyle:
             col.prop(mesh, "show_freestyle_edge_marks", text="Edge Marks")
             col.prop(mesh, "show_freestyle_face_marks", text="Face Marks")
-        
+
         col = layout.column()
 
         col.separator()
