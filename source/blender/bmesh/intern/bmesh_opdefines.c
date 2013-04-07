@@ -1533,6 +1533,7 @@ static BMOpDefine bmo_inset_region_def = {
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
 	 {"use_boundary", BMO_OP_SLOT_BOOL},
 	 {"use_even_offset", BMO_OP_SLOT_BOOL},
+	 {"use_interpolate", BMO_OP_SLOT_BOOL},
 	 {"use_relative_offset", BMO_OP_SLOT_BOOL},
 	 {"thickness", BMO_OP_SLOT_FLT},
 	 {"depth", BMO_OP_SLOT_FLT},

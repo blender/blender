@@ -209,9 +209,9 @@ static int edbm_inset_calc(wmOperator *op)
 	}
 	else {
 		EDBM_op_init(em, &bmop, op,
-		             "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b "
-		             "thickness=%f depth=%f use_outset=%b",
-		             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset,
+		             "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b"
+		             " use_interpolate=%b thickness=%f depth=%f use_outset=%b",
+		             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_interpolate,
 		             thickness, depth, use_outset);
 	}
 	BMO_op_exec(em->bm, &bmop);

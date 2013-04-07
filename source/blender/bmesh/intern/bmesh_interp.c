@@ -167,29 +167,18 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
  *
  * \note Only handles loop customdata. multires is handled.
  */
-void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
+void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source,
+                                 void **blocks, float (*cos_2d)[2], float axis_mat[3][3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
-	void **blocks   = BLI_array_alloca(blocks, source->len);
-	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
-	float *w        = BLI_array_alloca(w,      source->len);
-	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
+	float *w = BLI_array_alloca(w, source->len);
 	float co[2];
 	int i;
 
-	/* convert the 3d coords into 2d for projection */
-	axis_dominant_v3_to_m3(axis_mat, source->no);
-
-	BM_elem_attrs_copy(bm, bm, source, target);
-
-	i = 0;
-	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
-	do {
-		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
-		blocks[i] = l_iter->head.data;
-	} while (i++, (l_iter = l_iter->next) != l_first);
+	if (source != target)
+		BM_elem_attrs_copy(bm, bm, source, target);
 
 	/* interpolate */
 	i = 0;
@@ -199,6 +188,31 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 		interp_weights_poly_v2(w, cos_2d, source->len, co);
 		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l_iter->head.data);
 	} while (i++, (l_iter = l_iter->next) != l_first);
+}
+
+void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	void **blocks   = BLI_array_alloca(blocks, source->len);
+	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
+	float *w        = BLI_array_alloca(w,      source->len);
+	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
+	int i;
+
+	/* convert the 3d coords into 2d for projection */
+	axis_dominant_v3_to_m3(axis_mat, source->no);
+
+	i = 0;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
+	do {
+		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
+		blocks[i] = l_iter->head.data;
+	} while (i++, (l_iter = l_iter->next) != l_first);
+
+	BM_face_interp_from_face_ex(bm, target, source,
+	                            blocks, cos_2d, axis_mat);
 }
 
 /**

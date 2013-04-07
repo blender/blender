@@ -32,6 +32,8 @@
 
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_memarena.h"
+#include "BKE_customdata.h"
 
 #include "bmesh.h"
 
@@ -243,6 +245,59 @@ typedef struct SplitEdgeInfo {
 	BMLoop *l;
 } SplitEdgeInfo;
 
+
+/**
+ * Interpolation, this is more complex for regions since we're not creating new faces
+ * and throwing away old ones, so instead, store face data needed for interpolation.
+ *
+ * \note This uses CustomData functions in quite a low-level way which should be
+ * avoided, but in this case its hard to do without storing a duplicate mesh. */
+
+/* just enough of a face to store interpolation data we can use once the inset is done */
+typedef struct InterpFace {
+	BMFace *f;
+	void **blocks;
+	float (*cos_2d)[2];
+	float axis_mat[3][3];
+} InterpFace;
+
+/* basically a clone of #BM_vert_interp_from_face */
+static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemArena *interp_arena)
+{
+	BMLoop *l_iter, *l_first;
+	void **blocks      = iface->blocks = BLI_memarena_alloc(interp_arena, sizeof(*iface->blocks) * f->len);
+	float (*cos_2d)[2] = iface->cos_2d = BLI_memarena_alloc(interp_arena, sizeof(*iface->cos_2d) * f->len);
+	void *axis_mat     = iface->axis_mat;
+	int i;
+
+	axis_dominant_v3_to_m3(axis_mat, f->no);
+
+	iface->f = f;
+
+	i = 0;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
+		blocks[i] = NULL;
+		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_iter->head.data, &blocks[i]);
+		/* if we were not modifying the loops later we would do... */
+		// blocks[i] = l_iter->head.data;
+
+		/* use later for index lookups */
+		BM_elem_index_set(l_iter, i); /* set_ok */
+	} while (i++, (l_iter = l_iter->next) != l_first);
+}
+static void bm_interp_face_free(InterpFace *iface, BMesh *bm)
+{
+	void **blocks = iface->blocks;
+	int i;
+
+	for (i = 0; i < iface->f->len; i++) {
+		CustomData_bmesh_free_block(&bm->ldata, &blocks[i]);
+	}
+}
+
+
 /**
  * return the tag loop where there is...
  * - only 1 tagged face attached to this edge.
@@ -298,6 +353,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	const bool use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
 	const bool use_even_boundry    = use_even_offset; /* could make own option */
 	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
+	const bool use_interpolate     = BMO_slot_bool_get(op->slots_in, "use_interpolate");
 	const float thickness          = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth              = BMO_slot_float_get(op->slots_in, "depth");
 
@@ -307,10 +363,23 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	SplitEdgeInfo *edge_info;
 	SplitEdgeInfo *es;
 
+	/* Interpolation Vars */
+	/* an array alligned with faces but only fill items which are used. */
+	InterpFace **iface_array = NULL;
+	int          iface_array_len;
+	MemArena *interp_arena = NULL;
+
 	BMVert *v;
 	BMEdge *e;
 	BMFace *f;
 	int i, j, k;
+
+	if (use_interpolate) {
+		interp_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+		/* warning, we could be more clever here and not over alloc */
+		iface_array = MEM_callocN(sizeof(*iface_array) * bm->totface, __func__);
+		iface_array_len = bm->totface;
+	}
 
 	if (use_outset == false) {
 		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
@@ -392,8 +461,21 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 		/* important to tag again here */
 		BM_elem_flag_enable(es->e_new->v1, BM_ELEM_TAG);
 		BM_elem_flag_enable(es->e_new->v2, BM_ELEM_TAG);
-	}
 
+
+		/* initialize interpolation vars */
+		/* this could go in its own loop,
+		 * only use the 'es->l->f' so we don't store loops for faces which have no mixed selection */
+		if (use_interpolate) {
+			const int j = BM_elem_index_get((f = es->l->f));
+			if (iface_array[j] == NULL) {
+				InterpFace *iface = BLI_memarena_alloc(interp_arena, sizeof(*iface));
+				bm_interp_face_store(iface, bm, f, interp_arena);
+				iface_array[j] = iface;
+			}
+		}
+		/* done interpolation */
+	}
 
 	/* show edge normals for debugging */
 #if 0
@@ -638,6 +720,16 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	if (use_interpolate) {
+		for (i = 0; i < iface_array_len; i++) {
+			if (iface_array[i]) {
+				InterpFace *iface = iface_array[i];
+				BM_face_interp_from_face_ex(bm, iface->f, iface->f,
+				                            iface->blocks, iface->cos_2d, iface->axis_mat);
+			}
+		}
+	}
+
 	/* create faces */
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
 		BMVert *varr[4] = {NULL};
@@ -704,10 +796,30 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 			l_b = l_a->next;
 
 			/* swap a<->b intentionally */
-			BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
-			BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
+			if (use_interpolate) {
+				InterpFace *iface = iface_array[BM_elem_index_get(es->l->f)];
+				const int i_a = BM_elem_index_get(l_a_other);
+				const int i_b = BM_elem_index_get(l_b_other);
+				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks[i_a], &l_b->head.data);
+				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks[i_b], &l_a->head.data);
+			}
+			else {
+				BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
+				BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
+			}
 		}
+	}
 #endif
+
+	if (use_interpolate) {
+		for (i = 0; i < iface_array_len; i++) {
+			if (iface_array[i]) {
+				bm_interp_face_free(iface_array[i], bm);
+			}
+		}
+
+		BLI_memarena_free(interp_arena);
+		MEM_freeN(iface_array);
 	}
 
 	/* we could flag new edges/verts too, is it useful? */
