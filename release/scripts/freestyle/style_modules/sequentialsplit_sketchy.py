@@ -23,7 +23,7 @@
 #             predicates to specify respectively the starting and
 #             the stopping extremities for strokes 
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, Nature, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, Nature, \
     Operators, QuantitativeInvisibilityUP1D, SpatialNoiseShader, TextureAssignerShader, TrueUP1D
 from PredicatesU0D import pyBackTVertexUP0D, pyVertexNatureUP0D
 from logical_operators import NotUP1D

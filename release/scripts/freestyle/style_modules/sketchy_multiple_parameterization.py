@@ -24,7 +24,7 @@
 #             whereas only the visible portions are actually drawn
 
 from ChainingIterators import pySketchyChainSilhouetteIterator
-from Freestyle import IncreasingColorShader, IncreasingThicknessShader, Operators, \
+from freestyle import IncreasingColorShader, IncreasingThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
     TextureAssignerShader, TrueUP1D
 from shaders import pyHLRShader

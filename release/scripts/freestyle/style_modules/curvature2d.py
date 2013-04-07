@@ -22,7 +22,7 @@
 #  Purpose  : The stroke points are colored in gray levels and depending
 #             on the 2d curvature value
 
-from Freestyle import ChainSilhouetteIterator, ConstantThicknessShader, Operators, \
+from freestyle import ChainSilhouetteIterator, ConstantThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, Stroke, StrokeTextureShader, TrueUP1D
 from logical_operators import NotUP1D
 from shaders import py2DCurvatureColorShader

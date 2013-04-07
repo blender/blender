@@ -21,7 +21,7 @@
 #  Date     : 08/04/2005
 #  Purpose  : Logical unary predicates (functors) for 1D elements
 
-from Freestyle import UnaryPredicate1D
+from freestyle import UnaryPredicate1D
 
 class AndUP1D(UnaryPredicate1D):
     def __init__(self, pred1, pred2):

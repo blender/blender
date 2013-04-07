@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Removes strokes extremities
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, TipRemoverShader, TrueUP1D
 from logical_operators import NotUP1D
 

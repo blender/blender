@@ -21,8 +21,8 @@
 #  Date     : 04/08/2005
 #  Purpose  : Chaining Iterators to be used with chaining operators
 
-from Freestyle import AdjacencyIterator, ChainingIterator, ExternalContourUP1D, Nature, TVertex
-from Freestyle import ContextFunctions as CF
+from freestyle import AdjacencyIterator, ChainingIterator, ExternalContourUP1D, Nature, TVertex
+from freestyle import ContextFunctions as CF
 
 ## the natural chaining iterator
 ## It follows the edges of same nature following the topology of

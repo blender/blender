@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Assigns to strokes a thickness that depends on the depth discontinuity
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 from logical_operators import NotUP1D
 from shaders import pyDepthDiscontinuityThicknessShader

@@ -262,7 +262,7 @@ else:
         "mathutils",
         "mathutils.geometry",
         "mathutils.noise",
-        "Freestyle",
+        "freestyle",
         ]
 
     # ------
@@ -1555,7 +1555,7 @@ def write_rst_contents(basepath):
         # mathutils
         "mathutils", "mathutils.geometry", "mathutils.noise",
         # misc
-        "Freestyle", "bgl", "blf", "gpu", "aud", "bpy_extras",
+        "freestyle", "bgl", "blf", "gpu", "aud", "bpy_extras",
         # bmesh, submodules are in own page
         "bmesh",
         )
@@ -1703,7 +1703,7 @@ def write_rst_importable_modules(basepath):
         "mathutils"         : "Math Types & Utilities",
         "mathutils.geometry": "Geometry Utilities",
         "mathutils.noise"   : "Noise Utilities",
-        "Freestyle"         : "Freestyle Data Types & Operators",
+        "freestyle"         : "Freestyle Data Types & Operators",
     }
     for mod_name, mod_descr in importable_modules.items():
         if mod_name not in EXCLUDE_MODULES:

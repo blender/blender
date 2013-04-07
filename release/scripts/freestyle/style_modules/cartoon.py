@@ -23,7 +23,7 @@
 #             infered from each object's material in a cartoon-like
 #             fashion.
 
-from Freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantThicknessShader, Operators, \
+from freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, TrueUP1D
 from logical_operators import NotUP1D
 from shaders import pyMaterialColorShader

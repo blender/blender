@@ -21,10 +21,10 @@
 #  Date     : 30/06/2005
 #  Purpose  : Functions (functors) to be used for 0D elements
 
-from Freestyle import Curvature2DAngleF0D, CurvePoint, ReadCompleteViewMapPixelF0D, \
+from freestyle import Curvature2DAngleF0D, CurvePoint, ReadCompleteViewMapPixelF0D, \
     ReadSteerableViewMapPixelF0D, UnaryFunction0DDouble, UnaryFunction0DMaterial, \
     UnaryFunction0DVec2f
-from Freestyle import ContextFunctions as CF
+from freestyle import ContextFunctions as CF
 
 import math
 import mathutils

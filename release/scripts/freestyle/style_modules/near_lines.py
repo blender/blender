@@ -22,7 +22,7 @@
 #  Purpose  : Draws the lines that are "closer" than a threshold 
 #             (between 0 and 1)
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     IntegrationType, Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
 from PredicatesU1D import pyZSmallerUP1D
 from logical_operators import AndUP1D, NotUP1D

@@ -28,7 +28,7 @@
 #             ******** The Directional a priori density maps must          ****** 
 #             ******** have been computed prior to using this style module ******
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, DensityF1D, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, DensityF1D, \
     IntegrationType, Operators, QuantitativeInvisibilityUP1D, SamplingShader, UnaryPredicate1D
 from PredicatesB1D import pyLengthBP1D
 from PredicatesU1D import pyHighDensityAnisotropyUP1D, pyHigherLengthUP1D

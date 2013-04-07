@@ -22,7 +22,7 @@
 #  Purpose  : Draws all lines whose Quantitative Invisibility 
 #             is different from 0
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 from logical_operators import NotUP1D
 

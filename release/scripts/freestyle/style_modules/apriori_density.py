@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws lines having a high a priori density
 
-from Freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, Operators, \
+from freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, TrueBP1D, TrueUP1D
 from PredicatesU1D import pyHighViewMapDensityUP1D
 from logical_operators import AndUP1D, NotUP1D

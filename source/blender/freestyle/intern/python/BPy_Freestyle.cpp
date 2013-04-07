@@ -482,7 +482,7 @@ static PyMethodDef module_functions[] = {
 
 static PyModuleDef module_definition = {
     PyModuleDef_HEAD_INIT,
-    "Freestyle",
+    "freestyle",
     module_docstring,
     -1,
     module_functions

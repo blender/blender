@@ -23,7 +23,7 @@
 #             *** Quantitative Invisibility must have been 
 #             enabled in the options dialog to use this style module ****
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 from logical_operators import NotUP1D
 

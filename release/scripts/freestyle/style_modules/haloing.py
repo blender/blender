@@ -24,7 +24,7 @@
 #             object and trims them in order to produce
 #             a haloing effect around the target shape
 
-from Freestyle import ChainSilhouetteIterator, Id, IncreasingColorShader, IncreasingThicknessShader, \
+from freestyle import ChainSilhouetteIterator, Id, IncreasingColorShader, IncreasingThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, TipRemoverShader, TrueUP1D
 from PredicatesU1D import pyIsOccludedByUP1D
 from logical_operators import AndUP1D, NotUP1D

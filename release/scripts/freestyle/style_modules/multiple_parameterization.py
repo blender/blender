@@ -27,7 +27,7 @@
 #             the strokes using a second parameterization that only
 #             covers the visible portions.
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingColorShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingColorShader, \
     IncreasingThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
     TextureAssignerShader, TrueUP1D
 from shaders import pyHLRShader

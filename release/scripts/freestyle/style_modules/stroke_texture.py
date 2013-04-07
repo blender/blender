@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws textured strokes (illustrate the StrokeTextureShader shader)
 
-from Freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
+from freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
     ConstantThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
     Stroke, StrokeTextureShader, TrueUP1D
 from logical_operators import NotUP1D

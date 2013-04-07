@@ -21,7 +21,7 @@
 #  Date     : 08/04/2005
 #  Purpose  : Functions (functors) to be used for 1D elements
 
-from Freestyle import GetProjectedZF1D, IntegrationType, UnaryFunction1DDouble, integrate
+from freestyle import GetProjectedZF1D, IntegrationType, UnaryFunction1DDouble, integrate
 from Functions0D import pyDensityAnisotropyF0D, pyViewMapGradientNormF0D
 import string 
 

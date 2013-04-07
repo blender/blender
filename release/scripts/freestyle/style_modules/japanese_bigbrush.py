@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Simulates a big brush fr oriental painting
 
-from Freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
+from freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
     ConstantThicknessShader, IntegrationType, Operators, QuantitativeInvisibilityUP1D, \
     SamplingShader, TextureAssignerShader, TipRemoverShader
 from Functions0D import pyInverseCurvature2DAngleF0D

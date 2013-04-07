@@ -24,7 +24,7 @@
 #             and, second, so as to chain several times the same ViewEdge.
 
 from ChainingIterators import pySketchyChainingIterator
-from Freestyle import IncreasingColorShader, IncreasingThicknessShader, Operators, \
+from freestyle import IncreasingColorShader, IncreasingThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
     TextureAssignerShader, TrueUP1D
 from shaders import pyBackboneStretcherNoCuspShader

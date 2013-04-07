@@ -25,7 +25,7 @@
 #             The suggestive contours must have been enabled in the 
 #             options dialog to appear in the View Map.
 
-from Freestyle import ChainSilhouetteIterator, IncreasingColorShader, \
+from freestyle import ChainSilhouetteIterator, IncreasingColorShader, \
     IncreasingThicknessShader, Nature, Operators, TrueUP1D
 from PredicatesU1D import pyNatureUP1D
 from logical_operators import NotUP1D

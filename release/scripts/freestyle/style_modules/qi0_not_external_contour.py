@@ -22,7 +22,7 @@
 #  Purpose  : Draws the visible lines (chaining follows same nature lines)
 #             that do not belong to the external contour of the scene
 
-from Freestyle import BackboneStretcherShader, ChainSilhouetteIterator, ExternalContourUP1D, \
+from freestyle import BackboneStretcherShader, ChainSilhouetteIterator, ExternalContourUP1D, \
     IncreasingColorShader, IncreasingThicknessShader, Operators, QuantitativeInvisibilityUP1D, \
     SamplingShader, SpatialNoiseShader, TextureAssignerShader, TrueUP1D
 from logical_operators import AndUP1D, NotUP1D

@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws the external contour of the scene
 
-from Freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, \
     ExternalContourUP1D, Operators, QuantitativeInvisibilityUP1D, TrueBP1D, TrueUP1D
 from logical_operators import AndUP1D, NotUP1D
 

@@ -21,13 +21,13 @@
 #  Date     : 26/07/2010
 #  Purpose  : Interactive manipulation of stylization parameters
 
-import Freestyle
+import freestyle
 import math
 import mathutils
 import time
 
 from ChainingIterators import pySketchyChainSilhouetteIterator, pySketchyChainingIterator
-from Freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicate1D, ChainPredicateIterator, \
+from freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicate1D, ChainPredicateIterator, \
     ChainSilhouetteIterator, ConstantColorShader, ContourUP1D, Curvature2DAngleF0D, ExternalContourUP1D, \
     FalseBP1D, FalseUP1D, GuidingLinesShader, Interface0DIterator, Nature, Noise, Normal2DF0D, Operators, \
     PolygonalizationShader, QuantitativeInvisibilityF1D, QuantitativeInvisibilityUP1D, SamplingShader, \
@@ -45,11 +45,11 @@ class ColorRampModifier(StrokeShader):
         self.__influence = influence
         self.__ramp = ramp
     def evaluate(self, t):
-        col = Freestyle.evaluateColorRamp(self.__ramp, t)
+        col = freestyle.evaluateColorRamp(self.__ramp, t)
         col = col.xyz # omit alpha
         return col
     def blend_ramp(self, a, b):
-        return Freestyle.blendRamp(self.__blend, a, self.__influence, b)
+        return freestyle.blendRamp(self.__blend, a, self.__influence, b)
 
 class ScalarBlendModifier(StrokeShader):
     def __init__(self, blend, influence):
@@ -96,13 +96,13 @@ class CurveMappingModifier(ScalarBlendModifier):
             return 1.0 - t
         return t
     def CURVE(self, t):
-        return Freestyle.evaluateCurveMappingF(self.__curve, 0, t)
+        return freestyle.evaluateCurveMappingF(self.__curve, 0, t)
     def evaluate(self, t):
         return self.__mapping(t)
 
 class ThicknessModifierMixIn:
     def __init__(self):
-        scene = Freestyle.getCurrentScene()
+        scene = freestyle.getCurrentScene()
         self.__persp_camera = (scene.camera.data.type == "PERSP")
     def set_thickness(self, sv, outer, inner):
         fe = sv.first_svertex.get_fedge(sv.second_svertex)
@@ -280,7 +280,7 @@ class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModif
 # Distance from Object modifiers
 
 def iter_distance_from_object(stroke, object, range_min, range_max):
-    scene = Freestyle.getCurrentScene()
+    scene = freestyle.getCurrentScene()
     mv = scene.camera.matrix_world.copy() # model-view matrix
     mv.invert()
     loc = mv * object.location # loc in the camera coordinate
@@ -976,7 +976,7 @@ _seed = Seed()
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
-    scene = Freestyle.getCurrentScene()
+    scene = freestyle.getCurrentScene()
     layer = scene.render.layers[layer_name]
     lineset = layer.freestyle_settings.linesets[lineset_name]
     linestyle = lineset.linestyle

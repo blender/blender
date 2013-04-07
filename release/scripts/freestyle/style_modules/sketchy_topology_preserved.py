@@ -24,7 +24,7 @@
 #             The topology of the objects is preserved
 
 from ChainingIterators import pySketchyChainSilhouetteIterator
-from Freestyle import ConstantColorShader, IncreasingThicknessShader, Operators, \
+from freestyle import ConstantColorShader, IncreasingThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
     TextureAssignerShader, TrueUP1D
 

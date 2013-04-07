@@ -22,7 +22,7 @@
 #  Purpose  : The strokes are drawn through small occlusions
 
 from ChainingIterators import pyFillOcclusionsAbsoluteChainingIterator
-from Freestyle import ConstantColorShader, ConstantThicknessShader, Operators, \
+from freestyle import ConstantColorShader, ConstantThicknessShader, Operators, \
     QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 
 Operators.select(QuantitativeInvisibilityUP1D(0))

@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Make the strokes more "polygonal"
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     Operators, PolygonalizationShader, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 from logical_operators import NotUP1D
 

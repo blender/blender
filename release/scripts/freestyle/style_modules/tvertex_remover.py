@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Removes TVertices
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 from logical_operators import NotUP1D
 from shaders import pyTVertexRemoverShader

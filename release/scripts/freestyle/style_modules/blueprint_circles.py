@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Produces a blueprint using circular contour strokes
 
-from Freestyle import ChainPredicateIterator, ConstantThicknessShader, ContourUP1D, IncreasingColorShader, \
+from freestyle import ChainPredicateIterator, ConstantThicknessShader, ContourUP1D, IncreasingColorShader, \
     Operators, QuantitativeInvisibilityUP1D, SameShapeIdBP1D, TextureAssignerShader, TrueUP1D
 from PredicatesU1D import pyHigherLengthUP1D
 from logical_operators import AndUP1D, NotUP1D

@@ -21,10 +21,10 @@
 #  Date     : 11/08/2005
 #  Purpose  : Stroke shaders to be used for creation of stylized strokes
 
-from Freestyle import AdjacencyIterator, Curvature2DAngleF0D, DensityF0D, GetProjectedZF0D, \
+from freestyle import AdjacencyIterator, Curvature2DAngleF0D, DensityF0D, GetProjectedZF0D, \
     Interface0DIterator, MaterialF0D, Nature, Noise, Normal2DF0D, Orientation2DF1D, \
     StrokeAttribute, StrokeShader, StrokeVertexIterator, ZDiscontinuityF0D
-from Freestyle import ContextFunctions as CF
+from freestyle import ContextFunctions as CF
 from PredicatesU0D import pyVertexNatureUP0D
 
 import math

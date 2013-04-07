@@ -23,7 +23,7 @@
 #             subjects them to the causal density so as to avoid 
 #             cluttering
 
-from Freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
+from freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
     Operators, QuantitativeInvisibilityUP1D, TrueBP1D
 from PredicatesU1D import pyDensityUP1D, pyHighViewMapDensityUP1D
 from logical_operators import AndUP1D, NotUP1D

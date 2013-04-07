@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws a smooth external contour
 
-from Freestyle import ChainPredicateIterator, ExternalContourUP1D, IncreasingColorShader, \
+from freestyle import ChainPredicateIterator, ExternalContourUP1D, IncreasingColorShader, \
     IncreasingThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
     SmoothingShader, TrueBP1D, TrueUP1D
 from logical_operators import AndUP1D, NotUP1D

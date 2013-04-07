@@ -22,7 +22,7 @@
 #  Purpose  : Draws the visible lines (chaining follows same nature lines)
 #             (most basic style module)
 
-from Freestyle import ChainSilhouetteIterator, ConstantThicknessShader, IncreasingColorShader, \
+from freestyle import ChainSilhouetteIterator, ConstantThicknessShader, IncreasingColorShader, \
     Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
 from Functions0D import pyInverseCurvature2DAngleF0D
 from PredicatesU0D import pyParameterUP0D

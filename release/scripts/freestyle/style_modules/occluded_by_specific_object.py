@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws only the lines that are occluded by a given object
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
     Id, Operators, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
 from PredicatesU1D import pyIsInOccludersListUP1D
 from logical_operators import AndUP1D, NotUP1D

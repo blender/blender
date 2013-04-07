@@ -21,7 +21,7 @@
 #  Date     : 08/04/2005
 #  Purpose  : Unary predicates (functors) to be used for 0D elements
 
-from Freestyle import Curvature2DAngleF0D, Nature, QuantitativeInvisibilityF0D, UnaryPredicate0D
+from freestyle import Curvature2DAngleF0D, Nature, QuantitativeInvisibilityF0D, UnaryPredicate0D
 from Functions0D import pyCurvilinearLengthF0D
 
 class pyHigherCurvature2DAngleUP0D(UnaryPredicate0D):

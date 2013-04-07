@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws each object's visible contour
 
-from Freestyle import ChainPredicateIterator, ConstantThicknessShader, ContourUP1D, IncreasingColorShader, \
+from freestyle import ChainPredicateIterator, ConstantThicknessShader, ContourUP1D, IncreasingColorShader, \
     Operators, QuantitativeInvisibilityUP1D, SameShapeIdBP1D, TrueUP1D
 from logical_operators import AndUP1D, NotUP1D
 

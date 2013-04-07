@@ -23,7 +23,7 @@
 #             ***** The suggestive contours must be enabled
 #             in the options dialog *****
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, \
     Nature, Operators, QuantitativeInvisibilityUP1D, TrueUP1D
 from PredicatesU1D import pyNatureUP1D
 from logical_operators import AndUP1D, NotUP1D

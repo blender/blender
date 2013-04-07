@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws strokes that starts and stops at Tvertices (visible or not)
 
-from Freestyle import ChainSilhouetteIterator, ConstantThicknessShader, IncreasingColorShader, \
+from freestyle import ChainSilhouetteIterator, ConstantThicknessShader, IncreasingColorShader, \
     Nature, Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
 from PredicatesU0D import pyVertexNatureUP0D
 from logical_operators import NotUP1D

@@ -21,7 +21,7 @@
 #  Date     : 08/04/2005
 #  Purpose  : Binary predicates (functors) to be used for 1D elements
 
-from Freestyle import BinaryPredicate1D, GetZF1D, IntegrationType, Nature, SameShapeIdBP1D, ZDiscontinuityF1D
+from freestyle import BinaryPredicate1D, GetZF1D, IntegrationType, Nature, SameShapeIdBP1D, ZDiscontinuityF1D
 from Functions1D import pyViewMapGradientNormF1D
 
 import random

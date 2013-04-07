@@ -20,7 +20,7 @@
 #  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
 #  Date     : 08/04/2005
 
-from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
+from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, Stroke, StrokeTextureShader
 from PredicatesB1D import pyZBP1D
 from PredicatesU1D import pyDensityUP1D

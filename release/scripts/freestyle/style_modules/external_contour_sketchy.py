@@ -24,7 +24,7 @@
 #             several times
 
 from ChainingIterators import pySketchyChainingIterator
-from Freestyle import ExternalContourUP1D, IncreasingColorShader, IncreasingThicknessShader, \
+from freestyle import ExternalContourUP1D, IncreasingColorShader, IncreasingThicknessShader, \
     Operators, QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
     TextureAssignerShader, TrueUP1D
 from logical_operators import AndUP1D, NotUP1D
