@@ -156,13 +156,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 			BMFace *f_new_inner;
 			/* Create New Inset Faces */
 			f_new_inner = BM_face_create(bm, f_verts, f_edges, f->len, 0);
-			if (UNLIKELY(f_new_inner == NULL)) {
-				BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Inset failed: could not create inner face.");
-				BLI_array_free(f_edges);
-				BLI_array_free(f_verts);
-				BLI_array_free(eiinfo_arr);
-				return;
-			}
+			BLI_assert(f_new_inner != NULL);  /* no reason it should fail */
 
 			/* Copy Face Data */
 			BM_elem_attrs_copy(bm, bm, f, f_new_inner);
@@ -192,13 +186,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 			                                      l_iter_inner->v,
 			                                      f, false);
 
-			if (UNLIKELY(f_new_outer == NULL)) {
-				BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Inset failed: could not create an outer face.");
-				BLI_array_free(f_edges);
-				BLI_array_free(f_verts);
-				BLI_array_free(eiinfo_arr);
-				return;
-			}
+			BLI_assert(f_new_outer != NULL);  /* no reason it should fail */
 
 			BM_elem_attrs_copy(bm, bm, f, f_new_outer);
 			BMO_elem_flag_enable(bm, f_new_outer, ELE_NEW);
