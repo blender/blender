@@ -4591,7 +4591,6 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 {
 	Scene *scene = t->scene;
-	float obmtx[3][3];
 	bool constinv;
 	bool skip_invert = false;
 
@@ -4691,7 +4690,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	/* is there a need to set the global<->data space conversion matrices? */
 	if (ob->parent || constinv) {
-		float totmat[3][3], obinv[3][3];
+		float obmtx[3][3], totmat[3][3], obinv[3][3];
 
 		/* Get the effect of parenting, and/or certain constraints.
 		 * NOTE: some Constraints, and also Tracking should never get this
