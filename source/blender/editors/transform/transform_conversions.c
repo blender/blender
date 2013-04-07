@@ -4596,23 +4596,28 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	if (t->mode != TFM_DUMMY && ob->rigidbody_object) {
 		float rot[3][3], scale[3];
+		float ctime = BKE_scene_frame_get(scene);
 
-		/* save original object transform */
-		copy_v3_v3(td->ext->oloc, ob->loc);
+		/* only use rigid body transform if simulation is running, avoids problems with initial setup of rigid bodies */
+		if (BKE_rigidbody_check_sim_running(scene->rigidbody_world, ctime)) {
 
-		if (ob->rotmode > 0) {
-			copy_v3_v3(td->ext->orot, ob->rot);
+			/* save original object transform */
+			copy_v3_v3(td->ext->oloc, ob->loc);
+
+			if (ob->rotmode > 0) {
+				copy_v3_v3(td->ext->orot, ob->rot);
+			}
+			else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				td->ext->orotAngle = ob->rotAngle;
+				copy_v3_v3(td->ext->orotAxis, ob->rotAxis);
+			}
+			else {
+				copy_qt_qt(td->ext->oquat, ob->quat);
+			}
+			/* update object's loc/rot to get current rigid body transform */
+			mat4_to_loc_rot_size(ob->loc, rot, scale, ob->obmat);
+			BKE_object_mat3_to_rot(ob, rot, FALSE);
 		}
-		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-			td->ext->orotAngle = ob->rotAngle;
-			copy_v3_v3(td->ext->orotAxis, ob->rotAxis);
-		}
-		else {
-			copy_qt_qt(td->ext->oquat, ob->quat);
-		}
-		/* update object's loc/rot to get current rigid body transform */
-		mat4_to_loc_rot_size(ob->loc, rot, scale, ob->obmat);
-		BKE_object_mat3_to_rot(ob, rot, FALSE);
 	}
 
 	/* axismtx has the real orientation */
@@ -5571,8 +5576,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					recalcObPaths = 1;
 			}
 			/* restore rigid body transform */
-			if (ob->rigidbody_object && canceled)
-				BKE_rigidbody_aftertrans_update(ob, td->ext->oloc, td->ext->orot, td->ext->oquat, td->ext->orotAxis, td->ext->orotAngle);
+			if (ob->rigidbody_object && canceled) {
+				float ctime = BKE_scene_frame_get(t->scene);
+				if (BKE_rigidbody_check_sim_running(t->scene->rigidbody_world, ctime))
+					BKE_rigidbody_aftertrans_update(ob, td->ext->oloc, td->ext->orot, td->ext->oquat, td->ext->orotAxis, td->ext->orotAngle);
+			}
 		}
 		
 		/* recalculate motion paths for objects (if necessary) 

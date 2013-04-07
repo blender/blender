@@ -1148,6 +1148,12 @@ static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 		}
 	}
 }
+
+bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
+{
+	return (rbw && (rbw->flag & RBW_FLAG_MUTED) == 0 && ctime > rbw->pointcache->startframe);
+}
+
 /* Sync rigid body and object transformations */
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 {
@@ -1158,12 +1164,8 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 		return;
 
 	/* use rigid body transform after cache start frame if objects is not being transformed */
-	if (ctime > rbw->pointcache->startframe && !(ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
+	if (BKE_rigidbody_check_sim_running(rbw, ctime) && !(ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
 		float mat[4][4], size_mat[4][4], size[3];
-
-		/* keep original transform when the simulation is muted */
-		if (rbw->flag & RBW_FLAG_MUTED)
-			return;
 
 		normalize_qt(rbo->orn); // RB_TODO investigate why quaternion isn't normalized at this point
 		quat_to_mat4(mat, rbo->orn);
@@ -1337,6 +1339,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob) {}
 void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
+bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime) { return false; }
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
 void BKE_rigidbody_rebuild_world(Scene *scene, float ctime) {}
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
