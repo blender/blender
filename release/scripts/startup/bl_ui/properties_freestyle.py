@@ -19,20 +19,21 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel, UIList
-from bl_ui.properties_render import RenderButtonsPanel
-from bl_ui.properties_render_layer import RenderLayerButtonsPanel
 
 
 # Render properties
 
-class RenderFreestyleButtonsPanel(RenderButtonsPanel):
+class RenderFreestyleButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "render"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     @classmethod
     def poll(cls, context):
-        if not super().poll(context):
-            return False
-        return bpy.app.build_options.freestyle
+        scene = context.scene
+        with_freestyle = bpy.app.build_options.freestyle
+        return scene and with_freestyle and(scene.render.engine in cls.COMPAT_ENGINES)
 
 
 class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
@@ -45,30 +46,37 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
         self.layout.prop(rd, "use_freestyle", text="")
 
     def draw(self, context):
+        layout = self.layout
+        
         rd = context.scene.render
 
-        layout = self.layout
         layout.active = rd.use_freestyle
 
         row = layout.row()
         row.label(text="Line Thickness:")
         row.prop(rd, "line_thickness_mode", expand=True)
+        
         row = layout.row()
         row.active = (rd.line_thickness_mode == 'ABSOLUTE')
         row.prop(rd, "unit_line_thickness")
 
 
 # Render layer properties
-
-class RenderLayerFreestyleButtonsPanel(RenderLayerButtonsPanel):
+        
+class RenderLayerFreestyleButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "render_layer"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     @classmethod
     def poll(cls, context):
-        if not super().poll(context):
-            return False
+        scene = context.scene
         rd = context.scene.render
-        return bpy.app.build_options.freestyle and rd.use_freestyle and rd.layers.active
+        with_freestyle = bpy.app.build_options.freestyle
+        
+        return (scene and with_freestyle and rd.use_freestyle
+            and rd.layers.active and(scene.render.engine in cls.COMPAT_ENGINES))
 
 
 class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):
@@ -92,17 +100,6 @@ class RENDERLAYER_UL_linesets(UIList):
             layout.alignment = 'CENTER'
             layout.label("", icon_value=icon)
 
-##ifdef WITH_FREESTYLE
-#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) ||
-#	         RNA_struct_is_a(itemptr->type, &RNA_FreestyleLineSet)) {
-##else
-#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
-##endif
-#		uiItemL(sub, name, icon);
-#		uiBlockSetEmboss(block, UI_EMBOSS);
-#		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
-#	}
-
 
 class RENDER_MT_lineset_specials(Menu):
     bl_label = "Lineset Specials"
@@ -118,42 +115,42 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
+        layout = self.layout
+        
         rd = context.scene.render
         rl = rd.layers.active
         freestyle = rl.freestyle_settings
 
-        layout = self.layout
         layout.active = rl.use_freestyle
+        
         layout.prop(freestyle, "mode", text="Control mode")
-
-        col = layout.column()
-        col.label(text="Edge Detection Options:")
-        split = col.split()
-        sub = split.column()
-        sub.prop(freestyle, "crease_angle")
-        sub.prop(freestyle, "use_culling")
-        sub = split.column()
-        sub.prop(freestyle, "use_smoothness")
-        sub.prop(freestyle, "use_material_boundaries")
+        layout.label(text="Edge Detection Options:")
+        
+        split = layout.split()
+        
+        col = split.column()
+        col.prop(freestyle, "crease_angle")
+        col.prop(freestyle, "use_culling")
         col.prop(freestyle, "use_advanced_options")
+        
+        col = split.column()
+        col.prop(freestyle, "use_smoothness")
+        col.prop(freestyle, "use_material_boundaries")
+        
         # Advanced options are hidden by default to warn new users
         if freestyle.use_advanced_options:
-            split = col.split()
-            sub = split.column()
-            sub.active = freestyle.use_advanced_options
             if freestyle.mode == 'SCRIPT':
-                sub.prop(freestyle, "use_ridges_and_valleys")
-            sub.prop(freestyle, "sphere_radius")
-            sub = split.column()
-            sub.active = freestyle.use_advanced_options
-            if freestyle.mode == 'SCRIPT':
-                sub.prop(freestyle, "use_suggestive_contours")
-            sub.prop(freestyle, "kr_derivative_epsilon")
+                row = layout.row()
+                row.prop(freestyle, "use_ridges_and_valleys")
+                row.prop(freestyle, "use_suggestive_contours")
+            row = layout.row()
+            row.prop(freestyle, "sphere_radius")
+            row.prop(freestyle, "kr_derivative_epsilon")
 
         if freestyle.mode == 'SCRIPT':
-            split = layout.split()
-            split.label("Style modules:")
-            split.operator("scene.freestyle_module_add", text="Add")
+            row = layout.row()
+            row.label("Style modules:")
+            row.operator("scene.freestyle_module_add", text="Add")
             for i, module in enumerate(freestyle.modules):
                 box = layout.box()
                 box.context_pointer_set("freestyle_module", module)
@@ -181,31 +178,30 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
         sub.active = getattr(lineset, select_edge_type)
 
     def draw(self, context):
+        layout = self.layout
+        
         rd = context.scene.render
         rl = rd.layers.active
         freestyle = rl.freestyle_settings
         lineset = freestyle.linesets.active
 
-        layout = self.layout
         layout.active = rl.use_freestyle
 
-        col = layout.column()
-        row = col.row()
+        row = layout.row()
         rows = 5 if lineset else 2
         row.template_list("RENDERLAYER_UL_linesets", "", freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
-        sub = row.column()
-        subsub = sub.column(align=True)
-        subsub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
-        subsub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
-        subsub.menu("RENDER_MT_lineset_specials", icon='DOWNARROW_HLT', text="")
+        sub = row.column(align=True)
+        sub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
+        sub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
+        sub.menu("RENDER_MT_lineset_specials", icon='DOWNARROW_HLT', text="")
         if lineset:
             sub.separator()
-            subsub = sub.column(align=True)
-            subsub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
-            subsub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            sub.separator()
+            sub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
+            sub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            col.prop(lineset, "name")
+            layout.prop(lineset, "name")
 
             col = layout.column()
             col.label(text="Selection By:")
@@ -232,12 +228,14 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
                 row.prop(lineset, "edge_type_combination", expand=True)
 
                 split = col.split()
+                
                 sub = split.column()
                 self.draw_edge_type_buttons(sub, lineset, "silhouette")
                 self.draw_edge_type_buttons(sub, lineset, "border")
                 self.draw_edge_type_buttons(sub, lineset, "contour")
                 self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
                 self.draw_edge_type_buttons(sub, lineset, "ridge_valley")
+                
                 sub = split.column()
                 self.draw_edge_type_buttons(sub, lineset, "crease")
                 self.draw_edge_type_buttons(sub, lineset, "edge_mark")
@@ -514,11 +512,12 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 box.prop(modifier, "angle")
 
     def draw(self, context):
+        layout = self.layout
+        
         rd = context.scene.render
         rl = rd.layers.active
         lineset = rl.freestyle_settings.linesets.active
 
-        layout = self.layout
         layout.active = rl.use_freestyle
 
         if lineset is None:
