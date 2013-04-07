@@ -74,6 +74,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 	const float thickness = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth = BMO_slot_float_get(op->slots_in, "depth");
 	const bool use_even_offset = BMO_slot_bool_get(op->slots_in, "use_even_offset");
+	const bool use_interpolate = BMO_slot_bool_get(op->slots_in, "use_interpolate");
 
 	/* Only tag faces in slot */
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
@@ -81,6 +82,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 
 	BMO_ITER(f, &oiter, op->slots_in, "faces", BM_FACE) {
+		BMFace *f_new_inner;
 		BMLoop *l_iter, *l_first;
 		BMLoop *l_iter_inner = NULL;
 		int i;
@@ -152,20 +154,26 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 			copy_v3_v3(eiinfo_arr[index].e_new->v1->co, v_new_co);
 		} while ((l_iter = l_iter->next) != l_first);
 
-		{
-			BMFace *f_new_inner;
-			/* Create New Inset Faces */
-			f_new_inner = BM_face_create(bm, f_verts, f_edges, f->len, 0);
-			BLI_assert(f_new_inner != NULL);  /* no reason it should fail */
 
-			/* Copy Face Data */
+		/* Create New Inset Faces */
+		f_new_inner = BM_face_create(bm, f_verts, f_edges, f->len, 0);
+		BLI_assert(f_new_inner != NULL);  /* no reason it should fail */
+
+
+		// Don't tag, gives more useful inner/outer select option
+		// BMO_elem_flag_enable(bm, f_new_inner, ELE_NEW);
+
+
+		/* Copy Face Data */
+		/* interpolate loop data or just stretch */
+		if (use_interpolate) {
+			BM_face_interp_from_face(bm, f_new_inner, f);
+		}
+		else {
 			BM_elem_attrs_copy(bm, bm, f, f_new_inner);
-			// Don't tag, gives more useful inner/outer select option
-			// BMO_elem_flag_enable(bm, f_new_inner, ELE_NEW);
-
-			l_iter_inner = BM_FACE_FIRST_LOOP(f_new_inner);
 		}
 
+		l_iter_inner = BM_FACE_FIRST_LOOP(f_new_inner);
 		l_iter = l_first;
 		do {
 			BMFace *f_new_outer;
@@ -173,7 +181,9 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 			BMLoop *l_a;
 			BMLoop *l_b;
 
-			BM_elem_attrs_copy(bm, bm, l_iter, l_iter_inner);
+			if (use_interpolate == false) {
+				BM_elem_attrs_copy(bm, bm, l_iter, l_iter_inner);
+			}
 
 			f_new_outer = BM_face_create_quad_tri(bm,
 			                                      l_iter->v,
@@ -203,8 +213,8 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 
 			/* This loop should always have >1 radials
 			 * (associated edge connects new and old face) */
-			BM_elem_attrs_copy(bm, bm, l_iter, l_b);
-			BM_elem_attrs_copy(bm, bm, l_iter->next, l_a);
+			BM_elem_attrs_copy(bm, bm, l_iter_inner, l_b);
+			BM_elem_attrs_copy(bm, bm, use_interpolate ? l_iter_inner->next : l_iter->next, l_a);
 
 		} while ((l_iter_inner = l_iter_inner->next),
 		         (l_iter = l_iter->next) != l_first);

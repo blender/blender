@@ -1511,6 +1511,7 @@ static BMOpDefine bmo_inset_individual_def = {
 	 {"thickness", BMO_OP_SLOT_FLT},
 	 {"depth", BMO_OP_SLOT_FLT},
 	 {"use_even_offset", BMO_OP_SLOT_BOOL},
+	 {"use_interpolate", BMO_OP_SLOT_BOOL},
 	 {{'\0'}},
 	},
 	/* slots_out */

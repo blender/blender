@@ -99,7 +99,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 		             opdata->modify_depth ? IFACE_("On") : IFACE_("Off"),
 		             RNA_boolean_get(op->ptr, "use_outset") ? IFACE_("On") : IFACE_("Off"),
 		             RNA_boolean_get(op->ptr, "use_boundary") ? IFACE_("On") : IFACE_("Off"),
-		             RNA_boolean_get(op->ptr, "individual") ? IFACE_("On") : IFACE_("Off")
+		             RNA_boolean_get(op->ptr, "use_individual") ? IFACE_("On") : IFACE_("Off")
 		            );
 
 		ED_area_headerprint(sa, msg);
@@ -192,7 +192,8 @@ static int edbm_inset_calc(wmOperator *op)
 	const float depth              = RNA_float_get(op->ptr,   "depth");
 	const bool use_outset          = RNA_boolean_get(op->ptr, "use_outset");
 	const bool use_select_inset    = RNA_boolean_get(op->ptr, "use_select_inset"); /* not passed onto the BMO */
-	const bool individual          = RNA_boolean_get(op->ptr, "individual");
+	const bool use_individual      = RNA_boolean_get(op->ptr, "use_individual");
+	const bool use_interpolate     = RNA_boolean_get(op->ptr, "use_interpolate");
 
 	opdata = op->customdata;
 	em = opdata->em;
@@ -201,10 +202,10 @@ static int edbm_inset_calc(wmOperator *op)
 		EDBM_redo_state_restore(opdata->mesh_backup, em, false);
 	}
 
-	if (individual) {
+	if (use_individual) {
 		EDBM_op_init(em, &bmop, op,
-		             "inset_individual faces=%hf thickness=%f depth=%f use_even_offset=%b",
-		             BM_ELEM_SELECT, thickness, depth, use_even_offset);
+		             "inset_individual faces=%hf thickness=%f depth=%f use_even_offset=%b use_interpolate=%b",
+		             BM_ELEM_SELECT, thickness, depth, use_even_offset, use_interpolate);
 	}
 	else {
 		EDBM_op_init(em, &bmop, op,
@@ -420,8 +421,8 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 		case IKEY:
 			if (event->val == KM_PRESS) {
-				int individual = RNA_boolean_get(op->ptr, "individual");
-				RNA_boolean_set(op->ptr, "individual", !individual);
+				const bool use_individual = RNA_boolean_get(op->ptr, "use_individual");
+				RNA_boolean_set(op->ptr, "use_individual", !use_individual);
 				if (edbm_inset_calc(op)) {
 					edbm_inset_update_header(op, C);
 				}
@@ -470,5 +471,6 @@ void MESH_OT_inset(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_outset", false, "Outset", "Outset rather than inset");
 	RNA_def_boolean(ot->srna, "use_select_inset", true, "Select Outer", "Select the new inset faces");
-	RNA_def_boolean(ot->srna, "individual", false, "Individual", "Individual Face Inset");
+	RNA_def_boolean(ot->srna, "use_individual", false, "Individual", "Individual Face Inset");
+	RNA_def_boolean(ot->srna, "use_interpolate", true, "Interpolate", "Blend face data across the inset");
 }
