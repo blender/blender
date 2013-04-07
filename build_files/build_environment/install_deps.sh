@@ -948,7 +948,7 @@ EOF
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=7
+  osl_magic=8
 
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
   _inst=$INST/osl-$OSL_VERSION
@@ -1040,7 +1040,7 @@ compile_OSL() {
 
 compile_OpenCOLLADA() {
   # To be changed each time we make edits that would modify the compiled results!
-  opencollada_magic=5
+  opencollada_magic=6
 
   _src=$SRC/OpenCOLLADA-$OPENCOLLADA_VERSION
   _inst=$INST/opencollada-$OPENCOLLADA_VERSION
