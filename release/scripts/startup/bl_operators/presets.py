@@ -30,7 +30,7 @@ class AddPresetBase():
      - preset_subdir """
     # bl_idname = "script.preset_base_add"
     # bl_label = "Add a Python Preset"
-    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
+    bl_options = {'REGISTER', 'INTERNAL'} # only because invoke_props_popup requires. Also do not add to search menu.
 
     name = StringProperty(
             name="Name",
