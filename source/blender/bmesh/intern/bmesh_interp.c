@@ -173,27 +173,32 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BMLoop *l_first;
 
 	void **blocks   = BLI_array_alloca(blocks, source->len);
-	float (*cos)[3] = BLI_array_alloca(cos,    source->len);
+	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
 	float *w        = BLI_array_alloca(w,      source->len);
+	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
+	float co[2];
 	int i;
-	
+
+	/* convert the 3d coords into 2d for projection */
+	axis_dominant_v3_to_m3(axis_mat, source->no);
+
 	BM_elem_attrs_copy(bm, bm, source, target);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
-		copy_v3_v3(cos[i], l_iter->v->co);
+		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 		blocks[i] = l_iter->head.data;
-		i++;
-	} while ((l_iter = l_iter->next) != l_first);
+	} while (i++, (l_iter = l_iter->next) != l_first);
 
+	/* interpolate */
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(target);
 	do {
-		interp_weights_poly_v3(w, cos, source->len, l_iter->v->co);
+		mul_v2_m3v3(co, axis_mat, l_iter->v->co);
+		interp_weights_poly_v2(w, cos_2d, source->len, co);
 		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l_iter->head.data);
-		i++;
-	} while ((l_iter = l_iter->next) != l_first);
+	} while (i++, (l_iter = l_iter->next) != l_first);
 }
 
 /**
@@ -604,45 +609,32 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	void **vblocks  = do_vertex ? BLI_array_alloca(vblocks, source->len) : NULL;
-	void **blocks   = BLI_array_alloca(blocks,  source->len);
-	float (*cos)[3] = BLI_array_alloca(cos,     source->len);
-	float (*cos_2d)[2] = BLI_array_alloca(cos_2d,     source->len);
-	float *w        = BLI_array_alloca(w,       source->len);
+	void **blocks   = BLI_array_alloca(blocks, source->len);
+	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
+	float *w        = BLI_array_alloca(w, source->len);
+	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
 	float co[2];
-	int i, ax, ay;
+	int i;
+
+	/* convert the 3d coords into 2d for projection */
+	axis_dominant_v3_to_m3(axis_mat, source->no);
 
 	BM_elem_attrs_copy(bm, bm, source, target->f);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
-		copy_v3_v3(cos[i], l_iter->v->co);
-
-		w[i] = 0.0f;
+		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 		blocks[i] = l_iter->head.data;
 
 		if (do_vertex) {
 			vblocks[i] = l_iter->v->head.data;
 		}
-		i++;
+	} while (i++, (l_iter = l_iter->next) != l_first);
 
-	} while ((l_iter = l_iter->next) != l_first);
-
-	/* find best projection of face XY, XZ or YZ: barycentric weights of
-	 * the 2d projected coords are the same and faster to compute */
-
-	axis_dominant_v3(&ax, &ay, source->no);
-
-	for (i = 0; i < source->len; i++) {
-		cos_2d[i][0] = cos[i][ax];
-		cos_2d[i][1] = cos[i][ay];
-	}
-
+	mul_v2_m3v3(co, axis_mat, target->v->co);
 
 	/* interpolate */
-	co[0] = target->v->co[ax];
-	co[1] = target->v->co[ay];
-
 	interp_weights_poly_v2(w, cos_2d, source->len, co);
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
 	if (do_vertex) {
@@ -662,22 +654,26 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	void **blocks   = BLI_array_alloca(blocks, source->len);
-	float (*cos)[3] = BLI_array_alloca(cos,    source->len);
+	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
 	float *w        = BLI_array_alloca(w,      source->len);
+	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
+	float co[2];
 	int i;
+
+	/* convert the 3d coords into 2d for projection */
+	axis_dominant_v3_to_m3(axis_mat, source->no);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
-		copy_v3_v3(cos[i], l_iter->v->co);
-
-		w[i] = 0.0f;
+		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 		blocks[i] = l_iter->v->head.data;
-		i++;
-	} while ((l_iter = l_iter->next) != l_first);
+	} while (i++, (l_iter = l_iter->next) != l_first);
+
+	mul_v2_m3v3(co, axis_mat, v->co);
 
 	/* interpolate */
-	interp_weights_poly_v3(w, cos, source->len, v->co);
+	interp_weights_poly_v2(w, cos_2d, source->len, co);
 	CustomData_bmesh_interp(&bm->vdata, blocks, w, NULL, source->len, v->head.data);
 }
 
