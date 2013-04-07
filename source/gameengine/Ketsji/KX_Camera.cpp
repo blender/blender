@@ -1018,7 +1018,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
 	vect[0] += viewport[0];
 	vect[1] += viewport[1];
 
-	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vect[2]);
+	vect[2] = 0.f;
+
 	gluUnProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
 
 	campos = this->GetCameraLocation();
