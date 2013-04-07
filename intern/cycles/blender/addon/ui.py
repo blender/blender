@@ -244,16 +244,16 @@ class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
-    bl_label = "Layers"
-    bl_options = {'HIDE_HEADER'}
+    bl_label = "Layer List"
     bl_context = "render_layer"
-    COMPAT_ENGINES = {'CYCLES'}
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         rd = scene.render
+        rl = rd.layers.active
 
         row = layout.row()
         row.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
@@ -263,7 +263,6 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
         row = layout.row()
-        rl = rd.layers.active
         if rl:
             row.prop(rl, "name")
         row.prop(rd, "use_single_layer", text="", icon_only=True)
@@ -271,9 +270,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
 class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
     bl_label = "Layer"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_context = "render_layer"
-    COMPAT_ENGINES = {'CYCLES'}
 
     def draw(self, context):
         layout = self.layout
@@ -290,8 +287,7 @@ class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
-        col.label(text="Mask Layers:")
-        col.prop(rl, "layers_zmask", text="")
+        col.prop(rl, "layers_zmask", text="Mask Layer")
 
         split = layout.split()
 
@@ -305,10 +301,9 @@ class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
 
 
 class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
-    bl_label = "Render Passes"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_label = "Passes"
     bl_context = "render_layer"
-    COMPAT_ENGINES = {'CYCLES'}
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -320,7 +315,6 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Passes:")
         col.prop(rl, "use_pass_combined")
         col.prop(rl, "use_pass_z")
         col.prop(rl, "use_pass_normal")
