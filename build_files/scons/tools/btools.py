@@ -252,7 +252,6 @@ def read_opts(env, cfg, args):
     localopts.AddVariables(
         ('LCGDIR', 'Location of SVN lib dir'),
         ('LIBDIR', 'Root dir of libs'),
-		(BoolVariable('WITH_BF_FREESTYLE', 'Compile with freestyle', True)),
         (BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
         (BoolVariable('WITH_BF_PYTHON_SAFETY', 'Internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)', False)),
         ('BF_PYTHON', 'Base path for python', ''),
@@ -392,6 +391,8 @@ def read_opts(env, cfg, args):
         ('BF_ICONV_LIB', 'iconv library', ''),
         ('BF_ICONV_LIBPATH', 'iconv library path', ''),
         
+        (BoolVariable('WITH_BF_FREESTYLE', 'Compile with freestyle', True)),
+
         (BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
         (BoolVariable('WITH_BF_BULLET', 'Use Bullet if true', True)),

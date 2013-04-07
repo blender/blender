@@ -174,6 +174,9 @@ BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 #May produce errors with unsupported MinGW-w64 builds
 WITH_BF_OPENMP = False
 
+#Freestyle
+WITH_BF_FREESTYLE = True
+
 ##
 CC = 'gcc'
 CXX = 'g++'

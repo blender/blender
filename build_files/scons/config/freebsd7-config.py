@@ -162,6 +162,9 @@ WITH_GHOST_XDND = False
 
 WITH_BF_OPENMP = True
 
+#Freestyle
+WITH_BF_FREESTYLE = True
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']

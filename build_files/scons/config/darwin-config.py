@@ -110,9 +110,6 @@ if CC[:-2].endswith('4.6'):
 else:
     WITH_BF_OPENMP = False
 
-# enable freestyle  support
-WITH_BF_FREESTYLE = True
-
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True
 BF_FFMPEG = LIBDIR + '/ffmpeg'
@@ -319,6 +316,9 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'
 BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30']
+
+#Freestyle
+WITH_BF_FREESTYLE = True
 
 #Ray trace optimization
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386':
