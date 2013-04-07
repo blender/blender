@@ -643,7 +643,7 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *UNUSED(op))
 		orig_area = aspx*aspy;
 		stencil_area = br->stencil_dimension[0]*br->stencil_dimension[1];
 
-		factor = sqrt(stencil_area/orig_area);
+		factor = sqrt(stencil_area / orig_area);
 
 		br->stencil_dimension[0] = factor*aspx;
 		br->stencil_dimension[1] = factor*aspy;

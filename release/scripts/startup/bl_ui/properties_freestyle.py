@@ -93,7 +93,7 @@ class RENDERLAYER_UL_linesets(UIList):
             layout.label("", icon_value=icon)
 
 ##ifdef WITH_FREESTYLE
-#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) || 
+#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) ||
 #	         RNA_struct_is_a(itemptr->type, &RNA_FreestyleLineSet)) {
 ##else
 #	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {

@@ -654,8 +654,9 @@ def make_rna_paths(struct_name, prop_name, enum_name):
     :type prop_name: string
     :arg enum_name: Name of a RNA enum identifier.
     :type enum_name: string
-    :return: A triple of three "RNA paths" (most_complete_path, "struct.prop", "struct.prop:'enum'").
-             If no enum_name is given, the third element will always be void.
+    :return: A triple of three "RNA paths"
+       (most_complete_path, "struct.prop", "struct.prop:'enum'").
+       If no enum_name is given, the third element will always be void.
     :rtype: tuple of strings
     """
     src = src_rna = src_enum = ""

@@ -1137,7 +1137,7 @@ void SCENE_OT_freestyle_modifier_copy(wmOperatorType *ot)
 	ot->poll = freestyle_active_lineset_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)

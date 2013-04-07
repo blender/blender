@@ -51,7 +51,7 @@ def test_load_addons():
         addon_utils.enable(mod_name)
         if mod_name not in addons:
             addons_fail.append(mod_name)
-    
+
     if addons_fail:
         print("addons failed to load (%d):" % len(addons_fail))
         for mod_name in addons_fail:
@@ -94,7 +94,7 @@ def reload_addons(do_reload=True, do_reverse=True):
 def main():
     # first load addons, print a list of all addons that fail
     test_load_addons()
-    
+
     reload_addons(do_reload=False, do_reverse=False)
     reload_addons(do_reload=False, do_reverse=True)
     reload_addons(do_reload=True, do_reverse=True)

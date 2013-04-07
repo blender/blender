@@ -222,9 +222,9 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         col = split.column()
         col.prop(obj, "show_name", text="Name")
         col.prop(obj, "show_axis", text="Axis")
-        
+
         obj_type = obj.type
-        
+
         if obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'}:
             # Makes no sense for cameras, armtures, etc.!
             col.prop(obj, "show_wire", text="Wire")

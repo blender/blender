@@ -191,7 +191,8 @@ class AddObjectHelper:
 
 def object_add_grid_scale(context):
     """
-    Return scale which should be applied on object data to align it to grid scale
+    Return scale which should be applied on object
+    data to align it to grid scale
     """
 
     space_data = context.space_data

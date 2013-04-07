@@ -707,7 +707,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
- 
+
             col.prop(brush, "vertex_tool", text="Blend")
 
         # Vertex Paint Mode #
@@ -815,7 +815,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
         col = layout.column()
 
         col.label(text="Stroke Method:")
-        
+
         if context.sculpt_object:
             col.prop(brush, "sculpt_stroke_method", text="")
         else:
@@ -879,6 +879,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             sub.active = brush.use_smooth_stroke
             sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
             sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
 
 class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
     bl_label = "Curve"

@@ -37,6 +37,7 @@ import os
 # should be directly after the license header, ~20 in most cases
 PEP8_SEEK_COMMENT = 40
 SKIP_PREFIX = "./tools", "./config", "./scons", "./extern"
+SKIP_ADDONS = True
 FORCE_PEP8_ALL = False
 
 
@@ -76,6 +77,10 @@ def main():
         if [None for prefix in SKIP_PREFIX if f.startswith(prefix)]:
             continue
 
+        if SKIP_ADDONS:
+            if (os.sep + "addons") in f:
+                continue
+
         pep8_type = FORCE_PEP8_ALL or is_pep8(f)
 
         if pep8_type:
@@ -98,12 +103,20 @@ def main():
                 print("%s:%d:0: global import bad practice" % (f, i + 1))
 
     print("\n\n\n# running pep8...")
+
+    # these are very picky and often hard to follow
+    # while keeping common script formatting.
+    ignore = "E122", "E123", "E124", "E125", "E126", "E127", "E128"
+
     for f, pep8_type in files:
+
         if pep8_type == 1:
             # E501:80 line length
-            os.system("pep8 --repeat --ignore=E501 '%s'" % (f))
+            ignore_tmp = ignore + ("E501", )
         else:
-            os.system("pep8 --repeat '%s'" % (f))
+            ignore_tmp = ignore
+
+        os.system("pep8 --repeat --ignore=%s '%s'" % (",".join(ignore_tmp), f))
 
     # pyflakes
     print("\n\n\n# running pyflakes...")

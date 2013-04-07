@@ -1641,12 +1641,12 @@ class VIEW3D_MT_pose_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
-        layout.operator("paint.weight_from_bones", text="Assign Automatic from Bones").type="AUTOMATIC"
-        layout.operator("paint.weight_from_bones", text="Assign from Bone Envelopes").type="ENVELOPES"
-        
+
+        layout.operator("paint.weight_from_bones", text="Assign Automatic from Bones").type = 'AUTOMATIC'
+        layout.operator("paint.weight_from_bones", text="Assign from Bone Envelopes").type = 'ENVELOPES'
+
         layout.separator()
-        
+
         layout.operator("pose.select_constraint_target")
         layout.operator("pose.flip_names")
         layout.operator("pose.paths_calculate")

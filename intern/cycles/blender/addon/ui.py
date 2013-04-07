@@ -267,6 +267,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
             row.prop(rl, "name")
         row.prop(rd, "use_single_layer", text="", icon_only=True)
 
+
 class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
     bl_label = "Layer"
     bl_context = "render_layer"
@@ -297,7 +298,8 @@ class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(rl, "samples")
         col.prop(rl, "use_sky", "Use Environment")
-        
+
+
 class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
     bl_label = "Passes"
     bl_context = "render_layer"

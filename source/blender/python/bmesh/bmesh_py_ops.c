@@ -102,7 +102,7 @@ static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], c
 		}
 		BLI_dynstr_appendf(dyn_str, i ? ", %.*s=%s" : "%.*s=%s", name_len, slot_types[i].name, value);
 		i++;
-	};
+	}
 
 	ret = BLI_dynstr_get_cstring(dyn_str);
 	BLI_dynstr_free(dyn_str);

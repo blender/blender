@@ -2731,7 +2731,8 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					if (ffa) {
 						int index = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
 						vlr->freestyle_face_mark= (ffa[index].flag & FREESTYLE_FACE_MARK) ? 1 : 0;
-					} else {
+					}
+					else {
 						vlr->freestyle_face_mark= 0;
 					}
 #endif
@@ -3398,8 +3399,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_origindex) {
 			index_vert_orig = dm->getVertDataArray(dm, CD_ORIGINDEX);
 			/* double lookup for faces -> polys */
+#ifdef WITH_FREESTYLE
 			index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 			index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+#endif
 		}
 
 		for (a=0; a<totvert; a++, mvert++) {
@@ -3506,20 +3509,22 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							{
 								int edge_mark = 0;
 
-								if(has_freestyle_edge_mark(edge_hash, v1, v2)) edge_mark |= R_EDGE_V1V2;
-								if(has_freestyle_edge_mark(edge_hash, v2, v3)) edge_mark |= R_EDGE_V2V3;
+								if (has_freestyle_edge_mark(edge_hash, v1, v2)) edge_mark |= R_EDGE_V1V2;
+								if (has_freestyle_edge_mark(edge_hash, v2, v3)) edge_mark |= R_EDGE_V2V3;
 								if (!v4) {
-									if(has_freestyle_edge_mark(edge_hash, v3, v1)) edge_mark |= R_EDGE_V3V1;
-								} else {
-									if(has_freestyle_edge_mark(edge_hash, v3, v4)) edge_mark |= R_EDGE_V3V4;
-									if(has_freestyle_edge_mark(edge_hash, v4, v1)) edge_mark |= R_EDGE_V4V1;
+									if (has_freestyle_edge_mark(edge_hash, v3, v1)) edge_mark |= R_EDGE_V3V1;
+								}
+								else {
+									if (has_freestyle_edge_mark(edge_hash, v3, v4)) edge_mark |= R_EDGE_V3V4;
+									if (has_freestyle_edge_mark(edge_hash, v4, v1)) edge_mark |= R_EDGE_V4V1;
 								}
 								vlr->freestyle_edge_mark= edge_mark;
 							}
 							if (ffa) {
 								int index = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
 								vlr->freestyle_face_mark= (ffa[index].flag & FREESTYLE_FACE_MARK) ? 1 : 0;
-							} else {
+							}
+							else {
 								vlr->freestyle_face_mark= 0;
 							}
 #endif

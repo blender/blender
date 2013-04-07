@@ -1949,6 +1949,10 @@ void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Main");
 	RNA_def_struct_ui_text(srna, "Main Line Styles", "Collection of line styles");
 
+	func = RNA_def_function(srna, "tag", "rna_Main_linestyle_tag");
+	parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	func = RNA_def_function(srna, "new", "rna_Main_linestyles_new");
 	RNA_def_function_ui_description(func, "Add a new line style instance to the main database");
 	parm = RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the datablock");

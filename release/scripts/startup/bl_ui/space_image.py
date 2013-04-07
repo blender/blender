@@ -786,7 +786,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         col = layout.column()
 
         col.label(text="Stroke Method:")
-        
+
         col.prop(brush, "stroke_method", text="")
 
         if brush.use_anchor:
@@ -803,7 +803,6 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
             row.active = brush.use_space
             row.prop(brush, "spacing", text="Spacing")
             row.prop(brush, "use_pressure_spacing", toggle=True, text="")
-
 
         col = layout.column()
         col.separator()
