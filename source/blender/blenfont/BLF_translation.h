@@ -197,6 +197,7 @@ typedef struct
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_BRUSH, "id_brush"),                                                       \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_CAMERA, "id_camera"),                                                     \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_CURVE, "id_curve"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE, "id_fs_linestyle"),                                   \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_GPENCIL, "id_gpencil"),                                                   \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_GROUP, "id_group"),                                                       \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ID, "id_id"),                                                             \

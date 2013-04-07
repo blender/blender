@@ -883,7 +883,7 @@ static int freestyle_color_modifier_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	if (BKE_add_linestyle_color_modifier(lineset->linestyle, type) == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Unknown line color modifier type.");
+		BKE_report(op->reports, RPT_ERROR, "Unknown line color modifier type");
 		return OPERATOR_CANCELLED;
 	}
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);

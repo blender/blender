@@ -897,7 +897,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_THICKNESS_CENTER, "CENTER", 0, "Center", "Stroke is centered along stroke geometry"},
 		{LS_THICKNESS_INSIDE, "INSIDE", 0, "Inside", "Stroke is drawn inside stroke geometry"},
 		{LS_THICKNESS_OUTSIDE, "OUTSIDE", 0, "Outside", "Stroke is drawn outside stroke geometry"},
-		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Stroke thinkness is split by a user-defined ratio"},
+		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Stroke thickness is split by a user-defined ratio"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -952,7 +952,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "alpha_modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "alpha_modifiers", NULL);
 	RNA_def_property_struct_type(prop, "LineStyleAlphaModifier");
-	RNA_def_property_ui_text(prop, "Alpha Modifiers", "List of alpha trancparency modifiers");
+	RNA_def_property_ui_text(prop, "Alpha Modifiers", "List of alpha transparency modifiers");
 
 	prop = RNA_def_property(srna, "thickness_modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "thickness_modifiers", NULL);

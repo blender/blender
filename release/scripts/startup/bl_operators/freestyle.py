@@ -23,8 +23,8 @@ from bpy.props import (EnumProperty, StringProperty)
 
 
 class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
-    '''Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object
-       (either a user-specified object or the active camera)'''
+    """Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object """
+    """(either a user-specified object or the active camera)"""
     bl_idname = "scene.freestyle_fill_range_by_selection"
     bl_label = "Fill Range by Selection"
 
