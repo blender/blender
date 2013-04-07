@@ -2742,7 +2742,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_advanced_options", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_ADVANCED_OPTIONS_FLAG);
-	RNA_def_property_ui_text(prop, "Advanced Edge Detection Options",
+	RNA_def_property_ui_text(prop, "Advanced Options",
 	                         "Enable advanced edge detection options (sphere radius and Kr derivative epsilon)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -4632,10 +4632,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, freestyle_thickness_items);
 	RNA_def_property_ui_text(prop, "Line Thickness Mode", "Line thickness mode for Freestyle line drawing");
 
-	prop = RNA_def_property(srna, "unit_line_thickness", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "line_thickness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "unit_line_thickness");
 	RNA_def_property_range(prop, 0.f, 10000.f);
-	RNA_def_property_ui_text(prop, "Unit Line Thickness", "Unit line thickness in pixels");
+	RNA_def_property_ui_text(prop, "Line Thickness", "Line thickness in pixels");
 
 	/* Scene API */
 	RNA_api_scene_render(srna);

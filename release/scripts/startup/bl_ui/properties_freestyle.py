@@ -58,7 +58,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
         
         row = layout.row()
         row.active = (rd.line_thickness_mode == 'ABSOLUTE')
-        row.prop(rd, "unit_line_thickness")
+        row.prop(rd, "line_thickness")
 
 
 # Render layer properties
