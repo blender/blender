@@ -262,6 +262,7 @@ else:
         "mathutils",
         "mathutils.geometry",
         "mathutils.noise",
+        "Freestyle",
         ]
 
     # ------
@@ -449,6 +450,7 @@ if ARGS.sphinx_build_pdf:
 ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
+StaticMethodType = type(staticmethod(lambda: None))
 from types import MemberDescriptorType
 
 _BPY_STRUCT_FAKE = "bpy_struct"
@@ -914,6 +916,12 @@ def pymodule2sphinx(basepath, module_name, module, title):
         for key, descr in descr_items:
             if type(descr) == GetSetDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+        for key, descr in descr_items:
+            if type(descr) == StaticMethodType:
+                descr = getattr(value, key)
+                write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
+                fw("\n")
 
         fw("\n\n")
 
@@ -1547,7 +1555,7 @@ def write_rst_contents(basepath):
         # mathutils
         "mathutils", "mathutils.geometry", "mathutils.noise",
         # misc
-        "bgl", "blf", "gpu", "aud", "bpy_extras",
+        "Freestyle", "bgl", "blf", "gpu", "aud", "bpy_extras",
         # bmesh, submodules are in own page
         "bmesh",
         )
@@ -1695,6 +1703,7 @@ def write_rst_importable_modules(basepath):
         "mathutils"         : "Math Types & Utilities",
         "mathutils.geometry": "Geometry Utilities",
         "mathutils.noise"   : "Noise Utilities",
+        "Freestyle"         : "Freestyle Data Types & Operators",
     }
     for mod_name, mod_descr in importable_modules.items():
         if mod_name not in EXCLUDE_MODULES:
