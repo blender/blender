@@ -170,12 +170,8 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 		do {
 			BMFace *f_new_outer;
 
-			BMLoop *l_iter_sub;
-			BMLoop *l_a = NULL;
-			BMLoop *l_b = NULL;
-			BMLoop *l_a_other = NULL;
-			BMLoop *l_b_other = NULL;
-			BMLoop *l_shared = NULL;
+			BMLoop *l_a;
+			BMLoop *l_b;
 
 			BM_elem_attrs_copy(bm, bm, l_iter, l_iter_inner);
 
@@ -196,29 +192,10 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 			l_a = BM_FACE_FIRST_LOOP(f_new_outer);
 			l_b = l_a->next;
 
-			l_iter_sub = l_iter;
+			/* first pair */
+			BM_elem_attrs_copy(bm, bm, l_iter, l_a);
+			BM_elem_attrs_copy(bm, bm,  l_iter->next, l_b);
 
-			/* Skip old face f and new inset face.
-			 * If loop if found we are a boundary. This
-			 * is required as opposed to BM_edge_is_boundary()
-			 * Because f_new_outer shares an edge with f */
-			do {
-				if (l_iter_sub->f != f && l_iter_sub->f != f_new_outer) {
-					l_shared = l_iter_sub;
-					break;
-				}
-			} while ((l_iter_sub = l_iter_sub->radial_next) != l_iter);
-
-			if (l_shared) {
-				BM_elem_attrs_copy(bm, bm, l_shared, l_a->next);
-				BM_elem_attrs_copy(bm, bm, l_shared->next, l_a);
-			}
-			else {
-				l_a_other = BM_edge_other_loop(l_a->e, l_a);
-				l_b_other = l_a_other->next;
-				BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
-				BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
-			}
 
 			/* Move to the last two loops in new face */
 			l_a = l_b->next;
@@ -715,18 +692,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 			/* step around to the opposite side of the quad - warning, this may have no other edges! */
 			l_a = l_a->next->next;
 			l_b = l_a->next;
-			if (!BM_edge_is_boundary(l_a->e)) {
-				/* same as above */
-				l_a_other = BM_edge_other_loop(l_a->e, l_a);
-				l_b_other = BM_edge_other_loop(l_a->e, l_b);
-				BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
-				BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
-			}
-			else {  /* boundary edges have no useful data to copy from, use opposite side of face */
-				/* swap a<->b intentionally */
-				BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
-				BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
-			}
+
+			/* swap a<->b intentionally */
+			BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
+			BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
 		}
 #endif
 	}
