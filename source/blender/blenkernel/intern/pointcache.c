@@ -1388,7 +1388,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 /* Takes an Object ID and returns a unique name
  * - id: object id
  * - cfra: frame for the cache, can be negative
- * - stack_index: index in the modifier stack. we can have cache for more then one stack_index
+ * - stack_index: index in the modifier stack. we can have cache for more than one stack_index
  */
 
 #define MAX_PTCACHE_PATH FILE_MAX

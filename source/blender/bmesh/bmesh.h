@@ -80,7 +80,7 @@
  * Edges and Vertices in BMesh are much like their counterparts in EditMesh,
  * except for some members private to the BMesh api.
  *
- * \note There can be more then one edge between two vertices in bmesh,
+ * \note There can be more than one edge between two vertices in bmesh,
  * though the rest of blender (e.g. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
  *
  *

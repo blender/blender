@@ -331,7 +331,7 @@ def disable(module_name, default_set=True):
         print("addon_utils.disable: %s not %s." %
               (module_name, "disabled" if mod is None else "loaded"))
 
-    # could be in more then once, unlikely but better do this just in case.
+    # could be in more than once, unlikely but better do this just in case.
     addons = _user_preferences.addons
 
     if default_set:

@@ -81,7 +81,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 
 /* Grow the array by a fixed number of items.
  *
- * Allow for a large 'num' value when the new size is more then double
+ * Allow for a large 'num' value when the new size is more than double
  * to allocate the exact sized array. */
 #define BLI_array_grow_items(arr, num)  ((                                    \
 	(((void *)(arr) == NULL) &&                                               \

@@ -2912,7 +2912,7 @@ static void draw_viewport_fps(Scene *scene, rcti *rect)
 	}
 #endif
 
-	/* is this more then half a frame behind? */
+	/* is this more than half a frame behind? */
 	if (fps + 0.5f < (float)(FPS)) {
 		UI_ThemeColor(TH_REDALERT);
 		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %.2f"), fps);

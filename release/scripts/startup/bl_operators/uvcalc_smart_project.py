@@ -140,7 +140,7 @@ def island2Edge(island):
             else:
                 i1= vIdx;	i2= vIdx-1
 
-            try:	edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets any edge with more then 1 user to 0 are not returned.
+            try:	edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets any edge with more than 1 user to 0 are not returned.
             except:	edges[ f_uvkey[i1], f_uvkey[i2] ] = (f.uv[i1] - f.uv[i2]).length,
 
     # If 2 are the same then they will be together, but full [a,b] order is not correct.

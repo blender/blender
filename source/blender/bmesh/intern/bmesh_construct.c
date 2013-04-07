@@ -221,7 +221,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, c
 		verts_sort[vsort_index++] = v;
 		edges_sort[esort_index++] = e;
 
-		/* we only flag the verts to check if they are in the face more then once */
+		/* we only flag the verts to check if they are in the face more than once */
 		BM_ELEM_API_FLAG_ENABLE(v, _FLAG_MV);
 
 		do {
@@ -281,7 +281,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, c
 			goto err;
 		}
 
-		/* check if vert is in face more then once. if the flag is disabled. we've already visited */
+		/* check if vert is in face more than once. if the flag is disabled. we've already visited */
 		if (UNLIKELY(!BM_ELEM_API_FLAG_TEST(verts_sort[i], _FLAG_MV))) {
 			goto err;
 		}

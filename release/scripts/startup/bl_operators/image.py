@@ -133,7 +133,7 @@ class SaveDirty(Operator):
                         self.report({'WARNING'}, "Invalid path: " + filepath)
                     elif filepath in unique_paths:
                         self.report({'WARNING'},
-                                    "Path used by more then one image: %r" %
+                                    "Path used by more than one image: %r" %
                                     filepath)
                     else:
                         unique_paths.add(filepath)

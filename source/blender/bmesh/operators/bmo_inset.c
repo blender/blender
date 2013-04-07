@@ -316,7 +316,7 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 		l_iter = l;
 		do {
 			if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG)) {
-				/* more then one tagged face - bail out early! */
+				/* more than one tagged face - bail out early! */
 				if (tot_tag == 1) {
 					return NULL;
 				}

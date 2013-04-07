@@ -6440,7 +6440,7 @@ bool pyrna_id_FromPyObject(PyObject *obj, ID **id)
 
 void BPY_rna_init(void)
 {
-#ifdef USE_MATHUTILS  /* register mathutils callbacks, ok to run more then once. */
+#ifdef USE_MATHUTILS  /* register mathutils callbacks, ok to run more than once. */
 	mathutils_rna_array_cb_index = Mathutils_RegisterCallback(&mathutils_rna_array_cb);
 	mathutils_rna_matrix_cb_index = Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
@@ -7723,7 +7723,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 }
 
 /* currently this is fairly limited, we would need to make some way to split up
- * pyrna_callback_classmethod_... if we want more then one callback per type */
+ * pyrna_callback_classmethod_... if we want more than one callback per type */
 typedef struct BPyRNA_CallBack {
 	PyMethodDef  py_method;
 	StructRNA   *bpy_srna;

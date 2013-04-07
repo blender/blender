@@ -920,7 +920,7 @@ char *BKE_scene_find_marker_name(Scene *scene, int frame)
 }
 
 /* return the current marker for this frame,
- * we can have more then 1 marker per frame, this just returns the first :/ */
+ * we can have more than 1 marker per frame, this just returns the first :/ */
 char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
 {
 	TimeMarker *marker, *best_marker = NULL;

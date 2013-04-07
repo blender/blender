@@ -49,7 +49,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-/* initial definition of callback slots we'll probably have more then 1 */
+/* initial definition of callback slots we'll probably have more than 1 */
 #define BPY_DATA_CB_SLOT_SIZE 3
 
 #define BPY_DATA_CB_SLOT_UPDATE 0

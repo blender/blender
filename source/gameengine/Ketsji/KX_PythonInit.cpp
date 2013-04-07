@@ -1892,7 +1892,7 @@ static struct _inittab bge_internal_modules[] = {
 PyObject *initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
 {
 	/* Yet another gotcha in the py api
-	 * Cant run PySys_SetArgv more then once because this adds the
+	 * Cant run PySys_SetArgv more than once because this adds the
 	 * binary dir to the sys.path each time.
 	 * Id have thought python being totally restarted would make this ok but
 	 * somehow it remembers the sys.path - Campbell

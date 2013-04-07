@@ -539,7 +539,7 @@ int KX_ObjectActuator::pyattr_set_angV(void *self_v, const KX_PYATTRIBUTE_DEF *a
 
 void KX_ObjectActuator_Mathutils_Callback_Init(void)
 {
-	// register mathutils callbacks, ok to run more then once.
+	// register mathutils callbacks, ok to run more than once.
 	mathutils_kxobactu_vector_cb_index = Mathutils_RegisterCallback(&mathutils_obactu_vector_cb);
 }
 

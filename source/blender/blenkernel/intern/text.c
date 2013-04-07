@@ -2744,7 +2744,7 @@ void txt_comment(Text *text)
 	
 	if (!text) return;
 	if (!text->curl) return;
-	if (!text->sell) return;  // Need to change this need to check if only one line is selected to more then one
+	if (!text->sell) return;  // Need to change this need to check if only one line is selected to more than one
 
 	num = 0;
 	while (TRUE) {

@@ -2180,7 +2180,7 @@ static void free_metaball_octal_node(octal_node *node)
 	MEM_freeN(node);
 }
 
-/* If scene include more then one MetaElem, then octree is used */
+/* If scene include more than one MetaElem, then octree is used */
 static void init_metaball_octal_tree(int depth)
 {
 	struct octal_node *node;
@@ -2269,7 +2269,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		G_mb.metaball_tree = NULL;
 	}
 
-	/* if scene includes more then one MetaElem, then octal tree optimization is used */
+	/* if scene includes more than one MetaElem, then octal tree optimization is used */
 	if ((G_mb.totelem >    1) && (G_mb.totelem <=   64)) init_metaball_octal_tree(1);
 	if ((G_mb.totelem >   64) && (G_mb.totelem <=  128)) init_metaball_octal_tree(2);
 	if ((G_mb.totelem >  128) && (G_mb.totelem <=  512)) init_metaball_octal_tree(3);

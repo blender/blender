@@ -1034,7 +1034,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				bool ok = true;
 
 				/* Check for special case: [#32500]
-				 * This edge pair could be used by more then one face,
+				 * This edge pair could be used by more than one face,
 				 * in this case it used to (2.63), split both faces along the same verts
 				 * while it could be calculated which face should do the split,
 				 * it's ambiguous, so in this case we're better off to skip them as exceptional cases

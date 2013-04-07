@@ -319,7 +319,7 @@ typedef struct ProjPixel {
 	PixelStore newColor;
 	PixelPointer pixel;
 
-	short image_index; /* if anyone wants to paint onto more then 32768 images they can bite me */
+	short image_index; /* if anyone wants to paint onto more than 32768 images they can bite me */
 	unsigned char bb_cell_index;
 } ProjPixel;
 

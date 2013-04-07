@@ -1984,7 +1984,7 @@ static double soft_range_round_down(double value, double max)
 /* note: this could be split up into functions which handle arrays and not */
 static void ui_set_but_soft_range(uiBut *but)
 {
-	/* ideally we would not limit this but practically, its more then
+	/* ideally we would not limit this but practically, its more than
 	 * enough worst case is very long vectors wont use a smart soft-range
 	 * which isn't so bad. */
 

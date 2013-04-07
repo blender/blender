@@ -474,7 +474,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 					*v = ml->v;
 				}
 
-				/* is the same vertex used more then once */
+				/* is the same vertex used more than once */
 				if (!sp->invalid) {
 					v = sp->verts;
 					for (j = 0; j < mp->totloop; j++, v++) {

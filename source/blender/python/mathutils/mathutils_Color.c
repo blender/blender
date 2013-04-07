@@ -61,7 +61,7 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		default:
 			PyErr_SetString(PyExc_TypeError,
 			                "mathutils.Color(): "
-			                "more then a single arg given");
+			                "more than a single arg given");
 			return NULL;
 	}
 	return Color_CreatePyObject(col, Py_NEW, type);

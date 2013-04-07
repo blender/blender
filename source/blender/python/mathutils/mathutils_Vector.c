@@ -90,7 +90,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		default:
 			PyErr_SetString(PyExc_TypeError,
 			                "mathutils.Vector(): "
-			                "more then a single arg given");
+			                "more than a single arg given");
 			return NULL;
 	}
 	return Vector_CreatePyObject_alloc(vec, size, type);

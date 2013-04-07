@@ -185,7 +185,7 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
  * - Deselect the edge loop facing away.
  *
  * Limitation!
- * This currently works very poorly with intersecting edge islands (verts with more then 2 tagged edges)
+ * This currently works very poorly with intersecting edge islands (verts with more than 2 tagged edges)
  * This is nice to but for now not essential.
  *
  * - campbell.
@@ -916,7 +916,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 				BMLoop *l_b = l_a->radial_next;
 
 				/* find the best face to follow, this way the edge won't point away from
-				 * the mouse when there are more then 4 (takes the shortest face fan around) */
+				 * the mouse when there are more than 4 (takes the shortest face fan around) */
 				l = (edbm_rip_edge_side_measure(e2, l_a, ar, projectMat, fmval) <
 				     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;
 

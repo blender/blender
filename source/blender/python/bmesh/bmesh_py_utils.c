@@ -84,7 +84,7 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObjec
 
 	if (BM_vert_edge_count(py_vert->v) > 2) {
 		PyErr_SetString(PyExc_ValueError,
-		                "vert_collapse_edge(vert, edge): vert has more then 2 connected edges");
+		                "vert_collapse_edge(vert, edge): vert has more than 2 connected edges");
 		return NULL;
 	}
 
@@ -150,7 +150,7 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
 
 	if (BM_vert_edge_count(py_vert->v) > 2) {
 		PyErr_SetString(PyExc_ValueError,
-		                "vert_collapse_faces(vert, edge): vert has more then 2 connected edges");
+		                "vert_collapse_faces(vert, edge): vert has more than 2 connected edges");
 		return NULL;
 	}
 

@@ -631,7 +631,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 	}
 	
 	if (channelObjCount >= 255) {
-		BKE_report(reports, RPT_ERROR, "Cannot bake with more then 256 objects");
+		BKE_report(reports, RPT_ERROR, "Cannot bake with more than 256 objects");
 		return 0;
 	}
 	
