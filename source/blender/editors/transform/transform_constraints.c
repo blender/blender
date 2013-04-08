@@ -558,8 +558,8 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
 	/* edit-mode now allows local transforms too */
-#if 0
-	if (t->flag & T_EDIT) {
+#if 1
+	if ((t->flag & T_EDIT) && (t->around != V3D_LOCAL)) {
 		float obmat[3][3];
 		copy_m3_m4(obmat, t->scene->obedit->obmat);
 		normalize_m3(obmat);
