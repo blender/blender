@@ -823,6 +823,14 @@ void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
 	free_windowmanager_cb = func;
 }
 
+static void (*free_notifier_reference_cb)(const void *) = NULL;
+
+void set_free_notifier_reference_cb(void (*func)(const void *) )
+{
+	free_notifier_reference_cb = func;
+}
+
+
 static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
 {
 	ChannelDriver *driver;
@@ -968,6 +976,10 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_free_linestyle((FreestyleLineStyle *)id);
 			break;
 	}
+
+	/* avoid notifying on removed data */
+	if (free_notifier_reference_cb)
+		free_notifier_reference_cb(id);
 
 	BLI_remlink(lb, id);
 

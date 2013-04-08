@@ -119,6 +119,7 @@ void flag_all_listbases_ids(short flag, short value);
 void recalc_all_library_objects(struct Main *main);
 
 void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
+void set_free_notifier_reference_cb(void (*func)(const void *) );
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME N_("Untitled")

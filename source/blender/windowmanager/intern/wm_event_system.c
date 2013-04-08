@@ -187,6 +187,27 @@ void WM_main_add_notifier(unsigned int type, void *reference)
 	}
 }
 
+/**
+ * Clear notifiers by reference, Used so listeners don't act on freed data.
+ */
+void WM_main_remove_notifier_reference(const void *reference)
+{
+	Main *bmain = G.main;
+	wmWindowManager *wm = bmain->wm.first;
+	if (wm) {
+		wmNotifier *note, *note_next;
+
+		for (note = wm->queue.first; note; note = note_next) {
+			note_next = note->next;
+
+			if (note->reference == reference) {
+				BLI_remlink(&wm->queue, note);
+				MEM_freeN(note);
+			}
+		}
+	}
+}
+
 static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 {
 	wmNotifier *note = wm->queue.first;

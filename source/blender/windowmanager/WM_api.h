@@ -170,6 +170,7 @@ int			WM_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 			/* notifiers */
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void		WM_main_add_notifier(unsigned int type, void *reference);
+void		WM_main_remove_notifier_reference(const void *reference);
 
 void		wm_event_add(struct wmWindow *win, const struct wmEvent *event_to_add);
 
