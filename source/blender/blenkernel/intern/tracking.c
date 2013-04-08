@@ -3564,6 +3564,9 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	ImBuf *tmpibuf;
 	float width = ibuf->x, height = ibuf->y;
 	float aspect = tracking->camera.pixel_aspect;
+	float mat[4][4];
+	int j, filter = tracking->stabilization.filter;
+	void (*interpolation)(struct ImBuf *, struct ImBuf *, float, float, int, int) = NULL;
 
 	if (loc)
 		copy_v2_v2(tloc, loc);
@@ -3600,41 +3603,35 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 		ibuf = scaleibuf;
 	}
 
-	if (tangle == 0.0f) {
-		/* if angle is zero, then it's much faster to use rect copy
-		 * but could be issues with subpixel precisions
-		 */
-		IMB_rectcpy(tmpibuf, ibuf,
-		            tloc[0] - (tscale - 1.0f) * width / 2.0f,
-		            tloc[1] - (tscale - 1.0f) * height / 2.0f,
-		            0, 0, ibuf->x, ibuf->y);
-	}
-	else {
-		float mat[4][4];
-		int i, j, filter = tracking->stabilization.filter;
-		void (*interpolation)(struct ImBuf *, struct ImBuf *, float, float, int, int) = NULL;
+	BKE_tracking_stabilization_data_to_mat4(ibuf->x, ibuf->y, aspect, tloc, tscale, tangle, mat);
+	invert_m4(mat);
 
-		BKE_tracking_stabilization_data_to_mat4(ibuf->x, ibuf->y, aspect, tloc, tscale, tangle, mat);
-		invert_m4(mat);
+	if (filter == TRACKING_FILTER_NEAREST)
+		interpolation = nearest_interpolation;
+	else if (filter == TRACKING_FILTER_BILINEAR)
+		interpolation = bilinear_interpolation;
+	else if (filter == TRACKING_FILTER_BICUBIC)
+		interpolation = bicubic_interpolation;
+	else
+		/* fallback to default interpolation method */
+		interpolation = nearest_interpolation;
 
-		if (filter == TRACKING_FILTER_NEAREST)
-			interpolation = nearest_interpolation;
-		else if (filter == TRACKING_FILTER_BILINEAR)
-			interpolation = bilinear_interpolation;
-		else if (filter == TRACKING_FILTER_BICUBIC)
-			interpolation = bicubic_interpolation;
-		else
-			/* fallback to default interpolation method */
-			interpolation = nearest_interpolation;
+	/* This function is only used for display in clip editor and
+	 * sequencer only, which would only benefit of using threads
+	 * here.
+	 *
+	 * But need to keep an eye on this if the function will be
+	 * used in other cases.
+	 */
+    #pragma omp parallel for if(tmpibuf->y > 128)
+	for (j = 0; j < tmpibuf->y; j++) {
+		int i;
+		for (i = 0; i < tmpibuf->x; i++) {
+			float vec[3] = {i, j, 0};
 
-		for (j = 0; j < tmpibuf->y; j++) {
-			for (i = 0; i < tmpibuf->x; i++) {
-				float vec[3] = {i, j, 0};
+			mul_v3_m4v3(vec, mat, vec);
 
-				mul_v3_m4v3(vec, mat, vec);
-
-				interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
-			}
+			interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
 		}
 	}
 

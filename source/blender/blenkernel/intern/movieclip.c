@@ -973,6 +973,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 
 	copy_v2_v2(cache->stabilized.loc, tloc);
 
+	cache->stabilized.reference_ibuf = ibuf;
 	cache->stabilized.scale = tscale;
 	cache->stabilized.angle = tangle;
 	cache->stabilized.framenr = framenr;
