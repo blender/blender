@@ -2679,7 +2679,7 @@ void MESH_OT_poke(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Poke Faces";
 	ot->idname = "MESH_OT_poke";
-	ot->description = "Splits a face into a fan";
+	ot->description = "Split a face into a fan";
 
 	/* api callbacks */
 	ot->exec = edbm_poke_face_exec;
@@ -3910,7 +3910,7 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mark Freestyle Edge";
-	ot->description = "(un)mark selected edges as Freestyle feature edges";
+	ot->description = "(Un)mark selected edges as Freestyle feature edges";
 	ot->idname = "MESH_OT_mark_freestyle_edge";
 
 	/* api callbacks */
@@ -3971,7 +3971,7 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mark Freestyle Face";
-	ot->description = "(un)mark selected faces for exclusion from Freestyle feature edge detection";
+	ot->description = "(Un)mark selected faces for exclusion from Freestyle feature edge detection";
 	ot->idname = "MESH_OT_mark_freestyle_face";
 
 	/* api callbacks */

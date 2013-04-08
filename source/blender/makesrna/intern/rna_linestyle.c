@@ -610,7 +610,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "error");
 	RNA_def_property_ui_text(prop, "Error",
 	                         "Maximum distance allowed between the new Bezier curve and the "
-	                         "original backbone geometry)");
+	                         "original backbone geometry");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna = RNA_def_struct(brna, "LineStyleGeometryModifier_SinusDisplacement", "LineStyleGeometryModifier");
