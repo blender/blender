@@ -76,12 +76,14 @@
 
 #include "interface_intern.h"
 
+#ifndef WITH_HEADLESS
 #define ICON_GRID_COLS      26
 #define ICON_GRID_ROWS      30
 
 #define ICON_GRID_MARGIN    10
 #define ICON_GRID_W         32
 #define ICON_GRID_H         32
+#endif  /* WITH_HEADLESS */
 
 typedef struct IconImage {
 	int w;

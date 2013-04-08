@@ -195,6 +195,7 @@ static void fpe_handler(int UNUSED(sig))
 #endif
 
 /* handling ctrl-c event in console */
+#if !(defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS))
 static void blender_esc(int sig)
 {
 	static int count = 0;
@@ -210,6 +211,7 @@ static void blender_esc(int sig)
 		count++;
 	}
 }
+#endif
 
 static int print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {

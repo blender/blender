@@ -76,6 +76,7 @@ public:
 			GHOST_TWindowState state,
 			GHOST_TDrawingContextType type,
 			bool stereoVisual,
+			bool exclusive,
 			const GHOST_TUns16 numOfAASamples,
 			const GHOST_TEmbedderWindowID parentWindow)
 	{

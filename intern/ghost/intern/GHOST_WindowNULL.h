@@ -86,6 +86,8 @@ protected:
 	GHOST_TSuccess invalidate() { return GHOST_kSuccess; }
 	GHOST_TSuccess setOrder(GHOST_TWindowOrder order) { return GHOST_kSuccess; }
 
+	GHOST_TSuccess beginFullScreen() const { return GHOST_kSuccess; }
+	GHOST_TSuccess endFullScreen() const { return GHOST_kSuccess; }
 
 private:
 	GHOST_SystemNULL *m_system;
