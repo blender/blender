@@ -197,7 +197,6 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 
 	void **blocks   = BLI_array_alloca(blocks, source->len);
 	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
-	float *w        = BLI_array_alloca(w,      source->len);
 	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
 	int i;
 
