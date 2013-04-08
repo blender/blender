@@ -9266,6 +9266,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Brush *brush;
 		for (brush = main->brush.first; brush; brush = brush->id.next) {
 			default_mtex(&brush->mask_mtex);
+
+			if (brush->ob_mode & OB_MODE_TEXTURE_PAINT) {
+				brush->spacing /= 2;
+			}
 		}
 	}
 
