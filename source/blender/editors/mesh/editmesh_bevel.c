@@ -97,7 +97,7 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BevelData *opdata;
 
-	if (em == NULL) {
+	if (em->bm->totvertsel == 0) {
 		return 0;
 	}
 

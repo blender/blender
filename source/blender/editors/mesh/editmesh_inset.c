@@ -113,6 +113,10 @@ static int edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
+	if (em->bm->totvertsel == 0) {
+		return 0;
+	}
+
 	op->customdata = opdata = MEM_mallocN(sizeof(InsetData), "inset_operator_data");
 
 	opdata->old_thickness = 0.01;
@@ -239,7 +243,9 @@ static int edbm_inset_calc(wmOperator *op)
 
 static int edbm_inset_exec(bContext *C, wmOperator *op)
 {
-	edbm_inset_init(C, op, false);
+	if (!edbm_inset_init(C, op, false)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	if (!edbm_inset_calc(op)) {
 		edbm_inset_exit(C, op);
@@ -257,7 +263,9 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	float mlen[2];
 	float center_3d[3];
 
-	edbm_inset_init(C, op, true);
+	if (!edbm_inset_init(C, op, true)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	opdata = op->customdata;
 
