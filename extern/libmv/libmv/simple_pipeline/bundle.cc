@@ -61,8 +61,8 @@ struct OpenCVReprojectionError {
 
   template <typename T>
   bool operator()(const T* const intrinsics,
-                  const T* const R,  // Rotation 3x3 column-major.
-                  const T* const t,  // Translation 3x1.
+                  const T* const R_t,  // Rotation denoted by angle axis
+                                       // followed with translation
                   const T* const X,  // Point coordinates 3x1.
                   T* residuals) const {
     // Unpack the intrinsics.
@@ -77,9 +77,11 @@ struct OpenCVReprojectionError {
 
     // Compute projective coordinates: x = RX + t.
     T x[3];
-    x[0] = R[0]*X[0] + R[3]*X[1] + R[6]*X[2] + t[0];
-    x[1] = R[1]*X[0] + R[4]*X[1] + R[7]*X[2] + t[1];
-    x[2] = R[2]*X[0] + R[5]*X[1] + R[8]*X[2] + t[2];
+
+    ceres::AngleAxisRotatePoint(R_t, X, x);
+    x[0] += R_t[3];
+    x[1] += R_t[4];
+    x[2] += R_t[5];
 
     // Compute normalized coordinates: x /= x[2].
     T xn = x[0] / x[2];
@@ -121,70 +123,6 @@ struct OpenCVReprojectionError {
   double observed_y;
 };
 
-// TODO(keir): Get rid of the parameterization! Ceres will work much faster if
-// the rotation block is angle-axis and also the translation is merged into a
-// single parameter block.
-struct RotationMatrixPlus {
-  template<typename T>
-  bool operator()(const T* R_array,  // Rotation 3x3 col-major.
-                  const T* delta,    // Angle-axis delta
-                  T* R_plus_delta_array) const {
-    T angle_axis[3];
-
-    ceres::RotationMatrixToAngleAxis(R_array, angle_axis);
-
-    angle_axis[0] += delta[0];
-    angle_axis[1] += delta[1];
-    angle_axis[2] += delta[2];
-
-    ceres::AngleAxisToRotationMatrix(angle_axis, R_plus_delta_array);
-
-    return true;
-  }
-};
-
-// TODO(sergey): would be nice to have this in Ceres upstream
-template<typename PlusFunctor, int kGlobalSize, int kLocalSize>
-class AutodiffParameterization : public ceres::LocalParameterization {
- public:
-  AutodiffParameterization(const PlusFunctor &plus_functor)
-    : plus_functor_(plus_functor) {}
-
-  virtual ~AutodiffParameterization() {}
-
-  virtual bool Plus(const double* x,
-                    const double* delta,
-                    double* x_plus_delta) const {
-    return plus_functor_(x, delta, x_plus_delta);
-  }
-
-  virtual bool ComputeJacobian(const double* x, double* jacobian) const {
-    double zero_delta[kLocalSize] = { 0.0 };
-    double x_plus_delta[kGlobalSize];
-    const double* parameters[2] = { x, zero_delta };
-    double* jacobians_array[2] = { NULL, jacobian };
-
-    Plus(x, zero_delta, x_plus_delta);
-
-    return ceres::internal::AutoDiff<PlusFunctor,
-                              double,
-                              kGlobalSize, kLocalSize>
-        ::Differentiate(plus_functor_,
-                        parameters,
-                        kGlobalSize,
-                        x_plus_delta,
-                        jacobians_array);
-
-    return true;
-  }
-
-  virtual int GlobalSize() const { return kGlobalSize; }
-  virtual int LocalSize() const { return kLocalSize; }
-
- private:
-  const PlusFunctor &plus_functor_;
-};
-
 void BundleIntrinsicsLogMessage(int bundle_intrinsics) {
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
     LG << "Bundling only camera positions.";
@@ -220,6 +158,83 @@ void BundleIntrinsicsLogMessage(int bundle_intrinsics) {
   }
 }
 
+// Pack intrinsics from object to an array for easier
+// and faster minimization
+void PackIntrinisicsIntoArray(CameraIntrinsics *intrinsics,
+                              double ceres_intrinsics[8]) {
+  ceres_intrinsics[OFFSET_FOCAL_LENGTH]       = intrinsics->focal_length();
+  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_X]  = intrinsics->principal_point_x();
+  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_Y]  = intrinsics->principal_point_y();
+  ceres_intrinsics[OFFSET_K1]                 = intrinsics->k1();
+  ceres_intrinsics[OFFSET_K2]                 = intrinsics->k2();
+  ceres_intrinsics[OFFSET_K3]                 = intrinsics->k3();
+  ceres_intrinsics[OFFSET_P1]                 = intrinsics->p1();
+  ceres_intrinsics[OFFSET_P2]                 = intrinsics->p2();
+}
+
+// Unpack intrinsics back from an array to an object
+void UnpackIntrinsicsFromArray(CameraIntrinsics *intrinsics,
+                               double ceres_intrinsics[8]) {
+    intrinsics->SetFocalLength(ceres_intrinsics[OFFSET_FOCAL_LENGTH],
+                               ceres_intrinsics[OFFSET_FOCAL_LENGTH]);
+
+    intrinsics->SetPrincipalPoint(ceres_intrinsics[OFFSET_PRINCIPAL_POINT_X],
+                                  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_Y]);
+
+    intrinsics->SetRadialDistortion(ceres_intrinsics[OFFSET_K1],
+                                    ceres_intrinsics[OFFSET_K2],
+                                    ceres_intrinsics[OFFSET_K3]);
+
+    intrinsics->SetTangentialDistortion(ceres_intrinsics[OFFSET_P1],
+                                        ceres_intrinsics[OFFSET_P2]);
+}
+
+// Get a vector of camera's rotations denoted by angle axis
+// conjuncted with translations into single block
+//
+// Element with index i matches to a rotation+translation for
+// camera at image i.
+vector<Vec6> PackCamerasRotationAndTranslation(
+                                 const Tracks &tracks,
+                                 EuclideanReconstruction *reconstruction) {
+  vector<Vec6> cameras_R_t;
+  int max_image = tracks.MaxImage();
+
+  cameras_R_t.resize(max_image + 1);
+
+  for (int i = 0; i <= max_image; i++) {
+    EuclideanCamera *camera = reconstruction->CameraForImage(i);
+
+    if (!camera)
+      continue;
+
+    ceres::RotationMatrixToAngleAxis(&camera->R(0, 0),
+                                     &cameras_R_t[i](0));
+    cameras_R_t[i].tail<3>() = camera->t;
+  }
+
+  return cameras_R_t;
+}
+
+// Convert cameras rotations fro mangle axis back to rotation matrix
+void UnpackCamerasRotationAndTranslation(
+                                  const Tracks &tracks,
+                                  EuclideanReconstruction *reconstruction,
+                                  vector<Vec6> cameras_R_t) {
+  int max_image = tracks.MaxImage();
+
+  for (int i = 0; i <= max_image; i++) {
+    EuclideanCamera *camera = reconstruction->CameraForImage(i);
+
+    if (!camera)
+      continue;
+
+    ceres::AngleAxisToRotationMatrix(&cameras_R_t[i](0),
+                                     &camera->R(0, 0));
+    camera->t = cameras_R_t[i].tail<3>();
+  }
+}
+
 }  // namespace
 
 void EuclideanBundle(const Tracks &tracks,
@@ -240,29 +255,24 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   vector<Marker> markers = tracks.AllMarkers();
 
   ceres::Problem::Options problem_options;
-  problem_options.local_parameterization_ownership =
-    ceres::DO_NOT_TAKE_OWNERSHIP;
-
   ceres::Problem problem(problem_options);
 
   // Residual blocks with 10 parameters are unwieldly with Ceres, so pack the
   // intrinsics into a single block and rely on local parameterizations to
   // control which intrinsics are allowed to vary.
   double ceres_intrinsics[8];
-  ceres_intrinsics[OFFSET_FOCAL_LENGTH]       = intrinsics->focal_length();
-  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_X]  = intrinsics->principal_point_x();
-  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_Y]  = intrinsics->principal_point_y();
-  ceres_intrinsics[OFFSET_K1]                 = intrinsics->k1();
-  ceres_intrinsics[OFFSET_K2]                 = intrinsics->k2();
-  ceres_intrinsics[OFFSET_K3]                 = intrinsics->k3();
-  ceres_intrinsics[OFFSET_P1]                 = intrinsics->p1();
-  ceres_intrinsics[OFFSET_P2]                 = intrinsics->p2();
+  PackIntrinisicsIntoArray(intrinsics, ceres_intrinsics);
 
-  RotationMatrixPlus rotation_matrix_plus;
-  AutodiffParameterization<RotationMatrixPlus, 9, 3>
-      rotation_parameterization(rotation_matrix_plus);
+  // Convert cameras rotations to angle axis and merge with translation
+  // into single parameter block for maximal minimization speed
+  //
+  // Block for minimization has got the following structure:
+  //   <3 elements for angle-axis> <3 elements for translation>
+  vector<Vec6> cameras_R_t =
+    PackCamerasRotationAndTranslation(tracks, reconstruction);
 
   int num_residuals = 0;
+  bool have_locked_camera = false;
   for (int i = 0; i < markers.size(); ++i) {
     const Marker &marker = markers[i];
     EuclideanCamera *camera = reconstruction->CameraForImage(marker.image);
@@ -271,24 +281,28 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
       continue;
     }
 
+    // Rotation of camera denoted in angle axis
+    double *camera_R_t = &cameras_R_t[camera->image] (0);
+
     problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-        OpenCVReprojectionError, 2, 8, 9, 3, 3>(
+        OpenCVReprojectionError, 2, 8, 6, 3>(
             new OpenCVReprojectionError(
                 marker.x,
                 marker.y)),
         NULL,
         ceres_intrinsics,
-        &camera->R(0, 0),
-        &camera->t(0),
+        camera_R_t,
         &point->X(0));
 
-    // It's fine if the parameterization for one camera is set repeatedly.
-    problem.SetParameterization(&camera->R(0, 0),
-                                &rotation_parameterization);
-
-    if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
-      problem.SetParameterBlockConstant(&camera->t(0));
+    // We lock first camera for better deal with
+    // scene orientation ambiguity
+    if (!have_locked_camera) {
+      problem.SetParameterBlockConstant(camera_R_t);
+      have_locked_camera = true;
     }
+
+    if (bundle_constraints & BUNDLE_NO_TRANSLATION)
+      problem.SetParameterBlockConstant(&camera->t(0));
 
     num_residuals++;
   }
@@ -300,9 +314,6 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   }
 
   BundleIntrinsicsLogMessage(bundle_intrinsics);
-
-  scoped_ptr<ceres::SubsetParameterization>
-      subset_parameterization(NULL);
 
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
     // No camera intrinsics are refining,
@@ -328,12 +339,13 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     // Always set K3 constant, it's not used at the moment.
     constant_intrinsics.push_back(OFFSET_K3);
 
-    subset_parameterization.reset(
-        new ceres::SubsetParameterization(8, constant_intrinsics));
+    ceres::SubsetParameterization *subset_parameterization =
+      new ceres::SubsetParameterization(8, constant_intrinsics);
 
-    problem.SetParameterization(ceres_intrinsics, subset_parameterization.get());
+    problem.SetParameterization(ceres_intrinsics, subset_parameterization);
   }
 
+  // Configure the solver
   ceres::Solver::Options options;
   options.use_nonmonotonic_steps = true;
   options.preconditioner_type = ceres::SCHUR_JACOBI;
@@ -346,26 +358,20 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   options.num_linear_solver_threads = omp_get_max_threads();
 #endif
 
+  // Solve!
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
 
   LG << "Final report:\n" << summary.FullReport();
 
+  // Copy rotations and translations back.
+  UnpackCamerasRotationAndTranslation(tracks,
+                                      reconstruction,
+                                      cameras_R_t);
+
   // Copy intrinsics back.
-  if (bundle_intrinsics != BUNDLE_NO_INTRINSICS) {
-    intrinsics->SetFocalLength(ceres_intrinsics[OFFSET_FOCAL_LENGTH],
-                               ceres_intrinsics[OFFSET_FOCAL_LENGTH]);
-
-    intrinsics->SetPrincipalPoint(ceres_intrinsics[OFFSET_PRINCIPAL_POINT_X],
-                                  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_Y]);
-
-    intrinsics->SetRadialDistortion(ceres_intrinsics[OFFSET_K1],
-                                    ceres_intrinsics[OFFSET_K2],
-                                    ceres_intrinsics[OFFSET_K3]);
-
-    intrinsics->SetTangentialDistortion(ceres_intrinsics[OFFSET_P1],
-                                        ceres_intrinsics[OFFSET_P2]);
-  }
+  if (bundle_intrinsics != BUNDLE_NO_INTRINSICS)
+    UnpackIntrinsicsFromArray(intrinsics, ceres_intrinsics);
 
   LG << "Final intrinsics: " << *intrinsics;
 }
