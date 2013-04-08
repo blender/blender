@@ -586,6 +586,14 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 
 #ifdef WITH_FREESTYLE
 
+static int freestyle_active_module_poll(bContext *C)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
+	FreestyleModuleConfig *module = ptr.data;
+
+	return module != NULL;
+}
+
 static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -634,6 +642,7 @@ void SCENE_OT_freestyle_module_remove(wmOperatorType *ot)
 	ot->description = "Remove the style module from the stack";
 
 	/* api callbacks */
+	ot->poll = freestyle_active_module_poll;
 	ot->exec = freestyle_module_remove_exec;
 
 	/* flags */
@@ -673,6 +682,7 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
 	ot->description = "Change the position of the style module within in the list of style modules";
 
 	/* api callbacks */
+	ot->poll = freestyle_active_module_poll;
 	ot->exec = freestyle_module_move_exec;
 
 	/* flags */
