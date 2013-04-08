@@ -339,7 +339,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			return OPERATOR_FINISHED;
 
 		case WHEELUPMOUSE:  /* change number of segments */
-		case PAGEUPKEY:
+		case PADPLUSKEY:
 			if (event->val == KM_RELEASE)
 				break;
 
@@ -350,7 +350,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 
 		case WHEELDOWNMOUSE:  /* change number of segments */
-		case PAGEDOWNKEY:
+		case PADMINUS:
 			if (event->val == KM_RELEASE)
 				break;
 
