@@ -132,8 +132,12 @@ int PE_hair_poll(bContext *C)
 
 int PE_poll_view3d(bContext *C)
 {
-	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	return (PE_poll(C) &&
+	        (sa && sa->spacetype == SPACE_VIEW3D) &&
+	        (ar && ar->regiontype == RGN_TYPE_WINDOW));
 }
 
 void PE_free_ptcache_edit(PTCacheEdit *edit)

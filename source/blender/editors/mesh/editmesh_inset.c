@@ -107,14 +107,14 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 }
 
 
-static int edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
+static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	InsetData *opdata;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (em->bm->totvertsel == 0) {
-		return 0;
+		return false;
 	}
 
 	op->customdata = opdata = MEM_mallocN(sizeof(InsetData), "inset_operator_data");
@@ -141,7 +141,7 @@ static int edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		v3d->twtype = 0;
 	}
 
-	return 1;
+	return true;
 }
 
 static void edbm_inset_exit(bContext *C, wmOperator *op)
@@ -183,7 +183,7 @@ static int edbm_inset_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int edbm_inset_calc(wmOperator *op)
+static bool edbm_inset_calc(wmOperator *op)
 {
 	InsetData *opdata;
 	BMEditMesh *em;
@@ -233,11 +233,11 @@ static int edbm_inset_calc(wmOperator *op)
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
+		return false;
 	}
 	else {
 		EDBM_update_generic(em, true, true);
-		return 1;
+		return true;
 	}
 }
 
