@@ -84,7 +84,7 @@ void CheckForNoAliasing(double* existing_block,
       << "Aliasing detected between existing parameter block at memory "
       << "location " << existing_block
       << " and has size " << existing_block_size << " with new parameter "
-      << "block that has memory adderss " << new_block << " and would have "
+      << "block that has memory address " << new_block << " and would have "
       << "size " << new_block_size << ".";
 }
 

@@ -1,3 +1,33 @@
+commit c290df85a40a8dd117b5eccc515bf22b0d9b1945
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 7 09:17:47 2013 -0700
+
+    Typo fix.
+    
+    (Thanks to Pieree Moulon for reporting this)
+    
+    Change-Id: I536724ab4b7e9c97768d5197aa86b41f37a04d38
+
+commit dc3a27fa60ba7c6b152660afd5abe1c8b608dec3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Apr 6 19:32:47 2013 -0700
+
+    Fix MatrixVectorMultiply and incorrect DCHECKS.
+    
+    (Thanks to Serget Sharybin for reporting this)
+    
+    Change-Id: I6bbc41667308fc2932871cf25ad07b431f70801f
+
+commit 585607171f20d591033dfea43b6dd22fea755a6c
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Sun Apr 7 01:24:13 2013 +0200
+
+    <iterator> needed for back_insert_iterator
+    
+    Adding this header was required to make Ceres compile with VS2010.
+    
+    Change-Id: I000c860da4fd385d625e70695564225bdfd433c7
+
 commit 520d35ef22dbcb05e344451c03ae64304e524a06
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Thu Apr 4 08:16:02 2013 -0700
@@ -589,33 +619,3 @@ Date:   Fri Feb 15 18:28:11 2013 -0500
     native libraries are installed to /usr/lib64
     
     Change-Id: I71b4fae7b459c003cb5fac981278c668f2e29779
-
-commit 70701745b85fef7eeba2c978ae849fd48927699c
-Author: Taylor Braun-Jones <taylor@braun-jones.org>
-Date:   Fri Feb 15 19:09:48 2013 -0500
-
-    Add RPM .spec file
-    
-    Tested on RHEL6.1 (with epel repository for dependencies).
-    
-    make_release checks that that the version string in the .spec file is in
-    sync with the rest of the project and reminds the user to bump the
-    release string if necessary and to build/upload the RPM package.
-    
-    Change-Id: I5f454f2a7301d1e0e120cb3c0e13a68d03bca917
-
-commit d2a5195b512164fec286c6a52b40d7766977caa3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Feb 24 15:09:17 2013 -0800
-
-    Version history update.
-    
-    Change-Id: I477ec05a78ca4cd735a525253c9b6adfa3bddea7
-
-commit 2160c5b757c44206c6face6ca62d381f1db7a291
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Feb 24 14:15:45 2013 -0800
-
-    Minor release script fixes.
-    
-    Change-Id: Ifd0a7f4f584c85d4d9574eca46094b372a8d7aff

@@ -171,8 +171,8 @@ inline void MatrixMatrixMultiplyNaive(const double* A,
 
   const int NUM_ROW_C = NUM_ROW_A;
   const int NUM_COL_C = NUM_COL_B;
-  DCHECK_LT(start_row_c + NUM_ROW_C, row_stride_c);
-  DCHECK_LT(start_col_c + NUM_COL_C, col_stride_c);
+  DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
+  DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
 
   for (int row = 0; row < NUM_ROW_C; ++row) {
     for (int col = 0; col < NUM_COL_C; ++col) {
@@ -324,8 +324,8 @@ inline void MatrixTransposeMatrixMultiplyNaive(const double* A,
 
   const int NUM_ROW_C = NUM_COL_A;
   const int NUM_COL_C = NUM_COL_B;
-  DCHECK_LT(start_row_c + NUM_ROW_C, row_stride_c);
-  DCHECK_LT(start_col_c + NUM_COL_C, col_stride_c);
+  DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
+  DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
 
   for (int row = 0; row < NUM_ROW_C; ++row) {
     for (int col = 0; col < NUM_COL_C; ++col) {
@@ -401,7 +401,7 @@ inline void MatrixVectorMultiply(const double* A,
   } else if (kOperation < 0) {
     cref -= Aref.lazyProduct(bref);
   } else {
-    cref -= Aref.lazyProduct(bref);
+    cref = Aref.lazyProduct(bref);
   }
 #else
 
@@ -459,7 +459,7 @@ inline void MatrixTransposeVectorMultiply(const double* A,
   } else if (kOperation < 0) {
     cref -= Aref.transpose().lazyProduct(bref);
   } else {
-    cref -= Aref.transpose().lazyProduct(bref);
+    cref = Aref.transpose().lazyProduct(bref);
   }
 #else
 
