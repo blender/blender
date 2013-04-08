@@ -794,6 +794,9 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		height >>= 1;
 	}
 
+	/* set number of mipmap levels we have, needed in case they don't go down to 1x1 */
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i-1);
+
 	return TRUE;
 #else
 	(void)ibuf;
