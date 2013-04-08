@@ -3465,11 +3465,11 @@ static EnumPropertyItem prop_view_pan_items[] = {
 
 static int viewpan_exec(bContext *C, wmOperator *op)
 {
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	float vec[3];
-	float ofs[3];
 	const float co_zero[3] = {0.0f};
 	float mval_f[2] = {0.0f, 0.0f};
 	float zfac;
@@ -3485,9 +3485,16 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	else if (pandir == V3D_VIEW_PANUP)     { mval_f[1] = -25.0f; }
 	else if (pandir == V3D_VIEW_PANDOWN)   { mval_f[1] =  25.0f; }
 	ED_view3d_win_to_delta(ar, mval_f, vec, zfac);
-	add_v3_v3v3(ofs, rv3d->ofs, vec);
+	add_v3_v3(rv3d->ofs, vec);
 
-	view3d_smooth_view(C, v3d, ar, NULL, NULL, ofs, NULL, NULL, NULL);
+	if (rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_sync(sa, ar);
+
+	ED_view3d_depth_tag_update(rv3d);
+
+	ED_view3d_camera_lock_sync(v3d, rv3d);
+
+	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
 }
