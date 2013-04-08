@@ -66,7 +66,7 @@ public:
 		sah_triangle_cost = 1.0f;
 
 		min_leaf_size = 1;
-		max_leaf_size = 0x7FFFFFF;
+		max_leaf_size = 8;
 
 		top_level = false;
 		use_cache = false;
