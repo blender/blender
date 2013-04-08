@@ -111,8 +111,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 	}
 	if (sock) {
 		sock->type = stemp->type;
-		if (stemp->limit == 0) sock->limit= 0xFFF;
-		else sock->limit = stemp->limit;
+		sock->limit = (stemp->limit == 0 ? 0xFFF : stemp->limit);
 		sock->flag |= stemp->flag;
 		
 		BLI_remlink(socklist, sock);
