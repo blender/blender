@@ -962,10 +962,6 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype == SPACE_CLIP) {
 		recalcData_spaceclip(t);
 	}
-
-	if (t->options & CTX_MASK) {
-
-	}
 }
 
 void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options)

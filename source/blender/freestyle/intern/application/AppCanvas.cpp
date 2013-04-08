@@ -98,7 +98,7 @@ void AppCanvas::init()
 	static bool firsttime = true;
 	if (firsttime) {
 		_Renderer = new BlenderStrokeRenderer;
-		if(!StrokeRenderer::loadTextures()) {
+		if (!StrokeRenderer::loadTextures()) {
 			cerr << "unable to load stroke textures" << endl;
 			return;
 		}

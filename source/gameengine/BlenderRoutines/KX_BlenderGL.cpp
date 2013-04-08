@@ -308,7 +308,7 @@ void BL_MakeScreenShot(bScreen *screen, ScrArea *curarea, const char *filename)
 		Scene *scene = (screen)? screen->scene: NULL;
 		ImageFormatData im_format;
 
-		if(scene)
+		if (scene)
 			im_format = scene->r.im_format;
 		else
 			BKE_imformat_defaults(&im_format);

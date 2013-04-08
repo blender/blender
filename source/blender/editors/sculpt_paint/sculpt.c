@@ -381,11 +381,11 @@ static void sculpt_orig_vert_data_update(SculptOrigVertData *orig_data,
 /**********************************************************************/
 
 /* Returns true if the stroke will use dynamic topology, false
-   otherwise.
-
-   Factors: some brushes like grab cannot do dynamic topology.
-   Others, like smooth, are better without. Same goes for alt-
-   key smoothing. */
+ * otherwise.
+ *
+ * Factors: some brushes like grab cannot do dynamic topology.
+ * Others, like smooth, are better without. Same goes for alt-
+ * key smoothing. */
 static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
                                           const Brush *brush)
 {

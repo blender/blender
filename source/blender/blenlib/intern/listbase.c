@@ -472,9 +472,11 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 	return NULL;
 }
 
+/**
+ * Finds the first element of listbase which contains the specified pointer value
+ * at the specified offset, returning NULL if not found.
+ */
 void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
-/* finds the first element of listbase which contains the specified pointer value
-at the specified offset, returning NULL if not found. */
 {
 	Link *link = NULL;
 	const void *ptr_iter;
@@ -493,9 +495,11 @@ at the specified offset, returning NULL if not found. */
 	return NULL;
 }
 /* same as above but find reverse */
+/**
+ * Finds the last element of listbase which contains the specified pointer value
+ * at the specified offset, returning NULL if not found.
+ */
 void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
-/* finds the last element of listbase which contains the specified pointer value
-at the specified offset, returning NULL if not found. */
 {
 	Link *link = NULL;
 	const void *ptr_iter;
@@ -514,9 +518,11 @@ at the specified offset, returning NULL if not found. */
 	return NULL;
 }
 
+/**
+ * Returns the 1-based index of the first element of listbase which contains the specified
+ * null-terminated string at the specified offset, or -1 if not found.
+ */
 int BLI_findstringindex(const ListBase *listbase, const char *id, const int offset)
-/* returns the 1-based index of the first element of listbase which contains the specified
-null-terminated string at the specified offset, or -1 if not found. */
 {
 	Link *link = NULL;
 	const char *id_iter;

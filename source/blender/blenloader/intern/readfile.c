@@ -6764,7 +6764,7 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 					break;
 				}
 			}
-			for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+			for (m = linestyle->alpha_modifiers.first; m; m = m->next) {
 				switch (m->type) {
 				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 					{
@@ -6774,7 +6774,7 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 					break;
 				}
 			}
-			for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+			for (m = linestyle->thickness_modifiers.first; m; m = m->next) {
 				switch (m->type) {
 				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 					{
@@ -10461,11 +10461,11 @@ static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *li
 		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
 			expand_doit(fd, mainvar, ((LineStyleColorModifier_DistanceFromObject *)m)->target);
 	}
-	for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+	for (m = linestyle->alpha_modifiers.first; m; m = m->next) {
 		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
 			expand_doit(fd, mainvar, ((LineStyleAlphaModifier_DistanceFromObject *)m)->target);
 	}
-	for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+	for (m = linestyle->thickness_modifiers.first; m; m = m->next) {
 		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
 			expand_doit(fd, mainvar, ((LineStyleThicknessModifier_DistanceFromObject *)m)->target);
 	}

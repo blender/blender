@@ -650,7 +650,7 @@ void Controller::ComputeSteerableViewMap()
 		// FIXME !! again!
 		img[i] = new GrayImage(_pView->width(), _pView->height());
 		for (unsigned int y = 0; y < img[i]->height(); ++y) {
-			for(unsigned int x = 0; x < img[i]->width(); ++x) {
+			for (unsigned int x = 0; x < img[i]->width(); ++x) {
 				//img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)) / 255.0f);
 				img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)));
 				//float c = qGray(qimg.pixel(x, y));
@@ -664,7 +664,7 @@ void Controller::ComputeSteerableViewMap()
 #if 0
 		qimg = QImage(_pView->width(), _pView->height(), 32);
 		for (unsigned int y = 0; y < img[i]->height(); ++y) {
-			for(unsigned int x = 0; x < img[i]->width(); ++x) {
+			for (unsigned int x = 0; x < img[i]->width(); ++x) {
 				float v = img[i]->pixel(x, y);
 				qimg.setPixel(x, y, qRgb(v, v, v));
 			}
