@@ -510,50 +510,53 @@ static int stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+static void stencil_control_calculate(StencilControlData *scd, const int *mval)
+{
+	float mdiff[2];
+	float mvalf[2] = {mval[0], mval[1]};
+	switch (scd->mode) {
+		case STENCIL_TRANSLATE:
+			sub_v2_v2v2(mdiff, mvalf, scd->init_mouse);
+			add_v2_v2v2(scd->br->stencil_pos, scd->init_spos,
+			            mdiff);
+			break;
+		case STENCIL_SCALE:
+		{
+			float len, factor;
+			sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
+			len = len_v2(mdiff);
+			factor = len / scd->lenorig;
+			copy_v2_v2(mdiff, scd->init_sdim);
+			if (scd->constrain_mode != STENCIL_CONSTRAINT_Y)
+				mdiff[0] = factor * scd->init_sdim[0];
+			if (scd->constrain_mode != STENCIL_CONSTRAINT_X)
+				mdiff[1] = factor * scd->init_sdim[1];
+			copy_v2_v2(scd->br->stencil_dimension, mdiff);
+			break;
+		}
+		case STENCIL_ROTATE:
+		{
+			float angle;
+			sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
+			angle = atan2(mdiff[1], mdiff[0]);
+			angle = scd->init_rot + angle - scd->init_angle;
+			if (angle < 0.0f)
+				angle += (float)(2 * M_PI);
+			if (angle > (float)(2 * M_PI))
+				angle -= (float)(2 * M_PI);
+			scd->br->mtex.rot = angle;
+			break;
+		}
+	}
+}
+
 static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	StencilControlData *scd = op->customdata;
 
 	switch (event->type) {
 		case MOUSEMOVE:
-			{
-				float mdiff[2];
-				float mvalf[2] = {event->mval[0], event->mval[1]};
-				switch (scd->mode) {
-					case STENCIL_TRANSLATE:
-						sub_v2_v2v2(mdiff, mvalf, scd->init_mouse);
-						add_v2_v2v2(scd->br->stencil_pos, scd->init_spos,
-						            mdiff);
-						break;
-					case STENCIL_SCALE:
-					{
-						float len, factor;
-						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
-						len = len_v2(mdiff);
-						factor = len / scd->lenorig;
-						copy_v2_v2(mdiff, scd->init_sdim);
-						if (scd->constrain_mode != STENCIL_CONSTRAINT_Y)
-							mdiff[0] = factor * scd->init_sdim[0];
-						if (scd->constrain_mode != STENCIL_CONSTRAINT_X)
-							mdiff[1] = factor * scd->init_sdim[1];
-						copy_v2_v2(scd->br->stencil_dimension, mdiff);
-						break;
-					}
-					case STENCIL_ROTATE:
-					{
-						float angle;
-						sub_v2_v2v2(mdiff, mvalf, scd->br->stencil_pos);
-						angle = atan2(mdiff[1], mdiff[0]);
-						angle = scd->init_rot + angle - scd->init_angle;
-						if (angle < 0.0f)
-							angle += (float)(2 * M_PI);
-						if (angle > (float)(2 * M_PI))
-							angle -= (float)(2 * M_PI);
-						scd->br->mtex.rot = angle;
-						break;
-					}
-				}
-			}
+			stencil_control_calculate(scd, event->mval);
 			break;
 		/* XXX hardcoded! */
 		case RIGHTMOUSE:
@@ -575,6 +578,8 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 					scd->constrain_mode = 0;
 				else
 					scd->constrain_mode = STENCIL_CONSTRAINT_X;
+
+				stencil_control_calculate(scd, event->mval);
 			}
 			break;
 		case YKEY:
@@ -583,6 +588,8 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 					scd->constrain_mode = 0;
 				else
 					scd->constrain_mode = STENCIL_CONSTRAINT_Y;
+
+				stencil_control_calculate(scd, event->mval);
 			}
 			break;
 		default:

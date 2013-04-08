@@ -761,10 +761,12 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         col.label(text="Overlay:")
 
         row = col.row()
-        if brush.use_texture_overlay:
-            row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
-        else:
-            row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+        if tex_slot.map_mode != 'STENCIL':
+            if brush.use_texture_overlay:
+                row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
+            else:
+                row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+        
         sub = row.row()
         sub.prop(brush, "texture_overlay_alpha", text="Alpha")
 
