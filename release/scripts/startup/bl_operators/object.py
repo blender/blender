@@ -132,6 +132,7 @@ class SelectCamera(Operator):
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
             context.scene.objects.active = camera
+            camera.hide = False
             camera.select = True
             return {'FINISHED'}
 
