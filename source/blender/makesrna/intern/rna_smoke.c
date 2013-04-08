@@ -210,7 +210,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "resolution_max", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxres");
 	RNA_def_property_range(prop, 24, 512);
-	RNA_def_property_ui_range(prop, 24, 512, 2, 0);
+	RNA_def_property_ui_range(prop, 24, 512, 2, -1);
 	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the fluid domain");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
@@ -218,7 +218,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "amplify", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "amplify");
 	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 10, 1, -1);
 	RNA_def_property_ui_text(prop, "Amplification", "Enhance the resolution of smoke by this factor using noise");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
@@ -288,7 +288,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "diss_speed");
 	RNA_def_property_range(prop, 1.0, 10000.0);
-	RNA_def_property_ui_range(prop, 1.0, 10000.0, 1, 0);
+	RNA_def_property_ui_range(prop, 1.0, 10000.0, 1, -1);
 	RNA_def_property_ui_text(prop, "Dissolve Speed", "Dissolve Speed");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
@@ -409,14 +409,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "additional_res", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "adapt_res");
 	RNA_def_property_range(prop, 0, 512);
-	RNA_def_property_ui_range(prop, 0, 512, 2, 0);
+	RNA_def_property_ui_range(prop, 0, 512, 2, -1);
 	RNA_def_property_ui_text(prop, "Additional", "Maximum number of additional cells");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "adapt_margin", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "adapt_margin");
 	RNA_def_property_range(prop, 2, 24);
-	RNA_def_property_ui_range(prop, 2, 24, 2, 0);
+	RNA_def_property_ui_range(prop, 2, 24, 2, -1);
 	RNA_def_property_ui_text(prop, "Margin", "Margin added around fluid to minimize boundary interference");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 

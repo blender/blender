@@ -1928,13 +1928,13 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_UnifiedPaintSettings_size_set", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
-	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
+	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 
 	prop = RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_UnifiedPaintSettings_unprojected_radius_set", NULL);
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.001, 1, 0, 0);
+	RNA_def_property_ui_range(prop, 0.001, 1, 0, -1);
 	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
 
 	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
@@ -2844,7 +2844,7 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "verts_per_poly", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "vertsperpoly");
-	RNA_def_property_ui_range(prop, 3, 12, 1, 0);
+	RNA_def_property_ui_range(prop, 3, 12, 1, -1);
 	RNA_def_property_ui_text(prop, "Verts Per Poly", "Max number of vertices per polygon");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -4596,7 +4596,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "simplify_subdivision", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_subsurf");
-	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 6, 1, -1);
 	RNA_def_property_ui_text(prop, "Simplify Subdivision", "Global maximum subdivision level");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
@@ -4607,7 +4607,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "simplify_shadow_samples", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_shadowsamples");
-	RNA_def_property_ui_range(prop, 1, 16, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 16, 1, -1);
 	RNA_def_property_ui_text(prop, "Simplify Shadow Samples", "Global maximum shadow samples");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
@@ -4955,7 +4955,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.frame_step");
 	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Frame Step",
 	                         "Number of frames to skip forward while rendering/playing back each frame");
 	RNA_def_property_update(prop, NC_SCENE | ND_FRAME, NULL);

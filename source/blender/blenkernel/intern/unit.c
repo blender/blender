@@ -366,12 +366,14 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	 * jump about while dragging */
 	i = len - 1;
 
-	while (i > 0 && str[i] == '0') { /* 4.300 -> 4.3 */
-		str[i--] = pad;
-	}
+	if (prec > 0) {
+		while (i > 0 && str[i] == '0') { /* 4.300 -> 4.3 */
+			str[i--] = pad;
+		}
 
-	if (i > 0 && str[i] == '.') { /* 10. -> 10 */
-		str[i--] = pad;
+		if (i > 0 && str[i] == '.') { /* 10. -> 10 */
+			str[i--] = pad;
+		}
 	}
 
 	/* Now add the suffix */

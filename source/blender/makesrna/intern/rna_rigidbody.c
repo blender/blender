@@ -639,7 +639,7 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "steps_per_second", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "steps_per_second");
 	RNA_def_property_range(prop, 1, SHRT_MAX);
-	RNA_def_property_ui_range(prop, 60, 1000, 1, 0);
+	RNA_def_property_ui_range(prop, 60, 1000, 1, -1);
 	RNA_def_property_int_default(prop, 60);
 	RNA_def_property_ui_text(prop, "Steps Per Second",
 	                         "Number of simulation steps taken per second (higher values are more accurate "
@@ -650,7 +650,7 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "num_solver_iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "num_solver_iterations");
 	RNA_def_property_range(prop, 1, 1000);
-	RNA_def_property_ui_range(prop, 10, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 10, 100, 1, -1);
 	RNA_def_property_int_default(prop, 10);
 	RNA_def_property_int_funcs(prop, NULL, "rna_RigidBodyWorld_num_solver_iterations_set", NULL);
 	RNA_def_property_ui_text(prop, "Solver Iterations",
@@ -907,7 +907,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "num_solver_iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "num_solver_iterations");
 	RNA_def_property_range(prop, 1, 1000);
-	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_int_default(prop, 10);
 	RNA_def_property_int_funcs(prop, NULL, "rna_RigidBodyCon_num_solver_iterations_set", NULL);
 	RNA_def_property_ui_text(prop, "Solver Iterations",

@@ -671,14 +671,14 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Brush_set_size", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
-	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
+	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop = RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_Brush_set_unprojected_radius", NULL);
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.001, 1, 0, 0);
+	RNA_def_property_ui_range(prop, 0.001, 1, 0, -1);
 	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
@@ -698,7 +698,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "spacing", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 1, 1000);
-	RNA_def_property_ui_range(prop, 1, 500, 5, 0);
+	RNA_def_property_ui_range(prop, 1, 500, 5, -1);
 	RNA_def_property_ui_text(prop, "Spacing", "Spacing between brush daubs as a percentage of brush diameter");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 

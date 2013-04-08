@@ -1042,25 +1042,25 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "max_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "top");
 	RNA_def_property_ui_text(prop, "Top", "");
-	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 	
 	prop = RNA_def_property(srna, "min_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bottom");
 	RNA_def_property_ui_text(prop, "Bottom", "");
-	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 	
 	prop = RNA_def_property(srna, "min_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "left");
 	RNA_def_property_ui_text(prop, "Left", "");
-	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 
 	prop = RNA_def_property(srna, "max_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "right");
 	RNA_def_property_ui_text(prop, "Right", "");
-	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 
 	RNA_def_struct_path_func(srna, "rna_SequenceCrop_path");
@@ -1078,13 +1078,13 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xofs");
 	RNA_def_property_ui_text(prop, "Offset X", "");
-	RNA_def_property_ui_range(prop, -4096, 4096, 1, 0);
+	RNA_def_property_ui_range(prop, -4096, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
 	prop = RNA_def_property(srna, "offset_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "yofs");
 	RNA_def_property_ui_text(prop, "Offset Y", "");
-	RNA_def_property_ui_range(prop, -4096, 4096, 1, 0);
+	RNA_def_property_ui_range(prop, -4096, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
 	RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
@@ -1158,7 +1158,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_ui_text(prop, "Quality", "JPEG Quality of proxies to build");
-	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 
 	prop = RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "tc");
@@ -2136,7 +2136,7 @@ static void rna_def_speed_control(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Multiply Speed", "Multiply the resulting speed after the speed factor");
-	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "use_as_speed", PROP_BOOLEAN, PROP_NONE);

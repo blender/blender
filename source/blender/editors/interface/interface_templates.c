@@ -1878,13 +1878,13 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, 0, IFACE_("Min X "),   0, 4 * UI_UNIT_Y, width, UI_UNIT_Y,
-	          &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 0, "");
+	          &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 2, "");
 	uiDefButF(block, NUM, 0, IFACE_("Min Y "),   0, 3 * UI_UNIT_Y, width, UI_UNIT_Y,
-	          &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 0, "");
+	          &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 2, "");
 	uiDefButF(block, NUM, 0, IFACE_("Max X "),   0, 2 * UI_UNIT_Y, width, UI_UNIT_Y,
-	          &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 0, "");
+	          &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 2, "");
 	uiDefButF(block, NUM, 0, IFACE_("Max Y "),   0, UI_UNIT_Y, width, UI_UNIT_Y,
-	          &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 0, "");
+	          &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 

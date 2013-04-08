@@ -2537,14 +2537,14 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dupli_frames_on", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupon");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
-	RNA_def_property_ui_range(prop, 1, 1500, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 1500, 1, -1);
 	RNA_def_property_ui_text(prop, "Dupli Frames On", "Number of frames to use between DupOff frames");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "dupli_frames_off", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupoff");
 	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_range(prop, 0, 1500, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 1500, 1, -1);
 	RNA_def_property_ui_text(prop, "Dupli Frames Off", "Recurring frames to exclude from the Dupliframes");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 

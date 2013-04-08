@@ -2228,6 +2228,8 @@ BPY_PROPDEF_DESC_DOC
 "   :type subtype: string\n"
 BPY_PROPDEF_UNIT_DOC
 BPY_PROPDEF_UPDATE_DOC
+"   :arg precision: Number of digits of precision to display.\n"
+"   :type precision: int\n"
 );
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -2333,6 +2335,8 @@ BPY_PROPDEF_DESC_DOC
 BPY_PROPDEF_UNIT_DOC
 "   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
+"   :arg precision: Number of digits of precision to display.\n"
+"   :type precision: int\n"
 BPY_PROPDEF_UPDATE_DOC
 );
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)

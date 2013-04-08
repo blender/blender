@@ -442,7 +442,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 	int prec;
 
 	/* first check if prec is 0 and fallback to a simple default */
-	if ((prec = (int)but->a2) == 0) {
+	if ((prec = (int)but->a2) == -1) {
 		prec = (but->hardmax < 10.001f) ? 3 : 2;
 	}
 
@@ -483,7 +483,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 		}
 	}
 
-	CLAMP(prec, 1, PRECISION_FLOAT_MAX);
+	CLAMP(prec, 0, PRECISION_FLOAT_MAX);
 
 	return prec;
 }
@@ -1676,7 +1676,7 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 		/* Sanity checks */
 		precision = (int)but->a2;
 		if      (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
-		else if (precision == 0)                  precision = 2;
+		else if (precision == -1)                 precision = 2;
 	}
 	else {
 		precision = float_precision;

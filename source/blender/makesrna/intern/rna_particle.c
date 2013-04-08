@@ -2283,7 +2283,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "draw_size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 1000);
-	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport in pixels (0=default)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
@@ -2295,14 +2295,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_range(prop, 0, 7, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 7, 1, -1);
 	RNA_def_property_ui_text(prop, "Steps", "How many steps paths are drawn with (power of 2)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop = RNA_def_property(srna, "render_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ren_step");
 	RNA_def_property_range(prop, 0, 20);
-	RNA_def_property_ui_range(prop, 0, 9, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 9, 1, -1);
 	RNA_def_property_ui_text(prop, "Render", "How many steps paths are rendered with (power of 2)");
 
 	prop = RNA_def_property(srna, "hair_step", PROP_INT, PROP_NONE);
@@ -2371,7 +2371,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "billboard_uv_split", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bb_uv_split");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 10, 1, -1);
 	RNA_def_property_ui_text(prop, "UV Split", "Number of rows/columns to split UV coordinates for billboards");
 
 	prop = RNA_def_property(srna, "billboard_animation", PROP_ENUM, PROP_NONE);
@@ -2539,7 +2539,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* 10M particles take around 2.2 Gb of memory / disk space in saved file and */
 	/* each cached frame takes around 0.5 Gb of memory / disk space depending on cache mode. */
 	RNA_def_property_range(prop, 0, 10000000);
-	RNA_def_property_ui_range(prop, 0, 100000, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 100000, 1, -1);
 	RNA_def_property_ui_text(prop, "Number", "Total number of particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2554,7 +2554,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "grid_res");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 250); /* ~15M particles in a cube (ouch!), but could be very usable in a plane */
-	RNA_def_property_ui_range(prop, 1, 50, 1, 0); /* ~100k particles in a cube */
+	RNA_def_property_ui_range(prop, 1, 50, 1, -1); /* ~100k particles in a cube */
 	RNA_def_property_ui_text(prop, "Resolution", "The resolution of the particle grid");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2567,7 +2567,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "effector_amount", PROP_INT, PROP_UNSIGNED);
 	/* in theory PROP_ANIMATABLE perhaps should be cleared, but animating this can give some interesting results! */
 	RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will bel SLOW, but who knows */
-	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Effector Number", "How many particles are effectors (0 is all particles)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2714,14 +2714,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "child_nbr", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "child_nbr"); /*optional if prop names are the same */
 	RNA_def_property_range(prop, 0, 100000);
-	RNA_def_property_ui_range(prop, 0, 1000, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 1000, 1, -1);
 	RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children/parent");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "rendered_child_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
 	RNA_def_property_range(prop, 0, 100000);
-	RNA_def_property_ui_range(prop, 0, 10000, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 10000, 1, -1);
 	RNA_def_property_ui_text(prop, "Rendered Children", "Number of children/parent for rendering");
 
 	prop = RNA_def_property(srna, "virtual_parents", PROP_FLOAT, PROP_NONE);
@@ -2918,7 +2918,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "trail_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "trail_count");
 	RNA_def_property_range(prop, 1, 100000);
-	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Trail Count", "Number of trail particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 

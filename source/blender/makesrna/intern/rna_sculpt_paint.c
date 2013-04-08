@@ -310,7 +310,7 @@ static void rna_def_paint(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "num_input_samples");
-	RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 0, 0);
+	RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 0, -1);
 	RNA_def_property_ui_text(prop, "Input Samples", "Average multiple input samples together to smooth the brush stroke");
 }
 
@@ -379,7 +379,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
 
 	prop = RNA_def_property(srna, "detail_size", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_range(prop, 2, 100, 0, 0);
+	RNA_def_property_ui_range(prop, 2, 100, 0, -1);
 	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (in pixels)");
 
 	prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);
@@ -480,7 +480,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	/* integers */
 	
 	prop = RNA_def_property(srna, "seam_bleed", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_range(prop, 0, 8, 0, 0);
+	RNA_def_property_ui_range(prop, 0, 8, 0, -1);
 	RNA_def_property_ui_text(prop, "Bleed", "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
 
 	prop = RNA_def_property(srna, "normal_angle", PROP_INT, PROP_UNSIGNED);
