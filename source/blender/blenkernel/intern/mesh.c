@@ -1727,6 +1727,7 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 	bool needsFree = false;
 
 	BKE_mesh_to_curve_nurblist(dm, &nurblist, 0);
+	BKE_mesh_to_curve_nurblist(dm, &nurblist, 1);
 
 	if (nurblist.first) {
 		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);
