@@ -2907,7 +2907,7 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 	int found = 0;
 	char *tmp;
 
-	if (!st->findstr[0] || (mode == TEXT_REPLACE && !st->replacestr[0]))
+	if (!st->findstr[0])
 		return OPERATOR_CANCELLED;
 
 	flags = st->flags;
