@@ -2376,6 +2376,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
 }
 
 /* function used for WM_OT_save_mainfile too */
+static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event));
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
@@ -2386,7 +2387,13 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		RNA_string_get(op->ptr, "filepath", path);
 	else {
-		BLI_strncpy(path, G.main->name, FILE_MAX);
+		/* if file has no name, then treat like startup file */
+		if (G.main->name[0] == 0) {
+			G.save_over = false;
+			return wm_save_mainfile_invoke(C, op, (wmEvent *)NULL);
+		}
+		else
+			BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
 	
