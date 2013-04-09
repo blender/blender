@@ -384,6 +384,12 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 	/* more editor stuff */
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
+	/* Ignore collisions by default for non-mesh objects */
+	if (type != OB_MESH) {
+		ob->body_type = OB_BODY_TYPE_NO_COLLISION;
+		ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH); /* copied from rna_object.c */
+	}
+
 	DAG_id_type_tag(bmain, ID_OB);
 	DAG_relations_tag_update(bmain);
 	if (ob->data) {
