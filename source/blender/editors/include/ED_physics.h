@@ -45,7 +45,7 @@ int PE_hair_poll(struct bContext *C);
 int PE_poll_view3d(struct bContext *C);
 
 /* rigidbody_object.c */
-void ED_rigidbody_ob_add(struct wmOperator *op, struct Scene *scene, struct Object *ob, int type);
+bool ED_rigidbody_ob_add(struct wmOperator *op, struct Scene *scene, struct Object *ob, int type);
 void ED_rigidbody_ob_remove(struct Scene *scene, struct Object *ob);
 
 /* rigidbody_constraint.c */
