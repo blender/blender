@@ -122,6 +122,52 @@ def locale_match(loc1, loc2):
     return ...
 
 
+def find_best_isocode_matches(uid, iso_codes):
+    tmp = ((e, locale_match(e, uid)) for e in iso_codes)
+    return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
+
+
+def enable_addons(addons={}, support={}, disable=False, check_only=False):
+    """
+    Enable (or disable) addons based either on a set of names, or a set of 'support' types.
+    Returns the list of all affected addons (as fake modules)!
+    If "check_only" is set, no addon will be enabled nor disabled.
+    """
+    import addon_utils
+
+    userpref = bpy.context.user_preferences
+    used_ext = {ext.module for ext in userpref.addons}
+
+    ret = [mod for mod in addon_utils.modules(addon_utils.addons_fake_modules)
+               if ((addons and mod.__name__ in addons) or
+                   (not addons and addon_utils.module_bl_info(mod)["support"] in support))]
+
+    if not check_only:
+        for mod in ret:
+            module_name = mod.__name__
+            if disable:
+                if module_name not in used_ext:
+                    continue
+                print("    Disabling module ", module_name)
+                bpy.ops.wm.addon_disable(module=module_name)
+            else:
+                if module_name in used_ext:
+                    continue
+                print("    Enabling module ", module_name)
+                bpy.ops.wm.addon_enable(module=module_name)
+
+        # XXX There are currently some problems with bpy/rna...
+        #     *Very* tricky to solve!
+        #     So this is a hack to make all newly added operator visible by
+        #     bpy.types.OperatorProperties.__subclasses__()
+        for cat in dir(bpy.ops):
+            cat = getattr(bpy.ops, cat)
+            for op in dir(cat):
+                getattr(cat, op).get_rna()
+
+    return ret
+
+
 ##### Main Classes #####
 
 class I18nMessage:
@@ -1021,7 +1067,9 @@ class I18n:
     """
 
     @staticmethod
-    def _parser_check_file(path, maxsize=settings.PARSER_MAX_FILE_SIZE, _begin_marker=None, _end_marker=None):
+    def _parser_check_file(path, maxsize=settings.PARSER_MAX_FILE_SIZE,
+                           _begin_marker=settings.PARSER_PY_MARKER_BEGIN,
+                           _end_marker=settings.PARSER_PY_MARKER_END):
         if os.stat(path).st_size > maxsize:
             # Security, else we could read arbitrary huge files!
             print("WARNING: skipping file {}, too huge!".format(path))
@@ -1040,8 +1088,16 @@ class I18n:
             if _end_marker in txt:
                 _out = txt.index(_end_marker)
         if _in is not None and _out is not None:
-            return txt[:_in], txt[_in:_out], txt[_out:]
-        return txt, None, None
+            in_txt, txt, out_txt = txt[:_in], txt[_in:_out], txt[_out:]
+        elif _in is not None:
+            in_txt, txt, out_txt = txt[:_in], txt[_in:], None
+        elif _out is not None:
+            in_txt, txt, out_txt = None, txt[:_out], txt[_out:]
+        else:
+            in_txt, txt, out_txt = None, txt, None
+        if "translations_tuple" not in txt:
+            return None, None, None
+        return in_txt, txt, out_txt
 
     @staticmethod
     def _dst(self, path, uid, kind):
@@ -1148,6 +1204,35 @@ class I18n:
         )
         print(prefix.join(lines))
 
+    @classmethod
+    def check_py_module_has_translations(clss, src, settings=settings):
+        """
+        Check whether a given src (a py module, either a directory or a py file) has some i18n translation data,
+        and returns a tuple (src_file, translations_tuple) if yes, else (None, None).
+        """
+        txts = []
+        if os.path.isdir(src):
+            for root, dnames, fnames in os.walk(src):
+                for fname in fnames:
+                    if not fname.endswith(".py"):
+                        continue
+                    path = os.path.join(root, fname)
+                    _1, txt, _2 = clss._parser_check_file(path)
+                    if txt is not None:
+                        txts.append((path, txt))
+        elif src.endswith(".py") and os.path.isfile(src):
+            _1, txt, _2 = clss._parser_check_file(src)
+            if txt is not None:
+                txts.append((src, txt))
+        for path, txt in txts:
+            tuple_id = "translations_tuple"
+            env = globals().copy()
+            exec(txt, env)
+            if tuple_id in env:
+                return path, env[tuple_id]
+        return None, None  # No data...
+
+
     def parse(self, kind, src, langs=set()):
         self.parsers[kind](self, src, langs)
 
@@ -1193,28 +1278,9 @@ class I18n:
         if langs set is void, all languages found are loaded.
         """
         default_context = self.settings.DEFAULT_CONTEXT
-        txt = None
-        if os.path.isdir(src):
-            for root, dnames, fnames in os.walk(src):
-                for fname in fnames:
-                    path = os.path.join(root, fname)
-                    _1, txt, _2 = self._parser_check_file(path)
-                    if txt is not None:
-                        self.src[self.settings.PARSER_PY_ID] = path
-                        break
-                if txt is not None:
-                    break
-        elif src.endswith(".py") and os.path.isfile(src):
-            _1, txt, _2 = _check_file(src, self.settings.PARSER_PY_MARKER_BEGIN, self.settings.PARSER_PY_MARKER_END)
-            if txt is not None:
-                self.src[self.settings.PARSER_PY_ID] = src
-        if txt is None:
+        self.src[self.settings.PARSER_PY_ID], msgs = self.check_py_module_has_translations(src, self.settings)
+        if msgs is None:
             return
-        env = globals()
-        exec(txt, env)
-        if "translations_tuple" not in env:
-            return  # No data...
-        msgs = env["translations_tuple"]
         for key, (sources, gen_comments), *translations in msgs:
             if self.settings.PARSER_TEMPLATE_ID not in self.trans:
                 self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(self.settings.PARSER_TEMPLATE_ID,
@@ -1239,6 +1305,10 @@ class I18n:
                 comment_lines = [self.settings.PO_COMMENT_PREFIX + c for c in user_comments] + common_comment_lines
                 self.trans[uid].msgs[key] = I18nMessage(ctxt, [key[1]], [msgstr], comment_lines, False, is_fuzzy,
                                                         settings=self.settings)
+        #key = self.settings.PO_HEADER_KEY
+        #for uid, trans in self.trans.items():
+            #if key not in trans.msgs:
+                #trans.msgs[key] 
         self.unescape()
 
     def write(self, kind, langs=set()):
@@ -1261,7 +1331,7 @@ class I18n:
     def write_to_py(self, langs=set()):
         """
         Write all translations as python code, either in a "translations.py" file under same dir as source(s), or in
-        specified file is self.py_file is set (default, as usual can be customized with self.dst callable!).
+        specified file if self.py_file is set (default, as usual can be customized with self.dst callable!).
         Note: If langs is set and you want to export the pot template as well, langs must contain PARSER_TEMPLATE_ID
               ({} currently).
         """.format(self.settings.PARSER_TEMPLATE_ID)
@@ -1282,16 +1352,16 @@ class I18n:
             ]
             # First gather all keys (msgctxt, msgid) - theoretically, all translations should share the same, but...
             keys = set()
-            for trans in self.trans.items:
-                keys |= trans.msgs.keys()
+            for trans in self.trans.values():
+                keys |= set(trans.msgs.keys())
             # Get the ref translation (ideally, PARSER_TEMPLATE_ID one, else the first one that pops up!
             # Ref translation will be used to generate sources "comments"
             ref = self.trans.get(self.settings.PARSER_TEMPLATE_ID) or self.trans[list(self.trans.keys())[0]]
-            # Get all languages (uids) and sort them (PARSER_TEMPLATE_ID excluded!)
-            translations = self.trans.keys() - {self.settings.PARSER_TEMPLATE_ID}
+            # Get all languages (uids) and sort them (PARSER_TEMPLATE_ID and PARSER_PY_ID excluded!)
+            translations = self.trans.keys() - {self.settings.PARSER_TEMPLATE_ID, self.settings.PARSER_PY_ID}
             if langs:
                 translations &= langs
-            translations = [('"' + lng + '"', " " * len(lng) + 4, self.trans[lng]) for lng in sorted(translations)]
+            translations = [('"' + lng + '"', " " * (len(lng) + 4), self.trans[lng]) for lng in sorted(translations)]
             for key in keys:
                 if ref.msgs[key].is_commented:
                     continue
@@ -1340,9 +1410,9 @@ class I18n:
                     if len(comments) > 1:
                         ret.append(tab + lngsp + " (\"" + comments[0] + "\",")
                         ret += [tab + lngsp + "  \"" + s + "\"," for s in comments[1:-1]]
-                        ret.append(tab + lngsp + "  \"" + comments[-1] + "\"))),")
+                        ret.append(tab + lngsp + "  \"" + comments[-1] + "\")),")
                     else:
-                        ret[-1] = ret[-1] + " " + ('"' + comments[0] + '",' if comments else "") + "))),"
+                        ret[-1] = ret[-1] + " " + ('"' + comments[0] + '",' if comments else "") + ")),"
                 ret.append(tab + "),")
             ret += [
                 ")",
@@ -1359,20 +1429,20 @@ class I18n:
 
         self.escape(True)
         dst = self.dst(self, self.src.get(self.settings.PARSER_PY_ID, ""), self.settings.PARSER_PY_ID, 'PY')
-        prev = txt = next = ""
+        print(dst)
+        prev = txt = nxt = ""
         if os.path.exists(dst):
             if not os.path.isfile(dst):
                 print("WARNING: trying to write as python code into {}, which is not a file! Aborting.".format(dst))
                 return
-            prev, txt, next = self._parser_check_file(dst, self.settings.PARSER_MAX_FILE_SIZE,
-                                                      self.settings.PARSER_PY_MARKER_BEGIN,
-                                                      self.settings.PARSER_PY_MARKER_END)
-            if prev is None:
-                return
-            if txt is None:
-                print("WARNING: given python file {} has no auto-generated translations yet, will be added at "
-                      "the end of the file, you can move that section later if needed...".format(dst))
-            txt = _gen_py(self, langs)
+            prev, txt, nxt = self._parser_check_file(dst)
+            if prev is None and nxt is None:
+                print("WARNING: Looks like given python file {} has no auto-generated translations yet, will be added "
+                      "at the end of the file, you can move that section later if needed...".format(dst))
+                txt = [txt] + _gen_py(self, langs)
+            else:
+                # We completely replace the text found between start and end markers...
+                txt = _gen_py(self, langs)
         else:
             printf("Creating python file {} containing translations.".format(dst))
             txt = [
@@ -1403,7 +1473,7 @@ class I18n:
                 self.settings.PARSER_PY_MARKER_END,
             ]
         with open(dst, 'w') as f:
-            f.write(prev + "\n".join(txt) + (next or ""))
+            f.write(prev + "\n".join(txt) + (nxt or ""))
         self.unescape()
 
     parsers = {

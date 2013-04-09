@@ -62,6 +62,17 @@ def _gen_check_ctxt(settings):
         "spell_errors": {},
     }
 
+def _diff_check_ctxt(check_ctxt, minus_check_ctxt):
+    """Returns check_ctxt - minus_check_ctxt"""
+    for key in check_ctxt:
+        if isinstance(check_ctxt[key], set):
+            for warning in minus_check_ctxt[key]:
+                if warning in check_ctxt[key]:
+                    check_ctxt[key].remove(warning)
+        elif isinstance(check_ctxt[key], dict):
+            for warning in minus_check_ctxt[key]:
+                if warning in check_ctxt[key]:
+                    del check_ctxt[key][warning]
 
 def _gen_reports(check_ctxt):
     return {
@@ -176,45 +187,6 @@ def print_info(reports, pot):
             _print("\t\t{}".format("\n\t\t".join(pot.msgs[key].sources)))
 
 
-def enable_addons(addons={}, support={}, disable=False):
-    """
-    Enable (or disable) addons based either on a set of names, or a set of 'support' types.
-    Returns the list of all affected addons (as fake modules)!
-    """
-    import addon_utils
-
-    userpref = bpy.context.user_preferences
-    used_ext = {ext.module for ext in userpref.addons}
-
-    ret = [mod for mod in addon_utils.modules(addon_utils.addons_fake_modules)
-               if ((addons and mod.__name__ in addons) or
-                   (not addons and addon_utils.module_bl_info(mod)["support"] in support))]
-
-    for mod in ret:
-        module_name = mod.__name__
-        if disable:
-            if module_name not in used_ext:
-                continue
-            print("    Disabling module ", module_name)
-            bpy.ops.wm.addon_disable(module=module_name)
-        else:
-            if module_name in used_ext:
-                continue
-            print("    Enabling module ", module_name)
-            bpy.ops.wm.addon_enable(module=module_name)
-
-    # XXX There are currently some problems with bpy/rna...
-    #     *Very* tricky to solve!
-    #     So this is a hack to make all newly added operator visible by
-    #     bpy.types.OperatorProperties.__subclasses__()
-    for cat in dir(bpy.ops):
-        cat = getattr(bpy.ops, cat)
-        for op in dir(cat):
-            getattr(cat, op).get_rna()
-
-    return ret
-
-
 def process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt, settings):
     if filter_message(msgid):
         reports["messages_skipped"].add((msgid, msgsrc))
@@ -235,50 +207,72 @@ def process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt, settings):
 
 
 ##### RNA #####
-def dump_messages_rna(msgs, reports, settings):
+def dump_rna_messages(msgs, reports, settings):
     """
     Dump into messages dict all RNA-defined UI messages (labels en tooltips).
     """
     def class_blacklist():
-        blacklist_rna_class = [
-            # core classes
-            "Context", "Event", "Function", "UILayout", "UnknownType",
-            # registerable classes
-            "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
-            # window classes
-            "Window",
-        ]
+        blacklist_rna_class = {getattr(bpy.types, cls_id) for cls_id in (
+                # core classes
+                "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
+                # registerable classes
+                "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
+                # window classes
+                "Window",
+            )
+        }
 
-        # Collect internal operators
-        # extend with all internal operators
-        # note that this uses internal api introspection functions
-        # all possible operator names
-        op_ids = set(cls.bl_rna.identifier for cls in bpy.types.OperatorProperties.__subclasses__()) | \
-                 set(cls.bl_rna.identifier for cls in bpy.types.Operator.__subclasses__()) | \
-                 set(cls.bl_rna.identifier for cls in bpy.types.OperatorMacro.__subclasses__())
+        # More builtin classes we don't need to parse.
+        blacklist_rna_class |= {cls for cls in bpy.types.Property.__subclasses__()}
 
-        get_instance = __import__("_bpy").ops.get_instance
-#        path_resolve = type(bpy.context).__base__.path_resolve
-        for idname in op_ids:
-            op = get_instance(idname)
-            # XXX Do not skip INTERNAL's anymore, some of those ops show up in UI now!
-#            if 'INTERNAL' in path_resolve(op, "bl_options"):
-#                blacklist_rna_class.append(idname)
+        _rna = {getattr(bpy.types, cls) for cls in dir(bpy.types)}
 
-        # Collect builtin classes we don't need to doc
-        blacklist_rna_class.append("Property")
-        blacklist_rna_class.extend([cls.__name__ for cls in bpy.types.Property.__subclasses__()])
-
-        # Collect classes which are attached to collections, these are api access only.
-        collection_props = set()
-        for cls_id in dir(bpy.types):
-            cls = getattr(bpy.types, cls_id)
+        # Classes which are attached to collections can be skipped too, these are api access only.
+        for cls in _rna:
             for prop in cls.bl_rna.properties:
                 if prop.type == 'COLLECTION':
                     prop_cls = prop.srna
                     if prop_cls is not None:
-                        collection_props.add(prop_cls.identifier)
-        blacklist_rna_class.extend(sorted(collection_props))
+                        blacklist_rna_class.add(prop_cls.__class__)
+
+        # Now here is the *ugly* hack!
+        # Unfortunately, all classes we want to access are not available from bpy.types (OperatorProperties subclasses
+        # are not here, as they have the same name as matching Operator ones :( ). So we use __subclasses__() calls
+        # to walk through all rna hierachy.
+        # But unregistered classes remain listed by relevant __subclasses__() calls (be it a Py or BPY/RNA bug),
+        # and obviously the matching RNA struct exists no more, so trying to access their data (even the identifier)
+        # quickly leads to segfault!
+        # To address this, we have to blacklist classes which __name__ does not match any __name__ from bpy.types
+        # (we can't use only RNA identifiers, as some py-defined classes has a different name that rna id,
+        # and we can't use class object themselves, because OperatorProperties subclasses are not in bpy.types!)...
+
+        _rna_clss_ids = {cls.__name__ for cls in _rna} | {cls.bl_rna.identifier for cls in _rna}
+
+        # All registrable types.
+        blacklist_rna_class |= {cls for cls in bpy.types.OperatorProperties.__subclasses__() +
+                                               bpy.types.Operator.__subclasses__() +
+                                               bpy.types.OperatorMacro.__subclasses__() +
+                                               bpy.types.Header.__subclasses__() +
+                                               bpy.types.Panel.__subclasses__() +
+                                               bpy.types.Menu.__subclasses__() +
+                                               bpy.types.UIList.__subclasses__()
+                                    if cls.__name__ not in _rna_clss_ids}        
+
+        # Collect internal operators
+        # extend with all internal operators
+        # note that this uses internal api introspection functions
+        # XXX Do not skip INTERNAL's anymore, some of those ops show up in UI now!
+        # all possible operator names
+        #op_ids = (set(cls.bl_rna.identifier for cls in bpy.types.OperatorProperties.__subclasses__()) |
+                  #set(cls.bl_rna.identifier for cls in bpy.types.Operator.__subclasses__()) | 
+                  #set(cls.bl_rna.identifier for cls in bpy.types.OperatorMacro.__subclasses__()))
+
+        #get_instance = __import__("_bpy").ops.get_instance
+        #path_resolve = type(bpy.context).__base__.path_resolve
+        #for idname in op_ids:
+            #op = get_instance(idname)
+            #if 'INTERNAL' in path_resolve(op, "bl_options"):
+                #blacklist_rna_class.add(idname)
 
         return blacklist_rna_class
 
@@ -337,17 +331,6 @@ def dump_messages_rna(msgs, reports, settings):
 
     def walk_class(cls):
         bl_rna = cls.bl_rna
-        reports["rna_structs"].append(cls)
-        if bl_rna.identifier in blacklist_rna_class:
-            reports["rna_structs_skipped"].append(cls)
-            return
-
-        # XXX translation_context of Operator sub-classes are not "good"!
-        #     So ignore those Operator sub-classes (anyway, will get the same from OperatorProperties sub-classes!)...
-        if issubclass(cls, bpy.types.Operator):
-            reports["rna_structs_skipped"].append(cls)
-            return
-
         msgsrc = "bpy.types." + bl_rna.identifier
         msgctxt = bl_rna.translation_context or default_context
 
@@ -388,7 +371,12 @@ def dump_messages_rna(msgs, reports, settings):
 
         cls_list.sort(key=full_class_id)
         for cls in cls_list:
-            walk_class(cls)
+            reports["rna_structs"].append(cls)
+            # Ignore those Operator sub-classes (anyway, will get the same from OperatorProperties sub-classes!)...
+            if (cls in blacklist_rna_class) or issubclass(cls, bpy.types.Operator):
+                reports["rna_structs_skipped"].append(cls)
+            else:
+                walk_class(cls)
             # Recursively process subclasses.
             process_cls_list(cls.__subclasses__())
 
@@ -796,14 +784,14 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Enable all wanted addons.
     # For now, enable all official addons, before extracting msgids.
-    addons = enable_addons(support={"OFFICIAL"})
+    addons = utils.enable_addons(support={"OFFICIAL"})
     # Note this is not needed if we have been started with factory settings, but just in case...
-    enable_addons(support={"COMMUNITY", "TESTING"}, disable=True)
+    utils.enable_addons(support={"COMMUNITY", "TESTING"}, disable=True)
 
     reports = _gen_reports(_gen_check_ctxt(settings) if do_checks else None)
 
     # Get strings from RNA.
-    dump_messages_rna(msgs, reports, settings)
+    dump_rna_messages(msgs, reports, settings)
 
     # Get strings from UI layout definitions text="..." args.
     dump_py_messages(msgs, reports, addons, settings)
@@ -836,40 +824,51 @@ def dump_messages(do_messages, do_checks, settings):
 
     print("Finished extracting UI messages!")
 
+    return pot  # Not used currently, but may be useful later (and to be consistent with dump_addon_messages!).
 
-def dump_addon_messages(module_name, messages_formats, do_checks, settings):
-    # Enable our addon and get strings from RNA.
-    addon = enable_addons(addons={module_name})[0]
 
-    addon_info = addon_utils.module_bl_info(addon)
-    ver = addon_info.name + " " + ".".join(addon_info.version)
-    rev = "???"
-    date = datetime.datetime()
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
-                                                settings=settings)
-    msgs = pot.msgs
-
-    minus_msgs = copy.deepcopy(msgs)
-
-    check_ctxt = _gen_check_ctxt(settings) if do_checks else None
-    minus_check_ctxt = _gen_check_ctxt(settings) if do_checks else None
+def dump_addon_messages(module_name, do_checks, settings):
+    import addon_utils
 
     # Get current addon state (loaded or not):
     was_loaded = addon_utils.check(module_name)[1]
 
-    # Enable our addon and get strings from RNA.
-    addons = enable_addons(addons={module_name})
+    # Enable our addon.
+    addon = utils.enable_addons(addons={module_name})[0]
+
+    addon_info = addon_utils.module_bl_info(addon)
+    ver = addon_info["name"] + " " + ".".join(str(v) for v in addon_info["version"])
+    rev = 0
+    date = datetime.datetime.now()
+    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
+                                                settings=settings)
+    msgs = pot.msgs
+
+    minus_pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
+                                                      settings=settings)
+    minus_msgs = minus_pot.msgs
+
+    check_ctxt = _gen_check_ctxt(settings) if do_checks else None
+    minus_check_ctxt = _gen_check_ctxt(settings) if do_checks else None
+
+    # Get strings from RNA, our addon being enabled.
+    print("A")
     reports = _gen_reports(check_ctxt)
-    dump_messages_rna(msgs, reports, settings)
+    print("B")
+    dump_rna_messages(msgs, reports, settings)
+    print("C")
 
     # Now disable our addon, and rescan RNA.
-    enable_addons(addons={module_name}, disable=True)
+    utils.enable_addons(addons={module_name}, disable=True)
+    print("D")
     reports["check_ctxt"] = minus_check_ctxt
-    dump_messages_rna(minus_msgs, reports, settings)
+    print("E")
+    dump_rna_messages(minus_msgs, reports, settings)
+    print("F")
 
     # Restore previous state if needed!
     if was_loaded:
-        enable_addons(addons={module_name})
+        utils.enable_addons(addons={module_name})
 
     # and make the diff!
     for key in minus_msgs:
@@ -877,11 +876,10 @@ def dump_addon_messages(module_name, messages_formats, do_checks, settings):
             del msgs[key]
 
     if check_ctxt:
-        for key in check_ctxt:
-            for warning in minus_check_ctxt[key]:
-                check_ctxt[key].remove(warning)
+        check_ctxt = _diff_check_ctxt(check_ctxt, minus_check_ctxt)
 
     # and we are done with those!
+    del minus_pot
     del minus_msgs
     del minus_check_ctxt
 
@@ -889,7 +887,10 @@ def dump_addon_messages(module_name, messages_formats, do_checks, settings):
     reports["check_ctxt"] = check_ctxt
     dump_py_messages(msgs, reports, {addon}, settings, addons_only=True)
 
+    pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...
     print_info(reports, pot)
+
+    print("Finished extracting UI messages!")
 
     return pot
 
