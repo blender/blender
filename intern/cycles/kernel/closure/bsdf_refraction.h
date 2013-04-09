@@ -74,7 +74,7 @@ __device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3 I
 		&inside);
 	
 	if(!inside) {
-		*pdf = 1;
+		*pdf = 1.0f;
 		*eval = make_float3(1.0f, 1.0f, 1.0f);
 		*omega_in = T;
 #ifdef __RAY_DIFFERENTIALS__

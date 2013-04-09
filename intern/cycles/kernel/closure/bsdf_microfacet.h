@@ -46,7 +46,7 @@ __device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {
 	float ag = sc->data0;
 
-	float m_ag = clamp(ag, 1e-4f, 1.0f);
+	float m_ag = clamp(ag, 1e-3f, 1.0f);
 
 	sc->data0 = m_ag;
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
@@ -59,7 +59,7 @@ __device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 	float ag = sc->data0;
 	float eta = sc->data1;
 
-	float m_ag = clamp(ag, 1e-4f, 1.0f);
+	float m_ag = clamp(ag, 1e-3f, 1.0f);
 	float m_eta = eta;
 
 	sc->data0 = m_ag;
@@ -256,7 +256,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 __device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 {
 	float ab = sc->data0;
-	float m_ab = clamp(ab, 1e-4f, 1.0f);
+	float m_ab = clamp(ab, 1e-3f, 1.0f);
 
 	sc->data0 = m_ab;
 
@@ -268,7 +268,7 @@ __device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 {
 	float ab = sc->data0;
 	float eta = sc->data1;
-	float m_ab = clamp(ab, 1e-4f, 1.0f);
+	float m_ab = clamp(ab, 1e-3f, 1.0f);
 	float m_eta = eta;
 
 	sc->data0 = m_ab;
@@ -343,7 +343,7 @@ __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, 
 	float cosHI = dot(Ht, omega_in);
 	// eq. 33: first we calculate D(m) with m=Ht:
 	float alpha2 = m_ab * m_ab;
-	float cosThetaM = dot(N, Ht);
+	float cosThetaM = min(dot(N, Ht), 1.0f);
 	float cosThetaM2 = cosThetaM * cosThetaM;
 	float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 	float cosThetaM4 = cosThetaM2 * cosThetaM2;
@@ -405,8 +405,8 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 					// Eval BRDF*cosNI
 					float cosNI = dot(N, *omega_in);
 					// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-					float ao = 1 / (m_ab * safe_sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
-					float ai = 1 / (m_ab * safe_sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
+					float ao = 1 / (safe_sqrtf(alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
+					float ai = 1 / (safe_sqrtf(alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI)));
 					float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 					float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 					float G = G1o * G1i;
@@ -452,8 +452,8 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 				// eval BRDF*cosNI
 				float cosNI = dot(N, *omega_in);
 				// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-				float ao = 1 / (m_ab * safe_sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
-				float ai = 1 / (m_ab * safe_sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
+				float ao = 1 / (safe_sqrtf(alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
+				float ai = 1 / (safe_sqrtf(alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI)));
 				float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 				float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 				float G = G1o * G1i;
