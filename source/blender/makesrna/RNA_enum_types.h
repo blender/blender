@@ -106,9 +106,9 @@ extern EnumPropertyItem object_type_items[];
 
 extern EnumPropertyItem object_type_curve_items[];
 
-extern EnumPropertyItem rigidbody_ob_type_items[];
-extern EnumPropertyItem rigidbody_ob_shape_items[];
-extern EnumPropertyItem rigidbody_con_type_items[];
+extern EnumPropertyItem rigidbody_object_type_items[];
+extern EnumPropertyItem rigidbody_object_shape_items[];
+extern EnumPropertyItem rigidbody_constraint_type_items[];
 
 extern EnumPropertyItem object_axis_items[];
 

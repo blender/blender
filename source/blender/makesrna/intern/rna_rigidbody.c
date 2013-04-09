@@ -43,13 +43,13 @@
 #include "WM_types.h"
 
 /* roles of objects in RigidBody Sims */
-EnumPropertyItem rigidbody_ob_type_items[] = {
+EnumPropertyItem rigidbody_object_type_items[] = {
 	{RBO_TYPE_ACTIVE, "ACTIVE", 0, "Active", "Object is directly controlled by simulation results"},
 	{RBO_TYPE_PASSIVE, "PASSIVE", 0, "Passive", "Object is directly controlled by animation system"},
 	{0, NULL, 0, NULL, NULL}};
 
 /* collision shapes of objects in rigid body sim */
-EnumPropertyItem rigidbody_ob_shape_items[] = {
+EnumPropertyItem rigidbody_object_shape_items[] = {
 	{RB_SHAPE_BOX, "BOX", ICON_MESH_CUBE, "Box", "Box-like shapes (i.e. cubes), including planes (i.e. ground planes)"},
 	{RB_SHAPE_SPHERE, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", ""},
 	{RB_SHAPE_CAPSULE, "CAPSULE", ICON_OUTLINER_OB_META, "Capsule", ""},
@@ -63,7 +63,7 @@ EnumPropertyItem rigidbody_ob_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* collision shapes of constraints in rigid body sim */
-EnumPropertyItem rigidbody_con_type_items[] = {
+EnumPropertyItem rigidbody_constraint_type_items[] = {
 	{RBC_TYPE_FIXED, "FIXED", ICON_NONE, "Fixed", "Glue rigid bodies together"},
 	{RBC_TYPE_POINT, "POINT", ICON_NONE, "Point", "Constrain rigid bodies to move around common pivot point"},
 	{RBC_TYPE_HINGE, "HINGE", ICON_NONE, "Hinge", "Restrict rigid body rotation to one axis"},
@@ -694,7 +694,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	/* Enums */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, rigidbody_ob_type_items);
+	RNA_def_property_enum_items(prop, rigidbody_object_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_RigidBodyOb_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "Role of object in Rigid Body Simulations");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -709,7 +709,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "collision_shape", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shape");
-	RNA_def_property_enum_items(prop, rigidbody_ob_shape_items);
+	RNA_def_property_enum_items(prop, rigidbody_object_shape_items);
 	RNA_def_property_ui_text(prop, "Collision Shape", "Collision Shape of object in Rigid Body Simulations");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
@@ -846,7 +846,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	/* Enums */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, rigidbody_con_type_items);
+	RNA_def_property_enum_items(prop, rigidbody_constraint_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_RigidBodyCon_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "Type of Rigid Body Constraint");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

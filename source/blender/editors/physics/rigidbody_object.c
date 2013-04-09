@@ -91,16 +91,16 @@ static int ED_operator_rigidbody_add_poll(bContext *C)
 
 /* ----------------- */
 
-bool ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
+bool ED_rigidbody_object_add(Scene *scene, Object *ob, int type, ReportList *reports)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
 	if (ob->type != OB_MESH) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
+		BKE_report(reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
 		return false;
 	}
 	if (((Mesh *)ob->data)->totpoly == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Can't create Rigid Body from mesh with no polygons");
+		BKE_report(reports, RPT_ERROR, "Can't create Rigid Body from mesh with no polygons");
 		return false;
 	}
 
@@ -108,7 +108,7 @@ bool ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 	if (rbw == NULL) {
 		rbw = BKE_rigidbody_create_world(scene);
 		if (rbw == NULL) {
-			BKE_report(op->reports, RPT_ERROR, "Can't create Rigid Body world");
+			BKE_report(reports, RPT_ERROR, "Can't create Rigid Body world");
 			return false;
 		}
 		BKE_rigidbody_validate_sim_world(scene, rbw, false);
@@ -133,7 +133,7 @@ bool ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 	return true;
 }
 
-void ED_rigidbody_ob_remove(Scene *scene, Object *ob)
+void ED_rigidbody_object_remove(Scene *scene, Object *ob)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
@@ -149,7 +149,7 @@ void ED_rigidbody_ob_remove(Scene *scene, Object *ob)
 
 /* ************ Add Rigid Body ************** */
 
-static int rigidbody_ob_add_exec(bContext *C, wmOperator *op)
+static int rigidbody_object_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -157,7 +157,7 @@ static int rigidbody_ob_add_exec(bContext *C, wmOperator *op)
 	bool change;
 
 	/* apply to active object */
-	change = ED_rigidbody_ob_add(op, scene, ob, type);
+	change = ED_rigidbody_object_add(scene, ob, type, op->reports);
 
 	if (change) {
 		/* send updates */
@@ -179,19 +179,19 @@ void RIGIDBODY_OT_object_add(wmOperatorType *ot)
 	ot->description = "Add active object as Rigid Body";
 
 	/* callbacks */
-	ot->exec = rigidbody_ob_add_exec;
+	ot->exec = rigidbody_object_add_exec;
 	ot->poll = ED_operator_rigidbody_add_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_ob_type_items, RBO_TYPE_ACTIVE, "Rigid Body Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_object_type_items, RBO_TYPE_ACTIVE, "Rigid Body Type", "");
 }
 
 /* ************ Remove Rigid Body ************** */
 
-static int rigidbody_ob_remove_exec(bContext *C, wmOperator *op)
+static int rigidbody_object_remove_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -199,7 +199,7 @@ static int rigidbody_ob_remove_exec(bContext *C, wmOperator *op)
 
 	/* apply to active object */
 	if (!ELEM(NULL, ob, ob->rigidbody_object)) {
-		ED_rigidbody_ob_remove(scene, ob);
+		ED_rigidbody_object_remove(scene, ob);
 		change = true;
 	}
 
@@ -224,7 +224,7 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 	ot->description = "Remove Rigid Body settings from Object";
 
 	/* callbacks */
-	ot->exec = rigidbody_ob_remove_exec;
+	ot->exec = rigidbody_object_remove_exec;
 	ot->poll = ED_operator_rigidbody_active_poll;
 
 	/* flags */
@@ -236,7 +236,7 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 
 /* ************ Add Rigid Bodies ************** */
 
-static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
+static int rigidbody_objects_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	int type = RNA_enum_get(op->ptr, "type");
@@ -244,7 +244,7 @@ static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
 
 	/* create rigid body objects and add them to the world's group */
 	CTX_DATA_BEGIN(C, Object *, ob, selected_objects) {
-		change |= ED_rigidbody_ob_add(op, scene, ob, type);
+		change |= ED_rigidbody_object_add(scene, ob, type, op->reports);
 	}
 	CTX_DATA_END;
 
@@ -269,19 +269,19 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 	ot->description = "Add selected objects as Rigid Bodies";
 
 	/* callbacks */
-	ot->exec = rigidbody_obs_add_exec;
+	ot->exec = rigidbody_objects_add_exec;
 	ot->poll = ED_operator_rigidbody_add_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_ob_type_items, RBO_TYPE_ACTIVE, "Rigid Body Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_object_type_items, RBO_TYPE_ACTIVE, "Rigid Body Type", "");
 }
 
 /* ************ Remove Rigid Bodies ************** */
 
-static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int rigidbody_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	bool change = false;
@@ -290,7 +290,7 @@ static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN(C, Object *, ob, selected_objects)
 	{
 		if (ob->rigidbody_object) {
-			ED_rigidbody_ob_remove(scene, ob);
+			ED_rigidbody_object_remove(scene, ob);
 			change = true;
 		}
 	}
@@ -316,7 +316,7 @@ void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
 	ot->description = "Remove selected objects from Rigid Body simulation";
 
 	/* callbacks */
-	ot->exec = rigidbody_obs_remove_exec;
+	ot->exec = rigidbody_objects_remove_exec;
 	ot->poll = ED_operator_rigidbody_active_poll;
 
 	/* flags */
@@ -328,7 +328,7 @@ void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
 
 /* ************ Change Collision Shapes ************** */
 
-static int rigidbody_obs_shape_change_exec(bContext *C, wmOperator *op)
+static int rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
 {
 	int shape = RNA_enum_get(op->ptr, "type");
 	bool change = false;
@@ -371,14 +371,14 @@ void RIGIDBODY_OT_shape_change(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
-	ot->exec = rigidbody_obs_shape_change_exec;
+	ot->exec = rigidbody_objects_shape_change_exec;
 	ot->poll = ED_operator_rigidbody_active_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_ob_shape_items, RB_SHAPE_TRIMESH, "Rigid Body Shape", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_object_shape_items, RB_SHAPE_TRIMESH, "Rigid Body Shape", "");
 }
 
 /* ************ Calculate Mass ************** */
@@ -487,7 +487,7 @@ static EnumPropertyItem *rigidbody_materials_itemf(bContext *UNUSED(C), PointerR
 
 /* helper function to calculate volume of rigidbody object */
 // TODO: allow a parameter to specify method used to calculate this?
-static float calc_rigidbody_ob_volume(Object *ob)
+static float rigidbody_object_calc_volume(Object *ob)
 {
 	RigidBodyOb *rbo = ob->rigidbody_object;
 
@@ -557,7 +557,7 @@ static float calc_rigidbody_ob_volume(Object *ob)
 
 /* ------------------------------------------ */
 
-static int rigidbody_obs_calc_mass_exec(bContext *C, wmOperator *op)
+static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 {
 	int material = RNA_enum_get(op->ptr, "material");
 	float density;
@@ -589,7 +589,7 @@ static int rigidbody_obs_calc_mass_exec(bContext *C, wmOperator *op)
 			/* mass is calculated from the approximate volume of the object,
 			 * and the density of the material we're simulating
 			 */
-			volume = calc_rigidbody_ob_volume(ob);
+			volume = rigidbody_object_calc_volume(ob);
 			mass = volume * density;
 
 			/* use RNA-system to change the property and perform all necessary changes */
@@ -626,7 +626,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke; // XXX
-	ot->exec = rigidbody_obs_calc_mass_exec;
+	ot->exec = rigidbody_objects_calc_mass_exec;
 	ot->poll = ED_operator_rigidbody_active_poll;
 
 	/* flags */
