@@ -101,6 +101,7 @@
 #include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_object.h"
+#include "ED_physics.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -1489,8 +1490,10 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			BKE_mesh_to_curve(scene, newob);
 
-			if (newob->type == OB_CURVE)
+			if (newob->type == OB_CURVE) {
 				BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */
+				ED_rigidbody_object_remove(scene, newob);
+			}
 		}
 		else if (ob->type == OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 			ob->flag |= OB_DONE;
