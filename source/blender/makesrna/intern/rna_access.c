@@ -4348,6 +4348,7 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
 	                   id_path, data_path);
 
 	MEM_freeN(data_path);
+	MEM_freeN(id_path);
 
 	return ret;
 }
