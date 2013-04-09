@@ -37,7 +37,7 @@ if window_system == 'darwin':
     sources += env.Glob('intern/*.mm')
 
 
-pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager']
+pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager', 'GHOST_Sizer']
 defs=['_USE_MATH_DEFINES']
 
 incs = '. ../string #extern/glew/include #source/blender/imbuf #source/blender/makesdna ' + env['BF_OPENGL_INC']
