@@ -296,6 +296,7 @@ elseif(WIN32)
 		intern/GHOST_SystemPathsWin32.cpp
 		intern/GHOST_WindowWin32.cpp
 		intern/GHOST_DropTargetWin32.cpp
+		intern/GHOST_SizerWin32.cpp
 
 		intern/GHOST_DisplayManagerWin32.h
 		intern/GHOST_DropTargetWin32.h
@@ -303,6 +304,7 @@ elseif(WIN32)
 		intern/GHOST_SystemPathsWin32.h
 		intern/GHOST_WindowWin32.h
 		intern/GHOST_TaskbarWin32.h
+		intern/GHOST_SizerWin32.h
 	)
 
 	if(WITH_INPUT_NDOF)

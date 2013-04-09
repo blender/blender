@@ -400,7 +400,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 	}
 
 	if (success) {
-		WNDCLASSW wc;
+		WNDCLASSW wc = {0};
 		wc.style = CS_HREDRAW | CS_VREDRAW;
 		wc.lpfnWndProc = s_wndProc;
 		wc.cbClsExtra = 0;
@@ -412,7 +412,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 			::LoadIcon(NULL, IDI_APPLICATION);
 		}
 		wc.hCursor = ::LoadCursor(0, IDC_ARROW);
-		wc.hbrBackground = (HBRUSH) ::GetStockObject(BLACK_BRUSH);
+		wc.hbrBackground = 0;
 		wc.lpszMenuName = 0;
 		wc.lpszClassName = L"GHOST_WindowClass";
 
@@ -979,7 +979,16 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * maximize, minimize  or close the window are triggered. Also it is sent when ALT 
 					 * button is press for menu. To prevent this we must return preventing DefWindowProc.
 					 */
-					if (wParam == SC_KEYMENU) return 0;
+					if (wParam == SC_KEYMENU) 
+					{
+						eventHandled = true;
+					} else
+					if((wParam&0xfff0)==SC_SIZE)
+					{
+						window->registerMouseClickEvent(0);
+						window->m_wsh.startSizing(wParam);
+						eventHandled = true;
+					}
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Tablet events, processed
@@ -1017,7 +1026,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					break;
 				case WM_LBUTTONUP:
 					window->registerMouseClickEvent(1);
-					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
+					if(window->m_wsh.isWinChanges())
+						window->m_wsh.accept();
+					else
+						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
 					break;
 				case WM_MBUTTONUP:
 					window->registerMouseClickEvent(1);
@@ -1037,7 +1049,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					}
 					break;
 				case WM_MOUSEMOVE:
-					event = processCursorEvent(GHOST_kEventCursorMove, window);
+					if(window->m_wsh.isWinChanges())
+						window->m_wsh.updateWindowSize();
+					else
+						event = processCursorEvent(GHOST_kEventCursorMove, window);
 					break;
 				case WM_MOUSEWHEEL:
 					/* The WM_MOUSEWHEEL message is sent to the focus window 
@@ -1105,6 +1120,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
 					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
 					 * will not be dispatched to OUR active window if we minimize one of OUR windows. */
+					if(LOWORD(wParam)==WA_INACTIVE)
+						window->lostMouseCapture();
+
 					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				}
@@ -1235,6 +1253,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
+				case WM_CANCELMODE:
+					if(window->m_wsh.isWinChanges())
+						window->m_wsh.cancel();
+
 			}
 		}
 		else {

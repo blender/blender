@@ -272,6 +272,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		// Store a pointer to this class in the window structure
 		::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG_PTR) this);
 
+		m_wsh.setHWND(m_hWnd);
+		m_wsh.setMinSize(320, 240);
+
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
 
