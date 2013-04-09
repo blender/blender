@@ -831,32 +831,25 @@ static void do_gammacross_effect(SeqRenderData context, Sequence *UNUSED(seq), f
 static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2,
                                unsigned char *out)
 {
-	int xo;
+	int xo, fac1, fac3;
 	unsigned char *cp1, *cp2, *rt;
-	float fac1, fac3;
-	float tempc[4], rt1[4], rt2[4];
 
 	xo = x;
 	cp1 = rect1;
 	cp2 = rect2;
 	rt = out;
 
-	fac1 = facf0;
-	fac3 = facf1;
+	fac1 = (int)(256.0f * facf0);
+	fac3 = (int)(256.0f * facf1);
 
 	while (y--) {
 		x = xo;
 
 		while (x--) {
-			straight_uchar_to_premul_float(rt1, cp1);
-			straight_uchar_to_premul_float(rt2, cp2);
-
-			tempc[0] = rt1[0] + fac1 * rt2[0];
-			tempc[1] = rt1[1] + fac1 * rt2[1];
-			tempc[2] = rt1[2] + fac1 * rt2[2];
-			tempc[3] = min_ff(1.0f, rt1[3] + fac1 * rt2[3]);
-
-			premul_float_to_straight_uchar(rt, tempc);
+			rt[0] = min_ii(cp1[0] + ((fac1 * cp2[0]) >> 8), 255);
+			rt[1] = min_ii(cp1[1] + ((fac1 * cp2[1]) >> 8), 255);
+			rt[2] = min_ii(cp1[2] + ((fac1 * cp2[2]) >> 8), 255);
+			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
 		}
@@ -867,15 +860,10 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 
 		x = xo;
 		while (x--) {
-			straight_uchar_to_premul_float(rt1, cp1);
-			straight_uchar_to_premul_float(rt2, cp2);
-
-			tempc[0] = rt1[0] + fac3 * rt2[0];
-			tempc[1] = rt1[1] + fac3 * rt2[1];
-			tempc[2] = rt1[2] + fac3 * rt2[2];
-			tempc[3] = min_ff(1.0f, rt1[3] + fac3 * rt2[3]);
-
-			premul_float_to_straight_uchar(rt, tempc);
+			rt[0] = min_ii(cp1[0] + ((fac3 * cp2[0]) >> 8), 255);
+			rt[1] = min_ii(cp1[1] + ((fac3 * cp2[1]) >> 8), 255);
+			rt[2] = min_ii(cp1[2] + ((fac3 * cp2[2]) >> 8), 255);
+			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
 		}
@@ -885,7 +873,7 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 static void do_add_effect_float(float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
 {
 	int xo;
-	float fac1, fac3;
+	float m, fac1, fac3;
 	float *rt1, *rt2, *rt;
 
 	xo = x;
@@ -899,10 +887,11 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y, float *r
 	while (y--) {
 		x = xo;
 		while (x--) {
-			rt[0] = rt1[0] + fac1 * rt2[0];
-			rt[1] = rt1[1] + fac1 * rt2[1];
-			rt[2] = rt1[2] + fac1 * rt2[2];
-			rt[3] = min_ff(1.0f, rt1[3] + fac1 * rt2[3]);
+			m = 1.0f - (rt1[3] * (1.0f - fac1));
+			rt[0] = rt1[0] + m * rt2[0];
+			rt[1] = rt1[1] + m * rt2[1];
+			rt[2] = rt1[2] + m * rt2[2];
+			rt[3] = rt1[3];
 
 			rt1 += 4; rt2 += 4; rt += 4;
 		}
@@ -913,10 +902,11 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y, float *r
 
 		x = xo;
 		while (x--) {
-			rt[0] = rt1[0] + fac1 * rt2[0];
-			rt[1] = rt1[1] + fac1 * rt2[1];
-			rt[2] = rt1[2] + fac1 * rt2[2];
-			rt[3] = min_ff(1.0f, rt1[3] + fac3 * rt2[3]);
+			m = 1.0f - (rt1[3] * (1.0f - fac3));
+			rt[0] = rt1[0] + m * rt2[0];
+			rt[1] = rt1[1] + m * rt2[1];
+			rt[2] = rt1[2] + m * rt2[2];
+			rt[3] = rt1[3];
 
 			rt1 += 4; rt2 += 4; rt += 4;
 		}
@@ -946,34 +936,24 @@ static void do_add_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
 
 static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-	int xo;
+	int xo, fac1, fac3;
 	unsigned char *cp1, *cp2, *rt;
-	float fac1, fac3;
-	float tempc[4], rt1[4], rt2[4];
 
 	xo = x;
 	cp1 = rect1;
 	cp2 = rect2;
 	rt = out;
 
-	fac1 = facf0;
-	fac3 = facf1;
+	fac1 = (int) (256.0f * facf0);
+	fac3 = (int) (256.0f * facf1);
 
 	while (y--) {
 		x = xo;
 		while (x--) {
-			straight_uchar_to_premul_float(rt1, cp1);
-			straight_uchar_to_premul_float(rt2, cp2);
-
-			tempc[0] = max_ff(rt1[0] - fac1 * rt2[0], 0.0f);
-			tempc[1] = max_ff(rt1[1] - fac1 * rt2[1], 0.0f);
-			tempc[2] = max_ff(rt1[2] - fac1 * rt2[2], 0.0f);
-			tempc[3] = max_ff(rt1[3] - fac1 * rt2[3], 0.0f);
-
-			if (tempc[3] < 1e-6f)
-				tempc[3] = 0.0f;
-
-			premul_float_to_straight_uchar(rt, tempc);
+			rt[0] = max_ii(cp1[0] - ((fac1 * cp2[0]) >> 8), 0);
+			rt[1] = max_ii(cp1[1] - ((fac1 * cp2[1]) >> 8), 0);
+			rt[2] = max_ii(cp1[2] - ((fac1 * cp2[2]) >> 8), 0);
+			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
 		}
@@ -984,18 +964,10 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 
 		x = xo;
 		while (x--) {
-			straight_uchar_to_premul_float(rt1, cp1);
-			straight_uchar_to_premul_float(rt2, cp2);
-
-			tempc[0] = max_ff(rt1[0] - fac3 * rt2[0], 0.0f);
-			tempc[1] = max_ff(rt1[1] - fac3 * rt2[1], 0.0f);
-			tempc[2] = max_ff(rt1[2] - fac3 * rt2[2], 0.0f);
-			tempc[3] = max_ff(rt1[3] - fac3 * rt2[3], 0.0f);
-
-			if (tempc[3] < 1e-6f)
-				tempc[3] = 0.0f;
-
-			premul_float_to_straight_uchar(rt, tempc);
+			rt[0] = max_ii(cp1[0] - ((fac3 * cp2[0]) >> 8), 0);
+			rt[1] = max_ii(cp1[1] - ((fac3 * cp2[1]) >> 8), 0);
+			rt[2] = max_ii(cp1[2] - ((fac3 * cp2[2]) >> 8), 0);
+			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
 		}
@@ -1005,7 +977,7 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
 {
 	int xo;
-	float fac1, fac3;
+	float m, fac1, fac3;
 	float *rt1, *rt2, *rt;
 
 	xo = x;
@@ -1019,13 +991,11 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *r
 	while (y--) {
 		x = xo;
 		while (x--) {
-			rt[0] = max_ff(rt1[0] - fac1 * rt2[0], 0.0f);
-			rt[1] = max_ff(rt1[1] - fac1 * rt2[1], 0.0f);
-			rt[2] = max_ff(rt1[2] - fac1 * rt2[2], 0.0f);
-			rt[3] = max_ff(rt1[3] - fac1 * rt2[3], 0.0f);
-
-			if (rt[3] < 1e-6f)
-				rt[3] = 0.0f;
+			m = 1.0f - (rt1[3] * (1 - fac3));
+			rt[0] = max_ff(rt1[0] - m * rt2[0], 0.0f);
+			rt[1] = max_ff(rt1[1] - m * rt2[1], 0.0f);
+			rt[2] = max_ff(rt1[2] - m * rt2[2], 0.0f);
+			rt[3] = rt1[3];
 
 			rt1 += 4; rt2 += 4; rt += 4;
 		}
@@ -1036,13 +1006,11 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *r
 
 		x = xo;
 		while (x--) {
-			rt[0] = max_ff(rt1[0] - fac3 * rt2[0], 0.0f);
-			rt[1] = max_ff(rt1[1] - fac3 * rt2[1], 0.0f);
-			rt[2] = max_ff(rt1[2] - fac3 * rt2[2], 0.0f);
-			rt[3] = max_ff(rt1[3] - fac3 * rt2[3], 0.0f);
-
-			if (rt[3] < 1e-6f)
-				rt[3] = 0.0f;
+			m = 1.0f - (rt1[3] * (1 - fac3));
+			rt[0] = max_ff(rt1[0] - m * rt2[0], 0.0f);
+			rt[1] = max_ff(rt1[1] - m * rt2[1], 0.0f);
+			rt[2] = max_ff(rt1[2] - m * rt2[2], 0.0f);
+			rt[3] = rt1[3];
 
 			rt1 += 4; rt2 += 4; rt += 4;
 		}
@@ -1177,10 +1145,10 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 		x = xo;
 		while (x--) {
 
-			rt[0] = rt1[0] + ((fac1 * rt1[0] * (rt2[0] - 256)) >> 16);
-			rt[1] = rt1[1] + ((fac1 * rt1[1] * (rt2[1] - 256)) >> 16);
-			rt[2] = rt1[2] + ((fac1 * rt1[2] * (rt2[2] - 256)) >> 16);
-			rt[3] = rt1[3] + ((fac1 * rt1[3] * (rt2[3] - 256)) >> 16);
+			rt[0] = rt1[0] + ((fac1 * rt1[0] * (rt2[0] - 255)) >> 16);
+			rt[1] = rt1[1] + ((fac1 * rt1[1] * (rt2[1] - 255)) >> 16);
+			rt[2] = rt1[2] + ((fac1 * rt1[2] * (rt2[2] - 255)) >> 16);
+			rt[3] = rt1[3] + ((fac1 * rt1[3] * (rt2[3] - 255)) >> 16);
 
 			rt1 += 4; rt2 += 4; rt += 4;
 		}
@@ -1191,10 +1159,10 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 		x = xo;
 		while (x--) {
 
-			rt[0] = rt1[0] + ((fac3 * rt1[0] * (rt2[0] - 256)) >> 16);
-			rt[1] = rt1[1] + ((fac3 * rt1[1] * (rt2[1] - 256)) >> 16);
-			rt[2] = rt1[2] + ((fac3 * rt1[2] * (rt2[2] - 256)) >> 16);
-			rt[3] = rt1[3] + ((fac3 * rt1[3] * (rt2[3] - 256)) >> 16);
+			rt[0] = rt1[0] + ((fac3 * rt1[0] * (rt2[0] - 255)) >> 16);
+			rt[1] = rt1[1] + ((fac3 * rt1[1] * (rt2[1] - 255)) >> 16);
+			rt[2] = rt1[2] + ((fac3 * rt1[2] * (rt2[2] - 255)) >> 16);
+			rt[3] = rt1[3] + ((fac3 * rt1[3] * (rt2[3] - 255)) >> 16);
 
 			rt1 += 4; rt2 += 4; rt += 4;
 		}
