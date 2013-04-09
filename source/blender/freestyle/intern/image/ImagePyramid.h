@@ -32,6 +32,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 class GrayImage;
 
 class LIB_IMAGE_EXPORT ImagePyramid
@@ -105,5 +107,7 @@ public:
 
 	/* modifiers */
 };
+
+} /* namespace Freestyle */
 
 #endif // __IMAGEPYRAMID_H__

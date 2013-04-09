@@ -29,6 +29,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 void FastGrid::clear()
 {
 	if (!_cells)
@@ -78,3 +80,5 @@ void FastGrid::fillCell(const Vec3u& p, Cell& cell)
 	assert(p[2] < _cells_nb[2]);
 	_cells[_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]] = &cell;
 }
+
+} /* namespace Freestyle */

@@ -40,6 +40,9 @@
 #include "Rep.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_SCENE_GRAPH_EXPORT NodeShape : public Node
@@ -92,5 +95,7 @@ private:
 	/*! Shape Material */
 	FrsMaterial _FrsMaterial;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_SHAPE_H__

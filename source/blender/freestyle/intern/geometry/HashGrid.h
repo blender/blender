@@ -42,6 +42,8 @@
 
 #include "Grid.h"
 
+namespace Freestyle {
+
 /*! Defines a hash table used for searching the Cells */
 struct GridHasher
 {
@@ -105,5 +107,7 @@ public:
 protected:
 	GridHashTable _cells;
 };
+
+} /* namespace Freestyle */
 
 #endif // __HASHGRID_H__

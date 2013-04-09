@@ -34,6 +34,8 @@
 
 #include "../system/Precision.h"
 
+namespace Freestyle {
+
 class LIB_SYSTEM_EXPORT RandGen
 {
 public:
@@ -43,5 +45,7 @@ public:
 private:
 	static void next();
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_RAND_GEN_H__

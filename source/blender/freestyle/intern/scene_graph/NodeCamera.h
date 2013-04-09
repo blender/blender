@@ -34,6 +34,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class NodeOrthographicCamera;
@@ -205,5 +207,6 @@ public:
 	NodePerspectiveCamera(double left, double right, double bottom, double top, double zNear, double zFar);
 };
 
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_CAMERA_H__

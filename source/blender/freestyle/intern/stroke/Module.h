@@ -31,6 +31,8 @@
 #include "Canvas.h"
 #include "StyleModule.h"
 
+namespace Freestyle {
+
 class Module
 {
 public:
@@ -71,5 +73,7 @@ private:
 		return canvas->getCurrentStyleModule();
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_MODULE_H__

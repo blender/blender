@@ -34,6 +34,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 namespace Config {
 
 class Path {
@@ -97,5 +99,7 @@ static const real DEFAULT_SPHERE_RADIUS = 1.0;
 static const real DEFAULT_DKR_EPSILON = 0.0;
 
 } // End of namepace Config
+
+} /* namespace Freestyle */
 
 #endif // __APP_CONFIG_H__

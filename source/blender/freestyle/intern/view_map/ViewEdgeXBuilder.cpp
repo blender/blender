@@ -35,6 +35,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 void ViewEdgeXBuilder::Init(ViewShape *oVShape)
 {
 	if (0 == oVShape)
@@ -744,3 +746,5 @@ ViewVertex *ViewEdgeXBuilder::MakeViewVertex(SVertex *iSVertex)
 	_pCurrentVShape->AddVertex(vva);
 	return vva;
 }
+
+} /* namespace Freestyle */

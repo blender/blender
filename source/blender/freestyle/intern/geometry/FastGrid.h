@@ -32,6 +32,8 @@
 
 #include "Grid.h"
 
+namespace Freestyle {
+
 /*! Class to define a regular grid used for ray casting computations 
  *  We don't use a hashtable here. The grid is explicitly stored for faster computations.
  *  However, this might result in significant increase in memory usage (compared to the regular grid)
@@ -75,5 +77,7 @@ protected:
 	Cell **_cells;
 	unsigned _cells_size;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FASTGRID_H__

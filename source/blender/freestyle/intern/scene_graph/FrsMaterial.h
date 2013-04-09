@@ -30,6 +30,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 /*! Class defining a material */
 class FrsMaterial
 {
@@ -368,5 +370,7 @@ bool FrsMaterial::operator==(const FrsMaterial& m) const
 {
 	return (!((*this) != m));
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_MATERIAL_H__

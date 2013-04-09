@@ -30,6 +30,8 @@
 
 #include "FreestyleConfig.h"
 
+namespace Freestyle {
+
 class LIB_SYSTEM_EXPORT TimeStamp
 {
 public:
@@ -67,5 +69,7 @@ private:
 	static TimeStamp *_instance;
 	unsigned _time_stamp;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_TIME_STAMP_H__

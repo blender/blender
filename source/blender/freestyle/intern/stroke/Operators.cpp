@@ -32,8 +32,11 @@
 #include "Operators.h"
 #include "Canvas.h"
 #include "Stroke.h"
+#include "CurveIterators.h"
 
 #include "BKE_global.h"
+
+namespace Freestyle {
 
 LIB_STROKE_EXPORT Operators::I1DContainer Operators::_current_view_edges_set;
 LIB_STROKE_EXPORT Operators::I1DContainer Operators::_current_chains_set;
@@ -78,7 +81,6 @@ int Operators::select(UnaryPredicate1D& pred)
 	*_current_set = new_set;
 	return 0;
 }
-
 
 int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it, UnaryPredicate1D& pred, UnaryFunction1D_void& modifier)
 {
@@ -139,7 +141,6 @@ error:
 	new_chains_set.clear();
 	return -1;
 }
-
 
 int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it, UnaryPredicate1D& pred)
 {
@@ -659,8 +660,6 @@ error:
 	return -1;
 }
 
-#include "CurveIterators.h"
-
 // Internal function
 static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling,
                             Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
@@ -813,7 +812,6 @@ int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& p
 		_current_set = &_current_chains_set;
 	return 0;
 }
-
 
 // recursive split with pred 0D
 static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d,
@@ -1205,7 +1203,6 @@ inline int applyShading(Stroke& stroke, vector<StrokeShader*>& shaders)
 	return 0;
 }
 
-
 int Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders)
 {
 	//Canvas* canvas = Canvas::getInstance();
@@ -1272,3 +1269,5 @@ void Operators::reset()
 	_current_set = &_current_view_edges_set;
 	_current_strokes_set.clear();
 }
+
+} /* namespace Freestyle */

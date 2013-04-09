@@ -39,6 +39,8 @@
 #include "matrix_util.h"
 #include "normal_cycle.h"
 
+namespace Freestyle {
+
 namespace OGF {
 
 //_________________________________________________________
@@ -95,3 +97,5 @@ void NormalCycle::end()
 //_________________________________________________________
 
 }  // OGF namespace
+
+} /* namespace Freestyle */

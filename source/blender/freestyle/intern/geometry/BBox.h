@@ -28,6 +28,8 @@
  *  \date 22/05/2003
  */
 
+namespace Freestyle {
+
 template <class Point>
 class BBox
 {
@@ -143,5 +145,7 @@ BBox<Point>& operator+(const BBox<Point> &b1, const BBox<Point> &b2)
 
 	return BBox<Point>(new_min, new_max);
 }
+
+} /* namespace Freestyle */
 
 #endif // __BBOX_H__

@@ -30,6 +30,8 @@
 #include "../view_map/ViewMapAdvancedIterators.h"
 #include "../view_map/ViewMapIterators.h"
 
+namespace Freestyle {
+
 void Chain::push_viewedge_back(ViewEdge *iViewEdge, bool orientation)
 {
 	ViewEdge::vertex_iterator v;
@@ -147,3 +149,5 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
 	if (!_fedgeB)
 		_fedgeB = (orientation) ? iViewEdge->fedgeB() : iViewEdge->fedgeA();
 }
+
+} /* namespace Freestyle */

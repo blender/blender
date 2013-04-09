@@ -31,6 +31,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 OccluderSource::OccluderSource(const GridHelpers::Transform& t, WingedEdge& we)
 : wingedEdge(we), valid(false), transform(t)
 {
@@ -142,3 +144,5 @@ real OccluderSource::averageOccluderArea()
 	area /= numFaces;
 	return area;
 }
+
+} /* namespace Freestyle */

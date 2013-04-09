@@ -50,6 +50,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 class BoxGrid
 {
 public:
@@ -406,5 +408,7 @@ inline bool BoxGrid::insertOccluder(OccluderSource& source, OccluderData*& occlu
 
 	return occluder != NULL;
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_BOX_GRID_H__

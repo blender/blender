@@ -51,6 +51,8 @@ extern "C" {
 #  include "IMB_imbuf_types.h"
 }
 
+namespace Freestyle {
+
 // Internal function
 
 #if 0 // soc
@@ -1128,3 +1130,5 @@ int fstreamShader::shade(Stroke& stroke) const
 }
 
 } // end of namespace StrokeShaders
+
+} /* namespace Freestyle */

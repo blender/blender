@@ -30,6 +30,8 @@
 
 #include "GridDensityProvider.h"
 
+namespace Freestyle {
+
 class ArbitraryGridDensityProvider : public GridDensityProvider
 {
 	// Disallow copying and assignment
@@ -64,5 +66,7 @@ public:
 protected:
 	unsigned numCells;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_ARBITRARY_GRID_DENSITY_PROVIDER_H__

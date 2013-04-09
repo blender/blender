@@ -33,6 +33,8 @@ extern "C" {
 #include "BLI_path_util.h"
 }
 
+namespace Freestyle {
+
 namespace Config {
 
 Path *Path::_pInstance = 0;
@@ -95,3 +97,5 @@ string Path::getEnvVar(const string& iEnvVarName)
 }
 
 } // End of namepace Config
+
+} /* namespace Freestyle */

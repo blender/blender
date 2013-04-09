@@ -36,6 +36,8 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/ProgressBar.h"
 
+namespace Freestyle {
+
 namespace ViewMapIO {
 
 static const unsigned ZERO = UINT_MAX;
@@ -118,5 +120,7 @@ istream& read<0>(istream& in, char *)
 #endif // IRIX
 
 } // End of namespace ViewMapIO
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_VIEW_MAP_IO_H__

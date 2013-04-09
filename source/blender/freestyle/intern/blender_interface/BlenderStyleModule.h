@@ -34,6 +34,8 @@ extern "C" {
 #include "BKE_text.h"
 }
 
+namespace Freestyle {
+
 class BlenderStyleModule : public StyleModule
 {
 public:
@@ -57,5 +59,7 @@ protected:
 private:
 	struct Text *_text;
 };
+
+} /* namespace Freestyle */
 
 #endif // __BLENDERSTYLEMODULE_H__

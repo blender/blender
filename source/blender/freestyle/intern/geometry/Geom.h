@@ -34,6 +34,8 @@
 
 #include "../system/Precision.h"
 
+namespace Freestyle {
+
 namespace Geometry {
 
 typedef VecMat::Vec2<unsigned>  Vec2u;
@@ -73,5 +75,7 @@ typedef VecMat::SquareMatrix<double, 4>     Matrix44d;
 typedef VecMat::SquareMatrix<real, 4>       Matrix44r;
 
 } // end of namespace Geometry
+
+} /* namespace Freestyle */
 
 #endif // __GEOM_H__

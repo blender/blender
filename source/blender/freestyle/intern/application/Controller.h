@@ -40,6 +40,13 @@
 #include "../view_map/FEdgeXDetector.h"
 #include "../view_map/ViewMapBuilder.h"
 
+extern "C" {
+#include "render_types.h"
+#include "DNA_scene_types.h"
+}
+
+namespace Freestyle {
+
 class AppView;
 class NodeGroup;
 class WShape;
@@ -50,18 +57,6 @@ class AppCanvas;
 class InteractiveShader;
 class Shader;
 class StrokeRenderer;
-
-// XXX Are those "ifdef __cplusplus" useful here?
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "render_types.h"
-#include "DNA_scene_types.h"
-
-#ifdef __cplusplus
-}
-#endif
 
 class Controller
 {
@@ -246,5 +241,7 @@ private:
 };
 
 extern Controller *g_pController;
+
+} /* namespace Freestyle */
 
 #endif // __CONTROLLER_H__

@@ -27,6 +27,8 @@
 
 #include "ViewMapTesselator.h"
 
+namespace Freestyle {
+
 NodeGroup *ViewMapTesselator::Tesselate(ViewMap *iViewMap)
 {
 	if (0 == iViewMap->ViewEdges().size())
@@ -40,3 +42,5 @@ NodeGroup *ViewMapTesselator::Tesselate(WShape *)
 {
 	return NULL;
 }
+
+} /* namespace Freestyle */

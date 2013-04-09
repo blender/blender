@@ -32,6 +32,8 @@
 #include "../scene_graph/NodeGroup.h"
 #include "../scene_graph/NodeShape.h"
 
+namespace Freestyle {
+
 LineRep *StrokeTesselator::Tesselate(Stroke *iStroke)
 {
 	if (0 == iStroke)
@@ -85,3 +87,5 @@ NodeGroup *StrokeTesselator::Tesselate(StrokeVertexIterator begin, StrokeVertexI
 
 	return group;
 }
+
+} /* namespace Freestyle */

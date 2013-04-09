@@ -45,6 +45,8 @@ extern "C" {
 #include "IMB_imbuf_types.h"
 }
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 SteerableViewMap::SteerableViewMap(unsigned int nbOrientations)
@@ -293,3 +295,5 @@ void SteerableViewMap::saveSteerableViewMap() const
 #endif
 	}
 }
+
+} /* namespace Freestyle */

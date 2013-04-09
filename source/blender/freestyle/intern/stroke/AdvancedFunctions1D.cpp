@@ -31,6 +31,8 @@
 
 #include "../view_map/SteerableViewMap.h"
 
+namespace Freestyle {
+
 // FIXME
 namespace Functions1D {
 
@@ -129,3 +131,5 @@ int GetViewMapGradientNormF1D::operator()(Interface1D& inter)
 }
 
 }  // Functions1D namespace
+
+} /* namespace Freestyle */

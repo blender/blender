@@ -30,6 +30,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 class Iterator
 {
 public:
@@ -64,5 +66,7 @@ public:
 		return false;
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_ITERATOR_H__

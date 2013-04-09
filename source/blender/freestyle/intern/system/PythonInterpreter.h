@@ -36,7 +36,6 @@
 
 //soc
 extern "C" {
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_text_types.h"
@@ -49,8 +48,9 @@ extern "C" {
 #include "BKE_text.h"
 
 #include "BPY_extern.h"
-
 }
+
+namespace Freestyle {
 
 class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 {
@@ -187,5 +187,7 @@ private:
 	static bool _initialized;
 	static string _path;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PYTHON_INTERPRETER_H__

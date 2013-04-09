@@ -29,6 +29,8 @@
 
 #include "../system/BaseObject.h"
 
+namespace Freestyle {
+
 void OrientedLineRep::accept(SceneVisitor& v)
 {
 	Rep::accept(v);
@@ -37,3 +39,5 @@ void OrientedLineRep::accept(SceneVisitor& v)
 	else
 		v.visitLineRep(*this);
 }
+
+} /* namespace Freestyle */

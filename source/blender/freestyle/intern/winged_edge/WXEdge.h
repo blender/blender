@@ -32,6 +32,8 @@
 #include "Nature.h"
 #include "WEdge.h"
 
+namespace Freestyle {
+
 typedef Nature::EdgeNature WXNature;
 
 /**********************************
@@ -798,5 +800,7 @@ bool WXVertex::isFeature()
 		return true;
 	return false;
 }
+
+} /* namespace Freestyle */
 
 #endif  // __FREESTYLE_WX_EDGE_H__

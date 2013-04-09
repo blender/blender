@@ -38,6 +38,8 @@
 #include "../system/Id.h"
 #include "../system/Precision.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_SCENE_GRAPH_EXPORT Rep : public BaseObject
@@ -162,5 +164,7 @@ private:
 	string _Name;
 	FrsMaterial *_FrsMaterial;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_REP_H__

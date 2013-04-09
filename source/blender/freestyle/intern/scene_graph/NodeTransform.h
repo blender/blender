@@ -35,6 +35,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_SCENE_GRAPH_EXPORT NodeTransform : public NodeGroup
@@ -99,5 +101,7 @@ private:
 	Matrix44r _Matrix;
 	bool _Scaled;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_TRANSFORM_H__

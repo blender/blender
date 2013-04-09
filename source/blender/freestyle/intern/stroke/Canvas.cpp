@@ -54,6 +54,8 @@ extern "C" {
 
 using namespace std;
 
+namespace Freestyle {
+
 LIB_STROKE_EXPORT
 Canvas *Canvas::_pInstance = 0;
 
@@ -466,3 +468,5 @@ float Canvas::readMapPixel(const char *iMapName, int level, int x, int y)
 
 	return pyramid->pixel(x, height() - 1 - y, level);
 }
+
+} /* namespace Freestyle */

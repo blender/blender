@@ -39,6 +39,7 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/StringUtils.h"
 
+namespace Freestyle {
 
 //
 //  StrokeAttribute
@@ -811,5 +812,7 @@ Stroke::Stroke(InputVertexIterator iBegin, InputVertexIterator iEnd)
 	_Length = 0;
 	_id = 0;
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_H__

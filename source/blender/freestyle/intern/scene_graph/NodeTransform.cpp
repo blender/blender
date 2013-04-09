@@ -30,6 +30,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 void NodeTransform::Translate(real x, real y, real z)
 {
 	_Matrix(0, 3) += x;
@@ -169,3 +171,5 @@ bool NodeTransform::isScaled(const Matrix44r &M)
 
 	return false;
 }
+
+} /* namespace Freestyle */

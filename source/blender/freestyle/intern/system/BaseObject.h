@@ -31,6 +31,8 @@
 
 #include "FreestyleConfig.h"
 
+namespace Freestyle {
+
 class LIB_SYSTEM_EXPORT BaseObject
 {
 public:
@@ -66,5 +68,7 @@ public:
 private:
 	unsigned _ref_counter;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_BASE_OBJECT_H__

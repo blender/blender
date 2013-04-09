@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 //
 // STROKE VERTEX REP
 /////////////////////////////////////
@@ -780,3 +782,5 @@ void StrokeRep::Render(const StrokeRenderer *iRenderer)
 {
 	iRenderer->RenderStrokeRep(this);
 }
+
+} /* namespace Freestyle */

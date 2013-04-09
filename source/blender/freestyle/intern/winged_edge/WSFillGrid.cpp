@@ -28,6 +28,8 @@
 #include "WEdge.h"
 #include "WSFillGrid.h"
 
+namespace Freestyle {
+
 void WSFillGrid::fillGrid()
 {
 	if (!_winged_edge || !_grid)
@@ -58,3 +60,5 @@ void WSFillGrid::fillGrid()
 		faces.clear();
 	}
 }
+
+} /* namespace Freestyle */

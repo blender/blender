@@ -28,6 +28,8 @@
 #include "Canvas.h"
 #include "PSStrokeRenderer.h"
 
+namespace Freestyle {
+
 PSStrokeRenderer::PSStrokeRenderer(const char *iFileName) : StrokeRenderer()
 {
 	if (!iFileName)
@@ -97,3 +99,5 @@ void PSStrokeRenderer::Close()
 	if (_ofstream.is_open())
 		_ofstream.close();
 }
+
+} /* namespace Freestyle */

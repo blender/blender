@@ -29,6 +29,8 @@
 
 #include "GridHelpers.h"
 
+namespace Freestyle {
+
 void GridHelpers::getDefaultViewProscenium(real viewProscenium[4])
 {
 	// Get proscenium boundary for culling
@@ -50,3 +52,5 @@ void GridHelpers::getDefaultViewProscenium(real viewProscenium[4])
 GridHelpers::Transform::~Transform ()
 {
 }
+
+} /* namespace Freestyle */

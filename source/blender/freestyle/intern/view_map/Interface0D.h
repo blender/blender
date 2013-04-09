@@ -42,6 +42,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 //
 // Interface0D
 //
@@ -379,5 +381,7 @@ public:
 protected:
 	Interface0DIteratorNested *_iterator;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_INTERFACE_0D_H__

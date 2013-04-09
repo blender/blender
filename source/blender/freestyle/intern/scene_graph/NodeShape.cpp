@@ -27,6 +27,8 @@
 
 #include "NodeShape.h"
 
+namespace Freestyle {
+
 NodeShape::~NodeShape()
 {
 	vector<Rep *>::iterator rep;
@@ -54,3 +56,5 @@ void NodeShape::accept(SceneVisitor& v)
 		(*rep)->accept(v);
 	v.visitNodeShapeAfter(*this);
 }
+
+} /* namespace Freestyle */

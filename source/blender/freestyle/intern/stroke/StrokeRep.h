@@ -32,6 +32,8 @@
 
 #include "../geometry/Geom.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 #if 0
@@ -206,5 +208,7 @@ public:
 		_textureId = textureId;
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_REP_H__

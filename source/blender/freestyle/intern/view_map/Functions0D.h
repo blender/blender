@@ -43,6 +43,8 @@
 #include "../system/Exception.h"
 #include "../system/Precision.h"
 
+namespace Freestyle {
+
 class FEdge;
 class ViewEdge;
 class SShape;
@@ -521,5 +523,7 @@ LIB_VIEW_MAP_EXPORT
 ViewShape *getOccludeeF0D(Interface0DIterator& it);
 
 } // end of namespace Functions0D
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_FUNCTIONS_0D_H__

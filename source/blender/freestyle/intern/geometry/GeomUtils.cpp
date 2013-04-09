@@ -27,6 +27,8 @@
 
 #include "GeomUtils.h"
 
+namespace Freestyle {
+
 namespace GeomUtils {
 
 // This internal procedure is defined below.
@@ -774,3 +776,5 @@ inline void fromCoordAToCoordB(const Vec3r&p, Vec3r& q, const real transform[4][
 }
 
 } // end of namespace GeomUtils
+
+} /* namespace Freestyle */

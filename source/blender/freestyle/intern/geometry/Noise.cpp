@@ -32,6 +32,8 @@
 
 #include "Noise.h"
 
+namespace Freestyle {
+
 #define SCURVE(a) ((a) * (a) * (3.0 - 2.0 * (a)))
 
 #if 0  // XXX Unused
@@ -272,3 +274,5 @@ Noise::Noise(long seed)
 			g3[_NOISE_B + i][j] = g3[i][j];
 	}
 }
+
+} /* namespace Freestyle */

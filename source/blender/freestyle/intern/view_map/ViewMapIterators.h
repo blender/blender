@@ -32,6 +32,7 @@
 
 #include "../system/Iterator.h" //soc 
 
+namespace Freestyle {
 
 /**********************************/
 /*                                */
@@ -563,5 +564,7 @@ protected:
 };
 
 } // end of namespace ViewEdgeInternal
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_VIEW_MAP_ITERATORS_H__

@@ -42,6 +42,8 @@
 
 //using namespace ViewEdgeInternal;
 
+namespace Freestyle {
+
 //
 // Adjacency iterator used in the chaining process
 //
@@ -396,5 +398,7 @@ public:
 		return 0;
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CHAINING_ITERATORS_H__

@@ -27,9 +27,12 @@
 
 #include <Python.h>
 #include <iostream>
+
 using namespace std;
 
 #include "../system/Id.h"
+
+using namespace Freestyle;
 
 #ifdef __cplusplus
 extern "C" {

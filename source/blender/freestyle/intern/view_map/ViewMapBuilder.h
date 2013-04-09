@@ -52,6 +52,8 @@
 #include "../winged_edge/WEdge.h"
 #include "../winged_edge/WXEdge.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_VIEW_MAP_EXPORT ViewMapBuilder
@@ -246,5 +248,7 @@ protected:
 	void FindOccludee(FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, unsigned timestamp,
 	                  Vec3r& u, Vec3r& A, Vec3r& origin, Vec3r& edge, vector<WVertex*>& faceVertices);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_VIEW_MAP_BUILDER_H__

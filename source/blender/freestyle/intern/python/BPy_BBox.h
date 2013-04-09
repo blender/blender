@@ -29,7 +29,9 @@
 
 #include "../geometry/BBox.h"
 #include "../geometry/Geom.h"
-using namespace Geometry;
+
+using namespace Freestyle;
+using namespace Freestyle::Geometry;
 
 #ifdef __cplusplus
 extern "C" {

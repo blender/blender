@@ -37,6 +37,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 class GridDensityProvider
 {
 	// Disallow copying and assignment
@@ -141,5 +143,7 @@ public:
 
 	virtual ~GridDensityProviderFactory () {}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_GRID_DENSITY_PROVIDER_H__

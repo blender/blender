@@ -30,6 +30,8 @@
 #include "PseudoNoise.h"
 #include "RandGen.h"
 
+namespace Freestyle {
+
 static const unsigned NB_VALUE_NOISE = 512;
 
 real *PseudoNoise::_values;
@@ -107,3 +109,5 @@ real PseudoNoise::turbulenceLinear(real x, unsigned nbOctave)
 	}
 	return y;
 }
+
+} /* namespace Freestyle */

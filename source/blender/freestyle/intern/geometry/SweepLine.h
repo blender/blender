@@ -31,6 +31,8 @@
 #include <list>
 #include <vector>
 
+namespace Freestyle {
+
 /*! Class to define the intersection berween two segments*/
 template<class Edge>
 class Intersection
@@ -321,5 +323,7 @@ private:
 	std::vector<Segment<T, Point> *> _IntersectedEdges; // the list of intersected edges
 	std::vector<Intersection<Segment<T, Point> > *> _Intersections; // the list of all intersections.
 };
+
+} /* namespace Freestyle */
 
 #endif // __SWEEPLINE_H__

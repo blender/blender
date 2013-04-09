@@ -39,6 +39,9 @@
 #include "../system/FreestyleConfig.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 
@@ -1333,5 +1336,7 @@ inline void WOEdge::setVecAndAngle()
 		}
 	}
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_W_EDGE_H__

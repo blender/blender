@@ -34,6 +34,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_SCENE_GRAPH_EXPORT NodeLight : public Node
@@ -102,5 +104,7 @@ private:
 	/*! The current lignt number */
 	int _number;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_LIGHT_H__

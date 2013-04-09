@@ -43,6 +43,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 namespace OGF {
@@ -137,5 +139,7 @@ inline void NormalCycle::accumulate_dihedral_angle(const Vec3r& edge, const doub
 //_________________________________________________________
 
 }  // OGF namespace
+
+} /* namespace Freestyle */
 
 #endif  // __MESH_TOOLS_MATH_NORMAL_CYCLE__

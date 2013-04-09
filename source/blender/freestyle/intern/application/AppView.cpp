@@ -56,6 +56,8 @@ extern "C" {
 #include "FRS_freestyle.h"
 }
 
+namespace Freestyle {
+
 AppView::AppView(const char *iName)
 {
 	_Fovy = DEG2RADF(30.0f);
@@ -189,3 +191,5 @@ real AppView::GetFocalLength()
 	real Near = std::max(0.1, (real)(-2.0f * _maxAbs + distanceToSceneCenter()));
 	return Near;
 }
+
+} /* namespace Freestyle */

@@ -43,6 +43,8 @@
 #include "../view_map/Interface1D.h"
 #include "../view_map/ViewMap.h"
 
+namespace Freestyle {
+
 /*! Class defining the operators used in a style module.
  *  There are 4 classes of operators: Selection, Chaining, Splitting and Creating. All these operators are
  *  user controlled in the scripting language through Functors, Predicates and Shaders that are taken as arguments.
@@ -263,5 +265,7 @@ private:
 	static I1DContainer *_current_set;
 	static StrokesContainer _current_strokes_set;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_OPERATORS_H__

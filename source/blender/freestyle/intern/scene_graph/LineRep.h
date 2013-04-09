@@ -37,6 +37,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 /*! Base class for all lines objects */
 class LIB_SCENE_GRAPH_EXPORT LineRep : public Rep
 {
@@ -147,5 +149,7 @@ private:
 	vector<Vec3r> _vertices;
 	float _width;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_LINE_REP_H__

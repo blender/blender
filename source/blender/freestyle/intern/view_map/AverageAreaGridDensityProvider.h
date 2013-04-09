@@ -30,6 +30,8 @@
 
 #include "GridDensityProvider.h"
 
+namespace Freestyle {
+
 class AverageAreaGridDensityProvider : public GridDensityProvider
 {
 	// Disallow copying and assignment
@@ -61,5 +63,7 @@ public:
 protected:
 	real sizeFactor;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__

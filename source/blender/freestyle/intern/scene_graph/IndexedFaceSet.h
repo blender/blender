@@ -36,6 +36,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 class LIB_SCENE_GRAPH_EXPORT IndexedFaceSet : public Rep
 {
 public:
@@ -311,5 +313,7 @@ protected:
 
 	unsigned int _displayList;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_INDEXED_FACE_SET_H__

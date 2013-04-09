@@ -33,6 +33,8 @@
 
 #include "../view_map/Functions0D.h"
 
+namespace Freestyle {
+
 //
 // UnaryPredicate0D (base class for predicates in 0D)
 //
@@ -175,5 +177,7 @@ public:
 };
 
 } // end of namespace Predicates0D
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PREDICATES_0D_H__

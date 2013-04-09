@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 #if 0
 ImagePyramid::ImagePyramid(const GrayImage& level0, unsigned nbLevels)
 {
@@ -183,3 +185,5 @@ void GaussianPyramid::BuildPyramid(GrayImage *level0, unsigned nbLevels)
 		}
 	}
 }
+
+} /* namespace Freestyle */

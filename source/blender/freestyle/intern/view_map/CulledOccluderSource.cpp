@@ -33,6 +33,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 CulledOccluderSource::CulledOccluderSource(const GridHelpers::Transform& t, WingedEdge& we, ViewMap& viewMap,
                                            bool extensiveFEdgeSearch)
 : OccluderSource(t, we), rejected(0), gridSpaceOccluderProsceniumInitialized(false)
@@ -278,3 +280,5 @@ void CulledOccluderSource::expandGridSpaceOccluderProscenium(FEdge *fe)
 		gridSpaceOccluderProsceniumInitialized = true;
 	}
 }
+
+} /* namespace Freestyle */

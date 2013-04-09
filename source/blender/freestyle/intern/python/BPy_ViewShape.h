@@ -29,6 +29,8 @@
 
 #include "../view_map/ViewMap.h"
 
+using namespace Freestyle;
+
 #include "BPy_SShape.h"
 
 #ifdef __cplusplus

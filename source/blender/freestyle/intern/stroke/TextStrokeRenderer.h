@@ -39,6 +39,8 @@
 # include "../system/FreestyleConfig.h"
 # include <fstream>
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -64,5 +66,6 @@ protected:
   mutable ofstream _ofstream;
 };
 
-#endif // TEXTSTROKERENDERER_H
+} /* namespace Freestyle */
 
+#endif // TEXTSTROKERENDERER_H

@@ -34,6 +34,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 // Helper Classes
 
 // OccluderData
@@ -240,3 +242,5 @@ Vec3r SphericalGrid::Transform::sphericalProjection(const Vec3r& M)
 
 	return newPoint;
 }
+
+} /* namespace Freestyle */

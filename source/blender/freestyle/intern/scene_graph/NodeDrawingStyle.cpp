@@ -27,6 +27,8 @@
 
 #include "NodeDrawingStyle.h"
 
+namespace Freestyle {
+
 void NodeDrawingStyle::accept(SceneVisitor& v)
 {
 	v.visitNodeDrawingStyle(*this);
@@ -37,3 +39,5 @@ void NodeDrawingStyle::accept(SceneVisitor& v)
 		(*node)->accept(v);
 	v.visitNodeDrawingStyleAfter(*this);
 }
+
+} /* namespace Freestyle */

@@ -29,6 +29,8 @@
 #include "WEdge.h"
 #include "WFillGrid.h"
 
+namespace Freestyle {
+
 void WFillGrid::fillGrid()
 {
 	if (!_winged_edge || !_grid)
@@ -59,3 +61,5 @@ void WFillGrid::fillGrid()
 		faces.clear();
 	}
 }
+
+} /* namespace Freestyle */

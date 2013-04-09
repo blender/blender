@@ -37,6 +37,9 @@
 #include "../geometry/Geom.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 namespace StrokeShaders {
@@ -891,5 +894,7 @@ public:
 };
 
 } // end of namespace StrokeShaders
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_BASIC_STROKE_SHADERS_H__

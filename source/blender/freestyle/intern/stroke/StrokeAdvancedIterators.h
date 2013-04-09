@@ -31,6 +31,8 @@
 
 #include "Stroke.h"
 
+namespace Freestyle {
+
 namespace StrokeInternal {
 
 class vertex_const_traits : public Const_traits<StrokeVertex*>
@@ -180,5 +182,7 @@ public:
 };
 
 } // end of namespace StrokeInternal
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_ADVANCED_ITERATORS_H__

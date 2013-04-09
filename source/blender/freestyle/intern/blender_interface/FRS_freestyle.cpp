@@ -32,6 +32,7 @@
 #include "../application/Controller.h"
 
 using namespace std;
+using namespace Freestyle;
 
 extern "C" {
 

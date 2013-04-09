@@ -51,6 +51,8 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/Precision.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class WVertex;
@@ -136,5 +138,7 @@ void LIB_WINGED_EDGE_EXPORT compute_curvature_tensor( WVertex *start, double rad
 void LIB_WINGED_EDGE_EXPORT compute_curvature_tensor_one_ring(WVertex *start, NormalCycle& nc);
 
 }  // OGF namespace
+
+} /* namespace Freestyle */
 
 #endif /* __FREESTYLE_CURVATURE_H__ */

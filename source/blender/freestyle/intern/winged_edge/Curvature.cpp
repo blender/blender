@@ -56,6 +56,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 static bool angle_obtuse(WVertex *v, WFace *f)
 {
 	WOEdge *e;
@@ -637,3 +639,5 @@ void compute_curvature_tensor_one_ring(WVertex *start, NormalCycle& nc)
 }
 
 }  // OGF namespace
+
+} /* namespace Freestyle */

@@ -33,6 +33,8 @@
 
 #include "../geometry/GeomUtils.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -745,3 +747,5 @@ void ViewEdge::UpdateFEdges()
 	// last one
 	_FEdgeB->setViewEdge(this);
 }
+
+} /* namespace Freestyle */

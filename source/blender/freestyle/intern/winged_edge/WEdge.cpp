@@ -29,6 +29,8 @@
 
 #include "WEdge.h"
 
+namespace Freestyle {
+
 /*! Temporary structures */
 class vertexdata
 {
@@ -705,3 +707,5 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 
 	return face;
 }
+
+} /* namespace Freestyle */

@@ -60,6 +60,8 @@ extern "C" {
 }
 #endif
 
+namespace Freestyle {
+
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
 	// TEMPORARY - need a  texture manager
@@ -510,3 +512,5 @@ Render *BlenderStrokeRenderer::RenderScene(Render *re)
 	RE_RenderFreestyleStrokes(freestyle_render, G.main, freestyle_scene);
 	return freestyle_render;
 }
+
+} /* namespace Freestyle */

@@ -29,6 +29,8 @@
 
 #include "../view_map/ViewMap.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

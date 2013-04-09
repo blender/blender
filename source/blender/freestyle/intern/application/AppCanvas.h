@@ -28,6 +28,8 @@
 #include "../stroke/Canvas.h"
 #include "AppView.h"
 
+namespace Freestyle {
+
 class AppCanvas : public Canvas
 {
 public:
@@ -90,5 +92,7 @@ private:
 		int width, height;
 	} _pass_diffuse, _pass_z;
 };
+
+} /* namespace Freestyle */
 
 #endif // __APPCANVAS_H__

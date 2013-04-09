@@ -28,6 +28,8 @@
 #include "WXEdge.h"
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 /**********************************
  *                                *
  *                                *
@@ -292,3 +294,5 @@ WFace *WXShape::MakeFace(vector<WVertex *>& iVertexList, vector<Vec3r>& iNormals
 
 	return face;
 }
+
+} /* namespace Freestyle */

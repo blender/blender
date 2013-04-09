@@ -26,6 +26,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 BlenderTextureManager::BlenderTextureManager()
 : TextureManager()
 {
@@ -95,3 +97,5 @@ unsigned int BlenderTextureManager::loadBrush(string sname, Stroke::MediumType m
 	return 0;
 #endif
 }
+
+} /* namespace Freestyle */

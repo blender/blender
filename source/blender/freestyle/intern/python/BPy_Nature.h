@@ -29,6 +29,8 @@
 
 #include "../winged_edge/Nature.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

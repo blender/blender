@@ -30,6 +30,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 #define VISIT_COMPLETE_DEF(type)               \
 	virtual void visit##type(type&) {}         \
 	virtual void visit##type##Before(type&) {} \
@@ -91,5 +93,7 @@ public:
 	VISIT_COMPLETE_DEF(DrawingStyle)
 	VISIT_COMPLETE_DEF(FrsMaterial)
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_SCENE_VISITOR_H__

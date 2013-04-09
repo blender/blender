@@ -33,6 +33,8 @@
 
 #include "../system/StringUtils.h"
 
+namespace Freestyle {
+
 AppCanvas::AppCanvas()
 :Canvas()
 {
@@ -205,7 +207,8 @@ void AppCanvas::RenderStroke(Stroke *iStroke)
 		iStroke->Render(_Renderer);
 }
 
-
 void AppCanvas::update()
 {
 }
+
+} /* namespace Freestyle */

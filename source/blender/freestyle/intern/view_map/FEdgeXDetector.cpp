@@ -35,6 +35,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 void FEdgeXDetector::processShapes(WingedEdge& we)
 {
 	bool progressBarDisplay = false;
@@ -753,3 +755,5 @@ void FEdgeXDetector::buildSmoothEdges(WXShape *iShape)
 		_meanKr /= (real)(_nPoints);
 	}
 }
+
+} /* namespace Freestyle */

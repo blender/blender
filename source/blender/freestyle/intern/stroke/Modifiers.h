@@ -30,6 +30,8 @@
 
 #include "TimeStamp.h"
 
+namespace Freestyle {
+
 /* ----------------------------------------- *
  *                                           *
  *              modifiers                    *
@@ -63,5 +65,7 @@ struct TimestampModifier : public EdgeModifier<Edge>
 		iEdge.setTimeStamp(timestamp->getTimeStamp());
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // MODIFIERS_H

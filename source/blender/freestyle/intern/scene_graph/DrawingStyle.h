@@ -28,6 +28,8 @@
  *  \date 10/10/2002
  */
 
+namespace Freestyle {
+
 class DrawingStyle
 {
 public:
@@ -117,5 +119,7 @@ DrawingStyle& DrawingStyle::operator=(const DrawingStyle& ds)
 
 	return *this;
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_DRAWING_STYLE_H__

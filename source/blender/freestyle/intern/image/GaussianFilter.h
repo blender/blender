@@ -33,6 +33,12 @@
 
 #include "../system/FreestyleConfig.h"
 
+extern "C" {
+#include "BLI_math.h"
+}
+
+namespace Freestyle {
+
 class LIB_IMAGE_EXPORT GaussianFilter
 {
 protected:
@@ -119,8 +125,6 @@ protected:
   
 */
 
-#include <math.h>
-
 #ifdef __MACH__
 # define sqrtf(x) (sqrt(x))
 #endif
@@ -151,5 +155,7 @@ float GaussianFilter::getSmoothedPixel(Map *map, int x, int y)
 	//L /= sum;
 	return L;
 }
+
+} /* namespace Freestyle */
 
 #endif // __GAUSSIANFILTER_H__

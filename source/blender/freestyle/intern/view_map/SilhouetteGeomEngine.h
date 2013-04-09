@@ -35,6 +35,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class SVertex;
@@ -125,5 +127,7 @@ public:
 	/*! From world to image */
 	static Vec3r WorldToImage(const Vec3r& M);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_SILHOUETTE_GEOM_ENGINE_H__

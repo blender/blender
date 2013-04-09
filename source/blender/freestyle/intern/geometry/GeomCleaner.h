@@ -32,6 +32,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_GEOMETRY_EXPORT GeomCleaner
@@ -216,5 +218,7 @@ bool operator<(const IndexedVertex& iv1, const IndexedVertex& iv2)
 	return iv1.operator<(iv2);
 }
 #endif
+
+} /* namespace Freestyle */
 
 #endif // __GEOMCLEANER_H__

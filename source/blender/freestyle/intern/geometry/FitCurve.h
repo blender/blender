@@ -35,6 +35,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 /* 2d point */
@@ -114,5 +116,7 @@ protected:
 	 */
 	void FitCubic(Vector2 *d, int first, int last, Vector2 tHat1, Vector2 tHat2, double error);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FITCURVE_H__

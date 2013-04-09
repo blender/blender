@@ -30,6 +30,10 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct FreestyleLineStyle;
 struct Group;
 struct Text;
@@ -127,4 +131,8 @@ typedef struct FreestyleConfig {
 	ListBase linesets;
 } FreestyleConfig;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __DNA_FREESTYLE_TYPES_H__ */

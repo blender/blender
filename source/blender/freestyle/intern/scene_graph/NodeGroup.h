@@ -37,6 +37,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 class LIB_SCENE_GRAPH_EXPORT NodeGroup : public Node
 {
 public:
@@ -78,5 +80,7 @@ public:
 protected:
 	vector<Node*> _Children;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_GROUP_H__

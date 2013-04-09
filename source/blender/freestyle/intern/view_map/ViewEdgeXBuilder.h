@@ -47,8 +47,11 @@
 
 #include "../system/FreestyleConfig.h"
 
-using namespace Geometry;
 using namespace std;
+
+namespace Freestyle {
+
+using namespace Geometry;
 
 class SVertex;
 
@@ -277,5 +280,7 @@ protected:
 	SShape *_pCurrentSShape;
 	ViewShape *_pCurrentVShape;
 };
+
+} /* namespace Freestyle */
 
 #endif  // __FREESTYLE_VIEW_EDGE_X_BUILDER_H__

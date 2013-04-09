@@ -29,6 +29,8 @@
 
 #include "../system/TimeStamp.h"
 
+namespace Freestyle {
+
 ViewEdge *AdjacencyIterator::operator*()
 {
 	return (*_internalIterator).first;
@@ -193,3 +195,5 @@ int ChainPredicateIterator::traverse(const AdjacencyIterator& ait)
 	result = 0;
 	return 0;
 }
+
+} /* namespace Freestyle */

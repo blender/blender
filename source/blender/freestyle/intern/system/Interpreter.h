@@ -32,6 +32,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 class LIB_SYSTEM_EXPORT Interpreter
 {
 public:
@@ -54,5 +56,7 @@ public:
 protected:
 	string _language;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_INTERPRETER_H__

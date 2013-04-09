@@ -32,6 +32,8 @@
 
 #include "FreestyleConfig.h"
 
+namespace Freestyle {
+
 class Chronometer
 {
 public:
@@ -53,5 +55,7 @@ public:
 private:
 	clock_t _start;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_TIME_UTILS_H__

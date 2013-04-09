@@ -32,6 +32,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -945,3 +947,5 @@ real Stroke::local_average_density(float sigma , int iCombination ) const
 	return density_edge_function<Stroke>(*this, iCombination);
 }
 #endif
+
+} /* namespace Freestyle */

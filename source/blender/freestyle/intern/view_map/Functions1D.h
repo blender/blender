@@ -39,6 +39,8 @@
 
 #include "../python/Director.h"
 
+namespace Freestyle {
+
 //
 // UnaryFunction1D (base class for functions in 1D)
 //
@@ -616,5 +618,7 @@ LIB_VIEW_MAP_EXPORT
 void getShapeF1D(Interface1D& inter, set<ViewShape*>& oShapes);
 
 } // end of namespace Functions1D
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_FUNCTIONS_1D_H__

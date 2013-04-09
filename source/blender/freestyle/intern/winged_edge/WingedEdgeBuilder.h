@@ -38,6 +38,8 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/RenderMonitor.h"
 
+namespace Freestyle {
+
 class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
 {
 public:
@@ -146,5 +148,7 @@ private:
 	Matrix44r *_current_matrix;
 	vector<Matrix44r *> _matrices_stack;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_WINGED_EDGE_BUILDER_H__

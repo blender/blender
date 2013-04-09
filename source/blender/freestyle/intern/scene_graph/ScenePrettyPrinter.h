@@ -37,6 +37,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 class ScenePrettyPrinter : public SceneVisitor
 {
 public:
@@ -98,5 +100,7 @@ private:
 	ofstream _ofs;
 	string _space;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_SCENE_PRETTY_PRINTER_H__

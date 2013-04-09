@@ -31,6 +31,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -923,3 +925,5 @@ void Curve::computeCurvatureAndOrientation ()
 	}
 #endif
 }
+
+} /* namespace Freestyle */

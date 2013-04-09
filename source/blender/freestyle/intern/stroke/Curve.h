@@ -42,6 +42,9 @@
 #include "../system/BaseIterator.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 /**********************************/
@@ -578,5 +581,7 @@ public:
 	 */
 	virtual Interface0DIterator pointsEnd(float t = 0.0f);
 };
+
+} /* namespace Freestyle */
 
 #endif  // __FREESTYLE_CURVE_H__

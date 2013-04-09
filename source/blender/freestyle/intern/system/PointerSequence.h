@@ -61,6 +61,8 @@
 
 #include <algorithm>
 
+namespace Freestyle {
+
 template <typename C, typename T>
 class PointerSequence : public C
 {
@@ -85,5 +87,7 @@ public:
 		for_each(this->begin(), this->end(), destroyer);
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_POINTER_SEQUENCE_H__

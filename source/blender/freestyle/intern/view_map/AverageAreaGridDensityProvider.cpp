@@ -29,6 +29,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, const real proscenium[4],
                                                                real sizeFactor)
 : GridDensityProvider(source)
@@ -129,3 +131,5 @@ auto_ptr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDens
 {
 	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, sizeFactor));
 }
+
+} /* namespace Freestyle */

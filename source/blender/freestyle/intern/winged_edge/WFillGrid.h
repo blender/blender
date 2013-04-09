@@ -34,6 +34,8 @@
 #include "../geometry/Grid.h"
 #include "../geometry/Polygon.h"
 
+namespace Freestyle {
+
 class LIB_WINGED_EDGE_EXPORT WFillGrid
 {
 public:
@@ -77,5 +79,7 @@ private:
 	WingedEdge *_winged_edge;
 	unsigned _polygon_id;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_W_FILL_GRID_H__

@@ -49,6 +49,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 class SphericalGrid
 {
 public:
@@ -412,5 +414,7 @@ inline bool SphericalGrid::insertOccluder(OccluderSource& source, OccluderData*&
 
 	return occluder != NULL;
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_SPHERICAL_GRID_H__

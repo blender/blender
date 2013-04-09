@@ -40,6 +40,8 @@
 #include "../view_map/Interface1D.h"
 #include "../view_map/Functions1D.h"
 
+namespace Freestyle {
+
 //
 // UnaryPredicate1D (base class for predicates in 1D)
 //
@@ -577,5 +579,7 @@ public:
 };
 
 } // end of namespace Predicates1D
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PREDICATES_1D_H__

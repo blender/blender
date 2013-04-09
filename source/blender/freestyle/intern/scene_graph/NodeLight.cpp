@@ -27,6 +27,8 @@
 
 #include "NodeLight.h"
 
+namespace Freestyle {
+
 int NodeLight::numberOfLights = 0;
 
 NodeLight::NodeLight() : Node()
@@ -77,3 +79,5 @@ void NodeLight::accept(SceneVisitor& v)
 {
 	v.visitNodeLight(*this);
 }
+
+} /* namespace Freestyle */

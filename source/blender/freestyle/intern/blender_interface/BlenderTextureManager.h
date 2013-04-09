@@ -29,6 +29,8 @@
 # include "../stroke/StrokeRep.h"
 # include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 /*! Class to load textures */
 class LIB_RENDERING_EXPORT BlenderTextureManager : public TextureManager
 {
@@ -42,5 +44,7 @@ protected:
 protected:
 	virtual void loadStandardBrushes();
 };
+
+} /* namespace Freestyle */
 
 #endif // __BLENDERTEXTUREMANAGER_H__

@@ -47,6 +47,8 @@ extern "C" {
 
 using namespace std;
 
+namespace Freestyle {
+
 namespace StringUtils {
 
 LIB_SYSTEM_EXPORT
@@ -64,5 +66,7 @@ struct ltstr
 };
 
 } // end of namespace StringUtils
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STRING_UTILS_H__

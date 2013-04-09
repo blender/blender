@@ -35,6 +35,9 @@
 #include "../system/FreestyleConfig.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 namespace GeomUtils {
@@ -266,5 +269,7 @@ LIB_GEOMETRY_EXPORT
 void fromCameraToWorld(const Vec3r& p, Vec3r& q, const real model_view_matrix[4][4]);
 
 } // end of namespace GeomUtils
+
+} /* namespace Freestyle */
 
 #endif // __GEOMUTILS_H__

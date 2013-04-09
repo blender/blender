@@ -38,6 +38,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -134,5 +136,7 @@ public:
 	//static unsigned int getTextureIndex(unsigned int index);
 	static TextureManager *_textureManager;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_RENDERER_H__

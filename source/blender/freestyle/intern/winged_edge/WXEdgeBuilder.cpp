@@ -29,6 +29,8 @@
 #include "WXEdge.h"
 #include "WXEdgeBuilder.h"
 
+namespace Freestyle {
+
 void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
 {
 	if (_pRenderMonitor && _pRenderMonitor->testBreak())
@@ -49,3 +51,5 @@ void WXEdgeBuilder::buildWVertices(WShape& shape, const real *vertices, unsigned
 		shape.AddVertex(vertex);
 	}
 }
+
+} /* namespace Freestyle */

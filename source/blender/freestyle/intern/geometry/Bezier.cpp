@@ -30,6 +30,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 BezierCurveSegment::BezierCurveSegment()
 {
 }
@@ -118,3 +120,5 @@ void BezierCurve::AddControlPoint(const Vec2d& iPoint)
 		_currentSegment->AddControlPoint(iPoint);
 	}
 }
+
+} /* namespace Freestyle */

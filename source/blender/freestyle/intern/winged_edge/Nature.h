@@ -28,6 +28,8 @@
  *  \date 01/07/2003
  */
 
+namespace Freestyle {
+
 /*! Namespace gathering the different possible natures of 0D and 1D elements of the ViewMap */
 namespace Nature {
 
@@ -68,5 +70,7 @@ static const EdgeNature MATERIAL_BOUNDARY  = (1 << 6); // 64
 static const EdgeNature EDGE_MARK          = (1 << 7); // 128
 
 } // end of namespace Nature
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NATURE_H__

@@ -28,10 +28,14 @@
  *  \date 30/07/2002
  */
 
+namespace Freestyle {
+
 typedef double real;
 
 #ifndef SWIG
 	static const real M_EPSILON = 0.00000001;
 #endif // SWIG
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PRECISION_H__

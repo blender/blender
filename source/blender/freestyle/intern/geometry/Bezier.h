@@ -34,6 +34,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_GEOMETRY_EXPORT BezierCurveSegment
@@ -85,5 +87,7 @@ public:
 		return _Segments;
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __BEZIER_H__

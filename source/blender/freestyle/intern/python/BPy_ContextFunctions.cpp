@@ -27,6 +27,8 @@
 
 #include "../stroke/ContextFunctions.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

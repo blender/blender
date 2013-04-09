@@ -34,6 +34,8 @@
 #include <math.h>
 #include <vector>
 
+namespace Freestyle {
+
 namespace VecMat {
 
 namespace Internal {
@@ -966,5 +968,7 @@ inline std::ostream& operator<<(std::ostream& s, const Matrix<T, M, N>& m)
 }
 
 } // end of namespace VecMat
+
+} /* namespace Freestyle */
 
 #endif // __VECMAT_H__

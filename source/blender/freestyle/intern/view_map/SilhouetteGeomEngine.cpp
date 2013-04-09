@@ -35,6 +35,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 Vec3r SilhouetteGeomEngine::_Viewpoint = Vec3r(0, 0, 0);
 real SilhouetteGeomEngine::_translation[3] = {0, 0, 0};
 real SilhouetteGeomEngine::_modelViewMatrix[4][4] = {
@@ -313,3 +315,5 @@ Vec3r SilhouetteGeomEngine::WorldToImage(const Vec3r& M)
 	newPoint[2] = (-newPoint[2] - _znear) * fac; // normalize Z between 0 and 1
 	return newPoint;
 }
+
+} /* namespace Freestyle */

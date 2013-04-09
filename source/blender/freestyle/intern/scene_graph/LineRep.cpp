@@ -27,6 +27,8 @@
 
 #include "LineRep.h"
 
+namespace Freestyle {
+
 void LineRep::ComputeBBox()
 {
 	real XMax = _vertices.front()[0];
@@ -62,3 +64,5 @@ void LineRep::ComputeBBox()
 
 	setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
 }
+
+} /* namespace Freestyle */

@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 namespace Functions0D {
 
 // Internal function
@@ -367,3 +369,5 @@ int GetOccludeeF0D::operator()(Interface0DIterator& iter)
 }
 
 } // end of namespace Functions0D
+
+} /* namespace Freestyle */

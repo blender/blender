@@ -30,6 +30,8 @@
 
 #include "Stroke.h"
 
+namespace Freestyle {
+
 namespace CurveInternal {
 
 class CurvePoint_const_traits : public Const_traits<CurvePoint*>
@@ -372,5 +374,7 @@ protected:
 };
 
 } // end of namespace CurveInternal
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CURVE_ADVANCED_ITERATORS_H__

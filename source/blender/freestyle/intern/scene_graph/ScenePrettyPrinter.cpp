@@ -31,6 +31,8 @@
 #include "IndexedFaceSet.h"
 #include "ScenePrettyPrinter.h"
 
+namespace Freestyle {
+
 #define VISIT(CLASS)                              \
 	void ScenePrettyPrinter::visit##CLASS(CLASS&) \
 	{                                             \
@@ -101,3 +103,5 @@ void ScenePrettyPrinter::visitIndexedFaceSet(IndexedFaceSet& ifs)
 		p += 3;
 	}
 }
+
+} /* namespace Freestyle */

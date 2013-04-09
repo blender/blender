@@ -46,6 +46,9 @@ extern "C" {
 }
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 typedef vector<Polygon3r*> OccludersSet;
@@ -373,5 +376,7 @@ private:
 	Grid& grid;
 	OccludersSet::iterator it, end;
 };
+
+} /* namespace Freestyle */
 
 #endif // __GRID_H__

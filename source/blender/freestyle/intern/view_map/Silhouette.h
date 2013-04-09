@@ -49,6 +49,9 @@
 #include "../winged_edge/Curvature.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 class ViewShape;
@@ -1865,5 +1868,7 @@ public:
 		_importance = importance;
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_SILHOUETTE_H__

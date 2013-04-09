@@ -31,6 +31,8 @@
 #include "FreestyleConfig.h"
 #include "Precision.h"
 
+namespace Freestyle {
+
 class LIB_SYSTEM_EXPORT PseudoNoise
 {
 public:
@@ -49,5 +51,7 @@ public:
 protected:
 	static real *_values;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PSEUDO_NOISE_H__

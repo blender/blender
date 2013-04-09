@@ -30,6 +30,8 @@
 #include "FreestyleConfig.h"
 #include "StringUtils.h"
 
+namespace Freestyle {
+
 namespace StringUtils {
 
 void getPathName(const string& path, const string& base, vector<string>& pathnames)
@@ -80,3 +82,5 @@ const char *toAscii(const char *str)
 }
 
 } // end of namespace StringUtils
+
+} /* namespace Freestyle */

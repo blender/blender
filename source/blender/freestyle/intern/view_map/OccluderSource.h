@@ -32,6 +32,8 @@
 
 #include "../winged_edge/WEdge.h"
 
+namespace Freestyle {
+
 class OccluderSource
 {
 	// Disallow copying and assignment
@@ -65,5 +67,7 @@ protected:
 
 	void buildCachedPolygon();
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_OCCLUDER_SOURCE_H__

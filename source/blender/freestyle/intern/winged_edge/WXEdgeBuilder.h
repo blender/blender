@@ -33,6 +33,8 @@
 
 #include "../scene_graph/IndexedFaceSet.h"
 
+namespace Freestyle {
+
 class LIB_WINGED_EDGE_EXPORT WXEdgeBuilder : public WingedEdgeBuilder
 {
 public:
@@ -43,5 +45,7 @@ public:
 protected:
 	virtual void buildWVertices(WShape& shape, const real *vertices, unsigned vsize);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_WX_EDGE_BUILDER_H__

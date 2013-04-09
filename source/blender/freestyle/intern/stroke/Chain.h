@@ -32,6 +32,8 @@
 
 #include "../view_map/ViewMap.h"
 
+namespace Freestyle {
+
 /*! Class to represent a 1D elements issued from the chaining process.
  *  A Chain is the last step before the Stroke and is used in the Splitting and Creation processes.
  */
@@ -105,5 +107,7 @@ public:
 		return _splittingId;
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CHAIN_H__

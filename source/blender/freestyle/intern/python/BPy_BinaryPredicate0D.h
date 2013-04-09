@@ -29,6 +29,8 @@
 
 #include "../stroke/Predicates0D.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

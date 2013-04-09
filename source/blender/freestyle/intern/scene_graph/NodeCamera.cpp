@@ -30,6 +30,8 @@
 
 #include "NodeCamera.h"
 
+namespace Freestyle {
+
 static void loadIdentity(double * matrix)
 {
 	int i;
@@ -136,3 +138,5 @@ NodePerspectiveCamera::NodePerspectiveCamera(double left, double right, double b
 	projection_matrix_[14] = -1.0;
 	projection_matrix_[15] = 0;
 }
+
+} /* namespace Freestyle */

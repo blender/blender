@@ -29,6 +29,8 @@
 
 #include "GaussianFilter.h"
 
+namespace Freestyle {
+
 GaussianFilter::GaussianFilter(float iSigma)
 {
 	_sigma = iSigma;
@@ -103,3 +105,5 @@ void GaussianFilter::computeMask()
 		}
 	}
 }
+
+} /* namespace Freestyle */

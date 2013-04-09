@@ -31,6 +31,8 @@
 #include "BBox.h"
 #include "Grid.h"
 
+namespace Freestyle {
+
 // Grid Visitors
 /////////////////
 void allOccludersGridVisitor::examineOccluder(Polygon3r *occ)
@@ -382,3 +384,5 @@ bool Grid::initInfiniteRay (const Vec3r &orig, const Vec3r& dir, unsigned timest
 
 	return true;
 }
+
+} /* namespace Freestyle */

@@ -28,6 +28,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer *srl)
 {
 	_re = re;
@@ -756,3 +758,5 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	currentMesh->AddChild(shape);
 	_Scene->AddChild(currentMesh);
 }
+
+} /* namespace Freestyle */

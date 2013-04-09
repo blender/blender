@@ -28,19 +28,14 @@
 #include "../stroke/StrokeRenderer.h"
 #include "../system/FreestyleConfig.h"
 
-// XXX Are those "ifdef __cplusplus" useful here?
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
 #include "render_types.h"
-
-#ifdef __cplusplus
 }
-#endif
+
+namespace Freestyle {
 
 class LIB_STROKE_EXPORT BlenderStrokeRenderer : public StrokeRenderer
 {
@@ -67,5 +62,7 @@ protected:
 	float get_stroke_vertex_z(void) const;
 	unsigned int get_stroke_mesh_id(void) const;
 };
+
+} /* namespace Freestyle */
 
 #endif // __BLENDER_STROKE_RENDERER_H__

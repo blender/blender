@@ -63,19 +63,11 @@
 
 #include "BKE_global.h"
 
-// XXX Not inside an "extern C" block???
 #include "DNA_freestyle_types.h"
-
-// XXX Are those "ifdef __cplusplus" useful here?
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "FRS_freestyle.h"
 
-#ifdef __cplusplus
-}
-#endif
+namespace Freestyle {
 
 Controller::Controller()
 {
@@ -1043,3 +1035,5 @@ void Controller::init_options()
 	setPassDiffuse(NULL, 0, 0);
 	setPassZ(NULL, 0, 0);
 }
+
+} /* namespace Freestyle */

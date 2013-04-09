@@ -33,6 +33,8 @@ using namespace std;
 
 #include "../stroke/StrokeShader.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

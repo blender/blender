@@ -36,6 +36,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
 {
 	if (_pRenderMonitor && _pRenderMonitor->testBreak())
@@ -364,3 +366,5 @@ void WingedEdgeBuilder::transformNormals(const real *normals, unsigned nsize, co
 		pn += 3;
 	}
 }
+
+} /* namespace Freestyle */

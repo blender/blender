@@ -29,6 +29,8 @@
 
 #include "StrokeIO.h"
 
+namespace Freestyle {
+
 ostream& operator<<(ostream& out, const StrokeAttribute& iStrokeAttribute)
 {
 	out << "    StrokeAttribute" << endl;
@@ -68,3 +70,5 @@ ostream& operator<<(ostream& out, const Stroke& iStroke)
 	}
 	return out;
 }
+
+} /* namespace Freestyle */

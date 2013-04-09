@@ -31,6 +31,8 @@
 #include "Curve.h"
 #include "Stroke.h"
 
+namespace Freestyle {
+
 namespace CurveInternal {
 
 /*! iterator on a curve. Allows an iterating outside 
@@ -291,5 +293,7 @@ public:
 };
 
 } // end of namespace CurveInternal
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CURVE_ITERATORS_H__

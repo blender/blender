@@ -30,6 +30,8 @@
 
 #include "GridDensityProvider.h"
 
+namespace Freestyle {
+
 class Pow23GridDensityProvider : public GridDensityProvider
 {
 	// Disallow copying and assignment
@@ -64,5 +66,7 @@ public:
 protected:
 	unsigned numFaces;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_POW_23_GRID_DENSITY_PROVIDER_H__

@@ -27,5 +27,9 @@
 
 #include "TimeStamp.h"
 
+namespace Freestyle {
+
 LIB_SYSTEM_EXPORT
 TimeStamp *TimeStamp::_instance = 0;
+
+} /* namespace Freestyle */

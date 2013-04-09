@@ -27,6 +27,8 @@
 
 #include "RandGen.h"
 
+namespace Freestyle {
+
 //
 // Macro definitions
 //
@@ -129,3 +131,5 @@ void RandGen::next()
 	x[1] = LOW(p[1] + r[0]);
 	x[0] = LOW(p[0]);
 }
+
+} /* namespace Freestyle */

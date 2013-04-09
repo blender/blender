@@ -30,6 +30,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 namespace Functions1D {
 
 int GetXF1D::operator()(Interface1D& inter)
@@ -262,3 +264,5 @@ void getShapeF1D(Interface1D& inter, set<ViewShape*>& oShapes)
 }
 
 } // end of namespace Functions1D
+
+} /* namespace Freestyle */

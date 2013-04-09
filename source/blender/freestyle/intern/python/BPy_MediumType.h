@@ -29,6 +29,8 @@
 
 #include "../stroke/Stroke.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -27,6 +27,8 @@
 
 #include "TriangleRep.h"
 
+namespace Freestyle {
+
 void TriangleRep::ComputeBBox()
 {
 	real XMax = _vertices[0][0];
@@ -60,3 +62,5 @@ void TriangleRep::ComputeBBox()
 
 	setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
 }
+
+} /* namespace Freestyle */

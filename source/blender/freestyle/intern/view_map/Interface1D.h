@@ -42,6 +42,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 // Integration method
 /*! The different integration methods that can be invoked to integrate into a single value the set of values obtained
  *  from each 0D element of a 1D element.
@@ -219,5 +221,7 @@ public:
 protected:
 	unsigned _timeStamp;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_INTERFACE_1D_H__

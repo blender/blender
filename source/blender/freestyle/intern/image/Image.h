@@ -30,6 +30,8 @@
 
 #include <string.h> // for memcpy
 
+namespace Freestyle {
+
 //
 // Image base class, for all types of images
 //
@@ -404,5 +406,7 @@ public:
 protected:
 	float *_lvl;
 };
+
+} /* namespace Freestyle */
 
 #endif // __IMAGE_H__

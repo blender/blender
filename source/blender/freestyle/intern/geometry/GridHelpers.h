@@ -37,6 +37,8 @@
 
 #include "../winged_edge/WEdge.h"
 
+namespace Freestyle {
+
 namespace GridHelpers {
 
 /*! Computes the distance from a point P to a segment AB */
@@ -204,5 +206,7 @@ inline void expandProscenium (real proscenium[4], const Vec3r& point)
 }
 
 };  // GridHelpers namespace
+
+} /* namespace Freestyle */
 
 #endif // __GRIDHELPERS_H__

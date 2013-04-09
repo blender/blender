@@ -29,7 +29,9 @@
 #include <typeinfo>
 
 #include "../geometry/Geom.h"
-using namespace Geometry;
+
+using namespace Freestyle;
+using namespace Freestyle::Geometry;
 
 // BBox
 #include "../geometry/BBox.h"

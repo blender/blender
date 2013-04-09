@@ -27,8 +27,12 @@
 
 #include "VertexRep.h"
 
+namespace Freestyle {
+
 void VertexRep::ComputeBBox()
 {
 	setBBox(BBox<Vec3r>(Vec3r(_coordinates[0], _coordinates[1], _coordinates[2]),
 	                    Vec3r(_coordinates[0], _coordinates[1], _coordinates[2])));
 }
+
+} /* namespace Freestyle */

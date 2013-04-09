@@ -31,6 +31,8 @@
 #include "../scene_graph/NodeDrawingStyle.h"
 #include "../system/Precision.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 class AppView
@@ -227,5 +229,7 @@ protected:
 	NodeGroup _p2DNode;
 	NodeDrawingStyle *_p2DSelectionNode;
 };
+
+} /* namespace Freestyle */
 
 #endif // __APPVIEW_H__

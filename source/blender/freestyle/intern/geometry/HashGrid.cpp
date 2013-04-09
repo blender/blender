@@ -27,6 +27,8 @@
 
 #include "HashGrid.h"
 
+namespace Freestyle {
+
 void HashGrid::clear()
 {
 	if (!_cells.empty()) {
@@ -44,3 +46,5 @@ void HashGrid::configure(const Vec3r& orig, const Vec3r& size, unsigned nb)
 {
 	Grid::configure(orig, size, nb);
 }
+
+} /* namespace Freestyle */

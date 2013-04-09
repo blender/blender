@@ -41,6 +41,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 namespace OGF {
 
 namespace MatrixUtil {
@@ -65,5 +67,7 @@ namespace MatrixUtil {
 }  // MatrixUtil namespace
 
 }  // OGF namespace
+
+} /* namespace Freestyle */
 
 #endif  // __MATRIX_UTIL__

@@ -30,6 +30,8 @@
 
 #include "BasicStrokeShaders.h"
 
+namespace Freestyle {
+
 /*! [ Thickness Shader ].
  *  Assigns thicknesses to the stroke vertices so that the stroke looks like made with a calligraphic tool.
  *  i.e. The stroke will be the thickest in a main direction, the thinest in the direction perpendicular to this one,
@@ -215,5 +217,7 @@ protected:
 	real _thresholdFlat;
 	real _lengthFlat;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_ADVANCED_STROKE_SHADERS_H__

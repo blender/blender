@@ -32,6 +32,8 @@
 
 #include "InformationMap.h"
 
+namespace Freestyle {
+
 class QInformationMap : public InformationMap
 {
 private:
@@ -62,5 +64,7 @@ public:
 protected:
 	virtual float computeGaussian(int x, int y);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_Q_INFORMATION_MAP_H__

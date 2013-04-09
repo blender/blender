@@ -38,6 +38,9 @@
 #include "../geometry/Geom.h"
 
 using namespace std;
+
+namespace Freestyle {
+
 using namespace Geometry;
 
 class LIB_SCENE_GRAPH_EXPORT Node : public BaseObject
@@ -104,5 +107,7 @@ protected:
 private: 
 	BBox<Vec3r> _BBox;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_H__

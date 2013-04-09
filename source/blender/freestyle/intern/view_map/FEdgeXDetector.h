@@ -39,6 +39,8 @@
 #include "../winged_edge/Curvature.h"
 #include "../winged_edge/WXEdge.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 /*! This class takes as input a WXEdge structure and fills it */
@@ -230,5 +232,7 @@ protected:
 	ProgressBar *_pProgressBar;
 	RenderMonitor *_pRenderMonitor;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_FEDGE_X_DETECTOR_H__

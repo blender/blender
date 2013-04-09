@@ -25,6 +25,7 @@
 #ifndef __FREESTYLE_PYTHON_DIRECTOR_H__
 #define __FREESTYLE_PYTHON_DIRECTOR_H__
 
+namespace Freestyle {
 class UnaryPredicate0D;
 class UnaryPredicate1D;
 class BinaryPredicate0D;
@@ -36,6 +37,9 @@ class Interface1D;
 class Interface0DIterator;
 class Stroke;
 class StrokeShader;
+}
+
+using namespace Freestyle;
 
 #ifdef __cplusplus
 extern "C" {

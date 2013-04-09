@@ -38,6 +38,8 @@
 //
 ///////////////////////////////////////////////////////////
 
+namespace Freestyle {
+
 namespace Functions1D {
 
 // DensityF1D
@@ -287,5 +289,7 @@ public:
 };
 
 } // end of namespace Functions1D
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_ADVANCED_FUNCTIONS_1D_H__

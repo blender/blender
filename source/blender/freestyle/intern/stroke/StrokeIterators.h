@@ -30,6 +30,8 @@
 
 #include "Stroke.h"
 
+namespace Freestyle {
+
 namespace StrokeInternal {
 
 //
@@ -218,5 +220,7 @@ private:
 };
 
 } // end of namespace StrokeInternal
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_ITERATORS_H__

@@ -28,6 +28,8 @@
 
 #include "NodeGroup.h"
 
+namespace Freestyle {
+
 void NodeGroup::AddChild(Node *iChild)
 {
 	if (NULL == iChild)
@@ -117,3 +119,5 @@ const BBox<Vec3r>& NodeGroup::UpdateBBox()
 
 	return Node::UpdateBBox();
 }
+
+} /* namespace Freestyle */

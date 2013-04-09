@@ -28,6 +28,8 @@
  *  \date 01/07/2003
  */
 
+namespace Freestyle {
+
 namespace Cast
 {
 	template <class T, class U>
@@ -38,5 +40,7 @@ namespace Cast
 		return dynamic_cast<U*>(in);
 	}
 } // end of namespace Cast
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CAST_H__

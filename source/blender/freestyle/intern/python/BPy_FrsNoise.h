@@ -29,6 +29,8 @@
 
 #include "../geometry/Noise.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

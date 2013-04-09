@@ -45,6 +45,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 // XXX Grmll... G is used as template's typename parameter :/
 const Global &_global = G;
 
@@ -2382,3 +2384,5 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
 		}
 	}
 }
+
+} /* namespace Freestyle */

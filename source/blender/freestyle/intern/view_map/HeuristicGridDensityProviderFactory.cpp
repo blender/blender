@@ -27,6 +27,8 @@
 
 #include "HeuristicGridDensityProviderFactory.h"
 
+namespace Freestyle {
+
 HeuristicGridDensityProviderFactory::HeuristicGridDensityProviderFactory(real sizeFactor, unsigned numFaces)
 : sizeFactor(sizeFactor), numFaces(numFaces)
 {
@@ -75,3 +77,5 @@ auto_ptr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensit
 		return (auto_ptr<GridDensityProvider>) avg;
 	}
 }
+
+} /* namespace Freestyle */

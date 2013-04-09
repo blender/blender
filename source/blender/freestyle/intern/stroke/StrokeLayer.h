@@ -30,6 +30,8 @@
 
 #include <deque>
 
+namespace Freestyle {
+
 class Stroke;
 class StrokeRenderer;
 class StrokeLayer
@@ -95,5 +97,7 @@ public:
 		_strokes.push_back(iStroke);
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_LAYER_H__

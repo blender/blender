@@ -28,6 +28,8 @@
  *  \date 01/07/2003
  */
 
+namespace Freestyle {
+
 /*! Class used to tag any object by an id.
  *  It is made of two unsigned integers.
  */
@@ -131,5 +133,7 @@ inline std::ostream& operator<<(std::ostream& s, const Id& id)
 	s << "[" << id.getFirst() << ", " << id.getSecond() << "]";
 	return s;
 }
+
+} /* namespace Freestyle */
 
 # endif // __FREESTYLE_ID_H__

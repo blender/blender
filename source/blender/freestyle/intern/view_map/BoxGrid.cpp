@@ -34,6 +34,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 // Helper Classes
 
 // OccluderData
@@ -232,3 +234,5 @@ Vec3r BoxGrid::Transform::operator()(const Vec3r& point) const
 {
 	return Vec3r(point[0], point[1], -point[2]);
 }
+
+} /* namespace Freestyle */

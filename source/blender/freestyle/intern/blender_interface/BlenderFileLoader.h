@@ -39,11 +39,7 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/RenderMonitor.h"
 
-// XXX Are those "ifdef __cplusplus" useful here?
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -55,11 +51,9 @@ extern "C" {
 #include "BKE_scene.h"
 
 #include "BLI_math.h"
-
-#ifdef __cplusplus
 }
-#endif
 
+namespace Freestyle {
 
 class NodeGroup;
 
@@ -127,5 +121,7 @@ protected:
 
 	RenderMonitor *_pRenderMonitor;
 };
+
+} /* namespace Freestyle */
 
 #endif // __BLENDER_FILE_LOADER_H__

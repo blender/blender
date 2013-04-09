@@ -30,6 +30,8 @@
 
 #include "Rep.h"
 
+namespace Freestyle {
+
 class LIB_SCENE_GRAPH_EXPORT VertexRep : public Rep
 {
 public:
@@ -130,5 +132,7 @@ private:
 	real _coordinates[3];
 	float _PointSize;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_VERTEX_REP_H__

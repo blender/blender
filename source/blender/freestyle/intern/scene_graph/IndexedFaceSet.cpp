@@ -27,6 +27,8 @@
 
 #include "IndexedFaceSet.h"
 
+namespace Freestyle {
+
 IndexedFaceSet::IndexedFaceSet() : Rep()
 {
 	_Vertices = NULL;
@@ -321,3 +323,5 @@ void IndexedFaceSet::ComputeBBox()
 
 	setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
 }
+
+} /* namespace Freestyle */

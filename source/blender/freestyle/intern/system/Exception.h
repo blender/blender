@@ -30,6 +30,8 @@
 
 #include "FreestyleConfig.h"
 
+namespace Freestyle {
+
 class LIB_SYSTEM_EXPORT Exception
 {
 public:
@@ -59,5 +61,7 @@ public:
 private:
 	static exception_type _exception;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_EXCEPTION_H__

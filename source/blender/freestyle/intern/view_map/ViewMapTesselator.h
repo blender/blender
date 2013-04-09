@@ -39,6 +39,8 @@
 
 #include "../winged_edge/WEdge.h"
 
+namespace Freestyle {
+
 class NodeShape;
 class NodeGroup;
 class SShape;
@@ -200,5 +202,7 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
 
 	return group;
 }
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_VIEW_MAP_TESSELATOR_H__

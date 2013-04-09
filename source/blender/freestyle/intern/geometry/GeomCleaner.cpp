@@ -47,6 +47,7 @@
 
 using namespace std;
 
+namespace Freestyle {
 
 void GeomCleaner::SortIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
                                          unsigned iISize, real **oVertices, unsigned **oIndices)
@@ -231,3 +232,5 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices, unsigned iVSiz
 	for (i = 0; i < iISize; i++)
 		(*oIndices)[i] = 3 * newIndices[iIndices[i] / 3];
 }
+
+} /* namespace Freestyle */

@@ -40,6 +40,8 @@
 //
 ///////////////////////////////////////////////////////////
 
+namespace Freestyle {
+
 namespace Predicates1D {
 
 // DensityLowerThanUP1D
@@ -84,5 +86,7 @@ private:
 };
 
 } // end of namespace Predicates1D
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_ADVANCED_PREDICATES_1D_H__

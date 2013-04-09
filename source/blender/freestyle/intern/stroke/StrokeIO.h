@@ -34,6 +34,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 LIB_STROKE_EXPORT
 ostream& operator<<(ostream& out, const StrokeAttribute& iStrokeAttribute);
 
@@ -42,5 +44,7 @@ ostream& operator<<(ostream& out, const StrokeVertex& iStrokeVertex);
 
 LIB_STROKE_EXPORT
 ostream& operator<<(ostream& out, const Stroke& iStroke);
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_IO_H__

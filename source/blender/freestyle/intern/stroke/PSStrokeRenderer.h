@@ -34,6 +34,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -58,5 +60,7 @@ public:
 protected:
 	mutable ofstream _ofstream;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PS_STROKE_RENDERER_H__

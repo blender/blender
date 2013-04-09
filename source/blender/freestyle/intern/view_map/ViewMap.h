@@ -39,6 +39,8 @@
 #include "../system/BaseIterator.h"
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -1768,5 +1770,7 @@ inline real ViewEdge::curvature2d_as_angle(int iCombination) const
 	return curvature2d_as_angle_edge_function<ViewEdge>(*this, iCombination);
 }
 #endif
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_VIEW_MAP_H__

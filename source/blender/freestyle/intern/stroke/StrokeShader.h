@@ -34,6 +34,8 @@
 
 #include "../python/Director.h"
 
+namespace Freestyle {
+
 //
 //  StrokeShader base class
 //
@@ -96,5 +98,7 @@ public:
 		return Director_BPy_StrokeShader_shade( const_cast<StrokeShader *>(this), ioStroke);
 	}
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_SHADERS_H__

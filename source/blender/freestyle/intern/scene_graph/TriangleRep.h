@@ -31,6 +31,8 @@
 //! inherits from class Rep 
 #include "Rep.h"
 
+namespace Freestyle {
+
 /*! Base class for all lines objects */
 class LIB_SCENE_GRAPH_EXPORT TriangleRep : public Rep
 {
@@ -139,5 +141,7 @@ public:
 	/*! Computes the triangle bounding box.*/
 	virtual void ComputeBBox();
 };
+
+} /* namespace Freestyle */
 
 #endif  // __FREESTYLE_TRIANGLE_REP_H__

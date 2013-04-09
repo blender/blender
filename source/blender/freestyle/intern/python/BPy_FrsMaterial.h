@@ -29,6 +29,8 @@
 
 #include "../scene_graph/FrsMaterial.h"
 
+using namespace Freestyle;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

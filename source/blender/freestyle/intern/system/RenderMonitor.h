@@ -29,10 +29,10 @@
  */
 
 extern "C" {
-
 #include "render_types.h"
-
 }
+
+namespace Freestyle {
 
 class RenderMonitor
 {
@@ -52,5 +52,7 @@ public:
 protected:
 	Render *_re;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_RENDER_MONITOR_H__

@@ -31,6 +31,8 @@
 #include "OccluderSource.h"
 #include "ViewMap.h"
 
+namespace Freestyle {
+
 class CulledOccluderSource : public OccluderSource
 {
 	// Disallow copying and assignment
@@ -58,5 +60,7 @@ private:
 	unsigned long rejected;
 	bool gridSpaceOccluderProsceniumInitialized;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CULLED_OCCLUDER_SOURCE_H__

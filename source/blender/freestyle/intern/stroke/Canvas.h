@@ -40,6 +40,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 using namespace Geometry;
 
 struct ltstr
@@ -238,5 +240,7 @@ public:
 	void causalStyleModules(std::vector<unsigned>& vec, unsigned index = 0);
 	void setModified(unsigned index, bool b);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CANVAS_H__

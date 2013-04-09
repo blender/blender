@@ -29,6 +29,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, const real proscenium[4], unsigned numFaces)
 : GridDensityProvider(source), numFaces(numFaces)
 {
@@ -114,3 +116,5 @@ auto_ptr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityPro
 {
 	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, numFaces));
 }
+
+} /* namespace Freestyle */

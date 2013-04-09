@@ -31,6 +31,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -129,3 +131,5 @@ string TextureManager::Options::getBrushesPath()
 {
 	return _brushes_path;
 }
+
+} /* namespace Freestyle */

@@ -29,6 +29,8 @@
 
 #include "BKE_global.h"
 
+namespace Freestyle {
+
 ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, const real proscenium[4],
                                                            unsigned numCells)
 : GridDensityProvider(source), numCells(numCells)
@@ -115,3 +117,5 @@ auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensit
 {
 	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, numCells));
 }
+
+} /* namespace Freestyle */

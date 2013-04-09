@@ -32,6 +32,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 class ProgressBar
 {
 public:
@@ -85,5 +87,7 @@ protected:
 	unsigned _progress;
 	string _label;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_PROGRESS_BAR_H__

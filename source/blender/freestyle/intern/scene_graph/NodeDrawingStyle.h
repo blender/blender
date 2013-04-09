@@ -33,6 +33,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 class LIB_SCENE_GRAPH_EXPORT NodeDrawingStyle : public NodeGroup
 {
 public:
@@ -100,5 +102,7 @@ public:
 private:
 	DrawingStyle _DrawingStyle;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_NODE_DRAWING_STYLE_H__

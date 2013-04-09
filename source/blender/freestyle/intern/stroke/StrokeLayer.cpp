@@ -29,6 +29,8 @@
 #include "Stroke.h"
 #include "StrokeLayer.h"
 
+namespace Freestyle {
+
 StrokeLayer::~StrokeLayer()
 {
 	clear();
@@ -61,3 +63,5 @@ void StrokeLayer::clear()
 		delete *s;
 	_strokes.clear();
 }
+
+} /* namespace Freestyle */

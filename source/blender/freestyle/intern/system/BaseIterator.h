@@ -30,6 +30,8 @@
 
 #include <iterator>
 
+namespace Freestyle {
+
 // use for iterators defintions
 template <class Element>
 class Nonconst_traits;
@@ -86,5 +88,7 @@ public:
 protected:
 	IteratorBase() {}
 };
+
+} /* namespace Freestyle */
 
 #endif // BASEITERATOR_H

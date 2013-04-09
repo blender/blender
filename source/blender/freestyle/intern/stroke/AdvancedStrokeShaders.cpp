@@ -31,6 +31,8 @@
 #include "../system/PseudoNoise.h"
 #include "../system/RandGen.h"
 
+namespace Freestyle {
+
 /////////////////////////////////////////
 //
 //  CALLIGRAPHICS SHADER
@@ -395,3 +397,5 @@ void Omitter::omit(real sizeWindow, real thrVari, real thrFlat, real lFlat)
 }
 
 #endif
+
+} /* namespace Freestyle */

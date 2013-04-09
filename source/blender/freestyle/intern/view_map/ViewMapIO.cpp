@@ -52,6 +52,8 @@
 		(ptr) = NULL;                \
 	} (void)0
 
+namespace Freestyle {
+
 namespace ViewMapIO {
 
 namespace Internal {
@@ -1249,3 +1251,5 @@ string getModelsPath()
 } // End of namepace Options
 
 } // End of namespace ViewMapIO
+
+} /* namespace Freestyle */

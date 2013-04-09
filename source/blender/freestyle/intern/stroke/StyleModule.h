@@ -41,6 +41,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 class StyleModule
 {
 public:
@@ -173,5 +175,7 @@ private:
 protected:
 	Interpreter *_inter;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STYLE_MODULE_H__

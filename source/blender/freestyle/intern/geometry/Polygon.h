@@ -35,6 +35,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 namespace Geometry {
 
 template <class Point>
@@ -210,5 +212,7 @@ private:
 };
 
 } // end of namespace Geometry
+
+} /* namespace Freestyle */
 
 #endif // __POLYGON_H__

@@ -34,9 +34,11 @@
 
 #include "../system/FreestyleConfig.h"
 
-using namespace Geometry;
-
 using namespace std;
+
+namespace Freestyle {
+
+using namespace Geometry;
 
 class FEdge;
 class ImagePyramid;
@@ -143,5 +145,7 @@ protected:
 	void Clear();
 	void Build();
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STEERABLE_VIEW_MAP_H__

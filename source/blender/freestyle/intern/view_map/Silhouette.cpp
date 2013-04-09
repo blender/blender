@@ -28,6 +28,8 @@
 #include "Silhouette.h"
 #include "ViewMap.h"
 
+namespace Freestyle {
+
 /**********************************/
 /*                                */
 /*                                */
@@ -411,3 +413,5 @@ const FrsMaterial& FEdgeSmooth::frs_material() const
 {
 	return _VertexA->shape()->frs_material(_FrsMaterialIndex);
 }
+
+} /* namespace Freestyle */

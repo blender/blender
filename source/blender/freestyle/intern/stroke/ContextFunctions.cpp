@@ -32,6 +32,8 @@
 
 #include "../system/TimeStamp.h"
 
+namespace Freestyle {
+
 namespace ContextFunctions {
 
 unsigned GetTimeStampCF()
@@ -78,3 +80,5 @@ FEdge *GetSelectedFEdgeCF()
 }
 
 }  // ContextFunctions namespace
+
+} /* namespace Freestyle */

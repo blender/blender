@@ -34,6 +34,8 @@
 #include "../image/GaussianFilter.h"
 #include "../image/Image.h"
 
+namespace Freestyle {
+
 //
 // Context Functions definitions
 //
@@ -109,5 +111,7 @@ LIB_STROKE_EXPORT
 FEdge *GetSelectedFEdgeCF();
 
 } // end of namespace ContextFunctions
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CONTEXT_FUNCTIONS_H__

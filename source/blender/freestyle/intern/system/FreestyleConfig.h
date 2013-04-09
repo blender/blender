@@ -34,6 +34,8 @@
 
 using namespace std;
 
+namespace Freestyle {
+
 namespace Config {
 
 // Directory separators
@@ -85,5 +87,7 @@ namespace Config {
 #endif // LIB_WRAPPER_EXPORT
 
 } // end of namespace Config
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_CONFIG_H__

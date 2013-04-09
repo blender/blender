@@ -32,6 +32,8 @@
 
 #include "../scene_graph/LineRep.h"
 
+namespace Freestyle {
+
 class StrokeTesselator
 {
 public:
@@ -67,5 +69,7 @@ private:
 	FrsMaterial _FrsMaterial;
 	bool _overloadFrsMaterial;
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_STROKE_TESSELATOR_H__

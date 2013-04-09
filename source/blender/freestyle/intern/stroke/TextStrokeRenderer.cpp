@@ -23,6 +23,8 @@
 # include "Canvas.h"
 # include "StrokeIterators.h"
 
+namespace Freestyle {
+
 TextStrokeRenderer::TextStrokeRenderer(const char *iFileName)
 :StrokeRenderer()
 {
@@ -77,3 +79,4 @@ void TextStrokeRenderer::Close()
 		_ofstream.close();
 }
 
+} /* namespace Freestyle */

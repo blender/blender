@@ -32,6 +32,8 @@
 
 #include "../system/FreestyleConfig.h"
 
+namespace Freestyle {
+
 class LIB_SCENE_GRAPH_EXPORT OrientedLineRep : public LineRep
 {
 public:
@@ -55,5 +57,7 @@ public:
 	/*! Accept the corresponding visitor */
 	virtual void accept(SceneVisitor& v);
 };
+
+} /* namespace Freestyle */
 
 #endif // __FREESTYLE_ORIENTED_LINE_REP_H__

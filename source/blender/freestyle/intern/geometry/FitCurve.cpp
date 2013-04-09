@@ -34,13 +34,9 @@
 
 using namespace std;
 
-typedef Vector2 *BezierCurve;
+namespace Freestyle {
 
-// XXX Do we need "#ifdef __cplusplus" at all here???
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+typedef Vector2 *BezierCurve;
 
 /* Forward declarations */
 static double *Reparameterize(Vector2 *d, int first, int last, double *u, BezierCurve bezCurve);
@@ -332,7 +328,6 @@ static double B0(double u)
 	return (tmp * tmp * tmp);
 }
 
-
 static double B1(double u)
 {
 	double tmp = 1.0 - u;
@@ -416,9 +411,6 @@ static double *ChordLengthParameterize(Vector2 *d, int first, int last)
 	return u;
 }
 
-
-
-
 /*
  *  ComputeMaxError :
  *  Find the maximum squared distance of digitized points to fitted curve.
@@ -473,11 +465,6 @@ static Vector2 V2SubII(Vector2 a, Vector2 b)
 	c[1] = a[1] - b[1];
 	return c;
 }
-
-#ifdef __cplusplus
-}
-#endif
-
 
 //------------------------- WRAPPER -----------------------------//
 
@@ -591,3 +578,5 @@ void FitCurveWrapper::FitCubic(Vector2 *d, int first, int last, Vector2 tHat1, V
 	V2Negate(&tHatCenter);
 	FitCubic(d, splitPoint, last, tHatCenter, tHat2, error);
 }
+
+} /* namespace Freestyle */
