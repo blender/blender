@@ -1057,6 +1057,15 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 		if (adt && adt->drivers.first)
 			BKE_animsys_evaluate_animdata(scene, nid, adt, ctime, ADT_RECALC_DRIVERS);
 	}
+
+	/* world nodes */
+	if (scene->world && scene->world->nodetree) {
+		ID *nid = (ID *)scene->world->nodetree;
+		AnimData *adt = BKE_animdata_from_id(nid);
+		
+		if (adt && adt->drivers.first)
+			BKE_animsys_evaluate_animdata(scene, nid, adt, ctime, ADT_RECALC_DRIVERS);
+	}
 }
 
 /* deps hack - do extra recalcs at end */
