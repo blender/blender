@@ -374,6 +374,7 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 
 void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 {
+	BMIter iter;
 	BMOIter siter;
 	BMFace *f;
 	BMEdge *e;
@@ -385,6 +386,10 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		if (f->len == 3) {
 			BMO_elem_flag_enable(bm, f, FACE_MARK);
 		}
+	}
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BM_elem_flag_disable(e, BM_ELEM_TAG);
 	}
 
 	/* will over alloc if some edges can't be rotated */
