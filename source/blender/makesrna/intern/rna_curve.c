@@ -430,17 +430,17 @@ static void rna_Curve_offset_set(PointerRNA *ptr, float value)
 	cu->width = 1.0f + value;
 }
 
-/* name functions that ignore the first two ID characters */
+static int rna_Curve_body_length(PointerRNA *ptr);
 static void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
 	Curve *cu = (Curve *)ptr->id.data;
-	BLI_strncpy(value, cu->str, cu->len + 1);
+	BLI_strncpy(value, cu->str, rna_Curve_body_length(ptr) + 1);
 }
 
 static int rna_Curve_body_length(PointerRNA *ptr)
 {
 	Curve *cu = (Curve *)ptr->id.data;
-	return cu->len;
+	return cu->editfont ? strlen(cu->str) : cu->len;
 }
 
 /* TODO - check UTF & python play nice */
