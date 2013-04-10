@@ -107,31 +107,14 @@ enum {
 	 * when this flag is set, we'll never get back more faces then (totvert - 2) */
 	BLI_SCANFILL_CALC_HOLES            = (1 << 2)
 };
-
-int BLI_scanfill_begin(ScanFillContext *sf_ctx);
-int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
-int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag,
-                         const float nor_proj[3]);
+void BLI_scanfill_begin(ScanFillContext *sf_ctx);
+int  BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
+int  BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag,
+                          const float nor_proj[3]);
 void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
 /* These callbacks are needed to make the lib finction properly */
-
-/**
- * Set a function taking a (char *) as argument to flag errors. If the
- * callback is not set, the error is discarded.
- * \param f The function to use as callback
- * \attention used in creator.c
- */
 void BLI_setErrorCallBack(void (*f)(const char *));
-
-/**
- * Set a function to be able to interrupt the execution of processing
- * in this module. If the function returns true, the execution will
- * terminate gracefully. If the callback is not set, interruption is
- * not possible.
- * \param f The function to use as callback
- * \attention used in creator.c
- */
 void BLI_setInterruptCallBack(int (*f)(void));
 
 #ifdef __cplusplus

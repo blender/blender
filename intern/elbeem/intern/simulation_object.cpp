@@ -33,7 +33,7 @@
 LbmSolverInterface* createSolver();
 
 #if PARALLEL==1
-int omp_threadcache;
+static int omp_threadcache;
 #endif
 
 /******************************************************************************
@@ -71,7 +71,7 @@ SimulationObject::~SimulationObject()
   	if(mpParam)          delete mpParam;
 	if(mpParts)          delete mpParts;
 	debMsgStd("SimulationObject",DM_MSG,"El'Beem Done!\n",10);
-#if PARALLEL==1
+#if (PARALLEL == 1)
 	omp_set_num_threads(omp_threadcache);
 	printf("Resetting omp_threads to cached value %d \n", omp_threadcache);
 #endif
