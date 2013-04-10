@@ -99,6 +99,8 @@ typedef struct elbeemSimulationSettings {
 	elbeemRunSimulationCallback runsimCallback;
 	/* pointer passed to runsimCallback for user data storage */
 	void* runsimUserData;
+	/* simulation threads used by omp */
+	int threads;
 
 } elbeemSimulationSettings;
 

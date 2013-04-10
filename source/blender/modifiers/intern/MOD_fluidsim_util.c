@@ -75,6 +75,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		
 		fss->fmd = fluidmd;
 		fss->type = OB_FLUIDSIM_ENABLE;
+		fss->threads = 4;
 		fss->show_advancedoptions = 0;
 
 		fss->resolutionxyz = 65;

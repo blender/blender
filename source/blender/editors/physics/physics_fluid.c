@@ -994,7 +994,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	/* ******** export domain to elbeem ******** */
 	elbeemResetSettings(fsset);
 	fsset->version = 1;
-
+	fsset->threads = domainSettings->threads;
 	// setup global settings
 	copy_v3_v3(fsset->geoStart, domainSettings->bbStart);
 	copy_v3_v3(fsset->geoSize, domainSettings->bbSize);
