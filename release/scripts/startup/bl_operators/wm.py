@@ -1162,7 +1162,7 @@ class WM_OT_properties_add(Operator):
 
 
 class WM_OT_properties_context_change(Operator):
-    "Change the context tab in a Properties Window"
+    "Jump to a different tab inside the properties editor"
     bl_idname = "wm.properties_context_change"
     bl_label = ""
 
