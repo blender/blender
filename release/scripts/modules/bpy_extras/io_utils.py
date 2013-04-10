@@ -436,8 +436,18 @@ def path_reference_copy(copy_set, report=print):
             pass
         else:
             dir_to = os.path.dirname(file_dst)
-            os.makedirs(dir_to, exist_ok=True)
-            shutil.copy(file_src, file_dst)
+
+            try:
+                os.makedirs(dir_to, exist_ok=True)
+            except:
+                import traceback
+                traceback.print_exc()
+
+            try:
+                shutil.copy(file_src, file_dst)
+            except:
+                import traceback
+                traceback.print_exc()
 
 
 def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
