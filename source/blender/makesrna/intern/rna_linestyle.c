@@ -330,12 +330,12 @@ static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	if (range) {
-		prop = RNA_def_property(srna, "range_min", PROP_FLOAT, PROP_NONE);
+		prop = RNA_def_property(srna, "range_min", PROP_FLOAT, PROP_DISTANCE);
 		RNA_def_property_float_sdna(prop, NULL, "range_min");
 		RNA_def_property_ui_text(prop, "Range Min", "Lower bound of the input range the mapping is applied");
 		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-		prop = RNA_def_property(srna, "range_max", PROP_FLOAT, PROP_NONE);
+		prop = RNA_def_property(srna, "range_max", PROP_FLOAT, PROP_DISTANCE);
 		RNA_def_property_float_sdna(prop, NULL, "range_max");
 		RNA_def_property_ui_text(prop, "Range Max", "Upper bound of the input range the mapping is applied");
 		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
@@ -370,12 +370,12 @@ static void rna_def_modifier_curve_common(StructRNA *srna, int range, int value)
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	if (range) {
-		prop = RNA_def_property(srna, "range_min", PROP_FLOAT, PROP_NONE);
+		prop = RNA_def_property(srna, "range_min", PROP_FLOAT, PROP_DISTANCE);
 		RNA_def_property_float_sdna(prop, NULL, "range_min");
 		RNA_def_property_ui_text(prop, "Range Min", "Lower bound of the input range the mapping is applied");
 		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-		prop = RNA_def_property(srna, "range_max", PROP_FLOAT, PROP_NONE);
+		prop = RNA_def_property(srna, "range_max", PROP_FLOAT, PROP_DISTANCE);
 		RNA_def_property_float_sdna(prop, NULL, "range_max");
 		RNA_def_property_ui_text(prop, "Range Max", "Upper bound of the input range the mapping is applied");
 		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
