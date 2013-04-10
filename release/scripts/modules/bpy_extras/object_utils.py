@@ -201,3 +201,42 @@ def object_add_grid_scale(context):
         return space_data.grid_scale_unit
 
     return 1.0
+
+
+def object_image_guess(obj, bm=None):
+    """
+    Return a single image used by the object,
+    first checking the texture-faces, then the material.
+    """
+    # TODO, cycles/nodes materials
+    me = obj.data
+    if bm is None:
+        if obj.mode == 'EDIT':
+            bm = bmesh.from_edit_mesh(me)
+
+    if bm is not None:
+        tex_layer = bm.faces.layers.tex.active
+        if tex_layer is not None:
+            for f in bm.faces:
+                image = f[tex_layer].image
+                if image is not None:
+                    return image
+    else:
+        tex_layer = me.uv_textures.active
+        if tex_layer is not None:
+            for tf in tex_layer.data:
+                image = tf.image
+                if image is not None:
+                    return image
+
+    for m in obj.data.materials:
+        if m is not None:
+            # backwards so topmost are highest priority
+            for mtex in reversed(m.texture_slots):
+                if mtex and mtex.use_map_color_diffuse:
+                    texture = mtex.texture
+                    if texture and texture.type == 'IMAGE':
+                        image = texture.image
+                        if image is not None:
+                            return image
+    return None
