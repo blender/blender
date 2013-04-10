@@ -395,7 +395,14 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		/* confusing this global... */
 		G.relbase_valid = 1;
 		retval = BKE_read_file(C, filepath, reports);
-		G.save_over = 1;
+		/* when loading startup.blend's, we can be left with a blank path */
+		if (G.main->name[0]) {
+			G.save_over = 1;
+		}
+		else {
+			G.save_over = 0;
+			G.relbase_valid = 0;
+		}
 
 		/* this flag is initialized by the operator but overwritten on read.
 		 * need to re-enable it here else drivers + registered scripts wont work. */
