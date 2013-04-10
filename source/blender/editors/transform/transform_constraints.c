@@ -559,7 +559,10 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
 	/* edit-mode now allows local transforms too */
 #if 1
-	if ((t->flag & T_EDIT) && (t->around != V3D_LOCAL)) {
+	if ((t->flag & T_EDIT) &&
+	    /* not all editmode supports axis-matrix */
+	    ((t->around != V3D_LOCAL) || (!ELEM3(t->obedit->type, OB_MESH, OB_MBALL, OB_ARMATURE))))
+	{
 		float obmat[3][3];
 		copy_m3_m4(obmat, t->scene->obedit->obmat);
 		normalize_m3(obmat);
