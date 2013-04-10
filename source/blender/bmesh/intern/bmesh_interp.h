@@ -42,11 +42,11 @@ void  BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int d
 float BM_elem_float_data_get(CustomData *cd, void *element, int type);
 void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val);
 
-void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source,
-                                 void **blocks, float (*cos_2d)[2], float axis_mat[3][3]);
-void  BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
+void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex,
+                                 void **blocks, void **blocks_v, float (*cos_2d)[2], float axis_mat[3][3]);
+void  BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex);
 void  BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
-                              const bool do_vertex, const bool do_multires);
+                               const bool do_vertex, const bool do_multires);
 
 void  BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
 

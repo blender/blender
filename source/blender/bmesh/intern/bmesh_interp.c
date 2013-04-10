@@ -167,8 +167,8 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
  *
  * \note Only handles loop customdata. multires is handled.
  */
-void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source,
-                                 void **blocks, float (*cos_2d)[2], float axis_mat[3][3])
+void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex,
+                                 void **blocks_l, void **blocks_v, float (*cos_2d)[2], float axis_mat[3][3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -186,16 +186,20 @@ void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source,
 	do {
 		mul_v2_m3v3(co, axis_mat, l_iter->v->co);
 		interp_weights_poly_v2(w, cos_2d, source->len, co);
-		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l_iter->head.data);
+		CustomData_bmesh_interp(&bm->ldata, blocks_l, w, NULL, source->len, l_iter->head.data);
+		if (do_vertex) {
+			CustomData_bmesh_interp(&bm->vdata, blocks_v, w, NULL, source->len, l_iter->v->head.data);
+		}
 	} while (i++, (l_iter = l_iter->next) != l_first);
 }
 
-void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
+void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
-	void **blocks   = BLI_array_alloca(blocks, source->len);
+	void **blocks_l    = BLI_array_alloca(blocks_l, source->len);
+	void **blocks_v    = do_vertex ? BLI_array_alloca(blocks_v, source->len) : NULL;
 	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
 	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
 	int i;
@@ -207,11 +211,12 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
 		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
-		blocks[i] = l_iter->head.data;
+		blocks_l[i] = l_iter->head.data;
+		if (do_vertex) blocks_v[i] = l_iter->v->head.data;
 	} while (i++, (l_iter = l_iter->next) != l_first);
 
-	BM_face_interp_from_face_ex(bm, target, source,
-	                            blocks, cos_2d, axis_mat);
+	BM_face_interp_from_face_ex(bm, target, source, do_vertex,
+	                            blocks_l, blocks_v, cos_2d, axis_mat);
 }
 
 /**

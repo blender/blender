@@ -1597,21 +1597,24 @@ static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
  * ---- */
 
 PyDoc_STRVAR(bpy_bmface_copy_from_face_interp_doc,
-".. method:: copy_from_face_interp(face)\n"
+".. method:: copy_from_face_interp(face, vert=True)\n"
 "\n"
 "   Interpolate the customdata from another face onto this one (faces should overlap).\n"
 "\n"
 "   :arg face: The face to interpolate data from.\n"
 "   :type face: :class:`BMFace`\n"
+"   :arg vert: When True, also copy vertex data.\n"
+"   :type vert: boolean\n"
 );
 static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *args)
 {
 	BPy_BMFace *py_face = NULL;
+	int do_vertex   = true;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O!:BMFace.copy_from_face_interp",
-	                      &BPy_BMFace_Type, &py_face))
+	if (!PyArg_ParseTuple(args, "O!|i:BMFace.copy_from_face_interp",
+	                      &BPy_BMFace_Type, &py_face, &do_vertex))
 	{
 		return NULL;
 	}
@@ -1620,7 +1623,7 @@ static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *ar
 
 		BPY_BM_CHECK_SOURCE_OBJ(py_face, bm, "BMFace.copy_from_face_interp(face)");
 
-		BM_face_interp_from_face(bm, self->f, py_face->f);
+		BM_face_interp_from_face(bm, self->f, py_face->f, do_vertex);
 
 		Py_RETURN_NONE;
 	}

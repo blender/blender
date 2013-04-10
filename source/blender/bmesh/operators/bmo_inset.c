@@ -169,7 +169,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 		/* Copy Face Data */
 		/* interpolate loop data or just stretch */
 		if (use_interpolate) {
-			BM_face_interp_from_face(bm, f_new_inner, f);
+			BM_face_interp_from_face(bm, f_new_inner, f, true);
 		}
 		else {
 			BM_elem_attrs_copy(bm, bm, f, f_new_inner);
@@ -256,7 +256,8 @@ typedef struct SplitEdgeInfo {
 /* just enough of a face to store interpolation data we can use once the inset is done */
 typedef struct InterpFace {
 	BMFace *f;
-	void **blocks;
+	void **blocks_l;
+	void **blocks_v;
 	float (*cos_2d)[2];
 	float axis_mat[3][3];
 } InterpFace;
@@ -265,7 +266,8 @@ typedef struct InterpFace {
 static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemArena *interp_arena)
 {
 	BMLoop *l_iter, *l_first;
-	void **blocks      = iface->blocks = BLI_memarena_alloc(interp_arena, sizeof(*iface->blocks) * f->len);
+	void **blocks_l    = iface->blocks_l = BLI_memarena_alloc(interp_arena, sizeof(*iface->blocks_l) * f->len);
+	void **blocks_v    = iface->blocks_v = BLI_memarena_alloc(interp_arena, sizeof(*iface->blocks_v) * f->len);
 	float (*cos_2d)[2] = iface->cos_2d = BLI_memarena_alloc(interp_arena, sizeof(*iface->cos_2d) * f->len);
 	void *axis_mat     = iface->axis_mat;
 	int i;
@@ -278,10 +280,13 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
-		blocks[i] = NULL;
-		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_iter->head.data, &blocks[i]);
+		blocks_l[i] = NULL;
+		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_iter->head.data, &blocks_l[i]);
 		/* if we were not modifying the loops later we would do... */
 		// blocks[i] = l_iter->head.data;
+
+		blocks_v[i] = NULL;
+		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, l_iter->v->head.data, &blocks_v[i]);
 
 		/* use later for index lookups */
 		BM_elem_index_set(l_iter, i); /* set_ok */
@@ -289,11 +294,13 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
 }
 static void bm_interp_face_free(InterpFace *iface, BMesh *bm)
 {
-	void **blocks = iface->blocks;
+	void **blocks_l = iface->blocks_l;
+	void **blocks_v = iface->blocks_v;
 	int i;
 
 	for (i = 0; i < iface->f->len; i++) {
-		CustomData_bmesh_free_block(&bm->ldata, &blocks[i]);
+		CustomData_bmesh_free_block(&bm->ldata, &blocks_l[i]);
+		CustomData_bmesh_free_block(&bm->vdata, &blocks_v[i]);
 	}
 }
 
@@ -724,8 +731,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 		for (i = 0; i < iface_array_len; i++) {
 			if (iface_array[i]) {
 				InterpFace *iface = iface_array[i];
-				BM_face_interp_from_face_ex(bm, iface->f, iface->f,
-				                            iface->blocks, iface->cos_2d, iface->axis_mat);
+				BM_face_interp_from_face_ex(bm, iface->f, iface->f, true,
+				                            iface->blocks_l, iface->blocks_v, iface->cos_2d, iface->axis_mat);
 			}
 		}
 	}
@@ -800,8 +807,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 				InterpFace *iface = iface_array[BM_elem_index_get(es->l->f)];
 				const int i_a = BM_elem_index_get(l_a_other);
 				const int i_b = BM_elem_index_get(l_b_other);
-				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks[i_a], &l_b->head.data);
-				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks[i_b], &l_a->head.data);
+				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
+				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
 			}
 			else {
 				BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
