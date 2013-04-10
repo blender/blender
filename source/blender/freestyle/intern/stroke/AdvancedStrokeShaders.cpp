@@ -49,8 +49,6 @@ CalligraphicShader::CalligraphicShader(real iMinThickness, real iMaxThickness, c
 	_clamp = clamp;
 }
 
-float ksinToto = 0.0f;
-
 int CalligraphicShader::shade(Stroke &ioStroke) const
 {
 	Interface0DIterator v;

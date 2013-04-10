@@ -73,7 +73,8 @@ private:
 	float g3[_NOISE_B + _NOISE_B + 2][3];
 	float g2[_NOISE_B + _NOISE_B + 2][2];
 	float g1[_NOISE_B + _NOISE_B + 2];
-	int start;
+	/* UNUSED */
+	// int start;
 };
 
 } /* namespace Freestyle */

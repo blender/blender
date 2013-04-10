@@ -45,14 +45,12 @@ subject to the following restrictions:
 
 #define CCD_CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
-bool useIslands = true;
-
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 #include "BulletDynamics/Vehicle/btRaycastVehicle.h"
 #include "BulletDynamics/Vehicle/btVehicleRaycaster.h"
 #include "BulletDynamics/Vehicle/btWheelInfo.h"
 #include "PHY_IVehicle.h"
-btRaycastVehicle::btVehicleTuning	gTuning;
+static btRaycastVehicle::btVehicleTuning	gTuning;
 
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 #include "LinearMath/btAabbUtil2.h"
@@ -2351,11 +2349,6 @@ PHY_ICharacter* CcdPhysicsEnvironment::getCharacterController(KX_GameObject *ob)
 
 	return NULL;
 }
-
-int currentController = 0;
-int numController = 0;
-
-
 
 
 PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radius,const MT_Vector3& position)

@@ -815,7 +815,8 @@ real Curve::local_average_density(float sigma, int iCombination ) const
 }
 #endif
 
-#define EPS_CURVA_DIR 0.01
+/* UNUSED */
+// #define EPS_CURVA_DIR 0.01
 
 void Curve::computeCurvatureAndOrientation ()
 {

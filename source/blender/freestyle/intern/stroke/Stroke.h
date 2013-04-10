@@ -520,7 +520,7 @@ private:
 	float _Length; // The stroke length
 	viewedge_container _ViewEdges;
 	float _sampling;
-	StrokeRenderer *_renderer; // mark implementation OpenGL renderer
+	// StrokeRenderer *_renderer; // mark implementation OpenGL renderer
 	MediumType _mediumType;
 	unsigned int _textureId;
 	bool _tips;

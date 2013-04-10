@@ -38,6 +38,7 @@
 #include "KX_PythonInit.h"
 #include "Texture.h"
 #include "ImageBase.h"
+#include "VideoBase.h"
 #include "FilterSource.h"
 #include "ImageViewport.h"
 

@@ -1207,8 +1207,8 @@ void PyObjectPlus::ClearDeprecationWarning()
 	NullDeprecationWarning();
 }
 
-WarnLink*		m_base_wlink_first= NULL;
-WarnLink*		m_base_wlink_last= NULL;
+static WarnLink *m_base_wlink_first = NULL;
+static WarnLink *m_base_wlink_last = NULL;
 
 WarnLink*		PyObjectPlus::GetDeprecationWarningLinkFirst(void) {return m_base_wlink_first;}
 WarnLink*		PyObjectPlus::GetDeprecationWarningLinkLast(void) {return m_base_wlink_last;}

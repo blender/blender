@@ -135,14 +135,14 @@ effect: deletes the object
 }
 
 
-
-
+/* UNUSED */
+#if 0
 #define VALUE_SUB(val1, val2) (val1)->Calc(VALUE_SUB_OPERATOR, val2)
 #define VALUE_MUL(val1, val2) (val1)->Calc(VALUE_MUL_OPERATOR, val2)
 #define VALUE_DIV(val1, val2) (val1)->Calc(VALUE_DIV_OPERATOR, val2)
 #define VALUE_NEG(val1)       (val1)->Calc(VALUE_NEG_OPERATOR, val1)
 #define VALUE_POS(val1)       (val1)->Calc(VALUE_POS_OPERATOR, val1)
-
+#endif
 
 STR_String CValue::op2str(VALUE_OPERATOR op)
 {

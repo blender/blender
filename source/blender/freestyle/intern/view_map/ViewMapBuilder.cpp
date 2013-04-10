@@ -48,7 +48,7 @@
 namespace Freestyle {
 
 // XXX Grmll... G is used as template's typename parameter :/
-const Global &_global = G;
+static const Global &_global = G;
 
 #define LOGGING FALSE
 
@@ -2307,7 +2307,7 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
 			        fB->vertexB()->getId() << endl;
 
 #if 0
-		if (G.debug & G_DEBUG_FREESTYLE) {
+		if (_global.debug & G_DEBUG_FREESTYLE) {
 			if ((Ta < -epsilon) || (Ta > 1 + epsilon) || (Tb < -epsilon) || (Tb > 1 + epsilon)) {
 				printf("ta %.12e\n", ta);
 				printf("tb %.12e\n", tb);

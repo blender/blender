@@ -330,7 +330,7 @@ static PyObject *KX_PythonSeq_get(PyObject *self, PyObject *args)
 	return def;
 }
 
-PySequenceMethods KX_PythonSeq_as_sequence = {
+static PySequenceMethods KX_PythonSeq_as_sequence = {
 	NULL,		/* Cant set the len otherwise it can evaluate as false */
 	NULL,		/* sq_concat */
 	NULL,		/* sq_repeat */
@@ -349,7 +349,7 @@ static PyMappingMethods KX_PythonSeq_as_mapping = {
 	0,	/* mp_ass_subscript */
 };
 
-PyMethodDef KX_PythonSeq_methods[] = {
+static PyMethodDef KX_PythonSeq_methods[] = {
 	// dict style access for props
 	{"get",(PyCFunction) KX_PythonSeq_get, METH_VARARGS},
 	{NULL,NULL} //Sentinel

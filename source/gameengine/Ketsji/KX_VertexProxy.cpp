@@ -489,7 +489,7 @@ KX_VertexProxy::~KX_VertexProxy()
 // stuff for cvalue related things
 CValue*		KX_VertexProxy::Calc(VALUE_OPERATOR, CValue *) { return NULL;}
 CValue*		KX_VertexProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { return NULL;}
-STR_String	sVertexName="vertex";
+static STR_String sVertexName = "vertex";
 const STR_String &	KX_VertexProxy::GetText() {return sVertexName;};
 double		KX_VertexProxy::GetNumber() { return -1;}
 STR_String&	KX_VertexProxy::GetName() { return sVertexName;}

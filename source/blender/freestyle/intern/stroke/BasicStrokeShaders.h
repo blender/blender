@@ -447,7 +447,8 @@ public:
 class LIB_STROKE_EXPORT CalligraphicColorShader : public StrokeShader
 {
 private:
-	int _textureId;
+	/* UNUSED */
+	//  int _textureId;
 	Vec2d _orientation;
 
 public:

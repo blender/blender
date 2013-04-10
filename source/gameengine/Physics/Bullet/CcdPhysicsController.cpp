@@ -64,8 +64,6 @@ float gLinearSleepingTreshold;
 float gAngularSleepingTreshold;
 
 
-btVector3 startVel(0,0,0);//-10000);
-
 BlenderBulletCharacterController::BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight)
 	: btKinematicCharacterController(ghost,shape,stepHeight,2),
 		m_motionState(motionState),
@@ -144,14 +142,6 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_characterController = 0;
 	
 	CreateRigidbody();
-	
-
-///???
-/*#ifdef WIN32
-	if (GetRigidBody() && !GetRigidBody()->isStaticObject())
-		GetRigidBody()->setLinearVelocity(startVel);
-#endif*/
-
 }
 
 btTransform&	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)

@@ -117,7 +117,8 @@ public:
 	}
 
 private:
-	real center_[3];
+	/* UNUSED */
+	// real center_[3];
 	Vec3r axis_[3];
 	real eigen_value_[3];
 	real M_[6];

@@ -59,7 +59,7 @@ set(SRC
 )
 
 if(WITH_BULLET)
-	list(APPEND INC
+	list(APPEND INC_SYS
 		${BULLET_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_BULLET)

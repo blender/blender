@@ -57,7 +57,8 @@ static inline int lrint(double d)
 #endif
 #endif
 
-#define CC m_channels + channel
+// UNUSED
+// #define CC m_channels + channel
 
 #define AUD_RATE_MAX 256
 #define SHIFT_BITS 12
