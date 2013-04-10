@@ -456,13 +456,13 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 
 			for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
 				if (eve != eed->v1 && eve != eed->v2 && eve->poly_nr == eed->poly_nr) {
-					if (compare_v3v3(eve->co, eed->v1->co, SF_EPSILON)) {
+					if (compare_v2v2(eve->xy, eed->v1->xy, SF_EPSILON)) {
 						ed1->v2 = eed->v1;
 						eed->v1->edge_tot++;
 						eve->edge_tot = 0;
 						break;
 					}
-					else if (compare_v3v3(eve->co, eed->v2->co, SF_EPSILON)) {
+					else if (compare_v2v2(eve->xy, eed->v2->xy, SF_EPSILON)) {
 						ed1->v2 = eed->v2;
 						eed->v2->edge_tot++;
 						eve->edge_tot = 0;
@@ -732,11 +732,11 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 										
 										/* prevent angle calc for the simple cases only 1 vertex is found */
 										if (firsttime == false) {
-											best_angle = angle_v2v2v2(v2->co, v1->co, best_sc->vert->co);
+											best_angle = angle_v2v2v2(v2->xy, v1->xy, best_sc->vert->xy);
 											firsttime = true;
 										}
 
-										angle = angle_v2v2v2(v2->co, v1->co, sc1->vert->co);
+										angle = angle_v2v2v2(v2->xy, v1->xy, sc1->vert->xy);
 										if (angle < best_angle) {
 											best_sc = sc1;
 											best_angle = angle;
