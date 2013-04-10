@@ -541,7 +541,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
                          const char draw_flag, const char draw_type,
                          const int width_i, const int height_i,  /* convert directly into aspect corrected vars */
                          const float aspx, const float aspy,
-                         const short do_scale_applied, const short do_post_draw,
+                         const short do_scale_applied, const short do_draw_cb,
                          float stabmat[4][4], /* optional - only used by clip */
                          const bContext *C    /* optional - only used when do_post_draw is set or called from clip editor */
                          )
@@ -601,10 +601,14 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		glMultMatrixf(stabmat);
 	}
 
+	if (do_draw_cb) {
+		ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+	}
+
 	/* draw! */
 	draw_masklays(C, mask, draw_flag, draw_type, width, height);
 
-	if (do_post_draw) {
+	if (do_draw_cb) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	}
 

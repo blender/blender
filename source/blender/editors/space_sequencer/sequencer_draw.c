@@ -1404,6 +1404,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	/* regular grid-pattern over the rest of the view (i.e. 25-frame grid lines) */
 	// NOTE: the gridlines are currently spaced every 25 frames, which is only fine for 25 fps, but maybe not for 30...
 	UI_view2d_constant_grid_draw(v2d);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 	
 	seq_draw_sfra_efra(scene, v2d);
 
@@ -1443,6 +1445,9 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
 	}
 	
+	/* callback */
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 

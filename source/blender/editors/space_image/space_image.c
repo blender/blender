@@ -667,6 +667,9 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(v2d);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	draw_uvedit_main(sima, ar, scene, obedit, obact);
 
 	/* check for mask (delay draw) */

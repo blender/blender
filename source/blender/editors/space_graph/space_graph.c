@@ -242,6 +242,8 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	/* draw data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		/* draw ghost curves */
@@ -295,6 +297,10 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d);
 	
+	/* callback */
+	UI_view2d_view_ortho(v2d);
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	

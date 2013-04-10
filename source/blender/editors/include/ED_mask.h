@@ -58,7 +58,7 @@ void ED_mask_draw_region(struct Mask *mask, struct ARegion *ar,
                          const char draw_flag, const char draw_type,
                          const int width_i, const int height_i,
                          const float aspx, const float aspy,
-                         const short do_scale_applied, const short do_post_draw,
+                         const short do_scale_applied, const short do_draw_cb,
                          float stabmat[4][4],
                          const struct bContext *C);
 

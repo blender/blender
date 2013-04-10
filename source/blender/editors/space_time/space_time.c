@@ -487,6 +487,8 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_draw(v2d, grid, (V2D_VERTICAL_LINES | V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	/* start and end frame */
 	time_draw_sfra_efra(scene, v2d);
 	
@@ -508,6 +510,10 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	/* caches */
 	time_draw_cache(stime, obact, scene);
 	
+	/* callback */
+	UI_view2d_view_ortho(v2d);
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
