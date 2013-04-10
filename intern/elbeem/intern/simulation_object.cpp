@@ -32,6 +32,9 @@
 //! lbm factory functions
 LbmSolverInterface* createSolver();
 
+#if PARALLEL==1
+int omp_threadcache;
+#endif
 
 /******************************************************************************
  * Constructor
@@ -68,6 +71,10 @@ SimulationObject::~SimulationObject()
   	if(mpParam)          delete mpParam;
 	if(mpParts)          delete mpParts;
 	debMsgStd("SimulationObject",DM_MSG,"El'Beem Done!\n",10);
+#if PARALLEL==1
+	omp_set_num_threads(omp_threadcache);
+	printf("Resetting omp_threads to cached vakue %d \n", omp_threadcache);
+#endif
 }
 
 
@@ -179,6 +186,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm->setIsoSubdivs(mpElbeemSettings->surfaceSubdivs);
 #if PARALLEL==1
 		omp_set_num_threads(mpElbeemSettings->threads);
+		printf("Setting omp_threads to usersetting %d \n", mpElbeemSettings->threads);
 #endif
 		mpLbm->setSizeX(mpElbeemSettings->resolutionxyz);
 		mpLbm->setSizeY(mpElbeemSettings->resolutionxyz);
