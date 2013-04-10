@@ -46,6 +46,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
 
 #include "BKE_main.h"
 #include "BKE_fluidsim.h" /* ensure definitions here match */
@@ -75,7 +76,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		
 		fss->fmd = fluidmd;
 		fss->type = OB_FLUIDSIM_ENABLE;
-		fss->threads = 4;
+		fss->threads = BLI_system_thread_count();
 		fss->show_advancedoptions = 0;
 
 		fss->resolutionxyz = 65;

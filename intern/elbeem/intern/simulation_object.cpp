@@ -73,7 +73,7 @@ SimulationObject::~SimulationObject()
 	debMsgStd("SimulationObject",DM_MSG,"El'Beem Done!\n",10);
 #if PARALLEL==1
 	omp_set_num_threads(omp_threadcache);
-	printf("Resetting omp_threads to cached vakue %d \n", omp_threadcache);
+	printf("Resetting omp_threads to cached value %d \n", omp_threadcache);
 #endif
 }
 
@@ -185,6 +185,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
 		mpLbm->setIsoSubdivs(mpElbeemSettings->surfaceSubdivs);
 #if PARALLEL==1
+		omp_threadcache = omp_get_max_threads();
 		omp_set_num_threads(mpElbeemSettings->threads);
 		printf("Setting omp_threads to usersetting %d \n", mpElbeemSettings->threads);
 #endif
