@@ -177,7 +177,9 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm->initDomainTrafo( mpElbeemSettings->surfaceTrafo );
 		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
 		mpLbm->setIsoSubdivs(mpElbeemSettings->surfaceSubdivs);
+#if PARALLEL==1
 		omp_set_num_threads(mpElbeemSettings->threads);
+#endif
 		mpLbm->setSizeX(mpElbeemSettings->resolutionxyz);
 		mpLbm->setSizeY(mpElbeemSettings->resolutionxyz);
 		mpLbm->setSizeZ(mpElbeemSettings->resolutionxyz);
