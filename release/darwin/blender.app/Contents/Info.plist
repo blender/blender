@@ -43,11 +43,6 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
-	<key>LSEnvironment</key>
-	<dict>
-		<key>OMP_NUM_THREADS</key>
-		<string>4</string>
-	</dict>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>

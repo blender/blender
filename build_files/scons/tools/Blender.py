@@ -693,10 +693,6 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'install_name_tool -change %s/lib/libgcc_s.1.dylib  @executable_path/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/%s'%(instname, installdir, binary, binary)
         commands.getoutput(cmd)
-        cmd = 'rm -rf  %s/set_simulation_threads.app'%(installdir) # first clear omp_num_threads applescript
-        commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/darwin/set_simulation_threads.app %s/'%(bldroot, installdir) # copy the omp_num_threads applescript
-        commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems
 # when making changes to the files that are copied.
