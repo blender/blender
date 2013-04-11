@@ -195,6 +195,11 @@ class BakeAction(Operator):
             description="Remove all constraints from keyed object/bones, and do 'visual' keying",
             default=False,
             )
+    clear_parents = BoolProperty(
+            name="Clear Parents",
+            description="Bake animation onto the object then clear parents (objects only)",
+            default=False,
+            )
     bake_types = EnumProperty(
             name="Bake Data",
             description="Which data's transformations to bake",
@@ -216,6 +221,7 @@ class BakeAction(Operator):
                                         do_pose='POSE' in self.bake_types,
                                         do_object='OBJECT' in self.bake_types,
                                         do_constraint_clear=self.clear_constraints,
+                                        do_parents_clear=self.clear_parents,
                                         do_clean=True,
                                         )
 
