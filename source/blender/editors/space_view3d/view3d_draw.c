@@ -2463,7 +2463,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
-		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, false);
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, false, false);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype = drawtype;
@@ -2611,7 +2611,7 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
  * stuff like shadow buffers
  */
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy,
-                              float viewmat[4][4], float winmat[4][4], bool do_bgpic)
+                              float viewmat[4][4], float winmat[4][4], bool do_bgpic, bool do_sky)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -2642,7 +2642,16 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	 * warning! can be slow so only free animated images - campbell */
 	GPU_free_images_anim();
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	/* clear opengl buffers */
+	if (do_sky) {
+		float sky_color[3];
+
+		ED_view3d_offscreen_sky_color_get(scene, sky_color);
+		glClearColor(sky_color[0], sky_color[1], sky_color[2], 1.0f);
+	}
+	else {
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	}
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -2753,18 +2762,6 @@ void ED_view3d_offscreen_sky_color_get(Scene *scene, float sky_color[3])
 		UI_GetThemeColor3fv(TH_BACK, sky_color);
 }
 
-static void offscreen_imbuf_add_sky(ImBuf *ibuf, Scene *scene)
-{
-	float sky_color[3];
-
-	ED_view3d_offscreen_sky_color_get(scene, sky_color);
-
-	if (ibuf->rect_float)
-		IMB_alpha_under_color_float(ibuf->rect_float, ibuf->x, ibuf->y, sky_color);
-	else
-		IMB_alpha_under_color_byte((unsigned char *) ibuf->rect, ibuf->x, ibuf->y, sky_color);
-}
-
 /* utility func for ED_view3d_draw_offscreen */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag,
                                       bool draw_background, int alpha_mode, char err_out[256])
@@ -2772,6 +2769,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
 	GPUOffScreen *ofs;
+	bool draw_sky = (alpha_mode == R_ADDSKY);
 	
 	/* state changes make normal drawing go weird otherwise */
 	glPushAttrib(GL_LIGHTING_BIT);
@@ -2794,10 +2792,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		BKE_camera_params_compute_matrix(&params);
 
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background, draw_sky);
 	}
 	else {
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background, draw_sky);
 	}
 
 	/* read in pixels & stamp */
@@ -2807,9 +2805,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
 	else if (ibuf->rect)
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
-
-	if (alpha_mode == R_ADDSKY)
-		offscreen_imbuf_add_sky(ibuf, scene);
 
 	/* unbind */
 	GPU_offscreen_unbind(ofs);
