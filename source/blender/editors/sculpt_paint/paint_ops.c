@@ -470,6 +470,7 @@ typedef struct {
 	StencilControlMode mode;
 	StencilConstraint constrain_mode;
 	Brush *br;
+	short event_type;
 } StencilControlData;
 
 static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -490,6 +491,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	scd->init_rot = br->mtex.rot;
 	scd->init_angle = atan2(mdiff[1], mdiff[0]);
 	scd->mode = RNA_enum_get(op->ptr, "mode");
+	scd->event_type = event->type;
 
 	op->customdata = scd;
 	WM_event_add_modal_handler(C, op);
@@ -554,17 +556,16 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 {
 	StencilControlData *scd = op->customdata;
 
+	if (event->type == scd->event_type && event->val == KM_RELEASE) {
+		MEM_freeN(op->customdata);
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		return OPERATOR_FINISHED;
+	}
+
 	switch (event->type) {
 		case MOUSEMOVE:
 			stencil_control_calculate(scd, event->mval);
 			break;
-		/* XXX hardcoded! */
-		case RIGHTMOUSE:
-			if (event->val == KM_RELEASE) {
-				MEM_freeN(op->customdata);
-				WM_event_add_notifier(C, NC_WINDOW, NULL);
-				return OPERATOR_FINISHED;
-			}
 		case ESCKEY:
 			if (event->val == KM_PRESS) {
 				stencil_control_cancel(C, op);
