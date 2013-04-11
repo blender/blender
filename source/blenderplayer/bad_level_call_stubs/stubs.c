@@ -403,6 +403,8 @@ void ED_nurb_set_spline_type(struct Nurb *nu, int type) {}
 
 void ED_mball_transform(struct MetaBall *mb, float *mat) {}
 
+bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act) {}
+
 void make_editLatt(struct Object *obedit) {}
 void load_editLatt(struct Object *obedit) {}
 
