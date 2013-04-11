@@ -658,7 +658,8 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::Node b_node,
 	return node->output(name.c_str());
 }
 
-static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, ProxyMap &proxy_map)
+static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree,
+                      const ProxyMap &proxy_input_map, const ProxyMap &proxy_output_map)
 {
 	/* add nodes */
 	BL::ShaderNodeTree::nodes_iterator b_node;
@@ -685,7 +686,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
-			ProxyMap group_proxy_map;
+			ProxyMap group_proxy_input_map, group_proxy_output_map;
 			
 			/* Add a proxy node for each socket
 			 * Do this even if the node group has no internal tree,
@@ -696,7 +697,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				graph->add(proxy);
 				
 				/* register the proxy node for internal binding */
-				group_proxy_map[b_input->identifier()] = proxy;
+				group_proxy_input_map[b_input->identifier()] = proxy;
 				
 				input_map[b_input->ptr.data] = proxy->inputs[0];
 				
@@ -707,19 +708,19 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				graph->add(proxy);
 				
 				/* register the proxy node for internal binding */
-				group_proxy_map[b_output->identifier()] = proxy;
+				group_proxy_output_map[b_output->identifier()] = proxy;
 				
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
 			
 			if (b_group_ntree)
-				add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_proxy_map);
+				add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_proxy_input_map, group_proxy_output_map);
 		}
 		else if (b_node->is_a(&RNA_NodeGroupInput)) {
 			/* map each socket to a proxy node */
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
-				ProxyMap::iterator proxy_it = proxy_map.find(b_output->identifier());
-				if (proxy_it != proxy_map.end()) {
+				ProxyMap::const_iterator proxy_it = proxy_input_map.find(b_output->identifier());
+				if (proxy_it != proxy_input_map.end()) {
 					ProxyNode *proxy = proxy_it->second;
 					
 					output_map[b_output->ptr.data] = proxy->outputs[0];
@@ -732,8 +733,8 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			if (b_output_node.is_active_output()) {
 				/* map each socket to a proxy node */
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
-					ProxyMap::iterator proxy_it = proxy_map.find(b_input->identifier());
-					if (proxy_it != proxy_map.end()) {
+					ProxyMap::const_iterator proxy_it = proxy_output_map.find(b_input->identifier());
+					if (proxy_it != proxy_output_map.end()) {
 						ProxyNode *proxy = proxy_it->second;
 						
 						input_map[b_input->ptr.data] = proxy->inputs[0];
@@ -787,6 +788,12 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 	}
 }
 
+static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree)
+{
+	static const ProxyMap empty_proxy_map;
+	add_nodes(scene, b_data, b_scene, graph, b_ntree, empty_proxy_map, empty_proxy_map);
+}
+
 /* Sync Materials */
 
 void BlenderSync::sync_materials(bool update_all)
@@ -808,10 +815,9 @@ void BlenderSync::sync_materials(bool update_all)
 
 			/* create nodes */
 			if(b_mat->use_nodes() && b_mat->node_tree()) {
-				ProxyMap proxy_map;
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(scene, b_data, b_scene, graph, b_ntree, proxy_map);
+				add_nodes(scene, b_data, b_scene, graph, b_ntree);
 			}
 			else {
 				ShaderNode *closure, *out;
@@ -849,10 +855,9 @@ void BlenderSync::sync_world(bool update_all)
 
 		/* create nodes */
 		if(b_world && b_world.use_nodes() && b_world.node_tree()) {
-			ProxyMap proxy_map;
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(scene, b_data, b_scene, graph, b_ntree, proxy_map);
+			add_nodes(scene, b_data, b_scene, graph, b_ntree);
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;
@@ -908,10 +913,9 @@ void BlenderSync::sync_lamps(bool update_all)
 			if(b_lamp->use_nodes() && b_lamp->node_tree()) {
 				shader->name = b_lamp->name().c_str();
 
-				ProxyMap proxy_map;
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(scene, b_data, b_scene, graph, b_ntree, proxy_map);
+				add_nodes(scene, b_data, b_scene, graph, b_ntree);
 			}
 			else {
 				ShaderNode *closure, *out;
