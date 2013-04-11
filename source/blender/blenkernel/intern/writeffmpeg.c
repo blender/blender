@@ -159,7 +159,7 @@ static int write_audio_frame(void)
 	}
 
 	avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, audio_input_buffer,
-	                         audio_input_samples * c->channels * audio_sample_size, 0);
+	                         audio_input_samples * c->channels * audio_sample_size, 1);
 
 	if (avcodec_encode_audio2(c, &pkt, frame, &got_output) < 0) {
 		// XXX error("Error writing audio packet");
