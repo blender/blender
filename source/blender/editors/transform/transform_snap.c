@@ -1573,7 +1573,7 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 	}
 
 	for (base = FIRSTBASE; base != NULL; base = base->next) {
-		if ((BASE_VISIBLE(v3d, base)) &&
+		if ((BASE_VISIBLE_BGMODE(v3d, scene, base)) &&
 		    (base->flag & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&
 
 		    ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT | BA_WAS_SEL)) == 0) ||

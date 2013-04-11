@@ -1394,6 +1394,9 @@ typedef struct Scene {
 #define BASE_VISIBLE(v3d, base)  (                                            \
 	(base->lay & v3d->lay) &&                                                 \
 	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
+#define BASE_VISIBLE_BGMODE(v3d, scene, base)  (                              \
+	(base->lay & (v3d ? v3d->lay : scene->lay)) &&                            \
+	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
