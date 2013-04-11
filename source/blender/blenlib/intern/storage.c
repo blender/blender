@@ -512,13 +512,24 @@ int BLI_exists(const char *name)
 	 * don't mess with the argument name directly here - elubie */
 	wchar_t *tmp_16 = alloc_utf16_from_8(name, 0);
 	int len, res;
+	unsigned int old_error_mode;
+
 	len = wcslen(tmp_16);
-	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/') ) tmp_16[len - 1] = '\0';
+	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/') )
+		tmp_16[len - 1] = '\0';
+
+	/* change error mode so user does not get a "no disk in drive" popup
+	 * when looking for a file on an empty CD/DVD drive */
+	old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
+
 #ifndef __MINGW32__
 	res = _wstat(tmp_16, &st);
 #else
 	res = _wstati64(tmp_16, &st);
 #endif
+
+	SetErrorMode(old_error_mode);
+
 	free(tmp_16);
 	if (res == -1) return(0);
 #else
