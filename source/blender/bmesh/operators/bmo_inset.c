@@ -472,13 +472,22 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 		/* initialize interpolation vars */
 		/* this could go in its own loop,
-		 * only use the 'es->l->f' so we don't store loops for faces which have no mixed selection */
+		 * only use the 'es->l->f' so we don't store loops for faces which have no mixed selection
+		 *
+		 * note: faces on the other side of the inset will be interpolated too since this is hard to
+		 * detect, just allow it even though it will cause some redundant interpolation */
 		if (use_interpolate) {
-			const int j = BM_elem_index_get((f = es->l->f));
-			if (iface_array[j] == NULL) {
-				InterpFace *iface = BLI_memarena_alloc(interp_arena, sizeof(*iface));
-				bm_interp_face_store(iface, bm, f, interp_arena);
-				iface_array[j] = iface;
+			BMIter viter;
+			BM_ITER_ELEM (v, &viter, es->l->e, BM_VERTS_OF_EDGE) {
+				BMIter fiter;
+				BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
+					const int j = BM_elem_index_get(f);
+					if (iface_array[j] == NULL) {
+						InterpFace *iface = BLI_memarena_alloc(interp_arena, sizeof(*iface));
+						bm_interp_face_store(iface, bm, f, interp_arena);
+						iface_array[j] = iface;
+					}
+				}
 			}
 		}
 		/* done interpolation */
