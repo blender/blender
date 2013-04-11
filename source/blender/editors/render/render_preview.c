@@ -382,6 +382,10 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					}
 					else {
 						sce->lay = 1 << MA_SPHERE_A;
+
+						/* same as above, use current scene world to light sphere */
+						if (BKE_scene_use_new_shading_nodes(scene))
+							sce->world = scene->world;
 					}
 				}
 				else {
@@ -1026,6 +1030,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 {
 	IconPreview *ip = (IconPreview *)customdata;
 	IconPreviewSize *cur_size = ip->sizes.first;
+	int use_new_shading = BKE_scene_use_new_shading_nodes(ip->scene);
 
 	while (cur_size) {
 		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
@@ -1038,7 +1043,11 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = PR_ICON_RENDER;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
-		sp->pr_main = G_pr_main;
+
+		if (use_new_shading)
+			sp->pr_main = G_pr_main_cycles;
+		else
+			sp->pr_main = G_pr_main;
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
