@@ -713,6 +713,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._offsetNodes(tree)
 
         scene.render.alpha_mode = 'TRANSPARENT'
+        if scene.cycles:
+            scene.cycles.film_transparent = True
 
     @staticmethod
     def _createMesh(scene, name, vertices, faces):
