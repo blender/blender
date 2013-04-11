@@ -419,6 +419,13 @@ void ui_block_to_scene_linear_v3(uiBlock *block, float pixel[3]);
 
 /* interface_regions.c */
 
+struct uiKeyNavLock {
+	/* set when we're using keyinput */
+	bool is_keynav;
+	/* only used to check if we've moved the cursor */
+	int event_xy[2];
+};
+
 struct uiPopupBlockHandle {
 	/* internal */
 	struct ARegion *region;
@@ -432,6 +439,8 @@ struct uiPopupBlockHandle {
 	void *popup_arg;
 	
 	struct wmTimer *scrolltimer;
+
+	struct uiKeyNavLock keynav_state;
 
 	/* for operator popups */
 	struct wmOperatorType *optype;
