@@ -83,6 +83,8 @@
 
 #define TRANSFORM_DIST_MAX_PX 1000.0f
 #define TRANSFORM_SNAP_MAX_PX 100.0f
+/* use half of flt-max so we can scale up without an exception */
+#define TRANSFORM_DIST_MAX_RAY (FLT_MAX / 2.0f)
 
 /********************* PROTOTYPES ***********************/
 
@@ -1548,11 +1550,11 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, i
 }
 
 static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit,
-                           const float ray_start[3], const float ray_normal[3],
+                           const float ray_start[3], const float ray_normal[3], const float ray_dist,
                            const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	Base *base;
-	float depth = (FLT_MAX / 2.0f);  /* use half of flt-max so we can scale up without an exception */
+	float depth = ray_dist;
 	bool retval = false;
 
 	if (mode == SNAP_ALL && obedit) {
@@ -1608,7 +1610,7 @@ static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
-	                      ray_start, ray_normal,
+	                      ray_start, ray_normal, TRANSFORM_DIST_MAX_RAY,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 
@@ -1634,11 +1636,11 @@ bool snapObjectsEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Objec
 	                   mval, r_dist_px, r_loc, r_no, mode);
 }
 bool snapObjectsRayEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit, short snap_mode,
-                      const float ray_start[3], const float ray_normal[3],
+                      const float ray_start[3], const float ray_normal[3], const float ray_dist,
                       const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
-	                      ray_start, ray_normal,
+	                      ray_start, ray_normal, ray_dist,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 

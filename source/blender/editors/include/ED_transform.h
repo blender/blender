@@ -187,7 +187,7 @@ bool snapObjectsContext(struct bContext *C, const float mval[2], float *r_dist_p
 bool snapObjectsEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
                    const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
 bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
-                      const float ray_start[3], const float ray_normal[3],
+                      const float ray_start[3], const float ray_normal[3], const float ray_dist,
                       const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
 
 bool snapNodesTransform(struct TransInfo *t, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);
