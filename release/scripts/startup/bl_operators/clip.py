@@ -614,13 +614,17 @@ class CLIP_OT_setup_tracking_scene(Operator):
         rlayer_fg.layer = "Foreground"
 
         add_ao.blend_type = 'ADD'
+        add_ao.show_preview = False
         add_shadow.blend_type = 'ADD'
+        add_shadow.show_preview = False
 
         mul_shadow.blend_type = 'MULTIPLY'
         mul_shadow.inputs["Fac"].default_value = 0.8
+        mul_shadow.show_preview = False
 
         mul_image.blend_type = 'MULTIPLY'
         mul_image.inputs["Fac"].default_value = 0.8
+        mul_image.show_preview = False
 
         vector_blur.factor = 0.75
 
