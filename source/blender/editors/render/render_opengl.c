@@ -206,7 +206,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			/* simple accumulation, less hassle then FSAA FBO's */
 			static float jit_ofs[32][2];
 			float winmat_jitter[4][4];
-			int *accum_buffer = MEM_mallocN(sizex * sizey * sizeof(int) * 4, "accum1");;
+			int *accum_buffer = MEM_mallocN(sizex * sizey * sizeof(int) * 4, "accum1");
 			int i, j;
 
 			BLI_jitter_init(jit_ofs[0], scene->r.osa);
