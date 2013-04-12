@@ -735,12 +735,17 @@ static void flyMoveCamera(bContext *C, RegionView3D *rv3d, FlyInfo *fly,
 		float prev_view_imat[4][4];
 		float diff_mat[4][4];
 		float parent_mat[4][4];
+		float size_mat[4][4];
 
 		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
 		invert_m4_m4(prev_view_imat, prev_view_mat);
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 		mult_m4_m4m4(diff_mat, view_mat, prev_view_imat);
 		mult_m4_m4m4(parent_mat, diff_mat, fly->root_parent->obmat);
+
+		size_to_mat4(size_mat, fly->root_parent->size);
+		mult_m4_m4m4(parent_mat, parent_mat, size_mat);
+
 		BKE_object_apply_mat4(fly->root_parent, parent_mat, true, false);
 
 		// BKE_object_where_is_calc(scene, fly->root_parent);
@@ -755,8 +760,14 @@ static void flyMoveCamera(bContext *C, RegionView3D *rv3d, FlyInfo *fly,
 	}
 	else {
 		float view_mat[4][4];
+		float size_mat[4][4];
+
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+		size_to_mat4(size_mat, v3d->camera->size);
+		mult_m4_m4m4(view_mat, view_mat, size_mat);
+
 		BKE_object_apply_mat4(v3d->camera, view_mat, true, false);
+
 		id_key = &v3d->camera->id;
 	}
 
