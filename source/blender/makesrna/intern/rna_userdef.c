@@ -3374,6 +3374,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	};
 #endif
 
+	static EnumPropertyItem image_draw_methods[] = {
+		{IMAGE_DRAW_METHOD_AUTO, "AUTO", 0, "Auto", "Try to detect best drawing method automatically"},
+		{IMAGE_DRAW_METHOD_GLSL, "GLSL", 0, "GLSL", "Use GLSL shaders for display transform and draw image with 2D texture"},
+		{IMAGE_DRAW_METHOD_2DTEXTURE, "2DTEXTURE", 0, "2D Texture", "Use CPU for display transform and draw image with 2D texture"},
+		{IMAGE_DRAW_METHOD_DRAWPIXELS, "DRAWPIXELS", 0, "DrawPixels", "Use CPU for display transform and draw image using DrawPixels"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -3518,12 +3526,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "GPU Mipmap Generation", "Generate Image Mipmaps on the GPU");
 	RNA_def_property_update(prop, 0, "rna_userdef_gl_gpu_mipmaps");
 
-	prop = RNA_def_property(srna, "image_gpubuffer_limit", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "image_gpubuffer_limit");
-	RNA_def_property_range(prop, 0, 128);
-	RNA_def_property_ui_text(prop, "Image GPU draw limit", "If set, amount of Mega Pixels to use for drawing Images as GPU textures");
-	
-	
+	prop = RNA_def_property(srna, "image_draw_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, image_draw_methods);
+	RNA_def_property_enum_sdna(prop, NULL, "image_draw_method");
+	RNA_def_property_ui_text(prop, "Image Draw Method", "Method used for displaying images on the screen");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
 	RNA_def_property_ui_text(prop, "VBOs",

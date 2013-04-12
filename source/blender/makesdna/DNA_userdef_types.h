@@ -452,7 +452,7 @@ typedef struct UserDef {
 
 	short ogl_multisamples;	/* amount of samples for OpenGL FSA, if zero no FSA */
 
-	short image_gpubuffer_limit; /* If set, amount of mega-pixels to use for texture drawing of images */
+	short image_draw_method; /* Method to be used to draw the images (AUTO, GLSL, Textures or DrawPixels) */
 	
 	float glalphaclip;
 	
@@ -753,7 +753,12 @@ typedef enum eMultiSample_Type {
 	USER_MULTISAMPLE_16	= 16,
 } eMultiSample_Type;
 	
-	
+typedef enum eImageDrawMethod {
+	IMAGE_DRAW_METHOD_AUTO = 0,
+	IMAGE_DRAW_METHOD_GLSL = 1,
+	IMAGE_DRAW_METHOD_2DTEXTURE = 2,
+	IMAGE_DRAW_METHOD_DRAWPIXELS = 3,
+} eImageDrawMethod;
 
 #ifdef __cplusplus
 }

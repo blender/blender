@@ -7764,14 +7764,8 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 			copy_v4_v4_char(btheme->tseq.grid, btheme->tseq.back);
 		}
 	}
-	
-	if (bmain->versionfile < 267) {
-	
-		if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
-			user->image_gpubuffer_limit = 20;
-		
-	}
 }
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */

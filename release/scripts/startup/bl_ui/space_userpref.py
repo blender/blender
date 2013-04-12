@@ -482,8 +482,8 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
 
-        col.label(text="Images:")
-        col.prop(system, "image_gpubuffer_limit")
+        col.label(text="Images Draw Method:")
+        col.prop(system, "image_draw_method", text="")
 
         col.separator()
         col.separator()
