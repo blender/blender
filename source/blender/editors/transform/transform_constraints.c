@@ -393,7 +393,11 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in
 			if (t->con.mode & CON_AXIS2) {
 				out[2] = in[i++];
 			}
+
 			mul_m3_v3(td->axismtx, out);
+			if (t->flag & T_EDIT) {
+				mul_m3_v3(t->obedit_mat, out);
+			}
 		}
 	}
 }
@@ -446,6 +450,9 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 
 		mul_m3_m3m3(tmat, smat, imat);
 		mul_m3_m3m3(smat, td->axismtx, tmat);
+		if (t->flag & T_EDIT) {
+			mul_m3_m3m3(smat, smat, t->obedit_mat);
+		}
 	}
 }
 
@@ -509,24 +516,34 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 {
 	if (t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
+		float tmp_axismtx[3][3];
+		float (*axismtx)[3];
 
 		/* on setup call, use first object */
 		if (td == NULL) {
 			td = t->data;
 		}
 
+		if (t->flag & T_EDIT) {
+			mul_m3_m3m3(tmp_axismtx, t->obedit_mat, td->axismtx);
+			axismtx = tmp_axismtx;
+		}
+		else {
+			axismtx = td->axismtx;
+		}
+
 		switch (mode) {
 			case CON_AXIS0:
 			case (CON_AXIS1 | CON_AXIS2):
-				copy_v3_v3(vec, td->axismtx[0]);
+				copy_v3_v3(vec, axismtx[0]);
 				break;
 			case CON_AXIS1:
 			case (CON_AXIS0 | CON_AXIS2):
-				copy_v3_v3(vec, td->axismtx[1]);
+				copy_v3_v3(vec, axismtx[1]);
 				break;
 			case CON_AXIS2:
 			case (CON_AXIS0 | CON_AXIS1):
-				copy_v3_v3(vec, td->axismtx[2]);
+				copy_v3_v3(vec, axismtx[2]);
 				break;
 		}
 		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
@@ -563,10 +580,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
 	    /* not all editmode supports axis-matrix */
 	    ((t->around != V3D_LOCAL) || (!ELEM3(t->obedit->type, OB_MESH, OB_MBALL, OB_ARMATURE))))
 	{
-		float obmat[3][3];
-		copy_m3_m4(obmat, t->scene->obedit->obmat);
-		normalize_m3(obmat);
-		setConstraint(t, obmat, mode, text);
+		setConstraint(t, t->obedit_mat, mode, text);
 	}
 	else
 #endif
@@ -759,31 +773,39 @@ static void drawObjectConstraint(TransInfo *t)
 	short options = DRAWLIGHT;
 	TransData *td = t->data;
 	int i;
+	float tmp_axismtx[3][3];
 
 	for (i = 0; i < t->total; i++, td++) {
 		float co[3];
+		float (*axismtx)[3];
 
 		if (t->flag & T_OBJECT) {
 			copy_v3_v3(co, td->ob->obmat[3]);
+			axismtx = td->axismtx;
 		}
 		else if (t->flag & T_EDIT) {
 			mul_v3_m4v3(co, t->obedit->obmat, td->center);
+
+			mul_m3_m3m3(tmp_axismtx, t->obedit_mat, td->axismtx);
+			axismtx = tmp_axismtx;
 		}
 		else if (t->flag & T_POSE) {
 			mul_v3_m4v3(co, t->poseobj->obmat, td->center);
+			axismtx = td->axismtx;
 		}
 		else {
 			copy_v3_v3(co, td->center);
+			axismtx = td->axismtx;
 		}
 
 		if (t->con.mode & CON_AXIS0) {
-			drawLine(t, td->center, td->axismtx[0], 'X', options);
+			drawLine(t, co, axismtx[0], 'X', options);
 		}
 		if (t->con.mode & CON_AXIS1) {
-			drawLine(t, td->center, td->axismtx[1], 'Y', options);
+			drawLine(t, co, axismtx[1], 'Y', options);
 		}
 		if (t->con.mode & CON_AXIS2) {
-			drawLine(t, td->center, td->axismtx[2], 'Z', options);
+			drawLine(t, co, axismtx[2], 'Z', options);
 		}
 		options &= ~DRAWLIGHT;
 	}

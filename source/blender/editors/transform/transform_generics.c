@@ -1027,7 +1027,12 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	t->ar = ar;
 	t->obedit = obedit;
 	t->settings = ts;
-	
+
+	if (obedit) {
+		copy_m3_m4(t->obedit_mat, obedit->obmat);
+		normalize_m3(t->obedit_mat);
+	}
+
 	t->data = NULL;
 	t->ext = NULL;
 	

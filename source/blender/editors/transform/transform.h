@@ -355,7 +355,8 @@ typedef struct TransInfo {
 	struct wmKeyMap *keymap;  /* so we can do lookups for header text */
 	int         mval[2];        /* current mouse position               */
 	float       zfac;           /* use for 3d view */
-	struct Object   *obedit;
+	struct Object *obedit;
+	float          obedit_mat[3][3]; /* normalized editmode matrix (T_EDIT only) */
 	void		*draw_handle_apply;
 	void		*draw_handle_view;
 	void		*draw_handle_pixel;
