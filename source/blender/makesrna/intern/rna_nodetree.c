@@ -1593,7 +1593,7 @@ static void rna_Node_socket_remove(ID *id, bNode *node, ReportList *reports, bNo
 	}
 }
 
-static void rna_Node_inputs_clear(ID *id, bNode *node, ReportList *reports)
+static void rna_Node_inputs_clear(ID *id, bNode *node)
 {
 	bNodeTree *ntree = (bNodeTree *)id;
 	bNodeSocket *sock, *nextsock;
@@ -1607,7 +1607,7 @@ static void rna_Node_inputs_clear(ID *id, bNode *node, ReportList *reports)
 	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
-static void rna_Node_outputs_clear(ID *id, bNode *node, ReportList *reports)
+static void rna_Node_outputs_clear(ID *id, bNode *node)
 {
 	bNodeTree *ntree = (bNodeTree *)id;
 	bNodeSocket *sock, *nextsock;
@@ -1617,6 +1617,66 @@ static void rna_Node_outputs_clear(ID *id, bNode *node, ReportList *reports)
 		nodeRemoveSocket(ntree, node, sock);
 	}
 
+	ntreeUpdateTree(ntree);
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+}
+
+static void rna_Node_inputs_move(ID *id, bNode *node, int from_index, int to_index)
+{
+	bNodeTree *ntree = (bNodeTree *)id;
+	bNodeSocket *sock;
+	
+	if (from_index == to_index)
+		return;
+	if (from_index < 0 || to_index < 0)
+		return;
+	
+	sock = BLI_findlink(&node->inputs, from_index);
+	if (to_index < from_index) {
+		bNodeSocket *nextsock = BLI_findlink(&node->inputs, to_index);
+		if (nextsock) {
+			BLI_remlink(&node->inputs, sock);
+			BLI_insertlinkbefore(&node->inputs, nextsock, sock);
+		}
+	}
+	else {
+		bNodeSocket *prevsock = BLI_findlink(&node->inputs, to_index);
+		if (prevsock) {
+			BLI_remlink(&node->inputs, sock);
+			BLI_insertlinkafter(&node->inputs, prevsock, sock);
+		}
+	}
+	
+	ntreeUpdateTree(ntree);
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+}
+
+static void rna_Node_outputs_move(ID *id, bNode *node, int from_index, int to_index)
+{
+	bNodeTree *ntree = (bNodeTree *)id;
+	bNodeSocket *sock;
+	
+	if (from_index == to_index)
+		return;
+	if (from_index < 0 || to_index < 0)
+		return;
+	
+	sock = BLI_findlink(&node->outputs, from_index);
+	if (to_index < from_index) {
+		bNodeSocket *nextsock = BLI_findlink(&node->outputs, to_index);
+		if (nextsock) {
+			BLI_remlink(&node->outputs, sock);
+			BLI_insertlinkbefore(&node->outputs, nextsock, sock);
+		}
+	}
+	else {
+		bNodeSocket *prevsock = BLI_findlink(&node->outputs, to_index);
+		if (prevsock) {
+			BLI_remlink(&node->outputs, sock);
+			BLI_insertlinkafter(&node->outputs, prevsock, sock);
+		}
+	}
+	
 	ntreeUpdateTree(ntree);
 	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -6236,6 +6296,7 @@ static void rna_def_node_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int i
 	const char *uiname =  (in_out == SOCK_IN ? "Node Inputs" : "Node Outputs");
 	const char *newfunc = (in_out == SOCK_IN ? "rna_Node_inputs_new" : "rna_Node_outputs_new");
 	const char *clearfunc = (in_out == SOCK_IN ? "rna_Node_inputs_clear" : "rna_Node_outputs_clear");
+	const char *movefunc = (in_out == SOCK_IN ? "rna_Node_inputs_move" : "rna_Node_outputs_move");
 
 	RNA_def_property_srna(cprop, structtype);
 	srna = RNA_def_struct(brna, structtype, NULL);
@@ -6262,7 +6323,15 @@ static void rna_def_node_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int i
 
 	func = RNA_def_function(srna, "clear", clearfunc);
 	RNA_def_function_ui_description(func, "Remove all sockets from this node");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+
+	func = RNA_def_function(srna, "move", movefunc);
+	RNA_def_function_ui_description(func, "Move a socket to another position");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_int(func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the socket to move", 0, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "to_index", -1, 0, INT_MAX, "To Index", "Target index for the socket", 0, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 static void rna_def_node(BlenderRNA *brna)
