@@ -50,6 +50,7 @@ class IMAGE_MT_view(Menu):
         toolsettings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
+        show_render = sima.show_render
 
         layout.operator("image.properties", icon='MENU_PANEL')
         layout.operator("image.scopes", icon='MENU_PANEL')
@@ -82,6 +83,11 @@ class IMAGE_MT_view(Menu):
         layout.operator("image.view_all")
 
         layout.separator()
+
+        if show_render:
+            layout.operator("image.cycle_render_slot", text="Render Slot Cycle Next")
+            layout.operator("image.cycle_render_slot", text="Render Slot Cycle Previous").reverse = True
+            layout.separator()
 
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
