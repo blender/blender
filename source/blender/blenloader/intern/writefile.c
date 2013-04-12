@@ -342,12 +342,12 @@ static int endwrite(WriteData *wd)
 
 /* ********** WRITE FILE ****************** */
 
-static void writestruct(WriteData *wd, int filecode, const char *structname, int nr, void *adr)
+static void writestruct_at_address(WriteData *wd, int filecode, const char *structname, int nr, void *adr, void *data)
 {
 	BHead bh;
 	short *sp;
 
-	if (adr==NULL || nr==0) return;
+	if (adr==NULL || data==NULL || nr==0) return;
 
 	/* init BHead */
 	bh.code= filecode;
@@ -366,7 +366,12 @@ static void writestruct(WriteData *wd, int filecode, const char *structname, int
 	if (bh.len==0) return;
 
 	mywrite(wd, &bh, sizeof(BHead));
-	mywrite(wd, adr, bh.len);
+	mywrite(wd, data, bh.len);
+}
+
+static void writestruct(WriteData *wd, int filecode, const char *structname, int nr, void *adr)
+{
+	writestruct_at_address(wd, filecode, structname, nr, adr, adr);
 }
 
 static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /* do not use for structs */
@@ -1807,20 +1812,21 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			if (!save_for_old_blender) {
 
 #ifdef USE_BMESH_SAVE_WITHOUT_MFACE
-				Mesh backup_mesh = {{NULL}};
-				/* cache only - don't write */
-				backup_mesh.mface = mesh->mface;
-				mesh->mface = NULL;
-				/* -- */
-				backup_mesh.totface = mesh->totface;
-				mesh->totface = 0;
-				/* -- */
-				backup_mesh.fdata = mesh->fdata;
-				memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-				/* -- */
-#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
+				/* write a copy of the mesh, don't modify in place because it is
+				 * not thread safe for threaded renders that are reading this */
+				Mesh *old_mesh = mesh;
+				Mesh copy_mesh = *mesh;
+				mesh = &copy_mesh;
 
+				/* cache only - don't write */
+				mesh->mface = NULL;
+				mesh->totface = 0;
+				memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+
+				writestruct_at_address(wd, ID_ME, "Mesh", 1, old_mesh, mesh);
+#else
 				writestruct(wd, ID_ME, "Mesh", 1, mesh);
+#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 				/* direct data */
 				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
@@ -1837,58 +1843,37 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
 
 #ifdef USE_BMESH_SAVE_WITHOUT_MFACE
-				/* cache only - don't write */
-				mesh->mface = backup_mesh.mface;
-				/* -- */
-				mesh->totface = backup_mesh.totface;
-				/* -- */
-				mesh->fdata = backup_mesh.fdata;
+				/* restore pointer */
+				mesh = old_mesh;
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 			}
 			else {
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
+				/* write a copy of the mesh, don't modify in place because it is
+				 * not thread safe for threaded renders that are reading this */
+				Mesh *old_mesh = mesh;
+				Mesh copy_mesh = *mesh;
+				mesh = &copy_mesh;
 
-				Mesh backup_mesh = {{NULL}};
-
-				/* backup */
-				backup_mesh.mpoly = mesh->mpoly;
 				mesh->mpoly = NULL;
-				/* -- */
-				backup_mesh.mface = mesh->mface;
 				mesh->mface = NULL;
-				/* -- */
-				backup_mesh.totface = mesh->totface;
 				mesh->totface = 0;
-				/* -- */
-				backup_mesh.totpoly = mesh->totpoly;
 				mesh->totpoly = 0;
-				/* -- */
-				backup_mesh.totloop = mesh->totloop;
 				mesh->totloop = 0;
-				/* -- */
-				backup_mesh.fdata = mesh->fdata;
 				CustomData_reset(&mesh->fdata);
-				/* -- */
-				backup_mesh.pdata = mesh->pdata;
 				CustomData_reset(&mesh->pdata);
-				/* -- */
-				backup_mesh.ldata = mesh->ldata;
 				CustomData_reset(&mesh->ldata);
-				/* -- */
-				backup_mesh.edit_btmesh = mesh->edit_btmesh;
 				mesh->edit_btmesh = NULL;
-				/* backup */
-
 
 				/* now fill in polys to mfaces */
-				mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
-				                                        mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
+				mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &old_mesh->ldata, &old_mesh->pdata,
+				                                        mesh->totface, old_mesh->totloop, old_mesh->totpoly);
 
 				BKE_mesh_update_customdata_pointers(mesh, false);
 
-				writestruct(wd, ID_ME, "Mesh", 1, mesh);
+				writestruct_at_address(wd, ID_ME, "Mesh", 1, old_mesh, mesh);
 
 				/* direct data */
 				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
@@ -1906,28 +1891,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
 #endif
 
-				/* restore */
-				mesh->mpoly = backup_mesh.mpoly;
-				/* -- */
-				mesh->mface = backup_mesh.mface;
-				/* -- */
 				CustomData_free(&mesh->fdata, mesh->totface);
-				/* -- */
-				mesh->fdata= backup_mesh.fdata;
-				/* -- */
-				mesh->pdata= backup_mesh.pdata;
-				/* -- */
-				mesh->ldata= backup_mesh.ldata;
-				/* -- */
-				mesh->totface = backup_mesh.totface;
-				mesh->totpoly = backup_mesh.totpoly;
-				mesh->totloop = backup_mesh.totloop;
-				/* -- */
-				BKE_mesh_update_customdata_pointers(mesh, false);
-				/* --*/
-				mesh->edit_btmesh = backup_mesh.edit_btmesh; /* keep this after updating custom pointers */
-				/* restore */
 
+				/* restore pointer */
+				mesh = old_mesh;
 #endif /* USE_BMESH_SAVE_AS_COMPAT */
 			}
 		}
