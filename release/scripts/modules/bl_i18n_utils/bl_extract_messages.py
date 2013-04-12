@@ -207,7 +207,7 @@ def process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt, settings):
 
 
 ##### RNA #####
-def dump_rna_messages(msgs, reports, settings):
+def dump_rna_messages(msgs, reports, settings, verbose=False):
     """
     Dump into messages dict all RNA-defined UI messages (labels en tooltips).
     """
@@ -361,16 +361,23 @@ def dump_rna_messages(msgs, reports, settings):
             return
 
         def full_class_id(cls):
-            """ gives us 'ID.Lamp.AreaLamp' which is best for sorting."""
+            """Gives us 'ID.Lamp.AreaLamp' which is best for sorting."""
+            # Always the same issue, some classes listed in blacklist should actually no more exist (they have been
+            # unregistered), but are still listed by __subclasses__() calls... :/
+            if cls in blacklist_rna_class:
+                return cls.__name__
             cls_id = ""
             bl_rna = cls.bl_rna
             while bl_rna:
                 cls_id = bl_rna.identifier + "." + cls_id
                 bl_rna = bl_rna.base
             return cls_id
-
+        if verbose:
+            print(cls_list)
         cls_list.sort(key=full_class_id)
         for cls in cls_list:
+            if verbose:
+                print(cls)
             reports["rna_structs"].append(cls)
             # Ignore those Operator sub-classes (anyway, will get the same from OperatorProperties sub-classes!)...
             if (cls in blacklist_rna_class) or issubclass(cls, bpy.types.Operator):
