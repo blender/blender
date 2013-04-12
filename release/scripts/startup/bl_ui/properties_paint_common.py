@@ -120,6 +120,12 @@ def brush_texture_settings(layout, brush, sculpt):
 def brush_mask_texture_settings(layout, brush):
     mask_tex_slot = brush.mask_texture_slot
 
+    layout.label(text="Mask Mapping:")
+
+    # map_mode
+    layout.row().prop(mask_tex_slot, "mask_map_mode", text="")
+    layout.separator()
+
     if brush.mask_texture:
         layout.label(text="Mask Mapping:")
         col = layout.column()

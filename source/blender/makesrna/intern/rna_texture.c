@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_node.h"
+#include "BKE_paint.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -256,6 +257,23 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 		}
 	}
 }
+
+void rna_TextureSlot_brush_update(Main *bmain, Scene *scene, PointerRNA *ptr) {
+	ID *id = ptr->id.data;
+
+	DAG_id_tag_update(id, 0);
+
+	switch (GS(id->name)) {
+		case ID_BR:
+		{
+			MTex *mtex = ptr->data;
+			BKE_paint_invalidate_overlay_tex(scene, mtex->tex);
+			break;
+		}
+	}
+	rna_TextureSlot_update(bmain, scene, ptr);
+}
+
 
 char *rna_TextureSlot_path(PointerRNA *ptr)
 {
@@ -627,13 +645,13 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "ofs");
 	RNA_def_property_ui_range(prop, -10, 10, 10, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_ui_text(prop, "Offset", "Fine tune of the texture mapping X, Y and Z locations");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
 
 	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Size", "Set scaling for the texture's X, Y and Z sizes");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
 
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");

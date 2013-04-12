@@ -107,8 +107,8 @@ typedef struct PaintStroke {
 /*** Cursor ***/
 static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata) 
 {
-	Paint *paint = paint_get_active_from_context(C);
-	Brush *brush = paint_brush(paint);
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	Brush *brush = BKE_paint_brush(paint);
 	PaintStroke *stroke = customdata;
 
 	if (stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
@@ -243,9 +243,9 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEvent *event, const float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
-	Paint *paint = paint_get_active_from_context(C);
-	PaintMode mode = paintmode_get_active_from_context(C);
-	Brush *brush = paint_brush(paint);
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	Brush *brush = BKE_paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
 	float mouse_out[2];
 	PointerRNA itemptr;
@@ -344,7 +344,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 static int paint_space_stroke(bContext *C, wmOperator *op, const wmEvent *event, const float final_mouse[2])
 {
 	PaintStroke *stroke = op->customdata;
-	PaintMode mode = paintmode_get_active_from_context(C);
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	int cnt = 0;
 
@@ -411,7 +411,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
-	stroke->brush = paint_brush(paint_get_active_from_context(C));
+	stroke->brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 	view3d_set_viewcontext(C, &stroke->vc);
 	if (stroke->vc.v3d)
 		view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
@@ -586,8 +586,8 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
 
 int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	Paint *p = paint_get_active_from_context(C);
-	PaintMode mode = paintmode_get_active_from_context(C);
+	Paint *p = BKE_paint_get_active_from_context(C);
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 	PaintStroke *stroke = op->customdata;
 	PaintSample sample_average;
 	float mouse[2];
@@ -716,12 +716,12 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
 
 int paint_poll(bContext *C)
 {
-	Paint *p = paint_get_active_from_context(C);
+	Paint *p = BKE_paint_get_active_from_context(C);
 	Object *ob = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	return p && ob && paint_brush(p) &&
+	return p && ob && BKE_paint_brush(p) &&
 	       (sa && sa->spacetype == SPACE_VIEW3D) &&
 	       (ar && ar->regiontype == RGN_TYPE_WINDOW);
 }

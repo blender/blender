@@ -157,7 +157,7 @@ int vertex_paint_mode_poll(bContext *C)
 int vertex_paint_poll(bContext *C)
 {
 	if (vertex_paint_mode_poll(C) && 
-	    paint_brush(&CTX_data_tool_settings(C)->vpaint->paint))
+	    BKE_paint_brush(&CTX_data_tool_settings(C)->vpaint->paint))
 	{
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa && sa->spacetype == SPACE_VIEW3D) {
@@ -183,7 +183,7 @@ int weight_paint_poll(bContext *C)
 
 	if ((ob != NULL) &&
 	    (ob->mode & OB_MODE_WEIGHT_PAINT) &&
-	    (paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
+	    (BKE_paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
 	    (sa = CTX_wm_area(C)) &&
 	    (sa->spacetype == SPACE_VIEW3D))
 	{
@@ -214,7 +214,7 @@ static int *get_indexarray(Mesh *me)
 
 unsigned int vpaint_get_current_col(VPaint *vp)
 {
-	Brush *brush = paint_brush(&vp->paint);
+	Brush *brush = BKE_paint_brush(&vp->paint);
 	unsigned char col[4];
 	rgb_float_to_uchar(col, brush->rgb);
 	col[3] = 255; /* alpha isn't used, could even be removed to speedup paint a little */
@@ -785,7 +785,7 @@ static unsigned int vpaint_blend(VPaint *vp, unsigned int col, unsigned int colo
                                  /* pre scaled from [0-1] --> [0-255] */
                                  const int brush_alpha_value_i)
 {
-	Brush *brush = paint_brush(&vp->paint);
+	Brush *brush = BKE_paint_brush(&vp->paint);
 	const int tool = brush->vertexpaint_tool;
 
 	col = vpaint_blend_tool(tool, col, paintcol, alpha_i);
@@ -871,7 +871,7 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 		sub_v2_v2v2(delta, mval, co_ss);
 		dist_squared = dot_v2v2(delta, delta); /* len squared */
 		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
-			Brush *brush = paint_brush(&vp->paint);
+			Brush *brush = BKE_paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_squared);
 			if (brush->mtex.tex && rgba) {
 				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
@@ -978,7 +978,7 @@ static float wpaint_blend(VPaint *wp, float weight, float weight_prev,
                           const float brush_alpha_value,
                           const short do_flip, const short do_multipaint_totsel)
 {
-	Brush *brush = paint_brush(&wp->paint);
+	Brush *brush = BKE_paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
 
 	if (do_flip) {
@@ -1062,7 +1062,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 		if (v_idx_best != -1) { /* should always be valid */
 			ToolSettings *ts = vc.scene->toolsettings;
-			Brush *brush = paint_brush(&ts->wpaint->paint);
+			Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
 			const int vgroup_active = vc.obact->actdef - 1;
 			float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
 			BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
@@ -2202,7 +2202,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	VPaint *wp = ts->wpaint;
-	Brush *brush = paint_brush(&wp->paint);
+	Brush *brush = BKE_paint_brush(&wp->paint);
 	struct WPaintData *wpd = paint_stroke_mode_data(stroke);
 	ViewContext *vc;
 	Object *ob;
@@ -2539,7 +2539,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *op)
 	struct Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	Brush *brush = paint_brush(&ts->wpaint->paint);
+	Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
 	float vgroup_weight = BKE_brush_weight_get(scene, brush);
 
 	if (wpaint_ensure_data(C, op) == FALSE) {
@@ -2713,7 +2713,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;
 	VPaint *vp = ts->vpaint;
-	Brush *brush = paint_brush(&vp->paint);
+	Brush *brush = BKE_paint_brush(&vp->paint);
 	struct VPaintData *vpd;
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me;
@@ -2779,7 +2779,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
                               const float brush_size_pressure, const float brush_alpha_pressure)
 {
 	ViewContext *vc = &vpd->vc;
-	Brush *brush = paint_brush(&vp->paint);
+	Brush *brush = BKE_paint_brush(&vp->paint);
 	MPoly *mpoly = &me->mpoly[index];
 	MFace *mf;
 	MCol *mc;
@@ -2876,7 +2876,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
 	VPaint *vp = ts->vpaint;
-	Brush *brush = paint_brush(&vp->paint);
+	Brush *brush = BKE_paint_brush(&vp->paint);
 	ViewContext *vc = &vpd->vc;
 	Object *ob = vc->obact;
 	Mesh *me = ob->data;
@@ -3277,7 +3277,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	{
 		ToolSettings *ts = CTX_data_tool_settings(C);
 		VPaint *wp = ts->wpaint;
-		struct Brush *brush = paint_brush(&wp->paint);
+		struct Brush *brush = BKE_paint_brush(&wp->paint);
 		data.brush = brush;
 		data.weightpaint = BKE_brush_weight_get(scene, brush);
 	}

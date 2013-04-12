@@ -693,7 +693,7 @@ static void draw_image_view_tool(Scene *scene)
 
 static unsigned char *get_alpha_clone_image(const bContext *C, Scene *scene, int *width, int *height)
 {
-	Brush *brush = paint_brush(&scene->toolsettings->imapaint.paint);
+	Brush *brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
 	ImBuf *ibuf;
 	unsigned int size, alpha;
 	unsigned char *display_buffer;
@@ -749,7 +749,7 @@ static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scen
 	int x, y, w, h;
 	unsigned char *clonerect;
 
-	brush = paint_brush(&scene->toolsettings->imapaint.paint);
+	brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
 
 	if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow

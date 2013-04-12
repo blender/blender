@@ -63,6 +63,7 @@
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
+#include "BKE_paint.h"
 
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -4323,6 +4324,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 {
 	int mx, my, a;
 	bool changed = false;
+	Scene *scene = CTX_data_scene(C);
 
 	mx = event->x;
 	my = event->y;
@@ -4451,6 +4453,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				}
 				else {
 					curvemapping_changed(cumap, true);  /* remove doubles */
+					BKE_paint_invalidate_cursor_overlay(scene, cumap);
 				}
 			}
 

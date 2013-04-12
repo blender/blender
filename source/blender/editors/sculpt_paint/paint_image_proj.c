@@ -4151,7 +4151,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 
 	/* brush */
 	ps->mode = mode;
-	ps->brush = paint_brush(&settings->imapaint.paint);
+	ps->brush = BKE_paint_brush(&settings->imapaint.paint);
 	if (ps->brush) {
 		Brush *brush = ps->brush;
 		ps->tool = brush->imagepaint_tool;

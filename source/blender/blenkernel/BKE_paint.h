@@ -36,6 +36,7 @@ struct bContext;
 struct BMesh;
 struct BMFace;
 struct Brush;
+struct CurveMapping;
 struct MDisps;
 struct MeshElemMap;
 struct GridPaintMask;
@@ -47,6 +48,7 @@ struct Paint;
 struct PBVH;
 struct Scene;
 struct StrokeCache;
+struct Tex;
 struct ImagePool;
 struct UnifiedPaintSettings;
 
@@ -65,16 +67,26 @@ typedef enum PaintMode {
 	PAINT_INVALID = 6
 } PaintMode;
 
+/* overlay invalidation */
+#define PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY 1
+#define PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY 2
+#define PAINT_INVALID_OVERLAY_CURVE 4
+
+void BKE_paint_invalidate_overlay_tex (struct Scene *scene,const struct Tex *tex);
+void BKE_paint_invalidate_cursor_overlay (struct Scene *scene, struct CurveMapping *curve);
+void BKE_paint_invalidate_overlay_all(void);
+int BKE_paint_get_overlay_flags (void);
+void BKE_paint_reset_overlay_invalid (void);
+
 void BKE_paint_init(struct Paint *p, const char col[3]);
 void BKE_paint_free(struct Paint *p);
 void BKE_paint_copy(struct Paint *src, struct Paint *tar);
 
-/* TODO, give these BKE_ prefix too */
-struct Paint *paint_get_active(struct Scene *sce);
-struct Paint *paint_get_active_from_context(const struct bContext *C);
-PaintMode paintmode_get_active_from_context(const struct bContext *C);
-struct Brush *paint_brush(struct Paint *paint);
-void paint_brush_set(struct Paint *paint, struct Brush *br);
+struct Paint *BKE_paint_get_active(struct Scene *sce);
+struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
+PaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
+struct Brush *BKE_paint_brush(struct Paint *paint);
+void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
 
 /* testing face select mode
  * Texture paint could be removed since selected faces are not used

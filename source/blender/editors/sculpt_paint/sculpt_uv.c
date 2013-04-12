@@ -152,7 +152,7 @@ static Brush *uv_sculpt_brush(bContext *C)
 
 	if (!settings->uvsculpt)
 		return NULL;
-	return paint_brush(&settings->uvsculpt->paint);
+	return BKE_paint_brush(&settings->uvsculpt->paint);
 }
 
 
@@ -226,7 +226,7 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata,
 	float diff[2];
 	int i;
 	float radius_root = sqrt(radius);
-	Brush *brush = paint_brush(sculptdata->uvsculpt);
+	Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
 	tmp_uvdata = (Temp_UVData *)MEM_callocN(sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
 
@@ -298,7 +298,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 	float diff[2];
 	int i;
 	float radius_root = sqrt(radius);
-	Brush *brush = paint_brush(sculptdata->uvsculpt);
+	Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
 	tmp_uvdata = (Temp_UVData *)MEM_callocN(sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
 
@@ -370,7 +370,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, const wmEvent *e
 	int width, height;
 	float aspectRatio;
 	float alpha, zoomx, zoomy;
-	Brush *brush = paint_brush(sculptdata->uvsculpt);
+	Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	tool = sculptdata->tool;
 	invert = sculptdata->invert ? -1 : 1;
@@ -740,7 +740,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 			int width, height;
 			float aspectRatio;
 			float alpha, zoomx, zoomy;
-			Brush *brush = paint_brush(sculptdata->uvsculpt);
+			Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
 			alpha = BKE_brush_alpha_get(scene, brush);
 

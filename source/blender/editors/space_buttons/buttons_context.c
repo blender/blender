@@ -353,7 +353,7 @@ static int buttons_context_path_brush(ButsContextPath *path)
 		scene = path->ptr[path->len - 1].data;
 
 		if (scene)
-			br = paint_brush(paint_get_active(scene));
+			br = BKE_paint_brush(BKE_paint_get_active(scene));
 
 		if (br) {
 			RNA_id_pointer_create((ID *)br, &path->ptr[path->len]);

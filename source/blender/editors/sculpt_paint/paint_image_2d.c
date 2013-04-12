@@ -754,7 +754,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
-	Brush *brush = paint_brush(&settings->imapaint.paint);
+	Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
 
 	ImagePaintState *s = MEM_callocN(sizeof(ImagePaintState), "ImagePaintState");
 

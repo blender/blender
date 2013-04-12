@@ -96,9 +96,9 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 		struct Brush *brush = NULL;
 		
 		if (ob && (ob->mode & OB_MODE_SCULPT))
-			brush = paint_brush(&scene->toolsettings->sculpt->paint);
+			brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);
 		else
-			brush = paint_brush(&scene->toolsettings->imapaint.paint);
+			brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
 
 		if (brush) {
 			*r_from = (ID *)brush;

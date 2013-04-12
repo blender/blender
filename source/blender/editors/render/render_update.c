@@ -53,6 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
@@ -332,6 +333,10 @@ static void texture_changed(Main *bmain, Tex *tex)
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&tex->id));
+
+	/* paint overlays */
+	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+		BKE_paint_invalidate_overlay_tex(scene, tex);
 
 	/* find materials */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next) {

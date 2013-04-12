@@ -206,6 +206,10 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 		rgba[2] = intensity;
 		rgba[3] = 1.0f;
 	}
+	CLAMP(rgba[0], 0.0, 1.0);
+	CLAMP(rgba[1], 0.0, 1.0);
+	CLAMP(rgba[2], 0.0, 1.0);
+	CLAMP(rgba[3], 0.0, 1.0);
 }
 
 /* 3D Paint */
@@ -358,7 +362,7 @@ int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, 
 /* used for both 3d view and image window */
 void paint_sample_color(const bContext *C, ARegion *ar, int x, int y)    /* frontbuf */
 {
-	Brush *br = paint_brush(paint_get_active_from_context(C));
+	Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 	unsigned int col;
 	char *cp;
 
@@ -380,17 +384,20 @@ void paint_sample_color(const bContext *C, ARegion *ar, int x, int y)    /* fron
 
 static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
-	Brush *br = paint_brush(paint_get_active_from_context(C));
+	Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
-	if (br)
+	if (br) {
+		Scene *scene = CTX_data_scene(C);
 		BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
+		BKE_paint_invalidate_cursor_overlay(scene, br->curve);
+	}
 
 	return OPERATOR_FINISHED;
 }
 
 static int brush_curve_preset_poll(bContext *C)
 {
-	Brush *br = paint_brush(paint_get_active_from_context(C));
+	Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
 	return br && br->curve;
 }

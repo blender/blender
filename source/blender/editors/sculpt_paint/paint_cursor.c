@@ -67,53 +67,34 @@
  * There is also some ugliness with sculpt-specific code.
  */
 
-typedef struct Snapshot {
-	float size[3];
-	float ofs[3];
-	float rot;
-	int BKE_brush_size_get;
+typedef struct TexSnapshot {
 	int winx;
 	int winy;
-	int brush_map_mode;
-	int curve_changed_timestamp;
-} Snapshot;
+	bool init;
+} TexSnapshot;
 
-static int same_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
+typedef struct CurveSnapshot {
+	int BKE_brush_size_get;
+	int curve_changed_timestamp;
+	bool init;
+} CurveSnapshot;
+
+static int same_tex_snap(TexSnapshot *snap, Brush *brush, ViewContext *vc)
 {
 	MTex *mtex = &brush->mtex;
 
-	return (((mtex->tex) &&
-	         equals_v3v3(mtex->ofs, snap->ofs) &&
-	         equals_v3v3(mtex->size, snap->size) &&
-	         (brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL ||
-	         mtex->rot == snap->rot)) &&
+	return (/* make brush smaller shouldn't cause a resample */
+	        //(mtex->brush_map_mode != MTEX_MAP_MODE_VIEW ||
+	        //(BKE_brush_size_get(vc->scene, brush) <= snap->BKE_brush_size_get)) &&
 
-	        /* make brush smaller shouldn't cause a resample */
-	        ((mtex->brush_map_mode == MTEX_MAP_MODE_VIEW &&
-	          (BKE_brush_size_get(vc->scene, brush) <= snap->BKE_brush_size_get)) ||
-	         (BKE_brush_size_get(vc->scene, brush) == snap->BKE_brush_size_get)) &&
-
-	        (mtex->brush_map_mode == snap->brush_map_mode) &&
-	        (vc->ar->winx == snap->winx) &&
-	        (vc->ar->winy == snap->winy));
+			(mtex->brush_map_mode != MTEX_MAP_MODE_TILED ||
+	        (vc->ar->winx == snap->winx &&
+	        vc->ar->winy == snap->winy))
+	        );
 }
 
-static void make_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
+static void make_tex_snap(TexSnapshot *snap, ViewContext *vc)
 {
-	if (brush->mtex.tex) {
-		snap->brush_map_mode = brush->mtex.brush_map_mode;
-		copy_v3_v3(snap->ofs, brush->mtex.ofs);
-		copy_v3_v3(snap->size, brush->mtex.size);
-		snap->rot = brush->mtex.rot;
-	}
-	else {
-		snap->brush_map_mode = -1;
-		snap->ofs[0] = snap->ofs[1] = snap->ofs[2] = -1;
-		snap->size[0] = snap->size[1] = snap->size[2] = -1;
-		snap->rot = -1;
-	}
-
-	snap->BKE_brush_size_get = BKE_brush_size_get(vc->scene, brush);
 	snap->winx = vc->ar->winx;
 	snap->winy = vc->ar->winy;
 }
@@ -122,13 +103,12 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 {
 	static GLuint overlay_texture = 0;
 	static int init = 0;
-	static int tex_changed_timestamp = -1;
-	static int curve_changed_timestamp = -1;
-	static Snapshot snap;
+	static TexSnapshot snap;
 	static int old_size = -1;
 	static int old_zoom = -1;
 	static bool old_col = -1;
 
+	int invalid = BKE_paint_get_overlay_flags();
 	GLubyte *buffer = NULL;
 
 	int size;
@@ -136,18 +116,17 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 	int refresh;
 	GLenum format = col ? GL_RGBA : GL_ALPHA;
 	
-	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED && !br->mtex.tex) return 0;
+	if (br->mtex.brush_map_mode != MTEX_MAP_MODE_VIEW && !br->mtex.tex) return 0;
 	
 	refresh = 
 	    !overlay_texture ||
 	    (br->mtex.tex &&
-	     (!br->mtex.tex->preview ||
-	      br->mtex.tex->preview->changed_timestamp[0] != tex_changed_timestamp)) ||
-	    !br->curve ||
-	    br->curve->changed_timestamp != curve_changed_timestamp ||
+	     (invalid & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY)) ||
+	    (br->curve &&
+	    (invalid & PAINT_INVALID_OVERLAY_CURVE)) ||
 	    old_zoom != zoom ||
 	    old_col != col ||
-	    !same_snap(&snap, br, vc);
+	    !same_tex_snap(&snap, br, vc);
 
 	if (refresh) {
 		struct ImagePool *pool = NULL;
@@ -157,14 +136,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 
 		float radius = BKE_brush_size_get(vc->scene, br) * zoom;
 
-		if (br->mtex.tex && br->mtex.tex->preview)
-			tex_changed_timestamp = br->mtex.tex->preview->changed_timestamp[0];
-
-		if (br->curve)
-			curve_changed_timestamp = br->curve->changed_timestamp;
-
 		old_zoom = zoom;
-		make_snap(&snap, br, vc);
+		make_tex_snap(&snap, vc);
 
 		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			int s = BKE_brush_size_get(vc->scene, br);
@@ -255,9 +228,11 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 						if (br->mtex.tex)
 							paint_get_tex_pixel_col(&br->mtex, x, y, rgba, pool);
 
-						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
-							mul_v4_fl(rgba, BKE_brush_curve_strength(br, len, 1));  /* Falloff curve */
-
+						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
+							float curve_str = BKE_brush_curve_strength(br, len, 1);
+							CLAMP(curve_str, 0.0, 1.0);
+							mul_v4_fl(rgba, curve_str);  /* Falloff curve */
+						}
 						buffer[index * 4]     = rgba[0] * 255;
 						buffer[index * 4 + 1] = rgba[1] * 255;
 						buffer[index * 4 + 2] = rgba[2] * 255;
@@ -271,6 +246,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
 							avg *= BKE_brush_curve_strength(br, len, 1);  /* Falloff curve */
 
+						/* clamp to avoid precision overflow */
+						CLAMP(avg, 0.0, 1.0);
 						buffer[index] = 255 - (GLubyte)(255 * avg);
 					}
 				}
@@ -325,6 +302,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	}
+
+	BKE_paint_reset_overlay_invalid();
 
 	return 1;
 }
@@ -381,7 +360,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
                                      float location[3])
 {
 	Scene *scene = CTX_data_scene(C);
-	Paint *paint = paint_get_active_from_context(C);
+	Paint *paint = BKE_paint_get_active_from_context(C);
 	float mouse[2];
 	int hit;
 
@@ -391,7 +370,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 	if (vc->obact->sculpt && vc->obact->sculpt->pbvh &&
 	    sculpt_stroke_get_location(C, location, mouse))
 	{
-		Brush *brush = paint_brush(paint);
+		Brush *brush = BKE_paint_brush(paint);
 		*pixel_radius =
 		    project_brush_radius(vc,
 		                         BKE_brush_unprojected_radius_get(scene, brush),
@@ -406,7 +385,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 	}
 	else {
 		Sculpt *sd    = CTX_data_tool_settings(C)->sculpt;
-		Brush *brush = paint_brush(&sd->paint);
+		Brush *brush = BKE_paint_brush(&sd->paint);
 
 		*pixel_radius = BKE_brush_size_get(scene, brush);
 		hit = 0;
@@ -576,8 +555,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-	Paint *paint = paint_get_active_from_context(C);
-	Brush *brush = paint_brush(paint);
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	Brush *brush = BKE_paint_brush(paint);
 	ViewContext vc;
 	PaintMode mode;
 	float final_radius;
@@ -595,7 +574,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	get_imapaint_zoom(C, &zoomx, &zoomy);
 	zoomx = max_ff(zoomx, zoomy);
-	mode = paintmode_get_active_from_context(C);
+	mode = BKE_paintmode_get_active_from_context(C);
 
 	/* set various defaults */
 	translation[0] = x;
@@ -677,10 +656,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 void paint_cursor_start(bContext *C, int (*poll)(bContext *C))
 {
-	Paint *p = paint_get_active_from_context(C);
+	Paint *p = BKE_paint_get_active_from_context(C);
 
 	if (p && !p->paint_cursor)
 		p->paint_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), poll, paint_draw_cursor, NULL);
+
+	/* invalidate the paint cursors */
+	BKE_paint_invalidate_overlay_all();
 }
 
 void paint_cursor_start_explicit(Paint *p, wmWindowManager *wm, int (*poll)(bContext *C))

@@ -224,7 +224,7 @@ void BKE_brush_make_local(Brush *brush)
 	}
 
 	for (scene = bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene = scene->id.next) {
-		if (paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
+		if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
 			if (scene->id.lib) is_lib = TRUE;
 			else is_local = TRUE;
 		}
@@ -249,9 +249,9 @@ void BKE_brush_make_local(Brush *brush)
 		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);
 		
 		for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-			if (paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
+			if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
 				if (scene->id.lib == NULL) {
-					paint_brush_set(&scene->toolsettings->imapaint.paint, brush_new);
+					BKE_paint_brush_set(&scene->toolsettings->imapaint.paint, brush_new);
 				}
 			}
 		}

@@ -343,7 +343,7 @@ static Brush *image_paint_brush(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
 
-	return paint_brush(&settings->imapaint.paint);
+	return BKE_paint_brush(&settings->imapaint.paint);
 }
 
 static int image_paint_poll(bContext *C)
@@ -487,7 +487,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 {
 	PaintOperation *pop = paint_stroke_mode_data(stroke);
 	Scene *scene = CTX_data_scene(C);
-	Brush *brush = paint_brush(&scene->toolsettings->imapaint.paint);
+	Brush *brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
 
 	/* initial brush values. Maybe it should be considered moving these to stroke system */
 	float startsize = BKE_brush_size_get(scene, brush);
@@ -652,8 +652,8 @@ void brush_drawcursor_texpaint_uvsculpt(bContext *C, int x, int y, void *UNUSED(
 
 	Scene *scene = CTX_data_scene(C);
 	//Brush *brush = image_paint_brush(C);
-	Paint *paint = paint_get_active_from_context(C);
-	Brush *brush = paint_brush(paint);
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	Brush *brush = BKE_paint_brush(paint);
 
 	if (paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
 		float zoomx, zoomy;

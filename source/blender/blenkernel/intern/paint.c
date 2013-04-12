@@ -59,7 +59,47 @@ const char PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
 const char PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
 const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
-Paint *paint_get_active(Scene *sce)
+static int overlay_flags = 0;
+
+void BKE_paint_invalidate_overlay_tex (Scene *scene, const Tex *tex)
+{
+	Paint *p = BKE_paint_get_active(scene);
+	Brush *br = p->brush;
+
+	if (br->mtex.tex == tex)
+		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
+	if (br->mask_mtex.tex == tex)
+		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
+}
+
+void BKE_paint_invalidate_cursor_overlay (Scene *scene, CurveMapping *curve)
+{
+	Paint *p = BKE_paint_get_active(scene);
+	Brush *br = p->brush;
+
+	if (br->curve == curve)
+		overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
+}
+
+void BKE_paint_invalidate_overlay_all()
+{
+	overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
+	overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
+	overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
+}
+
+int BKE_paint_get_overlay_flags () {
+	return overlay_flags;
+}
+
+void BKE_paint_reset_overlay_invalid (void) {
+	overlay_flags &= ~(PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY |
+	                   PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY |
+	                   PAINT_INVALID_OVERLAY_CURVE);
+}
+
+
+Paint *BKE_paint_get_active(Scene *sce)
 {
 	if (sce) {
 		ToolSettings *ts = sce->toolsettings;
@@ -89,7 +129,7 @@ Paint *paint_get_active(Scene *sce)
 	return NULL;
 }
 
-Paint *paint_get_active_from_context(const bContext *C)
+Paint *BKE_paint_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
 	SpaceImage *sima;
@@ -138,7 +178,7 @@ Paint *paint_get_active_from_context(const bContext *C)
 	return NULL;
 }
 
-PaintMode paintmode_get_active_from_context(const bContext *C)
+PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
 	SpaceImage *sima;
@@ -187,12 +227,12 @@ PaintMode paintmode_get_active_from_context(const bContext *C)
 	return PAINT_INVALID;
 }
 
-Brush *paint_brush(Paint *p)
+Brush *BKE_paint_brush(Paint *p)
 {
 	return p ? p->brush : NULL;
 }
 
-void paint_brush_set(Paint *p, Brush *br)
+void BKE_paint_brush_set(Paint *p, Brush *br)
 {
 	if (p) {
 		id_us_min((ID *)p->brush);
@@ -228,10 +268,10 @@ void BKE_paint_init(Paint *p, const char col[3])
 	Brush *brush;
 
 	/* If there's no brush, create one */
-	brush = paint_brush(p);
+	brush = BKE_paint_brush(p);
 	if (brush == NULL)
 		brush = BKE_brush_add(G.main, "Brush");
-	paint_brush_set(p, brush);
+	BKE_paint_brush_set(p, brush);
 
 	memcpy(p->paint_cursor_col, col, 3);
 	p->paint_cursor_col[3] = 128;
