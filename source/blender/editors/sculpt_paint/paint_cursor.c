@@ -45,6 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
+#include "BKE_colortools.h"
 
 #include "WM_api.h"
 
@@ -120,10 +121,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 	
 	refresh = 
 	    !overlay_texture ||
-	    (br->mtex.tex &&
-	     (invalid & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY)) ||
-	    (br->curve &&
-	    (invalid & PAINT_INVALID_OVERLAY_CURVE)) ||
+	    (invalid & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) ||
+	    (invalid & PAINT_INVALID_OVERLAY_CURVE) ||
 	    old_zoom != zoom ||
 	    old_col != col ||
 	    !same_tex_snap(&snap, br, vc);
@@ -174,6 +173,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 
 		if (br->mtex.tex)
 			pool = BKE_image_pool_new();
+
+		curvemapping_initialize(br->curve);
 
 		#pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {

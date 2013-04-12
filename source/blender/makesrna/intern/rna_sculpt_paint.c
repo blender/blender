@@ -279,6 +279,12 @@ static char *rna_ParticleBrush_path(PointerRNA *ptr)
 	return BLI_strdup("tool_settings.particle_edit.brush");
 }
 
+static void rna_Paint_brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	BKE_paint_invalidate_overlay_all();
+	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
+}
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -294,7 +300,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Brush_mode_poll");
 	RNA_def_property_ui_text(prop, "Brush", "Active Brush");
-	RNA_def_property_update(prop, NC_BRUSH | NA_EDITED, NULL);
+	RNA_def_property_update(prop, 0, "rna_Paint_brush_update");
 
 	prop = RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SHOW_BRUSH);

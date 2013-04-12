@@ -284,6 +284,7 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
 
 	if (brush) {
 		BKE_paint_brush_set(paint, brush);
+		BKE_paint_invalidate_overlay_all();
 		WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 		return OPERATOR_FINISHED;
 	}
