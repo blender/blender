@@ -3118,8 +3118,9 @@ static void *ptcache_bake_thread(void *ptr)
 	}
 
 	if (use_timer) {
+		/* start with newline because of \r above */
 		ptcache_dt_to_str(run, PIL_check_seconds_timer()-stime);
-		printf("Bake %s %s (%i frames simulated).\n", (data->break_operation ? "canceled after" : "finished in"), run, *data->cfra_ptr-sfra);
+		printf("\nBake %s %s (%i frames simulated).\n", (data->break_operation ? "canceled after" : "finished in"), run, *data->cfra_ptr-sfra);
 	}
 
 	data->thread_ended = TRUE;
