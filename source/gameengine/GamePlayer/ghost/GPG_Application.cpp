@@ -503,6 +503,7 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 				GHOST_Rect bnds;
 				window->getClientBounds(bnds);
 				m_canvas->Resize(bnds.getWidth(), bnds.getHeight());
+				m_ketsjiengine->Resize();
 			}
 			}
 			break;

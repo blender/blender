@@ -420,6 +420,13 @@ public:
 	GlobalSettings*	GetGlobalSettings(void);
 	void			SetGlobalSettings(GlobalSettings* gs);
 
+	/**
+	 * Invalidate all the camera matrices and handle other
+	 * needed changes when resized.
+	 * It's only called from Blenderplayer.
+	 */
+	void			Resize();
+
 protected:
 	/**
 	 * Processes all scheduled scene activity.

@@ -2012,6 +2012,24 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	b = m_overrideFrameColorB;
 }
 
+
+void KX_KetsjiEngine::Resize()
+{
+	KX_SceneList::iterator sceneit;
+
+	/* extended mode needs to recalculate camera frustrums when */
+	KX_Scene* firstscene = *m_scenes.begin();
+	const RAS_FrameSettings &framesettings = firstscene->GetFramingType();
+
+	if (framesettings.FrameType() == RAS_FrameSettings::e_frame_extend) {
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++) {
+			KX_Camera* cam = ((KX_Scene *)*sceneit)->GetActiveCamera();
+			cam->InvalidateProjectionMatrix();
+		}
+	}
+}
+
+
 void KX_KetsjiEngine::SetGlobalSettings(GlobalSettings* gs)
 {
 	m_globalsettings.matmode = gs->matmode;
