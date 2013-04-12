@@ -7748,7 +7748,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 
 /* initialize userdef with non-UI dependency stuff */
 /* other initializers (such as theme color defaults) go to resources.c */
-static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
+static void do_versions_userdef(FileData *UNUSED(fd), BlendFileData *bfd)
 {
 	Main *bmain = bfd->main;
 	UserDef *user = bfd->user;
