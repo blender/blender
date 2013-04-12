@@ -3677,14 +3677,16 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void radial_control_set_value(RadialControl *rc, float val)
+static void radial_control_set_value(bContext *C, RadialControl *rc, float val)
 {
 	switch (rc->type) {
 		case PROP_INT:
 			RNA_property_int_set(&rc->ptr, rc->prop, val);
+			RNA_property_update(C, &rc->ptr, rc->prop);
 			break;
 		case PROP_FLOAT:
 			RNA_property_float_set(&rc->ptr, rc->prop, val);
+			RNA_property_update(C, &rc->ptr, rc->prop);
 			break;
 		default:
 			break;
@@ -3758,14 +3760,14 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 
 			/* clamp and update */
 			CLAMP(new_value, rc->min_value, rc->max_value);
-			radial_control_set_value(rc, new_value);
+			radial_control_set_value(C, rc, new_value);
 			rc->current_value = new_value;
 			break;
 
 		case ESCKEY:
 		case RIGHTMOUSE:
 			/* canceled; restore original value */
-			radial_control_set_value(rc, rc->initial_value);
+			radial_control_set_value(C, rc, rc->initial_value);
 			ret = OPERATOR_CANCELLED;
 			break;
 
