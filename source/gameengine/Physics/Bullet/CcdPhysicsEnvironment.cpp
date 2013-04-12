@@ -1758,16 +1758,17 @@ struct OcclusionBuffer
 		                        6,5,1,2,
 		                        7,6,2,3,
 		                        5,4,0,1};
-		for (unsigned int i=0;i<(sizeof(d)/sizeof(d[0]));)
-		{
-			const btVector4 p[] = {x[d[i++]],
-			                       x[d[i++]],
-			                       x[d[i++]],
-			                       x[d[i++]]};
-			if (clipDraw<4,QueryOCL>(p,1.f,0.f)) 
-				return(true);
+		for (unsigned int i = 0; i < (sizeof(d) / sizeof(d[0]));) {
+			const btVector4 p[] = {x[d[i + 0]],
+			                       x[d[i + 1]],
+			                       x[d[i + 2]],
+			                       x[d[i + 3]]};
+			i += 4;
+			if (clipDraw<4, QueryOCL>(p, 1.0f, 0.0f)) {
+				return true;
+			}
 		}
-		return(false);
+		return false;
 	}
 };
 

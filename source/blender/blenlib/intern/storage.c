@@ -520,7 +520,7 @@ int BLI_exists(const char *name)
 
 	/* change error mode so user does not get a "no disk in drive" popup
 	 * when looking for a file on an empty CD/DVD drive */
-	old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
+	old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
 
 #ifndef __MINGW32__
 	res = _wstat(tmp_16, &st);

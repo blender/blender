@@ -245,12 +245,12 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		char err_out[256] = "unknown";
 		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey,
 		                                                         IB_rect, OB_SOLID, FALSE, TRUE,
-																 (draw_sky)? R_ADDSKY: R_ALPHAPREMUL, err_out);
+		                                                         (draw_sky) ? R_ADDSKY: R_ALPHAPREMUL, err_out);
 		camera = scene->camera;
 
 		if (ibuf_view) {
 			/* steal rect reference from ibuf */
-			rect = (unsigned char*)ibuf_view->rect;
+			rect = (unsigned char *)ibuf_view->rect;
 			ibuf_view->mall &= ~IB_rect;
 
 			IMB_freeImBuf(ibuf_view);
@@ -272,8 +272,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		/* sequencer has got trickier conversion happened above
 		 * also assume opengl's space matches byte buffer color space */
 		IMB_buffer_float_from_byte(rr->rectf, rect,
-									IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, TRUE,
-									oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
+		                           IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, true,
+		                           oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
 	}
 
 	/* rr->rectf is now filled with image data */
@@ -292,8 +292,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			imb_addrectImBuf(ibuf);
 
 		IMB_partial_display_buffer_update(ibuf, rr->rectf, rect, rr->rectx, 0, 0,
-										  &scene->view_settings, &scene->display_settings,
-										  0, 0, rr->rectx, rr->recty, TRUE);
+		                                  &scene->view_settings, &scene->display_settings,
+		                                  0, 0, rr->rectx, rr->recty, true);
 
 		/* write file for animation */
 		if (oglrender->write_still) {

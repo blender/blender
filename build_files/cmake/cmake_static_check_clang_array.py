@@ -66,7 +66,7 @@ def main():
             percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
             sys.stdout.flush()
-            sys.stdout.write("%s " % percent_str)
+            sys.stdout.write("%s %s\n" % (percent_str, c))
 
         return subprocess.Popen(cmd)
 

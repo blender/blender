@@ -98,10 +98,12 @@ static bool notValid (Vec2r p)
 	       (p[0] < -HUGE_COORD) || (p[1] < -HUGE_COORD);
 }
 
+#if 0
 static real crossP(const Vec2r& A, const Vec2r& B)
 {
 	return A[0] * B[1] - A[1] * B[0];
 }
+#endif
 
 void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 {

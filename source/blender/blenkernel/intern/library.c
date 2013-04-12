@@ -120,8 +120,6 @@
 #include "BPY_extern.h"
 #endif
 
-#define MAX_IDPUP  60  /* was 24 */
-
 /* GS reads the memory pointed at in a specific ordering. 
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
@@ -1078,6 +1076,8 @@ ID *BKE_libblock_find_name(const short type, const char *name)      /* type: "OB
 }
 
 #if 0 /* UNUSED */
+#define MAX_IDPUP  60  /* was 24 */
+
 static void get_flags_for_id(ID *id, char *buf) 
 {
 	int isfake = id->flag & LIB_FAKEUSER;
