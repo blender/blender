@@ -505,7 +505,7 @@ static StructRNA *rna_NodeTree_refine(struct PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->data;
 	
-	if (ntree->typeinfo && ntree->typeinfo->ext.srna)
+	if (ntree->typeinfo->ext.srna)
 		return ntree->typeinfo->ext.srna;
 	else
 		return &RNA_NodeTree;
@@ -1066,66 +1066,6 @@ static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 	ED_node_tag_update_nodetree(CTX_data_main(C), ntree);
 }
 
-static void rna_NodeTree_bl_idname_get(PointerRNA *ptr, char *value)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		strcpy(value, ntree->typeinfo->idname);
-	else
-		strcpy(value, "UNDEFINED");
-}
-static int rna_NodeTree_bl_idname_length(PointerRNA *ptr)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		return strlen(ntree->typeinfo->idname);
-	else
-		return strlen("UNDEFINED");
-}
-
-static void rna_NodeTree_bl_label_get(PointerRNA *ptr, char *value)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		strcpy(value, ntree->typeinfo->ui_name);
-	else
-		strcpy(value, "UNDEFINED");
-}
-static int rna_NodeTree_bl_label_length(PointerRNA *ptr)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		return strlen(ntree->typeinfo->ui_name);
-	else
-		return strlen("UNDEFINED");
-}
-
-static void rna_NodeTree_bl_description_get(PointerRNA *ptr, char *value)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		strcpy(value, ntree->typeinfo->ui_description);
-	else
-		strcpy(value, "UNDEFINED");
-}
-static int rna_NodeTree_bl_description_length(PointerRNA *ptr)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		return strlen(ntree->typeinfo->ui_description);
-	else
-		return strlen("UNDEFINED");
-}
-
-static int rna_NodeTree_bl_icon_get(PointerRNA *ptr)
-{
-	bNodeTree *ntree = ptr->data;
-	if (ntree->typeinfo)
-		return ntree->typeinfo->ui_icon;
-	else
-		return ICON_NONE;
-}
-
 
 /* ******** NodeLink ******** */
 
@@ -1142,7 +1082,7 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
 	bNode *node = (bNode *)ptr->data;
 	
-	if (node->typeinfo && node->typeinfo->ext.srna)
+	if (node->typeinfo->ext.srna)
 		return node->typeinfo->ext.srna;
 	else
 		return ptr->type;
@@ -1190,9 +1130,6 @@ static int rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
 	void *ret;
 	int visible;
 
-	if (!node->typeinfo)
-		return FALSE;
-
 	RNA_pointer_create(NULL, node->typeinfo->ext.srna, node, &ptr); /* dummy */
 	func = &rna_Node_poll_instance_func; /* RNA_struct_find_function(&ptr, "poll_instance"); */
 
@@ -1210,9 +1147,6 @@ static int rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
 
 static int rna_Node_poll_instance_default(bNode *node, bNodeTree *ntree)
 {
-	if (!node->typeinfo)
-		return FALSE;
-	
 	/* use the basic poll function */
 	return rna_Node_poll(node->typeinfo, ntree);
 }
@@ -1224,9 +1158,6 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
-
-	if (!node->typeinfo)
-		return;
 
 	RNA_pointer_create((ID *)ntree, node->typeinfo->ext.srna, node, &ptr);
 	func = &rna_Node_update_func; /* RNA_struct_find_function(&ptr, "update"); */
@@ -1245,9 +1176,6 @@ static void rna_Node_init(const bContext *C, PointerRNA *ptr)
 	ParameterList list;
 	FunctionRNA *func;
 
-	if (!node->typeinfo)
-		return;
-
 	func = &rna_Node_init_func; /* RNA_struct_find_function(&ptr, "init"); */
 
 	RNA_parameter_list_create(&list, ptr, func);
@@ -1263,9 +1191,6 @@ static void rna_Node_copy(PointerRNA *ptr, struct bNode *copynode)
 	bNode *node = (bNode *)ptr->data;
 	ParameterList list;
 	FunctionRNA *func;
-
-	if (!node->typeinfo)
-		return;
 
 	func = &rna_Node_copy_func; /* RNA_struct_find_function(&ptr, "copy"); */
 
@@ -1284,9 +1209,6 @@ static void rna_Node_free(PointerRNA *ptr)
 	ParameterList list;
 	FunctionRNA *func;
 
-	if (!node->typeinfo)
-		return;
-
 	func = &rna_Node_free_func; /* RNA_struct_find_function(&ptr, "free"); */
 
 	RNA_parameter_list_create(&list, ptr, func);
@@ -1302,9 +1224,6 @@ static void rna_Node_draw_buttons(struct uiLayout *layout, bContext *C, PointerR
 	bNode *node = (bNode *)ptr->data;
 	ParameterList list;
 	FunctionRNA *func;
-
-	if (!node->typeinfo)
-		return;
 
 	func = &rna_Node_draw_buttons_func; /* RNA_struct_find_function(&ptr, "draw_buttons"); */
 
@@ -1323,9 +1242,6 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
 	bNode *node = (bNode *)ptr->data;
 	ParameterList list;
 	FunctionRNA *func;
-
-	if (!node->typeinfo)
-		return;
 
 	func = &rna_Node_draw_buttons_ext_func; /* RNA_struct_find_function(&ptr, "draw_buttons_ext"); */
 
@@ -1631,11 +1547,6 @@ static bNodeSocket *rna_Node_inputs_new(ID *id, bNode *node, ReportList *reports
 	bNodeTree *ntree = (bNodeTree *)id;
 	bNodeSocket *sock;
 	
-	if (!node->typeinfo) {
-		BKE_reportf(reports, RPT_ERROR, "Node type %s of node %s undefined", node->idname, node->name);
-		return NULL;
-	}
-	
 	sock = nodeAddSocket(ntree, node, SOCK_IN, type, identifier, name);
 	
 	if (sock == NULL) {
@@ -1654,11 +1565,6 @@ static bNodeSocket *rna_Node_outputs_new(ID *id, bNode *node, ReportList *report
 	bNodeTree *ntree = (bNodeTree *)id;
 	bNodeSocket *sock;
 	
-	if (!node->typeinfo) {
-		BKE_reportf(reports, RPT_ERROR, "Node type %s of node %s undefined", node->idname, node->name);
-		return NULL;
-	}
-	
 	sock = nodeAddSocket(ntree, node, SOCK_OUT, type, identifier, name);
 	
 	if (sock == NULL) {
@@ -1676,11 +1582,6 @@ static void rna_Node_socket_remove(ID *id, bNode *node, ReportList *reports, bNo
 {
 	bNodeTree *ntree = (bNodeTree *)id;
 	
-	if (!node->typeinfo) {
-		BKE_reportf(reports, RPT_ERROR, "Node type %s of node %s undefined", node->idname, node->name);
-		return;
-	}
-	
 	if (BLI_findindex(&node->inputs, sock) == -1 && BLI_findindex(&node->outputs, sock) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket '%s' in node", sock->identifier);
 	}
@@ -1697,11 +1598,6 @@ static void rna_Node_inputs_clear(ID *id, bNode *node, ReportList *reports)
 	bNodeTree *ntree = (bNodeTree *)id;
 	bNodeSocket *sock, *nextsock;
 	
-	if (!node->typeinfo) {
-		BKE_reportf(reports, RPT_ERROR, "Node type %s of node %s undefined", node->idname, node->name);
-		return;
-	}
-	
 	for (sock = node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
 		nodeRemoveSocket(ntree, node, sock);
@@ -1716,11 +1612,6 @@ static void rna_Node_outputs_clear(ID *id, bNode *node, ReportList *reports)
 	bNodeTree *ntree = (bNodeTree *)id;
 	bNodeSocket *sock, *nextsock;
 	
-	if (!node->typeinfo) {
-		BKE_reportf(reports, RPT_ERROR, "Node type %s of node %s undefined", node->idname, node->name);
-		return;
-	}
-	
 	for (sock = node->outputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
 		nodeRemoveSocket(ntree, node, sock);
@@ -1733,96 +1624,15 @@ static void rna_Node_outputs_clear(ID *id, bNode *node, ReportList *reports)
 static void rna_Node_width_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bNode *node = ptr->data;
-	if (node->typeinfo) {
-		*min = *softmin = node->typeinfo->minwidth;
-		*max = *softmax = node->typeinfo->maxwidth;
-	}
-	else {
-		*min = *softmin = 0.0f;
-		*max = *softmax = 0.0f;
-	}
+	*min = *softmin = node->typeinfo->minwidth;
+	*max = *softmax = node->typeinfo->maxwidth;
 }
 
 static void rna_Node_height_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bNode *node = ptr->data;
-	if (node->typeinfo) {
-		*min = *softmin = node->typeinfo->minheight;
-		*max = *softmax = node->typeinfo->maxheight;
-	}
-	else {
-		*min = *softmin = 0.0f;
-		*max = *softmax = 0.0f;
-	}
-}
-
-static void rna_Node_bl_idname_get(PointerRNA *ptr, char *value)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		strcpy(value, node->typeinfo->idname);
-	else
-		strcpy(value, "UNDEFINED");
-}
-static int rna_Node_bl_idname_length(PointerRNA *ptr)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		return strlen(node->typeinfo->idname);
-	else
-		return strlen("UNDEFINED");
-}
-
-static void rna_Node_bl_label_get(PointerRNA *ptr, char *value)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		strcpy(value, node->typeinfo->ui_name);
-	else
-		strcpy(value, "UNDEFINED");
-}
-static int rna_Node_bl_label_length(PointerRNA *ptr)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		return strlen(node->typeinfo->ui_name);
-	else
-		return strlen("UNDEFINED");
-}
-
-static void rna_Node_bl_description_get(PointerRNA *ptr, char *value)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		strcpy(value, node->typeinfo->ui_description);
-	else
-		strcpy(value, "");
-}
-static int rna_Node_bl_description_length(PointerRNA *ptr)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		return strlen(node->typeinfo->ui_description);
-	else
-		return strlen("");
-}
-
-static int rna_Node_bl_icon_get(PointerRNA *ptr)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		return node->typeinfo->ui_icon;
-	else
-		return ICON_NONE;
-}
-
-static int rna_Node_bl_static_type_get(PointerRNA *ptr)
-{
-	bNode *node = ptr->data;
-	if (node->typeinfo)
-		return node->typeinfo->type;
-	else
-		return NODE_UNDEFINED;
+	*min = *softmin = node->typeinfo->minheight;
+	*max = *softmax = node->typeinfo->maxheight;
 }
 
 
@@ -1835,9 +1645,6 @@ static void rna_NodeSocket_draw(bContext *C, struct uiLayout *layout, PointerRNA
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
 	ParameterList list;
 	FunctionRNA *func;
-
-	if (!sock->typeinfo)
-		return;
 
 	func = &rna_NodeSocket_draw_func; /* RNA_struct_find_function(&ptr, "draw"); */
 
@@ -1858,9 +1665,6 @@ static void rna_NodeSocket_draw_color(bContext *C, PointerRNA *ptr, PointerRNA *
 	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
-
-	if (!sock->typeinfo)
-		return;
 
 	func = &rna_NodeSocket_draw_color_func; /* RNA_struct_find_function(&ptr, "draw_color"); */
 
@@ -1954,7 +1758,7 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
 	
-	if (sock->typeinfo && sock->typeinfo->ext_socket.srna)
+	if (sock->typeinfo->ext_socket.srna)
 		return sock->typeinfo->ext_socket.srna;
 	else
 		return &RNA_NodeSocket;
@@ -1988,23 +1792,6 @@ static IDProperty *rna_NodeSocket_idprops(PointerRNA *ptr, bool create)
 	}
 	
 	return sock->prop;
-}
-
-static void rna_NodeSocket_bl_idname_get(PointerRNA *ptr, char *value)
-{
-	bNodeSocket *sock = ptr->data;
-	if (sock->typeinfo)
-		strcpy(value, sock->typeinfo->idname);
-	else
-		strcpy(value, "UNDEFINED");
-}
-static int rna_NodeSocket_bl_idname_length(PointerRNA *ptr)
-{
-	bNodeSocket *sock = ptr->data;
-	if (sock->typeinfo)
-		return strlen(sock->typeinfo->idname);
-	else
-		return strlen("UNDEFINED");
 }
 
 static PointerRNA rna_NodeSocket_node_get(PointerRNA *ptr)
@@ -5955,7 +5742,6 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->idname");
-	RNA_def_property_string_funcs(prop, "rna_NodeSocket_bl_idname_get", "rna_NodeSocket_bl_idname_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "");
 
@@ -6028,7 +5814,6 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_socket_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->idname");
-	RNA_def_property_string_funcs(prop, "rna_NodeSocket_bl_idname_get", "rna_NodeSocket_bl_idname_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "");
 
@@ -6631,24 +6416,20 @@ static void rna_def_node(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->idname");
-	RNA_def_property_string_funcs(prop, "rna_Node_bl_idname_get", "rna_Node_bl_idname_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "");
 
 	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->ui_name");
-	RNA_def_property_string_funcs(prop, "rna_Node_bl_label_get", "rna_Node_bl_label_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Label", "The node label");
 
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATION);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->ui_description");
-	RNA_def_property_string_funcs(prop, "rna_Node_bl_description_get", "rna_Node_bl_description_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	
 	prop = RNA_def_property(srna, "bl_icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->ui_icon");
-	RNA_def_property_enum_funcs(prop, "rna_Node_bl_icon_get", NULL, NULL);
 	RNA_def_property_enum_items(prop, node_icon_items);
 	RNA_def_property_enum_default(prop, ICON_NODE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
@@ -6656,7 +6437,6 @@ static void rna_def_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_static_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->type");
-	RNA_def_property_enum_funcs(prop, "rna_Node_bl_static_type_get", NULL, NULL);
 	RNA_def_property_enum_items(prop, dummy_static_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_node_static_type_itemf");
 	RNA_def_property_enum_default(prop, NODE_CUSTOM);
@@ -6975,24 +6755,20 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->idname");
-	RNA_def_property_string_funcs(prop, "rna_NodeTree_bl_idname_get", "rna_NodeTree_bl_idname_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "");
 
 	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->ui_name");
-	RNA_def_property_string_funcs(prop, "rna_NodeTree_bl_label_get", "rna_NodeTree_bl_label_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Label", "The node tree label");
 
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATION);
 	RNA_def_property_string_sdna(prop, NULL, "typeinfo->ui_description");
-	RNA_def_property_string_funcs(prop, "rna_NodeTree_bl_description_get", "rna_NodeTree_bl_description_length", NULL);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	
 	prop = RNA_def_property(srna, "bl_icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->ui_icon");
-	RNA_def_property_enum_funcs(prop, "rna_NodeTree_bl_icon_get", NULL, NULL);
 	RNA_def_property_enum_items(prop, node_icon_items);
 	RNA_def_property_enum_default(prop, ICON_NODETREE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
