@@ -536,6 +536,23 @@ static int rna_NodeTree_poll(const bContext *C, bNodeTreeType *ntreetype)
 	return visible;
 }
 
+static void rna_NodeTree_update_reg(bNodeTree *ntree)
+{
+	extern FunctionRNA rna_NodeTree_update_func;
+
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_id_pointer_create(&ntree->id, &ptr);
+	func = &rna_NodeTree_update_func; /* RNA_struct_find_function(&ptr, "update"); */
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	ntree->typeinfo->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 static void rna_NodeTree_draw_add_menu(const bContext *C, struct uiLayout *layout, bNodeTree *ntree)
 {
 	extern FunctionRNA rna_NodeTree_draw_add_menu_func;
@@ -605,7 +622,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 	bNodeTreeType *nt, dummynt;
 	bNodeTree dummyntree;
 	PointerRNA dummyptr;
-	int have_function[3];
+	int have_function[4];
 
 	/* setup dummy tree & tree type to store static properties in */
 	memset(&dummynt, 0, sizeof(bNodeTreeType));
@@ -644,8 +661,9 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 	RNA_def_struct_ui_icon(nt->ext.srna, nt->ui_icon);
 
 	nt->poll = (have_function[0]) ? rna_NodeTree_poll : NULL;
-	nt->draw_add_menu = (have_function[1]) ? rna_NodeTree_draw_add_menu : NULL;
-	nt->get_from_context = (have_function[2]) ? rna_NodeTree_get_from_context : NULL;
+	nt->update = (have_function[1]) ? rna_NodeTree_update_reg : NULL;
+	nt->draw_add_menu = (have_function[2]) ? rna_NodeTree_draw_add_menu : NULL;
+	nt->get_from_context = (have_function[3]) ? rna_NodeTree_get_from_context : NULL;
 
 	ntreeTypeAdd(nt);
 
@@ -6987,6 +7005,11 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", FALSE, "", ""));
+
+	/* update */
+	func = RNA_def_function(srna, "update", NULL);
+	RNA_def_function_ui_description(func, "Update on editor changes");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 
 	/* draw add menu */
 	func = RNA_def_function(srna, "draw_add_menu", NULL);
