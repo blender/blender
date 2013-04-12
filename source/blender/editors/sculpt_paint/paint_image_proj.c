@@ -88,6 +88,8 @@
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 
+#include "GPU_extensions.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -4411,7 +4413,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", filename);
 
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxsize);
+	maxsize = GPU_max_texture_size();
 
 	if (w > maxsize) w = maxsize;
 	if (h > maxsize) h = maxsize;

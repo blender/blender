@@ -55,6 +55,7 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+#include "GPU_extensions.h"
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -381,7 +382,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		GlyphCacheBLF *gc = font->glyph_cache;
 
 		if (font->max_tex_size == -1)
-			glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
+			font->max_tex_size = GPU_max_texture_size();
 
 		if (gc->cur_tex == -1) {
 			blf_glyph_cache_texture(font, gc);

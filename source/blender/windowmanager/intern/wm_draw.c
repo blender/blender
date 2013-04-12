@@ -463,7 +463,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 		for (x = 0; x < triple->nx; x++) {
 			/* proxy texture is only guaranteed to test for the cases that
 			 * there is only one texture in use, which may not be the case */
-			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxsize);
+			maxsize = GPU_max_texture_size();
 
 			if (triple->x[x] > maxsize || triple->y[y] > maxsize) {
 				glBindTexture(triple->target, 0);

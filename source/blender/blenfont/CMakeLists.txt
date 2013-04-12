@@ -31,6 +31,7 @@ set(INC
 	../makesrna
 	../python
 	../imbuf
+	../gpu
 	../../../intern/guardedalloc
 	../../../intern/locale
 )

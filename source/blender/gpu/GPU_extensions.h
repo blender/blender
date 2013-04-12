@@ -66,6 +66,8 @@ int GPU_non_power_of_two_support(void);
 int GPU_color_depth(void);
 void GPU_code_generate_glsl_lib(void);
 int GPU_bicubic_bump_support(void);
+int GPU_max_texture_size (void);
+
 
 /* GPU Types */
 
