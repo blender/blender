@@ -32,7 +32,7 @@
 
 
 #include "GHOST_SizerWin32.h"
-#include <Windowsx.h>
+#include <windowsx.h>
 
 #define T_NONE (0)
 #define T_SIZE (1)
