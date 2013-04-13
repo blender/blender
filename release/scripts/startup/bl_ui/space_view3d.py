@@ -1891,6 +1891,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
     def draw(self, context):
         layout = self.layout
+        with_freestyle = bpy.app.build_options.freestyle
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -1915,7 +1916,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        if context.scene and bpy.app.build_options.freestyle:
+        if with_freestyle:
             layout.operator("mesh.mark_freestyle_edge").clear = False
             layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
 
@@ -1946,6 +1947,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
     def draw(self, context):
         layout = self.layout
+        with_freestyle = bpy.app.build_options.freestyle
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -1961,7 +1963,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        if context.scene and bpy.app.build_options.freestyle:
+        if with_freestyle:
             layout.operator("mesh.mark_freestyle_face").clear = False
             layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
@@ -2551,14 +2553,13 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
     def draw(self, context):
         layout = self.layout
+        with_freestyle = bpy.app.build_options.freestyle
 
         mesh = context.active_object.data
 
         layout.prop(mesh, "show_weight")
 
         split = layout.split()
-
-        with_freestyle = context.scene and bpy.app.build_options.freestyle
 
         col = split.column()
         col.label(text="Overlays:")
