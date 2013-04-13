@@ -279,7 +279,7 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 }
 
 
-static EditBone *get_named_editbone(ListBase *edbo, char *name)
+static EditBone *get_named_editbone(ListBase *edbo, const char *name)
 {
 	EditBone  *eBone;
 

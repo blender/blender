@@ -220,23 +220,12 @@ void WM_keyconfig_free(wmKeyConfig *keyconf)
 	MEM_freeN(keyconf);
 }
 
-static wmKeyConfig *wm_keyconfig_list_find(ListBase *lb, char *idname)
-{
-	wmKeyConfig *kc;
-
-	for (kc = lb->first; kc; kc = kc->next)
-		if (0 == strncmp(idname, kc->idname, KMAP_MAX_NAME))
-			return kc;
-	
-	return NULL;
-}
-
 static wmKeyConfig *WM_keyconfig_active(wmWindowManager *wm)
 {
 	wmKeyConfig *keyconf;
 
 	/* first try from preset */
-	keyconf = wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
+	keyconf = BLI_findstring(&wm->keyconfigs, U.keyconfigstr, offsetof(wmKeyConfig, idname));
 	if (keyconf)
 		return keyconf;
 	

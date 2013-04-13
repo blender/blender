@@ -104,7 +104,7 @@ static void unique_bone_name(bArmature *arm, char *name)
 }
 
 /* helper call for armature_bone_rename */
-static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
+static void constraint_bone_name_fix(Object *ob, ListBase *conlist, const char *oldname, const char *newname)
 {
 	bConstraint *curcon;
 	bConstraintTarget *ct;

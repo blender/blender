@@ -3479,7 +3479,7 @@ static char *vgroup_init_remap(Object *ob)
 	return name_array;
 }
 
-static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
+static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 {
 	MDeformVert *dvert = NULL;
 	bDeformGroup *def;
@@ -3489,7 +3489,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	int *sort_map_update = MEM_mallocN(sizeof(int) * (defbase_tot + 1), "sort vgroups");
 	int *sort_map = sort_map_update + 1;
 
-	char *name;
+	const char *name;
 	int i;
 
 	name = name_array;

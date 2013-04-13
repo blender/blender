@@ -578,7 +578,7 @@ void BKE_sequence_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
 	               offsetof(SequenceModifierData, name), sizeof(smd->name));
 }
 
-SequenceModifierData *BKE_sequence_modifier_find_by_name(Sequence *seq, char *name)
+SequenceModifierData *BKE_sequence_modifier_find_by_name(Sequence *seq, const char *name)
 {
 	return BLI_findstring(&(seq->modifiers), name, offsetof(SequenceModifierData, name));
 }

@@ -1028,7 +1028,8 @@ static int curve_is_animated(Curve *cu)
 	return ad && (ad->action || ad->drivers.first);
 }
 
-static void fcurve_path_rename(AnimData *adt, char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
+static void fcurve_path_rename(AnimData *adt, const char *orig_rna_path, char *rna_path,
+                               ListBase *orig_curves, ListBase *curves)
 {
 	FCurve *fcu, *nfcu, *nextfcu;
 	int len = strlen(orig_rna_path);

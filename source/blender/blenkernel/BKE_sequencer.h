@@ -409,7 +409,7 @@ int BKE_sequence_modifier_remove(struct Sequence *seq, struct SequenceModifierDa
 void BKE_sequence_modifier_clear(struct Sequence *seq);
 void BKE_sequence_modifier_free(struct SequenceModifierData *smd);
 void BKE_sequence_modifier_unique_name(struct Sequence *seq, struct SequenceModifierData *smd);
-struct SequenceModifierData *BKE_sequence_modifier_find_by_name(struct Sequence *seq, char *name);
+struct SequenceModifierData *BKE_sequence_modifier_find_by_name(struct Sequence *seq, const char *name);
 struct ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, struct Sequence *seq, struct ImBuf *ibuf, int cfra);
 void BKE_sequence_modifier_list_copy(struct Sequence *seqn, struct Sequence *seq);
 
