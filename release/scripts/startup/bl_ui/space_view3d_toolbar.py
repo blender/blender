@@ -244,8 +244,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
         if mesh.show_weight:
             col.label("Show Zero Weights:")
-            rowsub = col.row()
-            rowsub.prop(tool_settings, "vertex_group_user", expand=True)
+            col.row().prop(tool_settings, "vertex_group_user", expand=True)
 
 # ********** default tools for editmode_curve ****************
 
@@ -1091,9 +1090,9 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         col.prop(wpaint, "input_samples")
 
         col.label("Show Zero Weights:")
-        rowsub = col.row()
-        rowsub.active = (not tool_settings.use_multipaint)
-        rowsub.prop(tool_settings, "vertex_group_user", expand=True)
+        sub = col.row()
+        sub.active = (not tool_settings.use_multipaint)
+        sub.prop(tool_settings, "vertex_group_user", expand=True)
 
         self.unified_paint_settings(col, context)
 

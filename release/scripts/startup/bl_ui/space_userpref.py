@@ -1114,9 +1114,9 @@ class USERPREF_PT_addons(Panel):
     def draw_error(layout, message):
         lines = message.split("\n")
         box = layout.box()
-        rowsub = box.row()
-        rowsub.label(lines[0])
-        rowsub.label(icon='ERROR')
+        sub = box.row()
+        sub.label(lines[0])
+        sub.label(icon='ERROR')
         for l in lines[1:]:
             box.label(l)
 
@@ -1199,14 +1199,14 @@ class USERPREF_PT_addons(Panel):
 
                 row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["show_expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
 
-                rowsub = row.row()
-                rowsub.active = is_enabled
-                rowsub.label(text='%s: %s' % (info["category"], info["name"]))
+                sub = row.row()
+                sub.active = is_enabled
+                sub.label(text='%s: %s' % (info["category"], info["name"]))
                 if info["warning"]:
-                    rowsub.label(icon='ERROR')
+                    sub.label(icon='ERROR')
 
                 # icon showing support level.
-                rowsub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
+                sub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
