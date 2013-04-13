@@ -370,10 +370,6 @@ typedef struct EditDerivedBMesh {
 	float (*vertexCos)[3];
 	float (*vertexNos)[3];
 	float (*polyNos)[3];
-
-	/* private variables, for number of verts/edges/faces
-	 * within the above hash/table members */
-	int tv, te, tf;
 } EditDerivedBMesh;
 
 static void emDM_calcNormals(DerivedMesh *UNUSED(dm))
@@ -1387,8 +1383,8 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMVert *ev;
 
-	if (index < 0 || index >= bmdm->tv) {
-		printf("error in emDM_getVert.\n");
+	if (UNLIKELY(index < 0 || index >= bmdm->em->bm->totvert)) {
+		BLI_assert(!"error in emDM_getVert");
 		return;
 	}
 
@@ -1407,8 +1403,8 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	BMEdge *e;
 	float *f;
 
-	if (index < 0 || index >= bmdm->te) {
-		printf("error in emDM_getEdge.\n");
+	if (UNLIKELY(index < 0 || index >= bmdm->em->bm->totedge)) {
+		BLI_assert(!"error in emDM_getEdge");
 		return;
 	}
 
@@ -1434,8 +1430,8 @@ static void emDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 	BMFace *ef;
 	BMLoop **ltri;
 
-	if (index < 0 || index >= bmdm->tf) {
-		printf("error in emDM_getTessFace.\n");
+	if (UNLIKELY(index < 0 || index >= bmdm->em->tottri)) {
+		BLI_assert(!"error in emDM_getTessFace");
 		return;
 	}
 
