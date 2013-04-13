@@ -686,10 +686,14 @@ static int rna_RenderSettings_is_movie_fomat_get(PointerRNA *ptr)
 static int rna_RenderSettings_save_buffers_get(PointerRNA *ptr)
 {
 	RenderData *rd = (RenderData *)ptr->data;
+	Scene *scene = (Scene *)ptr->id.data;
+	
 	if (rd->mode & R_BORDER)
 		return 0;
-	else
+	else if (!BKE_scene_use_new_shading_nodes(scene))
 		return (rd->scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE)) != 0;
+	else 
+		return (rd->scemode & R_EXR_TILE_FILE);
 }
 
 static int rna_RenderSettings_full_sample_get(PointerRNA *ptr)
