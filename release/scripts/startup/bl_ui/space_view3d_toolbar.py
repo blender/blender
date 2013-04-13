@@ -242,6 +242,11 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         col.label("Double Threshold:")
         col.prop(tool_settings, "double_threshold", text="")
 
+        if mesh.show_weight:
+            col.label("Show Zero Weights:")
+            rowsub = col.row()
+            rowsub.prop(tool_settings, "vertex_group_user", expand=True)
+
 # ********** default tools for editmode_curve ****************
 
 
