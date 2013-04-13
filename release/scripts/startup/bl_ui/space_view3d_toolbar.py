@@ -1096,15 +1096,6 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 
         self.unified_paint_settings(col, context)
 
-# Commented out because the Apply button isn't an operator yet, making these settings useless
-#~         col.label(text="Gamma:")
-#~         col.prop(wpaint, "gamma", text="")
-#~         col.label(text="Multiply:")
-#~         col.prop(wpaint, "mul", text="")
-
-# Also missing now:
-# Soft, Vertex-Group, X-Mirror and "Clear" Operator.
-
 # ********** default tools for vertex-paint ****************
 
 
