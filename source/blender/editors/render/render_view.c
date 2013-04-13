@@ -87,7 +87,7 @@ static ScrArea *biggest_non_image_area(bContext *C)
 	return big;
 }
 
-static ScrArea *find_area_showing_r_result(bContext *C, wmWindow **win)
+static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow **win)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	ScrArea *sa = NULL;
@@ -95,15 +95,17 @@ static ScrArea *find_area_showing_r_result(bContext *C, wmWindow **win)
 
 	/* find an imagewindow showing render result */
 	for (*win = wm->windows.first; *win; *win = (*win)->next) {
-		for (sa = (*win)->screen->areabase.first; sa; sa = sa->next) {
-			if (sa->spacetype == SPACE_IMAGE) {
-				sima = sa->spacedata.first;
-				if (sima->image && sima->image->type == IMA_TYPE_R_RESULT)
-					break;
+		if ((*win)->screen->scene == scene) {
+			for (sa = (*win)->screen->areabase.first; sa; sa = sa->next) {
+				if (sa->spacetype == SPACE_IMAGE) {
+					sima = sa->spacedata.first;
+					if (sima->image && sima->image->type == IMA_TYPE_R_RESULT)
+						break;
+				}
 			}
+			if (sa)
+				break;
 		}
-		if (sa)
-			break;
 	}
 	
 	return sa;
@@ -173,7 +175,7 @@ void render_view_open(bContext *C, int mx, int my)
 	}
 
 	if (!sa) {
-		sa = find_area_showing_r_result(C, &win);
+		sa = find_area_showing_r_result(C, scene, &win);
 		if (sa == NULL)
 			sa = find_area_image_empty(C);
 		
@@ -285,9 +287,9 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 	}
 	else {
 		wmWindow *win, *winshow;
-		ScrArea *sa = find_area_showing_r_result(C, &winshow);
+		ScrArea *sa = find_area_showing_r_result(C, CTX_data_scene(C), &winshow);
 		
-		/* is there another window showing result? */
+		/* is there another window on current scene showing result? */
 		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
 			bScreen *sc = win->screen;
 			if ((sc->temp && ((ScrArea *)sc->areabase.first)->spacetype == SPACE_IMAGE) ||
