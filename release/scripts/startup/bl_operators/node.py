@@ -19,8 +19,8 @@
 # <pep8-80 compliant>
 
 import bpy
-from bpy.types import Operator
-from bpy.props import BoolProperty, EnumProperty, StringProperty
+from bpy.types import Operator, PropertyGroup
+from bpy.props import BoolProperty, CollectionProperty, EnumProperty, StringProperty
 
 
 # Base class for node 'Add' operators
@@ -68,6 +68,13 @@ class NodeAddOperator():
         return self.execute(context)
 
 
+class NodeSetting(PropertyGroup):
+    value = StringProperty(
+            name="Value",
+            description="Python expression to be evaluated as the initial node setting",
+            default="",
+            )
+
 # Simple basic operator for adding a node
 class NODE_OT_add_node(NodeAddOperator, Operator):
     '''Add a node to the active tree'''
@@ -78,33 +85,41 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
             name="Node Type",
             description="Node type",
             )
-    # optional group tree parameter for group nodes
-    group_tree = StringProperty(
-            name="Group tree",
-            description="Group node tree name",
-            )
     use_transform = BoolProperty(
             name="Use Transform",
             description="Start transform operator after inserting the node",
             default=False,
             )
+    settings = CollectionProperty(
+            name="Settings",
+            description="Settings to be applied on the newly created node",
+            type=NodeSetting,
+            )
 
     def execute(self, context):
         node = self.create_node(context, self.type)
 
-        # set the node group tree of a group node
-        if self.properties.is_property_set('group_tree'):
-            node.node_tree = bpy.data.node_groups[self.group_tree]
+        for setting in self.settings:
+            # XXX catch exceptions here?
+            value = eval(setting.value)
+                
+            try:
+                setattr(node, setting.name, value)
+            except AttributeError as e:
+                self.report({'ERROR_INVALID_INPUT'}, "Node has no attribute "+setting.name)
+                print (str(e))
+                # Continue despite invalid attribute
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
         self.store_mouse_cursor(context, event)
         result = self.execute(context)
+
         if self.use_transform and ('FINISHED' in result):
-            return bpy.ops.transform.translate('INVOKE_DEFAULT')
-        else:
-            return result
+            bpy.ops.transform.translate('INVOKE_DEFAULT')
+
+        return result
 
 
 def node_classes_iter(base=bpy.types.Node):
@@ -184,19 +199,6 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
         # Delayed execution in the search popup
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
-
-
-# Simple basic operator for adding a node without further initialization
-class NODE_OT_add_node(NodeAddOperator, bpy.types.Operator):
-    '''Add a node to the active tree'''
-    bl_idname = "node.add_node"
-    bl_label = "Add Node"
-
-    type = StringProperty(name="Node Type", description="Node type")
-
-    def execute(self, context):
-        node = self.create_node(context, self.type)
-        return {'FINISHED'}
 
 
 class NODE_OT_add_group_node(NodeAddOperator, bpy.types.Operator):

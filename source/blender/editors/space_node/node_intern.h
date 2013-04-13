@@ -68,9 +68,6 @@ ARegion *node_has_tools_region(ScrArea *sa);
 
 void snode_group_offset(struct SpaceNode *snode, float *x, float *y);	/* transform between View2Ds in the tree path */
 
-/* node_header.c */
-void node_menus_register(void);
-
 /* node_draw.c */
 int node_get_colorid(struct bNode *node);
 void node_socket_circle_draw(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node,

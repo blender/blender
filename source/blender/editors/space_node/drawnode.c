@@ -77,108 +77,6 @@
 #include "NOD_shader.h"
 #include "NOD_texture.h"
 
-/* ****************** MENU FUNCTIONS ***************** */
-
-static void node_add_menu_class(bContext *C, uiLayout *layout, void *arg_nodeclass)
-{
-	Scene *scene = CTX_data_scene(C);
-	SpaceNode *snode = CTX_wm_space_node(C);
-	bNodeTree *ntree;
-	int nodeclass = GET_INT_FROM_POINTER(arg_nodeclass);
-	int event, compatibility = 0;
-	
-	ntree = snode->nodetree;
-	
-	if (!ntree) {
-		uiItemS(layout);
-		return;
-	}
-
-	if (ntree->type == NTREE_SHADER) {
-		if (BKE_scene_use_new_shading_nodes(scene))
-			compatibility = NODE_NEW_SHADING;
-		else
-			compatibility = NODE_OLD_SHADING;
-	}
-	
-	if (nodeclass == NODE_CLASS_GROUP) {
-		Main *bmain = CTX_data_main(C);
-		bNodeTree *ngroup;
-		const char *ngroup_type, *node_type;
-		PointerRNA ptr;
-		
-		NODE_TYPES_BEGIN(ntype)
-			if (ntype->nclass != nodeclass || !ntype->ui_name)
-				continue;
-			if (!ntype->poll(ntype, ntree))
-				continue;
-			
-			switch (ntree->type) {
-				case NTREE_COMPOSIT:
-					ngroup_type = "CompositorNodeTree";
-					node_type = "CompositorNodeGroup";
-					break;
-				case NTREE_SHADER:
-					ngroup_type = "ShaderNodeTree";
-					node_type = "ShaderNodeGroup";
-					break;
-				case NTREE_TEXTURE:
-					ngroup_type = "TextureNodeTree";
-					node_type = "TextureNodeGroup";
-					break;
-			}
-			
-			ptr = uiItemFullO(layout, "NODE_OT_group_make", "New Group", ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-			RNA_string_set(&ptr, "node_type", node_type);
-			
-			uiItemS(layout);
-
-			for (ngroup = bmain->nodetree.first, event = 0; ngroup; ngroup = ngroup->id.next, ++event) {
-				/* only use group trees of the right type */
-				if (STRNEQ(ngroup->idname, ngroup_type))
-					continue;
-				if (!nodeGroupPoll(ntree, ngroup))
-					continue;
-				
-				ptr = uiItemFullO(layout, "NODE_OT_add_group_node", ngroup->id.name + 2, ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-				RNA_string_set(&ptr, "type", ntype->idname);
-				RNA_string_set(&ptr, "grouptree", ngroup->id.name + 2);
-			}
-		NODE_TYPES_END
-	}
-	else if (nodeclass == NODE_DYNAMIC) {
-		/* disabled */
-	}
-	else {
-		PointerRNA ptr;
-		
-		NODE_TYPES_BEGIN(ntype)
-			if (ntype->nclass != nodeclass || !ntype->ui_name)
-				continue;
-			if (!ntype->poll(ntype, ntree))
-				continue;
-			if (compatibility && (ntype->compatibility & compatibility) == 0)
-				continue;
-			
-			ptr = uiItemFullO(layout, "NODE_OT_add_node", IFACE_(ntype->ui_name), ntype->ui_icon, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-			RNA_string_set(&ptr, "type", ntype->idname);
-		NODE_TYPES_END
-	}
-}
-
-static void node_add_menu_foreach_class_cb(void *calldata, int nclass, const char *name)
-{
-	uiLayout *layout = calldata;
-	uiItemMenuF(layout, IFACE_(name), 0, node_add_menu_class, SET_INT_IN_POINTER(nclass));
-}
-
-static void node_add_menu_default(const bContext *C, uiLayout *layout, bNodeTree *ntree)
-{
-	Scene *scene = CTX_data_scene(C);
-	
-	if (ntree->typeinfo->foreach_nodeclass)
-		ntree->typeinfo->foreach_nodeclass(scene, layout, node_add_menu_foreach_class_cb);
-}
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
@@ -2784,11 +2682,8 @@ void ED_node_init_butfuncs(void)
 	
 	/* tree type icons */
 	ntreeType_Composite->ui_icon = ICON_RENDERLAYERS;
-	ntreeType_Composite->draw_add_menu = node_add_menu_default;
 	ntreeType_Shader->ui_icon = ICON_MATERIAL;
-	ntreeType_Shader->draw_add_menu = node_add_menu_default;
 	ntreeType_Texture->ui_icon = ICON_TEXTURE;
-	ntreeType_Texture->draw_add_menu = node_add_menu_default;
 }
 
 void ED_init_custom_node_type(bNodeType *ntype)

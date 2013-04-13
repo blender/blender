@@ -553,25 +553,6 @@ static void rna_NodeTree_update_reg(bNodeTree *ntree)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_NodeTree_draw_add_menu(const bContext *C, struct uiLayout *layout, bNodeTree *ntree)
-{
-	extern FunctionRNA rna_NodeTree_draw_add_menu_func;
-
-	PointerRNA ptr;
-	ParameterList list;
-	FunctionRNA *func;
-
-	RNA_id_pointer_create(&ntree->id, &ptr);
-	func = &rna_NodeTree_draw_add_menu_func; /* RNA_struct_find_function(&ptr, "draw_add_menu"); */
-
-	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	RNA_parameter_set_lookup(&list, "layout", &layout);
-	ntree->typeinfo->ext.call((bContext *)C, &ptr, func, &list);
-
-	RNA_parameter_list_free(&list);
-}
-
 static void rna_NodeTree_get_from_context(const bContext *C, bNodeTreeType *ntreetype,
                                           bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
@@ -622,7 +603,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 	bNodeTreeType *nt, dummynt;
 	bNodeTree dummyntree;
 	PointerRNA dummyptr;
-	int have_function[4];
+	int have_function[3];
 
 	/* setup dummy tree & tree type to store static properties in */
 	memset(&dummynt, 0, sizeof(bNodeTreeType));
@@ -662,8 +643,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *
 
 	nt->poll = (have_function[0]) ? rna_NodeTree_poll : NULL;
 	nt->update = (have_function[1]) ? rna_NodeTree_update_reg : NULL;
-	nt->draw_add_menu = (have_function[2]) ? rna_NodeTree_draw_add_menu : NULL;
-	nt->get_from_context = (have_function[3]) ? rna_NodeTree_get_from_context : NULL;
+	nt->get_from_context = (have_function[2]) ? rna_NodeTree_get_from_context : NULL;
 
 	ntreeTypeAdd(nt);
 
@@ -6855,17 +6835,6 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	func = RNA_def_function(srna, "update", NULL);
 	RNA_def_function_ui_description(func, "Update on editor changes");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-
-	/* draw add menu */
-	func = RNA_def_function(srna, "draw_add_menu", NULL);
-	RNA_def_function_ui_description(func, "Draw the menu for adding nodes");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
-	parm = RNA_def_property(func, "layout", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(parm, "UILayout");
-	RNA_def_property_ui_text(parm, "Layout", "Menu layout in the UI");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	/* get a node tree from context */
 	func = RNA_def_function(srna, "get_from_context", NULL);
