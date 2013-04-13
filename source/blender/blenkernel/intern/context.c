@@ -85,9 +85,11 @@ struct bContext {
 	} data;
 	
 	/* data evaluation */
+#if 0
 	struct {
 		int render;
 	} eval;
+#endif
 };
 
 /* context */

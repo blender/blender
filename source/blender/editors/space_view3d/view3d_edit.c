@@ -3969,7 +3969,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3], bool alphaoverride)
 {
 	bglMats mats; /* ZBuffer depth vars */
-	float depth_close = FLT_MAX;
+	float depth_close;
 	double cent[2],  p[3];
 
 	/* Get Z Depths, needed for perspective, nice for ortho */

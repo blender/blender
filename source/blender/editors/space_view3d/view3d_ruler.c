@@ -95,7 +95,7 @@ static bool ED_view3d_snap_ray(bContext *C, float r_co[3],
 {
 	float dist_px = 12;  /* snap dist */
 	float r_no_dummy[3];
-	bool ret = false;
+	bool ret;
 
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);

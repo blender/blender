@@ -311,16 +311,14 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
  */
 static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 {
-	char datum[100];
-//	char buf[512];  // UNUSED
-	char size[250];
 	const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	/* symbolic display, indexed by mode field value */
-	int num, mode;
+	int num;
 #ifdef WIN32
 	__int64 st_size;
 #else
 	off_t st_size;
+	int mode;
 #endif
 	
 	struct direntry *file;
@@ -328,8 +326,10 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 	time_t zero = 0;
 	
 	for (num = 0, file = dir_ctx->files; num < dir_ctx->nrfiles; num++, file++) {
+
+
+		/* Mode */
 #ifdef WIN32
-		mode = 0;
 		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
 		BLI_strncpy(file->mode2, types[0], sizeof(file->mode2));
 		BLI_strncpy(file->mode3, types[0], sizeof(file->mode3));
@@ -355,6 +355,8 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 		}
 #endif
 
+
+		/* User */
 #ifdef WIN32
 		strcpy(file->owner, "user");
 #else
@@ -370,12 +372,16 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 		}
 #endif
 
+
+		/* Time */
 		tm = localtime(&file->s.st_mtime);
 		// prevent impossible dates in windows
 		if (tm == NULL) tm = localtime(&zero);
 		strftime(file->time, sizeof(file->time), "%H:%M", tm);
 		strftime(file->date, sizeof(file->date), "%d-%b-%y", tm);
 
+
+		/* Size */
 		/*
 		 * Seems st_size is signed 32-bit value in *nix and Windows.  This
 		 * will buy us some time until files get bigger than 4GB or until
@@ -398,32 +404,6 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 		else {
 			BLI_snprintf(file->size, sizeof(file->size), "%d B", (int)st_size);
 		}
-
-		strftime(datum, 32, "%d-%b-%y %H:%M", tm); /* XXX, is this used? - campbell */
-
-		if (st_size < 1000) {
-			BLI_snprintf(size, sizeof(size), "%10d",
-			             (int) st_size);
-		}
-		else if (st_size < 1000 * 1000) {
-			BLI_snprintf(size, sizeof(size), "%6d %03d",
-			             (int) (st_size / 1000), (int) (st_size % 1000));
-		}
-		else if (st_size < 100 * 1000 * 1000) {
-			BLI_snprintf(size, sizeof(size), "%2d %03d %03d",
-			             (int) (st_size / (1000 * 1000)), (int) ((st_size / 1000) % 1000), (int) (st_size % 1000));
-		}
-		else {
-			/* XXX, whats going on here?. 2x calls - campbell */
-			BLI_snprintf(size, sizeof(size), "> %4.1f M", (double) (st_size / (1024.0 * 1024.0)));
-			BLI_snprintf(size, sizeof(size), "%10d", (int) st_size);
-		}
-
-#if 0
-		BLI_snprintf(buf, sizeof(buf), "%s %s %s %7s %s %s %10s %s",
-		             file->mode1, file->mode2, file->mode3, file->owner,
-		             file->date, file->time, size, file->relname);
-#endif
 	}
 }
 
