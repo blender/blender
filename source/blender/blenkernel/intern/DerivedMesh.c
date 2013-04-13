@@ -1032,6 +1032,14 @@ typedef struct DMWeightColorInfo {
 } DMWeightColorInfo;
 
 
+static int dm_drawflag_calc(ToolSettings *ts)
+{
+	return ((ts->multipaint ? CALC_WP_MULTIPAINT :
+	                          /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
+	                          (1 << ts->weightuser)) |
+	        (ts->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
+}
+
 static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcinfo, const float input)
 {
 	float colf[4];
@@ -1130,14 +1138,14 @@ void vDM_ColorBand_store(const ColorBand *coba, const char alert_color[4])
  * note that we could save some memory and allocate RGB only but then we'd need to
  * re-arrange the colors when copying to the face since MCol has odd ordering,
  * so leave this as is - campbell */
-static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const draw_flag, DMWeightColorInfo *dm_wcinfo)
+static void calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const draw_flag, DMWeightColorInfo *dm_wcinfo,
+                                        unsigned char (*r_wtcol_v)[4])
 {
 	MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
 	int numVerts = dm->getNumVerts(dm);
-	unsigned char *wtcol_v = MEM_mallocN(sizeof(unsigned char) * numVerts * 4, "weightmap_v");
 
 	if (dv) {
-		unsigned char *wc = wtcol_v;
+		unsigned char (*wc)[4] = r_wtcol_v;
 		unsigned int i;
 
 		/* variables for multipaint */
@@ -1151,8 +1159,8 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 			defbase_sel = BKE_objdef_selected_get(ob, defbase_tot, &defbase_sel_tot);
 		}
 
-		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
-			calc_weightpaint_vert_color(wc, dv, dm_wcinfo, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+		for (i = numVerts; i != 0; i--, wc++, dv++) {
+			calc_weightpaint_vert_color((unsigned char *)wc, dv, dm_wcinfo, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
 		}
 
 		if (defbase_sel) {
@@ -1167,10 +1175,8 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 		else {
 			weightpaint_color((unsigned char *)&col_i, dm_wcinfo, 0.0f);
 		}
-		fill_vn_i((int *)wtcol_v, numVerts, col_i);
+		fill_vn_i((int *)r_wtcol_v, numVerts, col_i);
 	}
-
-	return wtcol_v;
 }
 
 /* return an array of vertex weight colors from given weights, caller must free.
@@ -1178,29 +1184,42 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
  * note that we could save some memory and allocate RGB only but then we'd need to
  * re-arrange the colors when copying to the face since MCol has odd ordering,
  * so leave this as is - campbell */
-static unsigned char *calc_colors_from_weights_array(const int num, float *weights)
+static void calc_colors_from_weights_array(const int num, const float *weights,
+                                           unsigned char (*r_wtcol_v)[4])
 {
-	unsigned char *wtcol_v = MEM_mallocN(sizeof(unsigned char) * num * 4, "weightmap_v");
-	unsigned char *wc = wtcol_v;
+	unsigned char (*wc)[4] = r_wtcol_v;
 	int i;
 
-	for (i = 0; i < num; i++, wc += 4, weights++)
-		weightpaint_color((unsigned char *) wc, NULL, *weights);
-
-	return wtcol_v;
+	for (i = 0; i < num; i++, wc++, weights++) {
+		weightpaint_color((unsigned char *)wc, NULL, *weights);
+	}
 }
 
 void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
                            float *weights, int num, const int *indices)
 {
-
-	unsigned char *wtcol_v;
+	BMEditMesh *em = (dm->type == DM_TYPE_EDITBMESH) ? BMEdit_FromObject(ob) : NULL;
+	unsigned char (*wtcol_v)[4];
 	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
 	MLoop *mloop = dm->getLoopArray(dm), *ml;
 	MPoly *mp = dm->getPolyArray(dm);
 	int numVerts = dm->getNumVerts(dm);
 	int totloop;
 	int i, j;
+
+	if (em) {
+		if (em->derivedVertColor && em->derivedVertColorLen == numVerts) {
+			wtcol_v = em->derivedVertColor;
+		}
+		else {
+			if (em->derivedVertColor) MEM_freeN(em->derivedVertColor);
+			wtcol_v = em->derivedVertColor = MEM_mallocN(sizeof(*wtcol_v) * numVerts, __func__);
+			em->derivedVertColorLen = numVerts;
+		}
+	}
+	else {
+		wtcol_v = MEM_mallocN(sizeof(*wtcol_v) * numVerts, __func__);
+	}
 
 	/* Weights are given by caller. */
 	if (weights) {
@@ -1215,46 +1234,51 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		}
 
 		/* Convert float weights to colors. */
-		wtcol_v = calc_colors_from_weights_array(numVerts, w);
+		calc_colors_from_weights_array(numVerts, w, wtcol_v);
 
 		if (indices)
 			MEM_freeN(w);
 	}
 	else {
 		/* No weights given, take them from active vgroup(s). */
-		wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, &G_dm_wcinfo);
+		calc_weightpaint_vert_array(ob, dm, draw_flag, &G_dm_wcinfo, wtcol_v);
 	}
 
-	/* now add to loops, so the data can be passed through the modifier stack */
-	/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
-	if (!wtcol_l) {
-		BLI_array_declare(wtcol_l);
-		totloop = 0;
-		for (i = 0; i < dm->numPolyData; i++, mp++) {
-			ml = mloop + mp->loopstart;
-
-			BLI_array_grow_items(wtcol_l, mp->totloop);
-			for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-				copy_v4_v4_char((char *)&wtcol_l[totloop],
-				                (char *)&wtcol_v[4 * ml->v]);
-			}
-		}
-		CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
+	if (dm->type == DM_TYPE_EDITBMESH) {
+		/* editmesh draw function checks spesifically for this */
 	}
 	else {
-		totloop = 0;
-		for (i = 0; i < dm->numPolyData; i++, mp++) {
-			ml = mloop + mp->loopstart;
+		/* now add to loops, so the data can be passed through the modifier stack */
+		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
+		if (!wtcol_l) {
+			BLI_array_declare(wtcol_l);
+			totloop = 0;
+			for (i = 0; i < dm->numPolyData; i++, mp++) {
+				ml = mloop + mp->loopstart;
 
-			for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-				copy_v4_v4_char((char *)&wtcol_l[totloop],
-				                (char *)&wtcol_v[4 * ml->v]);
+				BLI_array_grow_items(wtcol_l, mp->totloop);
+				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
+					copy_v4_v4_char((char *)&wtcol_l[totloop],
+					                (char *)&wtcol_v[ml->v]);
+				}
+			}
+			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
+		}
+		else {
+			totloop = 0;
+			for (i = 0; i < dm->numPolyData; i++, mp++) {
+				ml = mloop + mp->loopstart;
+
+				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
+					copy_v4_v4_char((char *)&wtcol_l[totloop],
+					                (char *)&wtcol_v[ml->v]);
+				}
 			}
 		}
-	}
-	MEM_freeN(wtcol_v);
+		MEM_freeN(wtcol_v);
 
-	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	}
 }
 
 
@@ -1380,11 +1404,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
 	int sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm);
-
-	const int draw_flag = ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT :
-	                                                          /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
-	                                                          (1 << scene->toolsettings->weightuser)) |
-	                       (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
+	int draw_flag = dm_drawflag_calc(scene->toolsettings);
 
 	/* Generic preview only in object mode! */
 	const int do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
@@ -1909,6 +1929,14 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
+	int draw_flag = dm_drawflag_calc(scene->toolsettings);
+
+	// const int do_mod_mcol = true; // (ob->mode == OB_MODE_OBJECT);
+#if 0 /* XXX Will re-enable this when we have global mod stack options. */
+	const int do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
+#endif
+	const int do_final_wmcol = FALSE;
+	int do_init_wmcol = ((((Mesh *)ob->data)->drawflag & ME_DRAWEIGHT) && !do_final_wmcol);
 
 	modifiers_clearErrors(ob);
 
@@ -1991,6 +2019,10 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				if (deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
 					CDDM_calc_normals(dm);
+				}
+
+				if (do_init_wmcol) {
+					DM_update_weight_mcol(ob, dm, draw_flag, NULL, 0, NULL);
 				}
 			}
 
@@ -2089,11 +2121,19 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 #if 0	// was added for bmesh but is not needed
 		(*final_r)->calcNormals(*final_r);
 #endif
+
+		/* In this case, we should never have weight-modifying modifiers in stack... */
+		if (do_init_wmcol)
+			DM_update_weight_mcol(ob, *final_r, draw_flag, NULL, 0, NULL);
 	}
 	else {
 		/* this is just a copy of the editmesh, no need to calc normals */
 		*final_r = getEditDerivedBMesh(em, ob, deformedVerts);
 		deformedVerts = NULL;
+
+		/* In this case, we should never have weight-modifying modifiers in stack... */
+		if (do_init_wmcol)
+			DM_update_weight_mcol(ob, *final_r, draw_flag, NULL, 0, NULL);
 	}
 
 	/* --- */

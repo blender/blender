@@ -2554,6 +2554,8 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         mesh = context.active_object.data
 
+        layout.prop(mesh, "show_weight")
+
         split = layout.split()
 
         with_freestyle = context.scene and bpy.app.build_options.freestyle
@@ -2571,7 +2573,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         if not with_freestyle:
             col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural)
-        col.prop(mesh, "show_edge_bevel_weight", text="Weights")
+        col.prop(mesh, "show_edge_bevel_weight", text="Bevel")
         if with_freestyle:
             col.prop(mesh, "show_freestyle_edge_marks", text="Edge Marks")
             col.prop(mesh, "show_freestyle_face_marks", text="Face Marks")

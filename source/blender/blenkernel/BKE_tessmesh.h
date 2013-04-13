@@ -60,6 +60,8 @@ typedef struct BMEditMesh {
 	/*derivedmesh stuff*/
 	struct DerivedMesh *derivedFinal, *derivedCage;
 	CustomDataMask lastDataMask;
+	unsigned char (*derivedVertColor)[4];
+	int derivedVertColorLen;
 
 	/* index tables, to map indices to elements via
 	 * EDBM_index_arrays_init and associated functions.  don't
