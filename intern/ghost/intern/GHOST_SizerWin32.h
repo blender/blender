@@ -29,6 +29,8 @@
 #ifndef __GHOST_SIZERWIN32_H__
 #define __GHOST_SIZERWIN32_H__
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 class GHOST_SizerWin32
 {
