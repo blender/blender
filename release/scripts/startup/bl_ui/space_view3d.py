@@ -2594,13 +2594,17 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         sub.prop(context.scene.tool_settings, "normal_size", text="Size")
 
         col.separator()
-        col.label(text="Numerics:")
-        col.prop(mesh, "show_extra_edge_length")
-        col.prop(mesh, "show_extra_edge_angle")
-        col.prop(mesh, "show_extra_face_angle")
-        col.prop(mesh, "show_extra_face_area")
+        split = layout.split()
+        col = split.column()
+        col.label(text="Edge Info:")
+        col.prop(mesh, "show_extra_edge_length", text="Length")
+        col.prop(mesh, "show_extra_edge_angle", text="Angle")
+        col = split.column()
+        col.label(text="Face Info:")
+        col.prop(mesh, "show_extra_face_area", text="Area")
+        col.prop(mesh, "show_extra_face_angle", text="Angle")
         if bpy.app.debug:
-            col.prop(mesh, "show_extra_indices")
+            layout.prop(mesh, "show_extra_indices")
 
 
 class VIEW3D_PT_view3d_curvedisplay(Panel):
