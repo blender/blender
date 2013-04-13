@@ -79,7 +79,7 @@
 #include "BKE_sca.h"
 #include "BKE_softbody.h"
 #include "BKE_modifier.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"

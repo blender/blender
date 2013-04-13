@@ -47,7 +47,7 @@
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_report.h"
 
 #include "BLF_translation.h"

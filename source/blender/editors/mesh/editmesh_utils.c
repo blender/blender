@@ -42,7 +42,7 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "BKE_object.h"  /* XXX. only for EDBM_mesh_ensure_valid_dm_hack() which will be removed */
 

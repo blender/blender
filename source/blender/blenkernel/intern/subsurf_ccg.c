@@ -61,7 +61,7 @@
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "PIL_time.h"
 #include "BLI_array.h"

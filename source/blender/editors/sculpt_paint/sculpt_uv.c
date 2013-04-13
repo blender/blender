@@ -50,7 +50,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
 #include "BKE_customdata.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_screen.h"
 #include "ED_image.h"

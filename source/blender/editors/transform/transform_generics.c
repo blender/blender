@@ -77,7 +77,7 @@
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_sequencer.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 

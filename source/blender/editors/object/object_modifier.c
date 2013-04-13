@@ -70,7 +70,7 @@
 #include "BKE_ocean.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -60,7 +60,7 @@
 #include "WM_types.h"
 
 #include "DNA_object_types.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "UI_resources.h"
 
 #include "RNA_access.h"

@@ -45,7 +45,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_util.h"
 

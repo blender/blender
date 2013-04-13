@@ -58,7 +58,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_deform.h"

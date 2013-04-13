@@ -50,7 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_curve.h"
 
 #include "DNA_mesh_types.h"

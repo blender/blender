@@ -47,7 +47,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "BLI_array.h"
 #include "BLI_buffer.h"

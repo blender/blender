@@ -67,7 +67,7 @@
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BLI_edgehash.h"
 
 #include "bmesh.h"

@@ -74,7 +74,7 @@
 #include "BKE_scene.h"
 #include "BKE_colortools.h"
 
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

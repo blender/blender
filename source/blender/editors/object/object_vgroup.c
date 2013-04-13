@@ -60,7 +60,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_report.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object_deform.h"

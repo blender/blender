@@ -41,7 +41,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_freestyle.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"

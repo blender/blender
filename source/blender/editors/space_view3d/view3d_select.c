@@ -68,7 +68,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h"
 

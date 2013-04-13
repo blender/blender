@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BKE_TESSMESH_H__
-#define __BKE_TESSMESH_H__
+#ifndef __BKE_EDITMESH_H__
+#define __BKE_EDITMESH_H__
 
 #include "BKE_customdata.h"
 #include "bmesh.h"
@@ -91,4 +91,4 @@ BMEditMesh *BMEdit_FromObject(struct Object *ob);
 void BMEdit_Free(BMEditMesh *em);
 void BMEdit_UpdateLinkedCustomData(BMEditMesh *em);
 
-#endif /* __BKE_TESSMESH_H__ */
+#endif /* __BKE_EDITMESH_H__ */

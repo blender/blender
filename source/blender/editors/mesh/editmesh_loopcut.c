@@ -41,7 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "BIF_gl.h"
 

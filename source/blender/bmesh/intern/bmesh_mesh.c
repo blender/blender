@@ -36,7 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_multires.h"
 
 #include "intern/bmesh_private.h"

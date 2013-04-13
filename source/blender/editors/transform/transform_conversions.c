@@ -88,7 +88,7 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 

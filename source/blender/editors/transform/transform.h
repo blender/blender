@@ -40,7 +40,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_smallhash.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 /* ************************** Types ***************************** */
 

@@ -236,7 +236,7 @@ set(SRC
 	BKE_speaker.h
 	BKE_subsurf.h
 	BKE_suggestions.h
-	BKE_tessmesh.h
+	BKE_editmesh.h
 	BKE_text.h
 	BKE_texture.h
 	BKE_tracking.h

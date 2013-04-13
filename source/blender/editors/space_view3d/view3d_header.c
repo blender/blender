@@ -52,7 +52,7 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -57,7 +57,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_multires.h"
 
 #include "ED_mesh.h"

@@ -94,7 +94,7 @@
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"

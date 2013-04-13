@@ -38,7 +38,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_bmesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 /**
  * The main function for copying DerivedMesh data into BMesh.

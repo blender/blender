@@ -38,7 +38,7 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_bmesh.h"
 
 #include "bmesh.h"

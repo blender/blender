@@ -63,7 +63,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"

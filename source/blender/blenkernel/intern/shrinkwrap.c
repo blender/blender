@@ -54,7 +54,7 @@
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 /* for timing... */
 #if 0

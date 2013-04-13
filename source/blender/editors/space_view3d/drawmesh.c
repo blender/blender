@@ -56,7 +56,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_property.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_scene.h"
 
 #include "BIF_gl.h"

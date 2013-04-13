@@ -39,7 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_report.h"
 
 #include "MEM_guardedalloc.h"

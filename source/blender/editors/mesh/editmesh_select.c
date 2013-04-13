@@ -42,7 +42,7 @@
 #include "BKE_displist.h"
 #include "BKE_report.h"
 #include "BKE_paint.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

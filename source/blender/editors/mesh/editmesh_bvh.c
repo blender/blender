@@ -40,7 +40,7 @@
 #include "BLI_smallhash.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_view3d.h"
 

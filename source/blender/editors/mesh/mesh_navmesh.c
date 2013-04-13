@@ -43,7 +43,7 @@
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_report.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_object.h"
 #include "ED_mesh.h"

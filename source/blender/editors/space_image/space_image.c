@@ -46,7 +46,7 @@
 #include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_sequencer.h"
 #include "BKE_node.h"
 

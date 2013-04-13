@@ -49,7 +49,7 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_image.h"
 #include "ED_uvedit.h"

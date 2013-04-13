@@ -45,7 +45,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"

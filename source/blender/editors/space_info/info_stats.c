@@ -53,7 +53,7 @@
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "ED_info.h"
 #include "ED_armature.h"

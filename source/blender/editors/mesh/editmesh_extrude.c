@@ -37,7 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"

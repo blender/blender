@@ -57,7 +57,7 @@
 #include "BKE_object.h"
 #include "BKE_anim.h"  /* for duplis */
 #include "BKE_context.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 
 #include "RNA_access.h"

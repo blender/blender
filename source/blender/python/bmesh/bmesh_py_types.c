@@ -3772,7 +3772,7 @@ char *BPy_BMElem_StringFromHType(const char htype)
 
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"

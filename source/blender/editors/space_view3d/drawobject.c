@@ -71,7 +71,7 @@
 #include "BKE_unit.h"
 #include "BKE_tracking.h"
 
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

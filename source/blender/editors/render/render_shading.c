@@ -66,7 +66,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

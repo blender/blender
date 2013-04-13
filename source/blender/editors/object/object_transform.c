@@ -54,7 +54,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_tessmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 #include "BKE_lattice.h"
