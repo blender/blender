@@ -86,6 +86,14 @@ public:
 	);
 
 		void
+	SetFullScreen(
+		bool enable
+	);
+
+		bool
+	GetFullScreen();
+
+		void
 	BeginFrame(
 	);
 

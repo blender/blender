@@ -232,6 +232,16 @@ public:
 		int height
 	)=0;
 
+	virtual
+		void
+	SetFullScreen(
+		bool enable
+	)=0;
+
+	virtual
+		bool
+	GetFullScreen()=0;
+
 		
 	
 protected:

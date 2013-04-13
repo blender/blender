@@ -61,6 +61,8 @@ public:
 	virtual float GetMouseNormalizedY(int y);
 
 	virtual void ResizeWindow(int width, int height);
+	virtual void SetFullScreen(bool enable);
+	virtual bool GetFullScreen();
 
 	bool BeginDraw() { return true; }
 	void EndDraw() {};

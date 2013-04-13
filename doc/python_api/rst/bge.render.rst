@@ -86,6 +86,17 @@ Functions
    :type width: integer
    :type height: integer
 
+.. function:: setFullScreen(enable)
+
+   Set whether or not the window should be fullscreen.
+   
+   :type enable: bool
+
+.. function:: getFullScreen()
+
+   Returns whether or not the window is fullscreen.
+   
+   :rtype: bool
 
 .. function:: makeScreenshot(filename)
 

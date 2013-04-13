@@ -70,6 +70,17 @@ void KX_BlenderCanvas::ResizeWindow(int width, int height)
 	// Not implemented for the embedded player
 }
 
+void KX_BlenderCanvas::SetFullScreen(bool enable)
+{
+	// Not implemented for the embedded player
+}
+
+bool KX_BlenderCanvas::GetFullScreen()
+{
+	// Not implemented for the embedded player
+	return false;
+}
+
 void KX_BlenderCanvas::BeginFrame()
 {
 	glEnable(GL_DEPTH_TEST);

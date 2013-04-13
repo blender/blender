@@ -1327,6 +1327,17 @@ static PyObject *gPySetWindowSize(PyObject *, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+static PyObject *gPySetFullScreen(PyObject *, PyObject *value)
+{
+	gp_Canvas->SetFullScreen(PyObject_IsTrue(value));
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyGetFullScreen(PyObject *)
+{
+	return PyBool_FromLong(gp_Canvas->GetFullScreen());
+}
+
 static struct PyMethodDef rasterizer_methods[] = {
 	{"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
 	 METH_VARARGS, "getWindowWidth doc"},
@@ -1368,6 +1379,8 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"drawLine", (PyCFunction) gPyDrawLine,
 	 METH_VARARGS, "draw a line on the screen"},
 	{"setWindowSize", (PyCFunction) gPySetWindowSize, METH_VARARGS, ""},
+	{"setFullScreen", (PyCFunction) gPySetFullScreen, METH_O, ""},
+	{"getFullScreen", (PyCFunction) gPyGetFullScreen, METH_NOARGS, ""},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 

@@ -128,6 +128,19 @@ void GPG_Canvas::ResizeWindow(int width, int height)
 	Resize(width, height);
 }
 
+void GPG_Canvas::SetFullScreen(bool enable)
+{
+	if (enable)
+		m_window->setState(GHOST_kWindowStateFullScreen);
+	else
+		m_window->setState(GHOST_kWindowStateNormal);
+}
+
+bool GPG_Canvas::GetFullScreen()
+{
+	return m_window->getState() == GHOST_kWindowStateFullScreen;
+}
+
 float GPG_Canvas::GetMouseNormalizedX(int x)
 {
 	return float(x)/this->GetWidth();
