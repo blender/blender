@@ -306,6 +306,15 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_UI;
 	ar->alignment = RGN_ALIGN_RIGHT;
 
+	/* toolbar */
+	ar = MEM_callocN(sizeof(ARegion), "node tools");
+
+	BLI_addtail(&snode->regionbase, ar);
+	ar->regiontype = RGN_TYPE_TOOLS;
+	ar->alignment = RGN_ALIGN_LEFT;
+
+	ar->flag = RGN_FLAG_HIDDEN;
+
 	/* main area */
 	ar = MEM_callocN(sizeof(ARegion), "main area for node");
 
