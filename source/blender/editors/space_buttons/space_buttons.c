@@ -343,6 +343,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_BRUSH:
 			buttons_area_redraw(sa, BCONTEXT_TEXTURE);
+			sbuts->preview = 1;
 			break;
 		case NC_TEXTURE:
 		case NC_IMAGE:
