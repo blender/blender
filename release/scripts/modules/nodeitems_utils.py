@@ -91,6 +91,7 @@ def register_node_ui():
             "bl_space_type" : 'NODE_EDITOR',
             "bl_region_type" : 'TOOLS',
             "bl_label" : cat.name,
+            "bl_options" : {'DEFAULT_CLOSED'},
             "category" : cat,
             "poll" : cat.poll,
             "draw" : draw_node_item,
