@@ -137,7 +137,7 @@ std_node_categories = [
         NodeItem("ShaderNodeBsdfAnisotropic"),
         NodeItem("ShaderNodeBackground"),
         NodeItem("ShaderNodeBsdfVelvet"),
-        NodeItem("ShaderNodeSubsurfaceScatter"),
+        NodeItem("ShaderNodeSubsurfaceScattering"),
         NodeItem("ShaderNodeHoldout"),
         NodeItem("ShaderNodeAmbientOcclusion"),
         ]),
