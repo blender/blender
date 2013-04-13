@@ -72,7 +72,7 @@ typedef enum PaintMode {
 #define PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY 2
 #define PAINT_INVALID_OVERLAY_CURVE 4
 
-void BKE_paint_invalidate_overlay_tex (struct Scene *scene,const struct Tex *tex);
+void BKE_paint_invalidate_overlay_tex (struct Scene *scene, const struct Tex *tex);
 void BKE_paint_invalidate_cursor_overlay (struct Scene *scene, struct CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
 int BKE_paint_get_overlay_flags (void);

@@ -29,7 +29,8 @@
  *  \ingroup bke
  */
 
-
+#include <stdlib.h>
+#include <string.h>
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
@@ -50,9 +51,6 @@
 #include "BKE_subsurf.h"
 
 #include "bmesh.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
 const char PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
@@ -81,18 +79,20 @@ void BKE_paint_invalidate_cursor_overlay (Scene *scene, CurveMapping *curve)
 		overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
 }
 
-void BKE_paint_invalidate_overlay_all()
+void BKE_paint_invalidate_overlay_all(void)
 {
-	overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
-	overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
-	overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
+	overlay_flags |= (PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY |
+	                  PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY |
+	                  PAINT_INVALID_OVERLAY_CURVE);
 }
 
-int BKE_paint_get_overlay_flags () {
+int BKE_paint_get_overlay_flags(void)
+{
 	return overlay_flags;
 }
 
-void BKE_paint_reset_overlay_invalid (void) {
+void BKE_paint_reset_overlay_invalid(void)
+{
 	overlay_flags &= ~(PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY |
 	                   PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY |
 	                   PAINT_INVALID_OVERLAY_CURVE);

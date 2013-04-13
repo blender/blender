@@ -258,7 +258,8 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 	}
 }
 
-void rna_TextureSlot_brush_update(Main *bmain, Scene *scene, PointerRNA *ptr) {
+void rna_TextureSlot_brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
 	ID *id = ptr->id.data;
 
 	DAG_id_tag_update(id, 0);

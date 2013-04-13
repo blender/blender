@@ -108,7 +108,7 @@ void GPU_extensions_disable(void)
 	GG.extdisabled = 1;
 }
 
-int GPU_max_texture_size ()
+int GPU_max_texture_size(void)
 {
 	return GG.maxtexsize;
 }

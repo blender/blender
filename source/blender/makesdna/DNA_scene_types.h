@@ -920,18 +920,18 @@ typedef struct UnifiedPaintSettings {
 } UnifiedPaintSettings;
 
 typedef enum {
-	UNIFIED_PAINT_SIZE  = (1<<0),
-	UNIFIED_PAINT_ALPHA = (1<<1),
-	UNIFIED_PAINT_WEIGHT = (1<<5),
+	UNIFIED_PAINT_SIZE  = (1 << 0),
+	UNIFIED_PAINT_ALPHA = (1 << 1),
+	UNIFIED_PAINT_WEIGHT = (1 << 5),
 
 	/* only used if unified size is enabled, mirros the brush flags
 	 * BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
-	UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1<<2),
-	UNIFIED_PAINT_BRUSH_SIZE_PRESSURE   = (1<<3),
+	UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
+	UNIFIED_PAINT_BRUSH_SIZE_PRESSURE   = (1 << 3),
 
 	/* only used if unified alpha is enabled, mirrors the brush flag
 	 * BRUSH_ALPHA_PRESSURE */
-	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1<<4)
+	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1 << 4)
 } UnifiedPaintSettingsFlags;
 
 /* *************************************************************** */
@@ -1508,24 +1508,24 @@ typedef enum {
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {
-	SCULPT_SYMM_X = (1<<0),
-	SCULPT_SYMM_Y = (1<<1),
-	SCULPT_SYMM_Z = (1<<2),
-	SCULPT_LOCK_X = (1<<3),
-	SCULPT_LOCK_Y = (1<<4),
-	SCULPT_LOCK_Z = (1<<5),
-	SCULPT_SYMMETRY_FEATHER = (1<<6),
-	SCULPT_USE_OPENMP = (1<<7),
-	SCULPT_ONLY_DEFORM = (1<<8),
-	SCULPT_SHOW_DIFFUSE = (1<<9),
+	SCULPT_SYMM_X = (1 << 0),
+	SCULPT_SYMM_Y = (1 << 1),
+	SCULPT_SYMM_Z = (1 << 2),
+	SCULPT_LOCK_X = (1 << 3),
+	SCULPT_LOCK_Y = (1 << 4),
+	SCULPT_LOCK_Z = (1 << 5),
+	SCULPT_SYMMETRY_FEATHER = (1 << 6),
+	SCULPT_USE_OPENMP = (1 << 7),
+	SCULPT_ONLY_DEFORM = (1 << 8),
+	SCULPT_SHOW_DIFFUSE = (1 << 9),
 
 	/* If set, the mesh will be drawn with smooth-shading in
 	 * dynamic-topology mode */
-	SCULPT_DYNTOPO_SMOOTH_SHADING = (1<<10),
+	SCULPT_DYNTOPO_SMOOTH_SHADING = (1 << 10),
 
 	/* If set, dynamic-topology brushes will collapse short edges in
 	 * addition to subdividing long ones */
-	SCULPT_DYNTOPO_COLLAPSE = (1<<11)
+	SCULPT_DYNTOPO_COLLAPSE = (1 << 11)
 } SculptFlags;
 
 /* ImagePaintSettings.flag */

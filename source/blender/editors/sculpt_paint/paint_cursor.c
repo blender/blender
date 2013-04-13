@@ -88,7 +88,7 @@ static int same_tex_snap(TexSnapshot *snap, Brush *brush, ViewContext *vc)
 	        //(mtex->brush_map_mode != MTEX_MAP_MODE_VIEW ||
 	        //(BKE_brush_size_get(vc->scene, brush) <= snap->BKE_brush_size_get)) &&
 
-			(mtex->brush_map_mode != MTEX_MAP_MODE_TILED ||
+	        (mtex->brush_map_mode != MTEX_MAP_MODE_TILED ||
 	        (vc->ar->winx == snap->winx &&
 	        vc->ar->winy == snap->winy))
 	        );
@@ -230,8 +230,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 							paint_get_tex_pixel_col(&br->mtex, x, y, rgba, pool);
 
 						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
-							float curve_str = BKE_brush_curve_strength(br, len, 1);
-							CLAMP(curve_str, 0.0, 1.0);
+							float curve_str = BKE_brush_curve_strength(br, len, 1.0f);
+							CLAMP(curve_str, 0.0f, 1.0f);
 							mul_v4_fl(rgba, curve_str);  /* Falloff curve */
 						}
 						buffer[index * 4]     = rgba[0] * 255;
@@ -245,10 +245,10 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 						avg += br->texture_sample_bias;
 
 						if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
-							avg *= BKE_brush_curve_strength(br, len, 1);  /* Falloff curve */
+							avg *= BKE_brush_curve_strength(br, len, 1.0f);  /* Falloff curve */
 
 						/* clamp to avoid precision overflow */
-						CLAMP(avg, 0.0, 1.0);
+						CLAMP(avg, 0.0f, 1.0f);
 						buffer[index] = 255 - (GLubyte)(255 * avg);
 					}
 				}

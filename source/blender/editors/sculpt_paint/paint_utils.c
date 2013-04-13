@@ -206,10 +206,10 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 		rgba[2] = intensity;
 		rgba[3] = 1.0f;
 	}
-	CLAMP(rgba[0], 0.0, 1.0);
-	CLAMP(rgba[1], 0.0, 1.0);
-	CLAMP(rgba[2], 0.0, 1.0);
-	CLAMP(rgba[3], 0.0, 1.0);
+	CLAMP(rgba[0], 0.0f, 1.0f);
+	CLAMP(rgba[1], 0.0f, 1.0f);
+	CLAMP(rgba[2], 0.0f, 1.0f);
+	CLAMP(rgba[3], 0.0f, 1.0f);
 }
 
 /* 3D Paint */
