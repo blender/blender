@@ -1350,7 +1350,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Shade Flat";
-	ot->description = "Render faces with uniform shading (using Face Normals)";
+	ot->description = "Render and display faces uniform, using Face Normals";
 	ot->idname = "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
@@ -1365,7 +1365,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Shade Smooth";
-	ot->description = "Render faces with gradient shading (using Vertex Normals)";
+	ot->description = "Render and display faces smooth, using interpolated Vertex Normals";
 	ot->idname = "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
