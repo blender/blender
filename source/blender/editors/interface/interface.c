@@ -3617,13 +3617,13 @@ void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2
 	block->func_arg2 = arg2;
 }
 
-void uiBlockSetNFunc(uiBlock *block, uiButHandleFunc func, void *argN, void *arg2)
+void uiBlockSetNFunc(uiBlock *block, uiButHandleNFunc funcN, void *argN, void *arg2)
 {
 	if (block->func_argN) {
 		MEM_freeN(block->func_argN);
 	}
 
-	block->funcN = func;
+	block->funcN = funcN;
 	block->func_argN = argN;
 	block->func_arg2 = arg2;
 }

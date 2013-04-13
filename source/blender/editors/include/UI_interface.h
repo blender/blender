@@ -630,11 +630,11 @@ int     uiSearchBoxWidth(void);
 void    uiBlockSetHandleFunc(uiBlock *block,    uiBlockHandleFunc func, void *arg);
 void    uiBlockSetButmFunc(uiBlock *block,    uiMenuHandleFunc func, void *arg);
 void    uiBlockSetFunc(uiBlock *block,    uiButHandleFunc func, void *arg1, void *arg2);
-void    uiBlockSetNFunc(uiBlock *block,    uiButHandleFunc func, void *argN, void *arg2);
+void    uiBlockSetNFunc(uiBlock *block,    uiButHandleNFunc funcN, void *argN, void *arg2);
 
 void    uiButSetRenameFunc(uiBut *but,        uiButHandleRenameFunc func, void *arg1);
 void    uiButSetFunc(uiBut *but,        uiButHandleFunc func, void *arg1, void *arg2);
-void    uiButSetNFunc(uiBut *but,        uiButHandleNFunc func, void *argN, void *arg2);
+void    uiButSetNFunc(uiBut *but,        uiButHandleNFunc funcN, void *argN, void *arg2);
 
 void    uiButSetCompleteFunc(uiBut *but,        uiButCompleteFunc func, void *arg);
 
