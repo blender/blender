@@ -1196,10 +1196,13 @@ static int set_addons(int argc, const char **argv, void *data)
 	}
 }
 
-static int test_file(int UNUSED(argc), const char **argv, void *data)
+#if 0
+static int test_file(int UNUSED(argc), const char **argv, void *UNUSED(data))
 {
 	printf("path is %s\n", argv[0]);
+	return 1;
 }
+#endif
 
 static int load_file(int UNUSED(argc), const char **argv, void *data)
 {
