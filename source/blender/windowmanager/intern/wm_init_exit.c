@@ -223,7 +223,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	/* load last session, uses regular file reading so it has to be in end (after init py etc) */
 	if (U.uiflag2 & USER_KEEP_SESSION) {
-		wm_recover_last_session(C, NULL);
+		/* calling WM_recover_last_session(C, NULL) has been moved to creator.c */
+		/* that prevents loading both the kept session, and the file on the command line */
 	}
 	else {
 		/* normally 'wm_homefile_read' will do this,

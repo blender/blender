@@ -1196,6 +1196,11 @@ static int set_addons(int argc, const char **argv, void *data)
 	}
 }
 
+static int test_file(int UNUSED(argc), const char **argv, void *data)
+{
+	printf("path is %s\n", argv[0]);
+}
+
 static int load_file(int UNUSED(argc), const char **argv, void *data)
 {
 	bContext *C = data;
@@ -1604,6 +1609,13 @@ int main(int argc, const char **argv)
 	/* OK we are ready for it */
 #ifndef WITH_PYTHON_MODULE
 	BLI_argsParse(ba, 4, load_file, C);
+	
+	if (G.background == 0) {
+		if (!G.file_loaded)
+			if (U.uiflag2 & USER_KEEP_SESSION)
+				WM_recover_last_session(C, NULL);
+	}
+
 #endif
 
 #ifndef WITH_PYTHON_MODULE

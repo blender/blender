@@ -113,6 +113,7 @@ bool		WM_is_draw_triple(struct wmWindow *win);
 			/* files */
 void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
 void		WM_autosave_init(struct wmWindowManager *wm);
+void		WM_recover_last_session(struct bContext *C, struct ReportList *reports);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);

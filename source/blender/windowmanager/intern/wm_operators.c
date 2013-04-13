@@ -2237,7 +2237,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 
 /* *************** recover last session **************** */
 
-void wm_recover_last_session(bContext *C, ReportList *reports)
+void WM_recover_last_session(bContext *C, ReportList *reports)
 {
 	char filename[FILE_MAX];
 	
@@ -2268,7 +2268,7 @@ void wm_recover_last_session(bContext *C, ReportList *reports)
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
-	wm_recover_last_session(C, op->reports);
+	WM_recover_last_session(C, op->reports);
 	return OPERATOR_FINISHED;
 }
 
