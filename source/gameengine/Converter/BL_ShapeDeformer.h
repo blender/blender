@@ -65,7 +65,6 @@ public:
 	bool ExecuteShapeDrivers(void);
 
 	struct Key *GetKey();
-	void SetKey(struct Key *key);
 
 	void ForceUpdate()
 	{
