@@ -1900,7 +1900,7 @@ static void bevel_list_flip_tangents(BevList *bl)
 
 	nr = bl->nr;
 	while (nr--) {
-		if (RAD2DEGF(angle_v2v2(bevp0->tan, bevp1->tan)) > 90.0f)
+		if (angle_normalized_v3v3(bevp0->tan, bevp1->tan) > DEG2RADF(90.0f))
 			negate_v3(bevp1->tan);
 
 		bevp0 = bevp1;
