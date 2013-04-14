@@ -37,61 +37,68 @@
 
 #include "BLI_math.h"
 
+/* copied from BLI_utildefines.h */
+#ifdef __GNUC__
+#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define UNLIKELY(x)     (x)
+#endif
+
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER  1.e-8f
 
 MINLINE float sqrt3f(float f)
 {
-	if (f == 0.0f) return 0.0f;
-	if (f < 0) return (float)(-exp(log(-f) / 3));
-	else return (float)(exp(log(f) / 3));
+	if      (UNLIKELY(f == 0.0f)) return 0.0f;
+	else if (UNLIKELY(f <  0.0f)) return -(float)(exp(log(-f) / 3.0));
+	else                          return  (float)(exp(log( f) / 3.0));
 }
 
 MINLINE double sqrt3d(double d)
 {
-	if (d == 0.0) return 0;
-	if (d < 0) return -exp(log(-d) / 3);
-	else return exp(log(d) / 3);
+	if      (UNLIKELY(d == 0.0)) return 0.0;
+	else if (UNLIKELY(d <  0.0)) return -exp(log(-d) / 3.0);
+	else                         return  exp(log( d) / 3.0);
 }
 
 MINLINE float saacos(float fac)
 {
-	if (fac <= -1.0f) return (float)M_PI;
-	else if (fac >= 1.0f) return 0.0;
-	else return acosf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) return (float)M_PI;
+	else if (UNLIKELY(fac >=  1.0f)) return 0.0f;
+	else                             return acosf(fac);
 }
 
 MINLINE float saasin(float fac)
 {
-	if (fac <= -1.0f) return (float)-M_PI / 2.0f;
-	else if (fac >= 1.0f) return (float)M_PI / 2.0f;
-	else return asinf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) return (float)-M_PI / 2.0f;
+	else if (UNLIKELY(fac >=  1.0f)) return (float) M_PI / 2.0f;
+	else                             return asinf(fac);
 }
 
 MINLINE float sasqrt(float fac)
 {
-	if (fac <= 0.0f) return 0.0f;
-	return sqrtf(fac);
+	if (UNLIKELY(fac <= 0.0f)) return 0.0f;
+	else                       return sqrtf(fac);
 }
 
 MINLINE float saacosf(float fac)
 {
-	if (fac <= -1.0f) return (float)M_PI;
-	else if (fac >= 1.0f) return 0.0f;
-	else return acosf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) return (float)M_PI;
+	else if (UNLIKELY(fac >=  1.0f)) return 0.0f;
+	else                             return acosf(fac);
 }
 
 MINLINE float saasinf(float fac)
 {
-	if (fac <= -1.0f) return (float)-M_PI / 2.0f;
-	else if (fac >= 1.0f) return (float)M_PI / 2.0f;
-	else return asinf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) return (float)-M_PI / 2.0f;
+	else if (UNLIKELY(fac >=  1.0f)) return (float) M_PI / 2.0f;
+	else                             return asinf(fac);
 }
 
 MINLINE float sasqrtf(float fac)
 {
-	if (fac <= 0.0f) return 0.0f;
-	return sqrtf(fac);
+	if (UNLIKELY(fac <= 0.0f)) return 0.0f;
+	else                       return sqrtf(fac);
 }
 
 MINLINE float interpf(float target, float origin, float fac)
@@ -105,7 +112,7 @@ MINLINE float interpf(float target, float origin, float fac)
  * the distance gets very high, 180d would be inf, but this case isn't valid */
 MINLINE float shell_angle_to_dist(const float angle)
 {
-	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle));
+	return (UNLIKELY(angle < SMALL_NUMBER)) ? 1.0f : fabsf(1.0f / cosf(angle));
 }
 
 /* used for zoom values*/
