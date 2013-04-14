@@ -1,3 +1,199 @@
+commit 03cbc88ce7f51aa26ba503acea2e984bcb78873c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 15 05:35:33 2013 +0600
+
+    Fix for bundle adjusting with motion restricted
+    
+    Was a bug introduced in previous commit, which
+    was trying to set parameterization for non-existing
+    camera->t parameter block.
+    
+    Replaced with subset parameterization.
+    
+    Also added basic synthetic unit test for modal solver.
+
+commit c78a68f980e778d40ce836fa1d7471cb7264d4a0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 23:33:20 2013 +0600
+
+     Bundle adjustment improvements
+    
+    - Get rid of rotation matrix parameterization,
+      use angle-axis instead.
+    
+      Also Joined rotation and translation into
+      a single parameter block.
+    
+      This made minimization go significantly faster,
+      like 1.3x times in average.
+    
+    - Fix first camera when bundling. This is to
+      address orientation ambiguity.
+    
+      Reconstruction result could still vary in
+      size, but that's another issue to be addressed
+      later.
+    
+    Additional change:
+    
+    Split EuclideanBundleCommonIntrinsics into
+    smaller functions, so it's now a bit easier
+    to follow.
+
+commit 28c7566629c2cf5b03a787c9509856e87472eb2f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 23:31:57 2013 +0600
+
+    Update Ceres to current HEAD
+    
+    Brings up some noticeable speed improvements. In particular
+    the automatic differentiation and bundle adjustment solvers.
+
+commit efde9faa21e70b031d3cbcb2dcdcd38e597bf56e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 02:21:26 2013 +0600
+
+    Corrected path to gflags
+    
+    Currently tools/track.cc is not used, but let's
+    keep things a bit more up-to-date :)
+
+commit f8b5ea196fb00ab07d577e9738a60cdd1de16509
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 02:17:16 2013 +0600
+
+    Re-enable tests for multiview and image
+    
+    For as long code is in repo and used by some tools
+    better to have it covered by tests.
+    
+    Some of them are failing tho, but that's completely
+    different story to be addressed later.
+
+commit d2a7ee60a5845738f76b88bfc373eefc2cc8501a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 02:10:07 2013 +0600
+
+    Do not modify cache's CMAKE_CXX_FLAGS_RELEASE when configuring Ceres
+    
+    Otherwise you'll have infinite appending of Ceres-specific flags
+    on every saving of any CmakeLists.txt.
+
+commit 45edb507bf46194dd55b7fc46a7d90ee3853834d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sun Apr 7 21:53:23 2013 +0600
+
+    Fixed compilation with BUILD_TOOLS enabled
+    
+    This commit mainly reverts parts of following commits:
+        0eebc21db831211738acc938566bbc29d68d45db
+        d8109b7a4fede1660e0dbd73735f1a9e3fd79eec
+        e59595806c045916ab4ef15ef7047c1a728b2da9
+        2d6cd58ee1cd7c5073980f358c71b2898ad16b4c
+    
+    They declared  lots of stuff deprecated, but in
+    fact it's not deprecated just a bit different
+    usage pipeline. Anyway, deprecation shall not
+    happen spontaneously as a part of other changes.
+    And for sure shall not break anything.
+
+commit 7a9c83d3ccaa2f0015f88b9156d7662c46244b4a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 20:49:05 2013 +0600
+
+    Revert "Change libmv's bilinear sampling to assume the same"
+    
+    Revert changes to bilinear sampler which were originally
+    aimed to match blender's pixel center (where integer coord
+    is a left-bottom corner, x.5 coords are centers.
+    
+    The reason of revert is changing this assumption in only
+    sampler didn't work well and lead to wrong results of
+    BlurredImageAndDerivativesChannels for example.
+    
+    Discovered when was doing unit-tests for brute region tracker.
+    
+    This reverts commit daa354c0735b954b0cd7725626e9a3d67416d46b.
+
+commit 15f3bb00340933ce753a1a55e9cde9383352e259
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 18:37:37 2013 +0600
+
+    Added basic test for brute region tracker
+    
+    It is failing at this moment and this is caused because
+    of how SampleLinear works - seems it's assumption about
+    pixel center is not correct for internal sampling.
+
+commit 1146602972c07e99a9e4ab37d35ac83aec490e60
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 16:54:08 2013 +0600
+
+    Tweak to KLT region tracker test
+    
+    KLT is usually used to track relatively small
+    motions, and in this case motion almost equals
+    to half window size. This confuses math and
+    leads to not so much expected result.
+    
+    Further, not actually sure this is nice idea
+    to use KLT in such synthetic case.
+
+commit 1e22cbcac480863b6b5abc5c85f23dc70748933a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 16:40:59 2013 +0600
+
+    Pyramid tracker unit test fix
+    
+    Issue was caused by trackers modifying guessed
+    point location even in case of failure. So made
+    id so both level 0 and level 3 of pyramid are
+    starting from the same initial guessed location.
+    
+    Modifying locations in case tracker returns false
+    is not actually a bug - someone could still want
+    to use that location. False in this case  means
+    more like "returned location is not so much
+    accurate".
+
+commit 3ad5e0efa071f202ee7c2034d70dd97aa62b13aa
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 00:38:40 2013 +0600
+
+    Intersect unit test fix
+    
+    EuclideanIntersect is not aware of camera calibration
+    matrix yet and always assumes it to be an identity.
+    
+    So using non-identity matrix to construct sample case
+    leads to wrong projection results.
+    
+    For now made it so test case uses identity matrix for
+    calibration.
+    
+    Also fixed variable shadowing which lead to wrong
+    markers positions (were either zero or undefined).
+
+commit 3a153c2b65f38653a36c36975018f68d42d60670
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 00:12:12 2013 +0600
+
+    Camera intrinsics unit tests fixes
+    
+    - Existing test ApplyIsInvertibleSimple was not
+      doing right thing - distortion model used there
+      was ininvertible.
+    
+      Tweaked parameters in a way model is invertible now.
+    
+    - Added some own tests which tests;
+    
+      * Principal point always maps from pixel space to
+        zero normalized position.
+    
+      * Some basic tests to check whether individual
+        apply/invert works correct.
+
 commit e3b2bccba6145290738a6677c14f7369ec7a38cd
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 4 02:59:58 2013 +0600
@@ -495,207 +691,3 @@ Date:   Thu Dec 6 17:47:11 2012 +0600
     
     But anyway, imo it's now nice to have a structure which could
     be used to pass different settings to the solver.
-
-commit 5a23d01dd531d1e0798298d17ba42a3397effb82
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Sep 20 18:55:44 2012 +0000
-
-    Make Euclidean resection "always" succeed.
-    
-    The Euclidean resection code had a magical constant, 1e-3, used to
-    compare the results of solving an equation. This failure detection
-    was well-intended, trying to prevent poor solutions from getting
-    made without notifying the caller. Unfortunately in practice, this
-    threshold is too conservative. Furthermore, it is not clear the
-    threshold should exist at all; the purpose of the Euclidean
-    resection is to come up with the best solution it can; other
-    methods (e.g. reprojection error) should be used to compare
-    whether the method succeeded.
-    
-    This commit changes the Euclidean EPnP code to always succeed,
-    causing the previous fallback to projective resection to never
-    run. In most cases, this will result in better reconstructions.
-    
-    This should, in most cases, fix the dreaded "flipping" problem.
-
-commit 57dad861d2a7f9d058c6d8edde1a2d51d7225a51
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Sep 20 02:27:34 2012 +0000
-
-    Fix variable naming in the planar tracker.
-
-commit e9392fd3b46f5668662935696e7d9afac3390ca4
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Sep 20 02:10:33 2012 +0000
-
-    Add smarter tolerance checking in the planar tracker.
-    
-    The planar tracker uses Ceres for the refinement stage. During
-    refinement, Ceres iteratively updates the parameters with the
-    latest best guess. If the change in the parameters falls below a
-    threshold, Ceres will abort successfully ("converged").
-    
-    For the case of pure translation tracking, the parameters are
-    exactly the two pixel shifts (dx, dy), and measuring the change in
-    these parameters gives a meaningful termination criterion.
-    However, for all the other parameterizations like affine, where
-    the parameterization involves affine parameters that have no
-    physical interpretation, Ceres is left with no way to terminate
-    the solver early. With the existing code, often many iterations
-    are run long after Ceres has found a solution sufficiently
-    accurate for all tracking needs. No one needs tracking with
-    a quadrillionth of a pixel accuracy; that time is wasted.
-    
-    This patch extends the existing iteration callback that is passed
-    in to Ceres to check if the pattern has fallen out of the search
-    window, to also check if the optimizer has made a tiny step. In
-    particular, if the maximum shift of any patch corner between two
-    successful optimizer steps is less than a threshold (currently
-    0.005 pixels), the track is declared successful and tracking
-    is terminated.
-    
-    This leads to dramatic speed increases in some cases, with little
-    to no loss in track quality. This is especially apparent when
-    tracking patches with affine or perspective motion models. For
-    example, on some tracking cases I tried, the iterations Ceres took
-    went from 50 to 3.
-
-commit 36729c19bf90cb767e9adb96ba7dd48a5ace2be1
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Sep 19 22:25:02 2012 +0000
-
-    Detect too-small planar tracking patches.
-    
-    The planar tracker did not detect very skinny patches which have
-    effectively zero area and are untrackable. This adds detection and
-    rejection of patterns with zero area. This fixes a crash found by
-    during Mango production.
-
-commit 5cf2bae255a5a0f2e36ea0516670782cb88b589d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 17:33:53 2012 +0600
-
-    Real fix for previous commit from Keir. He's comment;
-    
-    Cleanup for when trackers fall out of the search window.
-    
-    Sergey originally left a TODO() here, but his fix is the correct
-    one. I removed the TODO and fixed some comment issues.
-
-commit a11533918720e5b43dc1e95895db0eb36c8c06aa
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 17:31:16 2012 +0600
-
-    Fix crash when tracking in planar motion model (and maybe some other)
-    
-    It was an Abort() caused by check for solver result not equal to USER_ABORT.
-    
-    In some cases solver returns USER_ABORT due to BoundaryCheckingCallback
-    detects coordinates does not belong to image.
-    
-    Somehow this callback wasn't called in previous version of Ceres and
-    in the same case marker was jumping. Now when the callback is called
-    it seems we could simply return failure of tracking without aborting
-    Blender.
-    
-    Probably this is in fact some issue somewhere else, would double
-    check with Keir about this.
-
-commit 4be2306bcc664b259aaf7068b9f32ab60124a509
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 17:29:39 2012 +0600
-
-    Resolved some compilation warnings (missed prototypes)
-    
-    In some cases it was missed include of header file, in some other
-    cases symbol could be static.
-
-commit bef729ba5c12683d13584d2a728b8b6506b7ca90
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 17:27:17 2012 +0600
-
-    Code cleanup: silence some -Wnarrowing warnings from C++11
-
-commit add1415d896818367087c784a3013dd8f1bb2095
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 17:25:18 2012 +0600
-
-    Changes to SamplePlanarPatch to support mask input and
-    added output for pattern center.
-
-commit daa354c0735b954b0cd7725626e9a3d67416d46b
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Jun 9 19:22:39 2012 +0000
-
-    Change libmv's bilinear sampling to assume the same
-    pixel conventions as Blender. This fixes the preview
-    widget in Blender, and should make tracking slightly
-    more accurate.
-
-commit 99b6222873fbfbe248316316956720376a58f438
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Jun 9 18:58:51 2012 +0000
-
-    Add new warp regularization scheme for planar tracking.
-    
-    This adds a new term to the tracking cost function that
-    restricts how much the optimizer can warp the patch (as
-    opposed to merely adjusting the translation). This should
-    reduce the "jumpiness" that is sometimes seen when doing
-    non-"Loc" tracks.
-    
-    It is disabled in this commit; a subsequent commit will add
-    controls to the tracking dialog for this.
-
-commit a1c5a70badd11cba0470700bad2eac2b2bd30c86
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Jun 9 06:55:21 2012 +0000
-
-    Planar tracker polish.
-    
-    - Fixes the correlation checking code that was broken in the
-      previous commit. The bug was a transpose error.
-    - Fixes a memory leak of the warp functor, found by Sameer.
-    - Various cleanups done at Sameer's suggestion.
-    
-    Thanks to Sameer Agarwal for a code review.
-
-commit 2cb784caa854a77cdd43620ab133f26b87ed0d83
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Jun 8 17:42:17 2012 +0000
-
-    Make planar tracking much faster.
-    
-    - This makes planar tracking around 2-3x or more faster than
-      before, by rearranging how the sampling is done.
-      Previously, the source patch was sampled repeatedly on
-      every optimizer iteration; this was done for
-      implementation speed, but was wasteful in computation.
-    
-    - This also contains some additions to Ceres to help
-      deailing with mixed numeric / automatic differentation. In
-      particular, there is now a "Chain::Rule" operator that
-      facilitates calling a function that takes Jet arguments,
-      yet does numeric derivatives internally. This is used to
-      mix the numeric differentation of the images with the warp
-      parameters, passed as jets by Ceres to the warp functor.
-    
-      There is also a new "JetOps" object for doing operations
-      on types which may or may not be jets, such as scaling
-      the derivative part only, or extracting the scalar part
-      of a jet.
-    
-      This patche is aimed at Ceres upstream.
-    
-    - A new function for sampling a patch is now part of the
-      track_region.h API; this will get used to make the preview
-      widget properly show what is getting tracked. Currently
-      the preview widget does not handle perspective tracks.
-    
-    Known issues:
-    
-      This patch introduces a bug such that the "Minimum
-      Correlation" flag does not work; if it is enabled, tracking
-      aborts immediately. The workaround for now is to disable the
-      correlation checking, and examine your tracks carefully. A
-      fix will get added shortly.

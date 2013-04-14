@@ -271,6 +271,21 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   vector<Vec6> cameras_R_t =
     PackCamerasRotationAndTranslation(tracks, reconstruction);
 
+  // Parameterization used to restrict camera motion for
+  // modal solvers
+  ceres::SubsetParameterization *motion_parameterization = NULL;
+  if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
+      std::vector<int> constant_motion;
+
+      // First three elements are rotation, ast three are translation
+      constant_motion.push_back(3);
+      constant_motion.push_back(4);
+      constant_motion.push_back(5);
+
+      motion_parameterization =
+        new ceres::SubsetParameterization(6, constant_motion);
+  }
+
   int num_residuals = 0;
   bool have_locked_camera = false;
   for (int i = 0; i < markers.size(); ++i) {
@@ -302,7 +317,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     }
 
     if (bundle_constraints & BUNDLE_NO_TRANSLATION)
-      problem.SetParameterBlockConstant(&camera->t(0));
+      problem.SetParameterization(camera_R_t, motion_parameterization);
 
     num_residuals++;
   }
