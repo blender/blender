@@ -84,7 +84,6 @@
 #define TRANSFORM_DIST_MAX_PX 1000.0f
 #define TRANSFORM_SNAP_MAX_PX 100.0f
 /* use half of flt-max so we can scale up without an exception */
-#define TRANSFORM_DIST_MAX_RAY (FLT_MAX / 2.0f)
 
 /********************* PROTOTYPES ***********************/
 
@@ -1550,17 +1549,16 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, i
 }
 
 static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit,
-                           const float ray_start[3], const float ray_normal[3], const float ray_dist,
+                           const float ray_start[3], const float ray_normal[3], float *r_ray_dist,
                            const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	Base *base;
-	float depth = ray_dist;
 	bool retval = false;
 
 	if (mode == SNAP_ALL && obedit) {
 		Object *ob = obedit;
 
-		retval |= snapObject(scene, snap_mode, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+		retval |= snapObject(scene, snap_mode, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 	}
 
 	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
@@ -1571,7 +1569,7 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 	base = base_act;
 	if (base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT) {
 		Object *ob = base->object;
-		retval |= snapObject(scene, snap_mode, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+		retval |= snapObject(scene, snap_mode, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 	}
 
 	for (base = FIRSTBASE; base != NULL; base = base->next) {
@@ -1590,13 +1588,13 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;
 					
-					retval |= snapObject(scene, snap_mode, ar, dob, 0, dupli_ob->mat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+					retval |= snapObject(scene, snap_mode, ar, dob, 0, dupli_ob->mat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 				}
 				
 				free_object_duplilist(lb);
 			}
 			
-			retval |= snapObject(scene, snap_mode, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, &depth);
+			retval |= snapObject(scene, snap_mode, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 		}
 	}
 	
@@ -1606,11 +1604,12 @@ static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v
                         const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	float ray_start[3], ray_normal[3];
+	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
-	                      ray_start, ray_normal, TRANSFORM_DIST_MAX_RAY,
+	                      ray_start, ray_normal, &ray_dist,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 
@@ -1636,11 +1635,11 @@ bool snapObjectsEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Objec
 	                   mval, r_dist_px, r_loc, r_no, mode);
 }
 bool snapObjectsRayEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit, short snap_mode,
-                      const float ray_start[3], const float ray_normal[3], const float ray_dist,
+                      const float ray_start[3], const float ray_normal[3], float *r_ray_dist,
                       const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
-	                      ray_start, ray_normal, ray_dist,
+	                      ray_start, ray_normal, r_ray_dist,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 

@@ -96,13 +96,13 @@ static void rna_Scene_ray_cast(Scene *scene, ReportList *reports, float ray_star
 {
 	float dummy_dist_px = 0;
 	float ray_nor[3];
-	float dist;
+	float ray_dist;
 
 	sub_v3_v3v3(ray_nor, ray_end, ray_start);
-	dist = normalize_v3(ray_nor);
+	ray_dist = normalize_v3(ray_nor);
 
 	if (snapObjectsRayEx(scene, NULL, NULL, NULL, NULL, SCE_SNAP_MODE_FACE,
-	                     ray_start, ray_nor, dist,
+	                     ray_start, ray_nor, &ray_dist,
 	                     NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL))
 	{
 		*r_success = true;
