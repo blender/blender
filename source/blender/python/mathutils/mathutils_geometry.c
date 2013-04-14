@@ -734,8 +734,8 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 	float sphere_radius;
 	int clip = TRUE;
 
-	float isect_a[3];
-	float isect_b[3];
+	float isect_a[2];
+	float isect_b[2];
 
 	if (!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere_2d",
 	                      &vector_Type, &line_a,
@@ -753,24 +753,24 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 		return NULL;
 	}
 	else {
-		short use_a = TRUE;
-		short use_b = TRUE;
+		bool use_a = true;
+		bool use_b = true;
 		float lambda;
 
 		PyObject *ret = PyTuple_New(2);
 
 		switch (isect_line_sphere_v2(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
 			case 1:
-				if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = FALSE;
+				if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = false;
 				use_b = FALSE;
 				break;
 			case 2:
-				if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = FALSE;
-				if (!(!clip || (((lambda = line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b = FALSE;
+				if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = false;
+				if (!(!clip || (((lambda = line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b = false;
 				break;
 			default:
-				use_a = FALSE;
-				use_b = FALSE;
+				use_a = false;
+				use_b = false;
 		}
 
 		if (use_a) { PyTuple_SET_ITEM(ret, 0,  Vector_CreatePyObject(isect_a, 2, Py_NEW, NULL)); }
