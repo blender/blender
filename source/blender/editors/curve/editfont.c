@@ -455,9 +455,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 
 	BKE_object_where_is_calc(scene, obedit);
 
-	obedit->loc[0] += offset[0];
-	obedit->loc[1] += offset[1];
-	obedit->loc[2] += offset[2];
+	add_v3_v3(obedit->loc, offset);
 
 	cu = obedit->data;
 	cu->vfont = BKE_vfont_builtin_get();

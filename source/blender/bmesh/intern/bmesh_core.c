@@ -495,7 +495,10 @@ int bmesh_elem_check(void *element, const char htype)
 
 			if (len != f->len)
 				err |= (1 << 23);
+			break;
 		}
+		default:
+			BLI_assert(0);
 	}
 
 	BMESH_ASSERT(err == 0);

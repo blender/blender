@@ -49,6 +49,10 @@ def main():
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
+
+        #~if "source/blender" not in c:
+        #~    continue
+
         cmd = ([CHECKER_BIN] +
                CHECKER_ARGS +
                [c] +

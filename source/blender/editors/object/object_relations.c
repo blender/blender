@@ -736,9 +736,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				BKE_get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
 				sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
 				
-				ob->loc[0] = vec[0];
-				ob->loc[1] = vec[1];
-				ob->loc[2] = vec[2];
+				copy_v3_v3(ob->loc, vec);
 			}
 			else if (pararm && ob->type == OB_MESH && par->type == OB_ARMATURE) {
 				if (partype == PAR_ARMATURE_NAME)

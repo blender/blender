@@ -21,6 +21,7 @@ Invocation:
 
 # delay parsing functions until we need them
 USE_LAZY_INIT = True
+USE_EXACT_COMPARE = False
 
 # -----------------------------------------------------------------------------
 # predefined function/arg sizes, handy sometimes, but not complete...
@@ -307,14 +308,24 @@ def file_check_arg_sizes(tu):
 
                                 # testing
                                 # size_def = 100
-                                if size < size_def and size != 1:
-                                    location = node.location
-                                    print("%s:%d:%d: argument %d is size %d, should be %d" %
-                                          (location.file,
-                                           location.line,
-                                           location.column,
-                                           i + 1, size, size_def
-                                           ))
+                                if size != 1:
+                                    if USE_EXACT_COMPARE:
+                                        # is_err = (size != size_def) and (size != 4 and size_def != 3)
+                                        is_err = (size != size_def)
+                                    else:
+                                        is_err = (size < size_def)
+
+                                    if is_err:
+                                        location = node.location
+                                        # if "math_color_inline.c" not in str(location.file):
+                                        if 1:
+                                            print("%s:%d:%d: argument %d is size %d, should be %d (from %s)" %
+                                                  (location.file,
+                                                   location.line,
+                                                   location.column,
+                                                   i + 1, size, size_def,
+                                                   args[0]  # always the same but useful when running threaded
+                                                   ))
 
     # we dont really care what we are looking at, just scan entire file for
     # function calls.

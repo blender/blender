@@ -291,7 +291,7 @@ void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
 	/* compute normalized direction vectors for each edge. directions will be
 	 * used below for calculating the weights of the face normals on the vertex
 	 * normals */
-	edgevec = MEM_mallocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
+	edgevec = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, index) {
 		BM_elem_index_set(e, index); /* set_inline */
 
@@ -609,11 +609,16 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
  */
 int BM_mesh_elem_count(BMesh *bm, const char htype)
 {
-	if (htype == BM_VERT) return bm->totvert;
-	else if (htype == BM_EDGE) return bm->totedge;
-	else if (htype == BM_FACE) return bm->totface;
-
-	return 0;
+	switch (htype) {
+		case BM_VERT: return bm->totvert;
+		case BM_EDGE: return bm->totedge;
+		case BM_FACE: return bm->totface;
+		default:
+		{
+			BLI_assert(0);
+			return 0;
+		}
+	}
 }
 
 /**
