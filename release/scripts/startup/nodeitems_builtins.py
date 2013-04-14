@@ -116,12 +116,12 @@ std_node_categories = [
         NodeItem("ShaderNodeNewGeometry"),
         NodeItem("ShaderNodeObjectInfo"),
         NodeItem("ShaderNodeHairInfo"),
-        NodeItem("ShaderNodeCameraData"),
         NodeItem("ShaderNodeParticleInfo"),
+        NodeItem("ShaderNodeCameraData"),
         ]),
     ShaderNewNodeCategory("SH_NEW_OUTPUT", "Output", items=[
-        NodeItem("ShaderNodeOutputLamp"),
         NodeItem("ShaderNodeOutputMaterial"),
+        NodeItem("ShaderNodeOutputLamp"),
         NodeItem("ShaderNodeOutputWorld"),
         ]),
     ShaderNewNodeCategory("SH_NEW_SHADER", "Shader", items=[
@@ -133,13 +133,13 @@ std_node_categories = [
         NodeItem("ShaderNodeBsdfRefraction"),
         NodeItem("ShaderNodeBsdfGlass"),
         NodeItem("ShaderNodeBsdfTranslucent"),
-        NodeItem("ShaderNodeEmission"),
         NodeItem("ShaderNodeBsdfAnisotropic"),
-        NodeItem("ShaderNodeBackground"),
         NodeItem("ShaderNodeBsdfVelvet"),
         NodeItem("ShaderNodeSubsurfaceScattering"),
-        NodeItem("ShaderNodeHoldout"),
+        NodeItem("ShaderNodeEmission"),
+        NodeItem("ShaderNodeBackground"),
         NodeItem("ShaderNodeAmbientOcclusion"),
+        NodeItem("ShaderNodeHoldout"),
         ]),
     ShaderNewNodeCategory("SH_NEW_TEXTURE", "Texture", items=[
         NodeItem("ShaderNodeTexImage"),
@@ -187,7 +187,7 @@ std_node_categories = [
 
      # Compositor Nodes
      CompositorNodeCategory("CMP_INPUT", "Input", items = [
-         NodeItem("CompositorNodeRLayers"),
+        NodeItem("CompositorNodeRLayers"),
         NodeItem("CompositorNodeImage"),
         NodeItem("CompositorNodeMovieClip"),
         NodeItem("CompositorNodeMask"),
