@@ -69,8 +69,9 @@ def register_node_ui():
     # works as draw function for both menus and panels
     def draw_node_item(self, context):
         layout = self.layout
+        col = layout.column()
         for item in self.category.items:
-            op = layout.operator("node.add_node", text=item.label)
+            op = col.operator("node.add_node", text=item.label)
             op.type = item.nodetype
             op.use_transform = True
 
