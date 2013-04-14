@@ -324,6 +324,9 @@ public:
 	virtual void	SetAnisotropicFiltering(short level);
 	virtual short	GetAnisotropicFiltering();
 
+	virtual void	SetMipmapping(MipmapOption val);
+	virtual MipmapOption GetMipmapping();
+
 	virtual void	SetUsingOverrideShader(bool val);
 	virtual bool	GetUsingOverrideShader();
 

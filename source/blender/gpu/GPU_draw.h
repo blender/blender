@@ -108,6 +108,7 @@ void GPU_render_text(struct MTFace *tface, int mode,
 void GPU_set_mipmap(int mipmap);
 int GPU_get_mipmap(void);
 void GPU_set_linear_mipmap(int linear);
+int GPU_get_linear_mipmap(void);
 void GPU_paint_set_mipmap(int mipmap);
 
 /* Anisotropic filtering settings

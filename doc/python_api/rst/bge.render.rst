@@ -243,11 +243,27 @@ Functions
    :arg level: The new anisotropic filtering level to use
    :type level: integer (must be one of 1, 2, 4, 8, 16)
    
+   .. note:: Changing this value can cause all textures to be recreated, which can be slow.
+   
 .. function:: getAnisotropicFiltering()
 
    Get the anisotropic filtering level used for textures.
    
    :rtype: integer (one of 1, 2, 4, 8, 16)
+
+.. function:: setMipmapping(value)
+
+   Change how to use mipmapping.
+   
+   :type value: RAS_MIPMAP_NONE, RAS_MIPMAP_NEAREST, RAS_MIPMAP_LINEAR
+   
+   .. note:: Changing this value can cause all textures to be recreated, which can be slow.
+
+.. function:: getMipmapping()
+
+   Get the current mipmapping setting.
+   
+   :rtype: RAS_MIPMAP_NONE, RAS_MIPMAP_NEAREST, RAS_MIPMAP_LINEAR
    
 .. function:: drawLine(fromVec,toVec,color)
 

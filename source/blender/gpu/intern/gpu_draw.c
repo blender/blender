@@ -287,6 +287,11 @@ int GPU_get_mipmap(void)
 	return GTS.domipmap && !GTS.texpaint;
 }
 
+int GPU_get_linear_mipmap(void)
+{
+	return GTS.linearmipmap;
+}
+
 static GLenum gpu_get_mipmap_filter(int mag)
 {
 	/* linearmipmap is off by default *when mipmapping is off,

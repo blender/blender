@@ -1338,6 +1338,36 @@ static PyObject *gPyGetFullScreen(PyObject *)
 	return PyBool_FromLong(gp_Canvas->GetFullScreen());
 }
 
+static PyObject *gPySetMipmapping(PyObject *, PyObject *args)
+{
+	int val = 0;
+
+	if (!PyArg_ParseTuple(args, "i:setMipmapping", &val))
+		return NULL;
+
+	if (val < 0 || val > RAS_IRasterizer::RAS_MIPMAP_MAX) {
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMipmapping(val): invalid mipmaping option");
+		return NULL;
+	}
+
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMipmapping(val): Rasterizer not available");
+		return NULL;
+	}
+
+	gp_Rasterizer->SetMipmapping((RAS_IRasterizer::MipmapOption)val);
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyGetMipmapping(PyObject *)
+{
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.getMipmapping(): Rasterizer not available");
+		return NULL;
+	}
+	return PyLong_FromLong(gp_Rasterizer->GetMipmapping());
+}
+
 static struct PyMethodDef rasterizer_methods[] = {
 	{"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
 	 METH_VARARGS, "getWindowWidth doc"},
@@ -1381,6 +1411,8 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"setWindowSize", (PyCFunction) gPySetWindowSize, METH_VARARGS, ""},
 	{"setFullScreen", (PyCFunction) gPySetFullScreen, METH_O, ""},
 	{"getFullScreen", (PyCFunction) gPyGetFullScreen, METH_NOARGS, ""},
+	{"setMipmapping", (PyCFunction) gPySetMipmapping, METH_VARARGS, ""},
+	{"getMipmapping", (PyCFunction) gPyGetMipmapping, METH_NOARGS, ""},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -2146,6 +2178,10 @@ PyObject *initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
 	KX_MACRO_addTypesToDict(d, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL);
 	KX_MACRO_addTypesToDict(d, KX_BLENDER_GLSL_MATERIAL, KX_BLENDER_GLSL_MATERIAL);
+
+	KX_MACRO_addTypesToDict(d, RAS_MIPMAP_NONE, RAS_IRasterizer::RAS_MIPMAP_NONE);
+	KX_MACRO_addTypesToDict(d, RAS_MIPMAP_NEAREST, RAS_IRasterizer::RAS_MIPMAP_NEAREST);
+	KX_MACRO_addTypesToDict(d, RAS_MIPMAP_LINEAR, RAS_IRasterizer::RAS_MIPMAP_LINEAR);
 
 	// XXXX Add constants here
 

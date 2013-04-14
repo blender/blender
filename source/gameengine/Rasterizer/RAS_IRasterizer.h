@@ -151,6 +151,17 @@ public:
 	};
 
 	/**
+	 * Mipmap options
+	 */
+	enum MipmapOption {
+		RAS_MIPMAP_NONE,
+		RAS_MIPMAP_NEAREST,
+		RAS_MIPMAP_LINEAR,
+
+		RAS_MIPMAP_MAX, // Should always be last
+	};
+
+	/**
 	 * SetDepthMask enables or disables writing a fragment's depth value
 	 * to the Z buffer.
 	 */
@@ -416,6 +427,9 @@ public:
 
 	virtual void	SetAnisotropicFiltering(short level)=0;
 	virtual short	GetAnisotropicFiltering()=0;
+
+	virtual void	SetMipmapping(MipmapOption val)=0;
+	virtual MipmapOption GetMipmapping()=0;
 
 	virtual void	SetUsingOverrideShader(bool val)=0;
 	virtual bool	GetUsingOverrideShader()=0;
