@@ -1082,17 +1082,17 @@ static void do_render_3d(Render *re)
 	
 	threaded_tile_processor(re);
 	
-	/* do left-over 3d post effects (flares) */
-	if (re->flag & R_HALO)
-		if (!re->test_break(re->tbh))
-			add_halo_flare(re);
-	
 #ifdef WITH_FREESTYLE
 	/* Freestyle  */
 	if (re->r.mode & R_EDGE_FRS)
 		if (!re->test_break(re->tbh))
 			add_freestyle(re);
 #endif
+	
+	/* do left-over 3d post effects (flares) */
+	if (re->flag & R_HALO)
+		if (!re->test_break(re->tbh))
+			add_halo_flare(re);
 		
 	/* free all render verts etc */
 	RE_Database_Free(re);
