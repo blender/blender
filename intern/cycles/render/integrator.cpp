@@ -119,7 +119,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 			max_samples = max(max_samples, light->samples);
 
 		max_samples = max(max_samples, max(diffuse_samples, max(glossy_samples, transmission_samples)));
-		max_samples = max(max_samples, max(ao_samples, mesh_light_samples));
+		max_samples = max(max_samples, max(ao_samples, max(mesh_light_samples, subsurface_samples)));
 	}
 
 	max_samples *= (max_bounce + transparent_max_bounce + 2);
