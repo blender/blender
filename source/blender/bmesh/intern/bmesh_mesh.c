@@ -262,18 +262,14 @@ void BM_mesh_free(BMesh *bm)
 void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
 {
 	BMVert *v;
-	BMFace *f;
-	BMLoop *l;
 	BMEdge *e;
-	BMIter verts;
-	BMIter faces;
-	BMIter loops;
-	BMIter edges;
+	BMFace *f;
+	BMIter iter;
 	int index;
 	float (*edgevec)[3];
 	
 	/* calculate all face normals */
-	BM_ITER_MESH (f, &faces, bm, BM_FACES_OF_MESH) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 #if 0   /* UNUSED */
@@ -285,7 +281,7 @@ void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
 	}
 	
 	/* Zero out vertex normals */
-	BM_ITER_MESH (v, &verts, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
@@ -295,9 +291,8 @@ void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
 	/* compute normalized direction vectors for each edge. directions will be
 	 * used below for calculating the weights of the face normals on the vertex
 	 * normals */
-	index = 0;
-	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
-	BM_ITER_MESH (e, &edges, bm, BM_EDGES_OF_MESH) {
+	edgevec = MEM_mallocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
+	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, index) {
 		BM_elem_index_set(e, index); /* set_inline */
 
 		if (e->l) {
@@ -307,44 +302,44 @@ void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
 		else {
 			/* the edge vector will not be needed when the edge has no radial */
 		}
-
-		index++;
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* add weighted face normals to vertices */
-	BM_ITER_MESH (f, &faces, bm, BM_FACES_OF_MESH) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+		BMLoop *l_first, *l_iter;
 
 		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
-		BM_ITER_ELEM (l, &loops, f, BM_LOOPS_OF_FACE) {
-			float *e1diff, *e2diff;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			const float *e1diff, *e2diff;
 			float dotprod;
 			float fac;
 
 			/* calculate the dot product of the two edges that
 			 * meet at the loop's vertex */
-			e1diff = edgevec[BM_elem_index_get(l->prev->e)];
-			e2diff = edgevec[BM_elem_index_get(l->e)];
+			e1diff = edgevec[BM_elem_index_get(l_iter->prev->e)];
+			e2diff = edgevec[BM_elem_index_get(l_iter->e)];
 			dotprod = dot_v3v3(e1diff, e2diff);
 
 			/* edge vectors are calculated from e->v1 to e->v2, so
 			 * adjust the dot product if one but not both loops
 			 * actually runs from from e->v2 to e->v1 */
-			if ((l->prev->e->v1 == l->prev->v) ^ (l->e->v1 == l->v)) {
+			if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
 				dotprod = -dotprod;
 			}
 
 			fac = saacos(-dotprod);
 
 			/* accumulate weighted face normal into the vertex's normal */
-			madd_v3_v3fl(l->v->no, f->no, fac);
-		}
+			madd_v3_v3fl(l_iter->v->no, f->no, fac);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 	
 	/* normalize the accumulated vertex normals */
-	BM_ITER_MESH (v, &verts, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
