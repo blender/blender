@@ -548,7 +548,13 @@ static int startffmpeg(struct anim *anim)
 	anim->params = 0;
 
 	anim->x = pCodecCtx->width;
-	anim->y = pCodecCtx->height;
+	anim->y = av_get_cropped_height_from_codec(pCodecCtx);
+
+	anim->pFormatCtx = pFormatCtx;
+	anim->pCodecCtx = pCodecCtx;
+	anim->pCodec = pCodec;
+	anim->videoStream = videoStream;
+
 	anim->interlacing = 0;
 	anim->orientation = 0;
 	anim->framesize = anim->x * anim->y * 4;
@@ -558,11 +564,6 @@ static int startffmpeg(struct anim *anim)
 	anim->last_pts = -1;
 	anim->next_pts = -1;
 	anim->next_packet.stream_index = -1;
-
-	anim->pFormatCtx = pFormatCtx;
-	anim->pCodecCtx = pCodecCtx;
-	anim->pCodec = pCodec;
-	anim->videoStream = videoStream;
 
 	anim->pFrame = avcodec_alloc_frame();
 	anim->pFrameComplete = FALSE;
@@ -587,9 +588,12 @@ static int startffmpeg(struct anim *anim)
 		avpicture_fill((AVPicture *) anim->pFrameDeinterlaced,
 		               MEM_callocN(avpicture_get_size(
 		                               anim->pCodecCtx->pix_fmt,
-		                               anim->x, anim->y),
+					       anim->pCodecCtx->width,
+					       anim->pCodecCtx->height),
 		                           "ffmpeg deinterlace"),
-		               anim->pCodecCtx->pix_fmt, anim->x, anim->y);
+		               anim->pCodecCtx->pix_fmt, 
+			       anim->pCodecCtx->width,
+			       anim->pCodecCtx->height);
 	}
 
 	if (pCodecCtx->has_b_frames) {
@@ -600,11 +604,11 @@ static int startffmpeg(struct anim *anim)
 	}
 	
 	anim->img_convert_ctx = sws_getContext(
-	        anim->pCodecCtx->width,
-	        anim->pCodecCtx->height,
+	        anim->x,
+	        anim->y,
 	        anim->pCodecCtx->pix_fmt,
-	        anim->pCodecCtx->width,
-	        anim->pCodecCtx->height,
+	        anim->x,
+	        anim->y,
 	        PIX_FMT_RGBA,
 	        SWS_FAST_BILINEAR | SWS_PRINT_INFO | SWS_FULL_CHR_H_INT,
 	        NULL, NULL, NULL);
@@ -632,11 +636,11 @@ static int startffmpeg(struct anim *anim)
 		if (sws_setColorspaceDetails(anim->img_convert_ctx, (int *)inv_table, srcRange,
 		                             table, dstRange, brightness, contrast, saturation))
 		{
-			printf("Warning: Could not set libswscale colorspace details.\n");
+			fprintf(stderr, "Warning: Could not set libswscale colorspace details.\n");
 		}
 	}
 	else {
-		printf("Warning: Could not set libswscale colorspace details.\n");
+		fprintf(stderr, "Warning: Could not set libswscale colorspace details.\n");
 	}
 #endif
 		
@@ -709,7 +713,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 		          (const uint8_t *const *)input->data,
 		          input->linesize,
 		          0,
-		          anim->pCodecCtx->height,
+		          anim->y,
 		          dst2,
 		          dstStride2);
 		
@@ -754,7 +758,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 		          (const uint8_t *const *)input->data,
 		          input->linesize,
 		          0,
-		          anim->pCodecCtx->height,
+		          anim->y,
 		          dst2,
 		          dstStride2);
 	}
@@ -954,8 +958,8 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 	long long st_time; 
 	struct anim_index *tc_index = 0;
 	AVStream *v_st;
-	int new_frame_index = 0; /* To quite gcc barking... */
-	int old_frame_index = 0; /* To quite gcc barking... */
+	int new_frame_index = 0; /* To quiet gcc barking... */
+	int old_frame_index = 0; /* To quiet gcc barking... */
 
 	if (anim == 0) return (0);
 

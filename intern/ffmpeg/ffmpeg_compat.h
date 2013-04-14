@@ -72,10 +72,42 @@
 #define FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
 #endif
 
+#if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR > 14))
+#define FFMPEG_HAVE_CANON_H264_RESOLUTION_FIX
+#endif
+
 #if ((LIBAVUTIL_VERSION_MAJOR > 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR >= 32))
 #define FFMPEG_FFV1_ALPHA_SUPPORTED
 #define FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
 #endif
+
+static inline
+int av_get_cropped_height_from_codec(AVCodecContext *pCodecCtx)
+{
+	int y = pCodecCtx->height;
+
+#ifndef FFMPEG_HAVE_CANON_H264_RESOLUTION_FIX
+/* really bad hack to remove this dreadfull black bar at the bottom
+   with Canon footage and old ffmpeg versions.
+   (to fix this properly in older ffmpeg versions one has to write a new
+   demuxer...) 
+	   
+   see the actual fix here for reference:
+
+   http://git.libav.org/?p=libav.git;a=commit;h=30f515091c323da59c0f1b533703dedca2f4b95d
+
+   We do our best to apply this only to matching footage.
+*/
+	if (pCodecCtx->width == 1920 && 
+	    pCodecCtx->height == 1088 &&
+	    pCodecCtx->pix_fmt == PIX_FMT_YUVJ420P &&
+	    pCodecCtx->codec_id == CODEC_ID_H264 ) {
+		y = 1080;
+	}
+#endif
+
+	return y;
+}
 
 #if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 22))
 static inline
