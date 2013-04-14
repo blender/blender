@@ -1044,10 +1044,19 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
 
-		if (use_new_shading)
-			sp->pr_main = G_pr_main_cycles;
-		else
+		if (use_new_shading) {
+			/* texture icon rendering is hardcoded to use BI,
+			 * so don't even think of using cycle's bmain for
+			 * texture icons
+			 */
+			if (GS(ip->id->name) != ID_TE)
+				sp->pr_main = G_pr_main_cycles;
+			else
+				sp->pr_main = G_pr_main;
+		}
+		else {
 			sp->pr_main = G_pr_main;
+		}
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
