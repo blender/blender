@@ -3246,7 +3246,7 @@ static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 #ifdef WITH_FREESTYLE
 static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 {
-	EdgeHash *edge_hash= BLI_edgehash_new();
+	EdgeHash *edge_hash= NULL;
 	FreestyleEdge *fed;
 	MEdge *medge;
 	int totedge, a;
@@ -3257,8 +3257,10 @@ static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	fed = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
 	if (fed) {
+		edge_hash = BLI_edgehash_new();
 		if (!index) {
-			for (a = 0; a < totedge; a++) {
+			BLI_assert(me->totedge == totedge);
+			for (a = 0; a < me->totedge; a++) {
 				if (fed[a].flag & FREESTYLE_EDGE_MARK)
 					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
 			}
@@ -3506,7 +3508,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 #ifdef WITH_FREESTYLE
 							/* Freestyle edge/face marks */
-							{
+							if (edge_hash) {
 								int edge_mark = 0;
 
 								if (has_freestyle_edge_mark(edge_hash, v1, v2)) edge_mark |= R_EDGE_V1V2;
@@ -3613,7 +3615,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 #ifdef WITH_FREESTYLE
 			/* release the hash table of Freestyle edge marks */
-			BLI_edgehash_free(edge_hash, NULL);
+			if (edge_hash)
+				BLI_edgehash_free(edge_hash, NULL);
 #endif
 			
 			/* exception... we do edges for wire mode. potential conflict when faces exist... */
@@ -4296,6 +4299,26 @@ static void split_quads(ObjectRen *obr, int dir)
 				}
 				vlr->v4 = vlr1->v4 = NULL;
 				
+#ifdef WITH_FREESTYLE
+				/* Freestyle edge marks */
+				if (vlr->flag & R_DIVIDE_24) {
+					vlr1->freestyle_edge_mark=
+						((vlr->freestyle_edge_mark & R_EDGE_V2V3) ? R_EDGE_V1V2 : 0) |
+						((vlr->freestyle_edge_mark & R_EDGE_V3V4) ? R_EDGE_V2V3 : 0);
+					vlr->freestyle_edge_mark=
+						((vlr->freestyle_edge_mark & R_EDGE_V1V2) ? R_EDGE_V1V2 : 0) |
+						((vlr->freestyle_edge_mark & R_EDGE_V4V1) ? R_EDGE_V3V1 : 0);
+				}
+				else {
+					vlr1->freestyle_edge_mark=
+						((vlr->freestyle_edge_mark & R_EDGE_V3V4) ? R_EDGE_V2V3 : 0) |
+						((vlr->freestyle_edge_mark & R_EDGE_V4V1) ? R_EDGE_V3V1 : 0);
+					vlr->freestyle_edge_mark=
+						((vlr->freestyle_edge_mark & R_EDGE_V1V2) ? R_EDGE_V1V2 : 0) |
+						((vlr->freestyle_edge_mark & R_EDGE_V2V3) ? R_EDGE_V2V3 : 0);
+				}
+#endif
+
 				/* new normals */
 				normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 				normal_tri_v3(vlr1->n, vlr1->v3->co, vlr1->v2->co, vlr1->v1->co);
