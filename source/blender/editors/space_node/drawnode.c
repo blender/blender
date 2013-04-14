@@ -2778,16 +2778,16 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			row = uiLayoutRow(layout, true);
-			uiItemR(row, ptr, "min_value", 0, "min", 0);
-			uiItemR(row, ptr, "max_value", 0, "max", 0);
+			uiItemR(row, ptr, "min_value", 0, "Min", 0);
+			uiItemR(row, ptr, "max_value", 0, "Max", 0);
 			break;
 		}
 		case SOCK_INT: {
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			row = uiLayoutRow(layout, true);
-			uiItemR(row, ptr, "min_value", 0, "min", 0);
-			uiItemR(row, ptr, "max_value", 0, "max", 0);
+			uiItemR(row, ptr, "min_value", 0, "Min", 0);
+			uiItemR(row, ptr, "max_value", 0, "Max", 0);
 			break;
 		}
 		case SOCK_BOOLEAN: {
@@ -2798,8 +2798,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", UI_ITEM_R_EXPAND, NULL, 0);
 			row = uiLayoutRow(layout, true);
-			uiItemR(row, ptr, "min_value", 0, "min", 0);
-			uiItemR(row, ptr, "max_value", 0, "max", 0);
+			uiItemR(row, ptr, "min_value", 0, "Min", 0);
+			uiItemR(row, ptr, "max_value", 0, "Max", 0);
 			break;
 		}
 		case SOCK_RGBA: {
