@@ -212,13 +212,13 @@ static void node_tree_interface_panel(const bContext *C, Panel *pa)
 	split = uiLayoutRow(row, TRUE);
 	col = uiLayoutColumn(split, TRUE);
 	uiItemL(col, IFACE_("Inputs:"), ICON_NONE);
-	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "", &ptr, "inputs", &ptr, "active_input", 0, 0, 0);
+	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "inputs", &ptr, "inputs", &ptr, "active_input", 0, 0, 0);
 	opptr = uiItemFullO(col, "NODE_OT_tree_socket_add", "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "in_out", SOCK_IN);
 	
 	col = uiLayoutColumn(split, TRUE);
 	uiItemL(col, IFACE_("Outputs:"), ICON_NONE);
-	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "", &ptr, "outputs", &ptr, "active_output", 0, 0, 0);
+	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "outputs", &ptr, "outputs", &ptr, "active_output", 0, 0, 0);
 	opptr = uiItemFullO(col, "NODE_OT_tree_socket_add", "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "in_out", SOCK_OUT);
 	
