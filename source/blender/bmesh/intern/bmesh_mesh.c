@@ -415,16 +415,16 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
  * the editing operations are done. These are called by the tools/operator
  * API for each time a tool is executed.
  */
-void bmesh_edit_begin(BMesh *UNUSED(bm), int UNUSED(type_flag))
+void bmesh_edit_begin(BMesh *UNUSED(bm), BMOpTypeFlag UNUSED(type_flag))
 {
-	/* Most operators seem to be using BMO_OP_FLAG_UNTAN_MULTIRES to change the MDisps to
+	/* Most operators seem to be using BMO_OPTYPE_FLAG_UNTAN_MULTIRES to change the MDisps to
 	 * absolute space during mesh edits. With this enabled, changes to the topology
 	 * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
 	 * the mesh at all, which doesn't seem right. Turning off completely for now,
 	 * until this is shown to be better for certain types of mesh edits. */
 #ifdef BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data out of tangent space */
-	if ((type_flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
 
 		/* ensure correct normals, if possible */
@@ -437,12 +437,12 @@ void bmesh_edit_begin(BMesh *UNUSED(bm), int UNUSED(type_flag))
 /**
  * \brief BMesh End Edit
  */
-void bmesh_edit_end(BMesh *bm, int UNUSED(flag))
+void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 {
-	/* BMO_OP_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
+	/* BMO_OPTYPE_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
 #ifdef BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data into tangent space */
-	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if ((flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		/* set normals to their previous winding */
 		bmesh_rationalize_normals(bm, 1);
 		bmesh_mdisps_space_set(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
@@ -453,8 +453,13 @@ void bmesh_edit_end(BMesh *bm, int UNUSED(flag))
 #endif
 
 	/* compute normals, clear temp flags and flush selections */
-	BM_mesh_normals_update(bm, true);
-	BM_mesh_select_mode_flush(bm);
+	if (type_flag & BMO_OPTYPE_FLAG_NORMALS_CALC) {
+		BM_mesh_normals_update(bm, true);
+	}
+
+	if (type_flag & BMO_OPTYPE_FLAG_SELECT_FLUSH) {
+		BM_mesh_select_mode_flush(bm);
+	}
 }
 
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)

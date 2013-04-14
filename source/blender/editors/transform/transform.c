@@ -5449,7 +5449,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 		}
 	}
 
-	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
 	sv_array = sld->sv;
@@ -5725,7 +5725,7 @@ void freeEdgeSlideVerts(TransInfo *t)
 	
 	freeEdgeSlideTempFaces(sld);
 
-	bmesh_edit_end(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_end(sld->em->bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 
 	BLI_smallhash_release(&sld->vhash);
 	
