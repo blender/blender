@@ -244,8 +244,10 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 			strcpy(str, "Locked");
 	}
 
-	if (str[0])
-		ED_region_info_draw(ar, str, block, 0.6f);
+	if (str[0]) {
+		float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.6f};
+		ED_region_info_draw(ar, str, block, fill_color);
+	}
 }
 
 static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,

@@ -87,7 +87,8 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 	rr = BKE_image_acquire_renderresult(scene, ima);
 
 	if (rr && rr->text) {
-		ED_region_info_draw(ar, rr->text, 1, 0.25);
+		float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
+		ED_region_info_draw(ar, rr->text, 1, fill_color);
 	}
 
 	BKE_image_release_renderresult(scene, ima);

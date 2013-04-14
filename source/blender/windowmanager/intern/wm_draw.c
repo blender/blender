@@ -53,6 +53,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "ED_view3d.h"
 #include "ED_screen.h"
 
 #include "GPU_draw.h"
@@ -125,14 +126,24 @@ static int wm_area_test_invalid_backbuf(ScrArea *sa)
 		return 1;
 }
 
-static void wm_region_test_render_do_draw(ScrArea *sa, ARegion *ar)
+static void wm_region_test_render_do_draw(bScreen *screen, ScrArea *sa, ARegion *ar)
 {
+	/* tag region for redraw from render engine preview running inside of it */
 	if (sa->spacetype == SPACE_VIEW3D) {
 		RegionView3D *rv3d = ar->regiondata;
 		RenderEngine *engine = (rv3d) ? rv3d->render_engine : NULL;
 
 		if (engine && (engine->flag & RE_ENGINE_DO_DRAW)) {
-			ar->do_draw = TRUE;
+			Scene *scene = screen->scene;
+			View3D *v3d = sa->spacedata.first;
+			rcti border_rect;
+
+			/* do partial redraw when possible */
+			if (ED_view3d_calc_render_border(scene, v3d, ar, &border_rect))
+				ED_region_tag_redraw_partial(ar, &border_rect);
+			else
+				ED_region_tag_redraw(ar);
+
 			engine->flag &= ~RE_ENGINE_DO_DRAW;
 		}
 	}
@@ -710,7 +721,7 @@ static int wm_draw_update_test_window(wmWindow *win)
 
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			wm_region_test_render_do_draw(sa, ar);
+			wm_region_test_render_do_draw(win->screen, sa, ar);
 
 			if (ar->swinid && ar->do_draw)
 				do_draw = TRUE;

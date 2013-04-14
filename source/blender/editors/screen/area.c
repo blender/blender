@@ -1856,11 +1856,12 @@ int ED_area_headersize(void)
 	return (int)(1.3f * UI_UNIT_Y);
 }
 
-void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
+void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_color[4])
 {
 	const int header_height = UI_UNIT_Y;
 	uiStyle *style = UI_GetStyleDraw();
 	int fontid = style->widget.uifont_id;
+	GLint scissor[4];
 	rcti rect;
 
 	/* background box */
@@ -1873,9 +1874,14 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 
 	rect.ymax = BLI_rcti_size_y(&ar->winrct);
 
+	/* setup scissor */
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
+	glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin,
+			  BLI_rcti_size_x(&rect), BLI_rcti_size_y(&rect));
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(0.0f, 0.0f, 0.0f, alpha);
+	glColor4fv(fill_color);
 	glRecti(rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
 	glDisable(GL_BLEND);
 
@@ -1888,6 +1894,9 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
 
 	BLF_disable(fontid, BLF_CLIPPING);
+
+	/* restore scissor as it was before */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 }
 
 void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
