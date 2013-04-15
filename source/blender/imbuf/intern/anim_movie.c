@@ -588,12 +588,12 @@ static int startffmpeg(struct anim *anim)
 		avpicture_fill((AVPicture *) anim->pFrameDeinterlaced,
 		               MEM_callocN(avpicture_get_size(
 		                               anim->pCodecCtx->pix_fmt,
-					       anim->pCodecCtx->width,
-					       anim->pCodecCtx->height),
+		                               anim->pCodecCtx->width,
+		                               anim->pCodecCtx->height),
 		                           "ffmpeg deinterlace"),
 		               anim->pCodecCtx->pix_fmt, 
-			       anim->pCodecCtx->width,
-			       anim->pCodecCtx->height);
+		               anim->pCodecCtx->width,
+		               anim->pCodecCtx->height);
 	}
 
 	if (pCodecCtx->has_b_frames) {

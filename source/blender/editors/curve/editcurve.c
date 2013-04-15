@@ -6544,13 +6544,13 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb;
 	Nurb *nu;
-	int newob = 0;
-	int enter_editmode, is_aligned;
+	bool newob = false;
+	bool enter_editmode, is_view_aligned;
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
 
-	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_aligned))
+	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_view_aligned))
 		return OPERATOR_CANCELLED;
 
 	if (!isSurf) { /* adding curve */
@@ -6558,7 +6558,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 			Curve *cu;
 
 			obedit = ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
-			newob = 1;
+			newob = true;
 
 			cu = (Curve *)obedit->data;
 			cu->flag |= CU_DEFORM_FILL;
@@ -6573,7 +6573,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	else { /* adding surface */
 		if (obedit == NULL || obedit->type != OB_SURF) {
 			obedit = ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
-			newob = 1;
+			newob = true;
 		}
 		else {
 			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);

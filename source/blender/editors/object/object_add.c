@@ -262,13 +262,13 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 }
 
 int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], float rot[3],
-                                   int *enter_editmode, unsigned int *layer, int *is_view_aligned)
+                                   bool *enter_editmode, unsigned int *layer, bool *is_view_aligned)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 
 	/* Switch to Edit mode? */
 	if (RNA_struct_find_property(op->ptr, "enter_editmode")) { /* optional */
-		int _enter_editmode;
+		bool _enter_editmode;
 		if (!enter_editmode)
 			enter_editmode = &_enter_editmode;
 
@@ -330,7 +330,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 
 	/* Rotation! */
 	{
-		int _is_view_aligned;
+		bool _is_view_aligned;
 		float _rot[3];
 		if (!is_view_aligned)
 			is_view_aligned = &_is_view_aligned;
@@ -338,7 +338,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 			rot = _rot;
 
 		if (RNA_struct_property_is_set(op->ptr, "rotation"))
-			*is_view_aligned = FALSE;
+			*is_view_aligned = false;
 		else if (RNA_struct_property_is_set(op->ptr, "view_align"))
 			*is_view_aligned = RNA_boolean_get(op->ptr, "view_align");
 		else {
@@ -407,7 +407,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 /* for object add operator */
 static int object_add_exec(bContext *C, wmOperator *op)
 {
-	int enter_editmode;
+	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 
@@ -444,7 +444,8 @@ void OBJECT_OT_add(wmOperatorType *ot)
 static int effector_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob;
-	int type, enter_editmode;
+	int type;
+	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
@@ -510,7 +511,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
-	int enter_editmode;
+	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 
@@ -562,8 +563,8 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	int newob = 0;
-	int enter_editmode;
+	bool newob = false;
+	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
@@ -574,7 +575,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 
 	if (obedit == NULL || obedit->type != OB_MBALL) {
 		obedit = ED_object_add_type(C, OB_MBALL, loc, rot, TRUE, layer);
-		newob = 1;
+		newob = true;
 	}
 	else
 		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
@@ -618,7 +619,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	int enter_editmode;
+	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 
@@ -658,8 +659,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	int newob = 0;
-	int enter_editmode;
+	bool newob = false;
+	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 
@@ -669,7 +670,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	if ((obedit == NULL) || (obedit->type != OB_ARMATURE)) {
 		obedit = ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE, layer);
 		ED_object_editmode_enter(C, 0);
-		newob = 1;
+		newob = true;
 	}
 	else {
 		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
@@ -2095,7 +2096,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 static int add_named_exec(bContext *C, wmOperator *op)
 {
 	wmWindow *win = CTX_wm_window(C);
-	wmEvent *event = win ? win->eventstate : NULL;
+	const wmEvent *event = win ? win->eventstate : NULL;
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *basen, *base;

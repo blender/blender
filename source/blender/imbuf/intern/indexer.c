@@ -810,7 +810,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 			        anim, context->iStream, proxy_sizes[i],
 			        context->iCodecCtx->width * proxy_fac[i],
 			        av_get_cropped_height_from_codec(
-					context->iCodecCtx) * proxy_fac[i],
+			        context->iCodecCtx) * proxy_fac[i],
 			        quality);
 			if (!context->proxy_ctx[i]) {
 				proxy_sizes_in_use &= ~proxy_sizes[i];

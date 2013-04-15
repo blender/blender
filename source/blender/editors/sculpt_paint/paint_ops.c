@@ -517,9 +517,9 @@ static int stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static void stencil_control_calculate(StencilControlData *scd, const int *mval)
+static void stencil_control_calculate(StencilControlData *scd, const int mval[2])
 {
-	#define PIXEL_MARGIN 5
+#define PIXEL_MARGIN 5
 
 	float mdiff[2];
 	float mvalf[2] = {mval[0], mval[1]};
@@ -565,6 +565,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int *mval)
 			break;
 		}
 	}
+#undef PIXEL_MARGIN
 }
 
 static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *event)

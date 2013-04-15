@@ -70,6 +70,9 @@
 
 #include "mesh_intern.h"  /* own include */
 
+/* use bmesh operator flags for a few operators */
+#define BMO_ELE_TAG 1
+
 /* ****************************** MIRROR **************** */
 
 void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, bool extend)
@@ -2419,13 +2422,12 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			/* grr, shouldn't need to alloc BMO flags here */
 			BM_mesh_elem_toolflags_ensure(bm);
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
-				BMO_elem_flag_set(bm, e, BM_ELEM_SELECT, !BM_elem_flag_test(e, BM_ELEM_SEAM));
+				BMO_elem_flag_set(bm, e, BMO_ELE_TAG, !BM_elem_flag_test(e, BM_ELEM_SEAM));
 			}
 		}
 
 		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
@@ -2543,14 +2545,13 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 			BM_mesh_elem_toolflags_ensure(bm);
 			/* hflag no-seam --> bmo-tag */
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
-				BMO_elem_flag_set(bm, e, BM_ELEM_SELECT, !BM_elem_flag_test(e, BM_ELEM_SEAM));
+				BMO_elem_flag_set(bm, e, BMO_ELE_TAG, !BM_elem_flag_test(e, BM_ELEM_SEAM));
 			}
 		}
 
 		/* walk */
 		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
@@ -2584,6 +2585,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2840,19 +2842,19 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 			itertype = BM_VERTS_OF_MESH;
 			walktype = BMW_CONNECTED_VERTEX;
 			flushtype = SCE_SELECT_VERTEX;
-			mask_vert = BM_ELEM_SELECT;
+			mask_vert = BMO_ELE_TAG;
 			break;
 		case BM_EDGE:
 			itertype = BM_EDGES_OF_MESH;
 			walktype = BMW_SHELL;
 			flushtype = SCE_SELECT_EDGE;
-			mask_edge = BM_ELEM_SELECT;
+			mask_edge = BMO_ELE_TAG;
 			break;
 		case BM_FACE:
 			itertype = BM_FACES_OF_MESH;
 			walktype = BMW_ISLAND;
 			flushtype = SCE_SELECT_FACE;
-			mask_face = BM_ELEM_SELECT;
+			mask_face = BMO_ELE_TAG;
 			break;
 	}
 
@@ -2864,8 +2866,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	BMO_push(bm, NULL);
 	BM_ITER_MESH (ele, &iter, bm, itertype) {
 		if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-			/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
-			BMO_elem_flag_enable(bm, (BMElemF *)ele, BM_ELEM_SELECT);
+			BMO_elem_flag_enable(bm, (BMElemF *)ele, BMO_ELE_TAG);
 		}
 	}
 
