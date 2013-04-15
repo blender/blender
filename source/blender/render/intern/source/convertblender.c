@@ -2662,7 +2662,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 #ifdef WITH_FREESTYLE
 	const int *index_mf_to_mpoly = NULL;
 	const int *index_mp_to_orig = NULL;
-	FreestyleFace *ffa;
+	FreestyleFace *ffa = NULL;
 #endif
 	/* Curve *cu= ELEM(ob->type, OB_FONT, OB_CURVE) ? ob->data : NULL; */
 
@@ -2693,10 +2693,14 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 			ma= give_render_material(re, ob, mat_iter+1);
 			end= dm->getNumTessFaces(dm);
 			mface= dm->getTessFaceArray(dm);
+
 #ifdef WITH_FREESTYLE
-			index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-			index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
-			ffa= CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_FREESTYLE_FACE);
+			if(ob->type == OB_MESH) {
+				Mesh *me= ob->data;
+				index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+				index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+				ffa= CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
+			}
 #endif
 
 			for (a=0; a<end; a++, mface++) {
@@ -3483,7 +3487,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 #ifdef WITH_FREESTYLE
 					index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 					index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
-					ffa= CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_FREESTYLE_FACE);
+					ffa= CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
 #endif
 					
 					for (a=0; a<end; a++, mface++) {
