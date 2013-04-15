@@ -298,4 +298,9 @@ int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 	return pts;
 }
 
+/* obsolete constant formerly defined in FFMpeg libavcodec/avcodec.h */
+#ifndef AVCODEC_MAX_AUDIO_FRAME_SIZE
+# define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
+#endif
+
 #endif
