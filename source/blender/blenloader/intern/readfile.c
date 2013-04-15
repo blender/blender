@@ -2559,8 +2559,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	{
 		FOREACH_NODETREE(main, ntree, id) {
 			/* make an update call for the tree */
-			if (ntree->update)
-				ntreeUpdateTree(ntree);
+			ntreeUpdateTree(ntree);
 		} FOREACH_NODETREE_END
 	}
 }
