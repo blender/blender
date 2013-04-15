@@ -626,6 +626,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	float fac;
 	float data[4];
 	int cycl = 0, s0, s1, s2, s3;
+	ListBase *nurbs;
 
 	if (ob == NULL || ob->type != OB_CURVE) return 0;
 	cu = ob->data;
@@ -668,8 +669,11 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	/* make compatible with vectoquat */
 	negate_v3(dir);
 	//}
-	
-	nu = cu->nurb.first;
+
+	nurbs = BKE_curve_editNurbs_get(cu);
+	if (!nurbs)
+		nurbs = &cu->nurb;
+	nu = nurbs->first;
 
 	/* make sure that first and last frame are included in the vectors here  */
 	if (nu->type == CU_POLY) key_curve_position_weights(1.0f - fac, data, KEY_LINEAR);
