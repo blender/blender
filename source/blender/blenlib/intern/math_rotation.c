@@ -749,10 +749,33 @@ void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const s
 	quat_to_axis_angle(axis, angle, q);
 }
 
-/* axis angle to 3x3 matrix - safer version (normalization of axis performed)
- *
- * note: we may want a normalized and non normalized version of this function.
- */
+/* axis angle to 3x3 matrix - note: requires that axis is normalized */
+void axis_angle_to_mat3_no_norm(float mat[3][3], const float nor[3], const float angle)
+{
+	float nsi[3], co, si, ico;
+
+	/* now convert this to a 3x3 matrix */
+	co = cosf(angle);
+	si = sinf(angle);
+
+	ico = (1.0f - co);
+	nsi[0] = nor[0] * si;
+	nsi[1] = nor[1] * si;
+	nsi[2] = nor[2] * si;
+
+	mat[0][0] = ((nor[0] * nor[0]) * ico) + co;
+	mat[0][1] = ((nor[0] * nor[1]) * ico) + nsi[2];
+	mat[0][2] = ((nor[0] * nor[2]) * ico) - nsi[1];
+	mat[1][0] = ((nor[0] * nor[1]) * ico) - nsi[2];
+	mat[1][1] = ((nor[1] * nor[1]) * ico) + co;
+	mat[1][2] = ((nor[1] * nor[2]) * ico) + nsi[0];
+	mat[2][0] = ((nor[0] * nor[2]) * ico) + nsi[1];
+	mat[2][1] = ((nor[1] * nor[2]) * ico) - nsi[0];
+	mat[2][2] = ((nor[2] * nor[2]) * ico) + co;
+}
+
+
+/* axis angle to 3x3 matrix - safer version (normalization of axis performed) */
 void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 {
 	float nor[3], nsi[3], co, si, ico;

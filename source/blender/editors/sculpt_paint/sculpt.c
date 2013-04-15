@@ -286,7 +286,12 @@ typedef struct StrokeCache {
 	int original;
 	float anchored_location[3];
 
-	float vertex_rotation;
+	float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
+	float previous_vertex_rotation; /* previous rotation, used to detect if we rotate more than
+	                                 * PI radians */
+	short num_vertex_turns; /* records number of full 2*PI turns */
+	float initial_mouse_dir[2]; /* used to calculate initial angle */
+	bool init_dir_set; /* detect if we have initialized the initial mouse direction */
 
 	char saved_active_brush_name[MAX_ID_NAME];
 	char saved_mask_brush_tool;
@@ -2085,18 +2090,8 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
 	int n;
-	float m[4][4], rot[4][4], lmat[4][4], ilmat[4][4];
 	static const int flip[8] = { 1, -1, -1, 1, -1, 1, 1, -1 };
 	float angle = ss->cache->vertex_rotation * flip[ss->cache->mirror_symmetry_pass];
-
-	unit_m4(m);
-	unit_m4(lmat);
-
-	copy_v3_v3(lmat[3], ss->cache->location);
-	invert_m4_m4(ilmat, lmat);
-	axis_angle_to_mat4(rot, ss->cache->sculpt_normal_symm, angle);
-
-	mul_serie_m4(m, lmat, rot, ilmat, NULL, NULL, NULL, NULL, NULL);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
@@ -2116,6 +2111,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 			sculpt_orig_vert_data_update(&orig_data, &vd);
 
 			if (sculpt_brush_test(&test, orig_data.co)) {
+				float vec[3], rot[3][3];
 				const float fade = bstrength * tex_strength(ss, brush,
 				                                            orig_data.co,
 				                                            test.dist,
@@ -2123,9 +2119,11 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				                                            orig_data.no,
 				                                            NULL, vd.mask ? *vd.mask : 0.0f);
 
-				mul_v3_m4v3(proxy[vd.i], m, orig_data.co);
+				sub_v3_v3v3(vec, orig_data.co, ss->cache->location);
+				axis_angle_to_mat3_no_norm(rot, ss->cache->sculpt_normal_symm, angle*fade);
+				mul_v3_m3v3(proxy[vd.i], rot, vec);
+				add_v3_v3(proxy[vd.i], ss->cache->location);
 				sub_v3_v3(proxy[vd.i], orig_data.co);
-				mul_v3_fl(proxy[vd.i], fade);
 
 				if (vd.mvert)
 					vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -3785,6 +3783,9 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->first_time = 1;
 
 	cache->vertex_rotation = 0;
+	cache->num_vertex_turns = 0;
+	cache->previous_vertex_rotation = 0;
+	cache->init_dir_set = false;
 
 	sculpt_omp_start(sd, ss);
 }
@@ -3947,10 +3948,46 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sculpt_update_brush_delta(ups, ob, brush);
 
 	if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
+		#define PIXEL_INPUT_THRESHHOLD 5
+
 		const float dx = cache->mouse[0] - cache->initial_mouse[0];
 		const float dy = cache->mouse[1] - cache->initial_mouse[1];
 
-		cache->vertex_rotation = -atan2f(dx, dy) * cache->bstrength;
+		/* only update when we have enough precision, by having the mouse adequately away from center
+		 * may be better to convert to radial representation but square works for small values too*/
+		if(fabs(dx) > PIXEL_INPUT_THRESHHOLD && fabs(dy) > PIXEL_INPUT_THRESHHOLD) {
+			float mouse_angle;
+			float dir[2] = {dx, dy};
+			float cosval, sinval;
+			normalize_v2(dir);
+
+			if (!cache->init_dir_set) {
+				copy_v2_v2(cache->initial_mouse_dir, dir);
+				cache->init_dir_set = true;
+			}
+
+			/* calculate mouse angle between initial and final mouse position */
+			cosval = dot_v2v2(dir, cache->initial_mouse_dir);
+			sinval = cross_v2v2(dir, cache->initial_mouse_dir);
+
+			/* clamp to avoid nans in acos */
+			CLAMP(cosval, -1.0, 1.0);
+			mouse_angle = (sinval > 0)? acos(cosval) : -acos(cosval);
+
+			/* change of sign, we passed the 180 degree threshold. This means we need to add a turn.
+			 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2 */
+			if (mouse_angle * cache->previous_vertex_rotation < 0 && fabs(cache->previous_vertex_rotation) > M_PI_2) {
+				if (cache->previous_vertex_rotation < 0)
+					cache->num_vertex_turns--;
+				else
+					cache->num_vertex_turns++;
+			}
+			cache->previous_vertex_rotation = mouse_angle;
+
+			cache->vertex_rotation = -(mouse_angle + 2*M_PI*cache->num_vertex_turns)* cache->bstrength;
+
+		#undef PIXEL_INPUT_THRESHHOLD
+		}
 
 		ups->draw_anchored = 1;
 		copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
