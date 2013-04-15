@@ -199,7 +199,6 @@ typedef struct uiAfterFunc {
 	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
-	void *func_arg3;
 	
 	uiButHandleNFunc funcN;
 	void *func_argN;
@@ -386,7 +385,6 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 
 		after->func_arg1 = but->func_arg1;
 		after->func_arg2 = but->func_arg2;
-		after->func_arg3 = but->func_arg3;
 
 		after->funcN = but->funcN;
 		after->func_argN = MEM_dupallocN(but->func_argN);

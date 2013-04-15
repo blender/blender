@@ -3832,6 +3832,82 @@ void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandl
 	}
 }
 
+/* Callbacks for operator search button. */
+static void operator_enum_search_cb(const struct bContext *C, void *but, const char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = ((uiBut *)but)->optype;
+	PropertyRNA *prop = ot->prop;
+
+	if (prop == NULL) {
+		printf("%s: %s has no enum property set\n",
+		       __func__, ot->idname);
+	}
+	else if (RNA_property_type(prop) != PROP_ENUM) {
+		printf("%s: %s \"%s\" is not an enum property\n",
+		       __func__, ot->idname, RNA_property_identifier(prop));
+	}
+	else {
+		PointerRNA *ptr = uiButGetOperatorPtrRNA(but);  /* Will create it if needed! */
+		EnumPropertyItem *item, *item_array;
+		int do_free;
+
+		RNA_property_enum_items((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
+
+		for (item = item_array; item->identifier; item++) {
+			/* note: need to give the index rather than the identifier because the enum can be freed */
+			if (BLI_strcasestr(item->name, str)) {
+				if (false == uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
+					break;
+			}
+		}
+
+		if (do_free)
+			MEM_freeN(item_array);
+	}
+}
+
+static void operator_enum_call_cb(struct bContext *UNUSED(C), void *but, void *arg2)
+{
+	wmOperatorType *ot = ((uiBut *)but)->optype;
+	PointerRNA *opptr = uiButGetOperatorPtrRNA(but);  /* Will create it if needed! */
+
+	if (ot) {
+		if (ot->prop) {
+			RNA_property_enum_set(opptr, ot->prop, GET_INT_FROM_POINTER(arg2));
+			/* We do not call op from here, will be called by button code.
+			 * ui_apply_but_funcs_after() (in interface_handlers.c) called this func before checking operators,
+			 * because one of its parameters is the button itself!
+			 */
+		}
+		else {
+			printf("%s: op->prop for '%s' is NULL\n", __func__, ot->idname);
+		}
+	}
+}
+
+/* Same parameters as for uiDefSearchBut, with an additional operator pointer, from where to get property to search,
+ * operator type, and operator porperties. */
+uiBut *uiDefSearchButO_ptr(uiBlock *block, wmOperatorType *ot, IDProperty *properties,
+                           void *arg, int retval, int icon, int maxlen, int x, int y,
+                           short width, short height, float a1, float a2, const char *tip)
+{
+	uiBut *but;
+
+	but = uiDefSearchBut(block, arg, retval, icon, maxlen, x, y, width, height, a1, a2, tip);
+	uiButSetSearchFunc(but, operator_enum_search_cb, but, operator_enum_call_cb, NULL);
+
+	but->optype = ot;
+	but->opcontext = WM_OP_EXEC_DEFAULT;
+
+	if (properties) {
+		PointerRNA *ptr = uiButGetOperatorPtrRNA(but);
+		/* Copy pointer. */
+		RNA_pointer_create(NULL, ot->srna, properties, ptr);
+	}
+
+	return but;
+}
+
 /* push a new event onto event queue to activate the given button 
  * (usually a text-field) upon entering a popup
  */

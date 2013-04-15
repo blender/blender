@@ -939,58 +939,6 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 
 
 /* generic enum search invoke popup */
-static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, const char *str, uiSearchItems *items)
-{
-	wmOperatorType *ot = (wmOperatorType *)arg_ot;
-	PropertyRNA *prop = ot->prop;
-
-	if (prop == NULL) {
-		printf("%s: %s has no enum property set\n",
-		       __func__, ot->idname);
-	}
-	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("%s: %s \"%s\" is not an enum property\n",
-		       __func__, ot->idname, RNA_property_identifier(prop));
-	}
-	else {
-		PointerRNA ptr;
-
-		EnumPropertyItem *item, *item_array;
-		int do_free;
-
-		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-		RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &do_free);
-
-		for (item = item_array; item->identifier; item++) {
-			/* note: need to give the index rather than the identifier because the enum can be freed */
-			if (BLI_strcasestr(item->name, str))
-				if (false == uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
-					break;
-		}
-
-		if (do_free)
-			MEM_freeN(item_array);
-	}
-}
-
-static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
-{
-	wmOperatorType *ot = arg1;
-
-	if (ot) {
-		if (ot->prop) {
-			PointerRNA props_ptr;
-			WM_operator_properties_create_ptr(&props_ptr, ot);
-			RNA_property_enum_set(&props_ptr, ot->prop, GET_INT_FROM_POINTER(arg2));
-			WM_operator_name_call(C, ot->idname, WM_OP_EXEC_DEFAULT, &props_ptr);
-			WM_operator_properties_free(&props_ptr);
-		}
-		else {
-			printf("%s: op->prop for '%s' is NULL\n", __func__, ot->idname);
-		}
-	}
-}
-
 static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 {
 	static char search[256] = "";
@@ -1006,8 +954,8 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 #if 0 /* ok, this isn't so easy... */
 	uiDefBut(block, LABEL, 0, RNA_struct_ui_name(op->type->srna), 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 #endif
-	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
-	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
+	but = uiDefSearchButO_ptr(block, op->type, op->ptr->data, search, 0, ICON_VIEWZOOM, sizeof(search),
+	                          10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);

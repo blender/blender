@@ -201,7 +201,6 @@ struct uiBut {
 	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
-	void *func_arg3;
 
 	uiButHandleNFunc funcN;
 	void *func_argN;
@@ -251,7 +250,6 @@ struct uiBut {
 
 	/* Operator data */
 	struct wmOperatorType *optype;
-	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
 	short opcontext;
 	unsigned char menu_key; /* 'a'-'z', always lower case */
