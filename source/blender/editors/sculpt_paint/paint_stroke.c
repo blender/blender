@@ -457,6 +457,15 @@ bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 	return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br, mode);
 }
 
+static bool sculpt_is_grab_tool(Brush *br)
+{
+	return ELEM4(br->sculpt_tool,
+			          SCULPT_TOOL_GRAB,
+			          SCULPT_TOOL_THUMB,
+			          SCULPT_TOOL_ROTATE,
+			          SCULPT_TOOL_SNAKE_HOOK);
+}
+
 /* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 {
@@ -465,14 +474,8 @@ bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 
 	switch (mode) {
 		case PAINT_SCULPT:
-			if (ELEM4(br->sculpt_tool,
-			          SCULPT_TOOL_GRAB,
-			          SCULPT_TOOL_THUMB,
-			          SCULPT_TOOL_ROTATE,
-			          SCULPT_TOOL_SNAKE_HOOK))
-			{
+			if (sculpt_is_grab_tool(br))
 				return false;
-			}
 		default:
 			;
 	}
@@ -490,14 +493,8 @@ bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 
 	switch (mode) {
 		case PAINT_SCULPT:
-			if (ELEM4(br->sculpt_tool,
-			          SCULPT_TOOL_GRAB,
-			          SCULPT_TOOL_THUMB,
-			          SCULPT_TOOL_ROTATE,
-			          SCULPT_TOOL_SNAKE_HOOK))
-			{
+			if (sculpt_is_grab_tool(br))
 				return false;
-			}
 		default:
 			;
 	}
@@ -512,7 +509,7 @@ bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 
 	switch (mode) {
 		case PAINT_SCULPT:
-			if (ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK))
+			if (sculpt_is_grab_tool(br))
 				return false;
 		default:
 			;
