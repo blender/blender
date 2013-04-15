@@ -137,6 +137,8 @@ typedef enum NodeHairInfo {
 	NODE_INFO_CURVE_IS_STRAND,
 	NODE_INFO_CURVE_INTERCEPT,
 	NODE_INFO_CURVE_THICKNESS,
+	/*fade for minimum hair width transpency*/
+	/*NODE_INFO_CURVE_FADE,*/
 	NODE_INFO_CURVE_TANGENT_NORMAL
 } NodeHairInfo;
 

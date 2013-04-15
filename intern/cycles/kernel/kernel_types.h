@@ -159,7 +159,8 @@ enum PathTraceDimension {
 	PRNG_LIGHT_V = 5,
 	PRNG_LIGHT_F = 6,
 	PRNG_TERMINATE = 7,
-	PRNG_BOUNCE_NUM = 8
+	PRNG_BOUNCE_NUM = 8,
+	PRNG_STOCHASTIC_HAIR = 9
 };
 
 /* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
@@ -183,6 +184,9 @@ enum PathRayFlag {
 	PATH_RAY_MIS_SKIP = 512,
 
 	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512),
+
+	/* visibility flag to define curve segments*/
+	PATH_RAY_CURVE = 1024,
 
 	/* this gives collisions with localview bits
 	 * see: CYCLES_LOCAL_LAYER_HACK(), grr - Campbell */
@@ -486,6 +490,9 @@ typedef struct ShaderData {
 #ifdef __HAIR__
 	/* for curves, segment number in curve, ~0 for triangles */
 	int segment;
+	/* variables for minimum hair width using transparency bsdf */
+	/*float curve_transparency; */
+	/*float curve_radius; */
 #endif
 	/* parametric coordinates
 	 * - barycentric weights for triangles */
@@ -575,6 +582,10 @@ typedef struct KernelCamera {
 
 	/* render size */
 	float width, height;
+	int resolution;
+	int pad1;
+	int pad2;
+	int pad3;
 
 	/* more matrices */
 	Transform screentoworld;
@@ -727,6 +738,12 @@ typedef struct KernelCurves {
 	float encasing_ratio;
 	int curveflags;
 	int subdivisions;
+
+	float minimum_width;
+	float maximum_width;
+	float curve_epsilon;
+	int pad1;
+
 } KernelCurves;
 
 typedef struct KernelBSSRDF {

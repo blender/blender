@@ -96,6 +96,9 @@ __device_noinline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 #ifdef __HAIR__
 		sd->segment = ~0;
+		/*elements for minimum hair width using transparency bsdf*/
+		/*sd->curve_transparency = 0.0f;*/
+		/*sd->curve_radius = 0.0f;*/
 #endif
 
 #ifdef __UV__

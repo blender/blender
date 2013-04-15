@@ -1079,6 +1079,10 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
 
             row = layout.row()
             row.prop(ccscene, "use_parents", text="Include parents")
+        
+        row = layout.row()
+        row.prop(ccscene, "minimum_width", text="Min Pixels")
+        row.prop(ccscene, "maximum_width", text="Max Ext.")
 
 
 class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
@@ -1103,12 +1107,15 @@ class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         row.prop(cpsys, "shape", text="Shape")
-        row.prop(cpsys, "use_closetip", text="Close tip")
 
-        layout.label(text="Width multiplier:")
+        layout.label(text="Thickness:")
         row = layout.row()
         row.prop(cpsys, "root_width", text="Root")
         row.prop(cpsys, "tip_width", text="Tip")
+        
+        row = layout.row()
+        row.prop(cpsys, "radius_scale", text="Scaling")
+        row.prop(cpsys, "use_closetip", text="Close tip")
 
 
 class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):

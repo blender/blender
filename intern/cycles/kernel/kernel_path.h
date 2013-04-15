@@ -28,13 +28,13 @@
 #include "kernel_curve.h"
 #include "kernel_primitive.h"
 #include "kernel_projection.h"
+#include "kernel_random.h"
 #include "kernel_bvh.h"
 #include "kernel_accumulate.h"
 #include "kernel_camera.h"
 #include "kernel_shader.h"
 #include "kernel_light.h"
 #include "kernel_emission.h"
-#include "kernel_random.h"
 #include "kernel_passes.h"
 
 #ifdef __SUBSURFACE__
@@ -249,7 +249,22 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		/* intersect scene */
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, &state);
+
+#ifdef __HAIR__
+		float difl = 0.0f;
+		if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
+			float3 pixdiff = ray.dD.dx + ray.dD.dy;
+			/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
+			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+		}
+		float extmax = kernel_data.curve_kernel_data.maximum_width;
+		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_STOCHASTIC_HAIR);
+		uint lcg_state = lcg_init(rng_hair_seed);
+
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
+#else
 		bool hit = scene_intersect(kg, &ray, visibility, &isect);
+#endif
 
 #ifdef __LAMP_MIS__
 		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {
@@ -907,7 +922,21 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, &state);
 
+#ifdef __HAIR__
+		float difl = 0.0f;
+		if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
+			float3 pixdiff = ray.dD.dx + ray.dD.dy;
+			/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
+			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+		}
+		float extmax = kernel_data.curve_kernel_data.maximum_width;
+		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_STOCHASTIC_HAIR);
+		uint lcg_state = lcg_init(rng_hair_seed);
+
+		if(!scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax)) {
+#else
 		if(!scene_intersect(kg, &ray, visibility, &isect)) {
+#endif
 			/* eval background shader if nothing hit */
 			if(kernel_data.background.transparent) {
 				L_transparent += average(throughput);

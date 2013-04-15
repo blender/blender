@@ -71,6 +71,7 @@ enum_curve_presets = (
     ('TRUE_NORMAL', "True Normal", "Use true normals with line segments(good for thin strands)"),
     ('ACCURATE_PRESET', "Accurate", "Use best line segment settings (suitable for glass materials)"),
     ('SMOOTH_CURVES', "Smooth Curves", "Use smooth cardinal curves (slowest)"),
+    ('SMOOTH_RIBBONS', "Ribbons", "Use smooth cardinal curves without thickness"),
     )
 
 enum_curve_primitives = (
@@ -745,11 +746,23 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 min=0, max=100.0,
                 default=1.01,
                 )
+        cls.minimum_width = FloatProperty(
+                name="Minimal width",
+                description="Minimal pixel width for strands (0 - deactivated)",
+                min=0, max=100,
+                default=0.0,
+                )
+        cls.maximum_width = FloatProperty(
+                name="Maximal width",
+                description="Maximum extension that strand radius can be increased by",
+                min=0, max=100,
+                default=0.1,
+                )
         cls.subdivisions = IntProperty(
                 name="Subdivisions",
                 description="Number of subdivisions used in Cardinal curve intersection (power of 2)",
                 min=0, max=24,
-                default=3,
+                default=4,
                 )
 
     @classmethod
@@ -765,15 +778,21 @@ class CyclesCurveSettings(bpy.types.PropertyGroup):
                 description="Cycles hair settings",
                 type=cls,
                 )
+        cls.radius_scale = FloatProperty(
+                name="Radius Scaling",
+                description="Multiplier of width properties",
+                min=0.0, max=1000.0,
+                default=0.01,
+                )
         cls.root_width = FloatProperty(
-                name="Root Size Multiplier",
-                description="Multiplier of particle size for the strand's width at root",
+                name="Root Size",
+                description="Strand's width at root",
                 min=0.0, max=1000.0,
                 default=1.0,
                 )
         cls.tip_width = FloatProperty(
-                name="Tip Size Multiplier",
-                description="Multiplier of particle size for the strand's width at tip",
+                name="Tip Multiplier",
+                description="Strand's width at tip",
                 min=0.0, max=1000.0,
                 default=0.0,
                 )

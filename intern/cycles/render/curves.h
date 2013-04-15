@@ -37,7 +37,8 @@ typedef enum curve_presets {
 	CURVE_TANGENT_SHADING,
 	CURVE_TRUE_NORMAL,
 	CURVE_ACCURATE_PRESET,
-	CURVE_SMOOTH_CURVES
+	CURVE_SMOOTH_CURVES,
+	CURVE_SMOOTH_RIBBONS
 } curve_presets;
 
 typedef enum curve_primitives {
@@ -107,6 +108,8 @@ public:
 
 	float normalmix;
 	float encasing_ratio;
+	float minimum_width;
+	float maximum_width;
 
 	bool use_curves;
 	bool use_smooth;

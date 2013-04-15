@@ -66,6 +66,7 @@ public:
 
 	/* screen */
 	int width, height;
+	int resolution;
 	BoundBox2D viewplane;
 
 	/* border */

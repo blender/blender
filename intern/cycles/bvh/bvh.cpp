@@ -341,6 +341,9 @@ void BVH::pack_primitives()
 			int tob = pack.prim_object[i];
 			Object *ob = objects[tob];
 			pack.prim_visibility[i] = ob->visibility;
+
+			if(pack.prim_segment[i] != ~0)
+				pack.prim_visibility[i] |= PATH_RAY_CURVE;
 		}
 		else {
 			memset(&pack.tri_woop[i * nsize], 0, sizeof(float4)*3);
@@ -651,6 +654,8 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 					float mr = max(mesh->curve_keys[k0].radius,mesh->curve_keys[k1].radius);
 					bbox.grow(lower, mr);
 					bbox.grow(upper, mr);
+
+					visibility |= PATH_RAY_CURVE;
 				}
 				else {
 					/* triangles */

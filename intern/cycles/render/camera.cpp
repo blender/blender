@@ -236,6 +236,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* render size */
 	kcam->width = width;
 	kcam->height = height;
+	kcam->resolution = resolution;
 
 	/* store differentials */
 	kcam->dx = float3_to_float4(dx);

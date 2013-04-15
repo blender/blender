@@ -113,11 +113,22 @@ __device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, cons
 #endif
 
 /* intersect two bounding boxes */
+#ifdef __HAIR__
+__device_inline void bvh_node_intersect(KernelGlobals *kg,
+	bool *traverseChild0, bool *traverseChild1,
+	bool *closestChild1, int *nodeAddr0, int *nodeAddr1,
+	float3 P, float3 idir, float t, uint visibility, int nodeAddr, float difl = 0.0f, float extmax = 0.0f)
+{
+	float hdiff = 1.0f + difl;
+	float ldiff = 1.0f - difl;
+#else
 __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	bool *traverseChild0, bool *traverseChild1,
 	bool *closestChild1, int *nodeAddr0, int *nodeAddr1,
 	float3 P, float3 idir, float t, uint visibility, int nodeAddr)
 {
+#endif
+
 	/* fetch node data */
 	float4 n0xy = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+0);
 	float4 n1xy = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+1);
@@ -143,6 +154,19 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	NO_EXTENDED_PRECISION float c1hiy = n1xy.w * idir.y - ood.y;
 	NO_EXTENDED_PRECISION float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
 	NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
+
+#ifdef __HAIR__
+	if(difl != 0.0f) {
+		if(__float_as_int(cnodes.z) & PATH_RAY_CURVE) {
+			c0min = max(ldiff * c0min, c0min - extmax);
+			c0max = min(hdiff * c0max, c0max + extmax);
+		}
+		if(__float_as_int(cnodes.z) & PATH_RAY_CURVE) {
+			c1min = max(ldiff * c1min, c1min - extmax);
+			c1max = min(hdiff * c1max, c1max + extmax);
+		}
+	}
+#endif
 
 	/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
@@ -257,8 +281,9 @@ __device_inline void curvebounds(float *lower, float *upper, float *extremta, fl
 }
 
 __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment)
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
 {
+	float epsilon = 0.0f;
 	int depth = kernel_data.curve_kernel_data.subdivisions;
 
 	/* curve Intersection check */
@@ -316,21 +341,29 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 
 	float r_curr = max(r_st, r_en);
 
+	if((flags & CURVE_KN_RIBBONS) || !(flags & CURVE_KN_BACKFACING))
+		epsilon = 2 * r_curr;
+
 	/*find bounds - this is slow for cubic curves*/
 	float upper,lower;
+
+	float zextrem[4];
+	curvebounds(&lower, &upper, &zextrem[0], &zextrem[1], &zextrem[2], &zextrem[3], curve_coef[0].z, curve_coef[1].z, curve_coef[2].z, curve_coef[3].z);
+	if(lower - r_curr > isect->t || upper + r_curr < epsilon)
+		return;
+
+	/*minimum width extension*/
+	float mw_extension = min(difl * fabsf(upper), extmax);
+	float r_ext = mw_extension + r_curr;
+
 	float xextrem[4];
 	curvebounds(&lower, &upper, &xextrem[0], &xextrem[1], &xextrem[2], &xextrem[3], curve_coef[0].x, curve_coef[1].x, curve_coef[2].x, curve_coef[3].x);
-	if(lower > r_curr || upper < -r_curr)
+	if(lower > r_ext || upper < -r_ext)
 		return;
 
 	float yextrem[4];
 	curvebounds(&lower, &upper, &yextrem[0], &yextrem[1], &yextrem[2], &yextrem[3], curve_coef[0].y, curve_coef[1].y, curve_coef[2].y, curve_coef[3].y);
-	if(lower > r_curr || upper < -r_curr)
-		return;
-
-	float zextrem[4];
-	curvebounds(&lower, &upper, &zextrem[0], &zextrem[1], &zextrem[2], &zextrem[3], curve_coef[0].z, curve_coef[1].z, curve_coef[2].z, curve_coef[3].z);
-	if(lower - r_curr > isect->t || upper + r_curr < 0.0f)
+	if(lower > r_ext || upper < -r_ext)
 		return;
 
 	/*setup recurrent loop*/
@@ -381,7 +414,11 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 		float r2 = r_st + (r_en - r_st) * i_en;
 		r_curr = max(r1, r2);
 
-		if (bminz - r_curr > isect->t || bmaxz + r_curr < 0.0f|| bminx > r_curr || bmaxx < -r_curr || bminy > r_curr || bmaxy < -r_curr) {
+		mw_extension = min(difl * fabsf(bmaxz), extmax);
+		float r_ext = mw_extension + r_curr;
+		float coverage = 1.0f;
+
+		if (bminz - r_curr > isect->t || bmaxz + r_curr < epsilon || bminx > r_ext|| bmaxx < -r_ext|| bminy > r_ext|| bmaxy < -r_ext) {
 			/* the bounding box does not overlap the square centered at O.*/
 			tree += level;
 			level = tree & -tree;
@@ -426,8 +463,23 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 					level = tree & -tree;
 					continue;
 				}
+
+				/* compute coverage */
+				float r_ext = r_curr;
+				coverage = 1.0f;
+				if(difl != 0.0f) {
+					mw_extension = min(difl * fabsf(bmaxz), extmax);
+					r_ext = mw_extension + r_curr;
+					float d = sqrtf(p_curr.x * p_curr.x + p_curr.y * p_curr.y);
+					float d0 = d - r_curr;
+					float d1 = d + r_curr;
+					if (d0 >= 0)
+						coverage = (min(d1 / mw_extension, 1.0f) - min(d0 / mw_extension, 1.0f)) * 0.5;
+					else // inside
+						coverage = (min(d1 / mw_extension, 1.0f) + min(-d0 / mw_extension, 1.0f)) * 0.5;
+				}
 				
-				if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_curr * r_curr || p_curr.z <= 0.0f) {
+				if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_ext * r_ext || p_curr.z <= epsilon) {
 					tree++;
 					level = tree & -tree;
 					continue;
@@ -442,18 +494,28 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 			}
 			else {
 				float l = len(p_en - p_st);
+				/*minimum width extension*/
+				float or1 = r1;
+				float or2 = r2;
+				if(difl != 0.0f) {
+					mw_extension = min(len(p_st - P) * difl, extmax);
+					or1 = r1 < mw_extension ? mw_extension : r1;
+					mw_extension = min(len(p_en - P) * difl, extmax);
+					or2 = r2 < mw_extension ? mw_extension : r2;
+				}
+				/* --- */
 				float3 tg = (p_en - p_st) / l;
-				float gd = (r2 - r1) / l;
+				float gd = (or2 - or1) / l;
 				float difz = -dot(p_st,tg);
 				float cyla = 1.0f - (tg.z * tg.z * (1 + gd*gd));
-				float halfb = (-p_st.z - tg.z*(difz + gd*(difz*gd + r1)));
+				float halfb = (-p_st.z - tg.z*(difz + gd*(difz*gd + or1)));
 				float tcentre = -halfb/cyla;
 				float zcentre = difz + (tg.z * tcentre);
 				float3 tdif = - p_st;
 				tdif.z += tcentre;
 				float tdifz = dot(tdif,tg);
-				float tb = 2*(tdif.z - tg.z*(tdifz + gd*(tdifz*gd + r1)));
-				float tc = dot(tdif,tdif) - tdifz * tdifz * (1 + gd*gd) - r1*r1 - 2*r1*tdifz*gd;
+				float tb = 2*(tdif.z - tg.z*(tdifz + gd*(tdifz*gd + or1)));
+				float tc = dot(tdif,tdif) - tdifz * tdifz * (1 + gd*gd) - or1*or1 - 2*or1*tdifz*gd;
 				float td = tb*tb - 4*cyla*tc;
 				if (td < 0.0f){
 					tree++;
@@ -488,10 +550,20 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 
 				w = clamp((float)w, 0.0f, 1.0f);
 				/* compute u on the curve segment.*/
-				u = i_st * (1 - w) + i_en * w;	
+				u = i_st * (1 - w) + i_en * w;
+				r_curr = r1 + (r2 - r1) * w;
+				r_ext = or1 + (or2 - or1) * w;
+				coverage = r_curr/r_ext;
 
 			}
 			/* we found a new intersection.*/
+
+			/*stochastic fade from minimum width*/
+			if(lcg_state && coverage != 1.0f) {
+				if(lcg_step(lcg_state) > coverage)
+					return;
+			}
+
 #ifdef __VISIBILITY_FLAG__
 			/* visibility flag test. we do it here under the assumption
 			 * that most triangles are culled by node flags */
@@ -504,6 +576,7 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 				isect->object = object;
 				isect->u = u;
 				isect->v = 0.0f;
+				/*isect->v = 1.0f - coverage; */
 				isect->t = t;
 			}
 			
@@ -518,26 +591,38 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 }
 
 __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment)
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
 {
 	/* curve Intersection check */
-	
 	int flags = kernel_data.curve_kernel_data.curveflags;
 
 	int prim = kernel_tex_fetch(__prim_index, curveAddr);
 	float4 v00 = kernel_tex_fetch(__curves, prim);
 
-	int k0 = __float_as_int(v00.x) + segment;
+	int cnum = __float_as_int(v00.x);
+	int k0 = cnum + segment;
 	int k1 = k0 + 1;
 
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 
-	float r1 = P1.w;
-	float r2 = P2.w;
-	float mr = max(r1,r2);
+	float or1 = P1.w;
+	float or2 = P2.w;
 	float3 p1 = float4_to_float3(P1);
 	float3 p2 = float4_to_float3(P2);
+
+	/*minimum width extension*/
+	float r1 = or1;
+	float r2 = or2;
+	if(difl != 0.0f) {
+		float pixelsize = min(len(p1 - P) * difl, extmax);
+		r1 = or1 < pixelsize ? pixelsize : or1;
+		pixelsize = min(len(p2 - P) * difl, extmax);
+		r2 = or2 < pixelsize ? pixelsize : or2;
+	}
+	/* --- */
+
+	float mr = max(r1,r2);
 	float3 dif = P - p1;
 	float3 dir = 1.0f/idir;
 	float l = len(p2 - p1);
@@ -558,7 +643,7 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float difz = dot(dif,tg);
 
 	float a = 1.0f - (dirz*dirz*(1 + gd*gd));
-	float halfb = (dot(dir,dif) - dirz*(difz + gd*(difz*gd + r1)));
+	float halfb = dot(dir,dif) - dirz*(difz + gd*(difz*gd + r1));
 
 	float tcentre = -halfb/a;
 	float zcentre = difz + (dirz * tcentre);
@@ -620,6 +705,15 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 			z = zcentre + (dirz * correction);
 		}
 
+		/*stochastic fade from minimum width*/
+		float adjradius = or1 + z * (or2 - or1) / l;
+		adjradius = adjradius / (r1 + z * gd);
+		if(lcg_state && adjradius != 1.0f) {
+			if(lcg_step(lcg_state) > adjradius)
+				return;
+		}
+		/* --- */
+
 		if(t > 0.0f && t < isect->t && z >= 0 && z <= l) {
 
 			if (flags & CURVE_KN_ENCLOSEFILTER) {
@@ -645,6 +739,7 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 				isect->object = object;
 				isect->u = z/l;
 				isect->v = td/(4*a*a);
+				/*isect->v = 1.0f - adjradius;*/
 				isect->t = t;
 
 				if(backface) 
@@ -655,7 +750,11 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 }
 #endif
 
+#ifdef __HAIR__
+__device bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
+#else
 __device bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+#endif
 {
 	/* traversal stack in CUDA thread-local memory */
 	int traversalStack[BVH_STACK_SIZE];
@@ -687,9 +786,15 @@ __device bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibi
 				bool traverseChild0, traverseChild1, closestChild1;
 				int nodeAddrChild1;
 
+#ifdef __HAIR__
+				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
+					&closestChild1, &nodeAddr, &nodeAddrChild1,
+					P, idir, isect->t, visibility, nodeAddr, difl, extmax);
+#else
 				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
 					&closestChild1, &nodeAddr, &nodeAddrChild1,
 					P, idir, isect->t, visibility, nodeAddr);
+#endif
 
 				if(traverseChild0 != traverseChild1) {
 					/* one child was intersected */
@@ -738,9 +843,9 @@ __device bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibi
 						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
 						if(segment != ~0) {
 							if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_INTERPOLATE) 
-								bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+								bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
 							else
-								bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+								bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
 						}
 						else
 #endif
@@ -911,13 +1016,22 @@ __device bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, const uint
 }
 #endif
 
+#ifdef __HAIR__ 
+__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
+#else
 __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+#endif
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion)
 		return bvh_intersect_motion(kg, ray, visibility, isect);
 	else
+#ifdef __HAIR__ 
+		return bvh_intersect(kg, ray, visibility, isect, lcg_state, difl, extmax);
+#else
 		return bvh_intersect(kg, ray, visibility, isect);
+#endif
+
 #else
 	return bvh_intersect(kg, ray, visibility, isect);
 #endif
@@ -1482,6 +1596,10 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 	sd->dPdu = tg;
 	sd->dPdv = cross(tg,sd->Ng);
 #endif
+
+	/*add fading parameter for minimum pixel width with transparency bsdf*/
+	/*sd->curve_transparency = isect->v;*/
+	/*sd->curve_radius = sd->u * gd * l + r1;*/
 
 	if(isect->object != ~0) {
 #ifdef __OBJECT_MOTION__

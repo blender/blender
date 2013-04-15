@@ -28,10 +28,11 @@
 #include "../node_shader_util.h"
 
 static bNodeSocketTemplate outputs[] = {
-	{	SOCK_FLOAT,  0, N_("Is Strand"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT,  0, N_("Is Strand"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT,  0, N_("Intercept"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT,  0, N_("Thickness"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT,  0, N_("Thickness"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Tangent Normal"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	/*{	SOCK_FLOAT,  0, N_("Fade"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},*/
 	{	-1, 0, ""	}
 };
 

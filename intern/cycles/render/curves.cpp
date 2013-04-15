@@ -89,6 +89,8 @@ CurveSystemManager::CurveSystemManager()
 
 	normalmix = 1.0f;
 	encasing_ratio = 1.01f;
+	minimum_width = 0.0f;
+	maximum_width = 0.0f;
 
 	use_curves = true;
 	use_smooth = true;
@@ -149,6 +151,8 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 
 		kcurve->normalmix = normalmix;
 		kcurve->encasing_ratio = encasing_ratio;
+		kcurve->minimum_width = minimum_width;
+		kcurve->maximum_width = maximum_width;
 		kcurve->subdivisions = subdivisions;
 	}
 
@@ -172,6 +176,8 @@ bool CurveSystemManager::modified(const CurveSystemManager& CurveSystemManager)
 		use_tangent_normal_correction == CurveSystemManager.use_tangent_normal_correction &&
 		use_tangent_normal_geometry == CurveSystemManager.use_tangent_normal_geometry &&
 		encasing_ratio == CurveSystemManager.encasing_ratio &&
+		minimum_width == CurveSystemManager.minimum_width &&
+		maximum_width == CurveSystemManager.maximum_width &&
 		use_backfacing == CurveSystemManager.use_backfacing &&
 		normalmix == CurveSystemManager.normalmix &&
 		use_smooth == CurveSystemManager.use_smooth &&

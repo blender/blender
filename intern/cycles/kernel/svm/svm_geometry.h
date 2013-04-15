@@ -166,6 +166,11 @@ __device void svm_node_hair_info(KernelGlobals *kg, ShaderData *sd, float *stack
 			stack_store_float(stack, out_offset, data);
 			break;
 		}
+		/*case NODE_INFO_CURVE_FADE: {
+			data = sd->curve_transparency;
+			stack_store_float(stack, out_offset, data);
+			break;
+		}*/
 		case NODE_INFO_CURVE_TANGENT_NORMAL: {
 			data3 = curve_tangent_normal(kg, sd);
 			stack_store_float3(stack, out_offset, data3);

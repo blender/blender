@@ -2281,6 +2281,8 @@ HairInfoNode::HairInfoNode()
 	add_output("Intercept", SHADER_SOCKET_FLOAT);
 	add_output("Thickness", SHADER_SOCKET_FLOAT);
 	add_output("Tangent Normal", SHADER_SOCKET_NORMAL);
+	/*output for minimum hair width transparency - deactivated*/
+	/*add_output("Fade", SHADER_SOCKET_FLOAT);*/
 }
 
 void HairInfoNode::attributes(AttributeRequestSet *attributes)
@@ -2321,6 +2323,12 @@ void HairInfoNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_TANGENT_NORMAL, out->stack_offset);
 	}
+
+	/*out = output("Fade");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_FADE, out->stack_offset);
+	}*/
 
 }
 
