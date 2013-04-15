@@ -445,6 +445,8 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	}
 	else if (snode)
 		idname = snode->tree_idname;
+	else
+		return OPERATOR_CANCELLED;
 	
 	if (RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", treename);

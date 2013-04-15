@@ -125,10 +125,6 @@ protected:
   
 */
 
-#ifdef __MACH__
-# define sqrtf(x) (sqrt(x))
-#endif
-
 template<class Map>
 float GaussianFilter::getSmoothedPixel(Map *map, int x, int y)
 {

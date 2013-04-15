@@ -113,8 +113,8 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute& a1, const StrokeAttribut
 		if (a1._userAttributesReal->size() == a2._userAttributesReal->size()) {
 			_userAttributesReal = new realMap;
 			realMap::iterator it1 = a1._userAttributesReal->begin(), it1end = a1._userAttributesReal->end();
-			realMap::iterator it2 = a2._userAttributesReal->begin(), it2end = a2._userAttributesReal->end();
-			for (; it1 != it1end; ++it1) {
+			realMap::iterator it2 = a2._userAttributesReal->begin();
+			for (; it1 != it1end; ++it1, ++it2) {
 				(*_userAttributesReal)[(*it1).first] = ((1 - t) * (*it1).second + t * (*it2).second);
 			}
 		}
@@ -126,8 +126,8 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute& a1, const StrokeAttribut
 		if (a1._userAttributesVec2f->size() == a2._userAttributesVec2f->size()) {
 			_userAttributesVec2f = new Vec2fMap;
 			Vec2fMap::iterator it1 = a1._userAttributesVec2f->begin(), it1end = a1._userAttributesVec2f->end();
-			Vec2fMap::iterator it2 = a2._userAttributesVec2f->begin(), it2end = a2._userAttributesVec2f->end();
-			for (; it1 != it1end; ++it1) {
+			Vec2fMap::iterator it2 = a2._userAttributesVec2f->begin();
+			for (; it1 != it1end; ++it1, ++it2) {
 				(*_userAttributesVec2f)[(*it1).first] = ((1 - t) * (*it1).second + t * (*it2).second);
 			}
 		}
@@ -139,8 +139,8 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute& a1, const StrokeAttribut
 		if (a1._userAttributesVec3f->size() == a2._userAttributesVec3f->size()) {
 			_userAttributesVec3f = new Vec3fMap;
 			Vec3fMap::iterator it1 = a1._userAttributesVec3f->begin(), it1end = a1._userAttributesVec3f->end();
-			Vec3fMap::iterator it2 = a2._userAttributesVec3f->begin(), it2end = a2._userAttributesVec3f->end();
-			for (; it1 != it1end; ++it1) {
+			Vec3fMap::iterator it2 = a2._userAttributesVec3f->begin();
+			for (; it1 != it1end; ++it1, ++it2) {
 				(*_userAttributesVec3f)[(*it1).first] = ((1 - t) * (*it1).second + t * (*it2).second);
 			}
 		}
@@ -659,8 +659,6 @@ void Stroke::RemoveVertex(StrokeVertex *iVertex)
 
 void Stroke::InsertVertex(StrokeVertex *iVertex, StrokeInternal::StrokeVertexIterator next)
 {
-	vertex_container::iterator it = _Vertices.begin(), itend = _Vertices.end();
-
 	vertex_container::iterator itnext = next.getIt();
 	_Vertices.insert(itnext, iVertex);
 	UpdateLength();
