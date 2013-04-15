@@ -539,6 +539,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		if (srl->passflag  & SCE_PASS_TRANSM_COLOR)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_COLOR);
 		
+		BKE_freestyle_config_init(&srl->freestyleConfig);
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if (rr->layers.first == NULL && !(layername && layername[0])) {
@@ -565,7 +566,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->lay = (1 << 20) - 1;
 		rl->layflag = 0x7FFF;    /* solid ztra halo strand */
 		rl->passflag = SCE_PASS_COMBINED;
-		BKE_freestyle_config_init(&srl->freestyleConfig);
 		
 		re->r.actlay = 0;
 	}
