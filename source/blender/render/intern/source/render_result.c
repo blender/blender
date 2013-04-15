@@ -538,8 +538,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_INDIRECT);
 		if (srl->passflag  & SCE_PASS_TRANSM_COLOR)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_COLOR);
-		
-		BKE_freestyle_config_init(&srl->freestyleConfig);
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if (rr->layers.first == NULL && !(layername && layername[0])) {
