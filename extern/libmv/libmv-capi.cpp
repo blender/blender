@@ -77,11 +77,16 @@ typedef struct libmv_Features {
 
 void libmv_initLogging(const char *argv0)
 {
+	/* Make it so FATAL messages are always print into console */
+	char severity_fatal[32];
+	snprintf(severity_fatal, sizeof(severity_fatal), "%d",
+	         google::GLOG_FATAL);
+
 	google::InitGoogleLogging(argv0);
 	google::SetCommandLineOption("logtostderr", "1");
 	google::SetCommandLineOption("v", "0");
-	google::SetCommandLineOption("stderrthreshold", "7");
-	google::SetCommandLineOption("minloglevel", "7");
+	google::SetCommandLineOption("stderrthreshold", severity_fatal);
+	google::SetCommandLineOption("minloglevel", severity_fatal);
 }
 
 void libmv_startDebugLogging(void)
