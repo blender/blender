@@ -231,6 +231,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	BMFace *efa;
 	BMLoop *l;
 	BMEdge *eed;
+	RNG *rng;
 	BMIter iter, liter;
 	
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
@@ -250,7 +251,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	/* we need the vert indices */
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
-	BLI_srand(0);
+	rng = BLI_rng_new(0);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		ScanFillVert *sf_vert = NULL, *sf_vert_last, *sf_vert_first;
@@ -311,7 +312,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 				
 				/* add small random offset */
 				for (i = 0; i < 3; i++) {
-					sf_vert->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
+					sf_vert->co[i] += (BLI_rng_get_float(rng) - 0.5f) * FLT_EPSILON * 50;
 				}
 				
 				sf_vert->tmp.p = l;
@@ -362,6 +363,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	}
 
 	param_construct_end(handle, fill, implicit);
+	BLI_rng_free(rng);
 
 	return handle;
 }

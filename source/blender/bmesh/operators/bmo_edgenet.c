@@ -362,6 +362,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BMEdge **edges = NULL;
 	BLI_array_staticdeclare(edges, BM_DEFAULT_NGON_STACK_SIZE);
 	BMVert *v;
+	RNG *rng;
 	/* BMVert **verts = NULL; */
 	/* BLI_array_staticdeclare(verts, BM_DEFAULT_NGON_STACK_SIZE); */ /* UNUSE */
 	int i;
@@ -427,7 +428,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			copy_v3_v3(vdata[BM_elem_index_get(v2)].sco, vec1);
 		}
 
-		BLI_srandom(0);
+		rng = BLI_rng_new_srandom(0);
 
 		/* first, ensure no 0 or 180 angles between adjacent
 		 * (and that adjacent's adjacent) edges */
@@ -471,7 +472,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				copy_v3_v3(cent, v->co);
 
 				for (j = 0; j < 3; j++) {
-					float fac = (BLI_frand() - 0.5f) * size;
+					float fac = (BLI_rng_get_float(rng) - 0.5f) * size;
 					cent[j] += fac;
 				}
 
@@ -487,6 +488,8 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 
 			}
 		}
+
+		BLI_rng_free(rng);
 
 		copy_v3_v3(vdata[BM_elem_index_get(v)].offco, cent);
 		//copy_v3_v3(v->co, cent);

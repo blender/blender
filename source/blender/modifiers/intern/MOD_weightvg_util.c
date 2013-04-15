@@ -59,7 +59,7 @@
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cmap)
+void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cmap, RNG *rng)
 {
 	int i;
 
@@ -100,8 +100,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 				fac = (float)sqrt(2 * fac - fac * fac);
 				break;
 			case MOD_WVG_MAPPING_RANDOM:
-				BLI_srand(BLI_rand()); /* random seed */
-				fac = BLI_frand() * fac;
+				fac = BLI_rng_get_float(rng) * fac;
 				break;
 			case MOD_WVG_MAPPING_STEP:
 				fac = (fac >= 0.5f) ? 1.0f : 0.0f;

@@ -32,6 +32,8 @@
 #ifndef __MOD_WEIGHTVG_UTIL_H__
 #define __MOD_WEIGHTVG_UTIL_H__
 
+#include "BLI_rand.h"
+
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
 
@@ -65,7 +67,7 @@ struct Scene;
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cmap);
+void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cmap, RNG *rng);
 
 /* Applies new_w weights to org_w ones, using either a texture, vgroup or constant value as factor.
  * Return values are in org_w.

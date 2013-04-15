@@ -61,6 +61,7 @@ struct SurfaceModifierData;
 struct BVHTreeRay;
 struct BVHTreeRayHit; 
 struct EdgeHash;
+struct RNG;
 
 #define PARTICLE_P              ParticleData * pa; int p
 #define LOOP_PARTICLES  for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)
@@ -82,6 +83,7 @@ typedef struct ParticleSimulationData {
 	struct ParticleSystem *psys;
 	struct ParticleSystemModifierData *psmd;
 	struct ListBase *colliders;
+	struct RNG *rng;
 	/* Courant number. This is used to implement an adaptive time step. Only the
 	 * maximum value per time step is important. Only sph_integrate makes use of
 	 * this at the moment. Other solvers could, too. */

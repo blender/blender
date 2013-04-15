@@ -3227,8 +3227,6 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	const float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
 
-	BLI_srand(BLI_rand()); /* random seed */
-	
 	if (!RNA_boolean_get(op->ptr, "extend"))
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 

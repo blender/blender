@@ -104,6 +104,7 @@ static void createFacepa(ExplodeModifierData *emd,
 	MVert *mvert = NULL;
 	ParticleData *pa;
 	KDTree *tree;
+	RNG *rng;
 	float center[3], co[3];
 	int *facepa = NULL, *vertpa = NULL, totvert = 0, totface = 0, totpart = 0;
 	int i, p, v1, v2, v3, v4 = 0;
@@ -114,7 +115,7 @@ static void createFacepa(ExplodeModifierData *emd,
 	totvert = dm->getNumVerts(dm);
 	totpart = psmd->psys->totpart;
 
-	BLI_srandom(psys->seed);
+	rng = BLI_rng_new_srandom(psys->seed);
 
 	if (emd->facepa)
 		MEM_freeN(emd->facepa);
@@ -136,7 +137,7 @@ static void createFacepa(ExplodeModifierData *emd,
 		if (dvert) {
 			const int defgrp_index = emd->vgroup - 1;
 			for (i = 0; i < totvert; i++, dvert++) {
-				float val = BLI_frand();
+				float val = BLI_rng_get_float(rng);
 				val = (1.0f - emd->protect) * val + emd->protect * 0.5f;
 				if (val < defvert_find_weight(dvert, defgrp_index))
 					vertpa[i] = -1;
@@ -182,6 +183,8 @@ static void createFacepa(ExplodeModifierData *emd,
 
 	if (vertpa) MEM_freeN(vertpa);
 	BLI_kdtree_free(tree);
+
+	BLI_rng_free(rng);
 }
 
 static int edgecut_get(EdgeHash *edgehash, unsigned int v1, unsigned int v2)

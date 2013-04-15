@@ -29,6 +29,7 @@
  */
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 
@@ -239,7 +240,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Do mapping. */
 	if (wmd->falloff_type != MOD_WVG_MAPPING_NONE) {
-		weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve);
+		RNG *rng = NULL;
+
+		if (wmd->falloff_type == MOD_WVG_MAPPING_RANDOM)
+			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name));
+
+		weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve, rng);
+
+		if (rng)
+			BLI_rng_free(rng);
 	}
 
 	/* Do masking. */

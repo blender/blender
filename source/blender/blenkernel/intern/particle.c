@@ -264,11 +264,12 @@ static void psys_create_frand(ParticleSystem *psys)
 {
 	int i;
 	float *rand = psys->frand = MEM_callocN(PSYS_FRAND_COUNT * sizeof(float), "particle randoms");
-
-	BLI_srandom(psys->seed);
+	RNG *rng = BLI_rng_new_srandom(psys->seed);
 
 	for (i = 0; i < 1024; i++, rand++)
-		*rand = BLI_frand();
+		*rand = BLI_rng_get_float(rng);
+
+	BLI_rng_free(rng);
 }
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
@@ -3302,8 +3303,11 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		sim.ob = ob;
 		sim.psys = psys;
 		sim.psmd = psys_get_modifier(ob, psys);
+		sim.rng = BLI_rng_new(0);
 
 		psys_cache_child_paths(&sim, cfra, 1);
+
+		BLI_rng_free(sim.rng);
 	}
 
 	/* clear recalc flag if set here */
@@ -4660,6 +4664,7 @@ void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 	sim.ob = ob;
 	sim.psys = psys;
 	sim.psmd = psys_get_modifier(ob, psys);
+	sim.rng = BLI_rng_new(0);
 
 	psys->lattice = psys_get_lattice(&sim);
 
@@ -4687,4 +4692,6 @@ void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 		/* protect the applied shape */
 		psys->flag |= PSYS_EDITED;
 	}
+
+	BLI_rng_free(sim.rng);
 }

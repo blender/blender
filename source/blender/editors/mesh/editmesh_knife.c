@@ -1860,12 +1860,12 @@ typedef struct facenet_entry {
 	KnifeEdge *kfe;
 } facenet_entry;
 
-static void rnd_offset_co(float co[3], float scale)
+static void rnd_offset_co(RNG *rng, float co[3], float scale)
 {
 	int i;
 
 	for (i = 0; i < 3; i++) {
-		co[i] += (BLI_frand() - 0.5) * scale;
+		co[i] += (BLI_rng_get_float(rng) - 0.5) * scale;
 	}
 }
 
@@ -1966,6 +1966,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 	BMFace **faces = MEM_callocN(sizeof(BMFace *) * bm->totface, "faces knife");
 	MemArena *arena = BLI_memarena_new(1 << 16, "knifenet_fill_faces");
 	SmallHash shash;
+	RNG *rng;
 	int i, j, k = 0, totface = bm->totface;
 
 	BMO_push(bm, NULL);
@@ -2065,7 +2066,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 		}
 	}
 
-	BLI_srand(0);
+	rng = BLI_rng_new(0);
 
 	for (i = 0; i < totface; i++) {
 		SmallHash *hash = &shash;
@@ -2086,7 +2087,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
 				sf_vert = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v1->v->co);
 				sf_vert->poly_nr = 0;
-				rnd_offset_co(sf_vert->co, rndscale);
+				rnd_offset_co(rng, sf_vert->co, rndscale);
 				sf_vert->tmp.p = entry->kfe->v1->v;
 				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v1, sf_vert);
 			}
@@ -2094,7 +2095,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
 				sf_vert = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v2->v->co);
 				sf_vert->poly_nr = 0;
-				rnd_offset_co(sf_vert->co, rndscale);
+				rnd_offset_co(rng, sf_vert->co, rndscale);
 				sf_vert->tmp.p = entry->kfe->v2->v;
 				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v2, sf_vert);
 			}
@@ -2201,6 +2202,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 	if (faces)
 		MEM_freeN(faces);
 	BLI_memarena_free(arena);
+	BLI_rng_free(rng);
 
 	BMO_error_clear(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
 

@@ -176,6 +176,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	Scene *scene;
 	Object *camera;
 	Camera *cam;
+	RNG *rng;
 	double dblrand, hlfrand;
 	float vec[4], fx, fy, fz;
 	float fac, starmindist, clipend;
@@ -244,14 +245,16 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	if (re) /* add render object for stars */
 		obr= RE_addRenderObject(re, NULL, NULL, 0, 0, 0);
 	
+	rng = BLI_rng_new(0);
+	
 	for (x = sx, fx = sx * stargrid; x <= ex; x++, fx += stargrid) {
 		for (y = sy, fy = sy * stargrid; y <= ey; y++, fy += stargrid) {
 			for (z = sz, fz = sz * stargrid; z <= ez; z++, fz += stargrid) {
 
-				BLI_srand((hash[z & 0xff] << 24) + (hash[y & 0xff] << 16) + (hash[x & 0xff] << 8));
-				vec[0] = fx + (hlfrand * BLI_drand()) - dblrand;
-				vec[1] = fy + (hlfrand * BLI_drand()) - dblrand;
-				vec[2] = fz + (hlfrand * BLI_drand()) - dblrand;
+				BLI_rng_seed(rng, (hash[z & 0xff] << 24) + (hash[y & 0xff] << 16) + (hash[x & 0xff] << 8));
+				vec[0] = fx + (hlfrand * BLI_rng_get_double(rng)) - dblrand;
+				vec[1] = fy + (hlfrand * BLI_rng_get_double(rng)) - dblrand;
+				vec[2] = fz + (hlfrand * BLI_rng_get_double(rng)) - dblrand;
 				vec[3] = 1.0;
 				
 				if (vertexfunc) {
@@ -281,7 +284,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 					
 					
 					if (alpha != 0.0f) {
-						fac = force * BLI_drand();
+						fac = force * BLI_rng_get_double(rng);
 						
 						har = initstar(re, obr, vec, fac);
 						
@@ -290,9 +293,9 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 							har->add= 255;
 							har->r = har->g = har->b = 1.0;
 							if (maxjit) {
-								har->r += ((maxjit * BLI_drand()) ) - maxjit;
-								har->g += ((maxjit * BLI_drand()) ) - maxjit;
-								har->b += ((maxjit * BLI_drand()) ) - maxjit;
+								har->r += ((maxjit * BLI_rng_get_double(rng)) ) - maxjit;
+								har->g += ((maxjit * BLI_rng_get_double(rng)) ) - maxjit;
+								har->b += ((maxjit * BLI_rng_get_double(rng)) ) - maxjit;
 							}
 							har->hard = 32;
 							har->lay= -1;
@@ -321,6 +324,8 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 
 	if (obr)
 		re->tothalo += obr->tothalo;
+
+	BLI_rng_free(rng);
 }
 
 

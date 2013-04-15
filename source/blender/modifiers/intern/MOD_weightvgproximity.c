@@ -30,9 +30,10 @@
 
 #define DO_PROFILE 0
 
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #if DO_PROFILE
 	#include "PIL_time.h"
@@ -185,7 +186,7 @@ static float get_ob2ob_distance(const Object *ob, const Object *obr)
 /**
  * Maps distances to weights, with an optional "smoothing" mapping.
  */
-static void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
+static void do_map(Object *ob, float *weights, const int nidx, const float min_d, const float max_d, short mode)
 {
 	const float range_inv = 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i = nidx;
@@ -210,7 +211,15 @@ static void do_map(float *weights, const int nidx, const float min_d, const floa
 	}
 
 	if (!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
-		weightvg_do_map(nidx, weights, mode, NULL);
+		RNG *rng = NULL;
+
+		if (mode == MOD_WVG_MAPPING_RANDOM)
+			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name));
+
+		weightvg_do_map(nidx, weights, mode, NULL, rng);
+
+		if (rng)
+			BLI_rng_free(rng);
 	}
 }
 
@@ -500,7 +509,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 
 	/* Map distances to weights. */
-	do_map(new_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
+	do_map(ob, new_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
 
 	/* Do masking. */
 	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, dm, wmd->mask_constant,

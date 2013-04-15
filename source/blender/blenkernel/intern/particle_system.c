@@ -423,7 +423,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 	}
 }
 
-static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *finaldm, ParticleSystem *psys)
+static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *finaldm, ParticleSystem *psys, RNG *rng)
 {
 	ChildParticle *cpa = NULL;
 	int i, p;
@@ -440,9 +440,9 @@ static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *fi
 					
 			/* create even spherical distribution inside unit sphere */
 			while (length>=1.0f) {
-				cpa->fuv[0]=2.0f*BLI_frand()-1.0f;
-				cpa->fuv[1]=2.0f*BLI_frand()-1.0f;
-				cpa->fuv[2]=2.0f*BLI_frand()-1.0f;
+				cpa->fuv[0]=2.0f*BLI_rng_get_float(rng)-1.0f;
+				cpa->fuv[1]=2.0f*BLI_rng_get_float(rng)-1.0f;
+				cpa->fuv[2]=2.0f*BLI_rng_get_float(rng)-1.0f;
 				length=len_v3(cpa->fuv);
 			}
 
@@ -872,7 +872,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 						pa->foffset *= ctx->jit[p % (2 * ctx->jitlevel)];
 						break;
 					case PART_DISTR_RAND:
-						pa->foffset *= BLI_frand();
+						pa->foffset *= BLI_rng_get_float(ctx->sim.rng);
 						break;
 				}
 			}
@@ -1065,15 +1065,15 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	if (from == PART_FROM_CHILD) {
 		/* Simple children */
 		if (part->childtype != PART_CHILD_FACES) {
-			BLI_srandom(31415926 + psys->seed + psys->child_seed);
-			distribute_simple_children(scene, ob, finaldm, psys);
+			BLI_rng_srandom(ctx->sim.rng, 31415926 + psys->seed + psys->child_seed);
+			distribute_simple_children(scene, ob, finaldm, psys, ctx->sim.rng);
 			return 0;
 		}
 	}
 	else {
 		/* Grid distribution */
 		if (part->distr==PART_DISTR_GRID && from != PART_FROM_VERT) {
-			BLI_srandom(31415926 + psys->seed);
+			BLI_rng_srandom(ctx->sim.rng, 31415926 + psys->seed);
 			dm= CDDM_from_mesh((Mesh*)ob->data, ob);
 			DM_ensure_tessface(dm);
 			distribute_grid(dm,psys);
@@ -1085,7 +1085,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	/* Create trees and original coordinates if needed */
 	if (from == PART_FROM_CHILD) {
 		distr=PART_DISTR_RAND;
-		BLI_srandom(31415926 + psys->seed + psys->child_seed);
+		BLI_rng_srandom(ctx->sim.rng, 31415926 + psys->seed + psys->child_seed);
 		dm= finaldm;
 
 		/* BMESH ONLY */
@@ -1108,7 +1108,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	}
 	else {
 		distr = part->distr;
-		BLI_srandom(31415926 + psys->seed);
+		BLI_rng_srandom(ctx->sim.rng, 31415926 + psys->seed);
 		
 		dm= CDDM_from_mesh((Mesh*)ob->data, ob);
 
@@ -1264,7 +1264,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 
 		for (p=0; p<totpart; p++) {
 			/* In theory element_sum[totelem] should be 1.0, but due to float errors this is not necessarily always true, so scale pos accordingly. */
-			pos= BLI_frand() * element_sum[totelem];
+			pos= BLI_rng_get_float(ctx->sim.rng) * element_sum[totelem];
 			particle_element[p] = distribute_binary_search(element_sum, totelem, pos);
 			particle_element[p] = MIN2(totelem-1, particle_element[p]);
 			jitter_offset[particle_element[p]] = pos;
@@ -2916,9 +2916,9 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 
 	/* brownian force */
 	if (part->brownfac != 0.0f) {
-		force[0] += (BLI_frand()-0.5f) * part->brownfac;
-		force[1] += (BLI_frand()-0.5f) * part->brownfac;
-		force[2] += (BLI_frand()-0.5f) * part->brownfac;
+		force[0] += (BLI_rng_get_float(sim->rng)-0.5f) * part->brownfac;
+		force[1] += (BLI_rng_get_float(sim->rng)-0.5f) * part->brownfac;
+		force[2] += (BLI_rng_get_float(sim->rng)-0.5f) * part->brownfac;
 	}
 
 	if (part->flag & PART_ROT_DYN && epoint.ave)
@@ -3497,7 +3497,7 @@ static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRay
 
 	return hit->index >= 0;
 }
-static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeRayHit *hit, int kill, int dynamic_rotation)
+static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeRayHit *hit, int kill, int dynamic_rotation, RNG *rng)
 {
 	ParticleCollisionElement *pce = &col->pce;
 	PartDeflect *pd = col->hit->pd;
@@ -3506,7 +3506,7 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 	float f = col->f + x * (1.0f - col->f);				/* time factor of collision between timestep */
 	float dt1 = (f - col->f) * col->total_time;			/* time since previous collision (in seconds) */
 	float dt2 = (1.0f - f) * col->total_time;			/* time left after collision (in seconds) */
-	int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
+	int through = (BLI_rng_get_float(rng) < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
 
 	/* calculate exact collision location */
 	interp_v3_v3v3(co, col->co1, col->co2, x);
@@ -3531,8 +3531,8 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 		float v0_tan[3];/* tangential component of v0 */
 		float vc_tan[3];/* tangential component of collision surface velocity */
 		float v0_dot, vc_dot;
-		float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_frand() - 0.5f);
-		float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_frand() - 0.5f);
+		float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_rng_get_float(rng) - 0.5f);
+		float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_rng_get_float(rng) - 0.5f);
 		float distance, nor[3], dot;
 
 		CLAMP(damp,0.0f, 1.0f);
@@ -3740,7 +3740,7 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
 
 			if (collision_count == COLLISION_MAX_COLLISIONS)
 				collision_fail(pa, &col);
-			else if (collision_response(pa, &col, &hit, part->flag & PART_DIE_ON_COL, part->flag & PART_ROT_DYN)==0)
+			else if (collision_response(pa, &col, &hit, part->flag & PART_DIE_ON_COL, part->flag & PART_ROT_DYN, sim->rng)==0)
 				return;
 		}
 		else
@@ -4100,6 +4100,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part=psys->part;
+	RNG *rng;
 	BoidBrainData bbd;
 	ParticleTexture ptex;
 	PARTICLE_P;
@@ -4126,7 +4127,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		return;
 	}
 
-	BLI_srandom(31415926 + (int)cfra + psys->seed);
+	rng = BLI_rng_new_srandom(31415926 + (int)cfra + psys->seed);
 
 	psys_update_effectors(sim);
 
@@ -4143,6 +4144,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			bbd.cfra = cfra;
 			bbd.dfra = dfra;
 			bbd.timestep = timestep;
+			bbd.rng = rng;
 
 			psys_update_particle_tree(psys, cfra);
 
@@ -4326,6 +4328,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	free_collider_cache(&sim->colliders);
+	BLI_rng_free(rng);
 }
 static void update_children(ParticleSimulationData *sim)
 {
@@ -4822,6 +4825,8 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if (!sim.psmd->dm)
 		return;
 
+	sim.rng = BLI_rng_new(0);
+
 	if (part->from != PART_FROM_VERT) {
 		DM_ensure_tessface(sim.psmd->dm);
 	}
@@ -4962,5 +4967,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	if (psys->renderdata==0)
 		invert_m4_m4(psys->imat, ob->obmat);
+	
+	BLI_rng_free(sim.rng);
 }
 

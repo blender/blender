@@ -619,6 +619,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 			sim.scene= eff->scene;
 			sim.ob= eff->ob;
 			sim.psys= eff->psys;
+			sim.rng= NULL;
 
 			/* TODO: time from actual previous calculated frame (step might not be 1) */
 			state.time = cfra - 1.0f;

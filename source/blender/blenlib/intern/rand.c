@@ -73,6 +73,15 @@ RNG *BLI_rng_new(unsigned int seed)
 	return rng;
 }
 
+RNG *BLI_rng_new_srandom(unsigned int seed)
+{
+	RNG *rng = MEM_mallocN(sizeof(*rng), "rng");
+
+	BLI_rng_srandom(rng, seed);
+
+	return rng;
+}
+
 void BLI_rng_free(RNG *rng)
 {
 	MEM_freeN(rng);
@@ -145,13 +154,8 @@ void BLI_rng_skip(RNG *rng, int n)
 
 /***/
 
-static RNG theBLI_rng = {0};
-
-/* note, this one creates periodical patterns */
-void BLI_srand(unsigned int seed)
-{
-	BLI_rng_seed(&theBLI_rng, seed);
-}
+/* initialize with some non-zero seed */
+static RNG theBLI_rng = {611330372042337130};
 
 /* using hash table to create better seed */
 void BLI_srandom(unsigned int seed)
@@ -164,23 +168,27 @@ int BLI_rand(void)
 	return BLI_rng_get_int(&theBLI_rng);
 }
 
-double BLI_drand(void)
-{
-	return BLI_rng_get_double(&theBLI_rng);
-}
-
 float BLI_frand(void)
 {
 	return BLI_rng_get_float(&theBLI_rng);
 }
 
-void BLI_fillrand(void *addr, int len)
+float BLI_hash_frand(unsigned int seed)
 {
-	RNG rng;
-	unsigned char *p = addr;
+	r_uint64 X;
 
-	BLI_rng_seed(&rng, (unsigned int) (PIL_check_seconds_timer() * 0x7FFFFFFF));
-	while (len--) *p++ = BLI_rng_get_int(&rng) & 0xFF;
+	seed = seed + hash[seed & 255];
+	X = (((r_uint64) seed) << 16) | LOWSEED;
+	seed = (int)(((MULTIPLIER * X + ADDEND) & MASK) >> 17);
+
+	seed = seed + hash[seed & 255];
+	X = (((r_uint64) seed) << 16) | LOWSEED;
+	X = (int)(((MULTIPLIER * X + ADDEND) & MASK) >> 17);
+
+	seed = seed + hash[seed & 255];
+	X = (((r_uint64) seed) << 16) | LOWSEED;
+
+	return (int)(((MULTIPLIER * X + ADDEND) & MASK) >> 17);
 }
 
 void BLI_array_randomize(void *data, int elemSize, int numElems, unsigned int seed)

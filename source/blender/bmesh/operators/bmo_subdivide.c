@@ -831,11 +831,13 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.origkey = skey;
 
 	if (params.use_fractal) {
-		BLI_srandom(seed);
+		RNG *rng = BLI_rng_new_srandom(seed);
 
-		params.fractal_ofs[0] = (float)BLI_drand() * 200.0f;
-		params.fractal_ofs[1] = (float)BLI_drand() * 200.0f;
-		params.fractal_ofs[2] = (float)BLI_drand() * 200.0f;
+		params.fractal_ofs[0] = BLI_rng_get_float(rng) * 200.0f;
+		params.fractal_ofs[1] = BLI_rng_get_float(rng) * 200.0f;
+		params.fractal_ofs[2] = BLI_rng_get_float(rng) * 200.0f;
+
+		BLI_rng_free(rng);
 	}
 	
 	BMO_slot_map_to_flag(bm, op->slots_in, "custom_patterns",

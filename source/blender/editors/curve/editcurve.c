@@ -5402,8 +5402,6 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 	BPoint *bp;
 	int a;
 	
-	BLI_srand(BLI_rand()); /* random seed */
-	
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
 			bezt = nu->bezt;

@@ -1759,7 +1759,6 @@ void calculatePropRatio(TransInfo *t)
 						td->factor = (float)sqrt(2 * dist - dist * dist);
 						break;
 					case PROP_RANDOM:
-						BLI_srand(BLI_rand()); /* random seed */
 						td->factor = BLI_frand() * dist;
 						break;
 					default:

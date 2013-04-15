@@ -144,12 +144,12 @@ typedef struct Ocean {
 
 
 
-static float nextfr(float min, float max)
+static float nextfr(RNG *rng, float min, float max)
 {
-	return BLI_frand() * (min - max) + max;
+	return BLI_rng_get_float(rng) * (min - max) + max;
 }
 
-static float gaussRand(void)
+static float gaussRand(RNG *rng)
 {
 	/* Note: to avoid numerical problems with very small numbers, we make these variables singe-precision floats,
 	 * but later we call the double-precision log() and sqrt() functions instead of logf() and sqrtf().
@@ -765,6 +765,7 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
                     float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals,
                     short do_jacobian, int seed)
 {
+	RNG *rng;
 	int i, j, ii;
 
 	BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
@@ -825,12 +826,12 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
 			o->_k[i * (1 + o->_N / 2) + j] = sqrt(o->_kx[i] * o->_kx[i] + o->_kz[j] * o->_kz[j]);
 
 	/*srand(seed);*/
-	BLI_srand(seed);
+	rng = BLI_rng_new(seed);
 
 	for (i = 0; i < o->_M; ++i) {
 		for (j = 0; j < o->_N; ++j) {
-			float r1 = gaussRand();
-			float r2 = gaussRand();
+			float r1 = gaussRand(rng);
+			float r2 = gaussRand(rng);
 
 			fftw_complex r1r2;
 			init_complex(r1r2, r1, r2);
@@ -890,6 +891,7 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
 
 	set_height_normalize_factor(o);
 
+	BLI_rng_free(rng);
 }
 
 void BKE_free_ocean_data(struct Ocean *oc)
@@ -1188,13 +1190,14 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 	int res_x = och->resolution_x;
 	int res_y = och->resolution_y;
 	char string[FILE_MAX];
+	//RNG *rng;
 
 	if (!o) return;
 
 	if (o->_do_jacobian) prev_foam = MEM_callocN(res_x * res_y * sizeof(float), "previous frame foam bake data");
 	else prev_foam = NULL;
 
-	BLI_srand(0);
+	//rng = BLI_rng_new(0);
 
 	/* setup image format */
 	imf.imtype = R_IMF_IMTYPE_OPENEXR;
@@ -1232,7 +1235,7 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 						pr = prev_foam[res_x * y + x];
 					}
 
-					/* r = BLI_frand(); */ /* UNUSED */ /* randomly reduce foam */
+					/* r = BLI_rng_get_float(rng); */ /* UNUSED */ /* randomly reduce foam */
 
 					/* pr = pr * och->foam_fade; */		/* overall fade */
 
@@ -1311,10 +1314,12 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 		if (cancel) {
 			if (prev_foam) MEM_freeN(prev_foam);
+			//BLI_rng_free(rng);
 			return;
 		}
 	}
 
+	//BLI_rng_free(rng);
 	if (prev_foam) MEM_freeN(prev_foam);
 	och->baked = 1;
 }

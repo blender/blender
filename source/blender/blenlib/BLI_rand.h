@@ -33,14 +33,15 @@
  *  \brief Random number functions.
  */
 
-/** RNG is just an abstract random number generator
- * type that avoids using globals, otherwise identical
- * to BLI_rand functions below.
+/* RNG is an abstract random number generator type that avoids using globals.
+ * Always use this instead of the global RNG unless you have a good reason,
+ * the global RNG is not thread safe and will not give repeatable results.
  */
 struct RNG;
 typedef struct RNG RNG;
 
 struct RNG *BLI_rng_new(unsigned int seed);
+struct RNG *BLI_rng_new_srandom(unsigned int seed);
 void        BLI_rng_free(struct RNG *rng);
 
 void        BLI_rng_seed(struct RNG *rng, unsigned int seed);
@@ -53,27 +54,17 @@ void        BLI_rng_shuffle_array(struct RNG *rng, void *data, int elemSize, int
 /** Note that skipping is as slow as generating n numbers! */
 void        BLI_rng_skip(struct RNG *rng, int n);
 
-/** Seed the random number generator */
-void    BLI_srand(unsigned int seed);
-
-/** Better seed for the random number generator, using noise.c hash[] */
+/** Seed for the random number generator, using noise.c hash[] */
 void    BLI_srandom(unsigned int seed);
 
 /** Return a pseudo-random number N where 0<=N<(2^31) */
 int     BLI_rand(void);
 
-/** Return a pseudo-random number N where 0.0<=N<1.0 */
-double  BLI_drand(void);
-
 /** Return a pseudo-random number N where 0.0f<=N<1.0f */
 float   BLI_frand(void);
 
-/** Fills a block of memory starting at \a addr
- * and extending \a len bytes with pseudo-random
- * contents. This routine does not use nor modify
- * the state of the BLI random number generator.
- */
-void    BLI_fillrand(void *addr, int len);
+/** Return a pseudo-random (hash) float from an integer value */
+float	BLI_hash_frand(unsigned int seed);
 
 /** Shuffle an array randomly using the given seed.
  * contents. This routine does not use nor modify

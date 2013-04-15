@@ -1263,6 +1263,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	ChildParticle *cpa = NULL;
 	ParticleKey state;
 	ParticleCacheKey *cache;
+	RNG *rng = NULL;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
 	float (*obmat)[4], (*oldobmat)[4];
@@ -1293,14 +1294,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	totpart = psys->totpart;
 	totchild = psys->totchild;
 
-	BLI_srandom(31415926 + psys->seed);
-
 	if ((psys->renderdata || part->draw_as == PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 		ParticleSimulationData sim = {NULL};
-		sim.scene = scene;
-		sim.ob = par;
-		sim.psys = psys;
-		sim.psmd = psys_get_modifier(par, psys);
+
 		/* make sure emitter imat is in global coordinates instead of render view coordinates */
 		invert_m4_m4(par->imat, par->obmat);
 
@@ -1331,6 +1327,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		}
 
 		psys_check_group_weights(part);
+
+		sim.scene = scene;
+		sim.ob = par;
+		sim.psys = psys;
+		sim.psmd = psys_get_modifier(par, psys);
+		sim.rng = BLI_rng_new(0);
 
 		psys->lattice = psys_get_lattice(&sim);
 
@@ -1378,6 +1380,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			obcopy = *ob;
 		}
 
+		rng = BLI_rng_new_srandom(31415926 + psys->seed);
+
 		if (totchild == 0 || part->draw & PART_DRAW_PARENT)
 			a = 0;
 		else
@@ -1417,7 +1421,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 				/* for groups, pick the object based on settings */
 				if (part->draw & PART_DRAW_RAND_GR)
-					b = BLI_rand() % totgroup;
+					b = BLI_rng_get_int(rng) % totgroup;
 				else
 					b = a % totgroup;
 
@@ -1561,6 +1565,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		}
 		else
 			*ob = obcopy;
+
+		BLI_rng_free(sim.rng);
 	}
 
 	/* clean up */
@@ -1573,6 +1579,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		end_latt_deform(psys->lattice);
 		psys->lattice = NULL;
 	}
+
+	if (rng)
+		BLI_rng_free(rng);
 }
 
 static Object *find_family_object(Object **obar, char *family, char ch)

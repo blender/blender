@@ -36,6 +36,8 @@
 
 #include "DNA_boid_types.h"
 
+struct RNG;
+
 typedef struct BoidBrainData {
 	struct ParticleSimulationData *sim;
 	struct ParticleSettings *part;
@@ -47,6 +49,8 @@ typedef struct BoidBrainData {
 	float goal_co[3];
 	float goal_nor[3];
 	float goal_priority;
+
+	struct RNG *rng;
 } BoidBrainData;
 
 void boids_precalc_rules(struct ParticleSettings *part, float cfra);

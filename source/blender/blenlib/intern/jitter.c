@@ -139,6 +139,7 @@ void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 void BLI_jitter_init(float *jitarr, int num)
 {
 	float *jit2, x, rad1, rad2, rad3;
+	RNG *rng;
 	int i;
 
 	if (num == 0) return;
@@ -148,14 +149,17 @@ void BLI_jitter_init(float *jitarr, int num)
 	rad2 = 1.0f / ((float)num);
 	rad3 = sqrtf((float)num) / ((float)num);
 
-	BLI_srand(31415926 + num);
+	rng = BLI_rng_new(31415926 + num);
+
 	x = 0;
 	for (i = 0; i < 2 * num; i += 2) {
-		jitarr[i] = x + rad1 * (float)(0.5 - BLI_drand());
-		jitarr[i + 1] = ((float)i / 2) / num + rad1 * (float)(0.5 - BLI_drand());
+		jitarr[i] = x + rad1 * (float)(0.5 - BLI_rng_get_double(rng));
+		jitarr[i + 1] = ((float)i / 2) / num + rad1 * (float)(0.5 - BLI_rng_get_double(rng));
 		x += rad3;
 		x -= floorf(x);
 	}
+
+	BLI_rng_free(rng);
 
 	for (i = 0; i < 24; i++) {
 		BLI_jitterate1(jitarr, jit2, num, rad1);

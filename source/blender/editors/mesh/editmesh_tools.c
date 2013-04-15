@@ -3249,7 +3249,7 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 		if (totelem[0]) {
 			/* Re-init random generator for each element type, to get consistent random when
 			 * enabling/disabling an element type. */
-			BLI_srandom(seed);
+			RNG *rng = BLI_rng_new_srandom(seed);
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
 			sb = sblock[0] = MEM_callocN(sizeof(BMElemSort) * totelem[0], "sort_bmelem vert sblock");
 
@@ -3257,16 +3257,18 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 				if (BM_elem_flag_test(ve, flag)) {
 					pb[i] = false;
 					sb[affected[0]].org_idx = i;
-					sb[affected[0]++].srt = BLI_frand();
+					sb[affected[0]++].srt = BLI_rng_get_float(rng);
 				}
 				else {
 					pb[i] = true;
 				}
 			}
+
+			BLI_rng_free(rng);
 		}
 
 		if (totelem[1]) {
-			BLI_srandom(seed);
+			RNG *rng = BLI_rng_new_srandom(seed);
 			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
 			sb = sblock[1] = MEM_callocN(sizeof(BMElemSort) * totelem[1], "sort_bmelem edge sblock");
 
@@ -3274,16 +3276,18 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 				if (BM_elem_flag_test(ed, flag)) {
 					pb[i] = false;
 					sb[affected[1]].org_idx = i;
-					sb[affected[1]++].srt = BLI_frand();
+					sb[affected[1]++].srt = BLI_rng_get_float(rng);
 				}
 				else {
 					pb[i] = true;
 				}
 			}
+
+			BLI_rng_free(rng);
 		}
 
 		if (totelem[2]) {
-			BLI_srandom(seed);
+			RNG *rng = BLI_rng_new_srandom(seed);
 			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
 			sb = sblock[2] = MEM_callocN(sizeof(BMElemSort) * totelem[2], "sort_bmelem face sblock");
 
@@ -3291,12 +3295,14 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 				if (BM_elem_flag_test(fa, flag)) {
 					pb[i] = false;
 					sb[affected[2]].org_idx = i;
-					sb[affected[2]++].srt = BLI_frand();
+					sb[affected[2]++].srt = BLI_rng_get_float(rng);
 				}
 				else {
 					pb[i] = true;
 				}
 			}
+
+			BLI_rng_free(rng);
 		}
 	}
 

@@ -562,7 +562,7 @@ static void gp_timing_data_add_point(tGpTimingData *gtd, double stroke_inittime,
 #define MIN_TIME_DELTA 0.02f
 
 /* Loop over next points to find the end of the stroke, and compute */
-static int gp_find_end_of_stroke_idx(tGpTimingData *gtd, int idx, int nbr_gaps, int *nbr_done_gaps,
+static int gp_find_end_of_stroke_idx(tGpTimingData *gtd, RNG *rng, int idx, int nbr_gaps, int *nbr_done_gaps,
                                      float tot_gaps_time, float delta_time, float *next_delta_time)
 {
 	int j;
@@ -598,7 +598,7 @@ static int gp_find_end_of_stroke_idx(tGpTimingData *gtd, int idx, int nbr_gaps, 
 						/* Clamp max between [0.0, gap_randomness], with lower delta giving higher max */
 						max = gtd->gap_randomness - delta;
 						CLAMP(max, 0.0f, gtd->gap_randomness);
-						*next_delta_time += gtd->gap_duration + (BLI_frand() * (max - min)) + min;
+						*next_delta_time += gtd->gap_duration + (BLI_rng_get_float(rng) * (max - min)) + min;
 					}
 				}
 				else {
@@ -613,7 +613,7 @@ static int gp_find_end_of_stroke_idx(tGpTimingData *gtd, int idx, int nbr_gaps, 
 	return j - 1;
 }
 
-static void gp_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd, int *nbr_gaps, float *tot_gaps_time)
+static void gp_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd, RNG *rng, int *nbr_gaps, float *tot_gaps_time)
 {
 	int i;
 	float delta_time = 0.0f;
@@ -637,12 +637,12 @@ static void gp_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd, int *nb
 		printf("%f, %f, %f, %d\n", gtd->tot_time, delta_time, *tot_gaps_time, *nbr_gaps);
 	}
 	if (gtd->gap_randomness > 0.0f) {
-		BLI_srandom(gtd->seed);
+		BLI_rng_srandom(rng, gtd->seed);
 	}
 }
 
 static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu,
-                                                   Curve *cu, tGpTimingData *gtd, float time_range,
+                                                   Curve *cu, tGpTimingData *gtd, RNG *rng, float time_range,
                                                    int nbr_gaps, float tot_gaps_time)
 {
 	/* Use actual recorded timing! */
@@ -669,7 +669,7 @@ static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerR
 			start_stroke_idx = i;
 			delta_time = next_delta_time;
 			/* find end of that new stroke */
-			end_stroke_idx = gp_find_end_of_stroke_idx(gtd, i, nbr_gaps, &nbr_done_gaps,
+			end_stroke_idx = gp_find_end_of_stroke_idx(gtd, rng, i, nbr_gaps, &nbr_done_gaps,
 			                                           tot_gaps_time, delta_time, &next_delta_time);
 			/* This one should *never* be negative! */
 			end_stroke_time = time_start + ((gtd->times[end_stroke_idx] + delta_time) / gtd->tot_time * time_range);
@@ -777,6 +777,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 	}
 	else {
 		/* Use actual recorded timing! */
+		RNG *rng = BLI_rng_new(0);
 		float time_range;
 		
 		/* CustomGaps specific */
@@ -784,7 +785,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 		
 		/* Pre-process gaps, in case we don't want to keep their original timing */
 		if (gtd->mode == GP_STROKECONVERT_TIMING_CUSTOMGAP) {
-			gp_stroke_path_animation_preprocess_gaps(gtd, &nbr_gaps, &tot_gaps_time);
+			gp_stroke_path_animation_preprocess_gaps(gtd, rng, &nbr_gaps, &tot_gaps_time);
 		}
 		
 		if (gtd->realtime) {
@@ -798,8 +799,11 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 			printf("GP Stroke Path Conversion: Starting keying!\n");
 		}
 		
-		gp_stroke_path_animation_add_keyframes(reports, ptr, prop, fcu, cu, gtd, time_range,
+		gp_stroke_path_animation_add_keyframes(reports, ptr, prop, fcu, cu, gtd,
+		                                       rng, time_range,
 		                                       nbr_gaps, tot_gaps_time);
+
+		BLI_rng_free(rng);
 	}
 	
 	/* As we used INSERTKEY_FAST mode, we need to recompute all curve's handles now */
