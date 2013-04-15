@@ -2871,6 +2871,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 		IDP_AppendArray(idprop, item);
 		/* IDP_FreeProperty(item);  *//* IDP_AppendArray does a shallow copy (memcpy), only free memory  */
 		MEM_freeN(item);
+		rna_idproperty_touch(idprop);
 	}
 	else if (prop->flag & PROP_IDPROPERTY) {
 		IDProperty *group, *item;
@@ -3001,8 +3002,10 @@ void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)
 
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
-	if ((idprop = rna_idproperty_check(&prop, ptr)))
+	if ((idprop = rna_idproperty_check(&prop, ptr))) {
 		IDP_ResizeIDPArray(idprop, 0);
+		rna_idproperty_touch(idprop);
+	}
 }
 
 int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr)
