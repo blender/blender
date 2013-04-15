@@ -697,7 +697,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		step_angle = (angle / (step_tot - (!close))) * step;
 
 		if (ltmd->ob_axis) {
-			axis_angle_to_mat3(mat3, axis_vec, step_angle);
+			axis_angle_normalized_to_mat3(mat3, axis_vec, step_angle);
 			copy_m4_m3(mat, mat3);
 		}
 		else {

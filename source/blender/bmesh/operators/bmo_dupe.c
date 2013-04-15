@@ -496,7 +496,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	phi      = BMO_slot_float_get(op->slots_in, "angle") / steps;
 	do_dupli = BMO_slot_bool_get(op->slots_in,  "use_duplicate");
 
-	axis_angle_to_mat3(rmat, axis, phi);
+	axis_angle_normalized_to_mat3(rmat, axis, phi);
 
 	BMO_slot_copy(op, slots_in,  "geom",
 	              op, slots_out, "geom_last.out");

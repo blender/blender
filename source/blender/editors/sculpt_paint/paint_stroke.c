@@ -460,10 +460,10 @@ bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 static bool sculpt_is_grab_tool(Brush *br)
 {
 	return ELEM4(br->sculpt_tool,
-			          SCULPT_TOOL_GRAB,
-			          SCULPT_TOOL_THUMB,
-			          SCULPT_TOOL_ROTATE,
-			          SCULPT_TOOL_SNAKE_HOOK);
+	             SCULPT_TOOL_GRAB,
+	             SCULPT_TOOL_THUMB,
+	             SCULPT_TOOL_ROTATE,
+	             SCULPT_TOOL_SNAKE_HOOK);
 }
 
 /* return true if the brush size can change during paint (normally used for pressure) */

@@ -2120,7 +2120,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				                                            NULL, vd.mask ? *vd.mask : 0.0f);
 
 				sub_v3_v3v3(vec, orig_data.co, ss->cache->location);
-				axis_angle_to_mat3_no_norm(rot, ss->cache->sculpt_normal_symm, angle*fade);
+				axis_angle_normalized_to_mat3(rot, ss->cache->sculpt_normal_symm, angle * fade);
 				mul_v3_m3v3(proxy[vd.i], rot, vec);
 				add_v3_v3(proxy[vd.i], ss->cache->location);
 				sub_v3_v3(proxy[vd.i], orig_data.co);
@@ -3955,7 +3955,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 		/* only update when we have enough precision, by having the mouse adequately away from center
 		 * may be better to convert to radial representation but square works for small values too*/
-		if(fabs(dx) > PIXEL_INPUT_THRESHHOLD && fabs(dy) > PIXEL_INPUT_THRESHHOLD) {
+		if (fabsf(dx) > PIXEL_INPUT_THRESHHOLD && fabsf(dy) > PIXEL_INPUT_THRESHHOLD) {
 			float mouse_angle;
 			float dir[2] = {dx, dy};
 			float cosval, sinval;
@@ -3971,8 +3971,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 			sinval = cross_v2v2(dir, cache->initial_mouse_dir);
 
 			/* clamp to avoid nans in acos */
-			CLAMP(cosval, -1.0, 1.0);
-			mouse_angle = (sinval > 0)? acos(cosval) : -acos(cosval);
+			CLAMP(cosval, -1.0f, 1.0f);
+			mouse_angle = (sinval > 0) ? acosf(cosval) : -acosf(cosval);
 
 			/* change of sign, we passed the 180 degree threshold. This means we need to add a turn.
 			 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2 */
@@ -3984,7 +3984,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 			}
 			cache->previous_vertex_rotation = mouse_angle;
 
-			cache->vertex_rotation = -(mouse_angle + 2*M_PI*cache->num_vertex_turns)* cache->bstrength;
+			cache->vertex_rotation = -(mouse_angle + 2.0f * (float)M_PI * cache->num_vertex_turns) * cache->bstrength;
 
 		#undef PIXEL_INPUT_THRESHHOLD
 		}
