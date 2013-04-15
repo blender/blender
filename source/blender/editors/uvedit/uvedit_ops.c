@@ -167,13 +167,12 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
 //#define USE_SWITCH_ASPECT
 
-void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *ima, Image *previma)
+void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, Image *ima, Image *previma)
 {
 	BMEditMesh *em;
 	BMIter iter;
 	MTexPoly *tf;
 	int update = 0;
-	int sloppy = TRUE;
 	int selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 	
 	/* skip assigning these procedural images... */
@@ -190,11 +189,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	}
 
 	if (BKE_scene_use_new_shading_nodes(scene)) {
-		/* new shading system, assign image in material */
-		BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
-
-		if (efa)
-			ED_object_assign_active_image(bmain, obedit, efa->mat_nr + 1, ima);
+		/* new shading system, do not assign anything */
 	}
 	else {
 		BMFace *efa;

@@ -398,16 +398,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 		int selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION); /* only selected active face? */
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
-			/* new shading system, get image from material */
-			BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
-
-			if (efa) {
-				Image *node_ima;
-				ED_object_get_active_image(obedit, efa->mat_nr + 1, &node_ima, NULL, NULL);
-
-				if (node_ima)
-					sima->image = node_ima;
-			}
+			/* new shading system does not alter image */
 		}
 		else {
 			/* old shading system, we set texface */
