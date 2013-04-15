@@ -1877,7 +1877,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_co
 	/* setup scissor */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin,
-	          BLI_rcti_size_x(&rect), BLI_rcti_size_y(&rect));
+	          BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
