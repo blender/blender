@@ -21,6 +21,7 @@
 
 # <pep8 compliant>
 
+# Contributor(s): Keith "Wahooney" Boshoff, Campbell Barton
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only):
     from mathutils import Vector
