@@ -53,8 +53,6 @@
 
 /* ********* add primitive operators ************* */
 
-/* BMESH_TODO: 'state' is not a good name, should be flipped and called 'was_editmode',
- * or at least something more descriptive */
 static Object *make_prim_init(bContext *C, const char *idname,
                               float *dia, float mat[4][4],
                               bool *was_editmode, const float loc[3], const float rot[3], const unsigned int layer)
@@ -246,12 +244,11 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3], mat[4][4], dia;
 	bool enter_editmode;
-	int cap_end, cap_tri;
 	unsigned int layer;
 	bool was_editmode;
-
-	cap_end = RNA_enum_get(op->ptr, "end_fill_type");
-	cap_tri = (cap_end == 2);
+	const int end_fill_type = RNA_enum_get(op->ptr, "end_fill_type");
+	const bool cap_end = (end_fill_type != 0);
+	const bool cap_tri = (end_fill_type == 2);
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cylinder"), &dia, mat, &was_editmode, loc, rot, layer);
@@ -308,12 +305,11 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3], mat[4][4], dia;
 	bool enter_editmode;
-	int cap_end, cap_tri;
 	unsigned int layer;
 	bool was_editmode;
-
-	cap_end = RNA_enum_get(op->ptr, "end_fill_type");
-	cap_tri = (cap_end == 2);
+	const int end_fill_type = RNA_enum_get(op->ptr, "end_fill_type");
+	const bool cap_end = (end_fill_type != 0);
+	const bool cap_tri = (end_fill_type == 2);
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cone"), &dia, mat, &was_editmode, loc, rot, layer);

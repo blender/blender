@@ -1200,12 +1200,8 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 {
 	BMEditMesh *em = (dm->type == DM_TYPE_EDITBMESH) ? BMEdit_FromObject(ob) : NULL;
 	unsigned char (*wtcol_v)[4];
-	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
-	MLoop *mloop = dm->getLoopArray(dm), *ml;
-	MPoly *mp = dm->getPolyArray(dm);
 	int numVerts = dm->getNumVerts(dm);
-	int totloop;
-	int i, j;
+	int i;
 
 	if (em) {
 		if (em->derivedVertColor && em->derivedVertColorLen == numVerts) {
@@ -1248,6 +1244,12 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		/* editmesh draw function checks spesifically for this */
 	}
 	else {
+		unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
+		MLoop *mloop = dm->getLoopArray(dm), *ml;
+		MPoly *mp = dm->getPolyArray(dm);
+		int totloop;
+		int j;
+
 		/* now add to loops, so the data can be passed through the modifier stack */
 		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
