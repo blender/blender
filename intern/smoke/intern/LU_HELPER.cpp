@@ -51,10 +51,10 @@ sLU computeLU( float a[3][3])
             int kmax = min(i,j);
             double s = 0.0;
             for (int k = 0; k < kmax; k++) {
-               s += result.values[i][k]*LUcolj[k];
+               s += (double)(result.values[i][k]*LUcolj[k]);
             }
 
-            result.values[i][j] = LUcolj[i] -= s;
+            result.values[i][j] = LUcolj[i] -= (float)s;
          }
    
          // Find pivot and exchange if necessary.
@@ -80,7 +80,7 @@ sLU computeLU( float a[3][3])
 
          // Compute multipliers.
          
-         if ((j < m) && (result.values[j][j] != 0.0)) {
+         if ((j < m) && (result.values[j][j] != 0.0f)) {
             for (int i = j+1; i < m; i++) {
                result.values[i][j] /= result.values[j][j];
             }

@@ -730,7 +730,7 @@ inline Real normHelper(const Vector3Dim<Real> &v) {
 	return norm(v);
 }	
 inline Real normHelper(const Real &v) {
-	return (0. < v) ? v : -v ; 
+	return (0.0f < v) ? v : -v ;
 }	
 inline Real normHelper(const int &v) {
 	return (0 < v) ? (Real)(v) : (Real)(-v) ; 

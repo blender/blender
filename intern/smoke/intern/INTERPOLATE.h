@@ -62,12 +62,12 @@ static inline float lerp(float* field, float x, float y, int res) {
 ////////////////////////////////////////////////////////////////////////////////////////// 
 static inline float lerp3d(float* field, float x, float y, float z,  int xres, int yres, int zres) {
 	// clamp pos to grid boundaries
-	if (x < 0.5) x = 0.5;
-	if (x > xres - 1.5) x = xres - 1.5;
-	if (y < 0.5) y = 0.5;
-	if (y > yres - 1.5) y = yres - 1.5;
-	if (z < 0.5) z = 0.5;
-	if (z > zres - 1.5) z = zres - 1.5;
+	if (x < 0.5f) x = 0.5f;
+	if (x > xres - 1.5f) x = xres - 1.5f;
+	if (y < 0.5f) y = 0.5f;
+	if (y > yres - 1.5f) y = yres - 1.5f;
+	if (z < 0.5f) z = 0.5f;
+	if (z > zres - 1.5f) z = zres - 1.5f;
 
 	// locate neighbors to interpolate
 	const int x0 = (int)x;
@@ -113,12 +113,12 @@ template <class T>
 static inline float lerp3dToFloat(T* field1,
 		float x, float y, float z,  int xres, int yres, int zres) {
 	// clamp pos to grid boundaries
-	if (x < 0.5) x = 0.5;
-	if (x > xres - 1.5) x = xres - 1.5;
-	if (y < 0.5) y = 0.5;
-	if (y > yres - 1.5) y = yres - 1.5;
-	if (z < 0.5) z = 0.5;
-	if (z > zres - 1.5) z = zres - 1.5;
+	if (x < 0.5f) x = 0.5f;
+	if (x > xres - 1.5f) x = xres - 1.5f;
+	if (y < 0.5f) y = 0.5f;
+	if (y > yres - 1.5f) y = yres - 1.5f;
+	if (z < 0.5f) z = 0.5f;
+	if (z > zres - 1.5f) z = zres - 1.5f;
 
 	// locate neighbors to interpolate
 	const int x0 = (int)x;
@@ -164,12 +164,12 @@ static inline float lerp3dToFloat(T* field1,
 static inline Vec3 lerp3dVec(float* field1, float* field2, float* field3, 
 		float x, float y, float z,  int xres, int yres, int zres) {
 	// clamp pos to grid boundaries
-	if (x < 0.5) x = 0.5;
-	if (x > xres - 1.5) x = xres - 1.5;
-	if (y < 0.5) y = 0.5;
-	if (y > yres - 1.5) y = yres - 1.5;
-	if (z < 0.5) z = 0.5;
-	if (z > zres - 1.5) z = zres - 1.5;
+	if (x < 0.5f) x = 0.5f;
+	if (x > xres - 1.5f) x = xres - 1.5f;
+	if (y < 0.5f) y = 0.5f;
+	if (y > yres - 1.5f) y = yres - 1.5f;
+	if (z < 0.5f) z = 0.5f;
+	if (z > zres - 1.5f) z = zres - 1.5f;
 
 	// locate neighbors to interpolate
 	const int x0 = (int)x;

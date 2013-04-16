@@ -969,7 +969,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 		sim.scene = scene;
 		sim.ob = flow_ob;
 		sim.psys = psys;
-		sim.rng = BLI_rng_new(sim.rng);
+		sim.rng = BLI_rng_new(psys->seed);
 
 		if (psys->part->type == PART_HAIR)
 		{

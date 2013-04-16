@@ -317,12 +317,12 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 				float zTrace = z - dt * velz[index];
 
 				// clamp backtrace to grid boundaries
-				if (xTrace < 0.5) xTrace = 0.5;
-				if (xTrace > xres - 1.5) xTrace = xres - 1.5;
-				if (yTrace < 0.5) yTrace = 0.5;
-				if (yTrace > yres - 1.5) yTrace = yres - 1.5;
-				if (zTrace < 0.5) zTrace = 0.5;
-				if (zTrace > zres - 1.5) zTrace = zres - 1.5;
+				if (xTrace < 0.5f) xTrace = 0.5f;
+				if (xTrace > xres - 1.5f) xTrace = xres - 1.5f;
+				if (yTrace < 0.5f) yTrace = 0.5f;
+				if (yTrace > yres - 1.5f) yTrace = yres - 1.5f;
+				if (zTrace < 0.5f) zTrace = 0.5f;
+				if (zTrace > zres - 1.5f) zTrace = zres - 1.5f;
 
 				// locate neighbors to interpolate
 				const int x0 = (int)xTrace;
@@ -403,7 +403,7 @@ void FLUID_3D::advectFieldMacCormack2(const float dt, const float* xVelocity, co
 
 
 	// phiHatN = A^R(phiHatN1)
-	advectFieldSemiLagrange( -1.0*dt, xVelocity, yVelocity, zVelocity, phiHatN, t1, res, zBegin, zEnd);		// uses wide data from old field and velocities (both are whole)
+	advectFieldSemiLagrange( -1.0f*dt, xVelocity, yVelocity, zVelocity, phiHatN, t1, res, zBegin, zEnd);		// uses wide data from old field and velocities (both are whole)
 
 	// phiN1 = phiHatN1 + (phiN - phiHatN) / 2
 	const int border = 0; 
@@ -456,12 +456,12 @@ void FLUID_3D::clampExtrema(const float dt, const float* velx, const float* vely
 				float zTrace = z - dt * velz[index];
 
 				// clamp backtrace to grid boundaries
-				if (xTrace < 0.5) xTrace = 0.5;
-				if (xTrace > xres - 1.5) xTrace = xres - 1.5;
-				if (yTrace < 0.5) yTrace = 0.5;
-				if (yTrace > yres - 1.5) yTrace = yres - 1.5;
-				if (zTrace < 0.5) zTrace = 0.5;
-				if (zTrace > zres - 1.5) zTrace = zres - 1.5;
+				if (xTrace < 0.5f) xTrace = 0.5f;
+				if (xTrace > xres - 1.5f) xTrace = xres - 1.5f;
+				if (yTrace < 0.5f) yTrace = 0.5f;
+				if (yTrace > yres - 1.5f) yTrace = yres - 1.5f;
+				if (zTrace < 0.5f) zTrace = 0.5f;
+				if (zTrace > zres - 1.5f) zTrace = zres - 1.5f;
 
 				// locate neighbors to interpolate
 				const int x0 = (int)xTrace;

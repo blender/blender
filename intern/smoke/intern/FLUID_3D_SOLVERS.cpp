@@ -76,12 +76,12 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
           if (!skip[index - _slabSize]) _Acenter[index] += heatConst;
 
 		  _residual[index] = b[index] - (_Acenter[index] * field[index] + 
-          field[index - 1] * (skip[index - 1] ? 0.0 : -heatConst) + 
-          field[index + 1] * (skip[index + 1] ? 0.0 : -heatConst) +
-          field[index - _xRes] * (skip[index - _xRes] ? 0.0 : -heatConst) + 
-          field[index + _xRes] * (skip[index + _xRes] ? 0.0 : -heatConst) +
-          field[index - _slabSize] * (skip[index - _slabSize] ? 0.0 : -heatConst) + 
-          field[index + _slabSize] * (skip[index + _slabSize] ? 0.0 : -heatConst));
+          field[index - 1] * (skip[index - 1] ? 0.0f : -heatConst) +
+          field[index + 1] * (skip[index + 1] ? 0.0f : -heatConst) +
+          field[index - _xRes] * (skip[index - _xRes] ? 0.0f : -heatConst) +
+          field[index + _xRes] * (skip[index + _xRes] ? 0.0f : -heatConst) +
+          field[index - _slabSize] * (skip[index - _slabSize] ? 0.0f : -heatConst) +
+          field[index + _slabSize] * (skip[index + _slabSize] ? 0.0f : -heatConst));
         }
 		else
 		{
@@ -111,12 +111,12 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
           {
 
 			_q[index] = (_Acenter[index] * _direction[index] + 
-            _direction[index - 1] * (skip[index - 1] ? 0.0 : -heatConst) + 
-            _direction[index + 1] * (skip[index + 1] ? 0.0 : -heatConst) +
-            _direction[index - _xRes] * (skip[index - _xRes] ? 0.0 : -heatConst) + 
-            _direction[index + _xRes] * (skip[index + _xRes] ? 0.0 : -heatConst) +
-            _direction[index - _slabSize] * (skip[index - _slabSize] ? 0.0 : -heatConst) + 
-            _direction[index + _slabSize] * (skip[index + _slabSize] ? 0.0 : -heatConst));
+            _direction[index - 1] * (skip[index - 1] ? 0.0f : -heatConst) +
+            _direction[index + 1] * (skip[index + 1] ? 0.0f : -heatConst) +
+            _direction[index - _xRes] * (skip[index - _xRes] ? 0.0f : -heatConst) +
+            _direction[index + _xRes] * (skip[index + _xRes] ? 0.0f : -heatConst) +
+            _direction[index - _slabSize] * (skip[index - _slabSize] ? 0.0f : -heatConst) +
+            _direction[index + _slabSize] * (skip[index + _slabSize] ? 0.0f : -heatConst));
           }
 		  else
 		  {
@@ -199,20 +199,20 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
 			if (!skip[index])
 			{
 			  // set the matrix to the Poisson stencil in order
-			  if (!skip[index + 1]) Acenter += 1.;
-			  if (!skip[index - 1]) Acenter += 1.;
-			  if (!skip[index + _xRes]) Acenter += 1.;
-			  if (!skip[index - _xRes]) Acenter += 1.;
-			  if (!skip[index + _slabSize]) Acenter += 1.;
-			  if (!skip[index - _slabSize]) Acenter += 1.;
+			  if (!skip[index + 1]) Acenter += 1.0f;
+			  if (!skip[index - 1]) Acenter += 1.0f;
+			  if (!skip[index + _xRes]) Acenter += 1.0f;
+			  if (!skip[index - _xRes]) Acenter += 1.0f;
+			  if (!skip[index + _slabSize]) Acenter += 1.0f;
+			  if (!skip[index - _slabSize]) Acenter += 1.0f;
 
 			  _residual[index] = b[index] - (Acenter * field[index] +  
-			  field[index - 1] * (skip[index - 1] ? 0.0 : -1.0f)+ 
-			  field[index + 1] * (skip[index + 1] ? 0.0 : -1.0f)+
-			  field[index - _xRes] * (skip[index - _xRes] ? 0.0 : -1.0f)+ 
-			  field[index + _xRes] * (skip[index + _xRes] ? 0.0 : -1.0f)+
-			  field[index - _slabSize] * (skip[index - _slabSize] ? 0.0 : -1.0f)+ 
-			  field[index + _slabSize] * (skip[index + _slabSize] ? 0.0 : -1.0f) );
+			  field[index - 1] * (skip[index - 1] ? 0.0f : -1.0f) +
+			  field[index + 1] * (skip[index + 1] ? 0.0f : -1.0f) +
+			  field[index - _xRes] * (skip[index - _xRes] ? 0.0f : -1.0f)+
+			  field[index + _xRes] * (skip[index + _xRes] ? 0.0f : -1.0f)+
+			  field[index - _slabSize] * (skip[index - _slabSize] ? 0.0f : -1.0f)+
+			  field[index + _slabSize] * (skip[index + _slabSize] ? 0.0f : -1.0f) );
 			}
 			else
 			{
@@ -220,10 +220,10 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
 			}
 
 			// P^-1
-			if(Acenter < 1.0)
+			if(Acenter < 1.0f)
 				_Precond[index] = 0.0;
 			else
-				_Precond[index] = 1.0 / Acenter;
+				_Precond[index] = 1.0f / Acenter;
 
 			// p = P^-1 * r
 			_direction[index] = _residual[index] * _Precond[index];
@@ -237,7 +237,7 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
   //while ((i < _iterations) && (deltaNew > eps*delta0))
   float maxR = 2.0f * eps;
   // while (i < _iterations)
-  while ((i < _iterations) && (maxR > 0.001*eps))
+  while ((i < _iterations) && (maxR > 0.001f * eps))
   {
 
 	float alpha = 0.0f;
@@ -252,20 +252,20 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
           if (!skip[index])
           {
             // set the matrix to the Poisson stencil in order
-            if (!skip[index + 1]) Acenter += 1.;
-            if (!skip[index - 1]) Acenter += 1.;
-            if (!skip[index + _xRes]) Acenter += 1.;
-            if (!skip[index - _xRes]) Acenter += 1.;
-            if (!skip[index + _slabSize]) Acenter += 1.;
-            if (!skip[index - _slabSize]) Acenter += 1.;
+            if (!skip[index + 1]) Acenter += 1.0f;
+            if (!skip[index - 1]) Acenter += 1.0f;
+            if (!skip[index + _xRes]) Acenter += 1.0f;
+            if (!skip[index - _xRes]) Acenter += 1.0f;
+            if (!skip[index + _slabSize]) Acenter += 1.0f;
+            if (!skip[index - _slabSize]) Acenter += 1.0f;
 
 			_q[index] = Acenter * _direction[index] +  
-            _direction[index - 1] * (skip[index - 1] ? 0.0 : -1.0f) + 
-            _direction[index + 1] * (skip[index + 1] ? 0.0 : -1.0f) +
-            _direction[index - _xRes] * (skip[index - _xRes] ? 0.0 : -1.0f) + 
-            _direction[index + _xRes] * (skip[index + _xRes] ? 0.0 : -1.0f)+
-            _direction[index - _slabSize] * (skip[index - _slabSize] ? 0.0 : -1.0f) + 
-            _direction[index + _slabSize] * (skip[index + _slabSize] ? 0.0 : -1.0f);
+            _direction[index - 1] * (skip[index - 1] ? 0.0f : -1.0f) +
+            _direction[index + 1] * (skip[index + 1] ? 0.0f : -1.0f) +
+            _direction[index - _xRes] * (skip[index - _xRes] ? 0.0f : -1.0f) +
+            _direction[index + _xRes] * (skip[index + _xRes] ? 0.0f : -1.0f)+
+            _direction[index - _slabSize] * (skip[index - _slabSize] ? 0.0f : -1.0f) +
+            _direction[index + _slabSize] * (skip[index + _slabSize] ? 0.0f : -1.0f);
           }
 		  else
 		  {

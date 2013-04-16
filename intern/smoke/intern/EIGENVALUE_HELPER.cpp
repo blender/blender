@@ -29,7 +29,7 @@ void Eigentred2(sEigenvalue& eval) {
          for (int k = 0; k < i; k++) {
             scale = scale + fabs(eval.d[k]);
          }
-         if (scale == 0.0) {
+         if (scale == 0.0f) {
             eval.e[i] = eval.d[i-1];
             for (int j = 0; j < i; j++) {
                eval.d[j] = eval.V[i-1][j];
@@ -96,7 +96,7 @@ void Eigentred2(sEigenvalue& eval) {
          eval.V[n-1][i] = eval.V[i][i];
          eval.V[i][i] = 1.0;
          float h = eval.d[i+1];
-         if (h != 0.0) {
+         if (h != 0.0f) {
             for (int k = 0; k <= i; k++) {
                eval.d[k] = eval.V[k][i+1] / h;
             }
@@ -181,7 +181,7 @@ void Eigentql2 (sEigenvalue& eval) {
                // Compute implicit shift
 
                float g = eval.d[l];
-               float p = (eval.d[l+1] - g) / (2.0 * eval.e[l]);
+               float p = (eval.d[l+1] - g) / (2.0f * eval.e[l]);
                float r = hypot(p,1.0);
                if (p < 0) {
                   r = -r;
@@ -280,7 +280,7 @@ void Eigenorthes (sEigenvalue& eval) {
          for (int i = m; i <= high; i++) {
             scale = scale + fabs(eval.H[i][m-1]);
          }
-         if (scale != 0.0) {
+         if (scale != 0.0f) {
    
             // Compute Householder transformation.
    
@@ -334,7 +334,7 @@ void Eigenorthes (sEigenvalue& eval) {
       }
 
       for (int m = high-1; m >= low+1; m--) {
-         if (eval.H[m][m-1] != 0.0) {
+         if (eval.H[m][m-1] != 0.0f) {
             for (int i = m+1; i <= high; i++) {
                eval.ort[i] = eval.H[i][m-1];
             }
@@ -406,7 +406,7 @@ void Eigenhqr2 (sEigenvalue& eval) {
          int l = n;
          while (l > low) {
             s = fabs(eval.H[l-1][l-1]) + fabs(eval.H[l][l]);
-            if (s == 0.0) {
+            if (s == 0.0f) {
                s = norm;
             }
             if (fabs(eval.H[l][l-1]) < eps * s) {
@@ -429,7 +429,7 @@ void Eigenhqr2 (sEigenvalue& eval) {
    
          } else if (l == n-1) {
             w = eval.H[n][n-1] * eval.H[n-1][n];
-            p = (eval.H[n-1][n-1] - eval.H[n][n]) / 2.0;
+            p = (eval.H[n-1][n-1] - eval.H[n][n]) / 2.0f;
             q = p * p + w;
             z = sqrt(fabs(q));
             eval.H[n][n] = eval.H[n][n] + exshift;
@@ -446,7 +446,7 @@ void Eigenhqr2 (sEigenvalue& eval) {
                }
                eval.d[n-1] = x + z;
                eval.d[n] = eval.d[n-1];
-               if (z != 0.0) {
+               if (z != 0.0f) {
                   eval.d[n] = x - w / z;
                }
                eval.e[n-1] = 0.0;
@@ -516,21 +516,21 @@ void Eigenhqr2 (sEigenvalue& eval) {
                   eval.H[i][i] -= x;
                }
                s = fabs(eval.H[n][n-1]) + fabs(eval.H[n-1][n-2]);
-               x = y = 0.75 * s;
-               w = -0.4375 * s * s;
+               x = y = 0.75f * s;
+               w = -0.4375f * s * s;
             }
 
             // MATLAB's new ad hoc shift
 
             if (iter == 30) {
-                s = (y - x) / 2.0;
+                s = (y - x) / 2.0f;
                 s = s * s + w;
                 if (s > 0) {
                     s = sqrt(s);
                     if (y < x) {
                        s = -s;
                     }
-                    s = x - w / ((y - x) / 2.0 + s);
+                    s = x - w / ((y - x) / 2.0f + s);
                     for (int i = low; i <= n; i++) {
                        eval.H[i][i] -= s;
                     }
@@ -580,15 +580,15 @@ void Eigenhqr2 (sEigenvalue& eval) {
                if (k != m) {
                   p = eval.H[k][k-1];
                   q = eval.H[k+1][k-1];
-                  r = (notlast ? eval.H[k+2][k-1] : 0.0);
+                  r = (notlast ? eval.H[k+2][k-1] : 0.0f);
                   x = fabs(p) + fabs(q) + fabs(r);
-                  if (x != 0.0) {
+                  if (x != 0.0f) {
                      p = p / x;
                      q = q / x;
                      r = r / x;
                   }
                }
-               if (x == 0.0) {
+               if (x == 0.0f) {
                   break;
                }
                s = sqrt(p * p + q * q + r * r);
@@ -651,7 +651,7 @@ void Eigenhqr2 (sEigenvalue& eval) {
       
       // Backsubstitute to find vectors of upper triangular form
 
-      if (norm == 0.0) {
+      if (norm == 0.0f) {
          return;
       }
    
@@ -670,13 +670,13 @@ void Eigenhqr2 (sEigenvalue& eval) {
                for (int j = l; j <= n; j++) {
                   r = r + eval.H[i][j] * eval.H[j][n];
                }
-               if (eval.e[i] < 0.0) {
+               if (eval.e[i] < 0.0f) {
                   z = w;
                   s = r;
                } else {
                   l = i;
-                  if (eval.e[i] == 0.0) {
-                     if (w != 0.0) {
+                  if (eval.e[i] == 0.0f) {
+                     if (w != 0.0f) {
                         eval.H[i][n] = -r / w;
                      } else {
                         eval.H[i][n] = -r / (eps * norm);
@@ -735,7 +735,7 @@ void Eigenhqr2 (sEigenvalue& eval) {
                }
                w = eval.H[i][i] - p;
    
-               if (eval.e[i] < 0.0) {
+               if (eval.e[i] < 0.0f) {
                   z = w;
                   r = ra;
                   s = sa;
@@ -752,8 +752,8 @@ void Eigenhqr2 (sEigenvalue& eval) {
                      x = eval.H[i][i+1];
                      y = eval.H[i+1][i];
                      vr = (eval.d[i] - p) * (eval.d[i] - p) + eval.e[i] * eval.e[i] - q * q;
-                     vi = (eval.d[i] - p) * 2.0 * q;
-                     if ((vr == 0.0) && (vi == 0.0)) {
+                     vi = (eval.d[i] - p) * 2.0f * q;
+                     if ((vr == 0.0f) && (vi == 0.0f)) {
                         vr = eps * norm * (fabs(w) + fabs(q) +
                         fabs(x) + fabs(y) + fabs(z));
                      }

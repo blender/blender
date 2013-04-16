@@ -574,17 +574,17 @@ void FLUID_3D::artificialDampingSL(int zBegin, int zEnd) {
 			for (int y = 1; y < _res[1]-1; y++)
 				for (int x = 1+(y+z)%2; x < _res[0]-1; x+=2) {
 					const int index = x + y*_res[0] + z * _slabSize;
-					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1./6. * w*(
+					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1.0f/6.0f * w*(
 							_xVelocityTemp[index+1] + _xVelocityTemp[index-1] +
 							_xVelocityTemp[index+_res[0]] + _xVelocityTemp[index-_res[0]] +
 							_xVelocityTemp[index+_slabSize] + _xVelocityTemp[index-_slabSize] );
 
-					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1./6. * w*(
+					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1.0f/6.0f * w*(
 							_yVelocityTemp[index+1] + _yVelocityTemp[index-1] +
 							_yVelocityTemp[index+_res[0]] + _yVelocityTemp[index-_res[0]] +
 							_yVelocityTemp[index+_slabSize] + _yVelocityTemp[index-_slabSize] );
 
-					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1./6. * w*(
+					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1.0f/6.0f * w*(
 							_zVelocityTemp[index+1] + _zVelocityTemp[index-1] +
 							_zVelocityTemp[index+_res[0]] + _zVelocityTemp[index-_res[0]] +
 							_zVelocityTemp[index+_slabSize] + _zVelocityTemp[index-_slabSize] );
@@ -596,17 +596,17 @@ void FLUID_3D::artificialDampingSL(int zBegin, int zEnd) {
 			for (int y = 1; y < _res[1]-1; y++)
 				for (int x = 1+(y+z+1)%2; x < _res[0]-1; x+=2) {
 					const int index = x + y*_res[0] + z * _slabSize;
-					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1./6. * w*(
+					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1.0f/6.0f * w*(
 							_xVelocityTemp[index+1] + _xVelocityTemp[index-1] +
 							_xVelocityTemp[index+_res[0]] + _xVelocityTemp[index-_res[0]] +
 							_xVelocityTemp[index+_slabSize] + _xVelocityTemp[index-_slabSize] );
 
-					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1./6. * w*(
+					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1.0f/6.0f * w*(
 							_yVelocityTemp[index+1] + _yVelocityTemp[index-1] +
 							_yVelocityTemp[index+_res[0]] + _yVelocityTemp[index-_res[0]] +
 							_yVelocityTemp[index+_slabSize] + _yVelocityTemp[index-_slabSize] );
 
-					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1./6. * w*(
+					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1.0f/6.0f * w*(
 							_zVelocityTemp[index+1] + _zVelocityTemp[index-1] +
 							_zVelocityTemp[index+_res[0]] + _zVelocityTemp[index-_res[0]] +
 							_zVelocityTemp[index+_slabSize] + _zVelocityTemp[index-_slabSize] );
@@ -636,17 +636,17 @@ void FLUID_3D::artificialDampingExactSL(int pos) {
 					* Uses xForce as temporary storage to allow other threads to read
 					* old values from xVelocityTemp
 					*/
-					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1./6. * w*(
+					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1.0f/6.0f * w*(
 							_xVelocityTemp[index+1] + _xVelocityTemp[index-1] +
 							_xVelocityTemp[index+_res[0]] + _xVelocityTemp[index-_res[0]] +
 							_xVelocityTemp[index+_slabSize] + _xVelocityTemp[index-_slabSize] );
 
-					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1./6. * w*(
+					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1.0f/6.0f * w*(
 							_yVelocityTemp[index+1] + _yVelocityTemp[index-1] +
 							_yVelocityTemp[index+_res[0]] + _yVelocityTemp[index-_res[0]] +
 							_yVelocityTemp[index+_slabSize] + _yVelocityTemp[index-_slabSize] );
 
-					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1./6. * w*(
+					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1.0f/6.0f * w*(
 							_zVelocityTemp[index+1] + _zVelocityTemp[index-1] +
 							_zVelocityTemp[index+_res[0]] + _zVelocityTemp[index-_res[0]] +
 							_zVelocityTemp[index+_slabSize] + _zVelocityTemp[index-_slabSize] );
@@ -663,17 +663,17 @@ void FLUID_3D::artificialDampingExactSL(int pos) {
 					* Uses xForce as temporary storage to allow other threads to read
 					* old values from xVelocityTemp
 					*/
-					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1./6. * w*(
+					_xForce[index] = (1-w)*_xVelocityTemp[index] + 1.0f/6.0f * w*(
 							_xVelocityTemp[index+1] + _xVelocityTemp[index-1] +
 							_xVelocityTemp[index+_res[0]] + _xVelocityTemp[index-_res[0]] +
 							_xVelocityTemp[index+_slabSize] + _xVelocityTemp[index-_slabSize] );
 
-					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1./6. * w*(
+					_yForce[index] = (1-w)*_yVelocityTemp[index] + 1.0f/6.0f * w*(
 							_yVelocityTemp[index+1] + _yVelocityTemp[index-1] +
 							_yVelocityTemp[index+_res[0]] + _yVelocityTemp[index-_res[0]] +
 							_yVelocityTemp[index+_slabSize] + _yVelocityTemp[index-_slabSize] );
 
-					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1./6. * w*(
+					_zForce[index] = (1-w)*_zVelocityTemp[index] + 1.0f/6.0f * w*(
 							_zVelocityTemp[index+1] + _zVelocityTemp[index-1] +
 							_zVelocityTemp[index+_res[0]] + _zVelocityTemp[index-_res[0]] +
 							_zVelocityTemp[index+_slabSize] + _zVelocityTemp[index-_slabSize] );
@@ -1244,27 +1244,27 @@ void FLUID_3D::setObstaclePressure(float *_pressure, int zBegin, int zEnd)
 				float pcnt = 0.;
 				if (left && !right) {
 					_pressure[index] += _pressure[index + 1];
-					pcnt += 1.;
+					pcnt += 1.0f;
 				}
 				if (!left && right) {
 					_pressure[index] += _pressure[index - 1];
-					pcnt += 1.;
+					pcnt += 1.0f;
 				}
 				if (up && !down) {
 					_pressure[index] += _pressure[index - _xRes];
-					pcnt += 1.;
+					pcnt += 1.0f;
 				}
 				if (!up && down) {
 					_pressure[index] += _pressure[index + _xRes];
-					pcnt += 1.;
+					pcnt += 1.0f;
 				}
 				if (top && !bottom) {
 					_pressure[index] += _pressure[index - _slabSize];
-					pcnt += 1.;
+					pcnt += 1.0f;
 				}
 				if (!top && bottom) {
 					_pressure[index] += _pressure[index + _slabSize];
-					pcnt += 1.;
+					pcnt += 1.0f;
 				}
 				
 				if(pcnt > 0.000001f)
@@ -1369,7 +1369,7 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 	// set flame vorticity from RNA value
 	float flame_vorticity = (*_flame_vorticity)/_constantScaling;
 	//int x,y,z,index;
-	if(_vorticityEps+flame_vorticity<=0.) return;
+	if(_vorticityEps+flame_vorticity<=0.0f) return;
 
 	int _blockSize=zEnd-zBegin;
 	int _blockTotalCells = _slabSize * (_blockSize+2);
