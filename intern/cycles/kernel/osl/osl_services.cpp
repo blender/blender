@@ -36,6 +36,7 @@
 #include "kernel_projection.h"
 #include "kernel_differential.h"
 #include "kernel_object.h"
+#include "kernel_random.h"
 #include "kernel_bvh.h"
 #include "kernel_triangle.h"
 #include "kernel_curve.h"

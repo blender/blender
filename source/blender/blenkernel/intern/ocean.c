@@ -159,8 +159,8 @@ static float gaussRand(RNG *rng)
 	float length2;
 
 	do {
-		x = (float) (nextfr(-1, 1));
-		y = (float)(nextfr(-1, 1));
+		x = (float) (nextfr(rng, -1, 1));
+		y = (float)(nextfr(rng, -1, 1));
 		length2 = x * x + y * y;
 	} while (length2 >= 1 || length2 == 0);
 
