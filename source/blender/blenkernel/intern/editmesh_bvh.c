@@ -58,7 +58,6 @@ struct BMBVHTree {
 	int curtag, flag;
 	
 	Object *ob;
-	struct Scene *scene;
 };
 
 static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
@@ -77,6 +76,7 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 
 BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 {
+	struct BMLoop *(*looptris)[3] = em->looptris;
 	BMBVHTree *tree = MEM_callocN(sizeof(*tree), "BMBVHTree");
 	DerivedMesh *cage, *final;
 	SmallHash shash;
@@ -84,14 +84,14 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	int i;
 	int tottri;
 
+	/* BKE_editmesh_tessface_calc() must be called already */
+	BLI_assert(em->tottri != 0 || em->bm->totface == 0);
+
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
 	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
 	BLI_smallhash_init(&shash);
-	
-	BKE_editmesh_tessface_calc(em);
 
 	tree->ob = em->ob;
-	tree->scene = scene;
 	tree->em = em;
 	tree->bm = em->bm;
 	tree->epsilon = FLT_EPSILON * 2.0f;
@@ -100,7 +100,7 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	if (flag & (BMBVH_RESPECT_SELECT)) {
 		tottri = 0;
 		for (i = 0; i < em->tottri; i++) {
-			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
+			if (BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_SELECT)) {
 				tottri++;
 			}
 		}
@@ -108,7 +108,7 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	else if (flag & (BMBVH_RESPECT_HIDDEN)) {
 		tottri = 0;
 		for (i = 0; i < em->tottri; i++) {
-			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+			if (!BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_HIDDEN)) {
 				tottri++;
 			}
 		}
@@ -155,20 +155,20 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 		}
 		else if (flag & BMBVH_RESPECT_HIDDEN) {
 			/* note, the arrays wont align now! take care */
-			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_HIDDEN)) {
 				continue;
 			}
 		}
 
 		if (flag & BMBVH_USE_CAGE) {
-			copy_v3_v3(cos[0], cagecos[BM_elem_index_get(em->looptris[i][0]->v)]);
-			copy_v3_v3(cos[1], cagecos[BM_elem_index_get(em->looptris[i][1]->v)]);
-			copy_v3_v3(cos[2], cagecos[BM_elem_index_get(em->looptris[i][2]->v)]);
+			copy_v3_v3(cos[0], cagecos[BM_elem_index_get(looptris[i][0]->v)]);
+			copy_v3_v3(cos[1], cagecos[BM_elem_index_get(looptris[i][1]->v)]);
+			copy_v3_v3(cos[2], cagecos[BM_elem_index_get(looptris[i][2]->v)]);
 		}
 		else {
-			copy_v3_v3(cos[0], em->looptris[i][0]->v->co);
-			copy_v3_v3(cos[1], em->looptris[i][1]->v->co);
-			copy_v3_v3(cos[2], em->looptris[i][2]->v->co);
+			copy_v3_v3(cos[0], looptris[i][0]->v->co);
+			copy_v3_v3(cos[1], looptris[i][1]->v->co);
+			copy_v3_v3(cos[2], looptris[i][2]->v->co);
 		}
 
 		BLI_bvhtree_insert(tree->tree, i, (float *)cos, 3);
@@ -246,16 +246,16 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3
 	if (hit.dist != FLT_MAX && hit.index != -1) {
 		if (r_hitout) {
 			if (tree->flag & BMBVH_RETURN_ORIG) {
-				BMVert *v1, *v2, *v3;
+				const float *co1, *co2, *co3;
 				int i;
-				
-				v1 = tree->em->looptris[hit.index][0]->v;
-				v2 = tree->em->looptris[hit.index][1]->v;
-				v3 = tree->em->looptris[hit.index][2]->v;
+
+				co1 = tree->em->looptris[hit.index][0]->v->co;
+				co2 = tree->em->looptris[hit.index][1]->v->co;
+				co3 = tree->em->looptris[hit.index][2]->v->co;
 				
 				for (i = 0; i < 3; i++) {
-					r_hitout[i] = v1->co[i] + ((v2->co[i] - v1->co[i]) * tree->uv[0]) +
-					                          ((v3->co[i] - v1->co[i]) * tree->uv[1]);
+					r_hitout[i] = co1[i] + ((co2[i] - co1[i]) * tree->uv[0]) +
+					                       ((co3[i] - co1[i]) * tree->uv[1]);
 				}
 			}
 			else {
