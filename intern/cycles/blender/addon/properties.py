@@ -448,7 +448,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
         cls.fisheye_fov = FloatProperty(
                 name="Field of View",
                 description="Field of view for the fisheye lens",
-                min=0.1745, soft_max=2 * math.pi, max=10.0 * math.pi,
+                min=0.1745, soft_max=2.0 * math.pi, max=10.0 * math.pi,
                 subtype='ANGLE',
                 default=math.pi,
                 )
@@ -743,19 +743,19 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         cls.encasing_ratio = FloatProperty(
                 name="Encasing ratio",
                 description="Scale factor for encasing strand width",
-                min=0, max=100.0,
+                min=0.0, max=100.0,
                 default=1.01,
                 )
         cls.minimum_width = FloatProperty(
                 name="Minimal width",
                 description="Minimal pixel width for strands (0 - deactivated)",
-                min=0, max=100,
+                min=0.0, max=100.0,
                 default=0.0,
                 )
         cls.maximum_width = FloatProperty(
                 name="Maximal width",
                 description="Maximum extension that strand radius can be increased by",
-                min=0, max=100,
+                min=0.0, max=100.0,
                 default=0.1,
                 )
         cls.subdivisions = IntProperty(
