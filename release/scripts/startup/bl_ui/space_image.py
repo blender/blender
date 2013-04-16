@@ -733,7 +733,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
         col.label(text="Overlay:")
 
         row = col.row()
-        if brush.use_texture_overlay:
+        if brush.use_primary_overlay:
             row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
         else:
             row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')

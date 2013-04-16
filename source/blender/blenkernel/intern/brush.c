@@ -111,6 +111,9 @@ static void brush_defaults(Brush *brush)
 
 	brush->texture_sample_bias = 0; /* value to added to texture samples */
 	brush->texture_overlay_alpha = 33;
+	brush->mask_overlay_alpha = 33;
+	brush->cursor_overlay_alpha = 33;
+	brush->overlay_flags = 0;
 
 	/* brush appearance  */
 
