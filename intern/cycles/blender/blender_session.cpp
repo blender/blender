@@ -693,6 +693,14 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name, void *buil
 			}
 		}
 
+		/* premultiply, byte images are always straight for blender */
+		unsigned char *cp = pixels;
+		for(int i = 0; i < width * height; i++, cp += channels) {
+			cp[0] = (cp[0] * cp[3]) >> 8;
+			cp[1] = (cp[1] * cp[3]) >> 8;
+			cp[2] = (cp[2] * cp[3]) >> 8;
+		}
+
 		return true;
 	}
 
