@@ -925,6 +925,7 @@ public:
 
 	CurvePiece(StrokeInternal::StrokeVertexIterator b, StrokeInternal::StrokeVertexIterator l, int iSize)
 	{
+		_error = 0.0f;
 		_begin = b;
 		_last = l;
 		A = Vec2d((_begin)->x(), (_begin)->y());
