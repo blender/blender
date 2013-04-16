@@ -42,9 +42,11 @@
 #include "BLF_translation.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -59,13 +61,22 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_render.h"
+#include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "RE_pipeline.h"
+#include "RE_engine.h"
+
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "GPU_extensions.h"
+
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -681,3 +692,352 @@ void RENDER_OT_render(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+
+/* ************** preview for 3d viewport ***************** */
+
+#define PR_UPDATE_VIEW				1
+#define PR_UPDATE_RENDERSIZE		2
+#define PR_UPDATE_MATERIAL			4
+
+typedef struct RenderPreview {
+	/* from wmJob */
+	void *owner;
+	short *stop, *do_update;
+	
+	Scene *scene;
+	ScrArea *sa;
+	ARegion *ar;
+	View3D *v3d;
+	RegionView3D *rv3d;
+	Main *bmain;
+	RenderEngine *engine;
+	
+	int keep_data;
+} RenderPreview;
+
+static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rcti *disprect)
+{
+	/* copied code from view3d_draw.c */
+	rctf viewborder;
+	int draw_border;
+	
+	if (rv3d->persp == RV3D_CAMOB)
+		draw_border = (scene->r.mode & R_BORDER) != 0;
+	else
+		draw_border = (v3d->flag2 & V3D_RENDER_BORDER) != 0;
+
+	if (draw_border) {
+		if (rv3d->persp == RV3D_CAMOB) {
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, false);
+			
+			disprect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
+			disprect->ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
+			disprect->xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
+			disprect->ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+		}
+		else {
+			disprect->xmin = v3d->render_border.xmin * ar->winx;
+			disprect->xmax = v3d->render_border.xmax * ar->winx;
+			disprect->ymin = v3d->render_border.ymin * ar->winy;
+			disprect->ymax = v3d->render_border.ymax * ar->winy;
+		}
+		
+		return 1;
+	}
+	
+	BLI_rcti_init(disprect, 0, 0, 0, 0);
+	return 0;
+}
+
+/* returns 1 if OK  */
+static int render_view3d_get_rects(ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine, float *clipsta, float *clipend, int *ortho)
+{
+	
+	if (ar->winx < 4 || ar->winy < 4) return 0;
+	
+	*ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, clipsta, clipend);
+	
+	engine->resolution_x = ar->winx;
+	engine->resolution_y = ar->winy;
+
+	return 1;
+}
+
+/* called by renderer, checks job value */
+static int render_view3d_break(void *rpv)
+{
+	RenderPreview *rp = rpv;
+	
+	if (G.is_break)
+		return 1;
+	
+	/* during render, rv3d->engine can get freed */
+	if (rp->rv3d->render_engine == NULL)
+		*rp->stop = 1;
+	
+	return *(rp->stop);
+}
+
+static void render_view3d_draw_update(void *rpv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
+{
+	RenderPreview *rp = rpv;
+	
+	*(rp->do_update) = TRUE;
+}
+
+static void render_view3d_renderinfo_cb(void *rjp, RenderStats *rs)
+{
+	RenderPreview *rp = rjp;
+
+	/* during render, rv3d->engine can get freed */
+	if (rp->rv3d->render_engine == NULL)
+		*rp->stop = 1;
+	else if (rp->engine->text) {
+		make_renderinfo_string(rs, rp->scene, rp->engine->text);
+	
+		/* make jobs timer to send notifier */
+		*(rp->do_update) = TRUE;
+	}
+}
+
+
+static void render_view3d_startjob(void *customdata, short *stop, short *do_update, float *UNUSED(progress))
+{
+	RenderPreview *rp = customdata;
+	Render *re;
+	RenderStats *rstats;
+	RenderData rdata;
+	rctf viewplane;
+	rcti cliprct;
+	float clipsta, clipend;
+	int orth, restore = 0;
+	char name[32];
+		
+	G.is_break = FALSE;
+	
+	if (0 == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &orth))
+		return;
+	
+	rp->stop = stop;
+	rp->do_update = do_update;
+
+//	printf("Enter previewrender\n");
+	
+	/* ok, are we rendering all over? */
+	sprintf(name, "View3dPreview %p", (void *)rp->ar);
+	re= rp->engine->re = RE_GetRender(name);
+	
+	if (rp->engine->re == NULL) {
+		
+		re = rp->engine->re= RE_NewRender(name);
+		
+		rp->keep_data = 0;
+	}
+	
+	/* set this always, rp is different for each job */
+	RE_test_break_cb(re, rp, render_view3d_break);
+	RE_display_draw_cb(re, rp, render_view3d_draw_update);
+	RE_stats_draw_cb(re, rp, render_view3d_renderinfo_cb);
+	
+	rstats= RE_GetStats(re);
+
+	if (rp->keep_data == 0 || rstats->convertdone == 0 || (rp->keep_data & PR_UPDATE_RENDERSIZE)) {
+		/* no osa, blur, seq, layers, etc for preview render */
+		rdata = rp->scene->r;
+		rdata.mode &= ~(R_OSA | R_MBLUR | R_BORDER | R_PANORAMA);
+		rdata.scemode &= ~(R_DOSEQ | R_DOCOMP | R_FREE_IMAGE);
+		rdata.scemode |= R_PREVIEWBUTS;
+		
+		/* we do use layers, but only active */
+		rdata.scemode |= R_SINGLE_LAYER;
+
+		/* initalize always */
+		if (render_view3d_disprect(rp->scene, rp->ar, rp->v3d, rp->rv3d, &cliprct)) {
+			rdata.mode |= R_BORDER;
+			RE_InitState(re, NULL, &rdata, NULL, rp->sa->winx, rp->sa->winy, &cliprct);
+		}
+		else
+			RE_InitState(re, NULL, &rdata, NULL, rp->sa->winx, rp->sa->winy, NULL);
+	}
+
+	if (orth)
+		RE_SetOrtho(re, &viewplane, clipsta, clipend);
+	else
+		RE_SetWindow(re, &viewplane, clipsta, clipend);
+
+	/* database free can crash on a empty Render... */
+	if (rp->keep_data == 0 && rstats->convertdone)
+		RE_Database_Free(re);
+
+	if (rstats->convertdone == 0) {
+		unsigned int lay = rp->scene->lay;
+
+		/* allow localview render for objects with lights in normal layers */
+		if (rp->v3d->lay & 0xFF000000)
+			lay |= rp->v3d->lay;
+		else lay = rp->v3d->lay;
+		
+		RE_SetView(re, rp->rv3d->viewmat);
+		
+		RE_Database_FromScene(re, rp->bmain, rp->scene, lay, 0);		// 0= dont use camera view
+//		printf("dbase update\n");
+	}
+	else {
+//		printf("dbase rotate\n");
+		RE_DataBase_IncrementalView(re, rp->rv3d->viewmat, 0);
+		restore = 1;
+	}
+
+	RE_DataBase_ApplyWindow(re);
+
+	/* OK, can we enter render code? */
+	if (rstats->convertdone) {
+		RE_TileProcessor(re);
+//		printf("tile processor\n");
+		
+		if (restore)
+			RE_DataBase_IncrementalView(re, rp->rv3d->viewmat, 1);
+		
+		rp->engine->flag &= ~RE_ENGINE_DO_UPDATE;
+	}
+
+//	printf("done\n\n");
+}
+
+static void render_view3d_free(void *customdata)
+{
+	RenderPreview *rp = customdata;
+	
+	MEM_freeN(rp);
+}
+
+static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_data)
+{
+	wmJob *wm_job;
+	RenderPreview *rp;
+	Scene *scene = CTX_data_scene(C);
+	
+	if (CTX_wm_window(C) == NULL) {
+		engine->flag |= RE_ENGINE_DO_UPDATE;
+		
+		return;
+	}
+
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), CTX_wm_region(C), "Render Preview",
+						 WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
+	rp = MEM_callocN(sizeof(RenderPreview), "render preview");
+	
+	/* customdata for preview thread */
+	rp->scene = scene;
+	rp->engine = engine;
+	rp->sa = CTX_wm_area(C);
+	rp->ar = CTX_wm_region(C);
+	rp->v3d = rp->sa->spacedata.first;
+	rp->rv3d = CTX_wm_region_view3d(C);
+	rp->bmain = CTX_data_main(C);
+	rp->keep_data = keep_data;
+	
+	/* dont alloc in threads */
+	if (engine->text == NULL)
+		engine->text = MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
+	
+	/* setup job */
+	WM_jobs_customdata_set(wm_job, rp, render_view3d_free);
+	WM_jobs_timer(wm_job, 0.1, NC_SPACE|ND_SPACE_VIEW3D, NC_SPACE|ND_SPACE_VIEW3D);
+	WM_jobs_callbacks(wm_job, render_view3d_startjob, NULL, NULL, NULL);
+	
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
+	
+	engine->flag &= ~RE_ENGINE_DO_UPDATE;
+
+}
+
+/* callback for render engine , on changes */
+void render_view3d(RenderEngine *engine, const bContext *C)
+{
+	render_view3d_do(engine, C, 0);
+}
+
+static int render_view3d_changed(RenderEngine *engine, const bContext *C)
+{
+	ARegion *ar = CTX_wm_region(C);
+	Render *re;
+	int update = 0;
+	char name[32];
+	
+	sprintf(name, "View3dPreview %p", (void *)ar);
+	re = RE_GetRender(name);
+
+	if (re) {
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		View3D *v3d = CTX_wm_view3d(C);
+		Scene *scene = CTX_data_scene(C);
+		rctf viewplane, viewplane1;
+		rcti disprect, disprect1;
+		float mat[4][4];
+		float clipsta, clipend;
+ 		int orth;
+		
+		if (engine->update_flag == RE_ENGINE_UPDATE_MA)
+			update |= PR_UPDATE_MATERIAL;
+		engine->update_flag = 0;
+		
+		if (engine->resolution_x != ar->winx || engine->resolution_y != ar->winy)
+			update |= PR_UPDATE_RENDERSIZE;
+
+		/* view updating fails on raytrace */
+		RE_GetView(re, mat);
+		if (compare_m4m4(mat, rv3d->viewmat, 0.00001f) == 0) {
+			if ((scene->r.mode & R_RAYTRACE)==0)
+				update |= PR_UPDATE_VIEW;
+			else
+				engine->flag |= RE_ENGINE_DO_UPDATE;
+		}
+		
+		render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, &orth);
+		RE_GetViewPlane(re, &viewplane1, &disprect1);
+		
+		if (BLI_rctf_compare(&viewplane, &viewplane1, 0.00001f) == 0)
+			update |= PR_UPDATE_VIEW;
+		
+		render_view3d_disprect(scene, ar, v3d, rv3d, &disprect);
+		if (BLI_rcti_compare(&disprect, &disprect1) == 0)
+			update |= PR_UPDATE_RENDERSIZE;
+		
+		if (update)
+			engine->flag |= RE_ENGINE_DO_UPDATE;
+//		if (update)
+//			printf("changed ma %d res %d view %d\n", update & PR_UPDATE_MATERIAL, update & PR_UPDATE_RENDERSIZE, update & PR_UPDATE_VIEW);
+		
+	}
+	
+	return update;
+}
+
+void render_view3d_draw(RenderEngine *engine, const bContext *C)
+{
+	Render *re = engine->re;
+	RenderResult rres;
+	int keep_data = render_view3d_changed(engine, C);
+	
+	if (engine->flag & RE_ENGINE_DO_UPDATE)
+		render_view3d_do(engine, C, keep_data);
+
+	if (re == NULL) return;
+	
+	RE_AcquireResultImage(re, &rres);
+	RE_ReleaseResultImage(re);
+	
+	if (rres.rectf) {
+		unsigned char *rect_byte = MEM_mallocN(rres.rectx * rres.recty * sizeof(int), "ed_preview_draw_rect");
+				
+		RE_ResultGet32(re, (unsigned int *)rect_byte);
+		
+		glEnable(GL_BLEND);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, rect_byte);
+		glDisable(GL_BLEND);
+				
+		MEM_freeN(rect_byte);
+	}
+}

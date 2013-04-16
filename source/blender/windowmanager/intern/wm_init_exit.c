@@ -438,6 +438,10 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	BKE_mball_cubeTable_free();
 	
+	/* render code might still access databases */
+	RE_FreeAllRender();
+	RE_engines_exit();
+	
 	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 
 	if (C && wm)
@@ -467,9 +471,6 @@ void WM_exit_ext(bContext *C, const short do_python)
 #endif
 	
 	ANIM_keyingset_infos_exit();
-	
-	RE_FreeAllRender();
-	RE_engines_exit();
 	
 //	free_txt_data();
 	

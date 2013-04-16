@@ -116,6 +116,18 @@ RenderEngineType *RE_engines_find(const char *idname)
 	if (!type)
 		type = &internal_render_type;
 
+	/* XXX Hack to make this a debug-only option, remove section to make it available default */
+	if (type == &internal_render_type) {
+		static RenderEngineType rtype;
+		
+		if (type->view_update == NULL)
+			rtype = internal_render_type;
+		else if (G.debug_value != -1) {
+			type = &rtype;
+		}
+	}
+	/* XXX end hack */
+	
 	return type;
 }
 

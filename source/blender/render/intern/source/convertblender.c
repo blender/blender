@@ -4851,10 +4851,11 @@ void RE_Database_Free(Render *re)
 	/* free orco */
 	free_mesh_orco_hash(re);
 
-	end_render_materials(re->main);
-	end_render_textures(re);
-	
-	free_pointdensities(re);
+	if (re->main) {
+		end_render_materials(re->main);
+		end_render_textures(re);
+		free_pointdensities(re);
+	}
 	
 	free_camera_inside_volumes(re);
 	
@@ -5202,13 +5203,16 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int lay, int use_camera_view)
 {
 	Scene *sce;
+	Object *camera;
 	float mat[4][4];
 	float amb[3];
-	Object *camera= RE_GetCamera(re);
 
 	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
+	
+	/* scene needs to be set to get camera */
+	camera= RE_GetCamera(re);
 	
 	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
@@ -5245,6 +5249,9 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		RE_SetView(re, mat);
 		camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
 	}
+	
+	/* store for incremental render, viewmat rotates dbase */
+	copy_m4_m4(re->viewmat_orig, re->viewmat);
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if (re->r.mode & R_RAYTRACE) {
@@ -5353,6 +5360,23 @@ void RE_DataBase_ApplyWindow(Render *re)
 {
 	project_renderdata(re, projectverto, 0, 0, 0);
 }
+
+/* exported call to rotate render data again, when viewmat changed */
+void RE_DataBase_IncrementalView(Render *re, float viewmat[4][4], int restore)
+{
+	float oldviewinv[4][4], tmat[4][4];
+	
+	invert_m4_m4(oldviewinv, re->viewmat_orig);
+	
+	/* we have to correct for the already rotated vertexcoords */
+	mult_m4_m4m4(tmat, viewmat, oldviewinv);
+	
+	copy_m4_m4(re->viewmat, viewmat);
+	invert_m4_m4(re->viewinv, re->viewmat);
+	
+	env_rotate_scene(re, tmat, !restore);
+}
+
 
 void RE_DataBase_GetView(Render *re, float mat[4][4])
 {

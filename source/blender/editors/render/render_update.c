@@ -116,6 +116,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 				engine = rv3d->render_engine;
 
 				if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
+
 					CTX_wm_screen_set(C, sc);
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
@@ -176,6 +177,32 @@ void ED_render_engine_changed(Main *bmain)
  * ED_render_id_flush_update gets called from DAG_id_tag_update, to do   *
  * editor level updates when the ID changes. when these ID blocks are in *
  * the dependency graph, we can get rid of the manual dependency checks  */
+
+static void render_engine_flag_changed(Main *bmain, int update_flag)
+{
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+	
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			if (sa->spacetype != SPACE_VIEW3D)
+				continue;
+			
+			for (ar = sa->regionbase.first; ar; ar = ar->next) {
+				RegionView3D *rv3d;
+				
+				if (ar->regiontype != RGN_TYPE_WINDOW)
+					continue;
+				
+				rv3d = ar->regiondata;
+				if (rv3d->render_engine)
+					rv3d->render_engine->update_flag |= update_flag;
+				
+			}
+		}
+	}
+}
 
 static int mtex_use_tex(MTex **mtex, int tot, Tex *tex)
 {
@@ -472,6 +499,7 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 	switch (GS(id->name)) {
 		case ID_MA:
 			material_changed(bmain, (Material *)id);
+			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_MA);
 			break;
 		case ID_TE:
 			texture_changed(bmain, (Tex *)id);
@@ -487,9 +515,21 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 			break;
 		case ID_SCE:
 			scene_changed(bmain, (Scene *)id);
+			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);
 			break;
 		default:
+			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);
 			break;
 	}
+	
 }
 
+
+void ED_render_internal_init(void)
+{
+	RenderEngineType *ret = RE_engines_find("BLENDER_RENDER");
+	
+	ret->view_update = render_view3d;
+	ret->view_draw = render_view3d_draw;
+	
+}

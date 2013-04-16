@@ -197,12 +197,18 @@ void RE_SetPixelSize(struct Render *re, float pixsize);
 /* option to set viewmatrix before making dbase */
 void RE_SetView(struct Render *re, float mat[4][4]);
 
+/* get current view and window transform */
+void RE_GetView(struct Render *re, float mat[4][4]);
+void RE_GetViewPlane(struct Render *re, rctf *viewplane, rcti *disprect);
+
 /* make or free the dbase */
 void RE_Database_FromScene(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int use_camera_view);
 void RE_Database_Free(struct Render *re);
 
 /* project dbase again, when viewplane/perspective changed */
 void RE_DataBase_ApplyWindow(struct Render *re);
+/* rotate scene again, for incremental render */
+void RE_DataBase_IncrementalView(struct Render *re, float viewmat[4][4], int restore);
 
 /* override the scene setting for amount threads, commandline */
 void RE_set_max_threads(int threads);

@@ -166,6 +166,7 @@ struct Render
 	float grvec[3];			/* for world */
 	float imat[3][3];		/* copy of viewinv */
 	float viewmat[4][4], viewinv[4][4];
+	float viewmat_orig[4][4];	/* for incremental render */
 	float winmat[4][4];
 	
 	/* clippping */

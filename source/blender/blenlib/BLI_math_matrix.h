@@ -122,6 +122,8 @@ void mul_v4d_m4v4d(double r[4], float M[4][4], double v[4]);
 void transpose_m3(float R[3][3]);
 void transpose_m4(float R[4][4]);
 
+int compare_m4m4(float mat1[4][4], float mat2[4][4], float limit);
+
 void normalize_m3(float R[3][3]);
 void normalize_m3_m3(float R[3][3], float A[3][3]);
 void normalize_m4(float R[4][4]);

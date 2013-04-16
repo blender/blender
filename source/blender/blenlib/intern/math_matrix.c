@@ -722,6 +722,16 @@ void transpose_m4(float mat[4][4])
 	mat[3][2] = t;
 }
 
+int compare_m4m4(float mat1[4][4], float mat2[4][4], float limit)
+{
+	if (compare_v4v4(mat1[0], mat2[0], limit))
+		if (compare_v4v4(mat1[1], mat2[1], limit))
+			if (compare_v4v4(mat1[2], mat2[2], limit))
+				if (compare_v4v4(mat1[3], mat2[3], limit))
+					return 1;
+	return 0;
+}
+
 void orthogonalize_m3(float mat[3][3], int axis)
 {
 	float size[3];

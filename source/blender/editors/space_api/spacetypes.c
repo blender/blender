@@ -149,6 +149,8 @@ void ED_spacetypes_init(void)
 			type->dropboxes();
 	}
 	
+	/* register internal render callbacks */
+	ED_render_internal_init();
 }
 
 /* called in wm.c */

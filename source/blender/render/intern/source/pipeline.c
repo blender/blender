@@ -328,6 +328,9 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr)
 
 			rr->have_combined = (re->result->rectf != NULL);
 			rr->layers = re->result->layers;
+			
+			rr->xof = re->disprect.xmin;
+			rr->yof = re->disprect.ymin;
 		}
 	}
 }
@@ -402,7 +405,10 @@ void RE_FreeRender(Render *re)
 
 	BLI_rw_mutex_end(&re->resultmutex);
 	
-	free_renderdata_tables(re);
+	/* main dbase can already be invalid now, some database-free code checks it */
+	re->main = NULL;
+	
+	RE_Database_Free(re);	/* view render can still have full database */
 	free_sample_tables(re);
 	
 	render_result_free(re->result);
@@ -564,13 +570,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	if (re->r.scemode & R_PREVIEWBUTS) {
-		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) {
-			/* pass */
-		}
-		else {
-			render_result_free(re->result);
-			re->result = NULL;
-		}
+		/* always fresh, freestyle layers need it */
+		render_result_free(re->result);
+		re->result = NULL;
 	}
 	else {
 		
@@ -580,6 +582,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		re->result->rectx = re->rectx;
 		re->result->recty = re->recty;
 	}
+	
+	/* ensure renderdatabase can use part settings correct */
+	RE_parts_clamp(re);
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
@@ -625,6 +630,22 @@ void RE_SetView(Render *re, float mat[4][4])
 	/* re->ok flag? */
 	copy_m4_m4(re->viewmat, mat);
 	invert_m4_m4(re->viewinv, re->viewmat);
+}
+
+void RE_GetViewPlane(Render *re, rctf *viewplane, rcti *disprect)
+{
+	*viewplane = re->viewplane;
+	
+	/* make disprect zero when no border render, is needed to detect changes in 3d view render */
+	if (re->r.mode & R_BORDER)
+		*disprect = re->disprect;
+	else
+		BLI_rcti_init(disprect, 0, 0, 0, 0);
+}
+
+void RE_GetView(Render *re, float mat[4][4])
+{
+	copy_m4_m4(mat, re->viewmat);
 }
 
 /* image and movie output has to move to either imbuf or kernel */
@@ -1035,17 +1056,36 @@ static void threaded_tile_processor(Render *re)
 	re->viewplane = viewplane; /* restore viewplane, modified by pano render */
 }
 
+#ifdef WITH_FREESTYLE
+static void add_freestyle(Render *re);
+static void free_all_freestyle_renders(Scene *scene);
+#endif
+
 /* currently only called by preview renders and envmap */
 void RE_TileProcessor(Render *re)
 {
 	threaded_tile_processor(re);
+	
+	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
+	re->stats_draw(re->sdh, &re->i);
+
+#ifdef WITH_FREESTYLE
+	/* Freestyle  */
+	if (re->r.mode & R_EDGE_FRS) {
+		if (!re->test_break(re->tbh)) {
+			add_freestyle(re);
+	
+			free_all_freestyle_renders(re->scene);
+			
+			re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
+			re->stats_draw(re->sdh, &re->i);
+		}
+	}
+#endif
+
 }
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
-
-#ifdef WITH_FREESTYLE
-static void add_freestyle(Render *re);
-#endif
 
 static void do_render_3d(Render *re)
 {

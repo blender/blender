@@ -66,6 +66,10 @@ struct Scene;
 #define RE_ENGINE_HIGHLIGHT_TILES	32
 #define RE_ENGINE_USED_FOR_VIEWPORT	64
 
+/* RenderEngine.update_flag, used by internal now */
+#define RE_ENGINE_UPDATE_MA			1
+#define RE_ENGINE_UPDATE_OTHER		2
+
 extern ListBase R_engines;
 
 typedef struct RenderEngineType {
@@ -92,7 +96,7 @@ typedef struct RenderEngine {
 	RenderEngineType *type;
 	void *py_instance;
 
-	int flag;
+	int flag, update_flag;
 	struct Object *camera_override;
 
 	int tile_x;

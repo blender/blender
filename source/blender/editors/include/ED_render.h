@@ -38,6 +38,8 @@ struct Render;
 struct RenderInfo;
 struct Scene;
 struct ScrArea;
+struct RegionView3D;
+struct RenderEngine;
 
 /* render_ops.c */
 
@@ -84,5 +86,7 @@ void ED_preview_kill_jobs(const struct bContext *C);
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);
 
 void ED_render_clear_mtex_copybuf(void);
+
+void ED_render_internal_init(void);
 
 #endif

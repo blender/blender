@@ -199,7 +199,8 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 		sms.to_camera = true; /* restore view3d values in end */
 	}
 	
-	if (C && U.smooth_viewtx) {
+	/* skip smooth viewing for render engine draw */
+	if (C && U.smooth_viewtx && v3d->drawtype != OB_RENDER) {
 		bool changed = false; /* zero means no difference */
 		
 		if (oldcamera != camera)

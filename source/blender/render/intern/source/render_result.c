@@ -569,6 +569,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
+	/* XXX obsolete? I now use it for drawing border render offset (ton) */
 	rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
 	rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 	

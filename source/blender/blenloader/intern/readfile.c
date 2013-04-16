@@ -6209,9 +6209,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->properties_storage = NULL;
 				v3d->defmaterial = NULL;
 				
-				/* render can be quite heavy, set to wire on load */
+				/* render can be quite heavy, set to solid on load */
 				if (v3d->drawtype == OB_RENDER)
-					v3d->drawtype = OB_WIRE;
+					v3d->drawtype = OB_SOLID;
 				
 				blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
 			}
