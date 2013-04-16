@@ -597,6 +597,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "sampling", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sampling");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Sampling", "New sampling value to be used for subsequent modifiers");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
