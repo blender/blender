@@ -274,6 +274,11 @@ void BKE_brush_debug_print_state(Brush *br)
 	else if (!(br->flag & _f) && (def.flag & _f))	\
 		printf("br->flag &= ~" #_f ";\n")
 	
+#define BR_TEST_FLAG_OVERLAY(_f)							\
+	if ((br->overlay_flags & _f) && !(def.overlay_flags & _f))		\
+		printf("br->overlay_flags |= " #_f ";\n");			\
+	else if (!(br->overlay_flags & _f) && (def.overlay_flags & _f))	\
+		printf("br->overlay_flags &= ~" #_f ";\n")
 
 	/* print out any non-default brush state */
 	BR_TEST(normal_weight, f);
@@ -301,7 +306,6 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST_FLAG(BRUSH_SPACE_ATTEN);
 	BR_TEST_FLAG(BRUSH_ADAPTIVE_SPACE);
 	BR_TEST_FLAG(BRUSH_LOCK_SIZE);
-	BR_TEST_FLAG(BRUSH_TEXTURE_OVERLAY);
 	BR_TEST_FLAG(BRUSH_EDGE_TO_EDGE);
 	BR_TEST_FLAG(BRUSH_RESTORE_MESH);
 	BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
@@ -309,6 +313,11 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST_FLAG(BRUSH_PLANE_TRIM);
 	BR_TEST_FLAG(BRUSH_FRONTFACE);
 	BR_TEST_FLAG(BRUSH_CUSTOM_ICON);
+
+	BR_TEST_FLAG_OVERLAY(BRUSH_OVERLAY_CURSOR);
+	BR_TEST_FLAG_OVERLAY(BRUSH_OVERLAY_PRIMARY);
+	BR_TEST_FLAG_OVERLAY(BRUSH_OVERLAY_SECONDARY);
+	BR_TEST_FLAG_OVERLAY(BRUSH_OVERLAY_OVERRIDE_ON_STROKE);
 
 	BR_TEST(jitter, f);
 	BR_TEST(spacing, d);

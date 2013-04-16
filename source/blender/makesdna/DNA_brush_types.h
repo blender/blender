@@ -73,7 +73,7 @@ typedef struct Brush {
 	int flag;           /* general purpose flag */
 	float jitter;       /* jitter the position of the brush */
 	int jitter_absolute;	/* absolute jitter in pixels */
-	int pad;
+	int overlay_flags;
 	int spacing;        /* spacing of paint operations */
 	int smooth_stroke_radius;   /* turning radius (in pixels) for smooth stroke */
 	float smooth_stroke_factor; /* higher values limit fast changes in the stroke direction */
@@ -99,7 +99,10 @@ typedef struct Brush {
 	float height;           /* affectable height of brush (layer height for layer tool, i.e.) */
 
 	float texture_sample_bias;
+
 	int texture_overlay_alpha;
+	int mask_overlay_alpha;
+	int cursor_overlay_alpha;
 
 	float unprojected_radius;
 
@@ -132,7 +135,7 @@ typedef enum BrushFlags {
 	BRUSH_SPACE_ATTEN = (1 << 18),
 	BRUSH_ADAPTIVE_SPACE = (1 << 19),
 	BRUSH_LOCK_SIZE = (1 << 20),
-	BRUSH_TEXTURE_OVERLAY = (1 << 21),
+//	BRUSH_TEXTURE_OVERLAY = (1 << 21), /* obsolete, use overlay_flags |= BRUSH_OVERLAY_PRIMARY instead */
 	BRUSH_EDGE_TO_EDGE = (1 << 22),
 	BRUSH_RESTORE_MESH = (1 << 23),
 	BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
@@ -146,6 +149,14 @@ typedef enum BrushFlags {
 	BRUSH_INVERTED = (1 << 29),
 	BRUSH_ABSOLUTE_JITTER = (1 << 30)
 } BrushFlags;
+
+/* Brush.overlay_flags */
+typedef enum OverlayFlags {
+	BRUSH_OVERLAY_CURSOR = (1),
+	BRUSH_OVERLAY_PRIMARY = (1 << 1),
+	BRUSH_OVERLAY_SECONDARY = (1 << 2),
+	BRUSH_OVERLAY_OVERRIDE_ON_STROKE = (1 << 3)
+} OverlayFlags;
 
 /* Brush.sculpt_tool */
 typedef enum BrushSculptTool {

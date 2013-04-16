@@ -983,11 +983,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	                         "given in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "use_texture_overlay", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_TEXTURE_OVERLAY);
-	RNA_def_property_ui_text(prop, "Use Texture Overlay", "Show texture in viewport");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
 	prop = RNA_def_property(srna, "use_edge_to_edge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_EDGE_TO_EDGE);
 	RNA_def_property_ui_text(prop, "Edge-to-edge", "Drag anchor brush from edge-to-edge");
@@ -1007,6 +1002,27 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	/* overlay flags */
+	prop = RNA_def_property(srna, "use_primary_overlay", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_PRIMARY);
+	RNA_def_property_ui_text(prop, "Use Texture Overlay", "Show texture in viewport");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "use_secondary_overlay", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_SECONDARY);
+	RNA_def_property_ui_text(prop, "Use Texture Overlay", "Show texture in viewport");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "use_cursor_overlay", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_CURSOR);
+	RNA_def_property_ui_text(prop, "Use Cursor Overlay", "Show cursor in viewport");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "cursor_overlay_override", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_OVERRIDE_ON_STROKE);
+	RNA_def_property_ui_text(prop, "Override Overlay", "Don't show overlay during a stroke");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	/* paint mode flags */
@@ -1055,6 +1071,18 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "texture_overlay_alpha");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Texture Overlay Alpha", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "mask_overlay_alpha", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_int_sdna(prop, NULL, "mask_overlay_alpha");
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_ui_text(prop, "Mask Texture Overlay Alpha", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "cursor_overlay_alpha", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_int_sdna(prop, NULL, "cursor_overlay_alpha");
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_ui_text(prop, "Mask Texture Overlay Alpha", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "cursor_color_add", PROP_FLOAT, PROP_COLOR);

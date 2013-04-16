@@ -109,7 +109,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 	static int old_zoom = -1;
 	static bool old_col = -1;
 
-	int invalid = BKE_paint_get_overlay_flags();
+	OverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
 	GLubyte *buffer = NULL;
 
 	int size;
@@ -121,8 +121,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col)
 	
 	refresh = 
 	    !overlay_texture ||
-	    (invalid & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) ||
-	    (invalid & PAINT_INVALID_OVERLAY_CURVE) ||
+	    (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) ||
+	    (overlay_flags & PAINT_INVALID_OVERLAY_CURVE) ||
 	    old_zoom != zoom ||
 	    old_col != col ||
 	    !same_tex_snap(&snap, br, vc);
@@ -406,7 +406,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	/* check for overlay mode */
 
 	if (!((brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL && brush->mtex.tex) ||
-	    ((brush->flag & BRUSH_TEXTURE_OVERLAY) &&
+	    ((brush->overlay_flags & BRUSH_OVERLAY_PRIMARY) &&
 	    ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
 	{
 		return;
@@ -591,7 +591,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		ups->brush_rotation = 0.0;
 
 	/* draw overlay */
-	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
+	if (!BKE_paint_get_overlay_override())
+		paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
