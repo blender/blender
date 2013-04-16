@@ -85,6 +85,12 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
 
+        for rl in scene.render.layers:
+            if rl.samples > 0:
+                layout.separator()
+                layout.row().prop(cscene, "use_layer_samples")
+                break
+
 
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
     bl_label = "Light Paths"

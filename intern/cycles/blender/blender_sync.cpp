@@ -224,12 +224,11 @@ void BlenderSync::sync_film()
 
 void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 {
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	string layername;
 
 	/* 3d view */
 	if(b_v3d) {
-		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-
 		if(RNA_boolean_get(&cscene, "preview_active_layer")) {
 			BL::RenderLayers layers(b_scene.render().ptr);
 			layername = layers.active().name();
@@ -245,6 +244,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.use_background = true;
 			render_layer.use_viewport_visibility = true;
 			render_layer.samples = 0;
+			render_layer.bound_samples = false;
 			return;
 		}
 	}
@@ -252,6 +252,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 	/* render layer */
 	BL::RenderSettings r = b_scene.render();
 	BL::RenderSettings::layers_iterator b_rlay;
+	int use_layer_samples = RNA_enum_get(&cscene, "use_layer_samples");
 	bool first_layer = true;
 
 	for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
@@ -271,7 +272,10 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.use_background = b_rlay->use_sky();
 			render_layer.use_viewport_visibility = false;
 			render_layer.use_localview = false;
-			render_layer.samples = b_rlay->samples();
+
+			render_layer.bound_samples = (use_layer_samples == 1);
+			if(use_layer_samples != 2)
+				render_layer.samples = b_rlay->samples();
 		}
 
 		first_layer = false;

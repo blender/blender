@@ -108,6 +108,12 @@ enum_tile_order = (
     ('BOTTOM_TO_TOP', "Bottom to Top", "Render from bottom to top"),
     )
 
+enum_use_layer_samples = (
+    ('USE', "Use", "Per render layer number of samples override scene samples"),
+    ('BOUNDED', "Bounded", "Bound per render layer number of samples by global samples"),
+    ('IGNORE', "Ignore", "Ignore per render layer number of samples"),
+    )
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -211,6 +217,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Number of subsurface scattering samples to render for each AA sample",
                 min=1, max=10000,
                 default=1,
+                )
+
+        cls.use_layer_samples = EnumProperty(
+                name="Layer Samples",
+                description="How to use per render layer sample settings",
+                items=enum_use_layer_samples,
+                default='USE',
                 )
 
         cls.no_caustics = BoolProperty(

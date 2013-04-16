@@ -362,9 +362,14 @@ void BlenderSession::render()
 		/* update scene */
 		sync->sync_data(b_v3d, b_engine.camera_override(), b_rlay_name.c_str());
 
-		/* update session */
+		/* update number of samples per layer */
 		int samples = sync->get_layer_samples();
-		session->reset(buffer_params, (samples == 0)? session_params.samples: samples);
+		bool bound_samples = sync->get_layer_bound_samples();
+
+		if(samples != 0 && (!bound_samples || (samples < session_params.samples)))
+			session->reset(buffer_params, samples);
+		else
+			session->reset(buffer_params, session_params.samples);
 
 		/* render */
 		session->start();
