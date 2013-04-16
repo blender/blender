@@ -3196,6 +3196,8 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
+	EDBM_selectmode_flush(em);
+
 	return OPERATOR_FINISHED;
 }
 
