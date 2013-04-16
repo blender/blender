@@ -42,7 +42,7 @@
 #include "BKE_editmesh_bvh.h"  /* own include */
 
 
-typedef struct BMBVHTree {
+struct BMBVHTree {
 	BMEditMesh *em;
 	BMesh *bm;
 	BVHTree *tree;
@@ -59,7 +59,7 @@ typedef struct BMBVHTree {
 	
 	Object *ob;
 	struct Scene *scene;
-} BMBVHTree;
+};
 
 static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
                                        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
