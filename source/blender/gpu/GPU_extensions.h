@@ -32,8 +32,6 @@
 #ifndef __GPU_EXTENSIONS_H__
 #define __GPU_EXTENSIONS_H__
 
-#include "BLI_utildefines.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -209,5 +207,4 @@ typedef struct GPUVertexAttribs {
 }
 #endif
 
-#endif
-
+#endif  /* __GPU_EXTENSIONS_H__ */

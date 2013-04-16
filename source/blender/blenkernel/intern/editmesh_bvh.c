@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
@@ -59,7 +58,7 @@ typedef struct BMBVHTree {
 	int curtag, flag;
 	
 	Object *ob;
-	Scene *scene;
+	struct Scene *scene;
 } BMBVHTree;
 
 static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
@@ -76,7 +75,7 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 	}
 }
 
-BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene)
+BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, struct Scene *scene)
 {
 	BMBVHTree *tree = MEM_callocN(sizeof(*tree), "BMBVHTree");
 	DerivedMesh *cage, *final;

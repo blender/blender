@@ -84,6 +84,7 @@ set(SRC
 	intern/displist.c
 	intern/dynamicpaint.c
 	intern/editderivedmesh.c
+	intern/editmesh.c
 	intern/editmesh_bvh.c
 	intern/effect.c
 	intern/fcurve.c
