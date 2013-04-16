@@ -63,6 +63,7 @@
 
 #include "BKE_nla.h"
 #include "BKE_bmesh.h"
+#include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h"
@@ -5175,7 +5176,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
 
 	if (use_btree_disp) {
-		btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL, NULL);
+		btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL);
 	}
 	else {
 		btree = NULL;

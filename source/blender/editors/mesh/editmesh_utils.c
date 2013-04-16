@@ -43,6 +43,7 @@
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_bvh.h"
 
 #include "BKE_object.h"  /* XXX. only for EDBM_mesh_ensure_valid_dm_hack() which will be removed */
 
@@ -52,6 +53,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "mesh_intern.h"  /* own include */
 
@@ -1164,7 +1166,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
 	}
 	else {
-		tree = BMBVH_NewBVH(em, 0, NULL, NULL);
+		tree = BMBVH_NewBVH(em, 0, NULL);
 	}
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -1375,4 +1377,89 @@ int EDBM_view3d_poll(bContext *C)
 		return 1;
 
 	return 0;
+}
+
+/* -------------------------------------------------------------------- */
+/* BMBVH functions */
+// XXX
+#if 0 //BMESH_TODO: not implemented yet
+int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
+{
+
+}
+#endif
+
+static BMFace *edge_ray_cast(struct BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, BMEdge *e)
+{
+	BMFace *f = BMBVH_RayCast(tree, co, dir, r_hitout, NULL);
+
+	if (f && BM_edge_in_face(f, e))
+		return NULL;
+
+	return f;
+}
+
+static void scale_point(float c1[3], const float p[3], const float s)
+{
+	sub_v3_v3(c1, p);
+	mul_v3_fl(c1, s);
+	add_v3_v3(c1, p);
+}
+
+bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Object *obedit)
+{
+	BMFace *f;
+	float co1[3], co2[3], co3[3], dir1[3], dir2[3], dir3[3];
+	float origin[3], invmat[4][4];
+	float epsilon = 0.01f;
+	float end[3];
+	const float mval_f[2] = {ar->winx / 2.0f,
+	                         ar->winy / 2.0f};
+
+	ED_view3d_win_to_segment(ar, v3d, mval_f, origin, end);
+
+	invert_m4_m4(invmat, obedit->obmat);
+	mul_m4_v3(invmat, origin);
+
+	copy_v3_v3(co1, e->v1->co);
+	mid_v3_v3v3(co2, e->v1->co, e->v2->co);
+	copy_v3_v3(co3, e->v2->co);
+
+	scale_point(co1, co2, 0.99);
+	scale_point(co3, co2, 0.99);
+
+	/* ok, idea is to generate rays going from the camera origin to the
+	 * three points on the edge (v1, mid, v2)*/
+	sub_v3_v3v3(dir1, origin, co1);
+	sub_v3_v3v3(dir2, origin, co2);
+	sub_v3_v3v3(dir3, origin, co3);
+
+	normalize_v3(dir1);
+	normalize_v3(dir2);
+	normalize_v3(dir3);
+
+	mul_v3_fl(dir1, epsilon);
+	mul_v3_fl(dir2, epsilon);
+	mul_v3_fl(dir3, epsilon);
+
+	/* offset coordinates slightly along view vectors, to avoid
+	 * hitting the faces that own the edge.*/
+	add_v3_v3v3(co1, co1, dir1);
+	add_v3_v3v3(co2, co2, dir2);
+	add_v3_v3v3(co3, co3, dir3);
+
+	normalize_v3(dir1);
+	normalize_v3(dir2);
+	normalize_v3(dir3);
+
+	/* do three samplings: left, middle, right */
+	f = edge_ray_cast(tree, co1, dir1, NULL, e);
+	if (f && !edge_ray_cast(tree, co2, dir2, NULL, e))
+		return true;
+	else if (f && !edge_ray_cast(tree, co3, dir3, NULL, e))
+		return true;
+	else if (!f)
+		return true;
+
+	return false;
 }

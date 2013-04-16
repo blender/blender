@@ -25,12 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mesh/editmesh_bvh.h
- *  \ingroup edmesh
+/** \file BKE_editmesh_bvh.h
+ *  \ingroup bke
  */
 
-#ifndef __EDITBMESH_BVH_H__
-#define __EDITBMESH_BVH_H__
+#ifndef __BKE_EDITMESH_BVH_H__
+#define __BKE_EDITMESH_BVH_H__
 
 struct BMEditMesh;
 struct BMFace;
@@ -42,22 +42,17 @@ struct BVHTree;
 struct Scene;
 struct Object;
 
-#ifndef IN_EDITMESHBVH
 typedef struct BMBVHTree BMBVHTree;
-#endif
 
-struct BMBVHTree *BMBVH_NewBVH(struct BMEditMesh *em, int flag, struct Scene *scene, struct Object *obedit);
-void BMBVH_FreeBVH(struct BMBVHTree *tree);
-struct BVHTree *BMBVH_BVHTree(struct BMBVHTree *tree);
+BMBVHTree *BMBVH_NewBVH(struct BMEditMesh *em, int flag, struct Scene *scene);
+void BMBVH_FreeBVH(BMBVHTree *tree);
+struct BVHTree *BMBVH_BVHTree(BMBVHTree *tree);
 
-struct BMFace *BMBVH_RayCast(struct BMBVHTree *tree, const float co[3], const float dir[3],
+struct BMFace *BMBVH_RayCast(BMBVHTree *tree, const float co[3], const float dir[3],
                              float r_hitout[3], float r_cagehit[3]);
 
-int BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e, 
-                      struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
-
 /*find a vert closest to co in a sphere of radius maxdist*/
-struct BMVert *BMBVH_FindClosestVert(struct BMBVHTree *tree, const float co[3], const float maxdist);
+struct BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], const float maxdist);
 
 /* BMBVH_NewBVH flag parameter */
 enum {
@@ -67,4 +62,4 @@ enum {
 	BMBVH_RESPECT_HIDDEN  = 8  /* omit hidden geometry */
 };
 
-#endif /* __EDITBMESH_BVH_H__ */
+#endif  /* __BKE_EDITMESH_BVH_H__ */

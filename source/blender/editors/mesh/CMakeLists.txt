@@ -43,7 +43,6 @@ set(SRC
 	editface.c
 	editmesh_add.c
 	editmesh_bevel.c
-	editmesh_bvh.c
 	editmesh_extrude.c
 	editmesh_inset.c
 	editmesh_knife.c
@@ -57,7 +56,6 @@ set(SRC
 	mesh_ops.c
 	meshtools.c
 
-	editmesh_bvh.h
 	mesh_intern.h
 )
 

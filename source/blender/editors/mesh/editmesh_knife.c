@@ -47,6 +47,8 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
+#include "BKE_editmesh_bvh.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -60,7 +62,6 @@
 #include "WM_types.h"
 
 #include "DNA_object_types.h"
-#include "BKE_editmesh.h"
 #include "UI_resources.h"
 
 #include "RNA_access.h"
@@ -3016,7 +3017,7 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	kcd->bmbvh = BMBVH_NewBVH(kcd->em,
 	                          (BMBVH_USE_CAGE | BMBVH_RETURN_ORIG) |
 	                          (only_select ? BMBVH_RESPECT_SELECT : BMBVH_RESPECT_HIDDEN),
-	                          scene, obedit);
+	                          scene);
 
 	kcd->arena = BLI_memarena_new(1 << 15, "knife");
 	kcd->vthresh = KMAXDIST - 1;
