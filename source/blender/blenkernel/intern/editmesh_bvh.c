@@ -34,7 +34,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_smallhash.h"
+#include "BLI_bitmap.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
@@ -56,21 +56,22 @@ struct BMBVHTree {
 	float curw, curd;
 	float co[3], (*cagecos)[3], (*cos)[3];
 	int curtag, flag;
-	
-	Object *ob;
+};
+
+struct CageUserData {
+	int totvert;
+	float (*cagecos)[3];
+	BLI_bitmap vert_bitmap;
 };
 
 static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
                                        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
-	void **data = userData;
-	BMEditMesh *em = data[0];
-	float (*cagecos)[3] = data[1];
-	SmallHash *hash = data[2];
-	
-	if (index >= 0 && index < em->bm->totvert && !BLI_smallhash_haskey(hash, index)) {
-		BLI_smallhash_insert(hash, index, NULL);
-		copy_v3_v3(cagecos[index], co);
+	struct CageUserData *data = userData;
+
+	if ((index >= 0 && index < data->totvert) && (!BLI_BITMAP_GET(data->vert_bitmap, index))) {
+		BLI_BITMAP_SET(data->vert_bitmap, index);
+		copy_v3_v3(data->cagecos[index], co);
 	}
 }
 
@@ -79,7 +80,6 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	struct BMLoop *(*looptris)[3] = em->looptris;
 	BMBVHTree *tree = MEM_callocN(sizeof(*tree), "BMBVHTree");
 	DerivedMesh *cage, *final;
-	SmallHash shash;
 	float cos[3][3], (*cagecos)[3] = NULL;
 	int i;
 	int tottri;
@@ -87,11 +87,9 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	/* BKE_editmesh_tessface_calc() must be called already */
 	BLI_assert(em->tottri != 0 || em->bm->totface == 0);
 
-	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
-	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
-	BLI_smallhash_init(&shash);
+	/* cage-flag needs scene */
+	BLI_assert(scene || !(flag & BMBVH_USE_CAGE));
 
-	tree->ob = em->ob;
 	tree->em = em;
 	tree->bm = em->bm;
 	tree->epsilon = FLT_EPSILON * 2.0f;
@@ -120,11 +118,12 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	tree->tree = BLI_bvhtree_new(tottri, tree->epsilon, 8, 8);
 	
 	if (flag & BMBVH_USE_CAGE) {
+		BLI_bitmap vert_bitmap;
 		BMIter iter;
 		BMVert *v;
-		void *data[3];
-		
-		tree->cos = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cos");
+		struct CageUserData data;
+
+		tree->cos = MEM_callocN(sizeof(*tree->cos) * em->bm->totvert, "bmbvh cos");
 		BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 			BM_elem_index_set(v, i); /* set_inline */
 			copy_v3_v3(tree->cos[i], v->co);
@@ -135,11 +134,17 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 		cage = editbmesh_get_derived_cage_and_final(scene, em->ob, em, &final, CD_MASK_DERIVEDMESH);
 		cagecos = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cagecos");
 		
-		data[0] = em;
-		data[1] = cagecos;
-		data[2] = &shash;
+		/* when initializing cage verts, we only want the first cage coordinate for each vertex,
+		 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
+		vert_bitmap = BLI_BITMAP_NEW(em->bm->totvert, __func__);
+
+		data.totvert = em->bm->totvert;
+		data.cagecos = cagecos;
+		data.vert_bitmap = vert_bitmap;
 		
-		cage->foreachMappedVert(cage, cage_mapped_verts_callback, data);
+		cage->foreachMappedVert(cage, cage_mapped_verts_callback, &data);
+
+		MEM_freeN(vert_bitmap);
 	}
 	
 	tree->cagecos = cagecos;
@@ -175,7 +180,6 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	}
 	
 	BLI_bvhtree_balance(tree->tree);
-	BLI_smallhash_release(&shash);
 	
 	return tree;
 }
