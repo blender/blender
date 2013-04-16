@@ -325,13 +325,15 @@ kmi.properties.action = 'DESELECT'
 km = kc.keymaps.new('Mesh', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('mesh.loopcut_slide', 'R', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
-kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
+kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'RELEASE', ctrl=True, alt=True)
+kmi.properties.extend = False
+kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'RELEASE', shift=True, alt=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
-kmi = km.keymap_items.new('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
+kmi = km.keymap_items.new('mesh.edgering_select', 'SELECTMOUSE', 'RELEASE', ctrl=True, alt=True)
+kmi.properties.extend = False
+kmi = km.keymap_items.new('mesh.edgering_select', 'SELECTMOUSE', 'RELEASE', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('mesh.select_shortest_path', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('mesh.select_shortest_path', 'SELECTMOUSE', 'RELEASE', ctrl=True)
 kmi = km.keymap_items.new('mesh.select_all', 'A', 'PRESS')
 kmi = km.keymap_items.new('mesh.select_more', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.select_less', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
