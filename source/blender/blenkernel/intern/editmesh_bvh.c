@@ -197,35 +197,19 @@ void BKE_bmbvh_free(BMBVHTree *tree)
 }
 
 /* taken from bvhutils.c */
-static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist),
-                                  const float v0[3],  const float v1[3], const float v2[3],
-                                  float r_uv[2], float UNUSED(e))
-{
-	float dist;
-
-	if (isect_ray_tri_v3((float *)ray->origin, (float *)ray->direction, v0, v1, v2, &dist, r_uv)) {
-		return dist;
-	}
-
-	return FLT_MAX;
-}
-
 static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	BMBVHTree *tree = userdata;
-	BMLoop **ls = tree->em->looptris[index];
+	BMLoop **ltri = tree->em->looptris[index];
 	float dist, uv[2];
-	 
-	if (!ls[0] || !ls[1] || !ls[2])
-		return;
-	
-	dist = ray_tri_intersection(ray, hit->dist, ls[0]->v->co, ls[1]->v->co,
-	                            ls[2]->v->co, uv, tree->epsilon);
-	if (dist < hit->dist) {
+
+	if (isect_ray_tri_v3(ray->origin, ray->direction, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, &dist, uv) &&
+	    (dist < hit->dist))
+	{
 		hit->dist = dist;
 		hit->index = index;
-		
-		copy_v3_v3(hit->no, ls[0]->v->no);
+
+		copy_v3_v3(hit->no, ltri[0]->f->no);
 
 		copy_v3_v3(hit->co, ray->direction);
 		normalize_v3(hit->co);
@@ -251,12 +235,13 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3
 	if (hit.index != -1 && hit.dist != dist) {
 		if (r_hitout) {
 			if (tree->flag & BMBVH_RETURN_ORIG) {
+				BMLoop **ltri = tree->em->looptris[hit.index];
 				const float *co1, *co2, *co3;
 				int i;
 
-				co1 = tree->em->looptris[hit.index][0]->v->co;
-				co2 = tree->em->looptris[hit.index][1]->v->co;
-				co3 = tree->em->looptris[hit.index][2]->v->co;
+				co1 = ltri[0]->v->co;
+				co2 = ltri[1]->v->co;
+				co3 = ltri[2]->v->co;
 				
 				for (i = 0; i < 3; i++) {
 					r_hitout[i] = co1[i] + ((co2[i] - co1[i]) * tree->uv[0]) +
@@ -290,19 +275,19 @@ BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree)
 static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co), BVHTreeNearest *hit)
 {
 	BMBVHTree *tree = userdata;
-	BMLoop **ls = tree->em->looptris[index];
+	BMLoop **ltri = tree->em->looptris[index];
 	float dist, maxdist, v[3];
 	int i;
 
 	maxdist = tree->maxdist;
 
 	for (i = 0; i < 3; i++) {
-		sub_v3_v3v3(v, hit->co, ls[i]->v->co);
+		sub_v3_v3v3(v, hit->co, ltri[i]->v->co);
 
 		dist = len_v3(v);
 		if (dist < hit->dist && dist < maxdist) {
-			copy_v3_v3(hit->co, ls[i]->v->co);
-			copy_v3_v3(hit->no, ls[i]->v->no);
+			copy_v3_v3(hit->co, ltri[i]->v->co);
+			copy_v3_v3(hit->no, ltri[i]->v->no);
 			hit->dist = dist;
 			hit->index = index;
 		}
@@ -321,23 +306,21 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const fl
 
 	BLI_bvhtree_find_nearest(tree->tree, co, &hit, vertsearchcallback, tree);
 	if (hit.dist != FLT_MAX && hit.index != -1) {
-		BMLoop **ls = tree->em->looptris[hit.index];
-		float dist, curdist = tree->maxdist, v[3];
+		BMLoop **ltri = tree->em->looptris[hit.index];
+		float dist, curdist = tree->maxdist;
 		int cur = 0, i;
 
 		/* maxdist = tree->maxdist; */  /* UNUSED */
 
 		for (i = 0; i < 3; i++) {
-			sub_v3_v3v3(v, hit.co, ls[i]->v->co);
-
-			dist = len_v3(v);
+			dist = len_v3v3(hit.co, ltri[i]->v->co);
 			if (dist < curdist) {
 				cur = i;
 				curdist = dist;
 			}
 		}
 
-		return ls[cur]->v;
+		return ltri[cur]->v;
 	}
 
 	return NULL;
