@@ -64,6 +64,9 @@ void BKE_paint_invalidate_overlay_tex (Scene *scene, const Tex *tex)
 	Paint *p = BKE_paint_get_active(scene);
 	Brush *br = p->brush;
 
+	if (!br)
+		return;
+
 	if (br->mtex.tex == tex)
 		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
 	if (br->mask_mtex.tex == tex)
@@ -75,7 +78,7 @@ void BKE_paint_invalidate_cursor_overlay (Scene *scene, CurveMapping *curve)
 	Paint *p = BKE_paint_get_active(scene);
 	Brush *br = p->brush;
 
-	if (br->curve == curve)
+	if (br && br->curve == curve)
 		overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
 }
 
