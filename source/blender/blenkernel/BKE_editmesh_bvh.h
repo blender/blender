@@ -45,7 +45,7 @@ BMBVHTree      *BKE_bmbvh_new(struct BMEditMesh *em, int flag, struct Scene *sce
 void            BKE_bmbvh_free(BMBVHTree *tree);
 struct BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree);
 struct BMFace  *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3],
-                                   float r_hitout[3], float r_cagehit[3]);
+                                   float *r_dist, float r_hitout[3], float r_cagehit[3]);
 /* find a vert closest to co in a sphere of radius maxdist */
 struct BMVert  *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const float maxdist);
 

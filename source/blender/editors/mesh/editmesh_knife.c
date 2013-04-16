@@ -1268,7 +1268,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 					add_v3_v3(p1, no);
 						
 					/* ray cast */
-					f_hit = BKE_bmbvh_ray_cast(bmtree, p1, no, NULL, NULL);
+					f_hit = BKE_bmbvh_ray_cast(bmtree, p1, no, NULL, NULL, NULL);
 				}
 
 				/* ok, if visible add the new point */
@@ -1502,7 +1502,7 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 	knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
 	sub_v3_v3v3(ray, origin_ofs, origin);
 
-	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray, co, cageco);
+	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray, NULL, co, cageco);
 
 	if (is_space)
 		*is_space = !f;

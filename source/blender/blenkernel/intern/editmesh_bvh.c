@@ -237,17 +237,18 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 }
 
 BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3],
-                           float r_hitout[3], float r_cagehit[3])
+                           float *r_dist, float r_hitout[3], float r_cagehit[3])
 {
 	BVHTreeRayHit hit;
+	const float dist = r_dist ? *r_dist : FLT_MAX;
 
-	hit.dist = FLT_MAX;
+	hit.dist = dist;
 	hit.index = -1;
-	
-	tree->uv[0] = tree->uv[1] = 0.0f;
+
+	zero_v2(tree->uv);
 	
 	BLI_bvhtree_ray_cast(tree->tree, co, dir, 0.0f, &hit, raycallback, tree);
-	if (hit.dist != FLT_MAX && hit.index != -1) {
+	if (hit.index != -1 && hit.dist != dist) {
 		if (r_hitout) {
 			if (tree->flag & BMBVH_RETURN_ORIG) {
 				const float *co1, *co2, *co3;
@@ -269,6 +270,10 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3
 			if (r_cagehit) {
 				copy_v3_v3(r_cagehit, hit.co);
 			}
+		}
+
+		if (r_dist) {
+			*r_dist = hit.dist;
 		}
 
 		return tree->em->looptris[hit.index][0]->f;
