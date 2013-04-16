@@ -1198,7 +1198,7 @@ static void calc_colors_from_weights_array(const int num, const float *weights,
 void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
                            float *weights, int num, const int *indices)
 {
-	BMEditMesh *em = (dm->type == DM_TYPE_EDITBMESH) ? BMEdit_FromObject(ob) : NULL;
+	BMEditMesh *em = (dm->type == DM_TYPE_EDITBMESH) ? BKE_editmesh_from_object(ob) : NULL;
 	unsigned char (*wtcol_v)[4];
 	int numVerts = dm->getNumVerts(dm);
 	int i;

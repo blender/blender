@@ -266,7 +266,7 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		
 	const int steps = RNA_int_get(op->ptr, "steps");
@@ -409,7 +409,7 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	
 	edbm_extrude_mesh(scene, obedit, em, op, NULL);
 
@@ -444,7 +444,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float nor[3];
 
 	edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
@@ -475,7 +475,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float nor[3];
 
 	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, nor);
@@ -506,7 +506,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float nor[3];
 
 	edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT, nor);
@@ -718,7 +718,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMOperator spinop;
 	float cent[3], axis[3], imat[3][3];
@@ -802,7 +802,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 static int edbm_screw_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMVert *eve, *v1, *v2;

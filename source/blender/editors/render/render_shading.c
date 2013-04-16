@@ -174,7 +174,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (ob && ob->actcol > 0) {
 		if (ob->type == OB_MESH) {
-			BMEditMesh *em = BMEdit_FromObject(ob);
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
 			BMFace *efa;
 			BMIter iter;
 
@@ -235,7 +235,7 @@ static int material_slot_de_select(bContext *C, int select)
 		return OPERATOR_CANCELLED;
 
 	if (ob->type == OB_MESH) {
-		BMEditMesh *em = BMEdit_FromObject(ob);
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
 
 		if (em) {
 			EDBM_deselect_by_material(em, ob->actcol - 1, select);

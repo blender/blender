@@ -168,7 +168,7 @@ static int uv_sculpt_brush_poll(bContext *C)
 	if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
 		return 0;
 
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 	ret = EDBM_mtexpoly_check(em);
 
 	if (ret && sima) {
@@ -362,7 +362,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, const wmEvent *e
 	float co[2], radius, radius_root;
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	unsigned int tool;
 	UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 	SpaceImage *sima;
@@ -533,7 +533,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = scene->toolsettings;
 	UvSculptData *data = MEM_callocN(sizeof(*data), "UV Smooth Brush Data");
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 
 	op->customdata = data;

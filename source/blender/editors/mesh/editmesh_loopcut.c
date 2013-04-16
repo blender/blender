@@ -354,7 +354,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	lcd->ar = CTX_wm_region(C);
 	lcd->draw_handle = ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
 	lcd->ob = CTX_data_edit_object(C);
-	lcd->em = BMEdit_FromObject(lcd->ob);
+	lcd->em = BKE_editmesh_from_object(lcd->ob);
 	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");
 	lcd->do_cut = do_cut;
 	

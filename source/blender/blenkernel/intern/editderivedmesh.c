@@ -49,7 +49,6 @@
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 
-
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
@@ -1530,22 +1529,4 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 	}
 
 	return (DerivedMesh *)bmdm;
-}
-
-/**
- * \brief Return the BMEditMesh for a given object
- *
- * \note this function assumes this is a mesh object,
- * don't add NULL data check here. caller must do that
- */
-BMEditMesh *BMEdit_FromObject(Object *ob)
-{
-	BLI_assert(ob->type == OB_MESH);
-	/* sanity check */
-#ifndef NDEBUG
-	if (((Mesh *)ob->data)->edit_btmesh) {
-		BLI_assert(((Mesh *)ob->data)->edit_btmesh->ob == ob);
-	}
-#endif
-	return ((Mesh *)ob->data)->edit_btmesh;
 }

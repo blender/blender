@@ -528,7 +528,7 @@ static int skin_resize_poll(bContext *C)
 {
 	struct Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH) {
-		BMEditMesh *em = BMEdit_FromObject(obedit);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		return (em && CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN));
 	}
 	return 0;

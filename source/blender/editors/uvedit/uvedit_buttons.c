@@ -134,7 +134,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 
 	ED_space_image_get_size(sima, &imx, &imy);
 	
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (uvedit_center(scene, em, ima, center)) {
 		copy_v2_v2(uvedit_old_center, center);
@@ -175,7 +175,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 	if (event != B_UVEDIT_VERTEX)
 		return;
 
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	ED_space_image_get_size(sima, &imx, &imy);
 	uvedit_center(scene, em, ima, center);

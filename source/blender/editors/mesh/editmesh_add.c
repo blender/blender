@@ -78,7 +78,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 
 static void make_prim_finish(bContext *C, Object *obedit, bool was_editmode, int enter_editmode)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const int exit_editmode = ((was_editmode == true) && (enter_editmode == false));
 
 	/* Primitive has all verts selected, use vert select flush
@@ -106,7 +106,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Plane"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
 	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4", 1, 1, dia, mat))
@@ -147,7 +147,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cube"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_cube matrix=%m4 size=%f", mat, dia * 2.0f)) {
 		return OPERATOR_CANCELLED;
@@ -197,7 +197,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Circle"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
 	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b matrix=%m4",
@@ -252,7 +252,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cylinder"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",
@@ -313,7 +313,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cone"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",
@@ -370,7 +370,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Grid"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
 	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4",
@@ -431,7 +431,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	mat[1][1] *= dia;
 	mat[2][2] *= dia;
 
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_monkey matrix=%m4", mat)) {
 		return OPERATOR_CANCELLED;
@@ -470,7 +470,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Sphere"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
 	                              "create_uvsphere u_segments=%i v_segments=%i diameter=%f matrix=%m4",
@@ -522,7 +522,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Icosphere"), &dia, mat, &was_editmode, loc, rot, layer);
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",

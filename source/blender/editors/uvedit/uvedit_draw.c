@@ -128,7 +128,7 @@ static int draw_uvs_face_check(Scene *scene)
 
 static void draw_uvs_shadow(Object *obedit)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMFace *efa;
 	BMLoop *l;

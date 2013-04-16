@@ -351,7 +351,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 static void mesh_update_linked_customdata(Mesh *me, const bool do_ensure_tess_cd)
 {
 	if (me->edit_btmesh)
-		BMEdit_UpdateLinkedCustomData(me->edit_btmesh);
+		BKE_editmesh_update_linked_customdata(me->edit_btmesh);
 
 	if (do_ensure_tess_cd) {
 		mesh_ensure_tessellation_customdata(me);

@@ -391,7 +391,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 
 	if (obedit && (obedit->type == OB_MESH)) {
-		BMEditMesh *em = BMEdit_FromObject(obedit);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		uiLayout *row;
 
 		row = uiLayoutRow(layout, TRUE);

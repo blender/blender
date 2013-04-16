@@ -108,7 +108,7 @@ static void modifier_unwrap_state(Object *obedit, Scene *scene, short *use_subsu
 static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 {
 	Main *bmain = CTX_data_main(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMIter iter;
 	Image *ima;
@@ -560,7 +560,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	MinStretch *ms;
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	bool implicit = true;
@@ -761,7 +761,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ParamHandle *handle;
 	bool implicit = true;
 
@@ -808,7 +808,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ParamHandle *handle;
 	bool implicit = true;
 
@@ -847,7 +847,7 @@ static ParamHandle *liveHandle = NULL;
 
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	short abf = scene->toolsettings->unwrapper == 0;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	short use_subsurf;
@@ -887,7 +887,7 @@ void ED_uvedit_live_unwrap_end(short cancel)
 
 void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	if (scene->toolsettings->edge_mode_live_unwrap &&
 	    CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV))
@@ -1000,7 +1000,7 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 	/* context checks are messy here, making it work in both 3d view and uv editor */
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	/* common operator properties */
@@ -1178,7 +1178,7 @@ static void uv_map_clip_correct(Scene *scene, Object *ob, BMEditMesh *em, wmOper
 /* assumes UV Map is checked, doesn't run update funcs */
 void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ParamHandle *handle;
 
 	const short fill_holes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
@@ -1208,7 +1208,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	int method = RNA_enum_get(op->ptr, "method");
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
@@ -1303,7 +1303,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Camera *camera = NULL;
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1500,7 +1500,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -1579,7 +1579,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -1644,7 +1644,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;

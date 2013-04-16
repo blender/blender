@@ -2716,7 +2716,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 				case OB_MESH:
 				{
 #if 0               // XXX, comment for 2.56a release, background wont set 'scene->customdata_mask'
-					BMEditMesh *em = (ob == scene->obedit) ? BMEdit_FromObject(ob) : NULL;
+					BMEditMesh *em = (ob == scene->obedit) ? BKE_editmesh_from_object(ob) : NULL;
 					BLI_assert((scene->customdata_mask & CD_MASK_BAREMESH) == CD_MASK_BAREMESH);
 					if (em) {
 						makeDerivedMesh(scene, ob, em,  scene->customdata_mask, 0); /* was CD_MASK_BAREMESH */
@@ -2726,7 +2726,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 					}
 
 #else               /* ensure CD_MASK_BAREMESH for now */
-					BMEditMesh *em = (ob == scene->obedit) ? BMEdit_FromObject(ob) : NULL;
+					BMEditMesh *em = (ob == scene->obedit) ? BKE_editmesh_from_object(ob) : NULL;
 					uint64_t data_mask = scene->customdata_mask | ob->customdata_mask | CD_MASK_BAREMESH;
 					if (em) {
 						makeDerivedMesh(scene, ob, em,  data_mask, 0); /* was CD_MASK_BAREMESH */

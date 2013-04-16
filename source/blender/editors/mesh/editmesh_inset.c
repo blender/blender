@@ -111,7 +111,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	InsetData *opdata;
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	if (em->bm->totvertsel == 0) {
 		return false;

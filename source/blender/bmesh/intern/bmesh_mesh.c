@@ -355,7 +355,7 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		BMEditMesh *em = BMEdit_Create(bm, false);
+		BMEditMesh *em = BKE_editmesh_create(bm, false);
 		DerivedMesh *dm = CDDM_from_editbmesh(em, true, false);
 		MDisps *mdisps;
 		BMFace *f;
@@ -396,9 +396,9 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 		dm->needsFree = 1;
 		dm->release(dm);
 		
-		/* setting this to NULL prevents BMEdit_Free from freeing it */
+		/* setting this to NULL prevents BKE_editmesh_free from freeing it */
 		em->bm = NULL;
-		BMEdit_Free(em);
+		BKE_editmesh_free(em);
 		MEM_freeN(em);
 	}
 }

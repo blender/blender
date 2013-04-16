@@ -109,7 +109,7 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 bool ED_vgroup_object_is_edit_mode(Object *ob)
 {
 	if (ob->type == OB_MESH)
-		return (BMEdit_FromObject(ob) != NULL);
+		return (BKE_editmesh_from_object(ob) != NULL);
 	else if (ob->type == OB_LATTICE)
 		return (((Lattice *)ob->data)->editlatt != NULL);
 
@@ -1662,7 +1662,7 @@ static void vgroup_blend(Object *ob, const float fac)
 	if (BLI_findlink(&ob->defbase, def_nr)) {
 		const float ifac = 1.0f - fac;
 
-		BMEditMesh *em = BMEdit_FromObject(ob);
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em ? em->bm : NULL;
 		Mesh  *me = em ? NULL   : ob->data;
 
@@ -2446,7 +2446,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 static bool vgroup_object_in_edit_mode(Object *ob)
 {
 	if (ob->type == OB_MESH)
-		return (BMEdit_FromObject(ob) != NULL);
+		return (BKE_editmesh_from_object(ob) != NULL);
 	else if (ob->type == OB_LATTICE)
 		return (((Lattice *)ob->data)->editlatt != NULL);
 	
@@ -3502,7 +3502,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 
 	if (ob->mode == OB_MODE_EDIT) {
 		if (ob->type == OB_MESH) {
-			BMEditMesh *em = BMEdit_FromObject(ob);
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
 			BMIter iter;
 			BMVert *eve;
 

@@ -94,7 +94,7 @@ static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BevelData *opdata;
 
 	if (em->bm->totvertsel == 0) {

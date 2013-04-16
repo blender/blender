@@ -742,7 +742,7 @@ static void recalcData_view3d(TransInfo *t)
 			if (la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 		}
 		else if (t->obedit->type == OB_MESH) {
-			BMEditMesh *em = BMEdit_FromObject(t->obedit);
+			BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 			/* mirror modifier clipping? */
 			if (t->state != TRANS_CANCEL) {
 				/* apply clipping after so we never project past the clip plane [#25423] */
@@ -755,7 +755,7 @@ static void recalcData_view3d(TransInfo *t)
 			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
 			EDBM_mesh_normals_update(em);
-			BMEdit_RecalcTessellation(em);
+			BKE_editmesh_tessface_calc(em);
 		}
 		else if (t->obedit->type == OB_ARMATURE) { /* no recalc flag, does pose */
 			bArmature *arm = t->obedit->data;
@@ -1610,7 +1610,7 @@ void calculateCenter(TransInfo *t)
 			if (t->obedit) {
 				if (t->obedit && t->obedit->type == OB_MESH) {
 					BMEditSelection ese;
-					BMEditMesh *em = BMEdit_FromObject(t->obedit);
+					BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 
 					if (BM_select_history_active_get(em->bm, &ese)) {
 						BM_editselection_center(&ese, t->center);

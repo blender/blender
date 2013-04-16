@@ -75,7 +75,7 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 	}
 }
 
-BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, struct Scene *scene)
+BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 {
 	BMBVHTree *tree = MEM_callocN(sizeof(*tree), "BMBVHTree");
 	DerivedMesh *cage, *final;
@@ -88,7 +88,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, struct Scene *scene)
 	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
 	BLI_smallhash_init(&shash);
 	
-	BMEdit_RecalcTessellation(em);
+	BKE_editmesh_tessface_calc(em);
 
 	tree->ob = em->ob;
 	tree->scene = scene;
@@ -180,7 +180,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, struct Scene *scene)
 	return tree;
 }
 
-void BMBVH_FreeBVH(BMBVHTree *tree)
+void BKE_bmbvh_free(BMBVHTree *tree)
 {
 	BLI_bvhtree_free(tree->tree);
 	
@@ -232,8 +232,8 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 	}
 }
 
-BMFace *BMBVH_RayCast(BMBVHTree *tree, const float co[3], const float dir[3],
-                      float r_hitout[3], float r_cagehit[3])
+BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3],
+                           float r_hitout[3], float r_cagehit[3])
 {
 	BVHTreeRayHit hit;
 
@@ -273,7 +273,7 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, const float co[3], const float dir[3],
 	return NULL;
 }
 
-BVHTree *BMBVH_BVHTree(BMBVHTree *tree)
+BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree)
 {
 	return tree->tree;
 }
@@ -300,7 +300,7 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 	}
 }
 
-BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], const float maxdist)
+BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const float maxdist)
 {
 	BVHTreeNearest hit;
 

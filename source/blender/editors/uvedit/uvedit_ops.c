@@ -98,7 +98,7 @@ int ED_uvedit_test(Object *obedit)
 	if (obedit->type != OB_MESH)
 		return 0;
 
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 	ret = EDBM_mtexpoly_check(em);
 	
 	return ret;
@@ -183,7 +183,7 @@ void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, I
 	if (!obedit || (obedit->type != OB_MESH))
 		return;
 
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 	if (!em || !em->bm->totface) {
 		return;
 	}
@@ -286,7 +286,7 @@ static int uvedit_set_tile(Object *obedit, Image *ima, int curtile)
 	if (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE)
 		return 0;
 	
-	em = BMEdit_FromObject(obedit);
+	em = BKE_editmesh_from_object(obedit);
 
 	cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
@@ -601,7 +601,7 @@ void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float as
 
 int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], float r_max[2])
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -634,7 +634,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], f
 
 static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -883,7 +883,7 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 
 int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float co[2], float r_uv[2])
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -1326,7 +1326,7 @@ static float *uv_sel_co_from_eve(Scene *scene, Image *ima, BMEditMesh *em, BMVer
 static void uv_weld_align(bContext *C, int tool)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	SpaceImage *sima;
 	Scene *scene;
 	Image *ima;
@@ -1597,7 +1597,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	Image *ima;
 	MTexPoly *tf;
 	int uv_a_index;
@@ -1853,7 +1853,7 @@ static int uv_select_all_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	int action = RNA_enum_get(op->ptr, "action");
 
@@ -1911,7 +1911,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -2316,7 +2316,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float limit[2];
 	int extend;
 
@@ -2420,7 +2420,7 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
 	ToolSettings *ts = scene->toolsettings;
 	Image *ima = CTX_data_edit_image(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMesh *bm = BMEdit_FromObject(obedit)->bm;
+	BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
 
 	BMFace *efa;
 	BMLoop *l;
@@ -2505,7 +2505,7 @@ static int uv_unlink_selection_exec(bContext *C, wmOperator *op)
 	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -2600,7 +2600,7 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 	 * selection (so for sticky modes, vertex or location based). */
 	
 	ToolSettings *ts = scene->toolsettings;
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -2728,7 +2728,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -2879,7 +2879,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ARegion *ar = CTX_wm_region(C);
 	BMFace *efa;
 	BMLoop *l;
@@ -2985,7 +2985,7 @@ static int do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mov
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const int use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
 	                            (ts->selectmode == SCE_SELECT_FACE) :
 	                            (ts->uv_selectmode == UV_SELECT_FACE);
@@ -3175,7 +3175,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 
 static int uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -3205,7 +3205,7 @@ static int uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, Space
 
 static int uv_snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obedit)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMFace *f;
 	BMLoop *l, *lsub;
@@ -3263,7 +3263,7 @@ static int uv_snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *
 
 static int uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 {
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	Image *ima = sima->image;
 	BMFace *efa;
 	BMLoop *l;
@@ -3358,7 +3358,7 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -3416,7 +3416,7 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -3488,7 +3488,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -3604,7 +3604,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;

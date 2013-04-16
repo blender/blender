@@ -476,11 +476,11 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 		EDBM_mesh_make(CTX_data_tool_settings(C), scene, ob);
 
-		em = BMEdit_FromObject(ob);
+		em = BKE_editmesh_from_object(ob);
 		if (LIKELY(em)) {
 			/* order doesn't matter */
 			EDBM_mesh_normals_update(em);
-			BMEdit_RecalcTessellation(em);
+			BKE_editmesh_tessface_calc(em);
 
 			BM_mesh_select_mode_flush(em->bm);
 		}

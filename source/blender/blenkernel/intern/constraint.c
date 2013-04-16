@@ -350,7 +350,7 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[4][4])
 {
 	DerivedMesh *dm = NULL;
-	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];

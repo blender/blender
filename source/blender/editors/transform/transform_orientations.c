@@ -570,7 +570,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		ob = obedit;
 
 		if (ob->type == OB_MESH) {
-			BMEditMesh *em = BMEdit_FromObject(ob);
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
 			BMVert *eve;
 			BMEditSelection ese;
 			float vec[3] = {0, 0, 0};

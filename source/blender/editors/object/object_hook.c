@@ -315,7 +315,7 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 			em = me->edit_btmesh;
 
 			EDBM_mesh_normals_update(em);
-			BMEdit_RecalcTessellation(em);
+			BKE_editmesh_tessface_calc(em);
 
 			/* check selected vertices first */
 			if (return_editmesh_indexar(em, tot, indexar, cent_r)) {

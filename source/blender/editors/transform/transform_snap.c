@@ -1528,7 +1528,7 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, i
 		DerivedMesh *dm;
 		
 		if (editobject) {
-			em = BMEdit_FromObject(ob);
+			em = BKE_editmesh_from_object(ob);
 			/* dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
 			dm = editbmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
 		}
@@ -1835,7 +1835,7 @@ static bool peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
 							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, depth_peels);
 						}
 						else {
-							em = BMEdit_FromObject(dob);
+							em = BKE_editmesh_from_object(dob);
 							dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 							
 							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, depth_peels);
@@ -1860,7 +1860,7 @@ static bool peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
 					dm->release(dm);
 				}
 				else if (ob == obedit && mode != SNAP_NOT_OBEDIT) {
-					BMEditMesh *em = BMEdit_FromObject(ob);
+					BMEditMesh *em = BKE_editmesh_from_object(ob);
 					DerivedMesh *dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 					
 					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);

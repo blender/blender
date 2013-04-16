@@ -538,7 +538,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMIter iter, liter;
 	BMLoop *l;
@@ -860,7 +860,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMIter iter, eiter;
 	BMLoop *l;
@@ -984,7 +984,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e;

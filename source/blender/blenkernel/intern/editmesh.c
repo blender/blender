@@ -29,29 +29,32 @@
  *  \ingroup bke
  */
 
-#include "BLI_math.h"
-
-#include "BKE_cdderivedmesh.h"
-
 #include "MEM_guardedalloc.h"
 
-#include "BKE_editmesh.h"
+#include "DNA_listBase.h"
+#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+
+#include "BLI_math.h"
 #include "BLI_scanfill.h"
 
+#include "BKE_editmesh.h"
+#include "BKE_cdderivedmesh.h"
 
-BMEditMesh *BMEdit_Create(BMesh *bm, const bool do_tessellate)
+
+BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate)
 {
 	BMEditMesh *em = MEM_callocN(sizeof(BMEditMesh), __func__);
 
 	em->bm = bm;
 	if (do_tessellate) {
-		BMEdit_RecalcTessellation(em);
+		BKE_editmesh_tessface_calc(em);
 	}
 
 	return em;
 }
 
-BMEditMesh *BMEdit_Copy(BMEditMesh *em)
+BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 {
 	BMEditMesh *em_copy = MEM_callocN(sizeof(BMEditMesh), __func__);
 	*em_copy = *em;
@@ -77,7 +80,26 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *em)
 	return em_copy;
 }
 
-static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
+/**
+ * \brief Return the BMEditMesh for a given object
+ *
+ * \note this function assumes this is a mesh object,
+ * don't add NULL data check here. caller must do that
+ */
+BMEditMesh *BKE_editmesh_from_object(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+	/* sanity check */
+#ifndef NDEBUG
+	if (((Mesh *)ob->data)->edit_btmesh) {
+		BLI_assert(((Mesh *)ob->data)->edit_btmesh->ob == ob);
+	}
+#endif
+	return ((Mesh *)ob->data)->edit_btmesh;
+}
+
+
+static void editmesh_tessface_calc_intern(BMEditMesh *em)
 {
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
@@ -249,9 +271,9 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 
 }
 
-void BMEdit_RecalcTessellation(BMEditMesh *em)
+void BKE_editmesh_tessface_calc(BMEditMesh *em)
 {
-	BMEdit_RecalcTessellation_intern(em);
+	editmesh_tessface_calc_intern(em);
 
 	/* commented because editbmesh_build_data() ensures we get tessfaces */
 #if 0
@@ -268,7 +290,7 @@ void BMEdit_RecalcTessellation(BMEditMesh *em)
 #endif
 }
 
-void BMEdit_UpdateLinkedCustomData(BMEditMesh *em)
+void BKE_editmesh_update_linked_customdata(BMEditMesh *em)
 {
 	BMesh *bm = em->bm;
 	int act;
@@ -289,7 +311,7 @@ void BMEdit_UpdateLinkedCustomData(BMEditMesh *em)
 }
 
 /*does not free the BMEditMesh struct itself*/
-void BMEdit_Free(BMEditMesh *em)
+void BKE_editmesh_free(BMEditMesh *em)
 {
 	if (em->derivedFinal) {
 		if (em->derivedFinal != em->derivedCage) {

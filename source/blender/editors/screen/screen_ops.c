@@ -333,7 +333,7 @@ int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH)
-		return NULL != BMEdit_FromObject(obedit);
+		return NULL != BKE_editmesh_from_object(obedit);
 	return 0;
 }
 
@@ -434,7 +434,7 @@ int ED_operator_uvmap(bContext *C)
 	BMEditMesh *em = NULL;
 	
 	if (obedit && obedit->type == OB_MESH) {
-		em = BMEdit_FromObject(obedit);
+		em = BKE_editmesh_from_object(obedit);
 	}
 	
 	if (em && (em->bm->totface)) {

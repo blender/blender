@@ -1518,7 +1518,7 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
@@ -1574,7 +1574,7 @@ typedef enum {
 static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
@@ -1632,7 +1632,7 @@ void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
 static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;

@@ -310,7 +310,7 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if (obedit && obedit->type == OB_MESH) {
-		struct BMEditMesh *em = BMEdit_FromObject(obedit);
+		struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		int ret;
 
 		ret = EDBM_mtexpoly_check(em);
@@ -328,7 +328,7 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 
 	if (ED_space_image_show_paint(sima))
 		if (obedit && obedit->type == OB_MESH) {
-			struct BMEditMesh *em = BMEdit_FromObject(obedit);
+			struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
 			int ret;
 
 			ret = EDBM_mtexpoly_check(em);

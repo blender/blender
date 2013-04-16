@@ -30,7 +30,6 @@ struct BMesh;
 struct BMLoop;
 struct BMFace;
 struct Mesh;
-struct DerivedMesh;
 
 /* ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
  *     BMEdit module is for code shared with blenkernel that concerns
@@ -84,11 +83,11 @@ typedef struct BMEditMesh {
 	int mirror_cdlayer; /* -1 is invalid */
 } BMEditMesh;
 
-void BMEdit_RecalcTessellation(BMEditMesh *em);
-BMEditMesh *BMEdit_Create(BMesh *bm, const bool do_tessellate);
-BMEditMesh *BMEdit_Copy(BMEditMesh *em);
-BMEditMesh *BMEdit_FromObject(struct Object *ob);
-void BMEdit_Free(BMEditMesh *em);
-void BMEdit_UpdateLinkedCustomData(BMEditMesh *em);
+void        BKE_editmesh_tessface_calc(BMEditMesh *em);
+BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate);
+BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
+BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
+void        BKE_editmesh_free(BMEditMesh *em);
+void        BKE_editmesh_update_linked_customdata(BMEditMesh *em);
 
 #endif /* __BKE_EDITMESH_H__ */

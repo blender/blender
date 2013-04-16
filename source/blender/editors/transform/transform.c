@@ -5146,7 +5146,7 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const
 
 static int createEdgeSlideVerts(TransInfo *t)
 {
-	BMEditMesh *em = BMEdit_FromObject(t->obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e, *e1;
@@ -5176,7 +5176,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
 
 	if (use_btree_disp) {
-		btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL);
+		btree = BKE_bmbvh_new(em, BMBVH_RESPECT_HIDDEN, NULL);
 	}
 	else {
 		btree = NULL;
@@ -5216,7 +5216,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			if (numsel == 0 || numsel > 2) {
 				MEM_freeN(sld);
 				if (btree)
-					BMBVH_FreeBVH(btree);
+					BKE_bmbvh_free(btree);
 				return 0; /* invalid edge selection */
 			}
 		}
@@ -5227,7 +5227,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
 				if (btree)
-					BMBVH_FreeBVH(btree);
+					BKE_bmbvh_free(btree);
 				return 0; /* can only handle exactly 2 faces around each edge */
 			}
 		}
@@ -5248,7 +5248,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	if (!j) {
 		MEM_freeN(sld);
 		if (btree)
-			BMBVH_FreeBVH(btree);
+			BKE_bmbvh_free(btree);
 		return 0;
 	}
 
@@ -5513,7 +5513,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	
 	BLI_smallhash_release(&table);
 	if (btree) {
-		BMBVH_FreeBVH(btree);
+		BKE_bmbvh_free(btree);
 	}
 	MEM_freeN(loop_dir);
 	MEM_freeN(loop_maxdist);
@@ -6091,7 +6091,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 
 static int createVertSlideVerts(TransInfo *t)
 {
-	BMEditMesh *em = BMEdit_FromObject(t->obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMIter eiter;

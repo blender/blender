@@ -80,7 +80,7 @@ void EDBM_redo_state_restore(BMBackup backup, BMEditMesh *em, int recalctess)
 	tmpbm = NULL;
 
 	if (recalctess)
-		BMEdit_RecalcTessellation(em);
+		BKE_editmesh_tessface_calc(em);
 }
 
 void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
@@ -98,7 +98,7 @@ void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
 	backup->bmcopy = NULL;
 
 	if (recalctess && em)
-		BMEdit_RecalcTessellation(em);
+		BKE_editmesh_tessface_calc(em);
 }
 
 /* hack to workaround multiple operators being called within the same event loop without an update
@@ -184,7 +184,7 @@ bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *
 	}
 	
 	if (!em->emcopy)
-		em->emcopy = BMEdit_Copy(em);
+		em->emcopy = BKE_editmesh_copy(em);
 	em->emcopyusers++;
 
 	va_end(list);
@@ -217,7 +217,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 		/* when copying, tessellation isn't to for faster copying,
 		 * but means we need to re-tessellate here */
 		if (em->looptris == NULL) {
-			BMEdit_RecalcTessellation(em);
+			BKE_editmesh_tessface_calc(em);
 		}
 
 		return false;
@@ -229,7 +229,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 		}
 
 		if (em->emcopyusers <= 0) {
-			BMEdit_Free(em->emcopy);
+			BKE_editmesh_free(em->emcopy);
 			MEM_freeN(em->emcopy);
 			em->emcopy = NULL;
 		}
@@ -253,7 +253,7 @@ bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 	}
 
 	if (!em->emcopy)
-		em->emcopy = BMEdit_Copy(em);
+		em->emcopy = BKE_editmesh_copy(em);
 	em->emcopyusers++;
 
 	BMO_op_exec(bm, &bmop);
@@ -279,7 +279,7 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select
 	}
 
 	if (!em->emcopy)
-		em->emcopy = BMEdit_Copy(em);
+		em->emcopy = BKE_editmesh_copy(em);
 	em->emcopyusers++;
 
 	BMO_op_exec(bm, &bmop);
@@ -309,7 +309,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 	}
 
 	if (!em->emcopy)
-		em->emcopy = BMEdit_Copy(em);
+		em->emcopy = BKE_editmesh_copy(em);
 	em->emcopyusers++;
 
 	BMO_op_exec(bm, &bmop);
@@ -322,7 +322,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	if (!em)
 		return;
@@ -353,9 +353,9 @@ void EDBM_mesh_make(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 	/* currently executing operators re-tessellates, so we can avoid doing here
 	 * but at some point it may need to be added back. */
 #if 0
-	me->edit_btmesh = BMEdit_Create(bm, true);
+	me->edit_btmesh = BKE_editmesh_create(bm, true);
 #else
-	me->edit_btmesh = BMEdit_Create(bm, false);
+	me->edit_btmesh = BKE_editmesh_create(bm, false);
 #endif
 
 	me->edit_btmesh->selectmode = me->edit_btmesh->bm->selectmode = ts->selectmode;
@@ -377,7 +377,7 @@ void EDBM_mesh_load(Object *ob)
 }
 
 /**
- * Should only be called on the active editmesh, otherwise call #BMEdit_Free
+ * Should only be called on the active editmesh, otherwise call #BKE_editmesh_free
  */
 void EDBM_mesh_free(BMEditMesh *em)
 {
@@ -387,7 +387,7 @@ void EDBM_mesh_free(BMEditMesh *em)
 	mesh_octree_table(NULL, NULL, NULL, 'e');
 	mesh_mirrtopo_table(NULL, 'e');
 
-	BMEdit_Free(em);
+	BKE_editmesh_free(em);
 }
 
 
@@ -650,7 +650,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	/* face normals need recalculation since we are not calling through an operator */
 	BM_mesh_normals_update(bm, true);
 
-	em_tmp = BMEdit_Create(bm, true);
+	em_tmp = BKE_editmesh_create(bm, true);
 	*em = *em_tmp;
 	
 	em->selectmode = um->selectmode;
@@ -679,7 +679,7 @@ void undo_push_mesh(bContext *C, const char *name)
 	 * this is an easy way to ensure its OK
 	 * though we could investigate the matter further. */
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	em->ob = obedit;
 
 	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
@@ -1166,7 +1166,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
 	}
 	else {
-		tree = BMBVH_NewBVH(em, 0, NULL);
+		tree = BKE_bmbvh_new(em, 0, NULL);
 	}
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -1184,7 +1184,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 			}
 			else {
 				float co[3] = {-v->co[0], v->co[1], v->co[2]};
-				mirr = BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST_MIRR);
+				mirr = BKE_bmbvh_find_vert_closest(tree, co, BM_SEARCH_MAXDIST_MIRR);
 			}
 
 			if (mirr && mirr != v) {
@@ -1204,7 +1204,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
 	}
 	else {
-		BMBVH_FreeBVH(tree);
+		BKE_bmbvh_free(tree);
 	}
 
 	em->mirror_cdlayer = li;
@@ -1358,7 +1358,7 @@ void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_d
 	WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
 
 	if (do_tessface) {
-		BMEdit_RecalcTessellation(em);
+		BKE_editmesh_tessface_calc(em);
 	}
 
 	if (is_destructive) {
@@ -1391,7 +1391,7 @@ int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 
 static BMFace *edge_ray_cast(struct BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, BMEdge *e)
 {
-	BMFace *f = BMBVH_RayCast(tree, co, dir, r_hitout, NULL);
+	BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, r_hitout, NULL);
 
 	if (f && BM_edge_in_face(f, e))
 		return NULL;
