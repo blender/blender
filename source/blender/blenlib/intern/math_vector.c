@@ -102,6 +102,13 @@ void interp_v4_v4v4v4v4(float p[4], const float v1[4], const float v2[4], const 
 	p[3] = v1[3] * w[0] + v2[3] * w[1] + v3[3] * w[2] + v4[3] * w[3];
 }
 
+void interp_v3_v3v3v3_uv(float p[3], const float v1[3], const float v2[3], const float v3[3], const float uv[2])
+{
+	p[0] = v1[0] + ((v2[0] - v1[0]) * uv[0]) + ((v3[0] - v1[0]) * uv[1]);
+	p[1] = v1[1] + ((v2[1] - v1[1]) * uv[0]) + ((v3[1] - v1[1]) * uv[1]);
+	p[2] = v1[2] + ((v2[2] - v1[2]) * uv[0]) + ((v3[2] - v1[2]) * uv[1]);
+}
+
 void mid_v3_v3v3(float v[3], const float v1[3], const float v2[3])
 {
 	v[0] = 0.5f * (v1[0] + v2[0]);

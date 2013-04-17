@@ -78,7 +78,7 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 {
 	struct BMLoop *(*looptris)[3] = em->looptris;
-	BMBVHTree *tree = MEM_callocN(sizeof(*tree), "BMBVHTree");
+	BMBVHTree *bmtree = MEM_callocN(sizeof(*bmtree), "BMBVHTree");
 	DerivedMesh *cage, *final;
 	float cos[3][3], (*cagecos)[3] = NULL;
 	int i;
@@ -90,10 +90,10 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	/* cage-flag needs scene */
 	BLI_assert(scene || !(flag & BMBVH_USE_CAGE));
 
-	tree->em = em;
-	tree->bm = em->bm;
-	tree->epsilon = FLT_EPSILON * 2.0f;
-	tree->flag = flag;
+	bmtree->em = em;
+	bmtree->bm = em->bm;
+	bmtree->epsilon = FLT_EPSILON * 2.0f;
+	bmtree->flag = flag;
 
 	if (flag & (BMBVH_RESPECT_SELECT)) {
 		tottri = 0;
@@ -115,7 +115,7 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 		tottri = em->tottri;
 	}
 
-	tree->tree = BLI_bvhtree_new(tottri, tree->epsilon, 8, 8);
+	bmtree->tree = BLI_bvhtree_new(tottri, bmtree->epsilon, 8, 8);
 	
 	if (flag & BMBVH_USE_CAGE) {
 		BLI_bitmap vert_bitmap;
@@ -123,10 +123,10 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 		BMVert *v;
 		struct CageUserData data;
 
-		tree->cos = MEM_callocN(sizeof(*tree->cos) * em->bm->totvert, "bmbvh cos");
+		bmtree->cos = MEM_callocN(sizeof(*bmtree->cos) * em->bm->totvert, "bmbvh cos");
 		BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 			BM_elem_index_set(v, i); /* set_inline */
-			copy_v3_v3(tree->cos[i], v->co);
+			copy_v3_v3(bmtree->cos[i], v->co);
 		}
 		em->bm->elem_index_dirty &= ~BM_VERT;
 
@@ -147,10 +147,9 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 		MEM_freeN(vert_bitmap);
 	}
 	
-	tree->cagecos = cagecos;
+	bmtree->cagecos = cagecos;
 	
 	for (i = 0; i < em->tottri; i++) {
-
 
 		if (flag & BMBVH_RESPECT_SELECT) {
 			/* note, the arrays wont align now! take care */
@@ -176,34 +175,37 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 			copy_v3_v3(cos[2], looptris[i][2]->v->co);
 		}
 
-		BLI_bvhtree_insert(tree->tree, i, (float *)cos, 3);
+		BLI_bvhtree_insert(bmtree->tree, i, (float *)cos, 3);
 	}
 	
-	BLI_bvhtree_balance(tree->tree);
+	BLI_bvhtree_balance(bmtree->tree);
 	
-	return tree;
+	return bmtree;
 }
 
-void BKE_bmbvh_free(BMBVHTree *tree)
+void BKE_bmbvh_free(BMBVHTree *bmtree)
 {
-	BLI_bvhtree_free(tree->tree);
+	BLI_bvhtree_free(bmtree->tree);
 	
-	if (tree->cagecos)
-		MEM_freeN(tree->cagecos);
-	if (tree->cos)
-		MEM_freeN(tree->cos);
+	if (bmtree->cagecos)
+		MEM_freeN(bmtree->cagecos);
+	if (bmtree->cos)
+		MEM_freeN(bmtree->cos);
 	
-	MEM_freeN(tree);
+	MEM_freeN(bmtree);
 }
 
 /* taken from bvhutils.c */
 static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	BMBVHTree *tree = userdata;
-	BMLoop **ltri = tree->em->looptris[index];
+	BMBVHTree *bmtree = userdata;
+	BMLoop **ltri = bmtree->em->looptris[index];
 	float dist, uv[2];
+	const float *co1 = ltri[0]->v->co;
+	const float *co2 = ltri[1]->v->co;
+	const float *co3 = ltri[2]->v->co;
 
-	if (isect_ray_tri_v3(ray->origin, ray->direction, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, &dist, uv) &&
+	if (isect_ray_tri_v3(ray->origin, ray->direction, co1, co2, co3, &dist, uv) &&
 	    (dist < hit->dist))
 	{
 		hit->dist = dist;
@@ -216,11 +218,11 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 		mul_v3_fl(hit->co, dist);
 		add_v3_v3(hit->co, ray->origin);
 		
-		copy_v2_v2(tree->uv, uv);
+		copy_v2_v2(bmtree->uv, uv);
 	}
 }
 
-BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3],
+BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir[3],
                            float *r_dist, float r_hitout[3], float r_cagehit[3])
 {
 	BVHTreeRayHit hit;
@@ -229,24 +231,14 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3
 	hit.dist = dist;
 	hit.index = -1;
 
-	zero_v2(tree->uv);
+	zero_v2(bmtree->uv);
 	
-	BLI_bvhtree_ray_cast(tree->tree, co, dir, 0.0f, &hit, raycallback, tree);
+	BLI_bvhtree_ray_cast(bmtree->tree, co, dir, 0.0f, &hit, raycallback, bmtree);
 	if (hit.index != -1 && hit.dist != dist) {
 		if (r_hitout) {
-			if (tree->flag & BMBVH_RETURN_ORIG) {
-				BMLoop **ltri = tree->em->looptris[hit.index];
-				const float *co1, *co2, *co3;
-				int i;
-
-				co1 = ltri[0]->v->co;
-				co2 = ltri[1]->v->co;
-				co3 = ltri[2]->v->co;
-				
-				for (i = 0; i < 3; i++) {
-					r_hitout[i] = co1[i] + ((co2[i] - co1[i]) * tree->uv[0]) +
-					                       ((co3[i] - co1[i]) * tree->uv[1]);
-				}
+			if (bmtree->flag & BMBVH_RETURN_ORIG) {
+				BMLoop **ltri = bmtree->em->looptris[hit.index];
+				interp_v3_v3v3v3_uv(r_hitout, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, bmtree->uv);
 			}
 			else {
 				copy_v3_v3(r_hitout, hit.co);
@@ -261,25 +253,25 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3
 			*r_dist = hit.dist;
 		}
 
-		return tree->em->looptris[hit.index][0]->f;
+		return bmtree->em->looptris[hit.index][0]->f;
 	}
 
 	return NULL;
 }
 
-BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree)
+BVHTree *BKE_bmbvh_tree_get(BMBVHTree *bmtree)
 {
-	return tree->tree;
+	return bmtree->tree;
 }
 
 static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co), BVHTreeNearest *hit)
 {
-	BMBVHTree *tree = userdata;
-	BMLoop **ltri = tree->em->looptris[index];
+	BMBVHTree *bmtree = userdata;
+	BMLoop **ltri = bmtree->em->looptris[index];
 	float dist, maxdist, v[3];
 	int i;
 
-	maxdist = tree->maxdist;
+	maxdist = bmtree->maxdist;
 
 	for (i = 0; i < 3; i++) {
 		sub_v3_v3v3(v, hit->co, ltri[i]->v->co);
@@ -294,7 +286,7 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 	}
 }
 
-BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const float maxdist)
+BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const float maxdist)
 {
 	BVHTreeNearest hit;
 
@@ -302,15 +294,15 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const fl
 	hit.dist = maxdist * 5;
 	hit.index = -1;
 
-	tree->maxdist = maxdist;
+	bmtree->maxdist = maxdist;
 
-	BLI_bvhtree_find_nearest(tree->tree, co, &hit, vertsearchcallback, tree);
+	BLI_bvhtree_find_nearest(bmtree->tree, co, &hit, vertsearchcallback, bmtree);
 	if (hit.dist != FLT_MAX && hit.index != -1) {
-		BMLoop **ltri = tree->em->looptris[hit.index];
-		float dist, curdist = tree->maxdist;
+		BMLoop **ltri = bmtree->em->looptris[hit.index];
+		float dist, curdist = bmtree->maxdist;
 		int cur = 0, i;
 
-		/* maxdist = tree->maxdist; */  /* UNUSED */
+		/* maxdist = bmtree->maxdist; */  /* UNUSED */
 
 		for (i = 0; i < 3; i++) {
 			dist = len_v3v3(hit.co, ltri[i]->v->co);
