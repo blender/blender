@@ -1246,10 +1246,6 @@ elseif(WIN32)
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
 		if(WITH_MINGW64)
-			#We need to take care though not to have these on debug builds because they may play funky with gdb
-			if(CMAKE_BUILD_TYPE MATCHES "Release")
-				set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -ftree-vectorize")
-			endif()
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			

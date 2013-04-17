@@ -472,7 +472,8 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			quad.xmax = BLI_rcti_size_x(&vc->ar->winrct);
 			quad.ymax = BLI_rcti_size_y(&vc->ar->winrct);
 		}
-		else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL) {
+		/* Stencil code goes here */
+		else {
 			quad.xmin = -brush->stencil_dimension[0];
 			quad.ymin = -brush->stencil_dimension[1];
 			quad.xmax = brush->stencil_dimension[0];
