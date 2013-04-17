@@ -75,8 +75,13 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 		path = MEM_callocN(sizeof(bNodeTreePath), "node tree path");
 		path->nodetree = ntree;
 		path->parent_key = NODE_INSTANCE_KEY_BASE;
+		
+		/* copy initial offset from bNodeTree */
+		copy_v2_v2(path->view_center, ntree->view_center);
+		
 		if (id)
 			BLI_strncpy(path->node_name, id->name + 2, sizeof(path->node_name));
+		
 		BLI_addtail(&snode->treepath, path);
 	}
 	
@@ -85,7 +90,6 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 	snode->id = id;
 	snode->from = from;
 	
-	/* listener updates the View2D center from edittree */
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
@@ -105,12 +109,14 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 	else
 		path->parent_key = NODE_INSTANCE_KEY_BASE;
 	
+	/* copy initial offset from bNodeTree */
+	copy_v2_v2(path->view_center, ntree->view_center);
+	
 	BLI_addtail(&snode->treepath, path);
 	
 	/* update current tree */
 	snode->edittree = ntree;
 	
-	/* listener updates the View2D center from edittree */
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
@@ -205,20 +211,15 @@ void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_lengt
 void snode_group_offset(SpaceNode *snode, float *x, float *y)
 {
 	bNodeTreePath *path = snode->treepath.last;
-	float cx, cy;
 	
-	if (path) {
-		cx = path->nodetree->view_center[0];
-		cy = path->nodetree->view_center[1];
-		
-		if (path->prev) {
-			*x = cx - path->prev->nodetree->view_center[0];
-			*y = cy - path->prev->nodetree->view_center[1];
-			return;
-		}
+	if (path && path->prev) {
+		float dcenter[2];
+		sub_v2_v2v2(dcenter, path->view_center, path->prev->view_center);
+		*x = dcenter[0];
+		*y = dcenter[1];
 	}
-	
-	*x = *y = 0.0f;
+	else
+		*x = *y = 0.0f;
 }
 
 /* ******************** manage regions ********************* */
@@ -374,9 +375,10 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_NODES: {
 					ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+					bNodeTreePath *path = snode->treepath.last;
 					/* shift view to node tree center */
-					if (ar && snode->edittree)
-						UI_view2d_setcenter(&ar->v2d, snode->edittree->view_center[0], snode->edittree->view_center[1]);
+					if (ar && path)
+						UI_view2d_setcenter(&ar->v2d, path->view_center[0], path->view_center[1]);
 					
 					ED_area_tag_refresh(sa);
 					break;

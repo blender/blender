@@ -1194,12 +1194,12 @@ static void draw_tree_path(SpaceNode *snode)
 	BLF_draw_default(30, 30, 0.0f, info, sizeof(info));
 }
 
-static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, float centerx, float centery)
+static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, float center[2])
 {
 	View2D *v2d = &ar->v2d;
 	
 	/* shift view to node tree center */
-	UI_view2d_setcenter(v2d, centerx, centery);
+	UI_view2d_setcenter(v2d, center[0], center[1]);
 	UI_view2d_view_ortho(v2d);
 	
 	/* aspect+font, set each time */
@@ -1274,43 +1274,47 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		bNodeLinkDrag *nldrag;
 		LinkData *linkdata;
 		
+		path = snode->treepath.last;
+		
 		/* current View2D center, will be set temporarily for parent node trees */
 		UI_view2d_getcenter(v2d, &center[0], &center[1]);
 		
-		/* store new view center in current edittree */
+		/* store new view center in path and current edittree */
+		copy_v2_v2(path->view_center, center);
 		if (snode->edittree)
 			copy_v2_v2(snode->edittree->view_center, center);
 		
 		depth = 0;
-		path = snode->treepath.last;
 		while (path->prev && depth < max_depth) {
 			path = path->prev;
 			++depth;
 		}
+		
 		/* parent node trees in the background */
-		for (curdepth = depth; curdepth >= 0; path = path->next, --curdepth) {
+		for (curdepth = depth; curdepth > 0; path = path->next, --curdepth) {
 			ntree = path->nodetree;
-			
 			if (ntree) {
-				snode_setup_v2d(snode, ar, ntree->view_center[0], ntree->view_center[1]);
-				
-				if (curdepth == 0) {
-					/* grid, uses theme color based on node path depth */
-					UI_view2d_multi_grid_draw(v2d, (depth > 0 ? TH_NODE_GROUP : TH_BACK), U.widget_unit, 5, 2);
-					
-					/* backdrop */
-					draw_nodespace_back_pix(C, ar, snode);
-				}
+				snode_setup_v2d(snode, ar, path->view_center);
 				
 				draw_nodetree(C, ar, ntree, path->parent_key);
 				
-				if (curdepth > 0)
-					draw_group_overlay(C, ar);
+				draw_group_overlay(C, ar);
 			}
 		}
 		
-		/* reset View2D */
-		UI_view2d_setcenter(v2d, center[0], center[1]);
+		/* top-level edit tree */
+		ntree = path->nodetree;
+		if (ntree) {
+			snode_setup_v2d(snode, ar, center);
+			
+			/* grid, uses theme color based on node path depth */
+			UI_view2d_multi_grid_draw(v2d, (depth > 0 ? TH_NODE_GROUP : TH_BACK), U.widget_unit, 5, 2);
+			
+			/* backdrop */
+			draw_nodespace_back_pix(C, ar, snode);
+			
+			draw_nodetree(C, ar, ntree, path->parent_key);
+		}
 		
 		/* temporary links */
 		glEnable(GL_BLEND);
