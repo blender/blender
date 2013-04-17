@@ -2341,8 +2341,13 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 
 		/* we tag based on first ID type character to avoid 
 		 * looping over all ID's in case there are no tags */
-		/* XXX very weak... added check for '27' to ignore freestyle added objects */
-		if (id && id->name[2] > 27 && bmain->id_tag_update[id->name[0]]) {
+		if (id &&
+#ifdef WITH_FREESTYLE
+		    /* XXX very weak... added check for '27' to ignore freestyle added objects */
+		    id->name[2] > 27 &&
+#endif
+		    bmain->id_tag_update[id->name[0]])
+		{
 			updated = 1;
 			break;
 		}

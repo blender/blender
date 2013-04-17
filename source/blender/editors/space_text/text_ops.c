@@ -69,6 +69,8 @@
 #include "text_intern.h"
 #include "text_format.h"
 
+static void txt_screen_clamp(SpaceText *st, ARegion *ar);
+
 /************************ poll ***************************/
 
 
@@ -319,7 +321,14 @@ void TEXT_OT_open(wmOperatorType *ot)
 
 static int text_reload_exec(bContext *C, wmOperator *op)
 {
+	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	/* store view & cursor state */
+	const int orig_top = st->top;
+	const int orig_curl = BLI_findindex(&text->lines, text->curl);
+	const int orig_curc = text->curc;
 
 	if (!BKE_text_reload(text)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not reopen file");
@@ -335,6 +344,12 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 	text_update_cursor_moved(C);
 	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+
+	/* return to scroll position */
+	st->top = orig_top;
+	txt_screen_clamp(st, ar);
+	/* return cursor */
+	txt_move_to(text, orig_curl, orig_curc, false);
 
 	return OPERATOR_FINISHED;
 }
@@ -2053,18 +2068,19 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 
 /******************* scroll operator **********************/
 
+static void txt_screen_clamp(SpaceText *st, ARegion *ar)
+{
+	int last;
+	last = text_get_total_lines(st, ar);
+	last = last - (st->viewlines / 2);
+	CLAMP(st->top, 0, last);
+}
+
 /* Moves the view vertically by the specified number of lines */
 static void txt_screen_skip(SpaceText *st, ARegion *ar, int lines)
 {
-	int last;
-
 	st->top += lines;
-
-	last = text_get_total_lines(st, ar);
-	last = last - (st->viewlines / 2);
-	
-	if (st->top > last) st->top = last;
-	if (st->top < 0) st->top = 0;
+	txt_screen_clamp(st, ar);
 }
 
 /* quick enum for tsc->zone (scroller handles) */
@@ -2179,14 +2195,7 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
 			if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
-				int last;
-
-				st->top += st->viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1);
-
-				last = text_get_total_lines(st, ar);
-				last = last - (st->viewlines / 2);
-
-				CLAMP(st->top, 0, last);
+				txt_screen_skip(st, ar, st->viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
 
 				ED_area_tag_redraw(CTX_wm_area(C));
 			}
