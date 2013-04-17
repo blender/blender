@@ -390,7 +390,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 /* (old, used in outliner) plain antialiased filled box */
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 {
-	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA);
+	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype | UI_RB_ALPHA);
 }
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
