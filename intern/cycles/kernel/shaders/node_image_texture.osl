@@ -19,12 +19,16 @@
 #include "stdosl.h"
 #include "node_color.h"
 
-color image_texture_lookup(string filename, string color_space, float u, float v, output float Alpha, int use_alpha)
+color image_texture_lookup(string filename, string color_space, float u, float v, output float Alpha, int use_alpha, int is_float)
 {
 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", "periodic", "alpha", Alpha);
 
-	if (use_alpha)
+	if (use_alpha) {
 		rgb = color_unpremultiply(rgb, Alpha);
+	
+		if (!is_float)
+			rgb = min(rgb, 1.0);
+	}
 
 	if (color_space == "sRGB")
 		rgb = color_srgb_to_scene_linear(rgb);
@@ -40,6 +44,7 @@ shader node_image_texture(
 	string color_space = "sRGB",
 	string projection = "Flat",
 	float projection_blend = 0.0,
+	int is_float = 1,
 	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
@@ -51,7 +56,7 @@ shader node_image_texture(
 	int use_alpha = isconnected(Alpha);
 
 	if (projection == "Flat") {
-		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha, use_alpha);
+		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha, use_alpha, is_float);
 	}
 	else if (projection == "Box") {
 		/* object space normal */
@@ -116,15 +121,15 @@ shader node_image_texture(
 		float tmp_alpha;
 
 		if (weight[0] > 0.0) {
-			Color += weight[0] * image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha, use_alpha);
+			Color += weight[0] * image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha, use_alpha, is_float);
 			Alpha += weight[0] * tmp_alpha;
 		}
 		if (weight[1] > 0.0) {
-			Color += weight[1] * image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha, use_alpha);
+			Color += weight[1] * image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha, use_alpha, is_float);
 			Alpha += weight[1] * tmp_alpha;
 		}
 		if (weight[2] > 0.0) {
-			Color += weight[2] * image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha, use_alpha);
+			Color += weight[2] * image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha, use_alpha, is_float);
 			Alpha += weight[2] * tmp_alpha;
 		}
 	}

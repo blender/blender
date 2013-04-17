@@ -48,6 +48,7 @@ shader node_environment_texture(
 	string filename = "",
 	string projection = "Equirectangular",
 	string color_space = "sRGB",
+	int is_float = 1,
 	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
@@ -66,8 +67,12 @@ shader node_environment_texture(
 	/* todo: use environment for better texture filtering of equirectangular */
 	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "alpha", Alpha);
 
-	if (isconnected(Alpha))
+	if (isconnected(Alpha)) {
 		Color = color_unpremultiply(Color, Alpha);
+
+		if (!is_float)
+			Color = min(Color, 1.0);
+	}
 
 	if (color_space == "sRGB")
 		Color = color_srgb_to_scene_linear(Color);

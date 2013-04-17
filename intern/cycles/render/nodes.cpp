@@ -249,6 +249,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 		compiler.parameter("color_space", "sRGB");
 	compiler.parameter("projection", projection);
 	compiler.parameter("projection_blend", projection_blend);
+	compiler.parameter("is_float", is_float);
 	compiler.add(this, "node_image_texture");
 }
 
@@ -368,6 +369,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 		compiler.parameter("color_space", "Linear");
 	else
 		compiler.parameter("color_space", "sRGB");
+	compiler.parameter("is_float", is_float);
 	compiler.add(this, "node_environment_texture");
 }
 

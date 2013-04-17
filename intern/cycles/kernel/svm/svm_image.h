@@ -93,6 +93,12 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 		r.x *= invw;
 		r.y *= invw;
 		r.z *= invw;
+
+		if(id >= TEX_NUM_FLOAT_IMAGES) {
+			r.x = min(r.x, 1.0f);
+			r.y = min(r.y, 1.0f);
+			r.z = min(r.z, 1.0f);
+		}
 	}
 
 	if(srgb) {
@@ -234,6 +240,12 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 		r.x *= invw;
 		r.y *= invw;
 		r.z *= invw;
+
+		if(id >= TEX_NUM_FLOAT_IMAGES) {
+			r.x = min(r.x, 1.0f);
+			r.y = min(r.y, 1.0f);
+			r.z = min(r.z, 1.0f);
+		}
 	}
 
 	if(srgb) {
