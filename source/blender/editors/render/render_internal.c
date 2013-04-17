@@ -1027,7 +1027,6 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	if (re == NULL) return;
 	
 	RE_AcquireResultImage(re, &rres);
-	RE_ReleaseResultImage(re);
 	
 	if (rres.rectf) {
 		unsigned char *rect_byte = MEM_mallocN(rres.rectx * rres.recty * sizeof(int), "ed_preview_draw_rect");
@@ -1041,4 +1040,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 				
 		MEM_freeN(rect_byte);
 	}
+
+	RE_ReleaseResultImage(re);
 }
+
