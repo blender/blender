@@ -445,6 +445,18 @@ void mul_transposed_m3_v3(float mat[3][3], float vec[3])
 	vec[2] = x * mat[2][0] + y * mat[2][1] + mat[2][2] * vec[2];
 }
 
+void mul_transposed_mat3_m4_v3(float mat[4][4], float vec[3])
+{
+	float x, y;
+
+	x = vec[0];
+	y = vec[1];
+	vec[0] = x * mat[0][0] + y * mat[0][1] + mat[0][2] * vec[2];
+	vec[1] = x * mat[1][0] + y * mat[1][1] + mat[1][2] * vec[2];
+	vec[2] = x * mat[2][0] + y * mat[2][1] + mat[2][2] * vec[2];
+}
+
+
 void mul_m3_fl(float m[3][3], float f)
 {
 	int i, j;

@@ -1576,6 +1576,11 @@ static void statvis_calc_overhang(
 
 	axis_from_enum_v3(dir, axis);
 
+	if (LIKELY(em->ob)) {
+		mul_transposed_mat3_m4_v3(em->ob->obmat, dir);
+		normalize_v3(dir);
+	}
+
 	/* now convert into global space */
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, index) {
 		float fac = angle_normalized_v3v3(polyNos ? polyNos[index] : f->no, dir) / (float)M_PI;
@@ -1667,7 +1672,7 @@ static void statvis_calc_thickness(
 		if (vertexCos) {
 			cos[0] = vertexCos[BM_elem_index_get(ltri[0]->v)];
 			cos[1] = vertexCos[BM_elem_index_get(ltri[1]->v)];
-			cos[3] = vertexCos[BM_elem_index_get(ltri[2]->v)];
+			cos[2] = vertexCos[BM_elem_index_get(ltri[2]->v)];
 		}
 		else {
 			cos[0] = ltri[0]->v->co;
@@ -1805,6 +1810,7 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 
 	switch (statvis->type) {
 		case SCE_STATVIS_OVERHANG:
+		{
 			statvis_calc_overhang(
 			            em, bmdm ? bmdm->polyNos : NULL,
 			            statvis->overhang_min / (float)M_PI,
@@ -1812,18 +1818,24 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 			            statvis->overhang_axis,
 			            r_face_colors);
 			break;
+		}
 		case SCE_STATVIS_THICKNESS:
+		{
+			const float scale = 1.0f / mat4_to_scale(em->ob->obmat);
 			statvis_calc_thickness(
 			            em, bmdm ? bmdm->vertexCos : NULL,
-			            statvis->thickness_min,
-			            statvis->thickness_max,
+			            statvis->thickness_min * scale,
+			            statvis->thickness_max * scale,
 			            statvis->thickness_samples,
 			            r_face_colors);
 			break;
+		}
 		case SCE_STATVIS_INTERSECT:
+		{
 			statvis_calc_intersect(
 			            em, bmdm ? bmdm->vertexCos : NULL,
 			            r_face_colors);
 			break;
+		}
 	}
 }
