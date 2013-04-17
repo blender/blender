@@ -207,9 +207,9 @@ __device float lcg_step(uint *rng)
 	return (float)*rng * (1.0f/(float)0xFFFFFFFF);
 }
 
-__device uint lcg_init(float seed)
+__device uint lcg_init(uint seed)
 {
-	uint rng = __float_as_int(seed);
+	uint rng = seed;
 	lcg_step(&rng);
 	return rng;
 }

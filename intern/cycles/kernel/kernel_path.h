@@ -258,8 +258,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
 		}
 		float extmax = kernel_data.curve_kernel_data.maximum_width;
-		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_HAIR);
-		uint lcg_state = lcg_init(rng_hair_seed);
+		uint lcg_state = lcg_init(*rng + rng_offset + sample);
 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
@@ -377,7 +376,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_init(rbsdf);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
@@ -601,7 +600,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_init(rbsdf);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
@@ -930,8 +929,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
 		}
 		float extmax = kernel_data.curve_kernel_data.maximum_width;
-		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_HAIR);
-		uint lcg_state = lcg_init(rng_hair_seed);
+		uint lcg_state = lcg_init(*rng + rng_offset + sample);
 
 		if(!scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax)) {
 #else
@@ -1017,7 +1015,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 					continue;
 
 				/* set up random number generator */
-				uint lcg_state = lcg_init(rbsdf);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample);
 				int num_samples = kernel_data.integrator.subsurface_samples;
 				float num_samples_inv = 1.0f/num_samples;
 
