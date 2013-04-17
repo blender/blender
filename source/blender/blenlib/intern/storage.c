@@ -525,7 +525,14 @@ int BLI_stat(const char *path, struct stat *buffer)
 {
 	int r;
 	UTF16_ENCODE(path);
+
+	/* workaround error in MinGW64 headers, normally, a wstat should work */
+	#ifndef __MINGW64__
 	r = _wstat(path_16, buffer);
+	#else
+	r = _wstati64(path_16, buffer);
+	#endif
+
 	UTF16_UN_ENCODE(path);
 	return r;
 }
@@ -614,13 +621,23 @@ void BLI_file_free_lines(LinkNode *lines)
 bool BLI_file_older(const char *file1, const char *file2)
 {
 #ifdef WIN32
+	#ifndef __MINGW32__
 	struct _stat st1, st2;
+	#else
+	struct _stati64 st1, st2;
+	#endif
 
 	UTF16_ENCODE(file1);
 	UTF16_ENCODE(file2);
 	
+	#ifndef __MINGW32__
 	if (_wstat(file1_16, &st1)) return false;
 	if (_wstat(file2_16, &st2)) return false;
+	#else
+	if (_wstati64(file1_16, &st1)) return false;
+	if (_wstati64(file2_16, &st2)) return false;
+	#endif
+
 
 	UTF16_UN_ENCODE(file2);
 	UTF16_UN_ENCODE(file1);
