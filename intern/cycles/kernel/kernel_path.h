@@ -258,7 +258,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
 		}
 		float extmax = kernel_data.curve_kernel_data.maximum_width;
-		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_STOCHASTIC_HAIR);
+		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_HAIR);
 		uint lcg_state = lcg_init(rng_hair_seed);
 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
@@ -930,7 +930,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
 		}
 		float extmax = kernel_data.curve_kernel_data.maximum_width;
-		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_STOCHASTIC_HAIR);
+		float rng_hair_seed = path_rng(kg, rng, sample, rng_offset + PRNG_HAIR);
 		uint lcg_state = lcg_init(rng_hair_seed);
 
 		if(!scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax)) {

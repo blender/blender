@@ -159,8 +159,8 @@ enum PathTraceDimension {
 	PRNG_LIGHT_V = 5,
 	PRNG_LIGHT_F = 6,
 	PRNG_TERMINATE = 7,
-	PRNG_BOUNCE_NUM = 8,
-	PRNG_STOCHASTIC_HAIR = 9
+	PRNG_HAIR = 8,
+	PRNG_BOUNCE_NUM = 9
 };
 
 /* these flags values correspond to raytypes in osl.cpp, so keep them in sync!

@@ -55,7 +55,6 @@ public:
 		int first_key;
 		int num_keys;
 		uint shader;
-		uint pad;
 
 		int num_segments() { return num_keys - 1; }
 	};
