@@ -2361,6 +2361,21 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 	}
 }
 
+/* get node tree stored locally in other IDs */
+static bNodeTree *nodetree_from_id(ID *id)
+{
+	if (!id)
+		return NULL;
+	switch (GS(id->name)) {
+		case ID_SCE: return ((Scene *)id)->nodetree;
+		case ID_MA: return ((Material *)id)->nodetree;
+		case ID_WO: return ((World *)id)->nodetree;
+		case ID_LA: return ((Lamp *)id)->nodetree;
+		case ID_TE: return ((Tex *)id)->nodetree;
+	}
+	return NULL;
+}
+
 /* updates group node socket identifier so that
  * external links to/from the group node are preserved.
  */
@@ -5660,9 +5675,25 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if (sl->spacetype == SPACE_NODE) {
 						SpaceNode *snode = (SpaceNode *)sl;
 						bNodeTreePath *path, *path_next;
+						bNodeTree *ntree;
 						
-						for (path=snode->treepath.first; path; path=path->next) {
-							path->nodetree = newlibadr(fd, sc->id.lib, path->nodetree);
+						/* node tree can be stored locally in id too, link this first */
+						snode->id = newlibadr(fd, sc->id.lib, snode->id);
+						snode->from = newlibadr(fd, sc->id.lib, snode->from);
+						
+						ntree = nodetree_from_id(snode->id);
+						if (ntree)
+							snode->nodetree = ntree;
+						else
+							snode->nodetree = newlibadr(fd, sc->id.lib, snode->nodetree);
+						
+						for (path = snode->treepath.first; path; path = path->next) {
+							if (path == snode->treepath.first) {
+								/* first nodetree in path is same as snode->nodetree */
+								path->nodetree = snode->nodetree;
+							}
+							else
+								path->nodetree = newlibadr(fd, sc->id.lib, path->nodetree);
 							
 							if (!path->nodetree)
 								break;
@@ -5676,7 +5707,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 							MEM_freeN(path);
 						}
 						
-						snode->nodetree = newlibadr(fd, sc->id.lib, snode->nodetree);
 						/* edittree is just the last in the path,
 						 * set this directly since the path may have been shortened above */
 						if (snode->treepath.last) {
@@ -5685,8 +5715,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 						}
 						else
 							snode->edittree = NULL;
-						snode->id = newlibadr(fd, sc->id.lib, snode->id);
-						snode->from = newlibadr(fd, sc->id.lib, snode->from);
 					}
 					else if (sl->spacetype == SPACE_CLIP) {
 						SpaceClip *sclip = (SpaceClip *)sl;
@@ -5735,32 +5763,16 @@ static bool restore_pointer(ID *id, ID *newid, int user)
 static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
 	if (id) {
-		/* node trees can be stored locally in other IDs, needs special handling ... */
-		if (GS(id->name) == ID_NT) {
-			ID *idn = NULL;
+		ListBase *lb = which_libbase(mainp, GS(id->name));
+		if (lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
+			ID *idn = lb->first;
 			
-			FOREACH_NODETREE(mainp, ntree, owner_id) {
-				if (restore_pointer(id, &ntree->id, user)) {
-					idn = &ntree->id;
+			for (; idn; idn = idn->next) {
+				if (restore_pointer(id, idn, user))
 					break;
-				}
 			}
-			FOREACH_NODETREE_END
 			
 			return idn;
-		}
-		else {
-			ListBase *lb = which_libbase(mainp, GS(id->name));
-			if (lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
-				ID *idn = lb->first;
-				
-				for (; idn; idn = idn->next) {
-					if (restore_pointer(id, idn, user))
-						break;
-				}
-				
-				return idn;
-			}
 		}
 	}
 	return NULL;
@@ -5992,9 +6004,25 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
 					bNodeTreePath *path, *path_next;
+					bNodeTree *ntree;
 					
-					for (path=snode->treepath.first; path; path=path->next) {
-						path->nodetree= restore_pointer_by_name(newmain, (ID*)path->nodetree, 0);
+					/* node tree can be stored locally in id too, link this first */
+					snode->id = restore_pointer_by_name(newmain, snode->id, 1);
+					snode->from = restore_pointer_by_name(newmain, snode->from, 0);
+					
+					ntree = nodetree_from_id(snode->id);
+					if (ntree)
+						snode->nodetree = ntree;
+					else
+						snode->nodetree = restore_pointer_by_name(newmain, (ID*)snode->nodetree, 0);
+					
+					for (path = snode->treepath.first; path; path = path->next) {
+						if (path == snode->treepath.first) {
+							/* first nodetree in path is same as snode->nodetree */
+							path->nodetree = snode->nodetree;
+						}
+						else
+							path->nodetree= restore_pointer_by_name(newmain, (ID*)path->nodetree, 0);
 						
 						if (!path->nodetree)
 							break;
@@ -6008,7 +6036,6 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						MEM_freeN(path);
 					}
 					
-					snode->nodetree = restore_pointer_by_name(newmain, (ID*)snode->nodetree, 0);
 					/* edittree is just the last in the path,
 					 * set this directly since the path may have been shortened above */
 					if (snode->treepath.last) {
@@ -6017,8 +6044,6 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					}
 					else
 						snode->edittree = NULL;
-					snode->id = restore_pointer_by_name(newmain, snode->id, 1);
-					snode->from = restore_pointer_by_name(newmain, snode->from, 0);
 				}
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
