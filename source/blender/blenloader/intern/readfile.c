@@ -9320,6 +9320,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					srl->freestyleConfig.flags |= FREESTYLE_CULLING;
 				}
 			}
+
+			/* not freestyle */
+			{
+				MeshStatVis *statvis = &sce->toolsettings->statvis;
+				if (statvis->thickness_samples == 0) {
+					statvis->overhang_axis = OB_NEGZ;
+					statvis->overhang_min = 0;
+					statvis->overhang_max = DEG2RADF(45.0f);
+
+					statvis->thickness_max = 0.1f;
+					statvis->thickness_samples = 1;
+				}
+			}
+
 		}
 		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
 #if 1

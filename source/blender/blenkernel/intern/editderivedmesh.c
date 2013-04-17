@@ -44,12 +44,15 @@
 #include "GL/glew.h"
 
 #include "BLI_math.h"
+#include "BLI_jitter.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_bvh.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -320,8 +323,10 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	const int skip_normals = !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
 
 	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
-	unsigned char(*color_vert_array)[4] = (((Mesh *)em->ob->data)->drawflag & ME_DRAWEIGHT) ?  em->derivedVertColor : NULL;
+	unsigned char(*color_vert_array)[4] = (((Mesh *)em->ob->data)->drawflag & ME_DRAWEIGHT)    ?  em->derivedVertColor : NULL;
+	unsigned char(*color_face_array)[4] = (((Mesh *)em->ob->data)->drawflag & ME_DRAW_STATVIS) ?  em->derivedFaceColor : NULL;
 	bool has_vcol_preview = (color_vert_array != NULL) && !skip_normals;
+	bool has_fcol_preview = (color_face_array != NULL) && !skip_normals;
 	bool has_vcol_any = has_vcol_preview;
 
 	/* GL_ZERO is used to detect if drawing has started or not */
@@ -336,6 +341,11 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	/* call again below is ok */
 	if (has_vcol_preview) {
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
+	}
+	if (has_fcol_preview) {
+		BM_mesh_elem_index_ensure(bm, BM_FACE);
+	}
+	if (has_vcol_preview || has_fcol_preview) {
 		flag |= DM_DRAW_ALWAYS_SMOOTH;
 		glDisable(GL_LIGHTING);  /* grr */
 	}
@@ -370,8 +380,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 					glPolygonStipple(stipple_quarttone);
 				}
 
-				if (has_vcol_preview) bmdm_get_tri_colpreview(ltri, lcol, color_vert_array);
-
+				if      (has_vcol_preview) bmdm_get_tri_colpreview(ltri, lcol, color_vert_array);
+				else if (has_fcol_preview) glColor3ubv((const GLubyte *)&(color_face_array[BM_elem_index_get(efa)]));
 				if (skip_normals) {
 					if (poly_type != poly_prev) {
 						if (poly_prev != GL_ZERO) glEnd();
@@ -455,7 +465,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 					glPolygonStipple(stipple_quarttone);
 				}
 
-				if (has_vcol_preview) bmdm_get_tri_colpreview(ltri, lcol, color_vert_array);
+				if      (has_vcol_preview) bmdm_get_tri_colpreview(ltri, lcol, color_vert_array);
+				else if (has_fcol_preview) glColor3ubv((const GLubyte *)&(color_face_array[BM_elem_index_get(efa)]));
 
 				if (skip_normals) {
 					if (poly_type != poly_prev) {
@@ -1529,4 +1540,290 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 	}
 
 	return (DerivedMesh *)bmdm;
+}
+
+
+
+/* -------------------------------------------------------------------- */
+/* StatVis Functions */
+
+static void axis_from_enum_v3(float v[3], const char axis)
+{
+	zero_v3(v);
+	if (axis < 3) v[axis]     =  1.0f;
+	else          v[axis - 3] = -1.0f;
+}
+
+static void statvis_calc_overhang(
+        BMEditMesh *em,
+        float (*polyNos)[3],
+        /* values for calculating */
+        const float min, const float max, const char axis,
+        /* result */
+        unsigned char (*r_face_colors)[4])
+{
+	BMIter iter;
+	BMesh *bm = em->bm;
+	BMFace *f;
+	float dir[3];
+	int index;
+	const float minmax_irange = 1.0f / (max - min);
+
+	/* fallback */
+	const char col_fallback[4] = {64, 64, 64, 255};
+
+	BLI_assert(min <= max);
+
+	axis_from_enum_v3(dir, axis);
+
+	/* now convert into global space */
+	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, index) {
+		float fac = angle_normalized_v3v3(polyNos ? polyNos[index] : f->no, dir) / (float)M_PI;
+
+		/* remap */
+		if (fac >= min && fac <= max) {
+			float fcol[3];
+			fac = (fac - min) * minmax_irange;
+			fac = 1.0f - fac;
+			CLAMP(fac, 0.0f, 1.0f);
+			weight_to_rgb(fcol, fac);
+			rgb_float_to_uchar(r_face_colors[index], fcol);
+		}
+		else {
+			copy_v4_v4_char((char *)r_face_colors[index], (const char *)col_fallback);
+		}
+	}
+}
+
+/* so we can use jitter values for face interpolation */
+static void uv_from_jitter_v2(float uv[2])
+{
+	uv[0] += 0.5f;
+	uv[1] += 0.5f;
+	if (uv[0] + uv[1] > 1.0f) {
+		uv[0] = 1.0f - uv[0];
+		uv[1] = 1.0f - uv[1];
+	}
+
+	CLAMP(uv[0], 0.0f, 1.0f);
+	CLAMP(uv[1], 0.0f, 1.0f);
+}
+
+static void statvis_calc_thickness(
+        BMEditMesh *em,
+        float (*vertexCos)[3],
+        /* values for calculating */
+        const float min, const float max, const int samples,
+        /* result */
+        unsigned char (*r_face_colors)[4])
+{
+	const float eps_offset = FLT_EPSILON * 10.0f;
+	float *face_dists = (float *)r_face_colors;  /* cheating */
+	const bool use_jit = samples < 32;
+	float jit_ofs[32][2];
+	BMesh *bm = em->bm;
+	const int tottri = em->tottri;
+	const float minmax_irange = 1.0f / (max - min);
+	int i;
+
+	struct BMLoop *(*looptris)[3] = em->looptris;
+
+	/* fallback */
+	const char col_fallback[4] = {64, 64, 64, 255};
+
+	struct BMBVHTree *bmtree;
+
+	BLI_assert(min <= max);
+
+	fill_vn_fl(face_dists, em->bm->totface, max);
+
+	if (use_jit) {
+		int j;
+		BLI_assert(samples < 32);
+		BLI_jitter_init(jit_ofs[0], samples);
+
+		for (j = 0; j < samples; j++) {
+			uv_from_jitter_v2(jit_ofs[j]);
+		}
+	}
+
+	(void)vertexCos;
+
+	BM_mesh_elem_index_ensure(bm, BM_FACE);
+	if (vertexCos) {
+		BM_mesh_elem_index_ensure(bm, BM_VERT);
+	}
+
+	bmtree = BKE_bmbvh_new(em, 0, NULL);
+
+	for (i = 0; i < tottri; i++) {
+		BMFace *f_hit;
+		BMLoop **ltri = looptris[i];
+		const int index = BM_elem_index_get(ltri[0]->f);
+		const float *cos[3];
+		float ray_co[3];
+		float ray_no[3];
+
+		if (vertexCos) {
+			cos[0] = vertexCos[BM_elem_index_get(ltri[0]->v)];
+			cos[1] = vertexCos[BM_elem_index_get(ltri[1]->v)];
+			cos[3] = vertexCos[BM_elem_index_get(ltri[2]->v)];
+		}
+		else {
+			cos[0] = ltri[0]->v->co;
+			cos[1] = ltri[1]->v->co;
+			cos[2] = ltri[2]->v->co;
+		}
+
+		normal_tri_v3(ray_no, cos[2], cos[1], cos[0]);
+
+		if (use_jit) {
+			int j;
+			for (j = 0; j < samples; j++) {
+				interp_v3_v3v3v3_uv(ray_co, cos[0], cos[1], cos[2], jit_ofs[j]);
+				madd_v3_v3fl(ray_co, ray_no, eps_offset);
+
+				f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no,
+				                           &face_dists[index], NULL, NULL);
+				/* duplicate */
+				if (f_hit) {
+					const int index_hit = BM_elem_index_get(f_hit);
+					face_dists[index] = face_dists[index_hit] = min_ff(face_dists[index], face_dists[index_hit]);
+				}
+			}
+		}
+		else {
+			mid_v3_v3v3v3(ray_co, cos[0], cos[1], cos[2]);
+			madd_v3_v3fl(ray_co, ray_no, eps_offset);
+
+			f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no,
+			                           &face_dists[index], NULL, NULL);
+			/* duplicate */
+			if (f_hit) {
+				const int index_hit = BM_elem_index_get(f_hit);
+				face_dists[index] = face_dists[index_hit] = min_ff(face_dists[index], face_dists[index_hit]);
+			}
+		}
+	}
+
+	/* convert floats into color! */
+	for (i = 0; i < bm->totface; i++) {
+		float fac = face_dists[i];
+
+		/* important not '<=' */
+		if (fac < max) {
+			float fcol[3];
+			fac = (fac - min) * minmax_irange;
+			fac = 1.0f - fac;
+			CLAMP(fac, 0.0f, 1.0f);
+			weight_to_rgb(fcol, fac);
+			rgb_float_to_uchar(r_face_colors[i], fcol);
+		}
+		else {
+			copy_v4_v4_char((char *)r_face_colors[i], (const char *)col_fallback);
+		}
+	}
+
+	BKE_bmbvh_free(bmtree);
+}
+
+static void statvis_calc_intersect(
+        BMEditMesh *em,
+        float (*vertexCos)[3],
+        /* result */
+        unsigned char (*r_face_colors)[4])
+{
+	BMIter iter;
+	BMesh *bm = em->bm;
+	BMEdge *e;
+	int index;
+
+	/* fallback */
+	// const char col_fallback[4] = {64, 64, 64, 255};
+
+	struct BMBVHTree *bmtree;
+
+	memset(r_face_colors, 64, sizeof(int) * em->bm->totface);
+
+	(void)vertexCos;
+
+	BM_mesh_elem_index_ensure(bm, BM_FACE);
+	if (vertexCos) {
+		BM_mesh_elem_index_ensure(bm, BM_VERT);
+	}
+
+	bmtree = BKE_bmbvh_new(em, 0, NULL);
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BMFace *f_hit;
+		float cos[2][3];
+		float cos_mid[3];
+		float ray_no[3];
+
+		if (vertexCos) {
+			copy_v3_v3(cos[0], vertexCos[BM_elem_index_get(e->v1)]);
+			copy_v3_v3(cos[1], vertexCos[BM_elem_index_get(e->v2)]);
+		}
+		else {
+			copy_v3_v3(cos[0], e->v1->co);
+			copy_v3_v3(cos[1], e->v2->co);
+		}
+
+		mid_v3_v3v3(cos_mid, cos[0], cos[1]);
+		sub_v3_v3v3(ray_no, cos[1], cos[0]);
+
+		f_hit = BKE_bmbvh_find_face_segment(bmtree, cos[0], cos[1],
+		                                    NULL, NULL, NULL);
+
+		if (f_hit) {
+			BMLoop *l_iter, *l_first;
+			float fcol[3];
+
+			index = BM_elem_index_get(f_hit);
+			weight_to_rgb(fcol, 1.0f);
+			rgb_float_to_uchar(r_face_colors[index], fcol);
+
+			l_iter = l_first = e->l;
+			do {
+				index = BM_elem_index_get(l_iter->f);
+				weight_to_rgb(fcol, 1.0f);
+				rgb_float_to_uchar(r_face_colors[index], fcol);
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+
+	}
+
+	BKE_bmbvh_free(bmtree);
+}
+
+void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
+                               MeshStatVis *statvis,
+                               unsigned char (*r_face_colors)[4])
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BLI_assert(dm == NULL || dm->type == DM_TYPE_EDITBMESH);
+
+	switch (statvis->type) {
+		case SCE_STATVIS_OVERHANG:
+			statvis_calc_overhang(
+			            em, bmdm ? bmdm->polyNos : NULL,
+			            statvis->overhang_min / (float)M_PI,
+			            statvis->overhang_max / (float)M_PI,
+			            statvis->overhang_axis,
+			            r_face_colors);
+			break;
+		case SCE_STATVIS_THICKNESS:
+			statvis_calc_thickness(
+			            em, bmdm ? bmdm->vertexCos : NULL,
+			            statvis->thickness_min,
+			            statvis->thickness_max,
+			            statvis->thickness_samples,
+			            r_face_colors);
+			break;
+		case SCE_STATVIS_INTERSECT:
+			statvis_calc_intersect(
+			            em, bmdm ? bmdm->vertexCos : NULL,
+			            r_face_colors);
+			break;
+	}
 }

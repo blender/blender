@@ -2954,6 +2954,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Freestyle Face Marks", "Display Freestyle face marks, used with the Freestyle renderer");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
+	prop = RNA_def_property(srna, "show_statvis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_STATVIS);
+	RNA_def_property_ui_text(prop, "Stat Vis", "Display statistical information about the mesh");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	prop = RNA_def_property(srna, "show_extra_edge_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length",

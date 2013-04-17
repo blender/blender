@@ -61,6 +61,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 
 	em_copy->derivedCage = em_copy->derivedFinal = NULL;
 	em_copy->derivedVertColor = NULL;
+	em_copy->derivedFaceColor = NULL;
 
 	em_copy->bm = BM_mesh_copy(em->bm);
 
@@ -327,6 +328,7 @@ void BKE_editmesh_free(BMEditMesh *em)
 	}
 
 	if (em->derivedVertColor) MEM_freeN(em->derivedVertColor);
+	if (em->derivedFaceColor) MEM_freeN(em->derivedFaceColor);
 
 	if (em->looptris) MEM_freeN(em->looptris);
 

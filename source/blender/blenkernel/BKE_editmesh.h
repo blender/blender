@@ -30,6 +30,8 @@ struct BMesh;
 struct BMLoop;
 struct BMFace;
 struct Mesh;
+struct DerivedMesh;
+struct MeshStatVis;
 
 /* ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
  *     BMEdit module is for code shared with blenkernel that concerns
@@ -61,6 +63,8 @@ typedef struct BMEditMesh {
 	CustomDataMask lastDataMask;
 	unsigned char (*derivedVertColor)[4];
 	int derivedVertColorLen;
+	unsigned char (*derivedFaceColor)[4];
+	int derivedFaceColorLen;
 
 	/* index tables, to map indices to elements via
 	 * EDBM_index_arrays_init and associated functions.  don't
@@ -89,5 +93,8 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
 void        BKE_editmesh_free(BMEditMesh *em);
 void        BKE_editmesh_update_linked_customdata(BMEditMesh *em);
+void        BKE_editmesh_statvis_calc(BMEditMesh *em, struct DerivedMesh *dm,
+                                      struct MeshStatVis *statvis,
+                                      unsigned char (*r_face_colors)[4]);
 
 #endif /* __BKE_EDITMESH_H__ */

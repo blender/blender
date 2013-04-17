@@ -72,6 +72,7 @@ struct ToolSettings;
 struct Material;
 struct Object;
 struct rcti;
+struct MeshStatVis;
 
 
 /* editmesh_utils.c */
@@ -175,6 +176,11 @@ void EDBM_select_toggle_all(struct BMEditMesh *em);
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
 bool EDBM_select_interior_faces(struct BMEditMesh *em);
 void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* rename? */
+
+/* editmesh_statvis.c */
+void EDBM_statvis_calc(struct BMEditMesh *em, struct MeshStatVis *statvis,
+                       unsigned char (*r_face_colors)[4]);
+
 
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 

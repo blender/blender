@@ -934,6 +934,21 @@ typedef enum {
 	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1 << 4)
 } UnifiedPaintSettingsFlags;
 
+typedef struct MeshStatVis {
+	char type;
+	char _pad1[2];
+
+	/* overhang */
+	char  overhang_axis;
+	float overhang_min, overhang_max;
+
+	/* thickness */
+	float thickness_min, thickness_max;
+	char thickness_samples;
+	char _pad2[3];
+} MeshStatVis;
+
+
 /* *************************************************************** */
 /* Tool Settings */
 
@@ -1071,6 +1086,8 @@ typedef struct ToolSettings {
 
 	/* Unified Paint Settings */
 	struct UnifiedPaintSettings unified_paint_settings;
+
+	struct MeshStatVis statvis;
 } ToolSettings;
 
 /* *************************************************************** */
@@ -1444,6 +1461,11 @@ typedef struct Scene {
 #define SCE_SELECT_VERTEX	1 /* for mesh */
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
+
+/* toolsettings->statvis->type */
+#define SCE_STATVIS_OVERHANG	0
+#define SCE_STATVIS_THICKNESS	1
+#define SCE_STATVIS_INTERSECT	2
 
 /* toolsettings->particle.selectmode for particles */
 #define SCE_SELECT_PATH		1
