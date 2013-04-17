@@ -210,7 +210,7 @@ __device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, int sta
 		/* intersect with the same object. if multiple intersections are
 		 * found it will randomly pick one of them */
 		Intersection isect;
-		if(scene_intersect_subsurface(kg, &ray, &isect, sd->object, u6) == 0)
+		if(!scene_intersect_subsurface(kg, &ray, &isect, sd->object, u6))
 			continue;
 
 		/* setup new shading point */

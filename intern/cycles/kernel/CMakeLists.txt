@@ -22,6 +22,7 @@ set(SRC_HEADERS
 	kernel.h
 	kernel_accumulate.h
 	kernel_bvh.h
+	kernel_bvh_traversal.h
 	kernel_camera.h
 	kernel_compat_cpu.h
 	kernel_compat_cuda.h

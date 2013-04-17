@@ -713,7 +713,10 @@ typedef struct KernelBVH {
 	int root;
 	int attributes_map_stride;
 	int have_motion;
-	int pad2;
+	int have_curves;
+	int have_instancing;
+
+	int pad1, pad2, pad3;
 } KernelBVH;
 
 typedef enum CurveFlag {

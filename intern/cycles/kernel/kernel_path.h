@@ -251,14 +251,19 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		uint visibility = path_state_ray_visibility(kg, &state);
 
 #ifdef __HAIR__
-		float difl = 0.0f;
-		if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
-			float3 pixdiff = ray.dD.dx + ray.dD.dy;
-			/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
-			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+		float difl = 0.0f, extmax = 0.0f;
+		uint lcg_state = 0;
+
+		if(kernel_data.bvh.have_curves) {
+			if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
+				float3 pixdiff = ray.dD.dx + ray.dD.dy;
+				/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
+				difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+			}
+
+			extmax = kernel_data.curve_kernel_data.maximum_width;
+			lcg_state = lcg_init(*rng + rng_offset + sample*0x51633e2d);
 		}
-		float extmax = kernel_data.curve_kernel_data.maximum_width;
-		uint lcg_state = lcg_init(*rng + rng_offset + sample);
 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
@@ -376,7 +381,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_init(*rng + rng_offset + sample);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
@@ -600,7 +605,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_init(*rng + rng_offset + sample);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
@@ -922,14 +927,19 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 		uint visibility = path_state_ray_visibility(kg, &state);
 
 #ifdef __HAIR__
-		float difl = 0.0f;
-		if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
-			float3 pixdiff = ray.dD.dx + ray.dD.dy;
-			/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
-			difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+		float difl = 0.0f, extmax = 0.0f;
+		uint lcg_state = 0;
+
+		if(kernel_data.bvh.have_curves) {
+			if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
+				float3 pixdiff = ray.dD.dx + ray.dD.dy;
+				/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
+				difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+			}
+
+			extmax = kernel_data.curve_kernel_data.maximum_width;
+			lcg_state = lcg_init(*rng + rng_offset + sample*0x51633e2d);
 		}
-		float extmax = kernel_data.curve_kernel_data.maximum_width;
-		uint lcg_state = lcg_init(*rng + rng_offset + sample);
 
 		if(!scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax)) {
 #else
@@ -1015,7 +1025,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 					continue;
 
 				/* set up random number generator */
-				uint lcg_state = lcg_init(*rng + rng_offset + sample);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				int num_samples = kernel_data.integrator.subsurface_samples;
 				float num_samples_inv = 1.0f/num_samples;
 
