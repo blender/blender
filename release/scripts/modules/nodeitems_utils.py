@@ -104,6 +104,9 @@ def register_node_ui():
     def draw_add_menu(self, context):
         layout = self.layout
 
+        layout.operator_context = 'INVOKE_DEFAULT'
+        op = layout.operator("node.add_search", text="Search ...")
+
         for cat in node_categories:
             if cat.poll(context):
                 layout.menu("NODE_MT_category_%s" % cat.identifier)
