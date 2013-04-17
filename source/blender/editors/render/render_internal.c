@@ -749,18 +749,19 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 	return 0;
 }
 
-/* returns 1 if OK  */
-static int render_view3d_get_rects(ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine, float *clipsta, float *clipend, int *ortho)
+/* returns true if OK  */
+static bool render_view3d_get_rects(ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine,
+                                    float *r_clipsta, float *r_clipend, bool *r_ortho)
 {
 	
-	if (ar->winx < 4 || ar->winy < 4) return 0;
+	if (ar->winx < 4 || ar->winy < 4) return false;
 	
-	*ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, clipsta, clipend);
+	*r_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, r_clipsta, r_clipend);
 	
 	engine->resolution_x = ar->winx;
 	engine->resolution_y = ar->winy;
 
-	return 1;
+	return true;
 }
 
 /* called by renderer, checks job value */
@@ -810,12 +811,12 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	rctf viewplane;
 	rcti cliprct;
 	float clipsta, clipend;
-	int orth, restore = 0;
+	bool orth, restore = 0;
 	char name[32];
 		
 	G.is_break = FALSE;
 	
-	if (0 == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &orth))
+	if (false == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &orth))
 		return;
 	
 	rp->stop = stop;
@@ -825,11 +826,11 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	
 	/* ok, are we rendering all over? */
 	sprintf(name, "View3dPreview %p", (void *)rp->ar);
-	re= rp->engine->re = RE_GetRender(name);
+	re = rp->engine->re = RE_GetRender(name);
 	
 	if (rp->engine->re == NULL) {
 		
-		re = rp->engine->re= RE_NewRender(name);
+		re = rp->engine->re = RE_NewRender(name);
 		
 		rp->keep_data = 0;
 	}
@@ -839,7 +840,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	RE_display_draw_cb(re, rp, render_view3d_draw_update);
 	RE_stats_draw_cb(re, rp, render_view3d_renderinfo_cb);
 	
-	rstats= RE_GetStats(re);
+	rstats = RE_GetStats(re);
 
 	if (rp->keep_data == 0 || rstats->convertdone == 0 || (rp->keep_data & PR_UPDATE_RENDERSIZE)) {
 		/* no osa, blur, seq, layers, etc for preview render */
@@ -924,7 +925,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 	}
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), CTX_wm_region(C), "Render Preview",
-						 WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
+	                     WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	rp = MEM_callocN(sizeof(RenderPreview), "render preview");
 	
 	/* customdata for preview thread */
@@ -943,7 +944,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 	
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, rp, render_view3d_free);
-	WM_jobs_timer(wm_job, 0.1, NC_SPACE|ND_SPACE_VIEW3D, NC_SPACE|ND_SPACE_VIEW3D);
+	WM_jobs_timer(wm_job, 0.1, NC_SPACE | ND_SPACE_VIEW3D, NC_SPACE | ND_SPACE_VIEW3D);
 	WM_jobs_callbacks(wm_job, render_view3d_startjob, NULL, NULL, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), wm_job);
@@ -976,8 +977,8 @@ static int render_view3d_changed(RenderEngine *engine, const bContext *C)
 		rcti disprect, disprect1;
 		float mat[4][4];
 		float clipsta, clipend;
- 		int orth;
-		
+		bool orth;
+
 		if (engine->update_flag == RE_ENGINE_UPDATE_MA)
 			update |= PR_UPDATE_MATERIAL;
 		engine->update_flag = 0;
@@ -988,7 +989,7 @@ static int render_view3d_changed(RenderEngine *engine, const bContext *C)
 		/* view updating fails on raytrace */
 		RE_GetView(re, mat);
 		if (compare_m4m4(mat, rv3d->viewmat, 0.00001f) == 0) {
-			if ((scene->r.mode & R_RAYTRACE)==0)
+			if ((scene->r.mode & R_RAYTRACE) == 0)
 				update |= PR_UPDATE_VIEW;
 			else
 				engine->flag |= RE_ENGINE_DO_UPDATE;
