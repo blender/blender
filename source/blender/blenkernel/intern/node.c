@@ -796,8 +796,11 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 	const char *idname = NULL;
 	
 	NODE_TYPES_BEGIN(ntype)
-		if (ntype->type == type) {
-			idname = DATA_(ntype->idname);
+		/* do an extra poll here, because some int types are used
+		 * for multiple node types, this helps find the desired type
+		 */
+		if (ntype->type == type && (!ntype->poll || ntype->poll(ntype, ntree))) {
+			idname = ntype->idname;
 			break;
 		}
 	NODE_TYPES_END
