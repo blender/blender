@@ -1844,9 +1844,13 @@ static void statvis_calc_distort(
 				else {
 					BM_loop_calc_face_normal(l_iter, no_corner);
 				}
+				/* simple way to detect (what is most likely) concave */
+				if (dot_v3v3(f_no, no_corner) < 0.0f) {
+					negate_v3(no_corner);
+				}
 				fac = max_ff(fac, angle_normalized_v3v3(f_no, no_corner));
 			} while ((l_iter = l_iter->next) != l_first);
-			fac /= (float)M_1_PI;
+			fac *= 2.0f;
 		}
 
 		/* remap */
@@ -1903,8 +1907,8 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 		{
 			statvis_calc_distort(
 			        em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
-			        statvis->distort_min / (float)M_PI,
-			        statvis->distort_max / (float)M_PI,
+			        statvis->distort_min,
+			        statvis->distort_max,
 			        r_face_colors);
 			break;
 		}
