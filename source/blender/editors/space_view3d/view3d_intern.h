@@ -47,6 +47,7 @@ struct bContext;
 struct bMotionPath;
 struct bPoseChannel;
 struct bScreen;
+struct Mesh;
 struct wmNDOFMotionData;
 struct wmOperatorType;
 struct wmWindowManager;
@@ -148,6 +149,7 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
                         struct Object *ob, struct DerivedMesh *dm, const int draw_flags);
+void draw_mesh_face_select(struct RegionView3D *rv3d, struct Mesh *me, struct DerivedMesh *dm);
 void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
                      struct Object *ob, struct DerivedMesh *dm, const int draw_flags);
 
