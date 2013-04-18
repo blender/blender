@@ -67,6 +67,10 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, float (*cos_cage)[3], const b
 	/* BKE_editmesh_tessface_calc() must be called already */
 	BLI_assert(em->tottri != 0 || em->bm->totface == 0);
 
+	if (cos_cage) {
+		BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+	}
+
 	bmtree->em = em;
 	bmtree->bm = em->bm;
 	bmtree->cos_cage = cos_cage;
@@ -216,6 +220,8 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir
 	struct RayCastUserData bmcb_data;
 	const float dist = r_dist ? *r_dist : FLT_MAX;
 
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
+
 	hit.dist = dist;
 	hit.index = -1;
 
@@ -308,6 +314,8 @@ BMFace *BKE_bmbvh_find_face_segment(BMBVHTree *bmtree, const float co_a[3], cons
 	const float dist = len_v3v3(co_a, co_b);
 	float dir[3];
 
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
+
 	sub_v3_v3v3(dir, co_b, co_a);
 
 	hit.dist = dist;
@@ -390,6 +398,8 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 {
 	BVHTreeNearest hit;
 	struct VertSearchUserData bmcb_data;
+
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
 
 	copy_v3_v3(hit.co, co);
 	/* XXX, why x5, scampbell */
