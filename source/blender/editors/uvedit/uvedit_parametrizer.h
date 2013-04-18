@@ -62,7 +62,8 @@ void param_face_add(ParamHandle *handle,
                     float **co,
                     float **uv,
                     ParamBool *pin,
-                    ParamBool *select);
+                    ParamBool *select,
+                    float face_normal[3]);
 
 void param_edge_set_seam(ParamHandle *handle,
                          ParamKey *vkeys);

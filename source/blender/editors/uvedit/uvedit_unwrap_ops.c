@@ -226,7 +226,6 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
                                            short correct_aspect)
 {
 	BMesh *bm = em->bm;
-	ScanFillContext sf_ctx;
 	ParamHandle *handle;
 	BMFace *efa;
 	BMLoop *l;
@@ -254,14 +253,13 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	rng = BLI_rng_new(0);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		ScanFillVert *sf_vert = NULL, *sf_vert_last, *sf_vert_first;
-		ScanFillFace *sf_tri;
-		ParamKey key, vkeys[4];
-		ParamBool pin[4], select[4];
-		BMLoop *ls[3];
-		float *co[4];
-		float *uv[4];
-		int lsel;
+		ParamKey key;
+		ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
+		ParamBool *pin = BLI_array_alloca(pin, efa->len);
+		ParamBool *select= BLI_array_alloca(select, efa->len);
+		float **co = BLI_array_alloca(co, efa->len);
+		float **uv = BLI_array_alloca(uv, efa->len);
+		int i, lsel;
 
 		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
@@ -280,75 +278,23 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 
 		key = (ParamKey)efa;
 
-		// tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);  // UNUSED
+		/* let parametrizer split the ngon, it can make better decisions
+		 * about which split is best for unwrapping than scanfill */
+		i = 0;
 
-		if (efa->len == 3 || efa->len == 4) {
-			int i;
-			/* for quads let parametrize split, it can make better decisions
-			 * about which split is best for unwrapping than scanfill */
-			i = 0;
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
-				co[i] = l->v->co;
-				uv[i] = luv->uv;
-				pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-				select[i] = uvedit_uv_select_test(em, scene, l) != 0;
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-				i++;
-			}
+			vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
+			co[i] = l->v->co;
+			uv[i] = luv->uv;
+			pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
+			select[i] = uvedit_uv_select_test(em, scene, l) != 0;
 
-			param_face_add(handle, key, i, vkeys, co, uv, pin, select);
+			i++;
 		}
-		else {
-			/* ngon - scanfill time! */
-			BLI_scanfill_begin(&sf_ctx);
-			
-			sf_vert_first = sf_vert_last = NULL;
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				int i;
-				
-				sf_vert = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
-				
-				/* add small random offset */
-				for (i = 0; i < 3; i++) {
-					sf_vert->co[i] += (BLI_rng_get_float(rng) - 0.5f) * FLT_EPSILON * 50;
-				}
-				
-				sf_vert->tmp.p = l;
 
-				if (sf_vert_last) {
-					BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
-				}
-
-				sf_vert_last = sf_vert;
-				if (!sf_vert_first)
-					sf_vert_first = sf_vert;
-			}
-
-			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
-
-			BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
-			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
-				int i;
-				ls[0] = sf_tri->v1->tmp.p;
-				ls[1] = sf_tri->v2->tmp.p;
-				ls[2] = sf_tri->v3->tmp.p;
-
-				for (i = 0; i < 3; i++) {
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(ls[i], cd_loop_uv_offset);
-					vkeys[i] = (ParamKey)BM_elem_index_get(ls[i]->v);
-					co[i] = ls[i]->v->co;
-					uv[i] = luv->uv;
-					pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-					select[i] = uvedit_uv_select_test(em, scene, ls[i]) != 0;
-				}
-
-				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
-			}
-
-			BLI_scanfill_end(&sf_ctx);
-		}
+		param_face_add(handle, key, i, vkeys, co, uv, pin, select, efa->no);
 	}
 
 	if (!implicit) {
@@ -520,7 +466,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 		texface_from_original_index(origFace, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene, em, cd_loop_uv_offset);
 		texface_from_original_index(origFace, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene, em, cd_loop_uv_offset);
 
-		param_face_add(handle, key, 4, vkeys, co, uv, pin, select);
+		param_face_add(handle, key, 4, vkeys, co, uv, pin, select, NULL);
 	}
 
 	/* these are calculated from original mesh too */

@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_memarena.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -1263,10 +1264,6 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 
 			e->flag |= PEDGE_FILLED;
 			e1->flag |= PEDGE_FILLED;
-
-
-
-
 
 			f = p_face_add_fill(chart, e->vert, e1->vert, e2->vert);
 			f->flag |= PFACE_FILLED;
@@ -4164,9 +4161,66 @@ void param_delete(ParamHandle *handle)
 	MEM_freeN(phandle);
 }
 
+static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
+                       ParamKey *vkeys, float **co, float **uv,
+                       ParamBool *pin, ParamBool *select, float normal[3])
+{
+	int *boundary = BLI_array_alloca(boundary, nverts);
+	int i;
+
+	/* boundary vertex indexes */
+	for (i = 0; i < nverts; i++)
+		boundary[i] = i;
+
+	while (nverts > 2) {
+		float minangle = FLT_MAX;
+		int i, mini = 0;
+
+		/* find corner with smallest angle */
+		for (i = 0; i < nverts; i++) {
+			int v0 = boundary[(i + nverts - 1) % nverts];
+			int v1 = boundary[i];
+			int v2 = boundary[(i + 1) % nverts];
+			float angle = p_vec_angle(co[v0], co[v1], co[v2]);
+			float n[3];
+
+			normal_tri_v3(n, co[v0], co[v1], co[v2]);
+
+			if(normal && (dot_v3v3(n, normal) < 0.0f))
+				angle = 2.0f*M_PI - angle;
+
+			if (angle < minangle) {
+				minangle = angle;
+				mini = i;
+			}
+		}
+
+		/* add triangle in corner */
+		{
+			int v0 = boundary[(mini + nverts - 1) % nverts];
+			int v1 = boundary[mini];
+			int v2 = boundary[(mini + 1) % nverts];
+
+			ParamKey tri_vkeys[3] = {vkeys[v0], vkeys[v1], vkeys[v2]};
+			float *tri_co[3] = {co[v0], co[v1], co[v2]};
+			float *tri_uv[3] = {uv[v0], uv[v1], uv[v2]};
+			ParamBool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
+			ParamBool tri_select[3] = {select[v0], select[v1], select[v2]};
+
+			param_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select, NULL);
+		}
+
+		/* remove corner */
+		if(mini + 1 < nverts)
+			memmove(boundary + mini, boundary + mini + 1, (nverts - mini - 1)*sizeof(int));
+
+		nverts--;
+	}
+}
+
 void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
                     ParamKey *vkeys, float **co, float **uv,
-                    ParamBool *pin, ParamBool *select)
+                    ParamBool *pin, ParamBool *select, float normal[3])
 {
 	PHandle *phandle = (PHandle *)handle;
 
@@ -4174,7 +4228,12 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 	param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 	param_assert((nverts == 3) || (nverts == 4));
 
-	if (nverts == 4) {
+	if (nverts > 4) {
+		/* ngon */
+		p_add_ngon(handle, key, nverts, vkeys, co, uv, pin, select, normal);
+	}
+	else if (nverts == 4) {
+		/* quad */
 		if (p_quad_split_direction(phandle, co, vkeys)) {
 			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
 			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 2, 3, pin, select);
@@ -4185,6 +4244,7 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 		}
 	}
 	else if (!p_face_exists(phandle, vkeys, 0, 1, 2)) {
+		/* triangle */
 		p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
 	}
 }
