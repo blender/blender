@@ -181,7 +181,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	double a, b, c, disc, nray[3], npos[3];
 	double t0, t1 = 0.0f, t2= 0.0f, t3;
 	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f, haint;
-	int snijp, do_clip = TRUE, use_yco = FALSE;
+	int cuts, do_clip = TRUE, use_yco = FALSE;
 
 	*intens= 0.0f;
 	haint= lar->haint;
@@ -244,7 +244,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	b = nray[0] * npos[0] + nray[1] * npos[1] - nray[2]*npos[2];
 	c = npos[0] * npos[0] + npos[1] * npos[1] - npos[2]*npos[2];
 
-	snijp= 0;
+	cuts= 0;
 	if (fabs(a) < DBL_EPSILON) {
 		/*
 		 * Only one intersection point...
@@ -256,16 +256,16 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		
 		if (disc==0.0) {
 			t1=t2= (-b)/ a;
-			snijp= 2;
+			cuts= 2;
 		}
 		else if (disc > 0.0) {
 			disc = sqrt(disc);
 			t1 = (-b + disc) / a;
 			t2 = (-b - disc) / a;
-			snijp= 2;
+			cuts= 2;
 		}
 	}
-	if (snijp==2) {
+	if (cuts==2) {
 		int ok1=0, ok2=0;
 
 		/* sort */

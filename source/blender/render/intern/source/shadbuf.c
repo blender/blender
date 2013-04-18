@@ -1394,7 +1394,6 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 		}
 		
 		lambda = min_ff(lambda_x, lambda_y);
-		if (lambda==lambda_o || lambda>=1.0f) break;
 		
 		zf= zf1 + lambda*(zf2-zf1);
 		count+= (float)shb->totbuf;
@@ -1410,6 +1409,8 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 				lightcount+= readshadowbuf_halo(shb, shsample, x, y, z);
 			
 		}
+		/* break after sample, so it takes at least one */
+		if (lambda==lambda_o || lambda>=1.0f) break;
 	}
 	
 	if (count!=0.0f) return (lightcount/count);
