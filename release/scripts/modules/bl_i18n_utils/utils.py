@@ -68,7 +68,9 @@ def get_best_similar(data):
     for x in similar_pool:
         if min_len < len(x) < max_len:
             s.set_seq1(x)
-            if s.real_quick_ratio() >= use_similar and s.quick_ratio() >= use_similar:
+            # XXX quick_ratio() actually looks much slower (~400%) than ratio() itself!!!
+            #if s.real_quick_ratio() >= use_similar and s.quick_ratio() >= use_similar:
+            if s.real_quick_ratio() >= use_similar:
                 sratio = s.ratio()
                 if sratio >= use_similar:
                     tmp = x
@@ -123,8 +125,41 @@ def locale_match(loc1, loc2):
 
 
 def find_best_isocode_matches(uid, iso_codes):
+    """
+    Return an ordered tuple of elements in iso_codes that can match the given uid, from most similar to lesser ones.
+    """
     tmp = ((e, locale_match(e, uid)) for e in iso_codes)
     return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
+
+
+def get_po_files_from_dir(root_dir, langs=set())
+    """
+    Yield tuples (uid, po_path) of translations for each po file found in the given dir, which should be either
+    a dir containing po files using language uid's as names (e.g. fr.po, es_ES.po, etc.), or
+    a dir containing dirs which names are language uids, and containing po files of the same names.
+    """
+    found_uids = set()
+    for p in os.listdir(root_dir):
+        uid = po_file = None
+        if p.endswith(".po") and os.path.isfile(p):
+            uid = p[:-3]
+            if langs and uid not in langs:
+                continue
+            po_file = os.path.join(root_dir, p)
+        elif os.path.isdir(p):
+            uid = p
+            if langs and uid not in langs:
+                continue
+            po_file = os.path.join(root_dir, p, p + ".po")
+            if not os.path.isfile(po_file):
+                continue
+        else:
+            continue
+        if uid in found_uids:
+            printf("WARNING! {} id has been found more than once! only first one has been loaded!".format(uid))
+            continue
+        found_uids.add(uid)
+        yield uid, po_file
 
 
 def enable_addons(addons={}, support={}, disable=False, check_only=False):
@@ -1248,25 +1283,7 @@ class I18n:
                                                                         pot_file, pot_file, settings=self.settings)
             self.src_po[self.settings.PARSER_TEMPLATE_ID] = pot_file
 
-        for p in os.listdir(root_dir):
-            uid = po_file = None
-            if p.endswith(".po") and os.path.isfile(p):
-                uid = p[:-3]
-                if langs and uid not in langs:
-                    continue
-                po_file = os.path.join(root_dir, p)
-            elif os.path.isdir(p):
-                uid = p
-                if langs and uid not in langs:
-                    continue
-                po_file = os.path.join(root_dir, p, p + ".po")
-                if not os.path.isfile(po_file):
-                    continue
-            else:
-                continue
-            if uid in self.trans:
-                printf("WARNING! {} id has been found more than once! only first one has been loaded!".format(uid))
-                continue
+        for uid, po_file in get_po_files_from_dir(root_dir, langs):
             self.trans[uid] = I18nMessages(uid, 'PO', po_file, po_file, settings=self.settings)
             self.src_po[uid] = po_file
 
