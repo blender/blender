@@ -41,7 +41,7 @@ struct Scene;
 
 typedef struct BMBVHTree BMBVHTree;
 
-BMBVHTree      *BKE_bmbvh_new(struct BMEditMesh *em, int flag, struct Scene *scene);
+BMBVHTree      *BKE_bmbvh_new(struct BMEditMesh *em, int flag, float (*cos_cage)[3], const bool cos_cage_free);
 void            BKE_bmbvh_free(BMBVHTree *tree);
 struct BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree);
 struct BMFace  *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3],
@@ -54,10 +54,9 @@ struct BMVert  *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], 
 
 /* BKE_bmbvh_new flag parameter */
 enum {
-	BMBVH_USE_CAGE        = 1, /* project geometry onto modifier cage */
-	BMBVH_RETURN_ORIG     = 2, /* use with BMBVH_USE_CAGE, returns hits in relation to original geometry */
-	BMBVH_RESPECT_SELECT  = 4, /* restrict to hidden geometry (overrides BMBVH_RESPECT_HIDDEN) */
-	BMBVH_RESPECT_HIDDEN  = 8  /* omit hidden geometry */
+	BMBVH_RETURN_ORIG     = (1 << 0), /* use with 'cos_cage', returns hits in relation to original geometry */
+	BMBVH_RESPECT_SELECT  = (1 << 1), /* restrict to hidden geometry (overrides BMBVH_RESPECT_HIDDEN) */
+	BMBVH_RESPECT_HIDDEN  = (1 << 2)  /* omit hidden geometry */
 };
 
 #endif  /* __BKE_EDITMESH_BVH_H__ */

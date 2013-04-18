@@ -34,9 +34,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_bitmap.h"
+#include "BLI_kdopbvh.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
 
 #include "BKE_editmesh_bvh.h"  /* own include */
@@ -49,46 +48,29 @@ struct BMBVHTree {
 	BMesh *bm;
 
 	float (*cos_cage)[3];
+	bool cos_cage_free;
+
 	int flag;
 };
 
-struct CageUserData {
-	int totvert;
-	float (*cos_cage)[3];
-	BLI_bitmap vert_bitmap;
-};
-
-static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
-                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
-{
-	struct CageUserData *data = userData;
-
-	if ((index >= 0 && index < data->totvert) && (!BLI_BITMAP_GET(data->vert_bitmap, index))) {
-		BLI_BITMAP_SET(data->vert_bitmap, index);
-		copy_v3_v3(data->cos_cage[index], co);
-	}
-}
-
-BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
+BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, float (*cos_cage)[3], const bool cos_cage_free)
 {
 	/* could become argument */
 	const float epsilon = FLT_EPSILON * 2.0f;
 
 	struct BMLoop *(*looptris)[3] = em->looptris;
 	BMBVHTree *bmtree = MEM_callocN(sizeof(*bmtree), "BMBVHTree");
-	DerivedMesh *cage, *final;
-	float cos[3][3], (*cos_cage)[3] = NULL;
+	float cos[3][3];
 	int i;
 	int tottri;
 
 	/* BKE_editmesh_tessface_calc() must be called already */
 	BLI_assert(em->tottri != 0 || em->bm->totface == 0);
 
-	/* cage-flag needs scene */
-	BLI_assert(scene || !(flag & BMBVH_USE_CAGE));
-
 	bmtree->em = em;
 	bmtree->bm = em->bm;
+	bmtree->cos_cage = cos_cage;
+	bmtree->cos_cage_free = cos_cage_free;
 	bmtree->flag = flag;
 
 	if (flag & (BMBVH_RESPECT_SELECT)) {
@@ -112,29 +94,7 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 	}
 
 	bmtree->tree = BLI_bvhtree_new(tottri, epsilon, 8, 8);
-	
-	if (flag & BMBVH_USE_CAGE) {
-		BLI_bitmap vert_bitmap;
-		struct CageUserData data;
 
-		cage = editbmesh_get_derived_cage_and_final(scene, em->ob, em, &final, CD_MASK_DERIVEDMESH);
-		cos_cage = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cos_cage");
-		
-		/* when initializing cage verts, we only want the first cage coordinate for each vertex,
-		 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
-		vert_bitmap = BLI_BITMAP_NEW(em->bm->totvert, __func__);
-
-		data.totvert = em->bm->totvert;
-		data.cos_cage = cos_cage;
-		data.vert_bitmap = vert_bitmap;
-		
-		cage->foreachMappedVert(cage, cage_mapped_verts_callback, &data);
-
-		MEM_freeN(vert_bitmap);
-	}
-	
-	bmtree->cos_cage = cos_cage;
-	
 	for (i = 0; i < em->tottri; i++) {
 
 		if (flag & BMBVH_RESPECT_SELECT) {
@@ -150,7 +110,7 @@ BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, struct Scene *scene)
 			}
 		}
 
-		if (flag & BMBVH_USE_CAGE) {
+		if (cos_cage) {
 			copy_v3_v3(cos[0], cos_cage[BM_elem_index_get(looptris[i][0]->v)]);
 			copy_v3_v3(cos[1], cos_cage[BM_elem_index_get(looptris[i][1]->v)]);
 			copy_v3_v3(cos[2], cos_cage[BM_elem_index_get(looptris[i][2]->v)]);
@@ -173,8 +133,9 @@ void BKE_bmbvh_free(BMBVHTree *bmtree)
 {
 	BLI_bvhtree_free(bmtree->tree);
 	
-	if (bmtree->cos_cage)
+	if (bmtree->cos_cage && bmtree->cos_cage_free) {
 		MEM_freeN(bmtree->cos_cage);
+	}
 	
 	MEM_freeN(bmtree);
 }

@@ -1652,14 +1652,12 @@ static void statvis_calc_thickness(
 		}
 	}
 
-	(void)vertexCos;
-
 	BM_mesh_elem_index_ensure(bm, BM_FACE);
 	if (vertexCos) {
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
 	}
 
-	bmtree = BKE_bmbvh_new(em, 0, NULL);
+	bmtree = BKE_bmbvh_new(em, 0, vertexCos, false);
 
 	for (i = 0; i < tottri; i++) {
 		BMFace *f_hit;
@@ -1750,14 +1748,12 @@ static void statvis_calc_intersect(
 
 	memset(r_face_colors, 64, sizeof(int) * em->bm->totface);
 
-	(void)vertexCos;
-
 	BM_mesh_elem_index_ensure(bm, BM_FACE);
 	if (vertexCos) {
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
 	}
 
-	bmtree = BKE_bmbvh_new(em, 0, NULL);
+	bmtree = BKE_bmbvh_new(em, 0, vertexCos, false);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMFace *f_hit;
@@ -1838,4 +1834,56 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 			break;
 		}
 	}
+}
+
+
+
+/* -------------------------------------------------------------------- */
+/* Editmesh Vert Coords */
+
+#include "BLI_bitmap.h"
+struct CageUserData {
+	int totvert;
+	float (*cos_cage)[3];
+	BLI_bitmap visit_bitmap;
+};
+
+static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
+                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	struct CageUserData *data = userData;
+
+	if ((index >= 0 && index < data->totvert) && (!BLI_BITMAP_GET(data->visit_bitmap, index))) {
+		BLI_BITMAP_SET(data->visit_bitmap, index);
+		copy_v3_v3(data->cos_cage[index], co);
+	}
+}
+
+float (*BKE_editmesh_vertexCos_get(BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
+{
+	DerivedMesh *cage, *final;
+	BLI_bitmap visit_bitmap;
+	struct CageUserData data;
+	float (*cos_cage)[3];
+
+	cage = editbmesh_get_derived_cage_and_final(scene, em->ob, em, &final, CD_MASK_BAREMESH);
+	cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
+
+	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
+	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
+	visit_bitmap = BLI_BITMAP_NEW(em->bm->totvert, __func__);
+
+	data.totvert = em->bm->totvert;
+	data.cos_cage = cos_cage;
+	data.visit_bitmap = visit_bitmap;
+
+	cage->foreachMappedVert(cage, cage_mapped_verts_callback, &data);
+
+	MEM_freeN(visit_bitmap);
+
+	if (r_numVerts) {
+		*r_numVerts = em->bm->totvert;
+	}
+
+	return cos_cage;
 }

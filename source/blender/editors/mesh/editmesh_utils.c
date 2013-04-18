@@ -1166,7 +1166,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
 	}
 	else {
-		tree = BKE_bmbvh_new(em, 0, NULL);
+		tree = BKE_bmbvh_new(em, 0, NULL, false);
 	}
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -1378,6 +1378,8 @@ int EDBM_view3d_poll(bContext *C)
 
 	return 0;
 }
+
+
 
 /* -------------------------------------------------------------------- */
 /* BMBVH functions */

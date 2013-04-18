@@ -5176,7 +5176,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
 
 	if (use_btree_disp) {
-		btree = BKE_bmbvh_new(em, BMBVH_RESPECT_HIDDEN, NULL);
+		btree = BKE_bmbvh_new(em, BMBVH_RESPECT_HIDDEN, NULL, false);
 	}
 	else {
 		btree = NULL;
