@@ -2051,16 +2051,16 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "thickness_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "thickness_min");
 	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 100.0);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0, 0.001, 3);
+	RNA_def_property_range(prop, 0.0f, 1000.0);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Thickness Min", "Minimum for measuring thickness");
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "thickness_max", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "thickness_max");
 	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 100.0);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0, 0.001, 3);
+	RNA_def_property_range(prop, 0.0f, 1000.0);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Thickness Max", "Maximum for measuring thickness");
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 

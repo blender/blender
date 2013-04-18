@@ -45,6 +45,7 @@
 
 #include "BLI_math.h"
 #include "BLI_jitter.h"
+#include "BLI_bitmap.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -1622,7 +1623,7 @@ static void statvis_calc_thickness(
         /* result */
         unsigned char (*r_face_colors)[4])
 {
-	const float eps_offset = FLT_EPSILON * 10.0f;
+	const float eps_offset = 0.00001f;
 	float *face_dists = (float *)r_face_colors;  /* cheating */
 	const bool use_jit = samples < 32;
 	float jit_ofs[32][2];
@@ -1984,7 +1985,6 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 /* -------------------------------------------------------------------- */
 /* Editmesh Vert Coords */
 
-#include "BLI_bitmap.h"
 struct CageUserData {
 	int totvert;
 	float (*cos_cage)[3];
