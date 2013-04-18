@@ -946,6 +946,9 @@ typedef struct MeshStatVis {
 	float thickness_min, thickness_max;
 	char thickness_samples;
 	char _pad2[3];
+
+	/* distort */
+	float distort_min, distort_max;
 } MeshStatVis;
 
 
@@ -1466,6 +1469,7 @@ typedef struct Scene {
 #define SCE_STATVIS_OVERHANG	0
 #define SCE_STATVIS_THICKNESS	1
 #define SCE_STATVIS_INTERSECT	2
+#define SCE_STATVIS_DISTORT		3
 
 /* toolsettings->particle.selectmode for particles */
 #define SCE_SELECT_PATH		1

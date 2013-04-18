@@ -9356,6 +9356,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 					statvis->thickness_max = 0.1f;
 					statvis->thickness_samples = 1;
+
+					statvis->distort_min = DEG2RADF(5.0f);
+					statvis->distort_max = DEG2RADF(45.0f);
 				}
 			}
 

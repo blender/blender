@@ -2643,6 +2643,10 @@ class VIEW3D_PT_view3d_meshstatvis(Panel):
             layout.prop(statvis, "thickness_samples")
         elif statvis_type == 'INTERSECT':
             pass
+        elif statvis_type == 'DISTORT':
+            row = layout.row(align=True)
+            row.prop(statvis, "distort_min", text="")
+            row.prop(statvis, "distort_max", text="")
 
 
 class VIEW3D_PT_view3d_curvedisplay(Panel):

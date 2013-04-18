@@ -1556,7 +1556,7 @@ static void axis_from_enum_v3(float v[3], const char axis)
 
 static void statvis_calc_overhang(
         BMEditMesh *em,
-        float (*polyNos)[3],
+        const float (*polyNos)[3],
         /* values for calculating */
         const float min, const float max, const char axis,
         /* result */
@@ -1616,7 +1616,7 @@ static void uv_from_jitter_v2(float uv[2])
 
 static void statvis_calc_thickness(
         BMEditMesh *em,
-        float (*vertexCos)[3],
+        const float (*vertexCos)[3],
         /* values for calculating */
         const float min, const float max, const int samples,
         /* result */
@@ -1732,7 +1732,7 @@ static void statvis_calc_thickness(
 
 static void statvis_calc_intersect(
         BMEditMesh *em,
-        float (*vertexCos)[3],
+        const float (*vertexCos)[3],
         /* result */
         unsigned char (*r_face_colors)[4])
 {
@@ -1797,6 +1797,72 @@ static void statvis_calc_intersect(
 	BKE_bmbvh_free(bmtree);
 }
 
+static void statvis_calc_distort(
+        BMEditMesh *em,
+        const float (*vertexCos)[3],
+        /* values for calculating */
+        const float min, const float max,
+        /* result */
+        unsigned char (*r_face_colors)[4])
+{
+	BMIter iter;
+	BMesh *bm = em->bm;
+	BMFace *f;
+	float f_no[3];
+	int index;
+	const float minmax_irange = 1.0f / (max - min);
+
+	/* fallback */
+	const char col_fallback[4] = {64, 64, 64, 255};
+
+	/* now convert into global space */
+	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, index) {
+		float fac;
+
+		if (f->len == 3) {
+			fac = -1.0f;
+		}
+		else {
+			BMLoop *l_iter, *l_first;
+			if (vertexCos) {
+				BM_face_normal_update_vcos(bm, f, f_no, vertexCos);
+			}
+			else {
+				copy_v3_v3(f_no, f->no);
+			}
+
+			fac = 0.0f;
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				float no_corner[3];
+				if (vertexCos) {
+					normal_tri_v3(no_corner,
+					              vertexCos[BM_elem_index_get(l_iter->prev->v)],
+					              vertexCos[BM_elem_index_get(l_iter->v)],
+					              vertexCos[BM_elem_index_get(l_iter->next->v)]);
+				}
+				else {
+					BM_loop_calc_face_normal(l_iter, no_corner);
+				}
+				fac = max_ff(fac, angle_normalized_v3v3(f_no, no_corner));
+			} while ((l_iter = l_iter->next) != l_first);
+			fac /= (float)M_1_PI;
+		}
+
+		/* remap */
+		if (fac >= min) {
+			float fcol[3];
+			fac = (fac - min) * minmax_irange;
+			CLAMP(fac, 0.0f, 1.0f);
+			weight_to_rgb(fcol, fac);
+			rgb_float_to_uchar(r_face_colors[index], fcol);
+		}
+		else {
+			copy_v4_v4_char((char *)r_face_colors[index], (const char *)col_fallback);
+		}
+	}
+}
+
 void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
                                MeshStatVis *statvis,
                                unsigned char (*r_face_colors)[4])
@@ -1808,7 +1874,7 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 		case SCE_STATVIS_OVERHANG:
 		{
 			statvis_calc_overhang(
-			            em, bmdm ? bmdm->polyNos : NULL,
+			            em, bmdm ? (const float (*)[3])bmdm->polyNos : NULL,
 			            statvis->overhang_min / (float)M_PI,
 			            statvis->overhang_max / (float)M_PI,
 			            statvis->overhang_axis,
@@ -1819,7 +1885,7 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 		{
 			const float scale = 1.0f / mat4_to_scale(em->ob->obmat);
 			statvis_calc_thickness(
-			            em, bmdm ? bmdm->vertexCos : NULL,
+			            em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
 			            statvis->thickness_min * scale,
 			            statvis->thickness_max * scale,
 			            statvis->thickness_samples,
@@ -1829,8 +1895,17 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 		case SCE_STATVIS_INTERSECT:
 		{
 			statvis_calc_intersect(
-			            em, bmdm ? bmdm->vertexCos : NULL,
+			            em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
 			            r_face_colors);
+			break;
+		}
+		case SCE_STATVIS_DISTORT:
+		{
+			statvis_calc_distort(
+			        em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
+			        statvis->distort_min / (float)M_PI,
+			        statvis->distort_max / (float)M_PI,
+			        r_face_colors);
 			break;
 		}
 	}

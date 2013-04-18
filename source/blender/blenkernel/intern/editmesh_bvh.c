@@ -47,13 +47,13 @@ struct BMBVHTree {
 	BMEditMesh *em;
 	BMesh *bm;
 
-	float (*cos_cage)[3];
+	const float (*cos_cage)[3];
 	bool cos_cage_free;
 
 	int flag;
 };
 
-BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, float (*cos_cage)[3], const bool cos_cage_free)
+BMBVHTree *BKE_bmbvh_new(BMEditMesh *em, int flag, const float (*cos_cage)[3], const bool cos_cage_free)
 {
 	/* could become argument */
 	const float epsilon = FLT_EPSILON * 2.0f;

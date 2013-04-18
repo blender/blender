@@ -525,6 +525,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->toolsettings->statvis.overhang_max = DEG2RADF(45.0f);
 	sce->toolsettings->statvis.thickness_max = 0.1f;
 	sce->toolsettings->statvis.thickness_samples = 1;
+	sce->toolsettings->statvis.distort_min = DEG2RADF(5.0f);
+	sce->toolsettings->statvis.distort_max = DEG2RADF(45.0f);
 
 	sce->toolsettings->proportional_size = 1.0f;
 

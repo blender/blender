@@ -209,7 +209,7 @@ typedef struct KnifeTool_OpData {
 		ANGLE_135
 	} angle_snapping;
 
-	float (*cagecos)[3];
+	const float (*cagecos)[3];
 } KnifeTool_OpData;
 
 static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, BMFace *f);
@@ -327,7 +327,7 @@ static BMFace *knife_find_common_face(ListBase *faces1, ListBase *faces2)
 	return NULL;
 }
 
-static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], float *cageco)
+static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], const float cageco[3])
 {
 	KnifeVert *kfv = BLI_mempool_calloc(kcd->kverts);
 
@@ -2987,7 +2987,7 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 
 	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
-	kcd->cagecos = BKE_editmesh_vertexCos_get(kcd->em, scene, NULL);
+	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(kcd->em, scene, NULL);
 
 	kcd->bmbvh = BKE_bmbvh_new(kcd->em,
 	                          BMBVH_RETURN_ORIG |
