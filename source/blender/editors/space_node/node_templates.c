@@ -246,9 +246,11 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 						nodeRemLink(ntree, link);
 					}
 
-					if (sock_from->default_value)
+					if (sock_from->default_value) {
 						MEM_freeN(sock_from->default_value);
-					node_socket_copy_default_value(sock_from->default_value, sock_prev->default_value);
+						sock_from->default_value = NULL;
+					}
+					node_socket_copy_default_value(sock_from, sock_prev);
 				}
 			}
 		}
@@ -313,8 +315,8 @@ static void ui_node_link_items(NodeLinkArg *arg, int in_out, NodeLinkItem **r_it
 				ListBase *lb = (in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
 				bNodeSocket *stemp;
 				int index;
-				for (stemp = lb->first, index = 0; stemp; stemp = stemp->next, ++index) {
-					NodeLinkItem *item = &items[i++];
+				for (stemp = lb->first, index = 0; stemp; stemp = stemp->next, ++index, ++i) {
+					NodeLinkItem *item = &items[i];
 					
 					item->socket_index = index;
 					/* note: int stemp->type is not fully reliable, not used for node group
@@ -340,8 +342,8 @@ static void ui_node_link_items(NodeLinkArg *arg, int in_out, NodeLinkItem **r_it
 			items = MEM_callocN(sizeof(NodeLinkItem) * totitems, "ui node link items");
 			
 			i = 0;
-			for (stemp = socket_templates; stemp && stemp->type != -1; ++stemp) {
-				NodeLinkItem *item = &items[i++];
+			for (stemp = socket_templates; stemp && stemp->type != -1; ++stemp, ++i) {
+				NodeLinkItem *item = &items[i];
 				
 				item->socket_index = i;
 				item->socket_type = stemp->type;
