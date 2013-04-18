@@ -209,8 +209,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 		if (!(node_from->inputs.first == NULL && !(node_from->typeinfo->flag & NODE_OPTIONS)))
 			node_from = NULL;
 
-	if (node_prev && node_prev->type == type && node_link_item_compare(node_prev, item))
-	{
+	if (node_prev && node_prev->type == type && node_link_item_compare(node_prev, item)) {
 		/* keep the previous node if it's the same type */
 		node_from = node_prev;
 	}
@@ -303,7 +302,7 @@ static void ui_node_link_items(NodeLinkArg *arg, int in_out, NodeLinkItem **r_it
 		int i;
 		
 		for (ngroup = arg->bmain->nodetree.first; ngroup; ngroup = ngroup->id.next) {
-			ListBase *lb = (in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
+			ListBase *lb = ((in_out == SOCK_IN) ? &ngroup->inputs : &ngroup->outputs);
 			totitems += BLI_countlist(lb);
 		}
 		

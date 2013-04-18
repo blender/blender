@@ -7058,11 +7058,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* not for sets, duplicators or picking */
 	if (dflag == 0 && (v3d->flag & V3D_HIDE_HELPLINES) == 0 && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		ListBase *list;
-		RigidBodyCon *rbc = ob ? ob->rigidbody_constraint : NULL;
+		RigidBodyCon *rbc = ob->rigidbody_constraint;
 		
 		/* draw hook center and offset line */
-		if (ob != scene->obedit) draw_hooks(ob);
-		
+		if (ob != scene->obedit)
+			draw_hooks(ob);
+
 		/* help lines and so */
 		if (ob != scene->obedit && ob->parent && (ob->parent->lay & v3d->lay)) {
 			setlinestyle(3);

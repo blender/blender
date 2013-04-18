@@ -2939,7 +2939,7 @@ static void knifetool_exit_ex(bContext *C, KnifeTool_OpData *kcd)
 	ED_region_tag_redraw(kcd->ar);
 
 	if (kcd->cagecos)
-		MEM_freeN(kcd->cagecos);
+		MEM_freeN((void *)kcd->cagecos);
 
 	if (kcd->linehits)
 		MEM_freeN(kcd->linehits);
