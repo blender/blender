@@ -803,12 +803,6 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						negate_v3_v3(ruler_item->co[0], rv3d->ofs);
 						view3d_ruler_item_project(ruler_info, ruler_item->co[0], event->mval);
 
-						/* snap the first point added, not essential but handy */
-						{
-							ruler_item->co_index = 0;
-							view3d_ruler_item_mousemove(C, ruler_info, event->mval, event->shift != 0, true);
-						}
-
 						copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
 						ruler_item->co_index = 2;
 
