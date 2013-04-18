@@ -9359,6 +9359,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 					statvis->distort_min = DEG2RADF(5.0f);
 					statvis->distort_max = DEG2RADF(45.0f);
+
+					statvis->sharp_min = DEG2RADF(90.0f);
+					statvis->sharp_max = DEG2RADF(180.0f);
 				}
 			}
 

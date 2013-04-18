@@ -129,6 +129,15 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
+static void rna_Mesh_update_statvis(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	rna_Mesh_update_data(bmain, scene, ptr);
+	if (me->edit_btmesh) {
+		BKE_editmesh_color_free(me->edit_btmesh);
+	}
+}
+
 static void rna_Mesh_update_select(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
@@ -2957,7 +2966,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_statvis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_STATVIS);
 	RNA_def_property_ui_text(prop, "Stat Vis", "Display statistical information about the mesh");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_statvis");
 
 	prop = RNA_def_property(srna, "show_extra_edge_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGELEN);

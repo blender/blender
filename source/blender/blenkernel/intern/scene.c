@@ -528,6 +528,9 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->toolsettings->statvis.distort_min = DEG2RADF(5.0f);
 	sce->toolsettings->statvis.distort_max = DEG2RADF(45.0f);
 
+	sce->toolsettings->statvis.sharp_min = DEG2RADF(90.0f);
+	sce->toolsettings->statvis.sharp_max = DEG2RADF(180.0f);
+
 	sce->toolsettings->proportional_size = 1.0f;
 
 	sce->physics_settings.gravity[0] = 0.0f;

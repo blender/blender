@@ -2647,6 +2647,10 @@ class VIEW3D_PT_view3d_meshstatvis(Panel):
             row = layout.row(align=True)
             row.prop(statvis, "distort_min", text="")
             row.prop(statvis, "distort_max", text="")
+        elif statvis_type == 'SHARP':
+            row = layout.row(align=True)
+            row.prop(statvis, "sharp_min", text="")
+            row.prop(statvis, "sharp_max", text="")
 
 
 class VIEW3D_PT_view3d_curvedisplay(Panel):

@@ -53,6 +53,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
+#include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
@@ -1204,22 +1205,8 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	int i;
 
 	if (em) {
-
-		/* no need to store both */
-		if (em->derivedFaceColor) {
-			MEM_freeN(em->derivedFaceColor);
-			em->derivedFaceColor = NULL;
-			em->derivedFaceColorLen = 0;
-		}
-
-		if (em->derivedVertColor && em->derivedVertColorLen == numVerts) {
-			wtcol_v = em->derivedVertColor;
-		}
-		else {
-			if (em->derivedVertColor) MEM_freeN(em->derivedVertColor);
-			wtcol_v = em->derivedVertColor = MEM_mallocN(sizeof(*wtcol_v) * numVerts, __func__);
-			em->derivedVertColorLen = numVerts;
-		}
+		BKE_editmesh_color_ensure(em, BM_VERT);
+		wtcol_v = em->derivedVertColor;
 	}
 	else {
 		wtcol_v = MEM_mallocN(sizeof(*wtcol_v) * numVerts, __func__);
@@ -1294,26 +1281,8 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 static void DM_update_statvis_color(Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	int numFaces = em->bm->totface;
-	unsigned char (*wtcol_f)[4];
 
-	/* no need to store both */
-	if (em->derivedVertColor) {
-		MEM_freeN(em->derivedVertColor);
-		em->derivedVertColor = NULL;
-		em->derivedVertColorLen = 0;
-	}
-
-	if (em->derivedFaceColor && em->derivedFaceColorLen == numFaces) {
-		wtcol_f = em->derivedFaceColor;
-	}
-	else {
-		if (em->derivedFaceColor) MEM_freeN(em->derivedFaceColor);
-		wtcol_f = em->derivedFaceColor = MEM_mallocN(sizeof(*wtcol_f) * numFaces, __func__);
-		em->derivedFaceColorLen = numFaces;
-	}
-
-	BKE_editmesh_statvis_calc(em, dm, &scene->toolsettings->statvis, wtcol_f);
+	BKE_editmesh_statvis_calc(em, dm, &scene->toolsettings->statvis);
 }
 
 static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid)

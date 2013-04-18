@@ -323,8 +323,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	const int skip_normals = !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
 
 	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
-	unsigned char(*color_vert_array)[4] = (((Mesh *)em->ob->data)->drawflag & ME_DRAWEIGHT)    ?  em->derivedVertColor : NULL;
-	unsigned char(*color_face_array)[4] = (((Mesh *)em->ob->data)->drawflag & ME_DRAW_STATVIS) ?  em->derivedFaceColor : NULL;
+	unsigned char(*color_vert_array)[4] = em->derivedVertColor;
+	unsigned char(*color_face_array)[4] = em->derivedFaceColor;
 	bool has_vcol_preview = (color_vert_array != NULL) && !skip_normals;
 	bool has_fcol_preview = (color_face_array != NULL) && !skip_normals;
 	bool has_vcol_any = has_vcol_preview;
@@ -573,7 +573,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	const int cd_loop_uv_offset    = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
 	const int cd_poly_tex_offset   = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
-	unsigned char(*color_vert_array)[4] = (((Mesh *)em->ob->data)->drawflag & ME_DRAWEIGHT) ?  em->derivedVertColor : NULL;
+	unsigned char(*color_vert_array)[4] = em->derivedVertColor;
 	bool has_uv   = (cd_loop_uv_offset    != -1);
 	bool has_vcol_preview = (color_vert_array != NULL);
 	bool has_vcol = (cd_loop_color_offset != -1) && (has_vcol_preview == false);
@@ -1709,6 +1709,8 @@ static void statvis_calc_thickness(
 		}
 	}
 
+	BKE_bmbvh_free(bmtree);
+
 	/* convert floats into color! */
 	for (i = 0; i < bm->totface; i++) {
 		float fac = face_dists[i];
@@ -1726,8 +1728,6 @@ static void statvis_calc_thickness(
 			copy_v4_v4_char((char *)r_face_colors[i], (const char *)col_fallback);
 		}
 	}
-
-	BKE_bmbvh_free(bmtree);
 }
 
 static void statvis_calc_intersect(
@@ -1867,9 +1867,58 @@ static void statvis_calc_distort(
 	}
 }
 
+static void statvis_calc_sharp(
+        BMEditMesh *em,
+        const float (*vertexCos)[3],
+        /* values for calculating */
+        const float min, const float max,
+        /* result */
+        unsigned char (*r_vert_colors)[4])
+{
+	float *vert_angles = (float *)r_vert_colors;  /* cheating */
+	BMIter iter;
+	BMesh *bm = em->bm;
+	BMEdge *e;
+	//float f_no[3];
+	const float minmax_irange = 1.0f / (max - min);
+	int i;
+
+	/* fallback */
+	const char col_fallback[4] = {64, 64, 64, 255};
+
+	(void)vertexCos;  /* TODO */
+
+	fill_vn_fl(vert_angles, em->bm->totvert, -M_PI);
+
+	/* first assign float values to verts */
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		float angle = BM_edge_calc_face_angle_signed(e);
+		float *col1 = &vert_angles[BM_elem_index_get(e->v1)];
+		float *col2 = &vert_angles[BM_elem_index_get(e->v2)];
+		*col1 = max_ff(*col1, angle);
+		*col2 = max_ff(*col2, angle);
+	}
+
+	/* convert floats into color! */
+	for (i = 0; i < bm->totvert; i++) {
+		float fac = vert_angles[i];
+
+		/* important not '<=' */
+		if (fac > min) {
+			float fcol[3];
+			fac = (fac - min) * minmax_irange;
+			CLAMP(fac, 0.0f, 1.0f);
+			weight_to_rgb(fcol, fac);
+			rgb_float_to_uchar(r_vert_colors[i], fcol);
+		}
+		else {
+			copy_v4_v4_char((char *)r_vert_colors[i], (const char *)col_fallback);
+		}
+	}
+}
+
 void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
-                               MeshStatVis *statvis,
-                               unsigned char (*r_face_colors)[4])
+                               MeshStatVis *statvis)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BLI_assert(dm == NULL || dm->type == DM_TYPE_EDITBMESH);
@@ -1877,39 +1926,54 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 	switch (statvis->type) {
 		case SCE_STATVIS_OVERHANG:
 		{
+			BKE_editmesh_color_ensure(em, BM_FACE);
 			statvis_calc_overhang(
 			            em, bmdm ? (const float (*)[3])bmdm->polyNos : NULL,
 			            statvis->overhang_min / (float)M_PI,
 			            statvis->overhang_max / (float)M_PI,
 			            statvis->overhang_axis,
-			            r_face_colors);
+			            em->derivedFaceColor);
 			break;
 		}
 		case SCE_STATVIS_THICKNESS:
 		{
 			const float scale = 1.0f / mat4_to_scale(em->ob->obmat);
+			BKE_editmesh_color_ensure(em, BM_FACE);
 			statvis_calc_thickness(
 			            em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
 			            statvis->thickness_min * scale,
 			            statvis->thickness_max * scale,
 			            statvis->thickness_samples,
-			            r_face_colors);
+			            em->derivedFaceColor);
 			break;
 		}
 		case SCE_STATVIS_INTERSECT:
 		{
+			BKE_editmesh_color_ensure(em, BM_FACE);
 			statvis_calc_intersect(
 			            em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
-			            r_face_colors);
+			            em->derivedFaceColor);
 			break;
 		}
 		case SCE_STATVIS_DISTORT:
 		{
+			BKE_editmesh_color_ensure(em, BM_FACE);
 			statvis_calc_distort(
 			        em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
 			        statvis->distort_min,
 			        statvis->distort_max,
-			        r_face_colors);
+			        em->derivedFaceColor);
+			break;
+		}
+		case SCE_STATVIS_SHARP:
+		{
+			BKE_editmesh_color_ensure(em, BM_VERT);
+			statvis_calc_sharp(
+			        em, bmdm ? (const float (*)[3])bmdm->vertexCos : NULL,
+			        statvis->sharp_min,
+			        statvis->sharp_max,
+			        /* in this case they are vertex colors */
+			        em->derivedVertColor);
 			break;
 		}
 	}

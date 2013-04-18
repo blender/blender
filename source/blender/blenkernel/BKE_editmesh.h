@@ -96,11 +96,13 @@ BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
 void        BKE_editmesh_free(BMEditMesh *em);
 void        BKE_editmesh_update_linked_customdata(BMEditMesh *em);
 
+void        BKE_editmesh_color_free(BMEditMesh *em);
+void        BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
+
 /* editderivedmesh.c */
 /* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */
 void        BKE_editmesh_statvis_calc(BMEditMesh *em, struct DerivedMesh *dm,
-                                      struct MeshStatVis *statvis,
-                                      unsigned char (*r_face_colors)[4]);
+                                      struct MeshStatVis *statvis);
 
 float (*BKE_editmesh_vertexCos_get(struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
 
