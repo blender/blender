@@ -602,6 +602,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 			collada_meshtype == COLLADAFW::MeshPrimitive::POLYGONS ||
 			collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLES) {
 			COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
+			unsigned int start_index = 0;
+
 			for (unsigned int j = 0; j < prim_totpoly; j++) {
 				
 				// Vertices in polygon:
@@ -615,7 +617,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 					// get mtface by face index and uv set index
 					MLoopUV  *mloopuv = (MLoopUV  *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uvset_index);
 
-					set_face_uv(mloopuv+loop_index, uvs, loop_index, *index_list_array[l], vcount);
+					set_face_uv(mloopuv+loop_index, uvs, start_index, *index_list_array[l], vcount);
 				}
 
 				if (mp_has_normals) {
@@ -626,6 +628,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 				mpoly++;
 				mloop += vcount;
 				loop_index += vcount;
+				start_index += vcount;
 				prim.totpoly++;
 
 				if (mp_has_normals)
