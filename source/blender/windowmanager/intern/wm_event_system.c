@@ -1370,9 +1370,10 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmi->oskey != KM_ANY)
 		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
 	
-	if (kmi->keymodifier)
+	/* key modifiers always check when event has it */
+	/* otherwise regular keypresses with keymodifier still work */
+	if (winevent->keymodifier || kmi->keymodifier)
 		if (winevent->keymodifier != kmi->keymodifier) return 0;
-		
 	
 	return 1;
 }
