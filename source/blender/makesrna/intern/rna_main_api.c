@@ -198,7 +198,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 	id_us_min(&ob->id);
 
 	ob->data = data;
-	test_object_materials(ob->data);
+	test_object_materials(bmain, ob->data);
 	
 	return ob;
 }
@@ -465,7 +465,7 @@ Mesh *rna_Main_meshes_new_from_object(
 	}
 
 	/* make sure materials get updated in objects */
-	test_object_materials(&tmpmesh->id);
+	test_object_materials(bmain, &tmpmesh->id);
 
 	return tmpmesh;
 }

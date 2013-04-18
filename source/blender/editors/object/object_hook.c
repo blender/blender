@@ -438,12 +438,12 @@ static int hook_op_edit_poll(bContext *C)
 	return 0;
 }
 
-static Object *add_hook_object_new(Scene *scene, Object *obedit)
+static Object *add_hook_object_new(Main *bmain, Scene *scene, Object *obedit)
 {
 	Base *base, *basedit;
 	Object *ob;
 
-	ob = BKE_object_add(scene, OB_EMPTY);
+	ob = BKE_object_add(bmain, scene, OB_EMPTY);
 	
 	basedit = BKE_scene_base_find(scene, obedit);
 	base = BKE_scene_base_find(scene, ob);
@@ -473,7 +473,7 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 
 	if (mode == OBJECT_ADDHOOK_NEWOB && !ob) {
 		
-		ob = add_hook_object_new(scene, obedit);
+		ob = add_hook_object_new(bmain, scene, obedit);
 		
 		/* transform cent to global coords for loc */
 		mul_v3_m4v3(ob->loc, obedit->obmat, cent);

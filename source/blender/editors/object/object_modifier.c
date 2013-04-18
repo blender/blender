@@ -464,7 +464,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = BKE_object_add(scene, OB_MESH);
+	obn = BKE_object_add(bmain, scene, OB_MESH);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -1721,8 +1721,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 	}
 }
 
-static Object *modifier_skin_armature_create(struct Scene *scene,
-                                             Object *skin_ob)
+static Object *modifier_skin_armature_create(Main *bmain, Scene *scene, Object *skin_ob)
 {
 	BLI_bitmap edges_visited;
 	DerivedMesh *deform_dm;
@@ -1745,7 +1744,7 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 	                     NULL,
 	                     me->totvert);
 	
-	arm_ob = BKE_object_add(scene, OB_ARMATURE);
+	arm_ob = BKE_object_add(bmain, scene, OB_ARMATURE);
 	BKE_object_transform_copy(arm_ob, skin_ob);
 	arm = arm_ob->data;
 	arm->layer = 1;
@@ -1815,7 +1814,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 	}
 
 	/* create new armature */
-	arm_ob = modifier_skin_armature_create(scene, ob);
+	arm_ob = modifier_skin_armature_create(bmain, scene, ob);
 
 	/* add a modifier to connect the new armature to the mesh */
 	arm_md = (ArmatureModifierData *)modifier_new(eModifierType_Armature);

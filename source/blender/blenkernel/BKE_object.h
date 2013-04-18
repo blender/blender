@@ -81,8 +81,8 @@ bool BKE_object_exists_check(struct Object *obtest);
 bool BKE_object_is_in_editmode(struct Object *ob);
 
 struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name);
-struct Object *BKE_object_add(struct Scene *scene, int type);
-void *BKE_object_obdata_add_from_type(int type);
+struct Object *BKE_object_add(struct Main *bmain, struct Scene *scene, int type);
+void *BKE_object_obdata_add_from_type(struct Main *bmain, int type);
 
 struct Object *BKE_object_copy_ex(struct Main *bmain, struct Object *ob, int copy_caches);
 struct Object *BKE_object_copy(struct Object *ob);

@@ -181,6 +181,7 @@ EnumPropertyItem object_axis_items[] = {
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
@@ -396,7 +397,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		}
 
 		ob->data = id;
-		test_object_materials(id);
+		test_object_materials(G.main, id);
 
 		if (GS(id->name) == ID_CU)
 			BKE_curve_type_test(ob);

@@ -1058,7 +1058,7 @@ static void threaded_tile_processor(Render *re)
 
 #ifdef WITH_FREESTYLE
 static void add_freestyle(Render *re);
-static void free_all_freestyle_renders(Scene *scene);
+static void free_all_freestyle_renders(void);
 #endif
 
 /* currently only called by preview renders and envmap */
@@ -1075,7 +1075,7 @@ void RE_TileProcessor(Render *re)
 		if (!re->test_break(re->tbh)) {
 			add_freestyle(re);
 	
-			free_all_freestyle_renders(re->scene);
+			free_all_freestyle_renders();
 			
 			re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
 			re->stats_draw(re->sdh, &re->i);
@@ -1653,7 +1653,7 @@ static void composite_freestyle_renders(Render *re, int sample)
 }
 
 /* releases temporary scenes and renders for Freestyle stroke rendering */
-static void free_all_freestyle_renders(Scene *scene)
+static void free_all_freestyle_renders(void)
 {
 	Render *re1, *freestyle_render;
 	LinkData *link;
@@ -1662,7 +1662,6 @@ static void free_all_freestyle_renders(Scene *scene)
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			if (link->data) {
 				freestyle_render = (Render *)link->data;
-				BKE_scene_unlink(G.main, freestyle_render->scene, scene);
 				RE_FreeRender(freestyle_render);
 			}
 		}
@@ -1918,7 +1917,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	}
 
 #ifdef WITH_FREESTYLE
-	free_all_freestyle_renders(re->scene);
+	free_all_freestyle_renders();
 #endif
 
 	/* weak... the display callback wants an active renderlayer pointer... */

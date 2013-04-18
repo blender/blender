@@ -841,7 +841,7 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 		id_us_plus((ID *)me);
 	}
 	
-	test_object_materials((ID *)me);
+	test_object_materials(G.main, (ID *)me);
 
 	test_object_modifiers(ob);
 }

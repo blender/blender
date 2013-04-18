@@ -83,11 +83,11 @@ public:
 		int status = BPY_filepath_exec(_context, fn, reports);
 #else
 		int status;
-		Text *text = BKE_text_load(G.main, fn, G.main->name);
+		Text *text = BKE_text_load(&_freestyle_bmain, fn, G.main->name);
 		if (text) {
 			status = BPY_text_exec(_context, text, reports, false);
-			BKE_text_unlink(G.main, text);
-			BKE_libblock_free(&G.main->text, text);
+			BKE_text_unlink(&_freestyle_bmain, text);
+			BKE_libblock_free(&_freestyle_bmain.text, text);
 		}
 		else {
 			BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
@@ -151,6 +151,7 @@ public:
 
 private:
 	bContext *_context;
+	Main _freestyle_bmain;
 
 	void initPath()
 	{
@@ -160,7 +161,7 @@ private:
 		vector<string> pathnames;
 		StringUtils::getPathName(_path, "", pathnames);
 
-		struct Text *text = BKE_text_add(G.main, "tmp_freestyle_initpath.txt");
+		struct Text *text = BKE_text_add(&_freestyle_bmain, "tmp_freestyle_initpath.txt");
 		string cmd = "import sys\n";
 		txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
 
@@ -177,8 +178,8 @@ private:
 		BPY_text_exec(_context, text, NULL, false);
 
 		// cleaning up
-		BKE_text_unlink(G.main, text);
-		BKE_libblock_free(&G.main->text, text);
+		BKE_text_unlink(&_freestyle_bmain, text);
+		BKE_libblock_free(&_freestyle_bmain.text, text);
 
 		//PyRun_SimpleString("from Freestyle import *");
 		_initialized = true;

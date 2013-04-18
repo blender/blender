@@ -376,7 +376,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 
 	/* deselects all, sets scene->basact */
-	ob = BKE_object_add(scene, type);
+	ob = BKE_object_add(bmain, scene, type);
 	BASACT->lay = ob->lay = layer;
 	/* editor level activate, notifiers */
 	ED_base_object_activate(C, BASACT);

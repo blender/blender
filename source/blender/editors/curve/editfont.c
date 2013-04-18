@@ -56,6 +56,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
@@ -439,6 +440,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 
 static void txt_add_object(bContext *C, TextLine *firstline, int totline, float offset[3])
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Curve *cu;
 	Object *obedit;
@@ -447,7 +449,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	int nchars = 0, a;
 	float rot[3] = {0.f, 0.f, 0.f};
 	
-	obedit = BKE_object_add(scene, OB_FONT);
+	obedit = BKE_object_add(bmain, scene, OB_FONT);
 	base = scene->basact;
 
 	/* seems to assume view align ? TODO - look into this, could be an operator option */

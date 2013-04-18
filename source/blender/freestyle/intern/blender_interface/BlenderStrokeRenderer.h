@@ -32,6 +32,8 @@ extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_main.h"
+
 #include "render_types.h"
 }
 
@@ -52,6 +54,7 @@ public:
 	Render *RenderScene(Render *re);
 
 protected:
+	Main _freestyle_bmain;
 	Scene *old_scene;
 	Scene *freestyle_scene;
 	Material *material;

@@ -129,7 +129,7 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 {
 	Object *ob = BKE_object_add_only_object(G.main, type, name);
 
-	ob->data = BKE_object_obdata_add_from_type(type);
+	ob->data = BKE_object_obdata_add_from_type(G.main, type);
 	ob->lay = scene->lay;
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
