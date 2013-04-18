@@ -162,7 +162,7 @@ void uiStyleFontDrawExt(uiFontStyle *fs, const rcti *rect, const char *str,
 		}
 	}
 	else if (fs->align == UI_STYLE_TEXT_RIGHT) {
-		xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str) - 1;
+		xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str) - 0.1f * U.widget_unit;
 	}
 	
 	/* clip is very strict, so we give it some space */
