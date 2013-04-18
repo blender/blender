@@ -2297,7 +2297,7 @@ static void p_abf_setup_system(PAbfSystem *sys)
 	for (i = 0; i < sys->ninterior; i++)
 		sys->lambdaLength[i] = 1.0;
 	
-	sys->minangle = 7.5 * M_PI / 180.0;
+	sys->minangle = 1.0 * M_PI / 180.0;
 	sys->maxangle = (float)M_PI - sys->minangle;
 }
 
