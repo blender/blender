@@ -2424,10 +2424,10 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	if (propconnected) {
 		/* create element map with island information */
 		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			elementmap = EDBM_uv_element_map_create (em, FALSE, TRUE);
+			elementmap = EDBM_uv_element_map_create(em, false, true);
 		}
 		else {
-			elementmap = EDBM_uv_element_map_create (em, TRUE, TRUE);
+			elementmap = EDBM_uv_element_map_create(em, true, true);
 		}
 		island_enabled = MEM_callocN(sizeof(*island_enabled) * elementmap->totalIslands, "TransIslandData(UV Editing)");
 	}

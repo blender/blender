@@ -381,7 +381,7 @@ static PyObject *Texture_refresh(Texture *self, PyObject *args)
 						texture = self->m_scaledImg;
 					}
 					// load texture for rendering
-					loadTexture (self->m_actTex, texture, size, self->m_mipmap);
+					loadTexture(self->m_actTex, texture, size, self->m_mipmap);
 
 					// refresh texture source, if required
 					if (refreshSource) self->m_source->m_image->refresh();

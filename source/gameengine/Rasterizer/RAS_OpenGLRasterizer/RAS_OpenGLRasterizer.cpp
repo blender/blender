@@ -328,13 +328,13 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 	// Blender camera routine destroys the settings
 	if (m_drawingmode < KX_SOLID)
 	{
-		glDisable (GL_CULL_FACE);
-		glDisable (GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
 	}
 	else
 	{
 		glEnable(GL_DEPTH_TEST);
-		glEnable (GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 	}
 
 	glDisable(GL_BLEND);

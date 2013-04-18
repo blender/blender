@@ -155,7 +155,7 @@ typedef struct RenderStats {
 
 /* the name is used as identifier, so elsewhere in blender the result can retrieved */
 /* calling a new render with same name, frees automatic existing render */
-struct Render *RE_NewRender (const char *name);
+struct Render *RE_NewRender(const char *name);
 struct Render *RE_GetRender(const char *name);
 
 /* assign default dummy callbacks */

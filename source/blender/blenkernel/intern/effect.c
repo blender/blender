@@ -193,7 +193,7 @@ static void precalculate_effector(EffectorCache *eff)
 		}
 	}
 	else if (eff->pd->shape == PFIELD_SHAPE_SURFACE) {
-		eff->surmd = (SurfaceModifierData *)modifiers_findByType ( eff->ob, eModifierType_Surface );
+		eff->surmd = (SurfaceModifierData *)modifiers_findByType( eff->ob, eModifierType_Surface );
 		if (eff->ob->type == OB_CURVE)
 			eff->flag |= PE_USE_NORMAL_DATA;
 	}

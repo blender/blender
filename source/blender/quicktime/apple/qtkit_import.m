@@ -155,7 +155,7 @@ static ImBuf *nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	NSEnumerator *enumerator;
 	NSImageRep *representation;
 	
-	ibuf = IMB_allocImBuf (width, height, 32, IB_rect);
+	ibuf = IMB_allocImBuf(width, height, 32, IB_rect);
 	if (!ibuf) {
 		if (QTIME_DEBUG) {
 			printf("quicktime_import: could not allocate memory for the image.\n");
@@ -307,7 +307,7 @@ int startquicktime(struct anim *anim)
 	QTTime qtTimeDuration;
 	NSDictionary *attributes;
 	
-	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie),"animqt");
+	anim->qtime = MEM_callocN(sizeof(QuicktimeMovie),"animqt");
 
 	if (anim->qtime == NULL) {
 		if(QTIME_DEBUG) printf("Can't alloc qtime: %s\n", anim->name);
@@ -365,7 +365,7 @@ int startquicktime(struct anim *anim)
 		return -1;
 	}
 
-	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
+	anim->qtime->ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
 	
 	qtTimeDuration = [[anim->qtime->media attributeForKey:QTMediaDurationAttribute] QTTimeValue];
 	anim->qtime->durationTime = qtTimeDuration.timeValue;

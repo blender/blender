@@ -542,7 +542,7 @@ CExpression *CParser::Ex(int i)
 							errmsg=NULL;
 						} else {
 							// does this happen ?
-							MT_assert ("does this happen");
+							MT_assert("does this happen");
 						}
 					}
 					e1 = Error(errtext);

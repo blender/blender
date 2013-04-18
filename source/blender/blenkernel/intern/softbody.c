@@ -3316,7 +3316,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		 */
 
 		if (sb->namedVG_Mass[0]) {
-			int defgrp_index = defgroup_name_index (ob, sb->namedVG_Mass);
+			int defgrp_index = defgroup_name_index(ob, sb->namedVG_Mass);
 			/* printf("VGN  %s %d\n", sb->namedVG_Mass, defgrp_index); */
 			if (defgrp_index != -1) {
 				get_scalar_from_vertexgroup(ob, a, defgrp_index, &bp->mass);
@@ -3329,7 +3329,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		bp->springweight = 1.0f;
 
 		if (sb->namedVG_Spring_K[0]) {
-			int defgrp_index = defgroup_name_index (ob, sb->namedVG_Spring_K);
+			int defgrp_index = defgroup_name_index(ob, sb->namedVG_Spring_K);
 			//printf("VGN  %s %d\n", sb->namedVG_Spring_K, defgrp_index);
 			if (defgrp_index  != -1) {
 				get_scalar_from_vertexgroup(ob, a, defgrp_index , &bp->springweight);

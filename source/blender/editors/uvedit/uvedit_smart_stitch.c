@@ -1310,13 +1310,13 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		if (state->mode == STITCH_VERT) {
 			UvElement *element = state->selection_stack[i];
 
-			stitch_propagate_uv_final_position (element, i, preview_position, final_position, state, final, scene);
+			stitch_propagate_uv_final_position(element, i, preview_position, final_position, state, final, scene);
 		}
 		else {
 			UvEdge *edge = state->selection_stack[i];
 
-			stitch_propagate_uv_final_position (state->uvs[edge->uv1], edge->uv1, preview_position, final_position, state, final, scene);
-			stitch_propagate_uv_final_position (state->uvs[edge->uv2], edge->uv2, preview_position, final_position, state, final, scene);
+			stitch_propagate_uv_final_position(state->uvs[edge->uv1], edge->uv1, preview_position, final_position, state, final, scene);
+			stitch_propagate_uv_final_position(state->uvs[edge->uv2], edge->uv2, preview_position, final_position, state, final, scene);
 
 			edge->flag &= (STITCH_SELECTED | STITCH_BOUNDARY);
 		}

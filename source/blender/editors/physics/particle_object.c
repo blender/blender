@@ -656,7 +656,7 @@ static int connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	DM_ensure_tessface(dm);
 
 
-	numverts = dm->getNumVerts (dm);
+	numverts = dm->getNumVerts(dm);
 
 	/* convert to global coordinates */
 	for (i=0; i<numverts; i++)
