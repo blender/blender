@@ -516,6 +516,11 @@ Render *BlenderStrokeRenderer::RenderScene(Render *re)
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 
 	RE_RenderFreestyleStrokes(freestyle_render, &_freestyle_bmain, freestyle_scene);
+
+	// rendering is done, scene would be freed in destructor,
+	// no need to store it's in render structure
+	freestyle_render->scene = NULL;
+
 	return freestyle_render;
 }
 
