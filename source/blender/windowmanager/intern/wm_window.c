@@ -677,10 +677,8 @@ static int query_qual(modifierKeyType qual)
 	return val;
 }
 
-void wm_window_make_drawable(bContext *C, wmWindow *win) 
+void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win) 
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-
 	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
 		
@@ -786,7 +784,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				
 				win->addmousemove = 1;   /* enables highlighted buttons */
 				
-				wm_window_make_drawable(C, win);
+				wm_window_make_drawable(wm, win);
 
 				/* window might be focused by mouse click in configuration of window manager
 				 * when focus is not following mouse
@@ -817,7 +815,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					printf("%s: ghost redraw %d\n", __func__, win->winid);
 				}
 				
-				wm_window_make_drawable(C, win);
+				wm_window_make_drawable(wm, win);
 				WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 				break;
@@ -898,7 +896,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 							}
 						}
 					
-						wm_window_make_drawable(C, win);
+						wm_window_make_drawable(wm, win);
 						wm_draw_window_clear(win);
 						WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 						WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);

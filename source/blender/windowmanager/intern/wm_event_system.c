@@ -2130,7 +2130,7 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_region_set(C, region_event_inside(C, &event->x));
 			
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
-			wm_window_make_drawable(C, win);
+			wm_window_make_drawable(wm, win);
 			
 			wm_region_mouse_co(C, event);
 

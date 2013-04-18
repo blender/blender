@@ -900,8 +900,7 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
 void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, int w, int h)
 {
 	/* push attributes */
-	glPushAttrib(GL_ENABLE_BIT);
-	glPushAttrib(GL_VIEWPORT_BIT);
+	glPushAttrib(GL_ENABLE_BIT | GL_VIEWPORT_BIT);
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
@@ -926,7 +925,6 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUS
 	glPopMatrix();
 
 	/* restore attributes */
-	glPopAttrib();
 	glPopAttrib();
 	glEnable(GL_SCISSOR_TEST);
 }

@@ -210,6 +210,7 @@ static int BL_KetsjiPyNextFrame(void *state0)
 extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing)
 {
 	/* context values */
+	struct wmWindowManager *wm= CTX_wm_manager(C);
 	struct wmWindow *win= CTX_wm_window(C);
 	struct Scene *startscene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
@@ -276,7 +277,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		if (animation_record) usefixed= false; /* override since you don't want to run full-speed for sim recording */
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect, ar);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(wm, win, area_rect, ar);
 		
 		// default mouse state set on render panel
 		if (mouse_state)

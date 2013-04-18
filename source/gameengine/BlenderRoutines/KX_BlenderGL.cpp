@@ -93,6 +93,11 @@ void BL_SwapBuffers(wmWindow *win)
 	wm_window_swap_buffers(win);
 }
 
+void BL_MakeDrawable(wmWindowManager *wm, wmWindow *win)
+{
+	wm_window_make_drawable(wm, win);
+}
+
 static void DisableForText()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */

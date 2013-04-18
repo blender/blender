@@ -49,6 +49,7 @@
 
 struct ARegion;
 struct wmWindow;
+struct wmWindowManager;
 
 /**
  * 2D Blender device context abstraction. 
@@ -69,7 +70,7 @@ public:
 	 * 
 	 * \param area The Blender ARegion to run the game within.
 	 */
-	KX_BlenderCanvas(struct wmWindow* win, class RAS_Rect &rect, struct ARegion* ar);
+	KX_BlenderCanvas(struct wmWindowManager *wm, struct wmWindow* win, class RAS_Rect &rect, struct ARegion* ar);
 	~KX_BlenderCanvas();
 
 		void 
@@ -186,25 +187,17 @@ public:
 		const char* filename
 	);
 	
-	/**
-	 * Nothing needs be done for BlenderCanvas
-	 * Begin/End Draw, as the game engine GL context
-	 * is always current/active.
-	 */
-
 		bool 
 	BeginDraw(
-	) {
-			return true;
-	};
+	);
 
 		void 
 	EndDraw(
-	) {
-	};
+	);
 
 private:
 	/** Blender area the game engine is running within */
+	struct wmWindowManager *m_wm;
 	struct wmWindow* m_win;
 	RAS_Rect	m_frame_rect;
 	RAS_Rect 	m_area_rect;

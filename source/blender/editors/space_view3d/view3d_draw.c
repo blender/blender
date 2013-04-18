@@ -2776,8 +2776,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 
 	/* bind */
 	ofs = GPU_offscreen_create(sizex, sizey, err_out);
-	if (ofs == NULL)
+	if (ofs == NULL) {
+		glPopAttrib();
 		return NULL;
+	}
 
 	ED_view3d_draw_offscreen_init(scene, v3d);
 

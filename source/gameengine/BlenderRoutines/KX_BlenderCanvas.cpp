@@ -37,7 +37,8 @@
 #include <assert.h>
 
 
-KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :
+KX_BlenderCanvas::KX_BlenderCanvas(wmWindowManager *wm, wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :
+m_wm(wm),
 m_win(win),
 m_frame_rect(rect)
 {
@@ -81,20 +82,29 @@ bool KX_BlenderCanvas::GetFullScreen()
 	return false;
 }
 
+bool KX_BlenderCanvas::BeginDraw()
+{
+	// in case of multi-window we need to ensure we are drawing to the correct
+	// window always, because it may change in window event handling
+	BL_MakeDrawable(m_wm, m_win);
+	return true;
+}
+
+
+void KX_BlenderCanvas::EndDraw()
+{
+	// nothing needs to be done here
+}
+
 void KX_BlenderCanvas::BeginFrame()
 {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-
 }
 
 
 void KX_BlenderCanvas::EndFrame()
 {
-		// this is needed, else blender distorts a lot
-	glPopAttrib();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-		
 	glDisable(GL_FOG);
 }
 

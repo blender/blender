@@ -828,7 +828,7 @@ void wm_draw_update(bContext *C)
 			CTX_wm_window_set(C, win);
 			
 			/* sets context window+screen */
-			wm_window_make_drawable(C, win);
+			wm_window_make_drawable(wm, win);
 
 			/* notifiers for screen redraw */
 			if (win->screen->do_refresh)
