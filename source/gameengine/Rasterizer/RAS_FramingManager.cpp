@@ -257,19 +257,39 @@ ComputeFrustum(
 
 		case RAS_FrameSettings::e_frame_extend:
 		{
-			RAS_Rect vt;
-			ComputeBestFitViewRect(
-				availableViewport,
-				design_aspect_ratio,
-				vt
-			);
+			float x_scale, y_scale;
+			switch (sensor_fit) {
+				case RAS_SENSORFIT_HOR:
+				{
+					x_scale = 1.0;
+					y_scale = float(viewport.GetHeight()) / float(viewport.GetWidth());
+					break;
+				}
+				case RAS_SENSORFIT_VERT:
+				{
+					x_scale = float(viewport.GetWidth()) / float(viewport.GetHeight());
+					y_scale = 1.0;
+					break;
+				}
+				case RAS_SENSORFIT_AUTO:
+				default:
+				{
+					RAS_Rect vt;
+					ComputeBestFitViewRect(
+						availableViewport,
+						design_aspect_ratio,
+						vt
+					);
 
-			// now scale the calculated frustum by the difference
-			// between vt and the viewport in each axis.
-			// These are always > 1
+					// now scale the calculated frustum by the difference
+					// between vt and the viewport in each axis.
+					// These are always > 1
 
-			float x_scale = float(viewport.GetWidth())/float(vt.GetWidth());
-			float y_scale = float(viewport.GetHeight())/float(vt.GetHeight());
+					x_scale = float(viewport.GetWidth())/float(vt.GetWidth());
+					y_scale = float(viewport.GetHeight())/float(vt.GetHeight());
+					break;
+				}
+			}
 
 			frustum.x1 *= x_scale;
 			frustum.x2 *= x_scale;
@@ -327,19 +347,39 @@ RAS_FramingManager::
 
 		case RAS_FrameSettings::e_frame_extend:
 		{
-			RAS_Rect vt;
-			ComputeBestFitViewRect(
-				availableViewport,
-				design_aspect_ratio,
-				vt
-			);
+			float x_scale, y_scale;
+			switch (sensor_fit) {
+				case RAS_SENSORFIT_HOR:
+				{
+					x_scale = 1.0;
+					y_scale = float(viewport.GetHeight()) / float(viewport.GetWidth());
+					break;
+				}
+				case RAS_SENSORFIT_VERT:
+				{
+					x_scale = float(viewport.GetWidth()) / float(viewport.GetHeight());
+					y_scale = 1.0;
+					break;
+				}
+				case RAS_SENSORFIT_AUTO:
+				default:
+				{
+					RAS_Rect vt;
+					ComputeBestFitViewRect(
+						availableViewport,
+						design_aspect_ratio,
+						vt
+						);
 
-			// now scale the calculated frustum by the difference
-			// between vt and the viewport in each axis.
-			// These are always > 1
+					// now scale the calculated frustum by the difference
+					// between vt and the viewport in each axis.
+					// These are always > 1
 
-			float x_scale = float(viewport.GetWidth())/float(vt.GetWidth());
-			float y_scale = float(viewport.GetHeight())/float(vt.GetHeight());
+					x_scale = float(viewport.GetWidth())/float(vt.GetWidth());
+					y_scale = float(viewport.GetHeight())/float(vt.GetHeight());
+					break;
+				}
+			}
 
 			frustum.x1 *= x_scale;
 			frustum.x2 *= x_scale;
