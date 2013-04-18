@@ -1138,9 +1138,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 
 	switch (brush->sculpt_plane) {
 		case SCULPT_DISP_DIR_VIEW:
-			ED_view3d_global_to_vector(ss->cache->vc->rv3d,
-			                           ss->cache->vc->rv3d->twmat[3],
-			                           an);
+			copy_v3_v3(an, ss->cache->true_view_normal);
 			break;
 
 		case SCULPT_DISP_DIR_X:
@@ -2410,7 +2408,7 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
-				ED_view3d_global_to_vector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
+				copy_v3_v3(an, ss->cache->true_view_normal);
 				break;
 
 			case SCULPT_DISP_DIR_X:
@@ -3870,7 +3868,6 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
 /* Initialize the stroke cache variants from operator properties */
 static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
-                                         struct PaintStroke *stroke,
                                          PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -3937,7 +3934,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 			}
 		}
 
-		cache->radius = paint_calc_object_space_radius(paint_stroke_view_context(stroke),
+		cache->radius = paint_calc_object_space_radius(cache->vc,
 		                                               cache->true_location,
 		                                               ups->pixel_radius);
 		cache->radius_squared = cache->radius * cache->radius;
@@ -4249,7 +4246,7 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 		return 0;
 }
 
-static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(stroke), PointerRNA *itemptr)
 {
 	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -4258,7 +4255,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	
 	sculpt_stroke_modifiers_check(C, ob);
-	sculpt_update_cache_variants(C, sd, ob, stroke, itemptr);
+	sculpt_update_cache_variants(C, sd, ob, itemptr);
 	sculpt_restore_mesh(sd, ob);
 
 	BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
