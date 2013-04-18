@@ -226,7 +226,7 @@ __device bool BVH_FUNCTION_NAME
 #endif
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-#if FEATURE(BVH_SUBSURAFACE)
+#if FEATURE(BVH_SUBSURFACE)
 	return (num_hits != 0);
 #else
 	return (isect->prim != ~0);
