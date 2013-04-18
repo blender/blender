@@ -132,7 +132,7 @@ def find_best_isocode_matches(uid, iso_codes):
     return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
 
 
-def get_po_files_from_dir(root_dir, langs=set())
+def get_po_files_from_dir(root_dir, langs=set()):
     """
     Yield tuples (uid, po_path) of translations for each po file found in the given dir, which should be either
     a dir containing po files using language uid's as names (e.g. fr.po, es_ES.po, etc.), or
@@ -140,12 +140,13 @@ def get_po_files_from_dir(root_dir, langs=set())
     """
     found_uids = set()
     for p in os.listdir(root_dir):
-        uid = po_file = None
-        if p.endswith(".po") and os.path.isfile(p):
+        uid = None
+        po_file = os.path.join(root_dir, p)
+        print(p)
+        if p.endswith(".po") and os.path.isfile(po_file):
             uid = p[:-3]
             if langs and uid not in langs:
                 continue
-            po_file = os.path.join(root_dir, p)
         elif os.path.isdir(p):
             uid = p
             if langs and uid not in langs:
@@ -489,9 +490,27 @@ class I18nMessages:
         for k, t in zip(keys, trans):
             self.msgs[k].msgstr = t
 
-    def merge(self, replace=False, *args):
-        # TODO
-        pass
+    def merge(self, msgs, replace=False):
+        """
+        Merge translations from msgs into self, following those rules:
+            * If a msg is in self and not in msgs, keep self untouched.
+            * If a msg is in msgs and not in self, skip it.
+            * Else (msg both in self and msgs):
+                * If self is not translated and msgs is translated or fuzzy, replace by msgs.
+                * If self is fuzzy, and msgs is translated, replace by msgs.
+                * If self is fuzzy, and msgs is fuzzy, and replace is True, replace by msgs.
+                * If self is translated, and msgs is translated, and replace is True, replace by msgs.
+                * Else, skip it!
+        """
+        for k, m in msgs.msgs.items():
+            if k not in self.msgs:
+                continue
+            sm = self.msgs[k]
+            if (sm.is_commented or m.is_commented or not m.msgstr):
+                continue
+            if (not sm.msgstr or replace or (sm.is_fuzzy and (not m.is_fuzzy or replace))):
+                sm.msgstr = m.msgstr
+                sm.is_fuzzy = m.is_fuzzy
 
     def update(self, ref, use_similar=None, keep_old_commented=True):
         """
@@ -1379,7 +1398,7 @@ class I18n:
             translations = self.trans.keys() - {self.settings.PARSER_TEMPLATE_ID, self.settings.PARSER_PY_ID}
             if langs:
                 translations &= langs
-            translations = [('"' + lng + '"', " " * (len(lng) + 4), self.trans[lng]) for lng in sorted(translations)]
+            translations = [('"' + lng + '"', " " * (len(lng) + 6), self.trans[lng]) for lng in sorted(translations)]
             print(k for k in keys.keys())
             for key in keys.keys():
                 if ref.msgs[key].is_commented:
