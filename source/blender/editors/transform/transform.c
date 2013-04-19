@@ -5142,7 +5142,7 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const
 	}
 }
 
-static int createEdgeSlideVerts(TransInfo *t)
+static bool createEdgeSlideVerts(TransInfo *t)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -5152,6 +5152,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	TransDataEdgeSlideVert *sv_array;
 	int sv_tot;
 	BMBVHTree *btree;
+	/* BMVert -> sv_array index */
 	SmallHash table;
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	View3D *v3d = NULL;
@@ -5170,7 +5171,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 		rv3d = t->ar ? t->ar->regiondata : NULL;
 	}
 
-	sld->is_proportional = TRUE;
+	sld->is_proportional = true;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = FALSE;
 
@@ -5203,7 +5204,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			if (numsel == 0 || numsel > 2) {
 				MEM_freeN(sld);
-				return 0; /* invalid edge selection */
+				return false; /* invalid edge selection */
 			}
 		}
 	}
@@ -5233,7 +5234,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 	if (!j) {
 		MEM_freeN(sld);
-		return 0;
+		return false;
 	}
 
 	sv_tot = j;
@@ -5530,14 +5531,14 @@ static int createEdgeSlideVerts(TransInfo *t)
 		BM_ITER_ELEM (f, &fiter, sv_array->v, BM_FACES_OF_VERT) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
-				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
+				BMFace *copyf = BM_face_copy(bm, f, true, true);
 				
-				BM_face_select_set(bm, copyf, FALSE);
+				BM_face_select_set(bm, copyf, false);
 				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
 				BM_ITER_ELEM (l, &liter, copyf, BM_LOOPS_OF_FACE) {
-					BM_vert_select_set(bm, l->v, FALSE);
+					BM_vert_select_set(bm, l->v, false);
 					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
-					BM_edge_select_set(bm, l->e, FALSE);
+					BM_edge_select_set(bm, l->e, false);
 					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
 				}
 
@@ -5586,9 +5587,9 @@ static int createEdgeSlideVerts(TransInfo *t)
 	MEM_freeN(loop_maxdist);
 
 	/* arrays are dirty from copying faces: EDBM_index_arrays_free */
-	EDBM_update_generic(em, FALSE, TRUE);
+	EDBM_update_generic(em, false, true);
 
-	return 1;
+	return true;
 }
 
 void projectEdgeSlideData(TransInfo *t, bool is_final)
@@ -5645,7 +5646,7 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 			/* project onto copied projection face */
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				/* only affected verts will get interpolated */
-				char affected = FALSE;
+				bool affected = false;
 				f_copy_flip = f_copy;
 
 				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
@@ -5671,7 +5672,7 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 						continue;  /* shouldn't happen, but protection */
 					}
 
-					affected = TRUE;
+					affected = true;
 				}
 				else {
 					/* the loop is attached to only one vertex and not a selected edge,
@@ -5711,17 +5712,17 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 							}
 						}
 
-						affected = TRUE;
+						affected = true;
 					}
 
 				}
 
-				if (!affected)
+				if (affected == false)
 					continue;
 
 				/* only loop data, no vertex data since that contains shape keys,
 				 * and we do not want to mess up other shape keys */
-				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
+				BM_loop_interp_from_face(em->bm, l, f_copy_flip, false, false);
 
 				if (is_final) {
 					BM_loop_interp_multires(em->bm, l, f_copy_flip);
@@ -6156,7 +6157,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 	}
 }
 
-static int createVertSlideVerts(TransInfo *t)
+static bool createVertSlideVerts(TransInfo *t)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -6213,7 +6214,7 @@ static int createVertSlideVerts(TransInfo *t)
 
 	if (!j) {
 		MEM_freeN(sld);
-		return 0;
+		return false;
 	}
 
 	sv_array = MEM_callocN(sizeof(TransDataVertSlideVert) * j, "sv_array");
@@ -6284,7 +6285,7 @@ static int createVertSlideVerts(TransInfo *t)
 		calcVertSlideMouseActiveEdges(t, t->mval);
 	}
 
-	return 1;
+	return true;
 }
 
 void freeVertSlideVerts(TransInfo *t)
