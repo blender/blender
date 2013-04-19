@@ -68,9 +68,7 @@ def get_best_similar(data):
     for x in similar_pool:
         if min_len < len(x) < max_len:
             s.set_seq1(x)
-            # XXX quick_ratio() actually looks much slower (~400%) than ratio() itself!!!
-            #if s.real_quick_ratio() >= use_similar and s.quick_ratio() >= use_similar:
-            if s.real_quick_ratio() >= use_similar:
+            if s.real_quick_ratio() >= use_similar and s.quick_ratio() >= use_similar:
                 sratio = s.ratio()
                 if sratio >= use_similar:
                     tmp = x

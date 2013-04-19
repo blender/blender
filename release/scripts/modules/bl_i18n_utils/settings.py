@@ -344,6 +344,7 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Temp. Diff.",
     "Float Neg. Exp.",
     "    RNA Path: bpy.types.",
+    "Max Ext.",
 }
 
 PARSER_CACHE_HASH = 'sha1'
