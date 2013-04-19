@@ -3902,7 +3902,8 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block, wmOperatorType *ot, IDProperty *prope
 	if (properties) {
 		PointerRNA *ptr = uiButGetOperatorPtrRNA(but);
 		/* Copy pointer. */
-		RNA_pointer_create(NULL, ot->srna, properties, ptr);
+		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+		ptr->data = IDP_CopyProperty(properties);
 	}
 
 	return but;
