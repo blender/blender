@@ -3885,8 +3885,8 @@ static void operator_enum_call_cb(struct bContext *UNUSED(C), void *but, void *a
 	}
 }
 
-/* Same parameters as for uiDefSearchBut, with an additional operator pointer, from where to get property to search,
- * operator type, and operator porperties. */
+/* Same parameters as for uiDefSearchBut, with additional operator type and properties, used by callback
+ * to call again the right op with the right options (properties values). */
 uiBut *uiDefSearchButO_ptr(uiBlock *block, wmOperatorType *ot, IDProperty *properties,
                            void *arg, int retval, int icon, int maxlen, int x, int y,
                            short width, short height, float a1, float a2, const char *tip)
@@ -3901,8 +3901,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block, wmOperatorType *ot, IDProperty *prope
 
 	if (properties) {
 		PointerRNA *ptr = uiButGetOperatorPtrRNA(but);
-		/* Copy pointer. */
-		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+		/* Copy idproperties. */
 		ptr->data = IDP_CopyProperty(properties);
 	}
 
