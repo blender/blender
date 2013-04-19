@@ -43,6 +43,7 @@ extern "C" {
 
 int AUD_FFMPEGReader::decode(AVPacket& packet, AUD_Buffer& buffer)
 {
+#ifdef FFMPEG_HAVE_DECODE_AUDIO4
 	AVFrame* frame = NULL;
 	int got_frame;
 	int read_length;
@@ -101,6 +102,54 @@ int AUD_FFMPEGReader::decode(AVPacket& packet, AUD_Buffer& buffer)
 	av_free(frame);
 
 	return buf_pos;
+#else
+	// save packet parameters
+	uint8_t *audio_pkg_data = packet.data;
+	int audio_pkg_size = packet.size;
+
+	int buf_size = buffer.getSize();
+	int buf_pos = 0;
+
+	int read_length, data_size;
+
+	AVPacket tmp_pkt;
+
+	av_init_packet(&tmp_pkt);
+
+	// as long as there is still data in the package
+	while(audio_pkg_size > 0)
+	{
+		// resize buffer if needed
+		if(buf_size - buf_pos < AVCODEC_MAX_AUDIO_FRAME_SIZE)
+		{
+			buffer.resize(buf_size + AVCODEC_MAX_AUDIO_FRAME_SIZE, true);
+			buf_size += AVCODEC_MAX_AUDIO_FRAME_SIZE;
+		}
+
+		// read samples from the packet
+		data_size = buf_size - buf_pos;
+
+		tmp_pkt.data = audio_pkg_data;
+		tmp_pkt.size = audio_pkg_size;
+
+		read_length = avcodec_decode_audio3(
+			m_codecCtx,
+			(int16_t*)(((data_t*)buffer.getBuffer()) + buf_pos),
+			&data_size, &tmp_pkt);
+
+		// read error, next packet!
+		if(read_length < 0)
+			break;
+
+		buf_pos += data_size;
+
+		// move packet parameters
+		audio_pkg_data += read_length;
+		audio_pkg_size -= read_length;
+	}
+
+	return buf_pos;
+#endif
 }
 
 static const char* streaminfo_error = "AUD_FFMPEGReader: Stream info couldn't "

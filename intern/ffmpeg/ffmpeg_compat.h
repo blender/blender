@@ -76,9 +76,26 @@
 #define FFMPEG_HAVE_CANON_H264_RESOLUTION_FIX
 #endif
 
+#if ((LIBAVCODEC_VERSION_MAJOR > 53) || (LIBAVCODEC_VERSION_MAJOR >= 53) && (LIBAVCODEC_VERSION_MINOR >= 60))
+#define FFMPEG_HAVE_ENCODE_AUDIO2
+#endif
+
+#if ((LIBAVCODEC_VERSION_MAJOR > 53) || (LIBAVCODEC_VERSION_MAJOR >= 53) && (LIBAVCODEC_VERSION_MINOR >= 42))
+#define FFMPEG_HAVE_DECODE_AUDIO4
+#endif
+
 #if ((LIBAVUTIL_VERSION_MAJOR > 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR >= 32))
 #define FFMPEG_FFV1_ALPHA_SUPPORTED
 #define FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
+#else
+
+static inline
+int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
+{
+	/* no planar formats in FFmpeg < 0.9 */
+	return 0;
+}
+
 #endif
 
 static inline
