@@ -256,7 +256,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 		ParamKey key;
 		ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
 		ParamBool *pin = BLI_array_alloca(pin, efa->len);
-		ParamBool *select= BLI_array_alloca(select, efa->len);
+		ParamBool *select = BLI_array_alloca(select, efa->len);
 		float **co = BLI_array_alloca(co, efa->len);
 		float **uv = BLI_array_alloca(uv, efa->len);
 		int i, lsel;

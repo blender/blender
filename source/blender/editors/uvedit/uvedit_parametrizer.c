@@ -4186,8 +4186,8 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 
 			normal_tri_v3(n, co[v0], co[v1], co[v2]);
 
-			if(normal && (dot_v3v3(n, normal) < 0.0f))
-				angle = 2.0f*M_PI - angle;
+			if (normal && (dot_v3v3(n, normal) < 0.0f))
+				angle = (float)(2.0 * M_PI) - angle;
 
 			if (angle < minangle) {
 				minangle = angle;
@@ -4211,8 +4211,8 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 		}
 
 		/* remove corner */
-		if(mini + 1 < nverts)
-			memmove(boundary + mini, boundary + mini + 1, (nverts - mini - 1)*sizeof(int));
+		if (mini + 1 < nverts)
+			memmove(boundary + mini, boundary + mini + 1, (nverts - mini - 1) * sizeof(int));
 
 		nverts--;
 	}
