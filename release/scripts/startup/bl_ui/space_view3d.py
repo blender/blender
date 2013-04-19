@@ -323,7 +323,7 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("uv.project_from_view").scale_to_bounds = False
         layout.operator("uv.project_from_view", text="Project from View (Bounds)").scale_to_bounds = True
 
@@ -2610,7 +2610,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 class VIEW3D_PT_view3d_meshstatvis(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Mesh Debug"
+    bl_label = "Mesh Analysis"
 
     @classmethod
     def poll(cls, context):

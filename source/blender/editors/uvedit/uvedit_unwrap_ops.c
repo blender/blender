@@ -1243,16 +1243,45 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	RNA_def_float_factor(ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
+/* NOTE: could be generic function */
+static Camera *view3d_camera_get(View3D *v3d, RegionView3D *rv3d)
+{
+	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
+	if ((rv3d->persp == RV3D_CAMOB) && (v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
+		return v3d->camera->data;
+	}
+	else {
+		return NULL;
+	}
+}
+
 /**************** Project From View operator **************/
+static int uv_from_view_exec(bContext *C, wmOperator *op);
+
+static int uv_from_view_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	Camera *camera = view3d_camera_get(v3d, rv3d);
+	PropertyRNA *prop;
+
+	prop = RNA_struct_find_property(op->ptr, "camera_bounds");
+	if (!RNA_property_is_set(op->ptr, prop)) RNA_property_boolean_set(op->ptr, prop, (camera != NULL));
+	prop = RNA_struct_find_property(op->ptr, "correct_aspect");
+	if (!RNA_property_is_set(op->ptr, prop)) RNA_property_boolean_set(op->ptr, prop, (camera == NULL));
+
+	return uv_from_view_exec(C, op);
+}
+
 static int uv_from_view_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	Camera *camera = NULL;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	Camera *camera = view3d_camera_get(v3d, rv3d);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -1267,11 +1296,6 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	}
 
 	cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
-	if ((rv3d->persp == RV3D_CAMOB) && (v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
-		camera = v3d->camera->data;
-	}
 
 	if (RNA_boolean_get(op->ptr, "orthographic")) {
 		uv_map_rotation_matrix(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f);
@@ -1351,6 +1375,7 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
+	ot->invoke = uv_from_view_invoke;
 	ot->exec = uv_from_view_exec;
 	ot->poll = uv_from_view_poll;
 
