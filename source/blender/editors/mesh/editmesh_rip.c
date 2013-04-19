@@ -770,11 +770,11 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	else {
 		if (BM_edge_is_manifold(e2)) {
 			l = e2->l;
-			e = BM_face_other_edge_loop(l->f, e2, v)->e;
+			e = BM_loop_other_edge_loop(l, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
 
 			l = e2->l->radial_next;
-			e = BM_face_other_edge_loop(l->f, e2, v)->e;
+			e = BM_loop_other_edge_loop(l, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 		else {
@@ -920,14 +920,14 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 				l = (edbm_rip_edge_side_measure(e2, l_a, ar, projectMat, fmval) <
 				     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;
 
-				l = BM_face_other_edge_loop(l->f, e2, v);
+				l = BM_loop_other_edge_loop(l, v);
 				/* important edge is manifold else we can be attempting to split off a fan that don't budge,
 				 * not crashing but adds duplicate edge. */
 				if (BM_edge_is_manifold(l->e)) {
 					l = l->radial_next;
 
 					if (totedge_manifold != 3)
-						l = BM_face_other_edge_loop(l->f, l->e, v);
+						l = BM_loop_other_edge_loop(l, v);
 
 					if (l) {
 						BLI_assert(!BM_elem_flag_test(l->e, BM_ELEM_TAG));

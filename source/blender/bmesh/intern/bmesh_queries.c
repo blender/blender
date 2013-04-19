@@ -63,23 +63,24 @@ bool BM_vert_in_edge(const BMEdge *e, const BMVert *v)
  *                      in the face to check.
  *                      The faces loop direction is ignored.
  * </pre>
+ *
+ * \note caller must ensure \a e is used in \a f
  */
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
-	BMLoop *l_iter;
-	BMLoop *l_first;
+	BMLoop *l = BM_face_edge_share_loop(f, e);
+	BLI_assert(l != NULL);
+	return BM_loop_other_edge_loop(l, v);
+}
 
-	/* we could loop around the face too, but turns out this uses a lot
-	 * more iterations (approx double with quads, many more with 5+ ngons) */
-	l_iter = l_first = e->l;
-
-	do {
-		if (l_iter->e == e && l_iter->f == f) {
-			break;
-		}
-	} while ((l_iter = l_iter->radial_next) != l_first);
-	
-	return l_iter->v == v ? l_iter->prev : l_iter->next;
+/**
+ * See #BM_face_other_edge_loop This is the same functionality
+ * to be used when the edges loop is already known.
+ */
+BMLoop *BM_loop_other_edge_loop(BMLoop *l, BMVert *v)
+{
+	BLI_assert(BM_vert_in_edge(l->e, v));
+	return l->v == v ? l->prev : l->next;
 }
 
 /**

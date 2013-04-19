@@ -313,7 +313,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	f = l->f;
 	
 	while (1) {
-		l = BM_face_other_edge_loop(f, e, v);
+		l = BM_loop_other_edge_loop(l, v);
 		if (l != l->radial_next) {
 			l = l->radial_next;
 			f = l->f;
@@ -564,7 +564,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 					break;
 				}
 
-				l = BM_face_other_edge_loop(l->f, l->e, v);
+				l = BM_loop_other_edge_loop(l, v);
 
 				if (l == NULL) {
 					break;

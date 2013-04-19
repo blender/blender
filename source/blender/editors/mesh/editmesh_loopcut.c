@@ -137,7 +137,7 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 		return;
 	}
 	
-	l2 = BM_face_other_edge_loop(l->f, l->e, eed->v1);
+	l2 = BM_loop_other_edge_loop(l, eed->v1);
 	rev = (l2 == l->prev);
 	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
 		l2 = rev ? l2->prev : l2->next;
