@@ -5014,12 +5014,11 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 	int i = 0;
 
 	BLI_assert(BM_edge_share_vert(e_prev, e_next) == v);
+	BLI_assert(BM_vert_in_edge(l->e, v));
 
 	l_first = l;
 	do {
 		l = BM_loop_other_edge_loop(l, v);
-		if (l->radial_next == l)
-			return NULL;
 		
 		if (l->e == e_next) {
 			if (i) {
@@ -5085,10 +5084,9 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 			copy_v3_v3(r_slide_vec, vec_accum);
 			return BM_loop_other_edge_loop(l, v);
 		}
-		
-		BLI_assert(l != l->radial_next);
-		l = l->radial_next;
-	} while (l != l_first);
+
+	} while ((l != l->radial_next) &&
+	         ((l = l->radial_next) != l_first));
 
 	if (i) {
 		len_v3_ensure(vec_accum, vec_accum_len / (float)i);
@@ -5213,9 +5211,11 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			if (!BM_edge_is_manifold(e)) {
+			/* note, any edge with loops can work, but we won't get predictable results, so bail out */
+			if (!BM_edge_is_manifold(e) && !BM_edge_is_boundary(e)) {
+				/* can edges with at least once face user */
 				MEM_freeN(sld);
-				return 0; /* can only handle exactly 2 faces around each edge */
+				return false;
 			}
 		}
 	}
@@ -5242,7 +5242,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	loop_nr = 0;
 
 	while (1) {
-		BMLoop *l, *l_a, *l_b;
+		BMLoop *l_a, *l_b;
 		BMVert *v_first;
 
 		v = NULL;
@@ -5282,16 +5282,18 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 		BM_elem_flag_disable(v, BM_ELEM_TAG);
 
-		l_a = l_b = l = NULL;
 		l_a = e->l;
 		l_b = e->l->radial_next;
 
-		l = BM_loop_other_edge_loop(l_a, v);
-		sub_v3_v3v3(vec_a, BM_edge_other_vert(l->e, v)->co, v->co);
+		{
+			BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
+			sub_v3_v3v3(vec_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+		}
 
+		/* !BM_edge_is_boundary(e); */
 		if (l_b != l_a) {
-			l = BM_loop_other_edge_loop(l_b, v);
-			sub_v3_v3v3(vec_b, BM_edge_other_vert(l->e, v)->co, v->co);
+			BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
+			sub_v3_v3v3(vec_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
 		}
 		else {
 			l_b = NULL;
@@ -5300,27 +5302,30 @@ static int createEdgeSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		v_first = v;
 		do {
+			bool l_a_ok_prev;
+			bool l_b_ok_prev;
 			TransDataEdgeSlideVert *sv;
 			BMVert *v_prev;
 			BMEdge *e_prev;
 
 			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
 			BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
+			BLI_assert(v != NULL);
 			sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 			sv->v = v;
 			copy_v3_v3(sv->v_co_orig, v->co);
 			sv->loop_nr = loop_nr;
 
 			if (l_a) {
+				BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
+				sv->v_a = BM_edge_other_vert(l_tmp->e, v);
 				copy_v3_v3(sv->dir_a, vec_a);
-				l = BM_loop_other_edge_loop(l_a, v);
-				sv->v_a = BM_edge_other_vert(l->e, v);
 			}
 
 			if (l_b) {
+				BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
+				sv->v_b = BM_edge_other_vert(l_tmp->e, v);
 				copy_v3_v3(sv->dir_b, vec_b);
-				l = BM_loop_other_edge_loop(l_b, v);
-				sv->v_b = BM_edge_other_vert(l->e, v);
 			}
 
 			v_prev = v;
@@ -5331,21 +5336,22 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			if (!e) {
 				BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
+				BLI_assert(v != NULL);
 				sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 				sv->v = v;
 				copy_v3_v3(sv->v_co_orig, v->co);
 				sv->loop_nr = loop_nr;
 
 				if (l_a) {
-					l = BM_loop_other_edge_loop(l_a, v);
-					sv->v_a = BM_edge_other_vert(l->e, v);
-					sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l->e, v)->co, v->co);
+					BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
+					sv->v_a = BM_edge_other_vert(l_tmp->e, v);
+					sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
 				}
 
 				if (l_b) {
-					l = BM_loop_other_edge_loop(l_b, v);
-					sv->v_b = BM_edge_other_vert(l->e, v);
-					sub_v3_v3v3(sv->dir_b, BM_edge_other_vert(l->e, v)->co, v->co);
+					BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
+					sv->v_b = BM_edge_other_vert(l_tmp->e, v);
+					sub_v3_v3v3(sv->dir_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
 				}
 
 				BM_elem_flag_disable(v, BM_ELEM_TAG);
@@ -5353,6 +5359,8 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 				break;
 			}
+			l_a_ok_prev = (l_a != NULL);
+			l_b_ok_prev = (l_b != NULL);
 
 			l_a = l_a ? get_next_loop(v, l_a, e_prev, e, vec_a) : NULL;
 			l_b = l_b ? get_next_loop(v, l_b, e_prev, e, vec_b) : NULL;
@@ -5360,6 +5368,24 @@ static int createEdgeSlideVerts(TransInfo *t)
 			/* find the opposite loop if it was missing previously */
 			if      (l_a == NULL && l_b && (l_b->radial_next != l_b)) l_a = l_b->radial_next;
 			else if (l_b == NULL && l_a && (l_a->radial_next != l_a)) l_b = l_a->radial_next;
+
+			/* if there are non-contiguous faces, we can still recover the loops of the new edges faces */
+			/* note!, the behavior in this case means edges may move in opposite directions,
+			 * this could be made to work more usefully. */
+			if (!(l_a && l_b) && (e->l != NULL)) {
+				if (l_a_ok_prev) {
+					l_a = e->l;
+					if (l_a->radial_next != l_a) {
+						l_b = l_a->radial_next;
+					}
+				}
+				else if (l_b_ok_prev) {
+					l_b = e->l;
+					if (l_b->radial_next != l_b) {
+						l_a = l_b->radial_next;
+					}
+				}
+			}
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v_prev, BM_ELEM_TAG);
@@ -5391,7 +5417,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	maxdist = -1.0f;
 
 	loop_dir = MEM_callocN(sizeof(float) * 3 * loop_nr, "sv loop_dir");
-	loop_maxdist = MEM_callocN(sizeof(float) * loop_nr, "sv loop_maxdist");
+	loop_maxdist = MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist");
 	fill_vn_fl(loop_maxdist, loop_nr, -1.0f);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
