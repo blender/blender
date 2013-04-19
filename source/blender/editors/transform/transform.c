@@ -5285,15 +5285,35 @@ static int createEdgeSlideVerts(TransInfo *t)
 		l_a = e->l;
 		l_b = e->l->radial_next;
 
+		/* regarding e_next, use get_next_loop()'s improved interpolation where possible */
 		{
-			BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
-			sub_v3_v3v3(vec_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+			BMEdge *e_next = get_other_edge(v, e);
+			if (e_next) {
+				get_next_loop(v, l_a, e, e_next, vec_a);
+			}
+			else {
+				BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
+				if (BM_vert_edge_count_nonwire(v) == 2)
+					get_next_loop(v, l_a, e, l_tmp->e, vec_a);
+				else
+					sub_v3_v3v3(vec_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+			}
 		}
 
 		/* !BM_edge_is_boundary(e); */
 		if (l_b != l_a) {
-			BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
-			sub_v3_v3v3(vec_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+			BMEdge *e_next = get_other_edge(v, e);
+			if (e_next) {
+				get_next_loop(v, l_b, e, e_next, vec_b);
+			}
+			else {
+				BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
+				if (BM_vert_edge_count_nonwire(v) == 2)
+					get_next_loop(v, l_b, e, l_tmp->e, vec_b);
+				else
+					sub_v3_v3v3(vec_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+
+			}
 		}
 		else {
 			l_b = NULL;
@@ -5345,13 +5365,23 @@ static int createEdgeSlideVerts(TransInfo *t)
 				if (l_a) {
 					BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
 					sv->v_a = BM_edge_other_vert(l_tmp->e, v);
-					sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+					if (BM_vert_edge_count_nonwire(v) == 2) {
+						get_next_loop(v, l_a, e_prev, l_tmp->e, sv->dir_a);
+					}
+					else {
+						sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+					}
 				}
 
 				if (l_b) {
 					BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
 					sv->v_b = BM_edge_other_vert(l_tmp->e, v);
-					sub_v3_v3v3(sv->dir_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+					if (BM_vert_edge_count_nonwire(v) == 2) {
+						get_next_loop(v, l_b, e_prev, l_tmp->e, sv->dir_b);
+					}
+					else {
+						sub_v3_v3v3(sv->dir_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+					}
 				}
 
 				BM_elem_flag_disable(v, BM_ELEM_TAG);

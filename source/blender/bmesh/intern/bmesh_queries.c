@@ -959,6 +959,7 @@ bool BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2)
  */
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 {
+	BLI_assert(e1 != e2);
 	if (BM_vert_in_edge(e2, e1->v1)) {
 		return e1->v1;
 	}
