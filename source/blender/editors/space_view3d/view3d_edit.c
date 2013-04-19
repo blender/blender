@@ -441,11 +441,18 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 		Object *ob = OBACT;
 
 		if (ob && (ob->mode & OB_MODE_ALL_PAINT) && (BKE_object_pose_armature_get(ob) == NULL)) {
-			/* transformation is disabled for painting modes, which will make it
-			 * so previous offset is used. This is annoying when you open file
-			 * saved with active object in painting mode
+			/* in case of sculpting use last average stroke position as a rotation
+			 * center, in other cases it's not clear what rotation center shall be
+			 * so just rotate around object origin
 			 */
-			copy_v3_v3(lastofs, ob->obmat[3]);
+			if (ob->mode & OB_MODE_SCULPT) {
+				float stroke[3];
+				ED_sculpt_get_average_stroke(ob, stroke);
+				copy_v3_v3(lastofs, stroke);
+			}
+			else {
+				copy_v3_v3(lastofs, ob->obmat[3]);
+			}
 		}
 		else {
 			/* If there's no selection, lastofs is unmodified and last value since static */

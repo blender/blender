@@ -158,6 +158,9 @@ typedef struct SculptSession {
 	/* last paint/sculpt stroke location */
 	int last_stroke_valid;
 	float last_stroke[3];
+
+	float average_stroke_accum[3];
+	int average_stroke_counter;
 } SculptSession;
 
 void free_sculptsession(struct Object *ob);

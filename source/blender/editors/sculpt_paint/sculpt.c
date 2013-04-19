@@ -118,6 +118,17 @@ float *ED_sculpt_get_last_stroke(struct Object *ob)
 	return (ob && ob->sculpt && ob->sculpt->last_stroke_valid) ? ob->sculpt->last_stroke : NULL;
 }
 
+void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
+{
+	if (ob->sculpt->last_stroke_valid) {
+		float fac = 1.0f / ob->sculpt->average_stroke_counter;
+		mul_v3_v3fl(stroke, ob->sculpt->average_stroke_accum, fac);
+	}
+	else {
+		copy_v3_v3(stroke, ob->obmat[3]);
+	}
+}
+
 int ED_sculpt_minmax(bContext *C, float min[3], float max[3])
 {
 	Object *ob = CTX_data_active_object(C);
@@ -3015,6 +3026,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 
 	/* Only act if some verts are inside the brush area */
 	if (totnode) {
+		float location[3];
+
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
 			sculpt_undo_push_node(ob, nodes[n],
@@ -3099,6 +3112,13 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 		}
 
 		MEM_freeN(nodes);
+
+		/* update average stroke position */
+		copy_v3_v3(location, ss->cache->true_location);
+		mul_m4_v3(ob->obmat, location);
+
+		add_v3_v3(ob->sculpt->average_stroke_accum, location);
+		ob->sculpt->average_stroke_counter++;
 	}
 }
 
@@ -4142,6 +4162,9 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
 	sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
+
+	zero_v3(ob->sculpt->average_stroke_accum);
+	ob->sculpt->average_stroke_counter = 0;
 
 	return 1;
 }
