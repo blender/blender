@@ -5160,8 +5160,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	float projectMat[4][4];
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
 	float mval_start[2], mval_end[2];
-	float vec_a[3], vec_b[3];
-	float dir[3], maxdist, (*loop_dir)[3], *loop_maxdist;
+	float mval_dir[3], maxdist, (*loop_dir)[3], *loop_maxdist;
 	int numsel, i, j, loop_nr, l_nr;
 	int use_btree_disp;
 
@@ -5242,6 +5241,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	loop_nr = 0;
 
 	while (1) {
+		float vec_a[3], vec_b[3];
 		BMLoop *l_a, *l_b;
 		BMVert *v_first;
 
@@ -5443,7 +5443,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	
 	/* find mouse vectors, the global one, and one per loop in case we have
 	 * multiple loops selected, in case they are oriented different */
-	zero_v3(dir);
+	zero_v3(mval_dir);
 	maxdist = -1.0f;
 
 	loop_dir = MEM_callocN(sizeof(float) * 3 * loop_nr, "sv loop_dir");
@@ -5454,13 +5454,16 @@ static int createEdgeSlideVerts(TransInfo *t)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
-			float vec1[3], d;
+			float d;
 
 			/* search cross edges for visible edge to the mouse cursor,
 			 * then use the shared vertex to calculate screen vector*/
 			for (i = 0; i < 2; i++) {
 				v = i ? e->v1 : e->v2;
 				BM_ITER_ELEM (e2, &iter2, v, BM_EDGES_OF_VERT) {
+					/* screen-space coords */
+					float sco_a[3], sco_b[3];
+
 					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
 						continue;
 
@@ -5473,37 +5476,46 @@ static int createEdgeSlideVerts(TransInfo *t)
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
 					if (sv_array[j].v_b) {
-						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_b->co, vec1, projectMat);
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_b->co, sco_b, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, sv_array[j].dir_b);
-						ED_view3d_project_float_v3_m4(ar, vec1, vec1, projectMat);
+						add_v3_v3v3(sco_b, v->co, sv_array[j].dir_b);
+						ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
 					}
 					
 					if (sv_array[j].v_a) {
-						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_a->co, vec_b, projectMat);
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_a->co, sco_a, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec_b, v->co, sv_array[j].dir_a);
-						ED_view3d_project_float_v3_m4(ar, vec_b, vec_b, projectMat);
+						add_v3_v3v3(sco_a, v->co, sv_array[j].dir_a);
+						ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
 					}
 					
 					/* global direction */
-					d = dist_to_line_segment_v2(mval, vec1, vec_b);
-					if (maxdist == -1.0f || d < maxdist) {
+					d = dist_to_line_segment_v2(mval, sco_b, sco_a);
+					if ((maxdist == -1.0f) ||
+					    /* intentionally use 2d size on 3d vector */
+					    (d < maxdist && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
+					{
 						maxdist = d;
-						sub_v3_v3v3(dir, vec1, vec_b);
+						sub_v3_v3v3(mval_dir, sco_b, sco_a);
 					}
 
 					/* per loop direction */
 					l_nr = sv_array[j].loop_nr;
 					if (loop_maxdist[l_nr] == -1.0f || d < loop_maxdist[l_nr]) {
 						loop_maxdist[l_nr] = d;
-						sub_v3_v3v3(loop_dir[l_nr], vec1, vec_b);
+						sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
 					}
 				}
 			}
 		}
+	}
+
+	/* possible all of the edge loops are pointing directly at the view */
+	if (UNLIKELY(len_squared_v2(mval_dir) < 0.1f)) {
+		mval_dir[0] = 0.0f;
+		mval_dir[1] = 100.0f;
 	}
 
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
@@ -5537,7 +5549,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 		/* switch a/b if loop direction is different from global direction */
 		l_nr = sv_array->loop_nr;
-		if (dot_v3v3(loop_dir[l_nr], dir) < 0.0f) {
+		if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
 			swap_v3_v3(sv_array->dir_a, sv_array->dir_b);
 			SWAP(BMVert *, sv_array->v_a, sv_array->v_b);
 		}
@@ -5553,7 +5565,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	zero_v2(mval_start);
 
 	/*dir holds a vector along edge loop*/
-	copy_v2_v2(mval_end, dir);
+	copy_v2_v2(mval_end, mval_dir);
 	mul_v2_fl(mval_end, 0.5f);
 	
 	sld->mval_start[0] = t->mval[0] + mval_start[0];
