@@ -5149,8 +5149,8 @@ static int createEdgeSlideVerts(TransInfo *t)
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
-	BMEdge *e, *e1;
-	BMVert *v, *v2;
+	BMEdge *e;
+	BMVert *v;
 	TransDataEdgeSlideVert *sv_array;
 	int sv_tot;
 	BMBVHTree *btree;
@@ -5171,15 +5171,6 @@ static int createEdgeSlideVerts(TransInfo *t)
 		/* background mode support */
 		v3d = t->sa ? t->sa->spacedata.first : NULL;
 		rv3d = t->ar ? t->ar->regiondata : NULL;
-	}
-
-	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
-
-	if (use_btree_disp) {
-		btree = BKE_bmbvh_new(em, BMBVH_RESPECT_HIDDEN, NULL, false);
-	}
-	else {
-		btree = NULL;
 	}
 
 	sld->is_proportional = TRUE;
@@ -5215,8 +5206,6 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			if (numsel == 0 || numsel > 2) {
 				MEM_freeN(sld);
-				if (btree)
-					BKE_bmbvh_free(btree);
 				return 0; /* invalid edge selection */
 			}
 		}
@@ -5226,8 +5215,6 @@ static int createEdgeSlideVerts(TransInfo *t)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
-				if (btree)
-					BKE_bmbvh_free(btree);
 				return 0; /* can only handle exactly 2 faces around each edge */
 			}
 		}
@@ -5247,8 +5234,6 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 	if (!j) {
 		MEM_freeN(sld);
-		if (btree)
-			BKE_bmbvh_free(btree);
 		return 0;
 	}
 
@@ -5316,6 +5301,8 @@ static int createEdgeSlideVerts(TransInfo *t)
 		v_first = v;
 		do {
 			TransDataEdgeSlideVert *sv;
+			BMVert *v_prev;
+			BMEdge *e_prev;
 
 			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
 			BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
@@ -5336,10 +5323,12 @@ static int createEdgeSlideVerts(TransInfo *t)
 				sv->v_b = BM_edge_other_vert(l->e, v);
 			}
 
-			v2 = v, v = BM_edge_other_vert(e, v);
+			v_prev = v;
+			v = BM_edge_other_vert(e, v);
 
-			e1 = e;
+			e_prev = e;
 			e = get_other_edge(v, e);
+
 			if (!e) {
 				BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 				sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
@@ -5360,24 +5349,36 @@ static int createEdgeSlideVerts(TransInfo *t)
 				}
 
 				BM_elem_flag_disable(v, BM_ELEM_TAG);
-				BM_elem_flag_disable(v2, BM_ELEM_TAG);
+				BM_elem_flag_disable(v_prev, BM_ELEM_TAG);
 
 				break;
 			}
 
-			l_a = l_a ? get_next_loop(v, l_a, e1, e, vec_a) : NULL;
-			l_b = l_b ? get_next_loop(v, l_b, e1, e, vec_b) : NULL;
+			l_a = l_a ? get_next_loop(v, l_a, e_prev, e, vec_a) : NULL;
+			l_b = l_b ? get_next_loop(v, l_b, e_prev, e, vec_b) : NULL;
 
 			/* find the opposite loop if it was missing previously */
 			if      (l_a == NULL && l_b && (l_b->radial_next != l_b)) l_a = l_b->radial_next;
 			else if (l_b == NULL && l_a && (l_a->radial_next != l_a)) l_b = l_a->radial_next;
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
-			BM_elem_flag_disable(v2, BM_ELEM_TAG);
+			BM_elem_flag_disable(v_prev, BM_ELEM_TAG);
 		} while ((e != v_first->e) && (l_a || l_b));
 
 		loop_nr++;
 	}
+
+
+	/* use for visibility checks */
+	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
+
+	if (use_btree_disp) {
+		btree = BKE_bmbvh_new(em, BMBVH_RESPECT_HIDDEN, NULL, false);
+	}
+	else {
+		btree = NULL;
+	}
+
 
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
@@ -5391,8 +5392,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 	loop_dir = MEM_callocN(sizeof(float) * 3 * loop_nr, "sv loop_dir");
 	loop_maxdist = MEM_callocN(sizeof(float) * loop_nr, "sv loop_maxdist");
-	for (j = 0; j < loop_nr; j++)
-		loop_maxdist[j] = -1.0f;
+	fill_vn_fl(loop_maxdist, loop_nr, -1.0f);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
