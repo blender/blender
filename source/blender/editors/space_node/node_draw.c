@@ -775,9 +775,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* shadow */
 	node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
 	
-	/* header */
-	if (color_id == TH_NODE)
-		UI_ThemeColorShade(color_id, -20);
+	/* header uses color from backdrop, but we make it opaqie */
+	if (color_id == TH_NODE) {
+		float col[3];
+		UI_GetThemeColorShade3fv(color_id, -20, col);
+		glColor4f(col[0], col[1], col[2], 1.0f);
+	}
 	else
 		UI_ThemeColor(color_id);
 	
