@@ -218,6 +218,9 @@ void WM_jobs_kill_all_except(struct wmWindowManager *wm) {}
 char *WM_clipboard_text_get(int selection) {return (char *)0;}
 void WM_clipboard_text_set(char *buf, int selection) {}
 
+void	WM_cursor_restore(struct wmWindow *win) {}
+void	WM_cursor_time(struct wmWindow *win, int nr) {}
+
 void                WM_uilisttype_init(void) {}
 struct uiListType  *WM_uilisttype_find(const char *idname, int quiet) {return (struct uiListType *)NULL;}
 int                 WM_uilisttype_add(struct uiListType *ult) {return 0;}
