@@ -5324,14 +5324,14 @@ static int createEdgeSlideVerts(TransInfo *t)
 			copy_v3_v3(sv->v_co_orig, v->co);
 			sv->loop_nr = loop_nr;
 
-			copy_v3_v3(sv->dir_a, vec_a);
-			if (l_b)
-				copy_v3_v3(sv->dir_b, vec_b);
-
-			l = BM_loop_other_edge_loop(l_a, v);
-			sv->v_a = BM_edge_other_vert(l->e, v);
+			if (l_a) {
+				copy_v3_v3(sv->dir_a, vec_a);
+				l = BM_loop_other_edge_loop(l_a, v);
+				sv->v_a = BM_edge_other_vert(l->e, v);
+			}
 
 			if (l_b) {
+				copy_v3_v3(sv->dir_b, vec_b);
 				l = BM_loop_other_edge_loop(l_b, v);
 				sv->v_b = BM_edge_other_vert(l->e, v);
 			}
@@ -5346,10 +5346,12 @@ static int createEdgeSlideVerts(TransInfo *t)
 				sv->v = v;
 				copy_v3_v3(sv->v_co_orig, v->co);
 				sv->loop_nr = loop_nr;
-				
-				l = BM_loop_other_edge_loop(l_a, v);
-				sv->v_a = BM_edge_other_vert(l->e, v);
-				sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l->e, v)->co, v->co);
+
+				if (l_a) {
+					l = BM_loop_other_edge_loop(l_a, v);
+					sv->v_a = BM_edge_other_vert(l->e, v);
+					sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l->e, v)->co, v->co);
+				}
 
 				if (l_b) {
 					l = BM_loop_other_edge_loop(l_b, v);
@@ -5363,18 +5365,16 @@ static int createEdgeSlideVerts(TransInfo *t)
 				break;
 			}
 
-			l_a = get_next_loop(v, l_a, e1, e, vec_a);
+			l_a = l_a ? get_next_loop(v, l_a, e1, e, vec_a) : NULL;
 			l_b = l_b ? get_next_loop(v, l_b, e1, e, vec_b) : NULL;
 
-			if (UNLIKELY(l_a == NULL && l_b != NULL)) {
-				l_a = l_b;
-				l_b = NULL;
-				swap_v3_v3(vec_a, vec_b);
-			}
+			/* find the opposite loop if it was missing previously */
+			if      (l_a == NULL && l_b && (l_b->radial_next != l_b)) l_a = l_b->radial_next;
+			else if (l_b == NULL && l_a && (l_a->radial_next != l_a)) l_b = l_a->radial_next;
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
-		} while (e != v_first->e && l_a);
+		} while ((e != v_first->e) && (l_a || l_b));
 
 		loop_nr++;
 	}
