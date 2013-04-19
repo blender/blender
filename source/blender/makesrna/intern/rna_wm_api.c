@@ -86,6 +86,44 @@ static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 	WM_event_remove_timer(wm, timer->win, timer);
 }
 
+/* placeholder data for final implementation of a true progressbar */
+struct wmStaticProgress {
+	float min;
+	float max;
+	bool  is_valid;
+} wm_progress_state = {0, 0, false};
+
+
+static void rna_progress_begin(struct wmWindowManager *wm, float min, float max)
+{
+	float range = max - min;
+	if (range != 0) {
+		wm_progress_state.min = min;
+		wm_progress_state.max = max;
+		wm_progress_state.is_valid = true;
+	}
+	else {
+		wm_progress_state.is_valid = false;
+	}
+}
+
+static void rna_progress_update(struct wmWindowManager *wm, float value)
+{
+	if (wm_progress_state.is_valid) {
+		/* Map to cursor_time range [0,9999] */
+		int val = (int)(10000 * (value - wm_progress_state.min) / (wm_progress_state.max - wm_progress_state.min));
+		WM_cursor_time(wm->winactive, val);
+	}
+}
+
+static void rna_progress_end(struct wmWindowManager *wm)
+{
+	if (wm_progress_state.is_valid) {
+		WM_cursor_restore(wm->winactive);
+		wm_progress_state.is_valid = false;
+	}
+}
+
 /* wrap these because of 'const wmEvent *' */
 static int rna_Operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -274,6 +312,19 @@ void RNA_api_wm(StructRNA *srna)
 	parm = RNA_def_pointer(func, "timer", "Timer", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
+	/* Progress bar interface */
+	func = RNA_def_function(srna, "progress_begin", "rna_progress_begin");
+	parm = RNA_def_property(func, "min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_property(func, "max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func = RNA_def_function(srna, "progress_update", "rna_progress_update");
+	parm = RNA_def_property(func, "value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_ui_text(parm, "value", "any value between min and max as set in progress_init()");
+
+	func = RNA_def_function(srna, "progress_end", "rna_progress_end");
 
 	/* invoke functions, for use with python */
 	func = RNA_def_function(srna, "invoke_props_popup", "rna_Operator_props_popup");
