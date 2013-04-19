@@ -185,16 +185,14 @@ struct LinkNode;
 struct GHash;
 
 typedef struct TransDataEdgeSlideVert {
-	struct BMVert vup, vdown;
-	struct BMVert origvert;
-
-	struct BMVert *up, *down;
+	struct BMVert *v_a, *v_b;
 	struct BMVert *v;
+	float v_co_orig[3];
 
 	float edge_len;
 
 	/* add origvert.co to get the original locations */
-	float upvec[3], downvec[3];
+	float dir_a[3], dir_b[3];
 
 	int loop_nr;
 } TransDataEdgeSlideVert;
@@ -206,7 +204,7 @@ typedef struct EdgeSlideData {
 	struct SmallHash vhash;
 	struct SmallHash origfaces;
 
-	int start[2], end[2];
+	int mval_start[2], mval_end[2];
 	struct BMEditMesh *em;
 
 	/* flag that is set when origfaces is initialized */

@@ -164,7 +164,7 @@ static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const int mval[2
 	output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
-void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int start[2], const int end[2])
+void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int mval_start[2], const int mval_end[2])
 {
 	int *data;
 
@@ -174,10 +174,10 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int start[2], c
 	
 	data = mi->data;
 
-	data[0] = start[0];
-	data[1] = start[1];
-	data[2] = end[0];
-	data[3] = end[1];
+	data[0] = mval_start[0];
+	data[1] = mval_start[1];
+	data[2] = mval_end[0];
+	data[3] = mval_end[1];
 }
 
 static void InputCustomRatioFlip(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
