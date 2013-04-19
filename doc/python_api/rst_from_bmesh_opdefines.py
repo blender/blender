@@ -142,7 +142,10 @@ def main():
         "BM_EDGE",
         "BM_FACE",
 
-        "BMO_OP_FLAG_UNTAN_MULTIRES",
+        "BMO_OPTYPE_FLAG_NORMALS_CALC",
+        "BMO_OPTYPE_FLAG_UNTAN_MULTIRES",
+        "BMO_OPTYPE_FLAG_SELECT_FLUSH",
+        "BMO_OPTYPE_FLAG_NOP",
     )
     vars_dict = {}
     for i, v in enumerate(vars):

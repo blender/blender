@@ -1,6 +1,6 @@
 #!/bin/sh
 # run from the blender source dir
-#   bash source/blender/python/doc/sphinx_doc_gen.sh
+#   bash doc/python_api/sphinx_doc_gen.sh
 # ssh upload means you need an account on the server
 
 

@@ -250,6 +250,7 @@ else:
         "bmesh.utils",
         "bpy.app",
         "bpy.app.handlers",
+        "bpy.app.translations",
         "bpy.context",
         "bpy.data",
         "bpy.ops",  # supports filtering
@@ -857,7 +858,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
             classes.append((attribute, value))
         elif issubclass(value_type, types.ModuleType):
             submodules.append((attribute, value))
-        elif value_type in (bool, int, float, str, tuple):
+        elif issubclass(value_type, (bool, int, float, str, tuple)):
             # constant, not much fun we can do here except to list it.
             # TODO, figure out some way to document these!
             fw(".. data:: %s\n\n" % attribute)
@@ -1538,6 +1539,7 @@ def write_rst_contents(basepath):
         "bpy.path",
         "bpy.app",
         "bpy.app.handlers",
+        "bpy.app.translations",
 
         # C modules
         "bpy.props",
@@ -1687,23 +1689,24 @@ def write_rst_importable_modules(basepath):
     '''
     importable_modules = {
         # python_modules
-        "bpy.path"          : "Path Utilities",
-        "bpy.utils"         : "Utilities",
-        "bpy_extras"        : "Extra Utilities",
+        "bpy.path"             : "Path Utilities",
+        "bpy.utils"            : "Utilities",
+        "bpy_extras"           : "Extra Utilities",
 
         # C_modules
-        "aud"               : "Audio System",
-        "blf"               : "Font Drawing",
-        "bmesh"             : "BMesh Module",
-        "bmesh.types"       : "BMesh Types",
-        "bmesh.utils"       : "BMesh Utilities",
-        "bpy.app"           : "Application Data",
-        "bpy.app.handlers"  : "Application Handlers",
-        "bpy.props"         : "Property Definitions",
-        "mathutils"         : "Math Types & Utilities",
-        "mathutils.geometry": "Geometry Utilities",
-        "mathutils.noise"   : "Noise Utilities",
-        "freestyle"         : "Freestyle Data Types & Operators",
+        "aud"                  : "Audio System",
+        "blf"                  : "Font Drawing",
+        "bmesh"                : "BMesh Module",
+        "bmesh.types"          : "BMesh Types",
+        "bmesh.utils"          : "BMesh Utilities",
+        "bpy.app"              : "Application Data",
+        "bpy.app.handlers"     : "Application Handlers",
+        "bpy.app.translations" : "Application Translations",
+        "bpy.props"            : "Property Definitions",
+        "mathutils"            : "Math Types & Utilities",
+        "mathutils.geometry"   : "Geometry Utilities",
+        "mathutils.noise"      : "Noise Utilities",
+        "freestyle"            : "Freestyle Data Types & Operators",
     }
     for mod_name, mod_descr in importable_modules.items():
         if mod_name not in EXCLUDE_MODULES:
@@ -1745,6 +1748,9 @@ def copy_handwritten_rsts(basepath):
         bge_types_dir = os.path.join(RST_DIR, "bge_types")
 
         for i in os.listdir(bge_types_dir):
+            if i.startswith("."):
+                # Avoid things like .svn dir...
+                continue
             shutil.copy2(os.path.join(bge_types_dir, i), basepath)
 
     # changelog
