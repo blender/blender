@@ -1684,7 +1684,7 @@ static void statvis_calc_thickness(
 #define FACE_RAY_TEST_ANGLE \
 		f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no, \
 		                           &dist, NULL, NULL); \
-		if (f_hit) { \
+		if (f_hit && dist < face_dists[index]) { \
 			float angle_fac = fabsf(dot_v3v3(ltri[0]->f->no, f_hit->no)); \
 			angle_fac = 1.0f - angle_fac; \
 			angle_fac = angle_fac * angle_fac * angle_fac; \

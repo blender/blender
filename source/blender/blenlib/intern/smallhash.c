@@ -43,6 +43,10 @@
 #define SMHASH_CELL_UNUSED  ((void *)0x7FFFFFFF)
 #define SMHASH_CELL_FREE    ((void *)0x7FFFFFFD)
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
+
 BLI_INLINE int smhash_nonzero(const int n)
 {
 	return n + !n;
@@ -83,10 +87,6 @@ void BLI_smallhash_init(SmallHash *hash)
 /*NOTE: does *not* free *hash itself!  only the direct data!*/
 void BLI_smallhash_release(SmallHash *hash)
 {
-	if (hash == NULL) {
-		return;
-	}
-
 	if (hash->table != hash->stacktable) {
 		MEM_freeN(hash->table);
 	}
@@ -181,10 +181,6 @@ void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 
 	h = ABS((int)key);
 
-	if (hash->table == NULL) {
-		return NULL;
-	}
-
 	while ((hash->table[h % hash->size].key != key) ||
 	       (hash->table[h % hash->size].val == SMHASH_CELL_UNUSED))
 	{
@@ -209,10 +205,6 @@ int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 	int h = ABS((int)key);
 	int hoff = 1;
 
-	if (hash->table == NULL) {
-		return 0;
-	}
-
 	while ((hash->table[h % hash->size].key != key) ||
 	       (hash->table[h % hash->size].val == SMHASH_CELL_UNUSED))
 	{
@@ -234,8 +226,8 @@ int BLI_smallhash_count(SmallHash *hash)
 void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
 {
 	while (iter->i < iter->hash->size) {
-		if (    (iter->hash->table[iter->i].val != SMHASH_CELL_UNUSED) &&
-		        (iter->hash->table[iter->i].val != SMHASH_CELL_FREE))
+		if ((iter->hash->table[iter->i].val != SMHASH_CELL_UNUSED) &&
+		    (iter->hash->table[iter->i].val != SMHASH_CELL_FREE))
 		{
 			if (key) {
 				*key = iter->hash->table[iter->i].key;
