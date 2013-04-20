@@ -200,29 +200,6 @@ static void node_select_keymap(wmKeyMap *keymap, int extend)
 	}
 }
 
-/* register group operators for a specific group node type */
-static void node_group_operators(wmKeyMap *keymap, const char *node_type)
-{
-	wmKeyMapItem *kmi;
-	
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "node_type", node_type);
-	
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "node_type", node_type);
-	
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_separate", PKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "node_type", node_type);
-	
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "node_type", node_type);
-	RNA_boolean_set(kmi->ptr, "exit", FALSE);
-	
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "node_type", node_type);
-	RNA_boolean_set(kmi->ptr, "exit", TRUE);
-}
-
 void node_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
@@ -327,9 +304,14 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "NODE_OT_find_node", FKEY, KM_PRESS, KM_CTRL, 0);
 	
-	node_group_operators(keymap, "ShaderNodeGroup");
-	node_group_operators(keymap, "CompositorNodeGroup");
-	node_group_operators(keymap, "TextureNodeGroup");
+	/* node group operators */
+	WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_separate", PKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "exit", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "exit", TRUE);
 
 	WM_keymap_add_item(keymap, "NODE_OT_read_renderlayers", RKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_read_fullsamplelayers", RKEY, KM_PRESS, KM_SHIFT, 0);
