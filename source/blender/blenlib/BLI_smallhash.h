@@ -59,15 +59,27 @@ typedef struct {
 	int i;
 } SmallHashIter;
 
-void    BLI_smallhash_init(SmallHash *hash);
-void    BLI_smallhash_release(SmallHash *hash);
-void    BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item);
-void    BLI_smallhash_remove(SmallHash *hash, uintptr_t key);
-void   *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key);
-int     BLI_smallhash_haskey(SmallHash *hash, uintptr_t key);
-int     BLI_smallhash_count(SmallHash *hash);
-void   *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key);
-void   *BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key);
+#ifdef __GNUC__
+#  define ATTR_NONULL_FIRST  __attribute__((nonnull(1)))
+#  define ATTR_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+#  define ATTR_NONULL_FIRST
+#  define ATTR_UNUSED_RESULT
+#endif
+
+
+void    BLI_smallhash_init(SmallHash *hash)  ATTR_NONULL_FIRST;
+void    BLI_smallhash_release(SmallHash *hash)  ATTR_NONULL_FIRST;
+void    BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)  ATTR_NONULL_FIRST;
+void    BLI_smallhash_remove(SmallHash *hash, uintptr_t key)  ATTR_NONULL_FIRST;
+void   *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)  ATTR_NONULL_FIRST ATTR_UNUSED_RESULT;
+int     BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)  ATTR_NONULL_FIRST;
+int     BLI_smallhash_count(SmallHash *hash)  ATTR_NONULL_FIRST;
+void   *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)  ATTR_NONULL_FIRST ATTR_UNUSED_RESULT;
+void   *BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key)  ATTR_NONULL_FIRST ATTR_UNUSED_RESULT;
 /* void BLI_smallhash_print(SmallHash *hash); */ /* UNUSED */
+
+#undef ATTR_NONULL_FIRST
+#undef ATTR_UNUSED_RESULT
 
 #endif /* __BLI_SMALLHASH_H__ */

@@ -6975,8 +6975,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	if ((dt <= OB_SOLID) &&
-	    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		(ob->mode == OB_MODE_OBJECT))
+	    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0))
 	{
 		if (((ob->gameflag & OB_DYNAMIC) &&
 		     !ELEM(ob->collision_boundtype, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL)) ||
@@ -6987,6 +6986,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			float imat[4][4], vec[3] = {0.0f, 0.0f, 0.0f};
 
 			invert_m4_m4(imat, rv3d->viewmatob);
+
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				/* prevent random colors being used */
+				glColor3ubv(ob_wire_col);
+			}
 
 			setlinestyle(2);
 			drawcircball(GL_LINE_LOOP, vec, ob->inertia, imat);

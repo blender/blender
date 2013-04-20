@@ -78,10 +78,12 @@ static int node_group_operator_poll(bContext *C)
 		 * Disabled otherwise to allow pynodes define their own operators
 		 * with same keymap.
 		 */
-		if (STREQ(snode->tree_idname, "ShaderNodeTree")
-		    || STREQ(snode->tree_idname, "CompositorNodeTree")
-		    || STREQ(snode->tree_idname, "TextureNodeTree"))
+		if (STREQ(snode->tree_idname, "ShaderNodeTree") ||
+		    STREQ(snode->tree_idname, "CompositorNodeTree") ||
+		    STREQ(snode->tree_idname, "TextureNodeTree"))
+		{
 			return true;
+		}
 	}
 	return false;
 }
