@@ -1070,7 +1070,7 @@ void RE_TileProcessor(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 
 #ifdef WITH_FREESTYLE
-	/* Freestyle  */
+	/* Freestyle */
 	if (re->r.mode & R_EDGE_FRS) {
 		if (!re->test_break(re->tbh)) {
 			add_freestyle(re);
@@ -1123,7 +1123,7 @@ static void do_render_3d(Render *re)
 	threaded_tile_processor(re);
 	
 #ifdef WITH_FREESTYLE
-	/* Freestyle  */
+	/* Freestyle */
 	if (re->r.mode & R_EDGE_FRS)
 		if (!re->test_break(re->tbh))
 			add_freestyle(re);

@@ -30,11 +30,7 @@
 
 #include "BKE_global.h"
 
-// XXX Are those "ifdef __cplusplus" useful here?
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
@@ -55,10 +51,7 @@ extern "C" {
 #include "BKE_scene.h"
 
 #include "RE_pipeline.h"
-
-#ifdef __cplusplus
 }
-#endif
 
 namespace Freestyle {
 
@@ -74,7 +67,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	_width = re->winx;
 	_height = re->winy;
 
-	//Scene.New("FreestyleStrokes")
 	old_scene = re->scene;
 
 	char name[22];
@@ -136,9 +128,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	_z_delta = 0.00001f;
 	_z = camera->clipsta + _z_delta;
 
-	// test
-	//_z = 999.90f; _z_delta = 0.01f;
-
 	object_camera->loc[0] = re->disprect.xmin + 0.5f * re->rectx;
 	object_camera->loc[1] = re->disprect.ymin + 0.5f * re->recty;
 	object_camera->loc[2] = 1.0f;
@@ -196,8 +185,6 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 
 	// release material
 	BKE_libblock_free(&_freestyle_bmain.mat, material);
-
-	//BKE_scene_set_background(&_freestyle_bmain, old_scene);
 
 	BKE_scene_unlink(&_freestyle_bmain, freestyle_scene, NULL);
 }
@@ -288,21 +275,10 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		Object *object_mesh = NewMesh();
 #endif
 		Mesh *mesh = (Mesh *)object_mesh->data;
-#if 0
-		MEM_freeN(mesh->bb);
-		mesh->bb = NULL;
-		mesh->id.us = 0;
-#endif
-#if 1
-		//me.materials = [mat]
 		mesh->mat = (Material **)MEM_mallocN(1 * sizeof(Material *), "MaterialList");
 		mesh->mat[0] = material;
 		mesh->totcol = 1;
 		test_object_materials((Main *) &_freestyle_bmain, (ID *)mesh);
-#else
-		assign_material(object_mesh, material, object_mesh->totcol + 1);
-		object_mesh->actcol = object_mesh->totcol;
-#endif
 
 		// vertices allocation
 		mesh->totvert = visible_faces + visible_segments * 2;
