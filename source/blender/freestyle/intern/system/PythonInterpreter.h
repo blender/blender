@@ -59,6 +59,7 @@ public:
 	{
 		_language = "Python";
 		_context = 0;
+		memset(&_freestyle_bmain, 0, sizeof(Main));
 		//Py_Initialize();
 	}
 
