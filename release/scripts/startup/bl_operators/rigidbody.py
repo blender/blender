@@ -30,13 +30,31 @@ class CopyRigidbodySettings(Operator):
     bl_label = "Copy Rigid Body Settings"
     bl_options = {'REGISTER', 'UNDO'}
 
+    _attrs = (
+        "type",
+        "kinematic",
+        "mass",
+        "collision_shape",
+        "use_margin",
+        "collision_margin",
+        "friction",
+        "restitution",
+        "use_deactivation",
+        "start_deactivated",
+        "deactivate_linear_velocity",
+        "deactivate_angular_velocity",
+        "linear_damping",
+        "angular_damping",
+        "collision_groups",
+        )
+
     @classmethod
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body)
 
     def execute(self, context):
-        obj = context.object
+        obj_act = context.object
         scene = context.scene
 
         # deselect all but mesh objects
@@ -49,27 +67,14 @@ class CopyRigidbodySettings(Operator):
             # add selected objects to active one groups and recalculate
             bpy.ops.group.objects_add_active()
             scene.frame_set(scene.frame_current)
-
+            rb_from = obj_act.rigid_body
             # copy settings
             for o in objects:
-                if o.rigid_body is None:
+                rb_to = o.rigid_body
+                if (o == obj_act) or (rb_to is None):
                     continue
-
-                o.rigid_body.type = obj.rigid_body.type
-                o.rigid_body.kinematic = obj.rigid_body.kinematic
-                o.rigid_body.mass = obj.rigid_body.mass
-                o.rigid_body.collision_shape = obj.rigid_body.collision_shape
-                o.rigid_body.use_margin = obj.rigid_body.use_margin
-                o.rigid_body.collision_margin = obj.rigid_body.collision_margin
-                o.rigid_body.friction = obj.rigid_body.friction
-                o.rigid_body.restitution = obj.rigid_body.restitution
-                o.rigid_body.use_deactivation = obj.rigid_body.use_deactivation
-                o.rigid_body.start_deactivated = obj.rigid_body.start_deactivated
-                o.rigid_body.deactivate_linear_velocity = obj.rigid_body.deactivate_linear_velocity
-                o.rigid_body.deactivate_angular_velocity = obj.rigid_body.deactivate_angular_velocity
-                o.rigid_body.linear_damping = obj.rigid_body.linear_damping
-                o.rigid_body.angular_damping = obj.rigid_body.angular_damping
-                o.rigid_body.collision_groups = obj.rigid_body.collision_groups
+                for attr in self._attrs:
+                    setattr(rb_to, attr, getattr(rb_from, attr))
 
         return {'FINISHED'}
 
@@ -198,27 +203,28 @@ class ConnectRigidBodies(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     con_type = EnumProperty(
-        name="Type",
-        description="Type of generated constraint",
-        # XXX Would be nice to get icons too, but currently not possible ;)
-        items=tuple((e.identifier, e.name, e.description, e. value)
-                    for e in bpy.types.RigidBodyConstraint.bl_rna.properties["type"].enum_items),
-        default='FIXED',)
-
+            name="Type",
+            description="Type of generated constraint",
+            # XXX Would be nice to get icons too, but currently not possible ;)
+            items=tuple((e.identifier, e.name, e.description, e. value)
+                        for e in bpy.types.RigidBodyConstraint.bl_rna.properties["type"].enum_items),
+            default='FIXED',
+            )
     pivot_type = EnumProperty(
-        name="Location",
-        description="Constraint pivot location",
-        items=(('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
-               ('ACTIVE', "Active", "Pivot location is at the active object position"),
-               ('SELECTED', "Selected", "Pivot location is at the selected object position")),
-        default='CENTER',)
-
+            name="Location",
+            description="Constraint pivot location",
+            items=(('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
+                   ('ACTIVE', "Active", "Pivot location is at the active object position"),
+                   ('SELECTED', "Selected", "Pivot location is at the selected object position")),
+            default='CENTER',
+            )
     connection_pattern = EnumProperty(
-        name="Connection Pattern",
-        description="Pattern used to connect objects",
-        items=(('SELECTED_TO_ACTIVE', "Selected to Active", "Connect selected objects to the active object"),
-               ('CHAIN_DISTANCE', "Chain by Distance", "Connect objects as a chain based on distance, starting at the active object")),
-        default='SELECTED_TO_ACTIVE',)
+            name="Connection Pattern",
+            description="Pattern used to connect objects",
+            items=(('SELECTED_TO_ACTIVE', "Selected to Active", "Connect selected objects to the active object"),
+                   ('CHAIN_DISTANCE', "Chain by Distance", "Connect objects as a chain based on distance, starting at the active object")),
+            default='SELECTED_TO_ACTIVE',
+            )
 
     @classmethod
     def poll(cls, context):
@@ -260,19 +266,20 @@ class ConnectRigidBodies(Operator):
         if self.connection_pattern == 'CHAIN_DISTANCE':
             objs_sorted = [obj_act]
             objects_tmp = context.selected_objects
-            if obj_act.select:
+            try:
                 objects_tmp.remove(obj_act)
-            objects_tmp.sort(key=lambda o: (obj_act.location - o.location).length)
+            except ValueError:
+                pass
+
             last_obj = obj_act
 
-            while (len(objects_tmp)):
+            while objects_tmp:
                 objects_tmp.sort(key=lambda o: (last_obj.location - o.location).length)
-                objs_sorted.append(objects_tmp[0])
-                last_obj = objects_tmp[0]
-                objects_tmp.remove(objects_tmp[0])
+                last_obj = objects_tmp.pop(0)
+                objs_sorted.append(last_obj)
 
             for i in range(1, len(objs_sorted)):
-                self._add_constraint(context, objs_sorted[i-1], objs_sorted[i])
+                self._add_constraint(context, objs_sorted[i - 1], objs_sorted[i])
                 change = True
 
         else:  # SELECTED_TO_ACTIVE
