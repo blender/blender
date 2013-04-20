@@ -256,12 +256,8 @@ static bool check_alpha_pass(Base *base)
 }
 
 /***/
-static unsigned int colortab[24] = {
-	0x0,      0xFF88FF, 0xFFBBFF,
-	0x403000, 0xFFFF88, 0xFFFFBB,
-	0x104040, 0x66CCCC, 0x77CCCC,
-	0x104010, 0x55BB55, 0x66FF66,
-	0xFFFFFF
+static const unsigned int colortab[] = {
+	0x0, 0x403000, 0xFFFF88
 };
 
 
@@ -6304,8 +6300,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short d
 	setlinestyle(0);
 }
 
-static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_wire_col[4],
-                                   const int warning_recursive)
+static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_wire_col[4])
 {
 	Object *ob = base->object;
 	int colindex = 0;
@@ -6326,15 +6321,7 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 	else {
 		/* Sets the 'colindex' */
 		if (ob->id.lib) {
-			colindex = (base->flag & (SELECT + BA_WAS_SEL)) ? 4 : 3;
-		}
-		else if (warning_recursive == 1) {
-			if (base->flag & (SELECT + BA_WAS_SEL)) {
-				colindex = (scene->basact == base) ? 8 : 7;
-			}
-			else {
-				colindex = 6;
-			}
+			colindex = (base->flag & (SELECT + BA_WAS_SEL)) ? 2 : 1;
 		}
 		/* Sets the 'theme_id' or fallback to wire */
 		else {
@@ -6413,7 +6400,6 @@ static void draw_object_matcap_check(Scene *scene, View3D *v3d, Object *ob)
  */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short dflag)
 {
-	static int warning_recursive = 0;
 	ModifierData *md = NULL;
 	Object *ob = base->object;
 	Curve *cu;
@@ -6492,7 +6478,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 		ED_view3d_project_base(ar, base);
 
-		draw_object_wire_color(scene, base, _ob_wire_col, warning_recursive);
+		draw_object_wire_color(scene, base, _ob_wire_col);
 		ob_wire_col = _ob_wire_col;
 
 		glColor3ubv(ob_wire_col);
@@ -6776,10 +6762,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* code for new particle system */
-	if ((warning_recursive == 0) &&
-	    (ob->particlesystem.first) &&
-	    (ob != scene->obedit)
-	    )
+	if ((ob->particlesystem.first) &&
+	    (ob != scene->obedit))
 	{
 		ParticleSystem *psys;
 
@@ -6810,8 +6794,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* draw edit particles last so that they can draw over child particles */
-	if ((warning_recursive == 0) &&
-	    (dflag & DRAW_PICKING) == 0 &&
+	if ((dflag & DRAW_PICKING) == 0 &&
 	    (!scene->obedit))
 	{
 
@@ -7017,8 +7000,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	if ((warning_recursive) ||
-	    (base->flag & OB_FROMDUPLI) ||
+	if ((base->flag & OB_FROMDUPLI) ||
 	    (v3d->flag2 & V3D_RENDER_OVERRIDE))
 	{
 		return;
