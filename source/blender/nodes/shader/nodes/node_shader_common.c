@@ -242,7 +242,6 @@ void register_node_type_sh_group(void)
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
 	node_type_update(&ntype, NULL, node_group_verify);
-	strcpy(ntype.group_tree_idname, "ShaderNodeTree");
 	node_type_exec(&ntype, group_initexec, group_freeexec, group_execute);
 	node_type_gpu(&ntype, gpu_group_execute);
 	

@@ -2722,12 +2722,6 @@ static void def_group(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "PropertyGroup");
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
-
-	/* registration */
-	prop = RNA_def_property(srna, "bl_group_tree_idname", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "typeinfo->group_tree_idname");
-	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
-	RNA_def_property_ui_text(prop, "Group Tree Type", "");
 }
 
 static void def_frame(StructRNA *srna)

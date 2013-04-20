@@ -222,14 +222,6 @@ typedef struct bNodeType {
 	/* gpu */
 	NodeGPUExecFunction gpufunc;
 	
-	/* Group type static info
-	 * 
-	 * XXX This data is needed by group operators. If these operators could be implemented completely in Python,
-	 * the static data could instead be stored in Python classes and would need no special treatment.
-	 * Due to the way group operators move nodes between data blocks this is currently not possible.
-	 */
-	char group_tree_idname[64];		/* tree type associated to the group node type */
-	
 	/* RNA integration */
 	ExtensionRNA ext;
 } bNodeType;
