@@ -6933,9 +6933,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 		}
 
-		if (ob->gameflag & OB_BOUNDS) {
+		if ((ob->gameflag & OB_BOUNDS) && (ob->mode == OB_MODE_OBJECT)) {
 			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_DRAWBOUNDOX) == 0) {
-
 				setlinestyle(2);
 				draw_bounding_volume(scene, ob, ob->collision_boundtype);
 				setlinestyle(0);
@@ -6952,6 +6951,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			if (dtx & OB_TEXSPACE) {
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					/* prevent random colors being used */
+					glColor3ubv(ob_wire_col);
+				}
 				drawtexspace(ob);
 			}
 			if (dtx & OB_DRAWNAME) {
@@ -6971,7 +6974,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 	}
 
-	if (dt <= OB_SOLID && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if ((dt <= OB_SOLID) &&
+	    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		(ob->mode == OB_MODE_OBJECT))
+	{
 		if (((ob->gameflag & OB_DYNAMIC) &&
 		     !ELEM(ob->collision_boundtype, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL)) ||
 

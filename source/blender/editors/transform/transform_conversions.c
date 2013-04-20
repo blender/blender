@@ -5535,7 +5535,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else { /* Objects */
 		int i, recalcObPaths = 0;
 
-		BLI_assert(t->flag & T_OBJECT);
+		BLI_assert(t->flag & (T_OBJECT | T_TEXTURE));
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
