@@ -1681,32 +1681,36 @@ static void statvis_calc_thickness(
 
 		normal_tri_v3(ray_no, cos[2], cos[1], cos[0]);
 
+#define FACE_RAY_TEST_ANGLE \
+		f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no, \
+		                           &dist, NULL, NULL); \
+		if (f_hit) { \
+			float angle_fac = fabsf(dot_v3v3(ltri[0]->f->no, f_hit->no)); \
+			angle_fac = 1.0f - angle_fac; \
+			angle_fac = angle_fac * angle_fac * angle_fac; \
+			angle_fac = 1.0f - angle_fac; \
+			dist /= angle_fac; \
+			if (dist < face_dists[index]) { \
+				face_dists[index] = dist; \
+			} \
+		} (void)0
+
 		if (use_jit) {
 			int j;
 			for (j = 0; j < samples; j++) {
+				float dist = face_dists[index];
 				interp_v3_v3v3v3_uv(ray_co, cos[0], cos[1], cos[2], jit_ofs[j]);
 				madd_v3_v3fl(ray_co, ray_no, eps_offset);
 
-				f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no,
-				                           &face_dists[index], NULL, NULL);
-				/* duplicate */
-				if (f_hit) {
-					const int index_hit = BM_elem_index_get(f_hit);
-					face_dists[index] = face_dists[index_hit] = min_ff(face_dists[index], face_dists[index_hit]);
-				}
+				FACE_RAY_TEST_ANGLE;
 			}
 		}
 		else {
+			float dist = face_dists[index];
 			mid_v3_v3v3v3(ray_co, cos[0], cos[1], cos[2]);
 			madd_v3_v3fl(ray_co, ray_no, eps_offset);
 
-			f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no,
-			                           &face_dists[index], NULL, NULL);
-			/* duplicate */
-			if (f_hit) {
-				const int index_hit = BM_elem_index_get(f_hit);
-				face_dists[index] = face_dists[index_hit] = min_ff(face_dists[index], face_dists[index_hit]);
-			}
+			FACE_RAY_TEST_ANGLE;
 		}
 	}
 
