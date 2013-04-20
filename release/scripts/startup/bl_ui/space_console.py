@@ -87,7 +87,7 @@ class CONSOLE_MT_language(Menu):
 
 def add_scrollback(text, text_type):
     for l in text.split("\n"):
-        bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
+        bpy.ops.console.scrollback_append(text=l.expandtabs(4),
                                           type=text_type)
 
 if __name__ == "__main__":  # only for live edit.

@@ -435,8 +435,8 @@ class QuickFluid(Operator):
         fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
                         if (obj.type == 'MESH' and not 0.0 in obj.dimensions)]
-        min_co = Vector((100000, 100000, 100000))
-        max_co = Vector((-100000, -100000, -100000))
+        min_co = Vector((100000.0, 100000.0, 100000.0))
+        max_co = -min_co
 
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")

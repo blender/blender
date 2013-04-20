@@ -664,6 +664,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 for md in ob.modifiers:
                     if md.type == 'MULTIRES':
                         do_persistent = False
+                        break
 
                 if do_persistent:
                     col.prop(brush, "use_persistent")

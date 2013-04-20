@@ -555,7 +555,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
             row.label("Cut To")
             for i in range(1, strip.channel):
-                row.operator("sequencer.cut_multicam", text=str(i)).camera = i
+                row.operator("sequencer.cut_multicam", text="%d" % i).camera = i
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':

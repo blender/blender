@@ -885,13 +885,11 @@ class WM_OT_doc_view_manual(Operator):
 
     @staticmethod
     def _lookup_rna_url(rna_id, verbose=True):
-        url = None
         for prefix, url_manual_mapping in bpy.utils.manual_map():
             rna_ref = WM_OT_doc_view_manual._find_reference(rna_id, url_manual_mapping, verbose=verbose)
             if rna_ref is not None:
                 url = prefix + rna_ref
-                break
-        return url
+                return url
 
     def execute(self, context):
         rna_id = _wm_doc_get_id(self.doc_id, do_url=False)
@@ -1040,10 +1038,10 @@ rna_max = FloatProperty(
 
 
 class WM_OT_properties_edit(Operator):
-    """Internal use (edit a property data_path)"""
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
-    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
+    # register only because invoke_props_popup requires.
+    bl_options = {'REGISTER', 'INTERNAL'}
 
     data_path = rna_path
     property = rna_property
@@ -1128,10 +1126,9 @@ class WM_OT_properties_edit(Operator):
 
 
 class WM_OT_properties_add(Operator):
-    """Internal use (edit a property data_path)"""
     bl_idname = "wm.properties_add"
     bl_label = "Add Property"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path
 
@@ -1165,6 +1162,7 @@ class WM_OT_properties_context_change(Operator):
     "Jump to a different tab inside the properties editor"
     bl_idname = "wm.properties_context_change"
     bl_label = ""
+    bl_options = {'INTERNAL'}
 
     context = StringProperty(
             name="Context",
@@ -1180,7 +1178,7 @@ class WM_OT_properties_remove(Operator):
     """Internal use (edit a property data_path)"""
     bl_idname = "wm.properties_remove"
     bl_label = "Remove Property"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path
     property = rna_property

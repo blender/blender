@@ -126,10 +126,7 @@ class SequencerDeinterlaceSelectedMovies(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene and context.scene.sequence_editor:
-            return True
-        else:
-            return False
+        return (context.scene and context.scene.sequence_editor)
 
     def execute(self, context):
         for s in context.scene.sequence_editor.sequences_all:
