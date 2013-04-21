@@ -43,8 +43,8 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 /* assumes edges are validated before reaching this poin */
-static float measure_facepair(BMVert *v1, BMVert *v2,
-                              BMVert *v3, BMVert *v4, float limit)
+static float measure_facepair(const float v1[3], const float v2[3],
+                              const float v3[3], const float v4[3], float limit)
 {
 	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make */
 	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
@@ -53,17 +53,17 @@ static float measure_facepair(BMVert *v1, BMVert *v2,
 	float minarea, maxarea, areaA, areaB;
 
 	/* First Test: Normal difference */
-	normal_tri_v3(n1, v1->co, v2->co, v3->co);
-	normal_tri_v3(n2, v1->co, v3->co, v4->co);
+	normal_tri_v3(n1, v1, v2, v3);
+	normal_tri_v3(n2, v1, v3, v4);
 
 	if (n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle1 = 0.0f;
 	else angle1 = angle_v3v3(n1, n2);
 
-	normal_tri_v3(n1, v2->co, v3->co, v4->co);
-	normal_tri_v3(n2, v4->co, v1->co, v2->co);
+	normal_tri_v3(n1, v2, v3, v4);
+	normal_tri_v3(n2, v4, v1, v2);
 
 	if (n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle2 = 0.0f;
-	else angle2 = angle_v3v3(n1, n2);
+	else angle2 = angle_normalized_v3v3(n1, n2);
 
 	measure += (angle1 + angle2) * 0.5f;
 	if (measure > limit) {
@@ -71,16 +71,21 @@ static float measure_facepair(BMVert *v1, BMVert *v2,
 	}
 
 	/* Second test: Colinearity */
-	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
-	sub_v3_v3v3(edgeVec2, v2->co, v3->co);
-	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
-	sub_v3_v3v3(edgeVec4, v4->co, v1->co);
+	sub_v3_v3v3(edgeVec1, v1, v2);
+	sub_v3_v3v3(edgeVec2, v2, v3);
+	sub_v3_v3v3(edgeVec3, v3, v4);
+	sub_v3_v3v3(edgeVec4, v4, v1);
+
+	normalize_v3(edgeVec1);
+	normalize_v3(edgeVec2);
+	normalize_v3(edgeVec3);
+	normalize_v3(edgeVec4);
 
 	/* a completely skinny face is 'pi' after halving */
-	diff = 0.25f * (fabsf(angle_v3v3(edgeVec1, edgeVec2) - (float)M_PI_2) +
-	                fabsf(angle_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
-	                fabsf(angle_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
-	                fabsf(angle_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
+	diff = 0.25f * (fabsf(angle_normalized_v3v3(edgeVec1, edgeVec2) - (float)M_PI_2) +
+	                fabsf(angle_normalized_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
+	                fabsf(angle_normalized_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
+	                fabsf(angle_normalized_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
 
 	if (!diff) {
 		return 0.0;
@@ -92,8 +97,8 @@ static float measure_facepair(BMVert *v1, BMVert *v2,
 	}
 
 	/* Third test: Concavity */
-	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
-	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
+	areaA = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v3, v4);
+	areaB = area_tri_v3(v2, v3, v4) + area_tri_v3(v4, v1, v2);
 
 	if (areaA <= areaB) minarea = areaA;
 	else minarea = areaB;
@@ -274,7 +279,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		if ((do_uv || do_tf || do_vcol) && (bm_edge_faces_cmp(bm, e, do_uv, do_tf, do_vcol) == false))
 			continue;
 
-		measure = measure_facepair(v1, v2, v3, v4, limit);
+		measure = measure_facepair(v1->co, v2->co, v3->co, v4->co, limit);
 		if (measure < limit) {
 			BLI_array_grow_one(jedges);
 
