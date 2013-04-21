@@ -115,6 +115,11 @@ class IMAGE_MT_select(Menu):
 
         layout.separator()
 
+        layout.operator("uv.select_less", text="Less")
+        layout.operator("uv.select_more", text="More")
+
+        layout.separator()
+
         layout.operator("uv.select_split")
 
 
