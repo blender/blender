@@ -55,15 +55,11 @@ static float measure_facepair(const float v1[3], const float v2[3],
 	/* First Test: Normal difference */
 	normal_tri_v3(n1, v1, v2, v3);
 	normal_tri_v3(n2, v1, v3, v4);
-
-	if (n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle1 = 0.0f;
-	else angle1 = angle_v3v3(n1, n2);
+	angle1 = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
 
 	normal_tri_v3(n1, v2, v3, v4);
 	normal_tri_v3(n2, v4, v1, v2);
-
-	if (n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle2 = 0.0f;
-	else angle2 = angle_normalized_v3v3(n1, n2);
+	angle2 = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
 
 	measure += (angle1 + angle2) * 0.5f;
 	if (measure > limit) {
