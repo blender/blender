@@ -183,6 +183,21 @@ float area_poly_v2(int nr, float verts[][2])
 	return fabsf(0.5f * area);
 }
 
+/********************************* Volume **********************************/
+
+/**
+ * The volume from a tetrahedron, points can be in any order
+ */
+float volume_tetrahedron_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float m[3][3];
+	sub_v3_v3v3(m[0], v1, v2);
+	sub_v3_v3v3(m[1], v2, v3);
+	sub_v3_v3v3(m[2], v3, v4);
+	return fabsf(determinant_m3_array(m)) / 6.0f;
+}
+
+
 /********************************* Distance **********************************/
 
 /* distance p to line v1-v2

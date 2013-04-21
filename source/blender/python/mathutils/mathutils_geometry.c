@@ -467,6 +467,51 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject *args)
 	}
 }
 
+PyDoc_STRVAR(M_Geometry_volume_tetrahedron_doc,
+".. function:: volume_tetrahedron(v1, v2, v3, v4)\n"
+"\n"
+"   Return the volume formed by a tetrahedron (points can be in any order).\n"
+"\n"
+"   :arg v1: Point1\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg v2: Point2\n"
+"   :type v2: :class:`mathutils.Vector`\n"
+"   :arg v3: Point3\n"
+"   :type v3: :class:`mathutils.Vector`\n"
+"   :arg v4: Point4\n"
+"   :type v4: :class:`mathutils.Vector`\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Geometry_volume_tetrahedron(PyObject *UNUSED(self), PyObject *args)
+{
+	VectorObject *vec1, *vec2, *vec3, *vec4;
+
+	if (!PyArg_ParseTuple(args, "O!O!O!O!:volume_tetrahedron",
+	                      &vector_Type, &vec1,
+	                      &vector_Type, &vec2,
+	                      &vector_Type, &vec3,
+	                      &vector_Type, &vec4))
+	{
+		return NULL;
+	}
+
+	if (vec1->size < 3 || vec2->size < 3 || vec3->size < 3 || vec4->size < 3) {
+		PyErr_SetString(PyExc_ValueError,
+		                "geometry.volume_tetrahedron(...): "
+		                " can't use 2D Vectors");
+		return NULL;
+	}
+
+	if (BaseMath_ReadCallback(vec1) == -1 ||
+	    BaseMath_ReadCallback(vec2) == -1 ||
+	    BaseMath_ReadCallback(vec3) == -1 ||
+	    BaseMath_ReadCallback(vec4) == -1)
+	{
+		return NULL;
+	}
+
+	return PyFloat_FromDouble(volume_tetrahedron_v3(vec1->vec, vec2->vec, vec3->vec, vec4->vec));
+}
 
 PyDoc_STRVAR(M_Geometry_intersect_line_line_2d_doc,
 ".. function:: intersect_line_line_2d(lineA_p1, lineA_p2, lineB_p1, lineB_p2)\n"
@@ -1458,6 +1503,7 @@ static PyMethodDef M_Geometry_methods[] = {
 	{"distance_point_to_plane", (PyCFunction) M_Geometry_distance_point_to_plane, METH_VARARGS, M_Geometry_distance_point_to_plane_doc},
 	{"intersect_sphere_sphere_2d", (PyCFunction) M_Geometry_intersect_sphere_sphere_2d, METH_VARARGS, M_Geometry_intersect_sphere_sphere_2d_doc},
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
+	{"volume_tetrahedron", (PyCFunction) M_Geometry_volume_tetrahedron, METH_VARARGS, M_Geometry_volume_tetrahedron_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},
 	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
 	{"points_in_planes", (PyCFunction) M_Geometry_points_in_planes, METH_VARARGS, M_Geometry_points_in_planes_doc},
