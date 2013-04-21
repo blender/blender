@@ -109,7 +109,7 @@ static bNodeTree *node_tree_from_ID(ID *id)
 void ED_node_tag_update_id(ID *id)
 {
 	bNodeTree *ntree = node_tree_from_ID(id);
-	if (id == NULL)
+	if (id == NULL || ntree == NULL)
 		return;
 	
 	if (ntree->type == NTREE_SHADER) {
