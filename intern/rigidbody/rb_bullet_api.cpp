@@ -242,6 +242,56 @@ void RB_dworld_remove_body(rbDynamicsWorld *world, rbRigidBody *object)
 	world->dynamicsWorld->removeRigidBody(body);
 }
 
+/* Collision detection */
+
+void RB_world_convex_sweep_test(rbDynamicsWorld *world, rbRigidBody *object, const float loc_start[3], const float loc_end[3], float v_location[3],  float v_hitpoint[3],  float v_normal[3], int *r_hit)
+{
+	btRigidBody *body = object->body;
+	btCollisionShape *collisionShape = body->getCollisionShape();
+	/* only convex shapes are supported, but user can specify a non convex shape */
+	if (collisionShape->isConvex()) {
+		btCollisionWorld::ClosestConvexResultCallback result(btVector3(loc_start[0], loc_start[1], loc_start[2]), btVector3(loc_end[0], loc_end[1], loc_end[2]));
+
+		btQuaternion obRot = body->getWorldTransform().getRotation();
+		
+		btTransform rayFromTrans;
+		rayFromTrans.setIdentity();
+		rayFromTrans.setRotation(obRot);
+		rayFromTrans.setOrigin(btVector3(loc_start[0], loc_start[1], loc_start[2]));
+
+		btTransform rayToTrans;
+		rayToTrans.setIdentity();
+		rayToTrans.setRotation(obRot);
+		rayToTrans.setOrigin(btVector3(loc_end[0], loc_end[1], loc_end[2]));
+		
+		world->dynamicsWorld->convexSweepTest((btConvexShape*) collisionShape, rayFromTrans, rayToTrans, result, 0);
+		
+		if (result.hasHit()) {
+			*r_hit = 1;
+			
+			v_location[0] = result.m_convexFromWorld[0]+(result.m_convexToWorld[0]-result.m_convexFromWorld[0])*result.m_closestHitFraction;
+			v_location[1] = result.m_convexFromWorld[1]+(result.m_convexToWorld[1]-result.m_convexFromWorld[1])*result.m_closestHitFraction;
+			v_location[2] = result.m_convexFromWorld[2]+(result.m_convexToWorld[2]-result.m_convexFromWorld[2])*result.m_closestHitFraction;
+			
+			v_hitpoint[0] = result.m_hitPointWorld[0];
+			v_hitpoint[1] = result.m_hitPointWorld[1];
+			v_hitpoint[2] = result.m_hitPointWorld[2];
+			
+			v_normal[0] = result.m_hitNormalWorld[0];
+			v_normal[1] = result.m_hitNormalWorld[1];
+			v_normal[2] = result.m_hitNormalWorld[2];
+			
+		}
+		else {
+			*r_hit = 0;
+		}
+	}
+	else{
+		/* we need to return a value if user passes non convex body, to report */
+		*r_hit = -2;
+	}
+}
+
 /* ............ */
 
 rbRigidBody *RB_body_new(rbCollisionShape *shape, const float loc[3], const float rot[4])
