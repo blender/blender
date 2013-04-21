@@ -1460,7 +1460,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	if (ed_screen_used(CTX_wm_manager(C), screen))
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
 
-	for (sc = CTX_data_main(C)->screen.first; sc; sc = sc->id.next) {
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		if ((U.flag & USER_SCENEGLOBAL) || sc == screen) {
 			
 			if (scene != sc->scene) {
@@ -1479,7 +1479,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	//  copy_view3d_lock(0);	/* space.c */
 	
 	/* are there cameras in the views that are not in the scene? */
-	for (sc = CTX_data_main(C)->screen.first; sc; sc = sc->id.next) {
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		if ((U.flag & USER_SCENEGLOBAL) || sc == screen) {
 			ScrArea *sa = sc->areabase.first;
 			while (sa) {
@@ -1494,13 +1494,17 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 							v3d->camera = BKE_scene_camera_find(sc->scene);
 							// XXX if (sc == curscreen) handle_view3d_lock();
 							if (!v3d->camera) {
-								ARegion *ar;
-								for (ar = v3d->regionbase.first; ar; ar = ar->next) {
-									if (ar->regiontype == RGN_TYPE_WINDOW) {
-										RegionView3D *rv3d = ar->regiondata;
-
-										if (rv3d->persp == RV3D_CAMOB)
-											rv3d->persp = RV3D_PERSP;
+								ListBase *regionbase[] = {&sa->regionbase, &v3d->regionbase, NULL};
+								int i;
+								for (i = 0; regionbase[i]; i++) {
+									ARegion *ar;
+									for (ar = regionbase[i]->first; ar; ar = ar->next) {
+										if (ar->regiontype == RGN_TYPE_WINDOW) {
+											RegionView3D *rv3d = ar->regiondata;
+											if (rv3d->persp == RV3D_CAMOB) {
+												rv3d->persp = RV3D_PERSP;
+											}
+										}
 									}
 								}
 							}
