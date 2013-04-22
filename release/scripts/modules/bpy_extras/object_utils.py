@@ -68,7 +68,14 @@ def add_object_align_init(context, operator):
         if properties.is_property_set("view_align"):
             view_align = view_align_force = operator.view_align
         else:
-            properties.view_align = view_align
+            if properties.is_property_set("rotation"):
+                # ugh, 'view_align' callback resets
+                value = properties.rotation[:]
+                properties.view_align = view_align
+                properties.rotation = value
+                del value
+            else:
+                properties.view_align = view_align
 
     if operator and (properties.is_property_set("rotation") and
                      not view_align_force):
