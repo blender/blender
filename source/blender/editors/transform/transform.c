@@ -1941,17 +1941,20 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		return 0;
 	}
 
-	/* Stupid code to have Ctrl-Click on manipulator work ok */
 	if (event) {
-		/* do this only for translation/rotation/resize due to only this
+		/* keymap for shortcut header prints */
+		t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
+
+		/* Stupid code to have Ctrl-Click on manipulator work ok
+		 *
+		 * do this only for translation/rotation/resize due to only this
 		 * moded are available from manipulator and doing such check could
 		 * lead to keymap conflicts for other modes (see #31584)
 		 */
 		if (ELEM3(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
-			wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 			wmKeyMapItem *kmi;
 
-			for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+			for (kmi = t->keymap->items.first; kmi; kmi = kmi->next) {
 				if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
 					if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) &&   event->ctrl)  ||
 					    (ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
@@ -1964,10 +1967,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 				}
 			}
 		}
-
 	}
-
-	t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags
 
@@ -4134,7 +4134,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, ", (");
 
-	{
+	if (t->keymap) {
 		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
 		if (kmi) {
 			ofs += WM_keymap_item_to_string(kmi, str + ofs, MAX_INFO_LEN - ofs);
@@ -6900,7 +6900,7 @@ static void headerSeqSlide(TransInfo *t, float val[2], char *str)
 
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
-	{
+	if (t->keymap) {
 		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
 		if (kmi) {
 			ofs += WM_keymap_item_to_string(kmi, str + ofs, MAX_INFO_LEN - ofs);
