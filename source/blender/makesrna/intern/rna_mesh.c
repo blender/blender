@@ -129,7 +129,7 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
-static void rna_Mesh_update_statvis(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Mesh_update_data_edit_color(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
 	rna_Mesh_update_data(bmain, scene, ptr);
@@ -2931,7 +2931,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_weight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEIGHT);
 	RNA_def_property_ui_text(prop, "Show Weights", "Draw weights in editmode");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");  /* needs to rebuild 'dm' */
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data_edit_color");  /* needs to rebuild 'dm' */
 
 	prop = RNA_def_property(srna, "show_edge_crease", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWCREASES);
@@ -2966,7 +2966,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_statvis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_STATVIS);
 	RNA_def_property_ui_text(prop, "Stat Vis", "Display statistical information about the mesh");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_statvis");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data_edit_color");
 
 	prop = RNA_def_property(srna, "show_extra_edge_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGELEN);
