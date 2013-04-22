@@ -480,6 +480,7 @@ void uiTemplateTextureUser(struct uiLayout *layout, struct bContext *C) {}
 void uiTemplateTextureShow(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop) {}
 void uiTemplateKeymapItemProperties(struct uiLayout *layout, struct PointerRNA *ptr) {}
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact) {}
+void uiTemplateMovieclipInformation(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr) {}
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {}
 void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact) {}
 void uiTemplateImageSettings(struct uiLayout *layout, struct PointerRNA *imfptr) {}
