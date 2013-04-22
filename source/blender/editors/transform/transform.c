@@ -6004,7 +6004,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 			if (sv->edge_len > FLT_EPSILON) {
 				const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
 
-				add_v3_v3v3(co_a, sv->dir_b, sv->dir_a);
+				add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_a);
 				add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_b);
 
 				if (sld->flipped_vtx) {
