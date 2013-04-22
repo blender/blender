@@ -449,10 +449,10 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 		}
 
 		mul_m3_m3m3(tmat, smat, imat);
-		mul_m3_m3m3(smat, td->axismtx, tmat);
 		if (t->flag & T_EDIT) {
-			mul_m3_m3m3(smat, smat, t->obedit_mat);
+			mul_m3_m3m3(smat, t->obedit_mat, smat);
 		}
+		mul_m3_m3m3(smat, td->axismtx, tmat);
 	}
 }
 
