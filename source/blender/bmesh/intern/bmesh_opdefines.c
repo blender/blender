@@ -150,7 +150,7 @@ static BMOpDefine bmo_recalc_face_normals_def = {
 	"recalc_face_normals",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-	 {"use_flip", BMO_OP_SLOT_BOOL},  /* Reverse the result */
+	 {"use_face_tag", BMO_OP_SLOT_BOOL},  /* Tag faces that have been flipped */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */

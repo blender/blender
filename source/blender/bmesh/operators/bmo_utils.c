@@ -315,7 +315,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2;
 	float maxx, maxx_test, cent[3];
 	int i, i_max;
-	const bool use_flip = BMO_slot_bool_get(op->slots_in, "use_flip");
+	const bool use_flip = BMO_slot_bool_get(op->slots_in, "use_face_tag");
 
 	startf = NULL;
 	maxx = -1.0e10;
