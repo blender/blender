@@ -767,6 +767,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout");
 
+	func = RNA_def_function(srna, "template_movieclip_information", "uiTemplateMovieclipInformation");
+	RNA_def_function_ui_description(func, "Item. Movie clip information data.");
+	api_ui_item_rna_common(func);
+	parm = RNA_def_pointer(func, "clip_user", "MovieClipUser", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
+
 	func = RNA_def_function(srna, "template_list", "uiTemplateList");
 	RNA_def_function_ui_description(func, "Item. A list widget to display data, e.g. vertexgroups.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

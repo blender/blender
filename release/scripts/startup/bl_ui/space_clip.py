@@ -875,6 +875,22 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
         col.prop(clip, "frame_offset")
 
 
+class CLIP_PT_footage_info(CLIP_PT_clip_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Footage Information"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        clip = sc.clip
+
+        col = layout.column()
+        col.template_movieclip_information(sc, "clip", sc.clip_user)
+
+
 class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'

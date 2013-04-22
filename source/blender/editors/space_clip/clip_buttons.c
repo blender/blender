@@ -41,7 +41,9 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 
 #include "BLF_translation.h"
 
@@ -480,5 +482,62 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		          10.0 * height, step, digits, TIP_("Height of marker's search in screen coordinates"));
 
 		uiBlockEndAlign(block);
+	}
+}
+
+/********************* Footage Information Template ************************/
+
+void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr)
+{
+	PropertyRNA *prop;
+	PointerRNA clipptr;
+	MovieClip *clip;
+	MovieClipUser *user;
+	uiLayout *col;
+	char str[1024];
+	int width, height, framenr;
+
+	if (!ptr->data)
+		return;
+
+	prop = RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	if (RNA_property_type(prop) != PROP_POINTER) {
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	clipptr = RNA_property_pointer_get(ptr, prop);
+	clip = (MovieClip *)clipptr.data;
+	user = userptr->data;
+
+	col = uiLayoutColumn(layout, FALSE);
+
+	/* Display frame dimensions. */
+	BKE_movieclip_get_size(clip, user, &width, &height);
+	BLI_snprintf(str, sizeof(str), IFACE_("Size: %dx%d"), width, height);
+	uiItemL(col, str, ICON_NONE);
+
+	/* Display current frame number. */
+	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr) + clip->frame_offset;
+	BLI_snprintf(str, sizeof(str), IFACE_("Frame: %d"), framenr);
+	uiItemL(col, str, ICON_NONE);
+
+	/* Display current file name if it's a sequence clip. */
+	if (clip->source == MCLIP_SRC_SEQUENCE) {
+		char filepath[FILE_MAX];
+		const char *file;
+
+		BKE_movieclip_filename_for_frame(clip, user, filepath);
+		file = BLI_last_slash(filepath);
+
+		BLI_snprintf(str, sizeof(str), IFACE_("File: %s"), file);
+		uiItemL(col, str, ICON_NONE);
 	}
 }
