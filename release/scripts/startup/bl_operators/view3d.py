@@ -19,7 +19,9 @@
 # <pep8-80 compliant>
 
 import bpy
+import mathutils
 from bpy.types import Operator
+from bpy.props import BoolProperty
 
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
@@ -88,3 +90,79 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
 
     def invoke(self, context, event):
         return self.execute(context)
+
+
+class VIEW3D_OT_select_or_deselect_all(Operator):
+    "Select element under the mouse, delect everything is there's nothing under the mouse"
+    bl_label = "Select or Delect All"
+    bl_idname = "view3d.select_or_deselect_all"
+
+    extend = BoolProperty(
+            name="Extend",
+            description="Extend selection instead of deselecting everything first",
+            default=False,
+            )
+
+    toggle = BoolProperty(
+            name="Toggle",
+            description="Toggle the selection",
+            default=False,
+            )
+
+    deselect = BoolProperty(
+            name="Deselect",
+            description="Remove from selection",
+            default=False,
+            )
+
+    center = BoolProperty(
+            name="Center",
+            description="Use the object center when selecting, in editmode used to extend object selection",
+            default=False,
+            )
+
+    enumerate = BoolProperty(
+            name="Enumerate",
+            description="List objects under the mouse (object mode only)",
+            default=False,
+            )
+
+    object = BoolProperty(
+            name="Object",
+            description="Use object selection (editmode only)",
+            default=False,
+            )
+
+    def invoke(self, context, event):
+        x = event.mouse_region_x
+        y = event.mouse_region_y
+
+        if self.extend == False:
+            active_object = context.active_object
+
+            if active_object:
+                if active_object.mode == 'EDIT':
+                    if active_object.type == 'MESH':
+                        bpy.ops.mesh.select_all(action='DESELECT')
+                    elif active_object.type == 'CURVE':
+                        bpy.ops.curve.select_all(action='DESELECT')
+                    elif active_object.type == 'SURFACE':
+                        bpy.ops.curve.select_all(action='DESELECT')
+                    elif active_object.type == 'LATTICE':
+                        bpy.ops.lattice.select_all(action='DESELECT')
+                    elif active_object.type == 'META':
+                        bpy.ops.mball.select_all(action='DESELECT')
+                    elif active_object.type == 'ARMATURE':
+                        bpy.ops.armature.select_all(action='DESELECT')
+                else:
+                    bpy.ops.object.select_all(action='DESELECT')
+            else:
+                bpy.ops.object.select_all(action='DESELECT')
+
+        return bpy.ops.view3d.select(extend=self.extend,
+                                     deselect=self.deselect,
+                                     toggle=self.toggle,
+                                     center=self.center,
+                                     enumerate=self.enumerate,
+                                     object=self.object,
+                                     location=(x, y))

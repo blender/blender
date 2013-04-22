@@ -2195,7 +2195,7 @@ static bool mouse_weight_paint_vertex_select(bContext *C, const int mval[2], boo
 /* ****** Mouse Select ****** */
 
 
-static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int view3d_select_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
@@ -2206,6 +2206,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
 	bool object = RNA_boolean_get(op->ptr, "object");
 	bool retval = false;
+	int location[2];
+
+	RNA_int_get_array(op->ptr, "location", location);
 
 	view3d_operator_needs_opengl(C);
 
@@ -2221,27 +2224,27 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	if (obedit && object == false) {
 		if (obedit->type == OB_MESH)
-			retval = EDBM_select_pick(C, event->mval, extend, deselect, toggle);
+			retval = EDBM_select_pick(C, location, extend, deselect, toggle);
 		else if (obedit->type == OB_ARMATURE)
-			retval = mouse_armature(C, event->mval, extend, deselect, toggle);
+			retval = mouse_armature(C, location, extend, deselect, toggle);
 		else if (obedit->type == OB_LATTICE)
-			retval = mouse_lattice(C, event->mval, extend, deselect, toggle);
+			retval = mouse_lattice(C, location, extend, deselect, toggle);
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF))
-			retval = mouse_nurb(C, event->mval, extend, deselect, toggle);
+			retval = mouse_nurb(C, location, extend, deselect, toggle);
 		else if (obedit->type == OB_MBALL)
-			retval = mouse_mball(C, event->mval, extend, deselect, toggle);
+			retval = mouse_mball(C, location, extend, deselect, toggle);
 			
 	}
 	else if (obact && obact->mode & OB_MODE_SCULPT)
 		return OPERATOR_CANCELLED;
 	else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT)
-		return PE_mouse_particles(C, event->mval, extend, deselect, toggle);
+		return PE_mouse_particles(C, location, extend, deselect, toggle);
 	else if (obact && paint_facesel_test(obact))
-		retval = paintface_mouse_select(C, obact, event->mval, extend, deselect, toggle);
+		retval = paintface_mouse_select(C, obact, location, extend, deselect, toggle);
 	else if (paint_vertsel_test(obact))
-		retval = mouse_weight_paint_vertex_select(C, event->mval, extend, deselect, toggle, obact);
+		retval = mouse_weight_paint_vertex_select(C, location, extend, deselect, toggle, obact);
 	else
-		retval = mouse_select(C, event->mval, extend, deselect, toggle, center, enumerate);
+		retval = mouse_select(C, location, extend, deselect, toggle, center, enumerate);
 
 	/* passthrough allows tweaks
 	 * FINISHED to signal one operator worked
@@ -2252,8 +2255,17 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		return OPERATOR_PASS_THROUGH;  /* nothing selected, just passthrough */
 }
 
+static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	RNA_int_set_array(op->ptr, "location", event->mval);
+
+	return view3d_select_exec(C, op);
+}
+
 void VIEW3D_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Activate/Select";
 	ot->description = "Activate/select item(s)";
@@ -2261,6 +2273,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke = view3d_select_invoke;
+	ot->exec = view3d_select_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
@@ -2272,6 +2285,9 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection");
 	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");
+
+	prop = RNA_def_int_vector(ot->srna, "location", 2, NULL, INT_MIN, INT_MAX, "Location", "Mouse location", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 
