@@ -1322,40 +1322,43 @@ static float *uv_sel_co_from_eve(Scene *scene, Image *ima, BMEditMesh *em, BMVer
 }
 
 /* ******************** select more ******************** */
-static void uv_tag_sticky_grow(Scene *scene, Image *ima, BMLoop *start_loop, int sticky,
-							   int cd_loop_uv_offset, int cd_poly_tex_offset)
+static void uv_tag_sticky_flush(Scene *scene, Image *ima, BMLoop *l_start, eSpaceImage_Sticky sticky,
+                                const int cd_loop_uv_offset, const int cd_poly_tex_offset)
 {
 	BMIter iter;
 	BMLoop *l;
 	MTexPoly *tf;
-	MLoopUV *luv1, *luv2;
+	MLoopUV *luv;
 
-	BM_elem_flag_enable(start_loop, BM_ELEM_TAG);
+	BM_elem_flag_enable(l_start, BM_ELEM_TAG);
 
 	switch (sticky) {
 		case SI_STICKY_LOC:
-			luv1 = BM_ELEM_CD_GET_VOID_P(start_loop, cd_loop_uv_offset);
+			luv = BM_ELEM_CD_GET_VOID_P(l_start, cd_loop_uv_offset);
 
-			BM_ITER_ELEM (l, &iter, start_loop->v, BM_LOOPS_OF_VERT) {
+			BM_ITER_ELEM (l, &iter, l_start->v, BM_LOOPS_OF_VERT) {
 				tf = BM_ELEM_CD_GET_VOID_P(l->f, cd_poly_tex_offset);
 
 				if (uvedit_face_visible_test(scene, ima, l->f, tf)) {
-					luv2 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					MLoopUV *luv_other;
+					luv_other = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-					if (compare_v2v2(luv1->uv, luv2->uv, STD_UV_CONNECT_LIMIT)) {
+					if (compare_v2v2(luv->uv, luv_other->uv, STD_UV_CONNECT_LIMIT)) {
 						BM_elem_flag_enable(l, BM_ELEM_TAG);
 					}
 				}
 			}
 			break;
 		case SI_STICKY_VERTEX:
-			BM_ITER_ELEM (l, &iter, start_loop->v, BM_LOOPS_OF_VERT) {
+			BM_ITER_ELEM (l, &iter, l_start->v, BM_LOOPS_OF_VERT) {
 				tf = BM_ELEM_CD_GET_VOID_P(l->f, cd_poly_tex_offset);
 
 				if (uvedit_face_visible_test(scene, ima, l->f, tf)) {
 					BM_elem_flag_enable(l, BM_ELEM_TAG);
 				}
 			}
+			break;
+		case SI_STICKY_DISABLE:
 			break;
 	}
 }
@@ -1370,9 +1373,9 @@ static int uv_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BMFace *efa;
 	BMLoop *l, *lf;
-	BMIter iter, liter, iterf;
+	BMIter iter, liter, fiter;
 	ToolSettings *ts = scene->toolsettings;
-	int sticky = sima->sticky;
+	eSpaceImage_Sticky sticky = sima->sticky;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
@@ -1401,17 +1404,14 @@ static int uv_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 
 				if (luv->flag & MLOOPUV_VERTSEL) {
 					if (ts->uv_selectmode == UV_SELECT_FACE) {
-						BM_ITER_ELEM (lf, &iterf, l->f, BM_LOOPS_OF_FACE) {
-							uv_tag_sticky_grow(scene, ima, lf, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
+						BM_ITER_ELEM (lf, &fiter, l->f, BM_LOOPS_OF_FACE) {
+							uv_tag_sticky_flush(scene, ima, lf, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
 						}
 					}
 					else {
-						if (l->next) {
-							uv_tag_sticky_grow(scene, ima, l->next, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-						}
-						if (l->prev) {
-							uv_tag_sticky_grow(scene, ima, l->prev, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-						}
+						uv_tag_sticky_flush(scene, ima, l->next, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
+
+						uv_tag_sticky_flush(scene, ima, l->prev, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
 					}
 				}
 			}
@@ -1457,7 +1457,7 @@ static int uv_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	int sticky = sima->sticky;
+	eSpaceImage_Sticky sticky = sima->sticky;
 
 	ToolSettings *ts = scene->toolsettings;
 
@@ -1486,17 +1486,17 @@ static int uv_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
 				if (luv->flag & MLOOPUV_VERTSEL) {
-					if (l->next) {
-						MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
-						if (!(luv_next->flag & MLOOPUV_VERTSEL)) {
-							uv_tag_sticky_grow(scene, ima, l, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-						}
+					MLoopUV *luv_next;
+					MLoopUV *luv_prev;
+
+					luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
+					if (!(luv_next->flag & MLOOPUV_VERTSEL)) {
+						uv_tag_sticky_flush(scene, ima, l, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
 					}
-					if (l->prev) {
-						MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-						if (!(luv_prev->flag & MLOOPUV_VERTSEL)) {
-							uv_tag_sticky_grow(scene, ima, l, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-						}
+
+					luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
+					if (!(luv_prev->flag & MLOOPUV_VERTSEL)) {
+						uv_tag_sticky_flush(scene, ima, l, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
 					}
 				}
 			}

@@ -607,7 +607,7 @@ static void rna_RigidBodyWorld_convex_sweep_test(RigidBodyWorld *rbw, ReportList
 		}
 	}
 	else {
-		*r_hit=-1;
+		*r_hit = -1;
 		BKE_report(reports, RPT_ERROR, "Rigidbody world was not properly initialized, need to step the simulation first");
 	}
 #endif
@@ -714,17 +714,17 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	prop = RNA_def_float_vector(func, "object_location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
-								"The hit location of this sweep test", -1e4, 1e4);
+	                            "The hit location of this sweep test", -1e4, 1e4);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 	RNA_def_function_output(func, prop);
 
 	prop = RNA_def_float_vector(func, "hitpoint", 3, NULL, -FLT_MAX, FLT_MAX, "Hitpoint",
-								"The hit location of this sweep test", -1e4, 1e4);
+	                            "The hit location of this sweep test", -1e4, 1e4);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 	RNA_def_function_output(func, prop);
 
 	prop = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal",
-								"The face normal at the sweep test hit location", -1e4, 1e4);
+	                            "The face normal at the sweep test hit location", -1e4, 1e4);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 	RNA_def_function_output(func, prop);
 
