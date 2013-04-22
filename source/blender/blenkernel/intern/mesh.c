@@ -1202,6 +1202,80 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 	}
 }
 
+/**
+ * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
+ */
+static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
+                                    const MPoly *mpoly, MLoop *mloop,
+                                    const int totpoly)
+{
+	int totedge = *r_totedge;
+	int totedge_new;
+	EdgeHash *eh;
+	const MPoly *mp;
+	int i;
+
+	eh = BLI_edgehash_new();
+
+	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
+		BKE_mesh_poly_edgehash_insert(eh, mp, mloop + mp->loopstart);
+	}
+
+	totedge_new = BLI_edgehash_size(eh);
+
+#ifdef DEBUG
+	/* ensure that theres no overlap! */
+	if (totedge_new) {
+		MEdge *medge = *r_alledge;
+		for (i = 0; i < totedge; i++, medge++) {
+			BLI_assert(BLI_edgehash_haskey(eh, medge->v1, medge->v2) == false);
+		}
+	}
+#endif
+
+	if (totedge_new) {
+		EdgeHashIterator *ehi;
+		MEdge *medge;
+		unsigned int e_index = totedge;
+
+		*r_alledge = medge = (*r_alledge ? MEM_reallocN(*r_alledge, sizeof(MEdge) * (totedge + totedge_new)) :
+		                                   MEM_callocN(sizeof(MEdge) * totedge_new, __func__));
+		medge += totedge;
+
+		totedge += totedge_new;
+
+		/* --- */
+		for (ehi = BLI_edgehashIterator_new(eh);
+		     BLI_edgehashIterator_isDone(ehi) == FALSE;
+		     BLI_edgehashIterator_step(ehi), ++medge, e_index++)
+		{
+			BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
+			BLI_edgehashIterator_setValue(ehi, SET_UINT_IN_POINTER(e_index));
+
+			medge->crease = medge->bweight = 0;
+			medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
+		}
+		BLI_edgehashIterator_free(ehi);
+
+		*r_totedge = totedge;
+
+
+		for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
+			MLoop *l = &mloop[mp->loopstart];
+			MLoop *l_prev = (l + (mp->totloop - 1));
+			int j;
+			for (j = 0; j < mp->totloop; j++, l++) {
+				/* lookup hashed edge index */
+				l_prev->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+				l_prev = l;
+			}
+		}
+	}
+
+	BLI_edgehash_free(eh, NULL);
+}
+
+
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* return non-zero on error */
 int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
@@ -1240,6 +1314,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 	int conv_polys = 0;
 
 	cu = ob->data;
+
 
 	conv_polys |= cu->flag & CU_3D;      /* 2d polys are filled with DL_INDEX3 displists */
 	conv_polys |= ob->type == OB_SURF;   /* surf polys are never filled */
@@ -1461,16 +1536,15 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 		dl = dl->next;
 	}
 	
+	if (totvlak) {
+		make_edges_mdata_extend(alledge, &totedge,
+		                        *allpoly, *allloop, totvlak);
+	}
+
 	*_totpoly = totvlak;
 	*_totloop = totloop;
 	*_totedge = totedge;
 	*_totvert = totvert;
-
-	/* not uded for bmesh */
-#if 0
-	make_edges_mdata(*allvert, *allface, *allloop, *allpoly, totvert, totvlak, *_totloop, *_totpoly, 0, alledge, _totedge);
-	mfaces_strip_loose(*allface, _totface);
-#endif
 
 	return 0;
 }
@@ -1522,8 +1596,6 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		}
 
 		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
-
-		BKE_mesh_calc_edges(me, true, false);
 	}
 	else {
 		me = BKE_mesh_add(G.main, "Mesh");
@@ -3414,6 +3486,22 @@ void BKE_mesh_poly_calc_angles(MVert *mvert, MLoop *mloop,
 }
 
 #else /* equivalent the function above but avoid multiple subtractions + normalize */
+
+void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *mp, const MLoop *mloop)
+{
+	const MLoop *ml, *ml_next;
+	int i = mp->totloop;
+
+	ml_next = mloop;       /* first loop */
+	ml = &ml_next[i - 1];  /* last loop */
+
+	while (i-- != 0) {
+		BLI_edgehash_insert(ehash, ml->v, ml_next->v, NULL);
+
+		ml = ml_next;
+		ml_next++;
+	}
+}
 
 void BKE_mesh_poly_calc_angles(MVert *mvert, MLoop *mloop,
                                  MPoly *mp, float angles[])

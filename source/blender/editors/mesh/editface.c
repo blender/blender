@@ -179,23 +179,6 @@ void paintface_reveal(Object *ob)
 
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
 
-static void hash_add_face(EdgeHash *ehash, MPoly *mp, MLoop *mloop)
-{
-	MLoop *ml, *ml_next;
-	int i = mp->totloop;
-
-	ml_next = mloop;       /* first loop */
-	ml = &ml_next[i - 1];  /* last loop */
-
-	while (i-- != 0) {
-		BLI_edgehash_insert(ehash, ml->v, ml_next->v, NULL);
-
-		ml = ml_next;
-		ml_next++;
-	}
-}
-
-
 static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 {
 	EdgeHash *ehash, *seamhash;
@@ -217,7 +200,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	if (mode == 0 || mode == 1) {
 		/* only put face under cursor in array */
 		mp = ((MPoly *)me->mpoly) + index;
-		hash_add_face(ehash, mp, me->mloop + mp->loopstart);
+		BKE_mesh_poly_edgehash_insert(ehash, mp, me->mloop + mp->loopstart);
 		linkflag[index] = 1;
 	}
 	else {
@@ -228,7 +211,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 				/* pass */
 			}
 			else if (mp->flag & ME_FACE_SEL) {
-				hash_add_face(ehash, mp, me->mloop + mp->loopstart);
+				BKE_mesh_poly_edgehash_insert(ehash, mp, me->mloop + mp->loopstart);
 				linkflag[a] = 1;
 			}
 		}
@@ -257,7 +240,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 
 				if (mark) {
 					linkflag[a] = 1;
-					hash_add_face(ehash, mp, me->mloop + mp->loopstart);
+					BKE_mesh_poly_edgehash_insert(ehash, mp, me->mloop + mp->loopstart);
 					do_it = true;
 				}
 			}

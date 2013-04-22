@@ -1837,8 +1837,6 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 	MEM_freeN(allloop);
 	MEM_freeN(allpoly);
 
-	CDDM_calc_edges(dm);
-
 	return dm;
 }
 

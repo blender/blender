@@ -37,9 +37,9 @@
 
 #include "BLO_sys_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_math_base.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"

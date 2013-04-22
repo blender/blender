@@ -153,7 +153,7 @@ void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1)
 	return value_p ? *value_p : NULL;
 }
 
-int BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
+bool BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	return BLI_edgehash_lookup_p(eh, v0, v1) != NULL;
 }
@@ -255,8 +255,8 @@ void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
 		}
 	}
 }
-int BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
+bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 {
-	return !ehi->curEntry;
+	return (ehi->curEntry == NULL);
 }
 
