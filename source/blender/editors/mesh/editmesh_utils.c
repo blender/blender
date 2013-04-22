@@ -1418,7 +1418,7 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v
 	const float mval_f[2] = {ar->winx / 2.0f,
 	                         ar->winy / 2.0f};
 
-	ED_view3d_win_to_segment(ar, v3d, mval_f, origin, end);
+	ED_view3d_win_to_segment(ar, v3d, mval_f, origin, end, false);
 
 	invert_m4_m4(invmat, obedit->obmat);
 	mul_m4_v3(invmat, origin);

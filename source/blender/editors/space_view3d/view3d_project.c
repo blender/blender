@@ -307,14 +307,18 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_f
  * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
  * \param ray_start The world-space starting point of the segment.
  * \param ray_normal The normalized world-space direction of towards mval.
+ * \return success, false if the segment is totally clipped.
  */
-void ED_view3d_win_to_ray(const ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3])
+bool ED_view3d_win_to_ray(const ARegion *ar, View3D *v3d, const float mval[2],
+                          float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
 {
 	float ray_end[3];
+	bool is_clip;
 	
-	ED_view3d_win_to_segment(ar, v3d, mval, ray_start, ray_end);
-	sub_v3_v3v3(ray_normal, ray_end, ray_start);
-	normalize_v3(ray_normal);
+	is_clip = ED_view3d_win_to_segment(ar, v3d, mval, r_ray_start, ray_end, do_clip);
+	sub_v3_v3v3(r_ray_normal, ray_end, r_ray_start);
+	normalize_v3(r_ray_normal);
+	return is_clip;
 }
 
 /**
@@ -474,8 +478,22 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
 	normalize_v3(out);
 }
 
-void ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2],
-                              float ray_start[3], float ray_end[3])
+/**
+ * Calculate a 3d segment from 2d window coordinates.
+ * This ray_start is located at the viewpoint, ray_end is a far point.
+ * ray_start and ray_end are clipped by the view near and far limits
+ * so points along this line are always in view.
+ * In orthographic view all resulting segments will be parallel.
+ * \param ar The region (used for the window width and height).
+ * \param v3d The 3d viewport (used for near and far clipping range).
+ * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_start The world-space starting point of the segment.
+ * \param r_ray_end The world-space end point of the segment.
+ * \param do_clip Optionally clip the ray by the view clipping planes.
+ * \return success, false if the segment is totally clipped.
+ */
+bool ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2],
+                              float ray_start[3], float ray_end[3], const bool do_clip)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -499,29 +517,9 @@ void ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2
 		madd_v3_v3v3fl(ray_start, vec, rv3d->viewinv[2],  1000.0f);
 		madd_v3_v3v3fl(ray_end, vec, rv3d->viewinv[2], -1000.0f);
 	}
-}
 
-/**
- * Calculate a 3d segment from 2d window coordinates.
- * This ray_start is located at the viewpoint, ray_end is a far point.
- * ray_start and ray_end are clipped by the view near and far limits
- * so points along this line are always in view.
- * In orthographic view all resulting segments will be parallel.
- * \param ar The region (used for the window width and height).
- * \param v3d The 3d viewport (used for near and far clipping range).
- * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param ray_start The world-space starting point of the segment.
- * \param ray_end The world-space end point of the segment.
- * \return success, false if the segment is totally clipped.
- */
-bool ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float mval[2],
-                                   float ray_start[3], float ray_end[3])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	ED_view3d_win_to_segment(ar, v3d, mval, ray_start, ray_end);
-
-	/* clipping */
-	if (rv3d->rflag & RV3D_CLIPPING) {
+	/* bounds clipping */
+	if (do_clip && (rv3d->rflag & RV3D_CLIPPING)) {
 		if (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6) == false) {
 			return false;
 		}
@@ -529,7 +527,6 @@ bool ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float m
 
 	return true;
 }
-
 
 /* Utility functions for projection
  * ******************************** */

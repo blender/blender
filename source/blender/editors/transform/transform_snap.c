@@ -1606,7 +1606,9 @@ static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v
 	float ray_start[3], ray_normal[3];
 	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 
-	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
+	if (ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal, true) == false) {
+		return false;
+	}
 
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
 	                      ray_start, ray_normal, &ray_dist,
@@ -1811,7 +1813,9 @@ static bool peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
 	bool retval = false;
 	float ray_start[3], ray_normal[3];
 	
-	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
+	if (ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal, true) == false) {
+		return false;
+	}
 
 	for (base = scene->base.first; base != NULL; base = base->next) {
 		if (BASE_SELECTABLE(v3d, base)) {

@@ -1394,8 +1394,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		return;
 
 	/* unproject screen line */
-	ED_view3d_win_to_segment_clip(kcd->ar, kcd->vc.v3d, s1, v1, v3);
-	ED_view3d_win_to_segment_clip(kcd->ar, kcd->vc.v3d, s2, v2, v4);
+	ED_view3d_win_to_segment(kcd->ar, kcd->vc.v3d, s1, v1, v3, true);
+	ED_view3d_win_to_segment(kcd->ar, kcd->vc.v3d, s2, v2, v4, true);
 
 	mul_m4_v3(kcd->ob->imat, v1);
 	mul_m4_v3(kcd->ob->imat, v2);
