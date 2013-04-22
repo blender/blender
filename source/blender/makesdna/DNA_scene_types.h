@@ -914,6 +914,10 @@ typedef struct UnifiedPaintSettings {
 
 	/* position of mouse, used to sample the texture */
 	float tex_mouse[2];
+
+	/* position of mouse, used to sample the mask texture */
+	float mask_tex_mouse[2];
+
 	/* radius of brush, premultiplied with pressure.
 	 * In case of anchored brushes contains that radius */
 	float pixel_radius;

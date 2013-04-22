@@ -160,6 +160,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 	if (paint_supports_dynamic_size(brush, mode) || !stroke->brush_init) {
 		copy_v2_v2(stroke->initial_mouse, mouse);
 		copy_v2_v2(ups->tex_mouse, mouse);
+		copy_v2_v2(ups->mask_tex_mouse, mouse);
 		stroke->cached_pressure = pressure;
 	}
 
@@ -186,10 +187,21 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		}
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)
-			BKE_brush_randomize_texture_coordinates(ups);
-		else
+			BKE_brush_randomize_texture_coordinates(ups, false);
+		else {
 			copy_v2_v2(ups->tex_mouse, mouse);
+		}
 	}
+
+	/* take care of mask texture, if any */
+	if (brush->mask_mtex.tex) {
+		if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)
+			BKE_brush_randomize_texture_coordinates(ups, true);
+		else {
+			copy_v2_v2(ups->mask_tex_mouse, mouse);
+		}
+	}
+
 
 	if (brush->flag & BRUSH_ANCHORED) {
 		bool hit = false;
