@@ -2392,6 +2392,7 @@ class VIEW3D_PT_view3d_properties(Panel):
 
         col = layout.column(align=True)
         col.prop(view, "use_render_border")
+        col.active = view.region_3d.view_perspective != 'CAMERA'
 
 
 class VIEW3D_PT_view3d_cursor(Panel):
