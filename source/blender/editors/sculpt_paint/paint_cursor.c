@@ -324,13 +324,11 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
 	if (refresh) {
 		int s, r;
-		float radius;
 
 		old_zoom = zoom;
 
 		s = BKE_brush_size_get(vc->scene, br);
 		r = 1;
-		radius = s * zoom;
 
 		for (s >>= 1; s > 0; s >>= 1)
 			r++;
@@ -373,17 +371,11 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 				x = (float)i / size;
 				y = (float)j / size;
 
-				if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) {
-					x *= vc->ar->winx / radius;
-					y *= vc->ar->winy / radius;
-				}
-				else {
-					x -= 0.5f;
-					y -= 0.5f;
+				x -= 0.5f;
+				y -= 0.5f;
 
-					x *= 2;
-					y *= 2;
-				}
+				x *= 2;
+				y *= 2;
 
 				len = sqrtf(x * x + y * y);
 

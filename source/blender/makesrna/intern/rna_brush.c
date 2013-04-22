@@ -304,12 +304,7 @@ static void rna_Brush_secondary_tex_update(Main *bmain, Scene *scene, PointerRNA
 
 static void rna_Brush_size_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Brush *br = (Brush *)ptr->data;
-	if (br->mtex.mapping == MTEX_MAP_MODE_VIEW) {
-		BKE_paint_invalidate_overlay_tex(scene, br->mtex.tex);
-		BKE_paint_invalidate_overlay_tex(scene, br->mask_mtex.tex);
-	}
-	BKE_paint_invalidate_cursor_overlay(scene, br->curve);
+	BKE_paint_invalidate_overlay_all();
 	rna_Brush_update(bmain, scene, ptr);
 }
 

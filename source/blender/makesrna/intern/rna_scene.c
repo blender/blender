@@ -42,6 +42,7 @@
 
 #include "BKE_freestyle.h"
 #include "BKE_editmesh.h"
+#include "BKE_paint.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -1421,6 +1422,12 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
+static void rna_UnifiedPaintSettings_radius_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	/* changing the unified size should invalidate */
+	BKE_paint_invalidate_overlay_all();
+}
+
 static char *rna_UnifiedPaintSettings_path(PointerRNA *ptr)
 {
 	return BLI_strdup("tool_settings.unified_paint_settings");
@@ -1962,12 +1969,14 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
+	RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_radius_update");
 
 	prop = RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_UnifiedPaintSettings_unprojected_radius_set", NULL);
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 1, 0, -1);
 	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
+	RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_radius_update");
 
 	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");

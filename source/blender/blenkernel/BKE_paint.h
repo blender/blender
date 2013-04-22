@@ -71,8 +71,8 @@ typedef enum PaintMode {
 typedef enum OverlayControlFlags {
 	PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY = 1,
 	PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY = (1 << 2),
-	PAINT_INVALID_OVERLAY_CURVE = (1 << 2),
-	PAINT_OVERLAY_OVERRIDE = (1 << 3)
+	PAINT_INVALID_OVERLAY_CURVE = (1 << 3),
+	PAINT_OVERLAY_OVERRIDE = (1 << 4)
 } OverlayControlFlags;
 
 void BKE_paint_invalidate_overlay_tex(struct Scene *scene, const struct Tex *tex);
