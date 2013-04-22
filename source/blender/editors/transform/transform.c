@@ -6428,7 +6428,7 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			TransDataVertSlideVert *sv;
 			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
-			const int alpha_shade = -30;
+			const int alpha_shade = -160;
 			const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 			int i;
 
@@ -6910,7 +6910,7 @@ static void headerSeqSlide(TransInfo *t, float val[2], char *str)
 	                    (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
 }
 
-static void applySeqSlide(TransInfo *t, float val[2])
+static void applySeqSlide(TransInfo *t, const float val[2])
 {
 	TransData *td = t->data;
 	int i;
