@@ -3280,7 +3280,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	RNA_id_pointer_create(id, &id_ptr);
 	
 	/* try to resolve the path stored in the F-Curve */
-	if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+	if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
 		/* set the special 'replace' flag if on a keyframe */
 		if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 			flag |= INSERTKEY_REPLACE;
@@ -3318,7 +3318,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	RNA_id_pointer_create((ID *)key, &id_ptr);
 	
 	/* try to resolve the path stored in the F-Curve */
-	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop)) {
+	if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
 		/* find or create new F-Curve */
 		// XXX is the group name for this ok?
 		bAction *act = verify_adt_action((ID *)key, 1);
@@ -3615,7 +3615,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 					RNA_id_pointer_create(ale->id, &id_ptr);
 					
 					/* try to resolve the path */
-					if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop)) {
+					if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
 						uiBut *but;
 						
 						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */

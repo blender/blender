@@ -551,7 +551,7 @@ static int copy_to_selected_button_poll(bContext *C)
 					if (use_path) {
 						lprop = NULL;
 						RNA_id_pointer_create(link->ptr.id.data, &idptr);
-						RNA_path_resolve(&idptr, path, &lptr, &lprop);
+						RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
 					}
 					else {
 						lptr = link->ptr;
@@ -601,7 +601,7 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 					if (use_path) {
 						lprop = NULL;
 						RNA_id_pointer_create(link->ptr.id.data, &idptr);
-						RNA_path_resolve(&idptr, path, &lptr, &lprop);
+						RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
 					}
 					else {
 						lptr = link->ptr;

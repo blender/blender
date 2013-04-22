@@ -72,7 +72,7 @@ static int pyrna_struct_anim_args_parse(
 	/* full paths can only be given from ID base */
 	if (is_idbase) {
 		int r_index = -1;
-		if (RNA_path_resolve_full(ptr, path, &r_ptr, &prop, &r_index) == 0) {
+		if (RNA_path_resolve_property_full(ptr, path, &r_ptr, &prop, &r_index) == false) {
 			prop = NULL;
 		}
 		else if (r_index != -1) {

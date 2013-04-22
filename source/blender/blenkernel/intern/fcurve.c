@@ -1040,7 +1040,7 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 	RNA_id_pointer_create(id, &id_ptr);
 	
 	/* get property to read from, and get value as appropriate */
-	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
+	if (RNA_path_resolve_property_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
 		if (RNA_property_array_check(prop)) {
 			/* array */
 			if ((index >= 0) && (index < RNA_property_array_length(&ptr, prop))) {

@@ -898,10 +898,18 @@ char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop,
                       int intkey, const char *strkey);
 char *RNA_path_back(const char *path);
 
-int RNA_path_resolve(PointerRNA *ptr, const char *path,
+/* path_resolve() variants only ensure that a valid pointer (and optionally property) exist */
+bool RNA_path_resolve(PointerRNA *ptr, const char *path,
                      PointerRNA *r_ptr, PropertyRNA **r_prop);
 
-int RNA_path_resolve_full(PointerRNA *ptr, const char *path,
+bool RNA_path_resolve_full(PointerRNA *ptr, const char *path,
+                          PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
+						  
+/* path_resolve_property() variants ensure that pointer + property both exist */
+bool RNA_path_resolve_property(PointerRNA *ptr, const char *path,
+                     PointerRNA *r_ptr, PropertyRNA **r_prop);
+
+bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path,
                           PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);

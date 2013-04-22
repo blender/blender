@@ -79,7 +79,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		RNA_id_pointer_create(id, &id_ptr);
 		
 		/* try to resolve the path */
-		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+		if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
 			const char *structname = NULL, *propname = NULL;
 			char arrayindbuf[16];
 			const char *arrayname = NULL;

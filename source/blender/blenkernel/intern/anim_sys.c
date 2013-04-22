@@ -550,7 +550,7 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 /* Path Validation -------------------------------------------- */
 
 /* Check if a given RNA Path is valid, by tracing it from the given ID, and seeing if we can resolve it */
-static short check_rna_path_is_valid(ID *owner_id, const char *path)
+static bool check_rna_path_is_valid(ID *owner_id, const char *path)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
@@ -559,7 +559,7 @@ static short check_rna_path_is_valid(ID *owner_id, const char *path)
 	RNA_id_pointer_create(owner_id, &id_ptr);
 	
 	/* try to resolve */
-	return RNA_path_resolve(&id_ptr, path, &ptr, &prop); 
+	return RNA_path_resolve_property(&id_ptr, path, &ptr, &prop); 
 }
 
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
@@ -1164,7 +1164,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 	//printf("%p %s %i %f\n", ptr, path, array_index, value);
 	
 	/* get property to write to */
-	if (RNA_path_resolve(ptr, path, &new_ptr, &prop)) {
+	if (RNA_path_resolve_property(ptr, path, &new_ptr, &prop)) {
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) {
 			int array_len = RNA_property_array_length(&new_ptr, prop);
@@ -1650,7 +1650,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 	/* free_path = */ /* UNUSED */ animsys_remap_path(strip->remap, fcu->rna_path, &path);
 	
 	/* a valid property must be available, and it must be animatable */
-	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0) {
+	if (RNA_path_resolve_property(ptr, path, &new_ptr, &prop) == false) {
 		if (G.debug & G_DEBUG) printf("NLA Strip Eval: Cannot resolve path\n");
 		return NULL;
 	}

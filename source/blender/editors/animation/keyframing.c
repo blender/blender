@@ -810,7 +810,7 @@ short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *p
 		PointerRNA tmp_ptr;
 		
 		/* try to get property we should be affecting */
-		if ((RNA_path_resolve(&ptr, fcu->rna_path, &tmp_ptr, &prop) == 0) || (prop == NULL)) {
+		if (RNA_path_resolve_property(&ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
 			/* property not found... */
 			const char *idname = (ptr.id.data) ? ((ID *)ptr.id.data)->name : TIP_("<No ID pointer>");
 			
@@ -920,7 +920,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	}
 	
 	RNA_id_pointer_create(id, &id_ptr);
-	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+	if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
 		BKE_reportf(reports, RPT_ERROR,
 		            "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            (id) ? id->name : TIP_("<Missing ID block>"), rna_path);
@@ -1012,7 +1012,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
-	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+	if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
 		BKE_reportf(reports, RPT_ERROR,
 		            "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
@@ -1113,7 +1113,7 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
-	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+	if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
 		BKE_reportf(reports, RPT_ERROR,
 		            "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
