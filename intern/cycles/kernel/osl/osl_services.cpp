@@ -112,8 +112,8 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 	/* this is only used for shader and object space, we don't really have
 	 * a concept of shader space, so we just use object space for both. */
 	if (xform) {
-		KernelGlobals *kg = kernel_globals;
 		const ShaderData *sd = (const ShaderData *)xform;
+		KernelGlobals *kg = sd->osl_globals;
 		int object = sd->object;
 
 		if (object != ~0) {
@@ -142,8 +142,8 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 	/* this is only used for shader and object space, we don't really have
 	 * a concept of shader space, so we just use object space for both. */
 	if (xform) {
-		KernelGlobals *kg = kernel_globals;
 		const ShaderData *sd = (const ShaderData *)xform;
+		KernelGlobals *kg = sd->osl_globals;
 		int object = sd->object;
 
 		if (object != ~0) {
@@ -235,7 +235,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 #ifdef __OBJECT_MOTION__
 			Transform tfm = sd->ob_tfm;
 #else
-			KernelGlobals *kg = kernel_globals;
+			KernelGlobals *kg = sd->osl_globals;
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);
@@ -260,7 +260,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 #ifdef __OBJECT_MOTION__
 			Transform tfm = sd->ob_itfm;
 #else
-			KernelGlobals *kg = kernel_globals;
+			KernelGlobals *kg = sd->osl_globals;
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);
@@ -662,8 +662,8 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustring object_name,
                                       TypeDesc type, ustring name, void *val)
 {
-	KernelGlobals *kg = kernel_globals;
 	ShaderData *sd = (ShaderData *)renderstate;
+	KernelGlobals *kg = sd->osl_globals;
 	int object, prim, segment;
 
 	/* lookup of attribute on another object */
@@ -861,7 +861,7 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	tracedata->init = true;
 
 	/* raytrace */
-	return scene_intersect(kernel_globals, &ray, ~0, &tracedata->isect);
+	return scene_intersect(sd->osl_globals, &ray, ~0, &tracedata->isect);
 }
 
 
@@ -880,8 +880,8 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustri
 				return set_attribute_float(f, type, derivatives, val);
 			}
 			else {
-				KernelGlobals *kg = kernel_globals;
 				ShaderData *sd = &tracedata->sd;
+				KernelGlobals *kg = sd->osl_globals;
 
 				if(!tracedata->setup) {
 					/* lazy shader data setup */

@@ -469,6 +469,8 @@ enum ShaderDataFlag {
 	SD_TRANSFORM_APPLIED = 32768 		/* vertices have transform applied */
 };
 
+struct KernelGlobals;
+
 typedef struct ShaderData {
 	/* position */
 	float3 P;
@@ -535,6 +537,10 @@ typedef struct ShaderData {
 #else
 	/* Closure data, with a single sampled closure for low memory usage */
 	ShaderClosure closure;
+#endif
+
+#ifdef __OSL__
+	struct KernelGlobals *osl_globals;
 #endif
 } ShaderData;
 

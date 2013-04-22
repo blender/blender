@@ -41,46 +41,35 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef WITH_OSL
 
-/* Shared Texture System */
+/* Shared Texture and Shading System */
 
 OSL::TextureSystem *OSLShaderManager::ts_shared = NULL;
 int OSLShaderManager::ts_shared_users = 0;
 thread_mutex OSLShaderManager::ts_shared_mutex;
 
+OSL::ShadingSystem *OSLShaderManager::ss_shared = NULL;
+OSLRenderServices *OSLShaderManager::services_shared = NULL;
+int OSLShaderManager::ss_shared_users = 0;
+thread_mutex OSLShaderManager::ss_shared_mutex;
+thread_mutex OSLShaderManager::ss_mutex;
+
 /* Shader Manager */
 
 OSLShaderManager::OSLShaderManager()
 {
-	services = new OSLRenderServices();
-
 	texture_system_init();
 	shading_system_init();
 }
 
 OSLShaderManager::~OSLShaderManager()
 {
-	OSL::ShadingSystem::destroy(ss);
-
-	/* shared texture system decrease users and destroy if no longer used */
-	{
-		thread_scoped_lock lock(ts_shared_mutex);
-		ts_shared_users--;
-
-		if(ts_shared_users == 0) {
-			OSL::TextureSystem::destroy(ts_shared);
-			ts_shared = NULL;
-		}
-	}
-
-	delete services;
+	shading_system_free();
+	texture_system_free();
 }
 
 void OSLShaderManager::reset(Scene *scene)
 {
-	OSL::ShadingSystem::destroy(ss);
-	delete services;
-
-	services = new OSLRenderServices();
+	shading_system_free();
 	shading_system_init();
 }
 
@@ -101,6 +90,11 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		assert(shader->graph);
 
 		if(progress.get_cancel()) return;
+
+		/* we can only compile one shader at the time as the OSL ShadingSytem
+		 * has a single state, but we put the lock here so different renders can
+		 * compile shaders alternating */
+		thread_scoped_lock lock(ss_mutex);
 
 		OSLCompiler compiler((void*)this, (void*)ss, scene->image_manager);
 		compiler.background = (shader == scene->shaders[scene->default_background]);
@@ -167,35 +161,78 @@ void OSLShaderManager::texture_system_init()
 	ts_shared_users++;
 }
 
+void OSLShaderManager::texture_system_free()
+{
+	/* shared texture system decrease users and destroy if no longer used */
+	thread_scoped_lock lock(ts_shared_mutex);
+	ts_shared_users--;
+
+	if(ts_shared_users == 0) {
+		OSL::TextureSystem::destroy(ts_shared);
+		ts_shared = NULL;
+	}
+
+	ts = NULL;
+}
+
 void OSLShaderManager::shading_system_init()
 {
-	ss = OSL::ShadingSystem::create(services, ts, &errhandler);
-	ss->attribute("lockgeom", 1);
-	ss->attribute("commonspace", "world");
-	ss->attribute("optimize", 2);
-	//ss->attribute("debug", 1);
-	//ss->attribute("statistics:level", 1);
-	ss->attribute("searchpath:shader", path_get("shader"));
+	/* create shading system, shared between different renders to reduce memory usage */
+	thread_scoped_lock lock(ss_shared_mutex);
 
-	/* our own ray types */
-	static const char *raytypes[] = {
-		"camera",		/* PATH_RAY_CAMERA */
-		"reflection",	/* PATH_RAY_REFLECT */
-		"refraction",	/* PATH_RAY_TRANSMIT */
-		"diffuse",		/* PATH_RAY_DIFFUSE */
-		"glossy",		/* PATH_RAY_GLOSSY */
-		"singular",		/* PATH_RAY_SINGULAR */
-		"transparent",	/* PATH_RAY_TRANSPARENT */
-		"shadow",		/* PATH_RAY_SHADOW_OPAQUE */
-		"shadow",		/* PATH_RAY_SHADOW_TRANSPARENT */
-	};
+	if(ss_shared_users == 0) {
+		services_shared = new OSLRenderServices();
 
-	const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
-	ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
+		ss_shared = OSL::ShadingSystem::create(services_shared, ts_shared, &errhandler);
+		ss_shared->attribute("lockgeom", 1);
+		ss_shared->attribute("commonspace", "world");
+		ss_shared->attribute("optimize", 2);
+		//ss_shared->attribute("debug", 1);
+		//ss_shared->attribute("statistics:level", 1);
+		ss_shared->attribute("searchpath:shader", path_get("shader"));
 
-	OSLShader::register_closures((OSLShadingSystem*)ss);
+		/* our own ray types */
+		static const char *raytypes[] = {
+			"camera",		/* PATH_RAY_CAMERA */
+			"reflection",	/* PATH_RAY_REFLECT */
+			"refraction",	/* PATH_RAY_TRANSMIT */
+			"diffuse",		/* PATH_RAY_DIFFUSE */
+			"gloss_sharedy",		/* PATH_RAY_GLOSSY */
+			"singular",		/* PATH_RAY_SINGULAR */
+			"transparent",	/* PATH_RAY_TRANSPARENT */
+			"shadow",		/* PATH_RAY_SHADOW_OPAQUE */
+			"shadow",		/* PATH_RAY_SHADOW_TRANSPARENT */
+		};
 
-	loaded_shaders.clear();
+		const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
+		ss_shared->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
+
+		OSLShader::register_closures((OSLShadingSystem*)ss_shared);
+
+		loaded_shaders.clear();
+	}
+
+	ss = ss_shared;
+	services = services_shared;
+	ss_shared_users++;
+}
+
+void OSLShaderManager::shading_system_free()
+{
+	/* shared shading system decrease users and destroy if no longer used */
+	thread_scoped_lock lock(ss_shared_mutex);
+	ss_shared_users--;
+
+	if(ss_shared_users == 0) {
+		OSL::ShadingSystem::destroy(ss_shared);
+		ss_shared = NULL;
+
+		delete services_shared;
+		services_shared = NULL;
+	}
+
+	ss = NULL;
+	services = NULL;
 }
 
 bool OSLShaderManager::osl_compile(const string& inputfile, const string& outputfile)

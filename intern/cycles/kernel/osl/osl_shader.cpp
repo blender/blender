@@ -127,6 +127,9 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 
 	/* clear trace data */
 	tdata->tracedata.init = false;
+
+	/* used by renderservices */
+	sd->osl_globals = kg;
 }
 
 /* Surface */
