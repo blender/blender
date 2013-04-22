@@ -144,8 +144,8 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *ar,
 			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)ar->winx)) {
 				const float fy = ((float)ar->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
 				if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
-					r_co[0] = floorf(fx);
-					r_co[1] = floorf(fy);
+					r_co[0] = fx;
+					r_co[1] = fy;
 
 					/* check if the point is behind the view, we need to flip in this case */
 					if (UNLIKELY((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) && (vec4[3] < 0.0f)) {
