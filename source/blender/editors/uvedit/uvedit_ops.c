@@ -84,6 +84,8 @@
 #include "uvedit_intern.h"
 
 static void uv_select_all_perform(Scene *scene, Image *ima, BMEditMesh *em, int action);
+static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object *obedit, bool select);
+static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object *obedit, bool select);
 
 /************************* state testing ************************/
 
@@ -366,7 +368,7 @@ int uvedit_face_select_test(Scene *scene, BMEditMesh *em, BMFace *efa)
 	}
 }
 
-int uvedit_face_select_enable(Scene *scene, BMEditMesh *em, BMFace *efa, const short do_history)
+int uvedit_face_select_enable(Scene *scene, BMEditMesh *em, BMFace *efa, const bool do_history)
 {
 	ToolSettings *ts = scene->toolsettings;
 
@@ -445,7 +447,7 @@ int uvedit_edge_select_test(BMEditMesh *em, Scene *scene, BMLoop *l)
 	}
 }
 
-void uvedit_edge_select_enable(BMEditMesh *em, Scene *scene, BMLoop *l, const short do_history)
+void uvedit_edge_select_enable(BMEditMesh *em, Scene *scene, BMLoop *l, const bool do_history)
 
 {
 	ToolSettings *ts = scene->toolsettings;
@@ -520,7 +522,7 @@ int uvedit_uv_select_test(BMEditMesh *em, Scene *scene, BMLoop *l)
 	}
 }
 
-void uvedit_uv_select_enable(BMEditMesh *em, Scene *scene, BMLoop *l, const short do_history)
+void uvedit_uv_select_enable(BMEditMesh *em, Scene *scene, BMLoop *l, const bool do_history)
 {
 	ToolSettings *ts = scene->toolsettings;
 
@@ -1321,49 +1323,7 @@ static float *uv_sel_co_from_eve(Scene *scene, Image *ima, BMEditMesh *em, BMVer
 	return NULL;
 }
 
-/* ******************** select more ******************** */
-static void uv_tag_sticky_flush(Scene *scene, Image *ima, BMLoop *l_start, eSpaceImage_Sticky sticky,
-                                const int cd_loop_uv_offset, const int cd_poly_tex_offset)
-{
-	BMIter iter;
-	BMLoop *l;
-	MTexPoly *tf;
-	MLoopUV *luv;
-
-	BM_elem_flag_enable(l_start, BM_ELEM_TAG);
-
-	switch (sticky) {
-		case SI_STICKY_LOC:
-			luv = BM_ELEM_CD_GET_VOID_P(l_start, cd_loop_uv_offset);
-
-			BM_ITER_ELEM (l, &iter, l_start->v, BM_LOOPS_OF_VERT) {
-				tf = BM_ELEM_CD_GET_VOID_P(l->f, cd_poly_tex_offset);
-
-				if (uvedit_face_visible_test(scene, ima, l->f, tf)) {
-					MLoopUV *luv_other;
-					luv_other = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-					if (compare_v2v2(luv->uv, luv_other->uv, STD_UV_CONNECT_LIMIT)) {
-						BM_elem_flag_enable(l, BM_ELEM_TAG);
-					}
-				}
-			}
-			break;
-		case SI_STICKY_VERTEX:
-			BM_ITER_ELEM (l, &iter, l_start->v, BM_LOOPS_OF_VERT) {
-				tf = BM_ELEM_CD_GET_VOID_P(l->f, cd_poly_tex_offset);
-
-				if (uvedit_face_visible_test(scene, ima, l->f, tf)) {
-					BM_elem_flag_enable(l, BM_ELEM_TAG);
-				}
-			}
-			break;
-		case SI_STICKY_DISABLE:
-			break;
-	}
-}
-
-static int uv_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+static int uv_select_more_less(bContext *C, const bool select)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -1372,64 +1332,106 @@ static int uv_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	BMFace *efa;
-	BMLoop *l, *lf;
-	BMIter iter, liter, fiter;
+	BMLoop *l;
+	BMIter iter, liter;
 	ToolSettings *ts = scene->toolsettings;
-	eSpaceImage_Sticky sticky = sima->sticky;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		EDBM_select_more(em);
+		if (select) {
+			EDBM_select_more(em);
+		}
+		else {
+			EDBM_select_less(em);
+		}
+
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		return OPERATOR_FINISHED;
 	}
 
-	/* clear tags */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			BM_elem_flag_disable(l->next, BM_ELEM_TAG);
+	if (ts->uv_selectmode == UV_SELECT_FACE) {
+
+		/* clear tags */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 		}
-	}
 
-	/* mark loops to be selected */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
+		/* mark loops to be selected */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
-		if (uvedit_face_visible_test(scene, ima, efa, tf)) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 
-				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+#define IS_SEL   1
+#define IS_UNSEL 2
 
-				if (luv->flag & MLOOPUV_VERTSEL) {
-					if (ts->uv_selectmode == UV_SELECT_FACE) {
-						BM_ITER_ELEM (lf, &fiter, l->f, BM_LOOPS_OF_FACE) {
-							uv_tag_sticky_flush(scene, ima, lf, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-						}
+				int sel_state = 0;
+
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					if (luv->flag & MLOOPUV_VERTSEL) {
+						sel_state |= IS_SEL;
 					}
 					else {
-						uv_tag_sticky_flush(scene, ima, l->next, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
+						sel_state |= IS_UNSEL;
+					}
 
-						uv_tag_sticky_flush(scene, ima, l->prev, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
+					/* if we have a mixed selection, tag to grow it */
+					if (sel_state == (IS_SEL | IS_UNSEL)) {
+						BM_elem_flag_enable(efa, BM_ELEM_TAG);
+						break;
+					}
+				}
+
+#undef IS_SEL
+#undef IS_UNSEL
+
+			}
+		}
+
+		/* select tagged faces */
+		uv_select_flush_from_tag_face(sima, scene, obedit, select);
+	}
+	else {
+
+		/* clear tags */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				BM_elem_flag_disable(l, BM_ELEM_TAG);
+			}
+		}
+
+		/* mark loops to be selected */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
+
+			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+
+					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+					if (((luv->flag & MLOOPUV_VERTSEL) != 0) == select) {
+						BM_elem_flag_enable(l->next, BM_ELEM_TAG);
+						BM_elem_flag_enable(l->prev, BM_ELEM_TAG);
 					}
 				}
 			}
 		}
-	}
 
-	/* select tagged loops */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
-				uvedit_uv_select_enable(em, scene, l, FALSE);
-			}
-		}
+		/* select tagged loops */
+		uv_select_flush_from_tag_loop(sima, scene, obedit, select);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
+}
+
+static int uv_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return uv_select_more_less(C, true);
 }
 
 static void UV_OT_select_more(wmOperatorType *ot)
@@ -1445,76 +1447,9 @@ static void UV_OT_select_more(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit;
 }
 
-/* ******************** select less ******************** */
 static int uv_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	Image *ima = CTX_data_edit_image(C);
-	SpaceImage *sima = CTX_wm_space_image(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	eSpaceImage_Sticky sticky = sima->sticky;
-
-	ToolSettings *ts = scene->toolsettings;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
-
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		EDBM_select_less(em);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-		return OPERATOR_FINISHED;
-	}
-
-	/* clear tags */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			BM_elem_flag_disable(l->next, BM_ELEM_TAG);
-		}
-	}
-
-	/* mark loops to be deselected */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-
-		if (uvedit_face_visible_test(scene, ima, efa, tf)) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-				if (luv->flag & MLOOPUV_VERTSEL) {
-					MLoopUV *luv_next;
-					MLoopUV *luv_prev;
-
-					luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
-					if (!(luv_next->flag & MLOOPUV_VERTSEL)) {
-						uv_tag_sticky_flush(scene, ima, l, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-					}
-
-					luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-					if (!(luv_prev->flag & MLOOPUV_VERTSEL)) {
-						uv_tag_sticky_flush(scene, ima, l, sticky, cd_loop_uv_offset, cd_poly_tex_offset);
-					}
-				}
-			}
-		}
-	}
-
-	/* deselect tagged loops */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
-				uvedit_uv_select_disable(em, scene, l);
-			}
-		}
-	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-	return OPERATOR_FINISHED;
+	return uv_select_more_less(C, false);
 }
 
 static void UV_OT_select_less(wmOperatorType *ot)
@@ -2791,16 +2726,68 @@ static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short s
 	}
 }
 
-/* ******************** border select operator **************** */
 
-/* This function sets the selection on tagged faces, need because settings the
- * selection a face is done in a number of places but it also needs to respect
- * the sticky modes for the UV verts, so dealing with the sticky modes is best
- * done in a separate function.
- * 
- * De-selects faces that have been tagged on efa->tmp.l.  */
 
-static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, short select)
+/* -------------------------------------------------------------------- */
+/* Utility functions to flush the uv-selection from tags */
+
+/**
+ * helper function for #uv_select_flush_from_tag_loop and uv_select_flush_from_tag_face
+ */
+static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene, BMEditMesh *em, UvVertMap *vmap,
+                                                         const unsigned int efa_index, BMLoop *l, const bool select)
+{
+	UvMapVert *start_vlist = NULL, *vlist_iter;
+	BMFace *efa_vlist;
+
+	if (select)
+		uvedit_uv_select_enable(em, scene, l, FALSE);
+	else
+		uvedit_uv_select_disable(em, scene, l);
+
+	vlist_iter = EDBM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
+
+	while (vlist_iter) {
+		if (vlist_iter->separate)
+			start_vlist = vlist_iter;
+
+		if (efa_index == vlist_iter->f)
+			break;
+
+		vlist_iter = vlist_iter->next;
+	}
+
+	vlist_iter = start_vlist;
+	while (vlist_iter) {
+
+		if (vlist_iter != start_vlist && vlist_iter->separate)
+			break;
+
+		if (efa_index != vlist_iter->f) {
+			BMLoop *l_other;
+			efa_vlist = EDBM_face_at_index(em, vlist_iter->f);
+			/* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
+
+			l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex);
+
+			if (select)
+				uvedit_uv_select_enable(em, scene, l_other, FALSE);
+			else
+				uvedit_uv_select_disable(em, scene, l_other);
+		}
+		vlist_iter = vlist_iter->next;
+	}
+}
+
+/**
+ * Flush the selection from face tags based on sticky and selection modes.
+ *
+ * needed because settings the selection a face is done in a number of places but it also needs to respect
+ * the sticky modes for the UV verts, so dealing with the sticky modes is best done in a separate function.
+ *
+ * \note! This function is very similar to #uv_select_flush_from_tag_loop, be sure to update both upon changing.
+ */
+static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object *obedit, bool select)
 {
 	/* Selecting UV Faces with some modes requires us to change 
 	 * the selection in other faces (depending on the sticky mode).
@@ -2847,68 +2834,24 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 		}
 	}
 	else if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_LOC) {
-		BMFace *efa_vlist;
-		/* MTexPoly *tf_vlist; */ /* UNUSED */
-		UvMapVert *start_vlist = NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
 		unsigned int efa_index;
-		//BMVert *eve; /* removed vert counting for now */ 
-		//int a;
 		
 		uvedit_pixel_to_float(sima, limit, 0.05);
 		
 		EDBM_index_arrays_ensure(em, BM_FACE);
 		vmap = EDBM_uv_vert_map_create(em, 0, limit);
-		
-		/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
 		if (vmap == NULL) {
 			return;
 		}
 		
-		efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for (efa_index = 0; efa; efa = BM_iter_step(&iter), efa_index++) {
+		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 				/* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
 				
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					if (select)
-						uvedit_uv_select_enable(em, scene, l, FALSE);
-					else
-						uvedit_uv_select_disable(em, scene, l);
-					
-					vlist_iter = EDBM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
-					
-					while (vlist_iter) {
-						if (vlist_iter->separate)
-							start_vlist = vlist_iter;
-						
-						if (efa_index == vlist_iter->f)
-							break;
-
-						vlist_iter = vlist_iter->next;
-					}
-				
-					vlist_iter = start_vlist;
-					while (vlist_iter) {
-						
-						if (vlist_iter != start_vlist && vlist_iter->separate)
-							break;
-						
-						if (efa_index != vlist_iter->f) {
-							BMLoop *l_other;
-							efa_vlist = EDBM_face_at_index(em, vlist_iter->f);
-							/* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
-							
-							l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex);
-
-							if (select)
-								uvedit_uv_select_enable(em, scene, l_other, FALSE);
-							else
-								uvedit_uv_select_disable(em, scene, l_other);
-						}
-						vlist_iter = vlist_iter->next;
-					}
+					uv_select_flush_from_tag_sticky_loc_internal(scene, em, vmap, efa_index, l, select);
 				}
 			}
 		}
@@ -2928,6 +2871,105 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 		}
 	}
 }
+
+
+
+/**
+ * Flush the selection from loop tags based on sticky and selection modes.
+ *
+ * needed because settings the selection a face is done in a number of places but it also needs to respect
+ * the sticky modes for the UV verts, so dealing with the sticky modes is best done in a separate function.
+ *
+ * \note! This function is very similar to #uv_select_flush_from_tag_loop, be sure to update both upon changing.
+ */
+static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object *obedit, bool select)
+{
+	/* Selecting UV Loops with some modes requires us to change
+	 * the selection in other faces (depending on the sticky mode).
+	 *
+	 * This only needs to be done when the Mesh is not used for
+	 * selection (so for sticky modes, vertex or location based). */
+
+	ToolSettings *ts = scene->toolsettings;
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	/* MTexPoly *tf; */
+
+	if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_VERTEX) {
+		/* Tag all verts as untouched, then touch the ones that have a face center
+		 * in the loop and select all MLoopUV's that use a touched vert. */
+		BMVert *eve;
+
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_disable(eve, BM_ELEM_TAG);
+		}
+
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
+					BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+				}
+			}
+		}
+
+		/* now select tagged verts */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			/* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
+					if (select)
+						uvedit_uv_select_enable(em, scene, l, FALSE);
+					else
+						uvedit_uv_select_disable(em, scene, l);
+				}
+			}
+		}
+	}
+	else if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_LOC) {
+		struct UvVertMap *vmap;
+		float limit[2];
+		unsigned int efa_index;
+
+		uvedit_pixel_to_float(sima, limit, 0.05);
+
+		EDBM_index_arrays_ensure(em, BM_FACE);
+		vmap = EDBM_uv_vert_map_create(em, 0, limit);
+		if (vmap == NULL) {
+			return;
+		}
+
+		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
+			/* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
+					uv_select_flush_from_tag_sticky_loc_internal(scene, em, vmap, efa_index, l, select);
+				}
+			}
+		}
+		EDBM_uv_vert_map_free(vmap);
+
+	}
+	else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
+					if (select) {
+						uvedit_uv_select_enable(em, scene, l, false);
+					}
+					else {
+						uvedit_uv_select_disable(em, scene, l);
+					}
+				}
+			}
+		}
+	}
+}
+
+/* ******************** border select operator **************** */
 
 static int uv_border_select_exec(bContext *C, wmOperator *op)
 {
@@ -2990,7 +3032,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 
 		/* (de)selects all tagged faces and deals with sticky modes */
 		if (change) {
-			uv_faces_do_sticky(sima, scene, obedit, select);
+			uv_select_flush_from_tag_face(sima, scene, obedit, select);
 		}
 	}
 	else {
@@ -3138,7 +3180,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
 		/* (de)selects all tagged faces and deals with sticky modes */
 		if (change) {
-			uv_faces_do_sticky(sima, scene, obedit, select);
+			uv_select_flush_from_tag_face(sima, scene, obedit, select);
 		}
 	}
 	else {
@@ -3232,7 +3274,7 @@ static int do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mov
 
 		/* (de)selects all tagged faces and deals with sticky modes */
 		if (change) {
-			uv_faces_do_sticky(sima, scene, obedit, select);
+			uv_select_flush_from_tag_face(sima, scene, obedit, select);
 		}
 	}
 	else { /* Vert Sel */
