@@ -316,12 +316,15 @@ void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node *> &root_joint
 		std::vector<JointData>::iterator ji;
 		//for each joint_data in this skin
 		for (ji = joint_data.begin(); ji != joint_data.end(); ji++) {
-			//get joint node from joint map
-			COLLADAFW::Node *joint = joint_by_uid[(*ji).joint_uid];
-			//find if joint node is in the tree belonging to the root_joint
-			if (find_node_in_tree(joint, root)) {
-				if (std::find(result.begin(), result.end(), root) == result.end())
-					result.push_back(root);
+			if (joint_by_uid.find((*ji).joint_uid) != joint_by_uid.end()) {
+				//get joint node from joint map
+				COLLADAFW::Node *joint = joint_by_uid[(*ji).joint_uid];
+
+				//find if joint node is in the tree belonging to the root_joint
+				if (find_node_in_tree(joint, root)) {
+					if (std::find(result.begin(), result.end(), root) == result.end())
+						result.push_back(root);
+				}
 			}
 		}
 	}
