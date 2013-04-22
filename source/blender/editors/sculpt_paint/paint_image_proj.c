@@ -3796,6 +3796,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	/* for smear only */
 	float pos_ofs[2] = {0};
 	float co[2];
+	float texmask = 1.0;
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
 	const float radius = (float)BKE_brush_size_get(ps->scene, brush);
@@ -3909,7 +3910,8 @@ static void *do_projectpaint_thread(void *ph_v)
 						}
 
 						if (ps->is_maskbrush) {
-							alpha *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+							texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+							alpha *= texmask;
 						}
 
 						if (!ps->do_masking) {
@@ -3922,7 +3924,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 
-							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, brush) * falloff));
+							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, brush) * falloff)) * texmask;
 							if (mask_short > projPixel->mask_max) {
 								mask = ((float)mask_short) / 65535.0f;
 								projPixel->mask_max = mask_short;

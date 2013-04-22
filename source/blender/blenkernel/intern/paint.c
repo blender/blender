@@ -108,11 +108,9 @@ bool BKE_paint_get_overlay_override(void)
 }
 
 
-void BKE_paint_reset_overlay_invalid(void)
+void BKE_paint_reset_overlay_invalid(OverlayControlFlags flag)
 {
-	overlay_flags &= ~(PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY |
-	                   PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY |
-	                   PAINT_INVALID_OVERLAY_CURVE);
+	overlay_flags &= ~(flag);
 }
 
 

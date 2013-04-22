@@ -523,7 +523,7 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
 	RNA_def_property_enum_items(prop, prop_mask_paint_map_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
 }
 
 static void rna_def_sculpt_capabilities(BlenderRNA *brna)
