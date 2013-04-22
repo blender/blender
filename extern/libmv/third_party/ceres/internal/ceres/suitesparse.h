@@ -70,10 +70,8 @@ class SuiteSparse {
 
   // Create a cholmod_sparse wrapper around the contents of A. This is
   // a shallow object, which refers to the contents of A and does not
-  // use the SuiteSparse machinery to allocate memory, this object
-  // should be disposed off with a delete and not a call to Free as is
-  // the case for objects returned by CreateSparseMatrixTranspose.
-  cholmod_sparse* CreateSparseMatrixTransposeView(CompressedRowSparseMatrix* A);
+  // use the SuiteSparse machinery to allocate memory.
+  cholmod_sparse CreateSparseMatrixTransposeView(CompressedRowSparseMatrix* A);
 
   // Given a vector x, build a cholmod_dense vector of size out_size
   // with the first in_size entries copied from x. If x is NULL, then
@@ -134,6 +132,12 @@ class SuiteSparse {
   // Caller owns the result.
   cholmod_factor* AnalyzeCholeskyWithUserOrdering(cholmod_sparse* A,
                                                   const vector<int>& ordering);
+
+  // Perform a symbolic factorization of A without re-ordering A. No
+  // postordering of the elimination tree is performed. This ensures
+  // that the symbolic factor does not introduce an extra permutation
+  // on the matrix. See the documentation for CHOLMOD for more details.
+  cholmod_factor* AnalyzeCholeskyWithNaturalOrdering(cholmod_sparse* A);
 
   // Use the symbolic factorization in L, to find the numerical
   // factorization for the matrix A or AA^T. Return true if
@@ -202,6 +206,11 @@ class SuiteSparse {
                                         const vector<int>& col_blocks,
                                         vector<int>* block_rows,
                                         vector<int>* block_cols);
+
+  // Find a fill reducing approximate minimum degree
+  // ordering. ordering is expected to be large enough to hold the
+  // ordering.
+  void ApproximateMinimumDegreeOrdering(cholmod_sparse* matrix, int* ordering);
 
   void Free(cholmod_sparse* m) { cholmod_free_sparse(&m, &cc_); }
   void Free(cholmod_dense* m)  { cholmod_free_dense(&m, &cc_);  }

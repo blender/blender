@@ -95,13 +95,8 @@ class Solver {
 #endif
 
       num_linear_solver_threads = 1;
-
-#if defined(CERES_NO_SUITESPARSE)
-      use_block_amd = false;
-#else
-      use_block_amd = true;
-#endif
       linear_solver_ordering = NULL;
+      use_postordering = false;
       use_inner_iterations = false;
       inner_iteration_ordering = NULL;
       linear_solver_min_num_iterations = 1;
@@ -356,19 +351,29 @@ class Solver {
     // deallocate the memory when destroyed.
     ParameterBlockOrdering* linear_solver_ordering;
 
-    // By virtue of the modeling layer in Ceres being block oriented,
-    // all the matrices used by Ceres are also block oriented. When
-    // doing sparse direct factorization of these matrices (for
-    // SPARSE_NORMAL_CHOLESKY, SPARSE_SCHUR and ITERATIVE in
-    // conjunction with CLUSTER_TRIDIAGONAL AND CLUSTER_JACOBI
-    // preconditioners), the fill-reducing ordering algorithms can
-    // either be run on the block or the scalar form of these matrices.
-    // Running it on the block form exposes more of the super-nodal
-    // structure of the matrix to the factorization routines. Setting
-    // this parameter to true runs the ordering algorithms in block
-    // form. Currently this option only makes sense with
-    // sparse_linear_algebra_library = SUITE_SPARSE.
-    bool use_block_amd;
+    // Note: This option only applies to the SPARSE_NORMAL_CHOLESKY
+    // solver when used with SUITE_SPARSE.
+
+    // Sparse Cholesky factorization algorithms use a fill-reducing
+    // ordering to permute the columns of the Jacobian matrix. There
+    // are two ways of doing this.
+
+    // 1. Compute the Jacobian matrix in some order and then have the
+    //    factorization algorithm permute the columns of the Jacobian.
+
+    // 2. Compute the Jacobian with its columns already permuted.
+
+    // The first option incurs a significant memory penalty. The
+    // factorization algorithm has to make a copy of the permuted
+    // Jacobian matrix, thus Ceres pre-permutes the columns of the
+    // Jacobian matrix and generally speaking, there is no performance
+    // penalty for doing so.
+
+    // In some rare cases, it is worth using a more complicated
+    // reordering algorithm which has slightly better runtime
+    // performance at the expense of an extra copy of the Jacobian
+    // // matrix. Setting use_postordering to true enables this tradeoff.
+    bool use_postordering;
 
     // Some non-linear least squares problems have additional
     // structure in the way the parameter blocks interact that it is

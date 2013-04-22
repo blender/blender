@@ -199,24 +199,23 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
 
   VectorRef(x, num_cols).setZero();
 
-  scoped_ptr<cholmod_sparse> lhs(ss_.CreateSparseMatrixTransposeView(A));
-  CHECK_NOTNULL(lhs.get());
-
+  cholmod_sparse lhs = ss_.CreateSparseMatrixTransposeView(A);
   cholmod_dense* rhs = ss_.CreateDenseVector(Atb.data(), num_cols, num_cols);
   event_logger.AddEvent("Setup");
 
   if (factor_ == NULL) {
-    if (options_.use_block_amd) {
-      factor_ = ss_.BlockAnalyzeCholesky(lhs.get(),
+    if (options_.use_postordering) {
+      factor_ = ss_.BlockAnalyzeCholesky(&lhs,
                                          A->col_blocks(),
                                          A->row_blocks());
     } else {
-      factor_ = ss_.AnalyzeCholesky(lhs.get());
+      factor_ = ss_.AnalyzeCholeskyWithNaturalOrdering(&lhs);
     }
   }
+
   event_logger.AddEvent("Analysis");
 
-  cholmod_dense* sol = ss_.SolveCholesky(lhs.get(), factor_, rhs);
+  cholmod_dense* sol = ss_.SolveCholesky(&lhs, factor_, rhs);
   event_logger.AddEvent("Solve");
 
   ss_.Free(rhs);

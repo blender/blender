@@ -348,8 +348,8 @@ Jet<T, N> operator/(const Jet<T, N>& f,
   //   b + v   (b + v)(b - v)        b^2
   //
   // which holds because v*v = 0.
-  h.a = f.a / g.a;
-  const T g_a_inverse = 1.0 / g.a;
+  const T g_a_inverse = T(1.0) / g.a;
+  h.a = f.a * g_a_inverse;
   const T f_a_by_g_a = f.a * g_a_inverse;
   for (int i = 0; i < N; ++i) {
     h.v[i] = (f.v[i] - f_a_by_g_a * g.v[i]) * g_a_inverse;
@@ -450,7 +450,7 @@ template <typename T, int N> inline
 Jet<T, N> sqrt(const Jet<T, N>& f) {
   Jet<T, N> g;
   g.a = sqrt(f.a);
-  const T two_a_inverse = 1.0 / (T(2.0) * g.a);
+  const T two_a_inverse = T(1.0) / (T(2.0) * g.a);
   g.v = f.v * two_a_inverse;
   return g;
 }

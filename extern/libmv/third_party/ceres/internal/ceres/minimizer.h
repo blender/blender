@@ -113,7 +113,7 @@ class Minimizer {
     DumpFormatType lsqp_dump_format_type;
     string lsqp_dump_directory;
     int max_num_consecutive_invalid_steps;
-    int min_trust_region_radius;
+    double min_trust_region_radius;
     LineSearchDirectionType line_search_direction_type;
     LineSearchType line_search_type;
     NonlinearConjugateGradientType nonlinear_conjugate_gradient_type;

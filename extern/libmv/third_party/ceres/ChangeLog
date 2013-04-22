@@ -1,3 +1,323 @@
+commit 36f4cd23b24391106e9f3c15b0f9bbcaafc47b20
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 21 09:42:26 2013 -0700
+
+    Disable threads completely if OpenMP is not present.
+    
+    This reduces the penalty paid by Mutex lock and unlock operations
+    in single threaded mode.
+    
+    Change-Id: I185380bde73fe87e901fc434d152d6c366ff1d5d
+
+commit 24fb32b42683cf711a6683e3cff3540b16bb5019
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Apr 20 09:02:06 2013 -0700
+
+    Add whole program optimization for Clang.
+    
+    Also reorder the way CERES_CXX_FLAGS is being used for clarity.
+    
+    Change-Id: I2bbb90e770d30dd18ecae72939ea03b7fa11e6ae
+
+commit 2b7497025096a681d7f0351081f83293398d62ef
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 19:52:58 2013 -0700
+
+    Fix a bounds error in the pre-ordering code.
+    
+    Change-Id: I33c968bb075b60ad50374593302e08f42aeacf25
+
+commit 9189f4ea4bb2d71ea7f6b9d9bd3290415aee323d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 17:09:49 2013 -0700
+
+    Enable pre-ordering for SPARSE_NORMAL_CHOLESKY.
+    
+    Sparse Cholesky factorization algorithms use a fill-reducing
+    ordering to permute the columns of the Jacobian matrix. There
+    are two ways of doing this.
+    
+    1. Compute the Jacobian matrix in some order and then have the
+       factorization algorithm permute the columns of the Jacobian.
+    
+    2. Compute the Jacobian with its columns already permuted.
+    
+    The first option incurs a significant memory penalty. The
+    factorization algorithm has to make a copy of the permuted
+    Jacobian matrix.
+    
+    Starting with this change Ceres pre-permutes the columns of the
+    Jacobian matrix and generally speaking, there is no performance
+    penalty for doing so.
+    
+    In some rare cases, it is worth using a more complicated
+    reordering algorithm which has slightly better runtime
+    performance at the expense of an extra copy of the Jacobian
+    matrix. Setting Solver::Options::use_postordering to true
+    enables this tradeoff.
+    
+    This change also removes Solver::Options::use_block_amd
+    as an option. All matrices are ordered using their block
+    structure. The ability to order them by their scalar
+    sparsity structure has been removed.
+    
+    Here is what performance on looks like on some BAL problems.
+    
+    Memory
+    ======
+                                         HEAD         pre-ordering
+    16-22106                      137957376.0          113516544.0
+    49-7776                        56688640.0           46628864.0
+    245-198739                   1718005760.0         1383550976.0
+    257-65132                     387715072.0          319512576.0
+    356-226730                   2014826496.0         1626087424.0
+    744-543562                   4903358464.0         3957878784.0
+    1024-110968                   968626176.0          822071296.0
+    
+    Time
+    ====
+                                         HEAD         pre-ordering
+    16-22106                              3.8                  3.7
+    49-7776                               1.9                  1.8
+    245-198739                           82.6                 81.9
+    257-65132                            14.0                 13.4
+    356-226730                           98.8                 95.8
+    744-543562                          325.2                301.6
+    1024-110968                          42.1                 37.1
+    
+    Change-Id: I6b2e25f3fed7310f88905386a7898ac94d37467e
+
+commit f7ed22efc3afee36aae71a4f7949b3d327b87f11
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 14:24:48 2013 -0700
+
+    Add the ability to order the Program using AMD.
+    
+    This will allow CHOLMOD to compute the sparse
+    Cholesky factorization of J'J without making
+    a permuted copy of it.
+    
+    Change-Id: I25d0e18f5957ab7fdce15c543234bb2f09db482e
+
+commit c8f07905d76d9ac6fb8d7b9b02e180aa2fa0ab32
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 08:01:04 2013 -0700
+
+    Refactor SolverImpl::CreateReducedProgram.
+    
+    Break up CreateReducedProgram into smaller functions in
+    preparation for more sophisticated ordering strategies.
+    
+    Change-Id: Ic3897522574fde770646d747fe383f5dbd7a6619
+
+commit 2560b17b7cdda1de28c18049c95e6c3188dbde93
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 08:19:11 2013 -0700
+
+    SuiteSparse cleanup.
+    
+    1. CreateSparseMatrixTransposeView now returns a struct instead
+    of a pointer.
+    
+    2. Add AnalyzeCholeskyWithNaturalOrdering.
+    
+    Change-Id: If27a5502949c3994edd95be0d25ec7a0d1fa1ae1
+
+commit 7823cf23c765450b79f11ac31fc8a16f875c0d84
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Apr 18 16:13:56 2013 -0700
+
+    Fix a typo in problem.h
+    
+    Thanks as usual to William Rucklidge.
+    
+    Change-Id: If6e8628841ee7fa8978ec56918a80d60b4ff660e
+
+commit 3d9546963d7c8c5f5dfb12a2df745f4996fd2ec5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Apr 18 14:54:55 2013 -0700
+
+    Add the ability to query the Problem about parameter blocks.
+    
+    Change-Id: Ieda1aefa28e7a1d18fe6c8d1665882e4d9c274f2
+
+commit 69ebad42ebfc212339a22c6f06a12ec5a3368098
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Apr 17 15:38:00 2013 -0700
+
+    Change Minimizer::Options::min_trust_region_radius to double.
+    
+    This was accidentally an int, which was setting the minimum
+    trust region radius to zero and effectively disabling a convergence
+    test based on it.
+    
+    (Thanks to Sergey Sharybin for providing a reproduction for this)
+    
+    Change-Id: Id0b9e246bcfee074954a5dc6a3a2342adab56c16
+
+commit e6707b2411b9a823b6c748f9f9d0b22225d767bb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 16 15:44:23 2013 -0700
+
+    Lint fixes from William Rucklidge.
+    
+    Change-Id: I57a6383bb875b24083cd9b7049333292d26f718c
+
+commit c7e69beb52c2c47182eaf8295025a668d0eefd80
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 16 09:39:16 2013 -0700
+
+    Add a missing mutex lock in the SchurEliminator. This
+    was lost somewhere along in the BLAS based refactoring.
+    
+    Change-Id: I90b94fa9c3a8ea1b900a18f76ef6a7d0dbf24318
+
+commit faa72ace9abea24877173158bfec451d5b46597e
+Author: Joydeep Biswas <joydeep.biswas@gmail.com>
+Date:   Mon Apr 15 17:34:43 2013 -0400
+
+    Update to compile with stricter gcc checks.
+    
+    Change-Id: Iecb37cbe7201a4d4f42b21b427fa1d35d0183b1b
+
+commit 487250eb27256a41d38c5037bdac9a09a3160edb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 5 14:20:37 2013 -0700
+
+    Minor cleanups.
+    
+    1. Further BLAS and heap allocation cleanups in  schur_eliminator_impl.h
+    2. Modularize blas.h using macros.
+    3. Lint cleanups from William Rucklidge.
+    4. Small changes to jet.h
+    5. ResidualBlock now uses blas.h
+    
+    Performance improvements:
+    
+    For static and dynamic sized blocks, the peformance is not changed much.
+    
+    -use_quaternions -ordering user -linear_solver sparse_schur
+    
+                                            master         change
+    problem: 16-22106
+    gcc                                        3.4            3.3
+    clang                                      2.8            2.7
+    
+    problem: 49-7776
+    gcc                                        1.7            1.7
+    clang                                      1.4            1.4
+    
+    problem: 245-198739
+    gcc                                       80.1           79.6
+    clang                                     80.6           76.2
+    
+    problem: 257-65132
+    gcc                                       12.2           12.0
+    clang                                     10.4           10.2
+    
+    problem: 356-226730
+    gcc                                       99.0           96.8
+    clang                                     88.9           88.3
+    
+    problem: 744-543562
+    gcc                                      361.5          356.2
+    clang                                    352.7          343.5
+    
+    problem: 1024-110968
+    gcc                                       45.9           45.6
+    clang                                     42.6           42.1
+    
+    However, performance when using local parameterizations is
+    significantly improved due to residual_block.cc using blas.h
+    
+    -use_quaternions -use_local_parameterization -ordering user -linear_solver sparse_schur
+    
+                                            master         change
+    problem: 16-22106
+    gcc                                        3.6            3.3
+    clang                                      3.5            2.8
+    
+    problem: 49-7776
+    gcc                                        1.8            1.6
+    clang                                      1.7            1.4
+    
+    problem: 245-198739
+    gcc                                       79.7           76.1
+    clang                                     79.7           73.0
+    
+    problem: 257-65132
+    gcc                                       12.8           11.9
+    clang                                     12.3            9.8
+    
+    problem: 356-226730
+    gcc                                      101.9           93.5
+    clang                                    105.0           86.8
+    
+    problem: 744-543562
+    gcc                                      367.9          350.5
+    clang                                    355.3          323.1
+    
+    problem: 1024-110968
+    gcc                                       43.0           40.3
+    clang                                     41.0           37.5
+    
+    Change-Id: I6dcf7476ddaa77cb116558d112a9cf1e832f5fc9
+
+commit eeedd3a59281eb27025d7f9aa944d9aff0666590
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 10 23:58:32 2013 +0600
+
+    Autodiff local parameterization class
+    
+    This class is used to create local parameterization
+    with Jacobians computed via automatic differentiation.
+    
+    To get an auto differentiated local parameterization,
+    class with a templated operator() (a functor) that
+    computes
+    
+     plus_delta = Plus(x, delta);
+    
+    shall be defined.
+    
+    Then given such functor, the auto differentiated local
+    parameterization can be constructed as
+    
+     LocalParameterization* local_parameterization =
+       new AutoDiffLocalParameterization<PlusFunctor, 4, 3>;
+                                                      |  |
+                           Global Size ---------------+  |
+                           Local Size -------------------+
+    
+    See autodiff_local_parameterization.h for more information
+    and usage example.
+    
+    Initial implementation by Keir Mierle, finished by self
+    and integrated into Ceres and covered with unit tests
+    by Sameer Agarwal.
+    
+    Change-Id: I1b3e48ae89f81e0cf1f51416c5696e18223f4b21
+
+commit d8d541674da5f3ba7a15c4003fa18577479f8f8c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 10 11:13:27 2013 +0600
+
+    Do not modify cached CMAKE_CXX_FLAGS_RELEASE
+    
+    Adding compiler's flags and force updating cached value
+    of release C++ flags lead to appending special compiler
+    flags on every edit of any CMakeList.txt.
+    
+    For compile result this is harmless, but was annoying
+    slight modification of CMakeList.txt triggered full
+    project rebuild.
+    
+    Now modified C++ flags are used for the whole subtree
+    starting from the project root, but this doesn't lead
+    to flags modified in cache.
+    
+    Change-Id: Ieb32bd7f96d5a09632f0b2b5325f6567be8cb5a8
+
 commit c290df85a40a8dd117b5eccc515bf22b0d9b1945
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Sun Apr 7 09:17:47 2013 -0700
@@ -395,227 +715,3 @@ Date:   Mon Mar 4 10:17:30 2013 -0800
     Thanks to Alexander Mordvintsev for reporting this.
     
     Change-Id: I5c6be4d3d28f062e83a1ad41cb8089c19362a005
-
-commit 480f9b8551c02c429bc027197f3d868c5cc522c9
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Mar 3 20:15:22 2013 -0800
-
-    Add gerrit instructions to the docs.
-    
-    Change-Id: Ic98f20273f3ccbaeb8b4ca00c4ce0042a0d262f8
-
-commit 7c60b5c2c6170f0f81a29dbaa2ca7d8031db843b
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Mar 3 18:28:02 2013 -0800
-
-    version history update
-    
-    Change-Id: Ia92caeb0f6659667ce1e56eefd0e3c87b3f6e538
-
-commit a363a7b69c7b97e17ad671ba1aee30f201eafdd1
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Mar 3 18:06:00 2013 -0800
-
-    Multithread DENSE_SCHUR
-    
-    Replace the global lock in BlockRandomAccessDenseMatrix
-    with a per cell lock.
-    
-    Change-Id: Iddbe38616157b6e0d3770eede3335a056c3ba18c
-
-commit 31730ef55df802d1e251edab3bac3c0cdcb30647
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Feb 28 11:20:28 2013 -0800
-
-    DenseSparseMatrix is now column-major.
-    
-    1. Introduce new typdefs in eigen.h to allow for column
-       major matrices.
-    
-    2. Clean up old unused typedefs, and the aligned typedefs
-       since they do not actually add any real performance.
-    
-    3. Made eigen.h conform to the google style guide by removing
-       the using directives. They were polluting the ceres namespace.
-    
-    4. Made the template specialization generator work again.
-    
-    Change-Id: Ic2268c784534b737ebd6e1a043e2a327adaeca37
-
-commit f8e43f7f2724c5413015e1f113ce860ee8b30428
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Feb 27 08:55:20 2013 -0800
-
-    version history update
-    
-    Change-Id: Ibd412a9e5beac3b3ac3e15b26fb11aa061956095
-
-commit fef82b3a7af1e44f18f5343601fb19a4dd6f89ad
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Feb 27 10:44:12 2013 +0000
-
-    Bugfix - commenting-out unused member which results in build error on OS X with latest Xcode.
-    
-    - Build error due to -Werror,-Wunused-private-field clang args.
-    - Raised with gtest group (as it also occurs with latest gtest:master but for a different
-      variable) with patch, but they don't want to fix for compatibility with legacy compilers/OS
-      see here: https://groups.google.com/forum/?fromgroups=#!topic/googletestframework/S1KLl2jkzws
-    
-    Change-Id: I99984bcd9d07f6eb0e3fac58e27ddf0ac9e54265
-
-commit 0bc3540b66cf9de4d4a317c6a760849aa66d414e
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Feb 27 08:46:48 2013 -0800
-
-    Version history update
-    
-    Change-Id: I6f79dd87e45bedf4bcf821e7b44f8b9553c39a7b
-
-commit b59ac43b9d1122da3d00882efa7c5d6833c06ea7
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Feb 27 09:10:19 2013 +0000
-
-    Issue 83 fix: use correct pthread linker flags with clang.
-    
-    1. -lpthreads was previously added to the CMAKE_CXX_FLAGS which are
-    not passed to the linker thus linking would fail.
-    2. Clang would emit a warning about -lpthreads being added to a
-    build instruction with -c (compile only).
-    
-    This patch fixes both of these issues by adding -lpthreads to the
-    linker flags (and removes them from the CXX flags).
-    
-    Change-Id: I5e54de3ab7eced177aa31f311926893598af5b56
-
-commit 6fb1024ed5b197da261f71d1bb02716661da2fff
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Feb 26 22:20:18 2013 -0800
-
-    Fix a small bug in evaluator.h
-    
-    Change-Id: I2c4b8637e0ac8645721109f8b6bb2396ce8bb37b
-
-commit 039ff07dd1a02e6c9cff335551f05bfe8269224b
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Feb 26 09:15:39 2013 -0800
-
-    Evaluate ResidualBlocks without LossFunction if needed.
-    
-    1. Add the ability to evaluate the problem without loss function.
-    2. Remove static Evaluator::Evaluate
-    3. Refactor the common code from problem_test.cc and
-       evaluator_test.cc into evaluator_test_utils.cc
-    
-    Change-Id: I1aa841580afe91d288fbb65288b0ffdd1e43e827
-
-commit c3fd3b960e489348d5b2c8b8f0167760e52ecbd9
-Author: Taylor Braun-Jones <taylor@braun-jones.org>
-Date:   Tue Feb 26 00:30:35 2013 -0500
-
-    Only use cmake28 macro for RHEL6
-    
-    This makes it possible to use the same spec to build on Fedora. It drops any
-    chance of building on RHEL5, but I doubt that was possible anyway.
-    
-    Change-Id: Ia956eb6416504e520962ec2f617e03b40ca18203
-
-commit b73148b9f38fe41032e696436566b78043a368db
-Author: Taylor Braun-Jones <taylor@braun-jones.org>
-Date:   Mon Feb 25 02:34:00 2013 -0500
-
-    Remove -Wno-return-type-c-linkage option when using gcc
-    
-    Only use this option when compiling with CLang which supports it.
-    
-    Change-Id: I8555c16e82d61302f6a43672d0d63e5d4800c6b6
-
-commit ba9442160dabf612a1dc51baf098937459b4b5ca
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Feb 25 12:46:44 2013 -0800
-
-    Add the number of effective parameters to the final report.
-    
-    Here is an example report, obtained by running:
-    
-      bin/Debug/bundle_adjuster \
-      --input=../ceres-solver/data/problem-16-22106-pre.txt \
-      --linear_solver=iterative_schur \
-      --num_iterations=1 \
-      --alsologtostderr \
-      --use_local_parameterization \
-      --use_quaternions
-    
-    Note that effective parameters is less than parameters by 16, which is the
-    number of cameras. In this case the local parameterization has a 3 dimensional
-    tangent space for the 4-dimensional quaternions.
-    
-    Ceres Solver Report
-    -------------------
-                                         Original                  Reduced
-    Parameter blocks                        22138                    22138
-    Parameters                              66478                    66478
-    Effective parameters                    66462                    66462
-    Residual blocks                         83718                    83718
-    Residual                               167436                   167436
-    
-    Minimizer                        TRUST_REGION
-    Trust Region Strategy     LEVENBERG_MARQUARDT
-    
-                                            Given                     Used
-    Linear solver                 ITERATIVE_SCHUR          ITERATIVE_SCHUR
-    Preconditioner                         JACOBI                   JACOBI
-    Threads:                                    1                        1
-    Linear solver threads                       1                        1
-    Linear solver ordering              AUTOMATIC                22106, 32
-    
-    Cost:
-    Initial                          4.185660e+06
-    Final                            7.221647e+04
-    Change                           4.113443e+06
-    
-    Number of iterations:
-    Successful                                  1
-    Unsuccessful                                0
-    Total                                       1
-    
-    Time (in seconds):
-    Preprocessor                            0.697
-    
-      Residual Evaluations                  0.063
-      Jacobian Evaluations                 27.608
-      Linear Solver                        13.360
-    Minimizer                              43.973
-    
-    Postprocessor                           0.004
-    Total                                  44.756
-    
-    Termination:                   NO_CONVERGENCE
-    
-    Change-Id: I6b6b8ac24f71bd187e67d95651290917642be74f
-
-commit 36dc14ddf2fd53238c2ce21f172aa1989b31c0fd
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Feb 25 10:33:10 2013 -0800
-
-    Fix a clang warning
-    
-    Change-Id: I5ef32c6329f1f75efb30b16519b8de146a8339fa
-
-commit 931c309b2734329ec6e5f0b88ce4a0b488ac47e5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Feb 25 09:46:21 2013 -0800
-
-    Cleanup based on comments by William Rucklidge
-    
-    Change-Id: If269ba8e388965a8ea32260fd6f17a133a19ab9b
-
-commit df36218c953e05d665df2cc96a6d7625e2307d97
-Author: Taylor Braun-Jones <taylor@braun-jones.org>
-Date:   Fri Feb 15 18:28:11 2013 -0500
-
-    Add support for the CMake "LIB_SUFFIX" convention
-    
-    Allows `make install` to work correctly on e.g. 64-bit systems where the
-    native libraries are installed to /usr/lib64
-    
-    Change-Id: I71b4fae7b459c003cb5fac981278c668f2e29779

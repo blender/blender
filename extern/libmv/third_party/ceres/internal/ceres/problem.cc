@@ -206,4 +206,16 @@ int Problem::NumResiduals() const {
   return problem_impl_->NumResiduals();
 }
 
+int Problem::ParameterBlockSize(double* parameter_block) const {
+  return problem_impl_->ParameterBlockSize(parameter_block);
+};
+
+int Problem::ParameterBlockLocalSize(double* parameter_block) const {
+  return problem_impl_->ParameterBlockLocalSize(parameter_block);
+};
+
+void Problem::GetParameterBlocks(vector<double*>* parameter_blocks) const {
+  problem_impl_->GetParameterBlocks(parameter_blocks);
+}
+
 }  // namespace ceres

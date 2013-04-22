@@ -277,7 +277,7 @@ class SchurEliminator : public SchurEliminatorBase {
       const double* b,
       int row_block_counter,
       typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix* eet,
-      typename EigenTypes<kEBlockSize>::Vector* g,
+      double* g,
       double* buffer,
       BlockRandomAccessMatrix* lhs);
 
@@ -285,7 +285,7 @@ class SchurEliminator : public SchurEliminatorBase {
                  const BlockSparseMatrixBase* A,
                  const double* b,
                  int row_block_counter,
-                 const Vector& inverse_ete_g,
+                 const double* inverse_ete_g,
                  double* rhs);
 
   void ChunkOuterProduct(const CompressedRowBlockStructure* bs,
@@ -336,7 +336,7 @@ class SchurEliminator : public SchurEliminatorBase {
   // ChunkOuterProduct. Like buffer_ it is of size num_threads *
   // buffer_size_. Each thread accesses the chunk
   //
-  //   [thread_id * buffer_size_ , (thread_id + 1) * buffer_size_]
+  //   [thread_id * buffer_size_ , (thread_id + 1) * buffer_size_ -1]
   //
   scoped_array<double> chunk_outer_product_buffer_;
 

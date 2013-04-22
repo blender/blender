@@ -38,8 +38,8 @@
 #include "ceres/gradient_checking_cost_function.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/levenberg_marquardt_strategy.h"
-#include "ceres/linear_solver.h"
 #include "ceres/line_search_minimizer.h"
+#include "ceres/linear_solver.h"
 #include "ceres/map_util.h"
 #include "ceres/minimizer.h"
 #include "ceres/ordered_groups.h"
@@ -50,6 +50,7 @@
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
 #include "ceres/stringprintf.h"
+#include "ceres/suitesparse.h"
 #include "ceres/trust_region_minimizer.h"
 #include "ceres/wall_time.h"
 
@@ -505,19 +506,6 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   summary->trust_region_strategy_type = options.trust_region_strategy_type;
   summary->dogleg_type = options.dogleg_type;
 
-  // Only Schur types require the lexicographic reordering.
-  if (IsSchurType(options.linear_solver_type)) {
-    const int num_eliminate_blocks =
-        options.linear_solver_ordering
-        ->group_to_elements().begin()
-        ->second.size();
-    if (!LexicographicallyOrderResidualBlocks(num_eliminate_blocks,
-                                              reduced_program.get(),
-                                              &summary->error)) {
-      return;
-    }
-  }
-
   scoped_ptr<Evaluator> evaluator(CreateEvaluator(options,
                                                   problem_impl->parameter_map(),
                                                   reduced_program.get(),
@@ -953,11 +941,14 @@ bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
     parameter_blocks->resize(j);
   }
 
-  CHECK(((program->NumResidualBlocks() == 0) &&
+  if (!(((program->NumResidualBlocks() == 0) &&
          (program->NumParameterBlocks() == 0)) ||
         ((program->NumResidualBlocks() != 0) &&
-         (program->NumParameterBlocks() != 0)))
-      << "Congratulations, you found a bug in Ceres. Please report it.";
+         (program->NumParameterBlocks() != 0)))) {
+    *error =  "Congratulations, you found a bug in Ceres. Please report it.";
+    return false;
+  }
+
   return true;
 }
 
@@ -965,19 +956,14 @@ Program* SolverImpl::CreateReducedProgram(Solver::Options* options,
                                           ProblemImpl* problem_impl,
                                           double* fixed_cost,
                                           string* error) {
-  EventLogger event_logger("CreateReducedProgram");
-
   CHECK_NOTNULL(options->linear_solver_ordering);
   Program* original_program = problem_impl->mutable_program();
   scoped_ptr<Program> transformed_program(new Program(*original_program));
-  event_logger.AddEvent("TransformedProgram");
 
   ParameterBlockOrdering* linear_solver_ordering =
       options->linear_solver_ordering;
-
   const int min_group_id =
       linear_solver_ordering->group_to_elements().begin()->first;
-  const int original_num_groups = linear_solver_ordering->NumGroups();
 
   if (!RemoveFixedBlocksFromProgram(transformed_program.get(),
                                     linear_solver_ordering,
@@ -986,97 +972,45 @@ Program* SolverImpl::CreateReducedProgram(Solver::Options* options,
     return NULL;
   }
 
-  event_logger.AddEvent("RemoveFixedBlocks");
-
   if (transformed_program->NumParameterBlocks() == 0) {
-    if (transformed_program->NumResidualBlocks() > 0) {
-      *error = "Zero parameter blocks but non-zero residual blocks"
-          " in the reduced program. Congratulations, you found a "
-          "Ceres bug! Please report this error to the developers.";
-      return NULL;
-    }
-
     LOG(WARNING) << "No varying parameter blocks to optimize; "
                  << "bailing early.";
     return transformed_program.release();
   }
 
-  // If the user supplied an linear_solver_ordering with just one
-  // group, it is equivalent to the user supplying NULL as
-  // ordering. Ceres is completely free to choose the parameter block
-  // ordering as it sees fit. For Schur type solvers, this means that
-  // the user wishes for Ceres to identify the e_blocks, which we do
-  // by computing a maximal independent set.
-  if (original_num_groups == 1 && IsSchurType(options->linear_solver_type)) {
-    vector<ParameterBlock*> schur_ordering;
-    const int num_eliminate_blocks = ComputeSchurOrdering(*transformed_program,
-                                                          &schur_ordering);
-    CHECK_EQ(schur_ordering.size(), transformed_program->NumParameterBlocks())
-        << "Congratulations, you found a Ceres bug! Please report this error "
-        << "to the developers.";
-
-    for (int i = 0; i < schur_ordering.size(); ++i) {
-      linear_solver_ordering->AddElementToGroup(
-          schur_ordering[i]->mutable_user_state(),
-          (i < num_eliminate_blocks) ? 0 : 1);
-    }
-  }
-  event_logger.AddEvent("SchurOrdering");
-
-  if (!ApplyUserOrdering(problem_impl->parameter_map(),
-                         linear_solver_ordering,
-                         transformed_program.get(),
-                         error)) {
-    return NULL;
-  }
-  event_logger.AddEvent("ApplyOrdering");
-
-  // If the user requested the use of a Schur type solver, and
-  // supplied a non-NULL linear_solver_ordering object with more than
-  // one elimination group, then it can happen that after all the
-  // parameter blocks which are fixed or unused have been removed from
-  // the program and the ordering, there are no more parameter blocks
-  // in the first elimination group.
-  //
-  // In such a case, the use of a Schur type solver is not possible,
-  // as they assume there is at least one e_block. Thus, we
-  // automatically switch to one of the other solvers, depending on
-  // the user's indicated preferences.
   if (IsSchurType(options->linear_solver_type) &&
-      original_num_groups > 1 &&
       linear_solver_ordering->GroupSize(min_group_id) == 0) {
-    string msg = "No e_blocks remaining. Switching from ";
-    if (options->linear_solver_type == SPARSE_SCHUR) {
-      options->linear_solver_type = SPARSE_NORMAL_CHOLESKY;
-      msg += "SPARSE_SCHUR to SPARSE_NORMAL_CHOLESKY.";
-    } else if (options->linear_solver_type == DENSE_SCHUR) {
-      // TODO(sameeragarwal): This is probably not a great choice.
-      // Ideally, we should have a DENSE_NORMAL_CHOLESKY, that can
-      // take a BlockSparseMatrix as input.
-      options->linear_solver_type = DENSE_QR;
-      msg += "DENSE_SCHUR to DENSE_QR.";
-    } else if (options->linear_solver_type == ITERATIVE_SCHUR) {
-      msg += StringPrintf("ITERATIVE_SCHUR with %s preconditioner "
-                          "to CGNR with JACOBI preconditioner.",
-                          PreconditionerTypeToString(
-                              options->preconditioner_type));
-      options->linear_solver_type = CGNR;
-      if (options->preconditioner_type != IDENTITY) {
-        // CGNR currently only supports the JACOBI preconditioner.
-        options->preconditioner_type = JACOBI;
-      }
-    }
-
-    LOG(WARNING) << msg;
+    // If the user requested the use of a Schur type solver, and
+    // supplied a non-NULL linear_solver_ordering object with more than
+    // one elimination group, then it can happen that after all the
+    // parameter blocks which are fixed or unused have been removed from
+    // the program and the ordering, there are no more parameter blocks
+    // in the first elimination group.
+    //
+    // In such a case, the use of a Schur type solver is not possible,
+    // as they assume there is at least one e_block. Thus, we
+    // automatically switch to the closest solver to the one indicated
+    // by the user.
+    AlternateLinearSolverForSchurTypeLinearSolver(options);
   }
 
-  event_logger.AddEvent("AlternateSolver");
+  if (IsSchurType(options->linear_solver_type)) {
+    if (!ReorderProgramForSchurTypeLinearSolver(problem_impl->parameter_map(),
+                                                linear_solver_ordering,
+                                                transformed_program.get(),
+                                                error)) {
+      return NULL;
+    }
+    return transformed_program.release();
+  }
 
-  // Since the transformed program is the "active" program, and it is
-  // mutated, update the parameter offsets and indices.
+  if (options->linear_solver_type == SPARSE_NORMAL_CHOLESKY &&
+      options->sparse_linear_algebra_library == SUITE_SPARSE) {
+    ReorderProgramForSparseNormalCholesky(transformed_program.get());
+    return transformed_program.release();
+  }
+
   transformed_program->SetParameterOffsetsAndIndex();
-
-  event_logger.AddEvent("SetOffsets");
   return transformed_program.release();
 }
 
@@ -1158,11 +1092,10 @@ LinearSolver* SolverImpl::CreateLinearSolver(Solver::Options* options,
   linear_solver_options.preconditioner_type = options->preconditioner_type;
   linear_solver_options.sparse_linear_algebra_library =
       options->sparse_linear_algebra_library;
-
+  linear_solver_options.use_postordering = options->use_postordering;
   linear_solver_options.num_threads = options->num_linear_solver_threads;
   options->num_linear_solver_threads = linear_solver_options.num_threads;
 
-  linear_solver_options.use_block_amd = options->use_block_amd;
   const map<int, set<double*> >& groups =
       options->linear_solver_ordering->group_to_elements();
   for (map<int, set<double*> >::const_iterator it = groups.begin();
@@ -1396,6 +1329,173 @@ CoordinateDescentMinimizer* SolverImpl::CreateInnerIterationMinimizer(
   SummarizeOrdering(ordering_ptr, &(summary->inner_iteration_ordering_used));
 
   return inner_iteration_minimizer.release();
+}
+
+void SolverImpl::AlternateLinearSolverForSchurTypeLinearSolver(
+    Solver::Options* options) {
+  if (!IsSchurType(options->linear_solver_type)) {
+    return;
+  }
+
+  string msg = "No e_blocks remaining. Switching from ";
+  if (options->linear_solver_type == SPARSE_SCHUR) {
+    options->linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+    msg += "SPARSE_SCHUR to SPARSE_NORMAL_CHOLESKY.";
+  } else if (options->linear_solver_type == DENSE_SCHUR) {
+    // TODO(sameeragarwal): This is probably not a great choice.
+    // Ideally, we should have a DENSE_NORMAL_CHOLESKY, that can
+    // take a BlockSparseMatrix as input.
+    options->linear_solver_type = DENSE_QR;
+    msg += "DENSE_SCHUR to DENSE_QR.";
+  } else if (options->linear_solver_type == ITERATIVE_SCHUR) {
+    options->linear_solver_type = CGNR;
+    if (options->preconditioner_type != IDENTITY) {
+      msg += StringPrintf("ITERATIVE_SCHUR with %s preconditioner "
+                          "to CGNR with JACOBI preconditioner.",
+                          PreconditionerTypeToString(
+                            options->preconditioner_type));
+      // CGNR currently only supports the JACOBI preconditioner.
+      options->preconditioner_type = JACOBI;
+    } else {
+      msg += StringPrintf("ITERATIVE_SCHUR with IDENTITY preconditioner "
+                          "to CGNR with IDENTITY preconditioner.");
+    }
+  }
+  LOG(WARNING) << msg;
+}
+
+bool SolverImpl::ReorderProgramForSchurTypeLinearSolver(
+    const ProblemImpl::ParameterMap& parameter_map,
+    ParameterBlockOrdering* ordering,
+    Program* program,
+    string* error) {
+  // At this point one of two things is true.
+  //
+  //  1. The user did not specify an ordering - ordering has one
+  //  group containined all the parameter blocks.
+
+  //  2. The user specified an ordering, and the first group has
+  //  non-zero elements.
+  //
+  // We handle these two cases in turn.
+  if (ordering->NumGroups() == 1) {
+    // If the user supplied an ordering with just one
+    // group, it is equivalent to the user supplying NULL as an
+    // ordering. Ceres is completely free to choose the parameter
+    // block ordering as it sees fit. For Schur type solvers, this
+    // means that the user wishes for Ceres to identify the e_blocks,
+    // which we do by computing a maximal independent set.
+    vector<ParameterBlock*> schur_ordering;
+    const int num_eliminate_blocks = ComputeSchurOrdering(*program,
+                                                          &schur_ordering);
+
+    CHECK_EQ(schur_ordering.size(), program->NumParameterBlocks())
+        << "Congratulations, you found a Ceres bug! Please report this error "
+        << "to the developers.";
+
+    // Update the ordering object.
+    for (int i = 0; i < schur_ordering.size(); ++i) {
+      double* parameter_block = schur_ordering[i]->mutable_user_state();
+      const int group_id = (i < num_eliminate_blocks) ? 0 : 1;
+      ordering->AddElementToGroup(parameter_block, group_id);
+    }
+
+    // Apply the parameter block re-ordering. Technically we could
+    // call ApplyUserOrdering, but this is cheaper and simpler.
+    swap(*program->mutable_parameter_blocks(), schur_ordering);
+  } else {
+    // The user supplied an ordering.
+    if (!ApplyUserOrdering(parameter_map, ordering, program, error)) {
+      return false;
+    }
+  }
+
+  program->SetParameterOffsetsAndIndex();
+
+  const int num_eliminate_blocks =
+      ordering->group_to_elements().begin()->second.size();
+
+  // Schur type solvers also require that their residual blocks be
+  // lexicographically ordered.
+  return LexicographicallyOrderResidualBlocks(num_eliminate_blocks,
+                                              program,
+                                              error);
+}
+
+TripletSparseMatrix* SolverImpl::CreateJacobianBlockSparsityTranspose(
+    const Program* program) {
+
+  // Matrix to store the block sparsity structure of
+  TripletSparseMatrix* tsm =
+      new TripletSparseMatrix(program->NumParameterBlocks(),
+                              program->NumResidualBlocks(),
+                              10 * program->NumResidualBlocks());
+  int num_nonzeros = 0;
+  int* rows = tsm->mutable_rows();
+  int* cols = tsm->mutable_cols();
+  double* values = tsm->mutable_values();
+
+  const vector<ResidualBlock*>& residual_blocks = program->residual_blocks();
+  for (int c = 0; c < residual_blocks.size(); ++c) {
+    const ResidualBlock* residual_block = residual_blocks[c];
+    const int num_parameter_blocks = residual_block->NumParameterBlocks();
+    ParameterBlock* const* parameter_blocks =
+        residual_block->parameter_blocks();
+
+    for (int j = 0; j < num_parameter_blocks; ++j) {
+      if (parameter_blocks[j]->IsConstant()) {
+        continue;
+      }
+
+      // Re-size the matrix if needed.
+      if (num_nonzeros >= tsm->max_num_nonzeros()) {
+        tsm->Reserve(2 * num_nonzeros);
+        rows = tsm->mutable_rows();
+        cols = tsm->mutable_cols();
+        values = tsm->mutable_values();
+      }
+      CHECK_LT(num_nonzeros,  tsm->max_num_nonzeros());
+
+      const int r = parameter_blocks[j]->index();
+      rows[num_nonzeros] = r;
+      cols[num_nonzeros] = c;
+      values[num_nonzeros] = 1.0;
+      ++num_nonzeros;
+    }
+  }
+
+  tsm->set_num_nonzeros(num_nonzeros);
+  return tsm;
+}
+
+void SolverImpl::ReorderProgramForSparseNormalCholesky(Program* program) {
+#ifndef CERES_NO_SUITESPARSE
+  // Set the offsets and index for CreateJacobianSparsityTranspose.
+  program->SetParameterOffsetsAndIndex();
+
+  // Compute a block sparse presentation of J'.
+  scoped_ptr<TripletSparseMatrix> tsm_block_jacobian_transpose(
+      SolverImpl::CreateJacobianBlockSparsityTranspose(program));
+
+  // Order rows using AMD.
+  SuiteSparse ss;
+  cholmod_sparse* block_jacobian_transpose =
+      ss.CreateSparseMatrix(tsm_block_jacobian_transpose.get());
+
+  vector<int> ordering(program->NumParameterBlocks(), -1);
+  ss.ApproximateMinimumDegreeOrdering(block_jacobian_transpose, &ordering[0]);
+  ss.Free(block_jacobian_transpose);
+
+  // Apply ordering.
+  vector<ParameterBlock*>& parameter_blocks =
+      *(program->mutable_parameter_blocks());
+  const vector<ParameterBlock*> parameter_blocks_copy(parameter_blocks);
+  for (int i = 0; i < program->NumParameterBlocks(); ++i) {
+    parameter_blocks[i] = parameter_blocks_copy[ordering[i]];
+  }
+#endif
+
+  program->SetParameterOffsetsAndIndex();
 }
 
 }  // namespace internal

@@ -87,23 +87,23 @@ cholmod_sparse* SuiteSparse::CreateSparseMatrixTranspose(
   return cholmod_triplet_to_sparse(&triplet, triplet.nnz, &cc_);
 }
 
-cholmod_sparse* SuiteSparse::CreateSparseMatrixTransposeView(
+cholmod_sparse SuiteSparse::CreateSparseMatrixTransposeView(
     CompressedRowSparseMatrix* A) {
-  cholmod_sparse* m = new cholmod_sparse_struct;
-  m->nrow = A->num_cols();
-  m->ncol = A->num_rows();
-  m->nzmax = A->num_nonzeros();
-
-  m->p = reinterpret_cast<void*>(A->mutable_rows());
-  m->i = reinterpret_cast<void*>(A->mutable_cols());
-  m->x = reinterpret_cast<void*>(A->mutable_values());
-
-  m->stype = 0;  // Matrix is not symmetric.
-  m->itype = CHOLMOD_INT;
-  m->xtype = CHOLMOD_REAL;
-  m->dtype = CHOLMOD_DOUBLE;
-  m->sorted = 1;
-  m->packed = 1;
+  cholmod_sparse m;
+  m.nrow = A->num_cols();
+  m.ncol = A->num_rows();
+  m.nzmax = A->num_nonzeros();
+  m.nz = NULL;
+  m.p = reinterpret_cast<void*>(A->mutable_rows());
+  m.i = reinterpret_cast<void*>(A->mutable_cols());
+  m.x = reinterpret_cast<void*>(A->mutable_values());
+  m.z = NULL;
+  m.stype = 0;  // Matrix is not symmetric.
+  m.itype = CHOLMOD_INT;
+  m.xtype = CHOLMOD_REAL;
+  m.dtype = CHOLMOD_DOUBLE;
+  m.sorted = 1;
+  m.packed = 1;
 
   return m;
 }
@@ -161,6 +161,23 @@ cholmod_factor* SuiteSparse::AnalyzeCholeskyWithUserOrdering(
 
   cholmod_factor* factor  =
       cholmod_analyze_p(A, const_cast<int*>(&ordering[0]), NULL, 0, &cc_);
+  CHECK_EQ(cc_.status, CHOLMOD_OK)
+      << "Cholmod symbolic analysis failed " << cc_.status;
+  CHECK_NOTNULL(factor);
+
+  if (VLOG_IS_ON(2)) {
+    cholmod_print_common(const_cast<char*>("Symbolic Analysis"), &cc_);
+  }
+
+  return factor;
+}
+
+cholmod_factor* SuiteSparse::AnalyzeCholeskyWithNaturalOrdering(cholmod_sparse* A) {
+  cc_.nmethods = 1;
+  cc_.method[0].ordering = CHOLMOD_NATURAL;
+  cc_.postorder = 0;
+
+  cholmod_factor* factor  = cholmod_analyze(A, &cc_);
   CHECK_EQ(cc_.status, CHOLMOD_OK)
       << "Cholmod symbolic analysis failed " << cc_.status;
   CHECK_NOTNULL(factor);
@@ -378,6 +395,11 @@ cholmod_dense* SuiteSparse::SolveCholesky(cholmod_sparse* A,
   }
 
   return NULL;
+}
+
+void SuiteSparse::ApproximateMinimumDegreeOrdering(cholmod_sparse* matrix,
+                                                   int* ordering) {
+  cholmod_amd(matrix, NULL, 0, ordering, &cc_);
 }
 
 }  // namespace internal

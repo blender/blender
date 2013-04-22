@@ -139,6 +139,10 @@ class ProblemImpl {
   int NumResidualBlocks() const;
   int NumResiduals() const;
 
+  int ParameterBlockSize(double* parameter_block) const;
+  int ParameterBlockLocalSize(double* parameter_block) const;
+  void GetParameterBlocks(vector<double*>* parameter_blocks) const;
+
   const Program& program() const { return *program_; }
   Program* mutable_program() { return program_.get(); }
 

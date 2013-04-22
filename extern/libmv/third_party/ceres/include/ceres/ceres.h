@@ -38,6 +38,7 @@
 #define CERES_ABI_VERSION 1.5.0
 
 #include "ceres/autodiff_cost_function.h"
+#include "ceres/autodiff_local_parameterization.h"
 #include "ceres/cost_function.h"
 #include "ceres/cost_function_to_functor.h"
 #include "ceres/crs_matrix.h"

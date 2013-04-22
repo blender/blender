@@ -286,11 +286,7 @@ bool SparseSchurComplementSolver::SolveReducedLinearSystemUsingSuiteSparse(
 
   // Symbolic factorization is computed if we don't already have one handy.
   if (factor_ == NULL) {
-    if (options().use_block_amd) {
-      factor_ = ss_.BlockAnalyzeCholesky(cholmod_lhs, blocks_, blocks_);
-    } else {
-      factor_ = ss_.AnalyzeCholesky(cholmod_lhs);
-    }
+    factor_ = ss_.BlockAnalyzeCholesky(cholmod_lhs, blocks_, blocks_);
   }
 
   cholmod_dense* cholmod_solution =

@@ -147,7 +147,6 @@ void BlockSparseMatrix::LeftMultiply(const double* x, double* y) const {
           values_.get() + cells[j].position, row_block_size, col_block_size,
           x + row_block_pos,
           y + col_block_pos);
-
     }
   }
 }

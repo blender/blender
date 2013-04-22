@@ -99,7 +99,6 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   preconditioner_options.type = options_.preconditioner_type;
   preconditioner_options.sparse_linear_algebra_library =
       options_.sparse_linear_algebra_library;
-  preconditioner_options.use_block_amd = options_.use_block_amd;
   preconditioner_options.num_threads = options_.num_threads;
   preconditioner_options.row_block_size = options_.row_block_size;
   preconditioner_options.e_block_size = options_.e_block_size;

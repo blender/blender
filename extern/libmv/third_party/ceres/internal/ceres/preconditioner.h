@@ -47,7 +47,6 @@ class Preconditioner : public LinearOperator {
     Options()
         : type(JACOBI),
           sparse_linear_algebra_library(SUITE_SPARSE),
-          use_block_amd(true),
           num_threads(1),
           row_block_size(Eigen::Dynamic),
           e_block_size(Eigen::Dynamic),
@@ -57,9 +56,6 @@ class Preconditioner : public LinearOperator {
     PreconditionerType type;
 
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library;
-
-    // See solver.h for explanation of this option.
-    bool use_block_amd;
 
     // If possible, how many threads the preconditioner can use.
     int num_threads;

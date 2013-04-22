@@ -328,6 +328,19 @@ class Problem {
   // sizes of all of the residual blocks.
   int NumResiduals() const;
 
+  // The size of the parameter block.
+  int ParameterBlockSize(double* values) const;
+
+  // The size of local parameterization for the parameter block. If
+  // there is no local parameterization associated with this parameter
+  // block, then ParameterBlockLocalSize = ParameterBlockSize.
+  int ParameterBlockLocalSize(double* values) const;
+
+  // Fills the passed parameter_blocks vector with pointers to the
+  // parameter blocks currently in the problem. After this call,
+  // parameter_block.size() == NumParameterBlocks.
+  void GetParameterBlocks(vector<double*>* parameter_blocks) const;
+
   // Options struct to control Problem::Evaluate.
   struct EvaluateOptions {
     EvaluateOptions()
