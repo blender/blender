@@ -317,8 +317,6 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 	int j;
 	int refresh;
 
-	if (br->mtex.brush_map_mode != MTEX_MAP_MODE_VIEW && !br->mtex.tex) return 0;
-
 	refresh =
 	    !overlay_texture ||
 	    (overlay_flags & PAINT_INVALID_OVERLAY_CURVE) ||
