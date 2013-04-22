@@ -522,21 +522,9 @@ bool ED_view3d_win_to_segment_clip(const ARegion *ar, View3D *v3d, const float m
 
 	/* clipping */
 	if (rv3d->rflag & RV3D_CLIPPING) {
-		/* if the ray is totally clipped,
-		 * restore the original values but return false
-		 * caller can choose what to do */
-		float tray_start[3] = {UNPACK3(ray_start)};
-		float tray_end[3]   = {UNPACK3(ray_end)};
-		int a;
-		for (a = 0; a < 4; a++) {
-			if (clip_line_plane(tray_start, tray_end, rv3d->clip[a]) == false) {
-				return false;
-			}
+		if (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6) == false) {
+			return false;
 		}
-
-		/* copy in clipped values */
-		copy_v3_v3(ray_start, tray_start);
-		copy_v3_v3(ray_end, tray_end);
 	}
 
 	return true;

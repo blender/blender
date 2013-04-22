@@ -170,7 +170,8 @@ int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const flo
 int isect_axial_line_tri_v3(const int axis, const float co1[3], const float co2[3],
                             const float v0[3], const float v1[3], const float v2[3], float *r_lambda);
 
-int clip_line_plane(float p1[3], float p2[3], const float plane[4]);
+bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4]);
+bool clip_segment_v3_plane_n(float p1[3], float p2[3], float plane_array[][4], const int plane_tot);
 
 void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int, void *), void *userData);
 

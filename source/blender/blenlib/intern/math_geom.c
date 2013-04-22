@@ -1963,7 +1963,7 @@ int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2
 	return 1;
 }
 
-int clip_line_plane(float p1[3], float p2[3], const float plane[4])
+bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4])
 {
 	float dp[3], div, t, pc[3];
 
@@ -2009,6 +2009,63 @@ int clip_line_plane(float p1[3], float p2[3], const float plane[4])
 
 		return 1;
 	}
+}
+
+bool clip_segment_v3_plane_n(float r_p1[3], float r_p2[3], float plane_array[][4], const int plane_tot)
+{
+	/* intersect from both directions */
+	float p1[3], p2[3], dp[3], dp_orig[3];
+	int i;
+	copy_v3_v3(p1, r_p1);
+	copy_v3_v3(p2, r_p2);
+
+	sub_v3_v3v3(dp, p2, p1);
+	copy_v3_v3(dp_orig, dp);
+
+	for (i = 0; i < plane_tot; i++) {
+		const float *plane = plane_array[i];
+		const float div = dot_v3v3(dp, plane);
+
+		if (div != 0.0f) {
+			const float t = -(dot_v3v3(p1, plane) + plane[3]) / div;
+			if (div > 0.0f) {
+				/* clip a */
+				if (t >= 1.0f) {
+					return false;
+				}
+
+				/* intersect plane */
+				if (t > 0.0f) {
+					madd_v3_v3v3fl(p1, p1, dp, t);
+					/* recalc direction and test for flipping */
+					sub_v3_v3v3(dp, p2, p1);
+					if (dot_v3v3(dp, dp_orig) < 0.0f) {
+						return false;
+					}
+				}
+			}
+			else if (div < 0.0f) {
+				/* clip b */
+				if (t <= 0.0f) {
+					return false;
+				}
+
+				/* intersect plane */
+				if (t < 1.0f) {
+					madd_v3_v3v3fl(p2, p1, dp, t);
+					/* recalc direction and test for flipping */
+					sub_v3_v3v3(dp, p2, p1);
+					if (dot_v3v3(dp, dp_orig) < 0.0f) {
+						return false;
+					}
+				}
+			}
+		}
+	}
+
+	copy_v3_v3(r_p1, p1);
+	copy_v3_v3(r_p2, p2);
+	return true;
 }
 
 void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int, void *), void *userData)
