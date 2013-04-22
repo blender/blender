@@ -21,9 +21,6 @@ import bpy
 from bpy.types import Menu, Panel
 
 
-node_categories = []
-
-
 class NodeCategory():
     @classmethod
     def poll(cls, context):
@@ -60,12 +57,13 @@ class NodeItem():
             return getattr(bpy.types, self.nodetype).bl_rna.name
 
 
-# Empty base class to detect subclasses in bpy.types
-class NodeCategoryUI():
-    pass
+_node_categories = {}
 
+def register_node_categories(identifier, cat_list):
+    if identifier in _node_categories:
+        raise KeyError("Node categories list '%s' already registered" % identifier)
+        return
 
-def register_node_ui():
     # works as draw function for both menus and panels
     def draw_node_item(self, context):
         layout = self.layout
@@ -80,15 +78,17 @@ def register_node_ui():
                 ops.name = setting[0]
                 ops.value = setting[1]
 
-    for cat in node_categories:
-        menu = type("NODE_MT_category_"+cat.identifier, (bpy.types.Menu, NodeCategoryUI), {
+    menu_types = []
+    panel_types = []
+    for cat in cat_list:
+        menu_type = type("NODE_MT_category_"+cat.identifier, (bpy.types.Menu,), {
             "bl_space_type" : 'NODE_EDITOR',
             "bl_label" : cat.name,
             "category" : cat,
             "poll" : cat.poll,
             "draw" : draw_node_item,
             })
-        panel = type("NODE_PT_category_"+cat.identifier, (bpy.types.Panel, NodeCategoryUI), {
+        panel_type = type("NODE_PT_category_"+cat.identifier, (bpy.types.Panel,), {
             "bl_space_type" : 'NODE_EDITOR',
             "bl_region_type" : 'TOOLS',
             "bl_label" : cat.name,
@@ -97,32 +97,44 @@ def register_node_ui():
             "poll" : cat.poll,
             "draw" : draw_node_item,
             })
-        bpy.utils.register_class(menu)
-        bpy.utils.register_class(panel)
 
+        menu_types.append(menu_type)
+        panel_types.append(panel_type)
+
+        bpy.utils.register_class(menu_type)
+        bpy.utils.register_class(panel_type)
 
     def draw_add_menu(self, context):
         layout = self.layout
 
-        layout.operator_context = 'INVOKE_DEFAULT'
-        op = layout.operator("node.add_search", text="Search ...")
-
-        for cat in node_categories:
+        for cat in cat_list:
             if cat.poll(context):
                 layout.menu("NODE_MT_category_%s" % cat.identifier)
 
-    add_menu = type("NODE_MT_add", (bpy.types.Menu, NodeCategoryUI), {
-        "bl_space_type" : 'NODE_EDITOR',
-        "bl_label" : "Add",
-        "draw" : draw_add_menu,
-        })
-    bpy.utils.register_class(add_menu)
+    bpy.types.NODE_MT_add.append(draw_add_menu)
+
+    # stores: (categories list, menu draw function, submenu types, panel types)
+    _node_categories[identifier] = (cat_list, draw_add_menu, menu_types, panel_types)
 
 
-def unregister_node_ui():
+def unregister_node_cat_types(cats):
+    bpy.types.NODE_MT_add.remove(cats[1])
+    for mt in cats[2]:
+        bpy.utils.unregister_class(mt)
+    for pt in cats[3]:
+        bpy.utils.unregister_class(pt)
+
+
+def unregister_node_categories(identifier=None):
     # unregister existing UI classes
-    for c in NodeCategoryUI.__subclasses__():
-        if hasattr(c, "bl_rna"):
-            bpy.utils.unregister_class(c)
-            del c
+    if identifier:
+        cat_types = _node_categories.get(identifier, None)
+        if cat_types:
+            unregister_node_cat_types(cat_types)
+        del _node_categories[identifier]
+
+    else:
+        for cat_types in _node_categories.values():
+            unregister_node_cat_types(cat_types)
+        _node_categories.clear()
 

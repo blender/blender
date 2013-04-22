@@ -108,6 +108,19 @@ class NODE_HT_header(Header):
         layout.template_running_jobs()
 
 
+class NODE_MT_add(bpy.types.Menu):
+    bl_space_type = 'NODE_EDITOR'
+    bl_label = "Add"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        op = layout.operator("node.add_search", text="Search ...")
+
+        # actual node submenus are added by draw functions from node categories
+
+
 class NODE_MT_view(Menu):
     bl_label = "View"
 
@@ -314,6 +327,10 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.template_node_socket(color)
+
+
+def node_draw_tree_view(layout, context):
+    pass
 
 
 if __name__ == "__main__":  # only for live edit.
