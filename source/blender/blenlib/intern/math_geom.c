@@ -1965,16 +1965,15 @@ int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2
 
 int clip_line_plane(float p1[3], float p2[3], const float plane[4])
 {
-	float dp[3], n[3], div, t, pc[3];
+	float dp[3], div, t, pc[3];
 
-	copy_v3_v3(n, plane);
 	sub_v3_v3v3(dp, p2, p1);
-	div = dot_v3v3(dp, n);
+	div = dot_v3v3(dp, plane);
 
 	if (div == 0.0f) /* parallel */
 		return 1;
 
-	t = -(dot_v3v3(p1, n) + plane[3]) / div;
+	t = -(dot_v3v3(p1, plane) + plane[3]) / div;
 
 	if (div > 0.0f) {
 		/* behind plane, completely clipped */
@@ -3135,18 +3134,6 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], flo
  * )
  */
 
-/* can't believe there is none in math utils */
-static float _det_m3(float m2[3][3])
-{
-	float det = 0.f;
-	if (m2) {
-		det = (m2[0][0] * (m2[1][1] * m2[2][2] - m2[1][2] * m2[2][1]) -
-		       m2[1][0] * (m2[0][1] * m2[2][2] - m2[0][2] * m2[2][1]) +
-		       m2[2][0] * (m2[0][1] * m2[1][2] - m2[0][2] * m2[1][1]));
-	}
-	return det;
-}
-
 void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, float (*rpos)[3], float *rweight,
                                float lloc[3], float rloc[3], float lrot[3][3], float lscale[3][3])
 {
@@ -3246,14 +3233,14 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, fl
 			/* this is pretty much Polardecompose 'inline' the algo based on Higham's thesis */
 			/* without the far case ... but seems to work here pretty neat                   */
 			odet = 0.f;
-			ndet = _det_m3(q);
+			ndet = determinant_m3_array(q);
 			while ((odet - ndet) * (odet - ndet) > eps && i < imax) {
 				invert_m3_m3(qi, q);
 				transpose_m3(qi);
 				add_m3_m3m3(q, q, qi);
 				mul_m3_fl(q, 0.5f);
 				odet = ndet;
-				ndet = _det_m3(q);
+				ndet = determinant_m3_array(q);
 				i++;
 			}
 
