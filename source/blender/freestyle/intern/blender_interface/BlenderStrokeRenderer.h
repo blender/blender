@@ -54,7 +54,7 @@ public:
 	Render *RenderScene(Render *re);
 
 protected:
-	Main _freestyle_bmain;
+	Main *freestyle_bmain;
 	Scene *old_scene;
 	Scene *freestyle_scene;
 	Material *material;

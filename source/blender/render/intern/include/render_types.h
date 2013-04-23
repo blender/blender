@@ -44,6 +44,8 @@
 
 #include "BLI_threads.h"
 
+#include "BKE_main.h"
+
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
 #include "sunsky.h"
@@ -237,6 +239,7 @@ struct Render
 	ListBase volume_precache_parts;
 
 #ifdef WITH_FREESTYLE
+	struct Main freestyle_bmain;
 	ListBase freestyle_renders;
 #endif
 

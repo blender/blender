@@ -1529,6 +1529,11 @@ static void tag_scenes_for_render(Render *re)
 	for (sce = re->main->scene.first; sce; sce = sce->id.next)
 		sce->id.flag &= ~LIB_DOIT;
 	
+#ifdef WITH_FREESTYLE
+	for (sce = re->freestyle_bmain.scene.first; sce; sce = sce->id.next)
+		sce->id.flag &= ~LIB_DOIT;
+#endif
+
 	if (RE_GetCamera(re) && composite_needs_render(re->scene, 1))
 		re->scene->id.flag |= LIB_DOIT;
 	
@@ -1662,10 +1667,11 @@ static void free_all_freestyle_renders(void)
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			if (link->data) {
 				freestyle_render = (Render *)link->data;
+				BKE_scene_unlink(&re1->freestyle_bmain, freestyle_render->scene, NULL);
 				RE_FreeRender(freestyle_render);
 			}
 		}
-		BLI_freelistN( &re1->freestyle_renders );
+		BLI_freelistN(&re1->freestyle_renders);
 	}
 }
 #endif
@@ -1711,7 +1717,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 						render_result_exr_file_read(re1, sample);
 #ifdef WITH_FREESTYLE
-						if( re1->r.mode & R_EDGE_FRS)
+						if (re1->r.mode & R_EDGE_FRS)
 							composite_freestyle_renders(re1, sample);
 #endif
 						BLI_rw_mutex_unlock(&re->resultmutex);
