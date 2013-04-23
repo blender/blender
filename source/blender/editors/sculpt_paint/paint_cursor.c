@@ -124,9 +124,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	                           (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY);
 
 	target = (primary) ? &primary_snap : &secondary_snap;
-	
-	if (mtex->brush_map_mode != MTEX_MAP_MODE_VIEW && !mtex->tex) return 0;
-	
+		
 	refresh = 
 	    !target->overlay_texture ||
 	    (invalid != 0) ||
@@ -175,8 +173,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		else
 			buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
 
-		if (mtex->tex)
-			pool = BKE_image_pool_new();
+		pool = BKE_image_pool_new();
 
 		#pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
@@ -228,8 +225,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 					if (col) {
 						float rgba[4];
 
-						if (mtex->tex)
-							paint_get_tex_pixel_col(mtex, x, y, rgba, pool);
+						paint_get_tex_pixel_col(mtex, x, y, rgba, pool);
 
 						buffer[index * 4]     = rgba[0] * 255;
 						buffer[index * 4 + 1] = rgba[1] * 255;
@@ -237,7 +233,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 						buffer[index * 4 + 3] = rgba[3] * 255;
 					}
 					else {
-						float avg = mtex->tex ? paint_get_tex_pixel(mtex, x, y, pool) : 1;
+						float avg = paint_get_tex_pixel(mtex, x, y, pool);
 
 						avg += br->texture_sample_bias;
 
@@ -530,9 +526,9 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	                         (brush->overlay_flags & BRUSH_OVERLAY_SECONDARY) != 0;
 	int overlay_alpha = (primary) ? brush->texture_overlay_alpha : brush->mask_overlay_alpha;
 
-	if (!((mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL && mtex->tex) ||
+	if (!(mtex->tex) || !((mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) ||
 	    (valid &&
-	    ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
+		ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
 	{
 		return;
 	}
