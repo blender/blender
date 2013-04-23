@@ -38,9 +38,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
@@ -725,8 +726,15 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	
 	if ((oldName != NULL) && (newName != NULL)) {
 		/* pad the names with [" "] so that only exact matches are made */
-		oldN = BLI_sprintfN("[\"%s\"]", oldName);
-		newN = BLI_sprintfN("[\"%s\"]", newName);
+		const size_t name_old_len = strlen(oldName);
+		const size_t name_new_len = strlen(newName);
+		char *name_old_esc = BLI_array_alloca(name_old_esc, (name_old_len * 2) + 1);
+		char *name_new_esc = BLI_array_alloca(name_new_esc, (name_new_len * 2) + 1);
+
+		BLI_strescape(name_old_esc, oldName, (name_old_len * 2) + 1);
+		BLI_strescape(name_new_esc, newName, (name_new_len * 2) + 1);
+		oldN = BLI_sprintfN("[\"%s\"]", name_old_esc);
+		newN = BLI_sprintfN("[\"%s\"]", name_new_esc);
 	}
 	else {
 		oldN = BLI_sprintfN("[%d]", oldSubscript);
