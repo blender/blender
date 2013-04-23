@@ -126,6 +126,9 @@ def brush_mask_texture_settings(layout, brush):
     layout.row().prop(mask_tex_slot, "mask_map_mode", text="")
     layout.separator()
 
+    if mask_tex_slot.map_mode == 'STENCIL':
+        layout.operator("brush.stencil_fit_image_aspect").mask = True
+
     if brush.mask_texture:
         layout.label(text="Mask Mapping:")
         col = layout.column()

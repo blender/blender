@@ -718,9 +718,15 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
 {
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *br = BKE_paint_brush(paint);
-	Tex *tex = (br)? br->mtex.tex : NULL;
 	bool use_scale = RNA_boolean_get(op->ptr, "use_scale");
 	bool use_repeat = RNA_boolean_get(op->ptr, "use_repeat");
+	bool do_mask = RNA_boolean_get(op->ptr, "mask");
+	Tex *tex = NULL;
+	MTex *mtex = NULL;
+	if (br) {
+		mtex = do_mask ? &br->mask_mtex : &br->mtex;
+		tex = mtex->tex;
+	}
 
 	if (tex && tex->type == TEX_IMAGE && tex->ima) {
 		float aspx, aspy;
@@ -729,8 +735,8 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
 		ED_image_get_uv_aspect(ima, NULL, &aspx, &aspy);
 
 		if (use_scale) {
-			aspx *= br->mtex.size[0];
-			aspy *= br->mtex.size[1];
+			aspx *= mtex->size[0];
+			aspy *= mtex->size[1];
 		}
 
 		if (use_repeat && tex->extend == TEX_REPEAT) {
@@ -739,12 +745,25 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
 		}
 
 		orig_area = aspx * aspy;
-		stencil_area = br->stencil_dimension[0] * br->stencil_dimension[1];
+
+		if (do_mask) {
+			stencil_area = br->mask_stencil_dimension[0] * br->mask_stencil_dimension[1];
+		}
+		else {
+			stencil_area = br->stencil_dimension[0] * br->stencil_dimension[1];
+		}
 
 		factor = sqrt(stencil_area / orig_area);
 
-		br->stencil_dimension[0] = factor * aspx;
-		br->stencil_dimension[1] = factor * aspy;
+		if (do_mask) {
+			br->mask_stencil_dimension[0] = factor * aspx;
+			br->mask_stencil_dimension[1] = factor * aspy;
+
+		}
+		else {
+			br->stencil_dimension[0] = factor * aspx;
+			br->stencil_dimension[1] = factor * aspy;
+		}
 	}
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -769,6 +788,7 @@ static void BRUSH_OT_stencil_fit_image_aspect(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_repeat", 1, "Use Repeat", "Use repeat mapping values");
 	RNA_def_boolean(ot->srna, "use_scale", 1, "Use Scale", "Use texture scale values");
+	RNA_def_boolean(ot->srna, "mask", 0, "Modify Mask Stencil", "Modify either the primary or mask stencil");
 }
 
 
