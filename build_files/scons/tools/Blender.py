@@ -762,6 +762,14 @@ def UnixPyBundle(target=None, source=None, env=None):
             print '\t"%s"\n' % numpy_target
 
             run("cp -R '%s' '%s'" % (numpy_src, os.path.dirname(numpy_target)))
+            run("rm -rf '%s/distutils'" % numpy_target)
+            run("rm -rf '%s/oldnumeric'" % numpy_target)
+            run("rm -rf '%s/doc'" % numpy_target)
+            run("rm -rf '%s/tests'" % numpy_target)
+            run("rm -rf '%s/f2py'" % numpy_target)
+            run("find '%s' -type d -name 'include' -prune -exec rm -rf {} ';'" % numpy_target)
+            run("find '%s' -type d -name '*.h' -prune -exec rm -rf {} ';'" % numpy_target)
+            run("find '%s' -type d -name '*.a' -prune -exec rm -rf {} ';'" % numpy_target)
         else:
             print 'Failed to find numpy at %s, skipping copying' % numpy_src
 
