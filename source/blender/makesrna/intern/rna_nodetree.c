@@ -6499,11 +6499,11 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "typeinfo->width");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-	prop = RNA_def_property(srna, "bl_width_minimum", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "bl_width_min", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "typeinfo->minwidth");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-	prop = RNA_def_property(srna, "bl_width_maximum", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "bl_width_max", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "typeinfo->maxwidth");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
@@ -6511,11 +6511,11 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "typeinfo->height");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-	prop = RNA_def_property(srna, "bl_height_minimum", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "bl_height_min", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "typeinfo->minheight");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-	prop = RNA_def_property(srna, "bl_height_maximum", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "bl_height_max", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "typeinfo->minheight");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
