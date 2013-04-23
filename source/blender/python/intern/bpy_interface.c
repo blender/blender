@@ -259,12 +259,15 @@ void BPY_python_start(int argc, const char **argv)
 	 * Python doesn't expose a good way to set this. */
 	BLI_setenv("PYTHONIOENCODING", "utf-8:surrogateescape");
 
+	/* Update, Py3.3 resolves attempting to parse non-existing header */
+#if 0
 	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
 	 * parse from the 'sysconfig' module which is used by 'site',
 	 * so for now disable site. alternatively we could copy the file. */
 	if (py_path_bundle) {
 		Py_NoSiteFlag = 1;
 	}
+#endif
 
 	Py_FrozenFlag = 1;
 
