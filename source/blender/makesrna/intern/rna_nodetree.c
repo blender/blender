@@ -1336,6 +1336,14 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	if (nt->uifunc || nt->uifuncbut)
 		nt->flag |= NODE_OPTIONS;
 	
+	/* sanitize size values in case not all have been registered */
+	if (nt->maxwidth < nt->minwidth)
+		nt->maxwidth = nt->minwidth;
+	if (nt->maxheight < nt->minheight)
+		nt->maxheight = nt->minheight;
+	CLAMP(nt->width, nt->minwidth, nt->maxwidth);
+	CLAMP(nt->height, nt->minheight, nt->maxheight);
+	
 	return nt;
 }
 
@@ -6485,6 +6493,31 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_enum_default(prop, NODE_CUSTOM);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_ui_text(prop, "Static Type", "Node type (deprecated, use with care)");
+
+	/* type-based size properties */
+	prop = RNA_def_property(srna, "bl_width_default", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "typeinfo->width");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_width_minimum", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "typeinfo->minwidth");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_width_maximum", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "typeinfo->maxwidth");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_height_default", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "typeinfo->height");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_height_minimum", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "typeinfo->minheight");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_height_maximum", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "typeinfo->minheight");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
