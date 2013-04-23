@@ -1529,8 +1529,7 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, i
 		
 		if (editobject) {
 			em = BKE_editmesh_from_object(ob);
-			/* dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
-			dm = editbmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
+			dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
 		}
 		else {
 			em = NULL;
