@@ -497,7 +497,8 @@ static void stencil_set_target(StencilControlData *scd)
 		scd->dim_target = br->mask_stencil_dimension;
 		scd->rot_target = &br->mask_mtex.rot;
 		scd->pos_target = br->mask_stencil_pos;
-	} else {
+	}
+	else {
 		copy_v2_v2(scd->init_sdim, br->stencil_dimension);
 		copy_v2_v2(scd->init_spos, br->stencil_pos);
 		scd->init_rot = br->mtex.rot;
@@ -598,8 +599,8 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
 				mdiff[0] = factor * scd->init_sdim[0];
 			if (scd->constrain_mode != STENCIL_CONSTRAINT_X)
 				mdiff[1] = factor * scd->init_sdim[1];
-			CLAMP(mdiff[0], 5.0, 10000);
-			CLAMP(mdiff[1], 5.0, 10000);
+			CLAMP(mdiff[0], 5.0f, 10000.0f);
+			CLAMP(mdiff[1], 5.0f, 10000.0f);
 			copy_v2_v2(scd->dim_target, mdiff);
 			break;
 		}
@@ -676,8 +677,8 @@ static int stencil_control_poll(bContext *C)
 	Brush *br = BKE_paint_brush(paint);
 
 	return (br &&
-			(br->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL ||
-			 br->mask_mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL));
+	        (br->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL ||
+	         br->mask_mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL));
 }
 
 static void BRUSH_OT_stencil_control(wmOperatorType *ot)

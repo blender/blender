@@ -91,10 +91,10 @@ static int same_tex_snap(TexSnapshot *snap, MTex *mtex, ViewContext *vc, bool co
 	        //(BKE_brush_size_get(vc->scene, brush) <= snap->BKE_brush_size_get)) &&
 
 	        (mtex->brush_map_mode != MTEX_MAP_MODE_TILED ||
-	        (vc->ar->winx == snap->winx &&
-	        vc->ar->winy == snap->winy)) &&
+	         (vc->ar->winx == snap->winx &&
+	          vc->ar->winy == snap->winy)) &&
 	        snap->old_zoom == zoom &&
-			snap->old_col == col
+	        snap->old_col == col
 	        );
 }
 
@@ -380,11 +380,11 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 				len = sqrtf(x * x + y * y);
 
 				if (len <= 1) {
-						float avg = BKE_brush_curve_strength(br, len, 1.0f);  /* Falloff curve */
+					float avg = BKE_brush_curve_strength(br, len, 1.0f);  /* Falloff curve */
 
-						/* clamp to avoid precision overflow */
-						CLAMP(avg, 0.0f, 1.0f);
-						buffer[index] = 255 - (GLubyte)(255 * avg);
+					/* clamp to avoid precision overflow */
+					CLAMP(avg, 0.0f, 1.0f);
+					buffer[index] = 255 - (GLubyte)(255 * avg);
 
 				}
 				else {
@@ -643,13 +643,12 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 /* Draw an overlay that shows what effect the brush's texture will
  * have on brush strength */
 static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                     ViewContext *vc, int x, int y, float zoom)
+                                      ViewContext *vc, int x, int y, float zoom)
 {
 	rctf quad;
 	/* check for overlay mode */
 
-	if (!(brush->overlay_flags & BRUSH_OVERLAY_CURSOR))
-	{
+	if (!(brush->overlay_flags & BRUSH_OVERLAY_CURSOR)) {
 		return;
 	}
 
@@ -729,7 +728,8 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, false);
 		if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
 			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
-	} else {
+	}
+	else {
 		if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY))
 			paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, true);
 		if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
