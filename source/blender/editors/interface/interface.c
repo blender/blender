@@ -94,6 +94,13 @@
 
 static void ui_free_but(const bContext *C, uiBut *but);
 
+bool ui_block_is_menu(const uiBlock *block)
+{
+	return (((block->flag & UI_BLOCK_LOOP) != 0) &&
+	        /* non-menu popups use keep-open, so check this is off */
+	        ((block->flag & UI_BLOCK_KEEP_OPEN) == 0));
+}
+
 /* ************* window matrix ************** */
 
 void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y)

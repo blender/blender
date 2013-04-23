@@ -5338,7 +5338,9 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	}
 
 	/* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
-	uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
+	if (ui_block_is_menu(but->block) == false) {
+		uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
+	}
 	uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 
 	uiPupMenuEnd(C, pup);

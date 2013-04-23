@@ -2323,7 +2323,8 @@ struct uiPopupMenu {
 	uiLayout *layout;
 	uiBut *but;
 
-	int mx, my, popup, slideout;
+	int mx, my;
+	bool popup, slideout;
 	int startx, starty, maxrow;
 
 	uiMenuCreateFunc menu_func;
@@ -2440,11 +2441,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_NUMSELECT;  /* default menus to numselect */
 	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
-	pup->slideout = (but &&
-	                 /* check this is a menu */
-	                 ((but->block->flag & UI_BLOCK_LOOP) != 0) &&
-	                 /* non-menu popups use keep-open, so check this is off */
-	                 ((but->block->flag & UI_BLOCK_KEEP_OPEN) == 0));
+	pup->slideout = but ? ui_block_is_menu(but->block) : false;
 	pup->but = but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
 
@@ -2452,7 +2449,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		/* no button to start from, means we are a popup */
 		pup->mx = window->eventstate->x;
 		pup->my = window->eventstate->y;
-		pup->popup = 1;
+		pup->popup = true;
 		pup->block->flag |= UI_BLOCK_NO_FLIP;
 	}
 	/* some enums reversing is strange, currently we have no good way to

@@ -370,6 +370,7 @@ extern void ui_delete_linkline(uiLinkLine *line, uiBut *but);
 
 void ui_fontscale(short *points, float aspect);
 
+extern bool ui_block_is_menu(const uiBlock *block);
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, const rctf *graph, rcti *winr);
