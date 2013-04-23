@@ -496,8 +496,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             supports_courant = part.physics_type == 'FLUID'
             subsub = sub.row()
             subsub.enabled = supports_courant
-            subsub.prop(part, "adaptive_subframes", text="")
-            if supports_courant and part.adaptive_subframes:
+            subsub.prop(part, "use_adaptive_subframes", text="")
+            if supports_courant and part.use_adaptive_subframes:
                 col.prop(part, "courant_target", text="Threshold")
 
             row = layout.row()
@@ -524,20 +524,20 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
                 if fluid.solver == 'DDR':
                     sub = col.row()
-                    sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
-                    sub.prop(fluid, "factor_repulsion", text="")
+                    sub.prop(fluid, "repulsion", slider=fluid.use_factor_repulsion)
+                    sub.prop(fluid, "use_factor_repulsion", text="")
 
                     sub = col.row()
-                    sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
-                    sub.prop(fluid, "factor_stiff_viscosity", text="")
+                    sub.prop(fluid, "stiff_viscosity", slider=fluid.use_factor_stiff_viscosity)
+                    sub.prop(fluid, "use_factor_stiff_viscosity", text="")
 
                 sub = col.row()
-                sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
-                sub.prop(fluid, "factor_radius", text="")
+                sub.prop(fluid, "fluid_radius", slider=fluid.use_factor_radius)
+                sub.prop(fluid, "use_factor_radius", text="")
 
                 sub = col.row()
-                sub.prop(fluid, "rest_density", slider=fluid.factor_density)
-                sub.prop(fluid, "factor_density", text="")
+                sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
+                sub.prop(fluid, "use_factor_density", text="")
 
                 if fluid.solver == 'CLASSICAL':
                     # With the classical solver, it is possible to calculate the
@@ -563,8 +563,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                     col = split.column()
                     col.label(text="Advanced:")
                     sub = col.row()
-                    sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
-                    sub.prop(fluid, "factor_rest_length", text="")
+                    sub.prop(fluid, "rest_length", slider=fluid.use_factor_rest_length)
+                    sub.prop(fluid, "use_factor_rest_length", text="")
                     col.label(text="")
                     sub = col.column()
                     sub.active = fluid.use_viscoelastic_springs

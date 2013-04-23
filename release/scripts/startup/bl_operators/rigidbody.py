@@ -40,7 +40,7 @@ class CopyRigidbodySettings(Operator):
         "friction",
         "restitution",
         "use_deactivation",
-        "start_deactivated",
+        "use_start_deactivated",
         "deactivate_linear_velocity",
         "deactivate_angular_velocity",
         "linear_damping",

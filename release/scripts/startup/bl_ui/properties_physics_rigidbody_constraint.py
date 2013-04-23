@@ -59,10 +59,10 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
             sub.prop(rbc, "breaking_threshold", text="Threshold")
 
         row = layout.row()
-        row.prop(rbc, "override_solver_iterations", text="Override Iterations")
+        row.prop(rbc, "use_override_solver_iterations", text="Override Iterations")
         sub = row.row()
-        sub.active = rbc.override_solver_iterations
-        sub.prop(rbc, "num_solver_iterations", text="Iterations")
+        sub.active = rbc.use_override_solver_iterations
+        sub.prop(rbc, "solver_iterations", text="Iterations")
 
         if rbc.type == 'HINGE':
             col = layout.column(align=True)

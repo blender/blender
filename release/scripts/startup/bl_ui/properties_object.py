@@ -297,8 +297,8 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
         row.active = ((ob.parent is not None) and (ob.use_slow_parent))
         row.prop(ob, "slow_parent_offset", text="Offset")
 
-        layout.prop(ob, "extra_recalc_object")
-        layout.prop(ob, "extra_recalc_data")
+        layout.prop(ob, "use_extra_recalc_object")
+        layout.prop(ob, "use_extra_recalc_data")
 
 
 from bl_ui.properties_animviz import (MotionPathButtonsPanel,

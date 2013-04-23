@@ -2479,11 +2479,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 	
 	/* depsgraph hack */
-	prop = RNA_def_property(srna, "extra_recalc_object", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_extra_recalc_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "depsflag", OB_DEPS_EXTRA_OB_RECALC);
 	RNA_def_property_ui_text(prop, "Extra Object Update", "Refresh this object again on frame changes, dependency graph hack");
 	
-	prop = RNA_def_property(srna, "extra_recalc_data", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_extra_recalc_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "depsflag", OB_DEPS_EXTRA_DATA_RECALC);
 	RNA_def_property_ui_text(prop, "Extra Data Update", "Refresh this object's data again on frame changes, dependency graph hack");
 	

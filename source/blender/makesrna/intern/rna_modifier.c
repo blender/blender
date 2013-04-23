@@ -3249,7 +3249,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
 	                         "edges closer to the input");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "remove_disconnected_pieces", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_remove_disconnected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_REMESH_FLOOD_FILL);
 	RNA_def_property_ui_text(prop, "Remove Disconnected Pieces", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

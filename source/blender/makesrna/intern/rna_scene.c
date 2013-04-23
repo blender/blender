@@ -3364,7 +3364,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_GameSettings_auto_start_get", "rna_GameSettings_auto_start_set");
 	RNA_def_property_ui_text(prop, "Auto Start", "Automatically start game at load time");
 
-	prop = RNA_def_property(srna, "restrict_animation_updates", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_restrict_animation_updates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_RESTRICT_ANIM_UPDATES);
 	RNA_def_property_ui_text(prop, "Restrict Animation Updates",
 	                         "Restrict the number of animation updates to the animation FPS (this is "

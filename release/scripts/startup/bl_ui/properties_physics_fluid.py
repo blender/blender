@@ -274,7 +274,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
         col.prop(fluid, "slip_type", text="")
         if fluid.slip_type == 'PARTIALSLIP':
             col.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
-        col.prop(fluid, "surface_noobs")
+        col.prop(fluid, "use_surface_noobs")
 
         col = split.column()
         col.label(text="Surface:")

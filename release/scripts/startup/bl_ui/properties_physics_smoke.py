@@ -93,9 +93,9 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 
                 sub = col.column(align=True)
 
-                sub.prop(flow, "initial_velocity")
+                sub.prop(flow, "use_initial_velocity")
                 sub = sub.column()
-                sub.active = flow.initial_velocity
+                sub.active = flow.use_initial_velocity
                 sub.prop(flow, "velocity_factor")
                 if flow.smoke_flow_source == "MESH":
                     sub.prop(flow, "velocity_normal")
@@ -244,7 +244,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
         col = split.column()
         col.label(text="Resolution:")
         col.prop(md, "amplify", text="Divisions")
-        col.prop(md, "smooth_emitter")
+        col.prop(md, "use_smooth_emitter")
 
         col = split.column()
         col.label(text="Noise Method:")

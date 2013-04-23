@@ -1623,7 +1623,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor Repulsion", "Repulsion is a factor of stiffness");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop = RNA_def_property(srna, "factor_density", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_factor_density", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_FAC_DENSITY);
 	RNA_def_property_ui_text(prop, "Factor Density",
 	                         "Density is calculated as a factor of default density (depends on particle size)");
@@ -2499,7 +2499,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Timestep", "The simulation timestep per frame (seconds per frame)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop = RNA_def_property(srna, "adaptive_subframes", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_adaptive_subframes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "time_flag", PART_TIME_AUTOSF);
 	RNA_def_property_ui_text(prop, "Automatic Subframes", "Automatically set the number of subframes");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");

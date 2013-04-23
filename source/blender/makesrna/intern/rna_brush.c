@@ -1027,17 +1027,17 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Cursor Overlay", "Show cursor in viewport");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "cursor_overlay_override", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_cursor_overlay_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE);
 	RNA_def_property_ui_text(prop, "Override Overlay", "Don't show overlay during a stroke");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "primary_overlay_override", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_primary_overlay_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE);
 	RNA_def_property_ui_text(prop, "Override Overlay", "Don't show overlay during a stroke");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "secondary_overlay_override", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_secondary_overlay_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "overlay_flags", BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE);
 	RNA_def_property_ui_text(prop, "Override Overlay", "Don't show overlay during a stroke");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");

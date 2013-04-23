@@ -936,9 +936,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout.prop(md, "sharpness")
 
         layout.prop(md, "use_smooth_shade")
-        layout.prop(md, "remove_disconnected_pieces")
+        layout.prop(md, "use_remove_disconnected")
         row = layout.row()
-        row.active = md.remove_disconnected_pieces
+        row.active = md.use_remove_disconnected
         row.prop(md, "threshold")
 
     @staticmethod

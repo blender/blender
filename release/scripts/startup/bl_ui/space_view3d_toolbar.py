@@ -681,7 +681,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         
             sub = row.row()
             sub.prop(brush, "cursor_overlay_alpha", text="Alpha")
-            sub.prop(brush, "cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+            sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
         # Texture Paint Mode #
 
@@ -717,7 +717,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         
             sub = row.row()
             sub.prop(brush, "cursor_overlay_alpha", text="Alpha")
-            sub.prop(brush, "cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+            sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
         # Weight Paint Mode #
@@ -774,7 +774,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         
             sub = row.row()
             sub.prop(brush, "cursor_overlay_alpha", text="Alpha")
-            sub.prop(brush, "cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+            sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
@@ -814,7 +814,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         
         sub = row.row()
         sub.prop(brush, "texture_overlay_alpha", text="Alpha")
-        sub.prop(brush, "primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+        sub.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
 class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
@@ -852,7 +852,7 @@ class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
         
         sub = row.row()
         sub.prop(brush, "mask_overlay_alpha", text="Alpha")
-        sub.prop(brush, "secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+        sub.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):

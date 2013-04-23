@@ -412,7 +412,7 @@ static void rna_def_modifier_material_common(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	prop = RNA_def_property(srna, "material_attr", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "material_attribute", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mat_attr");
 	RNA_def_property_enum_items(prop, mat_attr_items);
 	RNA_def_property_ui_text(prop, "Material Attribute", "Specify which material attribute is used");
@@ -569,14 +569,14 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Orientation", "Angle of the main direction");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "min_thickness", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "thickness_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min_thickness");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Min Thickness",
 	                         "Minimum thickness in the direction perpendicular to the main direction");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "max_thickness", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "thickness_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_thickness");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Max Thickness", "Maximum thickness in the main direction");
@@ -657,7 +657,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Smooth", "If true, the spatial noise is smooth");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "pure_random", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_pure_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_SPATIAL_NOISE_PURERANDOM);
 	RNA_def_property_ui_text(prop, "Pure Random", "If true, the spatial noise does not show any coherence");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
@@ -982,7 +982,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "LineStyleGeometryModifier");
 	RNA_def_property_ui_text(prop, "Geometry Modifiers", "List of stroke geometry modifiers");
 
-	prop = RNA_def_property(srna, "same_object", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_same_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);
 	RNA_def_property_ui_text(prop, "Same Object", "If true, only feature edges of the same object are joined");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
@@ -998,47 +998,47 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Split Length", "Curvilinear 2D length for chain splitting");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "use_min_angle", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_angle_min", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MIN_2D_ANGLE);
 	RNA_def_property_ui_text(prop, "Use Min 2D Angle",
 	                         "Split chains at points with angles smaller than the minimum 2D angle");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "min_angle", PROP_FLOAT, PROP_ANGLE);
+	prop = RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "min_angle");
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_text(prop, "Min 2D Angle", "Minimum 2D angle for splitting chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "use_max_angle", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_angle_max", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MAX_2D_ANGLE);
 	RNA_def_property_ui_text(prop, "Use Max 2D Angle",
 	                         "Split chains at points with angles larger than the maximum 2D angle");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "max_angle", PROP_FLOAT, PROP_ANGLE);
+	prop = RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "max_angle");
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_text(prop, "Max 2D Angle", "Maximum 2D angle for splitting chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "use_min_length", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_length_min", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MIN_2D_LENGTH);
 	RNA_def_property_ui_text(prop, "Use Min 2D Length", "Enable the selection of chains by a minimum 2D length");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "min_length", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "length_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Min 2D Length", "Minimum curvilinear 2D length for the selection of chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "use_max_length", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_length_max", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MAX_2D_LENGTH);
 	RNA_def_property_ui_text(prop, "Use Max 2D Length", "Enable the selection of chains by a maximum 2D length");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop = RNA_def_property(srna, "max_length", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "length_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Max 2D Length", "Maximum curvilinear 2D length for the selection of chains");

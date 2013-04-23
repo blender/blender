@@ -744,7 +744,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
             row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
         sub = row.row()
         sub.prop(brush, "texture_overlay_alpha", text="Alpha")
-        sub.prop(brush, "cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+        sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
 
@@ -771,7 +771,7 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
         
         sub = row.row()
         sub.prop(brush, "texture_overlay_alpha", text="Alpha")
-        sub.prop(brush, "cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+        sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
 class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):

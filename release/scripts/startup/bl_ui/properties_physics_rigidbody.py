@@ -118,7 +118,7 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
         col.prop(rbo, "use_deactivation")
         sub = col.column()
         sub.active = rbo.use_deactivation
-        sub.prop(rbo, "start_deactivated")
+        sub.prop(rbo, "use_start_deactivated")
         sub.prop(rbo, "deactivate_linear_velocity", text="Linear Vel")
         sub.prop(rbo, "deactivate_angular_velocity", text="Angular Vel")
         # TODO: other params such as time?

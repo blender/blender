@@ -290,7 +290,7 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
             col = split.column()
             col.prop(rbw, "steps_per_second", text="Steps Per Second")
-            col.prop(rbw, "num_solver_iterations", text="Solver Iterations")
+            col.prop(rbw, "solver_iterations", text="Solver Iterations")
 
 
 class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
