@@ -434,15 +434,14 @@ PaintStroke *paint_stroke_new(bContext *C,
 	stroke->done = done;
 	stroke->event_type = event_type; /* for modal, return event */
 	
-	if (br->overlay_flags & BRUSH_OVERLAY_OVERRIDE_ON_STROKE)
-		BKE_paint_set_overlay_override(true);
+	BKE_paint_set_overlay_override(br->overlay_flags);
 
 	return stroke;
 }
 
 void paint_stroke_data_free(struct wmOperator *op)
 {
-	BKE_paint_set_overlay_override(false);
+	BKE_paint_set_overlay_override(0);
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
 }

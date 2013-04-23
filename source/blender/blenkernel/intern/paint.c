@@ -94,19 +94,20 @@ OverlayControlFlags BKE_paint_get_overlay_flags(void)
 	return overlay_flags;
 }
 
-void BKE_paint_set_overlay_override(bool flag)
+void BKE_paint_set_overlay_override(OverlayFlags flags)
 {
-	if (flag)
-		overlay_flags |= PAINT_OVERLAY_OVERRIDE;
-	else
-		overlay_flags &= ~PAINT_OVERLAY_OVERRIDE;
+	if (flags & BRUSH_OVERLAY_OVERRIDE_MASK) {
+		if (flags & BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE)
+			overlay_flags |= PAINT_OVERLAY_OVERRIDE_CURSOR;
+		if (flags & BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE)
+			overlay_flags |= PAINT_OVERLAY_OVERRIDE_PRIMARY;
+		if (flags & BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE)
+			overlay_flags |= PAINT_OVERLAY_OVERRIDE_SECONDARY;
+	}
+	else {
+		overlay_flags &= ~(PAINT_OVERRIDE_MASK);
+	}
 }
-
-bool BKE_paint_get_overlay_override(void)
-{
-	return ((overlay_flags & PAINT_OVERLAY_OVERRIDE) != 0 );
-}
-
 
 void BKE_paint_reset_overlay_invalid(OverlayControlFlags flag)
 {

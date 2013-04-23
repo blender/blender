@@ -706,7 +706,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
 	bool col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true: false;
-
+	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
 	glPushAttrib(GL_COLOR_BUFFER_BIT |
@@ -723,12 +723,17 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 	/* coloured overlay should be drawn separately */
 	if (col) {
-		paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, true, true);
-		paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, false);
-		paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
+		if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY))
+			paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, true, true);
+		if (!(flags & PAINT_OVERLAY_OVERRIDE_SECONDARY))
+			paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, false);
+		if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
+			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
 	} else {
-		paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, true);
-		paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
+		if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY))
+			paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, true);
+		if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
+			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
 	}
 
 	glPopAttrib();
@@ -805,8 +810,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		ups->brush_rotation = 0.0;
 
 	/* draw overlay */
-	if (!BKE_paint_get_overlay_override())
-		paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
+	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */

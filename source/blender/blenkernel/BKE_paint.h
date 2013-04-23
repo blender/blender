@@ -52,6 +52,8 @@ struct Tex;
 struct ImagePool;
 struct UnifiedPaintSettings;
 
+enum OverlayFlags;
+
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
 extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
@@ -72,17 +74,21 @@ typedef enum OverlayControlFlags {
 	PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY = 1,
 	PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY = (1 << 2),
 	PAINT_INVALID_OVERLAY_CURVE = (1 << 3),
-	PAINT_OVERLAY_OVERRIDE = (1 << 4)
+	PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
+	PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
+	PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6)
 } OverlayControlFlags;
+
+#define PAINT_OVERRIDE_MASK (PAINT_OVERLAY_OVERRIDE_SECONDARY | \
+						     PAINT_OVERLAY_OVERRIDE_PRIMARY | \
+						     PAINT_OVERLAY_OVERRIDE_CURSOR)
 
 void BKE_paint_invalidate_overlay_tex(struct Scene *scene, const struct Tex *tex);
 void BKE_paint_invalidate_cursor_overlay(struct Scene *scene, struct CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
 OverlayControlFlags BKE_paint_get_overlay_flags(void);
 void BKE_paint_reset_overlay_invalid(OverlayControlFlags flag);
-void BKE_paint_set_overlay_override(bool flag);
-bool BKE_paint_get_overlay_override(void);
-
+void BKE_paint_set_overlay_override(enum OverlayFlags flag);
 
 void BKE_paint_init(struct Paint *p, const char col[3]);
 void BKE_paint_free(struct Paint *p);
