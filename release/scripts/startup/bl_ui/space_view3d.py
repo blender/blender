@@ -1927,7 +1927,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.bevel")
+        layout.operator("mesh.bevel").vertex_only = False
         layout.operator("mesh.edge_split")
         layout.operator("mesh.bridge_edge_loops")
         layout.operator("mesh.sort_elements", text="Sort Edges").elements = {'EDGE'}
@@ -1956,7 +1956,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.fill")
         layout.operator("mesh.beautify_fill")
         layout.operator("mesh.inset")
-        layout.operator("mesh.bevel")
+        layout.operator("mesh.bevel").vertex_only = False
         layout.operator("mesh.solidify")
         layout.operator("mesh.wireframe")
         layout.operator("mesh.sort_elements", text="Sort Faces").elements = {'FACE'}
