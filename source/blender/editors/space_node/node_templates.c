@@ -433,7 +433,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 		NodeLinkItem *items;
 		int totitems;
 		char name[UI_MAX_NAME_STR];
-		int i, j, num = 0;
+		const char *cur_node_name = NULL;
+		int i, num = 0;
 		
 		if (compatibility && !(ntype->compatibility & compatibility))
 			continue;
@@ -449,7 +450,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 			if (ui_compatible_sockets(items[i].socket_type, sock->type))
 				num++;
 		
-		j = 0;
 		for (i = 0; i < totitems; ++i) {
 			if (!ui_compatible_sockets(items[i].socket_type, sock->type))
 				continue;
@@ -466,14 +466,14 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 			}
 			
 			if (num > 1) {
-				if (j == 0) {
-					uiItemL(column, IFACE_(items[i].node_name), ICON_NODE);
+				if (!cur_node_name || !STREQ(cur_node_name, items[i].node_name)) {
+					cur_node_name = items[i].node_name;
+					uiItemL(column, IFACE_(cur_node_name), ICON_NODE);
 					but = block->buttons.last;
 					but->flag = UI_TEXT_LEFT;
 				}
 				
 				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", IFACE_(items[i].socket_name));
-				j++;
 			}
 			else
 				BLI_strncpy(name, IFACE_(items[i].node_name), UI_MAX_NAME_STR);
