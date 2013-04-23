@@ -1196,7 +1196,10 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
 static char *rna_ParticleSystem_path(PointerRNA *ptr)
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
-	return BLI_sprintfN("particle_systems[\"%s\"]", psys->name);
+	char name_esc[sizeof(psys->name) * 2];
+
+	BLI_strescape(name_esc, psys->name, sizeof(name_esc));
+	return BLI_sprintfN("particle_systems[\"%s\"]", name_esc);
 }
 
 static void rna_ParticleSettings_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

@@ -1018,25 +1018,29 @@ char *BKE_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *c
 
 	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next) {
 		switch (m->type) {
-		case LS_MODIFIER_ALONG_STROKE:
-			if (color_ramp == ((LineStyleColorModifier_AlongStroke *)m)->color_ramp)
-				found = true;
-			break;
-		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-			if (color_ramp == ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp)
-				found = true;
-			break;
-		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-			if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp)
-				found = true;
-			break;
-		case LS_MODIFIER_MATERIAL:
-			if (color_ramp == ((LineStyleColorModifier_Material *)m)->color_ramp)
-				found = true;
-			break;
+			case LS_MODIFIER_ALONG_STROKE:
+				if (color_ramp == ((LineStyleColorModifier_AlongStroke *)m)->color_ramp)
+					found = true;
+				break;
+			case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+				if (color_ramp == ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp)
+					found = true;
+				break;
+			case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+				if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp)
+					found = true;
+				break;
+			case LS_MODIFIER_MATERIAL:
+				if (color_ramp == ((LineStyleColorModifier_Material *)m)->color_ramp)
+					found = true;
+				break;
 		}
-		if (found)
-			return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", m->name);
+
+		if (found) {
+			char name_esc[sizeof(m->name) * 2];
+			BLI_strescape(name_esc, m->name, sizeof(name_esc));
+			return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", name_esc);
+		}
 	}
 	printf("BKE_path_from_ID_to_color_ramp: No color ramps correspond to the given pointer.\n");
 	return NULL;

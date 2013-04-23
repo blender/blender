@@ -351,11 +351,14 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 {
 	KeyBlock *kb = (KeyBlock *)ptr->data;
 	ID *id = ptr->id.data;
-	
+	char name_esc[sizeof(kb->name) * 2];
+
+	BLI_strescape(name_esc, kb->name, sizeof(name_esc));
+
 	if ((id) && (GS(id->name) != ID_KE))
-		return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", kb->name);
+		return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", name_esc);
 	else
-		return BLI_sprintfN("key_blocks[\"%s\"]", kb->name);
+		return BLI_sprintfN("key_blocks[\"%s\"]", name_esc);
 }
 
 static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -436,12 +439,15 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 	kb = rna_ShapeKeyData_find_keyblock(key, point);
 	
 	if (kb) {
+		char name_esc_kb[sizeof(kb->name) * 2];
 		int index = rna_ShapeKeyPoint_get_index(key, kb, point);
+
+		BLI_strescape(name_esc_kb, kb->name, sizeof(name_esc_kb));
 		
 		if (GS(id->name) == ID_KE)
-			return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", kb->name, index);
+			return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
 		else
-			return BLI_sprintfN("shape_keys.key_blocks[\"%s\"].data[%d]", kb->name, index);
+			return BLI_sprintfN("shape_keys.key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
 	}
 	else
 		return NULL;  /* XXX: there's really no way to resolve this... */

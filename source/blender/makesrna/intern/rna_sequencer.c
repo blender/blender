@@ -342,10 +342,15 @@ static char *rna_SequenceTransform_path(PointerRNA *ptr)
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq = sequence_get_by_transform(ed, ptr->data);
 
-	if (seq && seq->name + 2)
-		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform", seq->name + 2);
-	else
+	if (seq && seq->name + 2) {
+		char name_esc[(sizeof(seq->name) - 2) * 2];
+
+		BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform", name_esc);
+	}
+	else {
 		return BLI_strdup("");
+	}
 }
 
 static void rna_SequenceTransform_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -387,10 +392,15 @@ static char *rna_SequenceCrop_path(PointerRNA *ptr)
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq = sequence_get_by_crop(ed, ptr->data);
 
-	if (seq && seq->name + 2)
-		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop", seq->name + 2);
-	else
+	if (seq && seq->name + 2) {
+		char name_esc[(sizeof(seq->name) - 2) * 2];
+
+		BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop", name_esc);
+	}
+	else {
 		return BLI_strdup("");
+	}
 }
 
 static void rna_SequenceCrop_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -501,10 +511,15 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	/* sequencer data comes from scene...
 	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
 	 */
-	if (seq->name + 2)
-		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", seq->name + 2);
-	else
+	if (seq->name + 2) {
+		char name_esc[(sizeof(seq->name) - 2) * 2];
+
+		BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", name_esc);
+	}
+	else {
 		return BLI_strdup("");
+	}
 }
 
 static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *iter)
@@ -754,13 +769,23 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
 	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data, &smd);
 
 	if (seq && seq->name + 2) {
+		char name_esc[(sizeof(seq->name) - 2) * 2];
+
+		BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+
 		if (!smd) {
 			/* path to old filter color balance */
-			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", seq->name + 2);
+			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", name_esc);
 		}
 		else {
 			/* path to modifier */
-			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"].color_balance", seq->name + 2, smd->name);
+			char name_esc[(sizeof(seq->name) - 2) * 2];
+			char name_esc_smd[sizeof(smd->name) * 2];
+
+			BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+			BLI_strescape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"].color_balance",
+			                    name_esc, name_esc_smd);
 		}
 	}
 	else
@@ -895,10 +920,18 @@ static char *rna_SequenceModifier_path(PointerRNA *ptr)
 	SequenceModifierData *smd = ptr->data;
 	Sequence *seq = sequence_get_by_modifier(ed, smd);
 
-	if (seq && seq->name + 2)
-		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"]", seq->name + 2, smd->name);
-	else
+	if (seq && seq->name + 2) {
+		char name_esc[(sizeof(seq->name) - 2) * 2];
+		char name_esc_smd[sizeof(smd->name) * 2];
+
+		BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+		BLI_strescape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"]",
+		                    name_esc, name_esc_smd);
+	}
+	else {
 		return BLI_strdup("");
+	}
 }
 
 static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)

@@ -99,24 +99,30 @@ static char *rna_SmokeDomainSettings_path(PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
 	ModifierData *md = (ModifierData *)settings->smd;
+	char name_esc[sizeof(md->name) * 2];
 
-	return BLI_sprintfN("modifiers[\"%s\"].domain_settings", md->name);
+	BLI_strescape(name_esc, md->name, sizeof(name_esc));
+	return BLI_sprintfN("modifiers[\"%s\"].domain_settings", name_esc);
 }
 
 static char *rna_SmokeFlowSettings_path(PointerRNA *ptr)
 {
 	SmokeFlowSettings *settings = (SmokeFlowSettings *)ptr->data;
 	ModifierData *md = (ModifierData *)settings->smd;
+	char name_esc[sizeof(md->name) * 2];
 
-	return BLI_sprintfN("modifiers[\"%s\"].flow_settings", md->name);
+	BLI_strescape(name_esc, md->name, sizeof(name_esc));
+	return BLI_sprintfN("modifiers[\"%s\"].flow_settings", name_esc);
 }
 
 static char *rna_SmokeCollSettings_path(PointerRNA *ptr)
 {
 	SmokeCollSettings *settings = (SmokeCollSettings *)ptr->data;
 	ModifierData *md = (ModifierData *)settings->smd;
+	char name_esc[sizeof(md->name) * 2];
 
-	return BLI_sprintfN("modifiers[\"%s\"].coll_settings", md->name);
+	BLI_strescape(name_esc, md->name, sizeof(name_esc));
+	return BLI_sprintfN("modifiers[\"%s\"].coll_settings", name_esc);
 }
 
 static int rna_SmokeModifier_density_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])

@@ -307,10 +307,15 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
 	}
 	
 	/* this is a compromise for the remaining cases... */
-	if (mtex->tex)
-		return BLI_sprintfN("texture_slots[\"%s\"]", mtex->tex->id.name + 2);
-	else
+	if (mtex->tex) {
+		char name_esc[(sizeof(mtex->tex->id.name) - 2) * 2];
+
+		BLI_strescape(name_esc, mtex->tex->id.name + 2, sizeof(name_esc));
+		return BLI_sprintfN("texture_slots[\"%s\"]", name_esc);
+	}
+	else {
 		return BLI_strdup("texture_slots[0]");
+	}
 }
 
 static int rna_TextureSlot_name_length(PointerRNA *ptr)

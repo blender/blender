@@ -133,7 +133,11 @@ static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 
 static char *rna_PoseBone_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("pose.bones[\"%s\"]", ((bPoseChannel *)ptr->data)->name);
+	bPoseChannel *pchan = ptr->data;
+	char name_esc[sizeof(pchan->name) * 2];
+
+	BLI_strescape(name_esc, pchan->name, sizeof(name_esc));
+	return BLI_sprintfN("pose.bones[\"%s\"]", name_esc);
 }
 
 /* shared for actions groups and bone groups */

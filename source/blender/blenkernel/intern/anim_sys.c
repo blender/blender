@@ -745,7 +745,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	/* NLA Data - Animation Data for Strips */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next)
 		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
-		
+
 	/* free the temp names */
 	MEM_freeN(oldN);
 	MEM_freeN(newN);

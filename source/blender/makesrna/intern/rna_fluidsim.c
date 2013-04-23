@@ -197,8 +197,10 @@ static char *rna_FluidSettings_path(PointerRNA *ptr)
 {
 	FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
 	ModifierData *md = (ModifierData *)fss->fmd;
+	char name_esc[sizeof(md->name) * 2];
 
-	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+	BLI_strescape(name_esc, md->name, sizeof(name_esc));
+	return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
 static void rna_FluidMeshVertex_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

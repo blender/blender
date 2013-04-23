@@ -4325,14 +4325,25 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 	propname = RNA_property_identifier(prop);
 
 	if (ptrpath) {
-		path = BLI_sprintfN(is_rna ? "%s.%s" : "%s[\"%s\"]", ptrpath, propname);
+		if (is_rna) {
+			path = BLI_sprintfN("%s.%s", ptrpath, propname);
+		}
+		else {
+			char propname_esc[MAX_IDPROP_NAME * 2];
+			BLI_strescape(propname_esc, propname, sizeof(propname_esc));
+			path = BLI_sprintfN("%s[\"%s\"]", ptrpath, propname_esc);
+		}
 		MEM_freeN(ptrpath);
 	}
 	else if (RNA_struct_is_ID(ptr->type)) {
-		if (is_rna)
+		if (is_rna) {
 			path = BLI_strdup(propname);
-		else
-			path = BLI_sprintfN("[\"%s\"]", propname);
+		}
+		else {
+			char propname_esc[MAX_IDPROP_NAME * 2];
+			BLI_strescape(propname_esc, propname, sizeof(propname_esc));
+			path = BLI_sprintfN("[\"%s\"]", propname_esc);
+		}
 	}
 	else {
 		path = NULL;

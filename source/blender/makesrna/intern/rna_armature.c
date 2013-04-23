@@ -191,20 +191,23 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 
 static char *rna_Bone_path(PointerRNA *ptr)
 {
+	ID *id = ptr->id.data;
 	Bone *bone = (Bone *)ptr->data;
+	char name_esc[sizeof(bone->name) * 2];
 	
+	BLI_strescape(name_esc, bone->name, sizeof(name_esc));
+
 	/* special exception for trying to get the path where ID-block is Object
-	 *	- this will be assumed to be from a Pose Bone...
+	 * - this will be assumed to be from a Pose Bone...
 	 */
-	if (ptr->id.data) {
-		ID *id = (ID *)ptr->id.data;
-		
-		if (GS(id->name) == ID_OB)
-			return BLI_sprintfN("pose.bones[\"%s\"].bone", bone->name);
+	if (id) {
+		if (GS(id->name) == ID_OB) {
+			return BLI_sprintfN("pose.bones[\"%s\"].bone", name_esc);
+		}
 	}
 	
 	/* from armature... */
-	return BLI_sprintfN("bones[\"%s\"]", bone->name);
+	return BLI_sprintfN("bones[\"%s\"]", name_esc);
 }
 
 static IDProperty *rna_Bone_idprops(PointerRNA *ptr, bool create)

@@ -434,11 +434,17 @@ static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 					
 					/* assumes: texture will only be shown if it is active material's active texture it's ok */
 					if ((ID *)tex == id) {
+						char name_esc_ma[(sizeof(ma->id.name) - 2) * 2];
+						char name_esc_tex[(sizeof(tex->id.name) - 2) * 2];
+
+						BLI_strescape(name_esc_ma, ma->id.name + 2, sizeof(name_esc_ma));
+						BLI_strescape(name_esc_tex, tex->id.name + 2, sizeof(name_esc_tex));
+
 						/* create new path */
 						// TODO: use RNA path functions to construct step by step instead?
 						// FIXME: maybe this isn't even needed anymore...
 						path = BLI_sprintfN("material_slots[\"%s\"].material.texture_slots[\"%s\"].texture.%s", 
-						                    ma->id.name + 2, tex->id.name + 2, basepath);
+						                    name_esc_ma, name_esc_tex, basepath);
 							
 						/* free old one */
 						MEM_freeN(basepath);

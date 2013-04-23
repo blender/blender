@@ -255,7 +255,11 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 
 static char *rna_Modifier_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("modifiers[\"%s\"]", ((ModifierData *)ptr->data)->name);
+	ModifierData *md = ptr->data;
+	char name_esc[sizeof(md->name) * 2];
+
+	BLI_strescape(name_esc, md->name, sizeof(name_esc));
+	return BLI_sprintfN("modifiers[\"%s\"]", name_esc);
 }
 
 static void rna_Modifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

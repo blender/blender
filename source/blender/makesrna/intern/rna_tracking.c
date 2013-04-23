@@ -82,9 +82,10 @@ static void rna_tracking_defaultSettings_searchUpdate(Main *UNUSED(bmain), Scene
 
 static char *rna_trackingTrack_path(PointerRNA *ptr)
 {
-	MovieTrackingTrack *track = (MovieTrackingTrack *) ptr->data;
-
-	return BLI_sprintfN("tracking.tracks[\"%s\"]", track->name);
+	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
+	char name_esc[sizeof(track->name) * 2];
+	BLI_strescape(name_esc, track->name, sizeof(name_esc));
+	return BLI_sprintfN("tracking.tracks[\"%s\"]", name_esc);
 }
 
 static void rna_trackingTracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

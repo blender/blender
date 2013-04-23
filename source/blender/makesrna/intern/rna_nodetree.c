@@ -1071,8 +1071,10 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 static char *rna_Node_path(PointerRNA *ptr)
 {
 	bNode *node = (bNode *)ptr->data;
+	char name_esc[sizeof(node->name) * 2];
 
-	return BLI_sprintfN("nodes[\"%s\"]", node->name);
+	BLI_strescape(name_esc, node->name, sizeof(name_esc));
+	return BLI_sprintfN("nodes[\"%s\"]", name_esc);
 }
 
 static int rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
@@ -1818,16 +1820,19 @@ static char *rna_NodeSocket_path(PointerRNA *ptr)
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
 	bNode *node;
 	int socketindex;
+	char name_esc[sizeof(node->name) * 2];
 	
 	if (!nodeFindNode(ntree, sock, &node, &socketindex))
 		return NULL;
 	
-	if (sock->in_out == SOCK_IN)
-		return BLI_sprintfN("nodes[\"%s\"].inputs[%d]", node->name, socketindex);
-	else
-		return BLI_sprintfN("nodes[\"%s\"].outputs[%d]", node->name, socketindex);
-	
-	return NULL;
+	BLI_strescape(name_esc, node->name, sizeof(name_esc));
+
+	if (sock->in_out == SOCK_IN) {
+		return BLI_sprintfN("nodes[\"%s\"].inputs[%d]", name_esc, socketindex);
+	}
+	else {
+		return BLI_sprintfN("nodes[\"%s\"].outputs[%d]", name_esc, socketindex);
+	}
 }
 
 static IDProperty *rna_NodeSocket_idprops(PointerRNA *ptr, bool create)

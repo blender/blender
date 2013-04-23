@@ -251,14 +251,21 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 	ListBase *lb = get_constraint_lb(ob, con, &pchan);
 
 	if (lb == NULL)
-		printf("rna_Constraint_path: internal error, constraint '%s' not found in object '%s'\n",
-		       con->name, ob->id.name);
+		printf("%s: internal error, constraint '%s' not found in object '%s'\n",
+		       __func__, con->name, ob->id.name);
 
 	if (pchan) {
-		return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
+		char name_esc_pchan[sizeof(pchan->name) * 2];
+		char name_esc_const[sizeof(con->name) * 2];
+		BLI_strescape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
+		BLI_strescape(name_esc_const, con->name,   sizeof(name_esc_const));
+		return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", name_esc_pchan, name_esc_const);
 	}
-	
-	return BLI_sprintfN("constraints[\"%s\"]", con->name);
+	else {
+		char name_esc_const[sizeof(con->name) * 2];
+		BLI_strescape(name_esc_const, con->name,   sizeof(name_esc_const));
+		return BLI_sprintfN("constraints[\"%s\"]", name_esc_const);
+	}
 }
 
 static void rna_Constraint_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

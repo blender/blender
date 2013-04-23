@@ -168,7 +168,10 @@ static void rna_Mask_layer_active_index_range(PointerRNA *ptr, int *min, int *ma
 
 static char *rna_MaskLayer_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("layers[\"%s\"]", ((MaskLayer *)ptr->data)->name);
+	MaskLayer *masklay = (MaskLayer *)ptr->data;
+	char name_esc[sizeof(masklay->name) * 2];
+	BLI_strescape(name_esc, masklay->name, sizeof(name_esc));
+	return BLI_sprintfN("layers[\"%s\"]", name_esc);
 }
 
 static PointerRNA rna_Mask_layer_active_get(PointerRNA *ptr)

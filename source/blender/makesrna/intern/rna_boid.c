@@ -142,7 +142,12 @@ static StructRNA *rna_BoidRule_refine(struct PointerRNA *ptr)
 
 static char *rna_BoidRule_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("rules[\"%s\"]", ((BoidRule *)ptr->data)->name);  /* XXX not unique */
+	BoidRule *rule = (BoidRule *)ptr->data;
+	char name_esc[sizeof(rule->name) * 2];
+
+	BLI_strescape(name_esc, rule->name, sizeof(name_esc));
+
+	return BLI_sprintfN("rules[\"%s\"]", name_esc);  /* XXX not unique */
 }
 
 static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)

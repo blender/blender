@@ -1138,7 +1138,10 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
 {
 	SceneRenderLayer *srl = (SceneRenderLayer *)ptr->data;
-	return BLI_sprintfN("render.layers[\"%s\"]", srl->name);
+	char name_esc[sizeof(srl->name) * 2];
+
+	BLI_strescape(name_esc, srl->name, sizeof(name_esc));
+	return BLI_sprintfN("render.layers[\"%s\"]", name_esc);
 }
 
 static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))

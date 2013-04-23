@@ -320,7 +320,10 @@ static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 
 	if (md) {
-		return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+		char name_esc[sizeof(md->name) * 2];
+
+		BLI_strescape(name_esc, md->name, sizeof(name_esc));
+		return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 	}
 	else {
 		return BLI_strdup("");
@@ -462,8 +465,10 @@ static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
-	
-	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+	char name_esc[sizeof(md->name) * 2];
+
+	BLI_strescape(name_esc, md->name, sizeof(name_esc));
+	return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
 static int particle_id_check(PointerRNA *ptr)
@@ -613,13 +618,16 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 	else {
 		Object *ob = (Object *)ptr->id.data;
 		ModifierData *md;
+		char name_esc[sizeof(md->name) * 2];
+
+		BLI_strescape(name_esc, md->name, sizeof(name_esc));
 		
 		/* check softbody modifier */
 		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
 		if (md) {
 			/* no pointer from modifier data to actual softbody storage, would be good to add */
 			if (ob->soft->effector_weights == ew)
-				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
 		}
 		
 		/* check cloth modifier */
@@ -628,7 +636,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 			ClothModifierData *cmd = (ClothModifierData *)md;
 			
 			if (cmd->sim_parms->effector_weights == ew)
-				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
 		}
 		
 		/* check smoke modifier */
@@ -637,7 +645,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 			SmokeModifierData *smd = (SmokeModifierData *)md;
 			
 			if (smd->domain->effector_weights == ew)
-				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
 		}
 
 		/* check dynamic paint modifier */
@@ -649,9 +657,13 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 
 				for (; surface; surface = surface->next) {
-					if (surface->effector_weights == ew)
+					if (surface->effector_weights == ew) {
+						char name_esc_surface[sizeof(surface->name) * 2];
+
+						BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
 						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
-						                    ".effector_weights", md->name, surface->name);
+						                    ".effector_weights", name_esc, name_esc_surface);
+					}
 				}
 			}
 		}
