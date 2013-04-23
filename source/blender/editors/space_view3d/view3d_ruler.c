@@ -158,7 +158,9 @@ typedef struct RulerInfo {
 	int state;
 	float drag_start_co[3];
 
-	/* --- */
+	/* wm state */
+	wmWindow *win;
+	ScrArea *sa;
 	ARegion *ar;
 	void *draw_handle_pixel;
 } RulerInfo;
@@ -740,6 +742,8 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 
 	op->customdata = ruler_info;
 
+	ruler_info->win = win;
+	ruler_info->sa = sa;
 	ruler_info->ar = ar;
 	ruler_info->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ruler_info_draw_pixel,
 	                                                           ruler_info, REGION_DRAW_POST_PIXEL);
@@ -768,10 +772,15 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	bool do_draw = false;
 	int exit_code = OPERATOR_RUNNING_MODAL;
 	RulerInfo *ruler_info = op->customdata;
+	ScrArea *sa = ruler_info->sa;
 	ARegion *ar = ruler_info->ar;
 	RegionView3D *rv3d = ar->regiondata;
 
-	(void)C;
+	/* its possible to change  spaces while running the operator [#34894] */
+	if (UNLIKELY(ar != CTX_wm_region(C))) {
+		exit_code = OPERATOR_FINISHED;
+		goto exit;
+	}
 
 	switch (event->type) {
 		case LEFTMOUSE:
@@ -943,19 +952,15 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (do_draw) {
-		ScrArea *sa = CTX_wm_area(C);
-
 		view3d_ruler_header_update(sa);
 
 		/* all 3d views draw rulers */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	}
 
+exit:
 	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
-		wmWindow *win = CTX_wm_window(C);
-		ScrArea *sa = CTX_wm_area(C);
-
-		WM_cursor_restore(win);
+		WM_cursor_restore(ruler_info->win);
 
 		view3d_ruler_end(C, ruler_info);
 		view3d_ruler_free(ruler_info);
