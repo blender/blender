@@ -9318,6 +9318,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				brush->stencil_pos[0] = 256;
 				brush->stencil_pos[1] = 256;
 			}
+			if (brush->mask_stencil_dimension[0] == 0) {
+				brush->mask_stencil_dimension[0] = 256;
+				brush->mask_stencil_dimension[1] = 256;
+				brush->mask_stencil_pos[0] = 256;
+				brush->mask_stencil_pos[1] = 256;
+			}
 		}
 
 		/* TIP: to initialize new variables added, use the new function

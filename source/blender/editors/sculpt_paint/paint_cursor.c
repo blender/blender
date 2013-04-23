@@ -585,14 +585,24 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		}
 		/* Stencil code goes here */
 		else {
-			quad.xmin = -brush->stencil_dimension[0];
-			quad.ymin = -brush->stencil_dimension[1];
-			quad.xmax = brush->stencil_dimension[0];
-			quad.ymax = brush->stencil_dimension[1];
-
+			if (primary) {
+				quad.xmin = -brush->stencil_dimension[0];
+				quad.ymin = -brush->stencil_dimension[1];
+				quad.xmax = brush->stencil_dimension[0];
+				quad.ymax = brush->stencil_dimension[1];
+			}
+			else {
+				quad.xmin = -brush->mask_stencil_dimension[0];
+				quad.ymin = -brush->mask_stencil_dimension[1];
+				quad.xmax = brush->mask_stencil_dimension[0];
+				quad.ymax = brush->mask_stencil_dimension[1];
+			}
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
-			glTranslatef(brush->stencil_pos[0], brush->stencil_pos[1], 0);
+			if (primary)
+				glTranslatef(brush->stencil_pos[0], brush->stencil_pos[1], 0);
+			else
+				glTranslatef(brush->mask_stencil_pos[0], brush->mask_stencil_pos[1], 0);
 			glRotatef(RAD2DEGF(mtex->rot), 0, 0, 1);
 			glMatrixMode(GL_TEXTURE);
 		}

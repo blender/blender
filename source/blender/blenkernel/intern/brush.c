@@ -661,8 +661,8 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 		float x = 0.0f, y = 0.0f; /* Quite warnings */
 		float co[3];
 
-		x = point_2d[0] - br->stencil_pos[0];
-		y = point_2d[1] - br->stencil_pos[1];
+		x = point_2d[0] - br->mask_stencil_pos[0];
+		y = point_2d[1] - br->mask_stencil_pos[1];
 
 		if (rotation > 0.001f || rotation < -0.001f) {
 			const float angle    = atan2f(y, x) + rotation;
@@ -672,12 +672,12 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 			y = flen * sinf(angle);
 		}
 
-		if (fabsf(x) > br->stencil_dimension[0] || fabsf(y) > br->stencil_dimension[1]) {
+		if (fabsf(x) > br->mask_stencil_dimension[0] || fabsf(y) > br->mask_stencil_dimension[1]) {
 			zero_v4(rgba);
 			return 0.0f;
 		}
-		x /= (br->stencil_dimension[0]);
-		y /= (br->stencil_dimension[1]);
+		x /= (br->mask_stencil_dimension[0]);
+		y /= (br->mask_stencil_dimension[1]);
 
 		x *= mtex->size[0];
 		y *= mtex->size[1];

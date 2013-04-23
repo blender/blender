@@ -111,6 +111,9 @@ typedef struct Brush {
 
 	float stencil_pos[2];
 	float stencil_dimension[2];
+
+	float mask_stencil_pos[2];
+	float mask_stencil_dimension[2];
 } Brush;
 
 /* Brush.flag */
