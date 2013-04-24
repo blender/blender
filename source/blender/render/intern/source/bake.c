@@ -47,7 +47,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -1102,19 +1101,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		for (a = 0; a < re->r.threads; a++) {
 			zbuf_free_span(handles[a].zspan);
 			MEM_freeN(handles[a].zspan);
-		}
-	}
-
-	if (R.r.bake_flag & R_BAKE_VCOL) {
-		/* update all tagged meshes */
-		Object *ob;
-		for (ob = G.main->object.first; ob; ob = ob->id.next) {
-			if (ob->type == OB_MESH) {
-				Mesh *me = ob->data;
-				if (me->id.flag & LIB_DOIT) {
-					DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
-				}
-			}
 		}
 	}
 

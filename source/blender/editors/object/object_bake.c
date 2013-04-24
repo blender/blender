@@ -61,6 +61,8 @@
 #include "BKE_modifier.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_subsurf.h"
+#include "BKE_depsgraph.h"
+#include "BKE_mesh.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -607,40 +609,58 @@ static void finish_bake_internal(BakeRender *bkr)
 			bkr->scene->r.mode &= ~R_RAYTRACE;
 
 	/* force OpenGL reload and mipmap recalc */
-	for (ima = G.main->image.first; ima; ima = ima->id.next) {
-		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+	if ((bkr->scene->r.bake_flag & R_BAKE_VCOL) == 0) {
+		for (ima = G.main->image.first; ima; ima = ima->id.next) {
+			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
-		/* some of the images could have been changed during bake,
-		 * so recreate mipmaps regardless bake result status
-		 */
-		if (ima->ok == IMA_OK_LOADED) {
-			if (ibuf) {
-				if (ibuf->userflags & IB_BITMAPDIRTY) {
-					GPU_free_image(ima);
-					imb_freemipmapImBuf(ibuf);
+			/* some of the images could have been changed during bake,
+			 * so recreate mipmaps regardless bake result status
+			 */
+			if (ima->ok == IMA_OK_LOADED) {
+				if (ibuf) {
+					if (ibuf->userflags & IB_BITMAPDIRTY) {
+						GPU_free_image(ima);
+						imb_freemipmapImBuf(ibuf);
+					}
+
+					/* invalidate display buffers for changed images */
+					if (ibuf->userflags & IB_BITMAPDIRTY)
+						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 				}
-
-				/* invalidate display buffers for changed images */
-				if (ibuf->userflags & IB_BITMAPDIRTY)
-					ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 			}
-		}
 
-		/* freed when baking is done, but if its canceled we need to free here */
-		if (ibuf) {
-			if (ibuf->userdata) {
-				BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
-				if (userdata->mask_buffer)
-					MEM_freeN(userdata->mask_buffer);
-				if (userdata->displacement_buffer)
-					MEM_freeN(userdata->displacement_buffer);
-				MEM_freeN(userdata);
-				ibuf->userdata = NULL;
+			/* freed when baking is done, but if its canceled we need to free here */
+			if (ibuf) {
+				if (ibuf->userdata) {
+					BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
+					if (userdata->mask_buffer)
+						MEM_freeN(userdata->mask_buffer);
+					if (userdata->displacement_buffer)
+						MEM_freeN(userdata->displacement_buffer);
+					MEM_freeN(userdata);
+					ibuf->userdata = NULL;
+				}
 			}
-		}
 
-		BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_release_ibuf(ima, ibuf, NULL);
+		}
 	}
+
+	if (bkr->scene->r.bake_flag & R_BAKE_VCOL) {
+		/* update all tagged meshes */
+		Object *ob;
+		BLI_assert(BLI_thread_is_main());
+		for (ob = G.main->object.first; ob; ob = ob->id.next) {
+			if (ob->type == OB_MESH) {
+				Mesh *me = ob->data;
+				if (me->id.flag & LIB_DOIT) {
+					DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+					BKE_mesh_tessface_clear(me);
+				}
+			}
+		}
+	}
+
 }
 
 static void *do_bake_render(void *bake_v)
