@@ -69,6 +69,7 @@ static int shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 	/* allow empty engine string too, this is from older versions that didn't have registerable engines yet */
 	return (scene->r.engine[0] == '\0'
 	        || strcmp(scene->r.engine, "BLENDER_RENDER")==0
+	        || strcmp(scene->r.engine, "BLENDER_GAME")==0
 	        || strcmp(scene->r.engine, "CYCLES")==0);
 }
 
