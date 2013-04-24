@@ -90,6 +90,7 @@ public:
 	float last_progress;
 
 	int width, height;
+	double start_resize_time;
 
 protected:
 	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only);
