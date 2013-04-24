@@ -666,7 +666,7 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 	
 	/* constraint solver iterations */
-	prop = RNA_def_property(srna, "num_solver_iterations", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "solver_iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "num_solver_iterations");
 	RNA_def_property_range(prop, 1, 1000);
 	RNA_def_property_ui_range(prop, 10, 100, 1, -1);
