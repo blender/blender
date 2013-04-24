@@ -908,12 +908,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 			case TFM_MODAL_TRANSLATE:
 				/* only switch when... */
 				if (ELEM5(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
-					if (t->mode == TFM_EDGE_SLIDE) {
-						freeEdgeSlideVerts(t);
-					}
-					else if (t->mode == TFM_VERT_SLIDE) {
-						freeVertSlideVerts(t);
-					}
+					resetTransModal(t);
 					resetTransRestrictions(t);
 					restoreTransObjects(t);
 					initTranslation(t);
@@ -928,6 +923,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				else {
 					if (t->obedit && t->obedit->type == OB_MESH) {
 						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
+							resetTransModal(t);
 							resetTransRestrictions(t);
 							restoreTransObjects(t);
 
@@ -963,8 +959,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
 				if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
-					if (ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
-						
+					if (ELEM6(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+						resetTransModal(t);
 						resetTransRestrictions(t);
 						
 						if (t->mode == TFM_ROTATION) {
@@ -982,7 +978,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 			case TFM_MODAL_RESIZE:
 				/* only switch when... */
-				if (ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
+				if (ELEM5(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+					resetTransModal(t);
 					resetTransRestrictions(t);
 					restoreTransObjects(t);
 					initResize(t);
@@ -1227,6 +1224,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 			case GKEY:
 				/* only switch when... */
 				if (ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
+					resetTransModal(t);
 					resetTransRestrictions(t);
 					restoreTransObjects(t);
 					initTranslation(t);
@@ -1237,6 +1235,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 			case SKEY:
 				/* only switch when... */
 				if (ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
+					resetTransModal(t);
 					resetTransRestrictions(t);
 					restoreTransObjects(t);
 					initResize(t);
@@ -1248,7 +1247,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				/* only switch when... */
 				if (!(t->options & CTX_TEXTURE)) {
 					if (ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
-
+						resetTransModal(t);
 						resetTransRestrictions(t);
 
 						if (t->mode == TFM_ROTATION) {

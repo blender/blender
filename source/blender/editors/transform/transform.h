@@ -697,6 +697,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float val
 
 int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, const struct wmEvent *event);
 void postTrans(struct bContext *C, TransInfo *t);
+void resetTransModal(TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options);

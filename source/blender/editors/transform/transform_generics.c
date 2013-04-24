@@ -1002,6 +1002,19 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 	}
 }
 
+/**
+ * Free data before switching to another mode.
+ */
+void resetTransModal(TransInfo *t)
+{
+	if (t->mode == TFM_EDGE_SLIDE) {
+		freeEdgeSlideVerts(t);
+	}
+	else if (t->mode == TFM_VERT_SLIDE) {
+		freeVertSlideVerts(t);
+	}
+}
+
 void resetTransRestrictions(TransInfo *t)
 {
 	t->flag &= ~T_ALL_RESTRICTIONS;
