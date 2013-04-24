@@ -1704,16 +1704,22 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
-	PointerRNA ptr;
-	bNodeTree *ntree;
-	bNode *node;
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNodeTree *ntree = NULL;
+	bNode *node = NULL;
 	char file_path[MAX_NAME];
 
-	ptr = CTX_data_pointer_get(C, "node");
-	if (!ptr.data)
+	if (ptr.data) {
+		node = ptr.data;
+		ntree = ptr.id.data;
+	}
+	else if (snode && snode->edittree) {
+		ntree = snode->edittree;
+		node = nodeGetActive(snode->edittree);
+	}
+
+	if (!node)
 		return OPERATOR_CANCELLED;
-	node = ptr.data;
-	ntree = ptr.id.data;
 
 	RNA_string_get(op->ptr, "file_path", file_path);
 	ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
@@ -1746,13 +1752,20 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *U
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	PointerRNA ptr = CTX_data_pointer_get(C, "node");
-	bNodeTree *ntree;
-	bNode *node;
+	bNodeTree *ntree = NULL;
+	bNode *node = NULL;
 	
-	if (!ptr.data)
+	if (ptr.data) {
+		node = ptr.data;
+		ntree = ptr.id.data;
+	}
+	else if (snode && snode->edittree) {
+		ntree = snode->edittree;
+		node = nodeGetActive(snode->edittree);
+	}
+
+	if (!node)
 		return OPERATOR_CANCELLED;
-	node = ptr.data;
-	ntree = ptr.id.data;
 	
 	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
 		return OPERATOR_CANCELLED;
@@ -1783,14 +1796,19 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	PointerRNA ptr = CTX_data_pointer_get(C, "node");
-	bNode *node;
+	bNode *node = NULL;
 	NodeImageMultiFile *nimf;
 	bNodeSocket *sock;
 	int direction;
 	
-	if (!ptr.data)
+	if (ptr.data)
+		node = ptr.data;
+	else if (snode && snode->edittree)
+		node = nodeGetActive(snode->edittree);
+
+	if (!node)
 		return OPERATOR_CANCELLED;
-	node = ptr.data;
+
 	nimf = node->storage;
 	
 	sock = BLI_findlink(&node->inputs, nimf->active_input);
@@ -2277,6 +2295,7 @@ static int node_shader_script_update_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	Text *text;
 
@@ -2286,6 +2305,10 @@ static int node_shader_script_update_poll(bContext *C)
 
 	/* see if we have a shader script node in context */
 	node = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript).data;
+
+	if (!node && snode && snode->edittree)
+		node = nodeGetActive(snode->edittree);
+
 	if (node && node->type == SH_NODE_SCRIPT) {
 		NodeShaderScript *nss = node->storage;
 
@@ -2332,7 +2355,10 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	PointerRNA nodeptr = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript);
+	bNodeTree *ntree = NULL;
+	bNode *node = NULL;
 	RenderEngine *engine;
 	RenderEngineType *type;
 	int found = FALSE;
@@ -2342,11 +2368,18 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 	engine = RE_engine_create(type);
 	engine->reports = op->reports;
 
+	/* get node */
 	if (nodeptr.data) {
-		/* update single node */
-		bNodeTree *ntree = nodeptr.id.data;
-		bNode *node = nodeptr.data;
+		ntree = nodeptr.id.data;
+		node = nodeptr.data;
+	}
+	else if (snode && snode->edittree) {
+		ntree = snode->edittree;
+		node = nodeGetActive(snode->edittree);
+	}
 
+	if (node) {
+		/* update single node */
 		type->update_script_node(engine, ntree, node);
 
 		found = TRUE;
