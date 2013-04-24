@@ -1444,7 +1444,7 @@ static void UV_OT_select_more(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = uv_select_more_exec;
-	ot->poll = ED_operator_uvedit;
+	ot->poll = ED_operator_uvedit_space_image;
 }
 
 static int uv_select_less_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1462,7 +1462,7 @@ static void UV_OT_select_less(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = uv_select_less_exec;
-	ot->poll = ED_operator_uvedit;
+	ot->poll = ED_operator_uvedit_space_image;
 }
 
 /* ******************** align operator **************** */

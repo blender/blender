@@ -75,10 +75,13 @@ extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alp
 void ED_node_tree_update(const bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
-	snode_set_context(C);
-	
-	if (snode->nodetree && snode->nodetree->id.us == 0)
-		snode->nodetree->id.us = 1;
+	if (snode) {
+		snode_set_context(C);
+
+		if (snode->nodetree && snode->nodetree->id.us == 0) {
+			snode->nodetree->id.us = 1;
+		}
+	}
 }
 
 /* id is supposed to contain a node tree */

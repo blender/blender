@@ -31,27 +31,26 @@
  *  \ingroup bli
  */
 
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #ifndef WIN32
-#include <dirent.h>
+#  include <dirent.h>
 #endif
 
 #include <time.h>
 #include <sys/stat.h>
 
 #if defined(__sun__) || defined(__sun) || defined(__NetBSD__)
-#include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
+#  include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
-#include <sys/statfs.h>
+#  include <sys/statfs.h>
 #endif
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
-#include <sys/param.h>
-#include <sys/mount.h>
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#  include <sys/param.h>
+#  include <sys/mount.h>
 #endif
 
 #if defined(linux) || defined(__CYGWIN32__) || defined(__hpux) || defined(__GNU__) || defined(__GLIBC__)
@@ -59,9 +58,9 @@
 #endif
 
 #ifdef __APPLE__
-/* For statfs */
-#include <sys/param.h>
-#include <sys/mount.h>
+   /* For statfs */
+#  include <sys/param.h>
+#  include <sys/mount.h>
 #endif /* __APPLE__ */
 
 
