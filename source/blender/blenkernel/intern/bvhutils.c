@@ -601,6 +601,12 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
 			if (tree != NULL) {
 				if (em) {
+					const struct BMLoop *(*looptris)[3] = (void *)em->looptris;
+
+					/* avoid double-up on face searches for quads-ngons */
+					bool insert_prev = false;
+					BMFace *f_prev = NULL;
+
 					/* data->em_evil is only set for snapping, and only for the mesh of the object
 					 * which is currently open in edit mode. When set, the bvhtree should not contain
 					 * faces that will interfere with snapping (e.g. faces that are hidden/selected
@@ -611,46 +617,46 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 					 * transform, having a vertex selected means the face (and thus it's tessellated
 					 * triangles) will be moving and will not be a good snap targets.*/
 					for (i = 0; i < em->tottri; i++) {
-						BMLoop **tri = em->looptris[i];
-						BMFace *f;
-						BMVert *v;
-						BMIter iter;
-						int insert;
+						const BMLoop **ltri = looptris[i];
+						BMFace *f = ltri[0]->f;
+						bool insert;
 
-						/* Each loop of the triangle points back to the BMFace it was tessellated from.
-						 * All three should point to the same face, so just use the face from the first
-						 * loop.*/
-						f = tri[0]->f;
-
-						/* If the looptris is ordered such that all triangles tessellated from a single
-						 * faces are consecutive elements in the array, then we could speed up the tests
-						 * below by using the insert value from the previous iteration.*/
-
-						/*Start with the assumption the triangle should be included for snapping.*/
-						insert = 1;
-
-						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-							/* Don't insert triangles tessellated from faces that are hidden
-							 * or selected*/
-							insert = 0;
+						/* Start with the assumption the triangle should be included for snapping. */
+						if (f == f_prev) {
+							insert = insert_prev;
 						}
 						else {
-							BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
-								if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-									/* Don't insert triangles tessellated from faces that have
-									 * any selected verts.*/
-									insert = 0;
-								}
+							if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+								/* Don't insert triangles tessellated from faces that are hidden
+								 * or selected*/
+								insert = false;
 							}
+							else {
+								BMLoop *l_iter, *l_first;
+								insert = true;
+								l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+								do {
+									if (BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+										/* Don't insert triangles tessellated from faces that have
+										 * any selected verts.*/
+										insert = false;
+										break;
+									}
+								} while ((l_iter = l_iter->next) != l_first);
+							}
+
+							/* skip if face doesn't change */
+							f_prev = f;
+							insert_prev = insert;
 						}
 
 						if (insert) {
 							/* No reason found to block hit-testing the triangle for snap,
 							 * so insert it now.*/
-							float co[4][3];
-							copy_v3_v3(co[0], tri[0]->v->co);
-							copy_v3_v3(co[1], tri[1]->v->co);
-							copy_v3_v3(co[2], tri[2]->v->co);
+							float co[3][3];
+							copy_v3_v3(co[0], ltri[0]->v->co);
+							copy_v3_v3(co[1], ltri[1]->v->co);
+							copy_v3_v3(co[2], ltri[2]->v->co);
 					
 							BLI_bvhtree_insert(tree, i, co[0], 3);
 						}
