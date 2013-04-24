@@ -463,6 +463,8 @@ void RE_FreePersistentData(void)
 /* disprect is optional, if NULL it assumes full window render */
 void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *srl, int winx, int winy, rcti *disprect)
 {
+	bool had_freestyle = (re->r.mode & R_EDGE_FRS);
+
 	re->ok = TRUE;   /* maybe flag */
 	
 	re->i.starttime = PIL_check_seconds_timer();
@@ -570,9 +572,22 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	if (re->r.scemode & R_PREVIEWBUTS) {
-		/* always fresh, freestyle layers need it */
-		render_result_free(re->result);
-		re->result = NULL;
+		if (had_freestyle || (re->r.mode & R_EDGE_FRS)) {
+			/* freestyle manipulates render layers so always have to free */
+			render_result_free(re->result);
+			re->result = NULL;
+		}
+		else if (re->result) {
+			if (re->result->rectx == re->rectx && re->result->recty == re->recty) {
+				/* keep render result, this avoids flickering black tiles
+				 * when the preview changes */
+			}
+			else {
+				/* free because resolution changed */
+				render_result_free(re->result);
+				re->result = NULL;
+			}
+		}
 	}
 	else {
 		
