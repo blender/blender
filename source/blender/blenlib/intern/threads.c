@@ -399,6 +399,19 @@ void BLI_mutex_end(ThreadMutex *mutex)
 	pthread_mutex_destroy(mutex);
 }
 
+ThreadMutex *BLI_mutex_alloc(void)
+{
+	ThreadMutex *mutex = MEM_callocN(sizeof(ThreadMutex), "ThreadMutex");
+	BLI_mutex_init(mutex);
+	return mutex;
+}
+
+void BLI_mutex_free(ThreadMutex *mutex)
+{
+	BLI_mutex_end(mutex);
+	MEM_freeN(mutex);
+}
+
 /* Spin Locks */
 
 void BLI_spin_init(SpinLock *spin)
@@ -462,6 +475,19 @@ void BLI_rw_mutex_unlock(ThreadRWMutex *mutex)
 void BLI_rw_mutex_end(ThreadRWMutex *mutex)
 {
 	pthread_rwlock_destroy(mutex);
+}
+
+ThreadRWMutex *BLI_rw_mutex_alloc(void)
+{
+	ThreadRWMutex *mutex = MEM_callocN(sizeof(ThreadRWMutex), "ThreadRWMutex");
+	BLI_rw_mutex_init(mutex);
+	return mutex;
+}
+
+void BLI_rw_mutex_free(ThreadRWMutex *mutex)
+{
+	BLI_rw_mutex_end(mutex);
+	MEM_freeN(mutex);
 }
 
 /* ************************************************ */

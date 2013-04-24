@@ -92,9 +92,13 @@ typedef pthread_mutex_t ThreadMutex;
 #define BLI_MUTEX_INITIALIZER   PTHREAD_MUTEX_INITIALIZER
 
 void BLI_mutex_init(ThreadMutex *mutex);
+void BLI_mutex_end(ThreadMutex *mutex);
+
+ThreadMutex *BLI_mutex_alloc(void);
+void BLI_mutex_free(ThreadMutex *mutex);
+
 void BLI_mutex_lock(ThreadMutex *mutex);
 void BLI_mutex_unlock(ThreadMutex *mutex);
-void BLI_mutex_end(ThreadMutex *mutex);
 
 /* Spin Lock */
 
@@ -117,9 +121,13 @@ void BLI_spin_end(SpinLock *spin);
 typedef pthread_rwlock_t ThreadRWMutex;
 
 void BLI_rw_mutex_init(ThreadRWMutex *mutex);
+void BLI_rw_mutex_end(ThreadRWMutex *mutex);
+
+ThreadRWMutex *BLI_rw_mutex_alloc(void);
+void BLI_rw_mutex_free(ThreadRWMutex *mutex);
+
 void BLI_rw_mutex_lock(ThreadRWMutex *mutex, int mode);
 void BLI_rw_mutex_unlock(ThreadRWMutex *mutex);
-void BLI_rw_mutex_end(ThreadRWMutex *mutex);
 
 /* ThreadedWorker
  *
