@@ -124,7 +124,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         split = layout.split()
         split.prop(md, "use_only_vertices")
-        split.prop(md, "overlap_ok")
+        split.prop(md, "use_clamp_overlap")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
