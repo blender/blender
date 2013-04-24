@@ -2422,7 +2422,7 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
 	if (ibuf) {
 		ARegion *ar = CTX_wm_region(C);
 		SpaceNode *snode = CTX_wm_space_node(C);
-		bNodeTree *btree = snode->edittree;
+		bNodeTree *btree = snode->nodetree;
 		rcti rect;
 		rctf rectf;
 

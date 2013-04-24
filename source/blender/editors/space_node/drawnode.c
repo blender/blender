@@ -2928,7 +2928,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			/** @note draw selected info on backdrop */
 			if (snode->edittree) {
 				bNode *node = snode->edittree->nodes.first;
-				rctf *viewer_border = &snode->edittree->viewer_border;
+				rctf *viewer_border = &snode->nodetree->viewer_border;
 				while (node) {
 					if (node->flag & NODE_SELECT) {
 						if (node->typeinfo->uibackdropfunc) {
@@ -2938,7 +2938,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					node = node->next;
 				}
 
-				if ((snode->edittree->flag & NTREE_VIEWER_BORDER) &&
+				if ((snode->nodetree->flag & NTREE_VIEWER_BORDER) &&
 				    viewer_border->xmin < viewer_border->xmax &&
 				    viewer_border->ymin < viewer_border->ymax)
 				{
