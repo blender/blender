@@ -53,6 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_library.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -641,7 +642,7 @@ static int get_next_bake_face(BakeShade *bs)
 					bs->mloop = me->mloop + bs->mpoly->loopstart;
 
 					/* Tag mesh for reevaluation. */
-					DAG_id_tag_update(&me->id, 0);
+					me->id.flag |= LIB_DOIT;
 				}
 				else {
 					Image *ima = NULL;
@@ -1000,6 +1001,11 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		}
 	}
 
+	if (R.r.bake_flag & R_BAKE_VCOL) {
+		/* untag all meshes */
+		tag_main_lb(&G.main->mesh, false);
+	}
+
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
 
 	handles = MEM_callocN(sizeof(BakeShade) * re->r.threads, "BakeShade");
@@ -1096,6 +1102,19 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		for (a = 0; a < re->r.threads; a++) {
 			zbuf_free_span(handles[a].zspan);
 			MEM_freeN(handles[a].zspan);
+		}
+	}
+
+	if (R.r.bake_flag & R_BAKE_VCOL) {
+		/* update all tagged meshes */
+		Object *ob;
+		for (ob = G.main->object.first; ob; ob = ob->id.next) {
+			if (ob->type == OB_MESH) {
+				Mesh *me = ob->data;
+				if (me->id.flag & LIB_DOIT) {
+					DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+				}
+			}
 		}
 	}
 
