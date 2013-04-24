@@ -618,34 +618,38 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 	else {
 		Object *ob = (Object *)ptr->id.data;
 		ModifierData *md;
-		char name_esc[sizeof(md->name) * 2];
 
-		BLI_strescape(name_esc, md->name, sizeof(name_esc));
-		
 		/* check softbody modifier */
 		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
 		if (md) {
 			/* no pointer from modifier data to actual softbody storage, would be good to add */
-			if (ob->soft->effector_weights == ew)
+			if (ob->soft->effector_weights == ew) {
+				char name_esc[sizeof(md->name) * 2];
+				BLI_strescape(name_esc, md->name, sizeof(name_esc));
 				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+			}
 		}
 		
 		/* check cloth modifier */
 		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if (md) {
 			ClothModifierData *cmd = (ClothModifierData *)md;
-			
-			if (cmd->sim_parms->effector_weights == ew)
+			if (cmd->sim_parms->effector_weights == ew) {
+				char name_esc[sizeof(md->name) * 2];
+				BLI_strescape(name_esc, md->name, sizeof(name_esc));
 				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+			}
 		}
 		
 		/* check smoke modifier */
 		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
 		if (md) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
-			
-			if (smd->domain->effector_weights == ew)
+			if (smd->domain->effector_weights == ew) {
+				char name_esc[sizeof(md->name) * 2];
+				BLI_strescape(name_esc, md->name, sizeof(name_esc));
 				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+			}
 		}
 
 		/* check dynamic paint modifier */
@@ -658,8 +662,10 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 
 				for (; surface; surface = surface->next) {
 					if (surface->effector_weights == ew) {
+						char name_esc[sizeof(md->name) * 2];
 						char name_esc_surface[sizeof(surface->name) * 2];
 
+						BLI_strescape(name_esc, md->name, sizeof(name_esc));
 						BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
 						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
 						                    ".effector_weights", name_esc, name_esc_surface);
