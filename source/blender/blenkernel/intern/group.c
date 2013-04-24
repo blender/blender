@@ -148,7 +148,7 @@ Group *BKE_group_copy(Group *group)
 {
 	Group *groupn;
 
-	groupn = MEM_dupallocN(group);
+	groupn = BKE_libblock_copy(&group->id);
 	BLI_duplicatelist(&groupn->gobject, &group->gobject);
 
 	return groupn;

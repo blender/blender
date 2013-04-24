@@ -146,8 +146,8 @@ int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op,  f
 struct Object *ED_object_add_type(struct bContext *C, int type, const float loc[3], const float rot[3],
                                   int enter_editmode, unsigned int layer);
 
-void ED_object_single_users(struct Main *bmain, struct Scene *scene, int full);
-void ED_object_single_user(struct Scene *scene, struct Object *ob);
+void ED_object_single_users(struct Main *bmain, struct Scene *scene, bool full, bool copy_groups);
+void ED_object_single_user(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* object motion paths */
 void ED_objects_clear_paths(struct bContext *C);

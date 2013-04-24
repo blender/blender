@@ -3537,10 +3537,10 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 
 		/* these can't be handled in blenkernel curently, so do them here */
 		if (type == SCE_COPY_LINK_DATA) {
-			ED_object_single_users(bmain, newscene, 0);
+			ED_object_single_users(bmain, newscene, false, true);
 		}
 		else if (type == SCE_COPY_FULL) {
-			ED_object_single_users(bmain, newscene, 1);
+			ED_object_single_users(bmain, newscene, true, true);
 		}
 	}
 	

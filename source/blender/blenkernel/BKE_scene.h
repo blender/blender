@@ -84,6 +84,7 @@ void BKE_scene_set_background(struct Main *bmain, struct Scene *sce);
 struct Scene *BKE_scene_set_name(struct Main *bmain, const char *name);
 
 struct Scene *BKE_scene_copy(struct Scene *sce, int type);
+void BKE_scene_groups_relink(struct Scene *sce);
 void BKE_scene_unlink(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 
 struct Object *BKE_scene_camera_find(struct Scene *sc);
