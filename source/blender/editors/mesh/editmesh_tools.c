@@ -2292,7 +2292,7 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	 * since de-selecting all skips selection flushing logic */
 	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-	BM_mesh_normals_update(bm_new, false);
+	BM_mesh_normals_update(bm_new);
 
 	BM_mesh_bm_to_me(bm_new, base_new->object->data, false);
 

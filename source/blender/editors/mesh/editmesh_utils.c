@@ -115,7 +115,7 @@ void EDBM_mesh_ensure_valid_dm_hack(Scene *scene, BMEditMesh *em)
 
 void EDBM_mesh_normals_update(BMEditMesh *em)
 {
-	BM_mesh_normals_update(em->bm, true);
+	BM_mesh_normals_update(em->bm);
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
@@ -648,7 +648,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	BM_mesh_bm_from_me(bm, &um->me, false, ob->shapenr);
 
 	/* face normals need recalculation since we are not calling through an operator */
-	BM_mesh_normals_update(bm, true);
+	BM_mesh_normals_update(bm);
 
 	em_tmp = BKE_editmesh_create(bm, true);
 	*em = *em_tmp;

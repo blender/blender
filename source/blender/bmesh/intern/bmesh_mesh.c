@@ -259,96 +259,102 @@ void BM_mesh_free(BMesh *bm)
  *
  * Updates the normals of a mesh.
  */
-void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
+void BM_mesh_normals_update(BMesh *bm)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
-	BMIter iter;
-	int index;
-	float (*edgevec)[3];
-	
-	/* calculate all face normals */
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
-			continue;
-#if 0   /* UNUSED */
-		if (f->head.flag & BM_NONORMCALC)
-			continue;
-#endif
+	float (*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
 
-		BM_face_normal_update(f);
-	}
-	
-	/* Zero out vertex normals */
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			continue;
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+	{
+#pragma omp section
+		{
+			/* calculate all face normals */
+			BMIter fiter;
+			BMFace *f;
 
-		zero_v3(v->no);
-	}
-
-	/* compute normalized direction vectors for each edge. directions will be
-	 * used below for calculating the weights of the face normals on the vertex
-	 * normals */
-	edgevec = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
-	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, index) {
-		BM_elem_index_set(e, index); /* set_inline */
-
-		if (e->l) {
-			sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
-			normalize_v3(edgevec[index]);
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+				BM_face_normal_update(f);
+			}
 		}
-		else {
-			/* the edge vector will not be needed when the edge has no radial */
+#pragma omp section
+		{
+			/* Zero out vertex normals */
+			BMIter viter;
+			BMVert *v;
+			BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+				zero_v3(v->no);
+			}
+		}
+#pragma omp section
+		{
+			/* compute normalized direction vectors for each edge. directions will be
+			 * used below for calculating the weights of the face normals on the vertex
+			 * normals */
+			BMIter eiter;
+			BMEdge *e;
+			int index;
+			BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, index) {
+				BM_elem_index_set(e, index); /* set_inline */
+
+				if (e->l) {
+					sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
+					normalize_v3(edgevec[index]);
+				}
+				else {
+					/* the edge vector will not be needed when the edge has no radial */
+				}
+			}
+			bm->elem_index_dirty &= ~BM_EDGE;
 		}
 	}
-	bm->elem_index_dirty &= ~BM_EDGE;
+	/* end omp */
+
 
 	/* add weighted face normals to vertices */
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		BMLoop *l_first, *l_iter;
+	{
+		BMIter fiter;
+		BMFace *f;
+		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+			BMLoop *l_first, *l_iter;
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				const float *e1diff, *e2diff;
+				float dotprod;
+				float fac;
 
-		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
-			continue;
+				/* calculate the dot product of the two edges that
+				 * meet at the loop's vertex */
+				e1diff = edgevec[BM_elem_index_get(l_iter->prev->e)];
+				e2diff = edgevec[BM_elem_index_get(l_iter->e)];
+				dotprod = dot_v3v3(e1diff, e2diff);
 
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-		do {
-			const float *e1diff, *e2diff;
-			float dotprod;
-			float fac;
+				/* edge vectors are calculated from e->v1 to e->v2, so
+				 * adjust the dot product if one but not both loops
+				 * actually runs from from e->v2 to e->v1 */
+				if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
+					dotprod = -dotprod;
+				}
 
-			/* calculate the dot product of the two edges that
-			 * meet at the loop's vertex */
-			e1diff = edgevec[BM_elem_index_get(l_iter->prev->e)];
-			e2diff = edgevec[BM_elem_index_get(l_iter->e)];
-			dotprod = dot_v3v3(e1diff, e2diff);
+				fac = saacos(-dotprod);
 
-			/* edge vectors are calculated from e->v1 to e->v2, so
-			 * adjust the dot product if one but not both loops
-			 * actually runs from from e->v2 to e->v1 */
-			if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
-				dotprod = -dotprod;
-			}
-
-			fac = saacos(-dotprod);
-
-			/* accumulate weighted face normal into the vertex's normal */
-			madd_v3_v3fl(l_iter->v->no, f->no, fac);
-		} while ((l_iter = l_iter->next) != l_first);
+				/* accumulate weighted face normal into the vertex's normal */
+				madd_v3_v3fl(l_iter->v->no, f->no, fac);
+			} while ((l_iter = l_iter->next) != l_first);
+		}
+		MEM_freeN(edgevec);
 	}
-	
-	/* normalize the accumulated vertex normals */
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			continue;
 
-		if (UNLIKELY(normalize_v3(v->no) == 0.0f)) {
-			normalize_v3_v3(v->no, v->co);
+
+	/* normalize the accumulated vertex normals */
+	{
+		BMIter viter;
+		BMVert *v;
+
+		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+			if (UNLIKELY(normalize_v3(v->no) == 0.0f)) {
+				normalize_v3_v3(v->no, v->co);
+			}
 		}
 	}
-	
-	MEM_freeN(edgevec);
 }
 
 static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
@@ -449,7 +455,7 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 
 	/* compute normals, clear temp flags and flush selections */
 	if (type_flag & BMO_OPTYPE_FLAG_NORMALS_CALC) {
-		BM_mesh_normals_update(bm, true);
+		BM_mesh_normals_update(bm);
 	}
 
 	if (type_flag & BMO_OPTYPE_FLAG_SELECT_FLUSH) {

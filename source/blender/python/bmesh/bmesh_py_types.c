@@ -1170,25 +1170,15 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 
 
 PyDoc_STRVAR(bpy_bmesh_normal_update_doc,
-".. method:: normal_update(skip_hidden=False)\n"
+".. method:: normal_update()\n"
 "\n"
 "   Update mesh normals.\n"
-"\n"
-"   :arg skip_hidden: When True hidden elements are ignored.\n"
-"   :type skip_hidden: boolean\n"
 );
-static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self, PyObject *args)
+static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self)
 {
-
-	int skip_hidden = false;
-
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "|i:normal_update", &skip_hidden)) {
-		return NULL;
-	}
-
-	BM_mesh_normals_update(self->bm, skip_hidden);
+	BM_mesh_normals_update(self->bm);
 
 	Py_RETURN_NONE;
 }
@@ -2543,7 +2533,7 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 	/* meshdata */
 	{"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
 	{"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
-	{"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_VARARGS, bpy_bmesh_normal_update_doc},
+	{"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_NOARGS, bpy_bmesh_normal_update_doc},
 	{"transform", (PyCFunction)bpy_bmesh_transform, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_transform_doc},
 	{NULL, NULL, 0, NULL}
 };
