@@ -168,9 +168,7 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int mval_start[
 {
 	int *data;
 
-	if (mi->data == NULL) {
-		mi->data = MEM_callocN(sizeof(int) * 4, "custom points");
-	}
+	mi->data = MEM_reallocN(mi->data, sizeof(int) * 4);
 	
 	data = mi->data;
 
