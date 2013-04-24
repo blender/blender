@@ -105,6 +105,7 @@ static bool ED_view3d_snap_ray(bContext *C, float r_co[3],
 
 	/* try snap edge, then face if it fails */
 	ret = snapObjectsRayEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
+	                       NULL, NULL,
 	                       ray_start, ray_normal, &ray_dist,
 	                       NULL, &dist_px, r_co, r_no_dummy, SNAP_ALL);
 
