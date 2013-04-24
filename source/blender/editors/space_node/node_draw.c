@@ -1314,7 +1314,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 			UI_view2d_multi_grid_draw(v2d, (depth > 0 ? TH_NODE_GROUP : TH_BACK), U.widget_unit, 5, 2);
 			
 			/* backdrop */
-			draw_nodespace_back_pix(C, ar, snode);
+			draw_nodespace_back_pix(C, ar, snode, path->parent_key);
 			
 			draw_nodetree(C, ar, ntree, path->parent_key);
 		}
@@ -1339,7 +1339,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		UI_view2d_multi_grid_draw(v2d, TH_BACK, U.widget_unit, 5, 2);
 		
 		/* backdrop */
-		draw_nodespace_back_pix(C, ar, snode);
+		draw_nodespace_back_pix(C, ar, snode, NODE_INSTANCE_KEY_NONE);
 	}
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);

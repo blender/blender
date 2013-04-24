@@ -2835,135 +2835,143 @@ void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
 
 /* ************** Generic drawing ************** */
 
-void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
+void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeInstanceKey parent_key)
 {
-	if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
-		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		void *lock;
-		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-		if (ibuf) {
-			float x, y; 
+	bNodeInstanceKey active_viewer_key = (snode->nodetree ? snode->nodetree->active_viewer_key : NODE_INSTANCE_KEY_NONE);
+	Image *ima;
+	void *lock;
+	ImBuf *ibuf;
+	
+	if (!(snode->flag & SNODE_BACKDRAW) || !ED_node_is_compositor(snode))
+		return;
+	
+	if (parent_key.value != active_viewer_key.value)
+		return;
+	
+	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+	if (ibuf) {
+		float x, y; 
+		
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		
+		/* keep this, saves us from a version patch */
+		if (snode->zoom == 0.0f) snode->zoom = 1.0f;
+		
+		/* somehow the offset has to be calculated inverse */
+		
+		glaDefine2DArea(&ar->winrct);
+		/* ortho at pixel level curarea */
+		wmOrtho2(-GLA_PIXEL_OFS, ar->winx - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, ar->winy - GLA_PIXEL_OFS);
+		
+		x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
+		y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
+		
+		if (ibuf->rect || ibuf->rect_float) {
+			unsigned char *display_buffer = NULL;
+			void *cache_handle = NULL;
 			
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-
-			/* keep this, saves us from a version patch */
-			if (snode->zoom == 0.0f) snode->zoom = 1.0f;
-			
-			/* somehow the offset has to be calculated inverse */
-			
-			glaDefine2DArea(&ar->winrct);
-			/* ortho at pixel level curarea */
-			wmOrtho2(-GLA_PIXEL_OFS, ar->winx - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, ar->winy - GLA_PIXEL_OFS);
-			
-			x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
-			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
-
-			if (ibuf->rect || ibuf->rect_float) {
-				unsigned char *display_buffer = NULL;
-				void *cache_handle = NULL;
-
-				if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {
-					int ofs;
-
-					display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-
+			if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {
+				int ofs;
+				
+				display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+				
 #ifdef __BIG_ENDIAN__
-					if      (snode->flag & SNODE_SHOW_R) ofs = 2;
-					else if (snode->flag & SNODE_SHOW_G) ofs = 1;
-					else                                 ofs = 0;
+				if      (snode->flag & SNODE_SHOW_R) ofs = 2;
+				else if (snode->flag & SNODE_SHOW_G) ofs = 1;
+				else                                 ofs = 0;
 #else
-					if      (snode->flag & SNODE_SHOW_R) ofs = 1;
-					else if (snode->flag & SNODE_SHOW_G) ofs = 2;
-					else                                 ofs = 3;
+				if      (snode->flag & SNODE_SHOW_R) ofs = 1;
+				else if (snode->flag & SNODE_SHOW_G) ofs = 2;
+				else                                 ofs = 3;
 #endif
-
-					glPixelZoom(snode->zoom, snode->zoom);
-					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT,
-					                  display_buffer + ofs);
-
-					glPixelZoom(1.0f, 1.0f);
-				}
-				else if (snode->flag & SNODE_SHOW_ALPHA) {
-					display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-
-					glPixelZoom(snode->zoom, snode->zoom);
-					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-#ifdef __BIG_ENDIAN__
-					glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-#endif
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, display_buffer);
-
-#ifdef __BIG_ENDIAN__
-					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
-#endif
-					glPixelZoom(1.0f, 1.0f);
-				}
-				else if (snode->flag & SNODE_USE_ALPHA) {
-					glEnable(GL_BLEND);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glPixelZoom(snode->zoom, snode->zoom);
-					
-					glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
-					
-					glPixelZoom(1.0f, 1.0f);
-					glDisable(GL_BLEND);
-				}
-				else {
-					glPixelZoom(snode->zoom, snode->zoom);
-
-					glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
-					
-					glPixelZoom(1.0f, 1.0f);
-				}
-
-				if (cache_handle)
-					IMB_display_buffer_release(cache_handle);
+				
+				glPixelZoom(snode->zoom, snode->zoom);
+				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+				
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT,
+				                  display_buffer + ofs);
+				
+				glPixelZoom(1.0f, 1.0f);
 			}
-
-			/** @note draw selected info on backdrop */
-			if (snode->edittree) {
-				bNode *node = snode->edittree->nodes.first;
-				rctf *viewer_border = &snode->nodetree->viewer_border;
-				while (node) {
-					if (node->flag & NODE_SELECT) {
-						if (node->typeinfo->uibackdropfunc) {
-							node->typeinfo->uibackdropfunc(snode, ibuf, node, x, y);
-						}
-					}
-					node = node->next;
-				}
-
-				if ((snode->nodetree->flag & NTREE_VIEWER_BORDER) &&
-				    viewer_border->xmin < viewer_border->xmax &&
-				    viewer_border->ymin < viewer_border->ymax)
-				{
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-					setlinestyle(3);
-					cpack(0x4040FF);
-
-					glRectf(x + snode->zoom * viewer_border->xmin * ibuf->x,
-					        y + snode->zoom * viewer_border->ymin * ibuf->y,
-					        x + snode->zoom * viewer_border->xmax * ibuf->x,
-					        y + snode->zoom * viewer_border->ymax * ibuf->y);
-
-					setlinestyle(0);
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				}
+			else if (snode->flag & SNODE_SHOW_ALPHA) {
+				display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+				
+				glPixelZoom(snode->zoom, snode->zoom);
+				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+#ifdef __BIG_ENDIAN__
+				glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+#endif
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, display_buffer);
+				
+#ifdef __BIG_ENDIAN__
+				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+#endif
+				glPixelZoom(1.0f, 1.0f);
+			}
+			else if (snode->flag & SNODE_USE_ALPHA) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glPixelZoom(snode->zoom, snode->zoom);
+				
+				glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
+				
+				glPixelZoom(1.0f, 1.0f);
+				glDisable(GL_BLEND);
+			}
+			else {
+				glPixelZoom(snode->zoom, snode->zoom);
+				
+				glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
+				
+				glPixelZoom(1.0f, 1.0f);
 			}
 			
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
+			if (cache_handle)
+				IMB_display_buffer_release(cache_handle);
 		}
-
-		BKE_image_release_ibuf(ima, ibuf, lock);
+		
+		/** @note draw selected info on backdrop */
+		if (snode->edittree) {
+			bNode *node = snode->edittree->nodes.first;
+			rctf *viewer_border = &snode->nodetree->viewer_border;
+			while (node) {
+				if (node->flag & NODE_SELECT) {
+					if (node->typeinfo->uibackdropfunc) {
+						node->typeinfo->uibackdropfunc(snode, ibuf, node, x, y);
+					}
+				}
+				node = node->next;
+			}
+			
+			if ((snode->nodetree->flag & NTREE_VIEWER_BORDER) &&
+			        viewer_border->xmin < viewer_border->xmax &&
+			        viewer_border->ymin < viewer_border->ymax)
+			{
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				setlinestyle(3);
+				cpack(0x4040FF);
+				
+				glRectf(x + snode->zoom * viewer_border->xmin * ibuf->x,
+				        y + snode->zoom * viewer_border->ymin * ibuf->y,
+				        x + snode->zoom * viewer_border->xmax * ibuf->x,
+				        y + snode->zoom * viewer_border->ymax * ibuf->y);
+				
+				setlinestyle(0);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
+		}
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 	}
+	
+	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 

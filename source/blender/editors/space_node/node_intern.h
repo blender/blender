@@ -136,7 +136,7 @@ void node_draw_link(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLin
 void node_draw_link_bezier(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3);
 int  node_link_bezier_points(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link, float coord_array[][2], int resol);
 // void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
-void draw_nodespace_back_pix(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode);
+void draw_nodespace_back_pix(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, bNodeInstanceKey parent_key);
 
 
 /* node_add.c */

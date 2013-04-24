@@ -92,7 +92,8 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 		}
 	}
 
-	ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, false, viewSettings, displaySettings);
+	ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, false,
+	                                              viewSettings, displaySettings);
 	system->execute();
 	delete system;
 

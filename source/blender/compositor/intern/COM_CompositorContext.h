@@ -84,6 +84,7 @@ private:
 	/* @brief color management settings */
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
+
 public:
 	/**
 	 * @brief constructor initializes the context with default values.

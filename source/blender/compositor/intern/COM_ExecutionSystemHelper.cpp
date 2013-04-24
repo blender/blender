@@ -47,12 +47,12 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	vector<Node *>& nodes = system.getNodes();
 	vector<SocketConnection *>& links = system.getConnections();
 	
+	bool is_active_group = (parent_key.value == system.getContext().getbNodeTree()->active_viewer_key.value);
+	
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		/* XXX TODO replace isActiveGroup by a more accurate check, all visible editors should do this! */
-		bool isActiveGroup = true;
-		Node *nnode = addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
+		Node *nnode = addNode(nodes, node, is_active_group, system.getContext().isFastCalculation());
 		if (nnode) {
 			nnode->setbNodeTree(tree);
 			nnode->setInstanceKey(BKE_node_instance_key(parent_key, tree, node));

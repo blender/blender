@@ -2562,6 +2562,7 @@ int BKE_node_clipboard_get_type(void)
 
 /* magic number for initial hash key */
 const bNodeInstanceKey NODE_INSTANCE_KEY_BASE = {5381};
+const bNodeInstanceKey NODE_INSTANCE_KEY_NONE = {0};
 
 /* Generate a hash key from ntree and node names
  * Uses the djb2 algorithm with xor by Bernstein:

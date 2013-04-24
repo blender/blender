@@ -65,6 +65,8 @@ void ED_node_tree_pop(struct SpaceNode *snode);
 int ED_node_tree_depth(struct SpaceNode *snode);
 struct bNodeTree *ED_node_tree_get(struct SpaceNode *snode, int level);
 
+void ED_node_set_active_viewer_key(struct SpaceNode *snode);
+
 /* drawnode.c */
 void ED_node_init_butfuncs(void);
 void ED_init_custom_node_type(struct bNodeType *ntype);

@@ -370,6 +370,13 @@ typedef struct bNodeTree {
 	 * Only available in base node trees (e.g. scene->node_tree)
 	 */
 	struct bNodeInstanceHash *previews;
+	/* XXX workaround for ambiguous viewer output:
+	 * Viewer nodes all write to the same image buffer.
+	 * This determines the tree instance containing the "active" output.
+	 * Only used in local scene->nodetree.
+	 */
+	bNodeInstanceKey active_viewer_key;
+	int pad;
 	
 	/* execution data */
 	/* XXX It would be preferable to completely move this data out of the underlying node tree,
@@ -403,7 +410,7 @@ typedef struct bNodeTree {
 #define NTREE_COM_OPENCL			2	/* use opencl */
 #define NTREE_TWO_PASS				4	/* two pass */
 #define NTREE_COM_GROUPNODE_BUFFER	8	/* use groupnode buffers */
-#define NTREE_VIEWER_BORDER		16	/* use a border for viewer nodes */
+#define NTREE_VIEWER_BORDER			16	/* use a border for viewer nodes */
 
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.

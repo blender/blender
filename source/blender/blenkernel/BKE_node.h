@@ -507,6 +507,7 @@ typedef struct bNodeInstanceHash
 typedef void (*bNodeInstanceValueFP)(void *value);
 
 extern const bNodeInstanceKey NODE_INSTANCE_KEY_BASE;
+extern const bNodeInstanceKey NODE_INSTANCE_KEY_NONE;
 
 bNodeInstanceKey       BKE_node_instance_key(bNodeInstanceKey parent_key, struct bNodeTree *ntree, struct bNode *node);
 

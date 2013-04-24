@@ -90,6 +90,8 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 	snode->id = id;
 	snode->from = from;
 	
+	ED_node_set_active_viewer_key(snode);
+	
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
@@ -117,6 +119,8 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 	/* update current tree */
 	snode->edittree = ntree;
 	
+	ED_node_set_active_viewer_key(snode);
+	
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 }
 
@@ -134,6 +138,8 @@ void ED_node_tree_pop(SpaceNode *snode)
 	/* update current tree */
 	path = snode->treepath.last;
 	snode->edittree = path->nodetree;
+	
+	ED_node_set_active_viewer_key(snode);
 	
 	/* listener updates the View2D center from edittree */
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
@@ -205,6 +211,14 @@ void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_lengt
 		if (max_length <= 0)
 			break;
 		value += size;
+	}
+}
+
+void ED_node_set_active_viewer_key(SpaceNode *snode)
+{
+	bNodeTreePath *path = snode->treepath.last;
+	if (snode->nodetree && path) {
+		snode->nodetree->active_viewer_key = path->parent_key;
 	}
 }
 

@@ -293,6 +293,7 @@ void node_select_single(bContext *C, bNode *node)
 	nodeSetSelected(node, TRUE);
 	
 	ED_node_set_active(bmain, snode->edittree, node);
+	ED_node_set_active_viewer_key(snode);
 	
 	ED_node_sort(snode->edittree);
 	
@@ -374,8 +375,10 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	}
 	
 	/* update node order */
-	if (selected)
+	if (selected) {
+		ED_node_set_active_viewer_key(snode);
 		ED_node_sort(snode->edittree);
+	}
 	
 	return selected;
 }
