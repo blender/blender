@@ -2364,6 +2364,11 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_BevelModifier_defgrp_name_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "overlap_ok", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_OVERLAP_OK);
+	RNA_def_property_ui_text(prop, "Allow Overlap", "Do not clamp the width to avoid overlap");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 #endif
 
 }

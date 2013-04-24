@@ -111,6 +111,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	BevelModifierData *bmd = (BevelModifierData *) md;
 	const float threshold = cosf((bmd->bevel_angle + 0.00001f) * (float)M_PI / 180.0f);
 	const bool vertex_only = bmd->flags & BME_BEVEL_VERT;
+	const bool do_clamp = !(bmd->flags & BME_BEVEL_OVERLAP_OK);
 
 	bm = DM_to_bmesh(dm);
 
@@ -160,7 +161,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	}
 
 	BM_mesh_bevel(bm, bmd->value, bmd->res,
-	              vertex_only, bmd->lim_flags & BME_BEVEL_WEIGHT, true,
+	              vertex_only, bmd->lim_flags & BME_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup);
 
 	result = CDDM_from_bmesh(bm, TRUE);

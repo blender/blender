@@ -119,12 +119,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop(md, "end_cap")
 
     def BEVEL(self, layout, ob, md):
-        split = layout.split()
-
-        split.prop(md, "width")
-        split.prop(md, "use_only_vertices")
-
+        layout.prop(md, "width")
         layout.prop(md, "segments")
+
+        split = layout.split()
+        split.prop(md, "use_only_vertices")
+        split.prop(md, "overlap_ok")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)

@@ -66,6 +66,8 @@
 	                                       * here because they are mixed - campbell */
 #define BME_BEVEL_DIST          (1 << 12) /* same as above */
 
+#define BME_BEVEL_OVERLAP_OK    (1 << 13)
+
 typedef struct BME_TransData {
 	struct BMesh *bm; /* the bmesh the vert belongs to */
 	struct BMVert *v;  /* pointer to the vert this tdata applies to */
