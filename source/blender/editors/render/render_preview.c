@@ -531,6 +531,7 @@ static int ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, r
 	int offx = 0;
 	int newx = BLI_rcti_size_x(rect);
 	int newy = BLI_rcti_size_y(rect);
+	int ok = 0;
 
 	if (!split || first) sprintf(name, "Preview %p", (void *)sa);
 	else sprintf(name, "SecondPreview %p", (void *)sa);
@@ -549,7 +550,6 @@ static int ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, r
 	/* test if something rendered ok */
 	re = RE_GetRender(name);
 	RE_AcquireResultImage(re, &rres);
-	RE_ReleaseResultImage(re);
 
 	if (rres.rectf) {
 		
@@ -568,12 +568,17 @@ static int ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, r
 				
 				MEM_freeN(rect_byte);
 				
-				return 1;
+				ok = 1;
 			}
 		}
 	}
+	else {
+		ok = 1;
+	}
 
-	return 0;
+	RE_ReleaseResultImage(re);
+
+	return ok;
 }
 
 void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, rcti *rect)
