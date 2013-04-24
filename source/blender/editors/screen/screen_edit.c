@@ -1448,6 +1448,36 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 		BKE_libblock_free(&bmain->screen, sc);
 }
 
+static void ed_screen_set_3dview_camera(Scene *scene, bScreen *sc, ScrArea *sa, View3D *v3d)
+{
+	/* fix any cameras that are used in the 3d view but not in the scene */
+	BKE_screen_view3d_sync(v3d, scene);
+
+	if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
+		v3d->camera = BKE_scene_camera_find(sc->scene);
+		// XXX if (sc == curscreen) handle_view3d_lock();
+		if (!v3d->camera) {
+			ARegion *ar;
+			ListBase *regionbase;
+			
+			/* regionbase is in different place depending if space is active */
+			if (v3d == sa->spacedata.first)
+				regionbase = &sa->regionbase;
+			else
+				regionbase = &v3d->regionbase;
+				
+			for (ar = regionbase->first; ar; ar = ar->next) {
+				if (ar->regiontype == RGN_TYPE_WINDOW) {
+					RegionView3D *rv3d = ar->regiondata;
+					if (rv3d->persp == RV3D_CAMOB) {
+						rv3d->persp = RV3D_PERSP;
+					}
+				}
+			}
+		}
+	}
+}
+
 /* only call outside of area/region loops */
 void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 {
@@ -1487,28 +1517,8 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 				while (sl) {
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *) sl;
+						ed_screen_set_3dview_camera(scene, sc, sa, v3d);
 
-						BKE_screen_view3d_sync(v3d, scene);
-
-						if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
-							v3d->camera = BKE_scene_camera_find(sc->scene);
-							// XXX if (sc == curscreen) handle_view3d_lock();
-							if (!v3d->camera) {
-								ListBase *regionbase[] = {&sa->regionbase, &v3d->regionbase, NULL};
-								int i;
-								for (i = 0; regionbase[i]; i++) {
-									ARegion *ar;
-									for (ar = regionbase[i]->first; ar; ar = ar->next) {
-										if (ar->regiontype == RGN_TYPE_WINDOW) {
-											RegionView3D *rv3d = ar->regiondata;
-											if (rv3d->persp == RV3D_CAMOB) {
-												rv3d->persp = RV3D_PERSP;
-											}
-										}
-									}
-								}
-							}
-						}
 					}
 					sl = sl->next;
 				}
