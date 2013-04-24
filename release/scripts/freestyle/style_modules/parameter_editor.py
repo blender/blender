@@ -356,9 +356,9 @@ def iter_material_color(stroke, material_attribute):
     while not it.is_end:
         material = func(Interface0DIterator(it))
         if material_attribute == 'DIFF':
-            color = material.diffuse[:]
+            color = material.diffuse[0:3]
         elif material_attribute == 'SPEC':
-            color = material.specular[:]
+            color = material.specular[0:3]
         else:
             raise ValueError("unexpected material attribute: " + material_attribute)
         yield it, color
@@ -370,7 +370,7 @@ def iter_material_value(stroke, material_attribute):
     while not it.is_end:
         material = func(Interface0DIterator(it))
         if material_attribute == 'DIFF':
-            r, g, b = material.diffuse
+            r, g, b = material.diffuse[0:3]
             t = 0.35 * r + 0.45 * r + 0.2 * b
         elif material_attribute == 'DIFF_R':
             t = material.diffuse[0]
@@ -379,7 +379,7 @@ def iter_material_value(stroke, material_attribute):
         elif material_attribute == 'DIFF_B':
             t = material.diffuse[2]
         elif material_attribute == 'SPEC':
-            r, g, b = material.specular
+            r, g, b = material.specular[0:3]
             t = 0.35 * r + 0.45 * r + 0.2 * b
         elif material_attribute == 'SPEC_R':
             t = material.specular[0]
