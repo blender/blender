@@ -147,11 +147,17 @@ FreestyleLineStyle *BKE_copy_linestyle(FreestyleLineStyle *linestyle)
 	new_linestyle->caps = linestyle->caps;
 	new_linestyle->chaining = linestyle->chaining;
 	new_linestyle->rounds = linestyle->rounds;
+	new_linestyle->split_length = linestyle->split_length;
 	new_linestyle->min_angle = linestyle->min_angle;
 	new_linestyle->max_angle = linestyle->max_angle;
 	new_linestyle->min_length = linestyle->min_length;
 	new_linestyle->max_length = linestyle->max_length;
-	new_linestyle->split_length = linestyle->split_length;
+	new_linestyle->split_dash1 = linestyle->split_dash1;
+	new_linestyle->split_gap1 = linestyle->split_gap1;
+	new_linestyle->split_dash2 = linestyle->split_dash2;
+	new_linestyle->split_gap2 = linestyle->split_gap2;
+	new_linestyle->split_dash3 = linestyle->split_dash3;
+	new_linestyle->split_gap3 = linestyle->split_gap3;
 	new_linestyle->dash1 = linestyle->dash1;
 	new_linestyle->gap1 = linestyle->gap1;
 	new_linestyle->dash2 = linestyle->dash2;
@@ -291,6 +297,7 @@ LineStyleModifier *BKE_copy_linestyle_color_modifier(FreestyleLineStyle *linesty
 			LineStyleColorModifier_Material *p = (LineStyleColorModifier_Material *)m;
 			LineStyleColorModifier_Material *q = (LineStyleColorModifier_Material *)new_m;
 			q->color_ramp = MEM_dupallocN(p->color_ramp);
+			q->flags = p->flags;
 			q->mat_attr = p->mat_attr;
 		}
 		break;
@@ -405,6 +412,7 @@ LineStyleModifier *BKE_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 			LineStyleAlphaModifier_AlongStroke *p = (LineStyleAlphaModifier_AlongStroke *)m;
 			LineStyleAlphaModifier_AlongStroke *q = (LineStyleAlphaModifier_AlongStroke *)new_m;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 		}
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
@@ -412,6 +420,7 @@ LineStyleModifier *BKE_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 			LineStyleAlphaModifier_DistanceFromCamera *p = (LineStyleAlphaModifier_DistanceFromCamera *)m;
 			LineStyleAlphaModifier_DistanceFromCamera *q = (LineStyleAlphaModifier_DistanceFromCamera *)new_m;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->range_min = p->range_min;
 			q->range_max = p->range_max;
 		}
@@ -424,6 +433,7 @@ LineStyleModifier *BKE_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 				p->target->id.us++;
 			q->target = p->target;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->range_min = p->range_min;
 			q->range_max = p->range_max;
 		}
@@ -433,6 +443,7 @@ LineStyleModifier *BKE_copy_linestyle_alpha_modifier(FreestyleLineStyle *linesty
 			LineStyleAlphaModifier_Material *p = (LineStyleAlphaModifier_Material *)m;
 			LineStyleAlphaModifier_Material *q = (LineStyleAlphaModifier_Material *)new_m;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->mat_attr = p->mat_attr;
 		}
 		break;
@@ -569,6 +580,7 @@ LineStyleModifier *BKE_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 			LineStyleThicknessModifier_AlongStroke *p = (LineStyleThicknessModifier_AlongStroke *)m;
 			LineStyleThicknessModifier_AlongStroke *q = (LineStyleThicknessModifier_AlongStroke *)new_m;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->value_min = p->value_min;
 			q->value_max = p->value_max;
 		}
@@ -578,6 +590,7 @@ LineStyleModifier *BKE_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 			LineStyleThicknessModifier_DistanceFromCamera *p = (LineStyleThicknessModifier_DistanceFromCamera *)m;
 			LineStyleThicknessModifier_DistanceFromCamera *q = (LineStyleThicknessModifier_DistanceFromCamera *)new_m;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->range_min = p->range_min;
 			q->range_max = p->range_max;
 			q->value_min = p->value_min;
@@ -592,6 +605,7 @@ LineStyleModifier *BKE_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 				p->target->id.us++;
 			q->target = p->target;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->range_min = p->range_min;
 			q->range_max = p->range_max;
 			q->value_min = p->value_min;
@@ -603,6 +617,7 @@ LineStyleModifier *BKE_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 			LineStyleThicknessModifier_Material *p = (LineStyleThicknessModifier_Material *)m;
 			LineStyleThicknessModifier_Material *q = (LineStyleThicknessModifier_Material *)new_m;
 			q->curve = curvemapping_copy(p->curve);
+			q->flags = p->flags;
 			q->mat_attr = p->mat_attr;
 			q->value_min = p->value_min;
 			q->value_max = p->value_max;
@@ -862,8 +877,9 @@ LineStyleModifier *BKE_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 			LineStyleGeometryModifier_PerlinNoise1D *q = (LineStyleGeometryModifier_PerlinNoise1D *)new_m;
 			q->frequency = p->frequency;
 			q->amplitude = p->amplitude;
-			q->octaves = p->octaves;
 			q->angle = p->angle;
+			q->octaves = p->octaves;
+			q->seed = p->seed;
 		}
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_2D:
@@ -872,8 +888,9 @@ LineStyleModifier *BKE_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 			LineStyleGeometryModifier_PerlinNoise2D *q = (LineStyleGeometryModifier_PerlinNoise2D *)new_m;
 			q->frequency = p->frequency;
 			q->amplitude = p->amplitude;
-			q->octaves = p->octaves;
 			q->angle = p->angle;
+			q->octaves = p->octaves;
+			q->seed = p->seed;
 		}
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:

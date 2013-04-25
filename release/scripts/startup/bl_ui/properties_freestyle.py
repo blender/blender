@@ -342,10 +342,10 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
 
             elif modifier.type == 'MATERIAL':
                 row = box.row()
-                row.prop(modifier, "material_attr", text="")
+                row.prop(modifier, "material_attribute", text="")
                 sub = row.column()
                 sub.prop(modifier, "use_ramp")
-                if modifier.material_attr in {'DIFF', 'SPEC'}:
+                if modifier.material_attribute in {'DIFF', 'SPEC'}:
                     sub.active = True
                     show_ramp = modifier.use_ramp
                 else:
@@ -380,7 +380,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 prop.name = modifier.name
 
             elif modifier.type == 'MATERIAL':
-                box.prop(modifier, "material_attr", text="")
+                box.prop(modifier, "material_attribute", text="")
                 self.draw_modifier_curve_common(box, modifier, False, False)
 
     def draw_thickness_modifier(self, context, modifier):
