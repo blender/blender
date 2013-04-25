@@ -71,12 +71,14 @@
  * \param r_no  hit normal (optional).
  * \param co_ss  Screenspace coordinate.
  * \param use_depth  Snap to the closest element, use when using more then one snap type.
+ * \param use_obedit  Use editmode cage.
  * \param use_vert  Snap to verts.
  * \param use_edge  Snap to edges.
  * \param use_face  Snap to faces.
  * \return Snap success
  */
-static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const float co_ss[2], bool use_depth,
+static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const float co_ss[2],
+                              bool use_depth, bool use_obedit,
                               bool use_vert, bool use_edge, bool use_face)
 {
 	float dist_px = MVAL_MAX_PX_DIST;  /* snap dist */
@@ -88,7 +90,7 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const f
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
-	struct Object *obedit = CTX_data_edit_object(C);
+	struct Object *obedit = use_obedit ? CTX_data_edit_object(C) : NULL;
 
 	BLI_assert(use_vert || use_edge || use_face);
 
@@ -733,7 +735,7 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 
 			co_other = ruler_item->co[ruler_item->co_index == 0 ? 2 : 0];
 
-			if (ED_view3d_snap_co(C, co, ray_normal, mval_fl, true,
+			if (ED_view3d_snap_co(C, co, ray_normal, mval_fl, true, false,
 			                      false, false, true))
 			{
 				negate_v3(ray_normal);
@@ -747,7 +749,7 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 			const float mval_fl[2] = {UNPACK2(mval)};
 			View3D *v3d = CTX_wm_view3d(C);
 			bool use_depth = (v3d->drawtype >= OB_SOLID);
-			bool is_hit = ED_view3d_snap_co(C, co, NULL, mval_fl, use_depth,
+			bool is_hit = ED_view3d_snap_co(C, co, NULL, mval_fl, use_depth, false,
 			                                true, true, use_depth);
 
 			if (is_hit) {
