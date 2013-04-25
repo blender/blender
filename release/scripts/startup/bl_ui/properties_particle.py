@@ -524,16 +524,16 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
                 if fluid.solver == 'DDR':
                     sub = col.row()
-                    sub.prop(fluid, "repulsion", slider=fluid.use_factor_repulsion)
-                    sub.prop(fluid, "use_factor_repulsion", text="")
+                    sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
+                    sub.prop(fluid, "factor_repulsion", text="")
 
                     sub = col.row()
-                    sub.prop(fluid, "stiff_viscosity", slider=fluid.use_factor_stiff_viscosity)
-                    sub.prop(fluid, "use_factor_stiff_viscosity", text="")
+                    sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
+                    sub.prop(fluid, "factor_stiff_viscosity", text="")
 
                 sub = col.row()
-                sub.prop(fluid, "fluid_radius", slider=fluid.use_factor_radius)
-                sub.prop(fluid, "use_factor_radius", text="")
+                sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
+                sub.prop(fluid, "factor_radius", text="")
 
                 sub = col.row()
                 sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
@@ -563,8 +563,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                     col = split.column()
                     col.label(text="Advanced:")
                     sub = col.row()
-                    sub.prop(fluid, "rest_length", slider=fluid.use_factor_rest_length)
-                    sub.prop(fluid, "use_factor_rest_length", text="")
+                    sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
+                    sub.prop(fluid, "factor_rest_length", text="")
                     col.label(text="")
                     sub = col.column()
                     sub.active = fluid.use_viscoelastic_springs
