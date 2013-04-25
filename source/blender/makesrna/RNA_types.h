@@ -146,7 +146,7 @@ typedef enum PropertySubType {
 } PropertySubType;
 
 /* Make sure enums are updated with thses */
-/* HIGHEST FLAG IN USE: 1 << 28 */
+/* HIGHEST FLAG IN USE: 1 << 29 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -226,7 +226,8 @@ typedef enum PropertyFlag {
 	PROP_RAW_ARRAY = (1 << 14),
 	PROP_FREE_POINTERS = (1 << 15),
 	PROP_DYNAMIC = (1 << 17), /* for dynamic arrays, and retvals of type string */
-	PROP_ENUM_NO_CONTEXT = (1 << 24) /* for enum that shouldn't be contextual */
+	PROP_ENUM_NO_CONTEXT = (1 << 24), /* for enum that shouldn't be contextual */
+	PROP_ENUM_NO_TRANSLATE = (1 << 29), /* for enums that shouldn't be translated (e.g. renderlayers' names in nodes) */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {

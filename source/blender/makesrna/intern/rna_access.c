@@ -1256,7 +1256,7 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
 
 #ifdef WITH_INTERNATIONAL
-	{
+	if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
 		int i;
 		/* Note: Only do those tests once, and then use BLF_pgettext. */
 		int do_iface = BLF_translate_iface();

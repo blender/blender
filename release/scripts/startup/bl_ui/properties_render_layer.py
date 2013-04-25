@@ -38,7 +38,7 @@ class RENDERLAYER_UL_renderlayers(UIList):
         # assert(isinstance(item, bpy.types.SceneRenderLayer)
         layer = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(layer.name, icon_value=icon)
+            layout.label(layer.name, icon_value=icon, translate=False)
             layout.prop(layer, "use", text="", index=index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'

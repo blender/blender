@@ -3715,6 +3715,7 @@ static void def_node_image_user(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "layer");
 	RNA_def_property_enum_items(prop, prop_image_layer_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_layer_itemf");
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	RNA_def_property_ui_text(prop, "Layer", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_image_layer_update");
 }
@@ -3769,6 +3770,7 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, prop_scene_layer_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	RNA_def_property_ui_text(prop, "Layer", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
