@@ -4862,12 +4862,14 @@ void RE_Database_Free(Render *re)
 	if (re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
 		re->wrld.aosphere= NULL;
-		re->scene->world->aosphere= NULL;
+		if (re->scene)
+			re->scene->world->aosphere= NULL;
 	}
 	if (re->wrld.aotables) {
 		MEM_freeN(re->wrld.aotables);
 		re->wrld.aotables= NULL;
-		re->scene->world->aotables= NULL;
+		if (re->scene)
+			re->scene->world->aotables= NULL;
 	}
 	if (re->r.mode & R_RAYTRACE)
 		free_render_qmcsampler(re);

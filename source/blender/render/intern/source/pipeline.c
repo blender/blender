@@ -1676,14 +1676,16 @@ static void composite_freestyle_renders(Render *re, int sample)
 static void free_all_freestyle_renders(void)
 {
 	Render *re1, *freestyle_render;
+	Scene *freestyle_scene;
 	LinkData *link;
 
 	for (re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			if (link->data) {
 				freestyle_render = (Render *)link->data;
-				BKE_scene_unlink(&re1->freestyle_bmain, freestyle_render->scene, NULL);
+				freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
+				BKE_scene_unlink(&re1->freestyle_bmain, freestyle_scene, NULL);
 			}
 		}
 		BLI_freelistN(&re1->freestyle_renders);
