@@ -853,7 +853,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 	const char *name = view3d_get_name(v3d, rv3d);
 	/* XXX 24 may be a bit small for unicode languages (Chinese in utf-8...) */
 #ifdef WITH_INTERNATIONAL
-	char tmpstr[32];
+	char tmpstr[64];
 #else
 	char tmpstr[24];
 #endif
