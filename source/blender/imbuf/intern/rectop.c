@@ -34,6 +34,7 @@
 #include <stdlib.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
@@ -54,20 +55,20 @@ static void blend_color_mix(char cp[3], const char cp1[3], const char cp2[3], co
 	 * errors that can turn colors black fast after repeated blending */
 	const int mfac = 255 - fac;
 
-	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
-	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
-	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[0] = divide_round_i((mfac * cp1[0] + fac * cp2[0]), 255);
+	cp[1] = divide_round_i((mfac * cp1[1] + fac * cp2[1]), 255);
+	cp[2] = divide_round_i((mfac * cp1[2] + fac * cp2[2]), 255);
 }
 
 static void blend_color_add(char cp[3], const char cp1[3], const char cp2[3], const int fac)
 {
 	int temp;
 
-	temp = cp1[0] + ((fac * cp2[0]) / 255);
+	temp = cp1[0] + divide_round_i(fac * cp2[0], 255);
 	if (temp > 254) cp[0] = 255; else cp[0] = temp;
-	temp = cp1[1] + ((fac * cp2[1]) / 255);
+	temp = cp1[1] + divide_round_i(fac * cp2[1] , 255);
 	if (temp > 254) cp[1] = 255; else cp[1] = temp;
-	temp = cp1[2] + ((fac * cp2[2]) / 255);
+	temp = cp1[2] + divide_round_i(fac * cp2[2] , 255);
 	if (temp > 254) cp[2] = 255; else cp[2] = temp;
 }
 
@@ -75,11 +76,11 @@ static void blend_color_sub(char cp[3], const char cp1[3], const char cp2[3], co
 {
 	int temp;
 
-	temp = cp1[0] - ((fac * cp2[0]) / 255);
+	temp = cp1[0] - divide_round_i(fac * cp2[0], 255);
 	if (temp < 0) cp[0] = 0; else cp[0] = temp;
-	temp = cp1[1] - ((fac * cp2[1]) / 255);
+	temp = cp1[1] - divide_round_i(fac * cp2[1], 255);
 	if (temp < 0) cp[1] = 0; else cp[1] = temp;
-	temp = cp1[2] - ((fac * cp2[2]) / 255);
+	temp = cp1[2] - divide_round_i(fac * cp2[2], 255);
 	if (temp < 0) cp[2] = 0; else cp[2] = temp;
 }
 
@@ -88,9 +89,9 @@ static void blend_color_mul(char cp[3], const char cp1[3], const char cp2[3], co
 	int mfac = 255 - fac;
 	
 	/* first mul, then blend the fac */
-	cp[0] = (mfac * cp1[0] + fac * ((cp1[0] * cp2[0]) / 255)) / 255;
-	cp[1] = (mfac * cp1[1] + fac * ((cp1[1] * cp2[1]) / 255)) / 255;
-	cp[2] = (mfac * cp1[2] + fac * ((cp1[2] * cp2[2]) / 255)) / 255;
+	cp[0] = divide_round_i((mfac * cp1[0] * 255) + (fac * cp1[0] * cp2[0]), 255*255);
+	cp[1] = divide_round_i((mfac * cp1[1] * 255) + (fac * cp1[1] * cp2[1]), 255*255);
+	cp[2] = divide_round_i((mfac * cp1[2] * 255) + (fac * cp1[2] * cp2[2]), 255*255);
 }
 
 static void blend_color_lighten(char cp[3], const char cp1[3], const char cp2[3], const int fac)
@@ -123,7 +124,7 @@ static void blend_color_darken(char cp[3], const char cp1[3], const char cp2[3],
 
 static void blend_color_erase_alpha(char cp[4], const char cp1[4], const char cp2[4], const int fac)
 {
-	int temp = (cp1[3] - fac * cp2[3] / 255);
+	int temp = divide_round_i(cp1[3] - fac * cp2[3], 255);
 
 	cp[0] = cp1[0];
 	cp[1] = cp1[1];
@@ -133,7 +134,7 @@ static void blend_color_erase_alpha(char cp[4], const char cp1[4], const char cp
 
 static void blend_color_add_alpha(char cp[4], const char cp1[4], const char cp2[4], const int fac)
 {
-	int temp = (cp1[3] + fac * cp2[3] / 255);
+	int temp = divide_round_i(cp1[3] + fac * cp2[3], 255);
 
 	cp[0] = cp1[0];
 	cp[1] = cp1[1];
@@ -175,11 +176,11 @@ unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_
 	}
 
 	if (mode == IMB_BLEND_ERASE_ALPHA) {
-		temp = (cp1[3] - fac * cp2[3] / 255);
+		temp = divide_round_i(cp1[3] - fac * cp2[3], 255);
 		cp[3] = (temp < 0) ? 0 : temp;
 	}
 	else { /* this does ADD_ALPHA also */
-		temp = (cp1[3] + fac * cp2[3] / 255);
+		temp = divide_round_i(cp1[3] + fac * cp2[3], 255);
 		cp[3] = (temp > 255) ? 255 : temp;
 	}
 

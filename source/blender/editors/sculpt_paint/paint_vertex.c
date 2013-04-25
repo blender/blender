@@ -256,9 +256,9 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	scol = scolmain;
 	while (a--) {
 		if (scol[0] > 1) {
-			scol[1] /= scol[0];
-			scol[2] /= scol[0];
-			scol[3] /= scol[0];
+			scol[1] = divide_round_i(scol[1], scol[0]);
+			scol[2] = divide_round_i(scol[2], scol[0]);
+			scol[3] = divide_round_i(scol[3], scol[0]);
 		}
 		scol += 4;
 	}
@@ -287,7 +287,7 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 {
 	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
 	MPoly *mp;
-	float (*scol)[4];
+	int (*scol)[4];
 	int i, j, has_shared = 0;
 
 	/* if no mloopcol: do not do */
@@ -295,7 +295,7 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 
 	if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0) return;
 
-	scol = MEM_callocN(sizeof(float) * me->totvert * 5, "scol");
+	scol = MEM_callocN(sizeof(int) * me->totvert * 5, "scol");
 
 	for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
 		if ((use_face_sel == FALSE) || (mp->flag & ME_FACE_SEL)) {
@@ -305,7 +305,7 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 				scol[ml->v][0] += lcol->r;
 				scol[ml->v][1] += lcol->g;
 				scol[ml->v][2] += lcol->b;
-				scol[ml->v][3] += 1.0f;
+				scol[ml->v][3] += 1;
 				has_shared = 1;
 			}
 		}
@@ -313,8 +313,10 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 
 	if (has_shared) {
 		for (i = 0; i < me->totvert; i++) {
-			if (scol[i][3] != 0.0f) {
-				mul_v3_fl(scol[i], 1.0f / scol[i][3]);
+			if (scol[i][3] != 0) {
+				scol[i][0] = divide_round_i(scol[i][0], scol[i][3]);
+				scol[i][1] = divide_round_i(scol[i][1], scol[i][3]);
+				scol[i][2] = divide_round_i(scol[i][2], scol[i][3]);
 			}
 		}
 
@@ -613,9 +615,9 @@ BLI_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac
 	cp2 = (unsigned char *)&col2;
 	cp  = (unsigned char *)&col;
 
-	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
-	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
-	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[0] = divide_round_i((mfac * cp1[0] + fac * cp2[0]), 255);
+	cp[1] = divide_round_i((mfac * cp1[1] + fac * cp2[1]), 255);
+	cp[2] = divide_round_i((mfac * cp1[2] + fac * cp2[2]), 255);
 	cp[3] = 255;
 
 	return col;
@@ -635,11 +637,11 @@ BLI_INLINE unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 	cp2 = (unsigned char *)&col2;
 	cp  = (unsigned char *)&col;
 
-	temp = cp1[0] + ((fac * cp2[0]) / 255);
+	temp = cp1[0] + divide_round_i((fac * cp2[0]), 255);
 	cp[0] = (temp > 254) ? 255 : temp;
-	temp = cp1[1] + ((fac * cp2[1]) / 255);
+	temp = cp1[1] + divide_round_i((fac * cp2[1]), 255);
 	cp[1] = (temp > 254) ? 255 : temp;
-	temp = cp1[2] + ((fac * cp2[2]) / 255);
+	temp = cp1[2] + divide_round_i((fac * cp2[2]), 255);
 	cp[2] = (temp > 254) ? 255 : temp;
 	cp[3] = 255;
 	
@@ -660,11 +662,11 @@ BLI_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 	cp2 = (unsigned char *)&col2;
 	cp  = (unsigned char *)&col;
 
-	temp = cp1[0] - ((fac * cp2[0]) / 255);
+	temp = cp1[0] - divide_round_i((fac * cp2[0]), 255);
 	cp[0] = (temp < 0) ? 0 : temp;
-	temp = cp1[1] - ((fac * cp2[1]) / 255);
+	temp = cp1[1] - divide_round_i((fac * cp2[1]), 255);
 	cp[1] = (temp < 0) ? 0 : temp;
-	temp = cp1[2] - ((fac * cp2[2]) / 255);
+	temp = cp1[2] - divide_round_i((fac * cp2[2]), 255);
 	cp[2] = (temp < 0) ? 0 : temp;
 	cp[3] = 255;
 
@@ -688,9 +690,9 @@ BLI_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	cp  = (unsigned char *)&col;
 
 	/* first mul, then blend the fac */
-	cp[0] = (mfac * cp1[0] + fac * ((cp2[0] * cp1[0]) / 255)) / 255;
-	cp[1] = (mfac * cp1[1] + fac * ((cp2[1] * cp1[1]) / 255)) / 255;
-	cp[2] = (mfac * cp1[2] + fac * ((cp2[2] * cp1[2]) / 255)) / 255;
+	cp[0] = divide_round_i(mfac * cp1[0] * 255 + fac * cp2[0] * cp1[0], 255*255);
+	cp[1] = divide_round_i(mfac * cp1[1] * 255 + fac * cp2[1] * cp1[1], 255*255);
+	cp[2] = divide_round_i(mfac * cp1[2] * 255 + fac * cp2[2] * cp1[2], 255*255);
 	cp[3] = 255;
 
 	return col;
@@ -721,9 +723,9 @@ BLI_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int f
 		return col1;
 	}
 
-	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
-	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
-	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[0] = divide_round_i(mfac * cp1[0] + fac * cp2[0], 255);
+	cp[1] = divide_round_i(mfac * cp1[1] + fac * cp2[1], 255);
+	cp[2] = divide_round_i(mfac * cp1[2] + fac * cp2[2], 255);
 	cp[3] = 255;
 
 	return col;
@@ -754,9 +756,9 @@ BLI_INLINE unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fa
 		return col1;
 	}
 
-	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
-	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
-	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[0] = divide_round_i((mfac * cp1[0] + fac * cp2[0]), 255);
+	cp[1] = divide_round_i((mfac * cp1[1] + fac * cp2[1]), 255);
+	cp[2] = divide_round_i((mfac * cp1[2] + fac * cp2[2]), 255);
 	cp[3] = 255;
 	return col;
 }
@@ -2790,6 +2792,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	unsigned int *lcolorig = ((unsigned int *)vp->vpaint_prev) + mpoly->loopstart;
 	float alpha;
 	int i, j;
+	int totloop = mpoly->totloop;
 
 	int brush_alpha_pressure_i = (int)(brush_alpha_pressure * 255.0f);
 
@@ -2798,7 +2801,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 		unsigned int tcol;
 		char *col;
 
-		for (j = 0; j < mpoly->totloop; j++) {
+		for (j = 0; j < totloop; j++) {
 			col = (char *)(lcol + j);
 			blend[0] += col[0];
 			blend[1] += col[1];
@@ -2806,10 +2809,10 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 			blend[3] += col[3];
 		}
 
-		blend[0] /= mpoly->totloop;
-		blend[1] /= mpoly->totloop;
-		blend[2] /= mpoly->totloop;
-		blend[3] /= mpoly->totloop;
+		blend[0] = divide_round_i(blend[0], totloop);
+		blend[1] = divide_round_i(blend[1], totloop);
+		blend[2] = divide_round_i(blend[2], totloop);
+		blend[3] = divide_round_i(blend[3], totloop);
 		col = (char *)&tcol;
 		col[0] = blend[0];
 		col[1] = blend[1];
@@ -2820,7 +2823,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	}
 
 	ml = me->mloop + mpoly->loopstart;
-	for (i = 0; i < mpoly->totloop; i++, ml++) {
+	for (i = 0; i < totloop; i++, ml++) {
 		float rgba[4];
 		unsigned int paintcol;
 		alpha = calc_vp_alpha_col_dl(vp, vc, vpd->vpimat,
@@ -2851,7 +2854,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 
 			ml = me->mloop + mpoly->loopstart;
 			mlc = me->mloopcol + mpoly->loopstart;
-			for (j = 0; j < mpoly->totloop; j++, ml++, mlc++) {
+			for (j = 0; j < totloop; j++, ml++, mlc++) {
 				if (ml->v == mf->v1) {
 					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 0);
 				}

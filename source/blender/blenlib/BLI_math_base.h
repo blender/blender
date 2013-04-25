@@ -213,6 +213,8 @@ MINLINE int is_power_of_2_i(int n);
 MINLINE int power_of_2_max_i(int n);
 MINLINE int power_of_2_min_i(int n);
 
+MINLINE int divide_round_i(int a, int b);
+
 MINLINE float shell_angle_to_dist(const float angle);
 
 #if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)

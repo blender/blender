@@ -145,6 +145,13 @@ MINLINE int power_of_2_min_i(int n)
 	return n;
 }
 
+/* integer division that rounds 0.5 up, particularly useful for color blending
+ * with integers, to avoid gradual darkening when rounding down */
+MINLINE int divide_round_i(int a, int b)
+{
+	return (2*a + b)/(2*b);
+}
+
 MINLINE unsigned int highest_order_bit_i(unsigned int n)
 {
 	n |= (n >>  1);
