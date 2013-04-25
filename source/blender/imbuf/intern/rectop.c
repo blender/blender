@@ -66,9 +66,9 @@ static void blend_color_add(char cp[3], const char cp1[3], const char cp2[3], co
 
 	temp = cp1[0] + divide_round_i(fac * cp2[0], 255);
 	if (temp > 254) cp[0] = 255; else cp[0] = temp;
-	temp = cp1[1] + divide_round_i(fac * cp2[1] , 255);
+	temp = cp1[1] + divide_round_i(fac * cp2[1], 255);
 	if (temp > 254) cp[1] = 255; else cp[1] = temp;
-	temp = cp1[2] + divide_round_i(fac * cp2[2] , 255);
+	temp = cp1[2] + divide_round_i(fac * cp2[2], 255);
 	if (temp > 254) cp[2] = 255; else cp[2] = temp;
 }
 
@@ -89,9 +89,9 @@ static void blend_color_mul(char cp[3], const char cp1[3], const char cp2[3], co
 	int mfac = 255 - fac;
 	
 	/* first mul, then blend the fac */
-	cp[0] = divide_round_i((mfac * cp1[0] * 255) + (fac * cp1[0] * cp2[0]), 255*255);
-	cp[1] = divide_round_i((mfac * cp1[1] * 255) + (fac * cp1[1] * cp2[1]), 255*255);
-	cp[2] = divide_round_i((mfac * cp1[2] * 255) + (fac * cp1[2] * cp2[2]), 255*255);
+	cp[0] = divide_round_i((mfac * cp1[0] * 255) + (fac * cp1[0] * cp2[0]), 255 * 255);
+	cp[1] = divide_round_i((mfac * cp1[1] * 255) + (fac * cp1[1] * cp2[1]), 255 * 255);
+	cp[2] = divide_round_i((mfac * cp1[2] * 255) + (fac * cp1[2] * cp2[2]), 255 * 255);
 }
 
 static void blend_color_lighten(char cp[3], const char cp1[3], const char cp2[3], const int fac)

@@ -703,9 +703,9 @@ BLI_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	cp  = (unsigned char *)&col;
 
 	/* first mul, then blend the fac */
-	cp[0] = divide_round_i(mfac * cp1[0] * 255 + fac * cp2[0] * cp1[0], 255*255);
-	cp[1] = divide_round_i(mfac * cp1[1] * 255 + fac * cp2[1] * cp1[1], 255*255);
-	cp[2] = divide_round_i(mfac * cp1[2] * 255 + fac * cp2[2] * cp1[2], 255*255);
+	cp[0] = divide_round_i(mfac * cp1[0] * 255 + fac * cp2[0] * cp1[0], 255 * 255);
+	cp[1] = divide_round_i(mfac * cp1[1] * 255 + fac * cp2[1] * cp1[1], 255 * 255);
+	cp[2] = divide_round_i(mfac * cp1[2] * 255 + fac * cp2[2] * cp1[2], 255 * 255);
 	cp[3] = 255;
 
 	return col;
@@ -2780,9 +2780,9 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 
 	/* to keep tracked of modified loops for shared vertex color blending */
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-		vpd->mlooptag = MEM_mallocN(sizeof(bool)*me->totloop, "VPaintData mlooptag");
+		vpd->mlooptag = MEM_mallocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
 		if (vpd->use_fast_update)
-			vpd->mfacetag = MEM_mallocN(sizeof(bool)*me->totface*4, "VPaintData mfacetag");
+			vpd->mfacetag = MEM_mallocN(sizeof(bool) * me->totface * 4, "VPaintData mfacetag");
 	}
 
 	/* for filtering */
@@ -2958,10 +2958,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(vc->rv3d->persmat, mat);
 
 	/* clear modified tag for blur tool */
-	if(vpd->mlooptag)
-		memset(vpd->mlooptag, 0, sizeof(bool)*me->totloop);
+	if (vpd->mlooptag)
+		memset(vpd->mlooptag, 0, sizeof(bool) * me->totloop);
 	if (vpd->mfacetag)
-		memset(vpd->mfacetag, 0, sizeof(bool)*me->totface*4);
+		memset(vpd->mfacetag, 0, sizeof(bool) * me->totface * 4);
 
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {

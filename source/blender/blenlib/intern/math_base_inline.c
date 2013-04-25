@@ -149,7 +149,7 @@ MINLINE int power_of_2_min_i(int n)
  * with integers, to avoid gradual darkening when rounding down */
 MINLINE int divide_round_i(int a, int b)
 {
-	return (2*a + b)/(2*b);
+	return (2 * a + b) / (2 * b);
 }
 
 MINLINE unsigned int highest_order_bit_i(unsigned int n)

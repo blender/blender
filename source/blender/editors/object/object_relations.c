@@ -1648,7 +1648,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, int flag
 				groupn = BKE_group_copy(group);
 
 				for (go = groupn->gobject.first; go; go = go->next)
-					go->ob = (Object*)go->ob->id.newid;
+					go->ob = (Object *)go->ob->id.newid;
 			}
 		}
 	}

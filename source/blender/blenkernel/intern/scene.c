@@ -177,7 +177,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		scen->stats = NULL;
 		scen->fps_info = NULL;
 
-		if(sce->rigidbody_world)
+		if (sce->rigidbody_world)
 			scen->rigidbody_world = BKE_rigidbody_world_copy(sce->rigidbody_world);
 
 		BLI_duplicatelist(&(scen->markers), &(sce->markers));

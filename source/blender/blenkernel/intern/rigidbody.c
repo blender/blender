@@ -748,11 +748,11 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw)
 void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
 {
 	if (rbw->group && rbw->group->id.newid)
-		rbw->group = (Group*)rbw->group->id.newid;
+		rbw->group = (Group *)rbw->group->id.newid;
 	if (rbw->constraints && rbw->constraints->id.newid)
-		rbw->constraints = (Group*)rbw->constraints->id.newid;
+		rbw->constraints = (Group *)rbw->constraints->id.newid;
 	if (rbw->effector_weights->group && rbw->effector_weights->group->id.newid)
-		rbw->effector_weights->group = (Group*)rbw->effector_weights->group->id.newid;
+		rbw->effector_weights->group = (Group *)rbw->effector_weights->group->id.newid;
 }
 
 /* Add rigid body settings to the specified object */
