@@ -94,18 +94,18 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const f
 
 	/* try snap edge, then face if it fails */
 	if (use_vert) {
-		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
-		                    co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
+		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
+		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
 	}
 	if (use_edge && (ret == false || use_depth)) {
 		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
-		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
-		                    co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
+		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
+		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
 	}
 	if (use_face && (ret == false || use_depth)) {
 		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
-		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
-		                    co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
+		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
+		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
 	}
 
 	return ret;
@@ -164,14 +164,18 @@ typedef struct RulerItem {
 	int   raycast_dir;  /* RULER_DIRECTION_* */
 } RulerItem;
 
+
+/* -------------------------------------------------------------------- */
+/* Ruler Info (one per session) */
+
 enum {
 	RULER_STATE_NORMAL = 0,
 	RULER_STATE_DRAG
 };
 
-
-/* -------------------------------------------------------------------- */
-/* Ruler Info (one per session) */
+enum {
+	RULER_SNAP_OK = (1 << 0),
+};
 
 typedef struct RulerInfo {
 	ListBase items;
@@ -673,6 +677,21 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 	BLF_disable(blf_mono_font, BLF_ROTATION);
 
 #undef ARC_STEPS
+
+	/* draw snap */
+	if ((ruler_info->snap_flag & RULER_SNAP_OK) && (ruler_info->state == RULER_STATE_DRAG)) {
+		ruler_item = ruler_item_active_get(ruler_info);
+		if (ruler_item) {
+			/* size from drawSnapping */
+			const float size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+			float co_ss[3];
+			ED_view3d_project_float_global(ar, ruler_item->co[ruler_item->co_index], co_ss, V3D_PROJ_TEST_NOP);
+
+			cpack(color_act);
+			circ(co_ss[0], co_ss[1], size * U.pixelsize);
+		}
+	}
+
 }
 
 /* free, use for both cancel and finish */
@@ -698,6 +717,8 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
                                         const bool do_thickness, const bool do_snap)
 {
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
+
+	ruler_info->snap_flag &= ~RULER_SNAP_OK;
 
 	if (ruler_item) {
 		float *co = ruler_item->co[ruler_item->co_index];
@@ -726,8 +747,12 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 			const float mval_fl[2] = {UNPACK2(mval)};
 			View3D *v3d = CTX_wm_view3d(C);
 			bool use_depth = (v3d->drawtype >= OB_SOLID);
-			ED_view3d_snap_co(C, co, NULL, mval_fl, use_depth,
-			                  true, true, use_depth);
+			bool is_hit = ED_view3d_snap_co(C, co, NULL, mval_fl, use_depth,
+			                                true, true, use_depth);
+
+			if (is_hit) {
+				ruler_info->snap_flag |= RULER_SNAP_OK;
+			}
 		}
 		return true;
 	}
@@ -819,6 +844,10 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 							do_draw = true;
 						}
 					}
+					if (ruler_info->snap_flag & RULER_SNAP_OK) {
+						ruler_info->snap_flag &= ~RULER_SNAP_OK;
+						do_draw = true;
+					}
 					ruler_info->state = RULER_STATE_NORMAL;
 				}
 			}
@@ -829,6 +858,9 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					    /* weak - but user friendly */
 					    (ruler_info->items.first == NULL))
 					{
+						View3D *v3d = CTX_wm_view3d(C);
+						const bool use_depth = (v3d->drawtype >= OB_SOLID);
+
 						/* Create new line */
 						RulerItem *ruler_item_prev = ruler_item_active_get(ruler_info);
 						RulerItem *ruler_item;
@@ -838,16 +870,24 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						ruler_item = ruler_item_add(ruler_info);
 						ruler_item_active_set(ruler_info, ruler_item);
 
-						/* initial depth either previous ruler, view offset */
-						if (ruler_item_prev) {
-							copy_v3_v3(ruler_info->drag_start_co, ruler_item_prev->co[ruler_item_prev->co_index]);
+						if (use_depth) {
+							/* snap the first point added, not essential but handy */
+							ruler_item->co_index = 0;
+							view3d_ruler_item_mousemove(C, ruler_info, event->mval, false, true);
+							copy_v3_v3(ruler_info->drag_start_co, ruler_item->co[ruler_item->co_index]);
 						}
 						else {
-							negate_v3_v3(ruler_info->drag_start_co, rv3d->ofs);
-						}
+							/* initial depth either previous ruler, view offset */
+							if (ruler_item_prev) {
+								copy_v3_v3(ruler_info->drag_start_co, ruler_item_prev->co[ruler_item_prev->co_index]);
+							}
+							else {
+								negate_v3_v3(ruler_info->drag_start_co, rv3d->ofs);
+							}
 
-						copy_v3_v3(ruler_item->co[0], ruler_info->drag_start_co);
-						view3d_ruler_item_project(ruler_info, ruler_item->co[0], event->mval);
+							copy_v3_v3(ruler_item->co[0], ruler_info->drag_start_co);
+							view3d_ruler_item_project(ruler_info, ruler_item->co[0], event->mval);
+						}
 
 						copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
 						ruler_item->co_index = 2;
