@@ -574,7 +574,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals, std::vector<
 			// For flat faces use face normal as vertex normal:
 
 			float vector[3];
-			BKE_mesh_calc_poly_normal(mpoly, mloops, verts, vector);
+			BKE_mesh_calc_poly_normal(mpoly, mloops+mpoly->loopstart, verts, vector);
 
 			Normal n = { vector[0], vector[1], vector[2] };
 			normals.push_back(n);
