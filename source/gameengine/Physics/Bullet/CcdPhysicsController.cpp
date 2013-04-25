@@ -536,7 +536,9 @@ void CcdPhysicsController::CreateRigidbody()
 		{
 			body->setAngularFactor(0.f);
 		}
-		body->setContactProcessingThreshold(m_cci.m_contactProcessingThreshold);
+		// use bullet's default contact processing theshold, blender's old default of 1 is too small here.
+		// if there's really a need to change this, it should be exposed in the ui first.
+//		body->setContactProcessingThreshold(m_cci.m_contactProcessingThreshold);
 		body->setSleepingThresholds(gLinearSleepingTreshold, gAngularSleepingTreshold);
 
 	}
