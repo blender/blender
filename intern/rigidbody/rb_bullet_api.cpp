@@ -133,7 +133,7 @@ rbDynamicsWorld *RB_dworld_new(const float gravity[3])
 	world->collisionConfiguration = new btDefaultCollisionConfiguration();
 	
 	world->dispatcher = new btCollisionDispatcher(world->collisionConfiguration);
-	btGImpactCollisionAlgorithm::registerAlgorithm((btCollisionDispatcher *)world->dispatcher); // XXX: experimental
+	btGImpactCollisionAlgorithm::registerAlgorithm((btCollisionDispatcher *)world->dispatcher);
 	
 	world->pairCache = new btDbvtBroadphase();
 	
