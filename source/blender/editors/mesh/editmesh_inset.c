@@ -208,8 +208,10 @@ static bool edbm_inset_calc(wmOperator *op)
 
 	if (use_individual) {
 		EDBM_op_init(em, &bmop, op,
-		             "inset_individual faces=%hf thickness=%f depth=%f use_even_offset=%b use_interpolate=%b",
-		             BM_ELEM_SELECT, thickness, depth, use_even_offset, use_interpolate);
+		             "inset_individual faces=%hf use_even_offset=%b  use_relative_offset=%b"
+		             "use_interpolate=%b thickness=%f depth=%f",
+		             BM_ELEM_SELECT, use_even_offset, use_relative_offset, use_interpolate,
+		             thickness, depth);
 	}
 	else {
 		EDBM_op_init(em, &bmop, op,

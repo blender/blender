@@ -76,6 +76,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 	const float thickness = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth = BMO_slot_float_get(op->slots_in, "depth");
 	const bool use_even_offset = BMO_slot_bool_get(op->slots_in, "use_even_offset");
+	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
 	const bool use_interpolate = BMO_slot_bool_get(op->slots_in, "use_interpolate");
 
 	/* Only tag faces in slot */
@@ -146,6 +147,10 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 			}
 
 			/* Modify vertices and their normals */
+			if (use_relative_offset) {
+				mul_v3_fl(tvec, (BM_edge_calc_length(l_iter->e) + BM_edge_calc_length(l_iter->prev->e)) / 2.0f);
+			}
+
 			madd_v3_v3fl(v_new_co, tvec, thickness);
 
 			/* Set normal, add depth and write new vertex position*/
