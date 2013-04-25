@@ -1615,10 +1615,10 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 	return retval;
 }
 static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit,
-                        const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
+                        const float mval[2], float *r_dist_px,
+                        float r_loc[3], float r_no[3], float *r_ray_dist, SnapMode mode)
 {
 	float ray_start[3], ray_normal[3];
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 
 	if (ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal, true) == false) {
 		return false;
@@ -1626,14 +1626,15 @@ static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v
 
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
 	                      NULL, NULL,
-	                      ray_start, ray_normal, &ray_dist,
+	                      ray_start, ray_normal, r_ray_dist,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 
 bool snapObjectsTransform(TransInfo *t, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
+	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 	return snapObjects(t->scene, t->scene->toolsettings->snap_mode, t->scene->basact, t->view, t->ar, t->obedit,
-	                   mval, r_dist_px, r_loc, r_no, mode);
+	                   mval, r_dist_px, r_loc, r_no, &ray_dist, mode);
 }
 
 bool snapObjectsContext(bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
@@ -1643,15 +1644,19 @@ bool snapObjectsContext(bContext *C, const float mval[2], float *r_dist_px, floa
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	Object *obedit = CTX_data_edit_object(C);
+	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 
-	return snapObjects(scene, scene->toolsettings->snap_mode, scene->basact, v3d, ar, obedit, mval, r_dist_px, r_loc, r_no, mode);
+	return snapObjects(scene, scene->toolsettings->snap_mode, scene->basact, v3d, ar, obedit,
+	                   mval, r_dist_px, r_loc, r_no, &ray_dist, mode);
 }
 
 bool snapObjectsEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit, short snap_mode,
-                   const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
+                   const float mval[2], float *r_dist_px,
+                   float r_loc[3], float r_no[3], float *r_ray_dist, SnapMode mode)
 {
 	return snapObjects(scene, snap_mode, base_act, v3d, ar, obedit,
-	                   mval, r_dist_px, r_loc, r_no, mode);
+	                   mval, r_dist_px,
+	                   r_loc, r_no, r_ray_dist, mode);
 }
 bool snapObjectsRayEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit, short snap_mode,
                       Object **r_ob, float r_obmat[4][4],

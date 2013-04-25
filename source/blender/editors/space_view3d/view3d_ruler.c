@@ -27,6 +27,7 @@
 /* defines VIEW3D_OT_ruler modal operator */
 
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_gpencil_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -60,11 +61,27 @@
 /* NOTE - this is not very nice use of transform snapping */
 #include "ED_transform.h"
 
-static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2], float r_no[3],
+#define MVAL_MAX_PX_DIST 12.0f
+
+/**
+ * Convenience function for performing snapping.
+ *
+ * \param C  Context.
+ * \param r_co  hit location.
+ * \param r_no  hit normal (optional).
+ * \param co_ss  Screenspace coordinate.
+ * \param use_depth  Snap to the closest element, use when using more then one snap type.
+ * \param use_vert  Snap to verts.
+ * \param use_edge  Snap to edges.
+ * \param use_face  Snap to faces.
+ * \return Snap success
+ */
+static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const float co_ss[2], bool use_depth,
                               bool use_vert, bool use_edge, bool use_face)
 {
-	float dist_px = 12;  /* snap dist */
+	float dist_px = MVAL_MAX_PX_DIST;  /* snap dist */
 	float r_no_dummy[3];
+	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 	bool ret = false;
 	float *r_no_ptr = r_no ? r_no : r_no_dummy;
 
@@ -73,18 +90,22 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2], 
 	ARegion *ar = CTX_wm_region(C);
 	struct Object *obedit = CTX_data_edit_object(C);
 
+	BLI_assert(use_vert || use_edge || use_face);
+
 	/* try snap edge, then face if it fails */
 	if (use_vert) {
 		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
-		                    co_ss, &dist_px, r_co, r_no_ptr, SNAP_ALL);
+		                    co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
 	}
-	if (use_edge && (ret == false)) {
+	if (use_edge && (ret == false || use_depth)) {
+		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
 		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
-		                    co_ss, &dist_px, r_co, r_no_ptr, SNAP_ALL);
+		                    co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
 	}
-	if (use_face && (ret == false)) {
+	if (use_face && (ret == false || use_depth)) {
+		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
 		ret = snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
-		                    co_ss, &dist_px, r_co, r_no_ptr, SNAP_ALL);
+		                    co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
 	}
 
 	return ret;
@@ -93,7 +114,7 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], const float co_ss[2], 
 static bool ED_view3d_snap_ray(bContext *C, float r_co[3],
                                const float ray_start[3], const float ray_normal[3])
 {
-	float dist_px = 12;  /* snap dist */
+	float dist_px = MVAL_MAX_PX_DIST;  /* snap dist */
 	float r_no_dummy[3];
 	float ray_dist = TRANSFORM_DIST_MAX_RAY;
 	bool ret;
@@ -126,7 +147,8 @@ enum {
 	RULERITEM_DIRECTION_OUT
 };
 
-#define RULER_PICK_DIST 75.0f
+/* keep smaller then selection, since we may want click elsewhere without selecting a ruler */
+#define RULER_PICK_DIST 12.0f
 #define RULER_PICK_DIST_SQ (RULER_PICK_DIST * RULER_PICK_DIST)
 
 typedef struct RulerItem {
@@ -690,7 +712,7 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 
 			co_other = ruler_item->co[ruler_item->co_index == 0 ? 2 : 0];
 
-			if (ED_view3d_snap_co(C, co, mval_fl, ray_normal,
+			if (ED_view3d_snap_co(C, co, ray_normal, mval_fl, true,
 			                      false, false, true))
 			{
 				negate_v3(ray_normal);
@@ -702,8 +724,10 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 		}
 		else if (do_snap) {
 			const float mval_fl[2] = {UNPACK2(mval)};
-			ED_view3d_snap_co(C, co, mval_fl, NULL,
-			                  true, true, true);
+			View3D *v3d = CTX_wm_view3d(C);
+			bool use_depth = (v3d->drawtype >= OB_SOLID);
+			ED_view3d_snap_co(C, co, NULL, mval_fl, use_depth,
+			                  true, true, use_depth);
 		}
 		return true;
 	}
