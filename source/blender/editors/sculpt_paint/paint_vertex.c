@@ -221,7 +221,7 @@ unsigned int vpaint_get_current_col(VPaint *vp)
 	return *(unsigned int *)col;
 }
 
-static void do_shared_vertex_tesscol(Mesh *me)
+static void do_shared_vertex_tesscol(Mesh *me, bool *mfacetag)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
@@ -230,6 +230,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	int a;
 	short *scolmain, *scol;
 	char *mcol;
+	bool *mftag;
 	
 	if (me->mcol == NULL || me->totvert == 0 || me->totface == 0) return;
 	
@@ -265,15 +266,25 @@ static void do_shared_vertex_tesscol(Mesh *me)
 
 	mface = me->mface;
 	mcol = (char *)me->mcol;
-	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
+	mftag = mfacetag;
+	for (a = me->totface; a > 0; a--, mface++, mcol += 16, mftag += 4) {
 		if ((use_face_sel == FALSE) || (mface->flag & ME_FACE_SEL)) {
-			scol = scolmain + 4 * mface->v1;
-			mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
-			scol = scolmain + 4 * mface->v2;
-			mcol[5] = scol[1]; mcol[6] = scol[2]; mcol[7] = scol[3];
-			scol = scolmain + 4 * mface->v3;
-			mcol[9] = scol[1]; mcol[10] = scol[2]; mcol[11] = scol[3];
-			if (mface->v4) {
+			if (mftag[0]) {
+				scol = scolmain + 4 * mface->v1;
+				mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
+			}
+
+			if (mftag[1]) {
+				scol = scolmain + 4 * mface->v2;
+				mcol[5] = scol[1]; mcol[6] = scol[2]; mcol[7] = scol[3];
+			}
+
+			if (mftag[2]) {
+				scol = scolmain + 4 * mface->v3;
+				mcol[9] = scol[1]; mcol[10] = scol[2]; mcol[11] = scol[3];
+			}
+
+			if (mface->v4 && mftag[3]) {
 				scol = scolmain + 4 * mface->v4;
 				mcol[13] = scol[1]; mcol[14] = scol[2]; mcol[15] = scol[3];
 			}
@@ -283,7 +294,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	MEM_freeN(scolmain);
 }
 
-static void do_shared_vertexcol(Mesh *me, int do_tessface)
+static void do_shared_vertexcol(Mesh *me, bool *mlooptag, bool *mfacetag, int do_tessface)
 {
 	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
 	MPoly *mp;
@@ -325,9 +336,11 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 				MLoop *ml = me->mloop + mp->loopstart;
 				MLoopCol *lcol = me->mloopcol + mp->loopstart;
 				for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
-					lcol->r = scol[ml->v][0];
-					lcol->g = scol[ml->v][1];
-					lcol->b = scol[ml->v][2];
+					if (mlooptag[mp->loopstart + j]) {
+						lcol->r = scol[ml->v][0];
+						lcol->g = scol[ml->v][1];
+						lcol->b = scol[ml->v][2];
+					}
 				}
 			}
 		}
@@ -336,7 +349,7 @@ static void do_shared_vertexcol(Mesh *me, int do_tessface)
 	MEM_freeN(scol);
 
 	if (has_shared && do_tessface) {
-		do_shared_vertex_tesscol(me);
+		do_shared_vertex_tesscol(me, mfacetag);
 	}
 }
 
@@ -2670,13 +2683,18 @@ typedef struct VPaintData {
 	DMCoNo *vertexcosnos;
 	float vpimat[3][3];
 
-	/* modify 'me->mcol' directly, since the derived mesh is drawing from this array,
-	 * otherwise we need to refresh the modifier stack */
+	/* modify 'me->mcol' directly, since the derived mesh is drawing from this
+	 * array, otherwise we need to refresh the modifier stack */
 	int use_fast_update;
 
 	/* mpoly -> mface mapping */
 	MemArena *polyfacemap_arena;
 	ListBase *polyfacemap;
+
+	/* loops tagged as having been painted, to apply shared vertex color
+	 * blending only to modified loops */
+	bool *mlooptag;
+	bool *mfacetag;
 
 	bool is_texbrush;
 } VPaintData;
@@ -2760,6 +2778,13 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 /*		printf("No fast update!\n");*/
 	}
 
+	/* to keep tracked of modified loops for shared vertex color blending */
+	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+		vpd->mlooptag = MEM_mallocN(sizeof(bool)*me->totloop, "VPaintData mlooptag");
+		if (vpd->use_fast_update)
+			vpd->mfacetag = MEM_mallocN(sizeof(bool)*me->totface*4, "VPaintData mfacetag");
+	}
+
 	/* for filtering */
 	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);
 	
@@ -2790,6 +2815,8 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	PolyFaceMap *e;
 	unsigned int *lcol = ((unsigned int *)me->mloopcol) + mpoly->loopstart;
 	unsigned int *lcolorig = ((unsigned int *)vp->vpaint_prev) + mpoly->loopstart;
+	bool *mlooptag = (vpd->mlooptag) ? vpd->mlooptag + mpoly->loopstart : NULL;
+	bool *mftag;
 	float alpha;
 	int i, j;
 	int totloop = mpoly->totloop;
@@ -2842,6 +2869,8 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 		if (alpha > 0.0f) {
 			const int alpha_i = (int)(alpha * 255.0f);
 			lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], paintcol, alpha_i, brush_alpha_pressure_i);
+
+			if (mlooptag) mlooptag[i] = 1;
 		}
 	}
 
@@ -2851,21 +2880,26 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 		for (e = vpd->polyfacemap[index].first; e; e = e->next) {
 			mf = &me->mface[e->facenr];
 			mc = &me->mcol[e->facenr * 4];
+			mftag = &vpd->mfacetag[e->facenr * 4];
 
 			ml = me->mloop + mpoly->loopstart;
 			mlc = me->mloopcol + mpoly->loopstart;
 			for (j = 0; j < totloop; j++, ml++, mlc++) {
 				if (ml->v == mf->v1) {
 					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 0);
+					if (mlooptag) mftag[0] = mlooptag[j];
 				}
 				else if (ml->v == mf->v2) {
 					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 1);
+					if (mlooptag) mftag[1] = mlooptag[j];
 				}
 				else if (ml->v == mf->v3) {
 					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 2);
+					if (mlooptag) mftag[2] = mlooptag[j];
 				}
 				else if (mf->v4 && ml->v == mf->v4) {
 					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 3);
+					if (mlooptag) mftag[3] = mlooptag[j];
 				}
 			}
 		}
@@ -2923,6 +2957,12 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	
 	swap_m4m4(vc->rv3d->persmat, mat);
 
+	/* clear modified tag for blur tool */
+	if(vpd->mlooptag)
+		memset(vpd->mlooptag, 0, sizeof(bool)*me->totloop);
+	if (vpd->mfacetag)
+		memset(vpd->mfacetag, 0, sizeof(bool)*me->totface*4);
+
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {
 			vpaint_paint_poly(vp, vpd, me, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
@@ -2934,7 +2974,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* was disabled because it is slow, but necessary for blur */
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		int do_tessface = vpd->use_fast_update;
-		do_shared_vertexcol(me, do_tessface);
+		do_shared_vertexcol(me, vpd->mlooptag, vpd->mfacetag, do_tessface);
 	}
 
 	{
@@ -2972,6 +3012,12 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	if (vpd->polyfacemap_arena) {
 		BLI_memarena_free(vpd->polyfacemap_arena);
 	}
+
+	if (vpd->mlooptag)
+		MEM_freeN(vpd->mlooptag);
+
+	if (vpd->mfacetag)
+		MEM_freeN(vpd->mfacetag);
 
 	{
 		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
