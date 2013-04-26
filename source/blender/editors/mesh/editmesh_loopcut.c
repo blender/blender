@@ -301,8 +301,8 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			EDBM_update_generic(em, false, true);
 
 			/* we cant slide multiple edges in vertex select mode */
-			if ((cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
-				/* dont flush vertex selection when we have multiple cuts, otherwise we can't slide */
+			if (op->opm && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
+				EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
 			}
 			/* force edge slide to edge select mode in in face select mode */
 			else if (EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
