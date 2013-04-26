@@ -34,6 +34,11 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
                                ("THICKNESS", "Thickness", "Thickness modifier type")))
     name = StringProperty(name="Name", description="Name of the modifier to work on")
 
+    @classmethod
+    def poll(cls, context):
+        rl = context.scene.render.layers.active
+        return rl and rl.freestyle_settings.linesets.active
+
     def execute(self, context):
         rl = context.scene.render.layers.active
         lineset = rl.freestyle_settings.linesets.active
