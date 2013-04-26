@@ -711,7 +711,21 @@ int WM_operator_repeat(bContext *C, wmOperator *op)
  * checks if WM_operator_repeat() can run at all, not that it WILL run at any time. */
 int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 {
-	return op->type->exec != NULL;
+	if (op->type->exec != NULL) {
+		return true;
+	}
+	else if (op->opm) {
+		/* for macros, check all have exec() we can call */
+		wmOperator *opm;
+		for (opm = op->opm->type->macro.first; opm; opm = opm->next) {
+			if (opm->type->exec == NULL) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	return false;
 }
 
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot,
