@@ -23,6 +23,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* silly workaround for float extended precision that happens when compiling
+ * on x86, due to one float staying in 80 bit precision register and the other
+ * not, which causes the strictly weak ordering to break */
+#if !defined(__i386__)
+#define NO_EXTENDED_PRECISION
+#else
+#define NO_EXTENDED_PRECISION volatile
+#endif
+
 struct BVHReferenceCompare {
 public:
 	int dim;
@@ -34,8 +43,8 @@ public:
 
 	bool operator()(const BVHReference& ra, const BVHReference& rb)
 	{
-		float ca = ra.bounds().min[dim] + ra.bounds().max[dim];
-		float cb = rb.bounds().min[dim] + rb.bounds().max[dim];
+		NO_EXTENDED_PRECISION float ca = ra.bounds().min[dim] + ra.bounds().max[dim];
+		NO_EXTENDED_PRECISION float cb = rb.bounds().min[dim] + rb.bounds().max[dim];
 
 		if(ca < cb) return true;
 		else if(ca > cb) return false;
@@ -52,7 +61,8 @@ public:
 
 void bvh_reference_sort(int start, int end, BVHReference *data, int dim)
 {
-	sort(data+start, data+end, BVHReferenceCompare(dim));
+	BVHReferenceCompare compare(dim);
+	sort(data+start, data+end, compare);
 }
 
 CCL_NAMESPACE_END
