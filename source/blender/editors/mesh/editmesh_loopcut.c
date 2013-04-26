@@ -299,8 +299,12 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			/* tessface is already re-recalculated */
 			EDBM_update_generic(em, false, true);
 
+			/* we cant slide multiple edges in vertex select mode */
+			if ((cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
+				/* dont flush vertex selection when we have multiple cuts, otherwise we can't slide */
+			}
 			/* force edge slide to edge select mode in in face select mode */
-			if (EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
+			else if (EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
 				/* pass, the change will flush selection */
 			}
 			else {

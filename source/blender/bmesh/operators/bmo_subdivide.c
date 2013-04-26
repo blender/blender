@@ -1086,10 +1086,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 			for (j = 0; j < BLI_array_count(loops_split); j++) {
 				if (loops_split[j][0]) {
+					BMFace *f_new;
 					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == NULL);
-
-					/* BMFace *f_new = */ /* UNUSED */
-					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &l_new, NULL, false);
+					f_new = BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &l_new, NULL, false);
+					if (f_new) {
+						BMO_elem_flag_enable(bm, l_new->e, ELE_INNER);
+					}
 				}
 			}
 
@@ -1183,28 +1185,8 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 		/* deselect input */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-		for (ele = BMO_iter_new(&iter, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
-			BM_elem_select_set(bm, ele, true);
-
-			if (ele->head.htype == BM_VERT) {
-				BMEdge *e;
-				BMIter eiter;
-
-				BM_ITER_ELEM (e, &eiter, ele, BM_EDGES_OF_VERT) {
-					if (!BM_elem_flag_test(e, BM_ELEM_SELECT) &&
-					     BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-					     BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
-					{
-						BM_edge_select_set(bm, e, true);
-					}
-					else if (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
-					         (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
-					          !BM_elem_flag_test(e->v2, BM_ELEM_SELECT)))
-					{
-						BM_edge_select_set(bm, e, false);
-					}
-				}
-			}
+		for (ele = BMO_iter_new(&iter, op.slots_out, "geom_inner.out", BM_EDGE); ele; ele = BMO_iter_step(&iter)) {
+			BM_edge_select_set(bm, (BMEdge *)ele, true);
 		}
 	}
 
