@@ -1033,6 +1033,20 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		scopes->reference_ibuf = ibuf;
 	}
 
+	/* setting up the view - actual drawing starts here */
+	UI_view2d_view_ortho(v2d);
+
+	/* only draw alpha for main buffer */
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		if (sseq->flag & SEQ_USE_ALPHA) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			fdrawcheckerboard(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+		}
+	}
+
 	if (scope) {
 		IMB_freeImBuf(ibuf);
 		ibuf = scope;
@@ -1084,19 +1098,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 	}
 
-	/* setting up the view - actual drawing starts here */
-	UI_view2d_view_ortho(v2d);
-
-	/* only draw alpha for main buffer */
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		if (sseq->flag & SEQ_USE_ALPHA) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			fdrawcheckerboard(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-		}
-	}
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 
 	last_texid = glaGetOneInteger(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_2D);
@@ -1107,7 +1110,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
+	if (type == GL_FLOAT)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, ibuf->x, ibuf->y, 0, format, type, display_buffer);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
 
 	glBegin(GL_QUADS);
 

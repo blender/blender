@@ -105,7 +105,7 @@ colorspaces:
     description: |
       ACES linear space
     isdata: false
-    allocation: uniform
+    allocation: lg2
     allocationvars: [-8.5, 5]
     to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
 
@@ -243,10 +243,8 @@ colorspaces:
       Standard RGB Display Space
     isdata: false
     allocation: uniform
-    allocationvars: [-0.125, 1.125]
-    to_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+    allocationvars: [-0.125, 4.875]
+    to_reference: !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<ColorSpace>
     name: VD16
