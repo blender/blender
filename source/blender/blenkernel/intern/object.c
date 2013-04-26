@@ -947,7 +947,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	ob->anisotropicFriction[1] = 1.0f;
 	ob->anisotropicFriction[2] = 1.0f;
 	ob->gameflag = OB_PROP | OB_COLLISION;
-	ob->margin = 0.0;
+	ob->margin = 0.04f;
 	ob->init_state = 1;
 	ob->state = 1;
 	/* ob->pad3 == Contact Processing Threshold */
