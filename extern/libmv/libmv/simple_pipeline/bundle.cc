@@ -83,10 +83,6 @@ struct OpenCVReprojectionError {
     x[1] += R_t[4];
     x[2] += R_t[5];
 
-    // Prevent bundles from being moved behind the camera.
-    if (x[2] < T(0))
-      return false;
-
     // Compute normalized coordinates: x /= x[2].
     T xn = x[0] / x[2];
     T yn = x[1] / x[2];
