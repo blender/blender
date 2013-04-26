@@ -1663,7 +1663,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 	ot->poll = modify_key_op_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array");
@@ -1733,7 +1733,7 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 	ot->poll = modify_key_op_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyframes from all elements of the array");
@@ -1802,7 +1802,7 @@ void ANIM_OT_keyframe_clear_button(wmOperatorType *ot)
 	ot->poll = modify_key_op_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Clear keyframes from all elements of the array");

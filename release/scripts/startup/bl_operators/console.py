@@ -34,6 +34,10 @@ class ConsoleExec(Operator):
     bl_idname = "console.execute"
     bl_label = "Console Execute"
 
+    @classmethod
+    def poll(cls, context):
+        return (context.area and context.area.type == 'CONSOLE')
+
     def execute(self, context):
         sc = context.space_data
 
@@ -54,6 +58,10 @@ class ConsoleAutocomplete(Operator):
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
 
+    @classmethod
+    def poll(cls, context):
+        return (context.area and context.area.type == 'CONSOLE')
+
     def execute(self, context):
         sc = context.space_data
         module = _lang_module_get(sc)
@@ -71,6 +79,10 @@ class ConsoleCopyAsScript(Operator):
     """Copy the console contents for use in a script"""
     bl_idname = "console.copy_as_script"
     bl_label = "Copy to Clipboard (as script)"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.area and context.area.type == 'CONSOLE')
 
     def execute(self, context):
         sc = context.space_data
@@ -90,6 +102,10 @@ class ConsoleBanner(Operator):
     """Print a message when the terminal initializes"""
     bl_idname = "console.banner"
     bl_label = "Console Banner"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.area and context.area.type == 'CONSOLE')
 
     def execute(self, context):
         sc = context.space_data
@@ -118,6 +134,10 @@ class ConsoleLanguage(Operator):
             name="Language",
             maxlen=32,
             )
+
+    @classmethod
+    def poll(cls, context):
+        return (context.area and context.area.type == 'CONSOLE')
 
     def execute(self, context):
         sc = context.space_data

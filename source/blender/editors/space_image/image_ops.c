@@ -1091,7 +1091,7 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 	ot->exec = image_match_len_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /* | OPTYPE_UNDO */; /* Don't think we need undo for that. */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL/* | OPTYPE_UNDO */; /* Don't think we need undo for that. */
 }
 
 /******************** replace image operator ********************/

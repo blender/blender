@@ -269,7 +269,7 @@ static void LOGIC_OT_sensor_remove(wmOperatorType *ot)
 	ot->poll = edit_sensor_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_sensor_properties(ot);
 }
 
@@ -326,7 +326,7 @@ static void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
@@ -375,7 +375,7 @@ static void LOGIC_OT_controller_remove(wmOperatorType *ot)
 	ot->poll = edit_controller_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_controller_properties(ot);
 }
 
@@ -446,7 +446,7 @@ static void LOGIC_OT_controller_add(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
@@ -494,7 +494,7 @@ static void LOGIC_OT_actuator_remove(wmOperatorType *ot)
 	ot->poll = edit_actuator_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_actuator_properties(ot);
 }
 
@@ -551,7 +551,7 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
@@ -608,7 +608,7 @@ static void LOGIC_OT_sensor_move(wmOperatorType *ot)
 	ot->poll = edit_sensor_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	edit_sensor_properties(ot);
@@ -653,7 +653,7 @@ static void LOGIC_OT_controller_move(wmOperatorType *ot)
 	ot->poll = edit_controller_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	edit_controller_properties(ot);
@@ -698,7 +698,7 @@ static void LOGIC_OT_actuator_move(wmOperatorType *ot)
 	ot->poll = edit_actuator_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	edit_actuator_properties(ot);

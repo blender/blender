@@ -513,7 +513,7 @@ void ANIM_OT_driver_button_add(wmOperatorType *ot)
 	//op->poll = ??? // TODO: need to have some animatable property to do this
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array");
@@ -563,7 +563,7 @@ void ANIM_OT_driver_button_remove(wmOperatorType *ot)
 	//op->poll = ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array");
@@ -610,7 +610,7 @@ void ANIM_OT_copy_driver_button(wmOperatorType *ot)
 	//op->poll = ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
 /* Paste Driver Button Operator ------------------------ */
@@ -654,7 +654,7 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot)
 	//op->poll = ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
 /* ************************************************** */
