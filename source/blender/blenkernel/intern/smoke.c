@@ -428,7 +428,7 @@ void smokeModifier_reset_turbulence(struct SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_reset(struct SmokeModifierData *smd)
+static void smokeModifier_reset_ex(struct SmokeModifierData *smd, bool need_lock)
 {
 	if (smd)
 	{
@@ -440,12 +440,14 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 
 			if (smd->domain->fluid)
 			{
-				BLI_rw_mutex_lock(smd->domain->fluid_mutex, THREAD_LOCK_WRITE);
+				if (need_lock)
+					BLI_rw_mutex_lock(smd->domain->fluid_mutex, THREAD_LOCK_WRITE);
 
 				smoke_free(smd->domain->fluid);
 				smd->domain->fluid = NULL;
 
-				BLI_rw_mutex_unlock(smd->domain->fluid_mutex);
+				if (need_lock)
+					BLI_rw_mutex_unlock(smd->domain->fluid_mutex);
 			}
 
 			smokeModifier_reset_turbulence(smd);
@@ -471,6 +473,11 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 			}
 		}
 	}
+}
+
+void smokeModifier_reset(struct SmokeModifierData *smd)
+{
+	smokeModifier_reset_ex(smd, true);
 }
 
 void smokeModifier_free(SmokeModifierData *smd)
@@ -2194,7 +2201,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		else if (scene->r.cfra < smd->time)
 		{
 			smd->time = scene->r.cfra;
-			smokeModifier_reset(smd);
+			smokeModifier_reset_ex(smd, false);
 		}
 	}
 	else if (smd->type & MOD_SMOKE_TYPE_COLL)
@@ -2214,7 +2221,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		smd->time = scene->r.cfra;
 		if (scene->r.cfra < smd->time)
 		{
-			smokeModifier_reset(smd);
+			smokeModifier_reset_ex(smd, false);
 		}
 	}
 	else if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
@@ -2236,7 +2243,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		if (!smd->domain->fluid || framenr == startframe)
 		{
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-			smokeModifier_reset(smd);
+			smokeModifier_reset_ex(smd, false);
 			BKE_ptcache_validate(cache, framenr);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
 		}
