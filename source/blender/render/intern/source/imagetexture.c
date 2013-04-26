@@ -224,7 +224,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	}
 
 	/* keep this before interpolation [#29761] */
-	if ((tex->imaflag & TEX_USEALPHA) && tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
+	if ((tex->imaflag & TEX_USEALPHA) && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
 			texres->talpha = TRUE;
 		}
@@ -1109,7 +1109,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 	
-	if ((tex->imaflag & TEX_USEALPHA) && tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
+	if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0)
 			texres->talpha = 1;
 	}
@@ -1526,7 +1526,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 
-	if ((tex->imaflag & TEX_USEALPHA) && tex->ima && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
+	if ((tex->imaflag & TEX_USEALPHA) && (tex->ima->flag & IMA_IGNORE_ALPHA) == 0) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
 			texres->talpha = TRUE;
 		}
