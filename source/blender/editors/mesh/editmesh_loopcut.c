@@ -59,6 +59,7 @@
 
 #include "mesh_intern.h"  /* own include */
 
+#define SUBD_SMOOTH_MAX 4.0f
 
 /* ringsel operator */
 
@@ -153,7 +154,7 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 	}
 }
 
-static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
+static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 {
 	BMEditMesh *em = lcd->em;
 	BMEdge *eed_start = lcd->eed;
@@ -258,10 +259,10 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 	lcd->totedge = tot;
 }
 
-static void ringsel_find_edge(RingSelOpData *lcd, int cuts)
+static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
 {
 	if (lcd->eed) {
-		edgering_sel(lcd, cuts, 0);
+		edgering_sel(lcd, previewlines, false);
 	}
 	else if (lcd->edges) {
 		MEM_freeN(lcd->edges);
@@ -284,7 +285,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	if (lcd->eed) {
 		BMEditMesh *em = lcd->em;
 
-		edgering_sel(lcd, cuts, 1);
+		edgering_sel(lcd, cuts, true);
 		
 		if (lcd->do_cut) {
 			/* Enable gridfill, so that intersecting loopcut works as one would expect.
@@ -359,7 +360,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	lcd->draw_handle = ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
 	lcd->ob = CTX_data_edit_object(C);
 	lcd->em = BKE_editmesh_from_object(lcd->ob);
-	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");
+	lcd->extend = do_cut ? false : RNA_boolean_get(op->ptr, "extend");
 	lcd->do_cut = do_cut;
 	
 	initNumInput(&lcd->num);
@@ -383,20 +384,28 @@ static int ringcut_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
+{
+	float dist = 75.0f;
+	BMEdge *e = EDBM_edge_find_nearest(&lcd->vc, &dist);
+	if (e != lcd->eed) {
+		lcd->eed = e;
+		ringsel_find_edge(lcd, previewlines);
+	}
+}
+
 /* called by both init() and exec() */
 static int loopcut_init(bContext *C, wmOperator *op, const bool is_interactive)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	RingSelOpData *lcd;
-	BMEdge *edge;
-	float dist = 75.0f;
 
 	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
 
 	view3d_operator_needs_opengl(C);
 
-	if (!ringsel_init(C, op, 1))
+	if (!ringsel_init(C, op, true))
 		return OPERATOR_CANCELLED;
 
 	/* add a modal handler for this operator - handles loop selection */
@@ -406,12 +415,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const bool is_interactive)
 
 	lcd = op->customdata;
 	RNA_int_get_array(op->ptr, "location", lcd->vc.mval);
-
-	edge = EDBM_edge_find_nearest(&lcd->vc, &dist);
-	if (edge != lcd->eed) {
-		lcd->eed = edge;
-		ringsel_find_edge(lcd, 1);
-	}
+	loopcut_mouse_move(lcd, is_interactive ? 1 : 0);
 
 	if (is_interactive) {
 		ScrArea *sa = CTX_wm_area(C);
@@ -493,7 +497,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				show_cuts = true;
 			}
 			else {
-				smoothness = min_ff(smoothness + 0.05f, 4.0f);
+				smoothness = min_ff(smoothness + 0.05f, SUBD_SMOOTH_MAX);
 				RNA_float_set(op->ptr, "smoothness", smoothness);
 				show_cuts = true;
 			}
@@ -513,7 +517,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				show_cuts = true;
 			}
 			else {
-				smoothness = max_ff(smoothness - 0.05f, 0.0f);
+				smoothness = max_ff(smoothness - 0.05f, -SUBD_SMOOTH_MAX);
 				RNA_float_set(op->ptr, "smoothness", smoothness);
 				show_cuts = true;
 			}
@@ -522,17 +526,10 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 		case MOUSEMOVE:  /* mouse moved somewhere to select another loop */
 		{
-			float dist = 75.0f;
-			BMEdge *edge;
-
+			RNA_int_set_array(op->ptr, "location", event->mval);
 			lcd->vc.mval[0] = event->mval[0];
 			lcd->vc.mval[1] = event->mval[1];
-			edge = EDBM_edge_find_nearest(&lcd->vc, &dist);
-
-			if (edge != lcd->eed) {
-				lcd->eed = edge;
-				ringsel_find_edge(lcd, cuts);
-			}
+			loopcut_mouse_move(lcd, cuts);
 
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -611,12 +608,14 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	/* properties */
-	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 100);
 	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 4.0f);
+	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, -FLT_MAX, FLT_MAX,
+	                     "Smoothness", "Smoothness factor", -SUBD_SMOOTH_MAX, SUBD_SMOOTH_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
+	prop = RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }

@@ -243,6 +243,9 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 				break; /* operator didn't finish, end macro */
 			}
 		}
+		else {
+			printf("%s: '%s' cant exec macro\n", __func__, opm->type->idname);
+		}
 	}
 	
 	return wm_macro_end(op, retval);
