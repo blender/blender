@@ -410,7 +410,11 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 	uiItemL(column, IFACE_("Action Extents:"), ICON_NONE);
 	uiItemR(column, &strip_ptr, "action_frame_start", 0, IFACE_("Start Frame"), ICON_NONE);
 	uiItemR(column, &strip_ptr, "action_frame_end", 0, IFACE_("End Frame"), ICON_NONE);
-	uiItemO(column, NULL, ICON_NONE, "NLA_OT_action_sync_length");
+	
+	// XXX: this layout may actually be too abstract and confusing, and may be better using standard column layout
+	row = uiLayoutRow(layout, FALSE);
+	uiItemR(row, &strip_ptr, "use_sync_length", 0, IFACE_("Sync Length"), ICON_NONE);
+	uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
 		
 	/* action usage */
 	column = uiLayoutColumn(layout, TRUE);

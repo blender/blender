@@ -1115,6 +1115,50 @@ short BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
 	return 1;
 }
 
+
+/* Ensure that strip doesn't overlap those around it after resizing by offsetting those which follow */
+static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
+{
+	/* next strips - do this first, since we're often just getting longer */
+	if (strip->next) {
+		NlaStrip *nls = strip->next;
+		float offset = 0.0f;
+		
+		if (strip->end > nls->start) {
+			/* NOTE: need to ensure we don't have a fractional frame offset, even if that leaves a gap,
+			 * otherwise it will be very hard to get rid of later
+			 */
+			offset = ceilf(strip->end - nls->start);
+			
+			/* apply to times of all strips in this direction */
+			for (; nls; nls = nls->next) {
+				nls->start += offset;
+				nls->end   += offset;
+			}
+		}
+	}
+	
+	/* previous strips - same routine as before */
+	/* NOTE: when strip bounds are recalculated, this is not considered! */
+	if (strip->prev) {
+		NlaStrip *nls = strip->prev;
+		float offset = 0.0f;
+		
+		if (strip->start < nls->end) {
+			/* NOTE: need to ensure we don't have a fractional frame offset, even if that leaves a gap,
+			 * otherwise it will be very hard to get rid of later
+			 */
+			offset = ceilf(nls->end - strip->start);
+			
+			/* apply to times of all strips in this direction */
+			for (; nls; nls = nls->prev) {
+				nls->start -= offset;
+				nls->end   -= offset;
+			}
+		}
+	}
+}
+
 /* Recalculate the start and end frames for the current strip, after changing
  * the extents of the action or the mapping (repeats or scale factor) info
  */
@@ -1138,6 +1182,9 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 	/* adjust endpoint of strip in response to this */
 	if (IS_EQF(mapping, 0.0f) == 0)
 		strip->end = (actlen * mapping) + strip->start;
+	
+	/* make sure we don't overlap our neighbours */
+	nlastrip_fix_resize_overlaps(strip);
 }
 
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
@@ -1634,7 +1681,22 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	if ((adt->flag & ADT_NLA_EDIT_ON) == 0)
 		return;
 		
-	/* TODO: need to sync the user-strip with the new state of the action! */
+	/* sync the length of the user-strip with the new state of the action
+	 * but only if the user has explicitly asked for this to happen
+	 * (see [#34645] for things to be careful about)
+	 */
+	if ((adt->actstrip) && (adt->actstrip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) {
+		strip = adt->actstrip;
+		
+		/* must be action-clip only (transitions don't have scale) */
+		if ((strip->type == NLASTRIP_TYPE_CLIP) && (strip->act)) {
+			/* recalculate the length of the action */
+			calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+			
+			/* adjust the strip extents in response to this */
+			BKE_nlastrip_recalculate_bounds(strip);
+		}
+	}
 
 	/* for all Tracks, clear the 'disabled' flag
 	 * for all Strips, clear the 'tweak-user' flag
