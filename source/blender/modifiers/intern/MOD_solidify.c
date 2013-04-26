@@ -302,10 +302,11 @@ static DerivedMesh *applyModifier(
 
 			ml = orig_mloop + mp->loopstart;
 
-			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
+			for (j = 0, ml_v2 = ml[mp->totloop - 1].v;
 			     j < mp->totloop;
-			     j++, ml++, ml_v2 = ml_v1, ml_v1 = ml->v)
+			     j++, ml++, ml_v2 = ml_v1)
 			{
+				ml_v1 = ml->v;
 				/* add edge user */
 				eidx = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2));
 				if (edge_users[eidx] == INVALID_UNUSED) {
