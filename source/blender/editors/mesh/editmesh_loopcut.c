@@ -383,9 +383,9 @@ static int ringcut_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+/* called by both init() and exec() */
+static int loopcut_init(bContext *C, wmOperator *op, const bool is_interactive)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	Object *obedit = CTX_data_edit_object(C);
 	RingSelOpData *lcd;
 	BMEdge *edge;
@@ -393,27 +393,48 @@ static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
-	
+
 	view3d_operator_needs_opengl(C);
 
 	if (!ringsel_init(C, op, 1))
 		return OPERATOR_CANCELLED;
-	
+
 	/* add a modal handler for this operator - handles loop selection */
-	WM_event_add_modal_handler(C, op);
+	if (is_interactive) {
+		WM_event_add_modal_handler(C, op);
+	}
 
 	lcd = op->customdata;
-	copy_v2_v2_int(lcd->vc.mval, event->mval);
-	
+	RNA_int_get_array(op->ptr, "location", lcd->vc.mval);
+
 	edge = EDBM_edge_find_nearest(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
 		ringsel_find_edge(lcd, 1);
 	}
-	ED_area_headerprint(sa, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
-	                               "hold Alt for smooth"));
-	
-	return OPERATOR_RUNNING_MODAL;
+
+	if (is_interactive) {
+		ScrArea *sa = CTX_wm_area(C);
+		ED_area_headerprint(sa, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+		                               "hold Alt for smooth"));
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else {
+		ringsel_finish(C, op);
+		ringsel_exit(C, op);
+		return OPERATOR_FINISHED;
+	}
+}
+
+static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	RNA_int_set_array(op->ptr, "location", event->mval);
+	return loopcut_init(C, op, true);
+}
+
+static int loopcut_exec(bContext *C, wmOperator *op)
+{
+	return loopcut_init(C, op, false);
 }
 
 static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -581,6 +602,7 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->invoke = ringcut_invoke;
+	ot->exec = loopcut_exec;
 	ot->modal = loopcut_modal;
 	ot->cancel = ringcut_cancel;
 	ot->poll = ED_operator_editmesh_region_view3d;
@@ -595,4 +617,6 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 
 	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 4.0f);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
