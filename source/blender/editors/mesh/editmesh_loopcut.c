@@ -288,6 +288,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		edgering_sel(lcd, cuts, true);
 		
 		if (lcd->do_cut) {
+			const bool is_macro = (op->opm != NULL);
 			/* Enable gridfill, so that intersecting loopcut works as one would expect.
 			 * Note though that it will break edgeslide in this specific case.
 			 * See [#31939]. */
@@ -297,11 +298,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, true,
 			                   use_only_quads, 0);
 
-			/* tessface is already re-recalculated */
-			EDBM_update_generic(em, false, true);
+			/* when used in a macro tessface is already re-recalculated */
+			EDBM_update_generic(em, (is_macro == false), true);
 
 			/* we cant slide multiple edges in vertex select mode */
-			if (op->opm && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
+			if (is_macro && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
 				EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
 			}
 			/* force edge slide to edge select mode in in face select mode */
