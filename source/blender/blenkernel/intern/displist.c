@@ -1329,11 +1329,10 @@ static void rotateBevelPiece(Curve *cu, BevPoint *bevp, BevPoint *nbevp, DispLis
 static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *dispbase)
 {
 	DispList *dl;
-	float *data;
-	int b;
 
 	dl = MEM_callocN(sizeof(DispList), "makeDispListbev2");
-	dl->verts = data = MEM_callocN(3 * sizeof(float) * dlb->nr, "dlverts");
+	dl->verts = MEM_mallocN(3 * sizeof(float) * dlb->nr, "dlverts");
+	memcpy(dl->verts, prev_fp, 3 * sizeof(float) * dlb->nr);
 
 	dl->type = DL_POLY;
 
@@ -1345,9 +1344,6 @@ static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *disp
 	/* dl->rt will be used as flag for render face and */
 	/* CU_2D conflicts with R_NOPUNOFLIP */
 	dl->rt = nu->flag & ~CU_2D;
-
-	for (b = 0; b < dlb->nr; b++, prev_fp += 3, data += 3)
-		copy_v3_v3(data, prev_fp);
 
 	BLI_addtail(dispbase, dl);
 }
@@ -1543,8 +1539,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						}
 
 						if (bottom_capbase.first) {
-							BKE_displist_fill(&bottom_capbase, dispbase, 0);
-							BKE_displist_fill(&top_capbase, dispbase, 0);
+							BKE_displist_fill(&bottom_capbase, dispbase, false);
+							BKE_displist_fill(&top_capbase, dispbase, true);
 							BKE_displist_free(&bottom_capbase);
 							BKE_displist_free(&top_capbase);
 						}
