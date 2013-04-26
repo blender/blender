@@ -20,6 +20,9 @@
  * float.h's FLT_EPSILON causes trouble with subsurf normals - campbell */
 #define EPSILON (1.0e-35f)
 
+/* With this limit a single triangle becomes over 3 million faces */
+#define CCGSUBSURF_LEVEL_MAX 11
+
 /***/
 
 typedef unsigned char byte;
@@ -229,7 +232,7 @@ static CCGAllocatorIFC *_getStandardAllocatorIFC(void)
 int ccg_gridsize(int level)
 {
 	BLI_assert(level > 0);
-	BLI_assert(level <= 31);
+	BLI_assert(level <= CCGSUBSURF_LEVEL_MAX + 1);
 
 	return (1 << (level - 1)) + 1;
 }
@@ -245,7 +248,7 @@ int ccg_factor(int low_level, int high_level)
 static int ccg_edgesize(int level)
 {
 	BLI_assert(level > 0);
-	BLI_assert(level <= 30);
+	BLI_assert(level <= CCGSUBSURF_LEVEL_MAX + 1);
 	
 	return 1 + (1 << level);
 }
@@ -254,7 +257,7 @@ static int ccg_spacing(int high_level, int low_level)
 {
 	BLI_assert(high_level > 0 && low_level > 0);
 	BLI_assert(high_level >= low_level);
-	BLI_assert((high_level - low_level) <= 30);
+	BLI_assert((high_level - low_level) <= CCGSUBSURF_LEVEL_MAX);
 
 	return 1 << (high_level - low_level);
 }
@@ -262,7 +265,7 @@ static int ccg_spacing(int high_level, int low_level)
 static int ccg_edgebase(int level)
 {
 	BLI_assert(level > 0);
-	BLI_assert(level <= 30);
+	BLI_assert(level <= CCGSUBSURF_LEVEL_MAX + 1);
 
 	return level + (1 << level) - 1;
 }
