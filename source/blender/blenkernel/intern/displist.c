@@ -444,8 +444,12 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 	}
 }
 
-
-void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
+/**
+ * \param normal_proj  Optional normal thats used to project the scanfill verts into 2d coords.
+ * Pass this along if known since it saves time calculating the normal.
+ * \param flipnormal  Flip the normal (same as passing \a normal_proj negated)
+ */
+void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj[3], const bool flipnormal)
 {
 	ScanFillContext sf_ctx;
 	ScanFillVert *sf_vert, *sf_vert_new, *sf_vert_last;
@@ -508,7 +512,10 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 		}
 
 		/* XXX (obedit && obedit->actcol) ? (obedit->actcol-1) : 0)) { */
-		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_HOLES))) {
+		if (totvert && (tot = BLI_scanfill_calc_ex(&sf_ctx,
+		                                           BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_HOLES,
+		                                           normal_proj)))
+		{
 			if (tot) {
 				dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type = DL_INDEX3;
@@ -568,6 +575,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 
 static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 {
+	const float z_up[3] = {0.0f, 0.0f, 1.0f};
 	ListBase front, back;
 	DispList *dl, *dlnew;
 	float *fp, *fp1;
@@ -624,13 +632,13 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 		dl = dl->next;
 	}
 
-	BKE_displist_fill(&front, dispbase, 1);
-	BKE_displist_fill(&back, dispbase, 0);
+	BKE_displist_fill(&front, dispbase, z_up, true);
+	BKE_displist_fill(&back, dispbase, z_up, false);
 
 	BKE_displist_free(&front);
 	BKE_displist_free(&back);
 
-	BKE_displist_fill(dispbase, dispbase, 0);
+	BKE_displist_fill(dispbase, dispbase, z_up, false);
 }
 
 static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dispbase)
@@ -642,7 +650,8 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
 		bevels_to_filledpoly(cu, dispbase);
 	}
 	else {
-		BKE_displist_fill(dispbase, dispbase, 0);
+		/* TODO, investigate passing zup instead of NULL */
+		BKE_displist_fill(dispbase, dispbase, NULL,0);
 	}
 }
 
@@ -1436,6 +1445,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						DispList *dlb;
 						ListBase bottom_capbase = {NULL, NULL};
 						ListBase top_capbase = {NULL, NULL};
+						float bottom_no[3] = {0.0f};
+						float top_no[3] = {0.0f};
 
 						for (dlb = dlbev.first; dlb; dlb = dlb->next) {
 							const float bevfac1 = min_ff(cu->bevfac1, cu->bevfac2);
@@ -1527,10 +1538,14 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 									rotateBevelPiece(cu, bevp, NULL, dlb, 0.0f, widfac, fac, &data);
 
 								if (cu->bevobj && (cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
-									if (a == 1)
+									if (a == 1) {
 										fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
-									if (a == steps - 1)
+										negate_v3_v3(bottom_no, bevp->dir);
+									}
+									if (a == steps - 1) {
 										fillBevelCap(nu, dlb, cur_data, &top_capbase);
+										copy_v3_v3(top_no, bevp->dir);
+									}
 								}
 							}
 
@@ -1539,8 +1554,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						}
 
 						if (bottom_capbase.first) {
-							BKE_displist_fill(&bottom_capbase, dispbase, false);
-							BKE_displist_fill(&top_capbase, dispbase, true);
+							BKE_displist_fill(&bottom_capbase, dispbase, bottom_no, false);
+							BKE_displist_fill(&top_capbase, dispbase, top_no, false);
 							BKE_displist_free(&bottom_capbase);
 							BKE_displist_free(&top_capbase);
 						}

@@ -867,7 +867,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 	float *min_xy_p, *max_xy_p;
 	short a, c, poly = 0, ok = 0, toggle = 0;
 	int totfaces = 0; /* total faces added */
-	int co_x, co_y;
+	float mat_2d[3][3];
 
 	/* reset variables */
 	eve = sf_ctx->fillvertbase.first;
@@ -960,7 +960,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 			return 0;
 		}
 
-		axis_dominant_v3(&co_x, &co_y, n);
+		axis_dominant_v3_to_m3(mat_2d, n);
 	}
 
 
@@ -968,8 +968,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 	if (flag & BLI_SCANFILL_CALC_HOLES) {
 		eve = sf_ctx->fillvertbase.first;
 		while (eve) {
-			eve->xy[0] = eve->co[co_x];
-			eve->xy[1] = eve->co[co_y];
+			mul_v2_m3v3(eve->xy, mat_2d, eve->co);
 
 			/* get first vertex with no poly number */
 			if (eve->poly_nr == 0) {
@@ -1016,8 +1015,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 
 		eve = sf_ctx->fillvertbase.first;
 		while (eve) {
-			eve->xy[0] = eve->co[co_x];
-			eve->xy[1] = eve->co[co_y];
+			mul_v2_m3v3(eve->xy, mat_2d, eve->co);
 			eve->poly_nr = poly;
 			eve = eve->next;
 		}

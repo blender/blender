@@ -144,6 +144,7 @@ static void draw_triangulated(const int mcords[][2], const short tot)
 	DispList *dl;
 	float *fp;
 	int a;
+	const float z_up[3] = {0.0f, 0.0f, 1.0f};
 	
 	/* make displist */
 	dl = MEM_callocN(sizeof(DispList), "poly disp");
@@ -159,7 +160,7 @@ static void draw_triangulated(const int mcords[][2], const short tot)
 	}
 	
 	/* do the fill */
-	BKE_displist_fill(&lb, &lb, 0);
+	BKE_displist_fill(&lb, &lb, z_up, false);
 
 	/* do the draw */
 	dl = lb.first;  /* filldisplist adds in head of list */

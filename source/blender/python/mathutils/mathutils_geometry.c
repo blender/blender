@@ -1343,7 +1343,8 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	}
 	else if (totpoints) {
 		/* now make the list to return */
-		BKE_displist_fill(&dispbase, &dispbase, 0);
+		/* TODO, add normal arg */
+		BKE_displist_fill(&dispbase, &dispbase, NULL, false);
 
 		/* The faces are stored in a new DisplayList
 		 * thats added to the head of the listbase */

@@ -95,7 +95,7 @@ void BKE_displist_make_mball(struct Scene *scene, struct Object *ob);
 void BKE_displist_make_mball_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 
 bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
-void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, int flipnormal);
+void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, const float normal_proj[3], const bool flipnormal);
 
 float BKE_displist_calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
