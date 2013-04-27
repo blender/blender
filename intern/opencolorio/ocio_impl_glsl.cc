@@ -121,6 +121,7 @@ static GLuint compileShaderText(GLenum shaderType, const char *text)
 		GLchar log[1000];
 		GLsizei len;
 		glGetShaderInfoLog(shader, 1000, &len, log);
+		fprintf(stderr, "Shader compile error:\n%s\n", log);
 		return 0;
 	}
 
