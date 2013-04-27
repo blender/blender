@@ -263,7 +263,7 @@ static size_t strlen_utf8_char(const char *strc)
 
 size_t BLI_strlen_utf8(const char *strc)
 {
-	int len;
+	size_t len;
 
 	for (len = 0; *strc; len++)
 		strc += strlen_utf8_char(strc);
