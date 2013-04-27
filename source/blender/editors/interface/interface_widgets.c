@@ -1941,19 +1941,38 @@ void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rec
 	*val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
 }
 
+/* cursor in hsv circle, in float units -1 to 1, to map on radius */
+void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xpos, float *ypos)
+{
+	/* duplication of code... well, simple is better now */
+	const float centx = BLI_rcti_cent_x_fl(rect);
+	const float centy = BLI_rcti_cent_y_fl(rect);
+	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+	float ang, radius_t;
+	
+	ang = 2.0f * (float)M_PI * hsv[0] + 0.5f * (float)M_PI;
+	
+	if (but->flag & UI_BUT_COLOR_CUBIC)
+		radius_t = (1.0f - powf(1.0f - hsv[1], 3.0f));
+	else
+		radius_t = hsv[1];
+	
+	radius = CLAMPIS(radius_t, 0.0f, 1.0f) * radius;
+	*xpos = centx + cosf(-ang) * radius;
+	*ypos = centy + sinf(-ang) * radius;
+}
+
 static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
 	const int tot = 64;
 	const float radstep = 2.0f * (float)M_PI / (float)tot;
-
 	const float centx = BLI_rcti_cent_x_fl(rect);
 	const float centy = BLI_rcti_cent_y_fl(rect);
 	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
 	/* gouraud triangle fan */
 	const float *hsv_ptr = ui_block_hsv_get(but->block);
-	float ang = 0.0f;
-	float cursor_radius;
+	float xpos, ypos, ang = 0.0f;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
 	int a;
 	int color_profile = but->block->color_profile;
@@ -2017,15 +2036,9 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glPopMatrix();
 
 	/* cursor */
-	ang = 2.0f * (float)M_PI * hsvo[0] + 0.5f * (float)M_PI;
+	ui_hsvcircle_pos_from_vals(but, rect, hsvo, &xpos, &ypos);
 
-	if (but->flag & UI_BUT_COLOR_CUBIC)
-		cursor_radius = (1.0f - powf(1.0f - hsvo[1], 3.0f));
-	else
-		cursor_radius = hsvo[1];
-
-	radius = CLAMPIS(cursor_radius, 0.0f, 1.0f) * radius;
-	ui_hsv_cursor(centx + cosf(-ang) * radius, centy + sinf(-ang) * radius);
+	ui_hsv_cursor(xpos, ypos);
 }
 
 /* ************ custom buttons, old stuff ************** */
@@ -2168,7 +2181,35 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	
 }
 
+void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp)
+{
+	float x, y;
+	
+	switch ((int)but->a1) {
+		case UI_GRAD_SV:
+			x = hsv[2]; y = hsv[1]; break;
+		case UI_GRAD_HV:
+			x = hsv[0]; y = hsv[2]; break;
+		case UI_GRAD_HS:
+			x = hsv[0]; y = hsv[1]; break;
+		case UI_GRAD_H:
+			x = hsv[0]; y = 0.5; break;
+		case UI_GRAD_S:
+			x = hsv[1]; y = 0.5; break;
+		case UI_GRAD_V:
+			x = hsv[2]; y = 0.5; break;
+		case UI_GRAD_V_ALT:
+			x = 0.5f;
+			/* exception only for value strip - use the range set in but->min/max */
+			y = (hsv[2] - but->softmin ) / (but->softmax - but->softmin);
+			break;
+	}
+	
+	/* cursor */
+	*xp = rect->xmin + x * BLI_rcti_size_x(rect);
+	*yp = rect->ymin + y * BLI_rcti_size_y(rect);
 
+}
 
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
@@ -2191,25 +2232,8 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	rgb_to_hsv_compat_v(rgb, hsv_n);
 	
 	ui_draw_gradient(rect, hsv_n, but->a1, 1.0f);
-	
-	switch ((int)but->a1) {
-		case UI_GRAD_SV:
-			x = hsv_n[2]; y = hsv_n[1]; break;
-		case UI_GRAD_HV:
-			x = hsv_n[0]; y = hsv_n[2]; break;
-		case UI_GRAD_HS:
-			x = hsv_n[0]; y = hsv_n[1]; break;
-		case UI_GRAD_H:
-			x = hsv_n[0]; y = 0.5; break;
-		case UI_GRAD_S:
-			x = hsv_n[1]; y = 0.5; break;
-		case UI_GRAD_V:
-			x = hsv_n[2]; y = 0.5; break;
-	}
-	
-	/* cursor */
-	x = rect->xmin + x * BLI_rcti_size_x(rect);
-	y = rect->ymin + y * BLI_rcti_size_y(rect);
+
+	ui_hsvcube_pos_from_vals(but, rect, hsv_n, &x, &y);
 	CLAMP(x, rect->xmin + 3.0f, rect->xmax - 3.0f);
 	CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
 	

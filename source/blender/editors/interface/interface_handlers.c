@@ -3707,7 +3707,29 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx,
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
-
+	
+	/* only apply the delta motion, not absolute */
+	if (shift) {
+		rcti rect_i;
+		float xpos, ypos, hsvo[3];
+		
+		BLI_rcti_rctf_copy(&rect_i, &but->rect);
+		
+		/* calculate original hsv again */
+		copy_v3_v3(rgb, data->origvec);
+		if (color_profile && (int)but->a1 != UI_GRAD_SV)
+			ui_block_to_display_space_v3(but->block, rgb);
+		
+		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
+		rgb_to_hsv_compat_v(rgb, hsvo);
+		
+		/* and original position */
+		ui_hsvcube_pos_from_vals(but, &rect_i, hsvo, &xpos, &ypos);
+		
+		mx_fl = xpos - (data->dragstartx - mx_fl);
+		my_fl = ypos - (data->dragstarty - my_fl);
+	}
+	
 	/* relative position within box */
 	x = ((float)mx_fl - but->rect.xmin) / BLI_rctf_size_x(&but->rect);
 	y = ((float)my_fl - but->rect.ymin) / BLI_rctf_size_y(&but->rect);
@@ -3924,7 +3946,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float
 	float hsv[3];
 	
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
-
+	
 #ifdef USE_CONT_MOUSE_CORRECT
 	if (ui_is_a_warp_but(but)) {
 		/* OK but can go outside bounds */
@@ -3953,7 +3975,21 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float
 		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 	}
 
-
+	/* only apply the delta motion, not absolute */
+	if (shift) {
+		float xpos, ypos, hsvo[3];
+		
+		/* calculate original hsv again */
+		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
+		rgb_to_hsv_compat_v(data->origvec, hsvo);
+		/* and original position */
+		ui_hsvcircle_pos_from_vals(but, &rect, hsvo, &xpos, &ypos);
+		
+		mx_fl = xpos - (data->dragstartx - mx_fl);
+		my_fl = ypos - (data->dragstarty - my_fl);
+		
+	}
+	
 	ui_hsvcircle_vals_from_pos(hsv, hsv + 1, &rect, mx_fl, my_fl);
 
 	if (but->flag & UI_BUT_COLOR_CUBIC)
