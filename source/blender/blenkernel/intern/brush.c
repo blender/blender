@@ -518,7 +518,9 @@ int BKE_brush_clone_image_delete(Brush *brush)
 }
 
 /* Generic texture sampler for 3D painting systems. point has to be either in
- * region space mouse coordinates, or 3d world coordinates for 3D mapping */
+ * region space mouse coordinates, or 3d world coordinates for 3D mapping.
+ *
+ * rgba outputs straight alpha. */
 float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
                               const float point[3],
                               float rgba[4], const int thread,
@@ -755,7 +757,10 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 	return intensity;
 }
 
-/* Brush Sampling for 2D brushes. when we unify the brush systems this will be necessarily a separate function */
+/* Brush Sampling for 2D brushes. when we unify the brush systems this will be
+ * necessarily a separate function.
+ *
+ * rgba outputs straight alpha. */
 float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2], float rgba[4])
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -873,6 +878,11 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 					copy_v3_v3(dstf, brush_rgb);
 					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
+
+				/* output premultiplied alpha image */
+				dstf[0] *= dstf[3];
+				dstf[1] *= dstf[3];
+				dstf[2] *= dstf[3];
 			}
 		}
 	}

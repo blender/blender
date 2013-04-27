@@ -171,7 +171,7 @@ typedef enum IMB_BlendMode {
 
 unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac,
 	IMB_BlendMode mode);
-void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac,
+void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], float fac,
 	IMB_BlendMode mode);
 
 void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx, 

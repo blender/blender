@@ -126,7 +126,7 @@ void xyz_to_lab(float x, float y, float z, float *l, float *a, float *b);
 
 MINLINE int compare_rgb_uchar(const unsigned char a[3], const unsigned char b[3], const int limit);
 
-/***************** lift/gamma/gain / ASC-CDL conversion *****************/
+/********* lift/gamma/gain / ASC-CDL conversion ***********/
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
 

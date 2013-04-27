@@ -3533,7 +3533,7 @@ typedef struct ProjectHandle {
 	struct ImagePool *pool;
 } ProjectHandle;
 
-static void blend_color_mix(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
+static void interpolate_color(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
 	 * are not equivalent (>>8 is /256), and the former results in rounding
@@ -3546,7 +3546,7 @@ static void blend_color_mix(unsigned char cp[4], const unsigned char cp1[4], con
 	cp[3] = (mfac * cp1[3] + fac * cp2[3]) / 255;
 }
 
-static void blend_color_mix_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
+static void interpolate_color_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
 {
 	const float mfac = 1.0f - fac;
 	cp[0] = mfac * cp1[0] + fac * cp2[0];
@@ -3584,7 +3584,7 @@ static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, floa
 {
 	if (ps->do_masking && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone *)projPixel)->clonepx.uint, (int)(alpha * 255), ps->blend);
-		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
+		interpolate_color(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
 	}
 	else {
 		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone *)projPixel)->clonepx.uint, (int)(alpha * mask * 255), ps->blend);
@@ -3595,7 +3595,7 @@ static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 {
 	if (ps->do_masking && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, ps->blend);
-		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
+		interpolate_color_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
 	else {
 		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha * mask, ps->blend);
@@ -3616,7 +3616,7 @@ static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, floa
 	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1) == 0)
 		return;
 	/* ((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend); */
-	blend_color_mix(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * mask * 255));
+	interpolate_color(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * mask * 255));
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 }
 
@@ -3629,7 +3629,7 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 		return;
 
 	/* (ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend); */
-	blend_color_mix_float(((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, alpha * mask);
+	interpolate_color_float(((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, alpha * mask);
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
@@ -3669,8 +3669,8 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 
 	if (LIKELY(accum_tot != 0)) {
 		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
-		blend_color_mix_float(rgba, projPixel->pixel.f_pt, rgba, alpha);
-		if (mask < 1.0f) blend_color_mix_float(rgba, projPixel->origColor.f, rgba, mask);
+		interpolate_color_float(rgba, projPixel->pixel.f_pt, rgba, alpha);
+		if (mask < 1.0f) interpolate_color_float(rgba, projPixel->origColor.f, rgba, mask);
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
 }
@@ -3706,8 +3706,8 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
 		IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_ub, rgba);
 
-		blend_color_mix(rgba_ub, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * 255));
-		if (mask != 1.0f) blend_color_mix(rgba_ub, projPixel->origColor.ch, rgba_ub, (int)(mask * 255));
+		interpolate_color(rgba_ub, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * 255));
+		if (mask != 1.0f) interpolate_color(rgba_ub, projPixel->origColor.ch, rgba_ub, (int)(mask * 255));
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
 }
@@ -3734,7 +3734,7 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 
 	if (ps->do_masking && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha * 255), ps->blend);
-		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
+		interpolate_color(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
 	}
 	else {
 		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha * mask * 255), ps->blend);
@@ -3756,7 +3756,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 
 	if (ps->do_masking && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, ps->blend);
-		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
+		interpolate_color_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
 	else {
 		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha * mask, ps->blend);

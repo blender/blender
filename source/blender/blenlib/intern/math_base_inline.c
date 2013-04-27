@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 
 /* copied from BLI_utildefines.h */
 #ifdef __GNUC__

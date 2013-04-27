@@ -231,10 +231,11 @@ static void brush_painter_2d_do_partial(BrushPainter *painter, ImBuf *oldtexibuf
 					BKE_brush_sample_tex_2D(scene, brush, xy, tf);
 				}
 
-				bf[0] = tf[0] * mf[0];
-				bf[1] = tf[1] * mf[1];
-				bf[2] = tf[2] * mf[2];
-				bf[3] = tf[3] * mf[3];
+				/* output premultiplied float image, mf was already premultiplied */
+				bf[0] = tf[0] * tf[3] * mf[0];
+				bf[1] = tf[1] * tf[3] * mf[1];
+				bf[2] = tf[2] * tf[3] * mf[2];
+				bf[3] = tf[3] * tf[3] * mf[3];
 			}
 		}
 	}

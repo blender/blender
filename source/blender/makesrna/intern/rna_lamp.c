@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "BLI_math_base.h"
+#include "BLI_math_rotation.h"
 
 #include "BLF_translation.h"
 
