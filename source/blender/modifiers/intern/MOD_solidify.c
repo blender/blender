@@ -182,6 +182,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	SolidifyModifierData *tsmd = (SolidifyModifierData *) target;
 	tsmd->offset = smd->offset;
 	tsmd->offset_fac = smd->offset_fac;
+	tsmd->offset_fac_vg = smd->offset_fac_vg;
+	tsmd->offset_clamp = smd->offset_clamp;
 	tsmd->crease_inner = smd->crease_inner;
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
