@@ -154,10 +154,14 @@ static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 	unsigned int paintcol = vpaint_get_current_col(scene->toolsettings->vpaint);
-	vpaint_fill(obact, paintcol);
-	
-	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
-	return OPERATOR_FINISHED;
+
+	if (ED_vpaint_fill(obact, paintcol)) {
+		ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
@@ -171,6 +175,33 @@ static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 	ot->exec = vertex_color_set_exec;
 	ot->poll = vertex_paint_mode_poll;
 	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_color_smooth_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obact = CTX_data_active_object(C);
+	if (ED_vpaint_smooth(obact)) {
+		ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static void PAINT_OT_vertex_color_smooth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Smooth Vertex Colors";
+	ot->idname = "PAINT_OT_vertex_color_smooth";
+	ot->description = "Smooth colors across vertices";
+
+	/* api callbacks */
+	ot->exec = vertex_color_smooth_exec;
+	ot->poll = vertex_paint_mode_poll;
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -858,6 +889,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
 	WM_operatortype_append(PAINT_OT_vertex_paint);
 	WM_operatortype_append(PAINT_OT_vertex_color_set);
+	WM_operatortype_append(PAINT_OT_vertex_color_smooth);
 
 	/* face-select */
 	WM_operatortype_append(PAINT_OT_face_select_linked);

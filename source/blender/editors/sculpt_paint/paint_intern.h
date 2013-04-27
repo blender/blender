@@ -90,8 +90,10 @@ int weight_paint_mode_poll(struct bContext *C);
 int vertex_paint_poll(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
-void vpaint_fill(struct Object *ob, unsigned int paintcol);
-void wpaint_fill(struct VPaint *wp, struct Object *ob, float paintweight);
+bool ED_vpaint_fill(struct Object *ob, unsigned int paintcol);
+bool ED_wpaint_fill(struct VPaint *wp, struct Object *ob, float paintweight);
+
+bool ED_vpaint_smooth(struct Object *ob);
 
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);

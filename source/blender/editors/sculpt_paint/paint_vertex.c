@@ -353,13 +353,17 @@ static void do_shared_vertexcol(Mesh *me, bool *mlooptag, bool *mfacetag, int do
 	}
 }
 
-static void make_vertexcol(Object *ob)  /* single ob */
+static bool make_vertexcol(Object *ob)  /* single ob */
 {
 	Mesh *me;
-	if (!ob || ob->id.lib) return;
-	me = BKE_mesh_from_object(ob);
-	if (me == NULL) return;
-	if (me->edit_btmesh) return;
+
+	if ((ob->id.lib) ||
+	    ((me = BKE_mesh_from_object(ob)) == NULL) ||
+	    (me->totpoly == 0) ||
+	    (me->edit_btmesh))
+	{
+		return false;
+	}
 
 	/* copies from shadedisplist to mcol */
 	if (!me->mloopcol && me->totloop) {
@@ -373,13 +377,10 @@ static void make_vertexcol(Object *ob)  /* single ob */
 	}
 
 	update_tessface_data(ob, me);
-
-	//if (shade)
-	//	shadeMeshMCol(scene, ob, me);
-	//else
 	
 	DAG_id_tag_update(&me->id, 0);
 	
+	return (me->mloopcol != NULL);
 }
 
 /* mirror_vgroup is set to -1 when invalid */
@@ -452,28 +453,28 @@ static void copy_wpaint_prev(VPaint *wp, MDeformVert *dverts, int dcount)
 	}
 }
 
-void vpaint_fill(Object *ob, unsigned int paintcol)
+bool ED_vpaint_fill(Object *ob, unsigned int paintcol)
 {
 	Mesh *me;
 	MPoly *mp;
-	MLoopCol *lcol;
-	int i, j, selected;
+	int i, j;
+	bool selected;
 
-	me = BKE_mesh_from_object(ob);
-	if (me == NULL || me->totpoly == 0) return;
+	if (((me = BKE_mesh_from_object(ob)) == NULL) ||
+	    (me->mloopcol == NULL && (make_vertexcol(ob) == false)))
+	{
+		return false;
+	}
 
-	if (!me->mloopcol) make_vertexcol(ob);
-	if (!me->mloopcol) return;  /* possible we can't make mcol's */
-
-
-	selected = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
+	selected = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
 	mp = me->mpoly;
 	for (i = 0; i < me->totpoly; i++, mp++) {
-		if (!(!selected || mp->flag & ME_FACE_SEL))
+		MLoopCol *lcol = me->mloopcol + mp->loopstart;
+
+		if (selected && !(mp->flag & ME_FACE_SEL))
 			continue;
 
-		lcol = me->mloopcol + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, lcol++) {
 			*(int *)lcol = paintcol;
 		}
@@ -483,11 +484,13 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	BKE_mesh_tessface_clear(me);
 
 	DAG_id_tag_update(&me->id, 0);
+
+	return true;
 }
 
 
 /* fills in the selected faces with the current weight and vertex group */
-void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
+bool ED_wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
 	Mesh *me = ob->data;
 	MPoly *mp;
@@ -498,7 +501,9 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	/* mutually exclusive, could be made into a */
 	const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
-	if (me->totpoly == 0 || me->dvert == NULL || !me->mpoly) return;
+	if (me->totpoly == 0 || me->dvert == NULL || !me->mpoly) {
+		return false;
+	}
 	
 	vgroup_active = ob->actdef - 1;
 
@@ -563,6 +568,54 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	copy_wpaint_prev(wp, NULL, 0);
 
 	DAG_id_tag_update(&me->id, 0);
+
+	return true;
+}
+
+bool ED_vpaint_smooth(Object *ob)
+{
+	Mesh *me;
+	MPoly *mp;
+
+	int i, j;
+
+	bool *mlooptag;
+	bool selected;
+
+	if (((me = BKE_mesh_from_object(ob)) == NULL) ||
+	    (me->mloopcol == NULL && (make_vertexcol(ob) == false)))
+	{
+		return false;
+	}
+
+	selected = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+
+	mlooptag = MEM_callocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
+
+	/* simply tag loops of selected faces */
+	mp = me->mpoly;
+	for (i = 0; i < me->totpoly; i++, mp++) {
+		MLoop *ml = me->mloop + mp->loopstart;
+		int ml_index = mp->loopstart;
+
+		if (selected && !(mp->flag & ME_FACE_SEL))
+			continue;
+
+		for (j = 0; j < mp->totloop; j++, ml_index++, ml++) {
+			mlooptag[ml_index] = true;
+		}
+	}
+
+	/* remove stale me->mcol, will be added later */
+	BKE_mesh_tessface_clear(me);
+
+	do_shared_vertexcol(me, mlooptag, NULL, false);
+
+	MEM_freeN(mlooptag);
+
+	DAG_id_tag_update(&me->id, 0);
+
+	return true;
 }
 
 /* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator */
@@ -2561,9 +2614,13 @@ static int weight_paint_set_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	wpaint_fill(scene->toolsettings->wpaint, obact, vgroup_weight);
-	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
-	return OPERATOR_FINISHED;
+	if (ED_wpaint_fill(scene->toolsettings->wpaint, obact, vgroup_weight)) {
+		ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void PAINT_OT_weight_set(wmOperatorType *ot)
