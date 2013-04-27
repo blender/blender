@@ -1063,11 +1063,14 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		bool force_fallback = false;
 
 		force_fallback |= !ELEM(U.image_draw_method, IMAGE_DRAW_METHOD_AUTO, IMAGE_DRAW_METHOD_GLSL);
-		force_fallback |= ibuf->dither != 0.0f;
+		force_fallback |= (ibuf->dither != 0.0f);
 
 		if (force_fallback) {
 			/* Fallback to CPU based color space conversion */
 			glsl_used = false;
+			format = GL_RGBA;
+			type = GL_UNSIGNED_BYTE;
+			display_buffer = NULL;
 		}
 		else if (ibuf->rect_float) {
 			display_buffer = ibuf->rect_float;
