@@ -3496,7 +3496,9 @@ void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *mp, const MLoop
 	ml = &ml_next[i - 1];  /* last loop */
 
 	while (i-- != 0) {
-		BLI_edgehash_insert(ehash, ml->v, ml_next->v, NULL);
+		if (!BLI_edgehash_haskey(ehash, ml->v, ml_next->v)) {
+			BLI_edgehash_insert(ehash, ml->v, ml_next->v, NULL);
+		}
 
 		ml = ml_next;
 		ml_next++;
