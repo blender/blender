@@ -23,13 +23,13 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-/** \file blender/blenlib/intern/math_color_inline.c
+/** \file blender/blenlib/intern/math_color_blend_inline.c
  *  \ingroup bli
  */
 
-
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
+#include "BLI_math_color_blend.h"
 #include "BLI_utildefines.h"
 
 #ifndef __MATH_COLOR_BLEND_INLINE_C__
@@ -329,7 +329,7 @@ MINLINE void blend_color_lighten_float(float dst[4], const float src1[4], const 
 		 * src1 and src2, then blend it with src1 */
 		const float t = src2[3];
 		const float mt = 1.0f - t;
-		const float map_alpha = src1[3]/src2[3];
+		const float map_alpha = src1[3] / src2[3];
 
 		dst[0] = mt * src1[0] + t * max_ff(src1[0], src2[0] * map_alpha);
 		dst[1] = mt * src1[1] + t * max_ff(src1[1], src2[1] * map_alpha);
@@ -373,7 +373,7 @@ MINLINE void blend_color_erase_alpha_float(float dst[4], const float src1[4], co
 	if (src2[3] != 0.0f && src1[3] > 0.0f) {
 		/* subtract alpha and remap RGB channels to match */
 		const float alpha = max_ff(src1[3] - src2[3], 0.0f);
-		const float map_alpha = alpha/src1[3];
+		const float map_alpha = alpha / src1[3];
 
 		dst[0] *= map_alpha;
 		dst[1] *= map_alpha;
@@ -394,7 +394,7 @@ MINLINE void blend_color_add_alpha_float(float dst[4], const float src1[4], cons
 	if (src2[3] != 0.0f && src1[3] < 1.0f) {
 		/* add alpha and remap RGB channels to match */
 		const float alpha = min_ff(src1[3] + src2[3], 1.0f);
-		const float map_alpha = (src1[3] > 0.0f) ? alpha/src1[3] : 1.0f;
+		const float map_alpha = (src1[3] > 0.0f) ? alpha / src1[3] : 1.0f;
 
 		dst[0] *= map_alpha;
 		dst[1] *= map_alpha;

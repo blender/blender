@@ -651,7 +651,7 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
 	}
 	else {
 		/* TODO, investigate passing zup instead of NULL */
-		BKE_displist_fill(dispbase, dispbase, NULL,0);
+		BKE_displist_fill(dispbase, dispbase, NULL, false);
 	}
 }
 
