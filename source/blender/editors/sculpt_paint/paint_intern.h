@@ -180,7 +180,6 @@ void paint_calc_redraw_planes(float planes[4][4],
                               struct Object *ob,
                               const struct rcti *screen_rect);
 
-void projectf(struct bglMats *mats, const float v[3], float p[2]);
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
 float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool *pool);
 void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool);
