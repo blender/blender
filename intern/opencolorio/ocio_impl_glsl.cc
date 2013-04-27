@@ -79,6 +79,10 @@ typedef struct OCIO_GLSLDrawState {
 } OCIO_GLSLDrawState;
 
 /* Hardcoded to do alpha predivide before color space conversion */
+/* NOTE: This is true we only do de-premul here and NO premul
+ *       and the reason is simple -- opengl is always configured
+ *       for straight alpha at this moment
+ */
 static const char *g_fragShaderText = ""
 "\n"
 "uniform sampler2D tex1;\n"
@@ -99,10 +103,6 @@ static const char *g_fragShaderText = ""
 "      col[2] *= inv_alpha;\n"
 "\n"
 "      gl_FragColor = OCIODisplay(col, tex2);\n"
-"\n"
-"      gl_FragColor[0] *= alpha;\n"
-"      gl_FragColor[1] *= alpha;\n"
-"      gl_FragColor[2] *= alpha;\n"
 "    }\n"
 "\n"
 "}\n";
