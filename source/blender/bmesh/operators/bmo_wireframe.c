@@ -217,7 +217,8 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* duplicate tagged verts */
-	for (i = 0, v_src = verts_src[i]; i < totvert_orig; i++, v_src = verts_src[i]) {
+	for (i = 0; i < totvert_orig; i++) {
+		v_src = verts_src[i];
 		if (BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
 			fac = depth;
 
