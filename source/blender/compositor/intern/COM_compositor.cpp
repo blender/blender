@@ -67,7 +67,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 	 * Don't create previews in advance, this is done when adding preview operations.
 	 * Reserved preview size is determined by render output for now.
 	 */
-	float aspect = rd->xsch > 0 ? (float)rd->ysch / (float)rd->xsch : 1.0;
+	float aspect = rd->xsch > 0 ? (float)rd->ysch / (float)rd->xsch : 1.0f;
 	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, (int)(COM_PREVIEW_SIZE * aspect), FALSE);
 
 	/* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
