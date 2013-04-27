@@ -1060,7 +1060,16 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		type = GL_UNSIGNED_BYTE;
 	}
 	else {
-		if (ibuf->rect_float) {
+		bool force_fallback = false;
+
+		force_fallback |= !ELEM(U.image_draw_method, IMAGE_DRAW_METHOD_AUTO, IMAGE_DRAW_METHOD_GLSL);
+		force_fallback |= ibuf->dither != 0.0f;
+
+		if (force_fallback) {
+			/* Fallback to CPU based color space conversion */
+			glsl_used = false;
+		}
+		else if (ibuf->rect_float) {
 			display_buffer = ibuf->rect_float;
 
 			if (ibuf->channels == 4) {
@@ -1095,6 +1104,15 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			format = GL_RGBA;
 			type = GL_UNSIGNED_BYTE;
 			display_buffer = NULL;
+		}
+
+		/* there's a data to be displayed, but GLSL is not initialized
+		 * properly, in this case we fallback to CPU-based display transform
+		 */
+		if ((ibuf->rect || ibuf->rect_float) && !glsl_used) {
+			display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+			format = GL_RGBA;
+			type = GL_UNSIGNED_BYTE;
 		}
 	}
 
