@@ -889,7 +889,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	bool displacement_done = false;
 
 	foreach(Mesh *mesh, scene->meshes)
-		if(mesh->need_update && displace(device, scene, mesh, progress))
+		if(mesh->need_update && displace(device, dscene, scene, mesh, progress))
 			displacement_done = true;
 
 	/* todo: properly handle cancel halfway displacement */
