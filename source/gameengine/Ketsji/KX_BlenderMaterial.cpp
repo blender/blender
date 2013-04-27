@@ -400,7 +400,7 @@ KX_BlenderMaterial::ActivatShaders(
 	
 		if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED)
 			tmp->setShaderData(true, rasty);
-		else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && IsAlpha() && !rasty->GetUsingOverrideShader())
+		else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && mMaterial->alphablend != GEMAT_SOLID && !rasty->GetUsingOverrideShader())
 			tmp->setShaderData(true, rasty);
 		else
 			tmp->setShaderData(false, rasty);
@@ -447,7 +447,7 @@ KX_BlenderMaterial::ActivateBlenderShaders(
 	
 		if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED)
 			tmp->setBlenderShaderData(true, rasty);
-		else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && IsAlpha() && !rasty->GetUsingOverrideShader())
+		else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && mMaterial->alphablend != GEMAT_SOLID && !rasty->GetUsingOverrideShader())
 			tmp->setBlenderShaderData(true, rasty);
 		else
 			tmp->setBlenderShaderData(false, rasty);
@@ -498,7 +498,7 @@ KX_BlenderMaterial::ActivateMat(
 
 		if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED)
 			tmp->setTexData( true,rasty  );
-		else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && IsAlpha() && !rasty->GetUsingOverrideShader())
+		else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && mMaterial->alphablend != GEMAT_SOLID && !rasty->GetUsingOverrideShader())
 			tmp->setTexData(true, rasty);
 		else
 			tmp->setTexData( false,rasty);
@@ -635,7 +635,7 @@ void KX_BlenderMaterial::ActivatGLMaterials( RAS_IRasterizer* rasty )const
 void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 {
 	if (ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED || 
-		(ras->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && IsAlpha() && !ras->GetUsingOverrideShader())) {
+		(ras->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && mMaterial->alphablend != GEMAT_SOLID && !ras->GetUsingOverrideShader())) {
 		ras->SetAttribNum(0);
 		if (mShader && GLEW_ARB_shader_objects) {
 			if (mShader->GetAttribute() == BL_Shader::SHD_TANGENT) {
