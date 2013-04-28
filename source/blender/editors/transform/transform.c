@@ -5671,24 +5671,65 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 					 * in fact whenever the face being copied is not 'f_copy' this can happen,
 					 * we could be a lot smarter about this but would need to deal with every UV channel or
 					 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
+
+					/*
+					 *        +    +----------------+
+					 *         \   |                |
+					 * (this) l_adj|                |
+					 *           \ |                |
+					 *            \|      e_sel     |
+					 *  +----------+----------------+  <- the edge we are sliding.
+					 *            /|sv->v           |
+					 *           / |                |
+					 *   (or) l_adj|                |
+					 *         /   |                |
+					 *        +    +----------------+
+					 * (above)
+					 * 'other connected loops', attached to sv->v slide faces.
+					 *
+					 * NOTE: The faces connected to the edge may not have contiguous UV's
+					 *       so step around the loops to find l_adj.
+					 *       However if the 'other loops' are not cotiguous it will still give problems.
+					 *
+					 *       A full solution to this would have to store
+					 *       per-customdata-layer map of which loops are contiguous
+					 *       and take this into account when interpolating.
+					 *
+					 * NOTE: If l_adj's edge isnt manifold then use then
+					 *       interpolate the loop from its own face.
+					 *       Can happen when 'other connected loops' are disconnected from the face-fan.
+					 */
+
+					BMLoop *l_adj = NULL;
 					if (sld->perc < 0.0f) {
 						if (BM_vert_in_face(e_sel->l->f, sv->v_b)) {
-							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							l_adj = e_sel->l;
 						}
 						else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_b)) {
-							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
-							                                   (uintptr_t)e_sel->l->radial_next->f);
+							l_adj = e_sel->l->radial_next;
 						}
-
 					}
 					else if (sld->perc > 0.0f) {
 						if (BM_vert_in_face(e_sel->l->f, sv->v_a)) {
-							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							l_adj = e_sel->l;
 						}
 						else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_a)) {
-							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
-							                                   (uintptr_t)e_sel->l->radial_next->f);
+							l_adj = e_sel->l->radial_next;
 						}
+					}
+
+					/* step across to the face */
+					if (l_adj) {
+						l_adj = BM_loop_other_edge_loop(l_adj, sv->v);
+						if (!BM_edge_is_boundary(l_adj->e)) {
+							l_adj = l_adj->radial_next;
+						}
+						else {
+							/* disconnected face-fan, fallback to self */
+							l_adj = l;
+						}
+
+						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_adj->f);
 					}
 				}
 			}
