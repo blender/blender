@@ -90,6 +90,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"
 #include "BKE_sound.h"
+#include "BKE_sca.h"
 
 #include "NOD_socket.h"
 
@@ -2268,8 +2269,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			for (act = ob->actuators.first; act; act = act->next) {
 				if (act->type == ACT_STEERING) {
 					bSteeringActuator *stact = act->data;
-					if (stact->facingaxis == 0) {
-						stact->facingaxis = 1;
+					if (stact == NULL) {//HG1
+						init_actuator(act);
+					}
+					else {
+						if (stact->facingaxis == 0) {
+							stact->facingaxis = 1;
+						}
 					}
 				}
 			}
