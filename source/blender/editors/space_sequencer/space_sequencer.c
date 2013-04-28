@@ -599,9 +599,12 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	
+	wmKeyMap *keymap;
+
+	keymap = WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
 	ED_region_panels_init(wm, ar);
-	
 }
 
 static void sequencer_buttons_area_draw(const bContext *C, ARegion *ar)
