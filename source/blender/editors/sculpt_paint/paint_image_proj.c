@@ -40,9 +40,10 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_math.h"
+#include "BLI_math_color_blend.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -109,26 +110,6 @@ BLI_INLINE unsigned char f_to_char(const float val)
 {
 	return FTOCHAR(val);
 }
-
-#define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f)  {                                  \
-	(c)[0] = f_to_char((f)[0]);                                               \
-	(c)[1] = f_to_char((f)[1]);                                               \
-	(c)[2] = f_to_char((f)[2]);                                               \
-	(c)[3] = f_to_char((f)[3]);                                               \
-} (void)0
-
-#define IMAPAINT_CHAR_RGBA_TO_FLOAT(f, c)  {                                  \
-	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                  \
-	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                  \
-	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                  \
-	(f)[3] = IMAPAINT_CHAR_TO_FLOAT((c)[3]);                                  \
-} (void)0
-
-#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f)  {                                   \
-	(c)[0] = f_to_char((f)[0]);                                               \
-	(c)[1] = f_to_char((f)[1]);                                               \
-	(c)[2] = f_to_char((f)[2]);                                               \
-} (void)0
 
 /* ProjectionPaint defines */
 
@@ -570,7 +551,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 			else {
 				float rgba_tmp_f[4];
 				bilinear_interpolation_color_wrap(ibuf, NULL, rgba_tmp_f, x, y);
-				IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba, rgba_tmp_f);
+				premul_float_to_straight_uchar(rgba, rgba_tmp_f);
 			}
 		}
 		else {
@@ -580,7 +561,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 			else {
 				unsigned char rgba_tmp[4];
 				bilinear_interpolation_color_wrap(ibuf, rgba_tmp, NULL, x, y);
-				IMAPAINT_CHAR_RGBA_TO_FLOAT(rgba_fp, rgba_tmp);
+				straight_uchar_to_premul_float(rgba_fp, rgba_tmp);
 			}
 		}
 	}
@@ -599,7 +580,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 		if (rgba) {
 			if (ibuf->rect_float) {
 				float *rgba_tmp_fp = ibuf->rect_float + (xi + yi * ibuf->x * 4);
-				IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba, rgba_tmp_fp);
+				premul_float_to_straight_uchar(rgba, rgba_tmp_fp);
 			}
 			else {
 				*((unsigned int *)rgba) = *(unsigned int *)(((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4));
@@ -611,8 +592,8 @@ static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 				copy_v4_v4(rgba_fp, (ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
 			}
 			else {
-				char *tmp_ch = ((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
-				IMAPAINT_CHAR_RGBA_TO_FLOAT(rgba_fp, tmp_ch);
+				unsigned char *tmp_ch = ((unsigned char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
+				straight_uchar_to_premul_float(rgba_fp, tmp_ch);
 			}
 		}
 	}
@@ -1192,10 +1173,10 @@ static float project_paint_uvpixel_mask(
 			project_face_pixel(tf_other, ibuf_other, w, side, rgba_ub, rgba_f);
 
 			if (ibuf_other->rect_float) { /* from float to float */
-				mask = ((rgba_f[0] + rgba_f[1] + rgba_f[2]) / 3.0f) * rgba_f[3];
+				mask = ((rgba_f[0] + rgba_f[1] + rgba_f[2]) * (1.0f / 3.0f)) * rgba_f[3];
 			}
 			else { /* from char to float */
-				mask = ((rgba_ub[0] + rgba_ub[1] + rgba_ub[2]) / (256 * 3.0f)) * (rgba_ub[3] / 256.0f);
+				mask = ((rgba_ub[0] + rgba_ub[1] + rgba_ub[2]) * (1.0f / (255.0f * 3.0f))) * (rgba_ub[3] * (1.0f / 255.0f));
 			}
 
 			BKE_image_release_ibuf(other_tpage, ibuf_other, NULL);
@@ -1339,14 +1320,16 @@ static ProjPixel *project_paint_uvpixel_init(
 
 	if (ibuf->rect_float) {
 		projPixel->pixel.f_pt = ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
-		projPixel->origColor.f[0] = projPixel->newColor.f[0] = projPixel->pixel.f_pt[0];
-		projPixel->origColor.f[1] = projPixel->newColor.f[1] = projPixel->pixel.f_pt[1];
-		projPixel->origColor.f[2] = projPixel->newColor.f[2] = projPixel->pixel.f_pt[2];
-		projPixel->origColor.f[3] = projPixel->newColor.f[3] = projPixel->pixel.f_pt[3];
+		projPixel->origColor.f[0] = projPixel->pixel.f_pt[0];
+		projPixel->origColor.f[1] = projPixel->pixel.f_pt[1];
+		projPixel->origColor.f[2] = projPixel->pixel.f_pt[2];
+		projPixel->origColor.f[3] = projPixel->pixel.f_pt[3];
+		zero_v4(projPixel->newColor.f);
 	}
 	else {
 		projPixel->pixel.ch_pt = ((unsigned char *)ibuf->rect + ((x_px + y_px * ibuf->x) * 4));
-		projPixel->origColor.uint = projPixel->newColor.uint = *projPixel->pixel.uint_pt;
+		projPixel->origColor.uint = *projPixel->pixel.uint_pt;
+		projPixel->newColor.uint = 0;
 	}
 
 	/* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
@@ -1602,9 +1585,9 @@ static int line_clip_rect2f(
 static void scale_quad(float insetCos[4][3], float *origCos[4], const float inset)
 {
 	float cent[3];
-	cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0] + origCos[3][0]) / 4.0f;
-	cent[1] = (origCos[0][1] + origCos[1][1] + origCos[2][1] + origCos[3][1]) / 4.0f;
-	cent[2] = (origCos[0][2] + origCos[1][2] + origCos[2][2] + origCos[3][2]) / 4.0f;
+	cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0] + origCos[3][0]) * (1.0f / 4.0f);
+	cent[1] = (origCos[0][1] + origCos[1][1] + origCos[2][1] + origCos[3][1]) * (1.0f / 4.0f);
+	cent[2] = (origCos[0][2] + origCos[1][2] + origCos[2][2] + origCos[3][2]) * (1.0f / 4.0f);
 
 	sub_v3_v3v3(insetCos[0], origCos[0], cent);
 	sub_v3_v3v3(insetCos[1], origCos[1], cent);
@@ -1626,9 +1609,9 @@ static void scale_quad(float insetCos[4][3], float *origCos[4], const float inse
 static void scale_tri(float insetCos[4][3], float *origCos[4], const float inset)
 {
 	float cent[3];
-	cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0]) / 3.0f;
-	cent[1] = (origCos[0][1] + origCos[1][1] + origCos[2][1]) / 3.0f;
-	cent[2] = (origCos[0][2] + origCos[1][2] + origCos[2][2]) / 3.0f;
+	cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0]) * (1.0f / 3.0f);
+	cent[1] = (origCos[0][1] + origCos[1][1] + origCos[2][1]) * (1.0f / 3.0f);
+	cent[2] = (origCos[0][2] + origCos[1][2] + origCos[2][2]) * (1.0f / 3.0f);
 
 	sub_v3_v3v3(insetCos[0], origCos[0], cent);
 	sub_v3_v3v3(insetCos[1], origCos[1], cent);
@@ -2193,8 +2176,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	/* Use tf_uv_pxoffset instead of tf->uv so we can offset the UV half a pixel
 	 * this is done so we can avoid offsetting all the pixels by 0.5 which causes
 	 * problems when wrapping negative coords */
-	xhalfpx = (0.5f + (PROJ_GEOM_TOLERANCE / 3.0f)) / ibuf_xf;
-	yhalfpx = (0.5f + (PROJ_GEOM_TOLERANCE / 4.0f)) / ibuf_yf;
+	xhalfpx = (0.5f + (PROJ_GEOM_TOLERANCE * (1.0f / 3.0f))) / ibuf_xf;
+	yhalfpx = (0.5f + (PROJ_GEOM_TOLERANCE * (1.0f / 4.0f))) / ibuf_yf;
 
 	/* Note about (PROJ_GEOM_TOLERANCE/x) above...
 	 * Needed to add this offset since UV coords are often quads aligned to pixels.
@@ -2477,8 +2460,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										if (!is_ortho) {
 											pixelScreenCo[3] = 1.0f;
 											mul_m4_v4((float(*)[4])ps->projectMat, pixelScreenCo); /* cast because of const */
-											pixelScreenCo[0] = (float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * pixelScreenCo[0] / pixelScreenCo[3];
-											pixelScreenCo[1] = (float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * pixelScreenCo[1] / pixelScreenCo[3];
+											pixelScreenCo[0] = (float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * pixelScreenCo[0] / pixelScreenCo[3];
+											pixelScreenCo[1] = (float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * pixelScreenCo[1] / pixelScreenCo[3];
 											pixelScreenCo[2] = pixelScreenCo[2] / pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 										}
 
@@ -2976,8 +2959,8 @@ static void project_paint_begin(ProjPaintState *ps)
 			mul_v3_m4v3(projScreenCo, ps->projectMat, mv->co);
 
 			/* screen space, not clamped */
-			projScreenCo[0] = (float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projScreenCo[0];
-			projScreenCo[1] = (float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projScreenCo[1];
+			projScreenCo[0] = (float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * projScreenCo[0];
+			projScreenCo[1] = (float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * projScreenCo[1];
 			minmax_v2v2_v2(ps->screenMin, ps->screenMax, projScreenCo);
 		}
 	}
@@ -2990,8 +2973,8 @@ static void project_paint_begin(ProjPaintState *ps)
 
 			if (projScreenCo[3] > ps->clipsta) {
 				/* screen space, not clamped */
-				projScreenCo[0] = (float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projScreenCo[0] / projScreenCo[3];
-				projScreenCo[1] = (float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projScreenCo[1] / projScreenCo[3];
+				projScreenCo[0] = (float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * projScreenCo[0] / projScreenCo[3];
+				projScreenCo[1] = (float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * projScreenCo[1] / projScreenCo[3];
 				projScreenCo[2] = projScreenCo[2] / projScreenCo[3]; /* Use the depth for bucket point occlusion */
 				minmax_v2v2_v2(ps->screenMin, ps->screenMax, projScreenCo);
 			}
@@ -3237,8 +3220,8 @@ static void paint_proj_begin_clone(ProjPaintState *ps, const int mouse[2])
 
 		projCo[3] = 1.0f;
 		mul_m4_v4(ps->projectMat, projCo);
-		ps->cloneOffset[0] = mouse[0] - ((float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projCo[0] / projCo[3]);
-		ps->cloneOffset[1] = mouse[1] - ((float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projCo[1] / projCo[3]);
+		ps->cloneOffset[0] = mouse[0] - ((float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * projCo[0] / projCo[3]);
+		ps->cloneOffset[1] = mouse[1] - ((float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * projCo[1] / projCo[3]);
 	}
 }
 
@@ -3533,72 +3516,70 @@ typedef struct ProjectHandle {
 	struct ImagePool *pool;
 } ProjectHandle;
 
-static void interpolate_color(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
+static void interpolate_color_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4], const float ffac)
 {
-	/* this and other blending modes previously used >>8 instead of /255. both
-	 * are not equivalent (>>8 is /256), and the former results in rounding
-	 * errors that can turn colors black fast after repeated blending */
+	/* do color interpolation, but in premultiplied space so that RGB colors
+	 * from zero alpha regions have no influence */
+	const int fac = (int)(255 * ffac);
 	const int mfac = 255 - fac;
+	int tmp = (mfac * src1[3] + fac * src2[3]);
 
-	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
-	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
-	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
-	cp[3] = (mfac * cp1[3] + fac * cp2[3]) / 255;
-}
-
-static void interpolate_color_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
-{
-	const float mfac = 1.0f - fac;
-	cp[0] = mfac * cp1[0] + fac * cp2[0];
-	cp[1] = mfac * cp1[1] + fac * cp2[1];
-	cp[2] = mfac * cp1[2] + fac * cp2[2];
-	cp[3] = mfac * cp1[3] + fac * cp2[3];
-}
-
-static void blend_color_mix_accum(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
-{
-	/* this and other blending modes previously used >>8 instead of /255. both
-	 * are not equivalent (>>8 is /256), and the former results in rounding
-	 * errors that can turn colors black fast after repeated blending */
-	const int mfac = 255 - fac;
-	const int alpha = cp1[3] + ((fac * cp2[3]) / 255);
-
-	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
-	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
-	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
-	cp[3] = alpha > 255 ? 255 : alpha;
-}
-static void blend_color_mix_accum_float(float cp[4], const float cp1[4], const unsigned char cp2[4], const float fac)
-{
-	const float mfac = 1.0f - fac;
-	const float alpha = cp1[3] + (fac * (cp2[3] / 255.0f));
-
-	cp[0] = (mfac * cp1[0] + (fac * (cp2[0] / 255.0f)));
-	cp[1] = (mfac * cp1[1] + (fac * (cp2[1] / 255.0f)));
-	cp[2] = (mfac * cp1[2] + (fac * (cp2[2] / 255.0f)));
-	cp[3] = alpha > 1.0f ? 1.0f : alpha;
-}
-
-
-static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
-{
-	if (ps->do_masking && mask < 1.0f) {
-		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone *)projPixel)->clonepx.uint, (int)(alpha * 255), ps->blend);
-		interpolate_color(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
+	if (tmp > 0) {
+		dst[0] = divide_round_i(mfac * src1[0] * src1[3] + fac * src2[0] * src2[3], tmp);
+		dst[1] = divide_round_i(mfac * src1[1] * src1[3] + fac * src2[1] * src2[3], tmp);
+		dst[2] = divide_round_i(mfac * src1[2] * src1[3] + fac * src2[2] * src2[3], tmp);
+		dst[3] = divide_round_i(tmp, 255);
 	}
 	else {
-		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone *)projPixel)->clonepx.uint, (int)(alpha * mask * 255), ps->blend);
+		dst[0] = src1[0];
+		dst[1] = src1[1];
+		dst[2] = src1[2];
+		dst[3] = src1[3];
 	}
 }
 
-static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
+static void interpolate_color_float(float dst[4], const float src1[4], const float src2[4], const float fac)
 {
-	if (ps->do_masking && mask < 1.0f) {
-		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, ps->blend);
-		interpolate_color_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
+	/* interpolation, colors are premultiplied so it goes fine */
+	interp_v4_v4v4(dst, src1, src2, fac);
+}
+
+static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float mask)
+{
+	const unsigned char *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.ch;
+
+	if (clone_pt[3]) {
+		unsigned char clone_rgba[4];
+
+		clone_rgba[0] = clone_pt[0];
+		clone_rgba[1] = clone_pt[1];
+		clone_rgba[2] = clone_pt[2];
+		clone_rgba[3] = clone_pt[3] * mask;
+
+		if (ps->do_masking) {
+			IMB_blend_color_byte(projPixel->pixel.ch_pt, projPixel->origColor.ch, clone_rgba, ps->blend);
+		}
+		else {
+			IMB_blend_color_byte(projPixel->pixel.ch_pt, projPixel->pixel.ch_pt, clone_rgba, ps->blend);
+		}
 	}
-	else {
-		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha * mask, ps->blend);
+}
+
+static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float mask)
+{
+	const float *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.f;
+
+	if (clone_pt[3]) {
+		float clone_rgba[4];
+
+		mul_v4_v4fl(clone_rgba, clone_pt, mask);
+
+		if (ps->do_masking) {
+			IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->origColor.f, clone_rgba, ps->blend);
+		}
+		else {
+			IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, clone_rgba, ps->blend);
+		}
 	}
 }
 
@@ -3608,19 +3589,19 @@ static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, fl
  * accumulation of color greater then 'projPixel->mask' however in the case of smear its not
  * really that important to be correct as it is with clone and painting
  */
-static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float mask,
                                   MemArena *smearArena, LinkNode **smearPixels, const float co[2])
 {
 	unsigned char rgba_ub[4];
 
 	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1) == 0)
 		return;
-	/* ((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend); */
-	interpolate_color(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * mask * 255));
+
+	interpolate_color_byte(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, mask);
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 }
 
-static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float mask,
                                     MemArena *smearArena, LinkNode **smearPixels_f, const float co[2])
 {
 	float rgba[4];
@@ -3628,8 +3609,7 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 	if (project_paint_PickColor(ps, co, rgba, NULL, 1) == 0)
 		return;
 
-	/* (ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend); */
-	interpolate_color_float(((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, alpha * mask);
+	interpolate_color_float(((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, mask);
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
@@ -3642,7 +3622,7 @@ static float inv_pow2(float f)
 	return 1.0f - f;
 }
 
-static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, float mask,
                                      MemArena *softenArena, LinkNode **softenPixels)
 {
 	unsigned int accum_tot = 0;
@@ -3650,9 +3630,8 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 
 	float *rgba = projPixel->newColor.f;
 
-	/* sigh, alpha values tend to need to be a _lot_ stronger with blur */
+	/* sigh, mask values tend to need to be a _lot_ stronger with blur */
 	mask  = inv_pow2(mask);
-	alpha = inv_pow2(alpha);
 
 	/* rather then painting, accumulate surrounding colors */
 	zero_v4(rgba);
@@ -3669,13 +3648,12 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 
 	if (LIKELY(accum_tot != 0)) {
 		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
-		interpolate_color_float(rgba, projPixel->pixel.f_pt, rgba, alpha);
-		if (mask < 1.0f) interpolate_color_float(rgba, projPixel->origColor.f, rgba, mask);
+		interpolate_color_float(rgba, rgba, projPixel->pixel.f_pt, mask);
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
 }
 
-static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask,
+static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, float mask,
                                    MemArena *softenArena, LinkNode **softenPixels)
 {
 	unsigned int accum_tot = 0;
@@ -3683,9 +3661,8 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 
 	float rgba[4];  /* convert to byte after */
 
-	/* sigh, alpha values tend to need to be a _lot_ stronger with blur */
+	/* sigh, mask values tend to need to be a _lot_ stronger with blur */
 	mask  = inv_pow2(mask);
-	alpha = inv_pow2(alpha);
 
 	/* rather then painting, accumulate surrounding colors */
 	zero_v4(rgba);
@@ -3704,66 +3681,55 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 		unsigned char *rgba_ub = projPixel->newColor.ch;
 
 		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
-		IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_ub, rgba);
+		premul_float_to_straight_uchar(rgba_ub, rgba);
 
-		interpolate_color(rgba_ub, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * 255));
-		if (mask != 1.0f) interpolate_color(rgba_ub, projPixel->origColor.ch, rgba_ub, (int)(mask * 255));
+		interpolate_color_byte(rgba_ub, rgba_ub, projPixel->pixel.ch_pt, mask);
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
 }
 
-BLI_INLINE void rgba_float_to_uchar__mul_v3(unsigned char rgba_ub[4], const float rgba[4], const float rgb[3])
+static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const float texrgb[3], float mask)
 {
-	rgba_ub[0] = f_to_char(rgba[0] * rgb[0]);
-	rgba_ub[1] = f_to_char(rgba[1] * rgb[1]);
-	rgba_ub[2] = f_to_char(rgba[2] * rgb[2]);
-	rgba_ub[3] = f_to_char(rgba[3]);
-}
-
-static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const float rgba[4], float alpha, float mask)
-{
+	float rgb[3];
 	unsigned char rgba_ub[4];
 
+	copy_v3_v3(rgb, ps->brush->rgb);
+
 	if (ps->is_texbrush) {
-		rgba_float_to_uchar__mul_v3(rgba_ub, rgba, ps->brush->rgb);
-	}
-	else {
-		IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
-		rgba_ub[3] = 255;
+		/* XXX actually should convert texrgb from linear to srgb here */
+		mul_v3_v3(rgb, texrgb);
 	}
 
-	if (ps->do_masking && mask < 1.0f) {
-		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha * 255), ps->blend);
-		interpolate_color(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
+	rgb_float_to_uchar(rgba_ub, rgb);
+	rgba_ub[3] = 255 * mask;
+
+	if (ps->do_masking) {
+		IMB_blend_color_byte(projPixel->pixel.ch_pt, projPixel->origColor.ch, rgba_ub, ps->blend);
 	}
 	else {
-		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha * mask * 255), ps->blend);
+		IMB_blend_color_byte(projPixel->pixel.ch_pt, projPixel->pixel.ch_pt, rgba_ub, ps->blend);
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float rgba[4], float alpha, float mask)
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, const float texrgb[3], float mask)
 {
-	if (ps->is_texbrush) {
-		/* rgba already holds a texture result here from higher level function */
-		float rgba_br[3];
-		srgb_to_linearrgb_v3_v3(rgba_br, ps->brush->rgb);
-		mul_v3_v3(rgba, rgba_br);
-	}
-	else {
-		srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
-		rgba[3] = 1.0;
-	}
+	float rgba[4];
 
-	if (ps->do_masking && mask < 1.0f) {
-		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, ps->blend);
-		interpolate_color_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
+	srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
+
+	if (ps->is_texbrush)
+		mul_v3_v3(rgba, texrgb);
+	
+	mul_v3_fl(rgba, mask);
+	rgba[3] = mask;
+
+	if (ps->do_masking) {
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->origColor.f, rgba, ps->blend);
 	}
 	else {
-		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha * mask, ps->blend);
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, ps->blend);
 	}
 }
-
-
 
 /* run this for single and multithreaded painting */
 static void *do_projectpaint_thread(void *ph_v)
@@ -3785,7 +3751,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	ProjPaintImage *last_projIma = NULL;
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 
-	float rgba[4], alpha, dist_nosqrt, dist;
+	float dist_nosqrt, dist;
 
 	float falloff;
 	int bucket_index;
@@ -3796,8 +3762,6 @@ static void *do_projectpaint_thread(void *ph_v)
 	/* for smear only */
 	float pos_ofs[2] = {0};
 	float co[2];
-	float texmask = 1.0;
-	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
 	const float radius = (float)BKE_brush_size_get(ps->scene, brush);
 	const float radius_squared = radius * radius; /* avoid a square root with every dist comparison */
@@ -3854,9 +3818,14 @@ static void *do_projectpaint_thread(void *ph_v)
 					bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL,
 					                            projPixel->projCoSS[0], projPixel->projCoSS[1]);
 					if (projPixel->newColor.ch[3]) {
-						mask = ((float)projPixel->mask) / 65535.0f;
-						blend_color_mix_accum_float(projPixel->pixel.f_pt,  projPixel->origColor.f,
-						                            projPixel->newColor.ch, (mask * (projPixel->newColor.ch[3] / 255.0f)));
+						float newColor_f[4];
+						float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+
+						straight_uchar_to_premul_float(newColor_f, projPixel->newColor.ch);
+    					mul_v4_v4fl(newColor_f, newColor_f, mask);
+
+						blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f,
+						                      newColor_f);
 					}
 				}
 				else {
@@ -3864,9 +3833,11 @@ static void *do_projectpaint_thread(void *ph_v)
 					bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL,
 					                            projPixel->projCoSS[0], projPixel->projCoSS[1]);
 					if (projPixel->newColor.ch[3]) {
-						mask = ((float)projPixel->mask) / 65535.0f;
-						blend_color_mix_accum(projPixel->pixel.ch_pt,  projPixel->origColor.ch,
-						                      projPixel->newColor.ch, (int)(mask * projPixel->newColor.ch[3]));
+						float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+						projPixel->newColor.ch[3] *= mask;
+
+						blend_color_mix_byte(projPixel->pixel.ch_pt,  projPixel->origColor.ch,
+						                     projPixel->newColor.ch);
 					}
 				}
 			}
@@ -3900,44 +3871,45 @@ static void *do_projectpaint_thread(void *ph_v)
 					}
 
 					if (falloff > 0.0f) {
+						float texrgb[3];
+						float mask = falloff * BKE_brush_alpha_get(ps->scene, brush);
+
 						if (ps->is_texbrush) {
+							float texrgba[4];
+
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, rgba, thread_index, pool);
-							alpha = rgba[3];
-						}
-						else {
-							alpha = 1.0f;
+							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, texrgba, thread_index, pool);
+
+							copy_v3_v3(texrgb, texrgba);
+							mask *= texrgba[3];
 						}
 
 						if (ps->is_maskbrush) {
-							texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
-							alpha *= texmask;
+							mask *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
 						}
 
 						if (!ps->do_masking) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-							alpha *= falloff * BKE_brush_alpha_get(ps->scene, brush);
-							mask = ((float)projPixel->mask) / 65535.0f;
+							mask *= ((float)projPixel->mask) * (1.0f / 65535.0f);
 						}
 						else {
 							/* This brush dosnt accumulate so add some curve to the brushes falloff */
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 
-							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, brush) * falloff)) * texmask;
+							mask_short = (unsigned short)(projPixel->mask * mask);
+
 							if (mask_short > projPixel->mask_max) {
-								mask = ((float)mask_short) / 65535.0f;
+								mask = ((float)mask_short) * (1.0f / 65535.0f);
 								projPixel->mask_max = mask_short;
 							}
 							else {
-								/*mask = ((float)projPixel->mask_max)/65535.0f;*/
-
 								/* Go onto the next pixel */
 								continue;
 							}
 						}
 
-						if (alpha > 0.0f) {
+						if (mask > 0.0f) {
 
 							/* copy of code above */
 							if (last_index != projPixel->image_index) {
@@ -3956,33 +3928,25 @@ static void *do_projectpaint_thread(void *ph_v)
 							last_partial_redraw_cell->x2 = max_ii(last_partial_redraw_cell->x2, (int)projPixel->x_px + 1);
 							last_partial_redraw_cell->y2 = max_ii(last_partial_redraw_cell->y2, (int)projPixel->y_px + 1);
 
-
+							/* texrgb is not used for clone, smear or soften */
 							switch (tool) {
 								case PAINT_TOOL_CLONE:
-									if (is_floatbuf) {
-										if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-											do_projectpaint_clone_f(ps, projPixel, alpha, mask); /* rgba isn't used for cloning, only alpha */
-										}
-									}
-									else {
-										if (((ProjPixelClone *)projPixel)->clonepx.ch[3]) {
-											do_projectpaint_clone(ps, projPixel, alpha, mask); /* rgba isn't used for cloning, only alpha */
-										}
-									}
+									if (is_floatbuf) do_projectpaint_clone_f(ps, projPixel, mask);
+									else do_projectpaint_clone(ps, projPixel, mask);
 									break;
 								case PAINT_TOOL_SMEAR:
 									sub_v2_v2v2(co, projPixel->projCoSS, pos_ofs);
 
-									if (is_floatbuf) do_projectpaint_smear_f(ps, projPixel, alpha, mask, smearArena, &smearPixels_f, co);
-									else do_projectpaint_smear(ps, projPixel, alpha, mask, smearArena, &smearPixels, co);
+									if (is_floatbuf) do_projectpaint_smear_f(ps, projPixel, mask, smearArena, &smearPixels_f, co);
+									else do_projectpaint_smear(ps, projPixel, mask, smearArena, &smearPixels, co);
 									break;
 								case PAINT_TOOL_SOFTEN:
-									if (is_floatbuf) do_projectpaint_soften_f(ps, projPixel, alpha, mask, softenArena, &softenPixels_f);
-									else do_projectpaint_soften(ps, projPixel, alpha, mask, softenArena, &softenPixels);
+									if (is_floatbuf) do_projectpaint_soften_f(ps, projPixel, mask, softenArena, &softenPixels_f);
+									else do_projectpaint_soften(ps, projPixel, mask, softenArena, &softenPixels);
 									break;
 								default:
-									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
-									else do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
+									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask);
+									else do_projectpaint_draw(ps, projPixel, texrgb, mask);
 									break;
 							}
 						}

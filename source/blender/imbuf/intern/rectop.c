@@ -46,269 +46,59 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_colormanagement.h"
 
-
-/* blend modes */
-
-static void imb_blend_color_mix(char cp[3], const char cp1[3], const char cp2[3], const int fac)
+void IMB_blend_color_byte(unsigned char dst[4], unsigned char src1[4], unsigned char src2[4], IMB_BlendMode mode)
 {
-	/* this and other blending modes previously used >>8 instead of /255. both
-	 * are not equivalent (>>8 is /256), and the former results in rounding
-	 * errors that can turn colors black fast after repeated blending */
-	const int mfac = 255 - fac;
-	int temp;
-
-	cp[0] = divide_round_i((mfac * cp1[0] + fac * cp2[0]), 255);
-	cp[1] = divide_round_i((mfac * cp1[1] + fac * cp2[1]), 255);
-	cp[2] = divide_round_i((mfac * cp1[2] + fac * cp2[2]), 255);
-
-	temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-	cp[3] = (temp > 255) ? 255 : temp;
-}
-
-static void imb_blend_color_add(char cp[3], const char cp1[3], const char cp2[3], const int fac)
-{
-	int temp;
-
-	temp = cp1[0] + divide_round_i(fac * cp2[0], 255);
-	if (temp > 254) cp[0] = 255; else cp[0] = temp;
-	temp = cp1[1] + divide_round_i(fac * cp2[1], 255);
-	if (temp > 254) cp[1] = 255; else cp[1] = temp;
-	temp = cp1[2] + divide_round_i(fac * cp2[2], 255);
-	if (temp > 254) cp[2] = 255; else cp[2] = temp;
-
-	temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-	cp[3] = (temp > 255) ? 255 : temp;
-}
-
-static void imb_blend_color_sub(char cp[3], const char cp1[3], const char cp2[3], const int fac)
-{
-	int temp;
-
-	temp = cp1[0] - divide_round_i(fac * cp2[0], 255);
-	if (temp < 0) cp[0] = 0; else cp[0] = temp;
-	temp = cp1[1] - divide_round_i(fac * cp2[1], 255);
-	if (temp < 0) cp[1] = 0; else cp[1] = temp;
-	temp = cp1[2] - divide_round_i(fac * cp2[2], 255);
-	if (temp < 0) cp[2] = 0; else cp[2] = temp;
-
-	temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-	cp[3] = (temp > 255) ? 255 : temp;
-}
-
-static void imb_blend_color_mul(char cp[3], const char cp1[3], const char cp2[3], const int fac)
-{
-	int mfac = 255 - fac;
-	int temp;
-	
-	/* first mul, then blend the fac */
-	cp[0] = divide_round_i((mfac * cp1[0] * 255) + (fac * cp1[0] * cp2[0]), 255 * 255);
-	cp[1] = divide_round_i((mfac * cp1[1] * 255) + (fac * cp1[1] * cp2[1]), 255 * 255);
-	cp[2] = divide_round_i((mfac * cp1[2] * 255) + (fac * cp1[2] * cp2[2]), 255 * 255);
-
-	temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-	cp[3] = (temp > 255) ? 255 : temp;
-}
-
-static void imb_blend_color_lighten(char cp[3], const char cp1[3], const char cp2[3], const int fac)
-{
-	/* See if are lighter, if so mix, else don't do anything.
-	 * if the paint col is darker then the original, then ignore */
-	if (cp1[0] + cp1[1] + cp1[2] > cp2[0] + cp2[1] + cp2[2]) {
-		int temp;
-
-		cp[0] = cp1[0];
-		cp[1] = cp1[1];
-		cp[2] = cp1[2];
-
-		temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-		cp[3] = (temp > 255) ? 255 : temp;
-	}
-	else {
-		imb_blend_color_mix(cp, cp1, cp2, fac);
-	}
-}
-
-static void imb_blend_color_darken(char cp[3], const char cp1[3], const char cp2[3], const int fac)
-{
-	/* See if were darker, if so mix, else don't do anything.
-	 * if the paint col is brighter then the original, then ignore */
-	if (cp1[0] + cp1[1] + cp1[2] < cp2[0] + cp2[1] + cp2[2]) {
-		int temp;
-
-		cp[0] = cp1[0];
-		cp[1] = cp1[1];
-		cp[2] = cp1[2];
-
-		temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-		cp[3] = (temp > 255) ? 255 : temp;
-	}
-	else {
-		imb_blend_color_mix(cp, cp1, cp2, fac);
-	}
-}
-
-static void imb_blend_color_erase_alpha(char cp[4], const char cp1[4], const char cp2[4], const int fac)
-{
-	int temp = cp1[3] - divide_round_i(fac * cp2[3], 255);
-
-	cp[0] = cp1[0];
-	cp[1] = cp1[1];
-	cp[2] = cp1[2];
-	cp[3] = (temp < 0) ? 0 : temp;
-}
-
-static void imb_blend_color_add_alpha(char cp[4], const char cp1[4], const char cp2[4], const int fac)
-{
-	int temp = cp1[3] + divide_round_i(fac * cp2[3], 255);
-
-	cp[0] = cp1[0];
-	cp[1] = cp1[1];
-	cp[2] = cp1[2];
-	cp[3] = (temp > 255) ? 255 : ((temp < 0) ? 0 : temp);
-}
-
-
-unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_BlendMode mode)
-{
-	unsigned int dst;
-	char *cp, *cp1, *cp2;
-
-	if (fac == 0)
-		return src1;
-
-	cp = (char *)&dst;
-	cp1 = (char *)&src1;
-	cp2 = (char *)&src2;
-
 	switch (mode) {
 		case IMB_BLEND_MIX:
-			imb_blend_color_mix(cp, cp1, cp2, fac); break;
+			blend_color_mix_byte(dst, src1, src2); break;
 		case IMB_BLEND_ADD:
-			imb_blend_color_add(cp, cp1, cp2, fac); break;
+			blend_color_add_byte(dst, src1, src2); break;
 		case IMB_BLEND_SUB:
-			imb_blend_color_sub(cp, cp1, cp2, fac); break;
+			blend_color_sub_byte(dst, src1, src2); break;
 		case IMB_BLEND_MUL:
-			imb_blend_color_mul(cp, cp1, cp2, fac); break;
+			blend_color_mul_byte(dst, src1, src2); break;
 		case IMB_BLEND_LIGHTEN:
-			imb_blend_color_lighten(cp, cp1, cp2, fac); break;
+			blend_color_lighten_byte(dst, src1, src2); break;
 		case IMB_BLEND_DARKEN:
-			imb_blend_color_darken(cp, cp1, cp2, fac); break;
+			blend_color_darken_byte(dst, src1, src2); break;
 		case IMB_BLEND_ERASE_ALPHA:
-			imb_blend_color_erase_alpha(cp, cp1, cp2, fac); break;
+			blend_color_erase_alpha_byte(dst, src1, src2); break;
 		case IMB_BLEND_ADD_ALPHA:
-			imb_blend_color_add_alpha(cp, cp1, cp2, fac); break;
-		default:
-			cp[0] = cp1[0];
-			cp[1] = cp1[1];
-			cp[2] = cp1[2];
-			cp[3] = cp1[3];
-			break;
-	}
-
-	return dst;
-}
-
-static void imb_blend_color_mix_float(float cp[3], const float cp1[3], const float cp2[3], const float fac)
-{
-	float mfac = 1.0f - fac;
-	cp[0] = mfac * cp1[0] + fac * cp2[0];
-	cp[1] = mfac * cp1[1] + fac * cp2[1];
-	cp[2] = mfac * cp1[2] + fac * cp2[2];
-}
-
-static void imb_blend_color_add_float(float cp[3], const float cp1[3], const float cp2[3], const float fac)
-{
-	cp[0] = cp1[0] + fac * cp2[0];
-	cp[1] = cp1[1] + fac * cp2[1];
-	cp[2] = cp1[2] + fac * cp2[2];
-
-	if (cp[0] > 1.0f) cp[0] = 1.0f;
-	if (cp[1] > 1.0f) cp[1] = 1.0f;
-	if (cp[2] > 1.0f) cp[2] = 1.0f;
-}
-
-static void imb_blend_color_sub_float(float cp[3], const float cp1[3], const float cp2[3], const float fac)
-{
-	cp[0] = cp1[0] - fac * cp2[0];
-	cp[1] = cp1[1] - fac * cp2[1];
-	cp[2] = cp1[2] - fac * cp2[2];
-
-	if (cp[0] < 0.0f) cp[0] = 0.0f;
-	if (cp[1] < 0.0f) cp[1] = 0.0f;
-	if (cp[2] < 0.0f) cp[2] = 0.0f;
-}
-
-static void imb_blend_color_mul_float(float cp[3], const float cp1[3], const float cp2[3], const float fac)
-{
-	float mfac = 1.0f - fac;
-	
-	cp[0] = mfac * cp1[0] + fac * (cp1[0] * cp2[0]);
-	cp[1] = mfac * cp1[1] + fac * (cp1[1] * cp2[1]);
-	cp[2] = mfac * cp1[2] + fac * (cp1[2] * cp2[2]);
-}
-
-static void imb_blend_color_lighten_float(float cp[3], const float cp1[3], const float cp2[3], const float fac)
-{
-	/* See if are lighter, if so mix, else don't do anything.
-	 * if the pafloat col is darker then the original, then ignore */
-	if (cp1[0] + cp1[1] + cp1[2] > cp2[0] + cp2[1] + cp2[2]) {
-		cp[0] = cp1[0];
-		cp[1] = cp1[1];
-		cp[2] = cp1[2];
-	}
-	else
-		imb_blend_color_mix_float(cp, cp1, cp2, fac);
-}
-
-static void imb_blend_color_darken_float(float cp[3], const float cp1[3], const float cp2[3], const float fac)
-{
-	/* See if were darker, if so mix, else don't do anything.
-	 * if the pafloat col is brighter then the original, then ignore */
-	if (cp1[0] + cp1[1] + cp1[2] < cp2[0] + cp2[1] + cp2[2]) {
-		cp[0] = cp1[0];
-		cp[1] = cp1[1];
-		cp[2] = cp1[2];
-	}
-	else
-		imb_blend_color_mix_float(cp, cp1, cp2, fac);
-}
-
-void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], float fac, IMB_BlendMode mode)
-{
-	if (fac == 0) {
-		dst[0] = src1[0];
-		dst[1] = src1[1];
-		dst[2] = src1[2];
-		dst[3] = src1[3];
-		return;
-	}
-
-	switch (mode) {
-		case IMB_BLEND_MIX:
-			imb_blend_color_mix_float(dst, src1, src2, fac); break;
-		case IMB_BLEND_ADD:
-			imb_blend_color_add_float(dst, src1, src2, fac); break;
-		case IMB_BLEND_SUB:
-			imb_blend_color_sub_float(dst, src1, src2, fac); break;
-		case IMB_BLEND_MUL:
-			imb_blend_color_mul_float(dst, src1, src2, fac); break;
-		case IMB_BLEND_LIGHTEN:
-			imb_blend_color_lighten_float(dst, src1, src2, fac); break;
-		case IMB_BLEND_DARKEN:
-			imb_blend_color_darken_float(dst, src1, src2, fac); break;
+			blend_color_add_alpha_byte(dst, src1, src2); break;
 		default:
 			dst[0] = src1[0];
 			dst[1] = src1[1];
 			dst[2] = src1[2];
+			dst[3] = src1[3];
+			break;
 	}
+}
 
-	if (mode == IMB_BLEND_ERASE_ALPHA) {
-		dst[3] = (src1[3] - fac * src2[3]);
-		if (dst[3] < 0.0f) dst[3] = 0.0f;
-	}
-	else { /* this does ADD_ALPHA also */
-		dst[3] = (src1[3] + fac * src2[3]);
-		if (dst[3] > 1.0f) dst[3] = 1.0f;
+void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_BlendMode mode)
+{
+	switch (mode) {
+		case IMB_BLEND_MIX:
+			blend_color_mix_float(dst, src1, src2); break;
+		case IMB_BLEND_ADD:
+			blend_color_add_float(dst, src1, src2); break;
+		case IMB_BLEND_SUB:
+			blend_color_sub_float(dst, src1, src2); break;
+		case IMB_BLEND_MUL:
+			blend_color_mul_float(dst, src1, src2); break;
+		case IMB_BLEND_LIGHTEN:
+			blend_color_lighten_float(dst, src1, src2); break;
+		case IMB_BLEND_DARKEN:
+			blend_color_darken_float(dst, src1, src2); break;
+		case IMB_BLEND_ERASE_ALPHA:
+			blend_color_erase_alpha_float(dst, src1, src2); break;
+		case IMB_BLEND_ADD_ALPHA:
+			blend_color_add_alpha_float(dst, src1, src2); break;
+		default:
+			dst[0] = src1[0];
+			dst[1] = src1[1];
+			dst[2] = src1[2];
+			dst[3] = src1[3];
+			break;
 	}
 }
 

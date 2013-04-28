@@ -309,8 +309,8 @@ MINLINE void straight_to_premul_v4(float color[4])
 
 MINLINE void straight_uchar_to_premul_float(float result[4], const unsigned char color[4])
 {
-	float alpha = color[3] / 255.0f;
-	float fac = alpha / 255.0f;
+	float alpha = color[3] * (1.0f / 255.0f);
+	float fac = alpha * (1.0f / 255.0f);
 
 	result[0] = color[0] * fac;
 	result[1] = color[1] * fac;

@@ -169,9 +169,9 @@ typedef enum IMB_BlendMode {
 	IMB_BLEND_COPY_ALPHA = 1002
 } IMB_BlendMode;
 
-unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac,
-	IMB_BlendMode mode);
-void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], float fac,
+void IMB_blend_color_byte(unsigned char dst[4], unsigned char src1[4],
+	unsigned char src2[4], IMB_BlendMode mode);
+void IMB_blend_color_float(float dst[4], float src1[4], float src2[4],
 	IMB_BlendMode mode);
 
 void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx, 
