@@ -1623,7 +1623,7 @@ static void statvis_calc_thickness(
         /* result */
         unsigned char (*r_face_colors)[4])
 {
-	const float eps_offset = 0.00001f;
+	const float eps_offset = 0.00002f;  /* values <= 0.00001 give errors */
 	float *face_dists = (float *)r_face_colors;  /* cheating */
 	const bool use_jit = samples < 32;
 	float jit_ofs[32][2];
