@@ -67,7 +67,10 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             # odd formatting here so translation script can extract string
             layout.operator("fluid.bake", text=iface_("Bake (Req. Memory: %s)") % fluid.memory_estimate,
                             translate=False, icon='MOD_FLUIDSIM')
-            layout.prop(fluid, "threads", text="Simulation Threads")
+            
+            if bpy.app.build_options.openmp:
+                layout.prop(fluid, "threads", text="Simulation Threads")
+            
             split = layout.split()
 
             col = split.column()

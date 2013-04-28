@@ -169,6 +169,9 @@ if env['WITH_BF_OIIO']:
 
 if env['WITH_BF_PLAYER']:
     defs.append('WITH_PLAYER')
+    
+if env['WITH_BF_OPENMP']:
+    defs.append('WITH_OPENMP')
 
 
 
