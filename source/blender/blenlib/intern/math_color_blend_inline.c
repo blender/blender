@@ -352,7 +352,7 @@ MINLINE void blend_color_darken_float(float dst[4], const float src1[4], const f
 		 * src1 and src2, then blend it with src1 */
 		const float t = src2[3];
 		const float mt = 1.0f - t;
-		const float map_alpha = src1[3]/src2[3];
+		const float map_alpha = src1[3] / src2[3];
 
 		dst[0] = mt * src1[0] + t * min_ff(src1[0], src2[0] * map_alpha);
 		dst[1] = mt * src1[1] + t * min_ff(src1[1], src2[1] * map_alpha);

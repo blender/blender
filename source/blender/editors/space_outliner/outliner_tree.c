@@ -403,11 +403,11 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 
 #undef LOG2I
 
-static int outliner_animdata_test(AnimData *adt)
+static bool outliner_animdata_test(AnimData *adt)
 {
 	if (adt)
 		return (adt->action || adt->drivers.first || adt->nla_tracks.first);
-	return 0;
+	return false;
 }
 
 static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)

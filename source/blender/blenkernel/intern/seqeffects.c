@@ -974,10 +974,10 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 	}
 }
 
-static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
+static void do_sub_effect_float(float UNUSED(facf0), float facf1, int x, int y, float *rect1, float *rect2, float *out)
 {
 	int xo;
-	float m, fac1, fac3;
+	float m /*, fac1*/, fac3;
 	float *rt1, *rt2, *rt;
 
 	xo = x;
@@ -985,7 +985,8 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *r
 	rt2 = rect2;
 	rt = out;
 
-	fac1 = facf0;
+	/* UNUSED */
+	// fac1 = facf0;
 	fac3 = facf1;
 
 	while (y--) {

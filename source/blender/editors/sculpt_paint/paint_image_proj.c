@@ -3822,7 +3822,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
 
 						straight_uchar_to_premul_float(newColor_f, projPixel->newColor.ch);
-    					mul_v4_v4fl(newColor_f, newColor_f, mask);
+						mul_v4_v4fl(newColor_f, newColor_f, mask);
 
 						blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f,
 						                      newColor_f);
@@ -3893,10 +3893,6 @@ static void *do_projectpaint_thread(void *ph_v)
 							mask *= ((float)projPixel->mask) * (1.0f / 65535.0f);
 						}
 						else {
-							/* This brush dosnt accumulate so add some curve to the brushes falloff */
-							falloff = 1.0f - falloff;
-							falloff = 1.0f - (falloff * falloff);
-
 							mask_short = (unsigned short)(projPixel->mask * mask);
 
 							if (mask_short > projPixel->mask_max) {
