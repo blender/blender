@@ -896,8 +896,9 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
 
             if pin_id:
                 col.template_ID(space, "pin_id")
-            elif user:
-                col.template_ID(user, "texture", new="texture.new")
+            else:
+                propname = context.texture_user_property.identifier
+                col.template_ID(user, propname, new="texture.new")
 
             if tex:
                 split = layout.split(percentage=0.2)

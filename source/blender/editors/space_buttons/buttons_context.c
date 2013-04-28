@@ -685,7 +685,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 const char *buttons_context_dir[] = {
 	"texture_slot", "world", "object", "mesh", "armature", "lattice", "curve",
 	"meta_ball", "lamp", "speaker", "camera", "material", "material_slot",
-	"texture", "texture_user", "bone", "edit_bone",
+	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint", NULL
 };
@@ -791,6 +791,19 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		if (ct->user && ct->user->ptr.data) {
 			ButsTextureUser *user = ct->user;
 			CTX_data_pointer_set(result, user->ptr.id.data, user->ptr.type, user->ptr.data);
+		}
+
+		return 1;
+	}
+	else if (CTX_data_equals(member, "texture_user_property")) {
+		ButsContextTexture *ct = sbuts->texuser;
+
+		if (!ct)
+			return -1;  /* old shading system (found but not available) */
+
+		if (ct->user && ct->user->ptr.data) {
+			ButsTextureUser *user = ct->user;
+			CTX_data_pointer_set(result, NULL, &RNA_Property, user->prop);
 		}
 
 		return 1;
