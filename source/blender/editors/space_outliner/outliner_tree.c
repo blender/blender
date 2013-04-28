@@ -403,6 +403,13 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 
 #undef LOG2I
 
+static int outliner_animdata_test(AnimData *adt)
+{
+	if (adt)
+		return (adt->action || adt->drivers.first || adt->nla_tracks.first);
+	return 0;
+}
+
 static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
 {
 	SceneRenderLayer *srl;
@@ -424,7 +431,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	}
 	
 	// TODO: move this to the front?
-	if (sce->adt)
+	if (outliner_animdata_test(sce->adt))
 		outliner_add_element(soops, lb, sce, te, TSE_ANIM_DATA, 0);
 	
 	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
@@ -435,7 +442,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 {
 	int a = 0;
 	
-	if (ob->adt)
+	if (outliner_animdata_test(ob->adt))
 		outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
 	
 	outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
@@ -626,7 +633,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			Mesh *me = (Mesh *)id;
 			int a;
 			
-			if (me->adt)
+			if (outliner_animdata_test(me->adt))
 				outliner_add_element(soops, &te->subtree, me, te, TSE_ANIM_DATA, 0);
 			
 			outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
@@ -641,7 +648,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			Curve *cu = (Curve *)id;
 			int a;
 			
-			if (cu->adt)
+			if (outliner_animdata_test(cu->adt))
 				outliner_add_element(soops, &te->subtree, cu, te, TSE_ANIM_DATA, 0);
 			
 			for (a = 0; a < cu->totcol; a++)
@@ -653,7 +660,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			MetaBall *mb = (MetaBall *)id;
 			int a;
 			
-			if (mb->adt)
+			if (outliner_animdata_test(mb->adt))
 				outliner_add_element(soops, &te->subtree, mb, te, TSE_ANIM_DATA, 0);
 			
 			for (a = 0; a < mb->totcol; a++)
@@ -665,7 +672,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			Material *ma = (Material *)id;
 			int a;
 			
-			if (ma->adt)
+			if (outliner_animdata_test(ma->adt))
 				outliner_add_element(soops, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
 			
 			for (a = 0; a < MAX_MTEX; a++) {
@@ -677,7 +684,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		{
 			Tex *tex = (Tex *)id;
 			
-			if (tex->adt)
+			if (outliner_animdata_test(tex->adt))
 				outliner_add_element(soops, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
 			
 			outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
@@ -687,7 +694,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		{
 			Camera *ca = (Camera *)id;
 			
-			if (ca->adt)
+			if (outliner_animdata_test(ca->adt))
 				outliner_add_element(soops, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
 		}
 		break;
@@ -696,7 +703,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			Lamp *la = (Lamp *)id;
 			int a;
 			
-			if (la->adt)
+			if (outliner_animdata_test(la->adt))
 				outliner_add_element(soops, &te->subtree, la, te, TSE_ANIM_DATA, 0);
 			
 			for (a = 0; a < MAX_MTEX; a++) {
@@ -708,7 +715,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		{
 			Speaker *spk = (Speaker *)id;
 
-			if (spk->adt)
+			if (outliner_animdata_test(spk->adt))
 				outliner_add_element(soops, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
 		}
 		break;
@@ -717,7 +724,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			World *wrld = (World *)id;
 			int a;
 			
-			if (wrld->adt)
+			if (outliner_animdata_test(wrld->adt))
 				outliner_add_element(soops, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
 			
 			for (a = 0; a < MAX_MTEX; a++) {
@@ -729,7 +736,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		{
 			Key *key = (Key *)id;
 			
-			if (key->adt)
+			if (outliner_animdata_test(key->adt))
 				outliner_add_element(soops, &te->subtree, key, te, TSE_ANIM_DATA, 0);
 		}
 		break;
@@ -744,7 +751,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			bArmature *arm = (bArmature *)id;
 			int a = 0;
 			
-			if (arm->adt)
+			if (outliner_animdata_test(arm->adt))
 				outliner_add_element(soops, &te->subtree, arm, te, TSE_ANIM_DATA, 0);
 			
 			if (arm->edbo) {
