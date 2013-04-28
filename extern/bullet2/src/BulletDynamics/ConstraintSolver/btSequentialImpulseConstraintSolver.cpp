@@ -766,7 +766,7 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 
 
 	///avoid collision response between two static objects
-	if (!solverBodyA || (!solverBodyA->m_originalBody && (!solverBodyB || !solverBodyB->m_originalBody)))
+	if (!solverBodyA || (solverBodyA->m_invMass.isZero() && (!solverBodyB || solverBodyB->m_invMass.isZero())))
 		return;
 
 	int rollingFriction=1;
