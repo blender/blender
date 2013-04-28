@@ -5596,7 +5596,6 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 	EdgeSlideData *sld = t->customData;
 	TransDataEdgeSlideVert *sv;
 	BMEditMesh *em = sld->em;
-	SmallHash visit;
 	int i;
 
 	if (!em)
@@ -5609,142 +5608,114 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 	 * accidentally break uv maps or vertex colors then */
 	if (em->bm->shapenr > 1)
 		return;
-
-	BLI_smallhash_init(&visit);
 	
 	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
-		BMFace *f;
+		BMLoop *l;
 
-		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
-		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
-		 * here and only interpolate those? */
-		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
-			BMIter liter;
-			BMLoop *l;
-
+		BM_ITER_ELEM (l, &fiter, sv->v, BM_LOOPS_OF_VERT) {
 			BMFace *f_copy;      /* the copy of 'f' */
 			BMFace *f_copy_flip; /* the copy of 'f' or detect if we need to flip to the shorter side. */
-
-			char is_sel, is_hide;
-
-			
-			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
-				continue;
-			
-			BLI_smallhash_insert(&visit, (uintptr_t)f, NULL);
+			bool is_sel, is_hide;
 			
 			/* the face attributes of the copied face will get
 			 * copied over, so its necessary to save the selection
 			 * and hidden state*/
-			is_sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
-			is_hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+			is_sel = BM_elem_flag_test(l->f, BM_ELEM_SELECT) != 0;
+			is_hide = BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) != 0;
 			
-			f_copy = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
+			f_copy = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l->f);
 			
 			/* project onto copied projection face */
-			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-				/* only affected verts will get interpolated */
-				bool affected = false;
-				f_copy_flip = f_copy;
+			f_copy_flip = f_copy;
 
-				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
-					/* the loop is attached of the selected edges that are sliding */
-					BMLoop *l_ed_sel = l;
-					
-					if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
-						l_ed_sel = l_ed_sel->prev;
-					
+			if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
+				/* the loop is attached of the selected edges that are sliding */
+				BMLoop *l_ed_sel = l;
+
+				if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
+					l_ed_sel = l_ed_sel->prev;
+
+				if (sld->perc < 0.0f) {
+					if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->v_b)) {
+						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+					}
+				}
+				else if (sld->perc > 0.0f) {
+					if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->v_a)) {
+						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+					}
+				}
+
+				BLI_assert(f_copy_flip != NULL);
+				if (!f_copy_flip) {
+					continue;  /* shouldn't happen, but protection */
+				}
+			}
+			else {
+				/* the loop is attached to only one vertex and not a selected edge,
+				 * this means we have to find a selected edges face going in the right direction
+				 * to copy from else we get bad distortion see: [#31080] */
+				BMIter eiter;
+				BMEdge *e_sel;
+
+				BLI_assert(l->v == sv->v);
+				BM_ITER_ELEM (e_sel, &eiter, sv->v, BM_EDGES_OF_VERT) {
+					if (BM_elem_flag_test(e_sel, BM_ELEM_SELECT)) {
+						break;
+					}
+				}
+
+				if (e_sel) {
+					/* warning if the UV's are not contiguous, this will copy from the _wrong_ UVs
+					 * in fact whenever the face being copied is not 'f_copy' this can happen,
+					 * we could be a lot smarter about this but would need to deal with every UV channel or
+					 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
 					if (sld->perc < 0.0f) {
-						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->v_b)) {
-							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						if (BM_vert_in_face(e_sel->l->f, sv->v_b)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
 						}
+						else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_b)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
+							                                   (uintptr_t)e_sel->l->radial_next->f);
+						}
+
 					}
 					else if (sld->perc > 0.0f) {
-						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->v_a)) {
-							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						if (BM_vert_in_face(e_sel->l->f, sv->v_a)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+						}
+						else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_a)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
+							                                   (uintptr_t)e_sel->l->radial_next->f);
 						}
 					}
-
-					BLI_assert(f_copy_flip != NULL);
-					if (!f_copy_flip) {
-						continue;  /* shouldn't happen, but protection */
-					}
-
-					affected = true;
 				}
-				else {
-					/* the loop is attached to only one vertex and not a selected edge,
-					 * this means we have to find a selected edges face going in the right direction
-					 * to copy from else we get bad distortion see: [#31080] */
-					BMIter eiter;
-					BMEdge *e_sel;
+			}
 
-					BM_ITER_ELEM (e_sel, &eiter, l->v, BM_EDGES_OF_VERT) {
-						if (BM_elem_flag_test(e_sel, BM_ELEM_SELECT)) {
-							break;
-						}
-					}
+			/* only loop data, no vertex data since that contains shape keys,
+			 * and we do not want to mess up other shape keys */
+			BM_loop_interp_from_face(em->bm, l, f_copy_flip, false, false);
 
-					if (e_sel) {
-						/* warning if the UV's are not contiguous, this will copy from the _wrong_ UVs
-						 * in fact whenever the face being copied is not 'f_copy' this can happen,
-						 * we could be a lot smarter about this but would need to deal with every UV channel or
-						 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
-						if (sld->perc < 0.0f) {
-							if (BM_vert_in_face(e_sel->l->f, sv->v_b)) {
-								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
-							}
-							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_b)) {
-								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
-								                                   (uintptr_t)e_sel->l->radial_next->f);
-							}
-
-						}
-						else if (sld->perc > 0.0f) {
-							if (BM_vert_in_face(e_sel->l->f, sv->v_a)) {
-								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
-							}
-							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_a)) {
-								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces,
-								                                   (uintptr_t)e_sel->l->radial_next->f);
-							}
-						}
-
-						affected = true;
-					}
-
-				}
-
-				if (affected == false)
-					continue;
-
-				/* only loop data, no vertex data since that contains shape keys,
-				 * and we do not want to mess up other shape keys */
-				BM_loop_interp_from_face(em->bm, l, f_copy_flip, false, false);
-
-				if (is_final) {
-					BM_loop_interp_multires(em->bm, l, f_copy_flip);
-					if (f_copy != f_copy_flip) {
-						BM_loop_interp_multires(em->bm, l, f_copy);
-					}
+			if (is_final) {
+				BM_loop_interp_multires(em->bm, l, f_copy_flip);
+				if (f_copy != f_copy_flip) {
+					BM_loop_interp_multires(em->bm, l, f_copy);
 				}
 			}
 			
 			/* make sure face-attributes are correct (e.g. MTexPoly) */
-			BM_elem_attrs_copy(em->bm, em->bm, f_copy, f);
+			BM_elem_attrs_copy(em->bm, em->bm, f_copy, l->f);
 			
 			/* restore selection and hidden flags */
-			BM_face_select_set(em->bm, f, is_sel);
+			BM_face_select_set(em->bm, l->f, is_sel);
 			if (!is_hide) {
 				/* this check is a workaround for bug, see note - [#30735],
 				 * without this edge can be hidden and selected */
-				BM_elem_hide_set(em->bm, f, is_hide);
+				BM_elem_hide_set(em->bm, l->f, is_hide);
 			}
 		}
 	}
-
-	BLI_smallhash_release(&visit);
 }
 
 void freeEdgeSlideTempFaces(EdgeSlideData *sld)
