@@ -101,6 +101,7 @@ shader_node_categories = [
         ]),
     ShaderOldNodeCategory("SH_GROUP", "Group", items=shader_node_group_items),
     ShaderOldNodeCategory("SH_LAYOUT", "Layout", items=[
+        NodeItem("NodeFrame"),
         ]),
 
     # New Shader Nodes (Cycles)
@@ -183,6 +184,7 @@ shader_node_categories = [
         ]),
     ShaderNewNodeCategory("SH_NEW_GROUP", "Group", items=shader_node_group_items),
     ShaderNewNodeCategory("SH_NEW_LAYOUT", "Layout", items=[
+        NodeItem("NodeFrame"),
         ]),
     ]
 
@@ -287,6 +289,7 @@ compositor_node_categories = [
         ]),
     CompositorNodeCategory("CMP_GROUP", "Group", items=compositor_node_group_items),
     CompositorNodeCategory("CMP_LAYOUT", "Layout", items = [
+        NodeItem("NodeFrame"),
         NodeItem("CompositorNodeSwitch"),
         ]),
     ]
@@ -341,6 +344,7 @@ texture_node_categories = [
         ]),
     TextureNodeCategory("TEX_GROUP", "Group", items=texture_node_group_items),
     TextureNodeCategory("TEX_LAYOUT", "Layout", items = [
+        NodeItem("NodeFrame"),
         ]),
     ]
 
