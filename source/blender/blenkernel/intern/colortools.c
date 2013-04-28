@@ -239,23 +239,24 @@ CurveMapPoint *curvemap_insert(CurveMap *cuma, float x, float y)
 {
 	CurveMapPoint *cmp = MEM_callocN((cuma->totpoint + 1) * sizeof(CurveMapPoint), "curve points");
 	CurveMapPoint *newcmp = NULL;
-	int a, b, foundloc = 0;
-		
+	int a, b;
+	bool foundloc = false;
+
 	/* insert fragments of the old one and the new point to the new curve */
 	cuma->totpoint++;
 	for (a = 0, b = 0; a < cuma->totpoint; a++) {
-		if ((x < cuma->curve[a].x) && !foundloc) {
+		if ((foundloc == false) && ((a + 1 == cuma->totpoint) || (x < cuma->curve[a].x))) {
 			cmp[a].x = x;
 			cmp[a].y = y;
 			cmp[a].flag = CUMA_SELECT;
-			foundloc = 1;
+			foundloc = true;
 			newcmp = &cmp[a];
 		}
 		else {
 			cmp[a].x = cuma->curve[b].x;
 			cmp[a].y = cuma->curve[b].y;
-			cmp[a].flag = cuma->curve[b].flag;
-			cmp[a].flag &= ~CUMA_SELECT; /* make sure old points don't remain selected */
+			/* make sure old points don't remain selected */
+			cmp[a].flag = cuma->curve[b].flag & ~CUMA_SELECT;
 			cmp[a].shorty = cuma->curve[b].shorty;
 			b++;
 		}
