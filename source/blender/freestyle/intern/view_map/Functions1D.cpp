@@ -220,7 +220,7 @@ void getOccludeeF1D(Interface1D& inter, set<ViewShape*>& oShapes)
 	if (ve) {
 		ViewShape *aShape = ve->aShape();
 		if (aShape == 0) {
-			oShapes.insert(0);
+			oShapes.insert((ViewShape*)0);
 			return;
 		}
 		oShapes.insert(aShape);

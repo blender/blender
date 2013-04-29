@@ -29,6 +29,12 @@
 #endif
 /* end sanity check */
 
+/* visual studio 2012 does not define inline for C */
+#ifdef _MSC_VER
+#define FFMPEG_INLINE static __inline
+#else
+#define FFMPEG_INLINE static inline
+#endif
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
@@ -89,7 +95,7 @@
 #define FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
 #else
 
-static inline
+FFMPEG_INLINE
 int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
 {
 	/* no planar formats in FFmpeg < 0.9 */
@@ -98,7 +104,7 @@ int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
 
 #endif
 
-static inline
+FFMPEG_INLINE
 int av_get_cropped_height_from_codec(AVCodecContext *pCodecCtx)
 {
 	int y = pCodecCtx->height;
@@ -127,7 +133,7 @@ int av_get_cropped_height_from_codec(AVCodecContext *pCodecCtx)
 }
 
 #if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 22))
-static inline
+FFMPEG_INLINE
 int av_opt_set(void *obj, const char *name, const char *val, int search_flags)
 {
 	const AVOption *rv = NULL;
@@ -135,7 +141,7 @@ int av_opt_set(void *obj, const char *name, const char *val, int search_flags)
 	return rv != NULL;
 }
 
-static inline
+FFMPEG_INLINE
 int av_opt_set_int(void *obj, const char *name, int64_t val, int search_flags)
 {
 	const AVOption *rv = NULL;
@@ -143,7 +149,7 @@ int av_opt_set_int(void *obj, const char *name, int64_t val, int search_flags)
 	return rv != NULL;
 }
 
-static inline
+FFMPEG_INLINE
 int av_opt_set_double(void *obj, const char *name, double val, int search_flags)
 {
 	const AVOption *rv = NULL;
@@ -160,7 +166,7 @@ int av_opt_set_double(void *obj, const char *name, double val, int search_flags)
 #endif
 
 #if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 54))
-static inline
+FFMPEG_INLINE
 enum AVSampleFormat av_get_packed_sample_fmt(enum AVSampleFormat sample_fmt)
 {
     if (sample_fmt < 0 || sample_fmt >= AV_SAMPLE_FMT_NB)
@@ -174,7 +180,7 @@ enum AVSampleFormat av_get_packed_sample_fmt(enum AVSampleFormat sample_fmt)
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR < 53) || (LIBAVCODEC_VERSION_MAJOR == 53 && LIBAVCODEC_VERSION_MINOR < 35))
-static inline
+FFMPEG_INLINE
 int avcodec_open2(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options)
 {
 	/* TODO: no options are taking into account */
@@ -183,14 +189,14 @@ int avcodec_open2(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options)
 #endif
 
 #if ((LIBAVFORMAT_VERSION_MAJOR < 53) || (LIBAVFORMAT_VERSION_MAJOR == 53 && LIBAVFORMAT_VERSION_MINOR < 21))
-static inline
+FFMPEG_INLINE
 AVStream *avformat_new_stream(AVFormatContext *s, AVCodec *c)
 {
 	/* TODO: no codec is taking into account */
 	return av_new_stream(s, 0);
 }
 
-static inline
+FFMPEG_INLINE
 int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options)
 {
 	/* TODO: no options are taking into account */
@@ -199,7 +205,7 @@ int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options)
 #endif
 
 #if ((LIBAVFORMAT_VERSION_MAJOR > 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR > 32)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR == 24) && (LIBAVFORMAT_VERSION_MICRO >= 100)))
-static inline
+FFMPEG_INLINE
 void my_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 {
 	int i;
@@ -213,7 +219,7 @@ void my_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 	}
 }
 
-static inline
+FFMPEG_INLINE
 void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 {
 	my_update_cur_dts(s, ref_st, timestamp);
@@ -221,7 +227,7 @@ void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR < 54) || (LIBAVCODEC_VERSION_MAJOR == 54 && LIBAVCODEC_VERSION_MINOR < 28))
-static inline
+FFMPEG_INLINE
 void avcodec_free_frame(AVFrame **frame)
 {
 	/* don't need to do anything with old AVFrame
@@ -278,7 +284,7 @@ void avcodec_free_frame(AVFrame **frame)
 #endif
 
 #ifndef FFMPEG_HAVE_DECODE_AUDIO3
-static inline 
+FFMPEG_INLINE 
 int avcodec_decode_audio3(AVCodecContext *avctx, int16_t *samples,
 			  int *frame_size_ptr, AVPacket *avpkt)
 {
@@ -289,7 +295,7 @@ int avcodec_decode_audio3(AVCodecContext *avctx, int16_t *samples,
 #endif
 
 #ifndef FFMPEG_HAVE_DECODE_VIDEO2
-static inline
+FFMPEG_INLINE
 int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
                          int *got_picture_ptr,
                          AVPacket *avpkt)
@@ -299,7 +305,7 @@ int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
 }
 #endif
 
-static inline
+FFMPEG_INLINE
 int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 {
 	int64_t pts = picture->pkt_pts;
