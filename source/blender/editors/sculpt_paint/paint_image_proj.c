@@ -3853,29 +3853,27 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
 				if (dist_nosqrt <= radius_squared) {
-					float samplecos[3];
 					dist = sqrtf(dist_nosqrt);
 
 					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
-
-					if (ps->is_texbrush) {
-						MTex *mtex = &brush->mtex;
-						/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
-						if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
-							copy_v3_v3(samplecos, projPixel->worldCoSS);
-						}
-						else {
-							copy_v2_v2(samplecos, projPixel->projCoSS);
-							samplecos[2] = 0.0f;
-						}
-					}
 
 					if (falloff > 0.0f) {
 						float texrgb[3];
 						float mask = falloff * BKE_brush_alpha_get(ps->scene, brush);
 
 						if (ps->is_texbrush) {
+							MTex *mtex = &brush->mtex;
+							float samplecos[3];
 							float texrgba[4];
+
+							/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
+							if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+								copy_v3_v3(samplecos, projPixel->worldCoSS);
+							}
+							else {
+								copy_v2_v2(samplecos, projPixel->projCoSS);
+								samplecos[2] = 0.0f;
+							}
 
 							/* note, for clone and smear, we only use the alpha, could be a special function */
 							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, texrgba, thread_index, pool);
