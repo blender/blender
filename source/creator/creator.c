@@ -1500,10 +1500,6 @@ int main(int argc, const char **argv)
 
 	BKE_brush_system_init();
 
-#ifdef WITH_FFMPEG
-	IMB_ffmpeg_init();
-#endif
-
 	BLI_callback_global_init();
 
 #ifdef WITH_GAMEENGINE
@@ -1526,6 +1522,10 @@ int main(int argc, const char **argv)
 #else
 	G.factory_startup = true;  /* using preferences or user startup makes no sense for py-as-module */
 	(void)syshandle;
+#endif
+
+#ifdef WITH_FFMPEG
+	IMB_ffmpeg_init();
 #endif
 
 	/* after level 1 args, this is so playanim skips RNA init */
