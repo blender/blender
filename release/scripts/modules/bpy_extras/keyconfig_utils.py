@@ -60,6 +60,12 @@ KM_HIERARCHY = [
 
         ('Object Non-modal', 'EMPTY', 'WINDOW', []),  # mode change
 
+        ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
+        ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
+        ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
+        ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
+        ('View3D Dolly Modal', 'EMPTY', 'WINDOW', []),
+
         ('3D View Generic', 'VIEW_3D', 'WINDOW', []),    # toolbar and properties
         ]),
 
@@ -122,11 +128,6 @@ KM_HIERARCHY = [
 
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
-    ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Dolly Modal', 'EMPTY', 'WINDOW', []),
     ]
 
 

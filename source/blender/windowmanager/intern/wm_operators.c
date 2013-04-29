@@ -4053,6 +4053,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	/* WARNING - name is incorrect, use for non-3d views */
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Gesture Circle");
 
 	/* this function is called for each spacetype, only needs to add map once */
