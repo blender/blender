@@ -1045,7 +1045,7 @@ def pycontext2sphinx(basepath):
             if prop.identifier in struct_blacklist:
                 continue
 
-            type_descr = prop.get_type_description(class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
+            type_descr = prop.get_type_description(class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
             fw(".. data:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("   %s\n\n" % prop.description)

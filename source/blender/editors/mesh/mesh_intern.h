@@ -138,7 +138,7 @@ void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
 void MESH_OT_select_linked(struct wmOperatorType *ot);
 void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_select_face_by_sides(struct wmOperatorType *ot);
-void MESH_OT_select_loose_verts(struct wmOperatorType *ot);
+void MESH_OT_select_loose(struct wmOperatorType *ot);
 void MESH_OT_select_mirror(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);

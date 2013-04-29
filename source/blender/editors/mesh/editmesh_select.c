@@ -2684,26 +2684,49 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 }
 
 
-static int edbm_select_loose_verts_exec(bContext *C, wmOperator *op)
+static int edbm_select_loose_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMVert *eve;
-	BMEdge *eed;
+	BMesh *bm = em->bm;
 	BMIter iter;
 
 	if (!RNA_boolean_get(op->ptr, "extend"))
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (!eve->e) {
-			BM_vert_select_set(em->bm, eve, true);
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		BMVert *eve;
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+			if (!eve->e) {
+				BM_vert_select_set(bm, eve, true);
+			}
 		}
 	}
 
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (!eed->l) {
-			BM_edge_select_set(em->bm, eed, true);
+	if (em->selectmode & SCE_SELECT_EDGE) {
+		BMEdge *eed;
+		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_edge_is_wire(eed)) {
+				BM_edge_select_set(bm, eed, true);
+			}
+		}
+	}
+
+	if (em->selectmode & SCE_SELECT_FACE) {
+		BMFace *efa;
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+			BMIter liter;
+			BMLoop *l;
+			bool is_loose = true;
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (!BM_edge_is_boundary(l->e)) {
+					is_loose = false;
+					break;
+				}
+			}
+			if (is_loose) {
+				BM_face_select_set(bm, efa, true);
+			}
 		}
 	}
 
@@ -2713,15 +2736,15 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_loose_verts(wmOperatorType *ot)
+void MESH_OT_select_loose(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select Loose Vertices/Edges";
-	ot->description = "Select vertices with no edges nor faces, and edges with no faces";
-	ot->idname = "MESH_OT_select_loose_verts";
+	ot->name = "Select Loose Geometry";
+	ot->description = "Select loose geometry based on the selection mode";
+	ot->idname = "MESH_OT_select_loose";
 
 	/* api callbacks */
-	ot->exec = edbm_select_loose_verts_exec;
+	ot->exec = edbm_select_loose_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */

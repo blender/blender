@@ -600,7 +600,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.operator("mesh.select_face_by_sides")
         if context.scene.tool_settings.mesh_select_mode[2] is False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
+        layout.operator("mesh.select_loose", text="Loose Geometry")
         layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
 
         layout.separator()

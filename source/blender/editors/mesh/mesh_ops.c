@@ -57,7 +57,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_face_by_sides);
-	WM_operatortype_append(MESH_OT_select_loose_verts);
+	WM_operatortype_append(MESH_OT_select_loose);
 	WM_operatortype_append(MESH_OT_select_mirror);
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
 	WM_operatortype_append(MESH_OT_merge);
