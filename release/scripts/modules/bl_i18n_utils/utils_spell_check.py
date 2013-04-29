@@ -135,6 +135,7 @@ class SpellChecker():
         "resize",
         "restpose",
         "retarget", "retargets", "retargeting", "retargeted",
+        "rigidbody",
         "ringnoise",
         "rolloff",
         "runtime",
