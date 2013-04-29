@@ -33,7 +33,6 @@ sources = env.Glob('intern/*.c')
 incs = '. intern  #/intern/guardedalloc #/intern/locale ../blenkernel ../blenlib ../blenloader'
 incs += ' ../makesdna ../makesrna ../python ../imbuf ../editors/include'
 incs += ' #/extern/glew/include'
-incs += ' ../gpu'
 incs += ' ' + env['BF_FREETYPE_INC']
 
 defs = ['GLEW_STATIC']
