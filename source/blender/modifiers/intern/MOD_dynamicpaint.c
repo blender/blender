@@ -105,11 +105,15 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
                                   DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+                                  ModifierApplyFlag flag)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
 
-	return dynamicPaint_Modifier_do(pmd, md->scene, ob, dm);
+	/* dont apply dynamic paint on orco dm stack */
+	if (flag & MOD_APPLY_USECACHE) {
+		return dynamicPaint_Modifier_do(pmd, md->scene, ob, dm);
+	}
+	return dm;
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

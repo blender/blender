@@ -111,7 +111,7 @@ typedef void (*TexWalkFunc)(void *userData, struct Object *ob, struct ModifierDa
 
 typedef enum ModifierApplyFlag {
 	MOD_APPLY_RENDER = 1 << 0,       /* Render time. */
-	MOD_APPLY_USECACHE = 1 << 1,     /* Last modifier in stack. */
+	MOD_APPLY_USECACHE = 1 << 1,     /* Final result. Is not set for temporary calculations like orco dms. */
 } ModifierApplyFlag;
 
 
