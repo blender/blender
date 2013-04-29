@@ -1762,9 +1762,9 @@ static void widget_state_label(uiWidgetType *wt, int state)
 	widget_state(wt, state);
 
 	if (state & UI_SELECT)
-		UI_GetThemeColor4ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
+		UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
 	else
-		UI_GetThemeColor4ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
+		UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
 	
 }
 
