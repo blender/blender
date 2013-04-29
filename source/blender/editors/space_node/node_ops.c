@@ -233,17 +233,10 @@ void node_keymap(struct wmKeyConfig *keyconf)
 
 	/* each of these falls through if not handled... */
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "detach", FALSE);
-		RNA_boolean_set(kmi->ptr, "expose", FALSE);
+	RNA_boolean_set(kmi->ptr, "detach", FALSE);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "detach", TRUE);
-		RNA_boolean_set(kmi->ptr, "expose", FALSE);
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "detach", FALSE);
-		RNA_boolean_set(kmi->ptr, "expose", TRUE);
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-		RNA_boolean_set(kmi->ptr, "detach", TRUE);
-		RNA_boolean_set(kmi->ptr, "expose", TRUE);
+	
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_add_reroute", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
