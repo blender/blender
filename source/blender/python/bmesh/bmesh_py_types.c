@@ -2943,10 +2943,10 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 	if (bm) {
 		bm_dealloc_editmode_warn(self);
 
-		BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
-		BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
-		BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
-		BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+		if (CustomData_has_layer(&bm->vdata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
+		if (CustomData_has_layer(&bm->edata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
+		if (CustomData_has_layer(&bm->pdata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
+		if (CustomData_has_layer(&bm->ldata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
 
 		bm->py_handle = NULL;
 
@@ -3370,10 +3370,13 @@ PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag)
 
 		bm->py_handle = self; /* point back */
 
+		/* avoid allocating layers when we don't have to */
+#if 0
 		BM_data_layer_add(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
 		BM_data_layer_add(bm, &bm->edata, CD_BM_ELEM_PYPTR);
 		BM_data_layer_add(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
 		BM_data_layer_add(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+#endif
 	}
 
 	return (PyObject *)self;

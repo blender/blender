@@ -804,6 +804,7 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 {
 	CustomData olddata;
+	bool has_layer;
 
 	olddata = *data;
 	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers): NULL;
@@ -811,7 +812,9 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 	/* the pool is now owned by olddata and must not be shared */
 	data->pool = NULL;
 
-	CustomData_free_layer_active(data, type, 0);
+	has_layer = CustomData_free_layer_active(data, type, 0);
+	/* assert because its expensive to realloc - better not do if layer isnt present */
+	BLI_assert(has_layer != false);
 
 	update_data_blocks(bm, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
@@ -820,6 +823,7 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 {
 	CustomData olddata;
+	bool has_layer;
 
 	olddata = *data;
 	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers): NULL;
@@ -827,7 +831,9 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 	/* the pool is now owned by olddata and must not be shared */
 	data->pool = NULL;
 
-	CustomData_free_layer(data, type, 0, CustomData_get_layer_index_n(data, type, n));
+	has_layer = CustomData_free_layer(data, type, 0, CustomData_get_layer_index_n(data, type, n));
+	/* assert because its expensive to realloc - better not do if layer isnt present */
+	BLI_assert(has_layer != false);
 	
 	update_data_blocks(bm, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
