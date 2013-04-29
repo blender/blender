@@ -51,8 +51,7 @@ using namespace OCIO_NAMESPACE;
 
 #include "ocio_impl.h"
 
-static const int LUT3D_EDGE_SIZE = 32;
-
+static const int LUT3D_EDGE_SIZE = 64;
 
 /* **** OpenGL drawing routines using GLSL for color space transform ***** */
 
@@ -97,7 +96,7 @@ static const char *g_fragShaderText = ""
 "        col[0] *= inv_alpha;\n"
 "        col[1] *= inv_alpha;\n"
 "        col[2] *= inv_alpha;\n"
-"}\n"
+"    }\n"
 "    gl_FragColor = OCIODisplay(col, tex2);\n"
 "\n"
 "}\n";

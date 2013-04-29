@@ -171,11 +171,11 @@ colorspaces:
     equalitygroup:
     bitdepth: 32f
     isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
+    allocation: lg2
+    allocationvars: [-8.5, 5]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}
         - !<FileTransform> {src: aces_to_xyz.spimtx, interpolation: linear}
 
   - !<ColorSpace>
