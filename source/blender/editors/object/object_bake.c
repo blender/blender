@@ -648,15 +648,12 @@ static void finish_bake_internal(BakeRender *bkr)
 
 	if (bkr->scene->r.bake_flag & R_BAKE_VCOL) {
 		/* update all tagged meshes */
-		Object *ob;
+		Mesh *me;
 		BLI_assert(BLI_thread_is_main());
-		for (ob = G.main->object.first; ob; ob = ob->id.next) {
-			if (ob->type == OB_MESH) {
-				Mesh *me = ob->data;
-				if (me->id.flag & LIB_DOIT) {
-					DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
-					BKE_mesh_tessface_clear(me);
-				}
+		for (me = G.main->mesh.first; me; me = me->id.next) {
+			if (me->id.flag & LIB_DOIT) {
+				DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+				BKE_mesh_tessface_clear(me);
 			}
 		}
 	}
