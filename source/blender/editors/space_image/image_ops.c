@@ -1218,14 +1218,17 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			simopts->im_format = scene->r.im_format;
 			is_depth_set = TRUE;
 		}
-		else if (ima->source == IMA_SRC_GENERATED) {
-			simopts->im_format.imtype = R_IMF_IMTYPE_PNG;
-		}
 		else {
-			BKE_imbuf_to_image_format(&simopts->im_format, ibuf);
+			if (ima->source == IMA_SRC_GENERATED) {
+				simopts->im_format.imtype = R_IMF_IMTYPE_PNG;
+			}
+			else {
+				BKE_imbuf_to_image_format(&simopts->im_format, ibuf);
+				simopts->im_format.quality = ibuf->ftype & 0xff;
+			}
+			simopts->im_format.quality = ibuf->ftype & 0xff;
 		}
 		//simopts->subimtype = scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
-		simopts->im_format.quality = ibuf->ftype & 0xff;
 
 		BLI_strncpy(simopts->filepath, ibuf->name, sizeof(simopts->filepath));
 
