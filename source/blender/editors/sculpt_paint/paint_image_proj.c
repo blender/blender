@@ -3764,7 +3764,6 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	unsigned short mask_short;
 	const float brush_alpha = BKE_brush_alpha_get(ps->scene, brush);
-	const float sqrt_brush_alpha = sqrtf(brush_alpha);
 	const float brush_radius = (float)BKE_brush_size_get(ps->scene, brush);
 	const float brush_radius_sq = brush_radius * brush_radius; /* avoid a square root with every dist comparison */
 
@@ -3897,7 +3896,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							 * and never exceeds it, which gives nice smooth results. */
 							float mask_accum = projPixel->mask_accum;
 
-							mask = mask_accum + (sqrt_brush_alpha * 65535.0f - mask_accum) * sqrt_brush_alpha * mask;
+							mask = mask_accum + (brush_alpha * 65535.0f - mask_accum) * mask;
 							mask_short = (unsigned short)mask;
 
 							if (mask_short > projPixel->mask_accum) {
