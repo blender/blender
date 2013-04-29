@@ -718,6 +718,7 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3],
 static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const int mval[2],
                                         const bool do_thickness, const bool do_snap)
 {
+	const float eps_bias = 0.0002f;
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 
 	ruler_info->snap_flag &= ~RULER_SNAP_OK;
@@ -740,7 +741,7 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 			{
 				negate_v3(ray_normal);
 				/* add some bias */
-				madd_v3_v3v3fl(ray_start, co, ray_normal, 0.0001f);
+				madd_v3_v3v3fl(ray_start, co, ray_normal, eps_bias);
 				ED_view3d_snap_ray(C, co_other,
 				                   ray_start, ray_normal);
 			}

@@ -3763,8 +3763,9 @@ static void *do_projectpaint_thread(void *ph_v)
 	float pos_ofs[2] = {0};
 	float co[2];
 	unsigned short mask_short;
-	const float radius = (float)BKE_brush_size_get(ps->scene, brush);
-	const float radius_squared = radius * radius; /* avoid a square root with every dist comparison */
+	const float brush_alpha = BKE_brush_alpha_get(ps->scene, brush);
+	const float brush_radius = (float)BKE_brush_size_get(ps->scene, brush);
+	const float brush_radius_sq = brush_radius * brush_radius; /* avoid a square root with every dist comparison */
 
 	short lock_alpha = ELEM(brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : brush->flag & BRUSH_LOCK_ALPHA;
 
@@ -3852,14 +3853,14 @@ static void *do_projectpaint_thread(void *ph_v)
 				dist_nosqrt = len_squared_v2v2(projPixel->projCoSS, pos);
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
-				if (dist_nosqrt <= radius_squared) {
+				if (dist_nosqrt <= brush_radius_sq) {
 					dist = sqrtf(dist_nosqrt);
 
-					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
+					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, brush_radius);
 
 					if (falloff > 0.0f) {
 						float texrgb[3];
-						float mask = falloff * BKE_brush_alpha_get(ps->scene, brush);
+						float mask = falloff * brush_alpha;
 
 						if (ps->is_texbrush) {
 							MTex *mtex = &brush->mtex;
