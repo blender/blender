@@ -1274,8 +1274,10 @@ static float *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle
 
 		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
 
-		IMB_colormanagement_transform(linear_buffer, width, height, channels,
-		                              from_colorspace, to_colorspace, TRUE);
+		if (!is_data && !is_data_display) {
+			IMB_colormanagement_transform(linear_buffer, width, height, channels,
+			                              from_colorspace, to_colorspace, TRUE);
+		}
 
 		*is_straight_alpha = false;
 	}
