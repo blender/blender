@@ -1362,7 +1362,12 @@ static void clip_header_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void clip_tools_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	wmKeyMap *keymap;
+
 	ED_region_panels_init(wm, ar);
+
+	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 static void clip_tools_area_draw(const bContext *C, ARegion *ar)
