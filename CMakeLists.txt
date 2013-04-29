@@ -417,13 +417,21 @@ endif()
 # otherwise if the user disabled
 if(NOT WITH_BOOST)
 	# Explicitly disabled. so disable all deps.
-	set(WITH_CYCLES         OFF)
-	set(WITH_MOD_BOOLEAN    OFF)
-	set(WITH_AUDASPACE      OFF)
-	set(WITH_INTERNATIONAL  OFF)
+	macro(set_and_warn
+		_setting _val)
+		if(${${_setting}})
+            message(STATUS "'WITH_BOOST' is disabled: forceing 'set(${_setting} ${_val})'")
+        endif()
+		set(${_setting} ${_val})
+	endmacro()
 
-	set(WITH_OPENAL         OFF)  # depends on AUDASPACE
-	set(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
+	set_and_warn(WITH_CYCLES         OFF)
+	set_and_warn(WITH_MOD_BOOLEAN    OFF)
+	set_and_warn(WITH_AUDASPACE      OFF)
+	set_and_warn(WITH_INTERNATIONAL  OFF)
+
+	set_and_warn(WITH_OPENAL         OFF)  # depends on AUDASPACE
+	set_and_warn(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
 elseif(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
 	# Keep enabled
 else()
