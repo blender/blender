@@ -463,7 +463,8 @@ class I18nMessages:
                     tmp[real_key] = msg
             done_keys.add(key)
             if '%' in msgid and msgstr and len(_format(msgid)) != len(_format(msgstr)):
-                ret.append("Error! msg's format entities are not matched in msgid and msgstr ({})".format(real_key))
+                if not msg.is_fuzzy:
+                    ret.append("Error! msg's format entities are not matched in msgid and msgstr ({})".format(real_key))
                 if fix:
                     msg.msgstr = ""
         for k in rem:
