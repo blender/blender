@@ -1049,9 +1049,7 @@ void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
 	force_fallback |= ibuf->channels == 1;
 
 	/* If user decided not to use GLSL, fallback to glaDrawPixelsAuto */
-	force_fallback |= !ELEM(U.image_draw_method,
-	                        IMAGE_DRAW_METHOD_AUTO,
-	                        IMAGE_DRAW_METHOD_GLSL);
+	force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
 
 	/* This is actually lots of crap, but currently not sure about
 	 * more clear way to bypass partial buffer update crappyness

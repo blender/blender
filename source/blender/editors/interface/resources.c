@@ -2187,6 +2187,9 @@ void init_userdef_do_versions(void)
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	
+	if (U.image_draw_method == 0)
+		U.image_draw_method = IMAGE_DRAW_METHOD_2DTEXTURE;
+	
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */

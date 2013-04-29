@@ -1062,7 +1062,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	else {
 		bool force_fallback = false;
 
-		force_fallback |= !ELEM(U.image_draw_method, IMAGE_DRAW_METHOD_AUTO, IMAGE_DRAW_METHOD_GLSL);
+		force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
 		force_fallback |= (ibuf->dither != 0.0f);
 
 		if (force_fallback) {

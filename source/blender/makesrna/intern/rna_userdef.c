@@ -3375,9 +3375,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 #endif
 
 	static EnumPropertyItem image_draw_methods[] = {
-		{IMAGE_DRAW_METHOD_AUTO, "AUTO", 0, "Auto", "Try to detect best drawing method automatically"},
-		{IMAGE_DRAW_METHOD_GLSL, "GLSL", 0, "GLSL", "Use GLSL shaders for display transform and draw image with 2D texture"},
 		{IMAGE_DRAW_METHOD_2DTEXTURE, "2DTEXTURE", 0, "2D Texture", "Use CPU for display transform and draw image with 2D texture"},
+		{IMAGE_DRAW_METHOD_GLSL, "GLSL", 0, "GLSL", "Use GLSL shaders for display transform and draw image with 2D texture"},
 		{IMAGE_DRAW_METHOD_DRAWPIXELS, "DRAWPIXELS", 0, "DrawPixels", "Use CPU for display transform and draw image using DrawPixels"},
 		{0, NULL, 0, NULL, NULL}
 	};
