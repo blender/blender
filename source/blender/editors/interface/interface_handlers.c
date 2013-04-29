@@ -6893,6 +6893,28 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
 	return 0;
 }
 
+/**
+ * Special function to handle nested menus.
+ * let the parent menu get the event.
+ *
+ * This allows a menu to be open,
+ * but send key events to the parent if theres no active buttons.
+ *
+ * Without this keyboard navigation from menu's wont work.
+ */
+static bool ui_menu_pass_event_to_parent_if_nonactive(uiPopupBlockHandle *menu, const uiBut *but,
+                                                      const int level, const int retval)
+{
+	if ((level != 0) && (but == NULL)) {
+		menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
+		BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockHandle *menu, int level)
 {
 	ARegion *ar;
@@ -6944,16 +6966,6 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 		else if (but == NULL || (but->type != SEARCH_MENU && but->type != SEARCH_MENU_UNLINK)) {
 			switch (event->type) {
 
-
-			/* let the parent menu get the event */
-#define     PASS_EVENT_TO_PARENT_IF_NONACTIVE                                 \
-				if ((level != 0) && (but == NULL)) {                          \
-					menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;  \
-					BLI_assert(retval == WM_UI_HANDLER_CONTINUE);             \
-					break;                                                    \
-				} (void)0
-
-
 				/* closing sublevels of pulldowns */
 				case LEFTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP))
@@ -6967,7 +6979,8 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 				case RIGHTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 
-						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+						if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval))
+							break;
 
 						but = ui_but_find_activated(ar);
 
@@ -7004,7 +7017,8 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 						if (val == KM_PRESS) {
 							const eButType type_flip = BUT | ROW;
 
-							PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+							if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval))
+								break;
 
 #ifdef USE_KEYNAV_LIMIT
 							ui_mouse_motion_keynav_init(&menu->keynav_state, event);
@@ -7093,7 +7107,8 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 
 					if ((block->flag & UI_BLOCK_NUMSELECT) && event->val == KM_PRESS) {
 
-						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+						if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval))
+							break;
 
 						if (event->alt) act += 10;
 
@@ -7172,7 +7187,8 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 					    (event->ctrl  == FALSE) &&
 					    (event->oskey == FALSE))
 					{
-						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+						if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval))
+							break;
 
 						for (but = block->buttons.first; but; but = but->next) {
 
