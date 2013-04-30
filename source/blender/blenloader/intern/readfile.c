@@ -9396,6 +9396,41 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		/* Initialize the active_viewer_key for compositing */
+		bScreen *screen;
+		Scene *scene;
+		bNodeInstanceKey active_viewer_key = {0};
+		/* simply pick the first node space and use that for the active viewer key */
+		for (screen = main->screen.first; screen; screen = screen->id.next) {
+			ScrArea *sa;
+			for (sa = screen->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+				for (sl = sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype == SPACE_NODE) {
+						SpaceNode *snode = (SpaceNode *)sl;
+						bNodeTreePath *path = snode->treepath.last;
+						if (!path)
+							continue;
+						
+						active_viewer_key = path->parent_key;
+						break;
+					}
+				}
+				if (active_viewer_key.value != 0)
+					break;
+			}
+			if (active_viewer_key.value != 0)
+				break;
+		}
+		
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			/* NB: scene->nodetree is a local ID block, has been direct_link'ed */
+			if (scene->nodetree)
+				scene->nodetree->active_viewer_key = active_viewer_key;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
