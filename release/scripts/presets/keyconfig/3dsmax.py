@@ -312,7 +312,9 @@ kmi = km.keymap_items.new('view3d.toolshelf', 'D', 'PRESS')
 km = kc.keymaps.new('Weight Paint Vertex Selection', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('paint.vert_select_all', 'A', 'PRESS')
-kmi = km.keymap_items.new('paint.vert_select_inverse', 'I', 'PRESS', ctrl=True)
+kmi.properties.action = 'SELECT'
+kmi = km.keymap_items.new('paint.vert_select_all', 'I', 'PRESS', ctrl=True)
+kmi.properties.action = 'INVERT'
 kmi = km.keymap_items.new('view3d.select_border', 'B', 'PRESS')
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_A', 'ANY', ctrl=True)
 kmi.properties.deselect = False
@@ -493,9 +495,11 @@ kmi.properties.level = 5
 km = kc.keymaps.new('Image Paint', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('paint.image_paint', 'LEFTMOUSE', 'PRESS')
+kmi.properties.mode = 'NORMAL'
 kmi = km.keymap_items.new('paint.grab_clone', 'RIGHTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('paint.sample_color', 'RIGHTMOUSE', 'PRESS')
-kmi = km.keymap_items.new('paint.clone_cursor_set', 'LEFTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('paint.image_paint', 'LEFTMOUSE', 'PRESS', ctrl=True)
+kmi.properties.mode = 'INVERT'
 kmi = km.keymap_items.new('brush.active_index_set', 'ONE', 'PRESS')
 kmi.properties.mode = 'image_paint'
 kmi.properties.index = 0
