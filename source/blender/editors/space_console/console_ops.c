@@ -570,7 +570,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				                         (type == DEL_NEXT_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM, true);
 				stride = pos - ci->cursor;
 				if (stride) {
-					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
+					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - (ci->cursor + stride)) + 1);
 					ci->len -= stride;
 					BLI_assert(ci->len >= 0);
 					done = TRUE;
