@@ -831,9 +831,13 @@ int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int era
 	olduv[1] *= ibuf->y;
 
 	if (painter->firsttouch) {
+		float startuv[2];
+
+		UI_view2d_region_to_view(s->v2d, 0, 0, &startuv[0], &startuv[1]);
+
 		/* paint exactly once on first touch */
-		painter->startpaintpos[0] = newuv[0];
-		painter->startpaintpos[1] = newuv[1];
+		painter->startpaintpos[0] = startuv[0]*ibuf->x;
+		painter->startpaintpos[1] = startuv[1]*ibuf->y;
 
 		painter->firsttouch = 0;
 		copy_v2_v2(painter->lastpaintpos, newuv);
