@@ -206,6 +206,9 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
+	/* ensure the 2d view sync works - main region has bottom scroller */
+	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
+	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
