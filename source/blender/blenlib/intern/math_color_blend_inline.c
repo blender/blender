@@ -242,6 +242,28 @@ MINLINE void blend_color_add_alpha_byte(unsigned char dst[4], const unsigned cha
 	}
 }
 
+MINLINE void blend_color_interpolate_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4], float ft)
+{
+	/* do color interpolation, but in premultiplied space so that RGB colors
+	 * from zero alpha regions have no influence */
+	const int t = (int)(255 * ft);
+	const int mt = 255 - t;
+	int tmp = (mt * src1[3] + t * src2[3]);
+
+	if (tmp > 0) {
+		dst[0] = divide_round_i(mt * src1[0] * src1[3] + t * src2[0] * src2[3], tmp);
+		dst[1] = divide_round_i(mt * src1[1] * src1[3] + t * src2[1] * src2[3], tmp);
+		dst[2] = divide_round_i(mt * src1[2] * src1[3] + t * src2[2] * src2[3], tmp);
+		dst[3] = divide_round_i(tmp, 255);
+	}
+	else {
+		dst[0] = src1[0];
+		dst[1] = src1[1];
+		dst[2] = src1[2];
+		dst[3] = src1[3];
+	}
+}
+
 /* premultiplied alpha float blending modes */
 
 MINLINE void blend_color_mix_float(float dst[4], const float src1[4], const float src2[4])
@@ -418,6 +440,17 @@ MINLINE void blend_color_add_alpha_float(float dst[4], const float src1[4], cons
 		dst[2] = src1[2];
 		dst[3] = src1[3];
 	}
+}
+
+MINLINE void blend_color_interpolate_float(float dst[4], const float src1[4], const float src2[4], float t)
+{
+	/* interpolation, colors are premultiplied so it goes fine */
+	float mt = 1.0f - t;
+
+	dst[0] = mt * src1[0] + t * src2[0];
+	dst[1] = mt * src1[1] + t * src2[1];
+	dst[2] = mt * src1[2] + t * src2[2];
+	dst[3] = mt * src1[3] + t * src2[3];
 }
 
 #endif /* __MATH_COLOR_BLEND_INLINE_C__ */

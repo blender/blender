@@ -3516,34 +3516,6 @@ typedef struct ProjectHandle {
 	struct ImagePool *pool;
 } ProjectHandle;
 
-static void interpolate_color_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4], const float ffac)
-{
-	/* do color interpolation, but in premultiplied space so that RGB colors
-	 * from zero alpha regions have no influence */
-	const int fac = (int)(255 * ffac);
-	const int mfac = 255 - fac;
-	int tmp = (mfac * src1[3] + fac * src2[3]);
-
-	if (tmp > 0) {
-		dst[0] = divide_round_i(mfac * src1[0] * src1[3] + fac * src2[0] * src2[3], tmp);
-		dst[1] = divide_round_i(mfac * src1[1] * src1[3] + fac * src2[1] * src2[3], tmp);
-		dst[2] = divide_round_i(mfac * src1[2] * src1[3] + fac * src2[2] * src2[3], tmp);
-		dst[3] = divide_round_i(tmp, 255);
-	}
-	else {
-		dst[0] = src1[0];
-		dst[1] = src1[1];
-		dst[2] = src1[2];
-		dst[3] = src1[3];
-	}
-}
-
-static void interpolate_color_float(float dst[4], const float src1[4], const float src2[4], const float fac)
-{
-	/* interpolation, colors are premultiplied so it goes fine */
-	interp_v4_v4v4(dst, src1, src2, fac);
-}
-
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float mask)
 {
 	const unsigned char *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.ch;
@@ -3597,7 +3569,7 @@ static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, floa
 	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1) == 0)
 		return;
 
-	interpolate_color_byte(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, mask);
+	blend_color_interpolate_byte(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, mask);
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 }
 
@@ -3609,7 +3581,7 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 	if (project_paint_PickColor(ps, co, rgba, NULL, 1) == 0)
 		return;
 
-	interpolate_color_float(((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, mask);
+	blend_color_interpolate_float(((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, mask);
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
@@ -3648,7 +3620,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 
 	if (LIKELY(accum_tot != 0)) {
 		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
-		interpolate_color_float(rgba, rgba, projPixel->pixel.f_pt, mask);
+		blend_color_interpolate_float(rgba, rgba, projPixel->pixel.f_pt, mask);
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
 }
@@ -3683,7 +3655,7 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
 		premul_float_to_straight_uchar(rgba_ub, rgba);
 
-		interpolate_color_byte(rgba_ub, rgba_ub, projPixel->pixel.ch_pt, mask);
+		blend_color_interpolate_byte(rgba_ub, rgba_ub, projPixel->pixel.ch_pt, mask);
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
 }
@@ -4133,8 +4105,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 		ps->blend = brush->blend;
 
 		/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
-		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || (brush->mtex.tex &&
-		                 !ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL)))
+		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH ||
+		                  (brush->imagepaint_tool == PAINT_TOOL_SMEAR) ||
+		                  (brush->mtex.tex && !ELEM3(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)))
 		                 ? false : true;
 		ps->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? true : false;
 		ps->is_maskbrush = (brush->mask_mtex.tex) ? true : false;

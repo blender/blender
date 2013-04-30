@@ -337,7 +337,7 @@ static void brush_painter_2d_tiled_tex_partial_update(BrushPainter *painter, con
 		brush_painter_2d_do_partial(painter, NULL, x1, y2, x2, ibuf->y, 0, 0, pos);
 }
 
-static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const float pos[2], bool do_stencil, bool do_3D, rctf *mapping)
+static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const float pos[2], bool do_stencil, bool do_3D, bool do_view, rctf *mapping)
 {
 	float invw = 1.0f/(float)s->canvas->x;
 	float invh = 1.0f/(float)s->canvas->y;
@@ -348,7 +348,7 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const 
 	ipos[0] = (int)floorf((pos[0] - bufsize / 2) + 1.0f);
 	ipos[1] = (int)floorf((pos[1] - bufsize / 2) + 1.0f);
 
-	if (do_stencil) {
+	if (do_stencil || do_view) {
 		/* map from view coordinates of brush to region coordinates */
 		UI_view2d_to_region_no_clip(s->v2d, ipos[0]*invw, ipos[1]*invh, &xmin, &ymin);
 		UI_view2d_to_region_no_clip(s->v2d, (ipos[0] + bufsize)*invw, (ipos[1] + bufsize)*invh, &xmax, &ymax);
@@ -398,7 +398,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 		rotation += ups->brush_rotation;
 	}
 
-	brush_painter_2d_tex_mapping(s, size, pos, do_stencil, do_3D, &painter->mapping);
+	brush_painter_2d_tex_mapping(s, size, pos, do_stencil, do_3D, do_view, &painter->mapping);
 
 	painter->pool = BKE_image_pool_new();
 
@@ -418,15 +418,19 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 		}
 
 		if (do_tiled || do_3D || do_stencil) {
-			BKE_brush_imbuf_new(scene, brush, flt, 3, size, &cache->maskibuf,
+			BKE_brush_imbuf_new(scene, brush, flt, BRUSH_IMBUF_MASK,
+			                    size, &cache->maskibuf,
 			                    use_color_correction, use_brush_alpha,
 			                    painter->pool, &painter->mapping);
+
 			brush_painter_2d_tiled_tex_partial_update(painter, pos);
 		}
-		else
-			BKE_brush_imbuf_new(scene, brush, flt, 2, size, &cache->ibuf,
+		else {
+			BKE_brush_imbuf_new(scene, brush, flt, BRUSH_IMBUF_TEX_MASK,
+			                    size, &cache->ibuf,
 			                    use_color_correction, use_brush_alpha,
 			                    painter->pool, &painter->mapping);
+		}
 
 		cache->lastsize = diameter;
 		cache->lastalpha = alpha;
@@ -784,8 +788,9 @@ static int paint_2d_canvas_set(ImagePaintState *s, Image *ima)
 	}
 
 	/* set masking */
-	s->do_masking = (s->brush->flag & BRUSH_AIRBRUSH || (s->brush->mtex.tex &&
-					 !ELEM(s->brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL)))
+	s->do_masking = (s->brush->flag & BRUSH_AIRBRUSH ||
+	                 (s->brush->imagepaint_tool == PAINT_TOOL_SMEAR) ||
+	                 (s->brush->mtex.tex && !ELEM3(s->brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)))
 					 ? false : true;
 	
 	return 1;

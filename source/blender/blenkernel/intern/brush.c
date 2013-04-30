@@ -765,9 +765,10 @@ static void brush_imbuf_tex_co(rctf *mapping, int x, int y, float texco[3])
 	texco[2] = 0.0f;
 }
 
-/* TODO, use define for 'texfall' arg
- * NOTE: only used for 2d brushes currently! */
-void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall, int bufsize,
+/* NOTE: only used for 2d brushes currently! and needs to stay in sync
+ * with brush_painter_2d_do_partial */
+void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, bool use_float,
+                         enum BrushImBufFill fill, int bufsize,
                          ImBuf **outbuf, bool use_color_correction, bool use_brush_alpha,
                          struct ImagePool *pool, rctf *mapping)
 {
@@ -780,7 +781,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	float brush_rgb[3] = {1.0f, 1.0f, 1.0f};
 	int thread = 0;
 
-	imbflag = (flt) ? IB_rectfloat : IB_rect;
+	imbflag = (use_float) ? IB_rectfloat : IB_rect;
 	xoff = -bufsize / 2.0f + 0.5f;
 	yoff = -bufsize / 2.0f + 0.5f;
 	rowbytes = bufsize * 4;
@@ -790,7 +791,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	else
 		ibuf = IMB_allocImBuf(bufsize, bufsize, 32, imbflag);
 
-	if (flt) {
+	if (use_float) {
 		if (brush->imagepaint_tool == PAINT_TOOL_DRAW) {
 			copy_v3_v3(brush_rgb, brush->rgb);
 			if (use_color_correction) {
@@ -805,25 +806,19 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				xy[0] = x + xoff;
 				xy[1] = y + yoff;
 
-				if (texfall == 0) {
+				if (fill == BRUSH_IMBUF_MASK) {
 					copy_v3_v3(dstf, brush_rgb);
 					dstf[3] = alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
-				else if (texfall == 1) {
+				else if (fill == BRUSH_IMBUF_TEX) {
 					brush_imbuf_tex_co(mapping, x, y, texco);
 					BKE_brush_sample_tex_3D(scene, brush, texco, dstf, thread, pool);
 				}
-				else if (texfall == 2) {
+				else { /* if (fill == BRUSH_IMBUF_TEX_MASK) */
 					brush_imbuf_tex_co(mapping, x, y, texco);
 					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
 
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
-					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
-				}
-				else {
-					brush_imbuf_tex_co(mapping, x, y, texco);
-					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
-					copy_v3_v3(dstf, brush_rgb);
 					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 
@@ -838,9 +833,9 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 		float alpha_f; /* final float alpha to convert to char */
 
 		if (brush->imagepaint_tool == PAINT_TOOL_DRAW)
-			rgb_float_to_uchar(crgb, brush->rgb);
-		else
-			rgb_float_to_uchar(crgb, brush_rgb);
+			copy_v3_v3(brush_rgb, brush->rgb);
+
+		rgb_float_to_uchar(crgb, brush->rgb);
 
 		for (y = 0; y < ibuf->y; y++) {
 			dst = (unsigned char *)ibuf->rect + y * rowbytes;
@@ -849,7 +844,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				xy[0] = x + xoff;
 				xy[1] = y + yoff;
 
-				if (texfall == 0) {
+				if (fill == BRUSH_IMBUF_MASK) {
 					alpha_f = alpha * BKE_brush_curve_strength(brush, len_v2(xy), radius);
 
 					dst[0] = crgb[0];
@@ -857,29 +852,19 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 					dst[2] = crgb[2];
 					dst[3] = FTOCHAR(alpha_f);
 				}
-				else if (texfall == 1) {
+				else if (fill == BRUSH_IMBUF_TEX) {
 					brush_imbuf_tex_co(mapping, x, y, texco);
 					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
 					rgba_float_to_uchar(dst, rgba);
 				}
-				else if (texfall == 2) {
+				else { /* if (fill == BRUSH_IMBUF_TEX_MASK) */
 					brush_imbuf_tex_co(mapping, x, y, texco);
 					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
-					mul_v3_v3(rgba, brush->rgb);
+
+					mul_v3_v3(rgba, brush_rgb);
 					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					rgb_float_to_uchar(dst, rgba);
-
-					dst[3] = FTOCHAR(alpha_f);
-				}
-				else {
-					brush_imbuf_tex_co(mapping, x, y, texco);
-					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
-					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
-
-					dst[0] = crgb[0];
-					dst[1] = crgb[1];
-					dst[2] = crgb[2];
 					dst[3] = FTOCHAR(alpha_f);
 				}
 			}

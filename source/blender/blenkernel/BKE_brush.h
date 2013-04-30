@@ -80,8 +80,10 @@ float BKE_brush_sample_tex_3D(const Scene *scene, struct Brush *br, const float 
                               float rgba[4], const int thread, struct ImagePool *pool);
 float BKE_brush_sample_masktex(const Scene *scene, struct Brush *br, const float point[3],
                                const int thread, struct ImagePool *pool);
-void BKE_brush_imbuf_new(const struct Scene *scene, struct Brush *brush, short flt,
-                         short texfalloff, int size, struct ImBuf **imbuf,
+
+enum BrushImBufFill { BRUSH_IMBUF_MASK, BRUSH_IMBUF_TEX, BRUSH_IMBUF_TEX_MASK };
+void BKE_brush_imbuf_new(const struct Scene *scene, struct Brush *brush, bool use_float,
+                         enum BrushImBufFill fill, int size, struct ImBuf **imbuf,
                          bool use_color_correction, bool use_brush_alpha,
                          struct ImagePool *pool, struct rctf *mapping);
 

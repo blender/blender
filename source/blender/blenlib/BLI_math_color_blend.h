@@ -49,6 +49,7 @@ MINLINE void blend_color_lighten_byte(unsigned char dst[4], const unsigned char 
 MINLINE void blend_color_darken_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4]);
 MINLINE void blend_color_erase_alpha_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4]);
 MINLINE void blend_color_add_alpha_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4]);
+MINLINE void blend_color_interpolate_byte(unsigned char dst[4], const unsigned char src1[4], const unsigned char src2[4], float t);
 
 MINLINE void blend_color_mix_float(float dst[4], const float src1[4], const float src2[4]);
 MINLINE void blend_color_add_float(float dst[4], const float src1[4], const float src2[4]);
@@ -58,6 +59,7 @@ MINLINE void blend_color_lighten_float(float dst[4], const float src1[4], const 
 MINLINE void blend_color_darken_float(float dst[4], const float src1[4], const float src2[4]);
 MINLINE void blend_color_erase_alpha_float(float dst[4], const float src1[4], const float src2[4]);
 MINLINE void blend_color_add_alpha_float(float dst[4], const float src1[4], const float src2[4]);
+MINLINE void blend_color_interpolate_float(float dst[4], const float src1[4], const float src2[4], float t);
 
 #if BLI_MATH_DO_INLINE
 #include "intern/math_color_blend_inline.c"
