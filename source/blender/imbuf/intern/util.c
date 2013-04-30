@@ -297,6 +297,7 @@ static int isffmpeg(const char *filename)
 	    BLI_testextensie(filename, ".dds") ||
 	    BLI_testextensie(filename, ".tga") ||
 	    BLI_testextensie(filename, ".bmp") ||
+	    BLI_testextensie(filename, ".tif") ||
 	    BLI_testextensie(filename, ".exr") ||
 	    BLI_testextensie(filename, ".cin") ||
 	    BLI_testextensie(filename, ".wav"))

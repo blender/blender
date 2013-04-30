@@ -200,6 +200,8 @@ int anim_is_quicktime(const char *name)
 	    BLI_testextensie(name, ".png") ||
 	    BLI_testextensie(name, ".bmp") ||
 	    BLI_testextensie(name, ".jpg") ||
+	    BLI_testextensie(name, ".tif") ||
+	    BLI_testextensie(name, ".exr") ||
 	    BLI_testextensie(name, ".wav") ||
 	    BLI_testextensie(name, ".zip") ||
 	    BLI_testextensie(name, ".mp3"))
