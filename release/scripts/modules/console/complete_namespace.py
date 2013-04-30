@@ -96,12 +96,22 @@ def complete_indices(word, namespace, obj=None, base=None):
     if not hasattr(obj, '__getitem__'):
         # obj is not a list or dictionary
         return []
-    if is_dict(obj):
+
+    obj_is_dict = is_dict(obj)
+
+    # rare objects have a __getitem__ but no __len__ (eg. BMEdge)
+    if not obj_is_dict:
+        try:
+            obj_len = len(obj)
+        except TypeError:
+            return []
+
+    if obj_is_dict:
         # dictionary type
         matches = ['%s[%r]' % (base, key) for key in sorted(obj.keys())]
     else:
-        # list type
-        matches = ['%s[%d]' % (base, idx) for idx in range(len(obj))]
+        # list type, 
+        matches = ['%s[%d]' % (base, idx) for idx in range(obj_len)]
     if word != base:
         matches = [match for match in matches if match.startswith(word)]
     return matches
