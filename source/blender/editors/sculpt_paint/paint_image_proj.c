@@ -3833,6 +3833,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					if (falloff > 0.0f) {
 						float texrgb[3];
 						float mask = falloff;
+						float mixalpha = 1.0;
 
 						if (ps->is_texbrush) {
 							MTex *mtex = &brush->mtex;
@@ -3852,11 +3853,11 @@ static void *do_projectpaint_thread(void *ph_v)
 							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, texrgba, thread_index, pool);
 
 							copy_v3_v3(texrgb, texrgba);
-							mask *= texrgba[3];
+							mixalpha *= texrgba[3];
 						}
 
 						if (ps->is_maskbrush) {
-							mask *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+							mixalpha *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
 						}
 
 						CLAMP(mask, 0.0f, 1.0f);
@@ -3924,8 +3925,8 @@ static void *do_projectpaint_thread(void *ph_v)
 									else do_projectpaint_soften(ps, projPixel, mask, softenArena, &softenPixels);
 									break;
 								default:
-									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask);
-									else do_projectpaint_draw(ps, projPixel, texrgb, mask);
+									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask*mixalpha);
+									else do_projectpaint_draw(ps, projPixel, texrgb, mask*mixalpha);
 									break;
 							}
 						}
