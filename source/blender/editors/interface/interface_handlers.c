@@ -6909,6 +6909,7 @@ static bool ui_menu_pass_event_to_parent_if_nonactive(uiPopupBlockHandle *menu, 
 {
 	if ((level != 0) && (but == NULL)) {
 		menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
+		(void) retval;  /* so release builds with strict flags are happy as well */
 		BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
 		return true;
 	}
