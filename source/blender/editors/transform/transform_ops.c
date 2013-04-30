@@ -339,6 +339,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	int exit_code;
 
 	TransInfo *t = op->customdata;
+	const enum TfmMode mode_prev = t->mode;
 
 #if 0
 	// stable 2D mouse coords map to different 3D coords while the 3D mouse is active
@@ -361,6 +362,28 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if ((exit_code & OPERATOR_RUNNING_MODAL) == 0) {
 		transformops_exit(C, op);
 		exit_code &= ~OPERATOR_PASS_THROUGH; /* preventively remove passthrough */
+	}
+	else {
+		if (mode_prev != t->mode) {
+			/* WARNING: this is not normal to switch operator types
+			 * normally it would not be supported but transform happens
+			 * to share callbacks between differernt operators. */
+			wmOperatorType *ot_new = NULL;
+			TransformModeItem *item = transform_modes;
+			while (item->idname) {
+				if (item->mode == t->mode) {
+					ot_new = WM_operatortype_find(item->idname, false);
+					break;
+				}
+				item++;
+			}
+
+			BLI_assert(ot_new != NULL);
+			if (ot_new) {
+				WM_operator_type_set(op, ot_new);
+			}
+			/* end suspicious code */
+		}
 	}
 
 	return exit_code;

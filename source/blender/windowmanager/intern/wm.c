@@ -108,6 +108,22 @@ void WM_operator_free(wmOperator *op)
 	MEM_freeN(op);
 }
 
+/**
+ * Use with extreme care!,
+ * properties, customdata etc - must be compatible.
+ *
+ * \param op  Operator to assign the type to.
+ * \param ot  OperatorType to assign.
+ */
+void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
+{
+	/* not supported for Python */
+	BLI_assert(op->py_instance == NULL);
+
+	op->type = ot;
+	op->ptr->type = ot->srna;
+}
+
 static void wm_reports_free(wmWindowManager *wm)
 {
 	BKE_reports_clear(&wm->reports);
