@@ -81,7 +81,7 @@ typedef struct uiWidgetTrias {
 	unsigned int tot;
 	
 	float vec[32][2];
-	unsigned int (*index)[3];
+	const unsigned int (*index)[3];
 	
 } uiWidgetTrias;
 
@@ -126,60 +126,60 @@ typedef struct uiWidgetType {
 
 /* *********************** draw data ************************** */
 
-static float cornervec[WIDGET_CURVE_RESOLU][2] = {
+static const float cornervec[WIDGET_CURVE_RESOLU][2] = {
 	{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067},
 	{0.55, 0.169}, {0.707, 0.293}, {0.831, 0.45},
 	{0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}
 };
 
 #define WIDGET_AA_JITTER 8
-static float jit[WIDGET_AA_JITTER][2] = {
+static const float jit[WIDGET_AA_JITTER][2] = {
 	{ 0.468813, -0.481430}, {-0.155755, -0.352820},
 	{ 0.219306, -0.238501}, {-0.393286, -0.110949},
 	{-0.024699,  0.013908}, { 0.343805,  0.147431},
 	{-0.272855,  0.269918}, { 0.095909,  0.388710}
 };
 
-static float num_tria_vert[3][2] = {
+static const float num_tria_vert[3][2] = {
 	{-0.352077, 0.532607}, {-0.352077, -0.549313}, {0.330000, -0.008353}
 };
 
-static unsigned int num_tria_face[1][3] = {
+static const unsigned int num_tria_face[1][3] = {
 	{0, 1, 2}
 };
 
-static float scroll_circle_vert[16][2] = {
+static const float scroll_circle_vert[16][2] = {
 	{0.382684, 0.923879}, {0.000001, 1.000000}, {-0.382683, 0.923880}, {-0.707107, 0.707107},
 	{-0.923879, 0.382684}, {-1.000000, 0.000000}, {-0.923880, -0.382684}, {-0.707107, -0.707107},
 	{-0.382683, -0.923880}, {0.000000, -1.000000}, {0.382684, -0.923880}, {0.707107, -0.707107},
 	{0.923880, -0.382684}, {1.000000, -0.000000}, {0.923880, 0.382683}, {0.707107, 0.707107}
 };
 
-static unsigned int scroll_circle_face[14][3] = {
+static const unsigned int scroll_circle_face[14][3] = {
 	{0, 1, 2}, {2, 0, 3}, {3, 0, 15}, {3, 15, 4}, {4, 15, 14}, {4, 14, 5}, {5, 14, 13}, {5, 13, 6},
 	{6, 13, 12}, {6, 12, 7}, {7, 12, 11}, {7, 11, 8}, {8, 11, 10}, {8, 10, 9}
 };
 
 
-static float menu_tria_vert[6][2] = {
+static const float menu_tria_vert[6][2] = {
 	{-0.33, 0.16}, {0.33, 0.16}, {0, 0.82},
 	{0, -0.82}, {-0.33, -0.16}, {0.33, -0.16}
 };
 
 
 
-static unsigned int menu_tria_face[2][3] = {{2, 0, 1}, {3, 5, 4}};
+static const unsigned int menu_tria_face[2][3] = {{2, 0, 1}, {3, 5, 4}};
 
-static float check_tria_vert[6][2] = {
+static const float check_tria_vert[6][2] = {
 	{-0.578579, 0.253369},  {-0.392773, 0.412794},  {-0.004241, -0.328551},
 	{-0.003001, 0.034320},  {1.055313, 0.864744},   {0.866408, 1.026895}
 };
 
-static unsigned int check_tria_face[4][3] = {
+static const unsigned int check_tria_face[4][3] = {
 	{3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}
 };
 
-GLubyte checker_stipple_sml[32 * 32 / 8] =
+GLubyte const checker_stipple_sml[32 * 32 / 8] =
 {
 	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
 	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
