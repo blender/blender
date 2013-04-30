@@ -2678,7 +2678,7 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 {
 	/* unlink icon is on right */
 	if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN) && event->val == KM_PRESS) {
-		ARegion *ar = CTX_wm_region(C);
+		ARegion *ar = data->region;
 		rcti rect;
 		int x = event->x, y = event->y;
 		
