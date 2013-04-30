@@ -451,47 +451,6 @@ static PyObject *bpy_bmedge_is_boundary_get(BPy_BMEdge *self)
 	return PyBool_FromLong(BM_edge_is_boundary(self->e));
 }
 
-#ifdef WITH_FREESTYLE
-PyDoc_STRVAR(bpy_bmedge_freestyle_edge_mark_doc,
-"Freestyle edge mark.\n\n:type: boolean"
-);
-static PyObject *bpy_bmedge_freestyle_edge_mark_get(BPy_BMEdge *self)
-{
-	FreestyleEdge *fed;
-
-	BPY_BM_CHECK_OBJ(self);
-	fed = CustomData_bmesh_get(&self->bm->edata, self->e->head.data, CD_FREESTYLE_EDGE);
-	return PyBool_FromLong(fed->flag & FREESTYLE_EDGE_MARK);
-}
-
-static int bpy_bmedge_freestyle_edge_mark_set(BPy_BMEdge *self, PyObject *value)
-{
-	int param;
-	FreestyleEdge *fed;
-
-	BPY_BM_CHECK_INT(self);
-
-	param = PyLong_AsLong(value);
-	if (param != false && param != true) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a boolean type 0/1");
-		return -1;
-	}
-
-	if (!CustomData_has_layer(&self->bm->edata, CD_FREESTYLE_EDGE)) {
-		BM_data_layer_add(self->bm, &self->bm->edata, CD_FREESTYLE_EDGE);
-	}
-
-	fed = CustomData_bmesh_get(&self->bm->edata, self->e->head.data, CD_FREESTYLE_EDGE);
-	if (param)
-		fed->flag &= ~FREESTYLE_EDGE_MARK;
-	else
-		fed->flag |= FREESTYLE_EDGE_MARK;
-
-	return 0;
-}
-#endif
-
 
 /* Face
  * ^^^^ */
@@ -550,47 +509,6 @@ static int bpy_bmface_material_index_set(BPy_BMFace *self, PyObject *value)
 		return 0;
 	}
 }
-
-#ifdef WITH_FREESTYLE
-PyDoc_STRVAR(bpy_bmface_freestyle_face_mark_doc,
-"Freestyle face mark.\n\n:type: boolean"
-);
-static PyObject *bpy_bmface_freestyle_face_mark_get(BPy_BMFace *self)
-{
-	FreestyleFace *ffa;
-
-	BPY_BM_CHECK_OBJ(self);
-	ffa = CustomData_bmesh_get(&self->bm->pdata, self->f->head.data, CD_FREESTYLE_FACE);
-	return PyBool_FromLong(ffa->flag & FREESTYLE_FACE_MARK);
-}
-
-static int bpy_bmface_freestyle_face_mark_set(BPy_BMFace *self, PyObject *value)
-{
-	int param;
-	FreestyleFace *ffa;
-
-	BPY_BM_CHECK_INT(self);
-
-	param = PyLong_AsLong(value);
-	if (param != false && param != true) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a boolean type 0/1");
-		return -1;
-	}
-
-	if (!CustomData_has_layer(&self->bm->pdata, CD_FREESTYLE_FACE)) {
-		BM_data_layer_add(self->bm, &self->bm->pdata, CD_FREESTYLE_FACE);
-	}
-
-	ffa = CustomData_bmesh_get(&self->bm->pdata, self->f->head.data, CD_FREESTYLE_FACE);
-	if (param)
-		ffa->flag &= ~FREESTYLE_FACE_MARK;
-	else
-		ffa->flag |= FREESTYLE_FACE_MARK;
-
-	return 0;
-}
-#endif
 
 
 /* Loop
@@ -773,10 +691,6 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
 	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
 	{(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
 
-#ifdef WITH_FREESTYLE
-	{(char *)"freestyle_edge_mark", (getter)bpy_bmedge_freestyle_edge_mark_get, (setter)bpy_bmedge_freestyle_edge_mark_set, (char *)bpy_bmedge_freestyle_edge_mark_doc, NULL},
-#endif
-
 	/* connectivity data */
 	{(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
 
@@ -802,10 +716,6 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 	{(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
 	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
-
-#ifdef WITH_FREESTYLE
-	{(char *)"freestyle_face_mark", (getter)bpy_bmface_freestyle_face_mark_get, (setter)bpy_bmface_freestyle_face_mark_set, (char *)bpy_bmface_freestyle_face_mark_doc, NULL},
-#endif
 
 	{(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
 

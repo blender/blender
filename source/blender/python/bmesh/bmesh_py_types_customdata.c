@@ -203,7 +203,7 @@ static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
 	{(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
 	{(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__crease_doc, (void *)CD_CREASE},
 #ifdef WITH_FREESTYLE
-	{(char *)"freestyle_edge", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_edge_doc, (void *)CD_FREESTYLE_EDGE},
+	{(char *)"freestyle", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_edge_doc, (void *)CD_FREESTYLE_EDGE},
 #endif
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
@@ -217,7 +217,7 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
 	{(char *)"tex",   (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__tex_doc, (void *)CD_MTEXPOLY},
 
 #ifdef WITH_FREESTYLE
-	{(char *)"freestyle_face", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_face_doc, (void *)CD_FREESTYLE_FACE},
+	{(char *)"freestyle", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_face_doc, (void *)CD_FREESTYLE_FACE},
 #endif
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
