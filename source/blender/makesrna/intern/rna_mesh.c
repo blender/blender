@@ -70,6 +70,10 @@
 
 #include "rna_mesh_utils.h"
 
+
+/* -------------------------------------------------------------------- */
+/* Generic helpers */
+
 static Mesh *rna_mesh(PointerRNA *ptr)
 {
 	Mesh *me = (Mesh *)ptr->id.data;
@@ -79,6 +83,11 @@ static Mesh *rna_mesh(PointerRNA *ptr)
 static CustomData *rna_mesh_vdata_helper(Mesh *me)
 {
 	return (me->edit_btmesh) ? &me->edit_btmesh->bm->vdata : &me->vdata;
+}
+
+static CustomData *rna_mesh_edata_helper(Mesh *me)
+{
+	return (me->edit_btmesh) ? &me->edit_btmesh->bm->edata : &me->edata;
 }
 
 static CustomData *rna_mesh_pdata_helper(Mesh *me)
@@ -101,6 +110,13 @@ static CustomData *rna_mesh_vdata(PointerRNA *ptr)
 	Mesh *me = rna_mesh(ptr);
 	return rna_mesh_vdata_helper(me);
 }
+#if 0
+static CustomData *rna_mesh_edata(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	return rna_mesh_edata_helper(me);
+}
+#endif
 static CustomData *rna_mesh_pdata(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
@@ -118,6 +134,71 @@ static CustomData *rna_mesh_fdata(PointerRNA *ptr)
 	Mesh *me = rna_mesh(ptr);
 	return rna_mesh_fdata_helper(me);
 }
+
+
+/* -------------------------------------------------------------------- */
+/* Generic CustomData Layer Functions */
+
+static void rna_cd_layer_name_set(CustomData *cdata, CustomDataLayer *cdl, const char *value)
+{
+	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
+	CustomData_set_layer_unique_name(cdata, cdl - cdata->layers);
+}
+
+/* avoid using where possible!, ideally the type is known */
+static CustomData *rna_cd_from_layer(PointerRNA *ptr, CustomDataLayer *cdl)
+{
+	/* find out where we come from by */
+	Mesh *me = ptr->id.data;
+	CustomData *cd;
+
+	/* rely on negative values wrapping */
+#define TEST_CDL(cmd) if ((void)(cd = cmd(me)), (unsigned int)(cdl - cd->layers) < (unsigned int)cd->totlayer) return cd
+
+	TEST_CDL(rna_mesh_vdata_helper);
+	TEST_CDL(rna_mesh_edata_helper);
+	TEST_CDL(rna_mesh_pdata_helper);
+	TEST_CDL(rna_mesh_ldata_helper);
+	TEST_CDL(rna_mesh_fdata_helper);
+
+#undef TEST_CDL
+
+	/* should _never_ happen */
+	return NULL;
+}
+
+static void rna_MeshVertexLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	rna_cd_layer_name_set(rna_mesh_vdata(ptr), (CustomDataLayer *)ptr->data, value);
+}
+#if 0
+static void rna_MeshEdgeLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	rna_cd_layer_name_set(rna_mesh_edata(ptr), (CustomDataLayer *)ptr->data, value);
+}
+#endif
+static void rna_MeshPolyLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	rna_cd_layer_name_set(rna_mesh_pdata(ptr), (CustomDataLayer *)ptr->data, value);
+}
+static void rna_MeshLoopLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	rna_cd_layer_name_set(rna_mesh_ldata(ptr), (CustomDataLayer *)ptr->data, value);
+}
+static void rna_MeshTessfaceLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	rna_cd_layer_name_set(rna_mesh_fdata(ptr), (CustomDataLayer *)ptr->data, value);
+}
+/* only for layers shared between types */
+static void rna_MeshAnyLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	CustomData *cd = rna_cd_from_layer(ptr, (CustomDataLayer *)ptr->data);
+	rna_cd_layer_name_set(cd, (CustomDataLayer *)ptr->data, value);
+}
+
+
+/* -------------------------------------------------------------------- */
+/* Update Callbacks */
 
 static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -175,6 +256,11 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
+
+
+/* -------------------------------------------------------------------- */
+/* Property get/set Callbacks  */
+
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert = (MVert *)ptr->data;
@@ -633,14 +719,6 @@ static void rna_MeshTextureFaceLayer_clone_set(PointerRNA *ptr, int value)
 	rna_CustomDataLayer_clone_set(ptr, rna_mesh_fdata(ptr), value, CD_MTFACE, 0);
 }
 
-static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value)
-{
-	CustomData *fdata = rna_mesh_fdata(ptr);
-	CustomDataLayer *cdl = (CustomDataLayer *)ptr->data;
-	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(fdata, cdl - fdata->layers);
-}
-
 /* poly uv_textures */
 
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(uv_texture, pdata, CD_MTEXPOLY)
@@ -690,14 +768,6 @@ static void rna_MeshTexturePolyLayer_active_set(PointerRNA *ptr, int value)
 static void rna_MeshTexturePolyLayer_clone_set(PointerRNA *ptr, int value)
 {
 	rna_CustomDataLayer_clone_set(ptr, rna_mesh_pdata(ptr), value, CD_MTEXPOLY, 0);
-}
-
-static void rna_MeshTexturePolyLayer_name_set(PointerRNA *ptr, const char *value)
-{
-	CustomData *pdata = rna_mesh_pdata(ptr);
-	CustomDataLayer *cdl = (CustomDataLayer *)ptr->data;
-	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(pdata, cdl - pdata->layers);
 }
 
 /* vertex_color_layers */
@@ -774,15 +844,6 @@ static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, int value)
 static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, int value)
 {
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 0);
-}
-
-static void rna_MeshLoopColorLayer_name_set(PointerRNA *ptr, const char *value)
-{
-	/* Mesh *me = rna_mesh(ptr); */ /* UNUSED */
-	/* CustomData *pdata = rna_mesh_pdata(ptr); */ /* UNUSED */
-	CustomDataLayer *cdl = (CustomDataLayer *)ptr->data;
-	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(rna_mesh_ldata(ptr), cdl - rna_mesh_ldata(ptr)->layers);
 }
 
 static void rna_MeshFloatPropertyLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -906,13 +967,6 @@ static int rna_MeshSkinVertexLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
 	return me->totvert;
-}
-
-static void rna_MeshSkinVertexLayer_name_set(PointerRNA *ptr, const char *value)
-{
-	CustomDataLayer *cdl = (CustomDataLayer *)ptr->data;
-	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(rna_mesh_vdata(ptr), cdl - rna_mesh_vdata(ptr)->layers);
 }
 
 /* End skin vertices */
@@ -1205,6 +1259,9 @@ static char *rna_FaceCustomData_data_path(PointerRNA *ptr, char *collection, int
 
 	return NULL;
 }
+
+
+
 
 static char *rna_MeshUVLoop_path(PointerRNA *ptr)
 {
@@ -1819,7 +1876,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshLoopLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -1857,7 +1914,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshTextureFaceLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshTessfaceLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -1969,7 +2026,7 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshTexturePolyLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshPolyLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2114,7 +2171,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshLoopColorLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshLoopLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of Vertex color layer");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2164,6 +2221,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshAnyLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2193,6 +2251,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshAnyLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2222,6 +2281,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshAnyLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2676,7 +2736,7 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshSkinVertexLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshVertexLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of skin layer");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2855,6 +2915,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Colors", "All vertex colors");
 	rna_def_loop_colors(brna, prop);
 
+	/* TODO, vertex, edge customdata layers (bmesh py api can access already) */
 	prop = RNA_def_property(srna, "polygon_layers_float", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "pdata.layers", "pdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_polygon_float_layers_begin", NULL, NULL, NULL,
