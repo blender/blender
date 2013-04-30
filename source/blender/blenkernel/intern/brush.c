@@ -777,7 +777,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	const int radius = BKE_brush_size_get(scene, brush);
 	unsigned char *dst, crgb[3];
 	const float alpha = (use_brush_alpha)? BKE_brush_alpha_get(scene, brush): 1.0f;
-	float brush_rgb[3];
+	float brush_rgb[3] = {1.0f, 1.0f, 1.0f};
 	int thread = 0;
 
 	imbflag = (flt) ? IB_rectfloat : IB_rect;
@@ -791,9 +791,11 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 		ibuf = IMB_allocImBuf(bufsize, bufsize, 32, imbflag);
 
 	if (flt) {
-		copy_v3_v3(brush_rgb, brush->rgb);
-		if (use_color_correction) {
-			srgb_to_linearrgb_v3_v3(brush_rgb, brush_rgb);
+		if (brush->imagepaint_tool == PAINT_TOOL_DRAW) {
+			copy_v3_v3(brush_rgb, brush->rgb);
+			if (use_color_correction) {
+				srgb_to_linearrgb_v3_v3(brush_rgb, brush_rgb);
+			}
 		}
 
 		for (y = 0; y < ibuf->y; y++) {
@@ -834,7 +836,11 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	}
 	else {
 		float alpha_f; /* final float alpha to convert to char */
-		rgb_float_to_uchar(crgb, brush->rgb);
+
+		if (brush->imagepaint_tool == PAINT_TOOL_DRAW)
+			rgb_float_to_uchar(crgb, brush->rgb);
+		else
+			rgb_float_to_uchar(crgb, brush_rgb);
 
 		for (y = 0; y < ibuf->y; y++) {
 			dst = (unsigned char *)ibuf->rect + y * rowbytes;
