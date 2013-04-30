@@ -74,7 +74,7 @@ typedef struct TexSnapshot {
 	int winy;
 	bool init;
 	int old_size;
-	int old_zoom;
+	float old_zoom;
 	bool old_col;
 } TexSnapshot;
 
@@ -93,7 +93,8 @@ static int same_tex_snap(TexSnapshot *snap, MTex *mtex, ViewContext *vc, bool co
 	        (mtex->brush_map_mode != MTEX_MAP_MODE_TILED ||
 	         (vc->ar->winx == snap->winx &&
 	          vc->ar->winy == snap->winy)) &&
-	        snap->old_zoom == zoom &&
+	        (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL ||
+	        snap->old_zoom == zoom) &&
 	        snap->old_col == col
 	        );
 }
