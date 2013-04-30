@@ -122,7 +122,7 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
 
 
 class RENDERLAYER_PT_layer_passes(RenderLayerButtonsPanel, Panel):
-    bl_label = "Render Passes"
+    bl_label = "Passes"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
