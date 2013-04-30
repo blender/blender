@@ -233,6 +233,7 @@ static BMOpDefine bmo_bisect_edges_def = {
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
 	 {"cuts", BMO_OP_SLOT_INT}, /* number of cuts */
+	 {"edge_percents", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_FLT}},
 	 {{'\0'}},
 	},
 	/* slots_out */
