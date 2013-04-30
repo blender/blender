@@ -828,14 +828,15 @@ float BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2
 
 /* TODO, use define for 'texfall' arg
  * NOTE: only used for 2d brushes currently! */
-void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall, int bufsize, ImBuf **outbuf, int use_color_correction)
+void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall, int bufsize,
+                         ImBuf **outbuf, bool use_color_correction, bool use_brush_alpha)
 {
 	ImBuf *ibuf;
 	float xy[2], rgba[4], *dstf;
 	int x, y, rowbytes, xoff, yoff, imbflag;
 	const int radius = BKE_brush_size_get(scene, brush);
 	unsigned char *dst, crgb[3];
-	const float alpha = BKE_brush_alpha_get(scene, brush);
+	const float alpha = (use_brush_alpha)? BKE_brush_alpha_get(scene, brush): 1.0f;
 	float brush_rgb[3];
 
 	imbflag = (flt) ? IB_rectfloat : IB_rect;

@@ -126,7 +126,9 @@ typedef struct ImagePaintPartialRedraw {
 #define IMAPAINT_CHAR_TO_FLOAT(c) ((c) / 255.0f)
 
 int image_texture_paint_poll(struct bContext *C);
+void *image_undo_find_tile(struct Image *ima, struct ImBuf *ibuf, int x_tile, int y_tile, unsigned short **mask);
 void *image_undo_push_tile(struct Image *ima, struct ImBuf *ibuf, struct ImBuf **tmpibuf, int x_tile, int y_tile);
+void image_undo_remove_masks(void);
 void image_undo_restore(struct bContext *C, struct ListBase *lb);
 void image_undo_free(struct ListBase *lb);
 void imapaint_image_update(struct SpaceImage *sima, struct Image *image, struct ImBuf *ibuf, short texpaint);
@@ -134,6 +136,7 @@ struct ImagePaintPartialRedraw *get_imapaintpartial(void);
 void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr);
 void imapaint_clear_partial_redraw(void);
 void imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
+void imapaint_region_tiles(struct ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th);
 int get_imapaint_zoom(struct bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
 void paint_2d_redraw(const bContext *C, void *ps, int final);

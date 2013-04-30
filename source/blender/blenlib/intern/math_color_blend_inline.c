@@ -372,12 +372,17 @@ MINLINE void blend_color_erase_alpha_float(float dst[4], const float src1[4], co
 {
 	if (src2[3] != 0.0f && src1[3] > 0.0f) {
 		/* subtract alpha and remap RGB channels to match */
-		const float alpha = max_ff(src1[3] - src2[3], 0.0f);
-		const float map_alpha = alpha / src1[3];
+		float alpha = max_ff(src1[3] - src2[3], 0.0f);
+		float map_alpha;
 
-		dst[0] *= map_alpha;
-		dst[1] *= map_alpha;
-		dst[2] *= map_alpha;
+		if (alpha <= 0.0005f)
+			alpha = 0.0f;
+
+		map_alpha = alpha / src1[3];
+
+		dst[0] = src1[0] * map_alpha;
+		dst[1] = src1[1] * map_alpha;
+		dst[2] = src1[2] * map_alpha;
 		dst[3] = alpha;
 	}
 	else {
@@ -393,12 +398,17 @@ MINLINE void blend_color_add_alpha_float(float dst[4], const float src1[4], cons
 {
 	if (src2[3] != 0.0f && src1[3] < 1.0f) {
 		/* add alpha and remap RGB channels to match */
-		const float alpha = min_ff(src1[3] + src2[3], 1.0f);
-		const float map_alpha = (src1[3] > 0.0f) ? alpha / src1[3] : 1.0f;
+		float alpha = min_ff(src1[3] + src2[3], 1.0f);
+		float map_alpha;
 
-		dst[0] *= map_alpha;
-		dst[1] *= map_alpha;
-		dst[2] *= map_alpha;
+		if (alpha >= 1.0f - 0.0005f)
+			alpha = 1.0f;
+
+		map_alpha = (src1[3] > 0.0f) ? alpha / src1[3] : 1.0f;
+
+		dst[0] = src1[0] * map_alpha;
+		dst[1] = src1[1] * map_alpha;
+		dst[2] = src1[2] * map_alpha;
 		dst[3] = alpha;
 	}
 	else {

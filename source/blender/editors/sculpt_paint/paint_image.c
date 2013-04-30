@@ -101,9 +101,6 @@
 
 #include "paint_intern.h"
 
-#define IMAPAINT_TILE_BITS          6
-#define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
-
 typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
 
@@ -115,6 +112,9 @@ typedef struct UndoImageTile {
 		unsigned int *uint;
 		void         *pt;
 	} rect;
+
+	unsigned short *mask;
+
 	int x, y;
 
 	short source, use_float;
@@ -156,18 +156,45 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int
 		            tile->y * IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 }
 
+void *image_undo_find_tile(Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsigned short **mask)
+{
+	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	UndoImageTile *tile;
+	short use_float = ibuf->rect_float ? 1 : 0;
+
+	for (tile = lb->first; tile; tile = tile->next) {
+		if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source) {
+			if (tile->use_float == use_float) {
+				if (strcmp(tile->idname, ima->id.name) == 0 && strcmp(tile->ibufname, ibuf->name) == 0) {
+					if (mask) {
+						/* allocate mask if requested */
+						if (!tile->mask)
+							tile->mask = MEM_callocN(sizeof(unsigned short)*IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE, "UndoImageTile.mask");
+
+						*mask = tile->mask;
+					}
+
+					return tile->rect.pt;
+				}
+			}
+		}
+	}
+	
+	return NULL;
+}
+
 void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
 	UndoImageTile *tile;
 	int allocsize;
 	short use_float = ibuf->rect_float ? 1 : 0;
+	void *data;
 
-	for (tile = lb->first; tile; tile = tile->next)
-		if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source)
-			if (tile->use_float == use_float)
-				if (strcmp(tile->idname, ima->id.name) == 0 && strcmp(tile->ibufname, ibuf->name) == 0)
-					return tile->rect.pt;
+	/* check if tile is already pushed */
+	data = image_undo_find_tile(ima, ibuf, x_tile, y_tile, NULL);
+	if (data)
+		return data;
 	
 	if (*tmpibuf == NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
@@ -193,6 +220,19 @@ void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile,
 	BLI_addtail(lb, tile);
 	
 	return tile->rect.pt;
+}
+
+void image_undo_remove_masks(void)
+{
+	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	UndoImageTile *tile;
+
+	for (tile = lb->first; tile; tile = tile->next) {
+		if (tile->mask) {
+			MEM_freeN(tile->mask);
+			tile->mask = NULL;
+		}
+	}
 }
 
 void image_undo_restore(bContext *C, ListBase *lb)
@@ -276,10 +316,23 @@ void imapaint_clear_partial_redraw(void)
 	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
 }
 
+void imapaint_region_tiles(ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th)
+{
+	int srcx = 0, srcy = 0;
+
+	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
+
+	*tw = ((x + w - 1) >> IMAPAINT_TILE_BITS);
+	*th = ((y + h - 1) >> IMAPAINT_TILE_BITS);
+	*tx = (x >> IMAPAINT_TILE_BITS);
+	*ty = (y >> IMAPAINT_TILE_BITS);
+}
+
 void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
 	ImBuf *tmpibuf = NULL;
-	int srcx = 0, srcy = 0, origx;
+	int tilex, tiley, tilew, tileh, tx, ty;
+	int srcx = 0, srcy = 0;
 
 	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
 
@@ -300,14 +353,11 @@ void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 		imapaintpartial.y2 = max_ii(imapaintpartial.y2, y + h);
 	}
 
-	w = ((x + w - 1) >> IMAPAINT_TILE_BITS);
-	h = ((y + h - 1) >> IMAPAINT_TILE_BITS);
-	origx = (x >> IMAPAINT_TILE_BITS);
-	y = (y >> IMAPAINT_TILE_BITS);
-	
-	for (; y <= h; y++)
-		for (x = origx; x <= w; x++)
-			image_undo_push_tile(ima, ibuf, &tmpibuf, x, y);
+	imapaint_region_tiles(ibuf, x, y, w, h, &tilex, &tiley, &tilew, &tileh);
+
+	for (ty = tiley; ty <= tileh; ty++)
+		for (tx = tilex; tx <= tilew; tx++)
+			image_undo_push_tile(ima, ibuf, &tmpibuf, tx, ty);
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	

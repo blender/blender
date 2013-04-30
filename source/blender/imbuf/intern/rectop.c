@@ -104,7 +104,7 @@ void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_Blend
 
 /* clipping */
 
-void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx, 
+void IMB_rectclip(ImBuf *dbuf, ImBuf *sbuf, int *destx, 
                   int *desty, int *srcx, int *srcy, int *width, int *height)
 {
 	int tmp;
@@ -150,43 +150,125 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 	}
 }
 
+static void imb_rectclip3(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, int *destx, 
+                          int *desty, int *origx, int *origy, int *srcx, int *srcy,
+                          int *width, int *height)
+{
+	int tmp;
+
+	if (dbuf == NULL) return;
+	
+	if (*destx < 0) {
+		*srcx -= *destx;
+		*origx -= *destx;
+		*width += *destx;
+		*destx = 0;
+	}
+	if (*origx < 0) {
+		*destx -= *origx;
+		*srcx -= *origx;
+		*width += *origx;
+		*origx = 0;
+	}
+	if (*srcx < 0) {
+		*destx -= *srcx;
+		*origx -= *srcx;
+		*width += *srcx;
+		*srcx = 0;
+	}
+
+	if (*desty < 0) {
+		*srcy -= *desty;
+		*origy -= *desty;
+		*height += *desty;
+		*desty = 0;
+	}
+	if (*origy < 0) {
+		*desty -= *origy;
+		*srcy -= *origy;
+		*height += *origy;
+		*origy = 0;
+	}
+	if (*srcy < 0) {
+		*desty -= *srcy;
+		*origy -= *srcy;
+		*height += *srcy;
+		*srcy = 0;
+	}
+
+	tmp = dbuf->x - *destx;
+	if (*width > tmp) *width = tmp;
+	tmp = dbuf->y - *desty;
+	if (*height > tmp) *height = tmp;
+
+	if (obuf) {
+		tmp = obuf->x - *origx;
+		if (*width > tmp) *width = tmp;
+		tmp = obuf->y - *origy;
+		if (*height > tmp) *height = tmp;
+	}
+
+	if (sbuf) {
+		tmp = sbuf->x - *srcx;
+		if (*width > tmp) *width = tmp;
+		tmp = sbuf->y - *srcy;
+		if (*height > tmp) *height = tmp;
+	}
+
+	if ((*height <= 0) || (*width <= 0)) {
+		*width = 0;
+		*height = 0;
+	}
+}
+
 /* copy and blend */
 
-void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+void IMB_rectcpy(ImBuf *dbuf, ImBuf *sbuf, int destx, 
                  int desty, int srcx, int srcy, int width, int height)
 {
-	IMB_rectblend(dbuf, sbuf, destx, desty, srcx, srcy, width, height,
-	              IMB_BLEND_COPY);
+	IMB_rectblend(dbuf, dbuf, sbuf, NULL, 0, destx, desty, destx, desty, srcx, srcy, width, height, IMB_BLEND_COPY);
 }
 
 typedef void (*IMB_blend_func)(unsigned char *dst, const unsigned char *src1, const unsigned char *src2);
 typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
 
 
-void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
-                   int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode)
+void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *maskrect, unsigned short mask_max,
+                   int destx,  int desty, int origx, int origy, int srcx, int srcy, int width, int height,
+                   IMB_BlendMode mode)
 {
-	unsigned int *drect = NULL, *srect = NULL, *dr, *sr;
-	float *drectf = NULL, *srectf = NULL, *drf, *srf;
-	int do_float, do_char, srcskip, destskip, x;
+	unsigned int *drect = NULL, *orect, *srect = NULL, *dr, *or, *sr;
+	float *drectf = NULL, *orectf, *srectf = NULL, *drf, *orf, *srf;
+	unsigned short *mr;
+	int do_float, do_char, srcskip, destskip, origskip, x;
 	IMB_blend_func func = NULL;
 	IMB_blend_func_float func_float = NULL;
 
-	if (dbuf == NULL) return;
+	if (dbuf == NULL || obuf == NULL) return;
 
-	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &width, &height);
+	imb_rectclip3(dbuf, obuf, sbuf, &destx, &desty, &origx, &origy, &srcx, &srcy, &width, &height);
 
 	if (width == 0 || height == 0) return;
 	if (sbuf && sbuf->channels != 4) return;
 	if (dbuf->channels != 4) return;
-	
-	do_char = (sbuf && sbuf->rect && dbuf->rect);
-	do_float = (sbuf && sbuf->rect_float && dbuf->rect_float);
 
-	if (do_char) drect = dbuf->rect + desty * dbuf->x + destx;
-	if (do_float) drectf = dbuf->rect_float + (desty * dbuf->x + destx) * 4;
+	do_char = (sbuf && sbuf->rect && dbuf->rect && obuf->rect);
+	do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
+
+	if (do_char) {
+		drect = dbuf->rect + desty * dbuf->x + destx;
+		orect = obuf->rect + origy * obuf->x + origx;
+	}
+	if (do_float) {
+		drectf = dbuf->rect_float + (desty * dbuf->x + destx) * 4;
+		orectf = obuf->rect_float + (origy * obuf->x + origx) * 4;
+	}
+
+	if (maskrect)
+		maskrect += origy * obuf->x + origx;
 
 	destskip = dbuf->x;
+	origskip = obuf->x;
 
 	if (sbuf) {
 		if (do_char) srect = sbuf->rect + srcy * sbuf->x + srcx;
@@ -307,24 +389,92 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 		for (; height > 0; height--) {
 			if (do_char) {
 				dr = drect;
+				or = orect;
 				sr = srect;
-				for (x = width; x > 0; x--, dr++, sr++) {
-					if (((unsigned char *)sr)[3])
-						func((unsigned char *)dr, (unsigned char *)dr, (unsigned char *)sr);
+
+				if (maskrect) {
+					/* mask accumulation for painting */
+					mr = maskrect;
+
+					for (x = width; x > 0; x--, dr++, or++, sr++, mr++) {
+						unsigned char *src = (unsigned char*)sr;
+
+						if (src[3]) {
+							unsigned short mask = *mr + divide_round_i((mask_max - *mr) * src[3], 255);
+
+							if (mask > *mr) {
+								unsigned char mask_src[4];
+
+								*mr = mask;
+
+								mask_src[0] = src[0];
+								mask_src[1] = src[1];
+								mask_src[2] = src[2];
+								mask_src[3] = mask >> 8;
+
+								func((unsigned char *)dr, (unsigned char *)or, mask_src);
+							}
+						}
+					}
+
+					maskrect += origskip;
+				}
+				else {
+					/* regular blending */
+					for (x = width; x > 0; x--, dr++, or++, sr++) {
+						if (((unsigned char *)sr)[3])
+							func((unsigned char *)dr, (unsigned char *)or, (unsigned char *)sr);
+					}
 				}
 
 				drect += destskip;
+				orect += origskip;
 				srect += srcskip;
 			}
 
 			if (do_float) {
 				drf = drectf;
+				orf = orectf;
 				srf = srectf;
-				for (x = width; x > 0; x--, drf += 4, srf += 4) {
-					if (srf[3] != 0)
-						func_float(drf, drf, srf);
+
+				if (maskrect) {
+					/* mask accumulation for painting */
+					mr = maskrect;
+
+					for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, mr++) {
+						if (srf[3] != 0) {
+							float alpha = CLAMPIS(srf[3], 0.0f, 1.0f);
+							unsigned short mask = (unsigned short)(*mr + (mask_max - *mr) * alpha);
+
+							if (mask > *mr) {
+								float mask_srf[4];
+								float new_alpha = mask * (1.0f/65535.0f);
+								float map_alpha = new_alpha / srf[3];
+
+								*mr = mask;
+
+								mask_srf[0] = map_alpha * srf[0];
+								mask_srf[1] = map_alpha * srf[1];
+								mask_srf[2] = map_alpha * srf[2];
+								mask_srf[3] = new_alpha;
+
+								func_float(drf, orf, mask_srf);
+							}
+						}
+					}
+
+					maskrect += origskip;
 				}
+				else {
+					/* regular blending */
+					for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4) {
+						if (srf[3] != 0)
+							func_float(drf, orf, srf);
+					}
+				}
+
 				drectf += destskip * 4;
+				orectf += origskip * 4;
 				srectf += srcskip * 4;
 			}
 		}
@@ -333,7 +483,7 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 
 /* fill */
 
-void IMB_rectfill(struct ImBuf *drect, const float col[4])
+void IMB_rectfill(ImBuf *drect, const float col[4])
 {
 	int num;
 
@@ -462,7 +612,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	}
 }
 
-void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, struct ColorManagedDisplay *display)
+void IMB_rectfill_area(ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, struct ColorManagedDisplay *display)
 {
 	if (!ibuf) return;
 	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, display,

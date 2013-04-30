@@ -178,8 +178,10 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 	int *desty, int *srcx, int *srcy, int *width, int *height);
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
-void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
-	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
+void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *obuf, struct ImBuf *sbuf,
+	unsigned short *mask, unsigned short mask_max,
+	int destx,  int desty, int origx, int origy, int srcx, int srcy,
+	int width, int height, IMB_BlendMode mode);
 
 /**
  *

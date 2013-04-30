@@ -763,6 +763,12 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
         col.template_ID_preview(brush, "mask_texture", new="texture.new", rows=3, cols=8)
 
         brush_mask_texture_settings(col, brush)
+
+        col = layout.column(align=True)
+        col.active = brush.brush_capabilities.has_overlay
+        col.label(text="Overlay:")
+
+        row = col.row()
         if tex_slot_alpha.map_mode != 'STENCIL':
             if brush.use_secondary_overlay:
                 row.prop(brush, "use_secondary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')

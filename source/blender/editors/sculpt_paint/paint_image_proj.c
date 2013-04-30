@@ -3887,6 +3887,8 @@ static void *do_projectpaint_thread(void *ph_v)
 							mask *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
 						}
 
+						CLAMP(mask, 0.0f, 1.0f);
+
 						if (ps->do_masking) {
 							/* masking to keep brush contribution to a pixel limited. note we do not do
 							 * a simple max(mask, mask_accum), as this is very sensitive to spacing and
