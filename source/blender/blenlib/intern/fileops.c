@@ -247,15 +247,25 @@ void *BLI_gzopen(const char *filename, const char *mode)
 		return 0;
 	}
 	else {
-		char short_name[256];
-
 		/* xxx Creates file before transcribing the path */
 		if (mode[0] == 'w')
 			fclose(ufopen(filename, "a"));
 
-		BLI_get_short_name(short_name, filename);
+		/* temporary #if until we update all libraries to 1.2.7
+		 * for  correct wide char path handling */
+#if ZLIB_VERNUM >= 0x1270
+		UTF16_ENCODE(filename);
 
-		gzfile = gzopen(short_name, mode);
+		gzfile = gzopen_w(filename_16, mode);
+
+		UTF16_UN_ENCODE(filename);
+#else
+		{
+			char short_name[256];
+			BLI_get_short_name(short_name, filename);
+			gzfile = gzopen(short_name, mode);
+		}
+#endif
 	}
 
 	return gzfile;
