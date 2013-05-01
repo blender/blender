@@ -3306,22 +3306,31 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
+static int edbm_select_ungrouped_poll(bContext *C)
+{
+	if (ED_operator_editmesh(C)) {
+		Object *obedit = CTX_data_edit_object(C);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+			CTX_wm_operator_poll_msg_set(C, "Must be in vertex selection mode");
+		}
+		else if (obedit->defbase.first == NULL) {
+			CTX_wm_operator_poll_msg_set(C, "No weights/vertex groups on object");
+		}
+		else {
+			return true;
+		}
+	}
+	return false;
+}
+
 static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMVert *eve;
 	BMIter iter;
-
-	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Does not work out of vertex selection mode");
-		return OPERATOR_CANCELLED;
-	}
-
-	if (obedit->defbase.first == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
-		return OPERATOR_CANCELLED;
-	}
 
 	if (!RNA_boolean_get(op->ptr, "extend")) {
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -3352,7 +3361,7 @@ void MESH_OT_select_ungrouped(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = edbm_select_ungrouped_exec;
-	ot->poll = ED_operator_editmesh;
+	ot->poll = edbm_select_ungrouped_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
