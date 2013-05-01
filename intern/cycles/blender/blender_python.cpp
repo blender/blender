@@ -258,6 +258,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		
 		if(param->isclosure) {
 			socket_type = "NodeSocketShader";
+			data_type = BL::NodeSocket::type_SHADER;
 		}
 		else if(param->type.vecsemantics == TypeDesc::COLOR) {
 			socket_type = "NodeSocketColor";
