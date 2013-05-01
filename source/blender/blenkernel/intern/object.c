@@ -2727,7 +2727,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 
 #else               /* ensure CD_MASK_BAREMESH for now */
 					BMEditMesh *em = (ob == scene->obedit) ? BKE_editmesh_from_object(ob) : NULL;
-					uint64_t data_mask = scene->customdata_mask | ob->customdata_mask | CD_MASK_BAREMESH;
+					uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
 					if (em) {
 						makeDerivedMesh(scene, ob, em,  data_mask, 0); /* was CD_MASK_BAREMESH */
 					}

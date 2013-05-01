@@ -2498,33 +2498,6 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 	return mask;
 }
 
-CustomDataMask ED_view3d_object_datamask(Scene *scene)
-{
-	Object *ob = scene->basact ? scene->basact->object : NULL;
-	CustomDataMask mask = 0;
-
-	if (ob) {
-		/* check if we need tfaces & mcols due to face select or texture paint */
-		if (paint_facesel_test(ob) || (ob->mode & OB_MODE_TEXTURE_PAINT)) {
-			mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
-		}
-
-		/* check if we need mcols due to vertex paint or weightpaint */
-		if (ob->mode & OB_MODE_VERTEX_PAINT) {
-			mask |= CD_MASK_MCOL;
-		}
-
-		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-			mask |= CD_MASK_PREVIEW_MCOL;
-		}
-
-		if (ob->mode & OB_MODE_EDIT)
-			mask |= CD_MASK_MVERT_SKIN;
-	}
-
-	return mask;
-}
-
 /* goes over all modes and view3d settings */
 CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 {
@@ -2538,8 +2511,6 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 			mask |= ED_view3d_datamask(scene, (View3D *)sa->spacedata.first);
 		}
 	}
-
-	mask |= ED_view3d_object_datamask(scene);
 
 	return mask;
 }

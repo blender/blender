@@ -407,8 +407,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->rv3d = oglrender->ar->regiondata;
 
 		/* MUST be cleared on exit */
-		oglrender->scene->customdata_mask_modal = (ED_view3d_datamask(oglrender->scene, oglrender->v3d) |
-		                                           ED_view3d_object_datamask(oglrender->scene));
+		oglrender->scene->customdata_mask_modal = ED_view3d_datamask(oglrender->scene, oglrender->v3d);
 
 		/* apply immediately in case we're rendering from a script,
 		 * running notifiers again will overwrite */
