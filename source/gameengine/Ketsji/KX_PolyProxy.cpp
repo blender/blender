@@ -140,21 +140,21 @@ PyObject *KX_PolyProxy::pyattr_get_v1(void *self_v, const KX_PYATTRIBUTE_DEF *at
 {
 	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
 
-	return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 0));
+	return PyLong_FromLong(self->m_polygon->GetVertexOffset(0));
 }
 
 PyObject *KX_PolyProxy::pyattr_get_v2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
 
-	return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 1));
+	return PyLong_FromLong(self->m_polygon->GetVertexOffset(1));
 }
 
 PyObject *KX_PolyProxy::pyattr_get_v3(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
 
-	return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 2));
+	return PyLong_FromLong(self->m_polygon->GetVertexOffset(2));
 }
 
 PyObject *KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -163,7 +163,7 @@ PyObject *KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *at
 
 	if (3 < self->m_polygon->VertexCount())
 	{
-		return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 3));
+		return PyLong_FromLong(self->m_polygon->GetVertexOffset(3));
 	}
 	return PyLong_FromLong(0);
 }
@@ -243,7 +243,7 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < m_polygon->VertexCount())
 	{
-		return PyLong_FromLong(m_polygon->GetVertexOffsetAbs(m_mesh, index));
+		return PyLong_FromLong(m_polygon->GetVertexOffset(index));
 	}
 	return PyLong_FromLong(0);
 }
