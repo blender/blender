@@ -1593,23 +1593,8 @@ static void view3d_userdata_boxselect_init(BoxSelectUserData *r_data,
 
 bool edge_inside_circle(const float cent[2], float radius, const float screen_co_a[2], const float screen_co_b[2])
 {
-	int radius_squared = radius * radius;
-
-	/* check points in circle itself */
-	if (len_squared_v2v2(cent, screen_co_a) <= radius_squared) {
-		return true;
-	}
-	if (len_squared_v2v2(cent, screen_co_b) <= radius_squared) {
-		return true;
-	}
-	else {
-		/* pointdistline */
-		if (dist_squared_to_line_segment_v2(cent, screen_co_a, screen_co_b) < (float)radius_squared) {
-			return true;
-		}
-	}
-
-	return false;
+	const float radius_squared = radius * radius;
+	return (dist_squared_to_line_segment_v2(cent, screen_co_a, screen_co_b) < radius_squared);
 }
 
 static void do_paintvert_box_select__doSelectVert(void *userData, MVert *mv, const float screen_co[2], int UNUSED(index))
@@ -2333,7 +2318,7 @@ static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, const float sc
 {
 	CircleSelectUserData *data = userData;
 
-	if (edge_inside_circle(data->mval_fl, (int)data->radius, screen_co_a, screen_co_b)) {
+	if (edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
 		BM_edge_select_set(data->vc->em->bm, eed, data->select);
 	}
 }
