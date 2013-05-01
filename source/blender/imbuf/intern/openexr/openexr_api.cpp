@@ -393,7 +393,6 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 	catch (const std::exception &exc)
 	{
 		printf("OpenEXR-save: ERROR: %s\n", exc.what());
-		if (ibuf) IMB_freeImBuf(ibuf);
 
 		return (0);
 	}
@@ -454,7 +453,6 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 	catch (const std::exception &exc)
 	{
 		printf("OpenEXR-save: ERROR: %s\n", exc.what());
-		if (ibuf) IMB_freeImBuf(ibuf);
 
 		return (0);
 	}
