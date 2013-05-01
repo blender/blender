@@ -76,20 +76,23 @@ void bl_locale_set(const char *locale)
 #endif
 		}
 		// Note: boost always uses "C" LC_NUMERIC by default!
+
+		/* Generate the locale string (useful to know which locale we are actually using in case of "default" one). */
+#define LOCALE_INFO std::use_facet<boost::locale::info>(_locale)
+
+		locale_str = LOCALE_INFO.language();
+		if (LOCALE_INFO.country() != "") {
+			locale_str += "_" + LOCALE_INFO.country();
+		}
+		if (LOCALE_INFO.variant() != "") {
+			locale_str += "@" + LOCALE_INFO.variant();
+		}
+
+#undef LOCALE_INFO
+
 	}
 	catch(std::exception const &e) {
 		std::cout << "bl_locale_set(" << locale << "): " << e.what() << " \n";
-	}
-
-	/* Generate the locale string (useful to know which locale we are actually using in case of "default" one). */
-#define LOCALE_INFO std::use_facet<boost::locale::info>(_locale)
-
-	locale_str = LOCALE_INFO.language();
-	if (LOCALE_INFO.country() != "") {
-		locale_str += "_" + LOCALE_INFO.country();
-	}
-	if (LOCALE_INFO.variant() != "") {
-		locale_str += "@" + LOCALE_INFO.variant();
 	}
 }
 
