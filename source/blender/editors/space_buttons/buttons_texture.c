@@ -239,11 +239,19 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		PointerRNA ptr;
 		PropertyRNA *prop;
 
+		/* texture */
 		RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mtex, &ptr);
 		prop = RNA_struct_find_property(&ptr, "texture");
 
 		buttons_texture_user_property_add(users, &brush->id, ptr, prop,
-		                                  "Brush", ICON_BRUSH_DATA, brush->id.name + 2);
+		                                  "Brush", ICON_BRUSH_DATA, "Brush");
+
+		/* mask texture */
+		RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mask_mtex, &ptr);
+		prop = RNA_struct_find_property(&ptr, "texture");
+
+		buttons_texture_user_property_add(users, &brush->id, ptr, prop,
+		                                  "Brush", ICON_BRUSH_DATA, "Brush Mask");
 	}
 }
 
