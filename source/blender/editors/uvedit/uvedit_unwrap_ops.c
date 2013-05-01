@@ -221,7 +221,38 @@ void uvedit_get_aspect(Scene *scene, Object *ob, BMEditMesh *em, float *aspx, fl
 	}
 }
 
-static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh *em, 
+static void construct_param_handle_face_add(ParamHandle *handle, Scene *scene, BMEditMesh *em,
+                                            BMFace *efa, const int cd_loop_uv_offset)
+{
+	ParamKey key;
+	ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
+	ParamBool *pin = BLI_array_alloca(pin, efa->len);
+	ParamBool *select = BLI_array_alloca(select, efa->len);
+	float **co = BLI_array_alloca(co, efa->len);
+	float **uv = BLI_array_alloca(uv, efa->len);
+	int i;
+
+	BMIter liter;
+	BMLoop *l;
+
+	key = (ParamKey)efa;
+
+	/* let parametrizer split the ngon, it can make better decisions
+	 * about which split is best for unwrapping than scanfill */
+	BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+		MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+		vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
+		co[i] = l->v->co;
+		uv[i] = luv->uv;
+		pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
+		select[i] = uvedit_uv_select_test(em, scene, l) != 0;
+	}
+
+	param_face_add(handle, key, i, vkeys, co, uv, pin, select, efa->no);
+}
+
+static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh *em,
                                            short implicit, short fill, short sel,
                                            short correct_aspect)
 {
@@ -253,48 +284,26 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	rng = BLI_rng_new(0);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		ParamKey key;
-		ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
-		ParamBool *pin = BLI_array_alloca(pin, efa->len);
-		ParamBool *select = BLI_array_alloca(select, efa->len);
-		float **co = BLI_array_alloca(co, efa->len);
-		float **uv = BLI_array_alloca(uv, efa->len);
-		int i, lsel;
 
-		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
+		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
 			continue;
+		}
 
-		lsel = 0;
+		if (implicit) {
+			bool is_loopsel = false;
 
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(em, scene, l)) {
-				lsel = 1;
-				break;
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_uv_select_test(em, scene, l)) {
+					is_loopsel = true;
+					break;
+				}
+			}
+			if (is_loopsel == false) {
+				continue;
 			}
 		}
 
-		if (implicit && !lsel)
-			continue;
-
-		key = (ParamKey)efa;
-
-		/* let parametrizer split the ngon, it can make better decisions
-		 * about which split is best for unwrapping than scanfill */
-		i = 0;
-
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-			vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
-			co[i] = l->v->co;
-			uv[i] = luv->uv;
-			pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-			select[i] = uvedit_uv_select_test(em, scene, l) != 0;
-
-			i++;
-		}
-
-		param_face_add(handle, key, i, vkeys, co, uv, pin, select, efa->no);
+		construct_param_handle_face_add(handle, scene, em, efa, cd_loop_uv_offset);
 	}
 
 	if (!implicit) {
