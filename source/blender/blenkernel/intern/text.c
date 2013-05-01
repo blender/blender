@@ -780,6 +780,16 @@ static void txt_curs_sel(Text *text, TextLine ***linep, int **charp)
 	*linep = &text->sell; *charp = &text->selc;
 }
 
+bool txt_cursor_is_line_start(Text *text)
+{
+	return (text->selc == 0);
+}
+
+bool txt_cursor_is_line_end(Text *text)
+{
+	return (text->selc == text->sell->len);
+}
+
 /*****************************/
 /* Cursor movement functions */
 /*****************************/

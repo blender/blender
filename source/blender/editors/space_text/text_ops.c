@@ -1855,10 +1855,16 @@ static int text_move_cursor(bContext *C, int type, int select)
 			break;
 
 		case PREV_WORD:
+			if (txt_cursor_is_line_start(text)) {
+				txt_move_left(text, select);
+			}
 			txt_jump_left(text, select, true);
 			break;
 
 		case NEXT_WORD:
+			if (txt_cursor_is_line_end(text)) {
+				txt_move_right(text, select);
+			}
 			txt_jump_right(text, select, true);
 			break;
 
@@ -2005,14 +2011,24 @@ static int text_delete_exec(bContext *C, wmOperator *op)
 
 	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
-	if (type == DEL_PREV_WORD)
+	if (type == DEL_PREV_WORD) {
+		if (txt_cursor_is_line_start(text)) {
+			txt_backspace_char(text);
+		}
 		txt_backspace_word(text);
-	else if (type == DEL_PREV_CHAR)
+	}
+	else if (type == DEL_PREV_CHAR) {
 		txt_backspace_char(text);
-	else if (type == DEL_NEXT_WORD)
+	}
+	else if (type == DEL_NEXT_WORD) {
+		if (txt_cursor_is_line_end(text)) {
+			txt_delete_char(text);
+		}
 		txt_delete_word(text);
-	else if (type == DEL_NEXT_CHAR)
+	}
+	else if (type == DEL_NEXT_CHAR) {
 		txt_delete_char(text);
+	}
 
 	text_update_line_edited(text->curl);
 
