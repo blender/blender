@@ -3833,34 +3833,6 @@ static void *do_projectpaint_thread(void *ph_v)
 					if (falloff > 0.0f) {
 						float texrgb[3];
 						float mask = falloff;
-						float mixalpha = 1.0;
-
-						if (ps->is_texbrush) {
-							MTex *mtex = &brush->mtex;
-							float samplecos[3];
-							float texrgba[4];
-
-							/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
-							if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
-								copy_v3_v3(samplecos, projPixel->worldCoSS);
-							}
-							else {
-								copy_v2_v2(samplecos, projPixel->projCoSS);
-								samplecos[2] = 0.0f;
-							}
-
-							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, texrgba, thread_index, pool);
-
-							copy_v3_v3(texrgb, texrgba);
-							mixalpha *= texrgba[3];
-						}
-
-						if (ps->is_maskbrush) {
-							mixalpha *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
-						}
-
-						CLAMP(mask, 0.0f, 1.0f);
 
 						if (ps->do_masking) {
 							/* masking to keep brush contribution to a pixel limited. note we do not do
@@ -3885,6 +3857,31 @@ static void *do_projectpaint_thread(void *ph_v)
 						}
 						else
 							mask *= brush_alpha;
+
+						if (ps->is_texbrush) {
+							MTex *mtex = &brush->mtex;
+							float samplecos[3];
+							float texrgba[4];
+
+							/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
+							if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+								copy_v3_v3(samplecos, projPixel->worldCoSS);
+							}
+							else {
+								copy_v2_v2(samplecos, projPixel->projCoSS);
+								samplecos[2] = 0.0f;
+							}
+
+							/* note, for clone and smear, we only use the alpha, could be a special function */
+							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, texrgba, thread_index, pool);
+
+							copy_v3_v3(texrgb, texrgba);
+							mask *= texrgba[3];
+						}
+
+						if (ps->is_maskbrush) {
+							mask *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+						}
 
 						/* extra mask for normal, layer stencil, .. */
 						mask *= ((float)projPixel->mask) * (1.0f / 65535.0f);
@@ -3925,8 +3922,8 @@ static void *do_projectpaint_thread(void *ph_v)
 									else             do_projectpaint_soften(ps, projPixel, mask, softenArena, &softenPixels);
 									break;
 								default:
-									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask * mixalpha);
-									else             do_projectpaint_draw(ps, projPixel, texrgb, mask * mixalpha);
+									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask);
+									else             do_projectpaint_draw(ps, projPixel, texrgb, mask);
 									break;
 							}
 						}
