@@ -89,7 +89,7 @@ static LinkNode *knifeproject_poly_from_object(ARegion *ar, Scene *scene, Object
 					float (*mval)[2] = MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__);
 
 					for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {
-						ED_view3d_project_float_v3_m4(ar, bp->vec, mval[a], projmat);
+						ED_view3d_project_float_v2_m4(ar, bp->vec, mval[a], projmat);
 					}
 					if (is_cyclic) {
 						copy_v2_v2(mval[a], mval[0]);

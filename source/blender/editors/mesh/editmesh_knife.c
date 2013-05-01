@@ -335,7 +335,6 @@ static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], const
 
 	copy_v3_v3(kfv->co, co);
 	copy_v3_v3(kfv->cageco, cageco);
-	copy_v3_v3(kfv->sco, co);
 
 	knife_project_v3(kcd, kfv->co, kfv->sco);
 
