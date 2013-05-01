@@ -582,26 +582,36 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
+        # primitive
         layout.operator("mesh.select_all").action = 'TOGGLE'
         layout.operator("mesh.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
 
-        layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
+        # numeric
         layout.operator("mesh.select_random", text="Random")
         layout.operator("mesh.select_nth")
-        layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
-        layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
-        layout.operator("mesh.select_interior_faces", text="Interior Faces")
-        layout.operator("mesh.select_axis", text="Side of Active")
 
         layout.separator()
 
-        layout.operator("mesh.select_face_by_sides")
+        # geometric
+        layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
+        layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
+
+        layout.separator()
+
+        # topology
+        layout.operator("mesh.select_loose", text="Loose Geometry")
         if context.scene.tool_settings.mesh_select_mode[2] is False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_loose", text="Loose Geometry")
+        layout.operator("mesh.select_interior_faces", text="Interior Faces")
+        layout.operator("mesh.select_face_by_sides")
+
+        layout.separator()
+
+        # other ...
         layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
+        layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
 
         layout.separator()
 
@@ -611,6 +621,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.separator()
 
         layout.operator("mesh.select_mirror", text="Mirror")
+        layout.operator("mesh.select_axis", text="Side of Active")
 
         layout.operator("mesh.select_linked", text="Linked")
         layout.operator("mesh.select_vertex_path", text="Vertex Path")

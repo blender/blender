@@ -3331,12 +3331,13 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 			/* no dv or dv set with no weight */
-			if (dv == NULL || (dv && dv->dw == NULL)) {
+			if (ELEM(NULL, dv, dv->dw)) {
 				BM_vert_select_set(em->bm, eve, true);
 			}
 		}
 	}
 
+	EDBM_selectmode_flush(em);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
