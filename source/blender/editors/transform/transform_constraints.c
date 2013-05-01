@@ -572,36 +572,36 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	t->redraw = 1;
 }
 
+/* applies individual td->axismtx constraints */
+void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
+{
+	if (t->total == 1) {
+		setConstraint(t, t->data->axismtx, mode, text);
+	}
+	else {
+		BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
+		copy_m3_m3(t->con.mtx, t->data->axismtx);
+		t->con.mode = mode;
+		getConstraintMatrix(t);
+
+		startConstraint(t);
+
+		t->con.drawExtra = drawObjectConstraint;
+		t->con.applyVec = applyObjectConstraintVec;
+		t->con.applySize = applyObjectConstraintSize;
+		t->con.applyRot = applyObjectConstraintRot;
+		t->redraw = 1;
+	}
+}
+
 void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
 	/* edit-mode now allows local transforms too */
-#if 1
-	if ((t->flag & T_EDIT) &&
-	    /* not all editmode supports axis-matrix */
-	    ((t->around != V3D_LOCAL) || (!ELEM3(t->obedit->type, OB_MESH, OB_MBALL, OB_ARMATURE))))
-	{
+	if (t->flag & T_EDIT) {
 		setConstraint(t, t->obedit_mat, mode, text);
 	}
-	else
-#endif
-	{
-		if (t->total == 1) {
-			setConstraint(t, t->data->axismtx, mode, text);
-		}
-		else {
-			BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
-			copy_m3_m3(t->con.mtx, t->data->axismtx);
-			t->con.mode = mode;
-			getConstraintMatrix(t);
-
-			startConstraint(t);
-
-			t->con.drawExtra = drawObjectConstraint;
-			t->con.applyVec = applyObjectConstraintVec;
-			t->con.applySize = applyObjectConstraintSize;
-			t->con.applyRot = applyObjectConstraintRot;
-			t->redraw = 1;
-		}
+	else {
+		setAxisMatrixConstraint(t, mode, text);
 	}
 }
 
@@ -629,7 +629,12 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 			break;
 		case V3D_MANIP_NORMAL:
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("normal"));
-			setConstraint(t, t->spacemtx, mode, text);
+			if (checkUseAxisMatrix(t)) {
+				setAxisMatrixConstraint(t, mode, text);
+			}
+			else {
+				setConstraint(t, t->spacemtx, mode, text);
+			}
 			break;
 		case V3D_MANIP_VIEW:
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("view"));

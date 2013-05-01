@@ -622,6 +622,7 @@ void drawConstraint(TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
+void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);
 void setUserConstraint(TransInfo *t, short orientation, int mode, const char text[]);
 
@@ -752,5 +753,6 @@ void freeVertSlideVerts(TransInfo *t);
 
 /* TODO. transform_queries.c */
 bool checkUseLocalCenter_GraphEdit(TransInfo *t);
+bool checkUseAxisMatrix(TransInfo *t);
 
 #endif

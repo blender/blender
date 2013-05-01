@@ -7540,4 +7540,17 @@ bool checkUseLocalCenter_GraphEdit(TransInfo *t)
 	return ((t->around == V3D_LOCAL) && !ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE));
 }
 
+bool checkUseAxisMatrix(TransInfo *t)
+{
+	/* currenly only checks for editmode */
+	if (t->flag & T_EDIT) {
+		if ((t->around == V3D_LOCAL) && (ELEM3(t->obedit->type, OB_MESH, OB_MBALL, OB_ARMATURE))) {
+			/* not all editmode supports axis-matrix */
+			return true;
+		}
+	}
+
+	return false;
+}
+
 #undef MAX_INFO_LEN
