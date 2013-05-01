@@ -49,6 +49,7 @@ extern "C" {
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
+#include "BKE_context.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

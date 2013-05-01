@@ -29,14 +29,11 @@
 extern "C" {
 #endif
 
-#include "DNA_listBase.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_context.h"
-
 struct Render;
+struct FreestyleConfig;
+struct bContext;
 
-extern Scene *freestyle_scene;
+extern struct Scene *freestyle_scene;
 extern float freestyle_viewpoint[3];
 extern float freestyle_mv[4][4];
 extern float freestyle_proj[4][4];
@@ -44,8 +41,8 @@ extern int freestyle_viewport[4];
 
 /* Rendering */
 void FRS_initialize(void);
-void FRS_set_context(bContext *C);
-void FRS_read_file(bContext *C);
+void FRS_set_context(struct bContext *C);
+void FRS_read_file(struct bContext *C);
 int FRS_is_freestyle_enabled(struct SceneRenderLayer *srl);
 void FRS_init_stroke_rendering(struct Render *re);
 struct Render *FRS_do_stroke_rendering(struct Render *re, struct SceneRenderLayer *srl);
@@ -54,11 +51,11 @@ void FRS_composite_result(struct Render *re, struct SceneRenderLayer *srl, struc
 void FRS_exit(void);
 
 /* FreestyleConfig.linesets */
-void FRS_copy_active_lineset(FreestyleConfig *config);
-void FRS_paste_active_lineset(FreestyleConfig *config);
-void FRS_delete_active_lineset(FreestyleConfig *config);
-void FRS_move_active_lineset_up(FreestyleConfig *config);
-void FRS_move_active_lineset_down(FreestyleConfig *config);
+void FRS_copy_active_lineset(struct FreestyleConfig *config);
+void FRS_paste_active_lineset(struct FreestyleConfig *config);
+void FRS_delete_active_lineset(struct FreestyleConfig *config);
+void FRS_move_active_lineset_up(struct FreestyleConfig *config);
+void FRS_move_active_lineset_down(struct FreestyleConfig *config);
 
 #ifdef __cplusplus
 }
