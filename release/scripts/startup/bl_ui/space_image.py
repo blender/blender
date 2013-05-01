@@ -882,6 +882,35 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
+class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
+    bl_label = "Appearance"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
+
+        if brush is None:  # unlikely but can happen
+            layout.label(text="Brush Unset")
+            return
+
+        col = layout.column()
+        col.prop(toolsettings, "show_brush");
+
+        col = col.column()
+        col.prop(brush, "cursor_color_add", text="")
+        col.active = toolsettings.show_brush
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(brush, "use_custom_icon")
+        if brush.use_custom_icon:
+            col.prop(brush, "icon_filepath", text="")
+
+
 class IMAGE_UV_sculpt_curve(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'

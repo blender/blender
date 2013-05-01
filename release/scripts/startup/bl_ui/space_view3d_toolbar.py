@@ -1025,7 +1025,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         layout.prop(sculpt, "show_low_resolution")
-        layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
         layout.prop(sculpt, "show_diffuse_color")
 
@@ -1081,15 +1080,21 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
             return
 
         col = layout.column()
+        col.prop(settings, "show_brush");
+
+        col = col.column()
+        col.active = settings.show_brush
 
         if context.sculpt_object and context.tool_settings.sculpt:
             if brush.sculpt_capabilities.has_secondary_color:
-                col.prop(brush, "cursor_color_add", text="Add Color")
-                col.prop(brush, "cursor_color_subtract", text="Subtract Color")
+                col.row().prop(brush, "cursor_color_add", text="Add")
+                col.row().prop(brush, "cursor_color_subtract", text="Subtract")
             else:
-                col.prop(brush, "cursor_color_add", text="Color")
+                col.prop(brush, "cursor_color_add", text="")
         else:
-            col.prop(brush, "cursor_color_add", text="Color")
+            col.prop(brush, "cursor_color_add", text="")
+
+        layout.separator()
 
         col = layout.column(align=True)
         col.prop(brush, "use_custom_icon")
