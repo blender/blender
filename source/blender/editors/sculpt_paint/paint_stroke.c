@@ -255,6 +255,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEvent *event, const float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
@@ -324,6 +325,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 	RNA_float_set(&itemptr, "pressure", pressure);
 
 	stroke->update_step(C, stroke, &itemptr);
+
+	/* always redraw region if brush is shown */
+	if (ar && (paint->flags & PAINT_SHOW_BRUSH))
+		ED_region_tag_redraw(ar);
 }
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
