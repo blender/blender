@@ -300,13 +300,12 @@ typedef bool _BLI_Bool;
 #define UNPACK4OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
 
 /* array helpers */
-#define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)                 \
+#define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot) \
 	(arr_dtype *)((char *)arr_start + (elem_size * (tot - 1)))
 
-#define ARRAY_HAS_ITEM(item, arr_start, arr_dtype, elem_size, tot) (          \
-		(item >= arr_start) &&                                                \
-		(item <= ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot))       \
-	)
+#define ARRAY_HAS_ITEM(arr_item, arr_start, tot) \
+	((unsigned int)((arr_item) - (arr_start)) < (unsigned int)(tot))
+
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
