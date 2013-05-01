@@ -54,31 +54,13 @@ void getPathName(const string& path, const string& base, vector<string>& pathnam
 
 		BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
 		BLI_cleanup_file(NULL, cleaned);
-		res = toAscii(string(cleaned));
+		res = string(cleaned);
 
 		if (!base.empty())
 			res += Config::DIR_SEP + base;
 
 		pathnames.push_back(res);
 	}
-}
-
-string toAscii(const string &str)
-{
-	stringstream out("");
-	char s;
-
-	for (unsigned int i = 0; i < str.size() ; i++) {
-		s = ((char)(str.at(i) & 0x7F));
-		out << s;
-	}
-
-	return out.str();
-}
-
-const char *toAscii(const char *str)
-{
-	return toAscii(string(str)).c_str();
 }
 
 } // end of namespace StringUtils

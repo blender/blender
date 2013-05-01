@@ -53,8 +53,6 @@ namespace StringUtils {
 
 LIB_SYSTEM_EXPORT
 void getPathName(const string& path, const string& base, vector<string>& pathnames);
-string toAscii(const string &str);
-const char *toAscii(const char *str);
 
 // STL related
 struct ltstr

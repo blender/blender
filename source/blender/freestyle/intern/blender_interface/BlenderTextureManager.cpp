@@ -79,13 +79,13 @@ unsigned int BlenderTextureManager::loadBrush(string sname, Stroke::MediumType m
 	switch (mediumType) {
 	case Stroke::DRY_MEDIUM:
 		//soc prepareTextureLuminance((const char*)path.toAscii(), texId);
-		prepareTextureLuminance(StringUtils::toAscii(path), texId);
+		prepareTextureLuminance(path, texId);
 		break;
 	case Stroke::HUMID_MEDIUM:
 	case Stroke::OPAQUE_MEDIUM:
 	default:
 		//soc prepareTextureAlpha((const char*)path.toAscii(), texId);
-		prepareTextureAlpha(StringUtils::toAscii(path), texId);
+		prepareTextureAlpha(path, texId);
 		break;
 	}
 	if (G.debug & G_DEBUG_FREESTYLE) {

@@ -39,7 +39,7 @@ AppCanvas::AppCanvas()
 :Canvas()
 {
 	_pViewer = 0;
-	_MapsPath = StringUtils::toAscii(Config::Path::getInstance()->getMapsDir()).c_str();
+	_MapsPath = Config::Path::getInstance()->getMapsDir().c_str();
 }
 
 AppCanvas::AppCanvas(AppView *iViewer)

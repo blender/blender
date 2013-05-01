@@ -83,15 +83,14 @@ Path *Path::getInstance()
 string Path::getEnvVar(const string& iEnvVarName)
 {
 	string value;
-	if (!getenv(StringUtils::toAscii(iEnvVarName).c_str())) {
-		cerr << "Warning: You may want to set the $" <<
-		        StringUtils::toAscii(iEnvVarName) <<
+	if (!getenv(iEnvVarName.c_str())) {
+		cerr << "Warning: You may want to set the $" << iEnvVarName <<
 		        " environment variable to use Freestyle." << endl <<
 		        "         Otherwise, the current directory will be used instead." << endl;
 		value = ".";
 	}
 	else {
-		value = getenv(StringUtils::toAscii(iEnvVarName).c_str());
+		value = getenv(iEnvVarName.c_str());
 	}
 	return value;
 }
