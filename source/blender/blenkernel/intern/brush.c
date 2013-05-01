@@ -845,7 +845,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, bool use_float,
 				xy[1] = y + yoff;
 
 				if (fill == BRUSH_IMBUF_MASK) {
-					alpha_f = alpha * BKE_brush_curve_strength(brush, len_v2(xy), radius);
+					alpha_f = alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					dst[0] = crgb[0];
 					dst[1] = crgb[1];
@@ -1067,15 +1067,17 @@ void BKE_brush_randomize_texture_coordinates(UnifiedPaintSettings *ups, bool mas
 /* Uses the brush curve control to find a strength value between 0 and 1 */
 float BKE_brush_curve_strength_clamp(Brush *br, float p, const float len)
 {
+	float strength;
+
 	if (p >= len) return 0;
 	else p = p / len;
 
 	curvemapping_initialize(br->curve);
-	p = curvemapping_evaluateF(br->curve, 0, p);
+	strength = curvemapping_evaluateF(br->curve, 0, p);
 
-	if (p < 0.0f) p = 0.0f;
-	else if (p > 1.0f) p = 1.0f;
-	return p;
+	CLAMP(strength, 0.0f, 1.0f);
+
+	return strength;
 }
 /* same as above but can return negative values if the curve enables
  * used for sculpt only */
