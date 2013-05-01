@@ -397,7 +397,7 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *maskre
 					mr = maskrect;
 
 					for (x = width; x > 0; x--, dr++, or++, sr++, mr++) {
-						unsigned char *src = (unsigned char*)sr;
+						unsigned char *src = (unsigned char *)sr;
 
 						if (src[3]) {
 							unsigned short mask = *mr + divide_round_i((mask_max - *mr) * src[3], 255);
@@ -448,7 +448,7 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *maskre
 
 							if (mask > *mr) {
 								float mask_srf[4];
-								float new_alpha = mask * (1.0f/65535.0f);
+								float new_alpha = mask * (1.0f / 65535.0f);
 								float map_alpha = new_alpha / srf[3];
 
 								*mr = mask;

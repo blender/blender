@@ -233,8 +233,8 @@ static void brush_painter_2d_do_partial(BrushPainter *painter, ImBuf *oldtexibuf
 					otf += 4;
 				}
 				else {
-					texco[0] = mapping.xmin + x*mapping.xmax;
-					texco[1] = mapping.ymin + y*mapping.ymax;
+					texco[0] = mapping.xmin + x * mapping.xmax;
+					texco[1] = mapping.ymin + y * mapping.ymax;
 					texco[2] = 0.0f;
 
 					BKE_brush_sample_tex_3D(scene, brush, texco, tf, thread, painter->pool);
@@ -266,8 +266,8 @@ static void brush_painter_2d_do_partial(BrushPainter *painter, ImBuf *oldtexibuf
 					ot += 4;
 				}
 				else {
-					texco[0] = mapping.xmin + x*mapping.xmax;
-					texco[1] = mapping.ymin + y*mapping.ymax;
+					texco[0] = mapping.xmin + x * mapping.xmax;
+					texco[1] = mapping.ymin + y * mapping.ymax;
 					texco[2] = 0.0f;
 
 					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, painter->pool);
@@ -339,8 +339,8 @@ static void brush_painter_2d_tiled_tex_partial_update(BrushPainter *painter, con
 
 static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const float pos[2], bool do_stencil, bool do_3D, bool do_view, rctf *mapping)
 {
-	float invw = 1.0f/(float)s->canvas->x;
-	float invh = 1.0f/(float)s->canvas->y;
+	float invw = 1.0f / (float)s->canvas->x;
+	float invh = 1.0f / (float)s->canvas->y;
 	int xmin, ymin, xmax, ymax;
 	int ipos[2];
 
@@ -350,21 +350,21 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const 
 
 	if (do_stencil || do_view) {
 		/* map from view coordinates of brush to region coordinates */
-		UI_view2d_to_region_no_clip(s->v2d, ipos[0]*invw, ipos[1]*invh, &xmin, &ymin);
-		UI_view2d_to_region_no_clip(s->v2d, (ipos[0] + bufsize)*invw, (ipos[1] + bufsize)*invh, &xmax, &ymax);
+		UI_view2d_to_region_no_clip(s->v2d, ipos[0] * invw, ipos[1] * invh, &xmin, &ymin);
+		UI_view2d_to_region_no_clip(s->v2d, (ipos[0] + bufsize) * invw, (ipos[1] + bufsize) * invh, &xmax, &ymax);
 
 		/* output mapping from brush ibuf x/y to region coordinates */
 		mapping->xmin = xmin;
 		mapping->ymin = ymin;
-		mapping->xmax = (xmax - xmin)/(float)bufsize;
-		mapping->ymax = (ymax - ymin)/(float)bufsize;
+		mapping->xmax = (xmax - xmin) / (float)bufsize;
+		mapping->ymax = (ymax - ymin) / (float)bufsize;
 	}
 	else if (do_3D) {
 		/* 3D mapping, just mapping to canvas 0..1  */
-		mapping->xmin = ipos[0]*invw;
-		mapping->ymin = ipos[1]*invh;
-		mapping->xmax = bufsize*invw/(float)bufsize;
-		mapping->ymax = bufsize*invh/(float)bufsize;
+		mapping->xmin = ipos[0] * invw;
+		mapping->ymin = ipos[1] * invh;
+		mapping->xmax = bufsize * invw / (float)bufsize;
+		mapping->ymax = bufsize * invh / (float)bufsize;
 	}
 	else {
 		/* other mapping */
@@ -705,7 +705,7 @@ static int paint_2d_op(void *state, ImBuf *ibufb, const float lastpos[2], const 
 
 			imapaint_region_tiles(s->canvas, region[a].destx, region[a].desty,
 			                      region[a].width, region[a].height,
-								  &tilex, &tiley, &tilew, &tileh);
+			                      &tilex, &tiley, &tilew, &tileh);
 			
 			for (ty = tiley; ty <= tileh; ty++) {
 				for (tx = tilex; tx <= tilew; tx++) {
@@ -720,20 +720,20 @@ static int paint_2d_op(void *state, ImBuf *ibufb, const float lastpos[2], const 
 						tmpbuf->rect = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask);
 
 					IMB_rectblend(s->canvas, tmpbuf, frombuf, mask, mask_max,
-								  region[a].destx, region[a].desty,
-								  origx, origy,
-								  region[a].srcx, region[a].srcy,
-								  region[a].width, region[a].height, blend);
+					              region[a].destx, region[a].desty,
+					              origx, origy,
+					              region[a].srcx, region[a].srcy,
+					              region[a].width, region[a].height, blend);
 				}
 			}
 		}
 		else {
 			/* no masking, composite brush directly onto canvas */
 			IMB_rectblend(s->canvas, s->canvas, frombuf, NULL, 0,
-						  region[a].destx, region[a].desty,
-						  region[a].destx, region[a].desty,
-						  region[a].srcx, region[a].srcy,
-						  region[a].width, region[a].height, blend);
+			              region[a].destx, region[a].desty,
+			              region[a].destx, region[a].desty,
+			              region[a].srcx, region[a].srcy,
+			              region[a].width, region[a].height, blend);
 		}
 	}
 
@@ -791,7 +791,7 @@ static int paint_2d_canvas_set(ImagePaintState *s, Image *ima)
 	s->do_masking = (s->brush->flag & BRUSH_AIRBRUSH ||
 	                 (s->brush->imagepaint_tool == PAINT_TOOL_SMEAR) ||
 	                 (s->brush->mtex.tex && !ELEM3(s->brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)))
-					 ? false : true;
+	                 ? false : true;
 	
 	return 1;
 }
@@ -836,8 +836,8 @@ int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int era
 		UI_view2d_region_to_view(s->v2d, 0, 0, &startuv[0], &startuv[1]);
 
 		/* paint exactly once on first touch */
-		painter->startpaintpos[0] = startuv[0]*ibuf->x;
-		painter->startpaintpos[1] = startuv[1]*ibuf->y;
+		painter->startpaintpos[0] = startuv[0] * ibuf->x;
+		painter->startpaintpos[1] = startuv[1] * ibuf->y;
 
 		painter->firsttouch = 0;
 		copy_v2_v2(painter->lastpaintpos, newuv);

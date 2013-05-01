@@ -760,8 +760,8 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 
 static void brush_imbuf_tex_co(rctf *mapping, int x, int y, float texco[3])
 {
-	texco[0] = mapping->xmin + x*mapping->xmax;
-	texco[1] = mapping->ymin + y*mapping->ymax;
+	texco[0] = mapping->xmin + x * mapping->xmax;
+	texco[1] = mapping->ymin + y * mapping->ymax;
 	texco[2] = 0.0f;
 }
 

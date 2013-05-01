@@ -168,8 +168,10 @@ void *image_undo_find_tile(Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsi
 				if (strcmp(tile->idname, ima->id.name) == 0 && strcmp(tile->ibufname, ibuf->name) == 0) {
 					if (mask) {
 						/* allocate mask if requested */
-						if (!tile->mask)
-							tile->mask = MEM_callocN(sizeof(unsigned short)*IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE, "UndoImageTile.mask");
+						if (!tile->mask) {
+							tile->mask = MEM_callocN(sizeof(unsigned short) * IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE,
+							                         "UndoImageTile.mask");
+						}
 
 						*mask = tile->mask;
 					}

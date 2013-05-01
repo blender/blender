@@ -3912,21 +3912,21 @@ static void *do_projectpaint_thread(void *ph_v)
 							switch (tool) {
 								case PAINT_TOOL_CLONE:
 									if (is_floatbuf) do_projectpaint_clone_f(ps, projPixel, mask);
-									else do_projectpaint_clone(ps, projPixel, mask);
+									else             do_projectpaint_clone(ps, projPixel, mask);
 									break;
 								case PAINT_TOOL_SMEAR:
 									sub_v2_v2v2(co, projPixel->projCoSS, pos_ofs);
 
 									if (is_floatbuf) do_projectpaint_smear_f(ps, projPixel, mask, smearArena, &smearPixels_f, co);
-									else do_projectpaint_smear(ps, projPixel, mask, smearArena, &smearPixels, co);
+									else             do_projectpaint_smear(ps, projPixel, mask, smearArena, &smearPixels, co);
 									break;
 								case PAINT_TOOL_SOFTEN:
 									if (is_floatbuf) do_projectpaint_soften_f(ps, projPixel, mask, softenArena, &softenPixels_f);
-									else do_projectpaint_soften(ps, projPixel, mask, softenArena, &softenPixels);
+									else             do_projectpaint_soften(ps, projPixel, mask, softenArena, &softenPixels);
 									break;
 								default:
-									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask*mixalpha);
-									else do_projectpaint_draw(ps, projPixel, texrgb, mask*mixalpha);
+									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, texrgb, mask * mixalpha);
+									else             do_projectpaint_draw(ps, projPixel, texrgb, mask * mixalpha);
 									break;
 							}
 						}
