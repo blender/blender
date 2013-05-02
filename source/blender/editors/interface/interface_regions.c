@@ -801,6 +801,17 @@ int uiSearchBoxWidth(void)
 	return 9 * UI_UNIT_X;
 }
 
+int uiSearchItemFindIndex(uiSearchItems *items, const char *name)
+{
+	int i;
+	for (i = 0; i < items->totitem; i++) {
+		if (STREQ(name, items->names[i])) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 /* ar is the search box itself */
 static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 {
@@ -866,6 +877,12 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 	
 }
 
+int ui_searchbox_find_index(ARegion *ar, const char *name)
+{
+	uiSearchboxData *data = ar->regiondata;
+	return uiSearchItemFindIndex(&data->items, name);
+}
+
 /* x and y in screencoords */
 bool ui_searchbox_inside(ARegion *ar, int x, int y)
 {
@@ -875,7 +892,7 @@ bool ui_searchbox_inside(ARegion *ar, int x, int y)
 }
 
 /* string validated to be of correct length (but->hardmax) */
-void ui_searchbox_apply(uiBut *but, ARegion *ar)
+bool ui_searchbox_apply(uiBut *but, ARegion *ar)
 {
 	uiSearchboxData *data = ar->regiondata;
 
@@ -890,6 +907,11 @@ void ui_searchbox_apply(uiBut *but, ARegion *ar)
 		if (cpoin) cpoin[0] = '|';
 		
 		but->func_arg2 = data->items.pointers[data->active - 1];
+
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
@@ -1287,14 +1309,13 @@ void ui_but_search_test(uiBut *but)
 	but->search_func(but->block->evil_C, but->search_arg, but->drawstr, items);
 	
 	/* only redalert when we are sure of it, this can miss cases when >10 matches */
-	if (items->totitem == 0)
+	if (items->totitem == 0) {
 		uiButSetFlag(but, UI_BUT_REDALERT);
+	}
 	else if (items->more == 0) {
-		for (x1 = 0; x1 < items->totitem; x1++)
-			if (strcmp(but->drawstr, items->names[x1]) == 0)
-				break;
-		if (x1 == items->totitem)
+		if (uiSearchItemFindIndex(items, but->drawstr) == -1) {
 			uiButSetFlag(but, UI_BUT_REDALERT);
+		}
 	}
 	
 	for (x1 = 0; x1 < items->maxitem; x1++) {

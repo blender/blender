@@ -629,6 +629,8 @@ void    uiButSetSearchFunc(uiBut *but,        uiButSearchFunc sfunc, void *arg1,
 /* height in pixels, it's using hardcoded values still */
 int     uiSearchBoxHeight(void);
 int     uiSearchBoxWidth(void);
+/* check if a string is in an existing search box */
+int     uiSearchItemFindIndex(uiSearchItems *items, const char *name);
 
 void    uiBlockSetHandleFunc(uiBlock *block,    uiBlockHandleFunc func, void *arg);
 void    uiBlockSetButmFunc(uiBlock *block,    uiMenuHandleFunc func, void *arg);
