@@ -1239,6 +1239,8 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		/* editmesh draw function checks spesifically for this */
 	}
 	else {
+		const int dm_totpoly = dm->getNumPolys(dm);
+		const int dm_totloop = dm->getNumLoops(dm);
 		unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
 		MLoop *mloop = dm->getLoopArray(dm), *ml;
 		MPoly *mp = dm->getPolyArray(dm);
@@ -1248,28 +1250,17 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		/* now add to loops, so the data can be passed through the modifier stack */
 		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
-			BLI_array_declare(wtcol_l);
-			totloop = 0;
-			for (i = 0; i < dm->numPolyData; i++, mp++) {
-				ml = mloop + mp->loopstart;
-
-				BLI_array_grow_items(wtcol_l, mp->totloop);
-				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-					copy_v4_v4_char((char *)&wtcol_l[totloop],
-					                (char *)&wtcol_v[ml->v]);
-				}
-			}
+			wtcol_l = MEM_mallocN(sizeof(*wtcol_l) * dm_totloop, __func__);
 			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
 		}
-		else {
-			totloop = 0;
-			for (i = 0; i < dm->numPolyData; i++, mp++) {
-				ml = mloop + mp->loopstart;
 
-				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-					copy_v4_v4_char((char *)&wtcol_l[totloop],
-					                (char *)&wtcol_v[ml->v]);
-				}
+		totloop = 0;
+		for (i = 0; i < dm_totpoly; i++, mp++) {
+			ml = mloop + mp->loopstart;
+
+			for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
+				copy_v4_v4_char((char *)&wtcol_l[totloop],
+				                (char *)&wtcol_v[ml->v]);
 			}
 		}
 		MEM_freeN(wtcol_v);

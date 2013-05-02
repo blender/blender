@@ -2570,8 +2570,6 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         mesh = context.active_object.data
 
-        layout.prop(mesh, "show_weight")
-
         split = layout.split()
 
         col = split.column()
@@ -2581,6 +2579,8 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.prop(mesh, "show_edge_crease", text="Creases")
         if with_freestyle:
             col.prop(mesh, "show_edge_seams", text="Seams")
+
+        layout.prop(mesh, "show_weight")
 
         col = split.column()
         col.label()
