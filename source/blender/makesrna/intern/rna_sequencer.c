@@ -161,7 +161,19 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	ListBase *seqbase = BKE_sequence_seqbase(&ed->seqbase, seq);
+	Sequence *tseq;
 	BKE_sequence_calc_disp(scene, seq);
+
+	/* ensure effects are always fit in length to their input */
+
+	/* TODO(sergey): probably could be optimized.
+	 *               in terms skipping update of non-changing strips
+	 */
+	for (tseq = seqbase->first; tseq; tseq = tseq->next) {
+		if (tseq->seq1 || tseq->seq2 || tseq->seq3) {
+			BKE_sequence_calc(scene, tseq);
+		}
+	}
 
 	if (BKE_sequence_test_overlap(seqbase, seq)) {
 		BKE_sequence_base_shuffle(seqbase, seq, scene); /* XXX - BROKEN!, uses context seqbasep */
@@ -1460,14 +1472,14 @@ static void rna_def_sequence(BlenderRNA *brna)
 //	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Still", "");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 	
 	prop = RNA_def_property(srna, "frame_still_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endstill");
 //	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Still", "");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 	
 	prop = RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
