@@ -4924,6 +4924,18 @@ bool RNA_property_is_idprop(PropertyRNA *prop)
 	return (prop->magic != RNA_MAGIC);
 }
 
+/* mainly for the UI */
+bool RNA_property_is_unlink(PropertyRNA *prop)
+{
+	const int flag = RNA_property_flag(prop);
+	if (RNA_property_type(prop) == PROP_STRING) {
+		return (flag & PROP_NEVER_UNLINK) == 0;
+	}
+	else {
+		return (flag & (PROP_NEVER_UNLINK | PROP_NEVER_NULL)) == 0;
+	}
+}
+
 /* string representation of a property, python
  * compatible but can be used for display too,
  * context may be NULL */
