@@ -597,13 +597,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-                                    struct BMEditMesh *UNUSED(editData),
-                                    DerivedMesh *dm)
-{
-	return applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
-}
-
 
 ModifierTypeInfo modifierType_Array = {
 	/* name */              "Array",
@@ -622,7 +615,7 @@ ModifierTypeInfo modifierType_Array = {
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   applyModifierEM,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,
 	/* freeData */          NULL,

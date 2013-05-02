@@ -1132,10 +1132,12 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	int required_mode;
 	int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	DerivedMesh *ndm, *orcodm = NULL;
-	const ModifierApplyFlag app_flag = renderResolution ? MOD_APPLY_RENDER : 0;
+	ModifierApplyFlag app_flag = MOD_APPLY_ORCO;
 
-	if (renderResolution)
+	if (renderResolution) {
+		app_flag |= MOD_APPLY_RENDER;
 		required_mode = eModifierMode_Render;
+	}
 	else
 		required_mode = eModifierMode_Realtime;
 

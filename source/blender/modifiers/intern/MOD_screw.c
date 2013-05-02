@@ -931,16 +931,6 @@ static void foreachObjectLink(
 	walk(userData, ob, &ltmd->ob_axis);
 }
 
-/* This dosnt work with material*/
-static DerivedMesh *applyModifierEM(
-        ModifierData *md,
-        Object *ob,
-        struct BMEditMesh *UNUSED(editData),
-        DerivedMesh *derivedData)
-{
-	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
-}
-
 static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 0;
@@ -964,7 +954,7 @@ ModifierTypeInfo modifierType_Screw = {
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   applyModifierEM,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,
 	/* freeData */          NULL,

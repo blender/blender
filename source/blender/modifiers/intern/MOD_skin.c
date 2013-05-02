@@ -1852,18 +1852,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	*tsmd = *smd;
 }
 
-static DerivedMesh *applyModifierEM(ModifierData *md,
-                                    Object *UNUSED(ob),
-                                    struct BMEditMesh *UNUSED(em),
-                                    DerivedMesh *dm)
-{
-	DerivedMesh *result;
-
-	if (!(result = final_skin((SkinModifierData *)md, dm)))
-		return dm;
-	return result;
-}
-
 static DerivedMesh *applyModifier(ModifierData *md,
                                   Object *UNUSED(ob),
                                   DerivedMesh *dm,
@@ -1895,7 +1883,7 @@ ModifierTypeInfo modifierType_Skin = {
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   applyModifierEM,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,

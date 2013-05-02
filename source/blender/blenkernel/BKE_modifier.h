@@ -111,7 +111,9 @@ typedef void (*TexWalkFunc)(void *userData, struct Object *ob, struct ModifierDa
 
 typedef enum ModifierApplyFlag {
 	MOD_APPLY_RENDER = 1 << 0,       /* Render time. */
-	MOD_APPLY_USECACHE = 1 << 1,     /* Final result. Is not set for temporary calculations like orco dms. */
+	MOD_APPLY_USECACHE = 1 << 1,     /* Result of evaluation will be cached, so modifier might
+	                                  * want to cache data for quick updates (used by subsurf) */
+	MOD_APPLY_ORCO = 1 << 2          /* Modifier evaluated for undeformed texture coordinates */
 } ModifierApplyFlag;
 
 
@@ -200,7 +202,8 @@ typedef struct ModifierTypeInfo {
 	 */
 	struct DerivedMesh *(*applyModifierEM)(struct ModifierData *md, struct Object *ob,
 	                                       struct BMEditMesh *editData,
-	                                       struct DerivedMesh *derivedData);
+	                                       struct DerivedMesh *derivedData,
+	                                       ModifierApplyFlag flag);
 
 
 	/********************* Optional functions *********************/
