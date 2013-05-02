@@ -2034,7 +2034,10 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 		data->searchbox = ui_searchbox_create(C, data->region, but);
 		ui_searchbox_update(C, data->searchbox, but, true); /* true = reset */
 	}
-	
+
+	/* reset alert flag (avoid confusion, will refresh on exit) */
+	but->flag &= ~UI_BUT_REDALERT;
+
 	ui_check_but(but);
 	
 	WM_cursor_modal(CTX_wm_window(C), BC_TEXTEDITCURSOR);
