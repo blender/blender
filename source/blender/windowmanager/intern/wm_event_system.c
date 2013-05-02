@@ -1384,9 +1384,9 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmi->oskey != KM_ANY)
 		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
 	
-	/* key modifiers always check when event has it */
-	/* otherwise regular keypresses with keymodifier still work */
-	if (winevent->keymodifier || kmi->keymodifier)
+	/* only keymap entry with keymodifier is checked, means all keys without modifier get handled too. */
+	/* that is currently needed to make overlapping events work (when you press A - G fast or so). */
+	if (kmi->keymodifier)
 		if (winevent->keymodifier != kmi->keymodifier) return 0;
 	
 	return 1;
