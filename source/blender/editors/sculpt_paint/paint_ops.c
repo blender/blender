@@ -826,22 +826,33 @@ static void BRUSH_OT_stencil_fit_image_aspect(wmOperatorType *ot)
 }
 
 
-static int stencil_reset_transform(bContext *C, wmOperator *UNUSED(op))
+static int stencil_reset_transform(bContext *C, wmOperator *op)
 {
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *br = BKE_paint_brush(paint);
+	bool do_mask = RNA_boolean_get(op->ptr, "mask");
 
 	if (!br)
 		return OPERATOR_CANCELLED;
+	
+	if (do_mask) {
+		br->mask_stencil_pos[0] = 256;
+		br->mask_stencil_pos[1] = 256;
 
-	br->stencil_pos[0] = 256;
-	br->stencil_pos[1] = 256;
+		br->mask_stencil_dimension[0] = 256;
+		br->mask_stencil_dimension[1] = 256;
 
-	br->stencil_dimension[0] = 256;
-	br->stencil_dimension[1] = 256;
+		br->mask_mtex.rot = 0;
+	}
+	else {
+		br->stencil_pos[0] = 256;
+		br->stencil_pos[1] = 256;
 
-	br->mtex.rot = 0;
-	br->mask_mtex.rot = 0;
+		br->stencil_dimension[0] = 256;
+		br->stencil_dimension[1] = 256;
+
+		br->mtex.rot = 0;
+	}
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
@@ -862,6 +873,8 @@ static void BRUSH_OT_stencil_reset_transform(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "mask", 0, "Modify Mask Stencil", "Modify either the primary or mask stencil");
 }
 
 

@@ -131,7 +131,7 @@ def brush_mask_texture_settings(layout, brush):
     if mask_tex_slot.map_mode == 'STENCIL':
         if brush.mask_texture and brush.mask_texture.type == 'IMAGE':
             layout.operator("brush.stencil_fit_image_aspect").mask = True
-        layout.operator("brush.stencil_reset_transform")
+        layout.operator("brush.stencil_reset_transform").mask = True
 
     if brush.mask_texture:
         layout.label(text="Mask Mapping:")
