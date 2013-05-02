@@ -3388,6 +3388,8 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 		data.weightpaint = BKE_brush_weight_get(scene, brush);
 	}
 
+	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
+
 	dm->foreachMappedVert(dm, gradientVert__mapFunc, &data);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
