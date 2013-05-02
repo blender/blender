@@ -1108,7 +1108,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	{
 		if (dm->faceData.layers[i].type == CD_MTFACE)
 		{
-			assert(validLayers <= 8);
+			if (validLayers >= MAX_MTFACE) {
+				printf("%s: corrupted mesh %s - too many CD_MTFACE layers\n", __func__, mesh->id.name);
+				break;
+			}
 
 			layers[validLayers].face = (MTFace*)(dm->faceData.layers[i].data);
 			layers[validLayers].name = dm->faceData.layers[i].name;
