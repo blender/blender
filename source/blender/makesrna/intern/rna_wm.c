@@ -124,6 +124,11 @@ EnumPropertyItem event_timer_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem event_textinput_type_items[] = {
+	{KM_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 EnumPropertyItem event_ndof_type_items[] = {
 	{NDOF_MOTION, "NDOF_MOTION", 0, "Motion", ""},
 	/* buttons on all 3dconnexion devices */
@@ -318,6 +323,8 @@ EnumPropertyItem event_type_items[] = {
 	{MEDIASTOP, "MEDIA_STOP", 0, "Media Stop", ""},
 	{MEDIAFIRST, "MEDIA_FIRST", 0, "Media First", ""},
 	{MEDIALAST, "MEDIA_LAST", 0, "Media Last", ""},
+	{0, "", 0, NULL, NULL},
+	{KM_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
 	{0, "", 0, NULL, NULL},
 	{WINDEACTIVATE, "WINDOW_DEACTIVATE", 0, "Window Deactivate", ""},
 	{TIMER, "TIMER", 0, "Timer", ""},
@@ -664,6 +671,7 @@ static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerR
 	if (map_type == KMI_TYPE_TWEAK) return event_tweak_type_items;
 	if (map_type == KMI_TYPE_TIMER) return event_timer_type_items;
 	if (map_type == KMI_TYPE_NDOF) return event_ndof_type_items;
+	if (map_type == KMI_TYPE_TEXTINPUT) return event_textinput_type_items;
 	else return event_type_items;
 }
 
