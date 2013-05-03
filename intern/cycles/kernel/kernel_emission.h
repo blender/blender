@@ -36,8 +36,7 @@ __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 #ifdef __OBJECT_MOTION__
 		ray.time = time;
 #endif
-		ray.dP.dx = make_float3(0.0f, 0.0f, 0.0f);
-		ray.dP.dy = make_float3(0.0f, 0.0f, 0.0f);
+		ray.dP = differential3_zero();
 		ray.dD = dI;
 #ifdef __CAMERA_MOTION__
 		ray.time = time;
@@ -95,9 +94,7 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 		return false;
 
 	/* todo: implement */
-	differential3 dD;
-	dD.dx = make_float3(0.0f, 0.0f, 0.0f);
-	dD.dy = make_float3(0.0f, 0.0f, 0.0f);
+	differential3 dD = differential3_zero();
 
 	/* evaluate closure */
 	float3 light_eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D, dD, ls.t, sd->time);
@@ -138,6 +135,9 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 			ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
 			ray->D = normalize_len(ray->D, &ray->t);
 		}
+
+		ray->dP = sd->dP;
+		ray->dD = differential3_zero();
 	}
 	else {
 		/* signal to not cast shadow ray */

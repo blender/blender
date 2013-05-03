@@ -86,5 +86,23 @@ __device void differential_dudv(differential *du, differential *dv, float3 dPdu,
 	dv->dy = (dP.dy.y*dPdu.x - dP.dy.x*dPdu.y)*det;
 }
 
+__device differential differential_zero()
+{
+	differential d;
+	d.dx = 0.0f;
+	d.dy = 0.0f;
+
+	return d;
+}
+
+__device differential3 differential3_zero()
+{
+	differential3 d;
+	d.dx = make_float3(0.0f, 0.0f, 0.0f);
+	d.dy = make_float3(0.0f, 0.0f, 0.0f);
+
+	return d;
+}
+
 CCL_NAMESPACE_END
 

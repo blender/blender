@@ -52,10 +52,8 @@ __device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *ou
 #endif
 
 #ifdef __RAY_DIFFERENTIALS__
-		ray.dD.dx = make_float3(0.0f, 0.0f, 0.0f);
-		ray.dD.dy = make_float3(0.0f, 0.0f, 0.0f);
-		ray.dP.dx = make_float3(0.0f, 0.0f, 0.0f);
-		ray.dP.dy = make_float3(0.0f, 0.0f, 0.0f);
+		ray.dD = differential3_zero();
+		ray.dP = differential3_zero();
 #endif
 
 		/* setup shader data */

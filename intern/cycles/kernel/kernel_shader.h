@@ -370,14 +370,10 @@ __device_noinline void shader_setup_from_sample(KernelGlobals *kg, ShaderData *s
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* no ray differentials here yet */
-	sd->dP.dx = make_float3(0.0f, 0.0f, 0.0f);
-	sd->dP.dy = make_float3(0.0f, 0.0f, 0.0f);
-	sd->dI.dx = make_float3(0.0f, 0.0f, 0.0f);
-	sd->dI.dy = make_float3(0.0f, 0.0f, 0.0f);
-	sd->du.dx = 0.0f;
-	sd->du.dy = 0.0f;
-	sd->dv.dx = 0.0f;
-	sd->dv.dy = 0.0f;
+	sd->dP = differential3_zero();
+	sd->dI = differential3_zero();
+	sd->du = differential_zero();
+	sd->dv = differential_zero();
 #endif
 }
 
@@ -438,10 +434,8 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	/* differentials */
 	sd->dP = ray->dD;
 	differential_incoming(&sd->dI, sd->dP);
-	sd->du.dx = 0.0f;
-	sd->du.dy = 0.0f;
-	sd->dv.dx = 0.0f;
-	sd->dv.dy = 0.0f;
+	sd->du = differential_zero();
+	sd->dv = differential_zero();
 #endif
 }
 
