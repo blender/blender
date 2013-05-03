@@ -2212,43 +2212,28 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 
 #else  /* use direct (non-scanfill) method for cuts */
 
-/* assuming v is on line ab, what fraction of the way is v from a to b? */
-static float frac_along(const float a[3], const float b[3], const float v[3])
-{
-	float lab;
-
-	lab = len_v3v3(a, b);
-	if (lab == 0.0f) {
-		return 0.0f;
-	}
-	else {
-		return len_v3v3(a, v) / lab;
-	}
-}
-
 /* sort list of kverts by fraction along edge e */
 static void sort_by_frac_along(ListBase *lst, BMEdge *e)
 {
-	KnifeVert *vcur, *vprev;
-	float *v1co, *v2co;
+	const float *v1co = e->v1->co;
+	const float *v2co = e->v2->co;
 	Ref *cur = NULL, *prev = NULL, *next = NULL;
 
 	if (lst->first == lst->last)
 		return;
 
-	v1co = e->v1->co;
-	v2co = e->v2->co;
-
 	for (cur = ((Ref *)lst->first)->next; cur; cur = next) {
+		KnifeVert *vcur = cur->ref;
+		const float vcur_fac = line_point_factor_v3(vcur->co, v1co, v2co);
+
 		next = cur->next;
 		prev = cur->prev;
 
 		BLI_remlink(lst, cur);
 
-		vcur = cur->ref;
 		while (prev) {
-			vprev = prev->ref;
-			if (frac_along(v1co, v2co, vprev->co) <= frac_along(v1co, v2co, vcur->co))
+			KnifeVert *vprev = prev->ref;
+			if (line_point_factor_v3(vprev->co, v1co, v2co) <= vcur_fac)
 				break;
 			prev = prev->prev;
 		}
@@ -2860,7 +2845,7 @@ static void knife_make_cuts(KnifeTool_OpData *kcd)
 		sort_by_frac_along(lst, e);
 		for (ref = lst->first; ref; ref = ref->next) {
 			kfv = ref->ref;
-			pct = frac_along(e->v1->co, e->v2->co, kfv->co);
+			pct = line_point_factor_v3(kfv->co, e->v1->co, e->v2->co);
 			kfv->v = BM_edge_split(bm, e, e->v1, &enew, pct);
 		}
 	}

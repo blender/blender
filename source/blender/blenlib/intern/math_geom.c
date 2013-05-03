@@ -1654,9 +1654,16 @@ float closest_to_line_v2(float cp[2], const float p[2], const float l1[2], const
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3])
 {
 	float h[3], u[3];
+	float dot;
 	sub_v3_v3v3(u, l2, l1);
 	sub_v3_v3v3(h, p, l1);
+#if 0
 	return (dot_v3v3(u, h) / dot_v3v3(u, u));
+#else
+	/* better check for zero */
+	dot = dot_v3v3(u, u);
+	return (dot != 0.0f) ? (dot_v3v3(u, h) / dot) : 0.0f;
+#endif
 }
 
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2])
