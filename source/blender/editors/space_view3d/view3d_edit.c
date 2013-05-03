@@ -86,6 +86,27 @@
 /* for ndof prints */
 // #define DEBUG_NDOF_MOTION
 
+static void view3d_offset_lock_report(ReportList *reports)
+{
+	BKE_report(reports, RPT_WARNING, "View offset is locked");
+}
+
+bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d)
+{
+	return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_centre_cursor || v3d->ob_centre);
+}
+
+#define VIEW3D_OP_OFS_LOCK_TEST(C, op) \
+	{ \
+		View3D *v3d_tmp = CTX_wm_view3d(C); \
+		RegionView3D *rv3d_tmp = CTX_wm_region_view3d(C); \
+		if (ED_view3d_offset_lock_check(v3d_tmp, rv3d_tmp)) { \
+			view3d_offset_lock_report((op)->reports); \
+			return OPERATOR_CANCELLED; \
+		} \
+	} (void)0
+
+
 /* ********************** view3d_edit: view manipulations ********************* */
 
 bool ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
@@ -1286,7 +1307,7 @@ void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
 /* -- "pan" navigation
  * -- zoom or dolly?
  */
-static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
@@ -1294,6 +1315,8 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+
+		VIEW3D_OP_OFS_LOCK_TEST(C, op);
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
@@ -1585,6 +1608,8 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
+
+	VIEW3D_OP_OFS_LOCK_TEST(C, op);
 
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
@@ -2163,6 +2188,8 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
+
+	VIEW3D_OP_OFS_LOCK_TEST(C, op);
 
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
@@ -3481,6 +3508,8 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	float mval_f[2] = {0.0f, 0.0f};
 	float zfac;
 	int pandir;
+
+	VIEW3D_OP_OFS_LOCK_TEST(C, op);
 
 	pandir = RNA_enum_get(op->ptr, "type");
 

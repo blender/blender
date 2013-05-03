@@ -304,8 +304,8 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 		return false;
 	}
 
-	if (fly->v3d->ob_centre) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot fly when the view is locked to an object");
+	if (ED_view3d_offset_lock_check(fly->v3d, fly->rv3d)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot fly when the view offset is locked");
 		return false;
 	}
 

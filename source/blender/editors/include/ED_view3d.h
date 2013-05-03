@@ -298,6 +298,8 @@ bool ED_view3d_lock(struct RegionView3D *rv3d);
 uint64_t ED_view3d_datamask(struct Scene *scene, struct View3D *v3d);
 uint64_t ED_view3d_screen_datamask(struct bScreen *screen);
 
+bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
+
 /* camera lock functions */
 bool ED_view3d_camera_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the camera to the view before starting a view transformation */
