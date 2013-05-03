@@ -78,7 +78,7 @@ __device void bsdf_microfacet_ggx_blur(ShaderClosure *sc, float roughness)
 
 __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_ag = sc->data0;
+	float m_ag = max(sc->data0, 1e-4f);
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
@@ -115,7 +115,7 @@ __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const 
 
 __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_ag = sc->data0;
+	float m_ag = max(sc->data0, 1e-4f);
 	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
@@ -179,8 +179,9 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 				*omega_in = 2 * cosMO * m - I;
 				if(dot(Ng, *omega_in) > 0) {
 					if (m_ag <= 1e-4f) {
-						*pdf = 1;
-						*eval = make_float3(1, 1, 1);
+						// some high number for MIS
+						*pdf = 1e6f;
+						*eval = make_float3(1e6f, 1e6f, 1e6f);
 					}
 					else {
 						// microfacet normal is visible to this ray
@@ -235,8 +236,9 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 #endif
 
 				if (m_ag <= 1e-4f) {
-					*pdf = 1;
-					*eval = make_float3(1, 1, 1);
+					// some high number for MIS
+					*pdf = 1e6f;
+					*eval = make_float3(1e6f, 1e6f, 1e6f);
 				}
 				else {
 					// eq. 33
@@ -303,7 +305,7 @@ __device void bsdf_microfacet_beckmann_blur(ShaderClosure *sc, float roughness)
 
 __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_ab = sc->data0;
+	float m_ab = max(sc->data0, 1e-4f);
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
@@ -342,7 +344,7 @@ __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, c
 
 __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_ab = sc->data0;
+	float m_ab = max(sc->data0, 1e-4f);
 	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
@@ -394,8 +396,17 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
 		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
 		float alpha2 = m_ab * m_ab;
-		float tanThetaM = safe_sqrtf(-alpha2 * logf(1 - randu));
-		float cosThetaM = 1 / safe_sqrtf(1 + tanThetaM * tanThetaM);
+		float tanThetaM, cosThetaM;
+
+		if(alpha2 == 0.0f) {
+			tanThetaM = 0.0f;
+			cosThetaM = 1.0f;
+		}
+		else {
+			tanThetaM = safe_sqrtf(-alpha2 * logf(1 - randu));
+			cosThetaM = 1 / safe_sqrtf(1 + tanThetaM * tanThetaM);
+		}
+
 		float sinThetaM = cosThetaM * tanThetaM;
 		float phiM = 2 * M_PI_F * randv;
 		float3 m = (cosf(phiM) * sinThetaM) * X +
@@ -409,8 +420,9 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 				*omega_in = 2 * cosMO * m - I;
 				if(dot(Ng, *omega_in) > 0) {
 					if (m_ab <= 1e-4f) {
-						*pdf = 1;
-						*eval = make_float3(1, 1, 1);
+						// some high number for MIS
+						*pdf = 1e6f;
+						*eval = make_float3(1e6f, 1e6f, 1e6f);
 					}
 					else {
 						// microfacet normal is visible to this ray
@@ -466,8 +478,9 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 				*domega_in_dy = dTdy;
 #endif
 				if (m_ab <= 1e-4f) {
-					*pdf = 1;
-					*eval = make_float3(1, 1, 1);
+					// some high number for MIS
+					*pdf = 1e6f;
+					*eval = make_float3(1e6f, 1e6f, 1e6f);
 				}
 				else {
 					// eq. 33
