@@ -68,8 +68,9 @@ def register_node_categories(identifier, cat_list):
     def draw_node_item(self, context):
         layout = self.layout
         col = layout.column()
+        default_context = bpy.app.translations.contexts.default
         for item in self.category.items:
-            op = col.operator("node.add_node", text=item.label)
+            op = col.operator("node.add_node", text=item.label, text_ctxt=default_context)
             op.type = item.nodetype
             op.use_transform = True
 
