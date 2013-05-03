@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 /* Direction Emission */
 
 __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
-	LightSample *ls, float u, float v, float3 I, float t, float time)
+	LightSample *ls, float u, float v, float3 I, differential3 dI, float t, float time)
 {
 	/* setup shading at emitter */
 	ShaderData sd;
@@ -38,6 +38,7 @@ __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 #endif
 		ray.dP.dx = make_float3(0.0f, 0.0f, 0.0f);
 		ray.dP.dy = make_float3(0.0f, 0.0f, 0.0f);
+		ray.dD = dI;
 #ifdef __CAMERA_MOTION__
 		ray.time = time;
 #endif
@@ -93,8 +94,13 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 	if(ls.pdf == 0.0f)
 		return false;
 
+	/* todo: implement */
+	differential3 dD;
+	dD.dx = make_float3(0.0f, 0.0f, 0.0f);
+	dD.dy = make_float3(0.0f, 0.0f, 0.0f);
+
 	/* evaluate closure */
-	float3 light_eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D, ls.t, sd->time);
+	float3 light_eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D, dD, ls.t, sd->time);
 
 	if(is_zero(light_eval))
 		return false;
@@ -183,7 +189,7 @@ __device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int p
 	/* todo: missing texture coordinates */
 	float u = 0.0f;
 	float v = 0.0f;
-	float3 L = direct_emissive_eval(kg, 0.0f, &ls, u, v, -ray->D, ls.t, ray->time);
+	float3 L = direct_emissive_eval(kg, 0.0f, &ls, u, v, -ray->D, ray->dD, ls.t, ray->time);
 
 	if(!(path_flag & PATH_RAY_MIS_SKIP)) {
 		/* multiple importance sampling, get regular light pdf,

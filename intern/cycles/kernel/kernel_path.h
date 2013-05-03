@@ -280,6 +280,8 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			light_ray.D = ray.D;
 			light_ray.t = ray_t;
 			light_ray.time = ray.time;
+			light_ray.dD = ray.dD;
+			light_ray.dP = ray.dP;
 
 			/* intersect with lamp */
 			float light_t = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT);
@@ -536,6 +538,8 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 			light_ray.D = ray.D;
 			light_ray.t = ray_t;
 			light_ray.time = ray.time;
+			light_ray.dD = ray.dD;
+			light_ray.dP = ray.dP;
 
 			/* intersect with lamp */
 			float light_t = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT);
