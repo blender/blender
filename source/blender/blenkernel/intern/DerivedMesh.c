@@ -1244,22 +1244,22 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
 		MLoop *mloop = dm->getLoopArray(dm), *ml;
 		MPoly *mp = dm->getPolyArray(dm);
-		int totloop;
+		int l_index;
 		int j;
 
 		/* now add to loops, so the data can be passed through the modifier stack */
 		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
 			wtcol_l = MEM_mallocN(sizeof(*wtcol_l) * dm_totloop, __func__);
-			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
+			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, dm_totloop);
 		}
 
-		totloop = 0;
+		l_index = 0;
 		for (i = 0; i < dm_totpoly; i++, mp++) {
 			ml = mloop + mp->loopstart;
 
-			for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-				copy_v4_v4_char((char *)&wtcol_l[totloop],
+			for (j = 0; j < mp->totloop; j++, ml++, l_index++) {
+				copy_v4_v4_char((char *)&wtcol_l[l_index],
 				                (char *)&wtcol_v[ml->v]);
 			}
 		}
