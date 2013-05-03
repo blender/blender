@@ -571,7 +571,7 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 		addcol = shi->rgb;
 
 	/* output to */
-	GPU_link(mat, "shade_madd_clamped", *diff, rgb, addcol, diff);
+	GPU_link(mat, "shade_madd", *diff, rgb, addcol, diff);
 }
 
 static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
