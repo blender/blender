@@ -425,7 +425,7 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 		
 		for (i=0;i<numitems;i++)
 		{
-			listitemval = listval->ConvertPythonToValue(PyList_GetItem(other,i), "cList + pyList: CListValue, ");
+			listitemval = listval->ConvertPythonToValue(PyList_GetItem(other,i), true, "cList + pyList: CListValue, ");
 			
 			if (listitemval) {
 				listval_new->SetValue(i+numitems_orig, listitemval);
@@ -570,7 +570,7 @@ PyAttributeDef CListValue::Attributes[] = {
 
 PyObject *CListValue::Pyappend(PyObject *value)
 {
-	CValue* objval = ConvertPythonToValue(value, "CList.append(i): CValueList, ");
+	CValue *objval = ConvertPythonToValue(value, true, "CList.append(i): CValueList, ");
 
 	if (!objval) /* ConvertPythonToValue sets the error */
 		return NULL;
@@ -595,7 +595,7 @@ PyObject *CListValue::Pyindex(PyObject *value)
 {
 	PyObject *result = NULL;
 
-	CValue* checkobj = ConvertPythonToValue(value, "val = cList[i]: CValueList, ");
+	CValue *checkobj = ConvertPythonToValue(value, true, "val = cList[i]: CValueList, ");
 	if (checkobj==NULL)
 		return NULL; /* ConvertPythonToValue sets the error */
 
@@ -624,7 +624,7 @@ PyObject *CListValue::Pycount(PyObject *value)
 {
 	int numfound = 0;
 
-	CValue* checkobj = ConvertPythonToValue(value, ""); /* error ignored */
+	CValue *checkobj = ConvertPythonToValue(value, false, ""); /* error ignored */
 
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();

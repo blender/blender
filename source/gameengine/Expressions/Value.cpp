@@ -537,10 +537,17 @@ PyObject *CValue::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrde
 	return PyUnicode_From_STR_String(self->GetName());
 }
 
-CValue* CValue::ConvertPythonToValue(PyObject *pyobj, const char *error_prefix)
+/**
+ * There are 2 reasons this could return NULL
+ * - unsupported type.
+ * - error converting (overflow).
+ *
+ * \param do_type_exception Use to skip raising an exception for unknown types.
+ */
+CValue *CValue::ConvertPythonToValue(PyObject *pyobj, const bool do_type_exception, const char *error_prefix)
 {
 
-	CValue* vallie = NULL;
+	CValue *vallie;
 	/* refcounting is broking here! - this crashes anyway, just store a python list for KX_GameObject */
 #if 0
 	if (PyList_Check(pyobj))
@@ -581,7 +588,14 @@ CValue* CValue::ConvertPythonToValue(PyObject *pyobj, const char *error_prefix)
 	} else
 	if (PyFloat_Check(pyobj))
 	{
-		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
+		const double tval = PyFloat_AsDouble(pyobj);
+		if (tval > (double)FLT_MAX || tval < (double)-FLT_MAX) {
+			PyErr_Format(PyExc_OverflowError, "%soverflow converting from float, out of internal range", error_prefix);
+			vallie = NULL;
+		}
+		else {
+			vallie = new CFloatValue((float)tval);
+		}
 	} else
 	if (PyLong_Check(pyobj))
 	{
@@ -594,10 +608,13 @@ CValue* CValue::ConvertPythonToValue(PyObject *pyobj, const char *error_prefix)
 	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, don't let these get assigned to GameObject props, must check elsewhere */
 	{
 		vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
-	} else
-	{
-		/* return an error value from the caller */
-		PyErr_Format(PyExc_TypeError, "%scould convert python value to a game engine property", error_prefix);
+	}
+	else {
+		if (do_type_exception) {
+			/* return an error value from the caller */
+			PyErr_Format(PyExc_TypeError, "%scould convert python value to a game engine property", error_prefix);
+		}
+		vallie = NULL;
 	}
 	return vallie;
 
