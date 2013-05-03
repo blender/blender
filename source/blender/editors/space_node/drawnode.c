@@ -83,7 +83,7 @@
 static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, PointerRNA *ptr, PointerRNA *UNUSED(node_ptr))
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
-	uiItemL(layout, sock->name, 0);
+	uiItemL(layout, IFACE_(sock->name), 0);
 }
 
 static void node_draw_input_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int linked)
@@ -2740,24 +2740,24 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 		case SOCK_FLOAT:
 		case SOCK_INT:
 		case SOCK_BOOLEAN:
-			uiItemR(layout, ptr, "default_value", 0, sock->name, 0);
+			uiItemR(layout, ptr, "default_value", 0, IFACE_(sock->name), 0);
 			break;
 		case SOCK_VECTOR:
-			uiTemplateComponentMenu(layout, ptr, "default_value", sock->name);
+			uiTemplateComponentMenu(layout, ptr, "default_value", IFACE_(sock->name));
 			break;
 		case SOCK_RGBA: {
 			uiLayout *row = uiLayoutRow(layout, false);
 			uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 			/* draw the socket name right of the actual button */
 			uiItemR(row, ptr, "default_value", 0, "", 0);
-			uiItemL(row, sock->name, 0);
+			uiItemL(row, IFACE_(sock->name), 0);
 			break;
 		}
 		case SOCK_STRING: {
 			uiLayout *row = uiLayoutRow(layout, true);
 			/* draw the socket name right of the actual button */
 			uiItemR(row, ptr, "default_value", 0, "", 0);
-			uiItemL(row, sock->name, 0);
+			uiItemL(row, IFACE_(sock->name), 0);
 			break;
 		}
 		
