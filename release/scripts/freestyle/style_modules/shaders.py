@@ -63,17 +63,6 @@ class pyConstantThicknessShader(StrokeShader):
 			it.object.attribute.thickness = (t, t)
 			it.increment()
 
-class pyFXSThicknessShader(StrokeShader):
-	def __init__(self, thickness):
-		StrokeShader.__init__(self)
-		self._thickness = thickness
-	def shade(self, stroke):
-		it = stroke.stroke_vertices_begin()
-		while not it.is_end:
-			t = self._thickness/2.0
-			it.object.attribute.thickness = (t, t)
-			it.increment()
-
 class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
 	def __init__(self, wsize, threshold_min, threshold_max, thicknessMin, thicknessMax):
 		StrokeShader.__init__(self)
@@ -149,7 +138,7 @@ class pyConstrainedIncreasingThicknessShader(StrokeShader):
 			it.increment()
 
 class pyDecreasingThicknessShader(StrokeShader):
-	def __init__(self, thicknessMax, thicknessMin):
+	def __init__(self, thicknessMin, thicknessMax):
 		StrokeShader.__init__(self)
 		self._thicknessMin = thicknessMin
 		self._thicknessMax = thicknessMax
@@ -171,9 +160,6 @@ class pyDecreasingThicknessShader(StrokeShader):
 			i = i+1
 			it.increment()
 
-def smoothC(a, exp):
-	return math.pow(float(a), exp) * math.pow(2.0, exp)
-
 class pyNonLinearVaryingThicknessShader(StrokeShader):
 	def __init__(self, thicknessExtremity, thicknessMiddle, exponent):
 		StrokeShader.__init__(self)
@@ -189,11 +175,13 @@ class pyNonLinearVaryingThicknessShader(StrokeShader):
 				c = float(i)/float(n)
 			else:
 				c = float(n-i)/float(n)
-			c = smoothC(c, self._exponent)
+			c = self.smoothC(c, self._exponent)
 			t = (1.0 - c)*self._thicknessMax + c * self._thicknessMin
 			it.object.attribute.thickness = (t/2.0, t/2.0)
 			i = i+1
 			it.increment()
+	def smoothC(self, a, exp):
+		return math.pow(float(a), exp) * math.pow(2.0, exp)
 
 ## Spherical linear interpolation (cos)
 class pySLERPThicknessShader(StrokeShader):
@@ -702,18 +690,15 @@ class pyTVertexRemoverShader(StrokeShader):
 			stroke.remove_vertex(itlast.object)
 		stroke.update_length()
 
-class pyExtremitiesOrientationShader(StrokeShader):
-	def __init__(self, x1,y1,x2=0,y2=0):
-		StrokeShader.__init__(self)
-		self._v1 = mathutils.Vector([x1,y1])
-		self._v2 = mathutils.Vector([x2,y2])
-	def shade(self, stroke):
-		#print(self._v1.x,self._v1.y)
-		stroke.setBeginningOrientation(self._v1.x,self._v1.y)
-		stroke.setEndingOrientation(self._v2.x,self._v2.y)
-
-def get_fedge(it1, it2):
-	return it1.get_fedge(it2)
+#class pyExtremitiesOrientationShader(StrokeShader):
+#	def __init__(self, x1,y1,x2=0,y2=0):
+#		StrokeShader.__init__(self)
+#		self._v1 = mathutils.Vector([x1,y1])
+#		self._v2 = mathutils.Vector([x2,y2])
+#	def shade(self, stroke):
+#		#print(self._v1.x,self._v1.y)
+#		stroke.setBeginningOrientation(self._v1.x,self._v1.y)
+#		stroke.setEndingOrientation(self._v2.x,self._v2.y)
 
 class pyHLRShader(StrokeShader):
 	def shade(self, stroke):
@@ -724,7 +709,7 @@ class pyHLRShader(StrokeShader):
 		invisible = 0
 		it2 = StrokeVertexIterator(it)
 		it2.increment()
-		fe = get_fedge(it.object, it2.object)
+		fe = self.get_fedge(it.object, it2.object)
 		if fe.viewedge.qi != 0:
 			invisible = 1
 		while not it2.is_end:
@@ -732,7 +717,7 @@ class pyHLRShader(StrokeShader):
 			vnext = it2.object
 			if (v.nature & Nature.VIEW_VERTEX) != 0:
 				#if (v.nature & Nature.T_VERTEX) != 0:
-				fe = get_fedge(v, vnext)
+				fe = self.get_fedge(v, vnext)
 				qi = fe.viewedge.qi
 				if qi != 0:
 					invisible = 1
@@ -742,6 +727,8 @@ class pyHLRShader(StrokeShader):
 				v.attribute.visible = False
 			it.increment()
 			it2.increment()
+	def get_fedge(self, it1, it2):
+		return it1.get_fedge(it2)
 
 class pyTVertexOrientationShader(StrokeShader):
 	def __init__(self):
@@ -785,7 +772,7 @@ class pyTVertexOrientationShader(StrokeShader):
 		if (v.nature & Nature.T_VERTEX) != 0:
 			tv = self.castToTVertex(v)
 			if tv is not None:
-				ve = get_fedge(v, it2.object).viewedge
+				ve = self.get_fedge(v, it2.object).viewedge
 				dir = self.findOrientation(tv, ve)
 				if dir is not None:
 					#print(dir.x, dir.y)
@@ -796,7 +783,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			if (v.nature & Nature.T_VERTEX) != 0:
 				tv = self.castToTVertex(v)
 				if tv is not None:
-					ve = get_fedge(vprevious, v).viewedge
+					ve = self.get_fedge(vprevious, v).viewedge
 					dir = self.findOrientation(tv, ve)
 					if dir is not None:
 						#print(dir.x, dir.y)
@@ -810,11 +797,13 @@ class pyTVertexOrientationShader(StrokeShader):
 			itPrevious.decrement()
 			tv = self.castToTVertex(v)
 			if tv is not None:
-				ve = get_fedge(itPrevious.object, v).viewedge
+				ve = self.get_fedge(itPrevious.object, v).viewedge
 				dir = self.findOrientation(tv, ve)
 				if dir is not None:
 					#print(dir.x, dir.y)
 					v.attribute.set_attribute_vec2("orientation", dir)
+	def get_fedge(self, it1, it2):
+		return it1.get_fedge(it2)
 
 class pySinusDisplacementShader(StrokeShader):
 	def __init__(self, f, a):
