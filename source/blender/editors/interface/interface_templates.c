@@ -577,7 +577,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	}
 	
 	/* delete button */
-	if (id && (flag & UI_ID_DELETE) && RNA_property_is_unlink(template->prop)) {
+	/* don't use RNA_property_is_unlink here */
+	if (id && (flag & UI_ID_DELETE) && (RNA_property_flag(template->prop) & PROP_NEVER_UNLINK) == 0) {
 		if (unlinkop) {
 			but = uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 			/* so we can access the template from operators, font unlinking needs this */
