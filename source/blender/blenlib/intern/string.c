@@ -542,7 +542,7 @@ void BLI_ascii_strtoupper(char *str, const size_t len)
  *   2.0010 -> 2.001
  *
  * \param str
- * \param len
+ * \param pad
  * \return The number of zeto's stripped.
  */
 int BLI_str_rstrip_float_zero(char *str, const char pad)

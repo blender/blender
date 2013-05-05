@@ -8,6 +8,7 @@ def main(context):
     bm = bmesh.from_edit_mesh(me)
 
     uv_layer = bm.loops.layers.uv.verify()
+    bm.faces.layers.tex.verify()  # currently blender needs both layers.
 
     # adjust UVs
     for f in bm.faces:

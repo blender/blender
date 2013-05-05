@@ -101,7 +101,6 @@ public:
 	/**
 	 * @brief move all connections of this input socket to another socket
 	 * @param relinkToSocket the socket to move to connections to
-	 * @param autoconnect will a set operation be added when no connections exist
 	 * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
 	 * @param system ExecutionSystem to update to
 	 */

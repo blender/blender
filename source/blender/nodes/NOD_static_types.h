@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/makesrna/intern/NOD_static_types.h
+/** \file NOD_static_types.h
  *  \ingroup nodes
  */
 

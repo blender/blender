@@ -106,7 +106,7 @@ protected:
  *  (Moves the vertices to make the stroke smoother).
  *  Uses curvature flow to converge towards a curve of constant curvature. The diffusion method we use is anisotropic
  *  to prevent the diffusion accross corners.
- *  @see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> endhtmlonly
+ *  @see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
  */
 class LIB_STROKE_EXPORT SmoothingShader : public StrokeShader
 {
