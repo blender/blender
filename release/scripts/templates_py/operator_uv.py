@@ -1,29 +1,23 @@
 import bpy
+import bmesh
 
 
 def main(context):
     obj = context.active_object
-    mesh = obj.data
+    me = obj.data
+    bm = bmesh.from_edit_mesh(me)
 
-    is_editmode = (obj.mode == 'EDIT')
-    if is_editmode:
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-    if not mesh.uv_textures:
-        uvtex = bpy.ops.mesh.uv_texture_add()
-    else:
-        uvtex = mesh.uv_textures.active
+    uv_layer = bm.loops.layers.uv.verify()
 
     # adjust UVs
-    for i, uv in enumerate(uvtex.data):
-        uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
-        for j, v_idx in enumerate(mesh.faces[i].vertices):
-            if uv.select_uv[j]:
+    for f in bm.faces:
+        for l in f.loops:
+            luv = l[uv_layer]
+            if luv.select:
                 # apply the location of the vertex as a UV
-                uvs[j][:] = mesh.vertices[v_idx].co.xy
+                luv.uv = l.vert.co.xy
 
-    if is_editmode:
-        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    bmesh.update_edit_mesh(me)
 
 
 class UvOperator(bpy.types.Operator):
@@ -33,8 +27,7 @@ class UvOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return (obj and obj.type == 'MESH')
+        return (context.mode == 'EDIT_MESH')
 
     def execute(self, context):
         main(context)

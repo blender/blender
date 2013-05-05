@@ -592,8 +592,17 @@ static PyObject *bpy_bmloop_is_convex_get(BPy_BMLoop *self)
  * ^^^^^^^ */
 
 /* note: use for bmvert/edge/face/loop seq's use these, not bmelemseq directly */
-PyDoc_STRVAR(bpy_bmelemseq_layers_doc,
-"custom-data layers (read-only).\n\n:type: :class:`BMLayerAccess`"
+PyDoc_STRVAR(bpy_bmelemseq_layers_vert_doc,
+"custom-data layers (read-only).\n\n:type: :class:`BMLayerAccessVert`"
+);
+PyDoc_STRVAR(bpy_bmelemseq_layers_edge_doc,
+"custom-data layers (read-only).\n\n:type: :class:`BMLayerAccessEdge`"
+);
+PyDoc_STRVAR(bpy_bmelemseq_layers_face_doc,
+"custom-data layers (read-only).\n\n:type: :class:`BMLayerAccessFace`"
+);
+PyDoc_STRVAR(bpy_bmelemseq_layers_loop_doc,
+"custom-data layers (read-only).\n\n:type: :class:`BMLayerAccessLoop`"
 );
 static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 {
@@ -759,21 +768,21 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 };
 
 static PyGetSetDef bpy_bmvertseq_getseters[] = {
-	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_VERT},
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_vert_doc, (void *)BM_VERT},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmedgeseq_getseters[] = {
-	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_EDGE},
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_edge_doc, (void *)BM_EDGE},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmfaceseq_getseters[] = {
-	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_FACE},
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_face_doc, (void *)BM_FACE},
 	/* face only */
 	{(char *)"active",    (getter)bpy_bmfaceseq_active_get, (setter)bpy_bmfaceseq_active_set, (char *)bpy_bmfaceseq_active_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmloopseq_getseters[] = {
-	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_LOOP},
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_loop_doc, (void *)BM_LOOP},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
