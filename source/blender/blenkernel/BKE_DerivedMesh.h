@@ -468,7 +468,7 @@ int DM_release(DerivedMesh *dm);
 
 /** utility function to convert a DerivedMesh to a Mesh
  */
-void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob);
+void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob, CustomDataMask mask);
 
 struct BMEditMesh *DM_to_editbmesh(struct DerivedMesh *dm,
                                    struct BMEditMesh *existing, int do_tessellate);

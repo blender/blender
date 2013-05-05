@@ -625,7 +625,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	ob_new = AddNewBlenderMesh(scene, base_select);
 	me_new = ob_new->data;
 
-	DM_to_mesh(result, me_new, ob_new);
+	DM_to_mesh(result, me_new, ob_new, CD_MASK_MESH);
 	result->release(result);
 
 	dm->release(dm);

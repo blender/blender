@@ -276,7 +276,7 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 /* settings: 1 - preview, 2 - render */
 Mesh *rna_Main_meshes_new_from_object(
         Main *bmain, ReportList *reports, Scene *sce,
-        Object *ob, int apply_modifiers, int settings, int calc_tessface)
+        Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
@@ -379,6 +379,9 @@ Mesh *rna_Main_meshes_new_from_object(
 				CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
 			                                         * for example, needs CD_MASK_MDEFORMVERT */
 
+				if (calc_undeformed)
+					mask |= CD_MASK_ORCO;
+
 				/* Write the display mesh into the dummy mesh */
 				if (render)
 					dm = mesh_create_derived_render(sce, ob, mask);
@@ -386,7 +389,7 @@ Mesh *rna_Main_meshes_new_from_object(
 					dm = mesh_create_derived_view(sce, ob, mask);
 
 				tmpmesh = BKE_mesh_add(bmain, "Mesh");
-				DM_to_mesh(dm, tmpmesh, ob);
+				DM_to_mesh(dm, tmpmesh, ob, mask);
 				dm->release(dm);
 			}
 
@@ -1172,6 +1175,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "calc_tessface", true, "Calculate Tessellation", "Calculate tessellation faces");
+	RNA_def_boolean(func, "calc_undeformed", false, "Calculate Undeformed", "Calculate undeformed vertex coordinates");
 	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
 	                       "Mesh created from object, remove it if it is only used for export");
 	RNA_def_function_return(func, parm);

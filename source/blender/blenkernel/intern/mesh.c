@@ -1599,7 +1599,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	}
 	else {
 		me = BKE_mesh_add(G.main, "Mesh");
-		DM_to_mesh(dm, me, ob);
+		DM_to_mesh(dm, me, ob, CD_MASK_MESH);
 	}
 
 	me->totcol = cu->totcol;

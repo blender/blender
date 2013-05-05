@@ -616,7 +616,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 				return 0;
 			}
 
-			DM_to_mesh(dm, me, ob);
+			DM_to_mesh(dm, me, ob, CD_MASK_MESH);
 
 			dm->release(dm);
 

@@ -115,9 +115,9 @@ static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseCh
 /* settings: 0 - preview, 1 - render */
 static Mesh *rna_Object_to_mesh(
         Object *ob, ReportList *reports, Scene *sce,
-        int apply_modifiers, int settings, int calc_tessface)
+        int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
-	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings, calc_tessface);
+	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
 }
 
 /* mostly a copy from convertblender.c */
@@ -456,6 +456,7 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "calc_tessface", true, "Calculate Tessellation", "Calculate tessellation faces");
+	RNA_def_boolean(func, "calc_undeformed", false, "Calculate Undeformed", "Calculate undeformed vertex coordinates");
 	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
 	                       "Mesh created from object, remove it if it is only used for export");
 	RNA_def_function_return(func, parm);

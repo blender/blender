@@ -1625,7 +1625,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem vertice_cache_items[] = {
+	static EnumPropertyItem vertex_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Object Space", ""},
 		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
@@ -1695,7 +1695,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "vertex_cache_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ob_cache_space");
-	RNA_def_property_enum_items(prop, vertice_cache_items);
+	RNA_def_property_enum_items(prop, vertex_cache_items);
 	RNA_def_property_ui_text(prop, "Vertices Cache", "Coordinate system to cache vertices in");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	

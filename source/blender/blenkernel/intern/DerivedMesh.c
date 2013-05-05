@@ -470,7 +470,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
 }
 
-void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
+void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */
 	Mesh tmp = *me;
@@ -489,10 +489,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	totpoly = tmp.totpoly = dm->getNumPolys(dm);
 	tmp.totface = 0;
 
-	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
-	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
-	CustomData_copy(&dm->loopData, &tmp.ldata, CD_MASK_MESH, CD_DUPLICATE, totloop);
-	CustomData_copy(&dm->polyData, &tmp.pdata, CD_MASK_MESH, CD_DUPLICATE, totpoly);
+	CustomData_copy(&dm->vertData, &tmp.vdata, mask, CD_DUPLICATE, totvert);
+	CustomData_copy(&dm->edgeData, &tmp.edata, mask, CD_DUPLICATE, totedge);
+	CustomData_copy(&dm->loopData, &tmp.ldata, mask, CD_DUPLICATE, totloop);
+	CustomData_copy(&dm->polyData, &tmp.pdata, mask, CD_DUPLICATE, totpoly);
 	tmp.cd_flag = dm->cd_flag;
 
 	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
