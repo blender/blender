@@ -285,7 +285,7 @@ In Python, this is done by defining a class, which is a subclass of an existing 
 Example Operator
 ----------------
 
-.. literalinclude:: ../../../release/scripts/templates/operator_simple.py
+.. literalinclude:: ../../../release/scripts/templates_py/operator_simple.py
 
 Once this script runs, ``SimpleOperator`` is registered with Blender and can be called from the operator search popup or added to the toolbar.
 
@@ -318,7 +318,7 @@ Example Panel
 
 Panels register themselves as a class, like an operator. Notice the extra **bl_** variables used to set the context they display in.
 
-.. literalinclude:: ../../../release/scripts/templates/ui_panel_simple.py
+.. literalinclude:: ../../../release/scripts/templates_py/ui_panel_simple.py
 
 To run the script:
 
