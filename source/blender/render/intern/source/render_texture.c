@@ -3475,6 +3475,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	
 	tex= &imatex[shi->thread];
 	tex->iuser.ok= ima->ok;
+	tex->ima = ima;
 	
 	texvec[0]= 0.5f+0.5f*suv->uv[0];
 	texvec[1]= 0.5f+0.5f*suv->uv[1];
