@@ -15,9 +15,9 @@
  This source version has been altered.
  */
 
-#if defined (_WIN32) || defined (__i386__)
-#define BT_USE_SSE_IN_API
-#endif
+//#if defined (_WIN32) || defined (__i386__)
+//#define BT_USE_SSE_IN_API
+//#endif
 
 
 #include "btVector3.h"
