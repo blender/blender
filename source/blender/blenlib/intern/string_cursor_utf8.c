@@ -141,7 +141,7 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
                               int *pos, strCursorJumpDirection direction,
                               strCursorJumpType jump, bool use_init_step)
 {
-	const int pos_prev = *pos;
+	const int pos_orig = *pos;
 
 	if (direction == STRCUR_DIR_NEXT) {
 		if (use_init_step) {
@@ -158,8 +158,9 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 			 * list of special character, ctr -> */
 			while ((*pos) < maxlen) {
 				if (BLI_str_cursor_step_next_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos])))
-					break;
+					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos]))) {
+						break;
+					}
 				}
 				else {
 					break; /* unlikely but just in case */
@@ -176,23 +177,24 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) > 1 ? cursor_delim_type(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+			const strCursorDelimType delim_type = (*pos) > 0 ? cursor_delim_type(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) > 0) {
+				const int pos_prev = *pos;
 				if (BLI_str_cursor_step_prev_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos])))
+					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos]))) {
+						/* left only: compensate for index/change in direction */
+						if ((pos_orig - (*pos)) >= 1) {
+							*pos = pos_prev;
+						}
 						break;
+					}
 				}
 				else {
 					break;
 				}
-			}
-
-			/* left only: compensate for index/change in direction */
-			if (((*pos) != 0) && ABS(pos_prev - (*pos)) >= 1) {
-				BLI_str_cursor_step_next_utf8(str, maxlen, pos);
 			}
 		}
 	}
