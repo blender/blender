@@ -199,12 +199,16 @@ void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<fl
 			 *	- ct->matrix members have not yet been calculated here! 
 			 */
 			cti->get_constraint_targets(con, &targets);
-			if (cti) {
-				for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
-					obtar = ct->tar;
+
+			for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
+				obtar = ct->tar;
+
+				if (obtar)
 					find_frames(obtar, frames);
-				}
 			}
+
+			if (cti->flush_constraint_targets)
+				cti->flush_constraint_targets(con, &targets, 1);
 		}
 	}
 }
@@ -1546,9 +1550,15 @@ void AnimationExporter::calc_ob_mat_at_time(Object *ob, float ctime , float mat[
 			cti->get_constraint_targets(con, &targets);
 			for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
 				obtar = ct->tar;
-				BKE_animsys_evaluate_animdata(scene, &obtar->id, obtar->adt, ctime, ADT_RECALC_ANIM);
-				BKE_object_where_is_calc_time(scene, obtar, ctime);
+
+				if (obtar) {
+					BKE_animsys_evaluate_animdata(scene, &obtar->id, obtar->adt, ctime, ADT_RECALC_ANIM);
+					BKE_object_where_is_calc_time(scene, obtar, ctime);
+				}
 			}
+
+			if (cti->flush_constraint_targets)
+				cti->flush_constraint_targets(con, &targets, 1);
 		}
 	}
 	BKE_object_where_is_calc_time(scene, ob, ctime);

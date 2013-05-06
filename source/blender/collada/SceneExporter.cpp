@@ -215,13 +215,16 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 				Object *obtar;
 			
 				cti->get_constraint_targets(con, &targets);
-				if (cti) {
-					for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
-						obtar = ct->tar;
-						std::string tar_id(id_name(obtar));
-						colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"target_id",tar_id);
-					}
+
+				for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
+					obtar = ct->tar;
+					std::string tar_id((obtar) ? id_name(obtar) : "");
+					colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"target_id",tar_id);
 				}
+
+				if (cti->flush_constraint_targets)
+					cti->flush_constraint_targets(con, &targets, 1);
+
 			}
 
 			con = con->next;
