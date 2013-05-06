@@ -851,6 +851,16 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getState(): window invalid");
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_TWindowState state;
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	NSUInteger masks = [m_window styleMask];
+
+	if (masks & NSFullScreenWindowMask) {
+		// Lion style fullscreen
+		state = GHOST_kWindowStateFullScreen;
+	}
+	else
+#endif
 	if (m_fullScreen) {
 		state = GHOST_kWindowStateFullScreen;
 	} 
@@ -959,14 +969,25 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 			[m_window zoom:nil];
 			break;
 		
-		case GHOST_kWindowStateFullScreen:
+		case GHOST_kWindowStateFullScreen: {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+			NSUInteger masks = [m_window styleMask];
+
+			if (!m_fullScreen && !(masks & NSFullScreenWindowMask)) {
+#else
 			if (!m_fullScreen) {
+#endif
 				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			
 				/* This status change needs to be done before Cocoa call to enter fullscreen mode
 				 * to give window delegate hint not to forward its deactivation to ghost wm that
 				 * doesn't know view/window difference. */
 				m_fullScreen = true;
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+				/* Disable toggle for Lion style fullscreen */
+				[m_window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+#endif
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
@@ -1017,11 +1038,26 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[pool drain];
 				}
 			break;
+		}
 		case GHOST_kWindowStateNormal:
 		default:
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+			NSUInteger masks = [m_window styleMask];
+
+			if (masks & NSFullScreenWindowMask) {
+				// Lion style fullscreen
+				[m_window toggleFullScreen:nil];
+			}
+			else
+#endif
 			if (m_fullScreen) {
 				m_fullScreen = false;
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+				/* Enable toggle for into Lion style fullscreen */
+				[m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
 
 				//Exit fullscreen
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
