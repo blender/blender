@@ -6176,6 +6176,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 		
 		if (se->v1 == NULL) {
 			printf("Error reading Screen %s... removing it.\n", sc->id.name+2);
+			BLI_remlink(&sc->edgebase, se);
 			wrong_id = true;
 		}
 	}
