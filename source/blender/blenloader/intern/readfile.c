@@ -6148,11 +6148,12 @@ void blo_do_versions_view3d_split_250(View3D *v3d, ListBase *regions)
 		v3d->twtype = V3D_MANIP_TRANSLATE;
 }
 
-static void direct_link_screen(FileData *fd, bScreen *sc)
+static bool direct_link_screen(FileData *fd, bScreen *sc)
 {
 	ScrArea *sa;
 	ScrVert *sv;
 	ScrEdge *se;
+	bool wrong_id = false;
 	
 	link_list(fd, &(sc->vertbase));
 	link_list(fd, &(sc->edgebase));
@@ -6174,8 +6175,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		}
 		
 		if (se->v1 == NULL) {
-			printf("error reading screen... file corrupt\n");
-			se->v1 = se->v2;
+			printf("Error reading Screen %s... removing it.\n", sc->id.name+2);
+			wrong_id = true;
 		}
 	}
 	
@@ -6409,6 +6410,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		sa->v3 = newdataadr(fd, sa->v3);
 		sa->v4 = newdataadr(fd, sa->v4);
 	}
+	
+	return wrong_id;
 }
 
 /* ********** READ LIBRARY *************** */
@@ -7016,6 +7019,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	ID *id;
 	ListBase *lb;
 	const char *allocname;
+	bool wrong_id;
 	
 	/* read libblock */
 	id = read_struct(fd, bhead, "lib block");
@@ -7063,7 +7067,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			direct_link_windowmanager(fd, (wmWindowManager *)id);
 			break;
 		case ID_SCR:
-			direct_link_screen(fd, (bScreen *)id);
+			wrong_id = direct_link_screen(fd, (bScreen *)id);
 			break;
 		case ID_SCE:
 			direct_link_scene(fd, (Scene *)id);
@@ -7159,6 +7163,10 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	
 	oldnewmap_free_unused(fd->datamap);
 	oldnewmap_clear(fd->datamap);
+	
+	if (wrong_id) {
+		BKE_libblock_free(lb, id);
+	}
 	
 	return (bhead);
 }
