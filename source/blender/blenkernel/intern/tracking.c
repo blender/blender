@@ -154,9 +154,6 @@ void BKE_tracking_free(MovieTracking *tracking)
 	tracking_reconstruction_free(&tracking->reconstruction);
 	tracking_objects_free(&tracking->objects);
 
-	if (tracking->stabilization.scaleibuf)
-		IMB_freeImBuf(tracking->stabilization.scaleibuf);
-
 	if (tracking->camera.intrinsics)
 		BKE_tracking_distortion_free(tracking->camera.intrinsics);
 
@@ -3488,34 +3485,6 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 	return stab->scale;
 }
 
-static ImBuf *stabilization_allocate_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
-{
-	int flags;
-
-	if (cacheibuf && (cacheibuf->x != srcibuf->x || cacheibuf->y != srcibuf->y)) {
-		IMB_freeImBuf(cacheibuf);
-		cacheibuf = NULL;
-	}
-
-	flags = IB_rect;
-
-	if (srcibuf->rect_float)
-		flags |= IB_rectfloat;
-
-	if (cacheibuf) {
-		if (fill) {
-			float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
-			IMB_rectfill(cacheibuf, col);
-		}
-	}
-	else {
-		cacheibuf = IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->planes, flags);
-	}
-
-	return cacheibuf;
-}
-
 /* NOTE: frame number should be in clip space, not scene space */
 void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, int width, int height,
                                          float loc[2], float *scale, float *angle)
@@ -3568,6 +3537,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	float mat[4][4];
 	int j, filter = tracking->stabilization.filter;
 	void (*interpolation)(struct ImBuf *, struct ImBuf *, float, float, int, int) = NULL;
+	int ibuf_flags;
 
 	if (loc)
 		copy_v2_v2(tloc, loc);
@@ -3575,6 +3545,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	if (scale)
 		tscale = *scale;
 
+	/* Perform early output if no stabilization is used. */
 	if ((stab->flag & TRACKING_2D_STABILIZATION) == 0) {
 		if (loc)
 			zero_v2(loc);
@@ -3588,25 +3559,17 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 		return ibuf;
 	}
 
+	/* Allocate frame for stabilization result. */
+	ibuf_flags = 0;
+	if (ibuf->rect)
+		ibuf_flags |= IB_rect;
+	if (ibuf->rect_float)
+		ibuf_flags |= IB_rectfloat;
+
+	tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);
+
+	/* Calculate stabilization matrix. */
 	BKE_tracking_stabilization_data_get(tracking, framenr, width, height, tloc, &tscale, &tangle);
-
-	tmpibuf = stabilization_allocate_ibuf(NULL, ibuf, TRUE);
-
-	/* scale would be handled by matrix transformation when angle is non-zero */
-	if (tscale != 1.0f && tangle == 0.0f) {
-		ImBuf *scaleibuf;
-
-		stabilization_calculate_autoscale_factor(tracking, width, height);
-
-		scaleibuf = stabilization_allocate_ibuf(stab->scaleibuf, ibuf, 0);
-		stab->scaleibuf = scaleibuf;
-
-		IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
-		IMB_scalefastImBuf(scaleibuf, ibuf->x * tscale, ibuf->y * tscale);
-
-		ibuf = scaleibuf;
-	}
-
 	BKE_tracking_stabilization_data_to_mat4(ibuf->x, ibuf->y, aspect, tloc, tscale, tangle, mat);
 	invert_m4(mat);
 
@@ -3627,7 +3590,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	 * But need to keep an eye on this if the function will be
 	 * used in other cases.
 	 */
-    #pragma omp parallel for if(tmpibuf->y > 128)
+	#pragma omp parallel for if(tmpibuf->y > 128)
 	for (j = 0; j < tmpibuf->y; j++) {
 		int i;
 		for (i = 0; i < tmpibuf->x; i++) {
@@ -3639,6 +3602,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 		}
 	}
 
+	/* TODO(sergey): we've got no mipmaps actually? */
 	tmpibuf->userflags |= IB_MIPMAP_INVALID;
 
 	if (tmpibuf->rect_float)

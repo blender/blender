@@ -205,8 +205,6 @@ typedef struct MovieTrackingStabilization {
 	/* some pre-computing run-time variables */
 	int ok;                     /* are precomputed values and scaled buf relevant? */
 	float scale;                /* autoscale factor */
-
-	struct ImBuf *scaleibuf;    /* currently scaled ibuf */
 } MovieTrackingStabilization;
 
 typedef struct MovieTrackingReconstruction {
