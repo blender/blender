@@ -3582,6 +3582,9 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 		if (scale)
 			*scale = 1.0f;
 
+		if (angle)
+			*angle = 0.0f;
+
 		return ibuf;
 	}
 
