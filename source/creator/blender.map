@@ -11,6 +11,12 @@ global:
 local:
 	*llvm*;
 	*LLVM*;
+	decodeInstruction;
+	ForceStackAlign;
+	_Jv_RegisterClasses;
+	Name;
+	NumNamedVarArgParams;
+	X86CompilationCallback*;
 	*boost*;
 };
 
