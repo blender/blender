@@ -7019,7 +7019,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	ID *id;
 	ListBase *lb;
 	const char *allocname;
-	bool wrong_id;
+	bool wrong_id = false;
 	
 	/* read libblock */
 	id = read_struct(fd, bhead, "lib block");
