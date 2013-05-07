@@ -36,6 +36,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_global.h"
 #include "BKE_node.h"
 
 #include "MEM_guardedalloc.h"
@@ -157,7 +158,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context, bNodeTree *ntree, bNo
 	int totnodes, n;
 	
 	/* ensure all sock->link pointers and node levels are correct */
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(G.main, ntree);
 	
 	/* get a dependency-sorted list of nodes */
 	ntreeGetDependencyList(ntree, &nodelist, &totnodes);

@@ -474,7 +474,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 		}
 	}
 	
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -513,7 +513,7 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 	tosock = out->inputs.first;
 	nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
 	
-	ntreeUpdateTree(sce->nodetree);
+	ntreeUpdateTree(CTX_data_main(C), sce->nodetree);
 	
 	// XXX ntreeCompositForceHidden(sce->nodetree);
 }
@@ -545,7 +545,7 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
 	tosock = out->inputs.first;
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
-	ntreeUpdateTree(tx->nodetree);
+	ntreeUpdateTree(CTX_data_main(C), tx->nodetree);
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
@@ -1222,7 +1222,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			break;
 	}
 	
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 	
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -1557,7 +1557,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
@@ -1636,7 +1636,7 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -1679,7 +1679,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -2071,7 +2071,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 		            link->tonode->new_node, link->tosock->new_sock);
 	}
 
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -2156,7 +2156,7 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
 	/* make the new socket active */
 	sock->flag |= SELECT;
 	
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 	
@@ -2202,7 +2202,7 @@ static int ntree_socket_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	if (active_sock)
 		active_sock->flag |= SELECT;
 	
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 	
@@ -2270,7 +2270,7 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
 	}
 	}
 	
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 	

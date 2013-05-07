@@ -358,7 +358,7 @@ struct bNodeTree *ntreeFromID(struct ID *id);
 
 void              ntreeMakeLocal(struct bNodeTree *ntree);
 int               ntreeHasType(struct bNodeTree *ntree, int type);
-void              ntreeUpdateTree(struct bNodeTree *ntree);
+void              ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 /* XXX Currently each tree update call does call to ntreeVerifyNodes too.
  * Some day this should be replaced by a decent depsgraph automatism!
  */

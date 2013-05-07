@@ -38,6 +38,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -85,7 +86,7 @@ static void node_link_item_apply(bNode *node, NodeLinkItem *item)
 {
 	if (node->type == NODE_GROUP) {
 		node->id = (ID *)item->ngroup;
-		ntreeUpdateTree(item->ngroup);
+		ntreeUpdateTree(G.main, item->ngroup);
 	}
 	else {
 		/* nothing to do for now */
@@ -166,7 +167,7 @@ static void node_socket_disconnect(Main *bmain, bNodeTree *ntree, bNode *node_to
 	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(bmain, ntree);
 
 	ED_node_tag_update_nodetree(bmain, ntree);
 }
@@ -181,7 +182,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(bmain, ntree);
 
 	ED_node_tag_update_nodetree(bmain, ntree);
 }
@@ -267,7 +268,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 
 	nodeUpdate(ntree, node_from);
 	nodeUpdate(ntree, node_to);
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 
 	ED_node_tag_update_nodetree(CTX_data_main(C), ntree);
 }

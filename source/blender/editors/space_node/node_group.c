@@ -363,7 +363,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (gnode->id && node_group_ungroup(snode->edittree, gnode)) {
-		ntreeUpdateTree(snode->nodetree);
+		ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
 	}
 	else {
 		BKE_report(op->reports, RPT_WARNING, "Cannot ungroup");
@@ -556,7 +556,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 	/* switch to parent tree */
 	ED_node_tree_pop(snode);
 	
-	ntreeUpdateTree(snode->nodetree);
+	ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
 	
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -917,6 +917,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 	const char *node_idname = group_node_idname(C);
 	bNodeTree *ngroup;
 	bNode *gnode;
+	Main *bmain = CTX_data_main(C);
 	
 	ED_preview_kill_jobs(C);
 	
@@ -931,11 +932,11 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 		nodeSetActive(ntree, gnode);
 		if (ngroup) {
 			ED_node_tree_push(snode, ngroup, gnode);
-			ntreeUpdateTree(ngroup);
+			ntreeUpdateTree(bmain, ngroup);
 		}
 	}
 	
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(bmain, ntree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -967,6 +968,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 	bNodeTree *ngroup;
 	const char *node_idname = group_node_idname(C);
 	bNode *gnode;
+	Main *bmain = CTX_data_main(C);
 	
 	ED_preview_kill_jobs(C);
 	
@@ -983,9 +985,9 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 	
 	nodeSetActive(ntree, gnode);
 	ED_node_tree_push(snode, ngroup, gnode);
-	ntreeUpdateTree(ngroup);
+	ntreeUpdateTree(bmain, ngroup);
 	
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(bmain, ntree);
 	
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);

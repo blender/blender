@@ -93,7 +93,7 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 	node->locx = locx;
 	node->locy = locy + 60.0f;
 	
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(bmain, snode->edittree);
 	ED_node_set_active(bmain, snode->edittree, node);
 	
 	if (snode->nodetree->type == NTREE_COMPOSIT) {
@@ -285,7 +285,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		BLI_freelistN(&input_links);
 		
 		/* always last */
-		ntreeUpdateTree(ntree);
+		ntreeUpdateTree(CTX_data_main(C), ntree);
 		snode_notify(C, snode);
 		snode_dag_update(C, snode);
 		

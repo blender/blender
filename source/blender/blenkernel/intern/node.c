@@ -2848,7 +2848,7 @@ void ntreeVerifyNodes(struct Main *main, struct ID *id)
 	} FOREACH_NODETREE_END
 }
 
-void ntreeUpdateTree(bNodeTree *ntree)
+void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
 {
 	bNode *node;
 	
@@ -2886,8 +2886,8 @@ void ntreeUpdateTree(bNodeTree *ntree)
 		ntreeInterfaceTypeUpdate(ntree);
 	
 	/* XXX hack, should be done by depsgraph!! */
-	if (G.main)
-		ntreeVerifyNodes(G.main, &ntree->id);
+	if (bmain)
+		ntreeVerifyNodes(bmain, &ntree->id);
 	
 	if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {
 		/* node updates can change sockets or links, repeat link pointer update afterward */

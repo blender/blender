@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -173,7 +174,7 @@ static int snode_autoconnect_input(SpaceNode *snode, bNode *node_fr, bNodeSocket
 
 	link = nodeAddLink(ntree, node_fr, sock_fr, node_to, sock_to);
 	/* validate the new link */
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(G.main, ntree);
 	if (!(link->flag & NODE_LINK_VALID)) {
 		nodeRemLink(ntree, link);
 		return 0;
@@ -256,7 +257,7 @@ static void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 	}
 
 	if (numlinks > 0) {
-		ntreeUpdateTree(ntree);
+		ntreeUpdateTree(G.main, ntree);
 	}
 
 	BLI_freelistN(nodelist);
@@ -347,7 +348,7 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
 			/* make sure the dependency sorting is updated */
 			snode->edittree->update |= NTREE_UPDATE_LINKS;
 		}
-		ntreeUpdateTree(snode->edittree);
+		ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 		snode_update(snode, node);
 	}
 
@@ -532,7 +533,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					nodeRemLink(ntree, link);
 			}
 			
-			ntreeUpdateTree(ntree);
+			ntreeUpdateTree(CTX_data_main(C), ntree);
 			snode_notify(C, snode);
 			snode_dag_update(C, snode);
 			
@@ -714,7 +715,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 	node_deselect_all_input_sockets(snode, 0);
 	node_deselect_all_output_sockets(snode, 0);
 
-	ntreeUpdateTree(snode->edittree);
+	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 
@@ -797,7 +798,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		}
 
 		if (found) {
-			ntreeUpdateTree(snode->edittree);
+			ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 			snode_notify(C, snode);
 			snode_dag_update(C, snode);
 
@@ -852,7 +853,7 @@ static int detach_links_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	ntreeUpdateTree(ntree);
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -881,7 +882,7 @@ static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	/* this is just a wrapper around this call... */
-	ntreeUpdateTree(snode->nodetree);
+	ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
 	snode_notify(C, snode);
 
 	return OPERATOR_FINISHED;
@@ -1361,7 +1362,7 @@ void ED_node_link_insert(ScrArea *sa)
 			
 			nodeAddLink(snode->edittree, select, best_output, node, sockto);
 			
-			ntreeUpdateTree(snode->edittree);   /* needed for pointers */
+			ntreeUpdateTree(G.main, snode->edittree);   /* needed for pointers */
 			snode_update(snode, select);
 			ED_node_tag_update_id(snode->id);
 		}
