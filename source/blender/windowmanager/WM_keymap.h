@@ -32,6 +32,7 @@
 
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
