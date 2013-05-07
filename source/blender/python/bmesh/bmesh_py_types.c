@@ -1171,6 +1171,35 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpy_bmesh_calc_volume_doc,
+".. method:: calc_volume(signed=False)\n"
+"\n"
+"   Calculate mesh volume based on face normals.\n"
+"\n"
+"   :arg signed: when signed is true, negative values may be returned.\n"
+"   :type signed: bool\n"
+"   :return: The volume of the mesh.\n"
+"   :rtype: float\n"
+);
+static PyObject *bpy_bmesh_calc_volume(BPy_BMElem *self, PyObject *args, PyObject *kw)
+{
+	static const char *kwlist[] = {"signed", NULL};
+	PyObject *is_signed = Py_False;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw,
+	                                 "|O!:calc_volume",
+	                                 (char **)kwlist,
+	                                 &PyBool_Type, &is_signed))
+	{
+		return NULL;
+	}
+	else {
+		return PyFloat_FromDouble(BM_mesh_calc_volume(self->bm, is_signed != Py_False));
+	}
+}
+
 
 /* Elem
  * ---- */
@@ -2454,6 +2483,9 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 	{"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
 	{"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_NOARGS, bpy_bmesh_normal_update_doc},
 	{"transform", (PyCFunction)bpy_bmesh_transform, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_transform_doc},
+
+	/* calculations */
+	{"calc_volume", (PyCFunction)bpy_bmesh_calc_volume, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_calc_volume_doc},
 	{NULL, NULL, 0, NULL}
 };
 

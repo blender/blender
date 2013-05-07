@@ -1720,7 +1720,7 @@ static void bm_mesh_calc_volume_face(BMFace *f, float *r_vol)
 		*r_vol += (1.0f / 6.0f) * dot_v3v3(p1, cross);
 	}
 }
-float BM_mesh_calc_volume(BMesh *bm)
+float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 {
 	/* warning, calls own tessellation function, may be slow */
 	float vol = 0.0f;
@@ -1731,5 +1731,9 @@ float BM_mesh_calc_volume(BMesh *bm)
 		bm_mesh_calc_volume_face(f, &vol);
 	}
 
-	return fabsf(vol);
+	if (is_signed == false) {
+		vol = fabsf(vol);
+	}
+
+	return vol;
 }

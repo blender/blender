@@ -464,7 +464,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 	}
 
 	if (preserve_volume) {
-		vini = BM_mesh_calc_volume(sys->bm);
+		vini = BM_mesh_calc_volume(sys->bm, false);
 	}
 	BMO_ITER (v, &siter, sys->op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
@@ -481,7 +481,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 		}
 	}
 	if (preserve_volume) {
-		vend = BM_mesh_calc_volume(sys->bm);
+		vend = BM_mesh_calc_volume(sys->bm, false);
 		volume_preservation(sys->op, vini, vend, usex, usey, usez);
 	}
 
