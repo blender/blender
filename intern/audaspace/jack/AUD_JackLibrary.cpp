@@ -47,7 +47,6 @@ void AUD_jack_init(void)
 	jack_handle = dlopen("libjack.so", RTLD_LAZY);
 
 	if (!jack_handle) {
-		fprintf(stderr, "%s\n", dlerror());
 		return;
 	}
 
