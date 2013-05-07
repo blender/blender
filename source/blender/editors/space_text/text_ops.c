@@ -2006,10 +2006,18 @@ static EnumPropertyItem delete_type_items[] = {
 
 static int text_delete_exec(bContext *C, wmOperator *op)
 {
+	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
 	int type = RNA_enum_get(op->ptr, "type");
 
-	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+	text_drawcache_tag_update(st, 0);
+
+	/* behavior could be changed here,
+	 * but for now just don't jump words when we have a selection */
+	if (txt_has_sel(text)) {
+		if      (type == DEL_PREV_WORD) type = DEL_PREV_CHAR;
+		else if (type == DEL_NEXT_WORD) type = DEL_NEXT_CHAR;
+	}
 
 	if (type == DEL_PREV_WORD) {
 		if (txt_cursor_is_line_start(text)) {
@@ -2036,7 +2044,7 @@ static int text_delete_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
-	if (CTX_wm_space_text(C)->live_edit)
+	if (st->live_edit)
 		text_run_script(C, NULL);
 	
 	return OPERATOR_FINISHED;
