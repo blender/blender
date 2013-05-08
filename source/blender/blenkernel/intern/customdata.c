@@ -2552,6 +2552,23 @@ bool CustomData_has_math(struct CustomData *data)
 	return false;
 }
 
+/* a non bmesh version would have to check layer->data */
+bool CustomData_bmesh_has_free(struct CustomData *data)
+{
+	const LayerTypeInfo *typeInfo;
+	int i;
+
+	for (i = 0; i < data->totlayer; ++i) {
+		if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
+			typeInfo = layerType_getInfo(data->layers[i].type);
+			if (typeInfo->free) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool CustomData_has_interp(struct CustomData *data)
 {
 	int i;

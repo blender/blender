@@ -88,6 +88,7 @@ bool CustomData_layer_has_interp(struct CustomData *data, int layer_n);
  */
 bool CustomData_has_math(struct CustomData *data);
 bool CustomData_has_interp(struct CustomData *data);
+bool CustomData_bmesh_has_free(struct CustomData *data);
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only

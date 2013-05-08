@@ -164,21 +164,37 @@ void BM_mesh_data_free(BMesh *bm)
 	BMEdge *e;
 	BMLoop *l;
 	BMFace *f;
-	
 
 	BMIter iter;
 	BMIter itersub;
-	
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
+
+	bool is_ldata_free;
+	bool is_pdata_free;
+
+
+	/* Check if we have to call free, if not we can avoid a lot of looping */
+	if (CustomData_bmesh_has_free(&(bm->vdata))) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
+		}
 	}
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
+	if (CustomData_bmesh_has_free(&(bm->edata))) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
+		}
 	}
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
-		BM_ITER_ELEM (l, &itersub, f, BM_LOOPS_OF_FACE) {
-			CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
+
+	if ((is_ldata_free = CustomData_bmesh_has_free(&(bm->ldata))) ||
+	    (is_pdata_free = CustomData_bmesh_has_free(&(bm->pdata))))
+	{
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (is_pdata_free)
+				CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
+			if (is_ldata_free) {
+				BM_ITER_ELEM (l, &itersub, f, BM_LOOPS_OF_FACE) {
+					CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
+				}
+			}
 		}
 	}
 
