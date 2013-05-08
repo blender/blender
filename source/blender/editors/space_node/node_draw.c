@@ -1200,7 +1200,7 @@ static void draw_tree_path(SpaceNode *snode)
 	BLF_draw_default(1.5f * UI_UNIT_X, 1.5f * UI_UNIT_Y, 0.0f, info, sizeof(info));
 }
 
-static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, float center[2])
+static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, const float center[2])
 {
 	View2D *v2d = &ar->v2d;
 	

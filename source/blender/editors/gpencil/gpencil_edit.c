@@ -1260,7 +1260,7 @@ static void gp_stroke_finalize_curve_endpoints(Curve *cu)
 	}
 }
 
-static void gp_stroke_norm_curve_weights(Curve *cu, float minmax_weights[2])
+static void gp_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2])
 {
 	Nurb *nu;
 	const float delta = minmax_weights[0];

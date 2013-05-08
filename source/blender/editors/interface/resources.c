@@ -1053,7 +1053,6 @@ void UI_ThemeColorShade(int colorid, int offset)
 	CLAMP(g, 0, 255);
 	b = offset + (int) cp[2];
 	CLAMP(b, 0, 255);
-	//glColor3ub(r, g, b);
 	glColor4ub(r, g, b, cp[3]);
 }
 void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)

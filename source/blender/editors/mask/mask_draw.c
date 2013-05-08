@@ -123,7 +123,7 @@ static void draw_spline_parents(MaskLayer *UNUSED(masklay), MaskSpline *spline)
 }
 #endif
 
-static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], float co[2])
+static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float co[2])
 {
 	BKE_mask_coord_to_movieclip(sc->clip, &sc->user, r_co, co);
 	ED_clip_point_undistorted_pos(sc, r_co, r_co);

@@ -2508,7 +2508,7 @@ float uiLayoutGetScaleY(uiLayout *layout)
 
 /********************** Layout *******************/
 
-static void ui_item_scale(uiLayout *litem, float scale[2])
+static void ui_item_scale(uiLayout *litem, const float scale[2])
 {
 	uiItem *item;
 	int x, y, w, h;

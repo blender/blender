@@ -87,7 +87,7 @@
 
 /******************** view navigation utilities *********************/
 
-static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, float location[2])
+static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, const float location[2])
 {
 	float oldzoom = sima->zoom;
 	int width, height;
@@ -123,7 +123,7 @@ static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, float locat
 	}
 }
 
-static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac, float location[2])
+static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac, const float location[2])
 {
 	sima_zoom_set(sima, ar, sima->zoom * zoomfac, location);
 }

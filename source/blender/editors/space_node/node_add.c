@@ -149,7 +149,7 @@ typedef struct bNodeSocketLink {
 	float point[2];
 } bNodeSocketLink;
 
-static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb, bNodeSocket *sock, bNodeLink *link, float point[2])
+static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb, bNodeSocket *sock, bNodeLink *link, const float point[2])
 {
 	bNodeSocketLink *socklink, *prev;
 	

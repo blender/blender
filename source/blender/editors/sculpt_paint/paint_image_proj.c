@@ -496,7 +496,7 @@ static int project_paint_PickFace(const ProjPaintState *ps, const float pt[2], f
 }
 
 /* Converts a uv coord into a pixel location wrapping if the uv is outside 0-1 range */
-static void uvco_to_wrapped_pxco(float uv[2], int ibuf_x, int ibuf_y, float *x, float *y)
+static void uvco_to_wrapped_pxco(const float uv[2], int ibuf_x, int ibuf_y, float *x, float *y)
 {
 	/* use */
 	*x = (float)fmodf(uv[0], 1.0f);

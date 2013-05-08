@@ -318,7 +318,7 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], int tot_f
 	}
 }
 
-static int feather_bucket_index_from_coord(float co[2], const float min[2], const float bucket_scale[2],
+static int feather_bucket_index_from_coord(const float co[2], const float min[2], const float bucket_scale[2],
                                            const int buckets_per_side)
 {
 	int x = (int) ((co[0] - min[0]) * bucket_scale[0]);

@@ -590,7 +590,7 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 
 /********************** circle select operator *********************/
 
-static int mask_spline_point_inside_ellipse(BezTriple *bezt, float offset[2], float ellipse[2])
+static int mask_spline_point_inside_ellipse(BezTriple *bezt, const float offset[2], const float ellipse[2])
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y;
