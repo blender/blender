@@ -520,7 +520,7 @@ static DerivedMesh *applyModifier(
 		}
 
 		for (i = 0, mp = mpoly; i < numFaces; i++, mp++) {
-			/* #BKE_mesh_poly_calc_angles logic is inlined here */
+			/* #BKE_mesh_calc_poly_angles logic is inlined here */
 			float nor_prev[3];
 			float nor_next[3];
 
