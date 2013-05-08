@@ -2218,6 +2218,74 @@ static void rna_NodeSocketStandard_value_update(struct bContext *C, PointerRNA *
 
 /* ******** Node Types ******** */
 
+static void rna_NodeInternalSocketTemplate_name_get(PointerRNA *ptr, char *value)
+{
+	bNodeSocketTemplate *stemp = ptr->data;
+	strcpy(value, stemp->name);
+}
+
+static int rna_NodeInternalSocketTemplate_name_length(PointerRNA *ptr)
+{
+	bNodeSocketTemplate *stemp = ptr->data;
+	return strlen(stemp->name);
+}
+
+static void rna_NodeInternalSocketTemplate_identifier_get(PointerRNA *ptr, char *value)
+{
+	bNodeSocketTemplate *stemp = ptr->data;
+	strcpy(value, stemp->identifier);
+}
+
+static int rna_NodeInternalSocketTemplate_identifier_length(PointerRNA *ptr)
+{
+	bNodeSocketTemplate *stemp = ptr->data;
+	return strlen(stemp->identifier);
+}
+
+static int rna_NodeInternalSocketTemplate_type_get(PointerRNA *ptr)
+{
+	bNodeSocketTemplate *stemp = ptr->data;
+	return stemp->type;
+}
+
+static PointerRNA rna_NodeInternal_input_template(StructRNA *srna, int index)
+{
+	bNodeType *ntype = RNA_struct_blender_type_get(srna);
+	if (ntype && ntype->inputs) {
+		bNodeSocketTemplate *stemp = ntype->inputs;
+		int i = 0;
+		while (i < index && stemp->type >= 0) {
+			++i;
+			++stemp;
+		}
+		if (i == index && stemp->type >= 0) {
+			PointerRNA ptr;
+			RNA_pointer_create(NULL, &RNA_NodeInternalSocketTemplate, stemp, &ptr);
+			return ptr;
+		}
+	}
+	return PointerRNA_NULL;
+}
+
+static PointerRNA rna_NodeInternal_output_template(StructRNA *srna, int index)
+{
+	bNodeType *ntype = RNA_struct_blender_type_get(srna);
+	if (ntype && ntype->outputs) {
+		bNodeSocketTemplate *stemp = ntype->outputs;
+		int i = 0;
+		while (i < index && stemp->type >= 0) {
+			++i;
+			++stemp;
+		}
+		if (i == index && stemp->type >= 0) {
+			PointerRNA ptr;
+			RNA_pointer_create(NULL, &RNA_NodeInternalSocketTemplate, stemp, &ptr);
+			return ptr;
+		}
+	}
+	return PointerRNA_NULL;
+}
+
 static int rna_NodeInternal_poll(StructRNA *srna, bNodeTree *ntree)
 {
 	bNodeType *ntype = RNA_struct_blender_type_get(srna);
@@ -6336,16 +6404,35 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 
 static void rna_def_internal_node(BlenderRNA *brna)
 {
+	StructRNA *srna;
+	PropertyRNA *prop, *parm;
+	FunctionRNA *func;
+	
+	srna = RNA_def_struct(brna, "NodeInternalSocketTemplate", NULL);
+	RNA_def_struct_ui_text(srna, "Socket Template", "Type and default value of a node socket");
+	
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_NodeInternalSocketTemplate_name_get", "rna_NodeInternalSocketTemplate_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "Name of the socket");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	
+	prop = RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_NodeInternalSocketTemplate_identifier_get", "rna_NodeInternalSocketTemplate_identifier_length", NULL);
+	RNA_def_property_ui_text(prop, "Identifier", "Identifier of the socket");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_NodeInternalSocketTemplate_type_get", NULL, NULL);
+	RNA_def_property_enum_items(prop, node_socket_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Data type of the socket");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	
 	/* XXX Workaround: Registered functions are not exposed in python by bpy,
 	 * it expects them to be registered from python and use the native implementation.
 	 * However, the standard node types are not registering these functions from python,
 	 * so in order to call them in py scripts we need to overload and replace them with plain C callbacks.
 	 * This type provides a usable basis for node types defined in C.
 	 */
-	
-	StructRNA *srna;
-	PropertyRNA *parm;
-	FunctionRNA *func;
 	
 	srna = RNA_def_struct(brna, "NodeInternal", "Node");
 	RNA_def_struct_sdna(srna, "bNode");
@@ -7081,6 +7168,31 @@ static void define_specific_node(BlenderRNA *brna, const char *struct_name, cons
 	RNA_def_function_ui_description(func, "True if a registered node type");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);
 	parm = RNA_def_boolean(func, "result", FALSE, "Result", "");
+	RNA_def_function_return(func, parm);
+
+	/* Exposes the socket template type lists in RNA for use in scripts
+	 * Only used in the C nodes and not exposed in the base class to keep the namespace clean for pynodes.
+	 */
+	func = RNA_def_function(srna, "input_template", "rna_NodeInternal_input_template");
+	RNA_def_function_ui_description(func, "Input socket template");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);
+	parm = RNA_def_property(func, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Index", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_property(func, "result", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(parm, "NodeInternalSocketTemplate");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "output_template", "rna_NodeInternal_output_template");
+	RNA_def_function_ui_description(func, "Output socket template");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);
+	parm = RNA_def_property(func, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Index", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_property(func, "result", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(parm, "NodeInternalSocketTemplate");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	if (def_func)
