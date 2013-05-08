@@ -43,6 +43,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
+
 /* note: copied from BLO_blend_defs.h, don't use here because we're in BLI */
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
@@ -103,7 +107,7 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 	}
 
 	if (flag & BLI_MEMPOOL_ALLOW_ITER) {
-		pool->esize = MAX2(esize, sizeof(BLI_freenode));
+		pool->esize = MAX2(esize, (int)sizeof(BLI_freenode));
 	}
 	else {
 		pool->esize = esize;
@@ -127,11 +131,11 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 
 		if (flag & BLI_MEMPOOL_SYSMALLOC) {
 			mpchunk = malloc(sizeof(BLI_mempool_chunk));
-			mpchunk->data = malloc(pool->csize);
+			mpchunk->data = malloc((size_t)pool->csize);
 		}
 		else {
 			mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
-			mpchunk->data = MEM_mallocN(pool->csize, "BLI Mempool Chunk Data");
+			mpchunk->data = MEM_mallocN((size_t)pool->csize, "BLI Mempool Chunk Data");
 		}
 
 		mpchunk->next = mpchunk->prev = NULL;
@@ -190,11 +194,11 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 
 		if (pool->flag & BLI_MEMPOOL_SYSMALLOC) {
 			mpchunk       = malloc(sizeof(BLI_mempool_chunk));
-			mpchunk->data = malloc(pool->csize);
+			mpchunk->data = malloc((size_t)pool->csize);
 		}
 		else {
 			mpchunk       = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
-			mpchunk->data = MEM_mallocN(pool->csize, "BLI_Mempool Chunk Data");
+			mpchunk->data = MEM_mallocN((size_t)pool->csize, "BLI_Mempool Chunk Data");
 		}
 
 		mpchunk->next = mpchunk->prev = NULL;
@@ -237,7 +241,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 void *BLI_mempool_calloc(BLI_mempool *pool)
 {
 	void *retval = BLI_mempool_alloc(pool);
-	memset(retval, 0, pool->esize);
+	memset(retval, 0, (size_t)pool->esize);
 	return retval;
 }
 
@@ -346,7 +350,7 @@ void BLI_mempool_as_array(BLI_mempool *pool, void **data)
  */
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
-	void *data = MEM_mallocN(BLI_mempool_count(pool) * pool->esize, allocstr);
+	void *data = MEM_mallocN((size_t)(BLI_mempool_count(pool) * pool->esize), allocstr);
 	BLI_mempool_as_array(pool, data);
 	return data;
 }

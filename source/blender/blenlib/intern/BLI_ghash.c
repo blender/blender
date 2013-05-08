@@ -42,6 +42,10 @@
 #include "MEM_sys_types.h"  /* for intptr_t support */
 /***/
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
+
 const unsigned int hashsizes[] = {
 	5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
 	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169, 
@@ -69,7 +73,7 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 
 int BLI_ghash_size(GHash *gh)
 {
-	return gh->nentries;
+	return (int)gh->nentries;
 }
 
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
@@ -84,7 +88,7 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 
 	if (++gh->nentries > (float)gh->nbuckets / 2) {
 		Entry **old = gh->buckets;
-		int i, nold = gh->nbuckets;
+		unsigned int i, nold = gh->nbuckets;
 
 		gh->nbuckets = hashsizes[++gh->cursize];
 		gh->buckets = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
@@ -351,7 +355,7 @@ unsigned int BLI_ghashutil_strhash(const void *ptr)
 	unsigned int h = 5381;
 
 	for (p = ptr; *p != '\0'; p++) {
-		h = (h << 5) + h + *p;
+		h = (h << 5) + h + (unsigned int)*p;
 	}
 
 	return h;

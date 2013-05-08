@@ -54,7 +54,8 @@ typedef struct GHash {
 
 	Entry **buckets;
 	struct BLI_mempool *entrypool;
-	int nbuckets, nentries, cursize;
+	unsigned int nbuckets;
+	unsigned int nentries, cursize;
 } GHash;
 
 typedef struct GHashIterator {

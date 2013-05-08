@@ -38,6 +38,10 @@
 #include "BLI_memarena.h"
 #include "BLI_heap.h"
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
+
 /***/
 
 struct HeapNode {
