@@ -344,6 +344,15 @@ void mul_v3_m4v3(float r[3], float mat[4][4], const float vec[3])
 	r[2] = x * mat[0][2] + y * mat[1][2] + mat[2][2] * vec[2] + mat[3][2];
 }
 
+void mul_v2_m4v3(float r[2], float mat[4][4], const float vec[3])
+{
+	float x;
+
+	x = vec[0];
+	r[0] = x * mat[0][0] + vec[1] * mat[1][0] + mat[2][0] * vec[2] + mat[3][0];
+	r[1] = x * mat[0][1] + vec[1] * mat[1][1] + mat[2][1] * vec[2] + mat[3][1];
+}
+
 void mul_v2_m2v2(float r[2], float mat[2][2], const float vec[2])
 {
 	float x;
@@ -373,6 +382,15 @@ void mul_project_m4_v3(float mat[4][4], float vec[3])
 	vec[0] /= w;
 	vec[1] /= w;
 	vec[2] /= w;
+}
+
+void mul_v2_project_m4_v3(float r[2], float mat[4][4], const float vec[3])
+{
+	const float w = mul_project_m4_v3_zfac(mat, vec);
+	mul_v2_m4v3(r, mat, vec);
+
+	r[0] /= w;
+	r[1] /= w;
 }
 
 void mul_v4_m4v4(float r[4], float mat[4][4], const float v[4])

@@ -118,8 +118,9 @@ static const char *cmpcode_to_str(int code)
 
 /* thresh is threshold for comparing vertices, uvs, vertex colors,
  * weights, etc.*/
-static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float thresh)
+static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, const float thresh)
 {
+	const float thresh_sq = thresh * thresh;
 	CustomDataLayer *l1, *l2;
 	int i, i1 = 0, i2 = 0, tot, j;
 	
@@ -225,7 +226,7 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 			int ltot = m1->totloop;
 		
 			for (j = 0; j < ltot; j++, lp1++, lp2++) {
-				if (len_v2v2(lp1->uv, lp2->uv) > thresh)
+				if (len_squared_v2v2(lp1->uv, lp2->uv) > thresh_sq)
 					return MESHCMP_LOOPUVMISMATCH;
 			}
 		}
