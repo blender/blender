@@ -3959,7 +3959,7 @@ static void draw_particle_arrays(int draw_as, int totpoint, int ob_dt, int selec
 	}
 }
 static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize,
-                          float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
+                          float imat[4][4], const float draw_line[2], ParticleBillboardData *bb, ParticleDrawData *pdd)
 {
 	float vec[3], vec2[3];
 	float *vd = NULL;
@@ -4107,6 +4107,42 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			break;
 		}
 	}
+}
+static void draw_particle_data(ParticleSystem *psys, RegionView3D *rv3d,
+                               ParticleKey *state, int draw_as,
+                               float imat[4][4], ParticleBillboardData *bb, ParticleDrawData *pdd,
+                               const float ct, const float pa_size, const float r_tilt, const float pixsize_scale)
+{
+	ParticleSettings *part = psys->part;
+	float pixsize;
+
+	if (psys->parent)
+		mul_m4_v3(psys->parent->obmat, state->co);
+
+	/* create actiual particle data */
+	if (draw_as == PART_DRAW_BB) {
+		bb->offset[0] = part->bb_offset[0];
+		bb->offset[1] = part->bb_offset[1];
+		bb->size[0] = part->bb_size[0] * pa_size;
+		if (part->bb_align == PART_BB_VEL) {
+			float pa_vel = len_v3(state->vel);
+			float head = part->bb_vel_head * pa_vel;
+			float tail = part->bb_vel_tail * pa_vel;
+			bb->size[1] = part->bb_size[1] * pa_size + head + tail;
+			/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+			if (bb->size[1] > 0.0f)
+				bb->offset[1] += (head - tail) / bb->size[1];
+		}
+		else {
+			bb->size[1] = part->bb_size[1] * pa_size;
+		}
+		bb->tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+		bb->time = ct;
+	}
+
+	pixsize = ED_view3d_pixel_size(rv3d, state->co) * pixsize_scale;
+
+	draw_particle(state, draw_as, part->draw, pixsize, imat, part->draw_line, bb, pdd);
 }
 /* unified drawing of all new particle systems draw types except dupli ob & group	*/
 /* mostly tries to use vertex arrays for speed										*/
@@ -4430,7 +4466,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					ct += dt;
 					for (i = 0; i < trail_count; i++, ct += dt) {
-						float pixsize;
 
 						if (part->draw & PART_ABS_PATH_TIME) {
 							if (ct < pa_birthtime || ct > pa_dietime)
@@ -4442,32 +4477,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
 						psys_get_particle_on_path(&sim, a, &state, need_v);
 
-						if (psys->parent)
-							mul_m4_v3(psys->parent->obmat, state.co);
-
-						/* create actiual particle data */
-						if (draw_as == PART_DRAW_BB) {
-							bb.offset[0] = part->bb_offset[0];
-							bb.offset[1] = part->bb_offset[1];
-							bb.size[0] = part->bb_size[0] * pa_size;
-							if (part->bb_align == PART_BB_VEL) {
-								float pa_vel = len_v3(state.vel);
-								float head = part->bb_vel_head * pa_vel;
-								float tail = part->bb_vel_tail * pa_vel;
-								bb.size[1] = part->bb_size[1] * pa_size + head + tail;
-								/* use offset to adjust the particle center. this is relative to size, so need to divide! */
-								if (bb.size[1] > 0.0f)
-									bb.offset[1] += (head - tail) / bb.size[1];
-							}
-							else
-								bb.size[1] = part->bb_size[1] * pa_size;
-							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
-							bb.time = ct;
-						}
-
-						pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
-
-						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
+						draw_particle_data(psys, rv3d,
+						                   &state, draw_as, imat, &bb, psys->pdd,
+						                   ct, pa_size, r_tilt, pixsize_scale);
 
 						totpoint++;
 						drawn = 1;
@@ -4476,34 +4488,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				else {
 					state.time = cfra;
 					if (psys_get_particle_state(&sim, a, &state, 0)) {
-						float pixsize;
 
-						if (psys->parent)
-							mul_m4_v3(psys->parent->obmat, state.co);
-
-						/* create actiual particle data */
-						if (draw_as == PART_DRAW_BB) {
-							bb.offset[0] = part->bb_offset[0];
-							bb.offset[1] = part->bb_offset[1];
-							bb.size[0] = part->bb_size[0] * pa_size;
-							if (part->bb_align == PART_BB_VEL) {
-								float pa_vel = len_v3(state.vel);
-								float head = part->bb_vel_head * pa_vel;
-								float tail = part->bb_vel_tail * pa_vel;
-								bb.size[1] = part->bb_size[1] * pa_size + head + tail;
-								/* use offset to adjust the particle center. this is relative to size, so need to divide! */
-								if (bb.size[1] > 0.0f)
-									bb.offset[1] += (head - tail) / bb.size[1];
-							}
-							else
-								bb.size[1] = part->bb_size[1] * pa_size;
-							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
-							bb.time = pa_time;
-						}
-
-						pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
-
-						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
+						draw_particle_data(psys, rv3d,
+						                   &state, draw_as, imat, &bb, psys->pdd,
+						                   pa_time, pa_size, r_tilt, pixsize_scale);
 
 						totpoint++;
 						drawn = 1;
