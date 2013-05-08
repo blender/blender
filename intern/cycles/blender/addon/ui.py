@@ -1032,8 +1032,7 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
         psys = context.particle_system
-        device_type = context.user_preferences.system.compute_device_type
-        experimental = ((cscene.feature_set == 'EXPERIMENTAL') and (cscene.device == 'CPU' or device_type == 'NONE'))
+        experimental = (cscene.feature_set == 'EXPERIMENTAL')
         return CyclesButtonsPanel.poll(context) and experimental and psys
 
     def draw_header(self, context):
@@ -1102,8 +1101,7 @@ class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
         ccscene = scene.cycles_curves
         use_curves = ccscene.use_curves and context.particle_system
-        device_type = context.user_preferences.system.compute_device_type
-        experimental = cscene.feature_set == 'EXPERIMENTAL' and (cscene.device == 'CPU' or device_type == 'NONE')
+        experimental = cscene.feature_set == 'EXPERIMENTAL'
         return CyclesButtonsPanel.poll(context) and experimental and use_curves
 
     def draw(self, context):

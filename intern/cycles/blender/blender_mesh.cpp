@@ -449,14 +449,14 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(b_mesh) {
-		if(!(hide_tris && experimental && is_cpu)) {
+		if(!(hide_tris && experimental)) {
 			if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
 				create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
 			else
 				create_mesh(scene, mesh, b_mesh, used_shaders);
 		}
 
-		if(experimental && is_cpu)
+		if(experimental)
 			sync_curves(mesh, b_mesh, b_ob, object_updated);
 
 		/* free derived mesh */

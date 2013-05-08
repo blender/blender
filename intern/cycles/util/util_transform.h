@@ -97,17 +97,6 @@ __device_inline float3 transform_direction_transposed(const Transform *t, const 
 	return make_float3(dot(x, a), dot(y, a), dot(z, a));
 }
 
-#ifndef __KERNEL_GPU__
-
-__device_inline void print_transform(const char *label, const Transform& t)
-{
-	print_float4(label, t.x);
-	print_float4(label, t.y);
-	print_float4(label, t.z);
-	print_float4(label, t.w);
-	printf("\n");
-}
-
 __device_inline Transform transform_transpose(const Transform a)
 {
 	Transform t;
@@ -146,6 +135,17 @@ __device_inline Transform make_transform(float a, float b, float c, float d,
 	t.w.x = m; t.w.y = n; t.w.z = o; t.w.w = p;
 
 	return t;
+}
+
+#ifndef __KERNEL_GPU__
+
+__device_inline void print_transform(const char *label, const Transform& t)
+{
+	print_float4(label, t.x);
+	print_float4(label, t.y);
+	print_float4(label, t.z);
+	print_float4(label, t.w);
+	printf("\n");
 }
 
 __device_inline Transform transform_translate(float3 t)

@@ -51,7 +51,6 @@ CCL_NAMESPACE_BEGIN
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
 #define __NON_PROGRESSIVE__
-#define __HAIR__
 #ifdef WITH_OSL
 #define __OSL__
 #endif
@@ -125,6 +124,7 @@ CCL_NAMESPACE_BEGIN
 #define __ANISOTROPIC__
 #define __CAMERA_MOTION__
 #define __OBJECT_MOTION__
+#define __HAIR__
 #endif
 //#define __SOBOL_FULL_SCREEN__
 
