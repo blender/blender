@@ -3047,12 +3047,8 @@ static void project_paint_begin(ProjPaintState *ps)
 	 * threads is being able to fill in multiple buckets at once.
 	 * Only use threads for bigger brushes. */
 
-	if (ps->scene->r.mode & R_FIXED_THREADS) {
-		ps->thread_tot = ps->scene->r.threads;
-	}
-	else {
-		ps->thread_tot = BLI_system_thread_count();
-	}
+	ps->thread_tot = BKE_scene_num_threads(ps->scene);
+
 	for (a = 0; a < ps->thread_tot; a++) {
 		ps->arena_mt[a] = BLI_memarena_new(1 << 16, "project paint arena");
 	}

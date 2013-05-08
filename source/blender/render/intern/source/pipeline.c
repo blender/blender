@@ -124,10 +124,7 @@
 /* here we store all renders */
 static struct {
 	ListBase renderlist;
-
-	/* commandline thread override */
-	int threads;
-} RenderGlobal = {{NULL, NULL}, -1}; 
+} RenderGlobal = {{NULL, NULL}}; 
 
 /* hardcopy of current render, used while rendering for speed */
 Render R;
@@ -2748,27 +2745,9 @@ int RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	return success;
 }
 
-void RE_set_max_threads(int threads)
-{
-	if (threads == 0) {
-		RenderGlobal.threads = BLI_system_thread_count();
-	}
-	else if (threads >= 1 && threads <= BLENDER_MAX_THREADS) {
-		RenderGlobal.threads = threads;
-	}
-	else {
-		printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
-	}
-}
-
 void RE_init_threadcount(Render *re) 
 {
-	if (RenderGlobal.threads >= 1) { /* only set as an arg in background mode */
-		re->r.threads = MIN2(RenderGlobal.threads, BLENDER_MAX_THREADS);
-	}
-	else if ((re->r.mode & R_FIXED_THREADS) == 0 || RenderGlobal.threads == 0) { /* Automatic threads */
-		re->r.threads = BLI_system_thread_count();
-	}
+	re->r.threads = BKE_render_num_threads(&re->r);
 }
 
 /* loads in image into a result, size must match

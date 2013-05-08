@@ -79,6 +79,7 @@ variables on the UI for now
 #include "BKE_pointcache.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
+#include "BKE_scene.h"
 
 #include  "PIL_time.h"
 // #include  "ONL_opennl.h" remove linking to ONL for now
@@ -1664,10 +1665,7 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 	do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
-	if (scene->r.mode & R_FIXED_THREADS)
-		totthread= scene->r.threads;
-	else
-		totthread= BLI_system_thread_count();
+	totthread= BKE_scene_num_threads(scene);
 	/* what if we got zillions of CPUs running but less to spread*/
 	while ((totsprings/totthread < lowsprings) && (totthread > 1)) {
 		totthread--;
@@ -2395,10 +2393,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 	int lowpoints =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
-	if (scene->r.mode & R_FIXED_THREADS)
-		totthread= scene->r.threads;
-	else
-		totthread= BLI_system_thread_count();
+	totthread= BKE_scene_num_threads(scene);
 	/* what if we got zillions of CPUs running but less to spread*/
 	while ((totpoint/totthread < lowpoints) && (totthread > 1)) {
 		totthread--;

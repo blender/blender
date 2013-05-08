@@ -1439,12 +1439,7 @@ ParticleThread *psys_threads_create(ParticleSimulationData *sim)
 {
 	ParticleThread *threads;
 	ParticleThreadContext *ctx;
-	int i, totthread;
-
-	if (sim->scene->r.mode & R_FIXED_THREADS)
-		totthread= sim->scene->r.threads;
-	else
-		totthread= BLI_system_thread_count();
+	int i, totthread = BKE_scene_num_threads(sim->scene);
 	
 	threads= MEM_callocN(sizeof(ParticleThread)*totthread, "ParticleThread");
 	ctx= MEM_callocN(sizeof(ParticleThreadContext), "ParticleThreadContext");

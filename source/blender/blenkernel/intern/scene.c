@@ -56,6 +56,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 
 #include "BLF_translation.h"
 
@@ -1469,3 +1470,28 @@ int BKE_scene_check_rigidbody_active(const Scene *scene)
 {
 	return scene && scene->rigidbody_world && scene->rigidbody_world->group && !(scene->rigidbody_world->flag & RBW_FLAG_MUTED);
 }
+
+int BKE_render_num_threads(const RenderData *rd)
+{
+	int threads;
+
+	/* override set from command line? */
+	threads = BLI_system_num_threads_override_get();
+
+	if (threads > 0)
+		return threads;
+
+	/* fixed number of threads specified in scene? */
+	if (rd->mode & R_FIXED_THREADS)
+		threads = rd->threads;
+	else
+		threads = BLI_system_thread_count();
+	
+	return max_ii(threads, 1);
+}
+
+int BKE_scene_num_threads(const Scene *scene)
+{
+	return BKE_render_num_threads(&scene->r);
+}
+

@@ -63,6 +63,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
+#include "BKE_scene.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -339,7 +340,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.number_of_rays = scene->r.bake_samples;
 		bkr.raytrace_structure = scene->r.raytrace_structure;
 		bkr.octree_resolution = scene->r.ocres;
-		bkr.threads = scene->r.mode & R_FIXED_THREADS ? scene->r.threads : 0;
+		bkr.threads = BKE_scene_num_threads(scene);
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
 		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, &bkr.tot_lvl, &bkr.simple);
@@ -377,7 +378,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->number_of_rays = scene->r.bake_samples;
 	bkj->raytrace_structure = scene->r.raytrace_structure;
 	bkj->octree_resolution = scene->r.ocres;
-	bkj->threads = scene->r.mode & R_FIXED_THREADS ? scene->r.threads : 0;
+	bkj->threads = BKE_scene_num_threads(scene);
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{

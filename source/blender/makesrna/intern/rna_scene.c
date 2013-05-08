@@ -671,11 +671,18 @@ static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 static int rna_RenderSettings_threads_get(PointerRNA *ptr)
 {
 	RenderData *rd = (RenderData *)ptr->data;
+	return BKE_render_num_threads(rd);
+}
 
-	if (rd->mode & R_FIXED_THREADS)
-		return rd->threads;
+static int rna_RenderSettings_threads_mode_get(PointerRNA *ptr)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+	int override = BLI_system_num_threads_override_get();
+
+	if (override > 0)
+		return R_FIXED_THREADS;
 	else
-		return BLI_system_thread_count();
+		return (rd->mode & R_FIXED_THREADS);
 }
 
 static int rna_RenderSettings_is_movie_fomat_get(PointerRNA *ptr)
@@ -4327,6 +4334,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "threads_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, threads_mode_items);
+	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_threads_mode_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Threads Mode", "Determine the amount of render threads used");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	

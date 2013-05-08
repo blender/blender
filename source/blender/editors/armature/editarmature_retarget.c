@@ -40,6 +40,7 @@
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_scene.h"
 
 #include "ED_armature.h"
 #include "ED_util.h"
@@ -283,14 +284,8 @@ static RigGraph *newRigGraph(void)
 	rg->free_node = NULL;
 	
 #ifdef USE_THREADS
-//	if (G.scene->r.mode & R_FIXED_THREADS)
-//	{
-//		totthread = G.scene->r.threads;
-//	}
-//	else
-//	{
+	//totthread = BKE_scene_num_threads(G.scene);
 	totthread = BLI_system_thread_count();
-//	}
 	
 	rg->worker = BLI_create_worker(exec_retargetArctoArc, totthread, 20); /* fix number of threads */
 #endif

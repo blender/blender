@@ -115,6 +115,7 @@ static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
 static int thread_levels = 0;  /* threads can be invoked inside threads */
+static int num_threads_override = 0;
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD BLENDER_MAX_THREADS
@@ -322,6 +323,9 @@ int BLI_system_thread_count(void)
 	t = (int)sysconf(_SC_NPROCESSORS_ONLN);
 #   endif
 #endif
+
+	if (num_threads_override > 0)
+		return num_threads_override;
 	
 	if (t > RE_MAX_THREAD)
 		return RE_MAX_THREAD;
@@ -329,6 +333,16 @@ int BLI_system_thread_count(void)
 		return 1;
 	
 	return t;
+}
+
+void BLI_system_num_threads_override_set(int num)
+{
+	num_threads_override = num;
+}
+
+int BLI_system_num_threads_override_get(void)
+{
+	return num_threads_override;
 }
 
 /* Global Mutex Locks */

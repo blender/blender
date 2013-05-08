@@ -821,11 +821,13 @@ static int set_image_type(int argc, const char **argv, void *data)
 static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc > 1) {
-		if (G.background) {
-			RE_set_max_threads(atoi(argv[1]));
+		int threads = atoi(argv[1]);
+
+		if (threads >= 0 && threads <= BLENDER_MAX_THREADS) {
+			BLI_system_num_threads_override_set(threads);
 		}
 		else {
-			printf("Warning: threads can only be set in background mode\n");
+			printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
 		}
 		return 1;
 	}
@@ -1406,7 +1408,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-E", "--engine", "<engine>\n\tSpecify the render engine\n\tuse -E help to list available engines", set_engine, C);
 
 	BLI_argsAdd(ba, 4, "-F", "--render-format", format_doc, set_image_type, C);
-	BLI_argsAdd(ba, 4, "-t", "--threads", "<threads>\n\tUse amount of <threads> for rendering in background\n\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 for systems processor count.", set_threads, NULL);
+	BLI_argsAdd(ba, 4, "-t", "--threads", "<threads>\n\tUse amount of <threads> for rendering and other operations\n\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 for systems processor count.", set_threads, NULL);
 	BLI_argsAdd(ba, 4, "-x", "--use-extension", "<bool>\n\tSet option to add the file extension to the end of the file", set_extension, C);
 
 }
