@@ -49,6 +49,10 @@
 #  include "PIL_time.h"
 #endif
 
+enum {
+	VERT_RESTRICT_TAG = (1 << 0),
+};
+
 /* -------------------------------------------------------------------- */
 /* GHash for edge rotation */
 
@@ -129,7 +133,7 @@ static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 /**
  * \return a negative value means the edge can be rotated.
  */
-static float bm_edge_calc_rotate_beauty(const BMEdge *e)
+static float bm_edge_calc_rotate_beauty(const BMEdge *e, const int flag)
 {
 	/* not a loop (only to be able to break out) */
 	do {
@@ -146,6 +150,13 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e)
 			v2 = e->l->v->co;                     /* e->v1 or e->v2*/
 			v3 = e->l->radial_next->prev->v->co;  /* second face co */
 			v4 = e->l->next->v->co;               /* e->v1 or e->v2*/
+
+			if (flag & VERT_RESTRICT_TAG) {
+				BMVert *v_a = e->l->prev->v, *v_b = e->l->radial_next->prev->v;
+				if (BM_elem_flag_test(v_a, BM_ELEM_TAG) ==  BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
+					break;
+				}
+			}
 
 			if (UNLIKELY(v1 == v3)) {
 				// printf("This should never happen, but does sometimes!\n");
@@ -225,7 +236,8 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e)
 /* Update the edge cost of rotation in the heap */
 
 /* recalc an edge in the heap (surrounding geometry has changed) */
-static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr)
+static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr,
+                                              const int flag)
 {
 	if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 		const int i = BM_elem_index_get(e);
@@ -253,7 +265,7 @@ static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode *
 
 		{
 			/* recalculate edge */
-			const float cost = bm_edge_calc_rotate_beauty(e);
+			const float cost = bm_edge_calc_rotate_beauty(e, flag);
 			if (cost < 0.0f) {
 				eheap_table[i] = BLI_heap_insert(eheap, cost, e);
 			}
@@ -265,18 +277,19 @@ static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode *
 }
 
 /* we have rotated an edge, tag other egdes and clear this one */
-static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr)
+static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr,
+                                       const int flag)
 {
 	BMLoop *l;
 	BLI_assert(e->l->f->len == 3 &&
 	           e->l->radial_next->f->len == 3);
 
 	l = e->l;
-	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr);
-	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr);
+	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr, flag);
+	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr, flag);
 	l = l->radial_next;
-	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr);
-	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr);
+	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr, flag);
+	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr, flag);
 }
 
 /* -------------------------------------------------------------------- */
@@ -289,7 +302,8 @@ static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_
  * \note All edges in \a edge_array must be tagged and
  * have their index values set according to their position in the array.
  */
-static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len)
+static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
+                                  const int flag)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
@@ -308,7 +322,7 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 	/* build heap */
 	for (i = 0; i < edge_array_len; i++) {
 		BMEdge *e = edge_array[i];
-		const float cost = bm_edge_calc_rotate_beauty(e);
+		const float cost = bm_edge_calc_rotate_beauty(e, flag);
 		if (cost < 0.0f) {
 			eheap_table[i] = BLI_heap_insert(eheap, cost, e);
 		}
@@ -345,7 +359,7 @@ static void bm_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge
 			BM_elem_index_set(e, i);
 
 			/* recalculate faces connected on the heap */
-			bm_edge_update_beauty_cost(e, eheap, eheap_table, edge_state_arr);
+			bm_edge_update_beauty_cost(e, eheap, eheap_table, edge_state_arr, flag);
 
 			/* update flags */
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
@@ -378,6 +392,8 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMFace *f;
 	BMEdge *e;
+	const bool use_restrict_tag = BMO_slot_bool_get(op->slots_in,  "use_restrict_tag");
+	const int flag = (use_restrict_tag ? VERT_RESTRICT_TAG : 0);
 
 	BMEdge **edge_array;
 	int edge_array_len = 0;
@@ -411,7 +427,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	}
 	bm->elem_index_dirty |= BM_EDGE;
 
-	bm_mesh_beautify_fill(bm, edge_array, edge_array_len);
+	bm_mesh_beautify_fill(bm, edge_array, edge_array_len, flag);
 
 	MEM_freeN(edge_array);
 
