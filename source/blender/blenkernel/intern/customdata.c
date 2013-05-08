@@ -2422,6 +2422,32 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
 	*block = NULL;
 }
 
+/**
+ * Same as #CustomData_bmesh_free_block but zero the memory rather then freeing.
+ */
+void CustomData_bmesh_free_block_data(CustomData *data, void **block)
+{
+	const LayerTypeInfo *typeInfo;
+	int i;
+
+	if (*block == NULL)
+		return;
+
+	for (i = 0; i < data->totlayer; ++i) {
+		if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
+			typeInfo = layerType_getInfo(data->layers[i].type);
+
+			if (typeInfo->free) {
+				int offset = data->layers[i].offset;
+				typeInfo->free((char *)*block + offset, 1, typeInfo->size);
+			}
+		}
+	}
+
+	if (data->totsize)
+		memset(*block, 0, data->totsize);
+}
+
 static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 {
 
