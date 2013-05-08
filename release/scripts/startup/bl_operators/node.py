@@ -20,52 +20,7 @@
 
 import bpy
 from bpy.types import Operator, PropertyGroup
-from bpy.props import BoolProperty, CollectionProperty, EnumProperty, StringProperty
-
-
-# Base class for node 'Add' operators
-class NodeAddOperator():
-    @staticmethod
-    def store_mouse_cursor(context, event):
-        space = context.space_data
-        v2d = context.region.view2d
-        tree = space.edit_tree
-
-        # convert mouse position to the View2D for later node placement
-        if context.region.type == 'WINDOW':
-            space.cursor_location = v2d.region_to_view(event.mouse_region_x,
-                                                   event.mouse_region_y)
-        else:
-            space.cursor_location = tree.view_center
-
-    def create_node(self, context, node_type):
-        space = context.space_data
-        tree = space.edit_tree
-
-        # select only the new node
-        for n in tree.nodes:
-            n.select = False
-
-        node = tree.nodes.new(type=node_type)
-
-        if space.use_hidden_preview:
-            node.show_preview = False
-
-        node.select = True
-        tree.nodes.active = node
-        node.location = space.cursor_location
-        return node
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        # needs active node editor and a tree to add nodes to
-        return (space.type == 'NODE_EDITOR' and space.edit_tree)
-
-    # Default invoke stores the mouse position to place the node correctly
-    def invoke(self, context, event):
-        self.store_mouse_cursor(context, event)
-        return self.execute(context)
+from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty, StringProperty
 
 
 class NodeSetting(PropertyGroup):
@@ -75,11 +30,8 @@ class NodeSetting(PropertyGroup):
             default="",
             )
 
-# Simple basic operator for adding a node
-class NODE_OT_add_node(NodeAddOperator, Operator):
-    '''Add a node to the active tree'''
-    bl_idname = "node.add_node"
-    bl_label = "Add Node"
+# Base class for node 'Add' operators
+class NodeAddOperator():
 
     type = StringProperty(
             name="Node Type",
@@ -96,8 +48,28 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
             type=NodeSetting,
             )
 
-    def execute(self, context):
-        node = self.create_node(context, self.type)
+    @staticmethod
+    def store_mouse_cursor(context, event):
+        space = context.space_data
+        v2d = context.region.view2d
+        tree = space.edit_tree
+
+        # convert mouse position to the View2D for later node placement
+        if context.region.type == 'WINDOW':
+            space.cursor_location = v2d.region_to_view(event.mouse_region_x,
+                                                   event.mouse_region_y)
+        else:
+            space.cursor_location = tree.view_center
+
+    def create_node(self, context):
+        space = context.space_data
+        tree = space.edit_tree
+
+        # select only the new node
+        for n in tree.nodes:
+            n.select = False
+
+        node = tree.nodes.new(type=self.type)
 
         for setting in self.settings:
             # XXX catch exceptions here?
@@ -110,8 +82,27 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
                 print (str(e))
                 # Continue despite invalid attribute
 
+        if space.use_hidden_preview:
+            node.show_preview = False
+
+        node.select = True
+        tree.nodes.active = node
+        node.location = space.cursor_location
+        return node
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        # needs active node editor and a tree to add nodes to
+        return (space.type == 'NODE_EDITOR' and space.edit_tree)
+
+    # Default execute simply adds a node
+    def execute(self, context):
+        self.create_node(context)
         return {'FINISHED'}
 
+    # Default invoke stores the mouse position to place the node correctly
+    # and optionally invokes the transform operator
     def invoke(self, context, event):
         self.store_mouse_cursor(context, event)
         result = self.execute(context)
@@ -120,6 +111,43 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
             bpy.ops.transform.translate('INVOKE_DEFAULT')
 
         return result
+
+
+# Simple basic operator for adding a node
+class NODE_OT_add_node(NodeAddOperator, Operator):
+    '''Add a node to the active tree'''
+    bl_idname = "node.add_node"
+    bl_label = "Add Node"
+
+
+# Add a node and link it to an existing socket
+class NODE_OT_add_and_link_node(NodeAddOperator, Operator):
+    '''Add a node to the active tree and link to an existing socket'''
+    bl_idname = "node.add_and_link_node"
+    bl_label = "Add and Link Node"
+
+    link_socket_index = IntProperty(
+            name="Link Socket Index",
+            description="Index of the socket to link",
+            )
+
+    def execute(self, context):
+        space = context.space_data
+        ntree = space.edit_tree
+
+        node = self.create_node(context)
+        if not node:
+            return {'CANCELLED'}
+
+        to_socket = getattr(context, "link_to_socket", None)
+        if to_socket:
+            ntree.links.new(node.outputs[self.link_socket_index], to_socket)
+
+        from_socket = getattr(context, "link_from_socket", None)
+        if from_socket:
+            ntree.links.new(from_socket, node.inputs[self.link_socket_index])
+
+        return {'FINISHED'}
 
 
 def node_classes_iter(base=bpy.types.Node):
