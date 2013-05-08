@@ -381,8 +381,8 @@ static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /*
 	if (adr==NULL) return;
 	if (len==0) return;
 
-	len += 3;
-	len -= (len % 4);
+	/* align to 4 (writes uninitialized bytes in some cases) */
+	len = (len + 3) & ~3;
 
 	/* init BHead */
 	bh.code   = filecode;
@@ -392,7 +392,7 @@ static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /*
 	bh.len    = len;
 
 	mywrite(wd, &bh, sizeof(BHead));
-	if (len) mywrite(wd, adr, len);
+	mywrite(wd, adr, len);
 }
 
 /* use this to force writing of lists in same order as reading (using link_list) */
