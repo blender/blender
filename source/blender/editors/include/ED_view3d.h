@@ -276,7 +276,13 @@ int ED_operator_rv3d_user_region_poll(struct bContext *C);
 
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
 void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d);
-
+#ifdef DEBUG
+void ED_view3d_clear_mats_rv3d(struct RegionView3D *rv3d);
+void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d);
+#else
+#  define ED_view3d_clear_mats_rv3d(rv3d) (void)(rv3d)
+#  define ED_view3d_check_mats_rv3d(rv3d) (void)(rv3d)
+#endif
 int ED_view3d_scene_layer_set(int lay, const int *values, int *active);
 
 bool ED_view3d_context_activate(struct bContext *C);

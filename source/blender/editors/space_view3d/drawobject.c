@@ -7001,6 +7001,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	if ((base->flag & OB_FROMDUPLI) ||
 	    (v3d->flag2 & V3D_RENDER_OVERRIDE))
 	{
+		ED_view3d_clear_mats_rv3d(rv3d);
 		return;
 	}
 
@@ -7144,6 +7145,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	free_old_images();
+
+	ED_view3d_clear_mats_rv3d(rv3d);
 }
 
 /* ***************** BACKBUF SEL (BBS) ********* */

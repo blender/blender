@@ -237,6 +237,7 @@ eV3DProjStatus ED_view3d_project_short_global(const ARegion *ar, const float co[
 eV3DProjStatus ED_view3d_project_short_object(const ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
+	ED_view3d_check_mats_rv3d(rv3d);
 	return ED_view3d_project_short_ex(ar, rv3d->persmatob, true, co, r_co, flag);
 }
 
@@ -250,6 +251,7 @@ eV3DProjStatus ED_view3d_project_int_global(const ARegion *ar, const float co[3]
 eV3DProjStatus ED_view3d_project_int_object(const ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
+	ED_view3d_check_mats_rv3d(rv3d);
 	return ED_view3d_project_int_ex(ar, rv3d->persmatob, true, co, r_co, flag);
 }
 
@@ -263,6 +265,7 @@ eV3DProjStatus ED_view3d_project_float_global(const ARegion *ar, const float co[
 eV3DProjStatus ED_view3d_project_float_object(const ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
+	ED_view3d_check_mats_rv3d(rv3d);
 	return ED_view3d_project_float_ex(ar, rv3d->persmatob, true, co, r_co, flag);
 }
 

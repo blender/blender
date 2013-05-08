@@ -2097,7 +2097,9 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 	
 	/* being set in code below */
 	arm->layer_used = 0;
-	
+
+	ED_view3d_check_mats_rv3d(rv3d);
+
 	/* envelope (deform distance) */
 	if (arm->drawtype == ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
