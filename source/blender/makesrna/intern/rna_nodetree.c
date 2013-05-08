@@ -193,6 +193,7 @@ EnumPropertyItem prop_wave_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_library.h"
 
 #include "BKE_global.h"
 
@@ -2370,8 +2371,14 @@ static void rna_NodeGroup_node_tree_set(PointerRNA *ptr, const PointerRNA value)
 	bNode *node = ptr->data;
 	bNodeTree *ngroup = value.data;
 	
-	if (nodeGroupPoll(ntree, ngroup))
+	if (nodeGroupPoll(ntree, ngroup)) {
+		if (node->id)
+			id_us_min(node->id);
+		if (ngroup)
+			id_us_plus(&ngroup->id);
+		
 		node->id = &ngroup->id;
+	}
 }
 
 static int rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
