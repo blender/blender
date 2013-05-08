@@ -49,9 +49,9 @@ typedef struct SmallHash {
 	SmallHashEntry _stacktable[SMSTACKSIZE];
 	SmallHashEntry _copytable[SMSTACKSIZE];
 	SmallHashEntry *stacktable, *copytable;
-	int used;
-	int curhash;
-	int size;
+	unsigned int used;
+	unsigned int curhash;
+	unsigned int size;
 } SmallHash;
 
 typedef struct {
