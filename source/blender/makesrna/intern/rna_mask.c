@@ -655,10 +655,10 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
 
-	/* select (for dopesheet)*/
+	/* select (for Dope Sheet)*/
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_LAYERFLAG_SELECT);
-	RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the DopeSheet");
+	RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the Dope Sheet");
 //	RNA_def_property_update(prop, NC_SCREEN | ND_MASK, NULL);
 
 	/* render settings */

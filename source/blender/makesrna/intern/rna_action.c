@@ -268,7 +268,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bDopeSheet");
 	RNA_def_struct_ui_text(srna, "DopeSheet", "Settings for filtering the channels shown in animation editors");
 	
-	/* Source of DopeSheet data */
+	/* Source of Dope Sheet data */
 	/* XXX: make this obsolete? */
 	prop = RNA_def_property(srna, "source", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
@@ -338,17 +338,17 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_ACTION, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
-	/* Summary Settings (DopeSheet editors only) */
+	/* Summary Settings (Dope Sheet editors only) */
 	prop = RNA_def_property(srna, "show_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SUMMARY);
-	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line (DopeSheet editors only)");
+	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line (Dope Sheet editors only)");
 	RNA_def_property_ui_icon(prop, ICON_BORDERMOVE, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_expanded_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADS_FLAG_SUMMARY_COLLAPSED);
 	RNA_def_property_ui_text(prop, "Collapse Summary",
-	                         "Collapse summary when shown, so all other channels get hidden (DopeSheet editors only)");
+	                         "Collapse summary when shown, so all other channels get hidden (Dope Sheet editors only)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	

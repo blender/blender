@@ -78,7 +78,7 @@ typedef struct bAnimContext {
 	struct SpaceLink *sl;   /* editor data */
 	struct ARegion *ar;     /* region within editor */
 	
-	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
+	struct bDopeSheet *ads; /* dope sheet data for editor (or which is being used) */
 	
 	struct Scene *scene;    /* active scene */
 	struct Object *obact;   /* active object */

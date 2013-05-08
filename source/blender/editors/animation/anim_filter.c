@@ -191,7 +191,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return 1;
 		}
-		case SACTCONT_DOPESHEET: /* DopeSheet */
+		case SACTCONT_DOPESHEET: /* Dope Sheet */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
 			
@@ -538,7 +538,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			case ANIMTYPE_SUMMARY:
 			{
 				/* nothing to include for now... this is just a dummy wrappy around all the other channels 
-				 * in the DopeSheet, and gets included at the start of the list
+				 * in the Dope Sheet, and gets included at the start of the list
 				 */
 				ale->key_data = NULL;
 				ale->datatype = ALE_ALL;
@@ -2267,7 +2267,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	
 	/* check that we do indeed have a scene */
 	if ((ads->source == NULL) || (GS(ads->source->name) != ID_SCE)) {
-		printf("DopeSheet Error: Not scene!\n");
+		printf("Dope Sheet Error: No scene!\n");
 		if (G.debug & G_DEBUG)
 			printf("\tPointer = %p, Name = '%s'\n", (void *)ads->source, (ads->source) ? ads->source->name : NULL);
 		return 0;
@@ -2339,14 +2339,14 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	return items;
 }
 
-/* Summary track for DopeSheet/Action Editor 
+/* Summary track for Dope Sheet/Action Editor 
  *  - return code is whether the summary lets the other channels get drawn
  */
 static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_data, int filter_mode, size_t *items)
 {
 	bDopeSheet *ads = NULL;
 	
-	/* get the DopeSheet information to use 
+	/* get the Dope Sheet information to use 
 	 *	- we should only need to deal with the DopeSheet/Action Editor, 
 	 *	  since all the other Animation Editors won't have this concept
 	 *	  being applicable.
@@ -2362,7 +2362,7 @@ static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_
 	
 	/* dopesheet summary 
 	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
-	 *	- only useful for DopeSheet/Action/etc. editors where it is actually useful
+	 *	- only useful for Dope Sheet/Action/etc. editors where it is actually useful
 	 */
 	if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
 		bAnimListElem *ale = make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL);
@@ -2384,7 +2384,7 @@ static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_
 
 /* ......................... */
 
-/* filter data associated with a channel - usually for handling summary-channels in DopeSheet */
+/* filter data associated with a channel - usually for handling summary-channels in Dope Sheet */
 static size_t animdata_filter_animchan(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAnimListElem *channel, int filter_mode)
 {
 	size_t items = 0;
@@ -2499,7 +2499,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 				SpaceAction *saction = (SpaceAction *)ac->sl;
 				bDopeSheet *ads = (saction) ? &saction->ads : NULL;
 				
-				/* the check for the DopeSheet summary is included here since the summary works here too */
+				/* the check for the Dope Sheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
 			}
@@ -2507,7 +2507,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			
 			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			{
-				/* the check for the DopeSheet summary is included here since the summary works here too */
+				/* the check for the Dope Sheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items = animdata_filter_shapekey(ac, anim_data, data, filter_mode);
 			}
@@ -2527,9 +2527,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			}
 			break;
 			
-			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
+			case ANIMCONT_DOPESHEET: /* 'Dope Sheet Editor' */
 			{
-				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
+				/* the Dope Sheet editor is the primary place where the Dope Sheet summaries are useful */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items += animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
 			}
@@ -2539,7 +2539,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
 			case ANIMCONT_NLA:     /* NLA Editor */
 			{
-				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
+				/* all of these editors use the basic Dope Sheet data for filtering options, but don't have all the same features */
 				items = animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
 			}
 			break;

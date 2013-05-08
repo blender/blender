@@ -402,7 +402,7 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_FRAME_SELECT);
-	RNA_def_property_ui_text(prop, "Select", "Frame is selected for editing in the DopeSheet");
+	RNA_def_property_ui_text(prop, "Select", "Frame is selected for editing in the Dope Sheet");
 
 	func = RNA_def_function(srna, "clear", "rna_GPencil_frame_clear");
 	RNA_def_function_ui_description(func, "Remove all the grease pencil frame data");
@@ -536,7 +536,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SELECT);
-	RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the DopeSheet");
+	RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the Dope Sheet");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 	
 	/* XXX keep this option? */

@@ -1511,7 +1511,7 @@ static const char *editortype_pup(void)
 
 	    "|Timeline %x15"
 	    "|Graph Editor %x2"
-	    "|DopeSheet %x12"
+	    "|Dope Sheet %x12"
 	    "|NLA Editor %x13"
 
 	    "|%l"

@@ -455,7 +455,7 @@ typedef enum eActionGroup_Flag {
 	AGRP_ACTIVE     = (1 << 1),
 	/* keyframes/channels belonging to it cannot be edited */
 	AGRP_PROTECTED  = (1 << 2),
-	/* for UI (DopeSheet), sub-channels are shown */
+	/* for UI (Dope Sheet), sub-channels are shown */
 	AGRP_EXPANDED   = (1 << 3),
 	/* sub-channels are not evaluated */
 	AGRP_MUTED      = (1 << 4),
@@ -529,7 +529,7 @@ typedef struct bDopeSheet {
 } bDopeSheet;
 
 
-/* DopeSheet filter-flag */
+/* Dope Sheet filter-flag */
 typedef enum eDopeSheet_FilterFlag {
 	/* general filtering */
 	ADS_FILTER_ONLYSEL          = (1 << 0),   /* only include channels relating to selected data */
@@ -540,7 +540,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_SELEDIT          = (1 << 3),   /* for Graph Editor - used to indicate whether to include a filtering flag or not */
 
 	/* general filtering 2 */
-	ADS_FILTER_SUMMARY          = (1 << 4),   /* for 'DopeSheet' Editors - include 'summary' line */
+	ADS_FILTER_SUMMARY          = (1 << 4),   /* for 'Dope Sheet' Editors - include 'summary' line */
 	ADS_FILTER_ONLYOBGROUP      = (1 << 5),   /* only the objects in the specified object group get used */
 
 	/* datatype-based filtering */

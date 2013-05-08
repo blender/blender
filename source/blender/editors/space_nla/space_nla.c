@@ -101,7 +101,7 @@ static SpaceLink *nla_new(const bContext *C)
 	snla = MEM_callocN(sizeof(SpaceNla), "initnla");
 	snla->spacetype = SPACE_NLA;
 	
-	/* allocate DopeSheet data for NLA Editor */
+	/* allocate Dope Sheet data for NLA Editor */
 	snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
 	snla->ads->source = (ID *)scene;
 	
