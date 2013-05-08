@@ -1974,10 +1974,8 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 	else {
 		BMesh *bm = self->bm;
 		Py_ssize_t vert_seq_len;
-		Py_ssize_t i, i_next;
 
 		BMVert **vert_array = NULL;
-		BMEdge **edge_array = NULL;
 
 		PyObject *ret = NULL;
 
@@ -2005,14 +2003,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		/* Go ahead and make the face!
 		 * --------------------------- */
 
-		edge_array = (BMEdge **)PyMem_MALLOC(vert_seq_len * sizeof(BMEdge **));
-
-		/* ensure edges */
-		for (i = vert_seq_len - 1, i_next = 0; i_next < vert_seq_len; (i = i_next++)) {
-			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_next], NULL, BM_CREATE_NO_DOUBLE);
-		}
-
-		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, 0);
+		f_new = BM_face_create_ngon_verts(bm, vert_array, vert_seq_len, 0, false, true);
 
 		if (UNLIKELY(f_new == NULL)) {
 			PyErr_SetString(PyExc_ValueError,
@@ -2029,7 +2020,6 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		/* pass through */
 cleanup:
 		if (vert_array) PyMem_FREE(vert_array);
-		if (edge_array) PyMem_FREE(edge_array);
 		return ret;
 	}
 }
