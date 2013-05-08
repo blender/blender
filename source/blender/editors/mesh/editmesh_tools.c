@@ -90,7 +90,8 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, fractal, along_normal,
+	                   smooth, SUBD_FALLOFF_ROOT,
+	                   fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
 	                   RNA_boolean_get(op->ptr, "quadtri"), true, false,

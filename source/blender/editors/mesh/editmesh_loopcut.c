@@ -53,6 +53,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -276,6 +277,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	RingSelOpData *lcd = op->customdata;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
 	const float smoothness = 0.292f * RNA_float_get(op->ptr, "smoothness");
+	const int smooth_falloff = RNA_enum_get(op->ptr, "falloff");
 #ifdef BMW_EDGERING_NGON
 	const bool use_only_quads = false;
 #else
@@ -293,7 +295,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			 * Note though that it will break edgeslide in this specific case.
 			 * See [#31939]. */
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-			                   smoothness, 0.0f, 0.0f,
+			                   smoothness, smooth_falloff, 0.0f, 0.0f,
 			                   cuts,
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, true,
 			                   use_only_quads, 0);
@@ -649,6 +651,12 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, -FLT_MAX, FLT_MAX,
 	                     "Smoothness", "Smoothness factor", -SUBD_SMOOTH_MAX, SUBD_SMOOTH_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	prop = RNA_def_property(ot->srna, "falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_enum_default(prop, PROP_ROOT);
+	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 
 	prop = RNA_def_int(ot->srna, "edge_index", -1, -1, INT_MAX, "Number of Cuts", "", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);

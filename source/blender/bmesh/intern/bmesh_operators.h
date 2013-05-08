@@ -39,6 +39,15 @@ enum {
 	SUBD_STRAIGHT_CUT
 };
 
+/* aligned with PROP_SMOOTH and friends */
+enum {
+	SUBD_FALLOFF_SMOOTH = 0,
+	SUBD_FALLOFF_SPHERE,
+	SUBD_FALLOFF_ROOT,
+	SUBD_FALLOFF_SHARP,
+	SUBD_FALLOFF_LIN,
+};
+
 enum {
 	SUBDIV_SELECT_ORIG,
 	SUBDIV_SELECT_INNER,
@@ -107,12 +116,13 @@ extern const int         bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        float smooth, float fractal, float along_normal,
-                        int numcuts,
-                        int seltype, int cornertype,
+                        const float smooth, const short smooth_falloff,
+                        const float fractal, const float along_normal,
+                        const int numcuts,
+                        const int seltype, const int cornertype,
                         const short use_single_edge, const short use_grid_fill,
                         const short use_only_quads,
-                        int seed);
+                        const int seed);
 
 #include "intern/bmesh_operator_api_inline.h"
 

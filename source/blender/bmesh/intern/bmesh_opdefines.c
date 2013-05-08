@@ -969,6 +969,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
 	 {"smooth", BMO_OP_SLOT_FLT},
+	 {"smooth_falloff", BMO_OP_SLOT_INT}, /* SUBD_FALLOFF_ROOT and friends */
 	 {"fractal", BMO_OP_SLOT_FLT},
 	 {"along_normal", BMO_OP_SLOT_FLT},
 	 {"cuts", BMO_OP_SLOT_INT},

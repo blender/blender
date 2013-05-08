@@ -44,6 +44,7 @@
 typedef struct SubDParams {
 	int numcuts;
 	float smooth;
+	int   smooth_falloff;
 	float fractal;
 	float along_normal;
 	//int beauty;
@@ -159,7 +160,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 	}
 	else if (params->use_smooth) {
 		/* we calculate an offset vector vec1[], to be added to *co */
-		float len, nor[3], nor1[3], nor2[3], smooth = params->smooth;
+		float len, nor[3], nor1[3], nor2[3], val;
 
 		sub_v3_v3v3(nor, vsta->co, vend->co);
 		len = 0.5f * normalize_v3(nor);
@@ -176,9 +177,28 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		madd_v3_v3fl(tvec, nor2, fac);
 
 		/* falloff for multi subdivide */
-		smooth *= sqrtf(fabsf(1.0f - 2.0f * fabsf(0.5f - perc)));
+		val = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
 
-		mul_v3_fl(tvec, smooth * len);
+		switch (params->smooth_falloff) {
+			case SUBD_FALLOFF_SMOOTH:
+				val = 3.0f * val * val - 2.0f * val * val * val;
+				break;
+			case SUBD_FALLOFF_SPHERE:
+				val = sqrtf(2.0f * val - val * val);
+				break;
+			case SUBD_FALLOFF_ROOT:
+				val = sqrtf(val);
+				break;
+			case SUBD_FALLOFF_SHARP:
+				val = val * val;
+				break;
+			case SUBD_FALLOFF_LIN:
+				break;
+			default:
+				BLI_assert(0);
+		}
+
+		mul_v3_fl(tvec, params->smooth * val * len);
 
 		add_v3_v3(co, tvec);
 	}
@@ -757,13 +777,14 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
 	bool use_sphere, use_single_edge, use_grid_fill, use_only_quads;
-	int cornertype, skey, seed, i, j, matched, a, b, numcuts, totesel;
+	int cornertype, skey, seed, i, j, matched, a, b, numcuts, totesel, smooth_falloff;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
 	
 	numcuts = BMO_slot_int_get(op->slots_in, "cuts");
 	seed = BMO_slot_int_get(op->slots_in, "seed");
 	smooth = BMO_slot_float_get(op->slots_in, "smooth");
+	smooth_falloff = BMO_slot_int_get(op->slots_in, "smooth_falloff");
 	fractal = BMO_slot_float_get(op->slots_in, "fractal");
 	along_normal = BMO_slot_float_get(op->slots_in, "along_normal");
 	cornertype = BMO_slot_int_get(op->slots_in, "quad_corner_type");
@@ -822,6 +843,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.slot_edge_percents   = BMO_slot_get(op->slots_in, "edge_percents");
 	params.slot_custom_patterns = BMO_slot_get(op->slots_in, "custom_patterns");
 	params.smooth = smooth;
+	params.smooth_falloff = smooth_falloff;
 	params.seed = seed;
 	params.fractal = fractal;
 	params.along_normal = along_normal;
@@ -1142,26 +1164,29 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 /* editmesh-emulating function */
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        float smooth, float fractal, float along_normal,
-                        int numcuts,
-                        int seltype, int cornertype,
+                        const float smooth, const short smooth_falloff,
+                        const float fractal, const float along_normal,
+                        const int numcuts,
+                        const int seltype, const int cornertype,
                         const short use_single_edge, const short use_grid_fill,
                         const short use_only_quads,
-                        int seed)
+                        const int seed)
 {
 	BMOperator op;
 	
 	/* use_sphere isnt exposed here since its only used for new primitives */
 	BMO_op_initf(bm, &op, BMO_FLAG_DEFAULTS,
 	             "subdivide_edges edges=%he "
-	             "smooth=%f fractal=%f along_normal=%f "
+	             "smooth=%f smooth_falloff=%i "
+	             "fractal=%f along_normal=%f "
 	             "cuts=%i "
 	             "quad_corner_type=%i "
 	             "use_single_edge=%b use_grid_fill=%b "
 	             "use_only_quads=%b "
 	             "seed=%i",
 	             edge_hflag,
-	             smooth, fractal, along_normal,
+	             smooth, smooth_falloff,
+	             fractal, along_normal,
 	             numcuts,
 	             cornertype,
 	             use_single_edge, use_grid_fill,
