@@ -6304,7 +6304,7 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 	 */
 	
 	StructRNA *srna;
-	PropertyRNA *parm;
+	PropertyRNA *parm, *prop;
 	FunctionRNA *func;
 	
 	static float default_draw_color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -6346,6 +6346,14 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "NodeSocketInterfaceStandard", "NodeSocketInterface");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
+	
+	/* for easier type comparison in python */
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->type");
+	RNA_def_property_enum_items(prop, node_socket_type_items);
+	RNA_def_property_enum_default(prop, SOCK_FLOAT);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Type", "Data type");
 	
 	func = RNA_def_function(srna, "draw", "rna_NodeSocketInterfaceStandard_draw");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
