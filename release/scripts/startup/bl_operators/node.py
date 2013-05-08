@@ -207,21 +207,6 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
         return {'CANCELLED'}
 
 
-class NODE_OT_add_group_node(NodeAddOperator, bpy.types.Operator):
-    '''Add a group node to the active tree'''
-    bl_idname = "node.add_group_node"
-    bl_label = "Add Group Node"
-
-    type = StringProperty(name="Node Type", description="Node type")
-    grouptree = StringProperty(name="Group tree", description="Group node tree name")
-
-    def execute(self, context):
-        node = self.create_node(context, self.type)
-        node.node_tree = bpy.data.node_groups[self.grouptree]
-
-        return {'FINISHED'}
-
-
 class NODE_OT_collapse_hide_unused_toggle(Operator):
     '''Toggle collapsed nodes and hide unused sockets'''
     bl_idname = "node.collapse_hide_unused_toggle"
