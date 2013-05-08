@@ -36,14 +36,6 @@
 #include <string.h> /* memcpy */
 #include <stdarg.h>
 #include <sys/types.h>
-/* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
-#if defined(WIN64)
-#  define SIZET_FORMAT "%I64u"
-#  define SIZET_ARG(a) ((unsigned long long)(a))
-#else
-#  define SIZET_FORMAT "%lu"
-#  define SIZET_ARG(a) ((unsigned long)(a))
-#endif
 
 /* mmap exception */
 #if defined(WIN32)
@@ -57,6 +49,18 @@
 #endif
 
 #include "MEM_guardedalloc.h"
+
+/* should always be defined except for experemental cases */
+#ifdef WITH_GUARDEDALLOC
+
+/* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
+#if defined(WIN64)
+#  define SIZET_FORMAT "%I64u"
+#  define SIZET_ARG(a) ((unsigned long long)(a))
+#else
+#  define SIZET_FORMAT "%lu"
+#  define SIZET_ARG(a) ((unsigned long)(a))
+#endif
 
 /* Only for debugging:
  * store original buffer's name when doing MEM_dupallocN
@@ -702,6 +706,7 @@ void MEM_callbackmemlist(void (*func)(void *))
 	mem_unlock_thread();
 }
 
+#if 0
 short MEM_testN(void *vmemh)
 {
 	MemHead *membl;
@@ -727,6 +732,7 @@ short MEM_testN(void *vmemh)
 	print_error("Memoryblock %p: pointer not in memlist\n", vmemh);
 	return 0;
 }
+#endif
 
 void MEM_printmemlist(void)
 {
@@ -1043,3 +1049,146 @@ const char *MEM_name_ptr(void *vmemh)
 	}
 }
 #endif  /* NDEBUG */
+
+#else  /* !WITH_GUARDEDALLOC */
+
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+
+#include <malloc.h>
+
+size_t MEM_allocN_len(const void *vmemh)
+{
+	return malloc_usable_size((void *)vmemh);
+}
+
+short MEM_freeN(void *vmemh)
+{
+	free(vmemh);
+	return 1;
+}
+
+void *MEM_dupallocN(const void *vmemh)
+{
+	void *newp = NULL;
+	if (vmemh) {
+		const size_t prev_size = MEM_allocN_len(vmemh);
+		newp = malloc(prev_size);
+		memcpy(newp, vmemh, prev_size);
+	}
+	return newp;
+}
+
+void *MEM_reallocN(void *vmemh, size_t len)
+{
+	return realloc(vmemh, len);
+}
+
+void *MEM_recallocN(void *vmemh, size_t len)
+{
+	void *newp = NULL;
+
+	if (vmemh) {
+		size_t vmemh_len = MEM_allocN_len(vmemh);
+		newp = malloc(len);
+		if (newp) {
+			if (len < vmemh_len) {
+				/* shrink */
+				memcpy(newp, vmemh, len);
+			}
+			else {
+				memcpy(newp, vmemh, vmemh_len);
+
+				if (len > vmemh_len) {
+					/* grow */
+					/* zero new bytes */
+					memset(((char *)newp) + vmemh_len, 0, len - vmemh_len);
+				}
+			}
+		}
+
+		free(vmemh);
+	}
+	else {
+		newp = calloc(1, len);
+	}
+
+	return newp;
+}
+
+void *MEM_callocN(size_t len, const char *UNUSED(str))
+{
+	return calloc(1, len);
+}
+
+void *MEM_mallocN(size_t len, const char *UNUSED(str))
+{
+	return malloc(len);
+}
+
+void *MEM_mapallocN(size_t len, const char *UNUSED(str))
+{
+	/* could us mmap */
+	return calloc(1, len);
+}
+
+void MEM_printmemlist_pydict(void) {}
+void MEM_printmemlist(void) {}
+
+/* unused */
+void MEM_callbackmemlist(void (*func)(void *))
+{
+	(void)func;
+}
+
+void MEM_printmemlist_stats(void) {}
+
+void MEM_set_error_callback(void (*func)(const char *))
+{
+	(void)func;
+}
+
+int MEM_check_memory_integrity(void)
+{
+	return 1;
+}
+
+void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void))
+{
+	(void)lock;
+	(void)unlock;
+}
+
+void MEM_set_memory_debug(void) {}
+
+uintptr_t MEM_get_memory_in_use(void)
+{
+	struct mallinfo mi;
+	mi = mallinfo();
+	return mi.uordblks;
+}
+
+uintptr_t MEM_get_mapped_memory_in_use(void)
+{
+	return MEM_get_memory_in_use();
+}
+
+int MEM_get_memory_blocks_in_use(void)
+{
+	struct mallinfo mi;
+	mi = mallinfo();
+	return mi.smblks + mi.hblks;
+}
+
+/* dummy */
+void MEM_reset_peak_memory(void) {}
+
+uintptr_t MEM_get_peak_memory(void)
+{
+	return MEM_get_memory_in_use();
+}
+
+#endif  /* WITH_GUARDEDALLOC */
