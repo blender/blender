@@ -142,15 +142,19 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 			if (edge_ref->f2 != -1) {
 				/* We have 2 faces using this edge, calculate the edges normal
 				 * using the angle between the 2 faces as a weighting */
+#if 0
 				add_v3_v3v3(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
 				normalize_v3(edge_normal);
+
 				mul_v3_fl(edge_normal, angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
+#else
+				mid_v3_v3v3_angle_weighted(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
+#endif
 			}
 			else {
 				/* only one face attached to that edge */
-				/* an edge without another attached- the weight on this is
-				 * undefined, M_PI/2 is 90d in radians and that seems good enough */
-				mul_v3_v3fl(edge_normal, face_nors[edge_ref->f1], M_PI / 2);
+				/* an edge without another attached- the weight on this is undefined */
+				copy_v3_v3(edge_normal, face_nors[edge_ref->f1]);
 			}
 			add_v3_v3(temp_nors[ed_v1], edge_normal);
 			add_v3_v3(temp_nors[ed_v2], edge_normal);

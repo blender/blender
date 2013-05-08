@@ -534,11 +534,6 @@ void BM_face_normal_update(BMFace *f)
 			normal_tri_v3(f->no, co1, co2, co3);
 			break;
 		}
-		case 0:
-		{
-			zero_v3(f->no);
-			break;
-		}
 		default:
 		{
 			bm_face_calc_poly_normal(f);

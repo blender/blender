@@ -130,6 +130,57 @@ void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float
 }
 
 /**
+ * Specialized function for calculating normals.
+ * fastpath for:
+ *
+* \code{.c}
+ * add_v3_v3v3(r, a, b);
+ * normalize_v3(r)
+ * mul_v3_fl(r, angle_normalized_v3v3(a, b) / M_PI_2);
+ * \endcode
+ *
+ * We can use the length of (a + b) to calculate the angle.
+ */
+void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3])
+{
+	/* trick, we want the middle of 2 normals as well as the angle between them
+	 * avoid multiple calculations by */
+	float angle;
+
+	/* double check they are normalized */
+	BLI_ASSERT_UNIT_V3(a);
+	BLI_ASSERT_UNIT_V3(b);
+
+	add_v3_v3v3(r, a, b);
+	angle = ((float)(1.0 / (M_PI / 2.0)) *
+	         /* normally we would only multiply by 2,
+	          * but instead of an angle make this 0-1 factor */
+	         2.0f) *
+	        acosf(normalize_v3(r) / 2.0f);
+	mul_v3_fl(r, angle);
+}
+/**
+ * Same as mid_v3_v3v3_angle_weighted
+ * but \a r is assumed to be accumulated normals, divided by their total.
+ */
+void mid_v3_angle_weighted(float r[3])
+{
+	/* trick, we want the middle of 2 normals as well as the angle between them
+	 * avoid multiple calculations by */
+	float angle;
+
+	/* double check they are normalized */
+	BLI_assert(len_squared_v3(r) <= 1.0f + FLT_EPSILON);
+
+	angle = ((float)(1.0 / (M_PI / 2.0)) *
+	         /* normally we would only multiply by 2,
+	          * but instead of an angle make this 0-1 factor */
+	         2.0f) *
+	        acosf(normalize_v3(r));
+	mul_v3_fl(r, angle);
+}
+
+/**
  * Equivalent to:
  * interp_v3_v3v3(v, v1, v2, -1.0f);
  */
