@@ -101,7 +101,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_beautify_fill);
 	WM_operatortype_append(MESH_OT_quads_convert_to_tris);
 	WM_operatortype_append(MESH_OT_tris_convert_to_quads);
-	WM_operatortype_append(MESH_OT_dissolve);
+	WM_operatortype_append(MESH_OT_dissolve_verts);
+	WM_operatortype_append(MESH_OT_dissolve_edges);
+	WM_operatortype_append(MESH_OT_dissolve_faces);
 	WM_operatortype_append(MESH_OT_dissolve_limited);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);

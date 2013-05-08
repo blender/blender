@@ -2795,49 +2795,101 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	join_triangle_props(ot);
 }
 
-static int edbm_dissolve_exec(bContext *C, wmOperator *op)
+/* -------------------------------------------------------------------- */
+/* Dissolve */
+
+static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
-
-	if (em->selectmode & SCE_SELECT_FACE) {
-		if (!EDBM_op_callf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
-			return OPERATOR_CANCELLED;
-	}
-	else if (em->selectmode & SCE_SELECT_EDGE) {
-		if (!EDBM_op_callf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
-			return OPERATOR_CANCELLED;
-	}
-	else if (em->selectmode & SCE_SELECT_VERTEX) {
-		if (!EDBM_op_callf(em, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
-			return OPERATOR_CANCELLED;
-	}
+	if (!EDBM_op_callf(em, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
+		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(em, true, true);
 
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_dissolve(wmOperatorType *ot)
+void MESH_OT_dissolve_verts(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Dissolve";
+	ot->name = "Dissolve Vertices";
 	ot->description = "Dissolve geometry";
-	ot->idname = "MESH_OT_dissolve";
+	ot->idname = "MESH_OT_dissolve_verts";
 
 	/* api callbacks */
-	ot->exec = edbm_dissolve_exec;
+	ot->exec = edbm_dissolve_verts_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+
+	if (!EDBM_op_callf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+		return OPERATOR_CANCELLED;
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_dissolve_edges(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve Edges";
+	ot->description = "Dissolve geometry";
+	ot->idname = "MESH_OT_dissolve_edges";
+
+	/* api callbacks */
+	ot->exec = edbm_dissolve_edges_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
-	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
-	                "When dissolving faces/edges, also dissolve remaining vertices");
+	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
 }
+
+static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+
+	if (!EDBM_op_callf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+		return OPERATOR_CANCELLED;
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_dissolve_faces(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve Faces";
+	ot->description = "Dissolve geometry";
+	ot->idname = "MESH_OT_dissolve_faces";
+
+	/* api callbacks */
+	ot->exec = edbm_dissolve_faces_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
+}
+
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {

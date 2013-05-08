@@ -2026,7 +2026,14 @@ class VIEW3D_MT_edit_mesh_delete(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.dissolve")
+        mesh_select_mode = context.tool_settings.mesh_select_mode[:]
+        if mesh_select_mode[2]:
+            layout.operator("mesh.dissolve_faces")
+        elif mesh_select_mode[1]:
+            layout.operator("mesh.dissolve_edges")
+        elif mesh_select_mode[0]:
+            layout.operator("mesh.dissolve_verts")
+
         layout.operator("mesh.dissolve_limited")
 
         layout.separator()
