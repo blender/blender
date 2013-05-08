@@ -80,21 +80,22 @@
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
-static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, PointerRNA *ptr, PointerRNA *UNUSED(node_ptr))
+static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr),
+                                     const char *text)
 {
-	bNodeSocket *sock = (bNodeSocket *)ptr->data;
-	uiItemL(layout, IFACE_(sock->name), 0);
+	uiItemL(layout, text, 0);
 }
 
 static void node_draw_input_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
-	sock->typeinfo->draw(C, layout, ptr, node_ptr);
+	sock->typeinfo->draw(C, layout, ptr, node_ptr, IFACE_(sock->name));
 }
 
 static void node_draw_output_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
-	node_socket_button_label(C, layout, ptr, node_ptr);
+	bNodeSocket *sock = ptr->data;
+	node_socket_button_label(C, layout, ptr, node_ptr, IFACE_(sock->name));
 }
 
 
@@ -2603,7 +2604,8 @@ static void node_template_properties_update(bNodeType *ntype)
 	}
 }
 
-static void node_socket_undefined_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr))
+static void node_socket_undefined_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr),
+                                       const char *UNUSED(text))
 {
 	uiItemL(layout, "Undefined Socket Type", ICON_ERROR);
 }
@@ -2727,14 +2729,14 @@ static void std_node_socket_interface_draw_color(bContext *UNUSED(C), PointerRNA
 	copy_v4_v4(r_color, std_node_socket_colors[type]);
 }
 
-static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
+static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
 {
 	bNodeSocket *sock = ptr->data;
 	int type = sock->typeinfo->type;
 	/*int subtype = sock->typeinfo->subtype;*/
 	
 	if ((sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
-		node_socket_button_label(C, layout, ptr, node_ptr);
+		node_socket_button_label(C, layout, ptr, node_ptr, text);
 		return;
 	}
 	
@@ -2742,29 +2744,29 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 		case SOCK_FLOAT:
 		case SOCK_INT:
 		case SOCK_BOOLEAN:
-			uiItemR(layout, ptr, "default_value", 0, IFACE_(sock->name), 0);
+			uiItemR(layout, ptr, "default_value", 0, text, 0);
 			break;
 		case SOCK_VECTOR:
-			uiTemplateComponentMenu(layout, ptr, "default_value", IFACE_(sock->name));
+			uiTemplateComponentMenu(layout, ptr, "default_value", text);
 			break;
 		case SOCK_RGBA: {
 			uiLayout *row = uiLayoutRow(layout, false);
 			uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 			/* draw the socket name right of the actual button */
 			uiItemR(row, ptr, "default_value", 0, "", 0);
-			uiItemL(row, IFACE_(sock->name), 0);
+			uiItemL(row, text, 0);
 			break;
 		}
 		case SOCK_STRING: {
 			uiLayout *row = uiLayoutRow(layout, true);
 			/* draw the socket name right of the actual button */
 			uiItemR(row, ptr, "default_value", 0, "", 0);
-			uiItemL(row, IFACE_(sock->name), 0);
+			uiItemL(row, text, 0);
 			break;
 		}
 		
 		default:
-			node_socket_button_label(C, layout, ptr, node_ptr);
+			node_socket_button_label(C, layout, ptr, node_ptr, text);
 			break;
 	}
 }

@@ -1688,7 +1688,7 @@ static void rna_Node_height_range(PointerRNA *ptr, float *min, float *max, float
 
 /* ******** Node Socket ******** */
 
-static void rna_NodeSocket_draw(bContext *C, struct uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
+static void rna_NodeSocket_draw(bContext *C, struct uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
 {
 	extern FunctionRNA rna_NodeSocket_draw_func;
 
@@ -1702,6 +1702,7 @@ static void rna_NodeSocket_draw(bContext *C, struct uiLayout *layout, PointerRNA
 	RNA_parameter_set_lookup(&list, "context", &C);
 	RNA_parameter_set_lookup(&list, "layout", &layout);
 	RNA_parameter_set_lookup(&list, "node", node_ptr);
+	RNA_parameter_set_lookup(&list, "text", &text);
 	sock->typeinfo->ext_socket.call(C, ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -2128,11 +2129,12 @@ static void rna_NodeSocketInterface_update(Main *bmain, Scene *UNUSED(scene), Po
 
 /* ******** Standard Node Socket Base Types ******** */
 
-static void rna_NodeSocketStandard_draw(ID *id, bNodeSocket *sock, struct bContext *C, struct uiLayout *layout, PointerRNA *nodeptr)
+static void rna_NodeSocketStandard_draw(ID *id, bNodeSocket *sock, struct bContext *C, struct uiLayout *layout, PointerRNA *nodeptr,
+                                        const char *text)
 {
 	PointerRNA ptr;
 	RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
-	sock->typeinfo->draw(C, layout, &ptr, nodeptr);
+	sock->typeinfo->draw(C, layout, &ptr, nodeptr, text);
 }
 
 static void rna_NodeSocketStandard_draw_color(ID *id, bNodeSocket *sock, struct bContext *C, PointerRNA *nodeptr, float *r_color)
@@ -5808,6 +5810,10 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_struct_type(parm, "Node");
 	RNA_def_property_ui_text(parm, "Node", "Node the socket belongs to");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	parm = RNA_def_property(func, "text", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(parm, "Text", "Text label to draw alongside properties");
+	RNA_def_property_string_default(parm, "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "draw_color", NULL);
 	RNA_def_function_ui_description(func, "Color of the socket icon");
@@ -6204,6 +6210,10 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 	RNA_def_property_struct_type(parm, "Node");
 	RNA_def_property_ui_text(parm, "Node", "Node the socket belongs to");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	parm = RNA_def_property(func, "text", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(parm, "Text", "Text label to draw alongside properties");
+	RNA_def_property_string_default(parm, "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "draw_color", "rna_NodeSocketStandard_draw_color");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);

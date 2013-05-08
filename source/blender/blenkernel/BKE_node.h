@@ -113,7 +113,7 @@ typedef struct bNodeSocketTemplate {
 typedef struct bNodeSocketType {
 	char idname[64];				/* identifier name */
 	
-	void (*draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr, struct PointerRNA *node_ptr);
+	void (*draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr, struct PointerRNA *node_ptr, const char *text);
 	void (*draw_color)(struct bContext *C, struct PointerRNA *ptr, struct PointerRNA *node_ptr, float *r_color);
 	
 	void (*interface_draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr);
