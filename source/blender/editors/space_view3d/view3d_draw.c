@@ -863,14 +863,12 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 		name = tmpstr;
 	}
 
-	if (name) {
-		UI_ThemeColor(TH_TEXT_HI);
+	UI_ThemeColor(TH_TEXT_HI);
 #ifdef WITH_INTERNATIONAL
-		BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+	BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 #else
-		BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+	BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 #endif
-	}
 }
 
 /* draw info beside axes in bottom left-corner: 

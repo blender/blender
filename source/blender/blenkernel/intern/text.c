@@ -1148,9 +1148,6 @@ static void txt_pop_last(Text *text)
 	txt_pop_sel(text);
 }
 
-/* never used: CVS 1.19 */
-/*  static void txt_pop_selr (Text *text) */
-
 void txt_pop_sel(Text *text)
 {
 	text->sell = text->curl;
