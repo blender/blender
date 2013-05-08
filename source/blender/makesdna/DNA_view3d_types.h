@@ -129,7 +129,8 @@ typedef struct RegionView3D {
 	char persp;
 	char view;
 	char viewlock;
-	char pad[4];
+	char viewlock_quad;			/* options for quadview (store while out of quad view) */
+	char pad[3];
 
 	short twdrawflag;
 	short rflag;
@@ -246,9 +247,11 @@ typedef struct View3D {
 #define RV3D_GPULIGHT_UPDATE		16
 
 /* RegionView3d->viewlock */
-#define RV3D_LOCKED			1
-#define RV3D_BOXVIEW		2
-#define RV3D_BOXCLIP		4
+#define RV3D_LOCKED			(1 << 0)
+#define RV3D_BOXVIEW		(1 << 1)
+#define RV3D_BOXCLIP		(1 << 2)
+/* RegionView3d->viewlock_quad */
+#define RV3D_VIEWLOCK_INIT	(1 << 7)
 
 /* RegionView3d->view */
 #define RV3D_VIEW_USER			 0

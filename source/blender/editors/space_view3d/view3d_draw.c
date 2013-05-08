@@ -190,7 +190,7 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 void ED_view3d_clipping_set(RegionView3D *rv3d)
 {
 	double plane[4];
-	const unsigned int tot = (rv3d->viewlock) ? 4 : 6;
+	const unsigned int tot = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
 	unsigned int a;
 
 	for (a = 0; a < tot; a++) {
