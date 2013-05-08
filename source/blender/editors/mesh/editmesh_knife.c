@@ -2217,8 +2217,9 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 /* sort list of kverts by fraction along edge e */
 static void sort_by_frac_along(ListBase *lst, BMEdge *e)
 {
+	/* note, since we know the point is along the edge, sort from distance to v1co */
 	const float *v1co = e->v1->co;
-	const float *v2co = e->v2->co;
+//	const float *v2co = e->v2->co;
 	Ref *cur = NULL, *prev = NULL, *next = NULL;
 
 	if (lst->first == lst->last)
@@ -2226,7 +2227,11 @@ static void sort_by_frac_along(ListBase *lst, BMEdge *e)
 
 	for (cur = ((Ref *)lst->first)->next; cur; cur = next) {
 		KnifeVert *vcur = cur->ref;
+#if 0
 		const float vcur_fac = line_point_factor_v3(vcur->co, v1co, v2co);
+#else
+		const float vcur_fac = len_squared_v3v3(v1co, vcur->co);
+#endif
 
 		next = cur->next;
 		prev = cur->prev;
@@ -2235,8 +2240,13 @@ static void sort_by_frac_along(ListBase *lst, BMEdge *e)
 
 		while (prev) {
 			KnifeVert *vprev = prev->ref;
+#if 0
 			if (line_point_factor_v3(vprev->co, v1co, v2co) <= vcur_fac)
 				break;
+#else
+			if (len_squared_v3v3(v1co, vprev->co) <= vcur_fac)
+				break;
+#endif
 			prev = prev->prev;
 		}
 
