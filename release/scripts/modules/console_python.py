@@ -190,12 +190,17 @@ def execute(context):
 
     if is_multiline:
         sc.prompt = PROMPT_MULTI
+        indent = line[:len(line) - len(line.lstrip())]
+        if line.rstrip().endswith(":"):
+            indent += "    "
     else:
         sc.prompt = PROMPT
+        indent = ""
 
     # insert a new blank line
-    bpy.ops.console.history_append(text="", current_character=0,
+    bpy.ops.console.history_append(text=indent, current_character=0,
                                    remove_duplicates=True)
+    sc.history[-1].current_character = len(indent)
 
     # Insert the output into the editor
     # not quite correct because the order might have changed,
