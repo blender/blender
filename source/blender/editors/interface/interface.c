@@ -735,7 +735,7 @@ void uiButExecute(const bContext *C, uiBut *but)
 
 /* use to check if we need to disable undo, but don't make any changes
  * returns FALSE if undo needs to be disabled. */
-static int ui_but_is_rna_undo(uiBut *but)
+static int ui_is_but_rna_undo(uiBut *but)
 {
 	if (but->rnapoin.id.data) {
 		/* avoid undo push for buttons who's ID are screen or wm level
@@ -2969,7 +2969,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		ui_def_but_rna__disable(but);
 	}
 
-	if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == FALSE)) {
+	if (but->flag & UI_BUT_UNDO && (ui_is_but_rna_undo(but) == FALSE)) {
 		but->flag &= ~UI_BUT_UNDO;
 	}
 
@@ -3020,7 +3020,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 	but = ui_def_but(block, type, -1, str, x, y, width, height, NULL, 0, 0, 0, 0, tip);
 	but->optype = ot;
 	but->opcontext = opcontext;
-	but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_undo(), we never need undo here */
+	but->flag &= ~UI_BUT_UNDO; /* no need for ui_is_but_rna_undo(), we never need undo here */
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
@@ -3059,7 +3059,7 @@ static uiBut *ui_def_but_operator_text(uiBlock *block, int type, const char *opn
 	but = ui_def_but(block, type, -1, str, x, y, width, height, poin, min, max, a1, a2, tip);
 	but->optype = ot;
 	but->opcontext = opcontext;
-	but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_undo(), we never need undo here */
+	but->flag &= ~UI_BUT_UNDO; /* no need for ui_is_but_rna_undo(), we never need undo here */
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
