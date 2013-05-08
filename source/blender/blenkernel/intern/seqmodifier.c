@@ -487,6 +487,71 @@ static SequenceModifierTypeInfo seqModifier_BrightContrast = {
 	brightcontrast_apply                                      /* apply */
 };
 
+/* **** Mask Modifier **** */
+
+static void maskmodifier_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
+                                        unsigned char *mask_rect, float *mask_rect_float, void *UNUSED(data_v))
+{
+	int x, y;
+
+	if (rect && !mask_rect)
+		return;
+
+	if (rect_float && !mask_rect_float)
+		return;
+
+	for (y = 0; y < height; y++) {
+		for (x = 0; x < width; x++) {
+			int pixel_index = (y * width + x) * 4;
+
+			if (rect) {
+				unsigned char *pixel = rect + pixel_index;
+				unsigned char *mask_pixel = mask_rect + pixel_index;
+				unsigned char mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+
+				/* byte buffer is straight, so only affect on alpha itself,
+				 * this is the only way to alpha-over byte strip after
+				 * applying mask modifier.
+				 */
+				pixel[3] = (float)(pixel[3] * mask) / 255.0f;
+			}
+			else if (rect_float) {
+				int c;
+				float *pixel = rect_float + pixel_index;
+				float *mask_pixel = mask_rect_float + pixel_index;
+				float mask = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+
+				/* float buffers are premultiplied, so need to premul color
+				 * as well to make it easy to alpha-over masted strip.
+				 */
+				for (c = 0; c < 4; c++)
+					pixel[c] = pixel[c] * mask;
+			}
+		}
+	}
+}
+
+static void maskmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+{
+	BrightContrastModifierData *bcmd = (BrightContrastModifierData *) smd;
+	BrightContrastThreadData data;
+
+	data.bright = bcmd->bright;
+	data.contrast = bcmd->contrast;
+
+	modifier_apply_threaded(ibuf, mask, maskmodifier_apply_threaded, &data);
+}
+
+static SequenceModifierTypeInfo seqModifier_Mask = {
+	CTX_N_(BLF_I18NCONTEXT_ID_SEQUENCE, "Mask"), /* name */
+	"SequencerMaskModifierData",                 /* struct_name */
+	sizeof(SequencerMaskModifierData),           /* struct_size */
+	NULL,                                        /* init_data */
+	NULL,                                        /* free_data */
+	NULL,                                        /* copy_data */
+	maskmodifier_apply                           /* apply */
+};
+
 /*********************** Modifier functions *************************/
 
 static void sequence_modifier_type_info_init(void)
@@ -497,6 +562,7 @@ static void sequence_modifier_type_info_init(void)
 	INIT_TYPE(Curves);
 	INIT_TYPE(HueCorrect);
 	INIT_TYPE(BrightContrast);
+	INIT_TYPE(Mask);
 
 #undef INIT_TYPE
 }

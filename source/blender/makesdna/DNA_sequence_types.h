@@ -289,6 +289,10 @@ typedef struct BrightContrastModifierData {
 	float contrast;
 } BrightContrastModifierData;
 
+typedef struct SequencerMaskModifierData {
+	SequenceModifierData modifier;
+} SequencerMaskModifierData;
+
 /* ***************** Scopes ****************** */
 
 typedef struct SequencerScopes {
@@ -434,6 +438,7 @@ enum {
 	seqModifierType_Curves         = 2,
 	seqModifierType_HueCorrect     = 3,
 	seqModifierType_BrightContrast = 4,
+	seqModifierType_Mask           = 5,
 
 	NUM_SEQUENCE_MODIFIER_TYPES
 };

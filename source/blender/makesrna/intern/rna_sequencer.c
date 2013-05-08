@@ -65,6 +65,7 @@ EnumPropertyItem sequence_modifier_type_items[] = {
 	{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
 	{seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
 	{seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
+	{seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
