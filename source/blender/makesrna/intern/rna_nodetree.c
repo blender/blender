@@ -5815,6 +5815,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Expanded", "Socket links are expanded in the user interface");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
+	prop = RNA_def_property(srna, "hide_value", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_HIDE_VALUE);
+	RNA_def_property_ui_text(prop, "Hide Value", "Hide the socket input value");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+
 	prop = RNA_def_property(srna, "node", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_funcs(prop, "rna_NodeSocket_node_get", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "Node");
