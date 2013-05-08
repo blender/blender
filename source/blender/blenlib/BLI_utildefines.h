@@ -266,8 +266,6 @@ typedef bool _BLI_Bool;
 		*(v1 + 2) = *(v2 + 2) - *(v3 + 2) * (fac);                            \
 } (void)0
 
-#define INPR(v1, v2) ( (v1)[0] * (v2)[0] + (v1)[1] * (v2)[1] + (v1)[2] * (v2)[2])
-
 /* some misc stuff.... */
 #define CLAMP(a, b, c)  {           \
 	if ((a) < (b)) (a) = (b);       \
@@ -275,13 +273,6 @@ typedef bool _BLI_Bool;
 } (void)0
 
 #define CLAMPIS(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
-#define CLAMPTEST(a, b, c)                                                    \
-	if ((b) < (c)) {                                                          \
-		CLAMP(a, b, c);                                                       \
-	}                                                                         \
-	else {                                                                    \
-		CLAMP(a, c, b);                                                       \
-	} (void)0
 
 #define IS_EQ(a, b) ((fabs((double)(a) - (b)) >= (double) FLT_EPSILON) ? 0 : 1)
 #define IS_EQF(a, b) ((fabsf((float)(a) - (b)) >= (float) FLT_EPSILON) ? 0 : 1)
