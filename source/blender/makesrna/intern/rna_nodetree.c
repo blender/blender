@@ -2218,6 +2218,49 @@ static void rna_NodeSocketStandard_value_update(struct bContext *C, PointerRNA *
 
 /* ******** Node Types ******** */
 
+static int rna_NodeInternal_poll(StructRNA *srna, bNodeTree *ntree)
+{
+	bNodeType *ntype = RNA_struct_blender_type_get(srna);
+	return ntype && (!ntype->poll || ntype->poll(ntype, ntree));
+}
+
+static int rna_NodeInternal_poll_instance(bNode *node, bNodeTree *ntree)
+{
+	bNodeType *ntype = node->typeinfo;
+	if (ntype->poll_instance) {
+		return ntype->poll_instance(node, ntree);
+	}
+	else {
+		/* fall back to basic poll function */
+		return !ntype->poll || ntype->poll(ntype, ntree);
+	}
+}
+
+static void rna_NodeInternal_update(ID *id, bNode *node)
+{
+	bNodeTree *ntree = (bNodeTree *)id;
+	if (node->typeinfo->updatefunc)
+		node->typeinfo->updatefunc(ntree, node);
+}
+
+static void rna_NodeInternal_draw_buttons(ID *id, bNode *node, struct bContext *C, struct uiLayout *layout)
+{
+	if (node->typeinfo->uifunc) {
+		PointerRNA ptr;
+		RNA_pointer_create(id, &RNA_Node, node, &ptr);
+		node->typeinfo->uifunc(layout, C, &ptr);
+	}
+}
+
+static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, struct bContext *C, struct uiLayout *layout)
+{
+	if (node->typeinfo->uifuncbut) {
+		PointerRNA ptr;
+		RNA_pointer_create(id, &RNA_Node, node, &ptr);
+		node->typeinfo->uifuncbut(layout, C, &ptr);
+	}
+}
+
 static void rna_CompositorNode_tag_need_exec(bNode *node)
 {
 	node->need_exec = TRUE;
@@ -5676,7 +5719,7 @@ static void rna_def_shader_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
-	srna = RNA_def_struct(brna, "ShaderNode", "Node");
+	srna = RNA_def_struct(brna, "ShaderNode", "NodeInternal");
 	RNA_def_struct_ui_text(srna, "Shader Node", "Material shader node");
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_register_funcs(srna, "rna_ShaderNode_register", "rna_Node_unregister", NULL);
@@ -5687,7 +5730,7 @@ static void rna_def_compositor_node(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	
-	srna = RNA_def_struct(brna, "CompositorNode", "Node");
+	srna = RNA_def_struct(brna, "CompositorNode", "NodeInternal");
 	RNA_def_struct_ui_text(srna, "Compositor Node", "");
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_register_funcs(srna, "rna_CompositorNode_register", "rna_Node_unregister", NULL);
@@ -5701,7 +5744,7 @@ static void rna_def_texture_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
-	srna = RNA_def_struct(brna, "TextureNode", "Node");
+	srna = RNA_def_struct(brna, "TextureNode", "NodeInternal");
 	RNA_def_struct_ui_text(srna, "Texture Node", "");
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_register_funcs(srna, "rna_TextureNode_register", "rna_Node_unregister", NULL);
@@ -6284,6 +6327,64 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 	rna_def_node_socket_shader(brna, "NodeSocketShader", "NodeSocketInterfaceShader");
 
 	rna_def_node_socket_virtual(brna, "NodeSocketVirtual");
+}
+
+static void rna_def_internal_node(BlenderRNA *brna)
+{
+	/* XXX Workaround: Registered functions are not exposed in python by bpy,
+	 * it expects them to be registered from python and use the native implementation.
+	 * However, the standard node types are not registering these functions from python,
+	 * so in order to call them in py scripts we need to overload and replace them with plain C callbacks.
+	 * This type provides a usable basis for node types defined in C.
+	 */
+	
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+	
+	srna = RNA_def_struct(brna, "NodeInternal", "Node");
+	RNA_def_struct_sdna(srna, "bNode");
+	
+	/* poll */
+	func = RNA_def_function(srna, "poll", "rna_NodeInternal_poll");
+	RNA_def_function_ui_description(func, "If non-null output is returned, the node type can be added to the tree");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);
+	RNA_def_function_return(func, RNA_def_boolean(func, "visible", FALSE, "", ""));
+	parm = RNA_def_pointer(func, "node_tree", "NodeTree", "Node Tree", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	
+	func = RNA_def_function(srna, "poll_instance", "rna_NodeInternal_poll_instance");
+	RNA_def_function_ui_description(func, "If non-null output is returned, the node can be added to the tree");
+	RNA_def_function_return(func, RNA_def_boolean(func, "visible", FALSE, "", ""));
+	parm = RNA_def_pointer(func, "node_tree", "NodeTree", "Node Tree", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	
+	/* update */
+	func = RNA_def_function(srna, "update", "rna_NodeInternal_update");
+	RNA_def_function_ui_description(func, "Update on editor changes");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_ALLOW_WRITE);
+	
+	/* draw buttons */
+	func = RNA_def_function(srna, "draw_buttons", "rna_NodeInternal_draw_buttons");
+	RNA_def_function_ui_description(func, "Draw node buttons");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_property(func, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(parm, "UILayout");
+	RNA_def_property_ui_text(parm, "Layout", "Layout in the UI");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+
+	/* draw buttons extended */
+	func = RNA_def_function(srna, "draw_buttons_ext", "rna_NodeInternal_draw_buttons_ext");
+	RNA_def_function_ui_description(func, "Draw node buttons in the sidebar");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_property(func, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(parm, "UILayout");
+	RNA_def_property_ui_text(parm, "Layout", "Layout in the UI");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
 static void rna_def_node_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int in_out)
@@ -7001,6 +7102,8 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	
 	rna_def_node(brna);
 	rna_def_node_link(brna);
+	
+	rna_def_internal_node(brna);
 	rna_def_shader_node(brna);
 	rna_def_compositor_node(brna);
 	rna_def_texture_node(brna);

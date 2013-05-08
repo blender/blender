@@ -853,6 +853,10 @@ class Node(StructRNA, metaclass=RNAMetaNode):
         return True
 
 
+class NodeInternal(Node):
+    __slots__ = ()
+
+
 class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
@@ -869,7 +873,7 @@ class NodeSocketInterface(StructRNA, metaclass=RNAMetaPropGroup):
 
 
 # These are intermediate subclasses, need a bpy type too
-class CompositorNode(Node):
+class CompositorNode(NodeInternal):
     __slots__ = ()
 
     @classmethod
@@ -880,7 +884,7 @@ class CompositorNode(Node):
         self.tag_need_exec()
 
 
-class ShaderNode(Node):
+class ShaderNode(NodeInternal):
     __slots__ = ()
 
     @classmethod
@@ -888,7 +892,7 @@ class ShaderNode(Node):
         return ntree.bl_idname == 'ShaderNodeTree'
 
 
-class TextureNode(Node):
+class TextureNode(NodeInternal):
     __slots__ = ()
 
     @classmethod
