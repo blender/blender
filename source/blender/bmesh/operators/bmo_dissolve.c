@@ -359,10 +359,32 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter, fiter;
 	BMVert *v;
 	BMFace *f;
-	/* int i; */
+
+	const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
+
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_MARK);
 	
+	if (use_face_split) {
+		BMIter liter;
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
+				if (BM_vert_edge_count(v) > 2) {
+					BMLoop *l;
+					BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+						if (l->f->len > 3) {
+							if (BMO_elem_flag_test(bm, l->next->v, VERT_MARK) == 0 &&
+								BMO_elem_flag_test(bm, l->prev->v, VERT_MARK) == 0)
+							{
+								BM_face_split(bm, l->f, l->next->v, l->prev->v, NULL, NULL, true);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			/* check if it's a two-valence ver */
