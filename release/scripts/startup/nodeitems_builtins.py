@@ -61,9 +61,24 @@ def node_group_items(context):
     if not ntree:
         return
 
+    def contains_group(nodetree, group):
+        if nodetree == group:
+            return True
+        else:
+            for node in nodetree.nodes:
+                if node.bl_idname in node_tree_group_type.values() and node.node_tree is not None:
+                    if contains_group(node.node_tree, group):
+                        return True
+        return False
+
     for group in context.blend_data.node_groups:
-        if group.bl_idname == ntree.bl_idname:
-            yield NodeItem(node_tree_group_type[group.bl_idname], group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
+        if group.bl_idname != ntree.bl_idname:
+            continue
+        # filter out recursive groups
+        if contains_group(ntree, group):
+            continue
+
+        yield NodeItem(node_tree_group_type[group.bl_idname], group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
 
 
 # All standard node categories currently used in nodes.
