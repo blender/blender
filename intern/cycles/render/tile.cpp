@@ -180,52 +180,7 @@ list<Tile>::iterator TileManager::next_viewport_tile(int device)
 	return state.tiles.end();
 }
 
-list<Tile>::iterator TileManager::next_center_tile(int device)
-{
-	list<Tile>::iterator iter, best = state.tiles.end();
-
-	int resolution = state.resolution_divider;
-	int image_w = max(1, params.width/resolution);
-	int image_h = max(1, params.height/resolution);
-
-	int logical_device = preserve_tile_device? device: 0;
-
-	int64_t centx = image_w / 2, centy = image_h / 2, tot = 1;
-	int64_t mindist = (int64_t) image_w * (int64_t) image_h;
-
-	/* find center of rendering tiles, image center counts for 1 too */
-	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
-		if(iter->rendering) {
-			Tile &cur_tile = *iter;
-			centx += cur_tile.x + cur_tile.w / 2;
-			centy += cur_tile.y + cur_tile.h / 2;
-			tot++;
-		}
-	}
-
-	centx /= tot;
-	centy /= tot;
-
-	/* closest of the non-rendering tiles */
-	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
-		if(iter->device == logical_device && iter->rendering == false) {
-			Tile &cur_tile = *iter;
-
-			int64_t distx = centx - (cur_tile.x + cur_tile.w / 2);
-			int64_t disty = centy - (cur_tile.y + cur_tile.h / 2);
-			distx = (int64_t) sqrt((double)distx * distx + disty * disty);
-
-			if(distx < mindist) {
-				best = iter;
-				mindist = distx;
-			}
-		}
-	}
-
-	return best;
-}
-
-list<Tile>::iterator TileManager::next_simple_tile(int device, int tile_order)
+list<Tile>::iterator TileManager::next_background_tile(int device, int tile_order)
 {
 	list<Tile>::iterator iter, best = state.tiles.end();
 
@@ -235,21 +190,37 @@ list<Tile>::iterator TileManager::next_simple_tile(int device, int tile_order)
 	int64_t cordx = max(1, params.width/resolution);
 	int64_t cordy = max(1, params.height/resolution);
 	int64_t mindist = cordx * cordy;
+	
+	int64_t centx = cordx / 2, centy = cordy / 2;
 
 	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
 		if(iter->device == logical_device && iter->rendering == false) {
 			Tile &cur_tile = *iter;
 			
 			int64_t distx = cordx;
+			int64_t disty = cordy;
 			
-			if (tile_order == TileManager::RIGHT_TO_LEFT)
-				distx = cordx - cur_tile.x;
-			else if (tile_order == TileManager::LEFT_TO_RIGHT)
-				distx = cordx + cur_tile.x;
-			else if (tile_order == TileManager::TOP_TO_BOTTOM)
-				distx = cordx - cur_tile.y;
-			else /* TileManager::BOTTOM_TO_TOP */
-				distx = cordx + cur_tile.y;
+			switch (tile_order) {
+				case TileManager::CENTER:
+					distx = centx - (cur_tile.x + cur_tile.w);
+					disty = centy - (cur_tile.y + cur_tile.h);
+					distx = (int64_t) sqrt((double)distx * distx + disty * disty);
+					break;
+				case TileManager::RIGHT_TO_LEFT:
+					distx = cordx - cur_tile.x;
+					break;
+				case TileManager::LEFT_TO_RIGHT:
+					distx = cordx + cur_tile.x;	
+					break;
+				case TileManager::TOP_TO_BOTTOM:
+					distx = cordx - cur_tile.y;
+					break;
+				case TileManager::BOTTOM_TO_TOP:
+					distx = cordx + cur_tile.y;
+					break; 
+				default:
+					break;
+			}
 
 			if(distx < mindist) {
 				best = iter;
@@ -264,12 +235,9 @@ list<Tile>::iterator TileManager::next_simple_tile(int device, int tile_order)
 bool TileManager::next_tile(Tile& tile, int device)
 {
 	list<Tile>::iterator tile_it;
-	if (background) {
-		if(tile_order == TileManager::CENTER)
-			tile_it = next_center_tile(device);
-		else
-			tile_it = next_simple_tile(device, tile_order);
-	}
+	
+	if (background)
+		tile_it = next_background_tile(device, tile_order);
 	else
 		tile_it = next_viewport_tile(device);
 

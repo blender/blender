@@ -114,15 +114,10 @@ protected:
 	/* slices image into as much pieces as how many devices are rendering this image */
 	void gen_tiles_sliced();
 
-	/* returns closest tile to center of rendered tiles
-	 * mimics behavior of blender internal's tile order
-	 */
-	list<Tile>::iterator next_center_tile(int device);
-	
-	/* returns simple tile order */
-	list<Tile>::iterator next_simple_tile(int device, int tile_order);
+	/* returns tiles for background render */
+	list<Tile>::iterator next_background_tile(int device, int tile_order);
 
-	/* returns first unhandled tile (for viewport) */
+	/* returns first unhandled tile for viewport render */
 	list<Tile>::iterator next_viewport_tile(int device);
 };
 
