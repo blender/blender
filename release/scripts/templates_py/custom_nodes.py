@@ -49,8 +49,11 @@ class MyCustomSocket(bpy.types.NodeSocket):
     myEnumProperty = bpy.props.EnumProperty(name="Direction", description="Just an example", items=my_items, default='UP')
 
     # Optional function for drawing the socket input value
-    def draw(self, context, layout, node):
-        layout.prop(self, "myEnumProperty", text=self.name)
+    def draw(self, context, layout, node, text):
+        if self.is_linked:
+            layout.label(text)
+        else:
+            layout.prop(self, "myEnumProperty", text=text)
 
     # Socket color
     def draw_color(self, context, node):
