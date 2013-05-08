@@ -385,7 +385,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			/* check if it's a two-valence ver */
 			if (BM_vert_edge_count(v) == 2) {
@@ -402,8 +402,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			f = BM_iter_new(&fiter, bm, BM_FACES_OF_VERT, v);
-			for ( ; f; f = BM_iter_step(&fiter)) {
+			BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
 				BMO_elem_flag_enable(bm, f, FACE_ORIG);
 				BMO_elem_flag_enable(bm, f, FACE_MARK);
 			}
@@ -411,8 +410,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 			/* check if our additions to the input to face dissolve
 			 * will destroy nonmarked vertices. */
 			if (!test_extra_verts(bm, v)) {
-				f = BM_iter_new(&fiter, bm, BM_FACES_OF_VERT, v);
-				for ( ; f; f = BM_iter_step(&fiter)) {
+				BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
 					if (BMO_elem_flag_test(bm, f, FACE_ORIG)) {
 						BMO_elem_flag_disable(bm, f, FACE_MARK);
 						BMO_elem_flag_disable(bm, f, FACE_ORIG);
@@ -420,8 +418,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 			else {
-				f = BM_iter_new(&fiter, bm, BM_FACES_OF_VERT, v);
-				for ( ; f; f = BM_iter_step(&fiter)) {
+				BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
 					BMO_elem_flag_disable(bm, f, FACE_ORIG);
 				}
 			}
@@ -438,7 +435,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	/* clean up any remainin */
-	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			if (!BM_vert_dissolve(bm, v)) {
 				BMO_error_raise(bm, op, BMERR_DISSOLVEVERTS_FAILED, NULL);
@@ -448,78 +445,6 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	}
 
 }
-
-/* this code is for cleaning up two-edged faces, it shall become
- * it's own function one day */
-#if 0
-void dummy_exec(BMesh *bm, BMOperator *op)
-{
-	{
-		/* clean up two-edged face */
-		/* basic idea is to keep joining 2-edged faces until their
-		 * gone.  this however relies on joining two 2-edged faces
-		 * together to work, which doesn't */
-		found3 = 1;
-		while (found3) {
-			found3 = 0;
-			for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
-				if (!BM_face_validate(bm, f, stderr)) {
-					printf("error.\n");
-				}
-
-				if (f->len == 2) {
-					//this design relies on join faces working
-					//with two-edged faces properly.
-					//commenting this line disables the
-					//outermost loop.
-					//found3 = 1;
-					found2 = 0;
-					l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
-					fe = l->e;
-					for ( ; l; l = BM_iter_step(&liter)) {
-						f2 = BM_iter_new(&fiter, bm,
-						                 BM_FACES_OF_EDGE, l->e);
-						for (; f2; f2 = BM_iter_step(&fiter)) {
-							if (f2 != f) {
-								BM_faces_join_pair(bm, f, f2, l->e);
-								found2 = 1;
-								break;
-							}
-						}
-						if (found2) break;
-					}
-
-					if (!found2) {
-						BM_face_kill(bm, f);
-						BM_edge_kill(bm, fe);
-					}
-				}
-#if 0
-				else if (f->len == 3) {
-					BMEdge *ed[3];
-					BMVert *vt[3];
-					BMLoop *lp[3];
-					int i = 0;
-
-					//check for duplicate edges
-					l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
-					for ( ; l; l = BM_iter_step(&liter)) {
-						ed[i] = l->e;
-						lp[i] = l;
-						vt[i++] = l->v;
-					}
-					if (vt[0] == vt[1] || vt[0] == vt[2]) {
-						i += 1;
-					}
-#endif
-			}
-		}
-		if (oldlen == len) break;
-		oldlen = len;
-	}
-}
-
-#endif
 
 /* Limited Dissolve */
 void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
