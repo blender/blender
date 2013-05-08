@@ -1595,7 +1595,8 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], float cagep[3], BMFace **fptr, bool *is_space)
 {
 	BMFace *f;
-	float co[3], cageco[3], sco[2], maxdist = knife_snap_size(kcd, kcd->ethresh);
+	float co[3], cageco[3], sco[2];
+	float maxdist = knife_snap_size(kcd, kcd->ethresh);
 
 	if (kcd->ignore_vert_snapping)
 		maxdist *= 0.5f;
@@ -1610,10 +1611,11 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 	kcd->curr.bmface = f;
 
 	if (f) {
+		const float maxdist_sq = maxdist * maxdist;
 		KnifeEdge *cure = NULL;
 		ListBase *lst;
 		Ref *ref;
-		float dis, curdis = FLT_MAX;
+		float dis_sq, curdis_sq = FLT_MAX;
 
 		knife_project_v2(kcd, cageco, sco);
 
@@ -1626,8 +1628,8 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 			knife_project_v2(kcd, kfe->v1->cageco, kfe->v1->sco);
 			knife_project_v2(kcd, kfe->v2->cageco, kfe->v2->sco);
 
-			dis = dist_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
-			if (dis < curdis && dis < maxdist) {
+			dis_sq = dist_squared_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
+			if (dis_sq < curdis_sq && dis_sq < maxdist_sq) {
 				if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
 					float lambda = line_point_factor_v2(sco, kfe->v1->sco, kfe->v2->sco);
 					float vec[3];
@@ -1636,12 +1638,12 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 
 					if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, true) == 0) {
 						cure = kfe;
-						curdis = dis;
+						curdis_sq = dis_sq;
 					}
 				}
 				else {
 					cure = kfe;
-					curdis = dis;
+					curdis_sq = dis_sq;
 				}
 			}
 		}
