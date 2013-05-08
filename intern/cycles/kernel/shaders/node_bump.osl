@@ -27,7 +27,7 @@ surface node_bump(
 	float SampleCenter = 0.0,
 	float SampleX = 0.0,
 	float SampleY = 0.0,
-	output normal Normal = N)
+	output normal NormalOut = N)
 {
 	/* get surface tangents from normal */
 	vector dPdx = Dx(P);
@@ -44,6 +44,6 @@ surface node_bump(
 	float absdet = fabs(det);
 	
 	/* compute and output perturbed normal */
-	Normal = normalize(absdet * NormalIn - sign(det) * surfgrad);
+	NormalOut = normalize(absdet * NormalIn - sign(det) * surfgrad);
 }
 

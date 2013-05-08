@@ -3054,7 +3054,7 @@ BumpNode::BumpNode()
 	add_input("SampleCenter", SHADER_SOCKET_FLOAT);
 	add_input("SampleX", SHADER_SOCKET_FLOAT);
 	add_input("SampleY", SHADER_SOCKET_FLOAT);
-	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
+	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
 	add_input("Strength", SHADER_SOCKET_FLOAT, 0.1f);
 
 	add_output("Normal", SHADER_SOCKET_NORMAL);
@@ -3065,7 +3065,7 @@ void BumpNode::compile(SVMCompiler& compiler)
 	ShaderInput *center_in = input("SampleCenter");
 	ShaderInput *dx_in = input("SampleX");
 	ShaderInput *dy_in = input("SampleY");
-	ShaderInput *normal_in = input("NormalIn");
+	ShaderInput *normal_in = input("Normal");
 	ShaderInput *intensity_in = input("Strength");
 	ShaderOutput *normal_out = output("Normal");
 

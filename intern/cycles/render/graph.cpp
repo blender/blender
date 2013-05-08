@@ -668,7 +668,7 @@ void ShaderGraph::bump_from_displacement()
 
 	/* for displacement bump, clear the normal input in case the above loop
 	 * connected the setnormal out to the bump normalin */
-	ShaderInput *bump_normal_in = bump->input("NormalIn");
+	ShaderInput *bump_normal_in = bump->input("Normal");
 	if(bump_normal_in)
 		bump_normal_in->link = NULL;
 
