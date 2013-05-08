@@ -80,7 +80,7 @@
 typedef struct uiWidgetTrias {
 	unsigned int tot;
 	
-	float vec[32][2];
+	float vec[16][2];
 	const unsigned int (*index)[3];
 	
 } uiWidgetTrias;
