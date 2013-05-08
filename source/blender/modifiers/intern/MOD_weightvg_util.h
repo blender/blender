@@ -28,20 +28,15 @@
  *  \ingroup modifiers
  */
 
-
 #ifndef __MOD_WEIGHTVG_UTIL_H__
 #define __MOD_WEIGHTVG_UTIL_H__
-
-#include "BLI_rand.h"
-
-/* so modifier types match their defines */
-#include "MOD_modifiertypes.h"
 
 struct CurveMapping;
 struct DerivedMesh;
 struct Object;
 struct Tex;
 struct Scene;
+struct RNG;
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
@@ -67,7 +62,7 @@ struct Scene;
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cmap, RNG *rng);
+void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cmap, struct RNG *rng);
 
 /* Applies new_w weights to org_w ones, using either a texture, vgroup or constant value as factor.
  * Return values are in org_w.

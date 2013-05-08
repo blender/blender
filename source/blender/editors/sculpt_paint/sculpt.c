@@ -41,7 +41,6 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
-#include "BLI_rand.h"
 
 #include "BLF_translation.h"
 

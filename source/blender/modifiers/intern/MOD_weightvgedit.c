@@ -32,6 +32,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_rand.h"
 
 #include "DNA_color_types.h"      /* CurveMapping. */
 #include "DNA_mesh_types.h"
