@@ -75,7 +75,7 @@ def node_group_items(context):
         if group.bl_idname != ntree.bl_idname:
             continue
         # filter out recursive groups
-        if contains_group(ntree, group):
+        if contains_group(group, ntree):
             continue
 
         yield NodeItem(node_tree_group_type[group.bl_idname], group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
