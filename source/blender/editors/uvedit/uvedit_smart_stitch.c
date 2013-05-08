@@ -1752,7 +1752,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	state->total_separate_edges = total_edges;
 
 	/* fill the edges with data */
-	for (i = 0, BLI_ghashIterator_init(ghi, edge_hash); BLI_ghashIterator_notDone(ghi); BLI_ghashIterator_step(ghi)) {
+	for (i = 0, BLI_ghashIterator_init(ghi, edge_hash); !BLI_ghashIterator_done(ghi); BLI_ghashIterator_step(ghi)) {
 		edges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(ghi));
 	}
 

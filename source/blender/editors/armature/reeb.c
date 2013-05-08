@@ -1661,7 +1661,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 			float avg_vec[3] = {0, 0, 0};
 			
 			for (BLI_ghashIterator_init(&ghi, arc->faces);
-			     BLI_ghashIterator_notDone(&ghi);
+			     BLI_ghashIterator_done(&ghi) == false;
 			     BLI_ghashIterator_step(&ghi))
 			{
 				EditFace *efa = BLI_ghashIterator_getValue(&ghi);
@@ -2047,7 +2047,7 @@ void mergeArcFaces(ReebGraph *UNUSED(rg), ReebArc *aDst, ReebArc *aSrc)
 	GHashIterator ghi;
 	
 	for (BLI_ghashIterator_init(&ghi, aSrc->faces);
-	     BLI_ghashIterator_notDone(&ghi);
+	     BLI_ghashIterator_done(&ghi) == false;
 	     BLI_ghashIterator_step(&ghi))
 	{
 		EditFace *efa = BLI_ghashIterator_getValue(&ghi);

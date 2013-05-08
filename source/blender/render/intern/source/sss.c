@@ -1018,7 +1018,7 @@ void free_sss(Render *re)
 	if (re->sss_hash) {
 		GHashIterator *it= BLI_ghashIterator_new(re->sss_hash);
 
-		while (BLI_ghashIterator_notDone(it)) {
+		while (!BLI_ghashIterator_done(it)) {
 			sss_free_tree(BLI_ghashIterator_getValue(it));
 			BLI_ghashIterator_step(it);
 		}

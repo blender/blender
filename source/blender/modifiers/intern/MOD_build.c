@@ -230,7 +230,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	/* copy the vertices across */
 	for (hashIter = BLI_ghashIterator_new(vertHash);
-	     BLI_ghashIterator_notDone(hashIter);
+	     BLI_ghashIterator_done(hashIter) == false;
 	     BLI_ghashIterator_step(hashIter)
 	     )
 	{

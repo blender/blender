@@ -299,9 +299,9 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
 		}
 	}
 }
-bool BLI_ghashIterator_notDone(GHashIterator *ghi)
+bool BLI_ghashIterator_done(GHashIterator *ghi)
 {
-	return ghi->curEntry != NULL;
+	return ghi->curEntry == NULL;
 }
 
 /***/
