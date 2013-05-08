@@ -2364,13 +2364,26 @@ static void rna_NodeGroup_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 	ED_node_tag_update_nodetree(bmain, ntree);
 }
 
+static void rna_NodeGroup_node_tree_set(PointerRNA *ptr, const PointerRNA value)
+{
+	bNodeTree *ntree = ptr->id.data;
+	bNode *node = ptr->data;
+	bNodeTree *ngroup = value.data;
+	
+	if (nodeGroupPoll(ntree, ngroup))
+		node->id = &ngroup->id;
+}
+
 static int rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
 {
-	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
-	bNodeTree *ngroup = (bNodeTree *)value.data;
+	bNodeTree *ntree = ptr->id.data;
+	bNodeTree *ngroup = value.data;
 	
 	/* only allow node trees of the same type as the group node's tree */
-	return (ngroup->type == ntree->type);
+	if (ngroup->type != ntree->type)
+		return false;
+	
+	return nodeGroupPoll(ntree, ngroup);
 }
 
 
@@ -2838,7 +2851,7 @@ static void def_group(StructRNA *srna)
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "NodeTree");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_NodeGroup_node_tree_poll");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_NodeGroup_node_tree_set", NULL, "rna_NodeGroup_node_tree_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Node Tree", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeGroup_update");
