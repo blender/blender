@@ -1301,8 +1301,8 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
                                      MLoopUV **alluv,
                                      int *_totloop, int *_totpoly)
 {
+	Curve *cu = ob->data;
 	DispList *dl;
-	Curve *cu;
 	MVert *mvert;
 	MPoly *mpoly;
 	MLoop *mloop;
@@ -1311,13 +1311,8 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 	float *data;
 	int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totvlak = 0;
 	int p1, p2, p3, p4, *index;
-	int conv_polys = 0;
-
-	cu = ob->data;
-
-
-	conv_polys |= cu->flag & CU_3D;      /* 2d polys are filled with DL_INDEX3 displists */
-	conv_polys |= ob->type == OB_SURF;   /* surf polys are never filled */
+	const bool conv_polys = ((cu->flag & CU_3D) ||    /* 2d polys are filled with DL_INDEX3 displists */
+	                         (ob->type == OB_SURF));  /* surf polys are never filled */
 
 	/* count */
 	dl = dispbase->first;
