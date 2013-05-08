@@ -3703,18 +3703,13 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 
 /* ********************* set clipping operator ****************** */
 
-static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)
+static void calc_clipping_plane(float clip[6][4], const BoundBox *clipbb)
 {
 	int val;
 
 	for (val = 0; val < 4; val++) {
-
 		normal_tri_v3(clip[val], clipbb->vec[val], clipbb->vec[val == 3 ? 0 : val + 1], clipbb->vec[val + 4]);
-
-		/* TODO - this is just '-dot_v3v3(clip[val], clipbb->vec[val])' isnt it? - sould replace */
-		clip[val][3] = -clip[val][0] * clipbb->vec[val][0] -
-		                clip[val][1] * clipbb->vec[val][1] -
-		                clip[val][2] * clipbb->vec[val][2];
+		clip[val][3] = -dot_v3v3(clip[val], clipbb->vec[val]);
 	}
 }
 
