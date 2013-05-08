@@ -86,16 +86,13 @@ static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, Poin
 	uiItemL(layout, IFACE_(sock->name), 0);
 }
 
-static void node_draw_input_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int linked)
+static void node_draw_input_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
-	if (linked || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, layout, ptr, node_ptr);
-	else
-		sock->typeinfo->draw(C, layout, ptr, node_ptr);
+	sock->typeinfo->draw(C, layout, ptr, node_ptr);
 }
 
-static void node_draw_output_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int UNUSED(linked))
+static void node_draw_output_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
 	node_socket_button_label(C, layout, ptr, node_ptr);
 }
@@ -1518,7 +1515,7 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), Po
 }
 
 /* draw function for file output node sockets, displays only sub-path and format, no value button */
-static void node_draw_input_file_output(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, int UNUSED(linked))
+static void node_draw_input_file_output(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
 	bNodeTree *ntree = ptr->id.data;
 	bNodeSocket *sock = ptr->data;
@@ -2735,6 +2732,11 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 	bNodeSocket *sock = ptr->data;
 	int type = sock->typeinfo->type;
 	/*int subtype = sock->typeinfo->subtype;*/
+	
+	if ((sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
+		node_socket_button_label(C, layout, ptr, node_ptr);
+		return;
+	}
 	
 	switch (type) {
 		case SOCK_FLOAT:

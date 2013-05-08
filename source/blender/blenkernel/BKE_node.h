@@ -131,7 +131,7 @@ typedef struct bNodeSocketType {
 	int type, subtype;
 } bNodeSocketType;
 
-typedef void (*NodeSocketDrawFunction)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr, struct PointerRNA *node_ptr, int linked);
+typedef void (*NodeSocketDrawFunction)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr, struct PointerRNA *node_ptr);
 
 typedef void *(*NodeInitExecFunction)(struct bNodeExecContext *context, struct bNode *node, bNodeInstanceKey key);
 typedef void (*NodeFreeExecFunction)(struct bNode *node, void *nodedata);
