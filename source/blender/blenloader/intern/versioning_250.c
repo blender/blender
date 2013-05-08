@@ -372,9 +372,9 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 					ar->v2d.align = V2D_ALIGN_NO_POS_Y;
 					ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
-					/* for old files with ShapeKey editors open + an action set, clear the action as
-					 * it doesn't make sense in the new system (i.e. violates concept that ShapeKey edit
-					 * only shows ShapeKey-rooted actions only)
+					/* for old files with Shape Key editors open + an action set, clear the action as
+					 * it doesn't make sense in the new system (i.e. violates concept that Shape Key edit
+					 * only shows Shape Key-rooted actions only)
 					 */
 					if (saction->mode == SACTCONT_SHAPEKEY)
 						saction->action = NULL;

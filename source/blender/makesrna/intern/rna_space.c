@@ -935,7 +935,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
 	Object *obact = (scene->basact) ? scene->basact->object : NULL;
 	
-	/* special exceptions for ShapeKey Editor mode */
+	/* special exceptions for Shape Key Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {
 		Key *key = BKE_key_from_object(obact);
 		
@@ -946,7 +946,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 			saction->action = NULL;
 		
 		/* 2)	enable 'show sliders' by default, since one of the main
-		 *		points of the ShapeKey Editor is to provide a one-stop shop
+		 *		points of the Shape Key Editor is to provide a one-stop shop
 		 *		for controlling the shapekeys, whose main control is the value
 		 */
 		saction->flag |= SACTION_SLIDERS;
@@ -2543,7 +2543,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	static EnumPropertyItem mode_items[] = {
 		{SACTCONT_DOPESHEET, "DOPESHEET", ICON_OOPS, "Dope Sheet", "Edit all keyframes in scene"},
 		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Edit keyframes in active object's Object-level action"},
-		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "ShapeKey Editor", "Edit keyframes in active object's Shape Keys action"},
+		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "Shape Key Editor", "Edit keyframes in active object's Shape Keys action"},
 		{SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Edit timings for all Grease Pencil sketches in file"},
 		{SACTCONT_MASK, "MASK", ICON_MOD_MASK, "Mask", "Edit timings for Mask Editor splines"},
 		{0, NULL, 0, NULL, NULL}

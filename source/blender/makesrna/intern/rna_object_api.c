@@ -480,7 +480,7 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_pointer(func, "ob_arm", "Object", "", "Armature object influencing this object or NULL");
 	RNA_def_function_return(func, parm);
 
-	/* Shape key */
+	/* Shape Key */
 	func = RNA_def_function(srna, "shape_key_add", "rna_Object_shape_key_add");
 	RNA_def_function_ui_description(func, "Add shape key to an object");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);

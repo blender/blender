@@ -275,7 +275,7 @@ typedef enum eAnimFilter_Flags {
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED) == 0)
 #define SEL_FCU(fcu) (fcu->flag & FCURVE_SELECTED)
 
-/* ShapeKey mode only */
+/* Shape Key mode only */
 #define EDITABLE_SHAPEKEY(kb) ((kb->flag & KEYBLOCK_LOCKED) == 0)
 #define SEL_SHAPEKEY(kb) (kb->flag & KEYBLOCK_SEL)
 

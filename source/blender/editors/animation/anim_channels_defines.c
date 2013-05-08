@@ -2346,9 +2346,9 @@ static bAnimChannelType ACF_DSSPK =
 	acf_dsspk_setting_ptr                   /* pointer for setting */
 };
 
-/* ShapeKey Entry  ------------------------------------------- */
+/* Shape Key Entry  ------------------------------------------- */
 
-/* name for ShapeKey */
+/* name for Shape Key */
 static void acf_shapekey_name(bAnimListElem *ale, char *name)
 {
 	KeyBlock *kb = (KeyBlock *)ale->data;
@@ -2363,7 +2363,7 @@ static void acf_shapekey_name(bAnimListElem *ale, char *name)
 	}
 }
 
-/* name property for ShapeKey entries */
+/* name property for Shape Key entries */
 static short acf_shapekey_nameprop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
 {
 	KeyBlock *kb = (KeyBlock *)ale->data;
@@ -2817,7 +2817,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_DSLAM;        /* Lamp Channel */
 		animchannelTypeInfo[type++] = &ACF_DSCAM;        /* Camera Channel */
 		animchannelTypeInfo[type++] = &ACF_DSCUR;        /* Curve Channel */
-		animchannelTypeInfo[type++] = &ACF_DSSKEY;       /* ShapeKey Channel */
+		animchannelTypeInfo[type++] = &ACF_DSSKEY;       /* Shape Key Channel */
 		animchannelTypeInfo[type++] = &ACF_DSWOR;        /* World Channel */
 		animchannelTypeInfo[type++] = &ACF_DSNTREE;      /* NodeTree Channel */
 		animchannelTypeInfo[type++] = &ACF_DSPART;       /* Particle Channel */
@@ -2829,7 +2829,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_DSSPK;        /* Speaker Channel */
 		animchannelTypeInfo[type++] = &ACF_DSLINESTYLE;  /* LineStyle Channel */
 		
-		animchannelTypeInfo[type++] = &ACF_SHAPEKEY;     /* ShapeKey */
+		animchannelTypeInfo[type++] = &ACF_SHAPEKEY;     /* Shape Key */
 		
 		animchannelTypeInfo[type++] = &ACF_GPD;          /* Grease Pencil Datablock */
 		animchannelTypeInfo[type++] = &ACF_GPL;          /* Grease Pencil Layer */

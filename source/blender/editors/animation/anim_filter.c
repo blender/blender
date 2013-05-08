@@ -99,7 +99,7 @@
 
 /* ----------- Private Stuff - Action Editor ------------- */
 
-/* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
+/* Get shape key data being edited (for Action Editor -> Shape Key mode) */
 /* Note: there's a similar function in key.c (BKE_key_from_object) */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
@@ -111,7 +111,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
 	if (ob == NULL) 
 		return NULL;
 	
-	/* XXX pinning is not available in 'ShapeKey' mode... */
+	/* XXX pinning is not available in 'Shape Key' mode... */
 	//if (saction->pin) return NULL;
 	
 	/* shapekey data is stored with geometry data */
@@ -148,7 +148,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return 1;
 			
-		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
+		case SACTCONT_SHAPEKEY: /* 'Shape Key Editor' */
 			ac->datatype = ANIMCONT_SHAPEKEY;
 			ac->data = actedit_get_shapekeys(ac);
 			
@@ -1331,7 +1331,7 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 
 
 
-/* Include ShapeKey Data for ShapeKey Editor */
+/* Include Shape Key Data for Shape Key Editor */
 static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Key *key, int filter_mode)
 {
 	size_t items = 0;
@@ -1340,7 +1340,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Ke
 	if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 		KeyBlock *kb;
 		
-		/* loop through the channels adding ShapeKeys as appropriate */
+		/* loop through the channels adding Shape Keys as appropriate */
 		for (kb = key->block.first; kb; kb = kb->next) {
 			/* skip the first one, since that's the non-animatable basis */
 			if (kb == key->block.first) continue;
@@ -2505,7 +2505,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			}
 			break;
 			
-			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
+			case ANIMCONT_SHAPEKEY: /* 'Shape Key Editor' */
 			{
 				/* the check for the Dope Sheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
