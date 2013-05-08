@@ -359,7 +359,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 #endif
 
 template<class Node, class HintObject>
-void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
+static void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
 {
 	assert(hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE);
 	

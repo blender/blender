@@ -129,7 +129,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 }
 
 template<int StackSize>
-int intersect(VBVHTree *obj, Isect *isec)
+static int intersect(VBVHTree *obj, Isect *isec)
 {
 	//TODO renable hint support
 	if (RE_rayobject_isAligned(obj->root)) {
@@ -143,7 +143,7 @@ int intersect(VBVHTree *obj, Isect *isec)
 }
 
 template<class Tree>
-void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(max))
+static void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(max))
 {
 	//TODO renable hint support
 	{
@@ -174,7 +174,7 @@ static void bfree(VBVHTree *tree)
 
 /* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
 template<class Tree, int STACK_SIZE>
-RayObjectAPI make_api()
+static RayObjectAPI make_api()
 {
 	static RayObjectAPI api = 
 	{

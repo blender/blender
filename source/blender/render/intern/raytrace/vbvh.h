@@ -79,7 +79,7 @@ inline static void bvh_node_push_childs(Node *node, Isect *UNUSED(isec), Node **
 
 
 template<class Node>
-int count_childs(Node *parent)
+static int count_childs(Node *parent)
 {
 	int n = 0;
 	for (Node *i = parent->child; i; i = i->sibling) {
@@ -93,7 +93,7 @@ int count_childs(Node *parent)
 
 
 template<class Node>
-void append_sibling(Node *node, Node *sibling)
+static void append_sibling(Node *node, Node *sibling)
 {
 	while (node->sibling)
 		node = node->sibling;
