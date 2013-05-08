@@ -85,6 +85,10 @@
 
 #include "BKE_mask.h"
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
+
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */
 #define USE_SCANFILL_EDGE_WORKAROUND
@@ -568,7 +572,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 	MaskLayer *masklay;
 	unsigned int masklay_index;
 
-	mr_handle->layers_tot = BLI_countlist(&mask->masklayers);
+	mr_handle->layers_tot = (unsigned int)BLI_countlist(&mask->masklayers);
 	mr_handle->layers = MEM_mallocN(sizeof(MaskRasterLayer) * mr_handle->layers_tot, "MaskRasterLayer");
 	BLI_rctf_init_minmax(&mr_handle->bounds);
 
@@ -602,7 +606,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			continue;
 		}
 
-		tot_splines = BLI_countlist(&masklay->splines);
+		tot_splines = (unsigned int)BLI_countlist(&masklay->splines);
 		open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
 
 		BLI_scanfill_begin(&sf_ctx);
@@ -612,11 +616,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			const unsigned int is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 			float (*diff_points)[2];
-			int tot_diff_point;
+			unsigned int tot_diff_point;
 
 			float (*diff_feather_points)[2];
 			float (*diff_feather_points_flip)[2];
-			int tot_diff_feather_points;
+			unsigned int tot_diff_feather_points;
 
 			const unsigned int resol_a = BKE_mask_spline_resolution(spline, width, height) / 4;
 			const unsigned int resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
@@ -676,7 +680,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				if (do_mask_aa == TRUE) {
 					if (do_feather == FALSE) {
 						tot_diff_feather_points = tot_diff_point;
-						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) * tot_diff_feather_points,
+						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) *
+						                                  (size_t)tot_diff_feather_points,
 						                                  __func__);
 						/* add single pixel feather */
 						maskrasterize_spline_differentiate_point_outset(diff_feather_points, diff_points,
@@ -905,9 +910,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		{
 			unsigned int (*face_array)[4], *face;  /* access coords */
 			float        (*face_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
-			int sf_tri_tot;
+			unsigned int sf_tri_tot;
 			rctf bounds;
-			int face_index;
+			unsigned int face_index;
 
 			/* now we have all the splines */
 			face_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_face_coords");
@@ -933,9 +938,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			}
 
 			/* main scan-fill */
-			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES, zvec);
+			sf_tri_tot = (unsigned int)BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES, zvec);
 
-			face_array = MEM_mallocN(sizeof(*face_array) * (sf_tri_tot + tot_feather_quads), "maskrast_face_index");
+			face_array = MEM_mallocN(sizeof(*face_array) * ((size_t)sf_tri_tot + (size_t)tot_feather_quads), "maskrast_face_index");
 			face_index = 0;
 
 			/* faces */

@@ -417,10 +417,10 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 	const short is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH);
 	const short is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
-	int tot_diff_point;
+	unsigned int tot_diff_point;
 	float (*diff_points)[2];
 
-	int tot_feather_point;
+	unsigned int tot_feather_point;
 	float (*feather_points)[2];
 
 	diff_points = BKE_mask_spline_differentiate_with_resolution_ex(spline, &tot_diff_point, resol);
