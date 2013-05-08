@@ -518,15 +518,15 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float co[3
  * BVH builders
  */
 /* Builds a bvh tree.. where nodes are the vertexs of the given mesh */
-BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
 {
-	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_VERTICES);
+	BVHTree *tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_VERTICES);
 
 	/* Not in cache */
 	if (tree == NULL) {
 		int i;
-		int numVerts = mesh->getNumVerts(mesh);
-		MVert *vert = mesh->getVertDataArray(mesh, CD_MVERT);
+		int numVerts = dm->getNumVerts(dm);
+		MVert *vert = dm->getVertDataArray(dm, CD_MVERT);
 
 		if (vert != NULL) {
 			tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
@@ -540,7 +540,7 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
-				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_VERTICES);
+				bvhcache_insert(&dm->bvhCache, tree, BVHTREE_FROM_VERTICES);
 			}
 		}
 	}
@@ -554,16 +554,15 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	data->tree = tree;
 
 	if (data->tree) {
-		data->cached = TRUE;
+		data->cached = true;
 
 		/* a NULL nearest callback works fine
 		 * remeber the min distance to point is the same as the min distance to BV of point */
 		data->nearest_callback = NULL;
 		data->raycast_callback = NULL;
 
-		data->mesh = mesh;
-		data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
-		data->face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
+		data->vert = dm->getVertDataArray(dm, CD_MVERT);
+		data->face = dm->getTessFaceDataArray(dm, CD_MFACE);
 
 		data->sphere_radius = epsilon;
 	}
@@ -571,10 +570,10 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	return data->tree;
 }
 
-/* Builds a bvh tree.. where nodes are the faces of the given mesh. */
-BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+/* Builds a bvh tree.. where nodes are the faces of the given dm. */
+BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
 {
-	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_FACES);
+	BVHTree *tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_FACES);
 	BMEditMesh *em = data->em_evil;
 
 	/* Not in cache */
@@ -591,8 +590,8 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			numFaces = em->tottri;
 		}
 		else {
-			numFaces = mesh->getNumTessFaces(mesh);
-			BLI_assert(!(numFaces == 0 && mesh->getNumPolys(mesh) != 0));
+			numFaces = dm->getNumTessFaces(dm);
+			BLI_assert(!(numFaces == 0 && dm->getNumPolys(dm) != 0));
 		}
 
 		if (numFaces != 0) {
@@ -663,8 +662,8 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 					}
 				}
 				else {
-					MVert *vert = mesh->getVertDataArray(mesh, CD_MVERT);
-					MFace *face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
+					MVert *vert = dm->getVertDataArray(dm, CD_MVERT);
+					MFace *face = dm->getTessFaceDataArray(dm, CD_MFACE);
 
 					if (vert != NULL && face != NULL) {
 						for (i = 0; i < numFaces; i++) {
@@ -683,7 +682,7 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
-				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_FACES);
+				bvhcache_insert(&dm->bvhCache, tree, BVHTREE_FROM_FACES);
 			}
 		}
 	}
@@ -698,7 +697,7 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	data->em_evil = em;
 
 	if (data->tree) {
-		data->cached = TRUE;
+		data->cached = true;
 
 		if (em) {
 			data->nearest_callback = editmesh_faces_nearest_point;
@@ -708,9 +707,8 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			data->nearest_callback = mesh_faces_nearest_point;
 			data->raycast_callback = mesh_faces_spherecast;
 
-			data->mesh = mesh;
-			data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
-			data->face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
+			data->vert = dm->getVertDataArray(dm, CD_MVERT);
+			data->face = dm->getTessFaceDataArray(dm, CD_MFACE);
 		}
 
 		data->sphere_radius = epsilon;
@@ -719,17 +717,17 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 }
 
-/* Builds a bvh tree.. where nodes are the faces of the given mesh. */
-BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+/* Builds a bvh tree.. where nodes are the faces of the given dm. */
+BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
 {
-	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_EDGES);
+	BVHTree *tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_EDGES);
 
 	/* Not in cache */
 	if (tree == NULL) {
 		int i;
-		int numEdges = mesh->getNumEdges(mesh);
-		MVert *vert = mesh->getVertDataArray(mesh, CD_MVERT);
-		MEdge *edge = mesh->getEdgeDataArray(mesh, CD_MEDGE);
+		int numEdges = dm->getNumEdges(dm);
+		MVert *vert = dm->getVertDataArray(dm, CD_MVERT);
+		MEdge *edge = dm->getEdgeDataArray(dm, CD_MEDGE);
 
 		if (vert != NULL && edge != NULL) {
 			/* Create a bvh-tree of the given target */
@@ -746,7 +744,7 @@ BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
-				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_EDGES);
+				bvhcache_insert(&dm->bvhCache, tree, BVHTREE_FROM_EDGES);
 			}
 		}
 	}
@@ -760,14 +758,13 @@ BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	data->tree = tree;
 
 	if (data->tree) {
-		data->cached = TRUE;
+		data->cached = true;
 
 		data->nearest_callback = mesh_edges_nearest_point;
 		data->raycast_callback = NULL;
 
-		data->mesh = mesh;
-		data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
-		data->edge = mesh->getEdgeDataArray(mesh, CD_MEDGE);
+		data->vert = dm->getVertDataArray(dm, CD_MVERT);
+		data->edge = dm->getEdgeDataArray(dm, CD_MEDGE);
 
 		data->sphere_radius = epsilon;
 	}

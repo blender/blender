@@ -51,9 +51,6 @@ typedef struct BVHTreeFromMesh {
 	BVHTree_NearestPointCallback nearest_callback;
 	BVHTree_RayCastCallback raycast_callback;
 
-	/* Mesh represented on this BVHTree */
-	struct DerivedMesh *mesh;
-
 	/* Vertex array, so that callbacks have instante access to data */
 	struct MVert *vert;
 	struct MEdge *edge;     /* only used for BVHTreeFromMeshEdges */
@@ -63,8 +60,8 @@ typedef struct BVHTreeFromMesh {
 	float sphere_radius;
 
 	/* Private data */
-	int cached;
 	void *em_evil;  /* var only for snapping */
+	bool cached;
 
 } BVHTreeFromMesh;
 
