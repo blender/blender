@@ -20,7 +20,6 @@ set(SRC
 	bssrdf.cpp
 	camera.cpp
 	film.cpp
-	# film_response.cpp (code unused)
 	graph.cpp
 	image.cpp
 	integrator.cpp
@@ -48,7 +47,6 @@ set(SRC_HEADERS
 	bssrdf.h
 	camera.h
 	film.h
-	# film_response.h (code unused)
 	graph.h
 	image.h
 	integrator.h
