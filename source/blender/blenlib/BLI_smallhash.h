@@ -43,7 +43,7 @@ typedef struct {
 } SmallHashEntry;
 
 /*how much stack space to use before dynamically allocating memory*/
-#define SMSTACKSIZE 521
+#define SMSTACKSIZE 64
 typedef struct SmallHash {
 	SmallHashEntry *table;
 	SmallHashEntry _stacktable[SMSTACKSIZE];
