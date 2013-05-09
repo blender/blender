@@ -2274,11 +2274,13 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 		return OPERATOR_CANCELLED;
 	}
 
-	object = get_orientation_object(C);
-	if (!object) {
-		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
+	if (!scale_solution) {
+		object = get_orientation_object(C);
+		if (!object) {
+			BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
-		return OPERATOR_CANCELLED;
+			return OPERATOR_CANCELLED;
+		}
 	}
 
 	BKE_tracking_get_camera_object_matrix(scene, camera, mat);
