@@ -178,13 +178,13 @@ bool Pass::contains(const vector<Pass>& passes, PassType type)
 
 static float filter_func_box(float v, float width)
 {
-	return (float)1;
+	return 1.0f;
 }
 
 static float filter_func_gaussian(float v, float width)
 {
-	v *= (float)2/width;
-	return (float)expf((float)-2*v*v);
+	v *= 2.0f/width;
+	return expf(-2.0f*v*v);
 }
 
 static vector<float> filter_table(FilterType type, float width)
