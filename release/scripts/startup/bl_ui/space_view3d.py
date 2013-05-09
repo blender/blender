@@ -1363,34 +1363,34 @@ class VIEW3D_MT_hide_mask(Menu):
     def draw(self, context):
         layout = self.layout
 
-        op = layout.operator("paint.hide_show", text="Show All")
-        op.action = 'SHOW'
-        op.area = 'ALL'
+        props = layout.operator("paint.hide_show", text="Show All")
+        props.action = 'SHOW'
+        props.area = 'ALL'
 
-        op = layout.operator("paint.hide_show", text="Hide Bounding Box")
-        op.action = 'HIDE'
-        op.area = 'INSIDE'
+        props = layout.operator("paint.hide_show", text="Hide Bounding Box")
+        props.action = 'HIDE'
+        props.area = 'INSIDE'
 
-        op = layout.operator("paint.hide_show", text="Show Bounding Box")
-        op.action = 'SHOW'
-        op.area = 'INSIDE'
+        props = layout.operator("paint.hide_show", text="Show Bounding Box")
+        props.action = 'SHOW'
+        props.area = 'INSIDE'
 
-        op = layout.operator("paint.hide_show", text="Hide Masked")
-        op.area = 'MASKED'
-        op.action = 'HIDE'
+        props = layout.operator("paint.hide_show", text="Hide Masked")
+        props.area = 'MASKED'
+        props.action = 'HIDE'
 
         layout.separator()
 
-        op = layout.operator("paint.mask_flood_fill", text="Invert Mask")
-        op.mode = 'INVERT'
+        props = layout.operator("paint.mask_flood_fill", text="Invert Mask")
+        props.mode = 'INVERT'
 
-        op = layout.operator("paint.mask_flood_fill", text="Fill Mask")
-        op.mode = 'VALUE'
-        op.value = 1
+        props = layout.operator("paint.mask_flood_fill", text="Fill Mask")
+        props.mode = 'VALUE'
+        props.value = 1
 
-        op = layout.operator("paint.mask_flood_fill", text="Clear Mask")
-        op.mode = 'VALUE'
-        op.value = 0
+        props = layout.operator("paint.mask_flood_fill", text="Clear Mask")
+        props.mode = 'VALUE'
+        props.value = 0
 
 
 # ********** Particle menu **********
