@@ -165,6 +165,7 @@ void CLIP_OT_set_plane(struct wmOperatorType *ot);
 void CLIP_OT_set_axis(struct wmOperatorType *ot);
 void CLIP_OT_set_scale(struct wmOperatorType *ot);
 void CLIP_OT_set_solution_scale(struct wmOperatorType *ot);
+void CLIP_OT_apply_solution_scale(struct wmOperatorType *ot);
 
 void CLIP_OT_set_center_principal(struct wmOperatorType *ot);
 

@@ -399,7 +399,9 @@ class CLIP_PT_tools_orientation(CLIP_PT_reconstruction_panel, Panel):
         layout.separator()
 
         col = layout.column()
-        col.operator("clip.set_scale")
+        row = col.row(align=True);
+        row.operator("clip.set_scale")
+        row.operator("clip.apply_solution_scale", text="Apply Scale")
         col.prop(settings, "distance")
 
 

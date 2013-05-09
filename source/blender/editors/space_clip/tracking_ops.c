@@ -2253,7 +2253,7 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 
 /********************** set scale operator *********************/
 
-static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
+static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool apply_scale)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -2274,7 +2274,7 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!scale_solution) {
+	if (!scale_solution && !apply_scale) {
 		object = get_orientation_object(C);
 		if (!object) {
 			BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
@@ -2300,32 +2300,52 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 	if (len_v3(vec[0]) > 1e-5f) {
 		scale = dist / len_v3(vec[0]);
 
-		if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-			mul_v3_fl(object->size, scale);
-			mul_v3_fl(object->loc, scale);
-		}
-		else if (!scale_solution) {
-			Object *solver_camera = object_solver_camera(scene, object);
+		if (apply_scale) {
+			/* Apply scale on reconstructed scene itself */
+			MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
+			MovieReconstructedCamera *reconstructed_cameras;
+			int i;
 
-			object->size[0] = object->size[1] = object->size[2] = 1.0f / scale;
-
-			if (solver_camera) {
-				object->size[0] /= solver_camera->size[0];
-				object->size[1] /= solver_camera->size[1];
-				object->size[2] /= solver_camera->size[2];
+			for (track = tracksbase->first; track; track = track->next) {
+				mul_v3_fl(track->bundle_pos, scale);
 			}
+
+			reconstructed_cameras = reconstruction->cameras;
+			for (i = 0; i < reconstruction->camnr; i++) {
+				mul_v3_fl(reconstructed_cameras[i].mat[3], scale);
+			}
+
+			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
+			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 		}
 		else {
-			tracking_object->scale = scale;
+			if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+				mul_v3_fl(object->size, scale);
+				mul_v3_fl(object->loc, scale);
+			}
+			else if (!scale_solution) {
+				Object *solver_camera = object_solver_camera(scene, object);
+
+				object->size[0] = object->size[1] = object->size[2] = 1.0f / scale;
+
+				if (solver_camera) {
+					object->size[0] /= solver_camera->size[0];
+					object->size[1] /= solver_camera->size[1];
+					object->size[2] /= solver_camera->size[2];
+				}
+			}
+			else {
+				tracking_object->scale = scale;
+			}
+
+			DAG_id_tag_update(&clip->id, 0);
+
+			if (object)
+				DAG_id_tag_update(&object->id, OB_RECALC_OB);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
+			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 		}
-
-		DAG_id_tag_update(&clip->id, 0);
-
-		if (object)
-			DAG_id_tag_update(&object->id, OB_RECALC_OB);
-
-		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
-		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	}
 
 	return OPERATOR_FINISHED;
@@ -2333,7 +2353,7 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 
 static int set_scale_exec(bContext *C, wmOperator *op)
 {
-	return do_set_scale(C, op, 0);
+	return do_set_scale(C, op, false, false);
 }
 
 static int set_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -2389,7 +2409,7 @@ static int set_solution_scale_poll(bContext *C)
 
 static int set_solution_scale_exec(bContext *C, wmOperator *op)
 {
-	return do_set_scale(C, op, 1);
+	return do_set_scale(C, op, true, false);
 }
 
 static int set_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -2414,6 +2434,62 @@ void CLIP_OT_set_solution_scale(wmOperatorType *ot)
 	ot->exec = set_solution_scale_exec;
 	ot->invoke = set_solution_scale_invoke;
 	ot->poll = set_solution_scale_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
+	              "Distance", "Distance between selected tracks", -100.0f, 100.0f);
+}
+
+/********************** apply solution scale operator *********************/
+
+static int apply_solution_scale_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc) {
+		MovieClip *clip = ED_space_clip_get_clip(sc);
+
+		if (clip) {
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+
+			return tracking_object->flag & TRACKING_OBJECT_CAMERA;
+		}
+	}
+
+	return FALSE;
+}
+
+static int apply_solution_scale_exec(bContext *C, wmOperator *op)
+{
+	return do_set_scale(C, op, false, true);
+}
+
+static int apply_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+
+	if (!RNA_struct_property_is_set(op->ptr, "distance"))
+		RNA_float_set(op->ptr, "distance", clip->tracking.settings.dist);
+
+	return apply_solution_scale_exec(C, op);
+}
+
+void CLIP_OT_apply_solution_scale(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Apply Solution Scale";
+	ot->description = "Apply scale on solution itself to make distance between selected tracks equals to desired";
+	ot->idname = "CLIP_OT_apply_solution_scale";
+
+	/* api callbacks */
+	ot->exec = apply_solution_scale_exec;
+	ot->invoke = apply_solution_scale_invoke;
+	ot->poll = apply_solution_scale_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
