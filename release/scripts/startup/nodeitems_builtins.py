@@ -78,7 +78,7 @@ def node_group_items(context):
         if contains_group(group, ntree):
             continue
 
-        yield NodeItem(node_tree_group_type[group.bl_idname], group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
+        yield NodeItem(node_tree_group_type[group.bl_idname], group.name, { "node_tree" : "bpy.data.node_groups[%r]" % group.name })
 
 
 # All standard node categories currently used in nodes.
