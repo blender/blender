@@ -26,6 +26,10 @@
 #define CCL_NAMESPACE_BEGIN
 #define CCL_NAMESPACE_END
 
+#ifdef __KERNEL_OPENCL_AMD__
+#define __CL_NO_FLOAT3__
+#endif
+
 #ifdef __CL_NO_FLOAT3__
 #define float3 float4
 #endif

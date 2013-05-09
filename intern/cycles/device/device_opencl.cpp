@@ -40,6 +40,26 @@ CCL_NAMESPACE_BEGIN
 
 #define CL_MEM_PTR(p) ((cl_mem)(unsigned long)(p))
 
+static cl_device_type opencl_device_type()
+{
+	char *device = getenv("CYCLES_OPENCL_TEST");
+
+	if(device) {
+		if(strcmp(device, "ALL") == 0)
+			return CL_DEVICE_TYPE_ALL;
+		else if(strcmp(device, "DEFAULT") == 0)
+			return CL_DEVICE_TYPE_DEFAULT;
+		else if(strcmp(device, "CPU") == 0)
+			return CL_DEVICE_TYPE_CPU;
+		else if(strcmp(device, "GPU") == 0)
+			return CL_DEVICE_TYPE_GPU;
+		else if(strcmp(device, "ACCELERATOR") == 0)
+			return CL_DEVICE_TYPE_ACCELERATOR;
+	}
+
+	return CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+}
+
 class OpenCLDevice : public Device
 {
 public:
@@ -181,7 +201,7 @@ public:
 		vector<cl_device_id> device_ids;
 		cl_uint num_devices;
 
-		if(opencl_error(clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices)))
+		if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), 0, NULL, &num_devices)))
 			return;
 
 		if(info.num > num_devices) {
@@ -194,7 +214,7 @@ public:
 
 		device_ids.resize(num_devices);
 		
-		if(opencl_error(clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL)))
+		if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL)))
 			return;
 
 		cdDevice = device_ids[info.num];
@@ -306,10 +326,10 @@ public:
 			build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
 
 		else if(platform_name == "Apple")
-			build_options += "-D__CL_NO_FLOAT3__ -D__KERNEL_OPENCL_APPLE__ ";
+			build_options += "-D__KERNEL_OPENCL_APPLE__ -Wno-missing-prototypes";
 
 		else if(platform_name == "AMD Accelerated Parallel Processing")
-			build_options += "-D__CL_NO_FLOAT3__ -D__KERNEL_OPENCL_AMD__ ";
+			build_options += "-D__KERNEL_OPENCL_AMD__ ";
 
 		return build_options;
 	}
@@ -754,12 +774,12 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	if(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS)
 		return;
 
-	if(clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
+	if(clGetDeviceIDs(platform_ids[0], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 		return;
 	
 	device_ids.resize(num_devices);
 
-	if(clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL) != CL_SUCCESS)
+	if(clGetDeviceIDs(platform_ids[0], opencl_device_type(), num_devices, &device_ids[0], NULL) != CL_SUCCESS)
 		return;
 	
 	/* add devices */

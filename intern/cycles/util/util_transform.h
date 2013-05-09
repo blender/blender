@@ -109,19 +109,6 @@ __device_inline Transform transform_transpose(const Transform a)
 	return t;
 }
 
-__device_inline Transform operator*(const Transform a, const Transform b)
-{
-	Transform c = transform_transpose(b);
-	Transform t;
-
-	t.x = make_float4(dot(a.x, c.x), dot(a.x, c.y), dot(a.x, c.z), dot(a.x, c.w));
-	t.y = make_float4(dot(a.y, c.x), dot(a.y, c.y), dot(a.y, c.z), dot(a.y, c.w));
-	t.z = make_float4(dot(a.z, c.x), dot(a.z, c.y), dot(a.z, c.z), dot(a.z, c.w));
-	t.w = make_float4(dot(a.w, c.x), dot(a.w, c.y), dot(a.w, c.z), dot(a.w, c.w));
-
-	return t;
-}
-
 __device_inline Transform make_transform(float a, float b, float c, float d,
 									float e, float f, float g, float h,
 									float i, float j, float k, float l,
@@ -138,6 +125,19 @@ __device_inline Transform make_transform(float a, float b, float c, float d,
 }
 
 #ifndef __KERNEL_GPU__
+
+__device_inline Transform operator*(const Transform a, const Transform b)
+{
+	Transform c = transform_transpose(b);
+	Transform t;
+
+	t.x = make_float4(dot(a.x, c.x), dot(a.x, c.y), dot(a.x, c.z), dot(a.x, c.w));
+	t.y = make_float4(dot(a.y, c.x), dot(a.y, c.y), dot(a.y, c.z), dot(a.y, c.w));
+	t.z = make_float4(dot(a.z, c.x), dot(a.z, c.y), dot(a.z, c.z), dot(a.z, c.w));
+	t.w = make_float4(dot(a.w, c.x), dot(a.w, c.y), dot(a.w, c.z), dot(a.w, c.w));
+
+	return t;
+}
 
 __device_inline void print_transform(const char *label, const Transform& t)
 {

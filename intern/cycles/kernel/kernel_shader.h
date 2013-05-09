@@ -262,7 +262,7 @@ __device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData 
 
 __device_noinline void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
-	int shader, int object, int prim, float u, float v, float t, float time, int segment = ~0)
+	int shader, int object, int prim, float u, float v, float t, float time, int segment)
 {
 	/* vectors */
 	sd->P = P;
@@ -393,7 +393,7 @@ __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 
 	/* watch out: no instance transform currently */
 
-	shader_setup_from_sample(kg, sd, P, Ng, I, shader, object, prim, u, v, 0.0f, TIME_INVALID);
+	shader_setup_from_sample(kg, sd, P, Ng, I, shader, object, prim, u, v, 0.0f, TIME_INVALID, ~0);
 }
 
 /* ShaderData setup from ray into background */
@@ -769,8 +769,9 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 #ifdef __SVM__
 		svm_eval_nodes(kg, sd, SHADER_TYPE_SURFACE, randb, path_flag);
 #else
-		bsdf_diffuse_setup(&sd->closure);
 		sd->closure.weight = make_float3(0.8f, 0.8f, 0.8f);
+		sd->closure.N = sd->N;
+		sd->flag |= bsdf_diffuse_setup(&sd->closure);
 #endif
 	}
 }

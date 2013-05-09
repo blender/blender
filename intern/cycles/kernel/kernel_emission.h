@@ -52,7 +52,7 @@ __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time, ls->prim);
 		else
 #endif
-			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time);
+			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time, ~0);
 
 		ls->Ng = sd.Ng;
 
