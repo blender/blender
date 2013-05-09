@@ -117,6 +117,7 @@ class NODE_MT_add(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_DEFAULT'
         op = layout.operator("node.add_search", text="Search ...")
+        op.use_transform = True
 
         # actual node submenus are added by draw functions from node categories
 

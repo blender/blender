@@ -114,6 +114,19 @@ def register_node_categories(identifier, cat_list):
     _node_categories[identifier] = (cat_list, draw_add_menu, menu_types, panel_types)
 
 
+def node_categories_iter(context):
+    for cat_type in _node_categories.values():
+        for cat in cat_type[0]:
+            if cat.poll and cat.poll(context):
+                yield cat
+
+
+def node_items_iter(context):
+    for cat in node_categories_iter(context):
+        for item in cat.items(context):
+            yield item
+
+
 def unregister_node_cat_types(cats):
     bpy.types.NODE_MT_add.remove(cats[1])
     for mt in cats[2]:
