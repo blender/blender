@@ -40,6 +40,22 @@
 #include "BKE_bmesh.h"
 #include "BKE_editmesh.h"
 
+/* Static function for alloc */
+BLI_INLINE BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
+                                             BMesh *bm, BMVert **vtable, BMEdge **etable)
+{
+	BMVert **verts = BLI_array_alloca(verts, mp->totloop);
+	BMEdge **edges = BLI_array_alloca(edges, mp->totloop);
+	int j;
+
+	for (j = 0; j < mp->totloop; j++, ml++) {
+		verts[j] = vtable[ml->v];
+		edges[j] = etable[ml->e];
+	}
+
+	return BM_face_create(bm, verts, edges, mp->totloop, BM_CREATE_SKIP_CD);
+}
+
 /**
  * The main function for copying DerivedMesh data into BMesh.
  *
@@ -50,15 +66,13 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	MVert *mv, *mvert;
 	MEdge *me, *medge;
 	MPoly /* *mpoly, */ /* UNUSED */ *mp;
-	MLoop *mloop, *ml;
-	BMVert *v, **vtable, **verts = NULL;
-	BMEdge *e, **etable, **edges = NULL;
+	MLoop *mloop;
+	BMVert *v, **vtable;
+	BMEdge *e, **etable;
 	float (*face_normals)[3];
 	BMFace *f;
 	BMIter liter;
-	BLI_array_declare(verts);
-	BLI_array_declare(edges);
-	int i, j, k, totvert, totedge /* , totface */ /* UNUSED */ ;
+	int i, k, totvert, totedge /* , totface */ /* UNUSED */ ;
 	bool is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
 	bool is_cddm = (dm->type == DM_TYPE_CDDM);  /* duplicate the arrays for non cddm */
 	char has_orig_hflag = 0;
@@ -148,20 +162,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l;
 
-		BLI_array_empty(verts);
-		BLI_array_empty(edges);
-
-		BLI_array_grow_items(verts, mp->totloop);
-		BLI_array_grow_items(edges, mp->totloop);
-
-		ml = mloop + mp->loopstart;
-		for (j = 0; j < mp->totloop; j++, ml++) {
-
-			verts[j] = vtable[ml->v];
-			edges[j] = etable[ml->e];
-		}
-
-		f = BM_face_create(bm, verts, edges, mp->totloop, BM_CREATE_SKIP_CD);
+		f = bm_face_create_from_mpoly(mp, mloop + mp->loopstart,
+		                              bm, vtable, etable);
 
 		if (UNLIKELY(f == NULL)) {
 			continue;
@@ -195,9 +197,6 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 	MEM_freeN(vtable);
 	MEM_freeN(etable);
-
-	BLI_array_free(verts);
-	BLI_array_free(edges);
 }
 
 /* converts a cddm to a BMEditMesh.  if existing is non-NULL, the

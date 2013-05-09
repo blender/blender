@@ -163,6 +163,23 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 	return cd_flag;
 }
 
+/* Static function for alloc (duplicate in modifiers_bmesh.c) */
+BLI_INLINE BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
+                                             BMesh *bm, BMVert **vtable, BMEdge **etable)
+{
+	BMVert **verts = BLI_array_alloca(verts, mp->totloop);
+	BMEdge **edges = BLI_array_alloca(edges, mp->totloop);
+	int j;
+
+	for (j = 0; j < mp->totloop; j++, ml++) {
+		verts[j] = vtable[ml->v];
+		edges[j] = etable[ml->e];
+	}
+
+	return BM_face_create(bm, verts, edges, mp->totloop, BM_CREATE_SKIP_CD);
+}
+
+
 /**
  * \brief Mesh -> BMesh
  *
@@ -171,15 +188,13 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 {
 	MVert *mvert;
-	BLI_array_declare(verts);
 	MEdge *medge;
-	MLoop *ml;
-	MPoly *mpoly;
+	MLoop *mloop;
+	MPoly *mp;
 	KeyBlock *actkey, *block;
-	BMVert *v, **vt = NULL, **verts = NULL;
-	BMEdge *e, **fedges = NULL, **et = NULL;
+	BMVert *v, **vtable = NULL;
+	BMEdge *e, **etable = NULL;
 	BMFace *f;
-	BLI_array_declare(fedges);
 	float (*keyco)[3] = NULL;
 	int *keyi;
 	int totuv, i, j;
@@ -210,7 +225,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 		return; /* sanity check */
 	}
 
-	vt = MEM_mallocN(sizeof(void **) * me->totvert, "mesh to bmesh vtable");
+	vtable = MEM_mallocN(sizeof(void **) * me->totvert, "mesh to bmesh vtable");
 
 	CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -275,9 +290,8 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 	cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
+		v = vtable[i] = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(v, i); /* set_ok */
-		vt[i] = v;
 
 		/* transfer flag */
 		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag & ~SELECT);
@@ -315,17 +329,16 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 	bm->elem_index_dirty &= ~BM_VERT; /* added in order, clear dirty flag */
 
 	if (!me->totedge) {
-		MEM_freeN(vt);
+		MEM_freeN(vtable);
 		return;
 	}
 
-	et = MEM_mallocN(sizeof(void **) * me->totedge, "mesh to bmesh etable");
+	etable = MEM_mallocN(sizeof(void **) * me->totedge, "mesh to bmesh etable");
 
 	medge = me->medge;
 	for (i = 0; i < me->totedge; i++, medge++) {
-		e = BM_edge_create(bm, vt[medge->v1], vt[medge->v2], NULL, BM_CREATE_SKIP_CD);
+		e = etable[i] = BM_edge_create(bm, vtable[medge->v1], vtable[medge->v2], NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(e, i); /* set_ok */
-		et[i] = e;
 
 		/* transfer flags */
 		e->head.hflag = BM_edge_flag_from_mflag(medge->flag & ~SELECT);
@@ -345,45 +358,14 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 
 	bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
 
-	mpoly = me->mpoly;
-	for (i = 0; i < me->totpoly; i++, mpoly++) {
+	mloop = me->mloop;
+	mp = me->mpoly;
+	for (i = 0; i < me->totpoly; i++, mp++) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
 
-		BLI_array_empty(fedges);
-		BLI_array_empty(verts);
-
-		BLI_array_grow_items(fedges, mpoly->totloop);
-		BLI_array_grow_items(verts, mpoly->totloop);
-
-		for (j = 0; j < mpoly->totloop; j++) {
-			ml = &me->mloop[mpoly->loopstart + j];
-			v = vt[ml->v];
-			e = et[ml->e];
-
-			fedges[j] = e;
-			verts[j] = v;
-		}
-
-		/* not sure what this block is supposed to do,
-		 * but its unused. so commenting - campbell */
-#if 0
-		{
-			BMVert *v1, *v2;
-			v1 = vt[me->mloop[mpoly->loopstart].v];
-			v2 = vt[me->mloop[mpoly->loopstart + 1].v];
-
-			if (v1 == fedges[0]->v1) {
-				v2 = fedges[0]->v2;
-			}
-			else {
-				v1 = fedges[0]->v2;
-				v2 = fedges[0]->v1;
-			}
-		}
-#endif
-
-		f = BM_face_create(bm, verts, fedges, mpoly->totloop, BM_CREATE_SKIP_CD);
+		f = bm_face_create_from_mpoly(mp, mloop + mp->loopstart,
+		                              bm, vtable, etable);
 
 		if (UNLIKELY(f == NULL)) {
 			printf("%s: Warning! Bad face in mesh"
@@ -396,17 +378,17 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
-		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~ME_FACE_SEL);
+		f->head.hflag = BM_face_flag_from_mflag(mp->flag & ~ME_FACE_SEL);
 
 		/* this is necessary for selection counts to work properly */
-		if (mpoly->flag & ME_FACE_SEL) {
+		if (mp->flag & ME_FACE_SEL) {
 			BM_face_select_set(bm, f, true);
 		}
 
-		f->mat_nr = mpoly->mat_nr;
+		f->mat_nr = mp->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
 
-		j = mpoly->loopstart;
+		j = mp->loopstart;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			/* Save index of correspsonding MLoop */
@@ -462,11 +444,8 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 		}
 	}
 
-	BLI_array_free(fedges);
-	BLI_array_free(verts);
-
-	MEM_freeN(vt);
-	MEM_freeN(et);
+	MEM_freeN(vtable);
+	MEM_freeN(etable);
 }
 
 
