@@ -64,6 +64,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
 #include "clip_intern.h"  /* own include */
 
 /* Panels */
@@ -496,6 +499,8 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 	uiLayout *col;
 	char str[1024];
 	int width, height, framenr;
+	ImBuf *ibuf;
+	size_t ofs = 0;
 
 	if (!ptr->data)
 		return;
@@ -519,14 +524,40 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 
 	col = uiLayoutColumn(layout, FALSE);
 
-	/* Display frame dimensions. */
+	ibuf = BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, MOVIECLIP_CACHE_SKIP);
+
+	/* Display frame dimensions, channels number and byffer type. */
 	BKE_movieclip_get_size(clip, user, &width, &height);
-	BLI_snprintf(str, sizeof(str), IFACE_("Size: %dx%d"), width, height);
+	ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_("Size %d x %d"), width, height);
+
+	if (ibuf) {
+		if (ibuf->rect_float) {
+			if (ibuf->channels != 4)
+				ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_(", %d float channel(s)"), ibuf->channels);
+			else if (ibuf->planes == R_IMF_PLANES_RGBA)
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGBA float"), sizeof(str) - ofs);
+			else
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB float"), sizeof(str) - ofs);
+		}
+		else {
+			if (ibuf->planes == R_IMF_PLANES_RGBA)
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGBA byte"), sizeof(str) - ofs);
+			else
+				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB byte"), sizeof(str) - ofs);
+		}
+	}
+	else {
+		ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", failed to load"), sizeof(str) - ofs);
+	}
+
 	uiItemL(col, str, ICON_NONE);
 
 	/* Display current frame number. */
-	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr) + clip->frame_offset;
-	BLI_snprintf(str, sizeof(str), IFACE_("Frame: %d"), framenr);
+	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr) ;
+	if (framenr <= clip->len)
+		BLI_snprintf(str, sizeof(str), IFACE_("Frame: %d / %d"), framenr, clip->len);
+	else
+		BLI_snprintf(str, sizeof(str), IFACE_("Frame: - / %d"), clip->len);
 	uiItemL(col, str, ICON_NONE);
 
 	/* Display current file name if it's a sequence clip. */
@@ -540,4 +571,6 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 		BLI_snprintf(str, sizeof(str), IFACE_("File: %s"), file);
 		uiItemL(col, str, ICON_NONE);
 	}
+
+	IMB_freeImBuf(ibuf);
 }

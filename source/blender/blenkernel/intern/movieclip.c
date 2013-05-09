@@ -299,7 +299,6 @@ static void movieclip_calc_length(MovieClip *clip)
 		}
 	}
 	else if (clip->source == MCLIP_SRC_SEQUENCE) {
-		int framenr = 1;
 		unsigned short numlen;
 		char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
@@ -307,18 +306,17 @@ static void movieclip_calc_length(MovieClip *clip)
 
 		if (numlen == 0) {
 			/* there's no number group in file name, assume it's single framed sequence */
-			clip->len = framenr + 1;
+			clip->len = 1;
 		}
 		else {
+			clip->len = 0;
 			for (;;) {
-				get_sequence_fname(clip, framenr, name);
+				get_sequence_fname(clip, clip->len + clip->start_frame, name);
 
-				if (!BLI_exists(name)) {
-					clip->len = framenr;
+				if (BLI_exists(name))
+					clip->len++;
+				else
 					break;
-				}
-
-				framenr++;
 			}
 		}
 	}
