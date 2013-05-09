@@ -866,10 +866,10 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	BMEditSelection *ese;
 	BMIter iter, liter;
 	int i, j;
-	BMAllocTemplate allocsize = {bm_old->totvert,
-	                             bm_old->totedge,
-	                             bm_old->totloop,
-	                             bm_old->totface};
+	const BMAllocTemplate allocsize = {bm_old->totvert,
+	                                   bm_old->totedge,
+	                                   bm_old->totloop,
+	                                   bm_old->totface};
 
 	/* allocate a bmesh */
 	bm_new = BM_mesh_create(&allocsize);

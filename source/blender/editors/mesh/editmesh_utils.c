@@ -639,11 +639,16 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	UndoMesh *um = umv;
 	BMesh *bm;
 
+	const BMAllocTemplate allocsize = {um->me.totvert,
+	                                   um->me.totedge,
+	                                   um->me.totloop,
+	                                   um->me.totpoly};
+
 	ob->shapenr = em->bm->shapenr = um->shapenr;
 
 	EDBM_mesh_free(em);
 
-	bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&allocsize);
 
 	BM_mesh_bm_from_me(bm, &um->me, false, ob->shapenr);
 

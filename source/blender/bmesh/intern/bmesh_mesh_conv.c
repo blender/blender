@@ -164,8 +164,8 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 }
 
 /* Static function for alloc (duplicate in modifiers_bmesh.c) */
-BLI_INLINE BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
-                                             BMesh *bm, BMVert **vtable, BMEdge **etable)
+static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
+                                         BMesh *bm, BMVert **vtable, BMEdge **etable)
 {
 	BMVert **verts = BLI_array_alloca(verts, mp->totloop);
 	BMEdge **edges = BLI_array_alloca(edges, mp->totloop);

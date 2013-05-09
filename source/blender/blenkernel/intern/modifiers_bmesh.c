@@ -41,8 +41,8 @@
 #include "BKE_editmesh.h"
 
 /* Static function for alloc */
-BLI_INLINE BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
-                                             BMesh *bm, BMVert **vtable, BMEdge **etable)
+static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
+                                         BMesh *bm, BMVert **vtable, BMEdge **etable)
 {
 	BMVert **verts = BLI_array_alloca(verts, mp->totloop);
 	BMEdge **edges = BLI_array_alloca(edges, mp->totloop);
@@ -71,8 +71,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	BMEdge *e, **etable;
 	float (*face_normals)[3];
 	BMFace *f;
-	BMIter liter;
-	int i, k, totvert, totedge /* , totface */ /* UNUSED */ ;
+	int i, j, totvert, totedge /* , totface */ /* UNUSED */ ;
 	bool is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
 	bool is_cddm = (dm->type == DM_TYPE_CDDM);  /* duplicate the arrays for non cddm */
 	char has_orig_hflag = 0;
@@ -160,7 +159,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	mloop = dm->getLoopArray(dm);
 	face_normals = CustomData_get_layer(&dm->polyData, CD_NORMAL);  /* can be NULL */
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
-		BMLoop *l;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 
 		f = bm_face_create_from_mpoly(mp, mloop + mp->loopstart,
 		                              bm, vtable, etable);
@@ -173,11 +173,12 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		BM_elem_index_set(f, bm->totface - 1); /* set_inline */
 		f->mat_nr = mp->mat_nr;
 
-		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
-
-		for (k = mp->loopstart; l; l = BM_iter_step(&liter), k++) {
-			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data, true);
-		}
+		j = mp->loopstart;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			/* Save index of correspsonding MLoop */
+			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, j++, &l_iter->head.data, true);
+		} while ((l_iter = l_iter->next) != l_first);
 
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data, true);
 
