@@ -40,10 +40,12 @@ surface node_bump(
 	float det = dot(dPdx, Rx);
 	vector surfgrad = (SampleX - SampleCenter) * Rx + (SampleY - SampleCenter) * Ry;
 
-	surfgrad *= Strength;
 	float absdet = fabs(det);
+
+	float strength = clamp(Strength, 0.0, 1.0);
 	
 	/* compute and output perturbed normal */
 	NormalOut = normalize(absdet * NormalIn - sign(det) * surfgrad);
+	NormalOut = normalize(strength*NormalOut + (1.0 - strength)*NormalIn);
 }
 
