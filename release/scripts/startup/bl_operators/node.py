@@ -46,6 +46,7 @@ class NodeAddOperator():
             name="Settings",
             description="Settings to be applied on the newly created node",
             type=NodeSetting,
+            options={'SKIP_SAVE'},
             )
 
     @staticmethod
