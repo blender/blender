@@ -1257,13 +1257,14 @@ static int customdata_typemap_is_valid(const CustomData *data)
 }
 #endif
 
-void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
+bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem)
 {
 	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
 	void *data;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
+	bool change = false;
 
 	for (i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
@@ -1313,10 +1314,12 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			newlayer->active_clone = lastclone;
 			newlayer->active_mask = lastmask;
 			newlayer->flag |= lastflag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY);
+			change = true;
 		}
 	}
 
 	CustomData_update_typemap(dest);
+	return change;
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
@@ -1776,6 +1779,17 @@ int CustomData_number_of_layers(const CustomData *data, int type)
 		if (data->layers[i].type == type)
 			number++;
 	
+	return number;
+}
+
+int CustomData_number_of_layers_typemask(const CustomData *data, CustomDataMask mask)
+{
+	int i, number = 0;
+
+	for (i = 0; i < data->totlayer; i++)
+		if (mask & CD_TYPE_AS_MASK(data->layers[i].type))
+			number++;
+
 	return number;
 }
 
@@ -2324,7 +2338,7 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 	}
 }
 
-void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
+bool CustomData_bmesh_merge(CustomData *source, CustomData *dest,
                             CustomDataMask mask, int alloctype, BMesh *bm, const char htype)
 {
 	BMHeader *h;
@@ -2334,11 +2348,21 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	int iter_type;
 	int totelem;
 
+	if (CustomData_number_of_layers_typemask(source, mask) == 0) {
+		return false;
+	}
+
 	/* copy old layer description so that old data can be copied into
 	 * the new allocation */
 	destold = *dest;
 	if (destold.layers) {
 		destold.layers = MEM_dupallocN(destold.layers);
+	}
+
+	if (CustomData_merge(source, dest, mask, alloctype, 0) == false) {
+		if (destold.layers)
+			MEM_freeN(destold.layers);
+		return false;
 	}
 
 	switch (htype) {
@@ -2364,7 +2388,6 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 			totelem = bm->totvert;
 	}
 
-	CustomData_merge(source, dest, mask, alloctype, 0);
 	dest->pool = NULL;
 	CustomData_bmesh_init_pool(dest, totelem, htype);
 
@@ -2395,6 +2418,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 
 	if (destold.pool) BLI_mempool_destroy(destold.pool);
 	if (destold.layers) MEM_freeN(destold.layers);
+	return true;
 }
 
 void CustomData_bmesh_free_block(CustomData *data, void **block)

@@ -115,13 +115,13 @@ void CustomData_update_typemap(struct CustomData *data);
 
 /* same as the above, except that this will preserve existing layers, and only
  * add the layers that were not there yet */
-void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
+bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem);
 
 /* bmesh version of CustomData_merge; merges the layouts of source and dest,
  * then goes through the mesh and makes sure all the customdata blocks are
  * consistent with the new layout.*/
-void CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest, 
+bool CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest,
                             CustomDataMask mask, int alloctype, struct BMesh *bm, const char htype);
 
 /** NULL's all members and resets the typemap. */
@@ -167,6 +167,7 @@ bool CustomData_has_layer(const struct CustomData *data, int type);
 
 /* returns the number of layers with this type */
 int CustomData_number_of_layers(const struct CustomData *data, int type);
+int CustomData_number_of_layers_typemask(const struct CustomData *data, CustomDataMask mask);
 
 /* duplicate data of a layer with flag NOFREE, and remove that flag.
  * returns the layer data */
