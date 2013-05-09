@@ -4326,3 +4326,1325 @@ Function Arguments
 ^^^^^^^^^^^^^^^^^^
 
 * :class:`bpy.types.Object.dupli_list_create` (scene, settings), *was (scene)*
+
+2.65 to 2.66
+============
+
+bpy.types.UILayout
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UILayout.enum_item_description`
+* :class:`bpy.types.UILayout.enum_item_icon`
+* :class:`bpy.types.UILayout.enum_item_name`
+* :class:`bpy.types.UILayout.icon`
+* :class:`bpy.types.UILayout.template_icon_view`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.UILayout.label` (text, text_ctxt, translate, icon, icon_value), *was (text, icon)*
+* :class:`bpy.types.UILayout.menu` (menu, text, text_ctxt, translate, icon), *was (menu, text, icon)*
+* :class:`bpy.types.UILayout.operator` (operator, text, text_ctxt, translate, icon, emboss), *was (operator, text, icon, emboss)*
+* :class:`bpy.types.UILayout.operator_menu_enum` (operator, property, text, text_ctxt, translate, icon), *was (operator, property, text, icon)*
+* :class:`bpy.types.UILayout.prop` (data, property, text, text_ctxt, translate, icon, expand, slider, toggle, icon_only, event, full_event, emboss, index), *was (data, property, text, icon, expand, slider, toggle, icon_only, event, full_event, emboss, index)*
+* :class:`bpy.types.UILayout.prop_enum` (data, property, value, text, text_ctxt, translate, icon), *was (data, property, value, text, icon)*
+* :class:`bpy.types.UILayout.prop_menu_enum` (data, property, text, text_ctxt, translate, icon), *was (data, property, text, icon)*
+* :class:`bpy.types.UILayout.prop_search` (data, property, search_data, search_property, text, text_ctxt, translate, icon), *was (data, property, search_data, search_property, text, icon)*
+* :class:`bpy.types.UILayout.template_any_ID` (data, property, type_property, text, text_ctxt, translate), *was (data, property, type_property, text)*
+* :class:`bpy.types.UILayout.template_list` (listtype_name, list_id, dataptr, propname, active_dataptr, active_propname, rows, maxrows, type), *was (data, property, active_data, active_property, prop_list, rows, maxrows, type)*
+* :class:`bpy.types.UILayout.template_path_builder` (data, property, root, text, text_ctxt, translate), *was (data, property, root, text)*
+
+bpy.types.Scene
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Scene.cycles_curves`
+* :class:`bpy.types.Scene.rigidbody_world`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Scene.collada_export` (filepath, apply_modifiers, export_mesh_type, selected, include_children, include_armatures, include_shapekeys, deform_bones_only, active_uv_only, include_uv_textures, include_material_textures, use_texture_copies, use_object_instantiation, sort_by_name, second_life), *was (filepath, apply_modifiers, export_mesh_type, selected, include_children, include_armatures, deform_bones_only, active_uv_only, include_uv_textures, include_material_textures, use_texture_copies, use_object_instantiation, sort_by_name, second_life)*
+
+bpy.types.ThemeGraphEditor
+--------------------------
+
+Removed
+^^^^^^^
+
+* **panel**
+
+bpy.types.Mesh
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Mesh.use_customdata_edge_bevel`
+* :class:`bpy.types.Mesh.use_customdata_edge_crease`
+* :class:`bpy.types.Mesh.use_customdata_vertex_bevel`
+
+Removed
+^^^^^^^
+
+* **show_all_edges**
+
+bpy.types.ThemeSpaceGeneric
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeSpaceGeneric.panelcolors`
+
+bpy.types.ImageFormatSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ImageFormatSettings.jpeg2k_codec`
+
+bpy.types.ThemeUserInterface
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeUserInterface.menu_shadow_fac`
+* :class:`bpy.types.ThemeUserInterface.menu_shadow_width`
+
+Removed
+^^^^^^^
+
+* **panel**
+
+bpy.types.SceneSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.UserPreferencesFilePaths
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesFilePaths.use_keep_session`
+
+bpy.types.Node
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Node.height`
+* :class:`bpy.types.Node.width`
+* :class:`bpy.types.Node.width_hidden`
+
+bpy.types.Sculpt
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Sculpt.detail_size`
+* :class:`bpy.types.Sculpt.symmetrize_direction`
+* :class:`bpy.types.Sculpt.use_edge_collapse`
+* :class:`bpy.types.Sculpt.use_smooth_shading`
+
+bpy.types.EnumPropertyItem
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.EnumPropertyItem.icon`
+
+bpy.types.ThemePanelColors
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemePanelColors.back`
+* :class:`bpy.types.ThemePanelColors.show_back`
+
+bpy.types.WindowManager
+-----------------------
+
+Removed
+^^^^^^^
+
+* **rigify_active_type**
+* **rigify_collection**
+* **rigify_types**
+
+bpy.types.ParticleSettings
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ParticleSettings.cycles`
+
+bpy.types.RenderSettings
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderSettings.bake_samples`
+* :class:`bpy.types.RenderSettings.use_bake_to_vertex_color`
+* :class:`bpy.types.RenderSettings.use_sequencer_gl_textured_solid`
+
+Removed
+^^^^^^^
+
+* **use_color_unpremultiply**
+
+bpy.types.MovieClipSequence
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieClipSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.EffectSequence
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.EffectSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.BrushTextureSlot
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BrushTextureSlot.tex_paint_map_mode`
+
+bpy.types.Sequences
+-------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Sequences.new_clip` (name, clip, channel, frame_start), *was (name, clip, channel, start_frame)*
+* :class:`bpy.types.Sequences.new_effect` (name, type, channel, frame_start, frame_end, seq1, seq2, seq3), *was (name, type, channel, start_frame, end_frame, seq1, seq2, seq3)*
+* :class:`bpy.types.Sequences.new_image` (name, filepath, channel, frame_start), *was (name, filepath, channel, start_frame)*
+* :class:`bpy.types.Sequences.new_mask` (name, mask, channel, frame_start), *was (name, mask, channel, start_frame)*
+* :class:`bpy.types.Sequences.new_movie` (name, filepath, channel, frame_start), *was (name, filepath, channel, start_frame)*
+* :class:`bpy.types.Sequences.new_scene` (name, scene, channel, frame_start), *was (name, scene, channel, start_frame)*
+* :class:`bpy.types.Sequences.new_sound` (name, filepath, channel, frame_start), *was (name, filepath, channel, start_frame)*
+
+bpy.types.ThemeTextEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeTextEditor.syntax_preprocessor`
+* :class:`bpy.types.ThemeTextEditor.syntax_reserved`
+* :class:`bpy.types.ThemeTextEditor.syntax_symbols`
+
+bpy.types.UserPreferencesInput
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesInput.use_trackpad_natural`
+
+bpy.types.PoseBone
+------------------
+
+Removed
+^^^^^^^
+
+* **rigify_parameters**
+* **rigify_type**
+
+bpy.types.MetaBall
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MetaBall.transform`
+
+bpy.types.Sequence
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Sequence.update`
+
+Renamed
+^^^^^^^
+
+* **getStripElem** -> :class:`bpy.types.Sequence.strip_elem_from_frame`
+
+bpy.types.LaplacianSmoothModifier
+---------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.LaplacianSmoothModifier.use_normalized`
+
+bpy.types.Armature
+------------------
+
+Removed
+^^^^^^^
+
+* **rigify_layers**
+
+bpy.types.Window
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Window.height`
+* :class:`bpy.types.Window.width`
+* :class:`bpy.types.Window.x`
+* :class:`bpy.types.Window.y`
+
+bpy.types.Object
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Object.convert_space`
+* :class:`bpy.types.Object.extra_recalc_data`
+* :class:`bpy.types.Object.extra_recalc_object`
+* :class:`bpy.types.Object.rigid_body`
+* :class:`bpy.types.Object.rigid_body_constraint`
+* :class:`bpy.types.Object.show_all_edges`
+* :class:`bpy.types.Object.use_dynamic_topology_sculpting`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Object.to_mesh` (scene, apply_modifiers, settings, calc_tessface), *was (scene, apply_modifiers, settings)*
+
+bpy.types.SceneGameData
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneGameData.raster_storage`
+* :class:`bpy.types.SceneGameData.use_material_caching`
+
+bpy.types.CyclesRenderSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesRenderSettings.tile_order`
+
+bpy.types.Brush
+---------------
+
+Removed
+^^^^^^^
+
+* **use_fixed_texture**
+
+bpy.types.SpaceClipEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceClipEditor.show_grease_pencil`
+
+bpy.types.MovieSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.SpaceNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceNodeEditor.show_grease_pencil`
+
+bpy.types.MetaSequence
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MetaSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.ThemeNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeNodeEditor.distor_node`
+* :class:`bpy.types.ThemeNodeEditor.matte_node`
+
+bpy.types.UserPreferencesSystem
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesSystem.use_region_overlap`
+
+bpy.types.CyclesLampSettings
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesLampSettings.use_multiple_importance_sampling`
+
+bpy.types.CompositorNodeTree
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeTree.use_groupnode_buffer`
+
+bpy.types.ObjectActuator
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ObjectActuator.use_add_character_location`
+* :class:`bpy.types.ObjectActuator.use_character_jump`
+
+bpy.types.Bone
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Bone.use_relative_parent`
+
+bpy.types.RenderEngine
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderEngine.use_highlight_tiles`
+
+bpy.types.ThemeConsole
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeConsole.select`
+
+bpy.types.ThemeLogicEditor
+--------------------------
+
+Removed
+^^^^^^^
+
+* **panel**
+
+bpy.types.ParticleSystem
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ParticleSystem.co_hair`
+* :class:`bpy.types.ParticleSystem.mcol_on_emitter`
+* :class:`bpy.types.ParticleSystem.set_resolution`
+* :class:`bpy.types.ParticleSystem.uv_on_emitter`
+
+bpy.types.ThemeProperties
+-------------------------
+
+Removed
+^^^^^^^
+
+* **panel**
+
+bpy.types.ThemeView3D
+---------------------
+
+Removed
+^^^^^^^
+
+* **panel**
+
+bpy.types.ImageUser
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ImageUser.frame_current`
+
+bpy.types.SpaceTimeline
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceTimeline.cache_rigidbody`
+
+bpy.types.Function
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Function.use_self_type`
+
+bpy.types.SpaceSequenceEditor
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceSequenceEditor.preview_channels`
+* :class:`bpy.types.SpaceSequenceEditor.show_grease_pencil`
+
+bpy.types.Image
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Image.alpha_mode`
+* :class:`bpy.types.Image.channels`
+* :class:`bpy.types.Image.is_float`
+* :class:`bpy.types.Image.use_alpha`
+
+Removed
+^^^^^^^
+
+* **use_color_unpremultiply**
+* **use_premultiply**
+
+bpy.types.MovieTrackingObjectTracks
+-----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingObjectTracks.new`
+
+Removed
+^^^^^^^
+
+* **add**
+
+bpy.types.MovieTrackingTracks
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingTracks.new`
+
+Removed
+^^^^^^^
+
+* **add**
+
+bpy.types.DynamicPaintSurface
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DynamicPaintSurface.use_color_preview`
+
+bpy.types.SPHFluidSettings
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SPHFluidSettings.solver`
+
+bpy.types.SpaceView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceView3D.matcap_icon`
+* :class:`bpy.types.SpaceView3D.show_grease_pencil`
+* :class:`bpy.types.SpaceView3D.use_matcap`
+
+bpy.types.Particle
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Particle.uv_on_emitter`
+
+bpy.types.EditBone
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.EditBone.use_relative_parent`
+
+bpy.types.ThemeFileBrowser
+--------------------------
+
+Removed
+^^^^^^^
+
+* **tiles**
+
+bpy.types.ParticleHairKey
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ParticleHairKey.co_object`
+
+Renamed
+^^^^^^^
+
+* **co_hair_space** -> :class:`bpy.types.ParticleHairKey.co_local`
+
+bpy.types.ImageSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ImageSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.MaskSequence
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MaskSequence.alpha_mode`
+
+Removed
+^^^^^^^
+
+* **use_premultiply**
+
+bpy.types.BlendDataMeshes
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BlendDataMeshes.new_from_object`
+
+bpy.types.Addon
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Addon.preferences`
+
+bpy.types.Region
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Region.callback_add`
+
+bpy.types.Property
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Property.icon`
+
+bpy.types.SpaceImageEditor
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceImageEditor.show_grease_pencil`
+
+2.66 to 2.67
+============
+
+bpy.types.SmokeDomainSettings
+-----------------------------
+
+Renamed
+^^^^^^^
+
+* **smooth_emitter** -> :class:`bpy.types.SmokeDomainSettings.use_smooth_emitter`
+
+bpy.types.NodeLink
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.NodeLink.is_hidden`
+* :class:`bpy.types.NodeLink.is_valid`
+
+bpy.types.ParticleSettings
+--------------------------
+
+Renamed
+^^^^^^^
+
+* **adaptive_subframes** -> :class:`bpy.types.ParticleSettings.use_adaptive_subframes`
+
+bpy.types.SmokeFlowSettings
+---------------------------
+
+Renamed
+^^^^^^^
+
+* **initial_velocity** -> :class:`bpy.types.SmokeFlowSettings.use_initial_velocity`
+
+bpy.types.SpaceNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceNodeEditor.path`
+* :class:`bpy.types.SpaceNodeEditor.pin`
+
+bpy.types.SpeedControlSequence
+------------------------------
+
+Removed
+^^^^^^^
+
+* **use_frame_blend**
+
+bpy.types.MeshVertex
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MeshVertex.undeformed_co`
+
+bpy.types.LoopColors
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.LoopColors.remove`
+
+bpy.types.SceneGameData
+-----------------------
+
+Renamed
+^^^^^^^
+
+* **restrict_animation_updates** -> :class:`bpy.types.SceneGameData.use_restrict_animation_updates`
+
+bpy.types.NodeSocket
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.NodeSocket.bl_idname`
+* :class:`bpy.types.NodeSocket.draw`
+* :class:`bpy.types.NodeSocket.draw_color`
+* :class:`bpy.types.NodeSocket.enabled`
+* :class:`bpy.types.NodeSocket.identifier`
+* :class:`bpy.types.NodeSocket.in_out`
+* :class:`bpy.types.NodeSocket.link_limit`
+* :class:`bpy.types.NodeSocket.node`
+
+Removed
+^^^^^^^
+
+* **group_socket**
+
+bpy.types.CompositorNode
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNode.init`
+* :class:`bpy.types.CompositorNode.poll`
+* :class:`bpy.types.CompositorNode.tag_need_exec`
+* :class:`bpy.types.CompositorNode.update`
+
+Removed
+^^^^^^^
+
+* **type**
+
+bpy.types.SolidifyModifier
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SolidifyModifier.thickness_clamp`
+
+bpy.types.RigidBodyObject
+-------------------------
+
+Renamed
+^^^^^^^
+
+* **start_deactivated** -> :class:`bpy.types.RigidBodyObject.use_start_deactivated`
+
+bpy.types.ThemeNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeNodeEditor.group_socket_node`
+
+bpy.types.CyclesRenderSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesRenderSettings.subsurface_samples`
+* :class:`bpy.types.CyclesRenderSettings.use_layer_samples`
+
+bpy.types.RigidBodyConstraint
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RigidBodyConstraint.motor_ang_max_impulse`
+* :class:`bpy.types.RigidBodyConstraint.motor_ang_target_velocity`
+* :class:`bpy.types.RigidBodyConstraint.motor_lin_max_impulse`
+* :class:`bpy.types.RigidBodyConstraint.motor_lin_target_velocity`
+* :class:`bpy.types.RigidBodyConstraint.use_motor_ang`
+* :class:`bpy.types.RigidBodyConstraint.use_motor_lin`
+
+Renamed
+^^^^^^^
+
+* **num_solver_iterations** -> :class:`bpy.types.RigidBodyConstraint.solver_iterations`
+* **override_solver_iterations** -> :class:`bpy.types.RigidBodyConstraint.use_override_solver_iterations`
+
+bpy.types.RigidBodyWorld
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RigidBodyWorld.convex_sweep_test`
+
+Renamed
+^^^^^^^
+
+* **num_solver_iterations** -> :class:`bpy.types.RigidBodyWorld.solver_iterations`
+
+bpy.types.Image
+---------------
+
+Renamed
+^^^^^^^
+
+* **view_as_render** -> :class:`bpy.types.Image.use_view_as_render`
+
+bpy.types.DomainFluidSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DomainFluidSettings.threads`
+
+Renamed
+^^^^^^^
+
+* **surface_noobs** -> :class:`bpy.types.DomainFluidSettings.use_surface_noobs`
+
+bpy.types.Operator
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Operator.bl_translation_context`
+
+bpy.types.ThemeGraphEditor
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeGraphEditor.vertex_unreferenced`
+
+bpy.types.ShaderNode
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNode.init`
+* :class:`bpy.types.ShaderNode.poll`
+
+Removed
+^^^^^^^
+
+* **type**
+
+bpy.types.TextureNodeTree
+-------------------------
+
+Removed
+^^^^^^^
+
+* **nodes**
+
+bpy.types.SpaceUserPreferences
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceUserPreferences.filter_type`
+
+bpy.types.SPHFluidSettings
+--------------------------
+
+Renamed
+^^^^^^^
+
+* **factor_density** -> :class:`bpy.types.SPHFluidSettings.use_factor_density`
+
+bpy.types.NodeLinks
+-------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.NodeLinks.new` (input, output, verify_limits), *was (input, output)*
+
+bpy.types.CyclesCurveRenderSettings
+-----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesCurveRenderSettings.maximum_width`
+* :class:`bpy.types.CyclesCurveRenderSettings.minimum_width`
+
+bpy.types.CompositorNodeTree
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeTree.use_viewer_border`
+
+Removed
+^^^^^^^
+
+* **nodes**
+
+Renamed
+^^^^^^^
+
+* **two_pass** -> :class:`bpy.types.CompositorNodeTree.use_two_pass`
+
+bpy.types.OceanModifier
+-----------------------
+
+Removed
+^^^^^^^
+
+* **is_build_enabled**
+
+bpy.types.BevelModifier
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BevelModifier.segments`
+* :class:`bpy.types.BevelModifier.use_clamp_overlap`
+* :class:`bpy.types.BevelModifier.vertex_group`
+
+bpy.types.BlendDataMeshes
+-------------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.BlendDataMeshes.new_from_object` (scene, object, apply_modifiers, settings, calc_tessface, calc_undeformed), *was (scene, object, apply_modifiers, settings, calc_tessface)*
+
+bpy.types.Object
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Object.update_from_editmode`
+
+Renamed
+^^^^^^^
+
+* **extra_recalc_data** -> :class:`bpy.types.Object.use_extra_recalc_data`
+* **extra_recalc_object** -> :class:`bpy.types.Object.use_extra_recalc_object`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Object.to_mesh` (scene, apply_modifiers, settings, calc_tessface, calc_undeformed), *was (scene, apply_modifiers, settings, calc_tessface)*
+
+bpy.types.RenderLayer
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderLayer.use_freestyle`
+
+bpy.types.ShaderNodeTree
+------------------------
+
+Removed
+^^^^^^^
+
+* **nodes**
+
+bpy.types.Scene
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Scene.print_3d`
+* :class:`bpy.types.Scene.ray_cast`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Scene.collada_export` (filepath, apply_modifiers, export_mesh_type, selected, include_children, include_armatures, include_shapekeys, deform_bones_only, active_uv_only, include_uv_textures, include_material_textures, use_texture_copies, use_ngons, use_object_instantiation, sort_by_name, second_life, export_transformation_type), *was (filepath, apply_modifiers, export_mesh_type, selected, include_children, include_armatures, include_shapekeys, deform_bones_only, active_uv_only, include_uv_textures, include_material_textures, use_texture_copies, use_object_instantiation, sort_by_name, second_life)*
+
+bpy.types.Menu
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Menu.bl_translation_context`
+
+bpy.types.ImagePaint
+--------------------
+
+Removed
+^^^^^^^
+
+* **use_projection**
+
+bpy.types.NodeTree
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.NodeTree.active_input`
+* :class:`bpy.types.NodeTree.active_output`
+* :class:`bpy.types.NodeTree.bl_description`
+* :class:`bpy.types.NodeTree.bl_icon`
+* :class:`bpy.types.NodeTree.bl_idname`
+* :class:`bpy.types.NodeTree.bl_label`
+* :class:`bpy.types.NodeTree.get_from_context`
+* :class:`bpy.types.NodeTree.interface_update`
+* :class:`bpy.types.NodeTree.nodes`
+* :class:`bpy.types.NodeTree.poll`
+* :class:`bpy.types.NodeTree.update`
+* :class:`bpy.types.NodeTree.view_center`
+
+bpy.types.Mesh
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Mesh.show_extra_edge_angle`
+* :class:`bpy.types.Mesh.show_freestyle_edge_marks`
+* :class:`bpy.types.Mesh.show_freestyle_face_marks`
+* :class:`bpy.types.Mesh.show_statvis`
+* :class:`bpy.types.Mesh.show_weight`
+
+bpy.types.ToolSettings
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ToolSettings.statvis`
+* :class:`bpy.types.ToolSettings.vertex_group_user`
+
+bpy.types.WindowManager
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.WindowManager.progress_begin`
+* :class:`bpy.types.WindowManager.progress_end`
+* :class:`bpy.types.WindowManager.progress_update`
+
+bpy.types.SequenceEditor
+------------------------
+
+Renamed
+^^^^^^^
+
+* **overlay_lock** -> :class:`bpy.types.SequenceEditor.use_overlay_lock`
+
+bpy.types.Macro
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Macro.bl_translation_context`
+
+bpy.types.BrushTextureSlot
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BrushTextureSlot.mask_map_mode`
+
+bpy.types.RenderSettings
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderSettings.line_thickness`
+* :class:`bpy.types.RenderSettings.line_thickness_mode`
+* :class:`bpy.types.RenderSettings.use_freestyle`
+
+bpy.types.ThemeImageEditor
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeImageEditor.freestyle_face_mark`
+* :class:`bpy.types.ThemeImageEditor.vertex_unreferenced`
+
+bpy.types.UserPreferencesSystem
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesSystem.image_draw_method`
+* :class:`bpy.types.UserPreferencesSystem.use_translate_new_dataname`
+
+bpy.types.Panel
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Panel.bl_translation_context`
+
+bpy.types.Brush
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Brush.brush_capabilities`
+* :class:`bpy.types.Brush.cursor_overlay_alpha`
+* :class:`bpy.types.Brush.jitter_absolute`
+* :class:`bpy.types.Brush.mask_overlay_alpha`
+* :class:`bpy.types.Brush.mask_stencil_dimension`
+* :class:`bpy.types.Brush.mask_stencil_pos`
+* :class:`bpy.types.Brush.mask_texture`
+* :class:`bpy.types.Brush.mask_texture_slot`
+* :class:`bpy.types.Brush.sculpt_stroke_method`
+* :class:`bpy.types.Brush.stencil_dimension`
+* :class:`bpy.types.Brush.stencil_pos`
+* :class:`bpy.types.Brush.use_cursor_overlay`
+* :class:`bpy.types.Brush.use_cursor_overlay_override`
+* :class:`bpy.types.Brush.use_primary_overlay_override`
+* :class:`bpy.types.Brush.use_relative_jitter`
+* :class:`bpy.types.Brush.use_secondary_overlay_override`
+
+Renamed
+^^^^^^^
+
+* **use_texture_overlay** -> :class:`bpy.types.Brush.use_primary_overlay`
+* **use_texture_overlay** -> :class:`bpy.types.Brush.use_secondary_overlay`
+
+bpy.types.TextureNode
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.TextureNode.init`
+* :class:`bpy.types.TextureNode.poll`
+
+Removed
+^^^^^^^
+
+* **type**
+
+bpy.types.DopeSheet
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DopeSheet.show_linestyles`
+
+bpy.types.NlaStrip
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.NlaStrip.use_sync_length`
+
+bpy.types.UILayout
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UILayout.template_component_menu`
+* :class:`bpy.types.UILayout.template_movieclip_information`
+* :class:`bpy.types.UILayout.template_node_socket`
+
+bpy.types.BlendData
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BlendData.linestyles`
+
+bpy.types.SimpleDeformModifier
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SimpleDeformModifier.angle`
+
+bpy.types.RemeshModifier
+------------------------
+
+Renamed
+^^^^^^^
+
+* **remove_disconnected_pieces** -> :class:`bpy.types.RemeshModifier.use_remove_disconnected`
+
+bpy.types.CyclesCurveSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesCurveSettings.radius_scale`
+
+bpy.types.ThemeView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeView3D.extra_edge_angle`
+* :class:`bpy.types.ThemeView3D.freestyle_edge_mark`
+* :class:`bpy.types.ThemeView3D.freestyle_face_mark`
+* :class:`bpy.types.ThemeView3D.vertex_unreferenced`
+
+bpy.types.UVTextures
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UVTextures.remove`
+
+bpy.types.SceneRenderLayer
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneRenderLayer.freestyle_settings`
+* :class:`bpy.types.SceneRenderLayer.use_freestyle`
