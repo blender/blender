@@ -403,8 +403,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 			}
 
 			BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
-				BMO_elem_flag_enable(bm, f, FACE_ORIG);
-				BMO_elem_flag_enable(bm, f, FACE_MARK);
+				BMO_elem_flag_enable(bm, f, FACE_MARK | FACE_ORIG);
 			}
 			
 			/* check if our additions to the input to face dissolve
@@ -412,8 +411,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 			if (!test_extra_verts(bm, v)) {
 				BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
 					if (BMO_elem_flag_test(bm, f, FACE_ORIG)) {
-						BMO_elem_flag_disable(bm, f, FACE_MARK);
-						BMO_elem_flag_disable(bm, f, FACE_ORIG);
+						BMO_elem_flag_disable(bm, f, FACE_MARK | FACE_ORIG);
 					}
 				}
 			}

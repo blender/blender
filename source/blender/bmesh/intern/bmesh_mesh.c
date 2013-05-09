@@ -168,9 +168,8 @@ void BM_mesh_data_free(BMesh *bm)
 	BMIter iter;
 	BMIter itersub;
 
-	bool is_ldata_free;
-	bool is_pdata_free;
-
+	const bool is_ldata_free = CustomData_bmesh_has_free(&bm->ldata);
+	const bool is_pdata_free = CustomData_bmesh_has_free(&bm->pdata);
 
 	/* Check if we have to call free, if not we can avoid a lot of looping */
 	if (CustomData_bmesh_has_free(&(bm->vdata))) {
@@ -184,9 +183,7 @@ void BM_mesh_data_free(BMesh *bm)
 		}
 	}
 
-	if ((is_ldata_free = CustomData_bmesh_has_free(&(bm->ldata))) ||
-	    (is_pdata_free = CustomData_bmesh_has_free(&(bm->pdata))))
-	{
+	if (is_ldata_free || is_pdata_free) {
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (is_pdata_free)
 				CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
