@@ -1043,7 +1043,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.row().prop(md, "proximity_mode", expand=True)
         if md.proximity_mode == 'GEOMETRY':
-            layout.row().prop(md, "proximity_geometry", expand=True)
+            layout.row().prop(md, "proximity_geometry")
 
         row = layout.row()
         row.prop(md, "min_dist")
