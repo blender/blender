@@ -565,10 +565,16 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 		char filepath[FILE_MAX];
 		const char *file;
 
-		BKE_movieclip_filename_for_frame(clip, user, filepath);
-		file = BLI_last_slash(filepath);
+		if (framenr <= clip->len) {
+			BKE_movieclip_filename_for_frame(clip, user, filepath);
+			file = BLI_last_slash(filepath);
+		}
+		else {
+			file = "-";
+		}
 
 		BLI_snprintf(str, sizeof(str), IFACE_("File: %s"), file);
+
 		uiItemL(col, str, ICON_NONE);
 	}
 
