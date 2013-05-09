@@ -102,7 +102,7 @@ __device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 {
 	float r = 0.0f;
 
-	if(sd->segment != ~0) {
+	if(sd->segment != (int)~0) {
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
 		int k0 = __float_as_int(curvedata.x) + sd->segment;
 		int k1 = k0 + 1;
@@ -119,7 +119,7 @@ __device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 {	
 	float3 tgN = make_float3(0.0f,0.0f,0.0f);
 
-	if(sd->segment != ~0) {
+	if(sd->segment != (int)~0) {
 		float normalmix = kernel_data.curve_kernel_data.normalmix;
 
 		tgN = -(-sd->I - sd->dPdu * (dot(sd->dPdu,-sd->I) * normalmix / len_squared(sd->dPdu)));

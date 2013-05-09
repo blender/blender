@@ -486,11 +486,11 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 
-	float l = len(P2 - P1);
+	float l = len(float4_to_float3(P2) - float4_to_float3(P1));
 
 	float r1 = P1.w;
 	float r2 = P2.w;
-	float3 tg = float4_to_float3(P2 - P1) / l;
+	float3 tg = (float4_to_float3(P2) - float4_to_float3(P1)) / l;
 	float3 xc = make_float3(tg.x * tg.z, tg.y * tg.z, -(tg.x * tg.x + tg.y * tg.y));
 	if (dot(xc, xc) == 0.0f)
 		xc = make_float3(tg.x * tg.y, -(tg.x * tg.x + tg.z * tg.z), tg.z * tg.y);
@@ -561,7 +561,7 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 #endif
 
 #ifdef __HAIR__
-		if (segment != ~0)
+		if (segment != (int)~0)
 			curve_segment_light_sample(kg, prim, object, segment, randu, randv, time, ls);
 		else
 #endif

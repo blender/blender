@@ -164,7 +164,11 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 		return false;
 	
 	Intersection isect;
+#ifdef __HAIR__
+	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
+#else
 	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect);
+#endif
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(result && kernel_data.integrator.transparent_shadows) {
@@ -198,7 +202,11 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 #endif
 				}
 
+#ifdef __HAIR__
+				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect, NULL, 0.0f, 0.0f)) {
+#else
 				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect)) {
+#endif
 					*shadow *= throughput;
 					return false;
 				}
@@ -528,7 +536,11 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		/* intersect scene */
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, &state);
+#ifdef __HAIR__
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
+#else
 		bool hit = scene_intersect(kg, &ray, visibility, &isect);
+#endif
 
 #ifdef __LAMP_MIS__
 		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {

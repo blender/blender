@@ -37,7 +37,7 @@ __device bool BVH_FUNCTION_NAME
 , const uint visibility
 #endif
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH) && !FEATURE(BVH_SUBSURFACE)
-, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f
+, uint *lcg_state, float difl, float extmax
 #endif
 )
 {
@@ -87,7 +87,11 @@ __device bool BVH_FUNCTION_NAME
 #else
 				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
 					&closestChild1, &nodeAddr, &nodeAddrChild1,
+#ifdef __HAIR__
+					P, idir, isect->t, visibility, nodeAddr, 0.0f, 0.0f);
+#else
 					P, idir, isect->t, visibility, nodeAddr);
+#endif
 #endif
 
 				if(traverseChild0 != traverseChild1) {

@@ -117,7 +117,7 @@ __device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, cons
 __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	bool *traverseChild0, bool *traverseChild1,
 	bool *closestChild1, int *nodeAddr0, int *nodeAddr1,
-	float3 P, float3 idir, float t, uint visibility, int nodeAddr, float difl = 0.0f, float extmax = 0.0f)
+	float3 P, float3 idir, float t, uint visibility, int nodeAddr, float difl, float extmax)
 {
 	float hdiff = 1.0f + difl;
 	float ldiff = 1.0f - difl;
@@ -281,7 +281,7 @@ __device_inline void curvebounds(float *lower, float *upper, float *extremta, fl
 }
 
 __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state, float difl, float extmax)
 {
 	float epsilon = 0.0f;
 	int depth = kernel_data.curve_kernel_data.subdivisions;
@@ -305,10 +305,6 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 			dir.z / d, 0, -dir.x /d, 0,
 			-dir.x * dir.y /d, d, -dir.y * dir.z /d, 0,
 			dir.x, dir.y, dir.z, 0,
-			0, 0, 0, 1) * make_transform(
-			1, 0, 0, -P.x,
-			0, 1, 0, -P.y,
-			0, 0, 1, -P.z,
 			0, 0, 0, 1);
 
 		float4 v00 = kernel_tex_fetch(__curves, prim);
@@ -324,10 +320,10 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 		float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 		float4 P3 = kernel_tex_fetch(__curve_keys, kb);
 
-		float3 p0 = transform_point(&htfm, float4_to_float3(P0));
-		float3 p1 = transform_point(&htfm, float4_to_float3(P1));
-		float3 p2 = transform_point(&htfm, float4_to_float3(P2));
-		float3 p3 = transform_point(&htfm, float4_to_float3(P3));
+		float3 p0 = transform_point(&htfm, float4_to_float3(P0) - P);
+		float3 p1 = transform_point(&htfm, float4_to_float3(P1) - P);
+		float3 p2 = transform_point(&htfm, float4_to_float3(P2) - P);
+		float3 p3 = transform_point(&htfm, float4_to_float3(P3) - P);
 
 		float fc = 0.71f;
 		curve_coef[0] = p1;
@@ -591,7 +587,7 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 }
 
 __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state, float difl, float extmax)
 {
 	/* curve Intersection check */
 	int flags = kernel_data.curve_kernel_data.curveflags;
@@ -865,7 +861,7 @@ __device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Inters
 
 
 #ifdef __HAIR__ 
-__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state = NULL, float difl = 0.0f, float extmax = 0.0f)
+__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state, float difl, float extmax)
 #else
 __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 #endif
