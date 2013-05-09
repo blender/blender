@@ -58,6 +58,7 @@ set(SRC
 	libmv/simple_pipeline/modal_solver.cc
 	libmv/simple_pipeline/pipeline.cc
 	libmv/simple_pipeline/reconstruction.cc
+	libmv/simple_pipeline/reconstruction_scale.cc
 	libmv/simple_pipeline/resect.cc
 	libmv/simple_pipeline/tracks.cc
 	libmv/tracking/brute_region_tracker.cc
@@ -116,6 +117,7 @@ set(SRC
 	libmv/simple_pipeline/modal_solver.h
 	libmv/simple_pipeline/pipeline.h
 	libmv/simple_pipeline/reconstruction.h
+	libmv/simple_pipeline/reconstruction_scale.h
 	libmv/simple_pipeline/resect.h
 	libmv/simple_pipeline/tracks.h
 	libmv/tracking/brute_region_tracker.h

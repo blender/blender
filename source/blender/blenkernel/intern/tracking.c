@@ -2834,18 +2834,29 @@ static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, M
 			float mat[4][4];
 			float error = libmv_reporojectionErrorForImage(libmv_reconstruction, a);
 
-			for (i = 0; i < 4; i++)
+			for (i = 0; i < 4; i++) {
 				for (j = 0; j < 4; j++)
 					mat[i][j] = matd[i][j];
-
-			if (!origin_set) {
-				copy_m4_m4(imat, mat);
-				invert_m4(imat);
-				origin_set = TRUE;
 			}
 
-			if (origin_set)
+			/* Ensure first camera has got zero rotation and transform.
+			 * This is essential for object tracking to work -- this way
+			 * we'll always know object and environment are properly
+			 * oriented.
+			 *
+			 * There's one weak part tho, which is requirement object
+			 * motion starts at the same frame as camera motion does,
+			 * otherwise that;' be a russian roulette whether object is
+			 * aligned correct or not.
+			 */
+			if (!origin_set) {
+				invert_m4_m4(imat, mat);
+				unit_m4(mat);
+				origin_set = TRUE;
+			}
+			else {
 				mult_m4_m4m4(mat, imat, mat);
+			}
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
 			reconstructed[reconstruction->camnr].framenr = a;

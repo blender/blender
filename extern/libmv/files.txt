@@ -52,6 +52,8 @@ libmv/simple_pipeline/pipeline.cc
 libmv/simple_pipeline/pipeline.h
 libmv/simple_pipeline/reconstruction.cc
 libmv/simple_pipeline/reconstruction.h
+libmv/simple_pipeline/reconstruction_scale.cc
+libmv/simple_pipeline/reconstruction_scale.h
 libmv/simple_pipeline/resect.cc
 libmv/simple_pipeline/resect.h
 libmv/simple_pipeline/tracks.cc

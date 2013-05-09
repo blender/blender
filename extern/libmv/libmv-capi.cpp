@@ -46,6 +46,7 @@
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/modal_solver.h"
+#include "libmv/simple_pipeline/reconstruction_scale.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -552,6 +553,9 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *libmv_tracks,
 			libmv_reconstruction_options->refine_intrinsics,
 			progress_update_callback, callback_customdata);
 	}
+
+	/* set reconstruction scale to unity */
+	libmv::EuclideanScaleToUnity(reconstruction);
 
 	/* finish reconstruction */
 	finishReconstruction(tracks, camera_intrinsics, libmv_reconstruction,
