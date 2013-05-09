@@ -1109,9 +1109,12 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 	
-	if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
-		if ((tex->imaflag & TEX_CALCALPHA) == 0)
-			texres->talpha = 1;
+	if (ima) {
+		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
+			if ((tex->imaflag & TEX_CALCALPHA) == 0) {
+				texres->talpha = 1;
+			}
+		}
 	}
 	texr.talpha = texres->talpha;
 
