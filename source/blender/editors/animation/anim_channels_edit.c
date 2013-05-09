@@ -2512,11 +2512,11 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			
 			/* select/deselect */
 			if (selectmode == SELECT_INVERT) {
-				/* inverse selection status of this Shape Key only */
+				/* inverse selection status of this ShapeKey only */
 				kb->flag ^= KEYBLOCK_SEL;
 			}
 			else {
-				/* select Shape Key by itself */
+				/* select ShapeKey by itself */
 				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 				kb->flag |= KEYBLOCK_SEL;
 			}

@@ -118,7 +118,7 @@ void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bActio
 void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos);
 /* Scene Summary */
 void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos);
-/* Dope Sheet Summary */
+/* DopeSheet Summary */
 void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos);
 /* Grease Pencil Layer */ 
 // XXX not restored 
@@ -137,7 +137,7 @@ void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_T
 void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
-/* Dope Sheet Summary */
+/* DopeSheet Summary */
 void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* Grease Pencil Layer */
 // XXX not restored

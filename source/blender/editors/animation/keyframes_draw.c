@@ -672,7 +672,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	
 	/* draw keys */
 	if (keys) {
-		/* locked channels are less strongly shown, as feedback for locked channels in Dope Sheet */
+		/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
 		/* TODO: allow this opacity factor to be themed? */
 		float kalpha = (channelLocked) ? 0.25f : 1.0f;
 		

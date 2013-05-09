@@ -78,7 +78,7 @@ typedef struct bAnimContext {
 	struct SpaceLink *sl;   /* editor data */
 	struct ARegion *ar;     /* region within editor */
 	
-	struct bDopeSheet *ads; /* dope sheet data for editor (or which is being used) */
+	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
 	
 	struct Scene *scene;    /* active scene */
 	struct Object *obact;   /* active object */
@@ -275,7 +275,7 @@ typedef enum eAnimFilter_Flags {
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED) == 0)
 #define SEL_FCU(fcu) (fcu->flag & FCURVE_SELECTED)
 
-/* Shape Key mode only */
+/* ShapeKey mode only */
 #define EDITABLE_SHAPEKEY(kb) ((kb->flag & KEYBLOCK_LOCKED) == 0)
 #define SEL_SHAPEKEY(kb) (kb->flag & KEYBLOCK_SEL)
 

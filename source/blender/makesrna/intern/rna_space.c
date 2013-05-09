@@ -935,7 +935,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
 	Object *obact = (scene->basact) ? scene->basact->object : NULL;
 	
-	/* special exceptions for Shape Key Editor mode */
+	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {
 		Key *key = BKE_key_from_object(obact);
 		
@@ -946,7 +946,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 			saction->action = NULL;
 		
 		/* 2)	enable 'show sliders' by default, since one of the main
-		 *		points of the Shape Key Editor is to provide a one-stop shop
+		 *		points of the ShapeKey Editor is to provide a one-stop shop
 		 *		for controlling the shapekeys, whose main control is the value
 		 */
 		saction->flag |= SACTION_SLIDERS;
@@ -2739,7 +2739,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
-	/* Dope Sheet */
+	/* dopesheet */
 	prop = RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "DopeSheet");
 	RNA_def_property_pointer_sdna(prop, NULL, "ads");

@@ -99,7 +99,7 @@
 
 /* ----------- Private Stuff - Action Editor ------------- */
 
-/* Get shape key data being edited (for Action Editor -> Shape Key mode) */
+/* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
 /* Note: there's a similar function in key.c (BKE_key_from_object) */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
@@ -111,7 +111,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
 	if (ob == NULL) 
 		return NULL;
 	
-	/* XXX pinning is not available in 'Shape Key' mode... */
+	/* XXX pinning is not available in 'ShapeKey' mode... */
 	//if (saction->pin) return NULL;
 	
 	/* shapekey data is stored with geometry data */
@@ -148,7 +148,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return 1;
 			
-		case SACTCONT_SHAPEKEY: /* 'Shape Key Editor' */
+		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			ac->datatype = ANIMCONT_SHAPEKEY;
 			ac->data = actedit_get_shapekeys(ac);
 			
@@ -191,7 +191,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return 1;
 		}
-		case SACTCONT_DOPESHEET: /* Dope Sheet */
+		case SACTCONT_DOPESHEET: /* DopeSheet */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
 			
@@ -538,7 +538,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			case ANIMTYPE_SUMMARY:
 			{
 				/* nothing to include for now... this is just a dummy wrappy around all the other channels 
-				 * in the Dope Sheet, and gets included at the start of the list
+				 * in the DopeSheet, and gets included at the start of the list
 				 */
 				ale->key_data = NULL;
 				ale->datatype = ALE_ALL;
@@ -1331,7 +1331,7 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 
 
 
-/* Include Shape Key Data for Shape Key Editor */
+/* Include ShapeKey Data for ShapeKey Editor */
 static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Key *key, int filter_mode)
 {
 	size_t items = 0;
@@ -1340,7 +1340,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Ke
 	if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 		KeyBlock *kb;
 		
-		/* loop through the channels adding Shape Keys as appropriate */
+		/* loop through the channels adding ShapeKeys as appropriate */
 		for (kb = key->block.first; kb; kb = kb->next) {
 			/* skip the first one, since that's the non-animatable basis */
 			if (kb == key->block.first) continue;
@@ -2339,14 +2339,14 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	return items;
 }
 
-/* Summary track for Dope Sheet/Action Editor 
+/* Summary track for DopeSheet/Action Editor 
  *  - return code is whether the summary lets the other channels get drawn
  */
 static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_data, int filter_mode, size_t *items)
 {
 	bDopeSheet *ads = NULL;
 	
-	/* get the Dope Sheet information to use 
+	/* get the DopeSheet information to use 
 	 *	- we should only need to deal with the DopeSheet/Action Editor, 
 	 *	  since all the other Animation Editors won't have this concept
 	 *	  being applicable.
@@ -2362,7 +2362,7 @@ static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_
 	
 	/* dopesheet summary 
 	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
-	 *	- only useful for Dope Sheet/Action/etc. editors where it is actually useful
+	 *	- only useful for DopeSheet/Action/etc. editors where it is actually useful
 	 */
 	if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
 		bAnimListElem *ale = make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL);
@@ -2384,7 +2384,7 @@ static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_
 
 /* ......................... */
 
-/* filter data associated with a channel - usually for handling summary-channels in Dope Sheet */
+/* filter data associated with a channel - usually for handling summary-channels in DopeSheet */
 static size_t animdata_filter_animchan(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAnimListElem *channel, int filter_mode)
 {
 	size_t items = 0;
@@ -2499,15 +2499,15 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 				SpaceAction *saction = (SpaceAction *)ac->sl;
 				bDopeSheet *ads = (saction) ? &saction->ads : NULL;
 				
-				/* the check for the Dope Sheet summary is included here since the summary works here too */
+				/* the check for the DopeSheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
 			}
 			break;
 			
-			case ANIMCONT_SHAPEKEY: /* 'Shape Key Editor' */
+			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			{
-				/* the check for the Dope Sheet summary is included here since the summary works here too */
+				/* the check for the DopeSheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items = animdata_filter_shapekey(ac, anim_data, data, filter_mode);
 			}
@@ -2527,9 +2527,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			}
 			break;
 			
-			case ANIMCONT_DOPESHEET: /* 'Dope Sheet Editor' */
+			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
 			{
-				/* the Dope Sheet editor is the primary place where the Dope Sheet summaries are useful */
+				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items += animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
 			}
@@ -2539,7 +2539,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
 			case ANIMCONT_NLA:     /* NLA Editor */
 			{
-				/* all of these editors use the basic Dope Sheet data for filtering options, but don't have all the same features */
+				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
 				items = animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
 			}
 			break;

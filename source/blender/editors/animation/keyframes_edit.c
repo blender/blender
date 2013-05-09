@@ -345,7 +345,7 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, bA
 			return ob_keyframes_loop(ked, ads, (Object *)ale->key_data, key_ok, key_cb, fcu_cb);
 		case ALE_SCE: /* scene */
 			return scene_keyframes_loop(ked, ads, (Scene *)ale->data, key_ok, key_cb, fcu_cb);
-		case ALE_ALL: /* 'all' (Dope Sheet summary) */
+		case ALE_ALL: /* 'all' (DopeSheet summary) */
 			return summary_keyframes_loop(ked, (bAnimContext *)ale->data, key_ok, key_cb, fcu_cb);
 	}
 	
@@ -377,7 +377,7 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads
 			return ob_keyframes_loop(ked, ads, (Object *)data, key_ok, key_cb, fcu_cb);
 		case ALE_SCE: /* scene */
 			return scene_keyframes_loop(ked, ads, (Scene *)data, key_ok, key_cb, fcu_cb);
-		case ALE_ALL: /* 'all' (Dope Sheet summary) */
+		case ALE_ALL: /* 'all' (DopeSheet summary) */
 			return summary_keyframes_loop(ked, (bAnimContext *)data, key_ok, key_cb, fcu_cb);
 	}
 	

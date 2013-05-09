@@ -2205,7 +2205,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 			}
 		}
 		
-		/* set flags based on Shape Key */
+		/* set flags based on ShapeKey */
 		if (idtype == ID_KE) {
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
 				Key *key = BKE_key_from_object(obt);

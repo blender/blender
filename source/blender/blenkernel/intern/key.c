@@ -1550,7 +1550,7 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
 	kb_dst->slidermax  = kb_src->slidermax;
 }
 
-/* Get RNA-Path for 'value' setting of the given Shape Key 
+/* Get RNA-Path for 'value' setting of the given ShapeKey 
  * NOTE: the user needs to free the returned string once they're finish with it
  */
 char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)

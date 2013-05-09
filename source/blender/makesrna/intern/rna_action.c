@@ -266,9 +266,9 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "DopeSheet", NULL);
 	RNA_def_struct_sdna(srna, "bDopeSheet");
-	RNA_def_struct_ui_text(srna, "DopeSheet", "Settings for filtering the channels shown in animation editors");
+	RNA_def_struct_ui_text(srna, "Dope Sheet", "Settings for filtering the channels shown in animation editors");
 	
-	/* Source of Dope Sheet data */
+	/* Source of DopeSheet data */
 	/* XXX: make this obsolete? */
 	prop = RNA_def_property(srna, "source", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
@@ -338,7 +338,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_ACTION, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
-	/* Summary Settings (Dope Sheet editors only) */
+	/* Summary Settings (DopeSheet editors only) */
 	prop = RNA_def_property(srna, "show_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SUMMARY);
 	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line (Dope Sheet editors only)");
