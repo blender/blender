@@ -236,7 +236,7 @@ public:
 	{
 		char version[256];
 
-		int major, minor, req_major = 1, req_minor = 0;
+		int major, minor, req_major = 1, req_minor = 1;
 
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
 
@@ -261,9 +261,6 @@ public:
 			opencl_error(string_printf("OpenCL: C version 1.1 or later required, found %d.%d", major, minor));
 			return false;
 		}
-
-		/* we don't check CL_DEVICE_VERSION since for e.g. nvidia sm 1.3 cards this is
-		 * 1.0 even if the language features are there, just limited shared memory */
 
 		return true;
 	}
