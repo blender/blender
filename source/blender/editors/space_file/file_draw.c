@@ -280,7 +280,7 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_BLANK;
 }
 
-static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon, int width, int height)
+static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon, int width, int height, bool drag)
 {
 	uiBut *but;
 	int x, y;
@@ -292,7 +292,9 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 	/*if (icon == ICON_FILE_BLANK) alpha = 0.375f;*/
 
 	but = uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
-	uiButSetDragPath(but, path);
+
+	if (drag)
+		uiButSetDragPath(but, path);
 }
 
 
@@ -326,7 +328,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 }
 
-static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int sy, ImBuf *imb, FileLayout *layout, short dropshadow)
+static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int sy, ImBuf *imb, FileLayout *layout, bool dropshadow, bool drag)
 {
 	if (imb) {
 		uiBut *but;
@@ -385,8 +387,10 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		}
 		
 		/* dragregion */
-		but = uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
-		uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
+		if (drag) {
+			but = uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
+			uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
+		}
 		
 		glDisable(GL_BLEND);
 	}
@@ -466,6 +470,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int i;
 	short is_icon;
 	short align;
+	bool do_drag;
 	int column_space = 0.6f * UI_UNIT_X;
 
 	numfiles = filelist_numfiles(files);
@@ -514,6 +519,9 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 		uiSetRoundBox(UI_CNR_NONE);
 
+		/* don't drag parent or refresh items */
+		do_drag = !(STREQ(file->relname, "..") || STREQ(file->relname, "."));
+
 		if (FILE_IMGDISPLAY == params->display) {
 			is_icon = 0;
 			imb = filelist_getimage(files, i);
@@ -522,10 +530,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				is_icon = 1;
 			}
 			
-			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
+			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE), do_drag);
 		}
 		else {
-			file_draw_icon(block, file->path, sx, sy - (UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_HEIGHT_SCALE);
+			file_draw_icon(block, file->path, sx, sy - (UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_HEIGHT_SCALE, do_drag);
 			sx += ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X;
 		}
 
