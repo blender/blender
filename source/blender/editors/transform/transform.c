@@ -491,9 +491,6 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		else
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
-		if (t->mode == TFM_EDGE_SLIDE && (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
-			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
-
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		// XXX: is this notifier a lame duck?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
