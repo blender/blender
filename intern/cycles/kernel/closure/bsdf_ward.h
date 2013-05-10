@@ -39,14 +39,8 @@ CCL_NAMESPACE_BEGIN
 
 __device int bsdf_ward_setup(ShaderClosure *sc)
 {
-	float ax = sc->data0;
-	float ay = sc->data1;
-
-	float m_ax = clamp(ax, 1e-4f, 1.0f);
-	float m_ay = clamp(ay, 1e-4f, 1.0f);
-
-	sc->data0 = m_ax;
-	sc->data1 = m_ay;
+	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f); /* m_ax */
+	sc->data1 = clamp(sc->data1, 1e-4f, 1.0f); /* m_ay */
 
 	sc->type = CLOSURE_BSDF_WARD_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -54,8 +48,8 @@ __device int bsdf_ward_setup(ShaderClosure *sc)
 
 __device void bsdf_ward_blur(ShaderClosure *sc, float roughness)
 {
-	sc->data0 = fmaxf(roughness, sc->data0);
-	sc->data1 = fmaxf(roughness, sc->data1);
+	sc->data0 = fmaxf(roughness, sc->data0); /* m_ax */
+	sc->data1 = fmaxf(roughness, sc->data1); /* m_ay */
 }
 
 __device float3 bsdf_ward_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)

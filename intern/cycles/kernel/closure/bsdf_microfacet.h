@@ -44,11 +44,8 @@ __device_inline float safe_sqrtf(float f)
 
 __device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {
-	float ag = sc->data0;
-
-	float m_ag = clamp(ag, 0.0f, 1.0f);
-
-	sc->data0 = m_ag;
+	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ag */
+	
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -56,14 +53,8 @@ __device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 
 __device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 {
-	float ag = sc->data0;
-	float eta = sc->data1;
+	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ag */
 
-	float m_ag = clamp(ag, 0.0f, 1.0f);
-	float m_eta = eta;
-
-	sc->data0 = m_ag;
-	sc->data1 = m_eta;
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -71,9 +62,7 @@ __device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 
 __device void bsdf_microfacet_ggx_blur(ShaderClosure *sc, float roughness)
 {
-	float m_ag = sc->data0;
-	m_ag = fmaxf(roughness, m_ag);
-	sc->data0 = m_ag;
+	sc->data0 = fmaxf(roughness, sc->data0); /* m_ag */
 }
 
 __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
@@ -273,10 +262,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 
 __device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 {
-	float ab = sc->data0;
-	float m_ab = clamp(ab, 0.0f, 1.0f);
-
-	sc->data0 = m_ab;
+	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ab */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -284,13 +270,7 @@ __device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 
 __device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 {
-	float ab = sc->data0;
-	float eta = sc->data1;
-	float m_ab = clamp(ab, 0.0f, 1.0f);
-	float m_eta = eta;
-
-	sc->data0 = m_ab;
-	sc->data1 = m_eta;
+	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ab */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -298,9 +278,7 @@ __device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 
 __device void bsdf_microfacet_beckmann_blur(ShaderClosure *sc, float roughness)
 {
-	float m_ab = sc->data0;
-	m_ab = fmaxf(roughness, m_ab);
-	sc->data0 = m_ab;
+	sc->data0 = fmaxf(roughness, sc->data0); /* m_ab */
 }
 
 __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
