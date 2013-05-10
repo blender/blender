@@ -124,6 +124,7 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
     '''Add a node to the active tree'''
     bl_idname = "node.add_node"
     bl_label = "Add Node"
+    bl_options = {'REGISTER', 'UNDO'}
 
 
 # Add a node and link it to an existing socket
@@ -131,6 +132,7 @@ class NODE_OT_add_and_link_node(NodeAddOperator, Operator):
     '''Add a node to the active tree and link to an existing socket'''
     bl_idname = "node.add_and_link_node"
     bl_label = "Add and Link Node"
+    bl_options = {'REGISTER', 'UNDO'}
 
     link_socket_index = IntProperty(
             name="Link Socket Index",
