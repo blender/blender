@@ -1941,51 +1941,74 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 	
 }
 
+static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
+                                         MVert *mvert, float polyno[3], float (*tnorms)[3])
+{
+	const int nverts = mp->totloop;
+	float (*edgevecbuf)[3] = BLI_array_alloca(edgevecbuf, nverts);
+	int i;
+
+	/* Polygon Normal and edge-vector */
+	/* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
+	{
+		float const *v_prev = mvert[ml[nverts - 1].v].co;
+		float const *v_curr;
+		int i_prev = nverts - 1;
+
+		zero_v3(polyno);
+		/* Newell's Method */
+		for (i = 0; i < nverts; i++) {
+			v_curr = mvert[ml[i].v].co;
+			add_newell_cross_v3_v3v3(polyno, v_prev, v_curr);
+
+			/* Unrelated to normalize, calcualte edge-vector */
+			sub_v3_v3v3(edgevecbuf[i_prev], v_prev, v_curr);
+			i_prev = i;
+
+			v_prev = v_curr;
+		}
+		if (UNLIKELY(normalize_v3(polyno) == 0.0f)) {
+			polyno[2] = 1.0f; /* other axis set to 0.0 */
+		}
+	}
+
+	/* accumulate angle weighted face normal */
+	/* inline version of #accumulate_vertex_normals_poly */
+	{
+		const float *prev_edge = edgevecbuf[nverts - 1];
+
+		for (i = 0; i < nverts; i++) {
+			const float *cur_edge = edgevecbuf[i];
+			unsigned int vindex = ml[i].v;
+
+			/* calculate angle between the two poly edges incident on
+			 * this vertex */
+			const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
+
+			/* accumulate */
+			madd_v3_v3fl(tnorms[vindex], polyno, fac);
+			prev_edge = cur_edge;
+		}
+	}
+
+}
+
 void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
                            int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3])
 {
 	float (*pnors)[3] = polyNors_r;
-
-	float (*tnorms)[3], (*edgevecbuf)[3] = NULL;
-	float **vertcos = NULL, **vertnos = NULL;
-	BLI_array_declare(vertcos);
-	BLI_array_declare(vertnos);
-	BLI_array_declare(edgevecbuf);
-
-	int i, j;
+	float (*tnorms)[3];
+	float tpnor[3];  /* temp poly normal */
+	int i;
 	MPoly *mp;
-	MLoop *ml;
-
-	if (!pnors) pnors = MEM_callocN(sizeof(float) * 3 * numPolys, "poly_nors mesh.c");
 
 	/* first go through and calculate normals for all the polys */
-	tnorms = MEM_callocN(sizeof(float) * 3 * numVerts, "tnorms mesh.c");
+	tnorms = MEM_callocN(sizeof(*tnorms) * numVerts, __func__);
 
 	mp = mpolys;
 	for (i = 0; i < numPolys; i++, mp++) {
-		BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
-		ml = mloop + mp->loopstart;
-
-		BLI_array_empty(vertcos);
-		BLI_array_empty(vertnos);
-		BLI_array_grow_items(vertcos, mp->totloop);
-		BLI_array_grow_items(vertnos, mp->totloop);
-
-		for (j = 0; j < mp->totloop; j++) {
-			int vindex = ml[j].v;
-			vertcos[j] = mverts[vindex].co;
-			vertnos[j] = tnorms[vindex];
-		}
-
-		BLI_array_empty(edgevecbuf);
-		BLI_array_grow_items(edgevecbuf, mp->totloop);
-
-		accumulate_vertex_normals_poly(vertnos, pnors[i], vertcos, edgevecbuf, mp->totloop);
+		mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, pnors ? pnors[i] : tpnor, tnorms);
 	}
-
-	BLI_array_free(vertcos);
-	BLI_array_free(vertnos);
-	BLI_array_free(edgevecbuf);
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 	for (i = 0; i < numVerts; i++) {
@@ -2000,8 +2023,6 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 	}
 
 	MEM_freeN(tnorms);
-
-	if (pnors != polyNors_r) MEM_freeN(pnors);
 }
 
 void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3])
