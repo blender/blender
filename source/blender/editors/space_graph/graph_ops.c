@@ -385,7 +385,9 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPH_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
 	
 	/* auto-set range */
 	WM_keymap_add_item(keymap, "GRAPH_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);

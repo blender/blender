@@ -323,10 +323,15 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "POSE_OT_rotation_mode_set", RKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "flipped", FALSE);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
 	RNA_boolean_set(kmi->ptr, "flipped", FALSE);
 
 	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "flipped", TRUE);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_OSKEY | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "flipped", TRUE);
 	
 	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_all", AKEY, KM_PRESS, 0, 0);
