@@ -82,15 +82,21 @@ static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float
 	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
 	BL::MeshTextureFace tf = userdata->layer.data[face_num];
 	float3 tfuv;
-
-	if(vert_num == 0)
-		tfuv = get_float3(tf.uv1());
-	else if(vert_num == 1)
-		tfuv = get_float3(tf.uv2());
-	else if(vert_num == 2)
-		tfuv = get_float3(tf.uv3());
-	else
-		tfuv = get_float3(tf.uv4());
+	
+	switch (vert_num) {
+		case 0:
+			tfuv = get_float3(tf.uv1());
+			break;
+		case 1:
+			tfuv = get_float3(tf.uv2());
+			break;
+		case 2:
+			tfuv = get_float3(tf.uv3());
+			break;
+		default:
+			tfuv = get_float3(tf.uv4());
+			break;
+	}
 	
 	uv[0] = tfuv.x;
 	uv[1] = tfuv.y;

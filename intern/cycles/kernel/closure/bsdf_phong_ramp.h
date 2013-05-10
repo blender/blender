@@ -69,7 +69,7 @@ __device float3 bsdf_phong_ramp_eval_reflect(const ShaderClosure *sc, const floa
 		float cosRI = dot(R, omega_in);
 		if (cosRI > 0) {
 			float cosp = powf(cosRI, m_exponent);
-			float common = 0.5f * (float) M_1_PI_F * cosp;
+			float common = 0.5f * M_1_PI_F * cosp;
 			float out = cosNI * (m_exponent + 2) * common;
 			*pdf = (m_exponent + 1) * common;
 			return bsdf_phong_ramp_get_color(sc, colors, cosp) * out;
