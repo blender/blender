@@ -93,28 +93,18 @@ struct OpenCVReprojectionError {
 
     T predicted_x, predicted_y;
 
-    // EuclideanBundle uses empty intrinsics, which breaks undistortion code;
-    // so use an implied focal length of 1.0 if the focal length is exactly
-    // zero.
-    // TODO(keir): Figure out a better way to do this.
-    if (focal_length != T(0)) {
-      // Apply distortion to the normalized points to get (xd, yd).
-      // TODO(keir): Do early bailouts for zero distortion; these are expensive
-      // jet operations.
-
-      ApplyRadialDistortionCameraIntrinsics(focal_length,
-                                            focal_length,
-                                            principal_point_x,
-                                            principal_point_y,
-                                            k1, k2, k3,
-                                            p1, p2,
-                                            xn, yn,
-                                            &predicted_x,
-                                            &predicted_y);
-    } else {
-      predicted_x = xn;
-      predicted_y = yn;
-    }
+    // Apply distortion to the normalized points to get (xd, yd).
+    // TODO(keir): Do early bailouts for zero distortion; these are expensive
+    // jet operations.
+    ApplyRadialDistortionCameraIntrinsics(focal_length,
+                                          focal_length,
+                                          principal_point_x,
+                                          principal_point_y,
+                                          k1, k2, k3,
+                                          p1, p2,
+                                          xn, yn,
+                                          &predicted_x,
+                                          &predicted_y);
 
     // The error is the difference between the predicted and observed position.
     residuals[0] = predicted_x - T(observed_x);
