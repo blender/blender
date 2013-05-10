@@ -2820,6 +2820,29 @@ void RNA_property_collection_next(CollectionPropertyIterator *iter)
 		cprop->next(iter);
 }
 
+void RNA_property_collection_skip(CollectionPropertyIterator *iter, int num)
+{
+	CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(iter->prop);
+	int i;
+
+	if (num > 1 && (iter->idprop || (cprop->property.flag & PROP_RAW_ARRAY))) {
+		/* fast skip for array */
+		ArrayIterator *internal = iter->internal;
+
+		if (!internal->skip) {
+			internal->ptr += internal->itemsize*(num-1);
+			iter->valid = (internal->ptr < internal->endptr);
+			if(iter->valid)
+				RNA_property_collection_next(iter);
+			return;
+		}
+	}
+
+	/* slow iteration otherwise */
+	for (i = 0; i < num && iter->valid; i++)
+		RNA_property_collection_next(iter);
+}
+
 void RNA_property_collection_end(CollectionPropertyIterator *iter)
 {
 	CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(iter->prop);

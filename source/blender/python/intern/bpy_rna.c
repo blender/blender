@@ -2270,7 +2270,7 @@ static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *s
 static PyObject *pyrna_prop_collection_subscript_slice(BPy_PropertyRNA *self, Py_ssize_t start, Py_ssize_t stop)
 {
 	CollectionPropertyIterator rna_macro_iter;
-	int count = 0;
+	int count;
 
 	PyObject *list;
 	PyObject *item;
@@ -2279,20 +2279,12 @@ static PyObject *pyrna_prop_collection_subscript_slice(BPy_PropertyRNA *self, Py
 
 	list = PyList_New(0);
 
-	/* first loop up-until the start */
-	for (RNA_property_collection_begin(&self->ptr, self->prop, &rna_macro_iter);
-	     rna_macro_iter.valid;
-	     RNA_property_collection_next(&rna_macro_iter))
-	{
-		/* PointerRNA itemptr = rna_macro_iter.ptr; */
-		if (count == start) {
-			break;
-		}
-		count++;
-	}
+	/* skip to start */
+	RNA_property_collection_begin(&self->ptr, self->prop, &rna_macro_iter);
+	RNA_property_collection_skip(&rna_macro_iter, start);
 
 	/* add items until stop */
-	for (; rna_macro_iter.valid;
+	for (count = start; rna_macro_iter.valid;
 	     RNA_property_collection_next(&rna_macro_iter))
 	{
 		item = pyrna_struct_CreatePyObject(&rna_macro_iter.ptr);
