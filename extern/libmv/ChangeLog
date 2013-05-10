@@ -1,3 +1,57 @@
+commit 3886b488575ec5e79debce7b9f2e9824f5297c0f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 10 12:23:03 2013 +0600
+
+    Add check for points behind camera in euclidan BA cost functor
+    
+    In cases keyframes are no so good, algebraic two frames construction
+    could produce result, for which more aggressive Ceres-based BA code
+    will fall to a solution for which points goes behind the camera,
+    which is not so nice.
+    
+    Seems in newer Ceres returning false from cost functor wouldn't
+    abort solution, but will restrict solver from moving points behind
+    the camera.
+    
+    Works fine in own tests, but requires more tests.
+
+commit a5699d7dbe126024673f51aaa570f9f244f8da2f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 24 22:06:38 2013 +0600
+
+    Forgot to add reconstruction scale to CMakeLists
+
+commit 2b7d2b44e6446bbcc23038f5dbb824feca888069
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 24 19:40:39 2013 +0600
+
+    Reconstructed scene scale ambiguity improvement
+    
+    Added a function EuclideanScaleToUnity() which is
+    aimed to solve scale ambiguity by scaling solution
+    in a way cameras centers variance in unity.
+    
+    Currently only available for euclidean pipeline,
+    projective one is not finished anyway.
+
+commit ed1f650576dc6f5b648a026a2861c54827b0f5c9
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 23 01:41:29 2013 +0600
+
+    Use epsilon in modal solver test
+    
+    Default epsilon for isApprox was too small,
+    leading to some false test failures.
+
+commit c44679a9a0fafdde6a0a22e7e5c8496fc9c93cd0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 23 01:35:56 2013 +0600
+
+    Update Ceres to current HEAD
+    
+    Brings optimization for DENSE_NORMAL_CHOLESKY and
+    also fixes threading issues with BLAS.
+
 commit 03cbc88ce7f51aa26ba503acea2e984bcb78873c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 15 05:35:33 2013 +0600
@@ -593,101 +647,3 @@ Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Dec 20 18:46:09 2012 +0600
 
     Cosmetic change to correspondences reports in keyframe selection
-
-commit ceaf80c987ec0338e7e83965bc808411453eb755
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 20 18:08:03 2012 +0600
-
-    Various fixes:
-    
-    - That was a typo in symmetric geometric cost functor, which
-      computed inverse distance in a wrong way.
-    
-    - Fixed compilation of unit tests
-    
-    - Added simple test for keyframe selection. Currently only
-      covers case that neighbor frames with only translation
-      (homography should be better than fundamental) are not
-      considered a keyframes.
-    
-      Still need to be investigated why it only works if tracks
-      are in pixel space and why doesn't work in normalized space.
-
-commit cfabdfe48df2add3d1f30cf4370efd0b31990ab0
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 20 05:46:53 2012 +0600
-
-    Assorted fixes for keyframe selection:
-    
-    - Biggest error was in cost functors used for F and H refirement,
-      they were just wrong.
-    
-    - Use natural logarithms, since it's actually makes sense from
-      math papers point of view and error is somewhere else.
-    
-    - Disabled rho for GRIC, for now use non-clamped error for tests.
-    
-    - Made SymmetricEpipolarDistance returning non-squared distance
-      Keyframe selection is currently the only used of this function
-      and it seems using non-squared distance makes much more sense.
-    
-      Also would think to append suffix "Squared" to functions which
-      returns squared distances.
-    
-    - Removed templated version of SymmetricEpipolarDistance, since
-      it's not needed actually.
-    
-    This is actually even worse working than previous implementation,
-    but commit it needed for further review.
-
-commit 35d8c57626ad74818f155e6e5960c663ea84e032
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 20 03:00:40 2012 +0600
-
-    Euclidean resection cost function didn't use correct constructor
-    
-    It was storing a reference to initial rotation passed by value,
-    leading to pointer being pointing to a stack variable, leading to
-    wrong memory access in residuals computing.
-    
-    Apparently was visible in optimized builds only with inline
-    substitution allowed.
-
-commit 0798d3162bb49cee7e1c423ceccbca1326ad5650
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 20 02:50:52 2012 +0600
-
-    Automatic keyframe selection based on Pollefeys's criteria
-    
-    This commit implements automatic keyframe selection algorithm
-    based on Pollefeys's criteria (F-GRIC is smaller than H-GRIC
-    and correspondence ratio is more then 90%).
-    
-    It is implemented as a part of simple pipeline and returns
-    vector of keyframe images for a given Tracks structure.
-    
-    For simple pipeline reconstruction two best keyframes are
-    expected to be selected from all detected candidates.
-    Criteria for this selection could be reprojection error of
-    solution from two candidate keyfames.
-    
-    Unfortunately, it's not fully workable yet, hopefully would
-    be fixed soon.
-
-commit e943985552f0598ae122252876f305d72c25c2f9
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 6 17:47:11 2012 +0600
-
-    Camera Tracking: allow fallback to reprojection resection
-    by user demand
-    
-    This fixes some "regressions" introduced in previous commit
-    which lead to much worse solution in some cases. Now it's
-    possible to bring old behavior back.
-    
-    Perhaps it's more like temporal solution for time being smarter
-    solution is found. But finding such a solution isn't so fast,
-    so let's bring manual control over reprojection usage.
-    
-    But anyway, imo it's now nice to have a structure which could
-    be used to pass different settings to the solver.
