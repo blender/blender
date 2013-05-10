@@ -1250,7 +1250,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 
 		float *vert_vel = NULL;
 		int has_velocity = 0;
-		float min[3], max[3], res[3];
+		int min[3], max[3], res[3];
 		int hires_multiplier = 1;
 
 		CDDM_calc_normals(dm);
@@ -1310,7 +1310,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		}
 
 		/* set emission map */
-		clampBoundsInDomain(sds, em->min, em->max, NULL, NULL, sfs->surface_distance, dt);
+		clampBoundsInDomain(sds, em->min, em->max, NULL, NULL, (int)ceil(sfs->surface_distance), dt);
 		em_allocateData(em, sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY, hires_multiplier);
 
 		/* setup loop bounds */
@@ -1321,7 +1321,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		}
 
 		if (bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6)) {
-			//#pragma omp parallel for schedule(static)
+			#pragma omp parallel for schedule(static)
 			for (z = min[2]; z < max[2]; z++) {
 				int x, y;
 				for (x = min[0]; x < max[0]; x++)
