@@ -3047,6 +3047,8 @@ void VectorMathNode::compile(OSLCompiler& compiler)
 BumpNode::BumpNode()
 : ShaderNode("bump")
 {
+	invert = false;
+
 	/* this input is used by the user, but after graph transform it is no longer
 	 * used and moved to sampler center/x/y instead */
 	add_input("Height", SHADER_SOCKET_FLOAT);
@@ -3055,7 +3057,8 @@ BumpNode::BumpNode()
 	add_input("SampleX", SHADER_SOCKET_FLOAT);
 	add_input("SampleY", SHADER_SOCKET_FLOAT);
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
-	add_input("Strength", SHADER_SOCKET_FLOAT, 0.1f);
+	add_input("Strength", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Distance", SHADER_SOCKET_FLOAT, 0.1f);
 
 	add_output("Normal", SHADER_SOCKET_NORMAL);
 }
@@ -3066,13 +3069,15 @@ void BumpNode::compile(SVMCompiler& compiler)
 	ShaderInput *dx_in = input("SampleX");
 	ShaderInput *dy_in = input("SampleY");
 	ShaderInput *normal_in = input("Normal");
-	ShaderInput *intensity_in = input("Strength");
+	ShaderInput *strength_in = input("Strength");
+	ShaderInput *distance_in = input("Distance");
 	ShaderOutput *normal_out = output("Normal");
 
 	compiler.stack_assign(center_in);
 	compiler.stack_assign(dx_in);
 	compiler.stack_assign(dy_in);
-	compiler.stack_assign(intensity_in);
+	compiler.stack_assign(strength_in);
+	compiler.stack_assign(distance_in);
 	compiler.stack_assign(normal_out);
 
 	if(normal_in->link)
@@ -3080,14 +3085,15 @@ void BumpNode::compile(SVMCompiler& compiler)
 	
 	/* pack all parameters in the node */
 	compiler.add_node(NODE_SET_BUMP,
-		normal_in->stack_offset,
+		compiler.encode_uchar4(normal_in->stack_offset, distance_in->stack_offset, invert),
 		compiler.encode_uchar4(center_in->stack_offset, dx_in->stack_offset,
-			dy_in->stack_offset, intensity_in->stack_offset),
+			dy_in->stack_offset, strength_in->stack_offset),
 		normal_out->stack_offset);
 }
 
 void BumpNode::compile(OSLCompiler& compiler)
 {
+	compiler.parameter("invert", invert);
 	compiler.add(this, "node_bump");
 }
 

@@ -839,6 +839,11 @@ static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
 }
 
+static void node_shader_buts_bump(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "invert", 0, NULL, 0);
+}
+
 static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "space", 0, "", 0);
@@ -989,6 +994,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEX_COORD:
 			ntype->uifunc = node_shader_buts_tex_coord;
+			break;
+		case SH_NODE_BUMP:
+			ntype->uifunc = node_shader_buts_bump;
 			break;
 		case SH_NODE_NORMAL_MAP:
 			ntype->uifunc = node_shader_buts_normal_map;

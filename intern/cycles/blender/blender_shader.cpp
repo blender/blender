@@ -394,7 +394,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		node = new HairInfoNode();
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeBump)) {
-		node = new BumpNode();
+		BL::ShaderNodeBump b_bump_node(b_node);
+		BumpNode *bump = new BumpNode();
+		bump->invert = b_bump_node.invert();
+		node = bump;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeScript)) {
 #ifdef WITH_OSL

@@ -22,8 +22,10 @@
  * Morten S. Mikkelsen, 2010 */
 
 surface node_bump(
+	int invert = 0,
 	normal NormalIn = N,
-	float Strength = 0.0,
+	float Strength = 0.1,
+	float Distance = 1.0,
 	float SampleCenter = 0.0,
 	float SampleX = 0.0,
 	float SampleY = 0.0,
@@ -42,10 +44,14 @@ surface node_bump(
 
 	float absdet = fabs(det);
 
-	float strength = clamp(Strength, 0.0, 1.0);
+	float strength = max(Strength, 0.0);
+	float dist = Distance;
+
+	if (invert)
+		dist *= -1.0;
 	
 	/* compute and output perturbed normal */
-	NormalOut = normalize(absdet * NormalIn - sign(det) * surfgrad);
+	NormalOut = normalize(absdet * NormalIn - dist * sign(det) * surfgrad);
 	NormalOut = normalize(strength*NormalOut + (1.0 - strength)*NormalIn);
 }
 

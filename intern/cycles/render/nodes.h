@@ -470,6 +470,7 @@ public:
 class BumpNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BumpNode)
+	bool invert;
 };
 
 class RGBCurvesNode : public ShaderNode {

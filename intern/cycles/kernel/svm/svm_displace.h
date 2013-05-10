@@ -24,7 +24,10 @@ __device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stack,
 {
 #ifdef __RAY_DIFFERENTIALS__
 	/* get normal input */
-	float3 normal_in = stack_valid(node.y)? stack_load_float3(stack, node.y): sd->N;
+	uint normal_offset, distance_offset, invert;
+	decode_node_uchar4(node.y, &normal_offset, &distance_offset, &invert, NULL);
+
+	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
 
 	/* get surface tangents from normal */
 	float3 Rx = cross(sd->dP.dy, normal_in);
@@ -45,10 +48,15 @@ __device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stack,
 	float absdet = fabsf(det);
 
 	float strength = stack_load_float(stack, strength_offset);
-	strength = clamp(strength, 0.0f, 1.0f);
+	float distance = stack_load_float(stack, distance_offset);
+
+	if(invert)
+		distance *= -1.0f;
+
+	strength = max(strength, 0.0f);
 
 	/* compute and output perturbed normal */
-	float3 normal_out = normalize(absdet*normal_in - signf(det)*surfgrad);
+	float3 normal_out = normalize(absdet*normal_in - distance*signf(det)*surfgrad);
 	normal_out = normalize(strength*normal_out + (1.0f - strength)*normal_in);
 	stack_store_float3(stack, node.w, normal_out);
 #endif
