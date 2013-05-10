@@ -194,7 +194,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 	return uiItemFullO_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag);
 }
 
-static void rna_uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname, const char *name,
+static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name,
                                 const char *text_ctxt, int translate, int icon)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
@@ -208,7 +208,7 @@ static void rna_uiItemMenuEnumO(uiLayout *layout, const char *opname, const char
 	name = rna_translate_ui_text(name, text_ctxt, ot->srna, NULL, translate);
 
 	/* XXX This will search operator again :( */
-	uiItemMenuEnumO(layout, opname, propname, name, icon);
+	uiItemMenuEnumO(layout, C, opname, propname, name, icon);
 }
 
 static void rna_uiItemL(uiLayout *layout, const char *name, const char *text_ctxt, int translate,
@@ -549,6 +549,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "operator_menu_enum", "rna_uiItemMenuEnumO");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_op(func); /* cant use api_ui_item_op_common because property must come right after */
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

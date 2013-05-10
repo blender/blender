@@ -892,7 +892,7 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval); /* value
 void uiItemS(uiLayout *layout); /* separator */
 
 void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg);
-void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname, const char *name, int icon);
+void uiItemMenuEnumO(uiLayout *layout, struct bContext *C, const char *opname, const char *propname, const char *name, int icon);
 void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name, int icon);
 
 /* UI Operators */

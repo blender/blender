@@ -1681,10 +1681,11 @@ static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, vo
 	uiItemsEnumO(layout, lvl->opname, lvl->propname);
 }
 
-void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname, const char *name, int icon)
+void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name, int icon)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	MenuItemLevel *lvl;
+	char namestr[UI_MAX_NAME_STR], keybuf[128];
 
 	UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -1694,8 +1695,11 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 		return;
 	}
 
-	if (!name)
-		name = RNA_struct_ui_name(ot->srna);
+	if (name)
+		BLI_strncpy(namestr, name, sizeof(namestr));
+	else
+		BLI_strncpy(namestr, RNA_struct_ui_name(ot->srna), sizeof(namestr));
+
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon = ICON_BLANK1;
 
@@ -1704,7 +1708,16 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext = layout->root->opcontext;
 
-	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl, RNA_struct_ui_description(ot->srna));
+	/* add hotkey here, lower UI code can't detect it */
+	if(layout->root->block->flag & UI_BLOCK_LOOP) {
+		if (ot->prop && WM_key_event_operator_string(C, ot->idname,
+			layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf))) {
+			strncat(namestr, "|", sizeof(namestr)-1);
+			strncat(namestr, keybuf, sizeof(namestr)-1);
+		}
+	}
+
+	ui_item_menu(layout, namestr, icon, menu_item_enum_opname_menu, NULL, lvl, RNA_struct_ui_description(ot->srna));
 }
 
 static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)

@@ -863,14 +863,9 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 						}
 #endif
 
-						if (kmi->ptr) {
-							PointerRNA properties_ptr;
-							RNA_pointer_create(NULL, kmi->ptr->type, properties, &properties_ptr);
-
-							if (RNA_struct_equals(&properties_ptr, kmi->ptr, is_strict)) {
-								if (keymap_r) *keymap_r = keymap;
-								return kmi;
-							}
+						if (kmi->ptr && IDP_EqualsProperties_ex(properties, kmi->ptr->data, is_strict)) {
+							if (keymap_r) *keymap_r = keymap;
+							return kmi;
 						}
 					}
 					else {
@@ -938,9 +933,9 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 
 static wmKeyMapItem *wm_keymap_item_find(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const short hotkey, const short UNUSED(sloppy), wmKeyMap **keymap_r)
+        IDProperty *properties, const short hotkey, const bool strict, wmKeyMap **keymap_r)
 {
-	wmKeyMapItem *found = wm_keymap_item_find_props(C, opname, opcontext, properties, 1, hotkey, keymap_r);
+	wmKeyMapItem *found = wm_keymap_item_find_props(C, opname, opcontext, properties, strict, hotkey, keymap_r);
 
 	if (!found && properties) {
 		wmOperatorType *ot = WM_operatortype_find(opname, TRUE);
@@ -953,14 +948,14 @@ static wmKeyMapItem *wm_keymap_item_find(
 			RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
 
 			if (WM_operator_properties_default(&opptr, true) ||
-			    (ot->prop && RNA_property_is_set(&opptr, ot->prop)))
+			    (!strict && ot->prop && RNA_property_is_set(&opptr, ot->prop)))
 			{
 				/* for operator that has enum menu, unset it so it always matches */
-				if (ot->prop) {
+				if (!strict && ot->prop) {
 					RNA_property_unset(&opptr, ot->prop);
 				}
 
-				found = wm_keymap_item_find_props(C, opname, opcontext, properties_default, 0, hotkey, keymap_r);
+				found = wm_keymap_item_find_props(C, opname, opcontext, properties_default, false, hotkey, keymap_r);
 			}
 
 			IDP_FreeProperty(properties_default);
@@ -973,9 +968,9 @@ static wmKeyMapItem *wm_keymap_item_find(
 
 char *WM_key_event_operator_string(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const bool sloppy, char *str, int len)
+        IDProperty *properties, const bool strict, char *str, int len)
 {
-	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, 0, sloppy, NULL);
+	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, 0, strict, NULL);
 	
 	if (kmi) {
 		WM_keymap_item_to_string(kmi, str, len);
@@ -989,7 +984,7 @@ int WM_key_event_operator_id(
         const bContext *C, const char *opname, int opcontext,
         IDProperty *properties, int hotkey, wmKeyMap **keymap_r)
 {
-	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, hotkey, TRUE, keymap_r);
+	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, hotkey, true, keymap_r);
 	
 	if (kmi)
 		return kmi->id;

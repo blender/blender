@@ -878,7 +878,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 		if (but->optype) {
 			IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 
-			if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+			if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
 			                                 buf, sizeof(buf)))
 			{
 				ui_but_add_shortcut(but, buf, FALSE);
@@ -895,7 +895,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 
 			IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
 
-			if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, FALSE,
+			if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true,
 			                                 buf, sizeof(buf)))
 			{
 				ui_but_add_shortcut(but, buf, FALSE);
@@ -4093,7 +4093,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 				IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 				char buf[512];
 
-				if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+				if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
 				                                 buf, sizeof(buf)))
 				{
 					tmp = BLI_strdup(buf);
