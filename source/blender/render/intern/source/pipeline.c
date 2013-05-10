@@ -2158,7 +2158,7 @@ static int node_tree_has_composite_output(bNodeTree *ntree)
 	bNode *node;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_COMPOSITE) {
+		if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
 			return TRUE;
 		}
 		else if (node->type == NODE_GROUP) {
