@@ -154,6 +154,10 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
                         bpy.ops.mball.select_all(action='DESELECT')
                     elif active_object.type == 'ARMATURE':
                         bpy.ops.armature.select_all(action='DESELECT')
+                elif active_object.mode == 'POSE':
+                    bpy.ops.pose.select_all(action='DESELECT')
+                elif active_object.mode == 'PARTICLE_EDIT':
+                    bpy.ops.particle.select_all(action='DESELECT')
                 else:
                     bpy.ops.object.select_all(action='DESELECT')
             else:
