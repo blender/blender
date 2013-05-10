@@ -22,6 +22,7 @@
 shader node_rgb_ramp(
 	color ramp_color[RAMP_TABLE_SIZE] = {0.0},
 	float ramp_alpha[RAMP_TABLE_SIZE] = {0.0},
+	int ramp_interpolate = 1,
 
 	float Fac = 0.0,
 	output color Color = 0.0,
@@ -38,7 +39,7 @@ shader node_rgb_ramp(
 	Color = ramp_color[i];
 	Alpha = ramp_alpha[i];
 
-	if (t > 0.0) {
+	if (ramp_interpolate && t > 0.0) {
 		Color = (1.0 - t) * Color + t * ramp_color[i + 1];
 		Alpha = (1.0 - t) * Alpha + t * ramp_alpha[i + 1];
 	}
