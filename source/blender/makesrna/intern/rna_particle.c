@@ -922,32 +922,6 @@ static void rna_ParticleSystem_active_particle_target_index_set(struct PointerRN
 			pt->flag &= ~PTARGET_CURRENT;
 	}
 }
-static int rna_ParticleTarget_name_length(PointerRNA *ptr)
-{
-	ParticleTarget *pt = ptr->data;
-
-	if (pt->flag & PTARGET_VALID) {
-		ParticleSystem *psys = NULL;
-
-		if (pt->ob)
-			psys = BLI_findlink(&pt->ob->particlesystem, pt->psys - 1);
-		else {
-			Object *ob = (Object *) ptr->id.data;
-			psys = BLI_findlink(&ob->particlesystem, pt->psys - 1);
-		}
-		
-		if (psys) {
-			if (pt->ob)
-				return strlen(pt->ob->id.name + 2) + 2 + strlen(psys->name);
-			else
-				return strlen(psys->name);
-		}
-		else
-			return 15;
-	}
-	else
-		return 15;
-}
 
 static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
 {
@@ -974,6 +948,15 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
 	}
 	else
 		strcpy(str, "Invalid target!");
+}
+
+static int rna_ParticleTarget_name_length(PointerRNA *ptr)
+{
+	char tstr[MAX_ID_NAME + MAX_ID_NAME + 64];
+
+	rna_ParticleTarget_name_get(ptr, tstr);
+
+	return strlen(tstr);
 }
 
 static int particle_id_check(PointerRNA *ptr)
@@ -1062,15 +1045,6 @@ static void rna_ParticleDupliWeight_active_index_set(struct PointerRNA *ptr, int
 	}
 }
 
-static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str);
-
-static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
-{
-	char tstr[32];
-	rna_ParticleDupliWeight_name_get(ptr, tstr);
-	return strlen(tstr);
-}
-
 static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 {
 	ParticleDupliWeight *dw = ptr->data;
@@ -1079,6 +1053,15 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 		sprintf(str, "%s: %i", dw->ob->id.name + 2, dw->count);
 	else
 		strcpy(str, "No object");
+}
+
+static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
+{
+	char tstr[MAX_ID_NAME + 64];
+
+	rna_ParticleDupliWeight_name_get(ptr, tstr);
+
+	return strlen(tstr);
 }
 
 static EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
