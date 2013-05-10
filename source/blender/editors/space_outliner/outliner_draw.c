@@ -635,6 +635,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)te->ys, UI_UNIT_X,
 				                      UI_UNIT_Y, &(md->mode), 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
+
+				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
 			else if (tselem->type == TSE_POSE_CHANNEL) {
 				bPoseChannel *pchan = (bPoseChannel *)te->directdata;
@@ -653,6 +655,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				                      UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
 				                      TIP_("Restrict/Allow selection in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_bone_select_cb, ob->data, bone);
+
+				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
 			else if (tselem->type == TSE_EBONE) {
 				EditBone *ebone = (EditBone *)te->directdata;
@@ -669,6 +673,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				                      UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
 				                      TIP_("Restrict/Allow selection in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_ebone_select_cb, NULL, ebone);
+
+				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
 		}
 		
@@ -729,6 +735,8 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 		
 		if (TSELEM_OPEN(tselem, soops)) outliner_draw_rnabuts(block, scene, ar, soops, sizex, &te->subtree);
 	}
+
+	uiBlockSetEmboss(block, UI_EMBOSS);
 }
 
 static void operator_call_cb(struct bContext *UNUSED(C), void *arg_kmi, void *arg2)
@@ -1005,6 +1013,8 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 		
 		if (TSELEM_OPEN(tselem, soops)) outliner_draw_keymapbuts(block, ar, soops, &te->subtree);
 	}
+
+	uiBlockSetEmboss(block, UI_EMBOSS);
 }
 
 
@@ -1034,11 +1044,11 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				
 
 				dx = (int)UI_GetStringWidth(te->name);
-				if (dx < 100) dx = 100;
-				spx = te->xs + 2 * UI_UNIT_X - 4;
-				if (spx + dx + 10 > ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax - spx - 10;
+				if (dx < 5*UI_UNIT_X) dx = 5*UI_UNIT_X;
+				spx = te->xs + 1.8f * UI_UNIT_X;
+				if (spx + dx + 0.5f*UI_UNIT_X > ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax - spx - 0.5f*UI_UNIT_X;
 
-				bt = uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (int)te->ys, dx + 10, UI_UNIT_Y - 1, (void *)te->name,
+				bt = uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (int)te->ys, dx + UI_UNIT_X, UI_UNIT_Y - 1, (void *)te->name,
 				              1.0, (float)len, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
