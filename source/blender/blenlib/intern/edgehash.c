@@ -33,12 +33,18 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_mempool.h"
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wstrict-overflow"
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
 
 /**************inlined code************/
 static const unsigned int _ehash_hashsizes[] = {
@@ -70,7 +76,7 @@ struct EdgeEntry {
 struct EdgeHash {
 	EdgeEntry **buckets;
 	BLI_mempool *epool;
-	int nbuckets, nentries, cursize;
+	unsigned int nbuckets, nentries, cursize;
 };
 
 /***/
@@ -109,7 +115,7 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 
 	if (++eh->nentries > eh->nbuckets * 3) {
 		EdgeEntry **old = eh->buckets;
-		int i, nold = eh->nbuckets;
+		unsigned int i, nold = eh->nbuckets;
 
 		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
 		eh->buckets = MEM_mallocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
@@ -160,12 +166,12 @@ bool BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
 
 int BLI_edgehash_size(EdgeHash *eh)
 {
-	return eh->nentries;
+	return (int)eh->nentries;
 }
 
 void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
-	int i;
+	unsigned int i;
 	
 	for (i = 0; i < eh->nbuckets; i++) {
 		EdgeEntry *e;
@@ -199,7 +205,7 @@ void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 
 struct EdgeHashIterator {
 	EdgeHash *eh;
-	int curBucket;
+	unsigned int curBucket;
 	EdgeEntry *curEntry;
 };
 
@@ -208,7 +214,7 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 	EdgeHashIterator *ehi = MEM_mallocN(sizeof(*ehi), "eh iter");
 	ehi->eh = eh;
 	ehi->curEntry = NULL;
-	ehi->curBucket = -1;
+	ehi->curBucket = UINT_MAX;  /* wraps to zero */
 	while (!ehi->curEntry) {
 		ehi->curBucket++;
 		if (ehi->curBucket == ehi->eh->nbuckets)
