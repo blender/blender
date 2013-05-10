@@ -38,10 +38,8 @@ void EuclideanScaleToUnity(EuclideanReconstruction *reconstruction) {
   double max_distance = 0.0;
   for (int i = 0; i < all_cameras.size(); ++i) {
     double distance = (all_cameras[i].t - cameras_mass_center).squaredNorm();
-    if (distance > max_distance) {
+    if (distance > max_distance)
       max_distance = distance;
-      LG << i;
-    }
   }
 
   if (max_distance == 0.0) {
