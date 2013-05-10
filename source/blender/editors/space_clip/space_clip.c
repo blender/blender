@@ -441,6 +441,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_mode_set);
 	WM_operatortype_append(CLIP_OT_view_ndof);
 	WM_operatortype_append(CLIP_OT_prefetch);
+	WM_operatortype_append(CLIP_OT_set_scene_frames);
 
 	/* ** clip_toolbar.c ** */
 	WM_operatortype_append(CLIP_OT_tools);

@@ -1419,6 +1419,41 @@ void CLIP_OT_prefetch(wmOperatorType *ot)
 	ot->modal = clip_prefetch_modal;
 }
 
+/********************** Set scene frames *********************/
+
+static int clip_set_scene_frames_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	MovieClip *clip = CTX_data_edit_movieclip(C);
+	Scene *scene = CTX_data_scene(C);
+	int clip_length;
+
+	if (ELEM(NULL, scene, clip))
+		return OPERATOR_CANCELLED;
+
+	clip_length = BKE_movieclip_get_duration(clip);
+
+	scene->r.sfra = clip->start_frame;
+	scene->r.efra = scene->r.sfra + clip_length - 1;
+
+	scene->r.efra = max_ii(scene->r.sfra, scene->r.efra);
+
+	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_scene_frames(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Set Scene Frames";
+	ot->idname = "CLIP_OT_set_scene_frames";
+	ot->description = "Set scene's start and end frame to match clip's start frame and length";
+
+	/* api callbacks */
+	ot->poll = ED_space_clip_view_clip_poll;
+	ot->exec = clip_set_scene_frames_exec;
+}
+
 /********************** macroses *********************/
 
 void ED_operatormacros_clip(void)
