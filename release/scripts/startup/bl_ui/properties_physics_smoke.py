@@ -244,7 +244,8 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
         col = split.column()
         col.label(text="Resolution:")
         col.prop(md, "amplify", text="Divisions")
-        col.prop(md, "use_smooth_emitter")
+        col.label(text="Flow Sampling:")
+        col.row().prop(md, "highres_sampling", text="")
 
         col = split.column()
         col.label(text="Noise Method:")

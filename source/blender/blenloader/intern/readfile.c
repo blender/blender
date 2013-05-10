@@ -9443,6 +9443,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (MAIN_VERSION_OLDER(main, 267, 1))
+	{
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd = (SmokeModifierData *)md;
+					if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+						if (smd->domain->flags && MOD_SMOKE_HIGH_SMOOTH) {
+							smd->domain->highres_sampling = SM_HRES_LINEAR;
+						}
+						else {
+							smd->domain->highres_sampling = SM_HRES_NEAREST;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 

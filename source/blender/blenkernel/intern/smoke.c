@@ -525,6 +525,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->vorticity = 2.0;
 			smd->domain->border_collisions = SM_BORDER_OPEN; // open domain
 			smd->domain->flags = MOD_SMOKE_DISSOLVE_LOG | MOD_SMOKE_HIGH_SMOOTH;
+			smd->domain->highres_sampling = SM_HRES_FULLSAMPLE;
 			smd->domain->strength = 2.0;
 			smd->domain->noise = MOD_SMOKE_NOISEWAVE;
 			smd->domain->diss_speed = 5;
@@ -899,6 +900,7 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 
 typedef struct EmissionMap {
 	float *influence;
+	float *influence_high;
 	float *velocity;
 	int min[3], max[3], res[3];
 	int total_cells, valid;
@@ -908,8 +910,10 @@ static void em_boundInsert(EmissionMap *em, float point[3])
 {
 	int i = 0;
 	if (!em->valid) {
-		VECCOPY(em->min, point);
-		VECCOPY(em->max, point);
+		for (; i < 3; i++) {
+			em->min[i] = (int)floor(point[i]);
+			em->max[i] = (int)ceil(point[i]);
+		}
 		em->valid = 1;
 	}
 	else {
@@ -943,7 +947,7 @@ static void clampBoundsInDomain(SmokeDomainSettings *sds, int min[3], int max[3]
 	}
 }
 
-static void em_allocateData(EmissionMap *em, int use_velocity)
+static void em_allocateData(EmissionMap *em, int use_velocity, int hires_mul)
 {
 	int i, res[3];
 
@@ -959,12 +963,20 @@ static void em_allocateData(EmissionMap *em, int use_velocity)
 	em->influence = MEM_callocN(sizeof(float) * em->total_cells, "smoke_flow_influence");
 	if (use_velocity)
 		em->velocity = MEM_callocN(sizeof(float) * em->total_cells * 3, "smoke_flow_velocity");
+
+	/* allocate high resolution map if required */
+	if (hires_mul > 1) {
+		int total_cells_high = em->total_cells * (hires_mul * hires_mul * hires_mul);
+		em->influence_high = MEM_callocN(sizeof(float) * total_cells_high, "smoke_flow_influence_high");
+	}
 }
 
 static void em_freeData(EmissionMap *em)
 {
 	if (em->influence)
 		MEM_freeN(em->influence);
+	if (em->influence_high)
+		MEM_freeN(em->influence_high);
 	if (em->velocity)
 		MEM_freeN(em->velocity);
 }
@@ -1034,7 +1046,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 
 		/* set emission map */
 		clampBoundsInDomain(sds, em->min, em->max, NULL, NULL, 1, dt);
-		em_allocateData(em, sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY);
+		em_allocateData(em, sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY, 0);
 
 		for (p = 0; p < valid_particles; p++)
 		{
@@ -1096,6 +1108,131 @@ static void get_texture_value(Tex *texture, float tex_co[3], TexResult *texres)
 	}
 }
 
+static void sample_derived_mesh(SmokeFlowSettings *sfs, MVert *mvert, MTFace *tface, MFace *mface, float *influence_map, float *velocity_map, int index, int base_res[3], float flow_center[3], BVHTreeFromMesh *treeData, float ray_start[3],
+								float *vert_vel, int has_velocity, int defgrp_index, MDeformVert *dvert, float x, float y, float z)
+{
+	float ray_dir[3] = {1.0f, 0.0f, 0.0f};
+	BVHTreeRayHit hit = {0};
+	BVHTreeNearest nearest = {0};
+
+	float volume_factor = 0.0f;
+	float sample_str = 0.0f;
+
+	hit.index = -1;
+	hit.dist = 9999;
+	nearest.index = -1;
+	nearest.dist = sfs->surface_distance * sfs->surface_distance; /* find_nearest uses squared distance */
+
+	/* Check volume collision */
+	if (sfs->volume_density) {
+		if (BLI_bvhtree_ray_cast(treeData->tree, ray_start, ray_dir, 0.0f, &hit, treeData->raycast_callback, treeData) != -1) {
+			float dot = ray_dir[0] * hit.no[0] + ray_dir[1] * hit.no[1] + ray_dir[2] * hit.no[2];
+			/*  If ray and hit face normal are facing same direction
+			 *	hit point is inside a closed mesh. */
+			if (dot >= 0) {
+				/* Also cast a ray in opposite direction to make sure
+				 * point is at least surrounded by two faces */
+				negate_v3(ray_dir);
+				hit.index = -1;
+				hit.dist = 9999;
+
+				BLI_bvhtree_ray_cast(treeData->tree, ray_start, ray_dir, 0.0f, &hit, treeData->raycast_callback, treeData);
+				if (hit.index != -1) {
+					volume_factor = sfs->volume_density;
+				}
+			}
+		}
+	}
+
+	/* find the nearest point on the mesh */
+	if (BLI_bvhtree_find_nearest(treeData->tree, ray_start, &nearest, treeData->nearest_callback, treeData) != -1) {
+		float weights[4];
+		int v1, v2, v3, f_index = nearest.index;
+		float n1[3], n2[3], n3[3], hit_normal[3];
+
+		/* emit from surface based on distance */
+		if (sfs->surface_distance) {
+			sample_str = sqrtf(nearest.dist) / sfs->surface_distance;
+			CLAMP(sample_str, 0.0f, 1.0f);
+			sample_str = pow(1.0f - sample_str, 0.5f);
+		}
+		else
+			sample_str = 0.0f;
+
+		/* calculate barycentric weights for nearest point */
+		v1 = mface[f_index].v1;
+		v2 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v3 : mface[f_index].v2;
+		v3 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v4 : mface[f_index].v3;
+		interp_weights_face_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, NULL, nearest.co);
+
+		if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && velocity_map) {
+			/* apply normal directional velocity */
+			if (sfs->vel_normal) {
+				/* interpolate vertex normal vectors to get nearest point normal */
+				normal_short_to_float_v3(n1, mvert[v1].no);
+				normal_short_to_float_v3(n2, mvert[v2].no);
+				normal_short_to_float_v3(n3, mvert[v3].no);
+				interp_v3_v3v3v3(hit_normal, n1, n2, n3, weights);
+				normalize_v3(hit_normal);
+				/* apply normal directional and random velocity
+				 * - TODO: random disabled for now since it doesnt really work well as pressure calc smoothens it out... */
+				velocity_map[index * 3]   += hit_normal[0] * sfs->vel_normal * 0.25f;
+				velocity_map[index * 3 + 1] += hit_normal[1] * sfs->vel_normal * 0.25f;
+				velocity_map[index * 3 + 2] += hit_normal[2] * sfs->vel_normal * 0.25f;
+				/* TODO: for fire emitted from mesh surface we can use
+				 *  Vf = Vs + (Ps/Pf - 1)*S to model gaseous expansion from solid to fuel */
+			}
+			/* apply object velocity */
+			if (has_velocity && sfs->vel_multi) {
+				float hit_vel[3];
+				interp_v3_v3v3v3(hit_vel, &vert_vel[v1 * 3], &vert_vel[v2 * 3], &vert_vel[v3 * 3], weights);
+				velocity_map[index * 3]   += hit_vel[0] * sfs->vel_multi;
+				velocity_map[index * 3 + 1] += hit_vel[1] * sfs->vel_multi;
+				velocity_map[index * 3 + 2] += hit_vel[2] * sfs->vel_multi;
+			}
+		}
+
+		/* apply vertex group influence if used */
+		if (defgrp_index != -1 && dvert) {
+			float weight_mask = defvert_find_weight(&dvert[v1], defgrp_index) * weights[0] +
+			                    defvert_find_weight(&dvert[v2], defgrp_index) * weights[1] +
+			                    defvert_find_weight(&dvert[v3], defgrp_index) * weights[2];
+			sample_str *= weight_mask;
+		}
+
+		/* apply emission texture */
+		if ((sfs->flags & MOD_SMOKE_FLOW_TEXTUREEMIT) && sfs->noise_texture) {
+			float tex_co[3] = {0};
+			TexResult texres;
+
+			if (sfs->texture_type == MOD_SMOKE_FLOW_TEXTURE_MAP_AUTO) {
+				tex_co[0] = ((x - flow_center[0]) / base_res[0]) / sfs->texture_size;
+				tex_co[1] = ((y - flow_center[1]) / base_res[1]) / sfs->texture_size;
+				tex_co[2] = ((z - flow_center[2]) / base_res[2] - sfs->texture_offset) / sfs->texture_size;
+			}
+			else if (tface) {
+				interp_v2_v2v2v2(tex_co, tface[f_index].uv[0], tface[f_index].uv[(nearest.flags & BVH_ONQUAD) ? 2 : 1],
+				                 tface[f_index].uv[(nearest.flags & BVH_ONQUAD) ? 3 : 2], weights);
+				/* map between -1.0f and 1.0f */
+				tex_co[0] = tex_co[0] * 2.0f - 1.0f;
+				tex_co[1] = tex_co[1] * 2.0f - 1.0f;
+				tex_co[2] = sfs->texture_offset;
+			}
+			texres.nor = NULL;
+			get_texture_value(sfs->noise_texture, tex_co, &texres);
+			sample_str *= texres.tin;
+		}
+	}
+
+	/* multiply initial velocity by emitter influence */
+	if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && velocity_map) {
+		mul_v3_fl(&velocity_map[index * 3], sample_str);
+	}
+
+	/* apply final influence based on volume factor */
+	influence_map[index] = MAX2(volume_factor, sample_str);
+}
+
 static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowSettings *sfs, EmissionMap *em, float dt)
 {
 	if (!sfs->dm) return;
@@ -1113,6 +1250,8 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 
 		float *vert_vel = NULL;
 		int has_velocity = 0;
+		float min[3], max[3], res[3];
+		int hires_multiplier = 1;
 
 		CDDM_calc_normals(dm);
 		mvert = dm->getVertArray(dm);
@@ -1165,141 +1304,57 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		mul_m4_v3(flow_ob->obmat, flow_center);
 		smoke_pos_to_cell(sds, flow_center);
 
+		/* check need for high resolution map */
+		if ((sds->flags & MOD_SMOKE_HIGHRES) && (sds->highres_sampling == SM_HRES_FULLSAMPLE)) {
+			hires_multiplier = sds->amplify + 1;
+		}
+
 		/* set emission map */
 		clampBoundsInDomain(sds, em->min, em->max, NULL, NULL, sfs->surface_distance, dt);
-		em_allocateData(em, sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY);
+		em_allocateData(em, sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY, hires_multiplier);
+
+		/* setup loop bounds */
+		for (i = 0; i < 3; i++) {
+			min[i] = em->min[i] * hires_multiplier;
+			max[i] = em->max[i] * hires_multiplier;
+			res[i] = em->res[i] * hires_multiplier;
+		}
 
 		if (bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6)) {
-			#pragma omp parallel for schedule(static)
-			for (z = em->min[2]; z < em->max[2]; z++) {
+			//#pragma omp parallel for schedule(static)
+			for (z = min[2]; z < max[2]; z++) {
 				int x, y;
-				for (x = em->min[0]; x < em->max[0]; x++)
-					for (y = em->min[1]; y < em->max[1]; y++) {
-						int index = smoke_get_index(x - em->min[0], em->res[0], y - em->min[1], em->res[1], z - em->min[2]);
+				for (x = min[0]; x < max[0]; x++)
+					for (y = min[1]; y < max[1]; y++) {
+						/* take low res samples where possible */
+						if (hires_multiplier <= 1 || !(x % hires_multiplier || y % hires_multiplier || z % hires_multiplier)) {
+							/* get low res space coordinates */
+							int lx = x / hires_multiplier;
+							int ly = y / hires_multiplier;
+							int lz = z / hires_multiplier;
 
-						float ray_start[3] = {(float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f};
-						float ray_dir[3] = {1.0f, 0.0f, 0.0f};
+							int index = smoke_get_index(lx - em->min[0], em->res[0], ly - em->min[1], em->res[1], lz - em->min[2]);
+							float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
 
-						BVHTreeRayHit hit = {0};
-						BVHTreeNearest nearest = {0};
-
-						float volume_factor = 0.0f;
-						float sample_str = 0.0f;
-
-						hit.index = -1;
-						hit.dist = 9999;
-						nearest.index = -1;
-						nearest.dist = sfs->surface_distance * sfs->surface_distance; /* find_nearest uses squared distance */
-
-						/* Check volume collision */
-						if (sfs->volume_density) {
-							if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1) {
-								float dot = ray_dir[0] * hit.no[0] + ray_dir[1] * hit.no[1] + ray_dir[2] * hit.no[2];
-								/*  If ray and hit face normal are facing same direction
-								 *	hit point is inside a closed mesh. */
-								if (dot >= 0) {
-									/* Also cast a ray in opposite direction to make sure
-									 * point is at least surrounded by two faces */
-									negate_v3(ray_dir);
-									hit.index = -1;
-									hit.dist = 9999;
-
-									BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, treeData.raycast_callback, &treeData);
-									if (hit.index != -1) {
-										volume_factor = sfs->volume_density;
-										nearest.dist = hit.dist * hit.dist;
-									}
-								}
-							}
+							sample_derived_mesh(sfs, mvert, tface, mface, em->influence, em->velocity, index, sds->base_res, flow_center, &treeData, ray_start,
+												vert_vel, has_velocity, defgrp_index, dvert, (float)lx, (float)ly, (float)lz);
 						}
 
-						/* find the nearest point on the mesh */
-						if (BLI_bvhtree_find_nearest(treeData.tree, ray_start, &nearest, treeData.nearest_callback, &treeData) != -1) {
-							float weights[4];
-							int v1, v2, v3, f_index = nearest.index;
-							float n1[3], n2[3], n3[3], hit_normal[3];
+						/* take high res samples if required */
+						if (hires_multiplier > 1) {
+							/* get low res space coordinates */
+							float hr = 1.0f / ((float)hires_multiplier);
+							float lx = ((float)x) * hr;
+							float ly = ((float)y) * hr;
+							float lz = ((float)z) * hr;
 
-							/* emit from surface based on distance */
-							if (sfs->surface_distance) {
-								sample_str = sqrtf(nearest.dist) / sfs->surface_distance;
-								CLAMP(sample_str, 0.0f, 1.0f);
-								sample_str = pow(1.0f - sample_str, 0.5f);
-							}
-							else
-								sample_str = 0.0f;
+							int index = smoke_get_index(x - min[0], res[0], y - min[1], res[1], z - min[2]);
+							float ray_start[3] = {lx + 0.5f*hr, ly + 0.5f*hr, lz + 0.5f*hr};
 
-							/* calculate barycentric weights for nearest point */
-							v1 = mface[f_index].v1;
-							v2 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v3 : mface[f_index].v2;
-							v3 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v4 : mface[f_index].v3;
-							interp_weights_face_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, NULL, nearest.co);
-
-							if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY) {
-								/* apply normal directional velocity */
-								if (sfs->vel_normal) {
-									/* interpolate vertex normal vectors to get nearest point normal */
-									normal_short_to_float_v3(n1, mvert[v1].no);
-									normal_short_to_float_v3(n2, mvert[v2].no);
-									normal_short_to_float_v3(n3, mvert[v3].no);
-									interp_v3_v3v3v3(hit_normal, n1, n2, n3, weights);
-									normalize_v3(hit_normal);
-									/* apply normal directional and random velocity
-									 * - TODO: random disabled for now since it doesnt really work well as pressure calc smoothens it out... */
-									em->velocity[index * 3]   += hit_normal[0] * sfs->vel_normal * 0.25f;
-									em->velocity[index * 3 + 1] += hit_normal[1] * sfs->vel_normal * 0.25f;
-									em->velocity[index * 3 + 2] += hit_normal[2] * sfs->vel_normal * 0.25f;
-									/* TODO: for fire emitted from mesh surface we can use
-									 *  Vf = Vs + (Ps/Pf - 1)*S to model gaseous expansion from solid to fuel */
-								}
-								/* apply object velocity */
-								if (has_velocity && sfs->vel_multi) {
-									float hit_vel[3];
-									interp_v3_v3v3v3(hit_vel, &vert_vel[v1 * 3], &vert_vel[v2 * 3], &vert_vel[v3 * 3], weights);
-									em->velocity[index * 3]   += hit_vel[0] * sfs->vel_multi;
-									em->velocity[index * 3 + 1] += hit_vel[1] * sfs->vel_multi;
-									em->velocity[index * 3 + 2] += hit_vel[2] * sfs->vel_multi;
-								}
-							}
-
-							/* apply vertex group influence if used */
-							if (defgrp_index != -1 && dvert) {
-								float weight_mask = defvert_find_weight(&dvert[v1], defgrp_index) * weights[0] +
-								                    defvert_find_weight(&dvert[v2], defgrp_index) * weights[1] +
-								                    defvert_find_weight(&dvert[v3], defgrp_index) * weights[2];
-								sample_str *= weight_mask;
-							}
-
-							/* apply emission texture */
-							if ((sfs->flags & MOD_SMOKE_FLOW_TEXTUREEMIT) && sfs->noise_texture) {
-								float tex_co[3] = {0};
-								TexResult texres;
-
-								if (sfs->texture_type == MOD_SMOKE_FLOW_TEXTURE_MAP_AUTO) {
-									tex_co[0] = ((float)(x - flow_center[0]) / sds->base_res[0]) / sfs->texture_size;
-									tex_co[1] = ((float)(y - flow_center[1]) / sds->base_res[1]) / sfs->texture_size;
-									tex_co[2] = ((float)(z - flow_center[2]) / sds->base_res[2] - sfs->texture_offset) / sfs->texture_size;
-								}
-								else if (tface) {
-									interp_v2_v2v2v2(tex_co, tface[f_index].uv[0], tface[f_index].uv[(nearest.flags & BVH_ONQUAD) ? 2 : 1],
-									                 tface[f_index].uv[(nearest.flags & BVH_ONQUAD) ? 3 : 2], weights);
-									/* map between -1.0f and 1.0f */
-									tex_co[0] = tex_co[0] * 2.0f - 1.0f;
-									tex_co[1] = tex_co[1] * 2.0f - 1.0f;
-									tex_co[2] = sfs->texture_offset;
-								}
-								texres.nor = NULL;
-								get_texture_value(sfs->noise_texture, tex_co, &texres);
-								sample_str *= texres.tin;
-							}
+							sample_derived_mesh(sfs, mvert, tface, mface, em->influence_high, NULL, index, sds->base_res, flow_center, &treeData, ray_start,
+												vert_vel, has_velocity, defgrp_index, dvert, lx, ly, lz); /* x,y,z needs to be always lowres */
 						}
 
-						/* multiply initial velocity by emitter influence */
-						if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY) {
-							mul_v3_fl(&em->velocity[index * 3], sample_str);
-						}
-
-						/* apply final influence based on volume factor */
-						em->influence[index] = MAX2(volume_factor, sample_str);
 					}
 			}
 		}
@@ -1808,9 +1863,9 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 				//unsigned char *obstacle = smoke_get_obstacle(sds->fluid);
 				// DG TODO UNUSED unsigned char *obstacleAnim = smoke_get_obstacle_anim(sds->fluid);
 				int bigres[3];
-				short high_emission_smoothing = (sds->flags & MOD_SMOKE_HIGH_SMOOTH);
 				float *velocity_map = em->velocity;
 				float *emission_map = em->influence;
+				float *emission_map_high = em->influence_high;
 
 				int ii, jj, kk, gx, gy, gz, ex, ey, ez, dx, dy, dz, block_size;
 				size_t e_index, d_index, index_big;
@@ -1825,7 +1880,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 							ey = gy - em->min[1];
 							ez = gz - em->min[2];
 							e_index = smoke_get_index(ex, em->res[0], ey, em->res[1], ez);
-							if (!emission_map[e_index]) continue;
+
 							/* get domain index */
 							dx = gx - sds->res_min[0];
 							dy = gy - sds->res_min[1];
@@ -1872,14 +1927,20 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 										{
 
 											float fx, fy, fz, interpolated_value;
-											int shift_x, shift_y, shift_z;
+											int shift_x = 0, shift_y = 0, shift_z = 0;
 
 
-											/*
-											 * Do volume interpolation if emitter smoothing
-											 * is enabled
-											 */
-											if (high_emission_smoothing)
+											/* Use full sample emission map if enabled and available */
+											if ((sds->highres_sampling == SM_HRES_FULLSAMPLE) && emission_map_high) {
+												interpolated_value = emission_map_high[smoke_get_index(ex * block_size + ii, em->res[0] * block_size, ey * block_size + jj, em->res[1] * block_size, ez * block_size + kk)]; // this cell
+											}
+											else if (sds->highres_sampling == SM_HRES_NEAREST) {
+												/* without interpolation use same low resolution
+												 * block value for all hi-res blocks */
+												interpolated_value = c111;
+											}
+											/* Fall back to interpolated */
+											else
 											{
 												/* get relative block position
 												 * for interpolation smoothing */
@@ -1909,14 +1970,6 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 												shift_x = (dx < 1) ? 0 : block_size / 2;
 												shift_y = (dy < 1) ? 0 : block_size / 2;
 												shift_z = (dz < 1) ? 0 : block_size / 2;
-											}
-											else {
-												/* without interpolation use same low resolution
-												 * block value for all hi-res blocks */
-												interpolated_value = c111;
-												shift_x = 0;
-												shift_y = 0;
-												shift_z = 0;
 											}
 
 											/* get shifted index for current high resolution block */

@@ -200,6 +200,13 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem smoke_highres_sampling_items[] = {
+		{SM_HRES_FULLSAMPLE, "FULLSAMPLE", 0, "Full Sample", ""},
+		{SM_HRES_LINEAR, "LINEAR", 0, "Linear", ""},
+		{SM_HRES_NEAREST, "NEAREST", 0, "Nearest", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static EnumPropertyItem smoke_domain_colli_items[] = {
 		{SM_BORDER_OPEN, "BORDEROPEN", 0, "Open", "Smoke doesn't collide with any border"},
 		{SM_BORDER_VERTICAL, "BORDERVERTICAL", 0, "Vertically Open",
@@ -330,9 +337,9 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Weights", "");
 
-	prop = RNA_def_property(srna, "use_smooth_emitter", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGH_SMOOTH);
-	RNA_def_property_ui_text(prop, "Smooth Emitter", "Smooth emitted smoke to avoid blockiness");
+	prop = RNA_def_property(srna, "highres_sampling", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, smoke_highres_sampling_items);
+	RNA_def_property_ui_text(prop, "Emitter", "Method for sampling the high resolution flow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "time_scale", PROP_FLOAT, PROP_NONE);
@@ -547,7 +554,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "surface_distance", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.5, 10.0);
+	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_range(prop, 0.5, 5.0, 0.05, 5);
 	RNA_def_property_ui_text(prop, "Surface", "Maximum distance from mesh surface to emit smoke");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");

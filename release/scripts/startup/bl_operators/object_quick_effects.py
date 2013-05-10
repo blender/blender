@@ -363,6 +363,7 @@ class QuickSmoke(Operator):
 
         tex = bpy.data.textures.new("Smoke Density", 'VOXEL_DATA')
         tex.voxel_data.domain_object = obj
+        tex.voxel_data.interpolation = 'TRICUBIC_BSPLINE'
 
         tex_slot = mat.texture_slots.add()
         tex_slot.texture = tex
@@ -375,6 +376,7 @@ class QuickSmoke(Operator):
         tex = bpy.data.textures.new("Flame", 'VOXEL_DATA')
         tex.voxel_data.domain_object = obj
         tex.voxel_data.smoke_data_type = 'SMOKEFLAME'
+        tex.voxel_data.interpolation = 'TRICUBIC_BSPLINE'
         tex.use_color_ramp = True
 
         tex_slot = mat.texture_slots.add()
