@@ -135,6 +135,7 @@ void ShaderNode::attributes(AttributeRequestSet *attributes)
 ShaderGraph::ShaderGraph()
 {
 	finalized = false;
+	num_node_ids = 0;
 	add(new OutputNode());
 }
 
@@ -147,7 +148,7 @@ ShaderGraph::~ShaderGraph()
 ShaderNode *ShaderGraph::add(ShaderNode *node)
 {
 	assert(!finalized);
-	node->id = nodes.size();
+	node->id = num_node_ids++;
 	nodes.push_back(node);
 	return node;
 }
@@ -314,7 +315,7 @@ void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNod
 
 void ShaderGraph::remove_unneeded_nodes()
 {
-	vector<bool> removed(nodes.size(), false);
+	vector<bool> removed(num_node_ids, false);
 	bool any_node_removed = false;
 	
 	/* find and unlink proxy nodes */
@@ -459,11 +460,9 @@ void ShaderGraph::clean()
 	 * nodes that don't feed into the output. how cycles are broken is
 	 * undefined, they are invalid input, the important thing is to not crash */
 
-	vector<bool> visited(nodes.size(), false);
-	vector<bool> on_stack(nodes.size(), false);
+	vector<bool> visited(num_node_ids, false);
+	vector<bool> on_stack(num_node_ids, false);
 	
-	list<ShaderNode*> newnodes;
-
 	/* break cycles */
 	break_cycles(output(), visited, on_stack);
 
@@ -482,6 +481,8 @@ void ShaderGraph::clean()
 	}
 
 	/* remove unused nodes */
+	list<ShaderNode*> newnodes;
+
 	foreach(ShaderNode *node, nodes) {
 		if(visited[node->id])
 			newnodes.push_back(node);

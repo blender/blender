@@ -226,6 +226,7 @@ public:
 class ShaderGraph {
 public:
 	list<ShaderNode*> nodes;
+	size_t num_node_ids;
 	bool finalized;
 
 	ShaderGraph();
