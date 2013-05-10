@@ -312,10 +312,14 @@ void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNod
 	}
 }
 
-void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
+void ShaderGraph::remove_unneeded_nodes()
 {
+	vector<bool> removed(nodes.size(), false);
+	bool any_node_removed = false;
+	
+	/* find and unlink proxy nodes */
 	foreach(ShaderNode *node, nodes) {
-		if (node->special_type == SHADER_SPECIAL_TYPE_PROXY) {
+		if(node->special_type == SHADER_SPECIAL_TYPE_PROXY) {
 			ProxyNode *proxy = static_cast<ProxyNode*>(node);
 			ShaderInput *input = proxy->inputs[0];
 			ShaderOutput *output = proxy->outputs[0];
@@ -327,7 +331,7 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 			ShaderOutput *from = input->link;
 			
 			/* bypass the proxy node */
-			if (from) {
+			if(from) {
 				disconnect(input);
 				foreach(ShaderInput *to, links) {
 					disconnect(to);
@@ -345,6 +349,7 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 			}
 			
 			removed[proxy->id] = true;
+			any_node_removed = true;
 		}
 
 		/* remove useless mix closures nodes */
@@ -360,7 +365,7 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 
 				foreach(ShaderInput *input, inputs) {
 					disconnect(input);
-					if (output)
+					if(output)
 						connect(output, input);
 				}
 			}
@@ -378,32 +383,46 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 					vector<ShaderInput*> inputs = mix->outputs[0]->links;
 					
 					foreach(ShaderInput *sock, mix->inputs)
-					if(sock->link)
-						disconnect(sock);
+						if(sock->link)
+							disconnect(sock);
 
 					foreach(ShaderInput *input, inputs) {
 						disconnect(input);
-						if (output)
-						connect(output, input);
+						if(output)
+							connect(output, input);
 					}
 				}
 				/* Factor 1.0 */
-				else if (mix->inputs[0]->value.x == 1.0f) {
+				else if(mix->inputs[0]->value.x == 1.0f) {
 					ShaderOutput *output = mix->inputs[2]->link;
 					vector<ShaderInput*> inputs = mix->outputs[0]->links;
 					
 					foreach(ShaderInput *sock, mix->inputs)
-					if(sock->link)
-						disconnect(sock);
+						if(sock->link)
+							disconnect(sock);
 
 					foreach(ShaderInput *input, inputs) {
 						disconnect(input);
-						if (output)
+						if(output)
 							connect(output, input);
 					}
 				}
 			}
 		}
+	}
+
+	/* remove nodes */
+	if (any_node_removed) {
+		list<ShaderNode*> newnodes;
+
+		foreach(ShaderNode *node, nodes) {
+			if(!removed[node->id])
+				newnodes.push_back(node);
+			else
+				delete node;
+		}
+
+		nodes = newnodes;
 	}
 }
 
@@ -433,27 +452,17 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 
 void ShaderGraph::clean()
 {
+	/* remove proxy and unnecessary mix nodes */
+	remove_unneeded_nodes();
+
 	/* we do two things here: find cycles and break them, and remove unused
 	 * nodes that don't feed into the output. how cycles are broken is
 	 * undefined, they are invalid input, the important thing is to not crash */
 
-	vector<bool> removed(nodes.size(), false);
 	vector<bool> visited(nodes.size(), false);
 	vector<bool> on_stack(nodes.size(), false);
 	
 	list<ShaderNode*> newnodes;
-	
-	/* remove proxy nodes */
-	remove_proxy_nodes(removed);
-	
-	foreach(ShaderNode *node, nodes) {
-		if(!removed[node->id])
-			newnodes.push_back(node);
-		else
-			delete node;
-	}
-	nodes = newnodes;
-	newnodes.clear();
 
 	/* break cycles */
 	break_cycles(output(), visited, on_stack);
@@ -464,7 +473,7 @@ void ShaderGraph::clean()
 			foreach(ShaderInput *to, node->inputs) {
 				ShaderOutput *from = to->link;
 
-				if (from) {
+				if(from) {
 					to->link = NULL;
 					from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
 				}

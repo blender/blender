@@ -66,6 +66,12 @@ Shader::~Shader()
 
 void Shader::set_graph(ShaderGraph *graph_)
 {
+	/* do this here already so that we can detect if mesh or object attributes
+	 * are needed, since the node attribute callbacks check if their sockets
+	 * are connected but proxy nodes should not count */
+	if(graph_)
+		graph_->remove_unneeded_nodes();
+
 	/* assign graph */
 	delete graph;
 	delete graph_bump;

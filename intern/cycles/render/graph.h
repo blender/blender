@@ -239,6 +239,7 @@ public:
 	void connect(ShaderOutput *from, ShaderInput *to);
 	void disconnect(ShaderInput *to);
 
+	void remove_unneeded_nodes();
 	void finalize(bool do_bump = false, bool do_osl = false, bool do_multi_closure = false);
 
 protected:
@@ -247,7 +248,6 @@ protected:
 	void find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input);
 	void copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNode*>& nnodemap);
 
-	void remove_proxy_nodes(vector<bool>& removed);
 	void break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack);
 	void clean();
 	void bump_from_displacement();
