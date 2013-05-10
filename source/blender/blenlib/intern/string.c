@@ -433,13 +433,57 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 	return 0;
 }
 
+/* compare number on the left size of the string */
+static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
+{
+	const char *p1 = s1, *p2 = s2;
+	int numdigit, numzero1, numzero2;
+
+	/* count and skip leading zeros */
+	for (numzero1 = 0; *p1 && (*p1 == '0'); numzero1++)
+		p1++;
+	for (numzero2 = 0; *p2 && (*p2 == '0'); numzero2++)
+		p2++;
+
+	/* find number of consecutive digits */
+	for (numdigit = 0; ; numdigit++) {
+		if (isdigit(*(p1 + numdigit)) && isdigit(*(p2 + numdigit)))
+			continue;
+		else if (isdigit(*(p1 + numdigit)))
+			return 1; /* s2 is bigger */
+		else if (isdigit(*(p2 + numdigit)))
+			return -1; /* s1 is bigger */
+		else
+			break;
+	}
+
+	/* same number of digits, compare size of number */
+	if (numdigit > 0) {
+		int compare = strncmp(p1, p2, numdigit);
+
+		if (compare != 0)
+			return compare;
+	}
+
+	/* use number of leading zeros as tie breaker if still equal */
+	if (*tiebreaker == 0) {
+		if (numzero1 > numzero2)
+			*tiebreaker = 1;
+		else if (numzero1 < numzero2)
+			*tiebreaker = -1;
+	}
+
+	return 0;
+}
+
 /* natural string compare, keeping numbers in order */
 int BLI_natstrcmp(const char *s1, const char *s2)
 {
 	register int d1 = 0, d2 = 0;
 	register char c1, c2;
+	int tiebreaker = 0;
 
-	/* if both chars are numeric, to a strtol().
+	/* if both chars are numeric, to a left_number_strcmp().
 	 * then increase string deltas as long they are 
 	 * numeric, else do a tolower and char compare */
 
@@ -448,17 +492,11 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		c2 = tolower(s2[d2]);
 		
 		if (isdigit(c1) && isdigit(c2) ) {
-			int val1, val2;
+			int numcompare = left_number_strcmp(s1 + d1, s2 + d2, &tiebreaker);
 			
-			val1 = (int)strtol(s1 + d1, (char **)NULL, 10);
-			val2 = (int)strtol(s2 + d2, (char **)NULL, 10);
-			
-			if (val1 < val2) {
-				return -1;
-			}
-			else if (val1 > val2) {
-				return 1;
-			}
+			if (numcompare != 0)
+				return numcompare;
+
 			d1++;
 			while (isdigit(s1[d1]) )
 				d1++;
@@ -487,7 +525,7 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		d1++;
 		d2++;
 	}
-	return 0;
+	return tiebreaker;
 }
 
 void BLI_timestr(double _time, char *str, size_t maxlen)
