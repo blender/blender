@@ -219,108 +219,106 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 	}
 }
 
+static void mesh_uv_reset_array(float **fuv, const int len)
+{
+	if (len == 3) {
+		fuv[0][0] = 0.0;
+		fuv[0][1] = 0.0;
+
+		fuv[1][0] = 1.0;
+		fuv[1][1] = 0.0;
+
+		fuv[2][0] = 1.0;
+		fuv[2][1] = 1.0;
+	}
+	else if (len == 4) {
+		fuv[0][0] = 0.0;
+		fuv[0][1] = 0.0;
+
+		fuv[1][0] = 1.0;
+		fuv[1][1] = 0.0;
+
+		fuv[2][0] = 1.0;
+		fuv[2][1] = 1.0;
+
+		fuv[3][0] = 0.0;
+		fuv[3][1] = 1.0;
+		/*make sure we ignore 2-sided faces*/
+	}
+	else if (len > 2) {
+		float fac = 0.0f, dfac = 1.0f / (float)len;
+		int i;
+
+		dfac *= (float)M_PI * 2.0f;
+
+		for (i = 0; i < len; i++) {
+			fuv[i][0] = 0.5f * sinf(fac) + 0.5f;
+			fuv[i][1] = 0.5f * cosf(fac) + 0.5f;
+
+			fac += dfac;
+		}
+	}
+}
+
+static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
+{
+	float **fuv = BLI_array_alloca(fuv, f->len);
+	BMIter liter;
+	BMLoop *l;
+	int i;
+
+	BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, i) {
+		fuv[i] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset))->uv;
+	}
+
+	mesh_uv_reset_array(fuv, f->len);
+}
+
+static void mesh_uv_reset_mface(MPoly *mp, MLoopUV *mloopuv)
+{
+	float **fuv = BLI_array_alloca(fuv, mp->totloop);
+	int i;
+
+	for (i = 0; i < mp->totloop; i++) {
+		fuv[i] = mloopuv[mp->loopstart + i].uv;
+	}
+
+	mesh_uv_reset_array(fuv, mp->totloop);
+}
+
 /* without bContext, called in uvedit */
 void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em = me->edit_btmesh;
-	MLoopUV *luv;
-	BLI_array_declare(polylengths);
-	int *polylengths = NULL;
-	BLI_array_declare(uvs);
-	float **uvs = NULL;
-	float **fuvs = NULL;
-	int i, j;
 
 	if (em) {
 		/* Collect BMesh UVs */
+		const int cd_loop_uv_offset = CustomData_get_n_offset(&em->bm->ldata, CD_MLOOPUV, layernum);
 
 		BMFace *efa;
-		BMLoop *l;
-		BMIter iter, liter;
+		BMIter iter;
 
-		BLI_assert(CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV));
+		BLI_assert(cd_loop_uv_offset != -1);
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
-			i = 0;
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = CustomData_bmesh_get_n(&em->bm->ldata, l->head.data, CD_MLOOPUV, layernum);
-				BLI_array_append(uvs, luv->uv);
-				i++;
-			}
-
-			BLI_array_append(polylengths, efa->len);
+			mesh_uv_reset_bmface(efa, cd_loop_uv_offset);
 		}
 	}
 	else {
 		/* Collect Mesh UVs */
-
-		MPoly *mp;
-		MLoopUV *mloouv;
+		MLoopUV *mloopuv;
+		int i;
 
 		BLI_assert(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
-		mloouv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
+		mloopuv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
 
-		for (j = 0; j < me->totpoly; j++) {
-			mp = &me->mpoly[j];
-
-			for (i = 0; i < mp->totloop; i++) {
-				luv = &mloouv[mp->loopstart + i];
-				BLI_array_append(uvs, luv->uv);
-			}
-
-			BLI_array_append(polylengths, mp->totloop);
+		for (i = 0; i < me->totpoly; i++) {
+			mesh_uv_reset_mface(&me->mpoly[i], mloopuv);
 		}
 	}
-
-	fuvs = uvs;
-	for (j = 0; j < BLI_array_count(polylengths); j++) {
-		int len = polylengths[j];
-
-		if (len == 3) {
-			fuvs[0][0] = 0.0;
-			fuvs[0][1] = 0.0;
-			
-			fuvs[1][0] = 1.0;
-			fuvs[1][1] = 0.0;
-
-			fuvs[2][0] = 1.0;
-			fuvs[2][1] = 1.0;
-		}
-		else if (len == 4) {
-			fuvs[0][0] = 0.0;
-			fuvs[0][1] = 0.0;
-			
-			fuvs[1][0] = 1.0;
-			fuvs[1][1] = 0.0;
-
-			fuvs[2][0] = 1.0;
-			fuvs[2][1] = 1.0;
-
-			fuvs[3][0] = 0.0;
-			fuvs[3][1] = 1.0;
-			/*make sure we ignore 2-sided faces*/
-		}
-		else if (len > 2) {
-			float fac = 0.0f, dfac = 1.0f / (float)len;
-
-			dfac *= (float)M_PI * 2.0f;
-
-			for (i = 0; i < len; i++) {
-				fuvs[i][0] = 0.5f * sinf(fac) + 0.5f;
-				fuvs[i][1] = 0.5f * cosf(fac) + 0.5f;
-
-				fac += dfac;
-			}
-		}
-
-		fuvs += len;
-	}
-
-	BLI_array_free(uvs);
-	BLI_array_free(polylengths);
 
 	DAG_id_tag_update(&me->id, 0);
 }
