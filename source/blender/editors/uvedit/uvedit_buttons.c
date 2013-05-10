@@ -71,17 +71,20 @@ static int uvedit_center(Scene *scene, BMEditMesh *em, Image *ima, float center[
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	int tot = 0.0;
+	int tot = 0;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 	
 	zero_v2(center);
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, f->head.data, CD_MTEXPOLY);
+		tf = BM_ELEM_CD_GET_VOID_P(f, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, f, tf))
 			continue;
 
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			if (uvedit_uv_select_test(em, scene, l)) {
+			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				add_v2_v2(center, luv->uv);
 				tot++;
 			}
@@ -103,15 +106,18 @@ static void uvedit_translate(Scene *scene, BMEditMesh *em, Image *ima, float del
 	BMIter iter, liter;
 	MLoopUV *luv;
 	MTexPoly *tf;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 	
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, f->head.data, CD_MTEXPOLY);
+		tf = BM_ELEM_CD_GET_VOID_P(f, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, f, tf))
 			continue;
 
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			if (uvedit_uv_select_test(em, scene, l)) {
+			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				add_v2_v2(luv->uv, delta);
 			}
 		}

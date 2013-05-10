@@ -2418,6 +2418,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int propconnected = t->flag & T_PROP_CONNECTED;
 
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
 	if (!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
@@ -2442,7 +2444,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
 		BM_elem_flag_enable(efa, BM_ELEM_TAG);
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(em, scene, l)) {
+			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 				countsel++;
 
 				if (propconnected) {
@@ -2478,7 +2480,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 			continue;
 
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (!propmode && !uvedit_uv_select_test(em, scene, l))
+			if (!propmode && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
 				continue;
 
 			if (propconnected) {
@@ -2489,8 +2491,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
 				}
 			}
 			
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_select_test(em, scene, l));
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_select_test(scene, l, cd_loop_uv_offset));
 		}
 	}
 

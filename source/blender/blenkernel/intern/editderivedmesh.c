@@ -221,33 +221,28 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 	BMFace *efa;
 	BMIter iter;
 
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	if (UNLIKELY(cd_loop_uv_offset == -1)) {
+		return;
+	}
+
 	glBegin(GL_LINES);
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		BMIter liter;
-		BMLoop *l;
-		MLoopUV *lastluv = NULL, *firstluv = NULL;
+		BMLoop *l_iter, *l_first;
+		const float *uv, *uv_prev;
 
 		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 			continue;
 
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-
-			if (luv) {
-				if (lastluv)
-					glVertex2fv(luv->uv);
-				glVertex2fv(luv->uv);
-
-				lastluv = luv;
-				if (!firstluv)
-					firstluv = luv;
-			}
-		}
-
-		if (lastluv) {
-			glVertex2fv(lastluv->uv);
-			glVertex2fv(firstluv->uv);
-		}
+		l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+		uv_prev = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter->prev, cd_loop_uv_offset))->uv;
+		do {
+			uv = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset))->uv;
+			glVertex2fv(uv);
+			glVertex2fv(uv_prev);
+			uv_prev = uv;
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 	glEnd();
 }
@@ -1312,6 +1307,7 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 
 		if (index != -1) {
 			/* offset = bm->pdata.layers[index].offset; */ /* UNUSED */
+			BMLoop *(*looptris)[3] = bmdm->em->looptris;
 			const int size = CustomData_sizeof(type);
 			int i, j;
 
@@ -1322,20 +1318,29 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 			data = datalayer = DM_get_tessface_data_layer(dm, type);
 
 			if (type == CD_MTFACE) {
+				const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+				const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
+
 				for (i = 0; i < bmdm->em->tottri; i++, data += size) {
-					BMFace *efa = bmdm->em->looptris[i][0]->f;
-					bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+					BMFace *efa = looptris[i][0]->f;
+
+					// bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+					bmdata = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
+
 					ME_MTEXFACE_CPY(((MTFace *)data), ((MTexPoly *)bmdata));
 					for (j = 0; j < 3; j++) {
-						bmdata = CustomData_bmesh_get(&bm->ldata, bmdm->em->looptris[i][j]->head.data, CD_MLOOPUV);
+						// bmdata = CustomData_bmesh_get(&bm->ldata, looptris[i][j]->head.data, CD_MLOOPUV);
+						bmdata = BM_ELEM_CD_GET_VOID_P(looptris[i][j], cd_loop_uv_offset);
 						copy_v2_v2(((MTFace *)data)->uv[j], ((MLoopUV *)bmdata)->uv);
 					}
 				}
 			}
 			else {
+				const int cd_loop_color_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
 				for (i = 0; i < bmdm->em->tottri; i++, data += size) {
 					for (j = 0; j < 3; j++) {
-						bmdata = CustomData_bmesh_get(&bm->ldata, bmdm->em->looptris[i][j]->head.data, CD_MLOOPCOL);
+						// bmdata = CustomData_bmesh_get(&bm->ldata, looptris[i][j]->head.data, CD_MLOOPCOL);
+						bmdata = BM_ELEM_CD_GET_VOID_P(looptris[i][j], cd_loop_color_offset);
 						MESH_MLOOPCOL_TO_MCOL(((MLoopCol *)bmdata), (((MCol *)data) + j));
 					}
 				}

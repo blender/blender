@@ -104,7 +104,7 @@ static void modifier_unwrap_state(Object *obedit, Scene *scene, short *use_subsu
 	*use_subsurf = subsurf;
 }
 
-static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
+static bool ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 {
 	Main *bmain = CTX_data_main(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -115,6 +115,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	ScrArea *sa;
 	SpaceLink *slink;
 	SpaceImage *sima;
+	int cd_loop_uv_offset;
 
 	if (ED_uvedit_test(obedit))
 		return 1;
@@ -124,6 +125,8 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 
 	if (!ED_uvedit_test(obedit))
 		return 0;
+
+	cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
 	ima = CTX_data_edit_image(C);
 
@@ -152,7 +155,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	
 	/* select new UV's */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		uvedit_face_select_enable(scene, em, efa, FALSE);
+		uvedit_face_select_enable(scene, em, efa, false, cd_loop_uv_offset);
 	}
 
 	return 1;
@@ -165,8 +168,9 @@ static bool uvedit_have_selection(Scene *scene, BMEditMesh *em, bool implicit)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
+	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	
-	if (!CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
+	if (cd_loop_uv_offset == -1) {
 		return (em->bm->totfacesel != 0);
 	}
 
@@ -181,7 +185,7 @@ static bool uvedit_have_selection(Scene *scene, BMEditMesh *em, bool implicit)
 			continue;
 	
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(em, scene, l))
+			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
 				break;
 		}
 		
@@ -220,7 +224,7 @@ void uvedit_get_aspect(Scene *scene, Object *ob, BMEditMesh *em, float *aspx, fl
 	}
 }
 
-static void construct_param_handle_face_add(ParamHandle *handle, Scene *scene, BMEditMesh *em,
+static void construct_param_handle_face_add(ParamHandle *handle, Scene *scene,
                                             BMFace *efa, const int cd_loop_uv_offset)
 {
 	ParamKey key;
@@ -245,7 +249,7 @@ static void construct_param_handle_face_add(ParamHandle *handle, Scene *scene, B
 		co[i] = l->v->co;
 		uv[i] = luv->uv;
 		pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-		select[i] = uvedit_uv_select_test(em, scene, l) != 0;
+		select[i] = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
 	}
 
 	param_face_add(handle, key, i, vkeys, co, uv, pin, select, efa->no);
@@ -289,7 +293,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 			bool is_loopsel = false;
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_select_test(em, scene, l)) {
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 					is_loopsel = true;
 					break;
 				}
@@ -299,7 +303,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 			}
 		}
 
-		construct_param_handle_face_add(handle, scene, em, efa, cd_loop_uv_offset);
+		construct_param_handle_face_add(handle, scene, efa, cd_loop_uv_offset);
 	}
 
 	if (!implicit) {
@@ -320,7 +324,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 
 
 static void texface_from_original_index(BMFace *efa, int index, float **uv, ParamBool *pin, ParamBool *select,
-                                        Scene *scene, BMEditMesh *em, const int cd_loop_uv_offset)
+                                        Scene *scene, const int cd_loop_uv_offset)
 {
 	BMLoop *l;
 	BMIter liter;
@@ -338,7 +342,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			*uv = luv->uv;
 			*pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
-			*select = (uvedit_uv_select_test(em, scene, l) != 0);
+			*select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
 			break;
 		}
 	}
@@ -465,10 +469,10 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 		
 		/* This is where all the magic is done. If the vertex exists in the, we pass the original uv pointer to the solver, thus
 		 * flushing the solution to the edit mesh. */
-		texface_from_original_index(origFace, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene, em, cd_loop_uv_offset);
-		texface_from_original_index(origFace, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene, em, cd_loop_uv_offset);
-		texface_from_original_index(origFace, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene, em, cd_loop_uv_offset);
-		texface_from_original_index(origFace, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene, em, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene, cd_loop_uv_offset);
 
 		param_face_add(handle, key, 4, vkeys, co, uv, pin, select, NULL);
 	}

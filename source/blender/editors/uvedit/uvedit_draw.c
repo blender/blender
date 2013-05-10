@@ -497,7 +497,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				if (tf == activetf) continue;  /* important the temp boolean is set above */
 
-				if (uvedit_face_select_test(scene, em, efa))
+				if (uvedit_face_select_test(scene, efa, cd_loop_uv_offset))
 					glColor4ubv((GLubyte *)col2);
 				else
 					glColor4ubv((GLubyte *)col1);
@@ -648,7 +648,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 						glBegin(GL_LINE_LOOP);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							sel = (uvedit_uv_select_test(em, scene, l) ? 1 : 0);
+							sel = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
 							glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 
 							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -666,7 +666,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 						glBegin(GL_LINES);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							sel = (uvedit_edge_select_test(em, scene, l) ? 1 : 0);
+							sel = uvedit_edge_select_test(scene, l, cd_loop_uv_offset);
 							if (sel != lastsel) {
 								glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 								lastsel = sel;
@@ -719,8 +719,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
 
-			if (!uvedit_face_select_test(scene, em, efa)) {
-				uv_poly_center(em, efa, cent);
+			if (!uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+				uv_poly_center(efa, cent, cd_loop_uv_offset);
 				bglVertex2fv(cent);
 			}
 		}
@@ -734,8 +734,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
 
-			if (uvedit_face_select_test(scene, em, efa)) {
-				uv_poly_center(em, efa, cent);
+			if (uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+				uv_poly_center(efa, cent, cd_loop_uv_offset);
 				bglVertex2fv(cent);
 			}
 		}
@@ -757,7 +757,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				if (!uvedit_uv_select_test(em, scene, l))
+				if (!uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
 					bglVertex2fv(luv->uv);
 			}
 		}
@@ -794,7 +794,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-				if (uvedit_uv_select_test(em, scene, l))
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
 					bglVertex2fv(luv->uv);
 			}
 		}
