@@ -124,6 +124,8 @@ private:
 		  holdout_layer(0), exclude_layer(0),
 		  material_override(PointerRNA_NULL),
 		  use_background(true),
+		  use_surfaces(true),
+		  use_hair(true),
 		  use_viewport_visibility(false),
 		  samples(0), bound_samples(false)
 		{}
@@ -135,6 +137,8 @@ private:
 		uint exclude_layer;
 		BL::Material material_override;
 		bool use_background;
+		bool use_surfaces;
+		bool use_hair;
 		bool use_viewport_visibility;
 		bool use_localview;
 		int samples;

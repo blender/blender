@@ -300,10 +300,13 @@ class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
         col = split.column()
         col.label(text="Material:")
         col.prop(rl, "material_override", text="")
+        col.separator()
+        col.prop(rl, "samples")
 
         col = split.column()
-        col.prop(rl, "samples")
         col.prop(rl, "use_sky", "Use Environment")
+        col.prop(rl, "use_solid", "Use Surfaces")
+        col.prop(rl, "use_strand", "Use Hair")
 
 
 class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):

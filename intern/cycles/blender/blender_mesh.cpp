@@ -442,31 +442,35 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 
 	/* create derived mesh */
 	bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
-	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed);
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
 	
-	/* compares curve_keys rather than strands in order to handle quick hair adjustsments in dynamic BVH - other methods could probably do this better*/
+	/* compares curve_keys rather than strands in order to handle quick hair
+	 * adjustsments in dynamic BVH - other methods could probably do this better*/
 	vector<Mesh::CurveKey> oldcurve_keys = mesh->curve_keys;
 
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
 	mesh->name = ustring(b_ob_data.name().c_str());
 
-	if(b_mesh) {
-		if(!(hide_tris && experimental)) {
-			if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
-				create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
-			else
-				create_mesh(scene, mesh, b_mesh, used_shaders);
+	if(render_layer.use_surfaces || render_layer.use_hair) {
+		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed);
+
+		if(b_mesh) {
+			if(render_layer.use_surfaces && !(hide_tris && experimental)) {
+				if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
+					create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
+				else
+					create_mesh(scene, mesh, b_mesh, used_shaders);
+			}
+
+			if(render_layer.use_hair && experimental)
+				sync_curves(mesh, b_mesh, b_ob, object_updated);
+
+			/* free derived mesh */
+			b_data.meshes.remove(b_mesh);
 		}
-
-		if(experimental)
-			sync_curves(mesh, b_mesh, b_ob, object_updated);
-
-		/* free derived mesh */
-		b_data.meshes.remove(b_mesh);
 	}
 
 	/* displacement method */
