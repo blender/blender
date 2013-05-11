@@ -272,7 +272,7 @@ void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, I
 
 /* dotile - 1, set the tile flag (from the space image)
  *          2, set the tile index for the faces. */
-static int uvedit_set_tile(Object *obedit, Image *ima, int curtile)
+static bool uvedit_set_tile(Object *obedit, Image *ima, int curtile)
 {
 	BMEditMesh *em;
 	BMFace *efa;
@@ -282,14 +282,14 @@ static int uvedit_set_tile(Object *obedit, Image *ima, int curtile)
 	
 	/* verify if we have something to do */
 	if (!ima || !ED_uvedit_test(obedit))
-		return 0;
+		return false;
 
 	if ((ima->tpageflag & IMA_TILES) == 0)
-		return 0;
+		return false;
 
 	/* skip assigning these procedural images... */
 	if (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE)
-		return 0;
+		return false;
 	
 	em = BKE_editmesh_from_object(obedit);
 
@@ -304,7 +304,7 @@ static int uvedit_set_tile(Object *obedit, Image *ima, int curtile)
 
 	DAG_id_tag_update(obedit->data, 0);
 
-	return 1;
+	return true;
 }
 
 /*********************** space conversion *********************/
@@ -631,7 +631,7 @@ void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float as
 	}
 }
 
-int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], float r_max[2])
+bool ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], float r_max[2])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
@@ -639,14 +639,13 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], f
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	int sel;
+	bool change = false;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	INIT_MINMAX2(r_min, r_max);
 
-	sel = 0;
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, efa, tf))
@@ -656,15 +655,15 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], f
 			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				minmax_v2v2_v2(r_min, r_max, luv->uv);
-				sel = 1;
+				change = true;
 			}
 		}
 	}
 
-	return sel;
+	return change;
 }
 
-static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
+static bool ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
@@ -697,20 +696,20 @@ static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2
 	return (sel != 0);
 }
 
-static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
+static bool uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
 {
-	int change = FALSE;
+	bool change = false;
 	
 	if (mode == V3D_CENTER) {  /* bounding box */
 		float min[2], max[2];
 		if (ED_uvedit_minmax(scene, ima, obedit, min, max)) {
 			mid_v2_v2v2(cent, min, max);
-			change = TRUE;
+			change = true;
 		}
 	}
 	else {
 		if (ED_uvedit_median(scene, ima, obedit, cent)) {
-			change = TRUE;
+			change = true;
 		}
 	}
 
@@ -988,7 +987,7 @@ static UvMapVert *uv_select_edgeloop_vertex_map_get(UvVertMap *vmap, BMFace *efa
 	return NULL;
 }
 
-static int uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, UvMapVert *first2, int *totface)
+static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, UvMapVert *first2, int *totface)
 {
 	UvMapVert *iterv1, *iterv2;
 	BMFace *efa;
@@ -1007,7 +1006,7 @@ static int uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, 
 				/* if face already tagged, don't do this edge */
 				efa = EDBM_face_at_index(em, iterv1->f);
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG))
-					return 0;
+					return false;
 
 				tot++;
 				break;
@@ -1018,7 +1017,7 @@ static int uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, 
 	if (*totface == 0) /* start edge */
 		*totface = tot;
 	else if (tot != *totface) /* check for same number of faces as start edge */
-		return 0;
+		return false;
 
 	/* tag the faces */
 	for (iterv1 = first1; iterv1; iterv1 = iterv1->next) {
@@ -1037,7 +1036,7 @@ static int uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, 
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit *hit,
@@ -2567,7 +2566,7 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	short change = FALSE;
+	bool change = false;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
@@ -2610,7 +2609,7 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
 				luv->flag &= ~MLOOPUV_VERTSEL;
 			}
 
-			change = TRUE;
+			change = true;
 		}
 	}
 
@@ -3345,7 +3344,7 @@ static void uv_snap_cursor_to_pixels(SpaceImage *sima)
 	uv_snap_to_pixel(sima->cursor, width, height);
 }
 
-static int uv_snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
+static bool uv_snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
 	return uvedit_center(scene, ima, obedit, sima->cursor, sima->around);
 }
@@ -3356,12 +3355,12 @@ static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	int change = 0;
+	bool change = false;
 
 	switch (RNA_enum_get(op->ptr, "target")) {
 		case 0:
 			uv_snap_cursor_to_pixels(sima);
-			change = 1;
+			change = true;
 			break;
 		case 1:
 			change = uv_snap_cursor_to_selection(scene, ima, obedit, sima);
@@ -3399,7 +3398,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 
 /* ******************** snap selection operator **************** */
 
-static int uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
+static bool uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
@@ -3407,7 +3406,7 @@ static int uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, Space
 	BMIter iter, liter;
 	MTexPoly *tface;
 	MLoopUV *luv;
-	short change = 0;
+	bool change = false;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
@@ -3421,7 +3420,7 @@ static int uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, Space
 			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				copy_v2_v2(luv->uv, sima->cursor);
-				change = 1;
+				change = true;
 			}
 		}
 	}
@@ -3438,7 +3437,7 @@ static int uv_snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *
 	BMIter iter, liter, lsubiter;
 	MTexPoly *tface;
 	MLoopUV *luv;
-	short change = FALSE;
+	bool change = false;
 	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 	
@@ -3477,7 +3476,7 @@ static int uv_snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *
 					if (uv_tot) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						mul_v2_v2fl(luv->uv, uv, 1.0f / (float)uv_tot);
-						change = TRUE;
+						change = true;
 					}
 				}
 			}
@@ -3487,7 +3486,7 @@ static int uv_snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *
 	return change;
 }
 
-static int uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
+static bool uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	Image *ima = sima->image;
@@ -3498,7 +3497,7 @@ static int uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 	MLoopUV *luv;
 	int width = 0, height = 0;
 	float w, h;
-	short change = 0;
+	bool change = false;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
@@ -3519,7 +3518,7 @@ static int uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 			}
 		}
 
-		change = 1;
+		change = true;
 	}
 
 	return change;
@@ -3531,7 +3530,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
-	int change = 0;
+	bool change = false;
 
 	switch (RNA_enum_get(op->ptr, "target")) {
 		case 0:
@@ -3690,22 +3689,21 @@ static void UV_OT_select_pinned(wmOperatorType *ot)
 #define UV_SEL_TEST(luv, bool_test) ((((luv)->flag & MLOOPUV_VERTSEL) == MLOOPUV_VERTSEL) == bool_test)
 
 /* is every UV vert selected or unselected depending on bool_test */
-static int bm_face_is_all_uv_sel(BMFace *f, bool select_test,
-                                 const int cd_loop_uv_offset)
+static bool bm_face_is_all_uv_sel(BMFace *f, bool select_test,
+                                  const int cd_loop_uv_offset)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-
 		MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
 		if (!UV_SEL_TEST(luv, select_test)) {
-			return FALSE;
+			return false;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 
-	return TRUE;
+	return true;
 }
 
 static int uv_hide_exec(bContext *C, wmOperator *op)

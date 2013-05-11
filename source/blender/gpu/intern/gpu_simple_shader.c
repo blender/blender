@@ -262,7 +262,7 @@ void GPU_simple_shader_light_set(int light_num, GPULightData *light)
 		glLightf(GL_LIGHT0+light_num, GL_SPOT_EXPONENT, light->spot_exponent);
 
 		GPU_MATERIAL_STATE.lights_enabled |= light_bit;
-		if(light->position[3] == 0.0f)
+		if (light->position[3] == 0.0f)
 			GPU_MATERIAL_STATE.lights_directional |= light_bit;
 	}
 	else {

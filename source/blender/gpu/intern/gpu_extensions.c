@@ -1145,7 +1145,7 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 static const char *gpu_shader_standard_extensions(void)
 {
 	/* need this extensions for high quality bump mapping */
-	if(GPU_bicubic_bump_support()) {
+	if (GPU_bicubic_bump_support()) {
 		return "#version 130\n"
 		       "#extension GL_ARB_texture_query_lod: enable\n"
 		       "#define BUMP_BICUBIC\n";
@@ -1157,7 +1157,7 @@ static const char *gpu_shader_standard_extensions(void)
 static const char *gpu_shader_standard_defines(void)
 {
 	/* some useful defines to detect GPU type */
-	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
+	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
 		return "#define GPU_ATI\n";
 	else if(GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
 		return "#define GPU_NVIDIA\n";

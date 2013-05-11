@@ -2700,7 +2700,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 			mface= dm->getTessFaceArray(dm);
 
 #ifdef WITH_FREESTYLE
-			if(ob->type == OB_MESH) {
+			if (ob->type == OB_MESH) {
 				Mesh *me= ob->data;
 				index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 				index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);

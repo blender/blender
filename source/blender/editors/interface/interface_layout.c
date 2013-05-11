@@ -1709,11 +1709,12 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 	lvl->opcontext = layout->root->opcontext;
 
 	/* add hotkey here, lower UI code can't detect it */
-	if(layout->root->block->flag & UI_BLOCK_LOOP) {
+	if (layout->root->block->flag & UI_BLOCK_LOOP) {
 		if (ot->prop && WM_key_event_operator_string(C, ot->idname,
-			layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf))) {
-			strncat(namestr, "|", sizeof(namestr)-1);
-			strncat(namestr, keybuf, sizeof(namestr)-1);
+		    layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf)))
+		{
+			strncat(namestr, "|", sizeof(namestr) - 1);
+			strncat(namestr, keybuf, sizeof(namestr) - 1);
 		}
 	}
 
