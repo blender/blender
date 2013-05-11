@@ -106,9 +106,16 @@ static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3], const
 {
 	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
 	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
-	int4 vi = get_int4(f.vertices_raw());
-	BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
-	float3 vN = get_float3(v.normal());
+	float3 vN;
+
+	if(f.use_smooth()) {
+		int4 vi = get_int4(f.vertices_raw());
+		BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+		vN = get_float3(v.normal());
+	}
+	else {
+		vN = get_float3(f.normal());
+	}
 
 	N[0] = vN.x;
 	N[1] = vN.y;
