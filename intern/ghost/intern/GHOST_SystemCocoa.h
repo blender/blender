@@ -237,15 +237,6 @@ public:
 		return 0;
 	}
 	
-	
-protected:
-	/**
-	 * Initializes the system.
-	 * For now, it justs registers the window class (WNDCLASS).
-	 * \return A success value.
-	 */
-	virtual GHOST_TSuccess init();
-
 	/**
 	 * Handles a tablet event.
 	 * \param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
@@ -270,6 +261,14 @@ protected:
 	 * \return Indication whether the event was handled.
 	 */
 	GHOST_TSuccess handleKeyEvent(void *eventPtr);
+	
+protected:
+	/**
+	 * Initializes the system.
+	 * For now, it justs registers the window class (WNDCLASS).
+	 * \return A success value.
+	 */
+	virtual GHOST_TSuccess init();
 
 	/**
 	 * Performs the actual cursor position update (location in screen coordinates).

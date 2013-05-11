@@ -297,36 +297,105 @@ extern "C" {
 		[self interpretKeyEvents:events]; // calls insertText
 		[events removeObject:event];
 		[events release];
-
-		return;
 	}
+
+	systemCocoa->handleKeyEvent(event);
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
-//Cmd+key are handled differently before 10.5
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
+- (void)keyUp:(NSEvent *)event
 {
-	NSString *chars = [theEvent charactersIgnoringModifiers];
-	
-	if ([chars length] <1) 
-		return NO;
-	
-	//Let cocoa handle menu shortcuts
-	switch ([chars characterAtIndex:0]) {
-		case 'q':
-		case 'w':
-		case 'h':
-		case 'm':
-		case '<':
-		case '>':
-		case '~':
-		case '`':
-			return NO;
-		default:
-			return YES;
-	}
+	systemCocoa->handleKeyEvent(event);
 }
-#endif
+
+- (void)flagsChanged:(NSEvent *)event
+{
+	systemCocoa->handleKeyEvent(event);
+}
+
+- (void)mouseDown:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)mouseUp:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)rightMouseDown:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)rightMouseUp:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)mouseMoved:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)mouseDragged:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)rightMouseDragged:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)scrollWheel:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)otherMouseDown:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)otherMouseUp:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)otherMouseDragged:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)magnifyWithEvent:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)rotateWithEvent:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)beginGestureWithEvent:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)endGestureWithEvent:(NSEvent *)event
+{
+	systemCocoa->handleMouseEvent(event);
+}
+
+- (void)tabletPoint:(NSEvent *)event
+{
+	systemCocoa->handleTabletEvent(event,[event type]);
+}
+
+- (void)tabletProximity:(NSEvent *)event
+{
+	systemCocoa->handleTabletEvent(event,[event type]);
+}
 
 - (BOOL)isOpaque
 {
