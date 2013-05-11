@@ -188,6 +188,55 @@ void BM_mesh_edgeloops_calc_normal(BMesh *bm, ListBase *eloops)
 	}
 }
 
+void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops)
+{
+	ListBase eloops_ordered = {NULL};
+	BMEdgeLoopStore *el_store;
+	float cent[3];
+	int tot = 0;
+	zero_v3(cent);
+	/* assumes we calculated centers already */
+	for (el_store = eloops->first; el_store; el_store = el_store->next, tot++) {
+		add_v3_v3(cent, el_store->co);
+	}
+	mul_v3_fl(cent, 1.0f / (float)tot);
+
+	/* find far outest loop */
+	{
+		BMEdgeLoopStore *el_store_best = NULL;
+		float len_best = -1.0f;
+		for (el_store = eloops->first; el_store; el_store = el_store->next) {
+			const float len = len_squared_v3v3(cent, el_store->co);
+			if (len > len_best) {
+				len_best = len;
+				el_store_best = el_store;
+			}
+		}
+
+		BLI_remlink(eloops, el_store_best);
+		BLI_addtail(&eloops_ordered, el_store_best);
+	}
+
+	/* not so efficient re-ordering */
+	while (eloops->first) {
+		BMEdgeLoopStore *el_store_best = NULL;
+		const float *co = ((BMEdgeLoopStore *)eloops_ordered.last)->co;
+		float len_best = FLT_MAX;
+		for (el_store = eloops->first; el_store; el_store = el_store->next) {
+			const float len = len_squared_v3v3(co, el_store->co);
+			if (len < len_best) {
+				len_best = len;
+				el_store_best = el_store;
+			}
+		}
+
+		BLI_remlink(eloops, el_store_best);
+		BLI_addtail(&eloops_ordered, el_store_best);
+	}
+
+	*eloops = eloops_ordered;
+}
+
 /* -------------------------------------------------------------------- */
 /* BM_edgeloop_*** functions */
 

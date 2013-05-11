@@ -38,6 +38,7 @@ int                 BM_mesh_edgeloops_find(BMesh *bm, struct ListBase *r_lb,
 void                BM_mesh_edgeloops_free(struct ListBase *eloops);
 void                BM_mesh_edgeloops_calc_center(BMesh *bm, struct ListBase *eloops);
 void                BM_mesh_edgeloops_calc_normal(BMesh *bm, struct ListBase *eloops);
+void                BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops);
 
 
 /* single edgeloop */

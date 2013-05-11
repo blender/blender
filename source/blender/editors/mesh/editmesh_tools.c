@@ -3672,12 +3672,13 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const bool use_cyclic = RNA_boolean_get(op->ptr, "use_cyclic");
 	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
 	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
 	
 	EDBM_op_init(em, &bmop, op,
-	             "bridge_loops edges=%he use_merge=%b merge_factor=%f",
-	             BM_ELEM_SELECT, use_merge, merge_factor);
+	             "bridge_loops edges=%he use_cyclic=%b use_merge=%b merge_factor=%f",
+	             BM_ELEM_SELECT, use_cyclic, use_merge, merge_factor);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -3711,7 +3712,7 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
+	RNA_def_boolean(ot->srna, "use_cyclic", 0, "Cyclic", "Close the bridge loop when using 3 or more");
 
 	RNA_def_boolean(ot->srna, "use_merge", false, "Merge", "Merge rather than creating faces");
 	RNA_def_float(ot->srna, "merge_factor", 0.5f, 0.0f, 1.0f, "Merge Factor", "", 0.0f, 1.0f);

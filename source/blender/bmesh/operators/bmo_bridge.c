@@ -289,10 +289,13 @@ static void bridge_loop_pair(BMesh *bm,
 void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 {
 	ListBase eloops = {NULL};
+	LinkData *el_store;
+	int eloop_len;
 
 	/* merge-bridge support */
 	const bool  use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
 	const float merge_factor = BMO_slot_float_get(op->slots_in, "merge_factor");
+	const bool  use_cyclic   = BMO_slot_bool_get(op->slots_in,  "use_cyclic") && (use_merge == false);
 	int count;
 	bool change = false;
 
@@ -303,20 +306,64 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BM_mesh_edgeloops_calc_normal(bm, &eloops);
 	BM_mesh_edgeloops_calc_center(bm, &eloops);
 
-	if ((count == 2) && (BM_edgeloop_length_get(eloops.first) == BM_edgeloop_length_get(eloops.last))) {
-		bridge_loop_pair(bm, eloops.first, eloops.last, use_merge, merge_factor);
+	if (count < 2) {
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+		                "Select at least two edge loops");
+		goto cleanup;
+
+	}
+	else {
+		bool match = true;
+		eloop_len = BM_edgeloop_length_get(eloops.first);
+		for (el_store = eloops.first; el_store; el_store = el_store->next) {
+			if (eloop_len != BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store)) {
+				match = false;
+				break;
+			}
+		}
+		if (!match) {
+			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+			                "Selected loops must have equal edge counts");
+			goto cleanup;
+		}
+	}
+
+	if (count > 2) {
+		BM_mesh_edgeloops_calc_order(bm, &eloops);
+	}
+
+	for (el_store = eloops.first; el_store; el_store = el_store->next) {
+		LinkData *el_store_next = el_store->next;
+
+		if (el_store_next == NULL) {
+			if (use_cyclic && (count > 2)) {
+				el_store_next = eloops.first;
+			}
+			else {
+				break;
+			}
+		}
+
+		bridge_loop_pair(bm,
+		                 (struct BMEdgeLoopStore *)el_store,
+		                 (struct BMEdgeLoopStore *)el_store_next,
+		                 use_merge, merge_factor);
 		change = true;
+	}
+
+	if ((count == 2) && (BM_edgeloop_length_get(eloops.first) == BM_edgeloop_length_get(eloops.last))) {
+
+
 
 	}
 	else if (count == 2) {
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-		                "Selected loops must have equal edge counts");
+
 	}
 	else {
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-		                "Select only two edge loops");
+
 	}
 
+cleanup:
 	BM_mesh_edgeloops_free(&eloops);
 
 	if (change) {

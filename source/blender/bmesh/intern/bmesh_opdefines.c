@@ -515,8 +515,9 @@ static BMOpDefine bmo_bridge_loops_def = {
 	"bridge_loops",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
-	 {"use_merge",        BMO_OP_SLOT_BOOL},
-	 {"merge_factor",         BMO_OP_SLOT_FLT},
+	 {"use_cyclic",         BMO_OP_SLOT_BOOL},
+	 {"use_merge",          BMO_OP_SLOT_BOOL},
+	 {"merge_factor",       BMO_OP_SLOT_FLT},
 	 {{'\0'}},
 	},
 	/* slots_out */
