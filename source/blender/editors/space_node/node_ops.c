@@ -311,10 +311,11 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_render_changed", ZKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_clipboard_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_clipboard_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_clipboard_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "NODE_OT_clipboard_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_clipboard_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
-	
+#endif
 	WM_keymap_add_item(keymap, "NODE_OT_viewer_border", BKEY, KM_PRESS, KM_CTRL, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);

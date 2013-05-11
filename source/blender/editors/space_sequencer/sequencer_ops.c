@@ -186,9 +186,11 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
+#endif
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_images_separate", YKEY, KM_PRESS, 0, 0);
 
