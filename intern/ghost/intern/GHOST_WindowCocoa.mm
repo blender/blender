@@ -283,6 +283,8 @@ extern "C" {
 // The trick to prevent Cocoa from complaining (beeping)
 - (void)keyDown:(NSEvent *)event
 {
+	systemCocoa->handleKeyEvent(event);
+
 	/* Start or continue composing? */
 	if ([[event characters] length] == 0  ||
 	    [[event charactersIgnoringModifiers] length] == 0 ||
@@ -297,9 +299,8 @@ extern "C" {
 		[self interpretKeyEvents:events]; // calls insertText
 		[events removeObject:event];
 		[events release];
+		return;
 	}
-
-	systemCocoa->handleKeyEvent(event);
 }
 
 - (void)keyUp:(NSEvent *)event
