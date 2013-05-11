@@ -41,6 +41,7 @@ set(INC_SYS
 set(SRC
 	operators/bmo_beautify.c
 	operators/bmo_bevel.c
+	operators/bmo_bridge.c
 	operators/bmo_connect.c
 	operators/bmo_create.c
 	operators/bmo_dissolve.c
@@ -70,6 +71,8 @@ set(SRC
 	intern/bmesh_construct.h
 	intern/bmesh_core.c
 	intern/bmesh_core.h
+	intern/bmesh_edgeloop.c
+	intern/bmesh_edgeloop.h
 	intern/bmesh_inline.h
 	intern/bmesh_interp.c
 	intern/bmesh_interp.h
