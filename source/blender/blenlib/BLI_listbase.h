@@ -71,6 +71,8 @@ void BLI_freelinkN(struct ListBase *listbase, void *vlink);
 
 void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src);
 void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src);
+void BLI_reverselist(struct ListBase *lb);
+void BLI_rotatelist(struct ListBase *lb, LinkData *vlink);
 
 /* create a generic list node containing link to provided data */
 struct LinkData *BLI_genericNodeN(void *data);

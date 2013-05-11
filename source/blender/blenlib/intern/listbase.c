@@ -543,8 +543,10 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
 	return -1;
 }
 
+/**
+ * Sets dst to a duplicate of the entire contents of src. dst may be the same as src.
+ */
 void BLI_duplicatelist(ListBase *dst, const ListBase *src)
-/* sets dst to a duplicate of the entire contents of src. dst may be the same as src. */
 {
 	struct Link *dst_link, *src_link;
 
@@ -559,6 +561,42 @@ void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 		src_link = src_link->next;
 	}
 }
+
+void BLI_reverselist(ListBase *lb)
+{
+	struct Link *curr = lb->first;
+	struct Link *prev = NULL;
+	struct Link *next = NULL;
+	while(curr) {
+		next = curr->next;
+		curr->next = prev;
+		curr->prev = next;
+		prev = curr;
+		curr = next;
+	}
+
+	/* swap first/last */
+	curr = lb->first;
+	lb->first = lb->last;
+	lb->last = curr;
+}
+
+/**
+ * \param vlink Link to make first.
+ */
+void BLI_rotatelist(ListBase *lb, LinkData *vlink)
+{
+	/* make circular */
+	((LinkData *)lb->first)->prev = lb->last;
+	((LinkData *)lb->last)->next = lb->first;
+
+	lb->first = vlink;
+	lb->last = vlink->prev;
+
+	((LinkData *)lb->first)->prev = NULL;
+	((LinkData *)lb->last)->next = NULL;
+}
+
 
 /* create a generic list node containing link to provided data */
 LinkData *BLI_genericNodeN(void *data)
