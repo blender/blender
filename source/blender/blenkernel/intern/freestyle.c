@@ -68,8 +68,10 @@ void BKE_freestyle_config_free(FreestyleConfig *config)
 			lineset->group->id.us--;
 			lineset->group = NULL;
 		}
-		lineset->linestyle->id.us--;
-		lineset->linestyle = NULL;
+		if (lineset->linestyle) {
+			lineset->linestyle->id.us--;
+			lineset->linestyle = NULL;
+		}
 	}
 	BLI_freelistN(&config->linesets);
 	BLI_freelistN(&config->modules);
