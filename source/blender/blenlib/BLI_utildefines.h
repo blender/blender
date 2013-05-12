@@ -290,6 +290,14 @@ typedef bool _BLI_Bool;
 #define UNPACK3OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2])
 #define UNPACK4OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
 
+/* simple stack */
+#define STACK_DECLARE(stack)   unsigned int _##stack##_index
+#define STACK_INIT(stack)      ((void)stack, (void)((_##stack##_index) = 0))
+#define STACK_SIZE(stack)      ((void)stack, (void)(_##stack##_index))
+#define STACK_PUSH(stack, val)  (void)((stack)[(_##stack##_index)++] = val)
+#define STACK_POP(stack)       ((_##stack##_index) ? ((stack)[--(_##stack##_index)]) : NULL)
+#define STACK_FREE(stack)      ((void)stack)
+
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot) \
 	(arr_dtype *)((char *)arr_start + (elem_size * (tot - 1)))

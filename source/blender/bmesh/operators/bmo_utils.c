@@ -310,11 +310,11 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter liter, liter2;
 	BMOIter siter;
-	BMFace *f, *startf, **fstack = NULL;
-	BLI_array_declare(fstack);
+	BMFace *f, *startf;
+	BMFace **fstack = MEM_mallocN(sizeof(*fstack) * BMO_slot_buffer_count(op->slots_in, "faces"), __func__);
+	STACK_DECLARE(fstack);
 	BMLoop *l, *l2;
 	float maxx, maxx_test, cent[3];
-	int i, i_max;
 	const bool use_flip = BMO_slot_bool_get(op->slots_in, "use_face_tag");
 
 	startf = NULL;
@@ -359,16 +359,10 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	 * stack (if we use simple function recursion, we'd end up overloading
 	 * the stack on large meshes). */
 
-	BLI_array_grow_one(fstack);
-	fstack[0] = startf;
+	STACK_PUSH(fstack, startf);
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
 
-	i = 0;
-	i_max = 1;
-	while (i >= 0) {
-		f = fstack[i];
-		i--;
-
+	while ((f = STACK_POP(fstack))) {
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
 				if (!BMO_elem_flag_test(bm, l2->f, FACE_FLAG) || l2 == l)
@@ -376,8 +370,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 
 				if (!BMO_elem_flag_test(bm, l2->f, FACE_VIS)) {
 					BMO_elem_flag_enable(bm, l2->f, FACE_VIS);
-					i++;
-					
+
 					if (l2->v == l->v) {
 						BM_face_normal_flip(bm, l2->f);
 						
@@ -392,18 +385,13 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 						}
 					}
 					
-					if (i == i_max) {
-						BLI_array_grow_one(fstack);
-						i_max++;
-					}
-
-					fstack[i] = l2->f;
+					STACK_PUSH(fstack, l2->f);
 				}
 			}
 		}
 	}
 
-	BLI_array_free(fstack);
+	MEM_freeN(fstack);
 
 	/* check if we have faces yet to do.  if so, recurse */
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {

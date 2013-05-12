@@ -1893,13 +1893,7 @@ bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 {
 	const int v_edgetot = BM_vert_face_count(v);
 	BMEdge **stack = BLI_array_alloca(stack, v_edgetot);
-	unsigned int _stack_i;
-
-	/* */
-#define STACK_INIT(stack)     ((void)stack, (void)(_stack_i = 0))
-#define STACK_PUSH(stack, val)  (void)((stack)[_stack_i++] = val)
-#define STACK_POP(stack)       ((void)0, (_stack_i ? ((stack)[--_stack_i]) : NULL))
-#define STACK_FREE(stack)      ((void)stack)
+	STACK_DECLARE(stack);
 
 	SmallHash visithash;
 	BMVert **verts = NULL;
@@ -2019,11 +2013,6 @@ bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 	if (r_vout != NULL) {
 		*r_vout = verts;
 	}
-
-#undef STACK_INIT
-#undef STACK_PUSH
-#undef STACK_POP
-#undef STACK_FREE
 
 	return true;
 }
