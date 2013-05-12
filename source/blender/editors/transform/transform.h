@@ -725,10 +725,6 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3]);
 
 void initTransformOrientation(struct bContext *C, TransInfo *t);
 
-struct TransformOrientation *createObjectSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
-struct TransformOrientation *createMeshSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
-struct TransformOrientation *createBoneSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
-
 /* Those two fill in mat and return non-zero on success */
 bool createSpaceNormal(float mat[3][3], const float normal[3]);
 bool createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);

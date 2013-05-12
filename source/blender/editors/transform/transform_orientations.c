@@ -100,31 +100,32 @@ static void uniqueOrientationName(ListBase *lb, char *name)
 	                  sizeof(((TransformOrientation *)NULL)->name));
 }
 
-void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name, int use, int overwrite)
+static TransformOrientation *createViewSpace(bContext *C, ReportList *UNUSED(reports), char *name, int overwrite)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Object *ob = CTX_data_active_object(C);
-	TransformOrientation *ts = NULL;
-	
-	if (obedit) {
-		if (obedit->type == OB_MESH)
-			ts = createMeshSpace(C, reports, name, overwrite);
-		else if (obedit->type == OB_ARMATURE)
-			ts = createBoneSpace(C, reports, name, overwrite);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	float mat[3][3];
+
+	if (!rv3d)
+		return NULL;
+
+	copy_m3_m4(mat, rv3d->viewinv);
+	normalize_m3(mat);
+
+	if (!name[0]) {
+		View3D *v3d = CTX_wm_view3d(C);
+		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+			/* If an object is used as camera, then this space is the same as object space! */
+			strncpy(name, v3d->camera->id.name + 2, MAX_NAME);
+		}
+		else {
+			strcpy(name, "Custom View");
+		}
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		ts = createBoneSpace(C, reports, name, overwrite);
-	}
-	else {
-		ts = createObjectSpace(C, reports, name, overwrite);
-	}
-	
-	if (use && ts != NULL) {
-		BIF_selectTransformOrientation(C, ts);
-	}
+
+	return addMatrixSpace(C, mat, name, overwrite);
 }
 
-TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports), char *name, int overwrite)
+static TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports), char *name, int overwrite)
 {
 	Base *base = CTX_data_active_base(C);
 	Object *ob;
@@ -133,9 +134,8 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 	if (base == NULL)
 		return NULL;
 
-
 	ob = base->object;
-	
+
 	copy_m3_m4(mat, ob->obmat);
 	normalize_m3(mat);
 
@@ -147,7 +147,7 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 	return addMatrixSpace(C, mat, name, overwrite);
 }
 
-TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *name, int overwrite)
+static TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *name, int overwrite)
 {
 	float mat[3][3];
 	float normal[3], plane[3];
@@ -166,7 +166,7 @@ TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *na
 	return addMatrixSpace(C, mat, name, overwrite);
 }
 
-TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *name, int overwrite)
+static TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *name, int overwrite)
 {
 	float mat[3][3];
 	float normal[3], plane[3];
@@ -258,6 +258,36 @@ bool createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]
 	normalize_m3(mat);
 	
 	return true;
+}
+
+/* name must be a MAX_NAME length string! */
+void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name, int use_view, int use, int overwrite)
+{
+	TransformOrientation *ts = NULL;
+
+	if (use_view) {
+		ts = createViewSpace(C, reports, name, overwrite);
+	}
+	else {
+		Object *obedit = CTX_data_edit_object(C);
+		Object *ob = CTX_data_active_object(C);
+		if (obedit) {
+			if (obedit->type == OB_MESH)
+				ts = createMeshSpace(C, reports, name, overwrite);
+			else if (obedit->type == OB_ARMATURE)
+				ts = createBoneSpace(C, reports, name, overwrite);
+		}
+		else if (ob && (ob->mode & OB_MODE_POSE)) {
+			ts = createBoneSpace(C, reports, name, overwrite);
+		}
+		else {
+			ts = createObjectSpace(C, reports, name, overwrite);
+		}
+	}
+
+	if (use && ts != NULL) {
+		BIF_selectTransformOrientation(C, ts);
+	}
 }
 
 TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3], char name[], int overwrite)

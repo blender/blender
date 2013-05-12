@@ -252,7 +252,8 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	char name[MAX_NAME];
 	int use = RNA_boolean_get(op->ptr, "use");
 	int overwrite = RNA_boolean_get(op->ptr, "overwrite");
-	
+	int use_view = RNA_boolean_get(op->ptr, "use_view");
+
 	RNA_string_get(op->ptr, "name", name);
 
 	if (use && !CTX_wm_view3d(C)) {
@@ -260,17 +261,12 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BIF_createTransformOrientation(C, op->reports, name, use, overwrite);
+	BIF_createTransformOrientation(C, op->reports, name, use_view, use, overwrite);
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
-}
-
-static int create_orientation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	return create_orientation_exec(C, op);
 }
 
 static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
@@ -282,14 +278,15 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	ot->flag   = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* api callbacks */
-	ot->invoke = create_orientation_invoke;
 	ot->exec   = create_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
-	ot->flag   = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Text to insert at the cursor position");
-	RNA_def_boolean(ot->srna, "use", 0, "Use after creation", "Select orientation after its creation");
-	RNA_def_boolean(ot->srna, "overwrite", 0, "Overwrite previous", "Overwrite previously created orientation with same name");
+	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the new custom orientation");
+	RNA_def_boolean(ot->srna, "use_view", FALSE, "Use View",
+	                "Use the current view instead of the active object to create the new orientation");
+	RNA_def_boolean(ot->srna, "use", FALSE, "Use after creation", "Select orientation after its creation");
+	RNA_def_boolean(ot->srna, "overwrite", FALSE, "Overwrite previous",
+	                "Overwrite previously created orientation with same name");
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)
