@@ -3669,7 +3669,7 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 	}
 
 	rgb_float_to_uchar(rgba_ub, rgb);
-	rgba_ub[3] = 255 * mask;
+	rgba_ub[3] = FTOCHAR(mask);
 
 	if (ps->do_masking) {
 		IMB_blend_color_byte(projPixel->pixel.ch_pt, projPixel->origColor.ch, rgba_ub, ps->blend);
