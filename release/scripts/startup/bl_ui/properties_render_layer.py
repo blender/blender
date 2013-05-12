@@ -72,7 +72,6 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
 
 class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
     bl_label = "Layer"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
