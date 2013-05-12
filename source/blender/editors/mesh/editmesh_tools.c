@@ -3667,6 +3667,49 @@ void MESH_OT_noise(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
 
+
+static int edbm_bridge_tag_boundary_edges(BMesh *bm)
+{
+	/* tags boundary edges from a face selection */
+	BMIter iter;
+	BMFace *f;
+	BMEdge *e;
+	int totface_del = 0;
+
+	BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			if (BM_edge_is_wire(e) || BM_edge_is_boundary(e)) {
+				BM_elem_flag_enable(e, BM_ELEM_TAG);
+			}
+			else {
+				BMIter fiter;
+				bool is_all_sel = true;
+				/* check if its only used by selected faces */
+				BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
+					if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+						/* tag face for removal*/
+						if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+							BM_elem_flag_enable(f, BM_ELEM_TAG);
+							totface_del++;
+						}
+					}
+					else {
+						is_all_sel = false;
+					}
+				}
+
+				if (is_all_sel == false) {
+					BM_elem_flag_enable(e, BM_ELEM_TAG);
+				}
+			}
+		}
+	}
+
+	return totface_del;
+}
+
 static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 {
 	BMOperator bmop;
@@ -3677,17 +3720,59 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	const bool use_cyclic = (type == 1);
 	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
 	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
-	
+	const bool use_faces = (em->bm->totfacesel != 0);
+	char edge_hflag;
+
+	int totface_del = 0;
+	BMFace **totface_del_arr = NULL;
+
+	if (use_faces) {
+		BMIter iter;
+		BMFace *f;
+		int i;
+
+		totface_del = edbm_bridge_tag_boundary_edges(em->bm);
+		totface_del_arr = MEM_mallocN(sizeof(*totface_del_arr) * totface_del, __func__);
+
+		i = 0;
+		BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+				totface_del_arr[i++] = f;
+			}
+		}
+		edge_hflag = BM_ELEM_TAG;
+	}
+	else {
+		edge_hflag = BM_ELEM_SELECT;
+	}
+
 	EDBM_op_init(em, &bmop, op,
 	             "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f",
-	             BM_ELEM_SELECT, use_pairs, use_cyclic, use_merge, merge_factor);
+	             edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor);
 
 	BMO_op_exec(em->bm, &bmop);
 
-	/* when merge is used the edges are joined and remain selected */
-	if (use_merge == false) {
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+	if (!BMO_error_occurred(em->bm)) {
+		/* when merge is used the edges are joined and remain selected */
+		if (use_merge == false) {
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+		}
+
+		if (use_faces && totface_del) {
+			int i;
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+			for (i = 0; i < totface_del; i++) {
+				BM_elem_flag_enable(totface_del_arr[i], BM_ELEM_TAG);
+			}
+			BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+			             "delete geom=%hf context=%i",
+			             BM_ELEM_TAG, DEL_FACES);
+		}
+	}
+
+	if (totface_del_arr) {
+		MEM_freeN(totface_del_arr);
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
