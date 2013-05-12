@@ -3114,8 +3114,8 @@ static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, M
 			 * aligned correct or not.
 			 */
 			if (!origin_set) {
-				copy_m4_m4(imat, mat);
-				invert_m4(imat);
+				invert_m4_m4(imat, mat);
+				unit_m4(mat);
 				origin_set = true;
 			}
 			else {
