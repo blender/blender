@@ -258,8 +258,8 @@ void lamp_drivers_update(Scene *scene, Lamp *la, float ctime)
 	 * in the meantime... [#32017] */
 	if (la->id.flag & LIB_DOIT)
 		return;
-	else
-		la->id.flag |= LIB_DOIT;
+
+	la->id.flag |= LIB_DOIT;
 	
 	/* lamp itself */
 	if (la->adt && la->adt->drivers.first)
@@ -268,5 +268,7 @@ void lamp_drivers_update(Scene *scene, Lamp *la, float ctime)
 	/* nodes */
 	if (la->nodetree)
 		lamp_node_drivers_update(scene, la->nodetree, ctime);
+
+	la->id.flag &= ~LIB_DOIT;
 }
 

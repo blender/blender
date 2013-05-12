@@ -372,8 +372,8 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 	 */
 	if (ma->id.flag & LIB_DOIT)
 		return;
-	else
-		ma->id.flag |= LIB_DOIT;
+
+	ma->id.flag |= LIB_DOIT;
 	
 	/* material itself */
 	if (ma->adt)
@@ -386,6 +386,8 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 	/* material's nodetree */
 	if (ma->nodetree)
 		dag_add_shader_nodetree_driver_relations(dag, node, ma->nodetree);
+
+	ma->id.flag &= ~LIB_DOIT;
 }
 
 /* recursive handling for lamp drivers */
@@ -397,8 +399,8 @@ static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *l
 	 */
 	if (la->id.flag & LIB_DOIT)
 		return;
-	else
-		la->id.flag |= LIB_DOIT;
+
+	la->id.flag |= LIB_DOIT;
 	
 	/* lamp itself */
 	if (la->adt)
@@ -411,6 +413,8 @@ static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *l
 	/* lamp's nodetree */
 	if (la->nodetree)
 		dag_add_shader_nodetree_driver_relations(dag, node, la->nodetree);
+
+	la->id.flag &= ~LIB_DOIT;
 }
 
 static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield, bool no_collision)
