@@ -164,9 +164,11 @@ static void bridge_loop_pair(BMesh *bm,
 				LinkData *el;
 				for (el = BM_edgeloop_verts_get(estore_pair[i])->first; el; el = el->next) {
 					LinkData *el_next = BM_EDGELOOP_NEXT(estore_pair[i], el);
-					BMEdge *e = BM_edge_exists(el->data, el_next->data);
-					if (e && BM_edge_is_boundary(e)) {
-						winding_votes += ((e->l->v == el->data) ? winding_dir : -winding_dir);
+					if (el_next) {
+						BMEdge *e = BM_edge_exists(el->data, el_next->data);
+						if (e && BM_edge_is_boundary(e)) {
+							winding_votes += ((e->l->v == el->data) ? winding_dir : -winding_dir);
+						}
 					}
 				}
 			}
@@ -318,7 +320,7 @@ static void bridge_loop_pair(BMesh *bm,
 
 				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
 				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-				if (l_2_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+				if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
 			}
 
 			if (el_a_next == el_a_first) {
