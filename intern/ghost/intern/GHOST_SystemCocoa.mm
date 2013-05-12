@@ -934,7 +934,20 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			// Send event to NSApp to ensure Mac wide events are handled,
 			// this will send events to CocoaWindow which will call back
 			// to handleKeyEvent, handleMouseEvent and handleTabletEvent
-			[NSApp sendEvent:event];
+
+			// There is on special exception for ctrl+(shift)+tab. We do not
+			// get keyDown events delivered to the view because they are
+			// special hotkeys to switch between views, so override directly
+
+			if([event type] == NSKeyDown &&
+			   [event keyCode] == kVK_Tab &&
+			   ([event modifierFlags] & NSControlKeyMask)) {
+				handleKeyEvent(event);
+			}
+			else {
+				[NSApp sendEvent:event];
+			}
+
 			[pool drain];
 		} while (event != nil);
 #if 0
