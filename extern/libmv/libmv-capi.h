@@ -101,8 +101,6 @@ typedef struct libmv_reconstructionOptions {
 
 typedef void (*reconstruct_progress_update_cb) (void *customdata, double progress, const char *message);
 
-int libmv_refineParametersAreValid(int parameters);
-
 struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *libmv_tracks,
 			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			libmv_reconstructionOptions *libmv_reconstruction_options,
@@ -161,9 +159,9 @@ void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmv_int
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
 /* utils */
-void libmv_applyCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+void libmv_ApplyCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
-void libmv_InvertIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+void libmv_InvertCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
 
 #ifdef __cplusplus
