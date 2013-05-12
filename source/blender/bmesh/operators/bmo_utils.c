@@ -420,8 +420,7 @@ void bmo_smooth_vert_exec(BMesh *UNUSED(bm), BMOperator *op)
 	BMIter iter;
 	BMVert *v;
 	BMEdge *e;
-	BLI_array_declare(cos);
-	float (*cos)[3] = NULL;
+	float (*cos)[3] = MEM_mallocN(sizeof(*cos) * BMO_slot_buffer_count(op->slots_in, "verts"), __func__);
 	float *co, *co2, clip_dist = BMO_slot_float_get(op->slots_in, "clip_dist");
 	int i, j, clipx, clipy, clipz;
 	int xaxis, yaxis, zaxis;
@@ -436,7 +435,6 @@ void bmo_smooth_vert_exec(BMesh *UNUSED(bm), BMOperator *op)
 
 	i = 0;
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
-		BLI_array_grow_one(cos);
 
 		co = cos[i];
 		zero_v3(co);
@@ -479,7 +477,7 @@ void bmo_smooth_vert_exec(BMesh *UNUSED(bm), BMOperator *op)
 		i++;
 	}
 
-	BLI_array_free(cos);
+	MEM_freeN(cos);
 }
 
 /**************************************************************************** *
