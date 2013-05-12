@@ -38,17 +38,17 @@ rm -rf $tmp
 
 chmod 664 ./third_party/glog/src/windows/*.cc ./third_party/glog/src/windows/*.h ./third_party/glog/src/windows/glog/*.h
 
-sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | sort -d`
-headers=`find ./libmv -type f -iname '*.h' | sed -r 's/^\.\//\t/' | sort -d`
+sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t\t/' | sort -d`
+headers=`find ./libmv -type f -iname '*.h' | sed -r 's/^\.\//\t\t/' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t/' | sort -d`
-third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t/' | sort -d`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
 
-third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
-third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
+third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t\t/' | sort -d`
+third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t\t/' | sort -d`
 
-src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/' | sort -d | uniq`
-src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | grep -v ceres | sed -r 's/^\.\//\t/'  | sort -d | uniq`
+src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t\t/' | sort -d | uniq`
+src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | grep -v ceres | sed -r 's/^\.\//\t\t/'  | sort -d | uniq`
 src=""
 win_src=""
 for x in $src_dir $src_third_dir; do
@@ -59,12 +59,12 @@ for x in $src_dir $src_third_dir; do
   fi
 
   if stat $x/*.cpp > /dev/null 2>&1; then
-    t="src += env.Glob('`echo $x'/*.cpp'`')"
+    t="    src += env.Glob('`echo $x'/*.cpp'`')"
   fi
 
   if stat $x/*.c > /dev/null 2>&1; then
     if [ -z "$t" ]; then
-      t="src += env.Glob('`echo $x'/*.c'`')"
+      t="    src += env.Glob('`echo $x'/*.c'`')"
     else
       t="$t + env.Glob('`echo $x'/*.c'`')"
     fi
@@ -72,7 +72,7 @@ for x in $src_dir $src_third_dir; do
 
   if stat $x/*.cc > /dev/null 2>&1; then
     if [ -z "$t" ]; then
-      t="src += env.Glob('`echo $x'/*.cc'`')"
+      t="    src += env.Glob('`echo $x'/*.cc'`')"
     else
       t="$t + env.Glob('`echo $x'/*.cc'`')"
     fi
@@ -124,82 +124,100 @@ cat > CMakeLists.txt << EOF
 
 set(INC
 	.
-	third_party/ceres/include
-)
-
-set(INC_SYS
-	../Eigen3
-	\${PNG_INCLUDE_DIR}
-	\${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
-	libmv-capi.cpp
+	libmv-capi.h
+)
+
+if(WITH_LIBMV)
+	add_definitions(
+		-DWITH_LIBMV
+	)
+
+	list(APPEND INC
+		third_party/ceres/include
+	)
+
+	set(INC_SYS
+		../Eigen3
+		\${PNG_INCLUDE_DIR}
+		\${ZLIB_INCLUDE_DIRS}
+	)
+
+	list(APPEND SRC
+		libmv-capi.cc
 ${sources}
 
 ${third_sources}
 
-	libmv-capi.h
 ${headers}
 
 ${third_headers}
-)
-
-if(WIN32)
-	list(APPEND SRC
-		third_party/glog/src/logging.cc
-		third_party/glog/src/raw_logging.cc
-		third_party/glog/src/utilities.cc
-		third_party/glog/src/vlog_is_on.cc
-		third_party/glog/src/windows/port.cc
-
-		third_party/glog/src/utilities.h
-		third_party/glog/src/stacktrace_generic-inl.h
-		third_party/glog/src/stacktrace.h
-		third_party/glog/src/stacktrace_x86_64-inl.h
-		third_party/glog/src/base/googleinit.h
-		third_party/glog/src/base/mutex.h
-		third_party/glog/src/base/commandlineflags.h
-		third_party/glog/src/stacktrace_powerpc-inl.h
-		third_party/glog/src/stacktrace_x86-inl.h
-		third_party/glog/src/config.h
-		third_party/glog/src/stacktrace_libunwind-inl.h
-		third_party/glog/src/windows/glog/raw_logging.h
-		third_party/glog/src/windows/glog/vlog_is_on.h
-		third_party/glog/src/windows/glog/logging.h
-		third_party/glog/src/windows/glog/log_severity.h
-		third_party/glog/src/windows/port.h
-		third_party/glog/src/windows/config.h
 	)
 
-	list(APPEND INC
-		third_party/glog/src/windows
-	)
+	if(WIN32)
+		list(APPEND SRC
+			third_party/glog/src/logging.cc
+			third_party/glog/src/raw_logging.cc
+			third_party/glog/src/utilities.cc
+			third_party/glog/src/vlog_is_on.cc
+			third_party/glog/src/windows/port.cc
 
-	if(NOT MINGW)
-		list(APPEND INC
-			third_party/msinttypes
+			third_party/glog/src/utilities.h
+			third_party/glog/src/stacktrace_generic-inl.h
+			third_party/glog/src/stacktrace.h
+			third_party/glog/src/stacktrace_x86_64-inl.h
+			third_party/glog/src/base/googleinit.h
+			third_party/glog/src/base/mutex.h
+			third_party/glog/src/base/commandlineflags.h
+			third_party/glog/src/stacktrace_powerpc-inl.h
+			third_party/glog/src/stacktrace_x86-inl.h
+			third_party/glog/src/config.h
+			third_party/glog/src/stacktrace_libunwind-inl.h
+			third_party/glog/src/windows/glog/raw_logging.h
+			third_party/glog/src/windows/glog/vlog_is_on.h
+			third_party/glog/src/windows/glog/logging.h
+			third_party/glog/src/windows/glog/log_severity.h
+			third_party/glog/src/windows/port.h
+			third_party/glog/src/windows/config.h
 		)
-	endif()
-else()
-	list(APPEND SRC
+
+		list(APPEND INC
+			third_party/glog/src/windows
+		)
+
+		if(NOT MINGW)
+			list(APPEND INC
+				third_party/msinttypes
+			)
+		endif()
+	else()
+		list(APPEND SRC
 ${third_glog_sources}
 
 ${third_glog_headers}
-	)
+		)
 
-	list(APPEND INC
-		third_party/glog/src
+		list(APPEND INC
+			third_party/glog/src
+		)
+	endif()
+
+	add_definitions(
+		-DGOOGLE_GLOG_DLL_DECL=
+	)
+else()
+	list(APPEND SRC
+		libmv-capi_stub.cc
 	)
 endif()
 
-add_definitions(
-	-DGOOGLE_GLOG_DLL_DECL=
-)
-
 blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
 
-add_subdirectory(third_party)
+if(WITH_LIBMV)
+	add_subdirectory(third_party)
+endif()
 EOF
 
 cat > SConscript << EOF
@@ -216,27 +234,32 @@ Import('env')
 
 defs = []
 
-defs.append('GOOGLE_GLOG_DLL_DECL=')
+if env['WITH_BF_LIBMV']:
+    defs.append('GOOGLE_GLOG_DLL_DECL=')
+    defs.append('WITH_LIBMV')
 
-src = env.Glob("*.cpp")
+    src = env.Glob("libmv-capi.cc")
 $src
 
-incs = '. ../Eigen3 third_party/ceres/include'
-incs += ' ' + env['BF_PNG_INC']
-incs += ' ' + env['BF_ZLIB_INC']
+    incs = '. ../Eigen3 third_party/ceres/include'
+    incs += ' ' + env['BF_PNG_INC']
+    incs += ' ' + env['BF_ZLIB_INC']
 
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
-    incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-        incs += ' ./third_party/msinttypes'
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+        incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
+        if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+            incs += ' ./third_party/msinttypes'
 ${win_src}
-    src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
-    src += ['./third_party/glog/src/windows/port.cc']
+        src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
+        src += ['./third_party/glog/src/windows/port.cc']
+    else:
+        src += env.Glob("third_party/glog/src/*.cc")
+        incs += ' ./third_party/glog/src'
 else:
-    src += env.Glob("third_party/glog/src/*.cc")
-    incs += ' ./third_party/glog/src'
+    src = env.Glob("libmv-capi_stub.cc")
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 
-SConscript(['third_party/SConscript'])
+if env['WITH_BF_LIBMV']:
+    SConscript(['third_party/SConscript'])
 EOF

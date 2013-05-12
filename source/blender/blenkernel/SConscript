@@ -50,6 +50,7 @@ incs += ' #/intern/mikktspace'
 incs += ' #/intern/audaspace/intern'
 incs += ' #/intern/ffmpeg'
 incs += ' #/intern/raskter'
+incs += ' #/extern/libmv'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
@@ -138,7 +139,6 @@ else:
     sources.remove('intern' + os.sep + 'navmesh_conversion.c')
 
 if env['WITH_BF_LIBMV']:
-    incs += ' #/extern/libmv'
     defs.append('WITH_LIBMV')
 
 if env['WITH_BF_FFTW3']:

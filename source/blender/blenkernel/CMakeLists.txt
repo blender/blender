@@ -44,6 +44,7 @@ set(INC
 	../../../intern/opennl/extern
 	../../../intern/raskter
 	../../../intern/smoke/extern
+	../../../extern/libmv
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -412,9 +413,6 @@ if(WITH_GAMEENGINE)
 endif()
 
 if(WITH_LIBMV)
-	list(APPEND INC
-		../../../extern/libmv
-	)
 	add_definitions(-DWITH_LIBMV)
 endif()
 

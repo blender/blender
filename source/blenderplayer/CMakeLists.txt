@@ -151,6 +151,7 @@ endif()
 		bf_intern_opennl
 		extern_rangetree
 		extern_wcwidth
+		extern_libmv
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
@@ -166,7 +167,6 @@ endif()
 	endif()
 
 	if(WITH_LIBMV)
-		list(APPEND BLENDER_SORTED_LIBS extern_libmv)
 		list(APPEND BLENDER_SORTED_LIBS extern_ceres)
 	endif()
 
