@@ -118,6 +118,24 @@ static void bridge_loop_pair(BMesh *bm,
 {
 	LinkData *el_a_first, *el_b_first;
 	const bool is_closed = BM_edgeloop_is_closed(el_store_a) && BM_edgeloop_is_closed(el_store_b);
+	int el_store_a_len, el_store_b_len;
+	bool el_store_b_free = false;
+
+	el_store_a_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_a);
+	el_store_b_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_b);
+
+	if (el_store_a_len < el_store_b_len) {
+		SWAP(int, el_store_a_len, el_store_b_len);
+		SWAP(struct BMEdgeLoopStore *, el_store_a, el_store_b);
+	}
+
+	if (use_merge) {
+		BLI_assert((el_store_a_len == el_store_a_len));
+	}
+
+	if (el_store_a_len != el_store_b_len) {
+		BM_mesh_elem_hflag_disable_all(bm, BM_FACE | BM_EDGE, BM_ELEM_TAG, false);
+	}
 
 	if (dot_v3v3(BM_edgeloop_normal_get(el_store_a), BM_edgeloop_normal_get(el_store_b)) < 0.0f) {
 		BM_edgeloop_flip(bm, el_store_b);
@@ -139,7 +157,7 @@ static void bridge_loop_pair(BMesh *bm,
 		/* vote on winding (so new face winding is based on existing connected faces) */
 		if (bm->totface) {
 			struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
-			int i = 0;
+			int i;
 			int winding_votes = 0;
 			int winding_dir = 1;
 			for (i = 0; i < 2; i++, winding_dir = -winding_dir) {
@@ -158,6 +176,12 @@ static void bridge_loop_pair(BMesh *bm,
 				BM_edgeloop_flip(bm, el_store_b);
 			}
 		}
+	}
+
+	if (el_store_a_len > el_store_b_len) {
+		el_store_b = BM_edgeloop_copy(el_store_b);
+		BM_edgeloop_expand(bm, el_store_b, el_store_a_len);
+		el_store_b_free = true;
 	}
 
 	if (is_closed) {
@@ -253,36 +277,88 @@ static void bridge_loop_pair(BMesh *bm,
 			v_b_next = el_b_next->data;
 
 			/* get loop data - before making the face */
-			bm_vert_loop_pair(bm, v_a, v_b, &l_1, &l_2);
-			bm_vert_loop_pair(bm, v_a_next, v_b_next, &l_1_next, &l_2_next);
-			/* copy if loop data if its is missing on one ring */
+			if (v_b != v_b_next) {
+				bm_vert_loop_pair(bm, v_a, v_b, &l_1, &l_2);
+				bm_vert_loop_pair(bm, v_a_next, v_b_next, &l_1_next, &l_2_next);
+			}
+			else {
+				/* lazy, could be more clever here */
+				l_1      = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_a, 0);
+				l_1_next = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_a_next, 0);
+				l_2      = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_b, 0);
+				l_2_next = l_2;
+			}
+
 			if (l_1 && l_1_next == NULL) l_1_next = l_1;
 			if (l_1_next && l_1 == NULL) l_1 = l_1_next;
 			if (l_2 && l_2_next == NULL) l_2_next = l_2;
 			if (l_2_next && l_2 == NULL) l_2 = l_2_next;
 			f_example = l_1 ? l_1->f : (l_2 ? l_2->f : NULL);
 
-			f = BM_face_create_quad_tri(bm,
-			                            el_a->data,
-			                            el_b->data,
-			                            el_b_next->data,
-			                            el_a_next->data,
-			                            f_example, true);
-			BMO_elem_flag_enable(bm, f, FACE_OUT);
+			if (v_b != v_b_next) {
+				/* copy if loop data if its is missing on one ring */
+				f = BM_face_create_quad_tri(bm, v_a, v_b, v_b_next, v_a_next, f_example, true);
+				BMO_elem_flag_enable(bm, f, FACE_OUT);
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+
+				l_iter = BM_FACE_FIRST_LOOP(f);
+
+				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
+				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
+				if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
+				if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+			}
+			else {
+				/* fan-fill a triangle */
+				f = BM_face_create_quad_tri(bm, v_a, v_b, v_a_next, NULL, f_example, true);
+				BMO_elem_flag_enable(bm, f, FACE_OUT);
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+
+				l_iter = BM_FACE_FIRST_LOOP(f);
+
+				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
+				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
+				if (l_2_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+			}
+
 			if (el_a_next == el_a_first) {
 				break;
 			}
 
-			l_iter = BM_FACE_FIRST_LOOP(f);
-
-			if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
-			if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-			if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
-			if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
-
 			el_a = el_a_next;
 			el_b = el_b_next;
 		}
+	}
+
+	if (el_store_a_len != el_store_b_len) {
+		struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
+		int i;
+
+		BMOperator op_sub;
+		/* when we have to bridge betweeen different sized edge-loops,
+		 * be clever and post-process for best results */
+		BM_mesh_triangulate(bm, true, true, NULL, NULL);
+
+		/* tag verts on each side so we can restrict rotation of edges to verts on the same side */
+		for (i = 0; i < 2; i++) {
+			LinkData *el;
+			for (el = BM_edgeloop_verts_get(estore_pair[i])->first; el; el = el->next) {
+				BM_elem_flag_set((BMVert *)el->data, BM_ELEM_TAG, i);
+			}
+		}
+
+		BMO_op_initf(bm, &op_sub, 0,
+		             "beautify_fill faces=%hf edges=ae use_restrict_tag=%b",
+		             BM_ELEM_TAG, true);
+		BMO_op_exec(bm, &op_sub);
+		/* there may also be tagged faces that didnt rotate, mark input */
+		BMO_slot_buffer_flag_enable(bm, op_sub.slots_in, "faces", BM_FACE, FACE_OUT);
+		BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "geom.out", BM_FACE, FACE_OUT);
+		BMO_op_finish(bm, &op_sub);
+	}
+
+	if (el_store_b_free) {
+		BM_edgeloop_free(el_store_b);
 	}
 }
 
@@ -290,7 +366,6 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 {
 	ListBase eloops = {NULL};
 	LinkData *el_store;
-	int eloop_len;
 
 	/* merge-bridge support */
 	const bool  use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
@@ -310,11 +385,11 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 		                "Select at least two edge loops");
 		goto cleanup;
-
 	}
-	else {
+
+	if (use_merge) {
 		bool match = true;
-		eloop_len = BM_edgeloop_length_get(eloops.first);
+		const int eloop_len = BM_edgeloop_length_get(eloops.first);
 		for (el_store = eloops.first; el_store; el_store = el_store->next) {
 			if (eloop_len != BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store)) {
 				match = false;

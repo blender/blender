@@ -42,7 +42,8 @@ void                BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *el
 
 
 /* single edgeloop */
-void                BM_edgeloop_free(struct ListBase *eloops, struct BMEdgeLoopStore *el_store);
+struct BMEdgeLoopStore *BM_edgeloop_copy(struct BMEdgeLoopStore *el_store);
+void                BM_edgeloop_free(struct BMEdgeLoopStore *el_store);
 bool                BM_edgeloop_is_closed(struct BMEdgeLoopStore *el_store);
 int                 BM_edgeloop_length_get(struct BMEdgeLoopStore *el_store);
 struct ListBase    *BM_edgeloop_verts_get(struct BMEdgeLoopStore *el_store);
@@ -51,6 +52,7 @@ const float        *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_calc_center(BMesh *bm, struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_calc_normal(BMesh *bm, struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_flip(BMesh *bm, struct BMEdgeLoopStore *el_store);
+void                BM_edgeloop_expand(BMesh *bm, struct BMEdgeLoopStore *el_store, int el_store_len);
 
 #define BM_EDGELOOP_NEXT(el_store, elink) \
 	(elink)->next ? elink->next : (BM_edgeloop_is_closed(el_store) ? BM_edgeloop_verts_get(el_store)->first : NULL)

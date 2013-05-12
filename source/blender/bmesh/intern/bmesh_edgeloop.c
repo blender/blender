@@ -157,7 +157,8 @@ int BM_mesh_edgeloops_find(BMesh *bm, ListBase *r_eloops,
 				count++;
 			}
 			else {
-				BM_edgeloop_free(r_eloops, el_store);
+				BLI_remlink(r_eloops, el_store);
+				BM_edgeloop_free(el_store);
 			}
 		}
 	}
@@ -168,7 +169,8 @@ void BM_mesh_edgeloops_free(ListBase *eloops)
 {
 	BMEdgeLoopStore *el_store;
 	while ((el_store = eloops->first)) {
-		BM_edgeloop_free(eloops, el_store);
+		BLI_remlink(eloops, el_store);
+		BM_edgeloop_free(el_store);
 	}
 }
 
@@ -240,10 +242,17 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops)
 /* -------------------------------------------------------------------- */
 /* BM_edgeloop_*** functions */
 
-void BM_edgeloop_free(ListBase *eloops, BMEdgeLoopStore *el_store)
+BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
+{
+	BMEdgeLoopStore *el_store_copy = MEM_mallocN(sizeof(*el_store), __func__);
+	*el_store_copy = *el_store;
+	BLI_duplicatelist(&el_store_copy->verts, &el_store->verts);
+	return el_store_copy;
+}
+
+void BM_edgeloop_free(BMEdgeLoopStore *el_store)
 {
 	BLI_freelistN(&el_store->verts);
-	BLI_remlink(eloops, el_store);
 	MEM_freeN(el_store);
 }
 
@@ -346,4 +355,43 @@ void BM_edgeloop_flip(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 {
 	negate_v3(el_store->no);
 	BLI_reverselist(&el_store->verts);
+}
+
+void BM_edgeloop_expand(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store, int el_store_len)
+{
+	/* first double until we are more then half as big */
+	while ((el_store->len * 2) < el_store_len) {
+		LinkData *node_curr = el_store->verts.first;
+		while (node_curr) {
+			LinkData *node_curr_copy = MEM_dupallocN(node_curr);
+			BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
+			el_store->len++;
+			node_curr = node_curr_copy->next;
+		}
+	}
+
+	if (el_store->len < el_store_len) {
+		const int step = max_ii(1, el_store->len / (el_store->len % el_store_len));
+		LinkData *node_first = el_store->verts.first;
+		LinkData *node_curr = node_first;
+
+		do {
+			LinkData *node_curr_init = node_curr;
+			LinkData *node_curr_copy;
+			int i = 0;
+			LISTBASE_CIRCULAR_FORWARD_BEGIN (&el_store->verts, node_curr, node_curr_init) {
+				if (i++ < step) {
+					break;
+				}
+			}
+			LISTBASE_CIRCULAR_FORWARD_END (&el_store->verts, node_curr, node_curr_init);
+
+			node_curr_copy = MEM_dupallocN(node_curr);
+			BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
+			el_store->len++;
+			node_curr = node_curr_copy->next;
+		} while (el_store->len < el_store_len);
+	}
+
+	BLI_assert(el_store->len == el_store_len);
 }
