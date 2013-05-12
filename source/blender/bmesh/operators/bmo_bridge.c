@@ -370,6 +370,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	LinkData *el_store;
 
 	/* merge-bridge support */
+	const bool  use_pairs    = BMO_slot_bool_get(op->slots_in,  "use_pairs");
 	const bool  use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
 	const float merge_factor = BMO_slot_float_get(op->slots_in, "merge_factor");
 	const bool  use_cyclic   = BMO_slot_bool_get(op->slots_in,  "use_cyclic") && (use_merge == false);
@@ -386,6 +387,12 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	if (count < 2) {
 		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 		                "Select at least two edge loops");
+		goto cleanup;
+	}
+
+	if (use_pairs && (count % 2)) {
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+		                "Select an even number of loops to bridge pairs");
 		goto cleanup;
 	}
 
@@ -406,7 +413,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (count > 2) {
-		BM_mesh_edgeloops_calc_order(bm, &eloops);
+		BM_mesh_edgeloops_calc_order(bm, &eloops, use_pairs);
 	}
 
 	for (el_store = eloops.first; el_store; el_store = el_store->next) {
@@ -425,6 +432,9 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		                 (struct BMEdgeLoopStore *)el_store,
 		                 (struct BMEdgeLoopStore *)el_store_next,
 		                 use_merge, merge_factor);
+		if (use_pairs) {
+			el_store = el_store->next;
+		}
 		change = true;
 	}
 

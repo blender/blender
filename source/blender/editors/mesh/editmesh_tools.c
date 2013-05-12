@@ -3672,13 +3672,15 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const bool use_cyclic = RNA_boolean_get(op->ptr, "use_cyclic");
+	const int type = RNA_enum_get(op->ptr, "type");
+	const bool use_pairs = (type == 2);
+	const bool use_cyclic = (type == 1);
 	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
 	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
 	
 	EDBM_op_init(em, &bmop, op,
-	             "bridge_loops edges=%he use_cyclic=%b use_merge=%b merge_factor=%f",
-	             BM_ELEM_SELECT, use_cyclic, use_merge, merge_factor);
+	             "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f",
+	             BM_ELEM_SELECT, use_pairs, use_cyclic, use_merge, merge_factor);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -3700,6 +3702,13 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 {
+	static EnumPropertyItem type_items[] = {
+		{0, "SINGLE", 0, "Open Loop", ""},
+		{1, "CLOSED", 0, "Closed Loop", ""},
+		{2, "PAIRS", 0, "Loop Pairs", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name = "Bridge Two Edge Loops";
 	ot->description = "Make faces between two edge loops";
@@ -3711,8 +3720,9 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-	RNA_def_boolean(ot->srna, "use_cyclic", 0, "Cyclic", "Close the bridge loop when using 3 or more");
+
+	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0,
+	                        "Connect Loops", "Method of bridging multiple loops");
 
 	RNA_def_boolean(ot->srna, "use_merge", false, "Merge", "Merge rather than creating faces");
 	RNA_def_float(ot->srna, "merge_factor", 0.5f, 0.0f, 1.0f, "Merge Factor", "", 0.0f, 1.0f);

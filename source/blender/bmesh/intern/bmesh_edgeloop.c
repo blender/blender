@@ -190,7 +190,7 @@ void BM_mesh_edgeloops_calc_normal(BMesh *bm, ListBase *eloops)
 	}
 }
 
-void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops)
+void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const bool use_normals)
 {
 	ListBase eloops_ordered = {NULL};
 	BMEdgeLoopStore *el_store;
@@ -223,9 +223,22 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops)
 	while (eloops->first) {
 		BMEdgeLoopStore *el_store_best = NULL;
 		const float *co = ((BMEdgeLoopStore *)eloops_ordered.last)->co;
+		const float *no = ((BMEdgeLoopStore *)eloops_ordered.last)->no;
 		float len_best = FLT_MAX;
 		for (el_store = eloops->first; el_store; el_store = el_store->next) {
-			const float len = len_squared_v3v3(co, el_store->co);
+			float len;
+			if (use_normals) {
+				/* scale the length by how close the loops are to pointing at eachother */
+				float dir[3];
+				sub_v3_v3v3(dir, co, el_store->co);
+				len = normalize_v3(dir);
+				len = len * ((1.0f - fabsf(dot_v3v3(dir, no))) +
+				             (1.0f - fabsf(dot_v3v3(dir, el_store->no))));
+			}
+			else {
+				len = len_squared_v3v3(co, el_store->co);
+			}
+
 			if (len < len_best) {
 				len_best = len;
 				el_store_best = el_store;
