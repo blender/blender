@@ -93,6 +93,11 @@ struct ImBuf *IMB_colormanagement_imbuf_for_write(struct ImBuf *ibuf, int save_a
                                                   const struct ColorManagedDisplaySettings *display_settings,
                                                   struct ImageFormatData *image_format_data);
 
+void IMB_colormanagement_buffer_make_display_space(float *buffer, unsigned char *display_buffer,
+                                                   int width, int height, int channels, float dither,
+                                                   const struct ColorManagedViewSettings *view_settings,
+                                                   const struct ColorManagedDisplaySettings *display_settings);
+
 /* ** Public display buffers interfaces ** */
 
 void IMB_colormanagement_display_settings_from_ctx(const struct bContext *C,

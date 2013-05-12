@@ -42,6 +42,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -1027,18 +1028,48 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	RE_AcquireResultImage(re, &rres);
 	
 	if (rres.rectf) {
-		unsigned char *rect_byte = MEM_mallocN(rres.rectx * rres.recty * sizeof(int), "ed_preview_draw_rect");
-				
-		RE_AcquiredResultGet32(re, &rres, (unsigned int *)rect_byte);
-		
-		glEnable(GL_BLEND);
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, rect_byte);
-		glDisable(GL_BLEND);
-				
-		MEM_freeN(rect_byte);
+		Scene *scene = CTX_data_scene(C);
+		bool force_fallback = false;
+		bool need_fallback = true;
+		float dither = scene->r.dither_intensity;
+
+		/* Dithering is not supported on GLSL yet */
+		force_fallback |= dither != 0.0f;
+
+		/* If user decided not to use GLSL, fallback to glaDrawPixelsAuto */
+		force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
+
+		/* Try using GLSL display transform. */
+		if (force_fallback == false) {
+			if (IMB_colormanagement_setup_glsl_draw(NULL, &scene->display_settings, TRUE)) {
+				glEnable(GL_BLEND);
+				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_FLOAT,
+				                 GL_LINEAR, rres.rectf);
+				glDisable(GL_BLEND);
+
+				IMB_colormanagement_finish_glsl_draw();
+				need_fallback = false;
+			}
+		}
+
+		/* If GLSL failed, use old-school CPU-based transform. */
+		if (need_fallback) {
+			unsigned char *display_buffer = MEM_mallocN(4 * rres.rectx * rres.recty * sizeof(char),
+			                                            "render_view3d_draw");
+
+			IMB_colormanagement_buffer_make_display_space(rres.rectf, display_buffer, rres.rectx, rres.recty,
+			                                              4, dither, NULL, &scene->display_settings);
+
+			glEnable(GL_BLEND);
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			glaDrawPixelsAuto(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE,
+			                  GL_LINEAR, display_buffer);
+			glDisable(GL_BLEND);
+
+			MEM_freeN(display_buffer);
+		}
 	}
 
 	RE_ReleaseResultImage(re);
 }
-
