@@ -36,6 +36,10 @@
 
 #include "BLI_string_cursor_utf8.h" /* own include */
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
+
 typedef enum strCursorDelimType {
 	STRCUR_DELIM_NONE,
 	STRCUR_DELIM_ALPHANUMERIC,

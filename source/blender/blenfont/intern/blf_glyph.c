@@ -55,8 +55,11 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
 
-GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
+GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned int dpi)
 {
 	GlyphCacheBLF *p;
 
@@ -167,18 +170,18 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 		gc->textures = (GLuint *)realloc((void *)gc->textures, sizeof(GLuint) * gc->ntex);
 	}
 
-	gc->p2_width = blf_next_p2((gc->rem_glyphs * gc->max_glyph_width) + (gc->pad * 2));
+	gc->p2_width = (int)blf_next_p2((unsigned int)((gc->rem_glyphs * gc->max_glyph_width) + (gc->pad * 2)));
 	if (gc->p2_width > font->max_tex_size)
 		gc->p2_width = font->max_tex_size;
 
 	i = (int)((gc->p2_width - (gc->pad * 2)) / gc->max_glyph_width);
-	gc->p2_height = blf_next_p2(((gc->num_glyphs / i) + 1) * gc->max_glyph_height);
+	gc->p2_height = (int)blf_next_p2((unsigned int)(((gc->num_glyphs / i) + 1) * gc->max_glyph_height));
 
 	if (gc->p2_height > font->max_tex_size)
 		gc->p2_height = font->max_tex_size;
 
 	tot_mem = gc->p2_width * gc->p2_height;
-	buf = (unsigned char *)MEM_callocN(tot_mem, __func__);
+	buf = (unsigned char *)MEM_callocN((size_t)tot_mem, __func__);
 
 	glGenTextures(1, &gc->textures[gc->cur_tex]);
 	glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state = gc->textures[gc->cur_tex]));
@@ -269,8 +272,8 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 			}
 		}
 
-		g->bitmap = (unsigned char *)MEM_mallocN(g->width * g->height, "glyph bitmap");
-		memcpy((void *)g->bitmap, (void *)bitmap.buffer, g->width * g->height);
+		g->bitmap = (unsigned char *)MEM_mallocN((size_t)(g->width * g->height), "glyph bitmap");
+		memcpy((void *)g->bitmap, (void *)bitmap.buffer, (size_t)(g->width * g->height));
 	}
 
 	g->advance = ((float)slot->advance.x) / 64.0f;

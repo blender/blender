@@ -58,6 +58,9 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
 
 /* freetype2 handle ONLY for this file!. */
 static FT_Library ft_lib;
@@ -72,7 +75,7 @@ void blf_font_exit(void)
 	FT_Done_FreeType(ft_lib);
 }
 
-void blf_font_size(FontBLF *font, int size, int dpi)
+void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
 {
 	GlyphCacheBLF *gc;
 	FT_Error err;

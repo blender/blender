@@ -43,6 +43,10 @@
 
 #include "BLI_utildefines.h"
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#endif
+
 /**
  * Duplicates the first \a len bytes of cstring \a str
  * into a newly mallocN'd string and returns it. \a str
@@ -146,7 +150,7 @@ size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restri
 	BLI_assert(count > 0);
 	BLI_assert(format != NULL);
 
-	n = vsnprintf(buffer, count, format, arg);
+	n = (size_t)vsnprintf(buffer, count, format, arg);
 
 	if (n != -1 && n < count) {
 		buffer[n] = '\0';
@@ -459,7 +463,7 @@ static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
 
 	/* same number of digits, compare size of number */
 	if (numdigit > 0) {
-		int compare = strncmp(p1, p2, numdigit);
+		int compare = (int)strncmp(p1, p2, (size_t)numdigit);
 
 		if (compare != 0)
 			return compare;
