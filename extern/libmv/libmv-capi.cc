@@ -24,6 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifdef WITH_LIBMV
+
 /* define this to generate PNG images with content of search areas
    tracking between which failed */
 #undef DUMP_FAILURE
@@ -965,3 +967,5 @@ void libmv_InvertCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_in
 		camera_intrinsics.InvertIntrinsics(x, y, x1, y1);
 	}
 }
+
+#endif
