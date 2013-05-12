@@ -2488,8 +2488,9 @@ static ImBuf *tracking_context_get_frame_ibuf(MovieClip *clip, MovieClipUser *us
 static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingTrack *track,
                                                                   int curfra, bool backwards)
 {
-	MovieTrackingMarker *marker_keyed = BKE_tracking_marker_get(track, curfra);
-	int a = marker_keyed - track->markers;
+	MovieTrackingMarker *marker_keyed = NULL;
+	MovieTrackingMarker *marker_keyed_fallback = NULL;
+	int a = BKE_tracking_marker_get(track, curfra) - track->markers;
 
 	while (a >= 0 && a < track->markersnr) {
 		int next = backwards ? a + 1 : a - 1;
@@ -2500,11 +2501,18 @@ static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingT
 		if (next >= 0 && next < track->markersnr)
 			next_marker = &track->markers[next];
 
-		/* if next mrker is disabled, stop searching keyframe and use current frame as keyframe */
-		if (next_marker && next_marker->flag & MARKER_DISABLED)
-			is_keyframed = true;
+		if ((cur_marker->flag & MARKER_DISABLED) == 0) {
+			/* If it'll happen so we didn't find a real keyframe marker,
+			 * fallback to the first marker in current tracked segment
+			 * as a keyframe.
+			 */
+			if (next_marker && next_marker->flag & MARKER_DISABLED) {
+				if (marker_keyed_fallback == NULL)
+					marker_keyed_fallback = cur_marker;
+			}
 
-		is_keyframed |= (cur_marker->flag & MARKER_TRACKED) == 0;
+			is_keyframed |= (cur_marker->flag & MARKER_TRACKED) == 0;
+		}
 
 		if (is_keyframed) {
 			marker_keyed = cur_marker;
@@ -2514,6 +2522,9 @@ static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingT
 
 		a = next;
 	}
+
+	if (marker_keyed == NULL)
+		marker_keyed = marker_keyed_fallback;
 
 	return marker_keyed;
 }
