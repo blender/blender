@@ -10,6 +10,7 @@ import os
 Import('env')
 
 defs = []
+incs = '.'
 
 if env['WITH_BF_LIBMV']:
     defs.append('GOOGLE_GLOG_DLL_DECL=')
@@ -24,7 +25,7 @@ if env['WITH_BF_LIBMV']:
     src += env.Glob('third_party/fast/*.c')
     src += env.Glob('third_party/gflags/*.cc')
 
-    incs = '. ../Eigen3 third_party/ceres/include'
+    incs += ' ../Eigen3 third_party/ceres/include'
     incs += ' ' + env['BF_PNG_INC']
     incs += ' ' + env['BF_ZLIB_INC']
 
