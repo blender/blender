@@ -3379,7 +3379,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	mask |= CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
 #endif
 
-	dm= mesh_create_derived_render(re->scene, ob, mask);
+	if (re->r.scemode & R_PREVIEWBUTS)
+		dm = mesh_get_derived_final(re->scene, ob, mask);
+	else
+		dm= mesh_create_derived_render(re->scene, ob, mask);
 	if (dm==NULL) return;	/* in case duplicated object fails? */
 
 	if (mask & CD_MASK_ORCO) {
@@ -4686,7 +4689,10 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 			/* the emitter mesh wasn't rendered so the modifier stack wasn't
 			 * evaluated with render settings */
 			DerivedMesh *dm;
-			dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			if (re->r.scemode & R_PREVIEWBUTS)
+				dm = mesh_get_derived_final(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			else
+				dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 		}
 
@@ -4972,7 +4978,10 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			if (re->r.scemode & R_PREVIEWBUTS)
+				dm = mesh_get_derived_final(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			else
+				dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 
 			for (psys=ob->particlesystem.first; psys; psys=psys->next)

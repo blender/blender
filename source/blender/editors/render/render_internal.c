@@ -1008,7 +1008,6 @@ static int render_view3d_changed(RenderEngine *engine, const bContext *C)
 			engine->flag |= RE_ENGINE_DO_UPDATE;
 //		if (update)
 //			printf("changed ma %d res %d view %d\n", update & PR_UPDATE_MATERIAL, update & PR_UPDATE_RENDERSIZE, update & PR_UPDATE_VIEW);
-		
 	}
 	
 	return update;
