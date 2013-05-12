@@ -854,10 +854,10 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		/* initalize always */
 		if (render_view3d_disprect(rp->scene, rp->ar, rp->v3d, rp->rv3d, &cliprct)) {
 			rdata.mode |= R_BORDER;
-			RE_InitState(re, NULL, &rdata, NULL, rp->sa->winx, rp->sa->winy, &cliprct);
+			RE_InitState(re, NULL, &rdata, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
 		}
 		else
-			RE_InitState(re, NULL, &rdata, NULL, rp->sa->winx, rp->sa->winy, NULL);
+			RE_InitState(re, NULL, &rdata, NULL, rp->ar->winx, rp->ar->winy, NULL);
 	}
 
 	if (orth)
@@ -1030,7 +1030,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	if (rres.rectf) {
 		unsigned char *rect_byte = MEM_mallocN(rres.rectx * rres.recty * sizeof(int), "ed_preview_draw_rect");
 				
-		RE_ResultGet32(re, (unsigned int *)rect_byte);
+		RE_AcquiredResultGet32(re, &rres, (unsigned int *)rect_byte);
 		
 		glEnable(GL_BLEND);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

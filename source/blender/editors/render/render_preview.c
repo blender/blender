@@ -563,7 +563,7 @@ static int ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, r
 				float fx = rect->xmin + offx;
 				float fy = rect->ymin;
 				
-				RE_ResultGet32(re, (unsigned int *)rect_byte);
+				RE_AcquiredResultGet32(re, &rres, (unsigned int *)rect_byte);
 				glaDrawPixelsSafe(fx, fy, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect_byte);
 				
 				MEM_freeN(rect_byte);

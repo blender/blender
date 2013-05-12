@@ -179,7 +179,10 @@ void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr);
 void RE_ReleaseResultImage(struct Render *re);
 void RE_SwapResult(struct Render *re, struct RenderResult **rr);
 struct RenderStats *RE_GetStats(struct Render *re);
+
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
+void RE_AcquiredResultGet32(struct Render *re, struct RenderResult *result, unsigned int *rect);
+
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
