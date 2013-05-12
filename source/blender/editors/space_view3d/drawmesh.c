@@ -34,8 +34,8 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
@@ -77,7 +77,7 @@
 /* user data structures for derived mesh callbacks */
 typedef struct drawMeshFaceSelect_userData {
 	Mesh *me;
-	EdgeHash *eh;
+	BLI_bitmap edge_flags; /* pairs of edge options (visible, select) */
 } drawMeshFaceSelect_userData;
 
 typedef struct drawEMTFMapped_userData {
@@ -95,48 +95,33 @@ typedef struct drawTFace_userData {
 
 /**************************** Face Select Mode *******************************/
 
-/* Flags for marked edges */
-enum {
-	eEdge_Visible = (1 << 0),
-	eEdge_Select = (1 << 1),
-};
+/* mainly to be less confusing */
+BLI_INLINE int edge_vis_index(const int index) { return index * 2; }
+BLI_INLINE int edge_sel_index(const int index) { return index * 2 + 1; }
 
-/* Creates a hash of edges to flags indicating selected/visible */
-static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flags)
+static BLI_bitmap get_tface_mesh_marked_edge_info(Mesh *me)
 {
-	int *flags_p;
-
-	if (!BLI_edgehash_haskey(eh, v0, v1))
-		BLI_edgehash_insert(eh, v0, v1, NULL);
-
-	flags_p = (int *) BLI_edgehash_lookup_p(eh, v0, v1);
-	*flags_p |= flags;
-}
-
-static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
-{
-	EdgeHash *eh = BLI_edgehash_new();
+	BLI_bitmap bitmap_edge_flags = BLI_BITMAP_NEW(me->totedge * 2, __func__);
 	MPoly *mp;
 	MLoop *ml;
-	MLoop *ml_next;
 	int i, j;
+	bool select_set;
 	
 	for (i = 0; i < me->totpoly; i++) {
 		mp = &me->mpoly[i];
 
 		if (!(mp->flag & ME_HIDE)) {
-			unsigned int flags = eEdge_Visible;
-			if (mp->flag & ME_FACE_SEL) flags |= eEdge_Select;
+			select_set = (mp->flag & ME_FACE_SEL) != 0;
 
 			ml = me->mloop + mp->loopstart;
 			for (j = 0; j < mp->totloop; j++, ml++) {
-				ml_next = ME_POLY_LOOP_NEXT(me->mloop, mp, j);
-				get_marked_edge_info__orFlags(eh, ml->v, ml_next->v, flags);
+				BLI_BITMAP_SET(bitmap_edge_flags, edge_vis_index(ml->e));
+				if (select_set) BLI_BITMAP_SET(bitmap_edge_flags, edge_sel_index(ml->e));
 			}
 		}
 	}
 
-	return eh;
+	return bitmap_edge_flags;
 }
 
 
@@ -144,16 +129,14 @@ static DMDrawOption draw_mesh_face_select__setHiddenOpts(void *userData, int ind
 {
 	drawMeshFaceSelect_userData *data = userData;
 	Mesh *me = data->me;
-	MEdge *med = &me->medge[index];
-	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	if (me->drawflag & ME_DRAWEDGES) {
-		if ((me->drawflag & ME_HIDDENEDGES) || (flags & eEdge_Visible))
+		if ((me->drawflag & ME_HIDDENEDGES) || (BLI_BITMAP_GET(data->edge_flags, edge_vis_index(index))))
 			return DM_DRAW_OPTION_NORMAL;
 		else
 			return DM_DRAW_OPTION_SKIP;
 	}
-	else if (flags & eEdge_Select)
+	else if (BLI_BITMAP_GET(data->edge_flags, edge_sel_index(index)))
 		return DM_DRAW_OPTION_NORMAL;
 	else
 		return DM_DRAW_OPTION_SKIP;
@@ -162,10 +145,7 @@ static DMDrawOption draw_mesh_face_select__setHiddenOpts(void *userData, int ind
 static DMDrawOption draw_mesh_face_select__setSelectOpts(void *userData, int index)
 {
 	drawMeshFaceSelect_userData *data = userData;
-	MEdge *med = &data->me->medge[index];
-	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
-
-	return (flags & eEdge_Select) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
+	return (BLI_BITMAP_GET(data->edge_flags, edge_sel_index(index))) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
 }
 
 /* draws unselected */
@@ -185,7 +165,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 	drawMeshFaceSelect_userData data;
 
 	data.me = me;
-	data.eh = get_tface_mesh_marked_edge_info(me);
+	data.edge_flags = get_tface_mesh_marked_edge_info(me);
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
@@ -217,7 +197,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 
 	bglPolygonOffset(rv3d->dist, 0.0);  /* resets correctly now, even after calling accumulated offsets */
 
-	BLI_edgehash_free(data.eh, NULL);
+	MEM_freeN(data.edge_flags);
 }
 
 /***************************** Texture Drawing ******************************/
