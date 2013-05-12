@@ -21,12 +21,39 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_BUNDLE_H
 #define LIBMV_SIMPLE_PIPELINE_BUNDLE_H
 
+#include "libmv/numeric/numeric.h"
+
 namespace libmv {
 
 class CameraIntrinsics;
 class EuclideanReconstruction;
 class ProjectiveReconstruction;
 class Tracks;
+
+struct BundleEvaluation {
+  BundleEvaluation() :
+    num_cameras(0),
+    num_points(0),
+    evaluate_jacobian(false) {
+  }
+
+  // Number of cameras appeared in bundle adjustment problem
+  int num_cameras;
+
+  // Number of points appeared in bundle adjustment problem
+  int num_points;
+
+  // When set to truth, jacobian of the problem after optimization
+  // will be evaluated and stored in \parameter jacobian
+  bool evaluate_jacobian;
+
+  // Contains evaluated jacobian of the problem.
+  // Parameters are ordered in the following way:
+  //   - Intrinsics block
+  //   - Cameras (for each camera rotation goes first, then translation)
+  //   - Points
+  Mat jacobian;
+};
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.
@@ -60,18 +87,13 @@ void EuclideanBundle(const Tracks &tracks,
 
     The cameras, bundles, and intrinsics are refined in-place.
 
-    The only supported combinations of bundle parameters are:
-
-    BUNDLE_NO_INTRINSICS
-    BUNDLE_FOCAL_LENGTH
-    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT
-    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL
-    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL | BUNDLE_TANGENTIAL
-    BUNDLE_RADIAL
-
     Constraints denotes which blocks to keep constant during bundling.
     For example it is useful to keep camera translations constant
     when bundling tripod motions.
+
+    If evaluaiton is not null, different evaluation statistics is filled in
+    there, plus all the requested additional information (like jacobian) is
+    also calculating there. Also see comments for BundleEvaluation.
 
     \note This assumes an outlier-free set of markers.
 
@@ -93,11 +115,11 @@ enum BundleConstraints {
   BUNDLE_NO_TRANSLATION = 1,
 };
 void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
-                                     int bundle_intrinsics,
+                                     const int bundle_intrinsics,
+                                     const int bundle_constraints,
                                      EuclideanReconstruction *reconstruction,
                                      CameraIntrinsics *intrinsics,
-                                     int bundle_constraints =
-                                         BUNDLE_NO_CONSTRAINTS);
+                                     BundleEvaluation *evaluation = NULL);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.
@@ -111,7 +133,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     The cameras and bundles (homogeneous 3D points) are refined in-place.
 
     \note This assumes an outlier-free set of markers.
-    \note This assumes that radial distortion is already corrected for, but 
+    \note This assumes that radial distortion is already corrected for, but
           does not assume that that other intrinsics are.
 
     \sa ProjectiveResect, ProjectiveIntersect, ProjectiveReconstructTwoFrames
@@ -122,3 +144,4 @@ void ProjectiveBundle(const Tracks &tracks,
 }  // namespace libmv
 
 #endif   // LIBMV_SIMPLE_PIPELINE_BUNDLE_H
+

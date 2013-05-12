@@ -96,7 +96,7 @@ enum { STDIN_FILENO = 0, STDOUT_FILENO = 1, STDERR_FILENO = 2 };
 /* In windows-land, hash<> is called hash_compare<> (from xhash.h) */
 /* VC11 provides std::hash */
 #if defined(_MSC_VER) && (_MSC_VER < 1700)
-#define hash hash_compare
+#define hash  hash_compare
 #endif
 
 /* Sleep is in ms, on windows */

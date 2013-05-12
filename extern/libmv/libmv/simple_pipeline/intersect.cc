@@ -136,6 +136,7 @@ bool EuclideanIntersect(const vector<Marker> &markers,
     if (x(2) < 0) {
       LOG(ERROR) << "POINT BEHIND CAMERA " << markers[i].image
                  << ": " << x.transpose();
+      return false;
     }
   }
 

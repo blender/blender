@@ -388,4 +388,23 @@ bool MotionFromEssentialAndCorrespondence(const Mat3 &E,
   }
 }
 
+void FundamentalToEssential(const Mat3 &F, Mat3 *E) {
+  Eigen::JacobiSVD<Mat3> svd(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+  // See Hartley & Zisserman page 294, result 11.1, which shows how to get the
+  // closest essential matrix to a matrix that is "almost" an essential matrix.
+  double a = svd.singularValues()(0);
+  double b = svd.singularValues()(1);
+  double s = (a + b) / 2.0;
+
+  LG << "Initial reconstruction's rotation is non-euclidean by "
+     << (((a - b) / std::max(a, b)) * 100) << "%; singular values:"
+     << svd.singularValues().transpose();
+
+  Vec3 diag;
+  diag << s, s, 0;
+
+  *E = svd.matrixU() * diag.asDiagonal() * svd.matrixV().transpose();
+}
+
 }  // namespace libmv

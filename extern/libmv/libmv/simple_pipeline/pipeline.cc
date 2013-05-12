@@ -178,9 +178,13 @@ void InternalCompleteReconstruction(
       if (reconstructed_markers.size() >= 2) {
         CompleteReconstructionLogProress(update_callback,
                                          (double)tot_resects/(max_image));
-        PipelineRoutines::Intersect(reconstructed_markers, reconstruction);
-        num_intersects++;
-        LG << "Ran Intersect() for track " << track;
+        if (PipelineRoutines::Intersect(reconstructed_markers,
+                                        reconstruction)) {
+          num_intersects++;
+          LG << "Ran Intersect() for track " << track;
+        } else {
+          LG << "Failed Intersect() for track " << track;
+        }
       }
     }
     if (num_intersects) {

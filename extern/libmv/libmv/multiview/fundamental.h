@@ -139,6 +139,11 @@ bool MotionFromEssentialAndCorrespondence(const Mat3 &E,
                                           Mat3 *R,
                                           Vec3 *t);
 
+/**
+ * Find closest essential matrix E to fundamental F
+ */
+void FundamentalToEssential(const Mat3 &F, Mat3 *E);
+
 }  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_FUNDAMENTAL_H_
