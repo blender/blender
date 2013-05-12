@@ -292,6 +292,14 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         props.backwards = False
         props.sequence = False
 
+        col = layout.column()
+        col.label(text="Refine:")
+        row = col.row(align=True)
+        props = row.operator("clip.refine_markers", text="Backwards")
+        props.backwards = True
+        props = row.operator("clip.refine_markers", text="Forwards")
+        props.backwards = False
+
         col = layout.column(align=True)
         props = col.operator("clip.clear_track_path", text="Clear After")
         props.action = 'REMAINED'

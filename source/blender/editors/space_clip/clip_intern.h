@@ -149,6 +149,7 @@ void CLIP_OT_delete_track(struct wmOperatorType *ot);
 void CLIP_OT_delete_marker(struct wmOperatorType *ot);
 
 void CLIP_OT_track_markers(struct wmOperatorType *ot);
+void CLIP_OT_refine_markers(struct wmOperatorType *ot);
 void CLIP_OT_solve_camera(struct wmOperatorType *ot);
 void CLIP_OT_clear_solution(struct wmOperatorType *ot);
 

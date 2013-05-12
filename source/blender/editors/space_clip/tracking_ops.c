@@ -1323,6 +1323,50 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence", "Track marker during image sequence rather than single image");
 }
 
+/********************** refine track position operator *********************/
+
+static int refine_marker_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	MovieTrackingTrack *track;
+	bool backwards = RNA_boolean_get(op->ptr, "backwards");
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
+
+	for (track = tracksbase->first; track; track = track->next) {
+		if (TRACK_VIEW_SELECTED(sc, track)) {
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+
+			BKE_tracking_refine_marker(clip, track, marker, backwards);
+		}
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_refine_markers(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Refine Markers";
+	ot->description = "Refine selected markers positions "
+	                  "by running the tracker from track's reference to current frame";
+	ot->idname = "CLIP_OT_refine_markers";
+
+	/* api callbacks */
+	ot->exec = refine_marker_exec;
+	ot->poll = ED_space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tracking");
+}
+
 /********************** solve camera operator *********************/
 
 typedef struct {

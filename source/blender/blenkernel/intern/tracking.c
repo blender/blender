@@ -2234,7 +2234,7 @@ static void tracks_map_free(TracksMap *map, void (*customdata_free)(void *custom
 typedef struct TrackContext {
 #ifdef WITH_LIBMV
 	/* the reference marker and cutout search area */
-	MovieTrackingMarker marker;
+	MovieTrackingMarker reference_marker;
 
 	/* keyframed patch. This is the search area */
 	float *search_area;
@@ -2472,27 +2472,27 @@ static float *track_get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, 
  *
  * Frame is in clip space.
  */
-static ImBuf *tracking_context_get_frame_ibuf(MovieTrackingContext *context, int framenr)
+static ImBuf *tracking_context_get_frame_ibuf(MovieClip *clip, MovieClipUser *user, int clip_flag, int framenr)
 {
 	ImBuf *ibuf;
-	MovieClipUser user = context->user;
+	MovieClipUser new_user = *user;
 
-	user.framenr = BKE_movieclip_remap_clip_to_scene_frame(context->clip, framenr);
+	new_user.framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, framenr);
 
-	ibuf = BKE_movieclip_get_ibuf_flag(context->clip, &user, context->clip_flag, MOVIECLIP_CACHE_SKIP);
+	ibuf = BKE_movieclip_get_ibuf_flag(clip, &new_user, clip_flag, MOVIECLIP_CACHE_SKIP);
 
 	return ibuf;
 }
 
 /* Get previous keyframed marker. */
-static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingContext *context, MovieTrackingTrack *track,
-                                                                  MovieTrackingMarker *marker)
+static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingTrack *track,
+                                                                  int curfra, bool backwards)
 {
-	int a = marker - track->markers;
-	MovieTrackingMarker *marker_keyed = marker;
+	MovieTrackingMarker *marker_keyed = BKE_tracking_marker_get(track, curfra);
+	int a = marker_keyed - track->markers;
 
 	while (a >= 0 && a < track->markersnr) {
-		int next = (context->backwards) ? a + 1 : a - 1;
+		int next = backwards ? a + 1 : a - 1;
 		bool is_keyframed = false;
 		MovieTrackingMarker *cur_marker = &track->markers[a];
 		MovieTrackingMarker *next_marker = NULL;
@@ -2519,35 +2519,36 @@ static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingC
 }
 
 /* Get image buffer for previous marker's keyframe. */
-static ImBuf *tracking_context_get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track,
-                                                  MovieTrackingMarker *marker, MovieTrackingMarker **marker_keyed_r)
+static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip, MovieClipUser *user, int clip_flag,
+												  MovieTrackingTrack *track, int curfra, bool backwards,
+                                                  MovieTrackingMarker **marker_keyed_r)
 {
 	MovieTrackingMarker *marker_keyed;
 	int keyed_framenr;
 
-	marker_keyed = tracking_context_get_keyframed_marker(context, track, marker);
+	marker_keyed = tracking_context_get_keyframed_marker(track, curfra, backwards);
 	keyed_framenr = marker_keyed->framenr;
 
 	*marker_keyed_r = marker_keyed;
 
-	return tracking_context_get_frame_ibuf(context, keyed_framenr);
+	return tracking_context_get_frame_ibuf(clip, user, clip_flag, keyed_framenr);
 }
 
 /* Get image buffer which si used as referece for track. */
-static ImBuf *tracking_context_get_reference_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track,
-                                                  MovieTrackingMarker *marker, int curfra,
-                                                  MovieTrackingMarker **marker_keyed)
+static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip, MovieClipUser *user, int clip_flag,
+												  MovieTrackingTrack *track, int curfra, bool backwards,
+                                                  MovieTrackingMarker **reference_marker)
 {
 	ImBuf *ibuf = NULL;
 
 	if (track->pattern_match == TRACK_MATCH_KEYFRAME) {
-		ibuf = tracking_context_get_keyframed_ibuf(context, track, marker, marker_keyed);
+		ibuf = tracking_context_get_keyframed_ibuf(clip, user, clip_flag, track, curfra, backwards, reference_marker);
 	}
 	else {
-		ibuf = tracking_context_get_frame_ibuf(context, curfra);
+		ibuf = tracking_context_get_frame_ibuf(clip, user, clip_flag, curfra);
 
 		/* use current marker as keyframed position */
-		*marker_keyed = marker;
+		*reference_marker = BKE_tracking_marker_get(track, curfra);
 	}
 
 	return ibuf;
@@ -2561,23 +2562,24 @@ static bool track_context_update_reference(MovieTrackingContext *context, TrackC
                                            MovieTrackingTrack *track, MovieTrackingMarker *marker, int curfra,
                                            int frame_width, int frame_height)
 {
-	MovieTrackingMarker *marker_keyed = NULL;
+	MovieTrackingMarker *reference_marker = NULL;
 	ImBuf *reference_ibuf = NULL;
 	int width, height;
 
 	/* calculate patch for keyframed position */
-	reference_ibuf = tracking_context_get_reference_ibuf(context, track, marker, curfra, &marker_keyed);
+	reference_ibuf = tracking_context_get_reference_ibuf(context->clip, &context->user, context->clip_flag,
+														 track, curfra, context->backwards, &reference_marker);
 
 	if (!reference_ibuf)
 		return false;
 
-	track_context->marker = *marker_keyed;
+	track_context->reference_marker = *reference_marker;
 
 	if (track_context->search_area) {
 		MEM_freeN(track_context->search_area);
 	}
 
-	track_context->search_area = track_get_search_floatbuf(reference_ibuf, track, marker_keyed, &width, &height);
+	track_context->search_area = track_get_search_floatbuf(reference_ibuf, track, reference_marker, &width, &height);
 	track_context->search_area_height = height;
 	track_context->search_area_width = width;
 
@@ -2593,10 +2595,8 @@ static bool track_context_update_reference(MovieTrackingContext *context, TrackC
 	return true;
 }
 
-/* Fill in libmv tracker options structure from a tracking context
- * with settings need to be used to perform track.
- */
-static void tracking_configure_tracker(TrackContext *track_context, MovieTrackingTrack *track,
+/* Fill in libmv tracker options structure with settings need to be used to perform track. */
+static void tracking_configure_tracker(MovieTrackingTrack *track, float *mask,
                                        struct libmv_trackRegionOptions *options)
 {
 	options->motion_model = track->motion_model;
@@ -2610,7 +2610,9 @@ static void tracking_configure_tracker(TrackContext *track_context, MovieTrackin
 	options->sigma = 0.9;
 
 	if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0)
-		options->image1_mask = track_context->mask;
+		options->image1_mask = mask;
+	else
+		options->image1_mask = NULL;
 }
 
 /* returns false if marker crossed margin area from frame bounds */
@@ -2703,6 +2705,68 @@ static void tracking_insert_new_marker(MovieTrackingContext *context, MovieTrack
 		BKE_tracking_marker_insert(track, &new_marker);
 	}
 }
+
+/* Peform tracking from a reference_marker to destination_ibuf.
+ * Uses marker as an initial position guess.
+ *
+ * Returns truth if tracker returned success, puts result
+ * to dst_pixel_x and dst_pixel_y.
+ */
+static bool configure_and_run_tracker(ImBuf *destination_ibuf, MovieTrackingTrack *track,
+									  MovieTrackingMarker *reference_marker, MovieTrackingMarker *marker,
+									  float *reference_search_area, int reference_search_area_width,
+                                      int reference_search_area_height, float *mask,
+                                      double dst_pixel_x[5], double dst_pixel_y[5])
+{
+	/* To convert to the x/y split array format for libmv. */
+	double src_pixel_x[5], src_pixel_y[5];
+
+	/* Settings for the tracker */
+	struct libmv_trackRegionOptions options = {0};
+	struct libmv_trackRegionResult result;
+
+	float *patch_new;
+
+	int new_search_area_width, new_search_area_height;
+	int frame_width, frame_height;
+
+	bool tracked;
+
+	frame_width = destination_ibuf->x;
+	frame_height = destination_ibuf->y;
+
+	/* for now track to the same search area dimension as marker has got for current frame
+	 * will make all tracked markers in currently tracked segment have the same search area
+	 * size, but it's quite close to what is actually needed
+	 */
+	patch_new = track_get_search_floatbuf(destination_ibuf, track, marker,
+	                                      &new_search_area_width, &new_search_area_height);
+
+	/* configure the tracker */
+	tracking_configure_tracker(track, mask, &options);
+
+	/* convert the marker corners and center into pixel coordinates in the search/destination images. */
+	get_marker_coords_for_tracking(frame_width, frame_height, reference_marker, src_pixel_x, src_pixel_y);
+	get_marker_coords_for_tracking(frame_width, frame_height, marker, dst_pixel_x, dst_pixel_y);
+
+	if (patch_new == NULL || reference_search_area == NULL)
+		return false;
+
+	/* run the tracker! */
+	tracked = libmv_trackRegion(&options,
+	                            reference_search_area,
+	                            reference_search_area_width,
+	                            reference_search_area_height,
+	                            patch_new,
+								new_search_area_width,
+								new_search_area_height,
+	                            src_pixel_x, src_pixel_y,
+	                            &result,
+	                            dst_pixel_x, dst_pixel_y);
+	MEM_freeN(patch_new);
+
+	return tracked;
+}
 #endif
 
 /* Track all the tracks from context one more frame,
@@ -2747,7 +2811,6 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 
 		if (marker && (marker->flag & MARKER_DISABLED) == 0) {
 #ifdef WITH_LIBMV
-			int width, height;
 			bool tracked = false, need_readjust;
 			double dst_pixel_x[5], dst_pixel_y[5];
 
@@ -2758,15 +2821,6 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 
 			/* do not track markers which are too close to boundary */
 			if (tracking_check_marker_margin(track, marker, frame_width, frame_height)) {
-				/* to convert to the x/y split array format for libmv. */
-				double src_pixel_x[5], src_pixel_y[5];
-
-				/* settings for the tracker */
-				struct libmv_trackRegionOptions options = {0};
-				struct libmv_trackRegionResult result;
-
-				float *patch_new;
-
 				if (need_readjust) {
 					if (track_context_update_reference(context, track_context, track, marker,
 					                                   curfra, frame_width, frame_height) == false)
@@ -2776,32 +2830,13 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 					}
 				}
 
-				/* for now track to the same search area dimension as marker has got for current frame
-				 * will make all tracked markers in currently tracked segment have the same search area
-				 * size, but it's quite close to what is actually needed
-				 */
-				patch_new = track_get_search_floatbuf(destination_ibuf, track, marker, &width, &height);
-
-				/* configure the tracker */
-				tracking_configure_tracker(track_context, track, &options);
-
-				/* convert the marker corners and center into pixel coordinates in the search/destination images. */
-				get_marker_coords_for_tracking(frame_width, frame_height, &track_context->marker, src_pixel_x, src_pixel_y);
-				get_marker_coords_for_tracking(frame_width, frame_height, marker, dst_pixel_x, dst_pixel_y);
-
-				if (!patch_new || !track_context->search_area)
-					continue;
-
-				/* run the tracker! */
-				tracked = libmv_trackRegion(&options,
-				                            track_context->search_area,
-				                            track_context->search_area_width,
-				                            track_context->search_area_height,
-				                            patch_new, width, height,
-				                            src_pixel_x, src_pixel_y,
-				                            &result,
-				                            dst_pixel_x, dst_pixel_y);
-				MEM_freeN(patch_new);
+				tracked = configure_and_run_tracker(destination_ibuf, track,
+				                                    &track_context->reference_marker, marker,
+				                                    track_context->search_area,
+				                                    track_context->search_area_width,
+				                                    track_context->search_area_height,
+				                                    track_context->mask,
+				                                    dst_pixel_x, dst_pixel_y);
 			}
 
 			#pragma omp critical
@@ -2824,6 +2859,83 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 	context->frames++;
 
 	return ok;
+}
+
+/* Refine marker's position using previously known keyframe.
+ * Direction of searching for a keyframe depends on backwards flag,
+ * which means if backwards is false, previous keyframe will be as
+ * reference.
+ */
+void BKE_tracking_refine_marker(MovieClip *clip, MovieTrackingTrack *track, MovieTrackingMarker *marker, int backwards)
+{
+#ifdef WITH_LIBMV
+	MovieTrackingMarker *reference_marker = NULL;
+	ImBuf *reference_ibuf, *destination_ibuf;
+	float *search_area, *mask = NULL;
+	int frame_width, frame_height;
+	int search_area_height, search_area_width;
+	int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
+	int reference_framenr;
+	MovieClipUser user = {0};
+	double dst_pixel_x[5], dst_pixel_y[5];
+	bool tracked;
+
+	/* Construct a temporary clip used, used to acquire image buffers. */
+	user.framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);
+
+	BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
+
+	/* Get an image buffer for reference frame, also gets referecnce marker.
+	 *
+	 * Usually tracking_context_get_reference_ibuf will return current frame
+	 * if marker is keyframed, which is correct for normal tracking. But here
+	 * we'll want to have next/previous frame in such cases. So let's use small
+	 * magic with original frame number used to get reference frame for.
+	 */
+	reference_framenr = backwards ? marker->framenr + 1 : marker->framenr - 1;
+	reference_ibuf = tracking_context_get_reference_ibuf(clip, &user, clip_flag, track, reference_framenr,
+	                                                     backwards, &reference_marker);
+	if (reference_ibuf == NULL)
+		return;
+
+	/* Destination image buffer has got frame number corresponding to refining marker. */
+	destination_ibuf = BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MOVIECLIP_CACHE_SKIP);
+	if (destination_ibuf == NULL) {
+		IMB_freeImBuf(reference_ibuf);
+		return;
+	}
+
+	/* Get search area from reference image. */
+	search_area = track_get_search_floatbuf(reference_ibuf, track, reference_marker,
+	                                        &search_area_width, &search_area_height);
+
+	/* If needed, compute track's mask. */
+	if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0)
+		mask = BKE_tracking_track_get_mask(frame_width, frame_height, track, marker);
+
+	/* Run the tracker from reference frame to current one. */
+	tracked = configure_and_run_tracker(destination_ibuf, track, reference_marker, marker,
+	                                    search_area, search_area_width, search_area_height,
+	                                    mask, dst_pixel_x, dst_pixel_y);
+
+	/* Refine current marker's position if track was successful. */
+	if (tracked) {
+		set_marker_coords_from_tracking(frame_width, frame_height, marker, dst_pixel_x, dst_pixel_y);
+		marker->flag |= MARKER_TRACKED;
+	}
+
+	/* Free memory used for refining */
+	MEM_freeN(search_area);
+	if (mask)
+		MEM_freeN(mask);
+	IMB_freeImBuf(reference_ibuf);
+	IMB_freeImBuf(destination_ibuf);
+#else
+	(void) clip;
+	(void) track;
+	(void) marker;
+	(void) backwards;
+#endif
 }
 
 /*********************** Camera solving *************************/
