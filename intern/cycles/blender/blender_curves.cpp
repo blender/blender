@@ -669,7 +669,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 					if(CData->psys_closetip[sys] && (subv == segments) && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 2))
 						radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], 0.0f, 0.95f);
 
-					float angle = 2 * M_PI_F / (float)resolution;
+					float angle = M_2PI_F / (float)resolution;
 					for(int section = 0 ; section < resolution; section++) {
 						float3 ickey_loc_shf = ickey_loc + radius * (cosf(angle * section) * xbasis + sinf(angle * section) * ybasis);
 						mesh->verts.push_back(ickey_loc_shf);

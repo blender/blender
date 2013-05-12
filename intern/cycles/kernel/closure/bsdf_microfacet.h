@@ -157,7 +157,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 		float tanThetaM2 = alpha2 * randu / (1 - randu);
 		float cosThetaM  = 1 / safe_sqrtf(1 + tanThetaM2);
 		float sinThetaM  = cosThetaM * safe_sqrtf(tanThetaM2);
-		float phiM = 2 * M_PI_F * randv;
+		float phiM = M_2PI_F * randv;
 		float3 m = (cosf(phiM) * sinThetaM) * X +
 				 (sinf(phiM) * sinThetaM) * Y +
 							   cosThetaM  * Z;
@@ -386,7 +386,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 		}
 
 		float sinThetaM = cosThetaM * tanThetaM;
-		float phiM = 2 * M_PI_F * randv;
+		float phiM = M_2PI_F * randv;
 		float3 m = (cosf(phiM) * sinThetaM) * X +
 				 (sinf(phiM) * sinThetaM) * Y +
 							   cosThetaM  * Z;

@@ -91,7 +91,7 @@ __device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng, 
 #endif
 		float3 T, B;
 		make_orthonormals (I, &T, &B);
-		float phi = 2 * M_PI_F * randu;
+		float phi = M_2PI_F * randu;
 		float cosTheta = powf(randv, 1 / (m_invroughness + 1));
 		float sinTheta2 = 1 - cosTheta * cosTheta;
 		float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;

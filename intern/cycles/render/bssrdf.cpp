@@ -86,7 +86,7 @@ static void bssrdf_lookup_table_create(const BSSRDFParams *ss, vector<float>& sa
 	/* adjust for area covered by each distance */
 	for(int i = 0; i < pdf.size(); i++) {
 		float x = (i*step)*max_radius;
-		pdf[i] *= 2*M_PI_F*x;
+		pdf[i] *= M_2PI_F*x;
 	}
 
 	/* normalize pdf, we multiply in reflectance later */

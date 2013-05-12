@@ -100,7 +100,7 @@ __device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colors
 		
 		float3 T, B;
 		make_orthonormals (R, &T, &B);
-		float phi = 2 * M_PI_F * randu;
+		float phi = M_2PI_F * randu;
 		float cosTheta = powf(randv, 1 / (m_exponent + 1));
 		float sinTheta2 = 1 - cosTheta * cosTheta;
 		float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;

@@ -95,7 +95,7 @@ __device_inline void sample_uniform_hemisphere(const float3 N,
 {
 	float z = randu;
 	float r = sqrtf(max(0.0f, 1.0f - z*z));
-	float phi = 2.0f * M_PI_F * randv;
+	float phi = M_2PI_F * randv;
 	float x = r * cosf(phi);
 	float y = r * sinf(phi);
 
@@ -111,7 +111,7 @@ __device_inline void sample_uniform_cone(const float3 N, float angle,
 {
 	float z = cosf(angle*randu);
 	float r = sqrtf(max(0.0f, 1.0f - z*z));
-	float phi = 2.0f * M_PI_F * randv;
+	float phi = M_2PI_F * randv;
 	float x = r * cosf(phi);
 	float y = r * sinf(phi);
 

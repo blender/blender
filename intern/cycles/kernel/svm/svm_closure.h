@@ -287,7 +287,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 				float rotation = stack_load_float(stack, data_node.w);
 
 				if(rotation != 0.0f)
-					sc->T = rotate_around_axis(sc->T, sc->N, rotation * 2.0f * M_PI_F);
+					sc->T = rotate_around_axis(sc->T, sc->N, rotation * M_2PI_F);
 
 				/* compute roughness */
 				float roughness = param1;

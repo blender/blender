@@ -106,7 +106,7 @@ __device float3 background_light_sample(KernelGlobals *kg, float randu, float ra
 	if(sin_theta == 0.0f || denom == 0.0f)
 		*pdf = 0.0f;
 	else
-		*pdf = (cdf_u.x * cdf_v.x)/(2.0f * M_PI_F * M_PI_F * sin_theta * denom);
+		*pdf = (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
 
 	*pdf *= kernel_data.integrator.pdf_lights;
 
@@ -140,7 +140,7 @@ __device float background_light_pdf(KernelGlobals *kg, float3 direction)
 	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + index_u);
 	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
 
-	float pdf = (cdf_u.x * cdf_v.x)/(2.0f * M_PI_F * M_PI_F * sin_theta * denom);
+	float pdf = (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
 
 	return pdf * kernel_data.integrator.pdf_lights;
 }
@@ -499,7 +499,7 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 	float gd = ((r2 - r1)/l);
 
 	/* normal currently ignores gradient */
-	ls->Ng = sinf(2 * M_PI_F * randv) * xc + cosf(2 * M_PI_F * randv) * yc;
+	ls->Ng = sinf(M_2PI_F * randv) * xc + cosf(M_2PI_F * randv) * yc;
 	ls->P = randu * l * tg + (gd * l + r1) * ls->Ng;
 	ls->object = object;
 	ls->prim = prim;

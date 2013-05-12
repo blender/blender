@@ -111,7 +111,7 @@ Light::Light()
 
 	map_resolution = 512;
 
-	spot_angle = M_PI_F/4.0f;
+	spot_angle = M_PI_4_F;
 	spot_smooth = 0.0f;
 
 	cast_shadow = true;

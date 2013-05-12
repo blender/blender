@@ -413,10 +413,10 @@ void SubdAccBuilder::computeInteriorStencil(SubdFaceRing *ring, GregoryAccStenci
 		}
 		else {
 			SubdVert *e0 = edge->from();
-			float costerm0 = cosf(2.0f * M_PI_F / pseudoValence(e0));
+			float costerm0 = cosf(M_2PI_F / pseudoValence(e0));
 
 			SubdVert *f0 = edge->to();
-			float costerm1 = cosf(2.0f * M_PI_F / pseudoValence(f0));
+			float costerm1 = cosf(M_2PI_F / pseudoValence(f0));
 
 			/*  p0 +------+ q0
 			 *	 |	  |
