@@ -3795,8 +3795,8 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Bridge Two Edge Loops";
-	ot->description = "Make faces between two edge loops";
+	ot->name = "Bridge Edge Loops";
+	ot->description = "Make faces between two or more edge loops";
 	ot->idname = "MESH_OT_bridge_edge_loops";
 	
 	/* api callbacks */
