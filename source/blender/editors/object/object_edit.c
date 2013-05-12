@@ -1438,31 +1438,34 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 	
 }
 
-
 static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
-{	
+{
 	EnumPropertyItem *input = object_mode_items;
 	EnumPropertyItem *item = NULL;
 	Object *ob;
 	int totitem = 0;
-	
+
 	if (!C) /* needed for docs */
 		return object_mode_items;
 
-
-
 	ob = CTX_data_active_object(C);
-	while (ob && input->identifier) {
-		if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
-		    (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
-		    (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
-		    ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
-		      input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
-		    (input->value == OB_MODE_OBJECT))
-		{
-			RNA_enum_item_add(&item, &totitem, input);
+	if (ob) {
+		while (input->identifier) {
+			if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
+			    (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
+			    (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
+			    ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
+			      input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+			    (input->value == OB_MODE_OBJECT))
+			{
+				RNA_enum_item_add(&item, &totitem, input);
+			}
+			input++;
 		}
-		input++;
+	}
+	else {
+		/* We need at least this one! */
+		RNA_enum_items_add_value(&item, &totitem, input, OB_MODE_OBJECT);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -1559,8 +1562,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_mode_set(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Set Object Mode";
 	ot->description = "Sets the object interaction mode";
@@ -1574,8 +1575,8 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0; /* no register/undo here, leave it to operators being called */
 	
-	prop = RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
-	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
+	ot->prop = RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
+	RNA_def_enum_funcs(ot->prop, object_mode_set_itemsf);
 
 	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
 }

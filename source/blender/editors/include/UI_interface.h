@@ -217,7 +217,7 @@ typedef enum {
 	TOGR          = (8 << 9),
 	TOGN          = (9 << 9),
 	LABEL         = (10 << 9),
-	MENU          = (11 << 9),
+	MENU          = (11 << 9),  /* Dropdown list, actually! */
 	ICONROW       = (12 << 9),
 	ICONTOG       = (13 << 9),
 	NUMSLI        = (14 << 9),
@@ -233,7 +233,7 @@ typedef enum {
 	KEYEVT        = (24 << 9),
 	ICONTEXTROW   = (25 << 9),
 	HSVCUBE       = (26 << 9),
-	PULLDOWN      = (27 << 9),
+	PULLDOWN      = (27 << 9),  /* Menu, actually! */
 	ROUNDBOX      = (28 << 9),
 	CHARTAB       = (29 << 9),
 	BUT_COLORBAND = (30 << 9),

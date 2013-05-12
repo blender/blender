@@ -86,14 +86,9 @@
 
 static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 
-#define B_MODESELECT 108
 #define B_SEL_VERT  110
 #define B_SEL_EDGE  111
 #define B_SEL_FACE  112
-#define B_MAN_TRANS 116
-#define B_MAN_ROT   117
-#define B_MAN_SCALE 118
-#define B_MAN_MODE  120
 
 /* XXX quickly ported across */
 static void handle_view3d_lock(bContext *C)
@@ -251,81 +246,14 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "toggle", 1, "Toggle", "Toggle the layer");
 }
 
-static int modeselect_addmode(char *str, const char *title, int id, int icon)
-{
-	static char formatstr[] = "|%s %%x%d %%i%d";
-
-	return sprintf(str, formatstr, IFACE_(title), id, icon);
-}
-
-static char *view3d_modeselect_pup(Scene *scene)
-{
-	Object *ob = OBACT;
-	static char string[512];
-	const char *title = IFACE_("Mode: %t");
-	char *str = string;
-
-	BLI_strncpy(str, title, sizeof(string));
-
-	str += modeselect_addmode(str, N_("Object Mode"), OB_MODE_OBJECT, ICON_OBJECT_DATA);
-
-	if (ob == NULL || ob->data == NULL) return string;
-	if (ob->id.lib) return string;
-
-	if (!((ID *)ob->data)->lib) {
-		/* if active object is editable */
-		if (ob->type == OB_ARMATURE) {
-			if (ob->mode & OB_MODE_POSE)
-				str += modeselect_addmode(str, N_("Edit Mode"), OB_MODE_EDIT | OB_MODE_POSE, ICON_EDITMODE_HLT);
-			else
-				str += modeselect_addmode(str, N_("Edit Mode"), OB_MODE_EDIT, ICON_EDITMODE_HLT);
-		}
-		else if (OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
-			str += modeselect_addmode(str, N_("Edit Mode"), OB_MODE_EDIT, ICON_EDITMODE_HLT);
-		}
-
-		if (ob->type == OB_MESH) {
-
-			str += modeselect_addmode(str, N_("Sculpt Mode"), OB_MODE_SCULPT, ICON_SCULPTMODE_HLT);
-			str += modeselect_addmode(str, N_("Vertex Paint"), OB_MODE_VERTEX_PAINT, ICON_VPAINT_HLT);
-			str += modeselect_addmode(str, N_("Texture Paint"), OB_MODE_TEXTURE_PAINT, ICON_TPAINT_HLT);
-			str += modeselect_addmode(str, N_("Weight Paint"), OB_MODE_WEIGHT_PAINT, ICON_WPAINT_HLT);
-		}
-	}
-
-	/* if active object is an armature */
-	if (ob->type == OB_ARMATURE) {
-		str += modeselect_addmode(str, N_("Pose Mode"), OB_MODE_POSE, ICON_POSE_HLT);
-	}
-
-	if (ob->particlesystem.first ||
-	    modifiers_findByType(ob, eModifierType_Cloth) ||
-	    modifiers_findByType(ob, eModifierType_Softbody))
-	{
-		str += modeselect_addmode(str, N_("Particle Mode"), OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
-	}
-	(void)str;
-	return (string);
-}
-
 static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = sa->spacedata.first;
 	const int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
-	PointerRNA props_ptr;
 
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
 	switch (event) {
-		case B_MODESELECT:
-			WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
-			RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
-			WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &props_ptr);
-			WM_operator_properties_free(&props_ptr);
-			break;
-
 		case B_SEL_VERT:
 			if (EDBM_selectmode_toggle(C, SCE_SELECT_VERTEX, -1, shift, ctrl)) {
 				ED_undo_push(C, "Selectmode Set: Vertex");
@@ -341,46 +269,9 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 				ED_undo_push(C, "Selectmode Set: Face");
 			}
 			break;
-
-		case B_MAN_TRANS:
-			if (shift == 0 || v3d->twtype == 0) {
-				v3d->twtype = V3D_MANIP_TRANSLATE;
-			}
-			ED_area_tag_redraw(sa);
-			break;
-		case B_MAN_ROT:
-			if (shift == 0 || v3d->twtype == 0) {
-				v3d->twtype = V3D_MANIP_ROTATE;
-			}
-			ED_area_tag_redraw(sa);
-			break;
-		case B_MAN_SCALE:
-			if (shift == 0 || v3d->twtype == 0) {
-				v3d->twtype = V3D_MANIP_SCALE;
-			}
-			ED_area_tag_redraw(sa);
-			break;
-		case B_MAN_MODE:
-			ED_area_tag_redraw(sa);
-			break;
 		default:
 			break;
 	}
-}
-
-/* Returns the icon associated with an object mode */
-static int object_mode_icon(int mode)
-{
-	EnumPropertyItem *item = object_mode_items;
-	
-	while (item->name != NULL) {
-		if (item->value == mode) {
-			return item->icon;
-		}
-		item++;
-	}
-
-	return ICON_OBJECT_DATAMODE;
 }
 
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
@@ -419,9 +310,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *ob = OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
-	uiBut *but;
 	uiLayout *row;
-	const float dpi_fac = UI_DPI_FAC;
 	int is_paint = 0;
 	
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);
@@ -443,10 +332,24 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		v3d->modeselect = OB_MODE_OBJECT;
 	}
 
-	row = uiLayoutRow(layout, TRUE);
-	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene),
-	                  0, 0, 126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, TIP_("Mode"));
-	
+	row = uiLayoutRow(layout, FALSE);
+	{
+		EnumPropertyItem *item = object_mode_items;
+		const char *name = "";
+		int icon = ICON_OBJECT_DATAMODE;
+
+		while (item->identifier) {
+			if (item->value == v3d->modeselect && item->identifier[0]) {
+				name = IFACE_(item->name);
+				icon = item->icon;
+				break;
+			}
+			item++;
+		}
+
+		uiItemMenuEnumO(row, C, "OBJECT_OT_mode_set", "mode", name, icon);
+	}
+
 	/* Draw type */
 	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
@@ -475,8 +378,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 	}
 	else {
-		const char *str_menu;
-
 		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
@@ -491,32 +392,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		/* Transform widget / manipulators */
 		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-		block = uiLayoutGetBlock(row);
-		
 		if (v3d->twflag & V3D_USE_MANIPULATOR) {
-			but = uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS,
-			                       0, 0, UI_UNIT_X, UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0,
-			                       TIP_("Translate manipulator - Shift-Click for multiple modes"));
-			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but = uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT,
-			                       0, 0, UI_UNIT_X, UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0,
-			                       TIP_("Rotate manipulator - Shift-Click for multiple modes"));
-			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but = uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE,
-			                       0, 0, UI_UNIT_X, UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0,
-			                       TIP_("Scale manipulator - Shift-Click for multiple modes"));
-			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+			uiItemR(row, &v3dptr, "transform_manipulators", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		}
-			
-		if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
-			v3d->twmode = 0;
-		}
-			
-		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		but = uiDefButC(block, MENU, B_MAN_MODE, str_menu, 0, 0, 70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0,
-		                TIP_("Transform Orientation"));
-		uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-		MEM_freeN((void *)str_menu);
+		uiItemR(row, &v3dptr, "transform_orientation", 0, "", ICON_NONE);
 	}
 
 	if (obedit == NULL && v3d->localvd == NULL) {

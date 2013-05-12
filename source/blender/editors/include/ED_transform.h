@@ -129,13 +129,9 @@ void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 
 void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], const bool activeOnly);
 
-struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
-const char *BIF_menustringTransformOrientation(const struct bContext *C, const char *title);  /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation(const struct bContext *C);
 
 void BIF_TransformSetUndo(const char *str);
-
-void BIF_selectOrientation(void);
 
 /* to be able to add operator properties to other operators */
 

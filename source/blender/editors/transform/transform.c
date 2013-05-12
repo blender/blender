@@ -589,20 +589,6 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 
 /* ************************** TRANSFORMATIONS **************************** */
 
-void BIF_selectOrientation(void)
-{
-#if 0 // TRANSFORM_FIX_ME
-	short val;
-	char *str_menu = BIF_menustringTransformOrientation("Orientation");
-	val = pupmenu(str_menu);
-	MEM_freeN(str_menu);
-
-	if (val >= 0) {
-		G.vd->twmode = val;
-	}
-#endif
-}
-
 static void view_editmove(unsigned short UNUSED(event))
 {
 #if 0 // TRANSFORM_FIX_ME
@@ -1164,20 +1150,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 
 			case SPACEKEY:
-				if ((t->spacetype == SPACE_VIEW3D) && event->alt) {
-#if 0 // TRANSFORM_FIX_ME
-					int mval[2];
-
-					getmouseco_sc(mval);
-					BIF_selectOrientation();
-					calc_manipulator_stats(curarea);
-					copy_m3_m4(t->spacemtx, G.vd->twmat);
-					warp_pointer(mval[0], mval[1]);
-#endif
-				}
-				else {
-					t->state = TRANS_CONFIRM;
-				}
+				t->state = TRANS_CONFIRM;
 				break;
 
 			case MIDDLEMOUSE:

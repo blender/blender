@@ -447,7 +447,14 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	/* Tip */
 	if (but_tip.strinfo) {
-		BLI_strncpy(data->lines[data->totline], but_tip.strinfo, sizeof(data->lines[0]));
+		/* Expanded Bit-flag enums have a specific way to select multiple... */
+		if ((but->type & ROW) && but->rnaprop && RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
+			             "%s %s", but_tip.strinfo, IFACE_("(Shift-click to select multiple)"));
+		}
+		else {
+			BLI_strncpy(data->lines[data->totline], but_tip.strinfo, sizeof(data->lines[0]));
+		}
 		data->color_id[data->totline] = UI_TIP_LC_MAIN;
 		data->totline++;
 	}

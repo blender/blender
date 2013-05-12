@@ -2880,15 +2880,15 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			freestr = 1;
 		}
 		else if (ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
-			EnumPropertyItem *item;
-			int i, totitem, free;
+			EnumPropertyItem *item, *item_array = NULL;
+			int free;
 
 			/* get untranslated, then translate the single string we need */
-			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-			for (i = 0; i < totitem; i++) {
-				if (item[i].identifier[0] && item[i].value == (int)max) {
-					str = CTX_IFACE_(RNA_property_translation_context(prop), item[i].name);
-					icon = item[i].icon;
+			RNA_property_enum_items(block->evil_C, ptr, prop, &item_array, NULL, &free);
+			for (item = item_array; item->identifier; item++) {
+				if (item->identifier[0] && item->value == (int)max) {
+					str = CTX_IFACE_(RNA_property_translation_context(prop), item->name);
+					icon = item->icon;
 					break;
 				}
 			}
@@ -2897,7 +2897,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				str = RNA_property_ui_name(prop);
 			}
 			if (free) {
-				MEM_freeN(item);
+				MEM_freeN(item_array);
 			}
 		}
 		else {
