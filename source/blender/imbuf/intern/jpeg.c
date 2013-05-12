@@ -59,7 +59,11 @@
 #define IS_maxjpg(x)    ((x->ftype & JPG_MSK) == JPG_MAX)
 
 /* the types are from the jpeg lib */
-static void jpeg_error(j_common_ptr cinfo);
+static void jpeg_error(j_common_ptr cinfo)
+#ifdef __GNUC__
+__attribute__((noreturn));
+#endif
+;
 static void init_source(j_decompress_ptr cinfo);
 static boolean fill_input_buffer(j_decompress_ptr cinfo);
 static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
