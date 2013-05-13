@@ -458,7 +458,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 #if 0
 	glEnable(GL_BLEND);
 	glColor4f(drand48(), drand48(), drand48(), 0.1f);
-	glRectf(ar->drawrct.xmin - 1, ar->drawrct.ymin - 1, ar->drawrct.xmax + 1, ar->drawrct.ymax + 1);
+	glRectf(ar->drawrct.xmin - ar->winrct.xmin, ar->drawrct.ymin - ar->winrct.ymin,
+			ar->drawrct.xmax - ar->winrct.xmin, ar->drawrct.ymax - ar->winrct.ymin);
 	glDisable(GL_BLEND);
 #endif
 

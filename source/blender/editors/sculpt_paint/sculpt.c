@@ -500,11 +500,26 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
 /*** BVH Tree ***/
 
+static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
+{
+	/* expand redraw rect with redraw rect from previous step to
+	 * prevent partial-redraw issues caused by fast strokes. This is
+	 * needed here (not in sculpt_flush_update) as it was before
+	 * because redraw rectangle should be the same in both of
+	 * optimized PBVH draw function and 3d view redraw (if not -- some
+	 * mesh parts could disappear from screen (sergey) */
+	SculptSession *ss = ob->sculpt;
+
+	if (ss->cache) {
+		if (!BLI_rcti_is_empty(&ss->cache->previous_r))
+			BLI_rcti_union(rect, &ss->cache->previous_r);
+	}
+}
+
 /* Get a screen-space rectangle of the modified area */
 static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
                                   Object *ob, rcti *rect)
 {
-	SculptSession *ss;
 	PBVH *pbvh = ob->sculpt->pbvh;
 	float bb_min[3], bb_max[3];
 
@@ -524,17 +539,6 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 		return 0;
 	}
 
-	/* expand redraw rect with redraw rect from previous step to
-	 * prevent partial-redraw issues caused by fast strokes. This is
-	 * needed here (not in sculpt_flush_update) as it was before
-	 * because redraw rectangle should be the same in both of
-	 * optimized PBVH draw function and 3d view redraw (if not -- some
-	 * mesh parts could disappear from screen (sergey) */
-	ss = ob->sculpt;
-	if (ss->cache) {
-		if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-			BLI_rcti_union(rect, &ss->cache->previous_r);
-	}
 
 	return 1;
 }
@@ -546,6 +550,7 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	rcti rect;
 
 	sculpt_get_redraw_rect(ar, rv3d, ob, &rect);
+	sculpt_extend_redraw_rect_previous(ob, &rect);
 
 	paint_calc_redraw_planes(planes, ar, rv3d, ob, &rect);
 
@@ -4222,6 +4227,8 @@ static void sculpt_flush_update(bContext *C)
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
 			if (ss->cache)
 				ss->cache->previous_r = r;
+
+			sculpt_extend_redraw_rect_previous(ob, &r);
 
 			r.xmin += ar->winrct.xmin + 1;
 			r.xmax += ar->winrct.xmin - 1;
