@@ -1,3 +1,19 @@
+commit 61ac890908a397860cabc60207500039876532cc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon May 13 04:44:14 2013 +0600
+
+    Pass ApplyRadialDistortionCameraIntrinsics input arguments by reference
+    
+    This shall save some CPU time on calling copy constructor and give
+    some boost of bundle adjuster (where jet could take some time to
+    be passed by value).
+
+commit 4d005ff0771e0e28159be25f8da69d983641384f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon May 13 04:22:05 2013 +0600
+
+    Minor code style cleanup.
+
 commit f003b9e3031db4592c2d91b1ea2538c73b7e767d
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sun May 12 22:34:54 2013 +0600
@@ -618,26 +634,3 @@ Date:   Fri Mar 1 17:37:35 2013 +0600
     This information is useful, but in cases when you, say,
     working on a bundler it's annoying to scroll all the
     information up.
-
-commit ac252bb1250b3028b9c94736b644e7ab4e7b14b8
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Mar 1 17:36:19 2013 +0600
-
-    Move radial distortion code to own templated function
-    
-    This shall not lead to any functional changes, just
-    avoids radial distortion code duplicated in camera
-    intrinsics and bundling code.
-    
-    For fancier bundle adjustment support of  different
-    distortion models this is not actually enough and
-    would need to make some bigger changes, but this
-    changes makes code a bit easier to maintain already.
-
-commit c253b794612dd529e1d3a9bd7a7c41c32c9a9abb
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Mar 1 17:33:27 2013 +0600
-
-    Use threaded cost function, jacobian and linear solver
-    computation, so bundling is as fast as it could be with
-    current parameter block structure.

@@ -132,7 +132,7 @@ static uint SAD(const ubyte* imageA, const ubyte* imageB,
 }
 #endif
 
-void DetectMORAVEC(ubyte* image,
+void DetectMORAVEC(const ubyte* image,
                    int stride, int width, int height,
                    Feature* detected, int* count,
                    int distance,
@@ -144,7 +144,7 @@ void DetectMORAVEC(ubyte* image,
   const int r = 1;  // radius for self similarity comparison
   for (int y = distance; y < height-distance; y++) {
     for (int x = distance; x < width-distance; x++) {
-      ubyte* s = &image[y*stride+x];
+      const ubyte* s = &image[y*stride+x];
       int score =  // low self-similarity with overlapping patterns
                    // OPTI: load pattern once
           SAD(s, s-r*stride-r, stride, stride)+SAD(s, s-r*stride, stride, stride)+SAD(s, s-r*stride+r, stride, stride)+

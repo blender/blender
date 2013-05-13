@@ -1572,7 +1572,7 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking,
 	                                    calibration_width, calibration_height);
 
-	libmv_CameraIntrinsicsUpdate(distortion->intrinsics, &camera_intrinsics_options);
+	libmv_CameraIntrinsicsUpdate(&camera_intrinsics_options, distortion->intrinsics);
 }
 
 void BKE_tracking_distortion_set_threads(MovieDistortion *distortion, int threads)

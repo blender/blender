@@ -172,14 +172,17 @@ std::ostream& operator <<(std::ostream &os,
 // camera coordinates (i.e. the principal point is at (0, 0)) to get image
 // coordinates in pixels. Templated for use with autodifferentiation.
 template <typename T>
-inline void ApplyRadialDistortionCameraIntrinsics(T focal_length_x,
-                                                  T focal_length_y,
-                                                  T principal_point_x,
-                                                  T principal_point_y,
-                                                  T k1, T k2, T k3,
-                                                  T p1, T p2,
-                                                  T normalized_x,
-                                                  T normalized_y,
+inline void ApplyRadialDistortionCameraIntrinsics(const T &focal_length_x,
+                                                  const T &focal_length_y,
+                                                  const T &principal_point_x,
+                                                  const T &principal_point_y,
+                                                  const T &k1,
+                                                  const T &k2,
+                                                  const T &k3,
+                                                  const T &p1,
+                                                  const T &p2,
+                                                  const T &normalized_x,
+                                                  const T &normalized_y,
                                                   T *image_x,
                                                   T *image_y) {
   T x = normalized_x;
