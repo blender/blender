@@ -69,7 +69,7 @@ public:
 
 	__forceinline void grow(const float3& pt, float border)  
 	{
-		float3 shift = {border, border, border, 0.0f};
+		float3 shift = make_float3(border, border, border);
 		min = ccl::min(pt - shift, min);
 		max = ccl::max(pt + shift, max);
 	}
@@ -93,7 +93,7 @@ public:
 	__forceinline void grow_safe(const float3& pt, float border)  
 	{
 		if(isfinite(pt.x) && isfinite(pt.y) && isfinite(pt.z) && isfinite(border)) {
-			float3 shift = {border, border, border, 0.0f};
+			float3 shift = make_float3(border, border, border);
 			min = ccl::min(pt - shift, min);
 			max = ccl::max(pt + shift, max);
 		}
