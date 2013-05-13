@@ -430,7 +430,7 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
  */
 static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 {
-	BMwLoopWalker *lwalk = NULL, owalk;
+	BMwLoopWalker *lwalk = NULL, owalk, *owalk_pt;
 	BMEdge *e = data;
 	BMVert *v;
 	int vert_edge_count[2] = {BM_vert_edge_count_nonwire(e->v1),
@@ -475,8 +475,8 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	}
 
 	/* rewind */
-	while (BMW_current_state(walker)) {
-		owalk = *((BMwLoopWalker *)BMW_current_state(walker));
+	while ((owalk_pt = BMW_current_state(walker))) {
+		owalk = *((BMwLoopWalker *)owalk_pt);
 		BMW_walk(walker);
 	}
 
@@ -687,7 +687,7 @@ static bool bmw_FaceLoopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
 
 static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 {
-	BMwFaceLoopWalker *lwalk, owalk;
+	BMwFaceLoopWalker *lwalk, owalk, *owalk_pt;
 	BMEdge *e = data;
 	/* BMesh *bm = walker->bm; */ /* UNUSED */
 	/* int fcount = BM_edge_face_count(e); */ /* UNUSED */
@@ -701,8 +701,8 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
 	/* rewin */
-	while (BMW_current_state(walker)) {
-		owalk = *((BMwFaceLoopWalker *)BMW_current_state(walker));
+	while ((owalk_pt = BMW_current_state(walker))) {
+		owalk = *((BMwFaceLoopWalker *)owalk_pt);
 		BMW_walk(walker);
 	}
 
@@ -783,7 +783,7 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
  */
 static void bmw_EdgeringWalker_begin(BMWalker *walker, void *data)
 {
-	BMwEdgeringWalker *lwalk, owalk;
+	BMwEdgeringWalker *lwalk, owalk, *owalk_pt;
 	BMEdge *e = data;
 
 	lwalk = BMW_state_add(walker);
@@ -799,9 +799,9 @@ static void bmw_EdgeringWalker_begin(BMWalker *walker, void *data)
 
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 
-	/* rewin */
-	while (BMW_current_state(walker)) {
-		owalk = *((BMwEdgeringWalker *)BMW_current_state(walker));
+	/* rewind */
+	while ((owalk_pt = BMW_current_state(walker))) {
+		owalk = *((BMwEdgeringWalker *)owalk_pt);
 		BMW_walk(walker);
 	}
 
