@@ -31,7 +31,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 
 #include "BKE_customdata.h"
 
@@ -45,22 +44,19 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, weldop;
 	BMOIter siter;
 	BMIter iter;
-	BMVert *v /* , *v2 */ /* UNUSED */, **vmap = NULL;
-	BLI_array_declare(vmap);
-	BMEdge /*  *e, */ **emap = NULL;
-	BLI_array_declare(emap);
+	BMVert *v, **vmap;
+	int vmap_size = 0;
 	float mtx[4][4];
 	float imtx[4][4];
 	float scale[3] = {1.0f, 1.0f, 1.0f};
 	float dist = BMO_slot_float_get(op->slots_in, "merge_dist");
-	int i, ototvert /*, ototedge */;
+	int i, ototvert;
 	int axis = BMO_slot_int_get(op->slots_in, "axis");
 	bool mirror_u = BMO_slot_bool_get(op->slots_in, "mirror_u");
 	bool mirror_v = BMO_slot_bool_get(op->slots_in, "mirror_v");
 	BMOpSlot *slot_targetmap;
 
 	ototvert = bm->totvert;
-	/* ototedge = bm->totedge; */ /* UNUSED */
 	
 	BMO_slot_mat4_get(op->slots_in, "matrix", mtx);
 	invert_m4_m4(imtx, mtx);
@@ -71,15 +67,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
 
 	/* create old -> new mappin */
-	i = 0;
-	/* v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); */ /* UNUSED */
-	BMO_ITER (v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
-		BLI_array_grow_one(vmap);
-		vmap[i] = v;
-		/* v2 = BM_iter_step(&iter); */ /* UNUSED */
-		i++;
-	}
-	bm->elem_index_dirty |= BM_VERT;
+	vmap = BMO_iter_as_arrayN(dupeop.slots_out, "geom.out", BM_VERT, &vmap_size, NULL, 0);
 
 	/* feed old data to transform bmo */
 	scale[axis] = -1.0f;
@@ -94,6 +82,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; i < ototvert; i++) {
 		if (fabsf(v->co[axis]) <= dist) {
+			BLI_assert(vmap_size >= i);
 			BMO_slot_map_elem_insert(&weldop, slot_targetmap, vmap[i], v);
 		}
 		v = BM_iter_step(&iter);
@@ -127,6 +116,6 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
 
-	BLI_array_free(vmap);
-	BLI_array_free(emap);
+	if (vmap)
+		MEM_freeN(vmap);
 }

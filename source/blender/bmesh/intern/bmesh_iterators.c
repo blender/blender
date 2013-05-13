@@ -186,6 +186,42 @@ void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
 	}
 }
 
+void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
+                         int *r_len,
+                         /* optional args to avoid an alloc (normally stack array) */
+                         void **stack_array, int stack_array_size)
+{
+	BMOIter iter;
+	BMElem *ele;
+	int count = BMO_slot_buffer_count(slot_args, slot_name);
+
+	BLI_assert(stack_array_size == 0 || (stack_array_size && stack_array));
+
+	if ((ele = BMO_iter_new(&iter, slot_args, slot_name, restrictmask)) && count > 0) {
+		BMElem **array = count > stack_array_size ?
+		                 MEM_mallocN(sizeof(ele) * count, __func__) :
+		                 stack_array;
+		int i = 0;
+
+		do {
+			array[i++] = ele;
+		} while ((ele = BMO_iter_step(&iter)));
+		BLI_assert(i <= count);
+
+		if (i != count) {
+			if ((void **)array != stack_array) {
+				array = MEM_reallocN(array, sizeof(ele) * i);
+			}
+		}
+		*r_len = i;
+		return array;
+	}
+	else {
+		*r_len = 0;
+		return NULL;
+	}
+}
+
 /**
  * \brief Elem Iter Flag Count
  *
