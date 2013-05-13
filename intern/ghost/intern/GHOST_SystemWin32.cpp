@@ -47,14 +47,6 @@
 #include <shlobj.h>
 #include <tlhelp32.h>
 
-// win64 doesn't define GWL_USERDATA
-#ifdef WIN32
-#  ifndef GWL_USERDATA
-#    define GWL_USERDATA GWLP_USERDATA
-#    define GWL_WNDPROC GWLP_WNDPROC
-#  endif
-#endif
-
 #include "utfconv.h"
 
 #include "GHOST_DisplayManagerWin32.h"
@@ -904,7 +896,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
 	if (hwnd) {
-		GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLongPtr(hwnd, GWL_USERDATA);
+		GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		if (window) {
 			switch (msg) {
 				// we need to check if new key layout has AltGr

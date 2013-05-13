@@ -260,14 +260,14 @@ bool GPG_Application::startScreenSaverPreview(
 		}
 
 		SetParent(ghost_hwnd, parentWindow);
-		LONG style = GetWindowLong(ghost_hwnd, GWL_STYLE);
-		LONG exstyle = GetWindowLong(ghost_hwnd, GWL_EXSTYLE);
+		LONG_PTR style = GetWindowLongPtr(ghost_hwnd, GWL_STYLE);
+		LONG_PTR exstyle = GetWindowLongPtr(ghost_hwnd, GWL_EXSTYLE);
 
 		RECT adjrc = { 0, 0, windowWidth, windowHeight };
 		AdjustWindowRectEx(&adjrc, style, FALSE, exstyle);
 
 		style = (style & (~(WS_POPUP|WS_OVERLAPPEDWINDOW|WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MINIMIZEBOX|WS_MAXIMIZEBOX|WS_TILEDWINDOW ))) | WS_CHILD;
-		SetWindowLong(ghost_hwnd, GWL_STYLE, style);
+		SetWindowLongPtr(ghost_hwnd, GWL_STYLE, style);
 		SetWindowPos(ghost_hwnd, NULL, adjrc.left, adjrc.top, 0, 0, SWP_NOZORDER|SWP_NOSIZE|SWP_NOACTIVATE);
 
 		/* Check the size of the client rectangle of the window and resize the window
