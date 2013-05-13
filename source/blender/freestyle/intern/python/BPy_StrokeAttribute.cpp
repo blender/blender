@@ -532,6 +532,7 @@ static int StrokeAttribute_color_set(BPy_StrokeAttribute *self, PyObject *value,
 		return -1;
 	}
 	self->sa->setColor(v->x(), v->y(), v->z());
+	delete v;
 	return 0;
 }
 
