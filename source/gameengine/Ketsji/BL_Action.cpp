@@ -55,7 +55,6 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_pose(NULL),
 	m_blendpose(NULL),
 	m_blendinpose(NULL),
-	m_ptrrna(NULL),
 	m_obj(gameobj),
 	m_startframe(0.f),
 	m_endframe(0.f),
@@ -71,24 +70,6 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_done(true),
 	m_calc_localtime(true)
 {
-	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
-	{
-		BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
-
-		m_ptrrna = new PointerRNA();
-		RNA_id_pointer_create(&obj->GetArmatureObject()->id, m_ptrrna);
-	}
-	else
-	{
-		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
-		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
-
-		if (shape_deformer)
-		{
-			m_ptrrna = new PointerRNA();
-			RNA_id_pointer_create(&shape_deformer->GetKey()->id, m_ptrrna);
-		}
-	}
 }
 
 BL_Action::~BL_Action()
@@ -99,8 +80,6 @@ BL_Action::~BL_Action()
 		game_free_pose(m_blendpose);
 	if (m_blendinpose)
 		game_free_pose(m_blendinpose);
-	if (m_ptrrna)
-		delete m_ptrrna;
 	ClearControllerList();
 }
 
@@ -426,7 +405,11 @@ void BL_Action::Update(float curtime)
 			bPose *temp = arm->pose;
 
 			arm->pose = m_pose;
-			animsys_evaluate_action(m_ptrrna, m_action, NULL, m_localtime);
+
+			PointerRNA ptrrna;
+			RNA_id_pointer_create(&arm->id, &ptrrna);
+
+			animsys_evaluate_action(&ptrrna, m_action, NULL, m_localtime);
 
 			arm->pose = temp;
 		}
@@ -465,8 +448,10 @@ void BL_Action::Update(float curtime)
 		{
 			Key *key = shape_deformer->GetKey();
 
+			PointerRNA ptrrna;
+			RNA_id_pointer_create(&key->id, &ptrrna);
 
-			animsys_evaluate_action(m_ptrrna, m_action, NULL, m_localtime);
+			animsys_evaluate_action(&ptrrna, m_action, NULL, m_localtime);
 
 			// Handle blending between shape actions
 			if (m_blendin && m_blendframe < m_blendin)
