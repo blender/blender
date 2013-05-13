@@ -195,6 +195,8 @@ void BKE_tracking_reconstruction_solve(struct MovieReconstructContext *context, 
                                        float *progress, char *stats_message, int message_size);
 int BKE_tracking_reconstruction_finish(struct MovieReconstructContext *context, struct MovieTracking *tracking);
 
+void BKE_tracking_reconstruction_scale(struct MovieTracking *tracking, float scale[3]);
+
 /* **** Feature detection **** */
 void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ListBase *tracksbase, struct ImBuf *imbuf,
                               int framenr, int margin, int min_trackness, int min_distance, struct bGPDlayer *layer,
