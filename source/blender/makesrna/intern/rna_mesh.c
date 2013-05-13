@@ -1658,7 +1658,9 @@ static void rna_def_mvert(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "undeformed_co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Undeformed Location", "For meshes with modifiers applied, the coordinate of the vertex with no deforming modifiers applied, as used for generated texture coordinates. ");
+	RNA_def_property_ui_text(prop, "Undeformed Location",
+	                         "For meshes with modifiers applied, the coordinate of the vertex with no deforming "
+	                         "modifiers applied, as used for generated texture coordinates");
 	RNA_def_property_float_funcs(prop, "rna_MeshVertex_undeformed_co_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
