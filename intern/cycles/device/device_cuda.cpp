@@ -45,6 +45,7 @@ public:
 	CUmodule cuModule;
 	map<device_ptr, bool> tex_interp_map;
 	int cuDevId;
+	bool first_error;
 
 	struct PixelMem {
 		GLuint cuPBO;
@@ -114,6 +115,14 @@ public:
 #else
 #define cuda_abort() abort()
 #endif*/
+	void cuda_error_documentation()
+	{
+		if(first_error) {
+			fprintf(stderr, "\nRefer to the Cycles GPU rendering documentation for possible solutions:\n");
+			fprintf(stderr, "http://wiki.blender.org/index.php/Doc:2.6/Manual/Render/Cycles/GPU_Rendering\n\n");
+			first_error = false;
+		}
+	}
 
 #define cuda_assert(stmt) \
 	{ \
@@ -125,6 +134,7 @@ public:
 				error_msg = message; \
 			fprintf(stderr, "%s\n", message.c_str()); \
 			/*cuda_abort();*/ \
+			cuda_error_documentation(); \
 		} \
 	}
 
@@ -137,6 +147,7 @@ public:
 		if(error_msg == "")
 			error_msg = message;
 		fprintf(stderr, "%s\n", message.c_str());
+		cuda_error_documentation();
 		return true;
 	}
 
@@ -147,6 +158,7 @@ public:
 		if(error_msg == "")
 			error_msg = message;
 		fprintf(stderr, "%s\n", message.c_str());
+		cuda_error_documentation();
 	}
 
 	void cuda_push_context()
@@ -161,6 +173,7 @@ public:
 
 	CUDADevice(DeviceInfo& info, Stats &stats, bool background_) : Device(stats)
 	{
+		first_error = true;
 		background = background_;
 
 		cuDevId = info.num;
