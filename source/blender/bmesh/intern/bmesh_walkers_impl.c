@@ -522,7 +522,9 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			nexte = BM_edge_exists(v, l->v);
 
 			if (bmw_mask_check_edge(walker, nexte) &&
-			    !BLI_ghash_haskey(walker->visithash, nexte))
+			    !BLI_ghash_haskey(walker->visithash, nexte) &&
+			    /* never step onto a boundary edge, this gives odd-results */
+			    (BM_edge_is_boundary(nexte) == false))
 			{
 				lwalk = BMW_state_add(walker);
 				lwalk->cur = nexte;
