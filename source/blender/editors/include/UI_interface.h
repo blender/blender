@@ -149,7 +149,7 @@ typedef struct uiLayout uiLayout;
 #define UI_TEXT_RIGHT       1024
 #define UI_BUT_NODE_LINK    2048
 #define UI_BUT_NODE_ACTIVE  4096
-#define UI_FLAG_UNUSED      8192
+#define UI_BUT_DRAG_LOCK    8192
 
 /* button align flag, for drawing groups together */
 #define UI_BUT_ALIGN        (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN)
