@@ -81,7 +81,6 @@ struct Nurb;
 struct Object;
 struct PBVHNode;
 struct PyObject;
-struct Quadric;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;
@@ -96,8 +95,6 @@ struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
 struct ShadeResult;
-struct SmallHash;
-struct SmallHashIter;
 struct SpaceClip;
 struct SpaceImage;
 struct SpaceNode;
@@ -137,23 +134,6 @@ void EDBM_mesh_load(struct Object *ob) {}
 void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
 void EDBM_mesh_normals_update(struct BMEditMesh *em) {}
 void *g_system;
-
-void BLI_smallhash_init(struct SmallHash *hash) {}
-void BLI_smallhash_release(struct SmallHash *hash) {}
-void BLI_smallhash_insert(struct SmallHash *hash, uintptr_t key, void *item) {}
-void BLI_smallhash_remove(struct SmallHash *hash, uintptr_t key) {}
-void *BLI_smallhash_lookup(struct SmallHash *hash, uintptr_t key) { return NULL; }
-int BLI_smallhash_haskey(struct SmallHash *hash, uintptr_t key) { return 0; }
-int BLI_smallhash_count(struct SmallHash *hash) { return 0; }
-void *BLI_smallhash_iternext(struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
-void *BLI_smallhash_iternew(struct SmallHash *hash, struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
-
-void  BLI_quadric_from_v3_dist(struct Quadric *q, const float v[3], const float offset) {}
-void  BLI_quadric_add_qu_qu(struct Quadric *a, const struct Quadric *b) {}
-void  BLI_quadric_add_qu_ququ(struct Quadric *r, const struct Quadric *a, const struct Quadric *b) {}
-void  BLI_quadric_mul(struct Quadric *a, const float scalar) {}
-float BLI_quadric_evaluate(const struct Quadric *q, const float v[3]) {return 0.0f;}
-int   BLI_quadric_optimize(const struct Quadric *q, float v[3]) {return 0;}
 
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
