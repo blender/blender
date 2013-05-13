@@ -300,30 +300,36 @@ static void bridge_loop_pair(BMesh *bm,
 			f_example = l_1 ? l_1->f : (l_2 ? l_2->f : NULL);
 
 			if (v_b != v_b_next) {
-				/* copy if loop data if its is missing on one ring */
-				f = BM_face_create_quad_tri(bm, v_a, v_b, v_b_next, v_a_next, f_example, true);
-				BMO_elem_flag_enable(bm, f, FACE_OUT);
-				BM_elem_flag_enable(f, BM_ELEM_TAG);
+				BMVert *v_arr[4] = {v_a, v_b, v_b_next, v_a_next};
+				if (BM_face_exists(v_arr, 4, &f) == false) {
+					/* copy if loop data if its is missing on one ring */
+					f = BM_face_create_ngon_verts(bm, v_arr, 4, 0, false, true);
 
-				l_iter = BM_FACE_FIRST_LOOP(f);
-
-				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
-				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-				if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
-				if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+					l_iter = BM_FACE_FIRST_LOOP(f);
+					if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
+					if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
+					if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
+					if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+				}
 			}
 			else {
-				/* fan-fill a triangle */
-				f = BM_face_create_quad_tri(bm, v_a, v_b, v_a_next, NULL, f_example, true);
-				BMO_elem_flag_enable(bm, f, FACE_OUT);
-				BM_elem_flag_enable(f, BM_ELEM_TAG);
+				BMVert *v_arr[3] = {v_a, v_b, v_a_next};
+				if (BM_face_exists(v_arr, 3, &f) == false) {
+					/* fan-fill a triangle */
+					f = BM_face_create_ngon_verts(bm, v_arr, 3, 0, false, true);
 
-				l_iter = BM_FACE_FIRST_LOOP(f);
-
-				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
-				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-				if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+					l_iter = BM_FACE_FIRST_LOOP(f);
+					if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
+					if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
+					if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+				}
 			}
+
+			if (f_example != f) {
+				BM_elem_attrs_copy(bm, bm, f_example, f);
+			}
+			BMO_elem_flag_enable(bm, f, FACE_OUT);
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
 
 			if (el_a_next == el_a_first) {
 				break;
