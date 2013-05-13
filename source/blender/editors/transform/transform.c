@@ -5904,25 +5904,27 @@ void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			glVertex3fv(curr_sv->v_a->co);
-			glVertex3fv(curr_sv->v_co_orig);
-			glVertex3fv(curr_sv->v_b->co);
-			glVertex3fv(curr_sv->v_co_orig);
+			if (curr_sv->v_a) {
+				glVertex3fv(curr_sv->v_a->co);
+				glVertex3fv(curr_sv->v_co_orig);
+			}
+			if (curr_sv->v_b) {
+				glVertex3fv(curr_sv->v_b->co);
+				glVertex3fv(curr_sv->v_co_orig);
+			}
 			bglEnd();
 
 
 			UI_ThemeColorShadeAlpha(TH_SELECT, -30, alpha_shade);
 			glPointSize(ctrl_size);
+			bglBegin(GL_POINTS);
 			if (sld->flipped_vtx) {
-				bglBegin(GL_POINTS);
-				bglVertex3fv(curr_sv->v_b->co);
-				bglEnd();
+				if (curr_sv->v_b) bglVertex3fv(curr_sv->v_b->co);
 			}
 			else {
-				bglBegin(GL_POINTS);
-				bglVertex3fv(curr_sv->v_a->co);
-				bglEnd();
+				if (curr_sv->v_a) bglVertex3fv(curr_sv->v_a->co);
 			}
+			bglEnd();
 
 			UI_ThemeColorShadeAlpha(TH_SELECT, 255, alpha_shade);
 			glPointSize(guide_size);
