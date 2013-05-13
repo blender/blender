@@ -359,6 +359,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	 * stack (if we use simple function recursion, we'd end up overloading
 	 * the stack on large meshes). */
 
+	STACK_INIT(fstack);
 	STACK_PUSH(fstack, startf);
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
 
