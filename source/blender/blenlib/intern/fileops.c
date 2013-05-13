@@ -253,7 +253,7 @@ void *BLI_gzopen(const char *filename, const char *mode)
 
 		/* temporary #if until we update all libraries to 1.2.7
 		 * for  correct wide char path handling */
-#if ZLIB_VERNUM >= 0x1270
+#if ZLIB_VERNUM >= 0x1270 && !defined(FREE_WINDOWS)
 		UTF16_ENCODE(filename);
 
 		gzfile = gzopen_w(filename_16, mode);
