@@ -55,8 +55,7 @@ void GaussianAlphaYBlurOperation::initExecution()
 
 	if (this->m_sizeavailable) {
 		float rad = this->m_size * this->m_data->sizey;
-		if (rad < 1)
-			rad = 1;
+		CLAMP(rad, 1.0f, MAX_GAUSSTAB_RADIUS);
 
 		this->m_rad = rad;
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad);
@@ -69,8 +68,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
 	if (this->m_gausstab == NULL) {
 		updateSize();
 		float rad = this->m_size * this->m_data->sizey;
-		if (rad < 1)
-			rad = 1;
+		CLAMP(rad, 1.0f, MAX_GAUSSTAB_RADIUS);
 
 		this->m_rad = rad;
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad);
@@ -79,8 +77,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
 	if (this->m_distbuf_inv == NULL) {
 		updateSize();
 		float rad = this->m_size * this->m_data->sizex;
-		if (rad < 1)
-			rad = 1;
+		CLAMP(rad, 1.0f, MAX_GAUSSTAB_RADIUS);
 
 		this->m_rad = rad;
 		this->m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->m_falloff);
