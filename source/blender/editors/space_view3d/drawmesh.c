@@ -630,8 +630,9 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	for (a = 0, mp = mface; a < totpoly; a++, mtpoly++, mp++) {
 		short matnr = mp->mat_nr;
 		int mf_smooth = mp->flag & ME_SMOOTH;
-		Material *mat = me->mat[matnr];
+		Material *mat = (me->mat) ? me->mat[matnr] : NULL;
 		int mode = mat ? mat->game.flag : GEMAT_INVISIBLE;
+
 
 		if (!(mode & GEMAT_INVISIBLE) && (mode & GEMAT_TEXT) && mp->totloop >= 3) {
 			/* get the polygon as a tri/quad */
