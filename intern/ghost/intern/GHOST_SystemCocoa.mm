@@ -939,12 +939,18 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			// get keyDown events delivered to the view because they are
 			// special hotkeys to switch between views, so override directly
 
-			if([event type] == NSKeyDown &&
+			if ([event type] == NSKeyDown &&
 			   [event keyCode] == kVK_Tab &&
 			   ([event modifierFlags] & NSControlKeyMask)) {
 				handleKeyEvent(event);
 			}
 			else {
+				// For some reason NSApp is swallowing the key up events when command
+				// key is pressed, even if there seems to be no apparent reason to do
+				// so, as a workaround we always handle these up events.
+				if ([event type] == NSKeyUp && ([event modifierFlags] & NSCommandKeyMask))
+					handleKeyEvent(event);
+
 				[NSApp sendEvent:event];
 			}
 
