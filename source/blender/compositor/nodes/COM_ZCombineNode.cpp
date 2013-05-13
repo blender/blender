@@ -71,9 +71,18 @@ void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContex
 	else {
 		// not full anti alias, use masking for Z combine. be aware it uses anti aliasing.
 		// step 1 create mask
-		MathGreaterThanOperation *maskoperation = new MathGreaterThanOperation();
-		this->getInputSocket(1)->relinkConnections(maskoperation->getInputSocket(0), 1, system);
-		this->getInputSocket(3)->relinkConnections(maskoperation->getInputSocket(1), 3, system);
+		NodeOperation *maskoperation;
+
+		if (this->getbNode()->custom1) {
+			maskoperation = new MathGreaterThanOperation();
+			this->getInputSocket(1)->relinkConnections(maskoperation->getInputSocket(0), 3, system);
+			this->getInputSocket(3)->relinkConnections(maskoperation->getInputSocket(1), 1, system);
+		}
+		else {
+			maskoperation = new MathLessThanOperation();
+			this->getInputSocket(1)->relinkConnections(maskoperation->getInputSocket(0), 1, system);
+			this->getInputSocket(3)->relinkConnections(maskoperation->getInputSocket(1), 3, system);
+		}
 
 		// step 2 anti alias mask bit of an expensive operation, but does the trick
 		AntiAliasOperation *antialiasoperation = new AntiAliasOperation();

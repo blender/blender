@@ -123,13 +123,7 @@ void ZCombineMaskOperation::executePixel(float output[4], float x, float y, Pixe
 	this->m_image1Reader->read(color1, x, y, sampler);
 	this->m_image2Reader->read(color2, x, y, sampler);
 
-	float fac = mask[0];
-	// multiply mask with alpha, if mask == 0 color1, else color2 make sure
-	float mfac = 1.0f - fac;
-	output[0] = color1[0] * mfac + color2[0] * fac;
-	output[1] = color1[1] * mfac + color2[1] * fac;
-	output[2] = color1[2] * mfac + color2[2] * fac;
-	output[3] = max(color1[3], color2[3]);
+	interp_v4_v4v4(output, color1, color2, 1.0f - mask[0]);
 }
 
 void ZCombineMaskAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
@@ -142,15 +136,12 @@ void ZCombineMaskAlphaOperation::executePixel(float output[4], float x, float y,
 	this->m_image1Reader->read(color1, x, y, sampler);
 	this->m_image2Reader->read(color2, x, y, sampler);
 
-	float fac = mask[0];
-	// multiply mask with alpha, if mask == 0 color1, else color2 make sure
+	float fac = (1.0f - mask[0])*(1.0f - color1[3]) + mask[0]*color2[3];
 	float mfac = 1.0f - fac;
-	float alpha = color1[3] * mfac + color2[3] * fac;
-	float facalpha = fac * alpha;
-	mfac = 1.0f - facalpha;
-	output[0] = color1[0] * mfac + color2[0] * facalpha;
-	output[1] = color1[1] * mfac + color2[1] * facalpha;
-	output[2] = color1[2] * mfac + color2[2] * facalpha;
+
+	output[0] = color1[0] * mfac + color2[0] * fac;
+	output[1] = color1[1] * mfac + color2[1] * fac;
+	output[2] = color1[2] * mfac + color2[2] * fac;
 	output[3] = max(color1[3], color2[3]);
 }
 
