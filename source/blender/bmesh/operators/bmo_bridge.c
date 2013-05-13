@@ -120,6 +120,7 @@ static void bridge_loop_pair(BMesh *bm,
 	const bool is_closed = BM_edgeloop_is_closed(el_store_a) && BM_edgeloop_is_closed(el_store_b);
 	int el_store_a_len, el_store_b_len;
 	bool el_store_b_free = false;
+	float el_dir[3];
 
 	el_store_a_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_a);
 	el_store_b_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_b);
@@ -137,19 +138,20 @@ static void bridge_loop_pair(BMesh *bm,
 		BM_mesh_elem_hflag_disable_all(bm, BM_FACE | BM_EDGE, BM_ELEM_TAG, false);
 	}
 
-	if (dot_v3v3(BM_edgeloop_normal_get(el_store_a), BM_edgeloop_normal_get(el_store_b)) < 0.0f) {
+	sub_v3_v3v3(el_dir, BM_edgeloop_center_get(el_store_a), BM_edgeloop_center_get(el_store_b));
+	if ((dot_v3v3(BM_edgeloop_normal_get(el_store_a), el_dir) < 0.0f) !=
+		(dot_v3v3(BM_edgeloop_normal_get(el_store_b), el_dir) < 0.0f))
+	{
 		BM_edgeloop_flip(bm, el_store_b);
 	}
 
 	/* we only care about flipping if we make faces */
 	if (use_merge == false) {
 		float no[3];
-		float dir[3];
 
 		add_v3_v3v3(no, BM_edgeloop_normal_get(el_store_a), BM_edgeloop_normal_get(el_store_b));
-		sub_v3_v3v3(dir, BM_edgeloop_center_get(el_store_a), BM_edgeloop_center_get(el_store_b));
 
-		if (dot_v3v3(no, dir) < 0.0f) {
+		if (dot_v3v3(no, el_dir) < 0.0f) {
 			BM_edgeloop_flip(bm, el_store_a);
 			BM_edgeloop_flip(bm, el_store_b);
 		}
