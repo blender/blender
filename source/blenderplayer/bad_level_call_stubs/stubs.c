@@ -406,8 +406,8 @@ void make_editNurb(struct Object *obedit) {STUB_ASSERT(0);}
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon) {STUB_ASSERT(0);}
 
-struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag) {STUB_ASSERT(0); struct PointerRNA a = {{0}}; return a;}
-PointerRNA uiItemFullO_ptr(struct uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag) {STUB_ASSERT(0); struct PointerRNA a = {{0}}; return a;}
+struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag) {struct PointerRNA a = {{0}}; STUB_ASSERT(0); return a;}
+PointerRNA uiItemFullO_ptr(struct uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag) {struct PointerRNA a = {{0}}; STUB_ASSERT(0); return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, bool align) {STUB_ASSERT(0); return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, bool align) {STUB_ASSERT(0); return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, bool align) {STUB_ASSERT(0); return (struct uiLayout *) NULL;}
