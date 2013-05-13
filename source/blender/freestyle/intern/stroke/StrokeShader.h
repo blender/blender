@@ -34,6 +34,10 @@
 
 #include "../python/Director.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 //
@@ -97,6 +101,10 @@ public:
 	{
 		return Director_BPy_StrokeShader_shade( const_cast<StrokeShader *>(this), ioStroke);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeShader")
+#endif
 };
 
 } /* namespace Freestyle */

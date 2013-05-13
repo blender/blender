@@ -34,6 +34,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -144,6 +148,11 @@ public:
 protected:
 	void Clear();
 	void Build();
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SteerableViewMap")
+#endif
 };
 
 } /* namespace Freestyle */

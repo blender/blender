@@ -32,6 +32,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -128,6 +132,10 @@ public:
 	 */
 	static void CleanIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
 	                                    unsigned iISize, real **oVertices, unsigned *oVSize, unsigned **oIndices);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GeomCleaner")
+#endif
 };
 
 
@@ -210,6 +218,10 @@ public:
 	{
 		return (_Vector == v._Vector);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IndexedVertex")
+#endif
 };
 
 #if 0

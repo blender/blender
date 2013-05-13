@@ -30,6 +30,10 @@
 
 #include <string>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -86,6 +90,11 @@ protected:
 	unsigned _numtotalsteps;
 	unsigned _progress;
 	string _label;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ProgressBar")
+#endif
 };
 
 } /* namespace Freestyle */

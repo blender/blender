@@ -28,6 +28,10 @@
  *  \date 01/07/2003
  */
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 /*! Class used to tag any object by an id.
@@ -125,6 +129,11 @@ public:
 private:
 	id_type _first;
 	id_type _second;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Id")
+#endif
 };
 
 // stream operator

@@ -40,6 +40,10 @@
 
 #include "../winged_edge/Nature.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -220,6 +224,11 @@ public:
 
 protected:
 	unsigned _timeStamp;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interface1D")
+#endif
 };
 
 } /* namespace Freestyle */

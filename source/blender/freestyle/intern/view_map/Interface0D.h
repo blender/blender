@@ -40,6 +40,10 @@
 
 #include "../winged_edge/Nature.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -176,6 +180,10 @@ public:
 		PyErr_SetString(PyExc_TypeError, "method castToTVertex() not properly overridden");
 		return 0;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interface0D")
+#endif
 };
 
 

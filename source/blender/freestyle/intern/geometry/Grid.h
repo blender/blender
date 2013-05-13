@@ -45,6 +45,10 @@ extern "C" {
 	#include "BLI_utildefines.h"
 }
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -83,6 +87,11 @@ public:
 private:
 	Vec3r _orig;
 	OccludersSet _occluders;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Cell")
+#endif
 };
 
 
@@ -100,6 +109,10 @@ public:
 	virtual bool stop() {
 		return false;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridVisitor")
+#endif
 };
 
 /*! Gathers all the occluders belonging to the cells traversed by the ray */
@@ -357,6 +370,11 @@ protected:
 
 	//OccludersSet _ray_occluders; // Set storing the occluders contained in the cells traversed by a ray
 	OccludersSet _occluders;  // List of all occluders inserted in the grid
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Grid")
+#endif
 };
 
 //
@@ -375,6 +393,11 @@ private:
 	Polygon3r *firstOccluderFromNextCell();
 	Grid& grid;
 	OccludersSet::iterator it, end;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:VirtualOccludersSet")
+#endif
 };
 
 } /* namespace Freestyle */

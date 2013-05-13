@@ -30,6 +30,10 @@
 
 #include <iterator>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 // use for iterators defintions
@@ -45,6 +49,10 @@ public:
 	typedef const Element *pointer;
 	typedef ptrdiff_t difference_type;
 	typedef Nonconst_traits<Element> Non_const_traits;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Const_traits")
+#endif
 };
 
 template <class Element>
@@ -56,18 +64,30 @@ public:
 	typedef Element *pointer;
 	typedef ptrdiff_t difference_type;
 	typedef Nonconst_traits<Element> Non_const_traits;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Nonconst_traits")
+#endif
 };
 
 class InputIteratorTag_Traits
 {
 public:
 	typedef std::input_iterator_tag iterator_category;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:InputIteratorTag_Traits")
+#endif
 };
 
 class BidirectionalIteratorTag_Traits
 {
 public:
 	typedef std::bidirectional_iterator_tag iterator_category;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BidirectionalIteratorTag_Traits")
+#endif
 };
 
 template<class Traits, class IteratorTagTraits>
@@ -87,6 +107,11 @@ public:
 
 protected:
 	IteratorBase() {}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IteratorBase")
+#endif
 };
 
 } /* namespace Freestyle */

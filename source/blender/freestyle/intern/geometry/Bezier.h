@@ -34,6 +34,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -60,8 +64,11 @@ public:
 	{
 		return _Vertices;
 	}
-};
 
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BezierCurveSegment")
+#endif
+};
 
 class LIB_GEOMETRY_EXPORT BezierCurve 
 {
@@ -86,6 +93,10 @@ public:
 	{
 		return _Segments;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BezierCurve")
+#endif
 };
 
 } /* namespace Freestyle */

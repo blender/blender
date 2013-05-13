@@ -38,6 +38,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -239,6 +243,11 @@ public:
 		//virtual WOEdge **operator->();
 	protected:
 		virtual void increment();
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	public:
+		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WVertex:incoming_edge_iterator")
+#endif
 	};
 
 	/*! Iterator to iterate over a vertex faces in the CCW order */
@@ -319,6 +328,11 @@ public:
 		{
 			++_edge_it;
 		}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	public:
+		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WVertex:face_iterator")
+#endif
 	};
 
 public:
@@ -335,6 +349,10 @@ public:
 	{
 		return face_iterator(incoming_edges_end());
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WVertex")
+#endif
 };
 
 
@@ -517,6 +535,10 @@ public:
 	{
 		userdata = NULL;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WOEdge")
+#endif
 };
 
 
@@ -700,6 +722,10 @@ public:
 	{
 		userdata = NULL;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WEdge")
+#endif
 };
 
 
@@ -979,6 +1005,10 @@ public:
 	{
 		userdata = NULL;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WFace")
+#endif
 };
 
 
@@ -1250,6 +1280,11 @@ protected:
 	 */
 	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex,
 	                        WFace *face);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WShape")
+#endif
 };
 
 
@@ -1290,6 +1325,11 @@ public:
 
 private:
 	vector<WShape *> _wshapes;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WingedEdge")
+#endif
 };
 
 

@@ -30,6 +30,10 @@
 
 #include <string.h> // for memcpy
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 //
@@ -167,6 +171,11 @@ protected:
 	unsigned _storedHeight;
 	unsigned _Ox; // origin of the stored part
 	unsigned _Oy; // origin of the stored part
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsImage")
+#endif
 };
 
 

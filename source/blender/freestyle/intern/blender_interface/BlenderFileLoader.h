@@ -53,6 +53,10 @@ extern "C" {
 #include "BLI_math.h"
 }
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class NodeGroup;
@@ -120,6 +124,11 @@ protected:
 	float _z_near, _z_far;
 
 	RenderMonitor *_pRenderMonitor;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderFileLoader")
+#endif
 };
 
 } /* namespace Freestyle */

@@ -50,6 +50,10 @@
 
 #include "BKE_global.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class BoxGrid
@@ -66,6 +70,11 @@ public:
 		// However, code comments make it clear that userdata is deprecated, so we avoid the temptation
 		// to save 4 or 8 bytes.
 		WFace *face;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	public:
+		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BoxGrid:OccluderData")
+#endif
 	};
 
 private:
@@ -126,6 +135,11 @@ public:
 		real _occludeeDepth;
 		//deque<OccluderData*>::iterator _current, _occludeeCandidate;
 		vector<OccluderData*>::iterator _current, _occludeeCandidate;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	public:
+		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BoxGrid:Iterator")
+#endif
 	};
 
 	class Transform : public GridHelpers::Transform
@@ -176,6 +190,11 @@ private:
 	occluderContainer _faces;
 	Vec3r _viewpoint;
 	bool _enableQI;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BoxGrid")
+#endif
 };
 
 inline void BoxGrid::Iterator::initBeforeTarget()

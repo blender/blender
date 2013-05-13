@@ -31,6 +31,10 @@
 #include "../scene_graph/NodeDrawingStyle.h"
 #include "../system/Precision.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -228,6 +232,11 @@ protected:
 	bool _Draw3DScene;
 	NodeGroup _p2DNode;
 	NodeDrawingStyle *_p2DSelectionNode;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:AppView")
+#endif
 };
 
 } /* namespace Freestyle */

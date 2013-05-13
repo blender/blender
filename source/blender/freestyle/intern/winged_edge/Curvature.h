@@ -51,6 +51,10 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/Precision.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -100,6 +104,10 @@ public:
 	real Kr;  // radial curvature
 	real dKr; // radial curvature
 	Vec3r er; // radial curvature direction
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:CurvatureInfo")
+#endif
 };
 
 class Face_Curvature_Info
@@ -119,6 +127,10 @@ public:
 	}
 
 	vector<CurvatureInfo *> vec_curvature_info;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Face_Curvature_Info")
+#endif
 };
 
 bool LIB_WINGED_EDGE_EXPORT gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &n);

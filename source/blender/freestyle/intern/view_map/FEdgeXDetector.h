@@ -39,6 +39,10 @@
 #include "../winged_edge/Curvature.h"
 #include "../winged_edge/WXEdge.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -231,6 +235,11 @@ protected:
 
 	ProgressBar *_pProgressBar;
 	RenderMonitor *_pRenderMonitor;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FEdgeXDetector")
+#endif
 };
 
 } /* namespace Freestyle */

@@ -32,6 +32,10 @@
 
 #include "../geometry/Geom.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -114,6 +118,11 @@ protected:
 	Vec2r _texCoord;
 	Vec3r _color;
 	float _alpha;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeVertexRep")
+#endif
 };
 
 class Strip
@@ -147,6 +156,10 @@ public:
 	{
 		return _vertices;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Strip")
+#endif
 };
 
 class StrokeRep
@@ -207,6 +220,10 @@ public:
 	{
 		_textureId = textureId;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeRep")
+#endif
 };
 
 } /* namespace Freestyle */

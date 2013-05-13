@@ -34,6 +34,10 @@
 
 #include "../system/Precision.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class LIB_SYSTEM_EXPORT RandGen
@@ -44,6 +48,11 @@ public:
 
 private:
 	static void next();
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RandGen")
+#endif
 };
 
 } /* namespace Freestyle */

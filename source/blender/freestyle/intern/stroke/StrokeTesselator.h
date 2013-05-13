@@ -32,6 +32,10 @@
 
 #include "../scene_graph/LineRep.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class StrokeTesselator
@@ -68,6 +72,11 @@ public:
 private:
 	FrsMaterial _FrsMaterial;
 	bool _overloadFrsMaterial;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeTesselator")
+#endif
 };
 
 } /* namespace Freestyle */

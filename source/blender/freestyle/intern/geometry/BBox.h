@@ -28,6 +28,10 @@
  *  \date 22/05/2003
  */
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 template <class Point>
@@ -130,6 +134,11 @@ private:
 	Point _min;
 	Point _max;
 	bool _empty;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BBox")
+#endif
 };
 
 template <class Point>

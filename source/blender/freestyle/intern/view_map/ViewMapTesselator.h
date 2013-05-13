@@ -39,6 +39,10 @@
 
 #include "../winged_edge/WEdge.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class NodeShape;
@@ -98,6 +102,11 @@ private:
 	Nature::EdgeNature _nature;
 	FrsMaterial _FrsMaterial;
 	bool _overloadFrsMaterial;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator")
+#endif
 };
 
 /*! Class to tesselate the 2D projected silhouette */

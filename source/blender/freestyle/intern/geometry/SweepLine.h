@@ -31,6 +31,10 @@
 #include <list>
 #include <vector>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 /*! Class to define the intersection berween two segments*/
@@ -74,6 +78,10 @@ public:
 	Edge *EdgeB; // second segment
 	real tA; // parameter defining the intersection point with respect to the segment EdgeA.
 	real tB; // parameter defining the intersection point with respect to the segment EdgeB.
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Intersection")
+#endif
 };
 
 #ifdef _MSC_VER
@@ -180,6 +188,11 @@ private:
 	Point B;
 	std::vector<Intersection<Segment<T, Point> >*> _Intersections; // list of intersections parameters
 	bool _order; // true if A and B are in the same order than _edge.A and _edge.B. false otherwise.
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Segment")
+#endif
 };
 
 #ifdef _MSC_VER
@@ -322,6 +335,11 @@ private:
 	std::list<Segment<T, Point> *> _set; // set of active edges for a given position of the sweep line
 	std::vector<Segment<T, Point> *> _IntersectedEdges; // the list of intersected edges
 	std::vector<Intersection<Segment<T, Point> > *> _Intersections; // the list of all intersections.
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SweepLine")
+#endif
 };
 
 } /* namespace Freestyle */

@@ -32,6 +32,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class GrayImage;
@@ -78,6 +82,10 @@ public:
 	{
 		return _levels.size();
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ImagePyramid")
+#endif
 };
 
 class LIB_IMAGE_EXPORT GaussianPyramid : public ImagePyramid

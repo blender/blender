@@ -30,6 +30,10 @@
 
 #include "TimeStamp.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 /* ----------------------------------------- *
@@ -49,6 +53,10 @@ struct EdgeModifier : public unary_function<Edge, void>
 
 	/*! the () operator */
 	virtual void operator()(Edge& iEdge) {}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:EdgeModifier")
+#endif
 };
 
 /*! Modifier that sets the time stamp of an Interface1D to the time stamp of the system. */

@@ -35,6 +35,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -126,6 +130,10 @@ public:
 
 	/*! From world to image */
 	static Vec3r WorldToImage(const Vec3r& M);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SilhouetteGeomEngine")
+#endif
 };
 
 } /* namespace Freestyle */

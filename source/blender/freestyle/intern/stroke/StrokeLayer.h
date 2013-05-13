@@ -30,6 +30,10 @@
 
 #include <deque>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class Stroke;
@@ -96,6 +100,10 @@ public:
 	{
 		_strokes.push_back(iStroke);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeLayer")
+#endif
 };
 
 } /* namespace Freestyle */

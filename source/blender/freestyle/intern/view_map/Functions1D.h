@@ -39,6 +39,10 @@
 
 #include "../python/Director.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 //
@@ -119,6 +123,11 @@ public:
 
 protected:
 	IntegrationType _integration;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryFunction1D")
+#endif
 };
 
 
@@ -161,6 +170,11 @@ public:
 
 protected:
 	IntegrationType _integration;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryFunction1D_void")
+#endif
 };
 
 

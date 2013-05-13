@@ -30,6 +30,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 #define VISIT_COMPLETE_DEF(type)               \
@@ -92,6 +96,10 @@ public:
 	VISIT_COMPLETE_DEF(IndexedFaceSet)
 	VISIT_COMPLETE_DEF(DrawingStyle)
 	VISIT_COMPLETE_DEF(FrsMaterial)
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SceneVisitor")
+#endif
 };
 
 } /* namespace Freestyle */

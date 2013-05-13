@@ -31,6 +31,10 @@
 
 #include "FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class LIB_SYSTEM_EXPORT BaseObject
@@ -67,6 +71,11 @@ public:
 
 private:
 	unsigned _ref_counter;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BaseObject")
+#endif
 };
 
 } /* namespace Freestyle */

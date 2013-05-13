@@ -30,6 +30,10 @@
 
 #include <string>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -55,6 +59,11 @@ public:
 
 protected:
 	string _language;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interpreter")
+#endif
 };
 
 } /* namespace Freestyle */

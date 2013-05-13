@@ -32,6 +32,10 @@
 #include "Nature.h"
 #include "WEdge.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 typedef Nature::EdgeNature WXNature;
@@ -302,6 +306,10 @@ public:
 	{
 		_config = iConf;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXSmoothEdge")
+#endif
 };
 
 /* Class to store a value per vertex and a smooth edge.
@@ -471,6 +479,10 @@ public:
 				++_nNullDotP;
 		}
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXFaceLayer")
+#endif
 };
 
 class WXFace : public WFace

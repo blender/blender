@@ -40,6 +40,10 @@
 #include "../view_map/Interface1D.h"
 #include "../view_map/Functions1D.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 //
@@ -83,6 +87,10 @@ public:
 	{
 		return Director_BPy_UnaryPredicate1D___call__(this, inter);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate1D")
+#endif
 };
 
 
@@ -129,6 +137,10 @@ public:
 	{
 		return Director_BPy_BinaryPredicate1D___call__(this, inter1, inter2);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate1D")
+#endif
 };
 
 

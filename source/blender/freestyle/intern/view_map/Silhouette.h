@@ -48,6 +48,10 @@
 
 #include "../winged_edge/Curvature.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -1867,6 +1871,10 @@ public:
 	{
 		_importance = importance;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SShape")
+#endif
 };
 
 } /* namespace Freestyle */

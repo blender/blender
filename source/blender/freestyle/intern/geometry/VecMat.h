@@ -34,6 +34,10 @@
 #include <math.h>
 #include <vector>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 namespace VecMat {
@@ -272,6 +276,11 @@ protected:
 	enum {
 		_dim = N,
 	};
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:VecMat:Vec")
+#endif
 };
 
 
@@ -755,6 +764,11 @@ public:
 
 protected:
 	value_type _coord[_SIZE];
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:VecMat:Matrix")
+#endif
 };
 
 #undef _SIZE

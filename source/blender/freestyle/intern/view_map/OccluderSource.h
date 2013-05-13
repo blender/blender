@@ -32,6 +32,10 @@
 
 #include "../winged_edge/WEdge.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class OccluderSource
@@ -66,6 +70,11 @@ protected:
 	const GridHelpers::Transform& transform;
 
 	void buildCachedPolygon();
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:OccluderSource")
+#endif
 };
 
 } /* namespace Freestyle */

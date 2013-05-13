@@ -39,6 +39,10 @@
 #include "../system/BaseIterator.h"
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 /**********************************/
@@ -231,6 +235,10 @@ public:
 
 	/* connects a FEdge to the graph trough a SVertex */
 	//FEdge *Connect(FEdge *ioEdge, SVertex *ioVertex);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMap")
+#endif
 };
 
 /**********************************/
@@ -1584,6 +1592,10 @@ public:
 
 	/* removes the view vertex iViewVertex in the View Shape. */
 	void RemoveVertex(ViewVertex *iViewVertex);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewShape")
+#endif
 };
 
 

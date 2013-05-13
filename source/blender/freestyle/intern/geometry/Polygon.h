@@ -33,6 +33,10 @@
 #include "Geom.h"
 #include "GeomUtils.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -165,6 +169,11 @@ protected:
 	Point _min;
 	Point _max;
 	unsigned _id;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Geometry:Polygon")
+#endif
 };
 
 

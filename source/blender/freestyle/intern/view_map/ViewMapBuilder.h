@@ -52,6 +52,10 @@
 #include "../winged_edge/WEdge.h"
 #include "../winged_edge/WXEdge.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -247,6 +251,11 @@ protected:
 	void FindOccludee(FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, unsigned timestamp);
 	void FindOccludee(FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, unsigned timestamp,
 	                  Vec3r& u, Vec3r& A, Vec3r& origin, Vec3r& edge, vector<WVertex*>& faceVertices);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapBuilder")
+#endif
 };
 
 } /* namespace Freestyle */

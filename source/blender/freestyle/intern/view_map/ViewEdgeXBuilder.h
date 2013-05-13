@@ -47,6 +47,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 
 namespace Freestyle {
@@ -121,6 +125,10 @@ public:
 	{
 		return !(*this == b);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:OWXFaceLayer")
+#endif
 };
 
 class WXEdge;
@@ -160,6 +168,10 @@ public:
 	{
 		return !(*this == b);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:OWXEdge")
+#endif
 };
 
 class WOEdge;
@@ -279,6 +291,11 @@ protected:
 	SVertexMap _SVertexMap;
 	SShape *_pCurrentSShape;
 	ViewShape *_pCurrentVShape;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewEdgeXBuilder")
+#endif
 };
 
 } /* namespace Freestyle */

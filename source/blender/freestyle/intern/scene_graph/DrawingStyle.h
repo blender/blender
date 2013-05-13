@@ -28,6 +28,10 @@
  *  \date 10/10/2002
  */
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class DrawingStyle
@@ -100,6 +104,11 @@ private:
 	float LineWidth;
 	float PointSize;
 	bool LightingEnabled;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:DrawingStyle")
+#endif
 };
 
 DrawingStyle::DrawingStyle(const DrawingStyle& iBrother)

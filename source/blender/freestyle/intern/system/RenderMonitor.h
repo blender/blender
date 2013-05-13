@@ -32,6 +32,10 @@ extern "C" {
 #include "render_types.h"
 }
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class RenderMonitor
@@ -51,6 +55,11 @@ public:
 
 protected:
 	Render *_re;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RenderMonitor")
+#endif
 };
 
 } /* namespace Freestyle */

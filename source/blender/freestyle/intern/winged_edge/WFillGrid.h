@@ -34,6 +34,10 @@
 #include "../geometry/Grid.h"
 #include "../geometry/Polygon.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class LIB_WINGED_EDGE_EXPORT WFillGrid
@@ -78,6 +82,11 @@ private:
 	Grid *_grid;
 	WingedEdge *_winged_edge;
 	unsigned _polygon_id;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WFillGrid")
+#endif
 };
 
 } /* namespace Freestyle */

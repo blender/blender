@@ -30,6 +30,10 @@
 
 #include "../system/FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 /*! Class defining a material */
@@ -253,6 +257,11 @@ private:
 	float Ambient[4];
 	float Emission[4];
 	float Shininess;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsMaterial")
+#endif
 };
 
 FrsMaterial::FrsMaterial()

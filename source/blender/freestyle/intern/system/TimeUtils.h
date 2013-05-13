@@ -32,6 +32,10 @@
 
 #include "FreestyleConfig.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 namespace Freestyle {
 
 class Chronometer
@@ -54,6 +58,11 @@ public:
 
 private:
 	clock_t _start;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Chronometer")
+#endif
 };
 
 } /* namespace Freestyle */
