@@ -767,6 +767,8 @@ typedef struct uiDragToggleHandle {
 static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
                                      const int xy_src[2], const int xy_dst[2])
 {
+	/* popups such as layers won't re-evaluate on redraw */
+	const bool do_check = (ar->regiontype == RGN_TYPE_TEMPORARY);
 	bool change = false;
 	uiBlock *block;
 
@@ -790,6 +792,9 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 						BLI_assert(ui_is_but_bool(but) == true);
 						if (is_set_but != is_set) {
 							uiButExecute(C, but);
+							if (do_check) {
+								ui_check_but(but);
+							}
 							change = true;
 						}
 					}
@@ -933,6 +938,7 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 #ifdef USE_DRAG_TOGGLE
 		if (ui_is_but_bool(but)) {
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
+			ARegion *ar_prev;
 
 			drag_info->is_set = ui_is_but_push(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
@@ -940,10 +946,16 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 			drag_info->but_type_start = but->type;
 			copy_v2_v2_int(drag_info->xy_last, &event->x);
 
+			/* needed for toggle drag on popups */
+			ar_prev = CTX_wm_region(C);
+			CTX_wm_region_set(C, data->region);
+
 			WM_event_add_ui_handler(C, &data->window->modalhandlers,
 			                        ui_handler_region_drag_toggle,
 			                        ui_handler_region_drag_toggle_remove,
 			                        drag_info);
+
+			CTX_wm_region_set(C, ar_prev);
 		}
 		else
 #endif
