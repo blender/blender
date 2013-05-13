@@ -365,7 +365,12 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 
 	float background_color[3];
 	float tone_bg;
-	int i;
+	int i, multisample_enabled;
+
+	/* disable AA, makes widgets too blurry */
+	multisample_enabled = glIsEnabled(GL_MULTISAMPLE_ARB);
+	if (multisample_enabled)
+		glDisable(GL_MULTISAMPLE_ARB);
 
 	/* draw background */
 	ui_draw_tooltip_background(UI_GetStyle(), NULL, &bbox);
@@ -402,6 +407,9 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 		bbox.ymin -= data->lineh + data->spaceh;
 		bbox.ymax -= data->lineh + data->spaceh;
 	}
+
+	if (multisample_enabled)
+		glEnable(GL_MULTISAMPLE_ARB);
 }
 
 static void ui_tooltip_region_free_cb(ARegion *ar)
