@@ -594,6 +594,11 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_SPLINE_NOINTERSECT);
 	RNA_def_property_ui_text(prop, "Self Intersection Check", "Prevent feather from self-intersections");
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
+
+	prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MaskSplinePoint");
+	RNA_def_property_collection_sdna(prop, NULL, "points", "tot_point");
+	RNA_def_property_ui_text(prop, "Points", "Collection of points");
 }
 
 static void rna_def_mask_layer(BlenderRNA *brna)
