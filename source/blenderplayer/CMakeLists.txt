@@ -139,6 +139,7 @@ endif()
 		blenkernel_blc
 		bf_bmesh
 		bf_blenlib
+		bf_intern_utfconv
 		extern_binreloc
 		extern_minilzo
 		bf_intern_ghost # duplicate for linking
