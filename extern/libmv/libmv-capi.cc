@@ -36,6 +36,13 @@
 
 #include "libmv-capi.h"
 
+#include <cstdlib>
+#include <cassert>
+
+#if defined(DUMP_FAILURE) || defined (DUMP_ALWAYS)
+#  include <png.h>
+#endif
+
 #include "libmv/logging/logging.h"
 
 #include "libmv/tracking/track_region.h"
@@ -49,13 +56,6 @@
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/modal_solver.h"
 #include "libmv/simple_pipeline/reconstruction_scale.h"
-
-#include <stdlib.h>
-#include <assert.h>
-
-#if defined(DUMP_FAILURE) || defined (DUMP_ALWAYS)
-#  include <png.h>
-#endif
 
 #ifdef _MSC_VER
 #  define snprintf _snprintf
