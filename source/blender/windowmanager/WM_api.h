@@ -63,6 +63,7 @@ struct wmDropBox;
 struct wmDrag;
 struct ImBuf;
 struct ImageFormatData;
+struct ARegion;
 
 typedef struct wmJob wmJob;
 
@@ -130,6 +131,7 @@ void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
                                       void *customdata);
 
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
+void		WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *ar);
 
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 float		WM_cursor_pressure	(const struct wmWindow *win);

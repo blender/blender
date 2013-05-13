@@ -454,6 +454,14 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 
+	/* for debugging unneeded area redraws and partial redraw */
+#if 0
+	glEnable(GL_BLEND);
+	glColor4f(drand48(), drand48(), drand48(), 0.1f);
+	glRectf(ar->drawrct.xmin - 1, ar->drawrct.ymin - 1, ar->drawrct.xmax + 1, ar->drawrct.ymax + 1);
+	glDisable(GL_BLEND);
+#endif
+
 	ar->do_draw = FALSE;
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
