@@ -492,7 +492,7 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 	float r2 = P2.w;
 	float3 tg = (float4_to_float3(P2) - float4_to_float3(P1)) / l;
 	float3 xc = make_float3(tg.x * tg.z, tg.y * tg.z, -(tg.x * tg.x + tg.y * tg.y));
-	if (dot(xc, xc) == 0.0f)
+	if (is_zero(xc))
 		xc = make_float3(tg.x * tg.y, -(tg.x * tg.x + tg.z * tg.z), tg.z * tg.y);
 	xc = normalize(xc);
 	float3 yc = cross(tg, xc);

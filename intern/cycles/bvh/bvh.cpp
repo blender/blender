@@ -32,6 +32,7 @@
 #include "util_progress.h"
 #include "util_system.h"
 #include "util_types.h"
+#include "util_math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -251,7 +252,7 @@ void BVH::pack_triangle(int idx, float4 woop[3])
 	float3 r1 = v1 - v2;
 	float3 r2 = cross(r0, r1);
 
-	if(dot(r0, r0) == 0.0f || dot(r1, r1) == 0.0f || dot(r2, r2) == 0.0f) {
+	if(is_zero(r0) || is_zero(r1) || is_zero(r2)) {
 		/* degenerate */
 		woop[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		woop[1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
