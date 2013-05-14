@@ -587,15 +587,29 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		install(
-			FILES
-				${LIBDIR}/ffmpeg/lib/avcodec-53.dll
-				${LIBDIR}/ffmpeg/lib/avformat-53.dll
-				${LIBDIR}/ffmpeg/lib/avdevice-53.dll
-				${LIBDIR}/ffmpeg/lib/avutil-51.dll
-				${LIBDIR}/ffmpeg/lib/swscale-2.dll
-			DESTINATION ${TARGETDIR}
-		)
+		if(MSVC11)
+			install(
+				FILES
+					${LIBDIR}/ffmpeg/lib/avcodec-54.dll
+					${LIBDIR}/ffmpeg/lib/avformat-54.dll
+					${LIBDIR}/ffmpeg/lib/avdevice-54.dll
+					${LIBDIR}/ffmpeg/lib/avutil-52.dll
+					${LIBDIR}/ffmpeg/lib/avfilter-3.dll
+					${LIBDIR}/ffmpeg/lib/swresample-0.dll
+					${LIBDIR}/ffmpeg/lib/swscale-2.dll
+				DESTINATION ${TARGETDIR}
+			)
+		else()
+			install(
+				FILES
+					${LIBDIR}/ffmpeg/lib/avcodec-53.dll
+					${LIBDIR}/ffmpeg/lib/avformat-53.dll
+					${LIBDIR}/ffmpeg/lib/avdevice-53.dll
+					${LIBDIR}/ffmpeg/lib/avutil-51.dll
+					${LIBDIR}/ffmpeg/lib/swscale-2.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
 		if(WITH_MINGW64)
 		install(
 			FILES

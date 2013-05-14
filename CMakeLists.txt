@@ -157,6 +157,11 @@ mark_as_advanced(WITH_AUDASPACE)
 option(WITH_BOOL_COMPAT "Continue defining \"TRUE\" and \"FALSE\" until these can be replaced with \"true\" and \"false\" from stdbool.h" ON)
 mark_as_advanced(WITH_BOOL_COMPAT)
 
+if(MSVC11)
+	option(WITH_AVX_CPU "Warning: experimental build for newer CPUs with AVX extensions. Doesn't work on older CPUs!" OFF)
+	mark_as_advanced(WITH_AVX_CPU)
+endif()
+
 
 # (unix defaults to OpenMP On)
 if((UNIX AND NOT APPLE) OR (MINGW))
@@ -944,16 +949,27 @@ elseif(WIN32)
 			WITH_MINGW64)
 		
 		if(WITH_MINGW64)
-			message("Compiling for 64 bit with MinGW-w64.")
+			message(STATUS "Compiling for 64 bit with MinGW-w64.")
 			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
 		endif()
 	else()
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
-
 		# Setup 64bit and 64bit windows systems
 		if(CMAKE_CL_64)
-			message("64 bit compiler detected.")
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+			message(STATUS "64 bit compiler detected.")
+			if(MSVC11)
+				message(STATUS "Visual C++ 2012 detected.")
+				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64_vc11)
+			else()
+				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+			endif()
+		else()
+		# Setup 32bit windows systems
+			if(MSVC11)
+				message(STATUS "Visual C++ 2012 detected.")
+				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows_vc11)
+			else()
+				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+			endif()
 		endif()
 	endif()
 		
@@ -1017,7 +1033,21 @@ elseif(WIN32)
 	if(MSVC)
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
 
+		# MSVC11 SDL is not hard linked to dxguid.lib
+		if(MSVC11 AND WITH_SDL)
+			set(PLATFORM_LINKLIBS ${PLATFORM_LINKLIBS} dxguid)
+		endif()
+
 		add_definitions(/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB)
+
+		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
+		if(MSVC11)
+			add_definitions(/D_ALLOW_KEYWORD_MACROS)
+			# Experimental feature compile with /arch:AVX MSVC11 ONLY
+			if(WITH_AVX_CPU)
+				add_definitions(/arch:AVX)
+			endif()
+		endif()
 
 		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
 		set(CMAKE_C_FLAGS   "/nologo /J /Gd"       CACHE STRING "MSVC MT C++ flags " FORCE)
@@ -1124,13 +1154,24 @@ elseif(WIN32)
 				${LIBDIR}/ffmpeg/include
 				${LIBDIR}/ffmpeg/include/msvc
 			)
-			set(FFMPEG_LIBRARIES
-				${LIBDIR}/ffmpeg/lib/avcodec-53.lib
-				${LIBDIR}/ffmpeg/lib/avformat-53.lib
-				${LIBDIR}/ffmpeg/lib/avdevice-53.lib
-				${LIBDIR}/ffmpeg/lib/avutil-51.lib
-				${LIBDIR}/ffmpeg/lib/swscale-2.lib
-			)
+			# MSVC11 FFMPEG libs are newer
+			if(MSVC11)
+				set(FFMPEG_LIBRARIES
+					${LIBDIR}/ffmpeg/lib/avcodec-54.lib
+					${LIBDIR}/ffmpeg/lib/avformat-54.lib
+					${LIBDIR}/ffmpeg/lib/avdevice-54.lib
+					${LIBDIR}/ffmpeg/lib/avutil-52.lib
+					${LIBDIR}/ffmpeg/lib/swscale-2.lib
+				)
+			else()
+				set(FFMPEG_LIBRARIES
+					${LIBDIR}/ffmpeg/lib/avcodec-53.lib
+					${LIBDIR}/ffmpeg/lib/avformat-53.lib
+					${LIBDIR}/ffmpeg/lib/avdevice-53.lib
+					${LIBDIR}/ffmpeg/lib/avutil-51.lib
+					${LIBDIR}/ffmpeg/lib/swscale-2.lib
+				)
+			endif()
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
@@ -1175,7 +1216,7 @@ elseif(WIN32)
 			# set(PYTHON_LIBRARY ${PYTHON}/lib/python${_PYTHON_VERSION_NO_DOTS}.lib) #CACHE FILEPATH
 			unset(_PYTHON_VERSION_NO_DOTS)
 
-			#Shared includes for both vc2008 and vc2010
+			# Shared includes for both vc2008 and vc2010
 			set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/include/python${PYTHON_VERSION})
 
 			# uncached vars
@@ -1186,7 +1227,11 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			if(MSVC10)
+			if(MSVC11)
+				set(BOOST_LIBPATH ${BOOST}/lib)
+				set(BOOST_POSTFIX "vc110-mt-s-1_53.lib")
+				set(BOOST_DEBUG_POSTFIX "vc110-mt-sgd-1_53.lib")
+			elseif(MSVC10)
 				set(BOOST_LIBPATH ${BOOST}/vc2010/lib)
 				set(BOOST_POSTFIX "vc100-mt-s-1_49.lib")
 				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_49.lib")
@@ -1236,7 +1281,6 @@ elseif(WIN32)
 			set(OPENCOLORIO_DEFINITIONS)
 		endif()
 
-
 		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
 
 		# MSVC only, Mingw doesnt need
@@ -1261,7 +1305,7 @@ elseif(WIN32)
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			
 			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
-			#Turn off OpenMP since it causes crashes on render for subsurfed/multiresolution meshes
+			# Turn off OpenMP since it causes crashes on render for subsurfed/multiresolution meshes
 			set(WITH_OPENMP OFF)
 		endif()
 
@@ -1285,7 +1329,7 @@ elseif(WIN32)
 		set(ZLIB_LIBPATH ${ZLIB}/lib)
 		set(ZLIB_LIBRARIES z)
 
-		#comes with own pthread library
+		# comes with own pthread library
 		if(NOT WITH_MINGW64)
 			set(PTHREADS ${LIBDIR}/pthreads)
 			#set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
@@ -1408,7 +1452,7 @@ elseif(WIN32)
 		if(WITH_LLVM)
 			set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
 			set(LLVM_LIB_DIR ${LLVM_DIRECTORY}/lib)
-			#Explicitly set llvm lib order.
+			# Explicitly set llvm lib order.
 			#---- WARNING ON GCC ORDER OF LIBS IS IMPORTANT, DO NOT CHANGE! ---------
 			set(LLVM_LIBRARY LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMAnalysis LLVMArchive
 				LLVMAsmParser LLVMAsmPrinter
@@ -1428,7 +1472,7 @@ elseif(WIN32)
 				LLVMX86Disassembler LLVMX86Info
 				LLVMX86Utils LLVMipa
 				LLVMipo LLVMCore)
-			#imagehelp is needed by LLVM 3.1 on MinGW, check lib\Support\Windows\Signals.inc
+			# imagehelp is needed by LLVM 3.1 on MinGW, check lib\Support\Windows\Signals.inc
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -limagehlp")
 		endif()
 		
@@ -1571,7 +1615,7 @@ elseif(APPLE)
 			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
 			if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
 				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
-				#libSDL still needs 32bit carbon quicktime
+				# libSDL still needs 32bit carbon quicktime
 			endif()
 		elseif(WITH_CODEC_QUICKTIME)
 			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
@@ -1622,7 +1666,7 @@ elseif(APPLE)
 
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
 		set(OPENCOLLADA_LIBRARIES "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2 -lbuffer -lftoa")
-		#pcre is bundled with openCollada
+		# pcre is bundled with openCollada
 		#set(PCRE ${LIBDIR}/pcre)
 		#set(PCRE_LIBPATH ${PCRE}/lib)
 		set(PCRE_LIBRARIES pcre)
