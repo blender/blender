@@ -231,7 +231,7 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 	static int c_has_texface;
 
 	Object *litob = NULL;  /* to get mode to turn off mipmap in painting mode */
-	int backculled = GEMAT_BACKCULL || gtexdraw.use_backface_culling;
+	int backculled = 1;
 	int alphablend = 0;
 	int textured = 0;
 	int lit = 0;
