@@ -380,29 +380,31 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 	if (dm) {
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		int numVerts = dm->getNumVerts(dm);
-		int i, count = 0;
+		int i;
 		float co[3], nor[3];
 		
 		/* check that dvert is a valid pointers (just in case) */
 		if (dvert) {
 			MDeformVert *dv = dvert;
+			float weightsum = 0.0f;
+
 			/* get the average of all verts with that are in the vertex-group */
 			for (i = 0; i < numVerts; i++, dv++) {
 				MDeformWeight *dw = defvert_find_index(dv, defgroup);
-				if (dw && dw->weight != 0.0f) {
+
+				if (dw && dw->weight > 0.0f) {
 					dm->getVertCo(dm, i, co);
 					dm->getVertNo(dm, i, nor);
-					add_v3_v3(vec, co);
-					add_v3_v3(normal, nor);
-					count++;
-					
+					madd_v3_v3fl(vec, co, dw->weight);
+					madd_v3_v3fl(normal, nor, dw->weight);
+					weightsum += dw->weight;
 				}
 			}
 
 			/* calculate averages of normal and coordinates */
-			if (count > 0) {
-				mul_v3_fl(vec, 1.0f / count);
-				mul_v3_fl(normal, 1.0f / count);
+			if (weightsum > 0) {
+				mul_v3_fl(vec, 1.0f / weightsum);
+				mul_v3_fl(normal, 1.0f / weightsum);
 			}
 			
 			
