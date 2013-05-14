@@ -34,9 +34,8 @@ ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *editorNode = this->getbNode();
-	bool is_active = ((editorNode->flag & NODE_DO_OUTPUT_RECALC) &&
-	                  (editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup()) ||
-	                 context->isRendering();
+	bool is_active = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context->isRendering()) &&
+	                 ((editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
