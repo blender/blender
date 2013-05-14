@@ -429,12 +429,12 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
  * Starts at a tool-flagged edge and walks over the edge loop
  */
 
-/* utility function */
-static bool bm_loop_is_single(BMLoop *l)
+/* utility function to see if an edge is apart of an ngon boundary */
+static bool bm_edge_is_single(BMEdge *e)
 {
-	return ((BM_edge_is_boundary(l->e)) &&
-	        (l->f->len != 4) &&
-	        (BM_edge_is_boundary(l->next->e) || BM_edge_is_boundary(l->prev->e)));
+	return ((BM_edge_is_boundary(e)) &&
+	        (e->l->f->len != 4) &&
+	        (BM_edge_is_boundary(e->l->next->e) || BM_edge_is_boundary(e->l->prev->e)));
 }
 
 static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
@@ -453,7 +453,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
 	lwalk->is_boundary = BM_edge_is_boundary(e);
-	lwalk->is_single = (lwalk->is_boundary && bm_loop_is_single(e->l));
+	lwalk->is_single = (lwalk->is_boundary && bm_edge_is_single(e));
 
 	/* could also check that vertex*/
 	if ((lwalk->is_boundary == false) &&
@@ -648,7 +648,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			} while (true);
 		}
 
-		if (owalk.is_single == false && bm_loop_is_single(l)) {
+		if (owalk.is_single == false && bm_edge_is_single(l->e)) {
 			l = NULL;
 		}
 
