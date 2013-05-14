@@ -95,9 +95,9 @@ void kernel_cpu_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_s
 
 /* Tonemapping */
 
-void kernel_cpu_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer, int sample, int resolution, int x, int y, int offset, int stride)
+void kernel_cpu_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer, int sample, int x, int y, int offset, int stride)
 {
-	kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
+	kernel_film_tonemap(kg, rgba, buffer, sample, x, y, offset, stride);
 }
 
 /* Shader Evaluation */

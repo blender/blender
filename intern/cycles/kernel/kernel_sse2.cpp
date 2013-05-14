@@ -42,9 +42,9 @@ void kernel_cpu_sse2_path_trace(KernelGlobals *kg, float *buffer, unsigned int *
 
 /* Tonemapping */
 
-void kernel_cpu_sse2_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer, int sample, int resolution, int x, int y, int offset, int stride)
+void kernel_cpu_sse2_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer, int sample, int x, int y, int offset, int stride)
 {
-	kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
+	kernel_film_tonemap(kg, rgba, buffer, sample, x, y, offset, stride);
 }
 
 /* Shader Evaluate */

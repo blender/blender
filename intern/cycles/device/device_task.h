@@ -44,7 +44,6 @@ public:
 	device_ptr buffer;
 	int sample;
 	int num_samples;
-	int resolution;
 	int offset, stride;
 
 	device_ptr shader_input;

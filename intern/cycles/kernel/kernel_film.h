@@ -50,7 +50,7 @@ __device uchar4 film_float_to_byte(float4 color)
 
 __device void kernel_film_tonemap(KernelGlobals *kg,
 	__global uchar4 *rgba, __global float *buffer,
-	int sample, int resolution, int x, int y, int offset, int stride)
+	int sample, int x, int y, int offset, int stride)
 {
 	/* buffer offset */
 	int index = offset + x + y*stride;

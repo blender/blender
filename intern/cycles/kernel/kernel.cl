@@ -62,7 +62,7 @@ __kernel void kernel_ocl_tonemap(
 	__global type *name,
 #include "kernel_textures.h"
 
-	int sample, int resolution,
+	int sample,
 	int sx, int sy, int sw, int sh, int offset, int stride)
 {
 	KernelGlobals kglobals, *kg = &kglobals;
@@ -77,7 +77,7 @@ __kernel void kernel_ocl_tonemap(
 	int y = sy + get_global_id(1);
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
+		kernel_film_tonemap(kg, rgba, buffer, sample, x, y, offset, stride);
 }
 
 /*__kernel void kernel_ocl_shader(__global uint4 *input, __global float *output, int type, int sx)

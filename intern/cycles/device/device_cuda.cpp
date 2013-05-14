@@ -611,9 +611,6 @@ public:
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.sample))
 		offset += sizeof(task.sample);
 
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.resolution))
-		offset += sizeof(task.resolution);
-
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.x))
 		offset += sizeof(task.x);
 
