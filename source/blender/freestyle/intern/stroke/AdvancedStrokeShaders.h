@@ -154,7 +154,7 @@ class LIB_STROKE_EXPORT Smoother
 public:
 	Smoother(Stroke &ioStroke);
 
-	virtual ~Smoother() {}
+	virtual ~Smoother();
 
 	void smooth(int nbIterations, real iFactorPoint, real ifactorCurvature, real iFactorCurvatureDifference,
 	            real iAnisoPoint, real iAnisoNormal, real iAnisoCurvature, real icarricatureFactor);

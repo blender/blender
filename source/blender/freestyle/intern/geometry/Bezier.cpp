@@ -106,6 +106,11 @@ BezierCurve::BezierCurve(vector<Vec2d>& iPoints, double error)
 
 BezierCurve::~BezierCurve()
 {
+	if (!_Segments.empty()) {
+		vector<BezierCurveSegment*>::iterator v, vend;
+		for (v = _Segments.begin(), vend = _Segments.end(); v != vend; ++v)
+			delete *v;
+	}
 	if (_currentSegment)
 		delete _currentSegment;
 }
