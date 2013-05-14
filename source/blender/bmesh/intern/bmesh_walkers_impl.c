@@ -428,6 +428,15 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
  *
  * Starts at a tool-flagged edge and walks over the edge loop
  */
+
+/* utility function */
+static bool bm_loop_is_single(BMLoop *l)
+{
+	return ((BM_edge_is_boundary(l->e)) &&
+	        (l->f->len != 4) &&
+	        (BM_edge_is_boundary(l->next->e) || BM_edge_is_boundary(l->prev->e)));
+}
+
 static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 {
 	BMwLoopWalker *lwalk = NULL, owalk, *owalk_pt;
@@ -444,7 +453,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
 	lwalk->is_boundary = BM_edge_is_boundary(e);
-	lwalk->is_single = (vert_edge_count[0] == 2 && vert_edge_count[1] == 2);
+	lwalk->is_single = (lwalk->is_boundary && bm_loop_is_single(e->l));
 
 	/* could also check that vertex*/
 	if ((lwalk->is_boundary == false) &&
@@ -637,6 +646,10 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 					break;
 				}
 			} while (true);
+		}
+
+		if (owalk.is_single == false && bm_loop_is_single(l)) {
+			l = NULL;
 		}
 
 		if (l != NULL) {
