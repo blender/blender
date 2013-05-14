@@ -303,7 +303,7 @@ static void bridge_loop_pair(BMesh *bm,
 				}
 			}
 
-			if (f_example != f) {
+			if (f_example && (f_example != f)) {
 				BM_elem_attrs_copy(bm, bm, f_example, f);
 			}
 			BMO_elem_flag_enable(bm, f, FACE_OUT);

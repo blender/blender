@@ -39,7 +39,6 @@ struct BMLoop;
 struct BMFace;
 
 struct BLI_mempool;
-struct Object;
 
 /* note: it is very important for BMHeader to start with two
  * pointers. this is a requirement of mempool's method of
