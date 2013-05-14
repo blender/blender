@@ -1558,11 +1558,6 @@ void KX_Scene::AddAnimatedObject(CValue* gameobj)
 	m_animatedlist->Add(gameobj);
 }
 
-void KX_Scene::RemoveAnimatedObject(CValue* gameobj)
-{
-	m_animatedlist->RemoveValue(gameobj);
-}
-
 void KX_Scene::UpdateAnimations(double curtime)
 {
 	// Update any animations

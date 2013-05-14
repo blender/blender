@@ -165,7 +165,6 @@ KX_GameObject::~KX_GameObject()
 
 	if (m_actionManager)
 	{
-		KX_GetActiveScene()->RemoveAnimatedObject(this);
 		delete m_actionManager;
 	}
 
@@ -413,7 +412,7 @@ BL_ActionManager* KX_GameObject::GetActionManager()
 	// We only want to create an action manager if we need it
 	if (!m_actionManager)
 	{
-		KX_GetActiveScene()->AddAnimatedObject(this);
+		GetScene()->AddAnimatedObject(this);
 		m_actionManager = new BL_ActionManager(this);
 	}
 	return m_actionManager;
@@ -482,8 +481,7 @@ void KX_GameObject::ProcessReplica()
 	m_pSGNode = NULL;
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
-	if (m_actionManager)
-		m_actionManager = new BL_ActionManager(this);
+	m_actionManager = NULL;
 	m_state = 0;
 
 	KX_Scene* scene = KX_GetActiveScene();
