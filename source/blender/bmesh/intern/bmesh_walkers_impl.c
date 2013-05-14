@@ -538,74 +538,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			}
 		}
 	}
-	else if (l) { /* NORMAL EDGE WITH FACES */
-		int vert_edge_tot;
-		int stopi = 0;
-
-		v = BM_edge_other_vert(e, lwalk->lastv);
-
-		vert_edge_tot = BM_vert_edge_count_nonwire(v);
-
-		if (/* check if we should step, this is fairly involved */
-
-			/* typical loopiong over edges in the middle of a mesh */
-			/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
-			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundary == false) ||
-
-			/* walk over boundary of faces but stop at corners */
-			(owalk.is_boundary == true && owalk.is_single == false && vert_edge_tot > 2) ||
-
-			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
-			 * this lets us walk over the the boundary of an ngon which is handy */
-			(owalk.is_boundary == true && owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
-		{
-			i = 0;
-			stopi = vert_edge_tot / 2;
-			while (1) {
-				if ((owalk.is_boundary == false) && (i == stopi)) {
-					break;
-				}
-
-				l = BM_loop_other_edge_loop(l, v);
-
-				if (l == NULL) {
-					break;
-				}
-				else {
-					BMLoop *l_next;
-
-					l_next = l->radial_next;
-
-					if ((l_next == l) || (l_next == NULL)) {
-						break;
-					}
-
-					l = l_next;
-					i++;
-				}
-			}
-		}
-
-		if (l != NULL) {
-			if (l != e->l &&
-			    bmw_mask_check_edge(walker, l->e) &&
-			    !BLI_ghash_haskey(walker->visithash, l->e))
-			{
-				if (!(owalk.is_boundary == false && i != stopi)) {
-					lwalk = BMW_state_add(walker);
-					lwalk->cur = l->e;
-					lwalk->lastv = v;
-
-					lwalk->is_boundary = owalk.is_boundary;
-					lwalk->is_single = owalk.is_single;
-					lwalk->f_hub = owalk.f_hub;
-
-					BLI_ghash_insert(walker->visithash, l->e, NULL);
-				}
-			}
-		}
-	}
-	else {  /* WIRE EDGE */
+	else if (l == NULL) {  /* WIRE EDGE */
 		BMIter eiter;
 
 		/* match trunk: mark all connected wire edges */
@@ -627,6 +560,99 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 					BLI_ghash_insert(walker->visithash, nexte, NULL);
 				}
+			}
+		}
+	}
+	else if (owalk.is_boundary == false) {  /* NORMAL EDGE WITH FACES */
+		int vert_edge_tot;
+
+		v = BM_edge_other_vert(e, lwalk->lastv);
+
+		vert_edge_tot = BM_vert_edge_count_nonwire(v);
+
+		/* typical loopiong over edges in the middle of a mesh */
+		/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
+		if (vert_edge_tot == 4 || vert_edge_tot == 2) {
+			int i_opposite = vert_edge_tot / 2;
+			int i = 0;
+			do {
+				l = BM_loop_other_edge_loop(l, v);
+				if (BM_edge_is_manifold(l->e)) {
+					l = l->radial_next;
+				}
+				else {
+					l = NULL;
+					break;
+				}
+			} while ((++i != i_opposite));
+		}
+		else {
+			l = NULL;
+		}
+
+		if (l != NULL) {
+			if (l != e->l &&
+			    bmw_mask_check_edge(walker, l->e) &&
+			    !BLI_ghash_haskey(walker->visithash, l->e))
+			{
+				lwalk = BMW_state_add(walker);
+				lwalk->cur = l->e;
+				lwalk->lastv = v;
+
+				lwalk->is_boundary = owalk.is_boundary;
+				lwalk->is_single = owalk.is_single;
+				lwalk->f_hub = owalk.f_hub;
+
+				BLI_ghash_insert(walker->visithash, l->e, NULL);
+			}
+		}
+	}
+	else if (owalk.is_boundary == true) {  /* BOUNDARY EDGE WITH FACES */
+		int vert_edge_tot;
+
+		v = BM_edge_other_vert(e, lwalk->lastv);
+
+		vert_edge_tot = BM_vert_edge_count_nonwire(v);
+
+		/* check if we should step, this is fairly involved */
+		if (
+			/* walk over boundary of faces but stop at corners */
+			(owalk.is_single == false && vert_edge_tot > 2) ||
+
+			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
+			 * this lets us walk over the the boundary of an ngon which is handy */
+			(owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+		{
+			/* find next boundary edge in the fan */
+			do {
+				l = BM_loop_other_edge_loop(l, v);
+				if (BM_edge_is_manifold(l->e)) {
+					l = l->radial_next;
+				}
+				else if (BM_edge_is_boundary(l->e)) {
+					break;
+				}
+				else {
+					l = NULL;
+					break;
+				}
+			} while (true);
+		}
+
+		if (l != NULL) {
+			if (l != e->l &&
+			    bmw_mask_check_edge(walker, l->e) &&
+			    !BLI_ghash_haskey(walker->visithash, l->e))
+			{
+				lwalk = BMW_state_add(walker);
+				lwalk->cur = l->e;
+				lwalk->lastv = v;
+
+				lwalk->is_boundary = owalk.is_boundary;
+				lwalk->is_single = owalk.is_single;
+				lwalk->f_hub = owalk.f_hub;
+
+				BLI_ghash_insert(walker->visithash, l->e, NULL);
 			}
 		}
 	}
