@@ -584,7 +584,7 @@ void BLI_reverselist(ListBase *lb)
 	struct Link *curr = lb->first;
 	struct Link *prev = NULL;
 	struct Link *next = NULL;
-	while(curr) {
+	while (curr) {
 		next = curr->next;
 		curr->next = prev;
 		curr->prev = next;

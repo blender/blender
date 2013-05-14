@@ -224,7 +224,7 @@ static unsigned short *brush_painter_mask_new(BrushPainter *painter, int size)
 	unsigned short *mask, *m;
 	int x, y;
 
-	mask = MEM_callocN(sizeof(unsigned short)*size*size, "brush_painter_mask");
+	mask = MEM_callocN(sizeof(unsigned short) * size * size, "brush_painter_mask");
 	m = mask;
 
 	for (y = 0; y < size; y++) {
@@ -602,7 +602,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 			do_partial_update = true;
 
 		brush_painter_2d_tex_mapping(s, size, painter->startpaintpos,
-									 pos, brush->mask_mtex.brush_map_mode, &painter->mask_mapping);
+		                             pos, brush->mask_mtex.brush_map_mode, &painter->mask_mapping);
 	}
 
 	if (do_view || do_random)

@@ -2830,7 +2830,7 @@ void RNA_property_collection_skip(CollectionPropertyIterator *iter, int num)
 		ArrayIterator *internal = iter->internal;
 
 		if (!internal->skip) {
-			internal->ptr += internal->itemsize*(num-1);
+			internal->ptr += internal->itemsize * (num - 1);
 			iter->valid = (internal->ptr < internal->endptr);
 			if (iter->valid)
 				RNA_property_collection_next(iter);

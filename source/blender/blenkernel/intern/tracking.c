@@ -2448,7 +2448,7 @@ static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingT
 
 /* Get image buffer for previous marker's keyframe. */
 static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip, MovieClipUser *user, int clip_flag,
-												  MovieTrackingTrack *track, int curfra, bool backwards,
+                                                  MovieTrackingTrack *track, int curfra, bool backwards,
                                                   MovieTrackingMarker **marker_keyed_r)
 {
 	MovieTrackingMarker *marker_keyed;
@@ -2464,7 +2464,7 @@ static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip, MovieClipUser
 
 /* Get image buffer which si used as referece for track. */
 static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip, MovieClipUser *user, int clip_flag,
-												  MovieTrackingTrack *track, int curfra, bool backwards,
+                                                  MovieTrackingTrack *track, int curfra, bool backwards,
                                                   MovieTrackingMarker **reference_marker)
 {
 	ImBuf *ibuf = NULL;
@@ -2496,7 +2496,7 @@ static bool track_context_update_reference(MovieTrackingContext *context, TrackC
 
 	/* calculate patch for keyframed position */
 	reference_ibuf = tracking_context_get_reference_ibuf(context->clip, &context->user, context->clip_flag,
-														 track, curfra, context->backwards, &reference_marker);
+	                                                     track, curfra, context->backwards, &reference_marker);
 
 	if (!reference_ibuf)
 		return false;
@@ -2641,8 +2641,8 @@ static void tracking_insert_new_marker(MovieTrackingContext *context, MovieTrack
  * to dst_pixel_x and dst_pixel_y.
  */
 static bool configure_and_run_tracker(ImBuf *destination_ibuf, MovieTrackingTrack *track,
-									  MovieTrackingMarker *reference_marker, MovieTrackingMarker *marker,
-									  float *reference_search_area, int reference_search_area_width,
+                                      MovieTrackingMarker *reference_marker, MovieTrackingMarker *marker,
+                                      float *reference_search_area, int reference_search_area_width,
                                       int reference_search_area_height, float *mask,
                                       double dst_pixel_x[5], double dst_pixel_y[5])
 {
@@ -2686,8 +2686,8 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf, MovieTrackingTrac
 	                            reference_search_area_width,
 	                            reference_search_area_height,
 	                            patch_new,
-								new_search_area_width,
-								new_search_area_height,
+	                            new_search_area_width,
+	                            new_search_area_height,
 	                            src_pixel_x, src_pixel_y,
 	                            &result,
 	                            dst_pixel_x, dst_pixel_y);

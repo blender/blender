@@ -136,7 +136,7 @@ void ZCombineMaskAlphaOperation::executePixel(float output[4], float x, float y,
 	this->m_image1Reader->read(color1, x, y, sampler);
 	this->m_image2Reader->read(color2, x, y, sampler);
 
-	float fac = (1.0f - mask[0])*(1.0f - color1[3]) + mask[0]*color2[3];
+	float fac = (1.0f - mask[0]) * (1.0f - color1[3]) + mask[0] * color2[3];
 	float mfac = 1.0f - fac;
 
 	output[0] = color1[0] * mfac + color2[0] * fac;
