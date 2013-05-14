@@ -704,7 +704,7 @@ int float_array_from_PyObject(PyObject *obj, float *v, int n)
 		return float_array_from_PyList(obj, v, n);
 	}
 	else if (PyTuple_Check(obj) && PyTuple_Size(obj) == n) {
-		return float_array_from_PyList(obj, v, n);
+		return float_array_from_PyTuple(obj, v, n);
 	}
 	return 0;
 }
