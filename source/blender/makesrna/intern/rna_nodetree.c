@@ -6888,7 +6888,10 @@ static void rna_def_nodetree_nodes_api(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_NodeTree_node_new");
 	RNA_def_function_ui_description(func, "Add a node to this node tree");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "type", "", MAX_NAME, "Type", "Type of node to add");
+	/* XXX warning note should eventually be removed,
+	 * added this here to avoid frequent confusion with API changes from "type" to "bl_idname"
+	 */
+	parm = RNA_def_string(func, "type", "", MAX_NAME, "Type", "Type of node to add (Warning: should be same as node.bl_idname, not node.type!)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
 	parm = RNA_def_pointer(func, "node", "Node", "", "New node");
