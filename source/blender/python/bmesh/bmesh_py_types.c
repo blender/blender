@@ -401,6 +401,15 @@ static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
 	return PyBool_FromLong(BM_vert_is_wire(self->v));
 }
 
+PyDoc_STRVAR(bpy_bmvert_is_boundary_doc,
+"True when this vertex connected to any boundary edges (read-only).\n\n:type: boolean"
+);
+static PyObject *bpy_bmvert_is_boundary_get(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_vert_is_boundary(self->v));
+}
+
 
 /* Edge
  * ^^^^ */
@@ -685,6 +694,7 @@ static PyGetSetDef bpy_bmvert_getseters[] = {
 	/* readonly checks */
 	{(char *)"is_manifold",  (getter)bpy_bmvert_is_manifold_get,  (setter)NULL, (char *)bpy_bmvert_is_manifold_doc, NULL},
 	{(char *)"is_wire",      (getter)bpy_bmvert_is_wire_get,      (setter)NULL, (char *)bpy_bmvert_is_wire_doc, NULL},
+	{(char *)"is_boundary",  (getter)bpy_bmvert_is_boundary_get,  (setter)NULL, (char *)bpy_bmvert_is_boundary_doc, NULL},
 	{(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */

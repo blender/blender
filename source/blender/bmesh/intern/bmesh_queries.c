@@ -821,6 +821,25 @@ int BM_edge_is_boundary(BMEdge *e)
 }
 #endif
 
+bool BM_vert_is_boundary(BMVert *v)
+{
+	if (v->e) {
+		BMEdge *e_first, *e_iter;
+
+		e_first = e_iter = v->e;
+		do {
+			if (BM_edge_is_boundary(e_iter)) {
+				return true;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+
+		return false;
+	}
+	else {
+		return false;
+	}
+}
+
 /**
  * Returns the number of faces that are adjacent to both f1 and f2,
  * \note Could be sped up a bit by not using iterators and by tagging
