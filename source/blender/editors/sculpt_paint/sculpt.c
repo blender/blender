@@ -4399,7 +4399,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 
 	stroke = paint_stroke_new(C, sculpt_stroke_get_location,
 	                          sculpt_stroke_test_start,
-	                          sculpt_stroke_update_step,
+	                          sculpt_stroke_update_step, NULL,
 	                          sculpt_stroke_done, event->type);
 
 	op->customdata = stroke;
@@ -4428,7 +4428,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
-	                                  sculpt_stroke_update_step, sculpt_stroke_done, 0);
+	                                  sculpt_stroke_update_step, NULL, sculpt_stroke_done, 0);
 
 	/* frees op->customdata */
 	paint_stroke_exec(C, op);

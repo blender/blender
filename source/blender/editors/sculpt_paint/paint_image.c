@@ -478,22 +478,6 @@ void paint_brush_exit_tex(Brush *brush)
 }
 
 
-static void paint_redraw(const bContext *C, PaintOperation *pop, int final)
-{
-	if (pop->mode == PAINT_MODE_2D) {
-		paint_2d_redraw(C, pop->custom_paint, final);
-	}
-	else {
-		if (final) {
-			/* compositor listener deals with updating */
-			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, NULL);
-		}
-		else {
-			ED_region_tag_redraw(CTX_wm_region(C));
-		}
-	}
-}
-
 static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -547,7 +531,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 
 	float mouse[2];
 	float pressure;
-	int redraw, eraser;
+	int eraser;
 
 	RNA_float_get_array(itemptr, "mouse", mouse);
 	pressure = RNA_float_get(itemptr, "pressure");
@@ -559,10 +543,10 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 		BKE_brush_size_set(scene, brush, max_ff(1.0f, startsize * pressure));
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
-		redraw = paint_proj_stroke(C, pop->custom_paint, pop->prevmouse, mouse);
+		paint_proj_stroke(C, pop->custom_paint, pop->prevmouse, mouse);
 	}
 	else {
-		redraw = paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser);
+		paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser);
 	}
 
 	pop->prevmouse[0] = mouse[0];
@@ -571,11 +555,18 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 	/* restore brush values */
 	BKE_brush_alpha_set(scene, brush, startalpha);
 	BKE_brush_size_set(scene, brush, startsize);
+}
 
+static void paint_stroke_redraw(const bContext *C, struct PaintStroke *stroke, bool final)
+{
+	PaintOperation *pop = paint_stroke_mode_data(stroke);
 
-	if (redraw)
-		paint_redraw(C, pop, 0);
-
+	if (pop->mode == PAINT_MODE_3D_PROJECT) {
+		paint_proj_redraw(C, pop->custom_paint, final);
+	}
+	else {
+		paint_2d_redraw(C, pop->custom_paint, final);
+	}
 }
 
 static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
@@ -583,8 +574,6 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
 	PaintOperation *pop = paint_stroke_mode_data(stroke);
-
-	paint_redraw(C, pop, 1);
 
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 
@@ -629,6 +618,7 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	stroke = op->customdata = paint_stroke_new(C, NULL, paint_stroke_test_start,
 	                                  paint_stroke_update_step,
+	                                  paint_stroke_redraw,
 	                                  paint_stroke_done, event->type);
 	paint_stroke_set_mode_data(stroke, pop);
 	/* add modal handler */

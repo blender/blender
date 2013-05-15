@@ -153,6 +153,8 @@ typedef struct ImagePaintState {
 	int faceindex;
 	float uv[2];
 	int do_facesel;
+
+	bool need_redraw;
 } ImagePaintState;
 
 
@@ -1016,17 +1018,16 @@ static void paint_2d_canvas_free(ImagePaintState *s)
 		image_undo_remove_masks();
 }
 
-int paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser)
+void paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser)
 {
 	float newuv[2], olduv[2];
-	int redraw = 0;
 	ImagePaintState *s = ps;
 	BrushPainter *painter = s->painter;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
 	const bool is_data = (ibuf && ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA);
 
 	if (!ibuf)
-		return 0;
+		return;
 
 	s->blend = s->brush->blend;
 	if (eraser)
@@ -1064,19 +1065,10 @@ int paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int
 
 	brush_painter_2d_refresh_cache(s, painter, newuv);
 
-	if (paint_2d_op(s, painter->cache.ibuf, painter->cache.mask, olduv, newuv)) {
-		imapaint_image_update(s->sima, s->image, ibuf, false);
-		BKE_image_release_ibuf(s->image, ibuf, NULL);
-		redraw |= 1;
-	}
-	else {
-		BKE_image_release_ibuf(s->image, ibuf, NULL);
-	}
+	if (paint_2d_op(s, painter->cache.ibuf, painter->cache.mask, olduv, newuv))
+		s->need_redraw = true;
 
-	if (redraw)
-		imapaint_clear_partial_redraw();
-
-	return redraw;
+	BKE_image_release_ibuf(s->image, ibuf, NULL);
 }
 
 void *paint_2d_new_stroke(bContext *C, wmOperator *op)
@@ -1116,9 +1108,23 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op)
 	return s;
 }
 
-void paint_2d_redraw(const bContext *C, void *ps, int final)
+void paint_2d_redraw(const bContext *C, void *ps, bool final)
 {
 	ImagePaintState *s = ps;
+
+	if (s->need_redraw) {
+		ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
+
+		imapaint_image_update(s->sima, s->image, ibuf, false);
+		imapaint_clear_partial_redraw();
+
+		BKE_image_release_ibuf(s->image, ibuf, NULL);
+
+		s->need_redraw = false;
+	}
+	else if (!final) {
+		return;
+	}
 
 	if (final) {
 		if (s->image && !(s->sima && s->sima->lock))
@@ -1131,7 +1137,7 @@ void paint_2d_redraw(const bContext *C, void *ps, int final)
 		if (!s->sima || !s->sima->lock)
 			ED_region_tag_redraw(CTX_wm_region(C));
 		else
-			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, s->image);
+			WM_event_add_notifier(C, NC_IMAGE | NA_PAINTING, s->image);
 	}
 }
 

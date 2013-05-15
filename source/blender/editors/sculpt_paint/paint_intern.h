@@ -60,11 +60,13 @@ enum PaintMode;
 typedef int (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
 typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
+typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
 typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      StrokeGetLocation get_location, StrokeTestStart test_start,
-                                     StrokeUpdateStep update_step, StrokeDone done, int event_type);
+                                     StrokeUpdateStep update_step, StrokeRedraw redraw,
+                                     StrokeDone done, int event_type);
 void paint_stroke_data_free(struct wmOperator *op);
 
 bool paint_space_stroke_enabled(struct Brush *br, enum PaintMode mode);
@@ -139,11 +141,12 @@ void imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, 
 void imapaint_region_tiles(struct ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th);
 int get_imapaint_zoom(struct bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
-void paint_2d_redraw(const bContext *C, void *ps, int final);
+void paint_2d_redraw(const bContext *C, void *ps, bool final);
 void paint_2d_stroke_done(void *ps);
-int paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser);
+void paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser);
 void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, const float mouse[2], int mode);
-int paint_proj_stroke(struct bContext *C, void *ps, const float prevmval_i[2], const float mval_i[2]);
+void paint_proj_stroke(struct bContext *C, void *ps, const float prevmval_i[2], const float mval_i[2]);
+void paint_proj_redraw(const bContext *C, void *pps, bool final);
 void paint_proj_stroke_done(void *ps);
 void paint_brush_init_tex(struct Brush *brush);
 void paint_brush_exit_tex(struct Brush *brush);

@@ -454,9 +454,11 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_IMAGE:
 			if (wmn->reference == sima->image || !wmn->reference) {
-				image_scopes_tag_refresh(sa);
-				ED_area_tag_refresh(sa);
-				ED_area_tag_redraw(sa);
+				if (wmn->action != NA_PAINTING) {
+					image_scopes_tag_refresh(sa);
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+				}
 			}
 			break;
 		case NC_SPACE:
@@ -737,6 +739,10 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_IMAGE:
+			if (wmn->action == NA_PAINTING)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -829,7 +835,8 @@ static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_IMAGE:
-			ED_region_tag_redraw(ar);
+			if (wmn->action != NA_PAINTING)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_NODE:
 			ED_region_tag_redraw(ar);

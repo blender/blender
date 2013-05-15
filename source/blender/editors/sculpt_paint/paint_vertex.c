@@ -2561,7 +2561,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	int retval;
 
 	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
-	                                  wpaint_stroke_update_step,
+	                                  wpaint_stroke_update_step, NULL,
 	                                  wpaint_stroke_done, event->type);
 	
 	/* add modal handler */
@@ -3091,7 +3091,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	int retval;
 
 	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
-	                                  vpaint_stroke_update_step,
+	                                  vpaint_stroke_update_step, NULL,
 	                                  vpaint_stroke_done, event->type);
 	
 	/* add modal handler */

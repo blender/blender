@@ -380,6 +380,7 @@ typedef struct wmNotifier {
 #define NA_REMOVED			4
 #define NA_RENAME			5
 #define NA_SELECTED			6
+#define NA_PAINTING			7
 
 /* ************** Gesture Manager data ************** */
 
