@@ -272,27 +272,62 @@ void free_sculptsession_deformMats(SculptSession *ss)
 }
 
 /* Write out the sculpt dynamic-topology BMesh to the Mesh */
-void sculptsession_bm_to_me(struct Object *ob, int reorder)
+static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
+{
+	SculptSession *ss = ob->sculpt;
+
+	if (ss->bm) {
+		if (ob->data) {
+			BMIter iter;
+			BMFace *efa;
+			BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_set(efa, BM_ELEM_SMOOTH,
+				                 ss->bm_smooth_shading);
+			}
+			if (reorder)
+				BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
+			BM_mesh_bm_to_me(ss->bm, ob->data, FALSE);
+		}
+	}
+}
+
+void sculptsession_bm_to_me(Object *ob, int reorder)
 {
 	if (ob && ob->sculpt) {
-		SculptSession *ss = ob->sculpt;
-
-		if (ss->bm) {
-			if (ob->data) {
-				BMIter iter;
-				BMFace *efa;
-				BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
-					BM_elem_flag_set(efa, BM_ELEM_SMOOTH,
-					                 ss->bm_smooth_shading);
-				}
-				if (reorder)
-					BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
-				BM_mesh_bm_to_me(ss->bm, ob->data, FALSE);
-			}
-		}
+		sculptsession_bm_to_me_update_data_only(ob, reorder);
 
 		/* ensure the objects DerivedMesh mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+}
+
+void sculptsession_bm_to_me_for_render(Object *object)
+{
+	if (object && object->sculpt) {
+		if (object->sculpt->bm) {
+			/* Ensure no points to old arrays are stored in DM
+			 *
+			 * Apparently, we could not use DAG_id_tag_update
+			 * here because this will lead to the while object
+			 * surface to disappear, so we'll release DM in place.
+			 */
+			if (object->derivedFinal) {
+				object->derivedFinal->needsFree = 1;
+				object->derivedFinal->release(object->derivedFinal);
+				object->derivedFinal = NULL;
+			}
+			if (object->sculpt->pbvh) {
+				BKE_pbvh_free(object->sculpt->pbvh);
+				object->sculpt->pbvh = NULL;
+			}
+
+			sculptsession_bm_to_me_update_data_only(object, false);
+
+			/* In contrast with sculptsession_bm_to_me no need in
+			 * DAG tag update here - derived mesh was freed and
+			 * old pointers are nowhere stored.
+			 */
+		}
 	}
 }
 

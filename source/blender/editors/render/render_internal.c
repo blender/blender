@@ -40,6 +40,7 @@
 
 #include "BLF_translation.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
@@ -53,6 +54,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_multires.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
@@ -539,6 +541,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	const short is_write_still = RNA_boolean_get(op->ptr, "write_still");
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	const char *name;
+	Object *active_object = CTX_data_active_object(C);
 	
 	/* only one render job at a time */
 	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
@@ -572,7 +575,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	WM_cursor_wait(1);
 
 	/* flush multires changes (for sculpt) */
-	multires_force_render_update(CTX_data_active_object(C));
+	multires_force_render_update(active_object);
+
+	/* flush changes from dynamic topology sculpt */
+	sculptsession_bm_to_me_for_render(active_object);
 
 	/* cleanup sequencer caches before starting user triggered render.
 	 * otherwise, invalidated cache entries can make their way into

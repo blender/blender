@@ -1527,7 +1527,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		{
 			int unsupported = 0;
 
-			if (sculpt_dyntopo)
+			if (sculpt_dyntopo && !useRenderParams)
 				unsupported = TRUE;
 
 			if (scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM)
