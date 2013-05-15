@@ -34,6 +34,9 @@ struct BMEdgeLoopStore;
 /* multiple edgeloops (ListBase) */
 int                 BM_mesh_edgeloops_find(BMesh *bm, struct ListBase *r_lb,
                                            bool (*test_fn)(BMEdge *, void *user_data), void *user_data);
+bool                BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,
+                                                bool (*test_fn)(BMEdge *, void *user_data), void *user_data,
+                                                BMVert *v_src, BMVert *v_dst);
 
 void                BM_mesh_edgeloops_free(struct ListBase *eloops);
 void                BM_mesh_edgeloops_calc_center(BMesh *bm, struct ListBase *eloops);
