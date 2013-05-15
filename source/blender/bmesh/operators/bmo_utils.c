@@ -311,7 +311,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BMIter liter, liter2;
 	BMOIter siter;
 	BMFace *f, *startf;
-	BMFace **fstack = MEM_mallocN(sizeof(*fstack) * BMO_slot_buffer_count(op->slots_in, "faces"), __func__);
+	BMFace **fstack;
 	STACK_DECLARE(fstack);
 	BMLoop *l, *l2;
 	float maxx, maxx_test, cent[3];
@@ -358,7 +358,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	 * have the same winding.  this is done recursively, using a manual
 	 * stack (if we use simple function recursion, we'd end up overloading
 	 * the stack on large meshes). */
-
+	fstack = MEM_mallocN(sizeof(*fstack) * BMO_slot_buffer_count(op->slots_in, "faces"), __func__);
 	STACK_INIT(fstack);
 	STACK_PUSH(fstack, startf);
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
