@@ -541,6 +541,9 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	char *cstring;
 	char *cstring_args;
 
+	/* arbitrary, but can get huge string with stroke painting otherwise */
+	int max_prop_length = 10;
+
 	/* only to get the orginal props for comparisons */
 	PointerRNA opptr_default;
 
@@ -554,7 +557,8 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	WM_operator_py_idname(idname_py, ot->idname);
 	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
-	cstring_args = RNA_pointer_as_string_keywords(C, opptr, &opptr_default, FALSE, all_args);
+	cstring_args = RNA_pointer_as_string_keywords(C, opptr, &opptr_default, FALSE,
+	                                              all_args, max_prop_length);
 	BLI_dynstr_append(dynstr, cstring_args);
 	MEM_freeN(cstring_args);
 
@@ -737,7 +741,7 @@ char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, i
 		return NULL;
 	}
 
-	rhs = RNA_property_as_string(C, ptr, prop, index);
+	rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
 	if (!rhs) {
 		MEM_freeN(lhs);
 		return NULL;
