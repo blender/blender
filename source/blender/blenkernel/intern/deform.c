@@ -254,7 +254,7 @@ void defvert_normalize_lock_single(MDeformVert *dvert, const int def_nr_lock)
 	}
 }
 
-void defvert_normalize_lock_map(MDeformVert *dvert, const char *lock_flags, const int defbase_tot)
+void defvert_normalize_lock_map(MDeformVert *dvert, const bool *lock_flags, const int defbase_tot)
 {
 	if (dvert->totweight <= 0) {
 		/* nothing */

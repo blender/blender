@@ -1528,7 +1528,7 @@ static void vgroup_normalize_all(Object *ob, const bool lock_active)
 
 	if (dvert_array) {
 		const int defbase_tot = BLI_countlist(&ob->defbase);
-		char *lock_flags = BKE_objdef_lock_flags_get(ob, defbase_tot);
+		bool *lock_flags = BKE_objdef_lock_flags_get(ob, defbase_tot);
 
 		if ((lock_active == true) &&
 		    (lock_flags != NULL) &&
@@ -1809,7 +1809,7 @@ static bool vertex_group_limit_total(Object *ob,
 
 	if (dvert_array) {
 		int defbase_tot = BLI_countlist(&ob->defbase);
-		const char *vgroup_validmap = (all_deform_weights == false) ?
+		const bool *vgroup_validmap = (all_deform_weights == false) ?
 		            BKE_objdef_validmap_get(ob, defbase_tot) :
 		            NULL;
 		int num_to_drop = 0;

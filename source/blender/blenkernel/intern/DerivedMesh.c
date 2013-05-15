@@ -1066,7 +1066,7 @@ static void calc_weightpaint_vert_color(
         MDeformVert *dv, 
         DMWeightColorInfo *dm_wcinfo,
         const int defbase_tot, const int defbase_act,
-        const char *defbase_sel, const int defbase_sel_tot,
+        const bool *defbase_sel, const int defbase_sel_tot,
         const int draw_flag)
 {
 	float input = 0.0f;
@@ -1154,7 +1154,7 @@ static void calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const d
 		const int defbase_act = ob->actdef - 1;
 
 		int defbase_sel_tot = 0;
-		char *defbase_sel = NULL;
+		bool *defbase_sel = NULL;
 
 		if (draw_flag & CALC_WP_MULTIPAINT) {
 			defbase_sel = BKE_objdef_selected_get(ob, defbase_tot, &defbase_sel_tot);
