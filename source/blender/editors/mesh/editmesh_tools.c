@@ -2605,6 +2605,60 @@ void MESH_OT_fill(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_beauty", true, "Beauty", "Use best triangulation division");
 }
 
+static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
+{
+	BMOperator bmop;
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	const int totedge_orig = em->bm->totedge;
+	const int totface_orig = em->bm->totface;
+
+	if (!EDBM_op_init(em, &bmop, op,
+	                  "grid_fill edges=%he mat_nr=%i use_smooth=%b",
+	                  BM_ELEM_SELECT, em->mat_nr, use_smooth))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	BMO_op_exec(em->bm, &bmop);
+
+	/* cancel if nothing was done */
+	if ((totedge_orig == em->bm->totedge) &&
+	    (totface_orig == em->bm->totface))
+	{
+		EDBM_op_finish(em, &bmop, op, true);
+		return OPERATOR_CANCELLED;
+	}
+
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_fill_grid(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Fill Grid";
+	ot->description = "Fill grid from two loops";
+	ot->idname = "MESH_OT_fill_grid";
+
+	/* api callbacks */
+	ot->exec = edbm_fill_grid_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
+
 static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);

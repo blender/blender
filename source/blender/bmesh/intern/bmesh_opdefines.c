@@ -530,6 +530,29 @@ static BMOpDefine bmo_bridge_loops_def = {
 };
 
 /*
+ * Grid Fill.
+ *
+ * Create faces defined by 2 disconnected edge loops (which share edges).
+ */
+static BMOpDefine bmo_grid_fill_def = {
+	"grid_fill",
+	/* slots_in */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
+	/* restricts edges to groups.  maps edges to integer */
+	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
+	 {"use_smooth",     BMO_OP_SLOT_BOOL},     /* smooth state to use */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	/* maps new faces to the group numbers they came from */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
+	 {{'\0'}},
+	},
+	bmo_grid_fill_exec,
+	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
+};
+
+/*
  * Edge Loop Fill.
  *
  * Create faces defined by one or more non overlapping edge loops.
@@ -1701,6 +1724,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_extrude_face_region_def,
 	&bmo_extrude_vert_indiv_def,
 	&bmo_find_doubles_def,
+	&bmo_grid_fill_def,
 	&bmo_inset_individual_def,
 	&bmo_inset_region_def,
 	&bmo_join_triangles_def,

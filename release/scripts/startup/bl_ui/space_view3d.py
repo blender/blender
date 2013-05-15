@@ -1966,6 +1966,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
+        layout.operator("mesh.fill_grid")
         layout.operator("mesh.beautify_fill")
         layout.operator("mesh.inset")
         layout.operator("mesh.bevel").vertex_only = False

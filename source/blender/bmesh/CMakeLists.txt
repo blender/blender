@@ -50,6 +50,7 @@ set(SRC
 	operators/bmo_edgenet.c
 	operators/bmo_edgesplit.c
 	operators/bmo_extrude.c
+	operators/bmo_grid_fill.c
 	operators/bmo_hull.c
 	operators/bmo_inset.c
 	operators/bmo_join_triangles.c
