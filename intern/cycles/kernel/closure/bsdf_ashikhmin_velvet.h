@@ -37,13 +37,10 @@ CCL_NAMESPACE_BEGIN
 
 __device int bsdf_ashikhmin_velvet_setup(ShaderClosure *sc)
 {
-	float sigma = sc->data0;
-	sigma = fmaxf(sigma, 0.01f);
-
-	float m_invsigma2 = 1.0f/(sigma * sigma);
-
+	float sigma = fmaxf(sc->data0, 0.01f);
+	sc->data0 = 1.0f/(sigma * sigma); /* m_invsigma2 */
+	
 	sc->type = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
-	sc->data0 = m_invsigma2;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }

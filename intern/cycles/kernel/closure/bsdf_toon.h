@@ -52,14 +52,12 @@ __device void bsdf_diffuse_toon_blur(ShaderClosure *sc, float roughness)
 
 __device float3 bsdf_toon_get_intensity(float max_angle, float smooth, float angle)
 {
-	float is;
+	float is = 0.0f;
 
 	if(angle < max_angle)
 		is = 1.0f;
 	else if(angle < (max_angle + smooth) && smooth != 0.0f)
 		is = (1.0f - (angle - max_angle)/smooth);
-	else
-		is = 0.0f;
 	
 	return make_float3(is, is, is);
 }
