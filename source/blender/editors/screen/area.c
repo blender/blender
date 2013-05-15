@@ -589,8 +589,8 @@ static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
 	az->type = AZONE_AREA;
-	az->x1 = sa->totrct.xmax + 1;
-	az->y1 = sa->totrct.ymax + 1;
+	az->x1 = sa->totrct.xmax;
+	az->y1 = sa->totrct.ymax;
 	az->x2 = sa->totrct.xmax - (AZONESPOT - 1);
 	az->y2 = sa->totrct.ymax - (AZONESPOT - 1);
 	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
