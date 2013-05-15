@@ -53,7 +53,8 @@ public:
 	static void init(long seed);
 
 protected:
-	static real *_values;
+	static const unsigned NB_VALUE_NOISE = 512;
+	static real _values[NB_VALUE_NOISE];
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

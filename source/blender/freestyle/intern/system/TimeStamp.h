@@ -41,9 +41,7 @@ class LIB_SYSTEM_EXPORT TimeStamp
 public:
 	static inline TimeStamp *instance()
 	{
-		if (_instance == NULL)
-			_instance = new TimeStamp;
-		return _instance;
+		return &_instance;
 	}
 
 	inline unsigned getTimeStamp() const
@@ -70,7 +68,7 @@ protected:
 	TimeStamp(const TimeStamp&) {}
 
 private:
-	static TimeStamp *_instance;
+	static TimeStamp _instance;
 	unsigned _time_stamp;
 
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -30,6 +30,6 @@
 namespace Freestyle {
 
 LIB_SYSTEM_EXPORT
-TimeStamp *TimeStamp::_instance = 0;
+TimeStamp TimeStamp::_instance;
 
 } /* namespace Freestyle */

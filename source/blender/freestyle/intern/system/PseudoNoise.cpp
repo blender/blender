@@ -32,15 +32,12 @@
 
 namespace Freestyle {
 
-static const unsigned NB_VALUE_NOISE = 512;
-
-real *PseudoNoise::_values;
+real PseudoNoise::_values[];
 
 PseudoNoise::PseudoNoise() {}
 
 void PseudoNoise::init(long seed)
 {
-	_values = new real[NB_VALUE_NOISE];
 	RandGen::srand48(seed);
 	for (unsigned int i = 0; i < NB_VALUE_NOISE; i++)
 		_values[i] = -1.0 + 2.0 * RandGen::drand48();

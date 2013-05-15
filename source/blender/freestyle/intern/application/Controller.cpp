@@ -165,6 +165,11 @@ Controller::~Controller()
 		_inter = NULL;
 	}
 
+	if (_ProgressBar) {
+		delete _ProgressBar;
+		_ProgressBar = NULL;
+	}
+
 	//delete _current_dirs;
 }
 
