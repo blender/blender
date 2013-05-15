@@ -517,7 +517,7 @@ static void brush_painter_imbuf_partial_update(BrushPainter *painter, const floa
 		brush_painter_imbuf_update(painter, NULL, x1, y2, x2, ibuf->y, 0, 0);
 }
 
-static void brush_painter_2d_tex_mapping(ImagePaintState *s, int size, const float startpos[2], const float pos[2], int mapmode, rctf *mapping)
+static void brush_painter_2d_tex_mapping(ImagePaintState *s, int size, const float startpos[2], const float pos[2], const float mouse[2], int mapmode, rctf *mapping)
 {
 	float invw = 1.0f / (float)s->canvas->x;
 	float invh = 1.0f / (float)s->canvas->y;
@@ -528,7 +528,7 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int size, const flo
 	ipos[0] = (int)floorf((pos[0] - size / 2) + 1.0f);
 	ipos[1] = (int)floorf((pos[1] - size / 2) + 1.0f);
 
-	if (ELEM(mapmode, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_VIEW)) {
+	if (mapmode == MTEX_MAP_MODE_STENCIL) {
 		/* map from view coordinates of brush to region coordinates */
 		UI_view2d_to_region_no_clip(s->v2d, ipos[0] * invw, ipos[1] * invh, &xmin, &ymin);
 		UI_view2d_to_region_no_clip(s->v2d, (ipos[0] + size) * invw, (ipos[1] + size) * invh, &xmax, &ymax);
@@ -541,27 +541,27 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int size, const flo
 	}
 	else if (mapmode == MTEX_MAP_MODE_3D) {
 		/* 3D mapping, just mapping to canvas 0..1  */
-		mapping->xmin = ipos[0] * invw;
-		mapping->ymin = ipos[1] * invh;
-		mapping->xmax = size * invw / (float)size;
-		mapping->ymax = size * invh / (float)size;
+		mapping->xmin = 2.0f * (ipos[0] * invw - 0.5f);
+		mapping->ymin = 2.0f * (ipos[1] * invh - 0.5f);
+		mapping->xmax = 2.0f * invw;
+		mapping->ymax = 2.0f * invh;
 	}
-	else {
-		/* other mapping */
-		mapping->xmin = -size * 0.5f + 0.5f;
-		mapping->ymin = -size * 0.5f + 0.5f;
+	else if (ELEM(mapmode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_RANDOM)) {
+		/* view mapping */
+		mapping->xmin = mouse[0] - size * 0.5f + 0.5f;
+		mapping->ymin = mouse[1] - size * 0.5f + 0.5f;
 		mapping->xmax = 1.0f;
 		mapping->ymax = 1.0f;
 	}
-
-	if (mapmode == MTEX_MAP_MODE_TILED) {
-		/* offset relative to start position for tiled */
-		mapping->xmin += (int)pos[0] - (int)startpos[0];
-		mapping->ymin += (int)pos[1] - (int)startpos[1];
+	else /* if (mapmode == MTEX_MAP_MODE_TILED) */ {
+		mapping->xmin = -size * 0.5f + 0.5f + (int)pos[0] - (int)startpos[0];
+		mapping->ymin = -size * 0.5f + 0.5f + (int)pos[1] - (int)startpos[1];
+		mapping->xmax = 1.0f;
+		mapping->ymax = 1.0f;
 	}
 }
 
-static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *painter, const float pos[2])
+static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *painter, const float pos[2], const float mouse[2])
 {
 	const Scene *scene = painter->scene;
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -589,7 +589,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 		else
 			do_partial_update = true;
 
-		brush_painter_2d_tex_mapping(s, size, painter->startpaintpos, pos,
+		brush_painter_2d_tex_mapping(s, size, painter->startpaintpos, pos, mouse,
 		                             brush->mtex.brush_map_mode, &painter->tex_mapping);
 	}
 
@@ -603,8 +603,8 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 		else
 			do_partial_update = true;
 
-		brush_painter_2d_tex_mapping(s, size, painter->startpaintpos,
-		                             pos, brush->mask_mtex.brush_map_mode, &painter->mask_mapping);
+		brush_painter_2d_tex_mapping(s, size, painter->startpaintpos, pos, mouse,
+		                             brush->mask_mtex.brush_map_mode, &painter->mask_mapping);
 	}
 
 	if (do_view || do_random)
@@ -1063,7 +1063,7 @@ void paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], in
 	 */
 	brush_painter_2d_require_imbuf(painter, (ibuf->rect_float != NULL), !is_data, s->do_masking);
 
-	brush_painter_2d_refresh_cache(s, painter, newuv);
+	brush_painter_2d_refresh_cache(s, painter, newuv, mval);
 
 	if (paint_2d_op(s, painter->cache.ibuf, painter->cache.mask, olduv, newuv))
 		s->need_redraw = true;
