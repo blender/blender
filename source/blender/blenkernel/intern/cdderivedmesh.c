@@ -658,9 +658,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	 */
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (dm->numTessFaceData) {
-			glDisable(GL_TEXTURE_2D);
+			GPU_set_tpage(NULL, false, false);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
-			glEnable(GL_TEXTURE_2D);
 		}
 
 		return;
