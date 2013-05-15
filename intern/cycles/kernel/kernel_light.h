@@ -430,7 +430,8 @@ __device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls, 
 	/* instance transform */
 	if(object >= 0) {
 #ifdef __OBJECT_MOTION__
-		Transform tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
+		Transform itfm;
+		Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
 #else
 		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
