@@ -328,6 +328,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 
 	stroke->update_step(C, stroke, &itemptr);
 
+	/* don't record this for now, it takes up a lot of memory when doing long
+	 * strokes with small brush size, and operators have register disabled */
+	RNA_collection_clear(op->ptr, "stroke");
+
 	/* always redraw region if brush is shown */
 	if (ar && (paint->flags & PAINT_SHOW_BRUSH))
 		WM_paint_cursor_tag_redraw(window, ar);

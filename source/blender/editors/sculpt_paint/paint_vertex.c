@@ -2575,6 +2575,18 @@ static int wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int wpaint_exec(bContext *C, wmOperator *op)
+{
+	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
+	                                  wpaint_stroke_update_step, NULL,
+	                                  wpaint_stroke_done, 0);
+
+	/* frees op->customdata */
+	paint_stroke_exec(C, op);
+
+	return OPERATOR_FINISHED;
+}
+
 static int wpaint_cancel(bContext *C, wmOperator *op)
 {
 	paint_stroke_cancel(C, op);
@@ -2593,12 +2605,12 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = wpaint_invoke;
 	ot->modal = paint_stroke_modal;
-	/* ot->exec = vpaint_exec; <-- needs stroke property */
+	ot->exec = wpaint_exec;
 	ot->poll = weight_paint_poll;
 	ot->cancel = wpaint_cancel;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
@@ -3105,6 +3117,18 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int vpaint_exec(bContext *C, wmOperator *op)
+{
+	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
+	                                  vpaint_stroke_update_step, NULL,
+	                                  vpaint_stroke_done, 0);
+
+	/* frees op->customdata */
+	paint_stroke_exec(C, op);
+
+	return OPERATOR_FINISHED;
+}
+
 static int vpaint_cancel(bContext *C, wmOperator *op)
 {
 	paint_stroke_cancel(C, op);
@@ -3122,12 +3146,12 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = vpaint_invoke;
 	ot->modal = paint_stroke_modal;
-	/* ot->exec = vpaint_exec; <-- needs stroke property */
+	ot->exec = vpaint_exec;
 	ot->poll = vertex_paint_poll;
 	ot->cancel = vpaint_cancel;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
