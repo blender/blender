@@ -61,6 +61,13 @@ static bool RegionIsInBounds(const FloatImage &image1,
   return true;
 }
 
+/* Ugly but necessary fix for compilation on VS2012
+/* this file causes an Internal Compiler Error */
+// TODO: check regularly if ICE is fixed by MS!
+#if (_MSC_VER >= 1700 && _WIN64)
+#pragma optimize("s", on)
+#endif
+
 // This is implemented from "Lukas and Kanade 20 years on: Part 1. Page 42,
 // figure 14: the Levenberg-Marquardt-Inverse Compositional Algorithm".
 bool EsmRegionTracker::Track(const FloatImage &image1,
