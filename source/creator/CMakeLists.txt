@@ -628,12 +628,20 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_OPENAL)
-		install(
-			FILES
-				${LIBDIR}/openal/lib/OpenAL32.dll
-				${LIBDIR}/openal/lib/wrap_oal.dll
-			DESTINATION ${TARGETDIR}
-		)
+		if(MSVC11)
+			install(
+				FILES
+					${LIBDIR}/openal/lib/OpenAL32.dll
+				DESTINATION ${TARGETDIR}
+			)
+		else()
+			install(
+				FILES
+					${LIBDIR}/openal/lib/OpenAL32.dll
+					${LIBDIR}/openal/lib/wrap_oal.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
 	endif()
 
 	if(WITH_JACK AND MSVC11)
