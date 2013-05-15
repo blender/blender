@@ -138,14 +138,20 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 
 	/*first check if the array buffer size has room*/
 	/*if newlen is 200 chars less then totallen, reallocate anyway*/
-	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
-		int i;
+	if (newlen <= prop->totallen) {
+		if (newlen < prop->len && prop->totallen - newlen < 200) {
+			int i;
 
-		for (i = newlen; i < prop->len; i++)
-			IDP_FreeProperty(GETPROP(prop, i));
+			for (i = newlen; i < prop->len; i++)
+				IDP_FreeProperty(GETPROP(prop, i));
 
-		prop->len = newlen;
-		return;
+			prop->len = newlen;
+			return;
+		}
+		else if (newlen >= prop->len) {
+			prop->len = newlen;
+			return;
+		}
 	}
 
 	/* - Note: This code comes from python, here's the corresponding comment. - */
