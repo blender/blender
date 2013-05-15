@@ -880,14 +880,14 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->sss_mat= mat;
 	re->i.partsdone = FALSE;
 
-	if (!(re->r.scemode & R_PREVIEWBUTS))
+	if (!(re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW)))
 		re->result= NULL;
 	BLI_rw_mutex_unlock(&re->resultmutex);
 
 	RE_TileProcessor(re);
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	if (!(re->r.scemode & R_PREVIEWBUTS)) {
+	if (!(re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))) {
 		RE_FreeRenderResult(re->result);
 		re->result= rr;
 	}
@@ -937,7 +937,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float error = mat->sss_error;
 
 		error= get_render_aosss_error(&re->r, error);
-		if ((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
+		if ((re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW)) && error < 0.5f)
 			error= 0.5f;
 		
 		sss->ss[0]= scatter_settings_new(mat->sss_col[0], radius[0], ior, cfac, fw, bw);

@@ -298,7 +298,7 @@ void make_pointdensities(Render *re)
 {
 	Tex *tex;
 	
-	if (re->scene->r.scemode & R_PREVIEWBUTS)
+	if (re->scene->r.scemode & R_BUTS_PREVIEW)
 		return;
 	
 	re->i.infostr = IFACE_("Caching Point Densities");
@@ -318,7 +318,7 @@ void free_pointdensities(Render *re)
 {
 	Tex *tex;
 	
-	if (re->scene->r.scemode & R_PREVIEWBUTS)
+	if (re->scene->r.scemode & R_BUTS_PREVIEW)
 		return;
 	
 	for (tex= re->main->tex.first; tex; tex= tex->id.next) {

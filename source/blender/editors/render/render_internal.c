@@ -853,7 +853,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		rdata = rp->scene->r;
 		rdata.mode &= ~(R_OSA | R_MBLUR | R_BORDER | R_PANORAMA);
 		rdata.scemode &= ~(R_DOSEQ | R_DOCOMP | R_FREE_IMAGE);
-		rdata.scemode |= R_PREVIEWBUTS;
+		rdata.scemode |= R_VIEWPORT_PREVIEW;
 		
 		/* we do use layers, but only active */
 		rdata.scemode |= R_SINGLE_LAYER;

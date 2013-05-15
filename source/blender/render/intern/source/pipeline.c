@@ -580,7 +580,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	/* if preview render, we try to keep old result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
-	if (re->r.scemode & R_PREVIEWBUTS) {
+	if (re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW)) {
 		if (had_freestyle || (re->r.mode & R_EDGE_FRS)) {
 			/* freestyle manipulates render layers so always have to free */
 			render_result_free(re->result);
@@ -729,7 +729,7 @@ static int render_display_draw_enabled(Render *re)
 {
 	/* don't show preprocess for previewrender sss */
 	if (re->sss_points)
-		return !(re->r.scemode & R_PREVIEWBUTS);
+		return !(re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW));
 	else
 		return 1;
 }
@@ -766,7 +766,7 @@ static void *do_part_thread(void *pa_v)
 		}
 		else if (render_display_draw_enabled(&R)) {
 			/* on break, don't merge in result for preview renders, looks nicer */
-			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) {
+			if (R.test_break(R.tbh) && (R.r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))) {
 				/* pass */
 			}
 			else {
@@ -947,7 +947,7 @@ static void threaded_tile_processor(Render *re)
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
-	if (re->result == NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+	if (re->result == NULL || !(re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))) {
 		render_result_free(re->result);
 
 		if (re->sss_points && render_display_draw_enabled(re))

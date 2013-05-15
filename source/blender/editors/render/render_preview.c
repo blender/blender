@@ -273,7 +273,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 	if (sce) {
 		
 		/* this flag tells render to not execute depsgraph or ipos etc */
-		sce->r.scemode |= R_PREVIEWBUTS;
+		sce->r.scemode |= R_BUTS_PREVIEW;
 		/* set world always back, is used now */
 		sce->world = pr_main->world.first;
 		/* now: exposure copy */

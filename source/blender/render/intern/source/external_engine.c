@@ -258,7 +258,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 
 		if (re->result->do_exr_tile)
 			render_result_exr_file_merge(re->result, result);
-		else if (!(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS)))
+		else if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW)))
 			render_result_merge(re->result, result);
 
 		/* draw */
@@ -401,7 +401,7 @@ int RE_engine_render(Render *re, int do_all)
 	/* verify if we can render */
 	if (!type->render)
 		return 0;
-	if ((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
+	if ((re->r.scemode & R_BUTS_PREVIEW) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
 	if (do_all && !(type->flag & RE_USE_POSTPROCESS))
 		return 0;
@@ -410,7 +410,7 @@ int RE_engine_render(Render *re, int do_all)
 
 	/* create render result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	if (re->result == NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+	if (re->result == NULL || !(re->r.scemode & R_BUTS_PREVIEW)) {
 		int savebuffers;
 
 		if (re->result)
@@ -444,14 +444,14 @@ int RE_engine_render(Render *re, int do_all)
 
 	if (re->flag & R_ANIMATION)
 		engine->flag |= RE_ENGINE_ANIMATION;
-	if (re->r.scemode & R_PREVIEWBUTS)
+	if (re->r.scemode & R_BUTS_PREVIEW)
 		engine->flag |= RE_ENGINE_PREVIEW;
 	engine->camera_override = re->camera_override;
 
 	engine->resolution_x = re->winx;
 	engine->resolution_y = re->winy;
 
-	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_PREVIEWBUTS)) == 0)
+	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0)
 		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
 
 	RE_parts_init(re, FALSE);

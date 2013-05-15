@@ -71,7 +71,7 @@ extern struct Render R;
 ListBase *get_lights(ShadeInput *shi)
 {
 	
-	if (R.r.scemode & R_PREVIEWBUTS)
+	if (R.r.scemode & R_BUTS_PREVIEW)
 		return &R.lights;
 	if (shi->light_override)
 		return &shi->light_override->gobject;
