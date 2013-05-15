@@ -1016,7 +1016,7 @@ static void paint_2d_canvas_free(ImagePaintState *s)
 		image_undo_remove_masks();
 }
 
-int paint_2d_stroke(void *ps, const int prev_mval[2], const int mval[2], int eraser)
+int paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser)
 {
 	float newuv[2], olduv[2];
 	int redraw = 0;

@@ -3206,7 +3206,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	BLI_linklist_free(image_LinkList, NULL);
 }
 
-static void paint_proj_begin_clone(ProjPaintState *ps, const int mouse[2])
+static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
 {
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
@@ -4044,23 +4044,17 @@ static int project_paint_op(void *state, const float lastpos[2], const float pos
 }
 
 
-int paint_proj_stroke(bContext *C, void *pps, const int prevmval_i[2], const int mval_i[2])
+int paint_proj_stroke(bContext *C, void *pps, const float prev_pos[2], const float pos[2])
 {
 	ProjPaintState *ps = pps;
 	int a, redraw;
-	float pos[2], prev_pos[2];
-
-	pos[0] = (float)(mval_i[0]);
-	pos[1] = (float)(mval_i[1]);
-
-	prev_pos[0] = (float)(prevmval_i[0]);
-	prev_pos[1] = (float)(prevmval_i[1]);
 
 	/* clone gets special treatment here to avoid going through image initialization */
 	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
 		Scene *scene = ps->scene;
 		View3D *v3d = ps->v3d;
 		float *cursor = give_cursor(scene, v3d);
+		int mval_i[2] = {(int)pos[0], (int)pos[1]};
 
 		view3d_operator_needs_opengl(C);
 
@@ -4160,7 +4154,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 	return;
 }
 
-void *paint_proj_new_stroke(bContext *C, Object *ob, const int mouse[2], int mode)
+void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int mode)
 {
 	ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
 	project_state_init(C, ob, ps, mode);

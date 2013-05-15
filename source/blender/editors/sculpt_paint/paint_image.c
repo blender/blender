@@ -446,7 +446,7 @@ typedef struct PaintOperation {
 
 	void *custom_paint;
 
-	int prevmouse[2];
+	float prevmouse[2];
 	double starttime;
 
 	ViewContext vc;
@@ -545,13 +545,11 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 	float startsize = BKE_brush_size_get(scene, brush);
 	float startalpha = BKE_brush_alpha_get(scene, brush);
 
-	float mousef[2];
+	float mouse[2];
 	float pressure;
-	int mouse[2], redraw, eraser;
+	int redraw, eraser;
 
-	RNA_float_get_array(itemptr, "mouse", mousef);
-	mouse[0] = (int)(mousef[0]);
-	mouse[1] = (int)(mousef[1]);
+	RNA_float_get_array(itemptr, "mouse", mouse);
 	pressure = RNA_float_get(itemptr, "pressure");
 	eraser = RNA_boolean_get(itemptr, "pen_flip");
 

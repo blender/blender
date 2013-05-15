@@ -189,7 +189,7 @@ void UI_view2d_listview_visible_cells(struct View2D *v2d, short columnwidth, sho
                                       int *row_min, int *row_max);
 
 /* coordinate conversion */
-void UI_view2d_region_to_view(struct View2D *v2d, int x, int y, float *viewx, float *viewy);
+void UI_view2d_region_to_view(struct View2D *v2d, float x, float y, float *viewx, float *viewy);
 void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *regionx, int *regiony);
 void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, int *regionx, int *region_y);
 
