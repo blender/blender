@@ -74,8 +74,6 @@ void	ED_region_visible_rect(struct ARegion *ar, struct rcti *rect);
 void    ED_spacetypes_keymap(struct wmKeyConfig *keyconf);
 int     ED_area_header_switchbutton(const struct bContext *C, struct uiBlock *block, int yco);
 int     ED_area_header_standardbuttons(const struct bContext *C, struct uiBlock *block, int yco);
-void    ED_area_overdraw(struct bContext *C);
-void    ED_area_overdraw_flush(struct ScrArea *sa, struct ARegion *ar);
 
 
 /* areas */
