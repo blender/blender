@@ -428,6 +428,11 @@ void RE_FreeAllRender(void)
 	while (RenderGlobal.renderlist.first) {
 		RE_FreeRender(RenderGlobal.renderlist.first);
 	}
+
+#ifdef WITH_FREESTYLE
+	/* finalize Freestyle */
+	FRS_exit();
+#endif
 }
 
 /* on file load, free all re */
