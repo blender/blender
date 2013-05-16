@@ -263,41 +263,34 @@ int Nature_Init(PyObject *module)
 static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 {
 	BPy_Nature *result;
+	long op1, op2;
 
 	if (!BPy_Nature_Check(a) || !BPy_Nature_Check(b)) {
 		PyErr_SetString(PyExc_TypeError, "operands must be a Nature object");
 		return NULL;
 	}
-	if (Py_SIZE(a) != 1) {
-		stringstream msg;
-		msg << "operand 1: unexpected Nature byte length: " << Py_SIZE(a);
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	op1 = PyLong_AsLong(a);
+	if (PyErr_Occurred()) {
+		PyErr_SetString(PyExc_ValueError, "operand 1: unexpected Nature value");
 		return NULL;
 	}
-	if (Py_SIZE(b) != 1) {
-		stringstream msg;
-		msg << "operand 2: unexpected Nature byte length: " << Py_SIZE(b);
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	op2 = PyLong_AsLong(b);
+	if (PyErr_Occurred()) {
+		PyErr_SetString(PyExc_ValueError, "operand 2: unexpected Nature value");
 		return NULL;
 	}
 	result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
 	if (!result)
 		return NULL;
-	if (Py_SIZE(result) != 1) {
-		stringstream msg;
-		msg << "unexpected Nature byte length: " << Py_SIZE(result);
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
-		return NULL;
-	}
 	switch (op) {
 	case '&':
-		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) & (((PyLongObject *)b)->ob_digit)[0];
+		result->i.ob_digit[0] = op1 & op2;
 		break;
 	case '^':
-		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) ^ (((PyLongObject *)b)->ob_digit)[0];
+		result->i.ob_digit[0] = op1 ^ op2;
 		break;
 	case '|':
-		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) | (((PyLongObject *)b)->ob_digit)[0];
+		result->i.ob_digit[0] = op1 | op2;
 		break;
 	}
 	return (PyObject *)result;
