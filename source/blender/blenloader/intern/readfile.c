@@ -9346,7 +9346,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	/* default values in Freestyle settings */
-	{
+	if (main->versionfile < 267) {
 		Scene *sce;
 		SceneRenderLayer *srl;
 		FreestyleLineStyle *linestyle;
@@ -9404,7 +9404,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 267) {
 		/* Initialize the active_viewer_key for compositing */
 		bScreen *screen;
 		Scene *scene;
