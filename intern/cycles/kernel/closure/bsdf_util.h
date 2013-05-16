@@ -30,8 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __OSL_BSDF_H__
-#define __OSL_BSDF_H__
+#ifndef __BSDF_UTIL_H__
+#define __BSDF_UTIL_H__
 
 CCL_NAMESPACE_BEGIN
 
@@ -133,5 +133,5 @@ __device float smooth_step(float edge0, float edge1, float x)
 
 CCL_NAMESPACE_END
 
-#endif /* __OSL_BSDF_H__ */
+#endif /* __BSDF_UTIL_H__ */
 
