@@ -31,6 +31,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
@@ -110,6 +112,7 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const int xtot, const
                                const short mat_nr, const bool use_smooth,
                                const bool use_flip)
 {
+	const bool use_vert_interp = CustomData_has_interp(&bm->vdata);
 	int x, y;
 
 #define XY(_x, _y)  ((_x) + ((_y) * (xtot)))
@@ -186,6 +189,19 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const int xtot, const
 
 			v = BM_vert_create(bm, co, NULL, 0);
 			v_grid[(y * xtot) + x] = v;
+
+			/* interpolate only along one axis, this could be changed
+			 * but from user pov gives predictable results since these are selected loop */
+			if (use_vert_interp) {
+				void *v_cdata[2] = {
+				    v_grid[XY(x,          0)]->head.data,
+				    v_grid[XY(x, (ytot - 1))]->head.data,
+				};
+				const float t = (float)y / ((float)ytot - 1);
+				const float w[2] = {1.0f - t, t};
+				CustomData_bmesh_interp(&bm->vdata, v_cdata, w, NULL, 2, v->head.data);
+			}
+
 		}
 	}
 
@@ -272,7 +288,9 @@ static void bm_grid_fill(BMesh *bm,
 	for (el = lb_b->first,      i = 0; el; el = el->next, i++) { v_grid[(ytot * xtot) + (i - xtot)] = el->data; }
 	for (el = lb_rail_a->first, i = 0; el; el = el->next, i++) { v_grid[xtot * i]                   = el->data; }
 	for (el = lb_rail_b->first, i = 0; el; el = el->next, i++) { v_grid[(xtot * i) + (xtot - 1)]    = el->data; }
+#ifdef DEBUG
 	for (x = 1; x < xtot - 1; x++) { for (y = 1; y < ytot - 1; y++) { BLI_assert(v_grid[(y * xtot) + x] == NULL); }}
+#endif
 
 #ifdef USE_FLIP_DETECT
 	{
