@@ -59,7 +59,7 @@ __device float3 bsdf_toon_get_intensity(float max_angle, float smooth, float ang
 	else if(angle < (max_angle + smooth) && smooth != 0.0f)
 		is = (1.0f - (angle - max_angle)/smooth);
 	else
-		is = 0.0f
+		is = 0.0f;
 	
 	return make_float3(is, is, is);
 }
