@@ -251,7 +251,9 @@ static void bm_grid_fill(BMesh *bm,
 	const int ytot = BM_edgeloop_length_get(estore_rail_a);
 	//BMVert *v;
 	int i;
+#ifdef DEBUG
 	int x, y;
+#endif
 	LinkData *el;
 	bool use_flip = false;
 
