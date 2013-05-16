@@ -93,6 +93,7 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
     settings = CollectionProperty(
             name="Settings",
             description="Settings to be applied on the newly created node",
+            options={'SKIP_SAVE'},
             type=NodeSetting,
             )
 
