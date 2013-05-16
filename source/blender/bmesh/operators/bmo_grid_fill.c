@@ -423,6 +423,12 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 		goto cleanup;
 	}
 
+	if (BM_edgeloop_overlap_check(estore_rail_a, estore_rail_b)) {
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+		                "Connecting edge loops overlap");
+		goto cleanup;
+	}
+
 	/* finally we have all edge loops needed */
 	bm_grid_fill(bm, estore_a, estore_b, estore_rail_a, estore_rail_b,
 	             mat_nr, use_smooth);

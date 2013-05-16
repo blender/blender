@@ -57,6 +57,8 @@ void                BM_edgeloop_calc_normal(BMesh *bm, struct BMEdgeLoopStore *e
 void                BM_edgeloop_flip(BMesh *bm, struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_expand(BMesh *bm, struct BMEdgeLoopStore *el_store, int el_store_len);
 
+bool                BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a, struct BMEdgeLoopStore *el_store_b);
+
 #define BM_EDGELOOP_NEXT(el_store, elink) \
 	(elink)->next ? elink->next : (BM_edgeloop_is_closed(el_store) ? BM_edgeloop_verts_get(el_store)->first : NULL)
 
