@@ -62,9 +62,9 @@ static bool RegionIsInBounds(const FloatImage &image1,
 }
 
 /* Ugly but necessary fix for compilation on VS2012
-/* this file causes an Internal Compiler Error */
+ * this file causes an Internal Compiler Error */
 // TODO: check regularly if ICE is fixed by MS!
-#if (_MSC_VER >= 1700 && _WIN64)
+#if defined(_MSC_VER) && defined(_WIN64) && (_MSC_VER >= 1700)
 #pragma optimize("s", on)
 #endif
 
