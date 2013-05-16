@@ -644,21 +644,21 @@ elseif(WIN32)
 		endif()
 	endif()
 
-	if(WITH_JACK AND MSVC11)
-		if(CMAKE_CL_64)
-			install(
-				FILES
-					${LIBDIR}/jack/lib/libjack64.dll
-				DESTINATION ${TARGETDIR}
-			)
-		else()
-			install(
-				FILES
-					${LIBDIR}/jack/lib/libjack.dll
-				DESTINATION ${TARGETDIR}
-			)
-		endif()
-	endif()
+#	if(WITH_JACK AND MSVC11)
+#		if(CMAKE_CL_64)
+#			install(
+#				FILES
+#					${LIBDIR}/jack/lib/libjack64.dll
+#				DESTINATION ${TARGETDIR}
+#			)
+#		else()
+#			install(
+#				FILES
+#					${LIBDIR}/jack/lib/libjack.dll
+#				DESTINATION ${TARGETDIR}
+#			)
+#		endif()
+#	endif()
 
 	if(WITH_SDL)
 		if(NOT CMAKE_CL_64)
