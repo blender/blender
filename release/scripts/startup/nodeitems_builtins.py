@@ -48,16 +48,16 @@ class TextureNodeCategory(NodeCategory):
 
 
 def compositor_node_group_items(self):
-    return [NodeItem('CompositorNodeGroup', group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
+    return [NodeItem('CompositorNodeGroup', group.name, { "node_tree" : "bpy.data.node_groups[%r]" % group.name })
             for group in bpy.data.node_groups if group.bl_idname == 'CompositorNodeTree']
 
 # Note: node groups not distinguished by old/new shader nodes
 def shader_node_group_items(self):
-    return [NodeItem('ShaderNodeGroup', group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
+    return [NodeItem('ShaderNodeGroup', group.name, { "node_tree" : "bpy.data.node_groups[%r]" % group.name })
             for group in bpy.data.node_groups if group.bl_idname == 'ShaderNodeTree']
 
 def texture_node_group_items(self):
-    return [NodeItem('TextureNodeGroup', group.name, { "node_tree" : "bpy.data.node_groups['%s']" % group.name })
+    return [NodeItem('TextureNodeGroup', group.name, { "node_tree" : "bpy.data.node_groups[%r]" % group.name })
             for group in bpy.data.node_groups if group.bl_idname == 'TextureNodeTree']
 
 
