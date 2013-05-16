@@ -308,6 +308,8 @@ bool ED_mesh_pick_face_vert(struct bContext *C, struct Object *ob, const int mva
 #define ED_MESH_PICK_DEFAULT_VERT_SIZE 50
 #define ED_MESH_PICK_DEFAULT_FACE_SIZE 3
 
+#define USE_LOOPSLIDE_HACK
+
 #ifdef __cplusplus
 }
 #endif

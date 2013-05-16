@@ -445,6 +445,21 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 		loopcut_update_edge(lcd, e, 0);
 	}
 
+#ifdef USE_LOOPSLIDE_HACK
+	/* for use in macro so we can restore, HACK */
+	{
+		Scene *scene = CTX_data_scene(C);
+		ToolSettings *settings = scene->toolsettings;
+		int mesh_select_mode[3] = {
+		    (settings->selectmode & SCE_SELECT_VERTEX) != 0,
+		    (settings->selectmode & SCE_SELECT_EDGE)   != 0,
+		    (settings->selectmode & SCE_SELECT_FACE)   != 0,
+		};
+
+		RNA_boolean_set_array(op->ptr, "mesh_select_mode_init", mesh_select_mode);
+	}
+#endif
+
 	if (is_interactive) {
 		ScrArea *sa = CTX_wm_area(C);
 		ED_area_headerprint(sa, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
@@ -660,4 +675,9 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 
 	prop = RNA_def_int(ot->srna, "edge_index", -1, -1, INT_MAX, "Number of Cuts", "", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+#ifdef USE_LOOPSLIDE_HACK
+	prop = RNA_def_boolean_array(ot->srna, "mesh_select_mode_init", 3, NULL, "", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+#endif
 }

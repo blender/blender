@@ -50,6 +50,7 @@
 #include "UI_resources.h"
 
 #include "ED_screen.h"
+#include "ED_mesh.h"
 
 #include "transform.h"
 
@@ -289,8 +290,48 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	                "Overwrite previously created orientation with same name");
 }
 
+
+#ifdef USE_LOOPSLIDE_HACK
+/**
+ * Special hack for MESH_OT_loopcut_slide so we get back to the selection mode
+ */
+static void transformops_loopsel_hack(bContext *C, wmOperator *op)
+{
+	if (op->type->idname == OP_EDGE_SLIDE) {
+		if (op->opm && op->opm->opm && op->opm->opm->prev) {
+			wmOperator *op_prev = op->opm->opm->prev;
+			Scene *scene = CTX_data_scene(C);
+			int mesh_select_mode[3];
+			PropertyRNA *prop = RNA_struct_find_property(op_prev->ptr, "mesh_select_mode_init");
+
+			if (RNA_property_is_set(op_prev->ptr, prop)) {
+				ToolSettings *ts = scene->toolsettings;
+				short selectmode_orig;
+
+				RNA_property_boolean_get_array(op_prev->ptr, prop, mesh_select_mode);
+				selectmode_orig = ((mesh_select_mode[0] ? SCE_SELECT_VERTEX : 0) |
+				                   (mesh_select_mode[1] ? SCE_SELECT_EDGE   : 0) |
+				                   (mesh_select_mode[2] ? SCE_SELECT_FACE   : 0));
+
+				/* still switch if we were originally in face select mode */
+				if ((ts->selectmode != selectmode_orig) && (selectmode_orig != SCE_SELECT_FACE)) {
+					BMEditMesh *em = BKE_editmesh_from_object(scene->obedit);
+					em->selectmode = ts->selectmode = selectmode_orig;
+					EDBM_selectmode_set(em);
+				}
+			}
+		}
+	}
+}
+#endif  /* USE_LOOPSLIDE_HACK */
+
+
 static void transformops_exit(bContext *C, wmOperator *op)
 {
+#ifdef USE_LOOPSLIDE_HACK
+	transformops_loopsel_hack(C, op);
+#endif
+
 	saveTransform(C, op->customdata, op);
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
