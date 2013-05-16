@@ -30,8 +30,7 @@ __device int bssrdf_setup(ShaderClosure *sc)
 		return bsdf_diffuse_setup(sc);
 	}
 	else {
-		/* radius + IOR params */
-		sc->data0 = max(sc->data0, 0.0f);
+		/* IOR param */
 		sc->data1 = max(sc->data1, 1.0f);
 		sc->type = CLOSURE_BSSRDF_ID;
 
