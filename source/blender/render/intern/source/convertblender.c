@@ -3272,10 +3272,12 @@ static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 	if (fed) {
 		edge_hash = BLI_edgehash_new();
 		if (!index) {
-			BLI_assert(me->totedge == totedge);
-			for (a = 0; a < me->totedge; a++) {
-				if (fed[a].flag & FREESTYLE_EDGE_MARK)
-					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
+			if (me->totedge == totedge) {
+				for (a = 0; a < me->totedge; a++) {
+					if (fed[a].flag & FREESTYLE_EDGE_MARK) {
+						BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge + a);
+					}
+				}
 			}
 		}
 		else {
