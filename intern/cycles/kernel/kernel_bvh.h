@@ -470,9 +470,9 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 					float d0 = d - r_curr;
 					float d1 = d + r_curr;
 					if (d0 >= 0)
-						coverage = (min(d1 / mw_extension, 1.0f) - min(d0 / mw_extension, 1.0f)) * 0.5;
+						coverage = (min(d1 / mw_extension, 1.0f) - min(d0 / mw_extension, 1.0f)) * 0.5f;
 					else // inside
-						coverage = (min(d1 / mw_extension, 1.0f) + min(-d0 / mw_extension, 1.0f)) * 0.5;
+						coverage = (min(d1 / mw_extension, 1.0f) + min(-d0 / mw_extension, 1.0f)) * 0.5f;
 				}
 				
 				if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_ext * r_ext || p_curr.z <= epsilon) {

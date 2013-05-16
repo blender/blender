@@ -1130,7 +1130,7 @@ __device float compatible_powf(float x, float y)
 {
 	/* GPU pow doesn't accept negative x, do manual checks here */
 	if(x < 0.0f) {
-		if(fmod(-y, 2.0f) == 0.0f)
+		if(fmodf(-y, 2.0f) == 0.0f)
 			return powf(-x, y);
 		else
 			return -powf(-x, y);

@@ -518,7 +518,7 @@ bool BlenderSession::draw(int w, int h)
 				start_resize_time = time_dt();
 				tag_redraw();
 			}
-			else if(time_dt() - start_resize_time < 0.2f) {
+			else if(time_dt() - start_resize_time < 0.2) {
 				tag_redraw();
 			}
 			else {
