@@ -428,6 +428,15 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
  *
  * Starts at a tool-flagged edge and walks over the edge loop
  */
+
+/* utility function to see if an edge is apart of an ngon boundary */
+static bool bm_edge_is_single(BMEdge *e)
+{
+	return ((BM_edge_is_boundary(e)) &&
+	        (e->l->f->len != 4) &&
+	        (BM_edge_is_boundary(e->l->next->e) || BM_edge_is_boundary(e->l->prev->e)));
+}
+
 static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 {
 	BMwLoopWalker *lwalk = NULL, owalk;
@@ -444,7 +453,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
 	lwalk->is_boundary = BM_edge_is_boundary(e);
-	lwalk->is_single = (vert_edge_count[0] == 2 && vert_edge_count[1] == 2);
+	lwalk->is_single = (lwalk->is_boundary && bm_edge_is_single(e));
 
 	/* could also check that vertex*/
 	if ((lwalk->is_boundary == false) &&
@@ -522,7 +531,9 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			nexte = BM_edge_exists(v, l->v);
 
 			if (bmw_mask_check_edge(walker, nexte) &&
-			    !BLI_ghash_haskey(walker->visithash, nexte))
+			    !BLI_ghash_haskey(walker->visithash, nexte) &&
+			    /* never step onto a boundary edge, this gives odd-results */
+			    (BM_edge_is_boundary(nexte) == false))
 			{
 				lwalk = BMW_state_add(walker);
 				lwalk->cur = nexte;
@@ -536,74 +547,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			}
 		}
 	}
-	else if (l) { /* NORMAL EDGE WITH FACES */
-		int vert_edge_tot;
-		int stopi = 0;
-
-		v = BM_edge_other_vert(e, lwalk->lastv);
-
-		vert_edge_tot = BM_vert_edge_count_nonwire(v);
-
-		if (/* check if we should step, this is fairly involved */
-
-			/* typical loopiong over edges in the middle of a mesh */
-			/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
-			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundary == false) ||
-
-			/* walk over boundary of faces but stop at corners */
-			(owalk.is_boundary == true && owalk.is_single == false && vert_edge_tot > 2) ||
-
-			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
-			 * this lets us walk over the the boundary of an ngon which is handy */
-			(owalk.is_boundary == true && owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
-		{
-			i = 0;
-			stopi = vert_edge_tot / 2;
-			while (1) {
-				if ((owalk.is_boundary == false) && (i == stopi)) {
-					break;
-				}
-
-				l = BM_loop_other_edge_loop(l, v);
-
-				if (l == NULL) {
-					break;
-				}
-				else {
-					BMLoop *l_next;
-
-					l_next = l->radial_next;
-
-					if ((l_next == l) || (l_next == NULL)) {
-						break;
-					}
-
-					l = l_next;
-					i++;
-				}
-			}
-		}
-
-		if (l != NULL) {
-			if (l != e->l &&
-			    bmw_mask_check_edge(walker, l->e) &&
-			    !BLI_ghash_haskey(walker->visithash, l->e))
-			{
-				if (!(owalk.is_boundary == false && i != stopi)) {
-					lwalk = BMW_state_add(walker);
-					lwalk->cur = l->e;
-					lwalk->lastv = v;
-
-					lwalk->is_boundary = owalk.is_boundary;
-					lwalk->is_single = owalk.is_single;
-					lwalk->f_hub = owalk.f_hub;
-
-					BLI_ghash_insert(walker->visithash, l->e, NULL);
-				}
-			}
-		}
-	}
-	else {  /* WIRE EDGE */
+	else if (l == NULL) {  /* WIRE EDGE */
 		BMIter eiter;
 
 		/* match trunk: mark all connected wire edges */
@@ -625,6 +569,103 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 					BLI_ghash_insert(walker->visithash, nexte, NULL);
 				}
+			}
+		}
+	}
+	else if (owalk.is_boundary == false) {  /* NORMAL EDGE WITH FACES */
+		int vert_edge_tot;
+
+		v = BM_edge_other_vert(e, lwalk->lastv);
+
+		vert_edge_tot = BM_vert_edge_count_nonwire(v);
+
+		/* typical loopiong over edges in the middle of a mesh */
+		/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
+		if (vert_edge_tot == 4 || vert_edge_tot == 2) {
+			int i_opposite = vert_edge_tot / 2;
+			int i = 0;
+			do {
+				l = BM_loop_other_edge_loop(l, v);
+				if (BM_edge_is_manifold(l->e)) {
+					l = l->radial_next;
+				}
+				else {
+					l = NULL;
+					break;
+				}
+			} while ((++i != i_opposite));
+		}
+		else {
+			l = NULL;
+		}
+
+		if (l != NULL) {
+			if (l != e->l &&
+			    bmw_mask_check_edge(walker, l->e) &&
+			    !BLI_ghash_haskey(walker->visithash, l->e))
+			{
+				lwalk = BMW_state_add(walker);
+				lwalk->cur = l->e;
+				lwalk->lastv = v;
+
+				lwalk->is_boundary = owalk.is_boundary;
+				lwalk->is_single = owalk.is_single;
+				lwalk->f_hub = owalk.f_hub;
+
+				BLI_ghash_insert(walker->visithash, l->e, NULL);
+			}
+		}
+	}
+	else if (owalk.is_boundary == true) {  /* BOUNDARY EDGE WITH FACES */
+		int vert_edge_tot;
+
+		v = BM_edge_other_vert(e, lwalk->lastv);
+
+		vert_edge_tot = BM_vert_edge_count_nonwire(v);
+
+		/* check if we should step, this is fairly involved */
+		if (
+			/* walk over boundary of faces but stop at corners */
+			(owalk.is_single == false && vert_edge_tot > 2) ||
+
+			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
+			 * this lets us walk over the the boundary of an ngon which is handy */
+			(owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+		{
+			/* find next boundary edge in the fan */
+			do {
+				l = BM_loop_other_edge_loop(l, v);
+				if (BM_edge_is_manifold(l->e)) {
+					l = l->radial_next;
+				}
+				else if (BM_edge_is_boundary(l->e)) {
+					break;
+				}
+				else {
+					l = NULL;
+					break;
+				}
+			} while (true);
+		}
+
+		if (owalk.is_single == false && bm_edge_is_single(l->e)) {
+			l = NULL;
+		}
+
+		if (l != NULL) {
+			if (l != e->l &&
+			    bmw_mask_check_edge(walker, l->e) &&
+			    !BLI_ghash_haskey(walker->visithash, l->e))
+			{
+				lwalk = BMW_state_add(walker);
+				lwalk->cur = l->e;
+				lwalk->lastv = v;
+
+				lwalk->is_boundary = owalk.is_boundary;
+				lwalk->is_single = owalk.is_single;
+				lwalk->f_hub = owalk.f_hub;
+
+				BLI_ghash_insert(walker->visithash, l->e, NULL);
 			}
 		}
 	}

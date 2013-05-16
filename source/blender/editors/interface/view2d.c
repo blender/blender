@@ -1961,7 +1961,7 @@ void UI_view2d_listview_visible_cells(View2D *v2d, short columnwidth, short rowh
  *	- x,y           = coordinates to convert
  *	- viewx,viewy		= resultant coordinates
  */
-void UI_view2d_region_to_view(View2D *v2d, int x, int y, float *r_viewx, float *r_viewy)
+void UI_view2d_region_to_view(View2D *v2d, float x, float y, float *r_viewx, float *r_viewy)
 {
 	float div, ofs;
 

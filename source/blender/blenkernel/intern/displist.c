@@ -1102,7 +1102,13 @@ static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *
 			dm->getVertCos(dm, orco);
 	}
 	else {
-		orco = (float(*)[3])BKE_curve_make_orco(scene, ob);
+		int totvert_curve;
+		orco = (float(*)[3])BKE_curve_make_orco(scene, ob, &totvert_curve);
+		if (totvert != totvert_curve) {
+			MEM_freeN(orco);
+			orco = MEM_callocN(sizeof(float) * 3 * totvert, "dm orco");
+			dm->getVertCos(dm, orco);
+		}
 	}
 
 	for (a = 0; a < totvert; a++) {

@@ -25,6 +25,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+#define MAX_GAUSSTAB_RADIUS 30000
+
 class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
 private:
 

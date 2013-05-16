@@ -798,6 +798,12 @@ void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)
 	}
 }
 
+void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion *ar)
+{
+	win->screen->do_draw_paintcursor = TRUE;
+	wm_tag_redraw_overlay(win, ar);
+}
+
 void wm_draw_update(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);

@@ -2002,8 +2002,7 @@ static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 		for (; pc; pc = pc->next) {
 			if (pc->poll == NULL || pc->poll(C)) {
 				wmWindow *win = CTX_wm_window(C);
-				win->screen->do_draw_paintcursor = TRUE;
-				wm_tag_redraw_overlay(win, ar);
+				WM_paint_cursor_tag_redraw(win, ar);
 			}
 		}
 	}

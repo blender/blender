@@ -97,8 +97,8 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 		return;
 	
 	gpumat = mGPUMat;
-
-	if (ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) {
+	if (ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED || (ras->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW &&
+			mat->alphablend != GEMAT_SOLID && !ras->GetUsingOverrideShader())) {
 		GPU_material_vertex_attributes(gpumat, &attribs);
 		attrib_num = GetAttribNum();
 

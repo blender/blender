@@ -453,6 +453,9 @@ static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
 	for (nested_set = set; nested_set; nested_set = nested_set->set) {
 		if (nested_set == scene)
 			return;
+		/* prevent eternal loops, set can point to next, and next to set, without problems usually */
+		if (nested_set->set == set)
+			return;
 	}
 
 	scene->set = set;

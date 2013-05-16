@@ -1133,8 +1133,8 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	 */
 	if (ma->id.flag & LIB_DOIT)
 		return;
-	else
-		ma->id.flag |= LIB_DOIT;
+
+	ma->id.flag |= LIB_DOIT;
 	
 	/* material itself */
 	if (ma->adt && ma->adt->drivers.first) {
@@ -1145,6 +1145,8 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	if (ma->nodetree) {
 		material_node_drivers_update(scene, ma->nodetree, ctime);
 	}
+
+	ma->id.flag &= ~LIB_DOIT;
 }
 	
 /* ****************** */

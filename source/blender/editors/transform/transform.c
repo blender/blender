@@ -491,9 +491,6 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		else
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
-		if (t->mode == TFM_EDGE_SLIDE && (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
-			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
-
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		// XXX: is this notifier a lame duck?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
@@ -5934,25 +5931,27 @@ void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			glVertex3fv(curr_sv->v_a->co);
-			glVertex3fv(curr_sv->v_co_orig);
-			glVertex3fv(curr_sv->v_b->co);
-			glVertex3fv(curr_sv->v_co_orig);
+			if (curr_sv->v_a) {
+				glVertex3fv(curr_sv->v_a->co);
+				glVertex3fv(curr_sv->v_co_orig);
+			}
+			if (curr_sv->v_b) {
+				glVertex3fv(curr_sv->v_b->co);
+				glVertex3fv(curr_sv->v_co_orig);
+			}
 			bglEnd();
 
 
 			UI_ThemeColorShadeAlpha(TH_SELECT, -30, alpha_shade);
 			glPointSize(ctrl_size);
+			bglBegin(GL_POINTS);
 			if (sld->flipped_vtx) {
-				bglBegin(GL_POINTS);
-				bglVertex3fv(curr_sv->v_b->co);
-				bglEnd();
+				if (curr_sv->v_b) bglVertex3fv(curr_sv->v_b->co);
 			}
 			else {
-				bglBegin(GL_POINTS);
-				bglVertex3fv(curr_sv->v_a->co);
-				bglEnd();
+				if (curr_sv->v_a) bglVertex3fv(curr_sv->v_a->co);
 			}
+			bglEnd();
 
 			UI_ThemeColorShadeAlpha(TH_SELECT, 255, alpha_shade);
 			glPointSize(guide_size);

@@ -239,12 +239,16 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 
 		for (j = 0; j < source->totweight; ++j) {
 			MDeformWeight *dw = &source->dw[j];
+			float weight = dw->weight * interp_weight;
+
+			if (weight == 0.0f)
+				continue;
 
 			for (node = dest_dw; node; node = node->next) {
 				MDeformWeight *tmp_dw = (MDeformWeight *)node->link;
 
 				if (tmp_dw->def_nr == dw->def_nr) {
-					tmp_dw->weight += dw->weight * interp_weight;
+					tmp_dw->weight += weight;
 					break;
 				}
 			}
@@ -254,7 +258,7 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 				MDeformWeight *tmp_dw = MEM_callocN(sizeof(*tmp_dw),
 				                                    "layerInterp_mdeformvert tmp_dw");
 				tmp_dw->def_nr = dw->def_nr;
-				tmp_dw->weight = dw->weight * interp_weight;
+				tmp_dw->weight = weight;
 				BLI_linklist_prepend(&dest_dw, tmp_dw);
 				totweight++;
 			}

@@ -42,7 +42,6 @@ private:
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_blendinpose;
-	struct PointerRNA *m_ptrrna;
 	std::vector<class SG_Controller*> m_sg_contr_list;
 	class KX_GameObject* m_obj;
 	std::vector<float>	m_blendshape;

@@ -76,6 +76,7 @@ ustring OSLRenderServices::u_geom_numpolyvertices("geom:numpolyvertices");
 ustring OSLRenderServices::u_geom_trianglevertices("geom:trianglevertices");
 ustring OSLRenderServices::u_geom_polyvertices("geom:polyvertices");
 ustring OSLRenderServices::u_geom_name("geom:name");
+ustring OSLRenderServices::u_is_smooth("geom:is_smooth");
 #ifdef __HAIR__
 ustring OSLRenderServices::u_is_curve("geom:is_curve");
 ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
@@ -626,7 +627,10 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 		ustring object_name = kg->osl->object_names[sd->object];
 		return set_attribute_string(object_name, type, derivatives, val);
 	}
-	
+	else if (name == u_is_smooth) {
+		float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
+		return set_attribute_float(f, type, derivatives, val);
+	}
 #ifdef __HAIR__
 	/* Hair Attributes */
 	else if (name == u_is_curve) {

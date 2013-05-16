@@ -214,6 +214,13 @@ Smoother::Smoother(Stroke &ioStroke)
 	_safeTest = (_nbVertices > 4);
 }
 
+Smoother::~Smoother()
+{
+	delete[] _vertex;
+	delete[] _curvature;
+	delete[] _normal;
+}
+
 void Smoother::smooth(int nbIteration, real iFactorPoint, real ifactorCurvature, real iFactorCurvatureDifference,
                       real iAnisoPoint, real iAnisoNormal, real iAnisoCurvature, real iCarricatureFactor)
 {

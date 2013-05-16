@@ -49,7 +49,8 @@ public:
 	static void init(long seed);
 
 protected:
-	static real *_values;
+	static const unsigned NB_VALUE_NOISE = 512;
+	static real _values[NB_VALUE_NOISE];
 };
 
 } /* namespace Freestyle */

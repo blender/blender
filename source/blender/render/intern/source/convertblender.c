@@ -871,7 +871,7 @@ static float *get_object_orco(Render *re, Object *ob)
 
 	if (!orco) {
 		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = BKE_curve_make_orco(re->scene, ob);
+			orco = BKE_curve_make_orco(re->scene, ob, NULL);
 		}
 		else if (ob->type==OB_SURF) {
 			orco = BKE_curve_surf_make_orco(ob);

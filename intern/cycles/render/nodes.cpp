@@ -3175,6 +3175,8 @@ RGBRampNode::RGBRampNode()
 	add_input("Fac", SHADER_SOCKET_FLOAT);
 	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Alpha", SHADER_SOCKET_FLOAT);
+
+	interpolate = true;
 }
 
 void RGBRampNode::compile(SVMCompiler& compiler)
@@ -3189,7 +3191,12 @@ void RGBRampNode::compile(SVMCompiler& compiler)
 	if(!alpha_out->links.empty())
 		compiler.stack_assign(alpha_out);
 
-	compiler.add_node(NODE_RGB_RAMP, fac_in->stack_offset, color_out->stack_offset, alpha_out->stack_offset);
+	compiler.add_node(NODE_RGB_RAMP,
+		compiler.encode_uchar4(
+			fac_in->stack_offset,
+			color_out->stack_offset,
+			alpha_out->stack_offset),
+		interpolate);
 	compiler.add_array(ramp, RAMP_TABLE_SIZE);
 }
 
@@ -3209,6 +3216,7 @@ void RGBRampNode::compile(OSLCompiler& compiler)
 
 	compiler.parameter_color_array("ramp_color", ramp_color, RAMP_TABLE_SIZE);
 	compiler.parameter_array("ramp_alpha", ramp_alpha, RAMP_TABLE_SIZE);
+	compiler.parameter("ramp_interpolate", interpolate);
 	
 	compiler.add(this, "node_rgb_ramp");
 }

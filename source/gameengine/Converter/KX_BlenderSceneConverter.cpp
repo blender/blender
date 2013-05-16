@@ -601,7 +601,7 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 void KX_BlenderSceneConverter::CachePolyMaterial(struct Material *mat, RAS_IPolyMaterial *polymat)
 {
-	if (m_use_mat_cache)
+	if (m_use_mat_cache && mat)
 		m_polymat_cache[mat] = polymat;
 }
 
@@ -612,7 +612,7 @@ RAS_IPolyMaterial *KX_BlenderSceneConverter::FindCachedPolyMaterial(struct Mater
 
 void KX_BlenderSceneConverter::CacheBlenderMaterial(struct Material *mat, BL_Material *blmat)
 {
-	if (m_use_mat_cache)
+	if (m_use_mat_cache && mat)
 		m_mat_cache[mat] = blmat;
 }
 

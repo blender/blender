@@ -251,7 +251,7 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 	static int c_has_texface;
 
 	Object *litob = NULL;  /* to get mode to turn off mipmap in painting mode */
-	int backculled = GEMAT_BACKCULL || gtexdraw.use_backface_culling;
+	int backculled = 1;
 	int alphablend = 0;
 	int textured = 0;
 	int lit = 0;
@@ -650,8 +650,9 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	for (a = 0, mp = mface; a < totpoly; a++, mtpoly++, mp++) {
 		short matnr = mp->mat_nr;
 		int mf_smooth = mp->flag & ME_SMOOTH;
-		Material *mat = me->mat[matnr];
+		Material *mat = (me->mat) ? me->mat[matnr] : NULL;
 		int mode = mat ? mat->game.flag : GEMAT_INVISIBLE;
+
 
 		if (!(mode & GEMAT_INVISIBLE) && (mode & GEMAT_TEXT) && mp->totloop >= 3) {
 			/* get the polygon as a tri/quad */

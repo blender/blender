@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float4 rgb_ramp_lookup(KernelGlobals *kg, int offset, float f)
+__device float4 rgb_ramp_lookup(KernelGlobals *kg, int offset, float f, bool interpolate)
 {
 	f = clamp(f, 0.0f, 1.0f)*(RAMP_TABLE_SIZE-1);
 
@@ -31,7 +31,7 @@ __device float4 rgb_ramp_lookup(KernelGlobals *kg, int offset, float f)
 
 	float4 a = fetch_node_float(kg, offset+i);
 
-	if(t > 0.0f)
+	if(interpolate && t > 0.0f)
 		a = (1.0f - t)*a + t*fetch_node_float(kg, offset+i+1);
 
 	return a;
@@ -39,12 +39,13 @@ __device float4 rgb_ramp_lookup(KernelGlobals *kg, int offset, float f)
 
 __device void svm_node_rgb_ramp(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	uint fac_offset = node.y;
-	uint color_offset = node.z;
-	uint alpha_offset = node.w;
+	uint fac_offset, color_offset, alpha_offset;
+	uint interpolate = node.z;
+
+	decode_node_uchar4(node.y, &fac_offset, &color_offset, &alpha_offset, NULL);
 
 	float fac = stack_load_float(stack, fac_offset);
-	float4 color = rgb_ramp_lookup(kg, *offset, fac);
+	float4 color = rgb_ramp_lookup(kg, *offset, fac, interpolate);
 
 	if(stack_valid(color_offset))
 		stack_store_float3(stack, color_offset, float4_to_float3(color));
@@ -63,9 +64,9 @@ __device void svm_node_rgb_curves(KernelGlobals *kg, ShaderData *sd, float *stac
 	float fac = stack_load_float(stack, fac_offset);
 	float3 color = stack_load_float3(stack, color_offset);
 
-	float r = rgb_ramp_lookup(kg, *offset, color.x).x;
-	float g = rgb_ramp_lookup(kg, *offset, color.y).y;
-	float b = rgb_ramp_lookup(kg, *offset, color.z).z;
+	float r = rgb_ramp_lookup(kg, *offset, color.x, true).x;
+	float g = rgb_ramp_lookup(kg, *offset, color.y, true).y;
+	float b = rgb_ramp_lookup(kg, *offset, color.z, true).z;
 
 	color = (1.0f - fac)*color + fac*make_float3(r, g, b);
 	stack_store_float3(stack, out_offset, color);
@@ -82,9 +83,9 @@ __device void svm_node_vector_curves(KernelGlobals *kg, ShaderData *sd, float *s
 	float fac = stack_load_float(stack, fac_offset);
 	float3 color = stack_load_float3(stack, color_offset);
 
-	float r = rgb_ramp_lookup(kg, *offset, (color.x + 1.0f)*0.5f).x;
-	float g = rgb_ramp_lookup(kg, *offset, (color.y + 1.0f)*0.5f).y;
-	float b = rgb_ramp_lookup(kg, *offset, (color.z + 1.0f)*0.5f).z;
+	float r = rgb_ramp_lookup(kg, *offset, (color.x + 1.0f)*0.5f, true).x;
+	float g = rgb_ramp_lookup(kg, *offset, (color.y + 1.0f)*0.5f, true).y;
+	float b = rgb_ramp_lookup(kg, *offset, (color.z + 1.0f)*0.5f, true).z;
 
 	color = (1.0f - fac)*color + fac*make_float3(r*2.0f - 1.0f, g*2.0f - 1.0f, b*2.0f - 1.0f);
 	stack_store_float3(stack, out_offset, color);

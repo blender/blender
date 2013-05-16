@@ -133,6 +133,7 @@ def node_classes_iter(base=bpy.types.Node):
     for subclass in base.__subclasses__():
         for node_class in node_classes_iter(subclass):
             yield node_class
+    bl_options = {'REGISTER', 'UNDO'}
 
 
 def node_class_items_iter(node_class, context):
@@ -150,6 +151,7 @@ def node_class_items_iter(node_class, context):
                 yield (group.name, "", {"node_tree": group})
     else:
         yield (node_class.bl_rna.name, node_class.bl_rna.description, {})
+    bl_options = {'REGISTER', 'UNDO'}
 
 
 def node_items_iter(context):

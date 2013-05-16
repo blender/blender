@@ -756,6 +756,7 @@ static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *da
 
 typedef struct uiDragToggleHandle {
 	/* init */
+	bool is_init;
 	bool is_set;
 	float but_cent_start[2];
 	eButType but_type_start;
@@ -767,6 +768,8 @@ typedef struct uiDragToggleHandle {
 static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
                                      const int xy_src[2], const int xy_dst[2])
 {
+	/* popups such as layers won't re-evaluate on redraw */
+	const bool do_check = (ar->regiontype == RGN_TYPE_TEMPORARY);
 	bool change = false;
 	uiBlock *block;
 
@@ -790,6 +793,9 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 						BLI_assert(ui_is_but_bool(but) == true);
 						if (is_set_but != is_set) {
 							uiButExecute(C, but);
+							if (do_check) {
+								ui_check_but(but);
+							}
 							change = true;
 						}
 					}
@@ -815,23 +821,30 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 	 * Check if we need to initialize the lock axis by finding if the first
 	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
 	 */
-	if (drag_info->xy_lock[0] == false && drag_info->xy_lock[1] == false) {
+	if (drag_info->is_init == false) {
 		/* first store the buttons original coords */
 		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
-		if (but) {
-			const float but_cent_new[2] = {BLI_rctf_cent_x(&but->rect),
-			                               BLI_rctf_cent_y(&but->rect)};
 
-			/* check if this is a different button, chances are high the button wont move about :) */
-			if (len_manhattan_v2v2(drag_info->but_cent_start, but_cent_new) > 1.0f) {
-				if (fabsf(drag_info->but_cent_start[0] - but_cent_new[0]) <
-				    fabsf(drag_info->but_cent_start[1] - but_cent_new[1]))
-				{
-					drag_info->xy_lock[0] = true;
+		if (but) {
+			if (but->flag & UI_BUT_DRAG_LOCK) {
+				const float but_cent_new[2] = {BLI_rctf_cent_x(&but->rect),
+				                               BLI_rctf_cent_y(&but->rect)};
+
+				/* check if this is a different button, chances are high the button wont move about :) */
+				if (len_manhattan_v2v2(drag_info->but_cent_start, but_cent_new) > 1.0f) {
+					if (fabsf(drag_info->but_cent_start[0] - but_cent_new[0]) <
+					    fabsf(drag_info->but_cent_start[1] - but_cent_new[1]))
+					{
+						drag_info->xy_lock[0] = true;
+					}
+					else {
+						drag_info->xy_lock[1] = true;
+					}
+					drag_info->is_init = true;
 				}
-				else {
-					drag_info->xy_lock[1] = true;
-				}
+			}
+			else {
+				drag_info->is_init = true;
 			}
 		}
 	}
@@ -933,6 +946,7 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 #ifdef USE_DRAG_TOGGLE
 		if (ui_is_but_bool(but)) {
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
+			ARegion *ar_prev;
 
 			drag_info->is_set = ui_is_but_push(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
@@ -940,10 +954,16 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 			drag_info->but_type_start = but->type;
 			copy_v2_v2_int(drag_info->xy_last, &event->x);
 
+			/* needed for toggle drag on popups */
+			ar_prev = CTX_wm_region(C);
+			CTX_wm_region_set(C, data->region);
+
 			WM_event_add_ui_handler(C, &data->window->modalhandlers,
 			                        ui_handler_region_drag_toggle,
 			                        ui_handler_region_drag_toggle_remove,
 			                        drag_info);
+
+			CTX_wm_region_set(C, ar_prev);
 		}
 		else
 #endif

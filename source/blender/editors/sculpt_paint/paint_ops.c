@@ -248,14 +248,30 @@ static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
 /* generic functions for setting the active brush based on the tool */
 static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
 {
-	Brush *brush;
+	Brush *brush, *first_brush;
 
 	if (!brush_orig && !(brush_orig = bmain->brush.first)) {
 		return NULL;
 	}
 
+	if (brush_tool(brush_orig, tool_offset) != tool) {
+		/* If current brush's tool is different from what we need,
+		 * start cycling from the beginning of the list.
+		 * Such logic will activate the same exact brush not relating from
+		 * which tool user requests other tool.
+		 */
+		first_brush = bmain->brush.first;
+	}
+	else {
+		/* If user wants to switch to brush with the same  tool as
+		 * currently active brush do a cycling via all possible
+		 * brushes with requested tool.
+		 */
+		first_brush = brush_orig->id.next ? brush_orig->id.next : bmain->brush.first;
+	}
+
 	/* get the next brush with the active tool */
-	for (brush = brush_orig->id.next ? brush_orig->id.next : bmain->brush.first;
+	for (brush = first_brush;
 	     brush != brush_orig;
 	     brush = brush->id.next ? brush->id.next : bmain->brush.first)
 	{

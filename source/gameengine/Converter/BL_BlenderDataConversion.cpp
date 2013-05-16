@@ -905,7 +905,8 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 			ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
 				converter->GetGLSLMaterials());
 
-			converter->CacheBlenderMaterial(ma, bl_mat);
+			if ((!ma->mode & MA_FACETEXTURE))
+				converter->CacheBlenderMaterial(ma, bl_mat);
 		}
 
 		const bool use_vcol = GetMaterialUseVColor(ma, bl_mat->glslmat);
@@ -920,7 +921,8 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 
 			kx_blmat->Initialize(scene, bl_mat, (ma?&ma->game:NULL), lightlayer);
 			polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
-			converter->CachePolyMaterial(ma, polymat);
+			if ((!ma->mode & MA_FACETEXTURE))
+				converter->CachePolyMaterial(ma, polymat);
 		}
 	}
 	else {

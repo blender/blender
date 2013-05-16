@@ -488,6 +488,7 @@ class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
 	float4 ramp[RAMP_TABLE_SIZE];
+	bool interpolate;
 };
 
 class SetNormalNode : public ShaderNode {

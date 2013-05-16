@@ -1328,7 +1328,7 @@ float *BKE_curve_surf_make_orco(Object *ob)
 /* NOTE: This routine is tied to the order of vertex
  * built by displist and as passed to the renderer.
  */
-float *BKE_curve_make_orco(Scene *scene, Object *ob)
+float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
 {
 	Curve *cu = ob->data;
 	DispList *dl;
@@ -1357,6 +1357,9 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob)
 				numVerts += dl->parts * dl->nr;
 		}
 	}
+
+	if (r_numVerts)
+		*r_numVerts = numVerts;
 
 	fp = coord_array = MEM_mallocN(3 * sizeof(float) * numVerts, "cu_orco");
 	for (dl = disp.first; dl; dl = dl->next) {

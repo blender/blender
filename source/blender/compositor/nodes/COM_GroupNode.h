@@ -52,6 +52,10 @@ public:
 	 * @param system the ExecutionSystem where to add the subtree
 	 */
 	void ungroup(ExecutionSystem &system);
+
+	bNodeSocket *findInterfaceInput(InputSocket *socket);
+	bNodeSocket *findInterfaceOutput(OutputSocket *socket);
+	void addDefaultOutputOperation(ExecutionSystem &system, OutputSocket *outputsocket);
 };
 
 #endif
