@@ -619,11 +619,9 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
 
         gs = context.scene.game_settings
 
-        layout.prop(gs, "physics_engine")
+        layout.prop(gs, "physics_engine", text="Engine")
         if gs.physics_engine != 'NONE':
-            col = layout.column()
-            col.prop(gs, "physics_gravity", text="Gravity")
-            col.prop(gs, "occlusion_culling_resolution", text="Culling Resolution")
+            layout.prop(gs, "physics_gravity", text="Gravity")
 
             split = layout.split()
 
@@ -645,6 +643,12 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             sub.prop(gs, "deactivation_angular_threshold", text="Angular Threshold")
             sub = col.row()
             sub.prop(gs, "deactivation_time", text="Time")
+            
+            col = layout.column()
+            col.prop(gs, "use_occlusion_culling", text="Occlusion Culling")
+            sub = col.column()
+            sub.active = gs.use_occlusion_culling
+            sub.prop(gs, "occlusion_culling_resolution", text="Resolution")
 
         else:
             split = layout.split()
