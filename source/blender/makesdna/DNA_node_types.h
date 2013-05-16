@@ -370,10 +370,8 @@ typedef struct bNodeTree {
 	 * Only available in base node trees (e.g. scene->node_tree)
 	 */
 	struct bNodeInstanceHash *previews;
-	/* XXX workaround for ambiguous viewer output:
-	 * Viewer nodes all write to the same image buffer.
-	 * This determines the tree instance containing the "active" output.
-	 * Only used in local scene->nodetree.
+	/* Defines the node tree instance to use for the "active" context,
+	 * in case multiple different editors are used and make context ambiguous.
 	 */
 	bNodeInstanceKey active_viewer_key;
 	int pad;
