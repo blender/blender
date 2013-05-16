@@ -297,7 +297,7 @@ static void bm_grid_fill(BMesh *bm,
 #ifdef USE_FLIP_DETECT
 	{
 		ListBase *lb_iter[4] = {lb_a, lb_b, lb_rail_a, lb_rail_b};
-		const int lb_iter_dir[4] = {1, -1, 1, -1};
+		const int lb_iter_dir[4] = {-1, 1, 1, -1};
 		int winding_votes = 0;
 
 		for (i = 0; i < 4; i++) {
