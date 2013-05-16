@@ -167,7 +167,6 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
 				wm_paintcursor_draw(C, ar);
-				ED_area_overdraw_flush(sa, ar);
 				CTX_wm_region_set(C, NULL);
 			}
 		}
@@ -177,7 +176,6 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 	}
 
 	ED_screen_draw(win);
-	ED_area_overdraw(C);
 
 	/* draw overlapping regions */
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
@@ -282,7 +280,6 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
 					wm_paintcursor_draw(C, ar);
-					ED_area_overdraw_flush(sa, ar);
 					CTX_wm_region_set(C, NULL);
 
 					if (exchange)
@@ -293,7 +290,6 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 						CTX_wm_region_set(C, ar);
 						ED_region_do_draw(C, ar);
 						wm_paintcursor_draw(C, ar);
-						ED_area_overdraw_flush(sa, ar);
 						CTX_wm_region_set(C, NULL);
 
 						ar->swap = WIN_BOTH_OK;
@@ -327,8 +323,6 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 		else if (screen->swap == WIN_BOTH_OK)
 			screen->swap = WIN_BOTH_OK;
 	}
-
-	ED_area_overdraw(C);
 
 	/* draw marked overlapping regions */
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
@@ -621,7 +615,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 				if (ar->overlap == 0) {
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
-					ED_area_overdraw_flush(sa, ar);
 					CTX_wm_region_set(C, NULL);
 					copytex = 1;
 				}
@@ -634,7 +627,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 	if (copytex) {
 		wmSubWindowSet(win, screen->mainwin);
-		ED_area_overdraw(C);
 
 		wm_triple_copy_textures(win, triple);
 	}

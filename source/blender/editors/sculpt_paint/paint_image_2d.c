@@ -145,6 +145,8 @@ typedef struct ImagePaintState {
 	int faceindex;
 	float uv[2];
 	int do_facesel;
+
+	bool need_redraw;
 } ImagePaintState;
 
 
@@ -337,7 +339,7 @@ static void brush_painter_2d_tiled_tex_partial_update(BrushPainter *painter, con
 		brush_painter_2d_do_partial(painter, NULL, x1, y2, x2, ibuf->y, 0, 0, pos);
 }
 
-static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const float pos[2], bool do_stencil, bool do_3D, bool do_view, rctf *mapping)
+static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const float pos[2], const float mouse[2], bool do_stencil, bool do_3D, bool do_view, bool do_random, rctf *mapping)
 {
 	float invw = 1.0f / (float)s->canvas->x;
 	float invh = 1.0f / (float)s->canvas->y;
@@ -348,7 +350,7 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const 
 	ipos[0] = (int)floorf((pos[0] - bufsize / 2) + 1.0f);
 	ipos[1] = (int)floorf((pos[1] - bufsize / 2) + 1.0f);
 
-	if (do_stencil || do_view) {
+	if (do_stencil) {
 		/* map from view coordinates of brush to region coordinates */
 		UI_view2d_to_region_no_clip(s->v2d, ipos[0] * invw, ipos[1] * invh, &xmin, &ymin);
 		UI_view2d_to_region_no_clip(s->v2d, (ipos[0] + bufsize) * invw, (ipos[1] + bufsize) * invh, &xmax, &ymax);
@@ -361,13 +363,19 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const 
 	}
 	else if (do_3D) {
 		/* 3D mapping, just mapping to canvas 0..1  */
-		mapping->xmin = ipos[0] * invw;
-		mapping->ymin = ipos[1] * invh;
-		mapping->xmax = bufsize * invw / (float)bufsize;
-		mapping->ymax = bufsize * invh / (float)bufsize;
+		mapping->xmin = 2.0f * (ipos[0] * invw - 0.5f);
+		mapping->ymin = 2.0f * (ipos[1] * invh - 0.5f);
+		mapping->xmax = 2.0f * invw;
+		mapping->ymax = 2.0f * invh;
 	}
-	else {
-		/* other mapping */
+	else if (do_view || do_random) {
+		/* view mapping */
+		mapping->xmin = mouse[0] - bufsize * 0.5f + 0.5f;
+		mapping->ymin = mouse[1] - bufsize * 0.5f + 0.5f;
+		mapping->xmax = 1.0f;
+		mapping->ymax = 1.0f;
+	}
+	else /* if (do_tiled) */ {
 		mapping->xmin = -bufsize * 0.5f + 0.5f;
 		mapping->ymin = -bufsize * 0.5f + 0.5f;
 		mapping->xmax = 1.0f;
@@ -375,7 +383,7 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int bufsize, const 
 	}
 }
 
-static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *painter, const float pos[2], bool use_color_correction)
+static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *painter, const float pos[2], const float mouse[2], bool use_color_correction)
 {
 	const Scene *scene = painter->scene;
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -398,7 +406,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 		rotation += ups->brush_rotation;
 	}
 
-	brush_painter_2d_tex_mapping(s, size, pos, do_stencil, do_3D, do_view, &painter->mapping);
+	brush_painter_2d_tex_mapping(s, size, pos, mouse, do_stencil, do_3D, do_view, do_random, &painter->mapping);
 
 	painter->pool = BKE_image_pool_new();
 
@@ -805,17 +813,16 @@ static void paint_2d_canvas_free(ImagePaintState *s)
 		image_undo_remove_masks();
 }
 
-int paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser)
+void paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int eraser)
 {
 	float newuv[2], olduv[2];
-	int redraw = 0;
 	ImagePaintState *s = ps;
 	BrushPainter *painter = s->painter;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
 	const bool is_data = (ibuf && ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA);
 
 	if (!ibuf)
-		return 0;
+		return;
 
 	s->blend = s->brush->blend;
 	if (eraser)
@@ -850,21 +857,12 @@ int paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], int
 	 */
 	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0);
 
-	brush_painter_2d_refresh_cache(s, painter, newuv, is_data == false);
+	brush_painter_2d_refresh_cache(s, painter, newuv, mval, is_data == false);
 
-	if (paint_2d_op(s, painter->cache.ibuf, olduv, newuv)) {
-		imapaint_image_update(s->sima, s->image, ibuf, false);
-		BKE_image_release_ibuf(s->image, ibuf, NULL);
-		redraw |= 1;
-	}
-	else {
-		BKE_image_release_ibuf(s->image, ibuf, NULL);
-	}
+	if (paint_2d_op(s, painter->cache.ibuf, olduv, newuv))
+		s->need_redraw = true;
 
-	if (redraw)
-		imapaint_clear_partial_redraw();
-
-	return redraw;
+	BKE_image_release_ibuf(s->image, ibuf, NULL);
 }
 
 void *paint_2d_new_stroke(bContext *C, wmOperator *op)
@@ -904,9 +902,23 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op)
 	return s;
 }
 
-void paint_2d_redraw(const bContext *C, void *ps, int final)
+void paint_2d_redraw(const bContext *C, void *ps, bool final)
 {
 	ImagePaintState *s = ps;
+
+	if (s->need_redraw) {
+		ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
+
+		imapaint_image_update(s->sima, s->image, ibuf, false);
+		imapaint_clear_partial_redraw();
+
+		BKE_image_release_ibuf(s->image, ibuf, NULL);
+
+		s->need_redraw = false;
+	}
+	else if (!final) {
+		return;
+	}
 
 	if (final) {
 		if (s->image && !(s->sima && s->sima->lock))
@@ -919,7 +931,7 @@ void paint_2d_redraw(const bContext *C, void *ps, int final)
 		if (!s->sima || !s->sima->lock)
 			ED_region_tag_redraw(CTX_wm_region(C));
 		else
-			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, s->image);
+			WM_event_add_notifier(C, NC_IMAGE | NA_PAINTING, s->image);
 	}
 }
 

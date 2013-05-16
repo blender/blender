@@ -101,6 +101,7 @@ typedef struct PaintStroke {
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
+	StrokeRedraw redraw;
 	StrokeDone done;
 } PaintStroke;
 
@@ -327,6 +328,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 
 	stroke->update_step(C, stroke, &itemptr);
 
+	/* don't record this for now, it takes up a lot of memory when doing long
+	 * strokes with small brush size, and operators have register disabled */
+	RNA_collection_clear(op->ptr, "stroke");
+
 	/* always redraw region if brush is shown */
 	if (ar && (paint->flags & PAINT_SHOW_BRUSH))
 		WM_paint_cursor_tag_redraw(window, ar);
@@ -425,6 +430,7 @@ PaintStroke *paint_stroke_new(bContext *C,
                               StrokeGetLocation get_location,
                               StrokeTestStart test_start,
                               StrokeUpdateStep update_step,
+                              StrokeRedraw redraw,
                               StrokeDone done, int event_type)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
@@ -437,6 +443,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 	stroke->get_location = get_location;
 	stroke->test_start = test_start;
 	stroke->update_step = update_step;
+	stroke->redraw = redraw;
 	stroke->done = done;
 	stroke->event_type = event_type; /* for modal, return event */
 	
@@ -456,8 +463,13 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 {
 	struct PaintStroke *stroke = op->customdata;
 
-	if (stroke->stroke_started && stroke->done)
-		stroke->done(C, stroke);
+	if (stroke->stroke_started) {
+		if (stroke->redraw)
+			stroke->redraw(C, stroke, true);
+
+		if (stroke->done)
+			stroke->done(C, stroke);
+	}
 
 	if (stroke->timer) {
 		WM_event_remove_timer(
@@ -611,6 +623,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	float mouse[2];
 	int first = 0;
 	float zoomx, zoomy;
+	bool redraw = false;
 
 	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1]);
 	paint_stroke_sample_average(stroke, &sample_average);
@@ -661,16 +674,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		if (stroke->stroke_started) {
 			if (paint_smooth_stroke(stroke, mouse, &sample_average, mode)) {
 				if (paint_space_stroke_enabled(stroke->brush, mode)) {
-					if (!paint_space_stroke(C, op, event, mouse)) {
-						//ED_region_tag_redraw(ar);
-					}
+					if (paint_space_stroke(C, op, event, mouse))
+						redraw = true;
 				}
 				else {
 					paint_brush_stroke_add_step(C, op, event, mouse);
+					redraw = true;
 				}
-			}
-			else {
-				; //ED_region_tag_redraw(ar);
 			}
 		}
 	}
@@ -684,7 +694,14 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	    !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
 	{
 		paint_brush_stroke_add_step(C, op, event, mouse);
+		redraw = true;
 	}
+
+	/* do updates for redraw. if event is inbetween mousemove there are more
+	 * coming, so postpone potentially slow redraw updates until all are done */
+	if (event->type != INBETWEEN_MOUSEMOVE)
+		if (redraw && stroke->redraw)
+			stroke->redraw(C, stroke, false);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
