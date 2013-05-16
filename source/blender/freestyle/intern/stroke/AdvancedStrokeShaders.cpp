@@ -158,6 +158,8 @@ int SpatialNoiseShader::shade(Stroke &ioStroke) const
 		++v;
 	}
 
+	ioStroke.UpdateLength();
+
 	return 0;
 }
 
@@ -342,6 +344,7 @@ void Smoother::copyVertices()
 		(v)->setPoint(p[0], p[1]);
 		++i;
 	}
+	_stroke->UpdateLength();
 }
 
 #if 0 // FIXME
