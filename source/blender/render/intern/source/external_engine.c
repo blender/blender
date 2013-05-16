@@ -408,6 +408,11 @@ int RE_engine_render(Render *re, int do_all)
 	if (!do_all && (type->flag & RE_USE_POSTPROCESS))
 		return 0;
 
+	/* update animation here so any render layer animation is applied before
+	 * creating the render result */
+	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0)
+		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
+
 	/* create render result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if (re->result == NULL || !(re->r.scemode & R_BUTS_PREVIEW)) {
@@ -450,9 +455,6 @@ int RE_engine_render(Render *re, int do_all)
 
 	engine->resolution_x = re->winx;
 	engine->resolution_y = re->winy;
-
-	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0)
-		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
 
 	RE_parts_init(re, FALSE);
 	engine->tile_x = re->partx;
