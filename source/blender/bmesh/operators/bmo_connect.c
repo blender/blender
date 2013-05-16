@@ -419,63 +419,69 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		/* Vert rough attempt to determine proper winding for the bridge quads:
-		 * just uses the first loop it finds for any of the edges of ee2 or ee1 */
-		if (wdir == 0) {
-			for (i = 0; i < BLI_array_count(ee2); i++) {
-				if (ee2[i]->l) {
-					wdir = (ee2[i]->l->v == vv2[i]) ? (-1) : (1);
-					break;
+		if (use_merge == false) {
+			/* Vert rough attempt to determine proper winding for the bridge quads:
+			 * just uses the first loop it finds for any of the edges of ee2 or ee1 */
+			if (wdir == 0) {
+				for (i = 0; i < BLI_array_count(ee2); i++) {
+					if (ee2[i]->l) {
+						wdir = (ee2[i]->l->v == vv2[i]) ? (-1) : (1);
+						break;
+					}
+				}
+			}
+			if (wdir == 0) {
+				for (i = 0; i < BLI_array_count(ee1); i++) {
+					j = clamp_index((i * dir1) + starti, BLI_array_count(ee1));
+					if (ee1[j]->l && ee2[j]->l) {
+						wdir = (ee2[j]->l->v == vv2[j]) ? (1) : (-1);
+						break;
+					}
 				}
 			}
 		}
-		if (wdir == 0) {
-			for (i = 0; i < BLI_array_count(ee1); i++) {
-				j = clamp_index((i * dir1) + starti, BLI_array_count(ee1));
-				if (ee1[j]->l && ee2[j]->l) {
-					wdir = (ee2[j]->l->v == vv2[j]) ? (1) : (-1);
-					break;
-				}
-			}
-		}
-		
+
+#define EDGE_ORD_VERTS_NEXT { \
+		i1     = clamp_index(i * dir1 + starti, lenv1); \
+		i1next = clamp_index((i + 1) * dir1 + starti, lenv1); \
+		i2     = i; \
+		i2next = clamp_index(i + 1, lenv2); \
+		if (vv1[i1] == vv1[i1next]) continue; \
+	} (void)0
+
+#define EDGE_ORD_VERTS { \
+		i1     = clamp_index(i * dir1 + starti, lenv1); \
+		i2     = i; \
+	} (void)0
+
 		/* merge loops of bridge faces */
 		if (use_merge) {
 			const int vert_len = min_ii(BLI_array_count(vv1), BLI_array_count(vv2)) - ((cl1 || cl2) ? 1 : 0);
 			const int edge_len = min_ii(BLI_array_count(ee1), BLI_array_count(ee2));
 
-			if (merge_factor <= 0.0f) {
-				/* 2 --> 1 */
-				for (i = 0; i < vert_len; i++) {
-					BM_vert_splice(bm, vv2[i], vv1[i]);
-				}
-				for (i = 0; i < edge_len; i++) {
-					BM_edge_splice(bm, ee2[i], ee1[i]);
-				}
+			/* first get the edges in order (before splicing verts) */
+			for (i = 0; i < vert_len; i++) {
+				int i1, i1next, i2, i2next;
+				EDGE_ORD_VERTS_NEXT;
+
+				ee1[i] = BM_edge_exists(vv1[i1], vv1[i1next]);
+				ee2[i] = BM_edge_exists(vv2[i2], vv2[i2next]);
 			}
-			else if (merge_factor >= 1.0f) {
-				/* 1 --> 2 */
-				for (i = 0; i < vert_len; i++) {
-					BM_vert_splice(bm, vv1[i], vv2[i]);
-				}
-				for (i = 0; i < edge_len; i++) {
-					BM_edge_splice(bm, ee1[i], ee2[i]);
-				}
+			for (i = 0; i < vert_len; i++) {
+				int i1, i2;
+				EDGE_ORD_VERTS;
+
+				BM_data_interp_from_verts(bm, vv1[i1], vv2[i2], vv2[i2], merge_factor);
+				interp_v3_v3v3(vv2[i2]->co, vv1[i1]->co, vv2[i2]->co, merge_factor);
+				BM_elem_flag_merge(vv1[i1], vv2[i2]);
+				BM_vert_splice(bm, vv1[i1], vv2[i2]);
 			}
-			else {
-				/* mid factor, be tricky */
-				/* 1 --> 2 */
-				for (i = 0; i < vert_len; i++) {
-					BM_data_interp_from_verts(bm, vv1[i], vv2[i], vv2[i], merge_factor);
-					interp_v3_v3v3(vv2[i]->co, vv1[i]->co, vv2[i]->co, merge_factor);
-					BM_elem_flag_merge(vv1[i], vv2[i]);
-					BM_vert_splice(bm, vv1[i], vv2[i]);
-				}
-				for (i = 0; i < edge_len; i++) {
-					BM_data_interp_from_edges(bm, ee1[i], ee2[i], ee2[i], merge_factor);
-					BM_elem_flag_merge(ee1[i], ee2[i]);
-					BM_edge_splice(bm, ee1[i], ee2[i]);
-				}
+			for (i = 0; i < edge_len; i++) {
+				BMEdge *e1 = ee1[i];
+				BMEdge *e2 = ee2[i];
+				BM_data_interp_from_edges(bm, e1, e2, e2, merge_factor);
+				BM_elem_flag_merge(e1, e2);
+				BM_edge_splice(bm, e1, e2);
 			}
 		}
 		else {
@@ -492,14 +498,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 				int i1, i1next, i2, i2next;
 
-				i1 = clamp_index(i * dir1 + starti, lenv1);
-				i1next = clamp_index((i + 1) * dir1 + starti, lenv1);
-				i2 = i;
-				i2next = clamp_index(i + 1, lenv2);
-
-				if (vv1[i1] == vv1[i1next]) {
-					continue;
-				}
+				EDGE_ORD_VERTS_NEXT;
 
 				if (wdir < 0) {
 					SWAP(int, i1, i1next);
@@ -538,6 +537,9 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
+
+#undef EDGE_ORD_VERTS_NEXT
+#undef EDGE_ORD_VERTS
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 

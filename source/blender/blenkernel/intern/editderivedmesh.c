@@ -1766,6 +1766,9 @@ static void statvis_calc_intersect(
 		float cos_mid[3];
 		float ray_no[3];
 
+		if (e->l == NULL)
+			continue;
+
 		if (vertexCos) {
 			copy_v3_v3(cos[0], vertexCos[BM_elem_index_get(e->v1)]);
 			copy_v3_v3(cos[1], vertexCos[BM_elem_index_get(e->v2)]);

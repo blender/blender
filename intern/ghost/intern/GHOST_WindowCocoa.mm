@@ -44,6 +44,13 @@
 #include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
+/* Lion style fullscreen support when building with the 10.6 SDK */
+enum {
+	NSWindowCollectionBehaviorFullScreenPrimary = 1 << 7,
+	NSFullScreenWindowMask = 1 << 14
+};
+#endif
 
 #pragma mark Cocoa window delegate object
 /* live resize ugly patch

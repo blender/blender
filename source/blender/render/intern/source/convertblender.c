@@ -4194,7 +4194,7 @@ static void set_phong_threshold(ObjectRen *obr)
 	
 	for (i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
-		if (vlr->flag & R_SMOOTH) {
+		if ((vlr->flag & R_SMOOTH) && (vlr->flag & R_STRAND)==0) {
 			dot= dot_v3v3(vlr->n, vlr->v1->n);
 			dot= ABS(dot);
 			if (dot>0.9f) {

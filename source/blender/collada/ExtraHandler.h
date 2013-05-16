@@ -63,6 +63,12 @@ public:
 		const unsigned long& elementHash, 
 		const COLLADAFW::UniqueId& uniqueId,
 		COLLADAFW::Object* object);
+
+	/** For backwards compatibility with older OpenCollada, new version added object parameter */
+	bool parseElement ( 
+		const char* profileName, 
+		const unsigned long& elementHash, 
+		const COLLADAFW::UniqueId& uniqueId);
 private:
 	/** Disable default copy constructor. */
 	ExtraHandler(const ExtraHandler& pre);

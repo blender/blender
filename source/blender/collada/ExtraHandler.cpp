@@ -65,6 +65,15 @@ bool ExtraHandler::textData(const char *text, size_t textLength)
 bool ExtraHandler::parseElement(
         const char *profileName,
         const unsigned long& elementHash,
+        const COLLADAFW::UniqueId& uniqueId)
+{
+	/* implement for backwards compatibility, new version added object parameter */
+	return parseElement(profileName, elementHash, uniqueId, NULL);
+}
+
+bool ExtraHandler::parseElement(
+        const char *profileName,
+        const unsigned long& elementHash,
         const COLLADAFW::UniqueId& uniqueId,
 		COLLADAFW::Object* object)
 {
