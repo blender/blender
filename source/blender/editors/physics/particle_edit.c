@@ -376,6 +376,9 @@ typedef struct PEData {
 	int invert;
 	int tot;
 	float vec[3];
+
+	int select_action;
+	int select_toggle_action;
 } PEData;
 
 static void PE_set_data(bContext *C, PEData *data)
@@ -1332,6 +1335,34 @@ static void toggle_key_select(PEData *data, int point_index, int key_index)
 
 /************************ de select all operator ************************/
 
+static void select_action_apply(PTCacheEditPoint *point, PTCacheEditKey *key, int action)
+{
+	switch (action) {
+	case SEL_SELECT:
+		if ((key->flag & PEK_SELECT) == 0) {
+			key->flag |= PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC;
+		}
+		break;
+	case SEL_DESELECT:
+		if (key->flag & PEK_SELECT) {
+			key->flag &= ~PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC;
+		}
+		break;
+	case SEL_INVERT:
+		if ((key->flag & PEK_SELECT) == 0) {
+			key->flag |= PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC;
+		}
+		else {
+			key->flag &= ~PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC;
+		}
+		break;
+	}
+}
+
 static int pe_select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1355,30 +1386,7 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
 
 	LOOP_VISIBLE_POINTS {
 		LOOP_VISIBLE_KEYS {
-			switch (action) {
-			case SEL_SELECT:
-				if ((key->flag & PEK_SELECT) == 0) {
-					key->flag |= PEK_SELECT;
-					point->flag |= PEP_EDIT_RECALC;
-				}
-				break;
-			case SEL_DESELECT:
-				if (key->flag & PEK_SELECT) {
-					key->flag &= ~PEK_SELECT;
-					point->flag |= PEP_EDIT_RECALC;
-				}
-				break;
-			case SEL_INVERT:
-				if ((key->flag & PEK_SELECT) == 0) {
-					key->flag |= PEK_SELECT;
-					point->flag |= PEP_EDIT_RECALC;
-				}
-				else {
-					key->flag &= ~PEK_SELECT;
-					point->flag |= PEP_EDIT_RECALC;
-				}
-				break;
-			}
+			select_action_apply(point, key, action);
 		}
 	}
 
@@ -1445,22 +1453,39 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 	return OPERATOR_FINISHED;
 }
 
-/************************ select first operator ************************/
+/************************ select root operator ************************/
 
 static void select_root(PEData *data, int point_index)
 {
-	if (data->edit->points[point_index].flag & PEP_HIDE)
+	PTCacheEditPoint *point = data->edit->points + point_index;
+	PTCacheEditKey *key = point->keys;
+
+	if (point->flag & PEP_HIDE)
 		return;
 	
-	data->edit->points[point_index].keys->flag |= PEK_SELECT;
-	data->edit->points[point_index].flag |= PEP_EDIT_RECALC; /* redraw selection only */
+	if (data->select_action != SEL_TOGGLE)
+		select_action_apply(point, key, data->select_action);
+	else if (key->flag & PEK_SELECT)
+		data->select_toggle_action = SEL_DESELECT;
 }
 
-static int select_roots_exec(bContext *C, wmOperator *UNUSED(op))
+static int select_roots_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
+	int action = RNA_enum_get(op->ptr, "action");
 
 	PE_set_data(C, &data);
+
+	if (action == SEL_TOGGLE) {
+		data.select_action = SEL_TOGGLE;
+		data.select_toggle_action = SEL_SELECT;
+
+		foreach_point(&data, select_root);
+
+		action = data.select_toggle_action;
+	}
+
+	data.select_action = action;
 	foreach_point(&data, select_root);
 
 	PE_update_selection(data.scene, data.ob, 1);
@@ -1482,26 +1507,44 @@ void PARTICLE_OT_select_roots(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_select_action(ot, SEL_SELECT);
 }
 
-/************************ select last operator ************************/
+/************************ select tip operator ************************/
 
 static void select_tip(PEData *data, int point_index)
 {
 	PTCacheEditPoint *point = data->edit->points + point_index;
+	PTCacheEditKey *key = &point->keys[point->totkey - 1];
 	
 	if (point->flag & PEP_HIDE)
 		return;
 	
-	point->keys[point->totkey - 1].flag |= PEK_SELECT;
-	point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
+	if (data->select_action != SEL_TOGGLE)
+		select_action_apply(point, key, data->select_action);
+	else if (key->flag & PEK_SELECT)
+		data->select_toggle_action = SEL_DESELECT;
 }
 
-static int select_tips_exec(bContext *C, wmOperator *UNUSED(op))
+static int select_tips_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
+	int action = RNA_enum_get(op->ptr, "action");
 
 	PE_set_data(C, &data);
+
+	if (action == SEL_TOGGLE) {
+		data.select_action = SEL_TOGGLE;
+		data.select_toggle_action = SEL_SELECT;
+
+		foreach_point(&data, select_tip);
+
+		action = data.select_toggle_action;
+	}
+
+	data.select_action = action;
 	foreach_point(&data, select_tip);
 
 	PE_update_selection(data.scene, data.ob, 1);
@@ -1523,6 +1566,9 @@ void PARTICLE_OT_select_tips(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_select_action(ot, SEL_SELECT);
 }
 
 /************************ select linked operator ************************/

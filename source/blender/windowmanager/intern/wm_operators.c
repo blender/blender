@@ -1109,9 +1109,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-void WM_operator_properties_select_all(wmOperatorType *ot)
+void WM_operator_properties_select_action(wmOperatorType *ot, int default_action)
 {
-	static EnumPropertyItem select_all_actions[] = {
+	static EnumPropertyItem select_actions[] = {
 		{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
 		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
 		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
@@ -1119,7 +1119,12 @@ void WM_operator_properties_select_all(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, "Action", "Selection action to execute");
+	RNA_def_enum(ot->srna, "action", select_actions, default_action, "Action", "Selection action to execute");
+}
+
+void WM_operator_properties_select_all(wmOperatorType *ot)
+{
+	WM_operator_properties_select_action(ot, SEL_TOGGLE);
 }
 
 void WM_operator_properties_border(wmOperatorType *ot)

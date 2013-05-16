@@ -4785,11 +4785,10 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	UI_GetThemeColor3fv(TH_VERTEX, nosel_col);
 
 	/* draw paths */
-	if (timed) {
-		glEnable(GL_BLEND);
-		steps = (*edit->pathcache)->steps + 1;
-		pathcol = MEM_callocN(steps * 4 * sizeof(float), "particle path color data");
-	}
+	steps = (*edit->pathcache)->steps + 1;
+
+	glEnable(GL_BLEND);
+	pathcol = MEM_callocN(steps * 4 * sizeof(float), "particle path color data");
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -4804,11 +4803,19 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	}
 
 	cache = edit->pathcache;
-	for (i = 0; i < totpoint; i++) {
+	for (i = 0, point = edit->points; i < totpoint; i++, point++) {
 		path = cache[i];
 		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
-		if (timed) {
+		if (point->flag & PEP_HIDE) {
+			for (k = 0, pcol = pathcol; k < steps; k++, pcol += 4) {
+				copy_v3_v3(pcol, path->col);
+				pcol[3] = 0.25f;
+			}
+
+			glColorPointer(4, GL_FLOAT, 4 * sizeof(float), pathcol);
+		}
+		else if (timed) {
 			for (k = 0, pcol = pathcol, pkey = path; k < steps; k++, pkey++, pcol += 4) {
 				copy_v3_v3(pcol, pkey->col);
 				pcol[3] = 1.0f - fabsf((float)(CFRA) -pkey->time) / (float)pset->fade_frames;

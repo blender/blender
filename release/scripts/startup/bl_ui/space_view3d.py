@@ -1437,14 +1437,32 @@ class VIEW3D_MT_particle_specials(Menu):
         particle_edit = context.tool_settings.particle_edit
 
         layout.operator("particle.rekey")
+        layout.operator("particle.delete")
+        layout.operator("particle.remove_doubles")
 
-        layout.separator()
         if particle_edit.select_mode == 'POINT':
             layout.operator("particle.subdivide")
+
+        layout.operator("particle.weight_set")
+        layout.separator()
+
+        layout.operator("particle.mirror")
+
+        if particle_edit.select_mode == 'POINT':
+            layout.separator()
             layout.operator("particle.select_roots")
             layout.operator("particle.select_tips")
 
-        layout.operator("particle.remove_doubles")
+            layout.separator()
+
+            layout.operator("particle.select_more")
+            layout.operator("particle.select_less")
+
+            layout.separator()
+
+            layout.operator("particle.select_all").action = 'TOGGLE'
+            layout.operator("particle.select_linked")
+            layout.operator("particle.select_all", text="Inverse").action = 'INVERT'
 
 
 class VIEW3D_MT_particle_showhide(ShowHideMenu, Menu):
