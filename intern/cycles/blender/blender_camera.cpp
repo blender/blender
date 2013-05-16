@@ -82,8 +82,8 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings b_render
 	bcam->pano_viewplane.top = 1.0f;
 
 	/* render resolution */
-	bcam->full_width = (int)(b_render.resolution_x()*b_render.resolution_percentage()/100);
-	bcam->full_height = (int)(b_render.resolution_y()*b_render.resolution_percentage()/100);
+	bcam->full_width = render_resolution_x(b_render);
+	bcam->full_height = render_resolution_y(b_render);
 }
 
 static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)

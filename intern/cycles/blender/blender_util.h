@@ -94,6 +94,16 @@ static inline bool BKE_object_is_deform_modified(BL::Object self, BL::Scene scen
 	return self.is_deform_modified(scene, (preview)? (1<<0): (1<<1))? true: false;
 }
 
+static inline int render_resolution_x(BL::RenderSettings b_render)
+{
+	return b_render.resolution_x()*b_render.resolution_percentage()/100;
+}
+
+static inline int render_resolution_y(BL::RenderSettings b_render)
+{
+	return b_render.resolution_y()*b_render.resolution_percentage()/100;
+}
+
 static inline string image_user_file_path(BL::ImageUser iuser, BL::Image ima, int cfra)
 {
 	char filepath[1024];

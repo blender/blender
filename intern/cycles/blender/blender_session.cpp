@@ -46,8 +46,8 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b
 {
 	/* offline render */
 
-	width = (int)(b_render.resolution_x()*b_render.resolution_percentage()/100);
-	height = (int)(b_render.resolution_y()*b_render.resolution_percentage()/100);
+	width = render_resolution_x(b_render);
+	height = render_resolution_y(b_render);
 
 	background = true;
 	last_redraw_time = 0.0;
@@ -129,8 +129,8 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
 
-	width = (int)(b_render.resolution_x()*b_render.resolution_percentage()/100);
-	height = (int)(b_render.resolution_y()*b_render.resolution_percentage()/100);
+	width = render_resolution_x(b_render);
+	height = render_resolution_y(b_render);
 
 	if(scene->params.modified(scene_params) ||
 	   session->params.modified(session_params) ||
