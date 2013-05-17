@@ -3765,7 +3765,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[4][4])
 	shb->compressthresh= lar->compressthresh;
 }
 
-static void area_lamp_vectors(LampRen *lar)
+void area_lamp_vectors(LampRen *lar)
 {
 	float xsize= 0.5f*lar->area_size, ysize= 0.5f*lar->area_sizey, multifac;
 

@@ -140,6 +140,9 @@ struct VlakRen *RE_vlakren_copy(struct ObjectRen *obr, struct VlakRen *vlr);
 
 void RE_set_customdata_names(struct ObjectRen *obr, struct CustomData *data);
 
+void area_lamp_vectors(struct LampRen *lar);
+
+
 /* haloren->type: flags */
 #define HA_ONLYSKY		1
 #define HA_VECT			2

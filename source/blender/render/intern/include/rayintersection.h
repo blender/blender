@@ -64,6 +64,10 @@ typedef struct Isect {
 	float dir[3];
 	float dist;
 
+	/* for envmap and incremental view update renders */
+	float origstart[3];
+	float origdir[3];
+	
 	/* precomputed values to accelerate bounding box intersection */
 	int bv_index[6];
 	float idot_axis[3];

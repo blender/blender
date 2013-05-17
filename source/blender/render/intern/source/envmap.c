@@ -45,6 +45,7 @@
 
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -163,6 +164,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	/* view stuff in env render */
 	viewscale = (env->type == ENV_PLANE) ? env->viewscale : 1.0f;
 	RE_SetEnvmapCamera(envre, env->object, viewscale, env->clipsta, env->clipend);
+	copy_m4_m4(envre->viewmat_orig, re->viewmat_orig);
 	
 	/* callbacks */
 	envre->display_draw = re->display_draw;
@@ -265,23 +267,27 @@ static void env_set_imats(Render *re)
 
 /* ------------------------------------------------------------------------- */
 
-void env_rotate_scene(Render *re, float mat[4][4], int mode)
+void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 {
 	GroupObject *go;
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
 	LampRen *lar = NULL;
 	HaloRen *har = NULL;
-	float imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3], tmpmat[4][4];
+	float imat[3][3], mat_inverse[4][4], smat[4][4], tmat[4][4], cmat[3][3], tmpmat[4][4];
 	int a;
 	
-	if (mode == 0) {
+	if (do_rotate == 0) {
 		invert_m4_m4(tmat, mat);
 		copy_m3_m4(imat, tmat);
+		
+		copy_m4_m4(mat_inverse, mat);
 	}
 	else {
 		copy_m4_m4(tmat, mat);
 		copy_m3_m4(imat, mat);
+		
+		invert_m4_m4(mat_inverse, tmat);
 	}
 
 	for (obi = re->instancetable.first; obi; obi = obi->next) {
@@ -290,7 +296,7 @@ void env_rotate_scene(Render *re, float mat[4][4], int mode)
 			copy_m4_m4(tmpmat, obi->mat);
 			mult_m4_m4m4(obi->mat, tmat, tmpmat);
 		}
-		else if (mode == 1)
+		else if (do_rotate == 1)
 			copy_m4_m4(obi->mat, tmat);
 		else
 			unit_m4(obi->mat);
@@ -300,10 +306,12 @@ void env_rotate_scene(Render *re, float mat[4][4], int mode)
 		transpose_m3(obi->nmat);
 
 		/* indicate the renderer has to use transform matrices */
-		if (mode == 0)
+		if (do_rotate == 0)
 			obi->flag &= ~R_ENV_TRANSFORMED;
-		else
+		else {
 			obi->flag |= R_ENV_TRANSFORMED;
+			copy_m4_m4(obi->imat, mat_inverse);
+		}
 	}
 	
 
@@ -319,32 +327,50 @@ void env_rotate_scene(Render *re, float mat[4][4], int mode)
 	for (go = re->lights.first; go; go = go->next) {
 		lar = go->lampren;
 		
-		/* removed here some horrible code of someone in NaN who tried to fix
-		 * prototypes... just solved by introducing a correct cmat[3][3] instead
-		 * of using smat. this works, check square spots in reflections  (ton) */
-		copy_m3_m3(cmat, lar->imat); 
-		mul_m3_m3m3(lar->imat, cmat, imat); 
-
-		mul_m3_v3(imat, lar->vec);
-		mul_m4_v3(tmat, lar->co);
-
-		lar->sh_invcampos[0] = -lar->co[0];
-		lar->sh_invcampos[1] = -lar->co[1];
-		lar->sh_invcampos[2] = -lar->co[2];
-		mul_m3_v3(lar->imat, lar->sh_invcampos);
-		lar->sh_invcampos[2] *= lar->sh_zfac;
+		/* copy from add_render_lamp */
+		if (do_rotate == 1)
+			mult_m4_m4m4(tmpmat, re->viewmat, go->ob->obmat);
+		else
+			mult_m4_m4m4(tmpmat, re->viewmat_orig, go->ob->obmat);
+		invert_m4_m4(go->ob->imat, tmpmat);
 		
-		if (lar->shb) {
-			if (mode == 1) {
-				invert_m4_m4(pmat, mat);
-				mult_m4_m4m4(smat, lar->shb->viewmat, pmat);
-				mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, smat);
+		copy_m3_m4(lar->mat, tmpmat);
+		
+		copy_m3_m4(lar->imat, go->ob->imat);
+
+		lar->vec[0]= -tmpmat[2][0];
+		lar->vec[1]= -tmpmat[2][1];
+		lar->vec[2]= -tmpmat[2][2];
+		normalize_v3(lar->vec);
+		lar->co[0]= tmpmat[3][0];
+		lar->co[1]= tmpmat[3][1];
+		lar->co[2]= tmpmat[3][2];
+
+		if (lar->type == LA_AREA) {
+			area_lamp_vectors(lar);
+		}
+		else if (lar->type == LA_SPOT) {
+			normalize_v3(lar->imat[0]);
+			normalize_v3(lar->imat[1]);
+			normalize_v3(lar->imat[2]);
+		
+			lar->sh_invcampos[0] = -lar->co[0];
+			lar->sh_invcampos[1] = -lar->co[1];
+			lar->sh_invcampos[2] = -lar->co[2];
+			mul_m3_v3(lar->imat, lar->sh_invcampos);
+			lar->sh_invcampos[2] *= lar->sh_zfac;
+		
+			if (lar->shb) {
+				if (do_rotate == 1) {
+					mult_m4_m4m4(smat, lar->shb->viewmat, mat_inverse);
+					mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, smat);
+				}
+				else mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, lar->shb->viewmat);
 			}
-			else mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, lar->shb->viewmat);
 		}
 	}
 	
-	if (mode) {
+	if (do_rotate) {
 		init_render_world(re);
 		env_set_imats(re);
 	}
