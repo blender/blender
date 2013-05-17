@@ -9465,6 +9465,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+
+	{
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd = (SmokeModifierData *)md;
+					if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
+						if (!smd->flow->particle_size) {
+							smd->flow->particle_size = 1.0f;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 

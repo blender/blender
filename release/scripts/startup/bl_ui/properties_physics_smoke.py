@@ -87,6 +87,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
                 if flow.smoke_flow_source == "PARTICLES":
                     col.label(text="Particle System:")
                     col.prop_search(flow, "particle_system", ob, "particle_systems", text="")
+                    col.prop(flow, "use_particle_size", text="Set Size")
+                    sub = col.column()
+                    sub.active = flow.use_particle_size
+                    sub.prop(flow, "particle_size")
                 else:
                     col.prop(flow, "surface_distance")
                     col.prop(flow, "volume_density")
@@ -110,6 +114,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
                     sub.prop(flow, "smoke_color")
                 if flow.smoke_flow_type in {'FIRE', 'BOTH'}:
                     sub.prop(flow, "fuel_amount")
+                sub.label(text="Sampling:")
+                sub.prop(flow, "subframes")
 
         elif md.smoke_type == 'COLLISION':
             coll = md.coll_settings

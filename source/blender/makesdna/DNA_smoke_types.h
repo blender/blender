@@ -166,6 +166,7 @@ typedef struct SmokeDomainSettings {
 #define MOD_SMOKE_FLOW_ABSOLUTE (1<<1) /*old style emission*/
 #define MOD_SMOKE_FLOW_INITVELOCITY (1<<2) /* passes particles speed to the smoke */
 #define MOD_SMOKE_FLOW_TEXTUREEMIT (1<<3) /* use texture to control emission speed */
+#define MOD_SMOKE_FLOW_USE_PART_SIZE (1<<4) /* use specific size for particles instead of closest cell */
 
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -186,6 +187,8 @@ typedef struct SmokeFlowSettings {
 	float temp; /* delta temperature (temp - ambient temp) */
 	float volume_density; /* density emitted within mesh volume */
 	float surface_distance; /* maximum emission distance from mesh surface */
+	float particle_size;
+	int subframes;
 	/* texture control */
 	float texture_size;
 	float texture_offset;

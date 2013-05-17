@@ -559,6 +559,23 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Surface", "Maximum distance from mesh surface to emit smoke");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
+	prop = RNA_def_property(srna, "particle_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.1, 20.0);
+	RNA_def_property_ui_range(prop, 0.5, 5.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Size", "Particle size in simulation cells");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "use_particle_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_USE_PART_SIZE);
+	RNA_def_property_ui_text(prop, "Set Size", "Set particle size in simulation cells or use nearest cell");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "subframes", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 50);
+	RNA_def_property_ui_range(prop, 0, 10, 1, -1);
+	RNA_def_property_ui_text(prop, "Subframes", "Number of additional samples to take between frames to improve quality of fast moving flows");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
 	prop = RNA_def_property(srna, "density_vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_SmokeFlow_density_vgroup_get",
 	                              "rna_SmokeFlow_density_vgroup_length",
