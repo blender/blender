@@ -2621,6 +2621,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 		if (ob->recalc & OB_RECALC_DATA) {
 			ID *data_id = (ID *)ob->data;
 			AnimData *adt = BKE_animdata_from_id(data_id);
+			Key *key;
 			float ctime = BKE_scene_frame_get(scene);
 			
 			if (G.debug & G_DEBUG)
@@ -2630,6 +2631,12 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 				/* evaluate drivers - datalevel */
 				/* XXX: for mesh types, should we push this to derivedmesh instead? */
 				BKE_animsys_evaluate_animdata(scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
+			}
+			
+			key = BKE_key_from_object(ob);
+			if (key && key->block.first) {
+				if (!(ob->shapeflag & OB_SHAPE_LOCK))
+					BKE_animsys_evaluate_animdata(scene, &key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 			}
 
 			/* includes all keys and modifiers */
