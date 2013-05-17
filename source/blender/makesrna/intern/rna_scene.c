@@ -1129,6 +1129,10 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	SceneRenderLayer *rl = (SceneRenderLayer *)ptr->data;
+	char oldname[sizeof(rl->name)];
+
+	BLI_strncpy(oldname, rl->name, sizeof(rl->name));
+
 	BLI_strncpy_utf8(rl->name, value, sizeof(rl->name));
 	BLI_uniquename(&scene->r.layers, rl, DATA_("RenderLayer"), '.', offsetof(SceneRenderLayer, name), sizeof(rl->name));
 
@@ -1143,6 +1147,9 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 			}
 		}
 	}
+
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename(NULL, "render.layers", oldname, rl->name);
 }
 
 static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
