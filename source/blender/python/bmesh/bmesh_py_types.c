@@ -1171,7 +1171,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 		else {
 			char filter_flags_ch = (char)filter_flags;
 			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
-				if (eve->head.hflag & filter_flags_ch) {
+				if (BM_elem_flag_test(eve, filter_flags_ch)) {
 					mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 				}
 			}

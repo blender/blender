@@ -5023,7 +5023,7 @@ char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *p
 /* context and ptr_default can be NULL */
 char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
                                         const short as_function, const short all_args,
-										const int max_prop_length,
+                                        const int max_prop_length,
                                         PropertyRNA *iterprop)
 {
 	const char *arg_name = NULL;
