@@ -156,7 +156,7 @@ int BM_mesh_edgeloops_find(BMesh *bm, ListBase *r_eloops,
 			/* add both directions */
 			if (bm_loop_build(el_store, e->v1, e->v2,  1) &&
 			    bm_loop_build(el_store, e->v2, e->v1, -1) &&
-			    el_store->verts.first)
+			    el_store->len > 1)
 			{
 				BLI_addtail(r_eloops, el_store);
 				BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
