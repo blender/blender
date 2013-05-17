@@ -1383,7 +1383,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 	if (PSFRA < PEFRA) {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		glRectf((float)(PEFRA+1), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -1392,7 +1392,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
 	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
+	fdrawline((float)(PEFRA+1), v2d->cur.ymin, (float)(PEFRA+1), v2d->cur.ymax);
 	
 	glDisable(GL_BLEND);
 }
