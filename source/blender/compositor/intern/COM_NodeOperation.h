@@ -247,6 +247,7 @@ public:
 	
 	virtual bool isViewerOperation() { return false; }
 	virtual bool isPreviewOperation() { return false; }
+	virtual bool isFileOutputOperation() { return false; }
 	
 	inline bool isBreaked() {
 		return this->m_btree->test_break(this->m_btree->tbh);
