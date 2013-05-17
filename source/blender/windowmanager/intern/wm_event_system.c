@@ -2255,7 +2255,7 @@ void wm_event_do_handlers(bContext *C)
 		/* only add mousemove when queue was read entirely */
 		if (win->addmousemove && win->eventstate) {
 			wmEvent tevent = *(win->eventstate);
-			//printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
+			// printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
 			tevent.type = MOUSEMOVE;
 			tevent.prevx = tevent.x;
 			tevent.prevy = tevent.y;
@@ -2540,10 +2540,6 @@ void WM_event_add_mousemove(bContext *C)
 	window->addmousemove = 1;
 }
 
-void WM_event_add_mousemove_window(wmWindow *window)
-{
-	window->addmousemove = 1;
-}
 
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
 int WM_modal_tweak_exit(const wmEvent *event, int tweak_event)

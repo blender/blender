@@ -529,10 +529,6 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					
 					WM_event_add_notifier(C, NC_WM | ND_JOB, NULL);
 
-					/* so the info header updates on job end even if the mouse doesn't move.
-					 * a rather annoying/obscure bug, see [#32537] (second reply) */
-					WM_event_add_mousemove_window(wm_job->win);
-
 					/* new job added for wm_job? */
 					if (wm_job->customdata) {
 						// printf("job restarted with new data %s\n", wm_job->name);

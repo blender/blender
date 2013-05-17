@@ -47,6 +47,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -926,7 +927,6 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 	
 	if (CTX_wm_window(C) == NULL) {
 		engine->flag |= RE_ENGINE_DO_UPDATE;
-		
 		return;
 	}
 
@@ -962,7 +962,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 
 /* callback for render engine , on changes */
 void render_view3d(RenderEngine *engine, const bContext *C)
-{
+{	
 	render_view3d_do(engine, C, 0);
 }
 
@@ -986,8 +986,12 @@ static int render_view3d_changed(RenderEngine *engine, const bContext *C)
 		float clipsta, clipend;
 		bool orth;
 
-		if (engine->update_flag == RE_ENGINE_UPDATE_MA)
+		if (engine->update_flag & RE_ENGINE_UPDATE_MA)
 			update |= PR_UPDATE_MATERIAL;
+		
+		if (engine->update_flag & RE_ENGINE_UPDATE_OTHER)
+			update |= PR_UPDATE_MATERIAL;
+		
 		engine->update_flag = 0;
 		
 		if (engine->resolution_x != ar->winx || engine->resolution_y != ar->winy)

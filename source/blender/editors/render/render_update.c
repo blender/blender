@@ -41,6 +41,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -78,11 +79,14 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	/* viewport rendering update on data changes, happens after depsgraph
 	 * updates if there was any change. context is set to the 3d view */
 	bContext *C;
-	bScreen *sc;
-	ScrArea *sa;
-	ARegion *ar;
+	wmWindowManager *wm;
+	wmWindow *win;
 	static int recursive_check = FALSE;
 
+	/* why do this function then? :) */
+	if (updated == 0)
+		return;
+	
 	/* don't do this render engine update if we're updating the scene from
 	 * other threads doing e.g. rendering or baking jobs */
 	if (!BLI_thread_is_main())
@@ -99,8 +103,15 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	CTX_data_scene_set(C, scene);
 
 	CTX_wm_manager_set(C, bmain->wm.first);
-
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+	wm = bmain->wm.first;
+	
+	for (win = wm->windows.first; win; win = win->next) {
+		bScreen *sc = win->screen;
+		ScrArea *sa;
+		ARegion *ar;
+		
+		CTX_wm_window_set(C, win);
+		
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
