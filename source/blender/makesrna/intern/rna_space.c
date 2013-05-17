@@ -120,12 +120,23 @@ EnumPropertyItem viewport_shade_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+
 EnumPropertyItem clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
 	{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
 	                         "Show tracking/reconstruction tools"},
 	{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
 	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* Actually populated dynamically trough a function, but helps for context-less access (e.g. doc, i18n...). */
+static EnumPropertyItem buttons_texture_context_items[] = {
+	{SB_TEXC_MATERIAL, "MATERIAL", ICON_MATERIAL, "", "Show material textures"},
+	{SB_TEXC_WORLD, "WORLD", ICON_WORLD, "", "Show world textures"},
+	{SB_TEXC_LAMP, "LAMP", ICON_LAMP, "", "Show lamp textures"},
+	{SB_TEXC_PARTICLES, "PARTICLES", ICON_PARTICLES, "", "Show particles textures"},
+	{SB_TEXC_OTHER, "OTHER", ICON_TEXTURE, "", "Show other data textures"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -148,6 +159,7 @@ EnumPropertyItem clip_editor_mode_items[] = {
 #include "BKE_screen.h"
 #include "BKE_icons.h"
 
+#include "ED_buttons.h"
 #include "ED_image.h"
 #include "ED_node.h"
 #include "ED_screen.h"
@@ -1113,51 +1125,28 @@ void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
 static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                                    PropertyRNA *UNUSED(prop), int *free)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
 	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	int totitem = 0;
 
-	if (ob) {
-		if (ob->type == OB_LAMP) {
-			tmp.value = SB_TEXC_MAT_OR_LAMP;
-			tmp.description = "Show Lamp Textures";
-			tmp.identifier = "LAMP";
-			tmp.icon = ICON_LAMP_POINT;
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
-		else if (ob->totcol) {
-			tmp.value = SB_TEXC_MAT_OR_LAMP;
-			tmp.description = "Show Material Textures";
-			tmp.identifier = "MATERIAL";
-			tmp.icon = ICON_MATERIAL;
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
-
-		if (ob->particlesystem.first) {
-			tmp.value = SB_TEXC_PARTICLES;
-			tmp.description = "Show Particle Textures";
-			tmp.identifier = "PARTICLE";
-			tmp.icon = ICON_PARTICLES;
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
+	if (ED_texture_context_check_world(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_WORLD);
 	}
 
-	if (scene && scene->world) {
-		tmp.value = SB_TEXC_WORLD;
-		tmp.description = "Show World Textures";
-		tmp.identifier = "WORLD";
-		tmp.icon = ICON_WORLD;
-		RNA_enum_item_add(&item, &totitem, &tmp);
+	if (ED_texture_context_check_lamp(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LAMP);
+	}
+	else if (ED_texture_context_check_material(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_MATERIAL);
 	}
 
-	tmp.value = SB_TEXC_BRUSH;
-	tmp.description = "Show Brush Textures";
-	tmp.identifier = "BRUSH";
-	tmp.icon = ICON_BRUSH_DATA;
-	RNA_enum_item_add(&item, &totitem, &tmp);
-	
+	if (ED_texture_context_check_particles(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
+	}
+
+	if (ED_texture_context_check_others(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_OTHER);
+	}
+
 	RNA_enum_item_end(&item, &totitem);
 	*free = 1;
 
@@ -2096,11 +2085,6 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem buttons_texture_context_items[] = {
-		{SB_TEXC_MAT_OR_LAMP, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
-		{0, NULL, 0, NULL, NULL}
-	};                             /*actually populated dynamically trough a function */
-		
 	srna = RNA_def_struct(brna, "SpaceProperties", "Space");
 	RNA_def_struct_sdna(srna, "SpaceButs");
 	RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");
@@ -2124,6 +2108,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceProperties_texture_context_itemf");
 	RNA_def_property_ui_text(prop, "Texture Context", "Type of texture data to display and edit");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop = RNA_def_property(srna, "use_limited_texture_context", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_TEX_USER_LIMITED);
+	RNA_def_property_ui_text(prop, "Limited Texture Context",
+	                         "Use the limited version of texture user (for 'old shading' mode)");
 
 	/* pinned data */
 	prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);

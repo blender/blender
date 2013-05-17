@@ -65,12 +65,116 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "ED_buttons.h"
 #include "ED_node.h"
 #include "ED_screen.h"
 
 #include "../interface/interface_intern.h"
 
 #include "buttons_intern.h" // own include
+
+/****************** "Old Shading" Texture Context ****************/
+
+bool ED_texture_context_check_world(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	return (scene && scene->world);
+}
+
+bool ED_texture_context_check_material(const bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	return (ob && (ob->totcol != 0));
+}
+
+bool ED_texture_context_check_lamp(const bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	return (ob && (ob->type == OB_LAMP));
+}
+
+bool ED_texture_context_check_particles(const bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	return (ob && ob->particlesystem.first);
+}
+
+static void texture_context_check_modifier_foreach(void *userData, Object *UNUSED(ob), ModifierData *UNUSED(md),
+                                                   const char *UNUSED(propname))
+{
+	*((bool *)userData) = true;
+}
+
+bool ED_texture_context_check_others(const bContext *C)
+{
+	/* We cannot rely on sbuts->texuser here, as it is NULL when in "old" tex handling, non-OTHERS tex context. */
+	Object *ob = CTX_data_active_object(C);
+
+	/* object */
+	if (ob) {
+		/* Tex force field. */
+		if (ob->pd && ob->pd->forcefield == PFIELD_TEXTURE) {
+			return true;
+		}
+
+		/* modifiers */
+		{
+			bool check = false;
+			modifiers_foreachTexLink(ob, texture_context_check_modifier_foreach, &check);
+			if (check) {
+				return true;
+			}
+		}
+	}
+
+	/* brush */
+	if (BKE_paint_brush(BKE_paint_get_active_from_context(C))) {
+		return true;
+	}
+
+	return false;
+}
+
+/* Only change texture context if current one is invalid! */
+void buttons_check_texture_context(const bContext *C, SpaceButs *sbuts)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	if (BKE_scene_use_new_shading_nodes(scene)) {
+		return;  /* No texture context in new shading mode */
+	}
+
+	{
+		bool valid_world = ED_texture_context_check_world(C);
+		bool valid_material = ED_texture_context_check_material(C);
+		bool valid_lamp = ED_texture_context_check_lamp(C);
+		bool valid_particles = ED_texture_context_check_particles(C);
+		bool valid_others = ED_texture_context_check_others(C);
+
+		if (((sbuts->texture_context == SB_TEXC_WORLD) && !valid_world) ||
+			((sbuts->texture_context == SB_TEXC_MATERIAL) && !valid_material) ||
+			((sbuts->texture_context == SB_TEXC_LAMP) && !valid_lamp) ||
+			((sbuts->texture_context == SB_TEXC_PARTICLES) && !valid_particles) ||
+			((sbuts->texture_context == SB_TEXC_OTHER) && !valid_others))
+		{
+			if (valid_others) {
+				sbuts->texture_context = SB_TEXC_OTHER;
+			}
+			else if (valid_world) {
+				sbuts->texture_context = SB_TEXC_WORLD;
+			}
+			else if (valid_material) {
+				sbuts->texture_context = SB_TEXC_MATERIAL;
+			}
+			else if (valid_lamp) {
+				sbuts->texture_context = SB_TEXC_LAMP;
+			}
+			else if (valid_particles) {
+				sbuts->texture_context = SB_TEXC_PARTICLES;
+			}
+		}
+	}
+}
 
 /************************* Texture User **************************/
 
@@ -154,6 +258,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	World *wrld = NULL;
 	Brush *brush = NULL;
 	ID *pinid = sbuts->pinid;
+	bool limited_mode = sbuts->flag & SB_TEX_USER_LIMITED;
 
 	/* get data from context */
 	if (pinid) {
@@ -173,7 +278,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 
 	if (!scene)
 		scene = CTX_data_scene(C);
-	
+
 	if (!(pinid || pinid == &scene->id)) {
 		ob = (scene->basact) ? scene->basact->object : NULL;
 		wrld = scene->world;
@@ -188,11 +293,11 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	/* fill users */
 	users->first = users->last = NULL;
 
-	if (ma)
+	if (ma && !limited_mode)
 		buttons_texture_users_find_nodetree(users, &ma->id, ma->nodetree, "Material");
-	if (la)
+	if (la && !limited_mode)
 		buttons_texture_users_find_nodetree(users, &la->id, la->nodetree, "Lamp");
-	if (wrld)
+	if (wrld && !limited_mode)
 		buttons_texture_users_find_nodetree(users, &wrld->id, wrld->nodetree, "World");
 
 	if (ob) {
@@ -204,7 +309,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		modifiers_foreachTexLink(ob, buttons_texture_modifier_foreach, users);
 
 		/* particle systems */
-		if (psys) {
+		if (psys && !limited_mode) {
 			for (a = 0; a < MAX_MTEX; a++) {
 				mtex = psys->part->mtex[a];
 
@@ -261,14 +366,17 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 	 * properties editor, before the buttons are created. */
 	ButsContextTexture *ct = sbuts->texuser;
 	Scene *scene = CTX_data_scene(C);
+	ID *pinid = sbuts->pinid;
 
-	if (!BKE_scene_use_new_shading_nodes(scene)) {
+	buttons_check_texture_context(C, sbuts);
+
+	if (!(BKE_scene_use_new_shading_nodes(scene) || (sbuts->texture_context == SB_TEXC_OTHER))) {
 		if (ct) {
 			BLI_freelistN(&ct->users);
 			MEM_freeN(ct);
 			sbuts->texuser = NULL;
 		}
-		
+
 		return;
 	}
 
@@ -282,35 +390,41 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 
 	buttons_texture_users_from_context(&ct->users, C, sbuts);
 
-	/* set one user as active based on active index */
-	if (ct->index >= BLI_countlist(&ct->users))
-		ct->index = 0;
+	if (pinid && GS(pinid->name) == ID_TE) {
+		ct->user = NULL;
+		ct->texture = (Tex *)pinid;
+	}
+	else {
+		/* set one user as active based on active index */
+		if (ct->index >= BLI_countlist(&ct->users))
+			ct->index = 0;
 
-	ct->user = BLI_findlink(&ct->users, ct->index);
-	ct->texture = NULL;
+		ct->user = BLI_findlink(&ct->users, ct->index);
+		ct->texture = NULL;
 
-	if (ct->user) {
-		if (ct->user->ptr.data) {
-			PointerRNA texptr;
-			Tex *tex;
+		if (ct->user) {
+			if (ct->user->ptr.data) {
+				PointerRNA texptr;
+				Tex *tex;
 
-			/* get texture datablock pointer if it's a property */
-			texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
-			tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? texptr.data : NULL;
+				/* get texture datablock pointer if it's a property */
+				texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
+				tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? texptr.data : NULL;
 
-			ct->texture = tex;
-		}
-		else if (ct->user->node && !(ct->user->node->flag & NODE_ACTIVE_TEXTURE)) {
-			ButsTextureUser *user;
+				ct->texture = tex;
+			}
+			else if (ct->user->node && !(ct->user->node->flag & NODE_ACTIVE_TEXTURE)) {
+				ButsTextureUser *user;
 
-			/* detect change of active texture node in same node tree, in that
-			 * case we also automatically switch to the other node */
-			for (user = ct->users.first; user; user = user->next) {
-				if (user->ntree == ct->user->ntree && user->node != ct->user->node) {
-					if (user->node->flag & NODE_ACTIVE_TEXTURE) {
-						ct->user = user;
-						ct->index = BLI_findindex(&ct->users, user);
-						break;
+				/* detect change of active texture node in same node tree, in that
+				 * case we also automatically switch to the other node */
+				for (user = ct->users.first; user; user = user->next) {
+					if (user->ntree == ct->user->ntree && user->node != ct->user->node) {
+						if (user->node->flag & NODE_ACTIVE_TEXTURE) {
+							ct->user = user;
+							ct->index = BLI_findindex(&ct->users, user);
+							break;
+						}
 					}
 				}
 			}

@@ -391,6 +391,12 @@ float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]) {STUB_ASS
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) {STUB_ASSERT(0);}
 int ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima) {STUB_ASSERT(0); return 0;}
 
+bool ED_texture_context_check_world(struct bContext *C) {STUB_ASSERT(0); return false;}
+bool ED_texture_context_check_material(struct bContext *C) {STUB_ASSERT(0); return false;}
+bool ED_texture_context_check_lamp(struct bContext *C) {STUB_ASSERT(0); return false;}
+bool ED_texture_context_check_particles(struct bContext *C) {STUB_ASSERT(0); return false;}
+bool ED_texture_context_check_others(struct bContext *C) {STUB_ASSERT(0); return false;}
+
 void ED_nurb_set_spline_type(struct Nurb *nu, int type) {STUB_ASSERT(0);}
 
 void ED_mball_transform(struct MetaBall *mb, float *mat) {STUB_ASSERT(0);}

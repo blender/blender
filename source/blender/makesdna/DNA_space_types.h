@@ -190,18 +190,22 @@ typedef enum eSpaceButtons_Context {
 } eSpaceButtons_Context;
 
 /* sbuts->flag */
-#define SB_PRV_OSA          1
-#define SB_PIN_CONTEXT      2
-//#define SB_WORLD_TEX		4	//not used anymore
-//#define SB_BRUSH_TEX		8	//not used anymore	
-#define SB_SHADING_CONTEXT  16
+typedef enum eSpaceButtons_Flag {
+	SB_PRV_OSA = (1 << 0),
+	SB_PIN_CONTEXT = (1 << 1),
+	/* SB_WORLD_TEX = (1 << 2), */ /* not used anymore */
+	/* SB_BRUSH_TEX = (1 << 3), */ /* not used anymore */
+	SB_TEX_USER_LIMITED = (1 << 3), /* Do not add materials, particles, etc. in TemplateTextureUser list. */
+	SB_SHADING_CONTEXT = (1 << 4),
+} eSpaceButtons_Flag;
 
 /* sbuts->texture_context */
 typedef enum eSpaceButtons_Texture_Context {
-	SB_TEXC_MAT_OR_LAMP = 0,
+	SB_TEXC_MATERIAL = 0,
 	SB_TEXC_WORLD = 1,
-	SB_TEXC_BRUSH = 2,
+	SB_TEXC_LAMP = 2,
 	SB_TEXC_PARTICLES = 3,
+	SB_TEXC_OTHER = 4,
 } eSpaceButtons_Texture_Context;
 
 /* sbuts->align */
@@ -212,7 +216,7 @@ typedef enum eSpaceButtons_Align {
 	BUT_AUTO = 3,
 } eSpaceButtons_Align;
 
-/* sbuts->scaflag */		
+/* sbuts->scaflag */
 #define BUTS_SENS_SEL           1
 #define BUTS_SENS_ACT           2
 #define BUTS_SENS_LINK          4

@@ -125,15 +125,15 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
-            return False
+        #if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
+            #return False
         return ((context.material or
                  context.world or
                  context.lamp or
-                 context.brush or
                  context.texture or
                  context.particle_system or
-                 isinstance(context.space_data.pin_id, ParticleSettings)) and
+                 isinstance(context.space_data.pin_id, ParticleSettings) or
+                 context.texture_user) and
                 (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
@@ -146,12 +146,42 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
         idblock = context_tex_datablock(context)
         pin_id = space.pin_id
 
+        space.use_limited_texture_context = True
+
         if space.use_pin_id and not isinstance(pin_id, Texture):
             idblock = id_tex_datablock(pin_id)
             pin_id = None
 
         if not space.use_pin_id:
             layout.prop(space, "texture_context", expand=True)
+            pin_id = None
+
+        if space.texture_context == 'OTHER':
+            if not pin_id:
+                layout.template_texture_user()
+            user = context.texture_user
+            if user or pin_id:
+                layout.separator()
+
+                split = layout.split(percentage=0.65)
+                col = split.column()
+
+                if pin_id:
+                    col.template_ID(space, "pin_id")
+                else:
+                    propname = context.texture_user_property.identifier
+                    col.template_ID(user, propname, new="texture.new")
+
+                if tex:
+                    split = layout.split(percentage=0.2)
+                    if tex.use_nodes:
+                        if slot:
+                            split.label(text="Output:")
+                            split.prop(slot, "output_node", text="")
+                    else:
+                        split.label(text="Type:")
+                        split.prop(tex, "type", text="")
+            return
 
         tex_collection = (pin_id is None) and (node is None) and (not isinstance(idblock, Brush))
 
@@ -177,13 +207,10 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
 
         if tex:
             split = layout.split(percentage=0.2)
-
             if tex.use_nodes:
-
                 if slot:
                     split.label(text="Output:")
                     split.prop(slot, "output_node", text="")
-
             else:
                 split.label(text="Type:")
                 split.prop(tex, "type", text="")
