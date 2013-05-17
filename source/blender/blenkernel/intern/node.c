@@ -2278,28 +2278,39 @@ bNode *nodeGetActive(bNodeTree *ntree)
 	return node;
 }
 
-/* two active flags, ID nodes have special flag for buttons display */
-bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
+static bNode *node_get_active_id_recursive(bNodeInstanceKey active_key, bNodeInstanceKey parent_key, bNodeTree *ntree, short idtype)
 {
-	bNode *node, *tnode;
-	
-	if (ntree == NULL) return NULL;
-
-	for (node = ntree->nodes.first; node; node = node->next)
-		if (node->id && GS(node->id->name) == idtype)
-			if (node->flag & NODE_ACTIVE_ID)
-				return node;
-	
-	/* no node with active ID in this tree, look inside groups */
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == NODE_GROUP) {
-			tnode = nodeGetActiveID((bNodeTree *)node->id, idtype);
-			if (tnode)
-				return tnode;
+	if (parent_key.value == active_key.value) {
+		bNode *node;
+		for (node = ntree->nodes.first; node; node = node->next)
+			if (node->id && GS(node->id->name) == idtype)
+				if (node->flag & NODE_ACTIVE_ID)
+					return node;
+	}
+	else {
+		bNode *node, *tnode;
+		/* no node with active ID in this tree, look inside groups */
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_GROUP) {
+				bNodeTree *group = (bNodeTree *)node->id;
+				bNodeInstanceKey group_key = BKE_node_instance_key(parent_key, ntree, node);
+				tnode = node_get_active_id_recursive(active_key, group_key, group, idtype);
+				if (tnode)
+					return tnode;
+			}
 		}
 	}
 	
 	return NULL;
+}
+
+/* two active flags, ID nodes have special flag for buttons display */
+bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
+{
+	if (ntree)
+		return node_get_active_id_recursive(ntree->active_viewer_key, NODE_INSTANCE_KEY_BASE, ntree, idtype);
+	else
+		return NULL;
 }
 
 bool nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
