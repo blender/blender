@@ -325,7 +325,17 @@ static void bridge_loop_pair(BMesh *bm,
 		BMOperator op_sub;
 		/* when we have to bridge betweeen different sized edge-loops,
 		 * be clever and post-process for best results */
-		BM_mesh_triangulate(bm, true, true, NULL, NULL);
+
+
+		/* triangulate inline */
+		BMO_op_initf(bm, &op_sub, 0,
+		             "triangulate faces=%hf",
+		             BM_ELEM_TAG, true);
+		BMO_op_exec(bm, &op_sub);
+		BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "faces.out", BM_FACE, FACE_OUT);
+		BMO_slot_buffer_hflag_enable(bm, op_sub.slots_out, "faces.out", BM_FACE, BM_ELEM_TAG, false);
+		BMO_op_finish(bm, &op_sub);
+
 
 		/* tag verts on each side so we can restrict rotation of edges to verts on the same side */
 		for (i = 0; i < 2; i++) {
@@ -335,12 +345,12 @@ static void bridge_loop_pair(BMesh *bm,
 			}
 		}
 
+
 		BMO_op_initf(bm, &op_sub, 0,
 		             "beautify_fill faces=%hf edges=ae use_restrict_tag=%b",
 		             BM_ELEM_TAG, true);
 		BMO_op_exec(bm, &op_sub);
 		/* there may also be tagged faces that didnt rotate, mark input */
-		BMO_slot_buffer_flag_enable(bm, op_sub.slots_in, "faces", BM_FACE, FACE_OUT);
 		BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "geom.out", BM_FACE, FACE_OUT);
 		BMO_op_finish(bm, &op_sub);
 	}
