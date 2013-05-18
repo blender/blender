@@ -1141,7 +1141,7 @@ __device void kernel_path_trace(KernelGlobals *kg,
 #endif
 	}
 	else
-		L = make_float4(0.f, 0.f, 0.f, 0.f);
+		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	/* accumulate result in output buffer */
 	kernel_write_pass_float4(buffer, sample, L);

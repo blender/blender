@@ -382,7 +382,7 @@ static float2 sky_spherical_coordinates(float3 dir)
 
 static float sky_perez_function(float lam[6], float theta, float gamma)
 {
-	return (1.f + lam[0]*expf(lam[1]/cosf(theta))) * (1.f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cosf(gamma)*cosf(gamma));
+	return (1.0f + lam[0]*expf(lam[1]/cosf(theta))) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cosf(gamma)*cosf(gamma));
 }
 
 static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turbidity)

@@ -195,7 +195,7 @@ __device_inline Transform transform_rotate(float angle, float3 axis)
 {
 	float s = sinf(angle);
 	float c = cosf(angle);
-	float t = 1.f - c;
+	float t = 1.0f - c;
 
 	axis = normalize(axis);
 

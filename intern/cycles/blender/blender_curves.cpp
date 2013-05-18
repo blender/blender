@@ -115,11 +115,12 @@ void curveinterp_v3_v3v3v3v3(float3 *p, float3 *v1, float3 *v2, float3 *v3, floa
 float shaperadius(float shape, float root, float tip, float time)
 {
 	float radius = 1.0f - time;
+	
 	if(shape != 0.0f) {
 		if(shape < 0.0f)
-			radius = (float)pow(1.0f - time, 1.f + shape);
+			radius = powf(radius, 1.0f + shape);
 		else
-			radius = (float)pow(1.0f - time, 1.f / (1.f - shape));
+			radius = powf(radius, 1.0f / (1.0f - shape));
 	}
 	return (radius * (root - tip)) + tip;
 }
