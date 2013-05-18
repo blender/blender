@@ -145,6 +145,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	bool breaked = false;
 	int dx = 0, dy = 0;
 
+#if 0
 	const RenderData *rd = this->m_rd;
 
 	if (rd->mode & R_BORDER && rd->mode & R_CROP) {
@@ -181,6 +182,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
 		dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;
 	}
+#endif
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
