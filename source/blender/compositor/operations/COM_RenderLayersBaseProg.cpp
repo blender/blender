@@ -112,6 +112,7 @@ void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, Pi
 
 void RenderLayersBaseProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
+#if 0
 	const RenderData *rd = this->m_rd;
 
 	int dx = 0, dy = 0;
@@ -129,6 +130,10 @@ void RenderLayersBaseProg::executePixel(float output[4], float x, float y, Pixel
 
 	int ix = x - dx;
 	int iy = y - dy;
+#else
+	int ix = x;
+	int iy = y;
+#endif
 
 	if (this->m_inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() || iy >= (int)this->getHeight() ) {
 		zero_v4(output);

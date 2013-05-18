@@ -809,7 +809,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
-	if (vc.obact->sculpt) {
+	if (vc.obact && vc.obact->sculpt) {
 		float location[3];
 		int pixel_radius, hit;
 
