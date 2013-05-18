@@ -94,9 +94,14 @@ typedef struct PaintStroke {
 	
 	bool brush_init;
 	float initial_mouse[2];
+	/* cached_pressure stores initial pressure for size pressure influence mainly */
 	float cached_pressure;
+	/* last pressure will store last pressure value for use in interpolation for space strokes */
+	float last_pressure;
+
 
 	float zoom_2d;
+	int pen_flip;
 
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
@@ -253,7 +258,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEvent *event, const float mouse_in[2])
+static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const float mouse_in[2], float pressure)
 {
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *window = CTX_wm_window(C);
@@ -265,11 +270,6 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 	float mouse_out[2];
 	PointerRNA itemptr;
 	float location[3];
-	float pressure;
-	int pen_flip;
-
-	/* see if tablet affects event */
-	pressure = event_tablet_data(event, &pen_flip);
 
 /* the following code is adapted from texture paint. It may not be needed but leaving here
  * just in case for reference (code in texpaint removed as part of refactoring).
@@ -323,7 +323,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const wmEve
 
 	RNA_float_set_array(&itemptr, "location", location);
 	RNA_float_set_array(&itemptr, "mouse", mouse_out);
-	RNA_boolean_set(&itemptr, "pen_flip", pen_flip);
+	RNA_boolean_set(&itemptr, "pen_flip", stroke->pen_flip);
 	RNA_float_set(&itemptr, "pressure", pressure);
 
 	stroke->update_step(C, stroke, &itemptr);
@@ -364,62 +364,63 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
  * towards the final mouse location. */
-static int paint_space_stroke(bContext *C, wmOperator *op, const wmEvent *event, const float final_mouse[2])
+static int paint_space_stroke(bContext *C, wmOperator *op, const float final_mouse[2], float pressure)
 {
 	PaintStroke *stroke = op->customdata;
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	int cnt = 0;
 
-	if (paint_space_stroke_enabled(stroke->brush, mode)) {
-		float mouse[2];
-		float vec[2];
-		float length, scale;
+	float mouse[2];
+	float vec[2];
+	float length, scale;
 
-		copy_v2_v2(mouse, stroke->last_mouse_position);
-		sub_v2_v2v2(vec, final_mouse, mouse);
+	copy_v2_v2(mouse, stroke->last_mouse_position);
+	sub_v2_v2v2(vec, final_mouse, mouse);
 
-		length = len_v2(vec);
+	length = len_v2(vec);
 
-		if (length > FLT_EPSILON) {
-			const Scene *scene = CTX_data_scene(C);
-			int steps;
-			int i;
-			float size_pressure = 1.0f;
-			float pressure = event_tablet_data(event, NULL);
+	if (length > FLT_EPSILON) {
+		const Scene *scene = CTX_data_scene(C);
+		int steps;
+		int i;
+		float size_pressure = 1.0f;
 
-			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
-			if (BKE_brush_use_size_pressure(scene, stroke->brush))
-				size_pressure = pressure;
-			
-			if (size_pressure > FLT_EPSILON) {
-				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
-				 * causing very high step sizes, hanging blender [#32381] */
-				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
-				float spacing = stroke->brush->spacing;
+		/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
+		if (BKE_brush_use_size_pressure(scene, stroke->brush))
+			size_pressure = pressure;
 
-				/* stroke system is used for 2d paint too, so we need to account for
+		if (size_pressure > FLT_EPSILON) {
+			/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
+			 * causing very high step sizes, hanging blender [#32381] */
+			const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
+			float spacing = stroke->brush->spacing;
+
+			/* stroke system is used for 2d paint too, so we need to account for
 				 * the fact that brush can be scaled there. */
 
-				if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
-					spacing = max_ff(1.0f, spacing * (1.5f - pressure));
+			if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
+				spacing = max_ff(1.0f, spacing * (1.5f - pressure));
 
-				spacing *= stroke->zoom_2d;
+			spacing *= stroke->zoom_2d;
 
-				scale = (size_clamp * spacing / 50.0f) / length;
-				if (scale > FLT_EPSILON) {
-					mul_v2_fl(vec, scale);
+			scale = (size_clamp * spacing / 50.0f) / length;
+			if (scale > FLT_EPSILON) {
+				float pressure_diff = (pressure - stroke->last_pressure)*scale;
+				float final_pressure = stroke->last_pressure;
+				mul_v2_fl(vec, scale);
 
-					steps = (int)(1.0f / scale);
+				steps = (int)(1.0f / scale);
 
-					for (i = 0; i < steps; ++i, ++cnt) {
-						add_v2_v2(mouse, vec);
-						paint_brush_stroke_add_step(C, op, event, mouse);
-					}
+				for (i = 0; i < steps; ++i, ++cnt) {
+					final_pressure += pressure_diff;
+					add_v2_v2(mouse, vec);
+					paint_brush_stroke_add_step(C, op, mouse, final_pressure);
 				}
 			}
 		}
 	}
+
+	stroke->last_pressure = pressure;
 
 	return cnt;
 }
@@ -624,12 +625,16 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	int first = 0;
 	float zoomx, zoomy;
 	bool redraw = false;
+	float pressure;
 
 	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1]);
 	paint_stroke_sample_average(stroke, &sample_average);
 
 	get_imapaint_zoom(C, &zoomx, &zoomy);
 	stroke->zoom_2d = max_ff(zoomx, zoomy);
+
+	/* see if tablet affects event */
+	pressure = event_tablet_data(event, &stroke->pen_flip);
 
 	/* let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
 	 * this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
@@ -642,6 +647,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
 		stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
 		BLI_assert((stroke->stroke_started & ~1) == 0);  /* 0/1 */
+		stroke->last_pressure = pressure;
 
 		if (stroke->stroke_started) {
 			stroke->smooth_stroke_cursor =
@@ -674,11 +680,11 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		if (stroke->stroke_started) {
 			if (paint_smooth_stroke(stroke, mouse, &sample_average, mode)) {
 				if (paint_space_stroke_enabled(stroke->brush, mode)) {
-					if (paint_space_stroke(C, op, event, mouse))
+					if (paint_space_stroke(C, op, mouse, pressure))
 						redraw = true;
 				}
 				else {
-					paint_brush_stroke_add_step(C, op, event, mouse);
+					paint_brush_stroke_add_step(C, op, mouse, pressure);
 					redraw = true;
 				}
 			}
@@ -693,7 +699,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
 	{
-		paint_brush_stroke_add_step(C, op, event, mouse);
+		paint_brush_stroke_add_step(C, op, mouse, pressure);
 		redraw = true;
 	}
 
