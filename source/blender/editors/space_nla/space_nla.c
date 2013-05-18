@@ -310,7 +310,7 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* preview range */
 	UI_view2d_view_ortho(v2d);
-	ANIM_draw_previewrange(C, v2d);
+	ANIM_draw_previewrange(C, v2d, 0);
 	
 	/* callback */
 	UI_view2d_view_ortho(v2d);

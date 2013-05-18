@@ -491,7 +491,7 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 /* ------------- Preview Range Drawing -------------- */
 
 /* main call to draw preview range curtains */
-void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
+void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d, int end_frame_width);
 
 /* ************************************************* */
 /* F-MODIFIER TOOLS */

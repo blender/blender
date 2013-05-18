@@ -1457,7 +1457,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	
 	/* preview range */
 	UI_view2d_view_ortho(v2d);
-	ANIM_draw_previewrange(C, v2d);
+	ANIM_draw_previewrange(C, v2d, 1);
 
 	/* overlap playhead */
 	if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
