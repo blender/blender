@@ -389,17 +389,17 @@ static float paint_space_stroke_spacing_variable(const Scene *scene, PaintStroke
 		 * are aligned nicely with no overlap. for this the spacing needs to be
 		 * the average of the previous and next size. */
 		float s = paint_space_stroke_spacing(scene, stroke, 1.0f, pressure);
-		float q = s*dpressure/(2.0f*length);
-		float pressure_fac = (1.0f + q)/(1.0f - q);
+		float q = s * dpressure / (2.0f * length);
+		float pressure_fac = (1.0f + q) / (1.0f - q);
 
 		float last_size_pressure = stroke->last_pressure;
-		float new_size_pressure = stroke->last_pressure*pressure_fac;
+		float new_size_pressure = stroke->last_pressure * pressure_fac;
 
 		/* average spacing */
 		float last_spacing = paint_space_stroke_spacing(scene, stroke, last_size_pressure, pressure);
 		float new_spacing = paint_space_stroke_spacing(scene, stroke, new_size_pressure, pressure);
 
-		return 0.5f*(last_spacing + new_spacing);
+		return 0.5f * (last_spacing + new_spacing);
 	}
 	else {
 		/* no size pressure */
@@ -432,9 +432,9 @@ static int paint_space_stroke(bContext *C, wmOperator *op, const float final_mou
 			float spacing = paint_space_stroke_spacing_variable(scene, stroke, pressure, dpressure, length);
 			
 			if (length >= spacing) {
-				mouse[0] = stroke->last_mouse_position[0] + dmouse[0]*spacing;
-				mouse[1] = stroke->last_mouse_position[1] + dmouse[1]*spacing;
-				pressure = stroke->last_pressure + (spacing/length)*dpressure;
+				mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing;
+				mouse[1] = stroke->last_mouse_position[1] + dmouse[1] * spacing;
+				pressure = stroke->last_pressure + (spacing / length) * dpressure;
 
 				paint_brush_stroke_add_step(C, op, mouse, pressure);
 

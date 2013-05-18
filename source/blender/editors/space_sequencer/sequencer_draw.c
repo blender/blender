@@ -1381,7 +1381,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShadeAlpha(TH_BACK, -25, -100);
 
-	if (PSFRA < PEFRA+1) {
+	if (PSFRA < PEFRA + 1) {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
 		glRectf((float)(PEFRA + 1), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
