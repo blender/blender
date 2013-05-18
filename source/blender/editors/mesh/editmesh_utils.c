@@ -374,6 +374,11 @@ void EDBM_mesh_load(Object *ob)
 #ifdef USE_TESSFACE_DEFAULT
 	BKE_mesh_tessface_calc(me);
 #endif
+
+	/* free derived mesh. usually this would happen through depsgraph but there
+	 * are exceptions like file save that will not cause this, and we want to
+	 * avoid ending up with an invalid derived mesh then */
+	BKE_object_free_derived_caches(ob);
 }
 
 /**

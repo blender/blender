@@ -66,7 +66,7 @@ void BKE_object_free_bulletsoftbody(struct Object *ob);
 void BKE_object_update_base_layer(struct Scene *scene, struct Object *ob);
 
 void BKE_object_free(struct Object *ob);
-void BKE_object_free_display(struct Object *ob);
+void BKE_object_free_derived_caches(struct Object *ob);
 
 bool BKE_object_support_modifier_type_check(struct Object *ob, int modifier_type);
 

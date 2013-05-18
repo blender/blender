@@ -241,19 +241,33 @@ void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 	/* TODO: smoke?, cloth? */
 }
 
-/* here we will collect all local displist stuff */
-/* also (ab)used in depsgraph */
-void BKE_object_free_display(Object *ob)
+/* free data derived from mesh, called when mesh changes or is freed */
+void BKE_object_free_derived_caches(Object *ob)
 {
-	if (ob->derivedDeform) {
-		ob->derivedDeform->needsFree = 1;
-		ob->derivedDeform->release(ob->derivedDeform);
-		ob->derivedDeform = NULL;
+	/* also serves as signal to remake texspace */
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+
+		if (me->bb) {
+			MEM_freeN(me->bb);
+			me->bb = NULL;
+		}
 	}
+
+	if (ob->bb) {
+		MEM_freeN(ob->bb);
+		ob->bb = NULL;
+	}
+
 	if (ob->derivedFinal) {
 		ob->derivedFinal->needsFree = 1;
 		ob->derivedFinal->release(ob->derivedFinal);
 		ob->derivedFinal = NULL;
+	}
+	if (ob->derivedDeform) {
+		ob->derivedDeform->needsFree = 1;
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform = NULL;
 	}
 	
 	BKE_displist_free(&ob->disp);
@@ -264,7 +278,7 @@ void BKE_object_free(Object *ob)
 {
 	int a;
 	
-	BKE_object_free_display(ob);
+	BKE_object_free_derived_caches(ob);
 	
 	/* disconnect specific data, but not for lib data (might be indirect data, can get relinked) */
 	if (ob->data) {
@@ -2790,27 +2804,29 @@ void BKE_object_sculpt_modifiers_changed(Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
 
-	if (!ss->cache) {
-		/* we free pbvh on changes, except during sculpt since it can't deal with
-		 * changing PVBH node organization, we hope topology does not change in
-		 * the meantime .. weak */
-		if (ss->pbvh) {
-			BKE_pbvh_free(ss->pbvh);
-			ss->pbvh = NULL;
+	if (ss) {
+		if (!ss->cache) {
+			/* we free pbvh on changes, except during sculpt since it can't deal with
+			 * changing PVBH node organization, we hope topology does not change in
+			 * the meantime .. weak */
+			if (ss->pbvh) {
+				BKE_pbvh_free(ss->pbvh);
+				ss->pbvh = NULL;
+			}
+
+			free_sculptsession_deformMats(ob->sculpt);
 		}
+		else {
+			PBVHNode **nodes;
+			int n, totnode;
 
-		free_sculptsession_deformMats(ob->sculpt);
-	}
-	else {
-		PBVHNode **nodes;
-		int n, totnode;
+			BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+			for (n = 0; n < totnode; n++)
+				BKE_pbvh_node_mark_update(nodes[n]);
 
-		for (n = 0; n < totnode; n++)
-			BKE_pbvh_node_mark_update(nodes[n]);
-
-		MEM_freeN(nodes);
+			MEM_freeN(nodes);
+		}
 	}
 }
 

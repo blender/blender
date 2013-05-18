@@ -4542,7 +4542,7 @@ void sculpt_pbvh_clear(Object *ob)
 	ss->pbvh = NULL;
 	if (dm)
 		dm->getPBVH(NULL, dm);
-	BKE_object_free_display(ob);
+	BKE_object_free_derived_caches(ob);
 }
 
 void sculpt_update_after_dynamic_topology_toggle(bContext *C)

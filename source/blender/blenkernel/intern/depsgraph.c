@@ -1511,7 +1511,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 		if ((all_layer & layer) == 0) { // XXX && (ob != obedit)) {
 			/* but existing displaylists or derivedmesh should be freed */
 			if (ob->recalc & OB_RECALC_DATA)
-				BKE_object_free_display(ob);
+				BKE_object_free_derived_caches(ob);
 			
 			ob->recalc &= ~OB_RECALC_ALL;
 		}

@@ -373,11 +373,8 @@ void multires_mark_as_modified(Object *ob, MultiresModifiedFlags flags)
 void multires_force_update(Object *ob)
 {
 	if (ob) {
-		if (ob->derivedFinal) {
-			ob->derivedFinal->needsFree = 1;
-			ob->derivedFinal->release(ob->derivedFinal);
-			ob->derivedFinal = NULL;
-		}
+		BKE_object_free_derived_caches(ob);
+
 		if (ob->sculpt && ob->sculpt->pbvh) {
 			BKE_pbvh_free(ob->sculpt->pbvh);
 			ob->sculpt->pbvh = NULL;

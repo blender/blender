@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subsurf.h"
@@ -433,11 +434,8 @@ void sculptsession_bm_to_me_for_render(Object *object)
 			 * here because this will lead to the while object
 			 * surface to disappear, so we'll release DM in place.
 			 */
-			if (object->derivedFinal) {
-				object->derivedFinal->needsFree = 1;
-				object->derivedFinal->release(object->derivedFinal);
-				object->derivedFinal = NULL;
-			}
+			BKE_object_free_derived_caches(object);
+
 			if (object->sculpt->pbvh) {
 				BKE_pbvh_free(object->sculpt->pbvh);
 				object->sculpt->pbvh = NULL;
