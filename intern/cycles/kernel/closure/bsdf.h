@@ -96,14 +96,14 @@ __device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const ShaderCl
 			label = bsdf_ashikhmin_velvet_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
-		case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
+		/*case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
 			label = bsdf_westin_backscatter_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 			label = bsdf_westin_sheen_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
-			break;
+			break;*/
 #endif
 		default:
 			label = LABEL_NONE;
@@ -165,12 +165,12 @@ __device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const ShaderC
 			case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
 				eval = bsdf_ashikhmin_velvet_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
-			case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
+			/*case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
 				eval = bsdf_westin_backscatter_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 				eval = bsdf_westin_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
-				break;
+				break;*/
 #endif
 			default:
 				eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -214,12 +214,12 @@ __device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const ShaderC
 			case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
 				eval = bsdf_ashikhmin_velvet_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
-			case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
+			/*case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
 				eval = bsdf_westin_backscatter_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 				eval = bsdf_westin_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
-				break;
+				break;*/
 #endif
 			default:
 				eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -281,12 +281,12 @@ __device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
 			bsdf_ashikhmin_velvet_blur(sc, roughness);
 			break;
-		case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
+		/*case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
 			bsdf_westin_backscatter_blur(sc, roughness);
 			break;
 		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 			bsdf_westin_sheen_blur(sc, roughness);
-			break;
+			break;*/
 #endif
 		default:
 			break;

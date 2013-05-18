@@ -17,6 +17,7 @@ set(SRC
 	bsdf_diffuse_ramp.cpp
 	bsdf_phong_ramp.cpp
 	bsdf_toon.cpp
+	bsdf_westin.cpp
 	emissive.cpp
 	osl_bssrdf.cpp
 	osl_closures.cpp

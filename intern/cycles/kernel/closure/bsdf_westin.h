@@ -118,9 +118,8 @@ __device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng, 
 
 __device int bsdf_westin_sheen_setup(ShaderClosure *sc)
 {
-	float edginess = sc->data0;
+	/* float edginess = sc->data0; */
 	sc->type = CLOSURE_BSDF_WESTIN_SHEEN_ID;
-	sc->data0 = edginess;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 

@@ -181,10 +181,6 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_ward_params(), bsdf_ward_prepare);
 	register_closure(ss, "ashikhmin_velvet", id++,
 		bsdf_ashikhmin_velvet_params(), bsdf_ashikhmin_velvet_prepare);
-	register_closure(ss, "westin_backscatter", id++,
-		bsdf_westin_backscatter_params(), bsdf_westin_backscatter_prepare);
-	register_closure(ss, "westin_sheen", id++,
-		bsdf_westin_sheen_params(), bsdf_westin_sheen_prepare);
 	register_closure(ss, "emission", id++,
 		closure_emission_params(), closure_emission_prepare);
 	register_closure(ss, "background", id++,
@@ -201,6 +197,10 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bsdf_diffuse_toon_params(), closure_bsdf_diffuse_toon_prepare);
 	register_closure(ss, "specular_toon", id++,
 		closure_bsdf_specular_toon_params(), closure_bsdf_specular_toon_prepare);
+	register_closure(ss, "westin_backscatter", id++,
+		closure_westin_backscatter_params(), closure_westin_backscatter_prepare);
+	register_closure(ss, "westin_sheen", id++,
+		closure_westin_sheen_params(), closure_westin_sheen_prepare);
 	register_closure(ss, "bssrdf_cubic", id++,
 		closure_bssrdf_params(), closure_bssrdf_prepare);
 }
