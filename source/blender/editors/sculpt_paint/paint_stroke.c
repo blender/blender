@@ -90,7 +90,9 @@ typedef struct PaintStroke {
 	int stroke_started;
 	/* event that started stroke, for modal() return */
 	int event_type;
-	
+	/* check if stroke variables have been initialized */
+	bool stroke_init;
+	/* check if various brush mapping variables have been initialized */
 	bool brush_init;
 	float initial_mouse[2];
 	/* cached_pressure stores initial pressure for size pressure influence mainly */
@@ -654,7 +656,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	PaintStroke *stroke = op->customdata;
 	PaintSample sample_average;
 	float mouse[2];
-	int first = 0;
+	bool first_dab = false;
+	bool first_modal = false;
 	float zoomx, zoomy;
 	bool redraw = false;
 	float pressure;
@@ -675,23 +678,28 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (event->type == NDOF_MOTION)
 		return OPERATOR_PASS_THROUGH;
 
-	if (!stroke->stroke_started) {
-		copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
-		stroke->last_pressure = sample_average.pressure;
-		stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
-		BLI_assert((stroke->stroke_started & ~1) == 0);  /* 0/1 */
-		stroke->last_pressure = pressure;
-
-		if (stroke->stroke_started) {
-			stroke->smooth_stroke_cursor =
+	/* one time initialization */
+	if(!stroke->stroke_init) {
+		stroke->smooth_stroke_cursor =
 			    WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
 
+		stroke->stroke_init = true;
+		first_modal = true;
+	}
+
+	/* one time stroke initialization */
+	if (!stroke->stroke_started) {
+		stroke->last_pressure = sample_average.pressure;
+		copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
+		stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
+		BLI_assert((stroke->stroke_started & ~1) == 0);  /* 0/1 */
+
+		if (stroke->stroke_started) {
 			if (stroke->brush->flag & BRUSH_AIRBRUSH)
 				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
-		}
 
-		first = 1;
-		//ED_region_tag_redraw(ar);
+			first_dab = true;
+		}
 	}
 
 	/* Cancel */
@@ -702,16 +710,15 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			return paint_stroke_cancel(C, op);
 	}
 
-	if (event->type == stroke->event_type && event->val == KM_RELEASE) {
+	if (event->type == stroke->event_type && event->val == KM_RELEASE && !first_modal) {
 		stroke_done(C, op);
 		return OPERATOR_FINISHED;
 	}
-	else if ((first) ||
-	         (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) ||
+	else if (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) ||
 	         (event->type == TIMER && (event->customdata == stroke->timer)) )
 	{
-		if (stroke->stroke_started) {
-			if (paint_smooth_stroke(stroke, mouse, &pressure, &sample_average, mode)) {
+		if (paint_smooth_stroke(stroke, mouse, &pressure, &sample_average, mode)) {
+			if (stroke->stroke_started) {
 				if (paint_space_stroke_enabled(stroke->brush, mode)) {
 					if (paint_space_stroke(C, op, mouse, pressure))
 						redraw = true;
@@ -726,8 +733,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* we want the stroke to have the first daub at the start location
 	 * instead of waiting till we have moved the space distance */
-	if (first &&
-	    stroke->stroke_started &&
+	if (first_dab &&
 	    paint_space_stroke_enabled(stroke->brush, mode) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
