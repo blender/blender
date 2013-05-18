@@ -865,7 +865,11 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	tracedata->init = true;
 
 	/* raytrace */
+#ifdef __HAIR__
 	return scene_intersect(sd->osl_globals, &ray, ~0, &tracedata->isect, NULL, 0.0f, 0.0f);
+#else
+	return scene_intersect(sd->osl_globals, &ray, ~0, &tracedata->isect);
+#endif
 }
 
 
