@@ -1390,8 +1390,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 			// 2. device is not sending [event pointingDeviceType], due no eraser
 			if (ct.Active == GHOST_kTabletModeNone)
 				ct.Active = GHOST_kTabletModeStylus;
-				
-			ct.Pressure = sqrtf(powf([event pressure], 5 )); // experimental: change sensivity curve
+
+			ct.Pressure = [event pressure];
 			ct.Xtilt = [event tilt].x;
 			ct.Ytilt = [event tilt].y;
 			break;
