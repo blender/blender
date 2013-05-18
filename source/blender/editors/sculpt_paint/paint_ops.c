@@ -271,16 +271,16 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 	}
 
 	/* get the next brush with the active tool */
-	for (brush = first_brush;
-	     brush != brush_orig;
-	     brush = brush->id.next ? brush->id.next : bmain->brush.first)
-	{
+	brush = first_brush;
+	do {
 		if ((brush->ob_mode & ob_mode) &&
 		    (brush_tool(brush, tool_offset) == tool))
 		{
 			return brush;
 		}
-	}
+
+		brush = brush->id.next ? brush->id.next : bmain->brush.first;
+	} while (brush != first_brush);
 
 	return NULL;
 }

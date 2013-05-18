@@ -2476,6 +2476,21 @@ void WM_event_remove_ui_handler(ListBase *handlers,
 	}
 }
 
+void WM_event_free_ui_handler_all(bContext *C, ListBase *handlers,
+                                  wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove)
+{
+	wmEventHandler *handler, *handler_next;
+
+	for (handler = handlers->first; handler; handler = handler_next) {
+		handler_next = handler->next;
+		if (handler->ui_handle == func && handler->ui_remove == remove) {
+			remove(C, handler->ui_userdata);
+			BLI_remlink(handlers, handler);
+			wm_event_free_handler(handler);
+		}
+	}
+}
+
 wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
 {
 	wmEventHandler *handler;

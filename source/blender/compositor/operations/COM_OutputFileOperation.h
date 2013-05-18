@@ -56,6 +56,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+
+	bool isFileOutputOperation() { return true; }
 };
 
 /* extra info for OpenEXR layers */
@@ -90,6 +92,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+
+	bool isFileOutputOperation() { return true; }
 };
 
 #endif

@@ -1389,10 +1389,6 @@ float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
 			cp_cu_key(ob->data, key, actkb, kb, 0, tot, out, tot);
 	}
 	else {
-		/* do shapekey local drivers */
-		float ctime = BKE_scene_frame_get(scene);
-
-		BKE_animsys_evaluate_animdata(scene, &key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if (ob->type == OB_MESH) do_mesh_key(scene, ob, key, out, tot);
 		else if (ob->type == OB_LATTICE) do_latt_key(scene, ob, key, out, tot);

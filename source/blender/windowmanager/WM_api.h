@@ -159,6 +159,9 @@ void		WM_event_remove_ui_handler(ListBase *handlers,
                                        void (*remove)(struct bContext *C, void *userdata),
                                        void *userdata, const bool postpone);
 void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
+void		WM_event_free_ui_handler_all(struct bContext *C, ListBase *handlers,
+                                         int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
+                                         void (*remove)(struct bContext *C, void *userdata));
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
