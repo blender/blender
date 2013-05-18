@@ -293,15 +293,18 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
 }
 
 static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
-                                      BMVert *v1, BMVert *v2, BMVert *v3,
+                                      BMVert *v_tri[3], BMEdge *e_tri[3],
                                       const BMFace *UNUSED(example))
 {
 	BMFace *f;
 	void *val = SET_INT_IN_POINTER(node_index);
 
+	/* ensure we never add existing face */
+	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
+
 	/* Note: passing NULL for the 'example' parameter, profiling shows
 	 * a small performance bump */
-	f = BM_face_create_quad_tri(bvh->bm, v1, v2, v3, NULL, NULL, true);
+	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, 0);
 	if (!BLI_ghash_haskey(bvh->bm_face_to_node, f)) {
 
 		BLI_ghash_insert(bvh->nodes[node_index].bm_faces, f, NULL);
@@ -642,6 +645,13 @@ static void short_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
 
 /*************************** Topology update **************************/
 
+static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
+{
+	e_tri[0] = BM_edge_create(bm, v_tri[0], v_tri[1], NULL, BM_CREATE_NO_DOUBLE);
+	e_tri[1] = BM_edge_create(bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
+	e_tri[2] = BM_edge_create(bm, v_tri[2], v_tri[0], NULL, BM_CREATE_NO_DOUBLE);
+}
+
 static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
                                   BMEdge *e, BLI_Buffer *edge_loops)
 {
@@ -664,7 +674,9 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 		BMLoop *l_adj = BLI_buffer_at(edge_loops, BMLoop *, i);
 		BMFace *f_adj = l_adj->f;
 		BMFace *f_new;
-		BMVert *opp, *v1, *v2;
+		BMVert *v_opp, *v1, *v2;
+		BMVert *v_tri[3];
+		BMEdge *e_tri[3];
 		void *nip;
 		int ni;
 
@@ -676,7 +688,7 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 		bvh->nodes[ni].flag |= PBVH_UpdateDrawBuffers;
 
 		/* Find the vertex not in the edge */
-		opp = l_adj->prev->v;
+		v_opp = l_adj->prev->v;
 
 		/* Get e->v1 and e->v2 in the order they appear in the
 		 * existing face so that the new faces' winding orders
@@ -688,9 +700,20 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 			pbvh_bmesh_vert_ownership_transfer(bvh, &bvh->nodes[ni], v_new);
 
 		/* Create two new faces */
-		f_new = pbvh_bmesh_face_create(bvh, ni, v1, v_new, opp, f_adj);
+		v_tri[0] = v1;
+		v_tri[1] = v_new;
+		v_tri[2] = v_opp;
+		bm_edges_from_tri(bvh->bm, v_tri, e_tri);
+		f_new = pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f_adj);
 		long_edge_queue_face_add(q, pool, f_new, bvh->bm);
-		f_new = pbvh_bmesh_face_create(bvh, ni, v_new, v2, opp, f_adj);
+
+		v_tri[0] = v_new;
+		v_tri[1] = v2;
+		/* v_tri[2] = v_opp; */ /* unchanged */
+		e_tri[0] = BM_edge_create(bvh->bm, v_tri[0], v_tri[1], NULL, BM_CREATE_NO_DOUBLE);
+		e_tri[2] = e_tri[1];  /* switched */
+		e_tri[1] = BM_edge_create(bvh->bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
+		f_new = pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f_adj);
 		long_edge_queue_face_add(q, pool, f_new, bvh->bm);
 
 		/* Delete original */
@@ -704,11 +727,11 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 			BLI_ghash_insert(bvh->nodes[ni].bm_other_verts, v_new, NULL);
 		}
 
-		if (BM_vert_edge_count(opp) >= 9) {
+		if (BM_vert_edge_count(v_opp) >= 9) {
 			BMIter bm_iter;
 			BMEdge *e2;
 
-			BM_ITER_ELEM (e2, &bm_iter, opp, BM_EDGES_OF_VERT) {
+			BM_ITER_ELEM (e2, &bm_iter, v_opp, BM_EDGES_OF_VERT) {
 				long_edge_queue_edge_add(q, pool, e2, bvh->bm);
 			}
 		}
@@ -815,9 +838,11 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 			BLI_buffer_append(deleted_faces, BMFace *, existing_face);
 		}
 		else {
+			BMEdge *e_tri[3];
 			n = pbvh_bmesh_node_lookup(bvh, bvh->bm_face_to_node, f);
 			ni = n - bvh->nodes;
-			pbvh_bmesh_face_create(bvh, ni, v_tri[0], v_tri[1], v_tri[2], f);
+			bm_edges_from_tri(bvh->bm, v_tri, e_tri);
+			pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f);
 
 			/* Ensure that v1 is in the new face's node */
 			if (!BLI_ghash_haskey(n->bm_unique_verts, v1) &&
@@ -833,14 +858,16 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	/* Delete the tagged faces */
 	for (i = 0; i < deleted_faces->count; i++) {
 		BMFace *f_del = BLI_buffer_at(deleted_faces, BMFace *, i);
+		BMLoop *l_iter;
 		BMVert *v_tri[3];
 		BMEdge *e_tri[3];
 		int j;
 
 		/* Get vertices and edges of face */
-		BM_face_as_array_vert_tri(f_del, v_tri);
-		for (j = 0; j < 3; j++)
-			e_tri[j] = BM_edge_exists(v_tri[j], v_tri[j == 2 ? 0 : j + 1]);
+		BLI_assert(f_del->len == 3);
+		v_tri[0] = l_iter->v; e_tri[0] = l_iter->e; l_iter = l_iter->next;
+		v_tri[1] = l_iter->v; e_tri[1] = l_iter->e; l_iter = l_iter->next;
+		v_tri[2] = l_iter->v; e_tri[2] = l_iter->e;
 
 		/* Check if any of the face's vertices are now unused, if so
 		 * remove them from the PBVH */
