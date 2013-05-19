@@ -752,12 +752,9 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 				hit->efa = efa;
 				
 				hit->l = l;
-				hit->nextl = l->next;
 				hit->luv = luv;
 				hit->luv_next = luv_next;
 				hit->lindex = i;
-				hit->vert1 = BM_elem_index_get(hit->l->v);
-				hit->vert2 = BM_elem_index_get(hit->l->next->v);
 
 				mindist_squared = dist_squared;
 			}
@@ -780,7 +777,7 @@ static void uv_find_nearest_face(Scene *scene, Image *ima, BMEditMesh *em, const
 
 	/*this will fill in hit.vert1 and hit.vert2*/
 	uv_find_nearest_edge(scene, ima, em, co, hit);
-	hit->l = hit->nextl = NULL;
+	hit->l = NULL;
 	hit->luv = hit->luv_next = NULL;
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -790,7 +787,7 @@ static void uv_find_nearest_face(Scene *scene, Image *ima, BMEditMesh *em, const
 
 		uv_poly_center(efa, cent, cd_loop_uv_offset);
 
-		dist = fabsf(co[0] - cent[0]) + fabsf(co[1] - cent[1]);
+		dist = len_manhattan_v2v2(co, cent);
 
 		if (dist < mindist) {
 			hit->tf = tf;
@@ -827,7 +824,7 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 
 	/*this will fill in hit.vert1 and hit.vert2*/
 	uv_find_nearest_edge(scene, ima, em, co, hit);
-	hit->l = hit->nextl = NULL;
+	hit->l = NULL;
 	hit->luv = hit->luv_next = NULL;
 
 	mindist = 1e10f;
@@ -857,13 +854,11 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 				mindist = dist;
 
 				hit->l = l;
-				hit->nextl = l->next;
 				hit->luv = luv;
 				hit->luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
 				hit->tf = tf;
 				hit->efa = efa;
 				hit->lindex = i;
-				hit->vert1 = BM_elem_index_get(hit->l->v);
 			}
 		}
 	}
@@ -893,7 +888,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 		
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			dist = fabsf(co[0] - luv->uv[0]) + fabsf(co[1] - luv->uv[1]);
+			dist = len_manhattan_v2v2(co, luv->uv);
 
 			if (dist <= mindist) {
 				mindist = dist;
@@ -1680,7 +1675,7 @@ static void UV_OT_align(wmOperatorType *ot)
 
 typedef struct UVvert {
 	MLoopUV *uv_loop;
-	int weld;
+	bool weld;
 } UVvert;
 
 static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
@@ -1727,7 +1722,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 					UVvert vert;
 					vert.uv_loop = luv;
-					vert.weld = FALSE;
+					vert.weld = false;
 					BLI_array_append(vert_arr, vert);
 				}
 
@@ -1735,7 +1730,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 		}
 
 		for (uv_a_index = 0; uv_a_index < BLI_array_count(vert_arr); uv_a_index++) {
-			if (vert_arr[uv_a_index].weld == FALSE) {
+			if (vert_arr[uv_a_index].weld == false) {
 				float uv_min[2];
 				float uv_max[2];
 
@@ -1747,15 +1742,15 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 				copy_v2_v2(uv_max, uv_a);
 				copy_v2_v2(uv_min, uv_a);
 
-				vert_arr[uv_a_index].weld = TRUE;
+				vert_arr[uv_a_index].weld = true;
 				for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
 					uv_b = vert_arr[uv_b_index].uv_loop->uv;
-					if ((vert_arr[uv_b_index].weld == FALSE) &&
+					if ((vert_arr[uv_b_index].weld == false) &&
 					    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
 					{
 						minmax_v2v2_v2(uv_max, uv_min, uv_b);
 						BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
-						vert_arr[uv_b_index].weld = TRUE;
+						vert_arr[uv_b_index].weld = true;
 					}
 				}
 				if (BLI_array_count(loop_arr)) {
@@ -1798,7 +1793,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 
 		for (uv_a_index = 0; uv_a_index < BLI_array_count(loop_arr); uv_a_index++) {
 			float dist_best = FLT_MAX, dist;
-			float *uv_best = NULL;
+			const float *uv_best = NULL;
 
 			uv_a = loop_arr[uv_a_index]->uv;
 			for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr_unselected); uv_b_index++) {
@@ -2071,7 +2066,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		hituv = BLI_array_alloca(hituv, hit.efa->len);
 		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
-		hitv[hit.lindex] = hit.vert1;
+		hitv[hit.lindex] = BM_elem_index_get(hit.l->v);
 		hituv[hit.lindex] = hit.luv->uv;
 
 		hitlen = hit.efa->len;
@@ -2088,8 +2083,8 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		hituv = BLI_array_alloca(hituv, hit.efa->len);
 		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
-		hitv[hit.lindex] = hit.vert1;
-		hitv[(hit.lindex + 1) % hit.efa->len] = hit.vert2;
+		hitv[hit.lindex] = BM_elem_index_get(hit.l->v);
+		hitv[(hit.lindex + 1) % hit.efa->len] = BM_elem_index_get(hit.l->next->v);
 		hituv[hit.lindex] = hit.luv->uv;
 		hituv[(hit.lindex + 1) % hit.efa->len] = hit.luv_next->uv;
 

@@ -58,10 +58,9 @@ void  uv_poly_center(struct BMFace *f, float r_cent[2], const int cd_loop_uv_off
 typedef struct NearestHit {
 	struct BMFace *efa;
 	struct MTexPoly *tf;
-	struct BMLoop *l, *nextl;
+	struct BMLoop *l;
 	struct MLoopUV *luv, *luv_next;
-	int lindex; //index of loop within face
-	int vert1, vert2; //index in mesh of edge vertices
+	int lindex;  /* index of loop within face */
 } NearestHit;
 
 void uv_find_nearest_vert(struct Scene *scene, struct Image *ima, struct BMEditMesh *em,
