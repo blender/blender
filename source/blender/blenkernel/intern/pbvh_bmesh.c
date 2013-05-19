@@ -865,6 +865,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 
 		/* Get vertices and edges of face */
 		BLI_assert(f_del->len == 3);
+		l_iter = BM_FACE_FIRST_LOOP(f_del);
 		v_tri[0] = l_iter->v; e_tri[0] = l_iter->e; l_iter = l_iter->next;
 		v_tri[1] = l_iter->v; e_tri[1] = l_iter->e; l_iter = l_iter->next;
 		v_tri[2] = l_iter->v; e_tri[2] = l_iter->e;
