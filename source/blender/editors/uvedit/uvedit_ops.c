@@ -803,52 +803,15 @@ static void uv_find_nearest_face(Scene *scene, Image *ima, BMEditMesh *em, const
 	}
 }
 
-static int uv_nearest_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), int id,
-                              const float co[2], const float uv[2])
+static bool uv_nearest_between(const BMLoop *l, const float co[2],
+                               const int cd_loop_uv_offset)
 {
-	BMLoop *l;
-	MLoopUV *luv;
-	BMIter iter;
-	float m[2], v1[2], v2[2], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
-	int id1, id2, i;
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	const float *uv_prev = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset))->uv;
+	const float *uv_curr = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l,       cd_loop_uv_offset))->uv;
+	const float *uv_next = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset))->uv;
 
-	id1 = (id + efa->len - 1) % efa->len;
-	id2 = (id + efa->len + 1) % efa->len;
-
-	sub_v2_v2v2(m, co, uv);
-
-	i = 0;
-	BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
-		luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-		
-		if (i == id1) {
-			uv1 = luv->uv;
-		}
-		else if (i == id) {
-			/* uv2 = luv->uv; */ /* UNUSED */
-		}
-		else if (i == id2) {
-			uv3 = luv->uv;
-		}
-		i++;
-	}
-
-	sub_v2_v2v2(v1, uv1, uv);
-	sub_v2_v2v2(v2, uv3, uv);
-
-	/* m and v2 on same side of v-v1? */
-	c1 = v1[0] * m[1] - v1[1] * m[0];
-	c2 = v1[0] * v2[1] - v1[1] * v2[0];
-
-	if (c1 * c2 < 0.0f)
-		return 0;
-
-	/* m and v1 on same side of v-v2? */
-	c1 = v2[0] * m[1] - v2[1] * m[0];
-	c2 = v2[0] * v1[1] - v2[1] * v1[0];
-
-	return (c1 * c2 >= 0.0f);
+	return ((line_point_side_v2(uv_prev, uv_curr, co) >  0.0f) &&
+	        (line_point_side_v2(uv_next, uv_curr, co) <= 0.0f));
 }
 
 void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
@@ -879,22 +842,20 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, efa, tf))
 			continue;
-		
-		i = 0;
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
+		BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			if (penalty && uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
-				dist = fabsf(co[0] - luv->uv[0]) + penalty[0] + fabsf(co[1] - luv->uv[1]) + penalty[1];
+				dist = len_manhattan_v2v2(co, luv->uv) + len_manhattan_v2(penalty);
 			else
-				dist = fabsf(co[0] - luv->uv[0]) + fabsf(co[1] - luv->uv[1]);
+				dist = len_manhattan_v2v2(co, luv->uv);
 
 			if (dist <= mindist) {
-				if (dist == mindist)
-					if (!uv_nearest_between(em, efa, efa->len, i, co, luv->uv)) {
-						i++;
+				if (dist == mindist) {
+					if (!uv_nearest_between(l, co, cd_loop_uv_offset)) {
 						continue;
 					}
+				}
 
 				mindist = dist;
 
@@ -907,8 +868,6 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 				hit->lindex = i;
 				hit->vert1 = BM_elem_index_get(hit->l->v);
 			}
-
-			i++;
 		}
 	}
 }
