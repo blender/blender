@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
+#include <sstream>
 
 #include "FRS_freestyle.h"
 
@@ -412,13 +413,24 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilo
 	int nSamples = 0;
 	vector<WFace*> wFaces;
 	WFace *wFace = NULL;
+	unsigned cnt = 0;
+	unsigned cntStep = (unsigned)ceil(0.01f * vedges.size());
 	unsigned tmpQI = 0;
 	unsigned qiClasses[256];
 	unsigned maxIndex, maxCard;
 	unsigned qiMajority;
 	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
-		if (iRenderMonitor && iRenderMonitor->testBreak())
-			break;
+		if (iRenderMonitor) {
+			if (iRenderMonitor->testBreak())
+				break;
+			if (cnt % cntStep == 0) {
+				stringstream ss;
+				ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
+				iRenderMonitor->setInfo(ss.str());
+				iRenderMonitor->progress((float)cnt / vedges.size());
+			}
+			cnt++;
+		}
 #if LOGGING
 		if (_global.debug & G_DEBUG_FREESTYLE) {
 			cout << "Processing ViewEdge " << (*ve)->getId() << endl;
@@ -582,6 +594,12 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilo
 		}
 
 		wFaces.clear();
+	}
+	if (iRenderMonitor) {
+		stringstream ss;
+		ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
+		iRenderMonitor->setInfo(ss.str());
+		iRenderMonitor->progress((float)cnt / vedges.size());
 	}
 }
 

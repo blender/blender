@@ -251,7 +251,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 /* Note: 'Preview Range' tools are defined in anim_ops.c */
 
 /* Draw preview range 'curtains' for highlighting where the animation data is */
-void ANIM_draw_previewrange(const bContext *C, View2D *v2d)
+void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 {
 	Scene *scene = CTX_data_scene(C);
 	
@@ -262,9 +262,9 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d)
 		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 		
 		/* only draw two separate 'curtains' if there's no overlap between them */
-		if (PSFRA < PEFRA) {
+		if (PSFRA < PEFRA + end_frame_width) {
 			glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-			glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+			glRectf((float)(PEFRA + end_frame_width), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 		}
 		else {
 			glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
