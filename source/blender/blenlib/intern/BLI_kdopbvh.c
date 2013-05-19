@@ -1414,7 +1414,6 @@ static float ray_nearest_hit(BVHRayCastData *data, const float bv[6])
 static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
 {
 	const float *bv = node->bv;
-	float dist;
 	
 	float t1x = (bv[data->index[0]] - data->ray.origin[0]) * data->idot_axis[0];
 	float t2x = (bv[data->index[1]] - data->ray.origin[0]) * data->idot_axis[0];
@@ -1423,14 +1422,15 @@ static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *nod
 	float t1z = (bv[data->index[4]] - data->ray.origin[2]) * data->idot_axis[2];
 	float t2z = (bv[data->index[5]] - data->ray.origin[2]) * data->idot_axis[2];
 
-	if (t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return FLT_MAX;
-	if (t2x < 0.0f || t2y < 0.0f || t2z < 0.0f) return FLT_MAX;
-	if (t1x > data->hit.dist || t1y > data->hit.dist || t1z > data->hit.dist) return FLT_MAX;
-
-	dist = t1x;
-	if (t1y > dist) dist = t1y;
-	if (t1z > dist) dist = t1z;
-	return dist;
+	if ((t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) ||
+	    (t2x < 0.0f || t2y < 0.0f || t2z < 0.0f) ||
+	    (t1x > data->hit.dist || t1y > data->hit.dist || t1z > data->hit.dist))
+	{
+		return FLT_MAX;
+	}
+	else {
+		return max_fff(t1x, t1y, t1z);
+	}
 }
 
 static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
