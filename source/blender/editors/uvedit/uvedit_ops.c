@@ -928,12 +928,9 @@ static void uv_select_edgeloop_vertex_loop_flag(UvMapVert *first)
 		first->flag = 1;
 }
 
-static UvMapVert *uv_select_edgeloop_vertex_map_get(UvVertMap *vmap, BMFace *efa, int a)
+static UvMapVert *uv_select_edgeloop_vertex_map_get(UvVertMap *vmap, BMFace *efa, BMLoop *l)
 {
 	UvMapVert *iterv, *first;
-	BMLoop *l;
-
-	l = BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, a);
 	first = EDBM_uv_vert_map_at_index(vmap,  BM_elem_index_get(l->v));
 
 	for (iterv = first; iterv; iterv = iterv->next) {
@@ -1006,8 +1003,10 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 	BMLoop *l;
 	MTexPoly *tf;
 	UvVertMap *vmap;
-	UvMapVert *iterv1, *iterv2;
-	int a, looking, nverts, starttotf, select;
+	UvMapVert *iterv_curr;
+	UvMapVert *iterv_next;
+	int starttotf;
+	bool looking, select;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
@@ -1025,22 +1024,20 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, FALSE);
 
 	/* set flags for first face and verts */
-	nverts = hit->efa->len;
-	iterv1 = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->lindex);
-	iterv2 = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, (hit->lindex + 1) % nverts);
-	uv_select_edgeloop_vertex_loop_flag(iterv1);
-	uv_select_edgeloop_vertex_loop_flag(iterv2);
+	iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l);
+	iterv_next = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l->next);
+	uv_select_edgeloop_vertex_loop_flag(iterv_curr);
+	uv_select_edgeloop_vertex_loop_flag(iterv_next);
 
 	starttotf = 0;
-	uv_select_edgeloop_edge_tag_faces(em, iterv1, iterv2, &starttotf);
+	uv_select_edgeloop_edge_tag_faces(em, iterv_curr, iterv_next, &starttotf);
 
 	/* sorry, first edge isn't even ok */
-	if (iterv1->flag == 0 && iterv2->flag == 0) looking = 0;
-	else looking = 1;
+	looking = !(iterv_curr->flag == 0 && iterv_next->flag == 0);
 
 	/* iterate */
 	while (looking) {
-		looking = 0;
+		looking = false;
 
 		/* find correct valence edges which are not tagged yet, but connect to tagged one */
 
@@ -1048,23 +1045,21 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG) && uvedit_face_visible_test(scene, ima, efa, tf)) {
-				nverts = efa->len;
-				for (a = 0; a < nverts; a++) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					/* check face not hidden and not tagged */
-					iterv1 = uv_select_edgeloop_vertex_map_get(vmap, efa, a);
-					iterv2 = uv_select_edgeloop_vertex_map_get(vmap, efa, (a + 1) % nverts);
-					
-					if (!iterv1 || !iterv2)
+					if (!(iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, efa, l)))
+						continue;
+					if (!(iterv_next = uv_select_edgeloop_vertex_map_get(vmap, efa, l->next)))
 						continue;
 
 					/* check if vertex is tagged and has right valence */
-					if (iterv1->flag || iterv2->flag) {
-						if (uv_select_edgeloop_edge_tag_faces(em, iterv1, iterv2, &starttotf)) {
-							looking = 1;
+					if (iterv_curr->flag || iterv_next->flag) {
+						if (uv_select_edgeloop_edge_tag_faces(em, iterv_curr, iterv_next, &starttotf)) {
+							looking = true;
 							BM_elem_flag_enable(efa, BM_ELEM_TAG);
 
-							uv_select_edgeloop_vertex_loop_flag(iterv1);
-							uv_select_edgeloop_vertex_loop_flag(iterv2);
+							uv_select_edgeloop_vertex_loop_flag(iterv_curr);
+							uv_select_edgeloop_vertex_loop_flag(iterv_next);
 							break;
 						}
 					}
@@ -1074,31 +1069,25 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 	}
 
 	/* do the actual select/deselect */
-	nverts = hit->efa->len;
-	iterv1 = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->lindex);
-	iterv2 = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, (hit->lindex + 1) % nverts);
-	iterv1->flag = 1;
-	iterv2->flag = 1;
+	iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l);
+	iterv_next = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l->next);
+	iterv_curr->flag = 1;
+	iterv_next->flag = 1;
 
 	if (extend) {
-		if (uvedit_uv_select_test(scene, hit->l, cd_loop_uv_offset))
-			select = 0;
-		else
-			select = 1;
+		select = !(uvedit_uv_select_test(scene, hit->l, cd_loop_uv_offset));
 	}
-	else
-		select = 1;
+	else {
+		select = true;
+	}
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		a = 0;
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			iterv1 = uv_select_edgeloop_vertex_map_get(vmap, efa, a);
+			iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, efa, l);
 
-			if (iterv1->flag) {
+			if (iterv_curr->flag) {
 				uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
 			}
-
-			a++;
 		}
 	}
 
@@ -2114,9 +2103,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* mark 1 vertex as being hit */
 		BLI_array_grow_items(hitv, hit.efa->len);
 		BLI_array_grow_items(hituv, hit.efa->len);
-		for (i = 0; i < hit.efa->len; i++) {
-			hitv[i] = 0xFFFFFFFF;
-		}
+		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
 		hitv[hit.lindex] = hit.vert1;
 		hituv[hit.lindex] = hit.luv->uv;
