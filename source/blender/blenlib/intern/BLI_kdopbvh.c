@@ -139,15 +139,15 @@ MINLINE axis_t max_axis(axis_t a, axis_t b)
 	{                                                                         \
 		HEAP_TYPE element = heap[heap_size - 1];                              \
 		int child = heap_size - 1;                                            \
-		while (child != 0)                                                    \
-		{                                                                     \
+		while (child != 0) {                                                  \
 			int parent = (child - 1) / 2;                                     \
-			if (PRIORITY(element, heap[parent]))                              \
-			{                                                                 \
+			if (PRIORITY(element, heap[parent])) {                            \
 				heap[child] = heap[parent];                                   \
 				child = parent;                                               \
 			}                                                                 \
-			else break;                                                       \
+			else {                                                            \
+				break;                                                        \
+			}                                                                 \
 		}                                                                     \
 		heap[child] = element;                                                \
 	} (void)0
@@ -156,8 +156,7 @@ MINLINE axis_t max_axis(axis_t a, axis_t b)
 	{                                                                         \
 		HEAP_TYPE element = heap[heap_size - 1];                              \
 		int parent = 0;                                                       \
-		while (parent < (heap_size - 1) / 2)                                  \
-		{                                                                     \
+		while (parent < (heap_size - 1) / 2) {                                \
 			int child2 = (parent + 1) * 2;                                    \
 			if (PRIORITY(heap[child2 - 1], heap[child2])) {                   \
 				child2--;                                                     \
@@ -171,30 +170,31 @@ MINLINE axis_t max_axis(axis_t a, axis_t b)
 		heap[parent] = element;                                               \
 	} (void)0
 
-static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
+static bool ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
 {
 	int new_max_size = *max_size * 2;
 	void *new_memblock = NULL;
 
-	if (new_size <= *max_size)
-		return TRUE;
+	if (new_size <= *max_size) {
+		return true;
+	}
 
-	if (*memblock == local_memblock)
-	{
+	if (*memblock == local_memblock) {
 		new_memblock = malloc(size_per_item * new_max_size);
 		memcpy(new_memblock, *memblock, size_per_item * *max_size);
 	}
-	else
+	else {
 		new_memblock = realloc(*memblock, size_per_item * new_max_size);
+	}
 
-	if (new_memblock)
-	{
+	if (new_memblock) {
 		*memblock = new_memblock;
 		*max_size = new_max_size;
-		return TRUE;
+		return true;
 	}
-	else
-		return FALSE;
+	else {
+		return false;
+	}
 }
 #endif
 
@@ -257,11 +257,9 @@ static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 {
 	BVHNode *d = a[lo + i - 1];
 	int child;
-	while (i <= n / 2)
-	{
+	while (i <= n / 2) {
 		child = 2 * i;
-		if ((child < n) && ((a[lo + child - 1])->bv[axis] < (a[lo + child])->bv[axis]))
-		{
+		if ((child < n) && ((a[lo + child - 1])->bv[axis] < (a[lo + child])->bv[axis])) {
 			child++;
 		}
 		if (!(d->bv[axis] < (a[lo + child - 1])->bv[axis])) break;
@@ -274,12 +272,10 @@ static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
 {
 	int n = hi - lo, i;
-	for (i = n / 2; i >= 1; i = i - 1)
-	{
+	for (i = n / 2; i >= 1; i = i - 1) {
 		bvh_downheap(a, i, n, lo, axis);
 	}
-	for (i = n; i > 1; i = i - 1)
-	{
+	for (i = n; i > 1; i = i - 1) {
 		SWAP(BVHNode *, a[lo], a[lo + i - 1]);
 		bvh_downheap(a, 1, i - 1, lo, axis);
 	}
@@ -318,10 +314,8 @@ static void bvh_introsort_loop(BVHNode **a, int lo, int hi, int depth_limit, int
 {
 	int p;
 
-	while (hi - lo > size_threshold)
-	{
-		if (depth_limit == 0)
-		{
+	while (hi - lo > size_threshold) {
+		if (depth_limit == 0) {
 			bvh_heapsort(a, lo, hi, axis);
 			return;
 		}
@@ -334,8 +328,7 @@ static void bvh_introsort_loop(BVHNode **a, int lo, int hi, int depth_limit, int
 
 static void sort(BVHNode **a0, int begin, int end, int axis)
 {
-	if (begin < end)
-	{
+	if (begin < end) {
 		BVHNode **a = a0;
 		bvh_introsort_loop(a, begin, end, 2 * floor_lg(end - begin), axis);
 		bvh_insertionsort(a, begin, end, axis);
@@ -395,7 +388,7 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 	axis_t axis_iter;
 	
 	/* don't init boudings for the moving case */
-		if (!moving) {
+	if (!moving) {
 		for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
 			bv[2 * axis_iter] = FLT_MAX;
 			bv[2 * axis_iter + 1] = -FLT_MAX;
@@ -540,19 +533,16 @@ static void verify_tree(BVHTree *tree)
 	int i, j, check = 0;
 	
 	/* check the pointer list */
-	for (i = 0; i < tree->totleaf; i++)
-	{
+	for (i = 0; i < tree->totleaf; i++) {
 		if (tree->nodes[i]->parent == NULL) {
 			printf("Leaf has no parent: %d\n", i);
 		}
 		else {
-			for (j = 0; j < tree->tree_type; j++)
-			{
+			for (j = 0; j < tree->tree_type; j++) {
 				if (tree->nodes[i]->parent->children[j] == tree->nodes[i])
 					check = 1;
 			}
-			if (!check)
-			{
+			if (!check) {
 				printf("Parent child relationship doesn't match: %d\n", i);
 			}
 			check = 0;
@@ -560,19 +550,16 @@ static void verify_tree(BVHTree *tree)
 	}
 	
 	/* check the leaf list */
-	for (i = 0; i < tree->totleaf; i++)
-	{
+	for (i = 0; i < tree->totleaf; i++) {
 		if (tree->nodearray[i].parent == NULL) {
 			printf("Leaf has no parent: %d\n", i);
 		}
 		else {
-			for (j = 0; j < tree->tree_type; j++)
-			{
+			for (j = 0; j < tree->tree_type; j++) {
 				if (tree->nodearray[i].parent->children[j] == &tree->nodearray[i])
 					check = 1;
 			}
-			if (!check)
-			{
+			if (!check) {
 				printf("Parent child relationship doesn't match: %d\n", i);
 			}
 			check = 0;
@@ -909,7 +896,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 }
 
 void BLI_bvhtree_free(BVHTree *tree)
-{	
+{
 	if (tree) {
 		MEM_freeN(tree->nodes);
 		MEM_freeN(tree->nodearray);
@@ -932,8 +919,8 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	/* Build the implicit tree */
 	non_recursive_bvh_div_nodes(tree, branches_array, leafs_array, tree->totleaf);
 
-	/*current code expects the branches to be linked to the nodes array
-	 *we perform that linkage here */
+	/* current code expects the branches to be linked to the nodes array
+	 * we perform that linkage here */
 	tree->totbranch = implicit_needed_branches(tree->tree_type, tree->totleaf);
 	for (i = 0; i < tree->totbranch; i++)
 		tree->nodes[tree->totleaf + i] = branches_array + i;
@@ -1167,8 +1154,7 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 #if 0
 	/* nearest on a general hull */
 	copy_v3_v3(nearest, data->co);
-	for (i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv += 2)
-	{
+	for (i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv += 2) {
 		float proj = dot_v3v3(nearest, KDOP_AXES[i]);
 		float dl = bv[0] - proj;
 		float du = bv[1] - proj;
@@ -1263,8 +1249,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 
 	int callbacks = 0, push_heaps = 0;
 
-	if (node->totnode == 0)
-	{
+	if (node->totnode == 0) {
 		dfs_find_nearest_dfs(data, node);
 		return;
 	}
@@ -1272,14 +1257,11 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	current.node = node;
 	current.dist = calc_nearest_point(data->proj, node, nearest);
 
-	while (current.dist < data->nearest.dist)
-	{
+	while (current.dist < data->nearest.dist) {
 //		printf("%f : %f\n", current.dist, data->nearest.dist);
-		for (i = 0; i < current.node->totnode; i++)
-		{
+		for (i = 0; i < current.node->totnode; i++) {
 			BVHNode *child = current.node->children[i];
-			if (child->totnode == 0)
-			{
+			if (child->totnode == 0) {
 				callbacks++;
 				dfs_find_nearest_dfs(data, child);
 			}
@@ -1471,17 +1453,14 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 #if 0
 static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 {
-	while (node)
-	{
+	while (node) {
 		float dist = fast_ray_nearest_hit(data, node);
-		if (dist >= data->hit.dist)
-		{
+		if (dist >= data->hit.dist) {
 			node = node->skip[1];
 			continue;
 		}
 
-		if (node->totnode == 0)
-		{
+		if (node->totnode == 0) {
 			if (data->callback) {
 				data->callback(data->userdata, node->index, &data->ray, &data->hit);
 			}
