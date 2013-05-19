@@ -157,12 +157,6 @@ mark_as_advanced(WITH_AUDASPACE)
 option(WITH_BOOL_COMPAT "Continue defining \"TRUE\" and \"FALSE\" until these can be replaced with \"true\" and \"false\" from stdbool.h" ON)
 mark_as_advanced(WITH_BOOL_COMPAT)
 
-if(MSVC11)
-	option(WITH_AVX_CPU "Warning: experimental build for newer CPUs with AVX extensions. Doesn't work on older CPUs!" OFF)
-	mark_as_advanced(WITH_AVX_CPU)
-endif()
-
-
 # (unix defaults to OpenMP On)
 if((UNIX AND NOT APPLE) OR (MINGW))
 	set(PLATFORM_DEFAULT ON)
@@ -363,7 +357,7 @@ if(APPLE)
 		# force CMAKE_OSX_DEPLOYMENT_TARGET for makefiles, will not work else ( cmake bug ? )
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
-		add_definitions ("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+		add_definitions("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	endif()
 
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -1047,10 +1041,6 @@ elseif(WIN32)
 		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
 		if(MSVC11)
 			add_definitions(/D_ALLOW_KEYWORD_MACROS)
-			# Experimental feature compile with /arch:AVX MSVC11 ONLY
-			if(WITH_AVX_CPU)
-				add_definitions(/arch:AVX)
-			endif()
 		endif()
 
 		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
