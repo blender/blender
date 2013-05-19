@@ -1227,7 +1227,6 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 		sim.scene = scene;
 		sim.ob = flow_ob;
 		sim.psys = psys;
-		sim.rng = BLI_rng_new(psys->seed);
 
 		/* initialize particle cache */
 		if (psys->part->type == PART_HAIR) {
@@ -1403,8 +1402,6 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 			MEM_freeN(particle_pos);
 		if (particle_vel)
 			MEM_freeN(particle_vel);
-
-		BLI_rng_free(sim.rng);
 	}
 }
 
