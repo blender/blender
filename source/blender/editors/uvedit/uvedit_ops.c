@@ -741,8 +741,7 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 		if (!uvedit_face_visible_test(scene, ima, efa, tf))
 			continue;
 		
-		i = 0;
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+		BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 			luv      = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
 
@@ -762,8 +761,6 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 
 				mindist_squared = dist_squared;
 			}
-
-			i++;
 		}
 	}
 }
@@ -1144,35 +1141,24 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 		}
 	}
 	else {
-		a = 0;
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
 			if (efa == hit->efa) {
 				stack[stacksize] = a;
 				stacksize++;
 				flag[a] = 1;
 				break;
 			}
-
-			a++;
 		}
 	}
 
 	while (stacksize > 0) {
-		int j;
 
 		stacksize--;
 		a = stack[stacksize];
-		
-		j = 0;
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (j == a)
-				break;
 
-			j++;
-		}
+		efa = EDBM_face_at_index(em, a);
 
-		i = 0;
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+		BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 
 			/* make_uv_vert_map_EM sets verts tmp.l to the indices */
 			vlist = EDBM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
@@ -1195,14 +1181,11 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 					stacksize++;
 				}
 			}
-
-			i++;
 		}
 	}
 
 	if (!extend) {
-		a = 0;
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				
@@ -1211,35 +1194,30 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 				else
 					luv->flag &= ~MLOOPUV_VERTSEL;
 			}
-			a++;
 		}
 	}
 	else {
-		a = 0;
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
 			if (!flag[a]) {
-				a++;
 				continue;
 			}
 			
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						
-				if (luv->flag & MLOOPUV_VERTSEL)
+				if (luv->flag & MLOOPUV_VERTSEL) {
 					break;
+				}
 			}
 			
-			if (l)
+			if (l) {
 				break;
-			
-			a++;
+			}
 		}
 
 		if (efa) {
-			a = 0;
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
 				if (!flag[a]) {
-					a++;
 					continue;
 				}
 
@@ -1248,15 +1226,11 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 					
 					luv->flag &= ~MLOOPUV_VERTSEL;
 				}
-
-				a++;
 			}
 		}
 		else {
-			a = 0;
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
 				if (!flag[a]) {
-					a++;
 					continue;
 				}
 
@@ -1265,8 +1239,6 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 					
 					luv->flag |= MLOOPUV_VERTSEL;
 				}
-
-				a++;
 			}
 		}
 	}
@@ -2042,10 +2014,8 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 	NearestHit hit;
 	int i, selectmode, sticky, sync, *hitv = NULL;
 	bool select = true;
-	BLI_array_declare(hitv);
 	int flush = 0, hitlen = 0; /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	float limit[2], **hituv = NULL;
-	BLI_array_declare(hituv);
 	float penalty[2];
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
@@ -2084,8 +2054,6 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* find edge */
 		uv_find_nearest_edge(scene, ima, em, co, &hit);
 		if (hit.efa == NULL) {
-			BLI_array_free(hitv);
-			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -2095,14 +2063,12 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* find vertex */
 		uv_find_nearest_vert(scene, ima, em, co, penalty, &hit);
 		if (hit.efa == NULL) {
-			BLI_array_free(hitv);
-			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
 		/* mark 1 vertex as being hit */
-		BLI_array_grow_items(hitv, hit.efa->len);
-		BLI_array_grow_items(hituv, hit.efa->len);
+		hitv  = BLI_array_alloca(hitv,  hit.efa->len);
+		hituv = BLI_array_alloca(hituv, hit.efa->len);
 		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
 		hitv[hit.lindex] = hit.vert1;
@@ -2114,14 +2080,12 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* find edge */
 		uv_find_nearest_edge(scene, ima, em, co, &hit);
 		if (hit.efa == NULL) {
-			BLI_array_free(hitv);
-			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
 		/* mark 2 edge vertices as being hit */
-		BLI_array_grow_items(hitv,  hit.efa->len);
-		BLI_array_grow_items(hituv, hit.efa->len);
+		hitv  = BLI_array_alloca(hitv,  hit.efa->len);
+		hituv = BLI_array_alloca(hituv, hit.efa->len);
 		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
 		hitv[hit.lindex] = hit.vert1;
@@ -2135,8 +2099,6 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* find face */
 		uv_find_nearest_face(scene, ima, em, co, &hit);
 		if (hit.efa == NULL) {
-			BLI_array_free(hitv);
-			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 		
@@ -2145,14 +2107,12 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 
 		/* mark all face vertices as being hit */
 
-		BLI_array_grow_items(hitv,  hit.efa->len);
-		BLI_array_grow_items(hituv, hit.efa->len);
-		i = 0;
-		BM_ITER_ELEM (l, &liter, hit.efa, BM_LOOPS_OF_FACE) {
+		hitv  = BLI_array_alloca(hitv,  hit.efa->len);
+		hituv = BLI_array_alloca(hituv, hit.efa->len);
+		BM_ITER_ELEM_INDEX (l, &liter, hit.efa, BM_LOOPS_OF_FACE, i) {
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			hituv[i] = luv->uv;
 			hitv[i] = BM_elem_index_get(l->v);
-			i++;
 		}
 		
 		hitlen = hit.efa->len;
@@ -2161,8 +2121,6 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 
 		if (hit.efa == NULL) {
-			BLI_array_free(hitv);
-			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -2170,8 +2128,6 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 	}
 	else {
 		hitlen = 0;
-		BLI_array_free(hitv);
-		BLI_array_free(hituv);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2297,9 +2253,6 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-	BLI_array_free(hitv);
-	BLI_array_free(hituv);
 
 	return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
