@@ -111,7 +111,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 		}
 	}
 
-	vgroup_validmap = MEM_mallocN(defbase_tot, "wpaint valid map");
+	vgroup_validmap = MEM_mallocN(sizeof(*vgroup_validmap) * defbase_tot, "wpaint valid map");
 
 	/* add all names to a hash table */
 	for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
