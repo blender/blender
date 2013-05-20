@@ -442,6 +442,13 @@ public:
 	SHADER_NODE_CLASS(LayerWeightNode)
 };
 
+class WireframeNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(WireframeNode)
+	
+	bool use_pixel_size;
+};
+
 class MathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MathNode)

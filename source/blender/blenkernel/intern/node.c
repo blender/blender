@@ -3394,6 +3394,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_brightcontrast();
 	register_node_type_sh_value();
 	register_node_type_sh_rgb();
+	register_node_type_sh_wireframe();
 	register_node_type_sh_mix_rgb();
 	register_node_type_sh_valtorgb();
 	register_node_type_sh_rgbtobw();

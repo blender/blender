@@ -145,6 +145,7 @@ set(SRC
 	shader/nodes/node_shader_texture.c
 	shader/nodes/node_shader_valToRgb.c
 	shader/nodes/node_shader_value.c
+	shader/nodes/node_shader_wireframe.c
 	shader/nodes/node_shader_vectMath.c
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_ambient_occlusion.c

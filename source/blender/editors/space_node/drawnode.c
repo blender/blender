@@ -759,6 +759,11 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "attribute_name", 0, IFACE_("Name"), ICON_NONE);
 }
 
+static void node_shader_buts_wireframe(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_pixel_size", 0, NULL, 0);
+}
+
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
@@ -964,6 +969,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_ATTRIBUTE:
 			ntype->uifunc = node_shader_buts_attribute;
+			break;
+		case SH_NODE_WIREFRAME:
+			ntype->uifunc = node_shader_buts_wireframe;
 			break;
 		case SH_NODE_TEX_SKY:
 			ntype->uifunc = node_shader_buts_tex_sky;

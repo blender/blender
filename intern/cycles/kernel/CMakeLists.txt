@@ -78,6 +78,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_brick.h
 	svm/svm_displace.h
 	svm/svm_fresnel.h
+	svm/svm_wireframe.h
 	svm/svm_gamma.h
 	svm/svm_brightness.h
 	svm/svm_geometry.h
