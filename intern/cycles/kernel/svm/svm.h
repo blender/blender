@@ -273,7 +273,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_tex_magic(kg, sd, stack, node, &offset);
 				break;
 			case NODE_TEX_CHECKER:
-				svm_node_tex_checker(kg, sd, stack, node, &offset);
+				svm_node_tex_checker(kg, sd, stack, node);
 				break;
 			case NODE_TEX_BRICK:
 				svm_node_tex_brick(kg, sd, stack, node, &offset);

@@ -1,7 +1,7 @@
 /*
  * Adapted from Open Shading Language with this license:
  *
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., closure_et al.
+ * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
