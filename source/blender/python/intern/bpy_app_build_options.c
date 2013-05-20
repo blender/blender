@@ -289,7 +289,7 @@ static PyObject *make_builtopts_info(void)
 	SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_OPENMP
+#ifdef _OPENMP
 	SetObjIncref(Py_True);
 #else
 	SetObjIncref(Py_False);
