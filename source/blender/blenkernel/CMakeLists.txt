@@ -357,10 +357,6 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
-if(WITH_OPENMP)
-	add_definitions(-DPARALLEL=1)
-endif()
-
 if(WITH_MOD_FLUID)
 	list(APPEND INC
 		../../../intern/elbeem/extern

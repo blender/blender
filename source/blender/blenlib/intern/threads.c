@@ -53,7 +53,11 @@
 #  include <sys/time.h>
 #endif
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+#if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+#  define USE_APPLE_OMP_FIX
+#endif
+
+#ifdef USE_APPLE_OMP_FIX
 /* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
 extern pthread_key_t gomp_tls_key;
 static void *thread_tls_data;
@@ -168,7 +172,7 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 	if (thread_levels == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+#ifdef USE_APPLE_OMP_FIX
 		/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
 		 * we copy gomp thread local storage pointer to setting it again
 		 * inside the thread that we start */
@@ -209,7 +213,7 @@ static void *tslot_thread_start(void *tslot_p)
 {
 	ThreadSlot *tslot = (ThreadSlot *)tslot_p;
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+#ifdef USE_APPLE_OMP_FIX
 	/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
 	 * set gomp thread local storage pointer which was copied beforehand */
 	pthread_setspecific(gomp_tls_key, thread_tls_data);

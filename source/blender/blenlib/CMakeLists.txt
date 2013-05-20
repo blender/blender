@@ -167,10 +167,6 @@ if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
 endif()
 
-if(WITH_OPENMP)
-	add_definitions(-DPARALLEL=1)
-endif()
-
 if(WIN32)
 	list(APPEND INC
 		../../../intern/utfconv

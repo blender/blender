@@ -55,10 +55,6 @@ if env['WITH_BF_QUICKTIME']:
 if env['USE_QTKIT']:
    env.Append(CFLAGS=['-DUSE_QTKIT'])
 
-if env['OURPLATFORM'] == 'darwin':
-    if env['WITH_BF_OPENMP']:
-       env.Append(CFLAGS=['-DPARALLEL=1'])
-
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
