@@ -30,6 +30,18 @@ float safe_divide(float a, float b)
 	return result;
 }
 
+float safe_modulo(float a, float b)
+{
+	float result;
+
+	if (b == 0.0)
+		result = 0.0;
+	else
+		result = fmod(a, b);
+	
+	return result;
+}
+
 float safe_log(float a, float b)
 {
 	if (a < 0.0 || b < 0.0)
@@ -81,6 +93,8 @@ shader node_math(
 		Value = Value1 < Value2;
 	else if (type == "Greater Than")
 		Value = Value1 > Value2;
+	else if (type == "Modulo")
+		Value = safe_modulo(Value1, Value2);
 
 	if (Clamp)
 		Value = clamp(Value1, 0.0, 1.0);

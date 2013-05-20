@@ -174,6 +174,15 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		}
 		break;
 		
+	case 17: /* Modulo */
+		{
+			if (in1 == 0.0f)
+				*out = 0.0f;
+			else
+				*out= fmod(in0, in1);
+		}
+		break;
+		
 	default:
 		fprintf(stderr,
 			"%s:%d: unhandeld value in switch statement: %d\n",

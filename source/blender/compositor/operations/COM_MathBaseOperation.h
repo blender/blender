@@ -157,4 +157,10 @@ public:
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class MathModuloOperation : public MathBaseOperation {
+public:
+	MathModuloOperation() : MathBaseOperation() {}
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+};
+
 #endif

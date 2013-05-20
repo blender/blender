@@ -80,6 +80,9 @@ void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		case 16: /* Greater Than */
 			operation = new MathGreaterThanOperation();
 			break;
+		case 17: /* Modulo */
+			operation = new MathModuloOperation();
+			break;
 	}
 	
 	if (operation != NULL) {

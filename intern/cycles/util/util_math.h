@@ -1166,6 +1166,11 @@ __device float safe_divide(float a, float b)
 	return (b != 0.0f)? a/b: 0.0f;
 }
 
+__device float safe_modulo(float a, float b)
+{
+	return (b != 0.0f)? fmodf(a, b): 0.0f;
+}
+
 /* Ray Intersection */
 
 __device bool ray_sphere_intersect(

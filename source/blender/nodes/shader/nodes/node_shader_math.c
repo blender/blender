@@ -203,6 +203,14 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				out[0]->vec[0] = 0.0f;
 		}
 		break;
+	case 17: /* Modulo */
+		{
+			if (in[1]->vec[0] == 0.0f)
+				out[0]->vec[0] = 0.0f;
+			else
+				out[0]->vec[0] = fmod(in[0]->vec[0], in[1]->vec[0]);
+		}
+		break;
 	}
 }
 
@@ -211,7 +219,7 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 	static const char *names[] = {"math_add", "math_subtract", "math_multiply",
 		"math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
 		"math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
-		"math_round", "math_less_than", "math_greater_than"};
+		"math_round", "math_less_than", "math_greater_than", "math_modulo"};
 
 	switch (node->custom1) {
 		case 0:

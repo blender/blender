@@ -317,4 +317,19 @@ void MathGreaterThanOperation::executePixel(float output[4], float x, float y, P
 	clampIfNeeded(output);
 }
 
+void MathModuloOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue1[4];
+	float inputValue2[4];
+	
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler);
+	
+	if (inputValue2[0] == 0)
+		output[0] = 0.0;
+	else
+		output[0] = fmod(inputValue1[0], inputValue2[0]);
+
+	clampIfNeeded(output);
+}
 
