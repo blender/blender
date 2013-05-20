@@ -30,7 +30,8 @@ Import ('env')
 # all source generated now
 # sources = env.Glob('*.c')
 sources = []
-incs = ""
+incs = []
+defs = []
 
 # generated data files
 import os
@@ -106,4 +107,4 @@ sources.extend((
 
     ))
 
-env.BlenderLib ( 'bf_editor_datafiles', sources, Split(incs), [], libtype=['core', 'player'], priority=[235, 30] )
+env.BlenderLib ( 'bf_editor_datafiles', sources, incs, defs, libtype=['core', 'player'], priority=[235, 30] )

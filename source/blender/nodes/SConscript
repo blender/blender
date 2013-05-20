@@ -31,17 +31,31 @@ sources = env.Glob('intern/*.c')
 cmpsources = env.Glob('composite/*.c') + env.Glob('composite/nodes/*.c')
 shdsources = env.Glob('shader/*.c') + env.Glob('shader/nodes/*.c')
 texsources = env.Glob('texture/*.c') + env.Glob('texture/nodes/*.c')
-incs = '. ./intern '
-incs += './composite ./shader ./texture '
-incs += '#/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
-incs += ' ../render/extern/include ../makesrna '
-incs += ' ../imbuf ../avi '
-incs += ' ../blenloader'
-incs += ' ../blenfont ../blenkernel ../renderconverter '
-incs += ' ../gpu #/extern/glew/include '
 
-incs += ' ' + env['BF_OPENGL_INC']
-incs += ' ' + env['BF_ZLIB_INC']
+incs = [
+    '.',
+    './composite',
+    './intern',
+    './shader',
+    './texture',
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../avi',
+    '../blenfont',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../editors/include',
+    '../gpu',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../render/extern/include',
+    '../renderconverter',
+    env['BF_OPENGL_INC'],
+    env['BF_ZLIB_INC'],
+    ]
+incs = ' '.join(incs)
 
 defs = [] 
 

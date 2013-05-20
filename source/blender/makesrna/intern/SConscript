@@ -57,13 +57,26 @@ makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" '
 
 defs = []
 
-incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel ../../blenloader'
-incs += ' ../../imbuf ../../makesdna ../../makesrna ../../ikplugin'
-incs += ' ../../windowmanager ../../editors/include ../../blenfont'
-incs += ' ../../render/extern/include ../../bmesh'
-incs += ' #/intern/audaspace/intern #/intern/cycles/blender'
-incs += ' #/extern/glew/include '
-incs += ' #/intern/smoke/extern'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '#/intern/audaspace/intern',
+    '#/intern/cycles/blender',
+    '#/intern/smoke/extern',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../bmesh',
+    '../../editors/include',
+    '../../ikplugin',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../render/extern/include',
+    '../../windowmanager',
+    ]
+incs = ' '.join(incs)
 
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')

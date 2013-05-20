@@ -29,13 +29,23 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-for source in env.Glob('*_api.c'):
-    sources.remove(source)
-
-incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc ../../gpu'
-incs += ' #/extern/glew/include ../../blenloader ../../bmesh'
-incs += ' ../../python/' # python button eval
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../bmesh',
+    '../../gpu',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    # python button eval
+    '../../python',
+    '../../windowmanager',
+    ]
 
 defs = []
 
@@ -45,4 +55,4 @@ if env['WITH_BF_INTERNATIONAL']:
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')
     
-env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), defs, libtype=['core'], priority=[110] )
+env.BlenderLib('bf_editors_interface', sources, incs, defs, libtype=['core'], priority=[110])

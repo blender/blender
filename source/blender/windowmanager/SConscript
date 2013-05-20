@@ -30,19 +30,32 @@ import os
 
 sources = env.Glob('intern/*.c')
 
-#incs = '#/intern/guardedalloc ../blenlib ../makesdna ../blenkernel'
-#incs += ' ../imbuf ../editors/include ../render/extern/include ../render/intern/include'
-
-incs = '. ../editors/include ../python ../makesdna ../blenlib ../blenkernel'
-incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
-incs += ' ../radiosity/extern/include'
-incs += ' ../makesrna ../gpu ../blenfont ../bmesh ../compositor'
-
-incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
-incs += ' #/intern/elbeem #/extern/glew/include'
-incs += ' #source/gameengine/BlenderRoutines'
-
-incs += ' ' + env['BF_ZLIB_INC']
+incs = [
+    '.',
+    '#/intern/elbeem',
+    '#/intern/ghost',
+    '#/intern/guardedalloc',
+    '#/intern/memutil',
+    '#/source/gameengine/BlenderRoutines',
+    '#/extern/glew/include',
+    '../blenfont',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../bmesh',
+    '../compositor',
+    '../editors/include',
+    '../gpu',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../nodes',
+    '../python',
+    '../radiosity/extern/include',
+    '../render/extern/include',
+    env['BF_ZLIB_INC'],
+    ]
+incs = ' '.join(incs)
 
 defs = [ 'GLEW_STATIC' ]
 

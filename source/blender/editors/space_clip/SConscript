@@ -29,8 +29,21 @@ Import ('env')
 
 sources = env.Glob('*.c')
 defs = []
-incs = '../include ../../blenkernel ../../blenloader ../../blenfont ../../blenlib ../../imbuf ../../makesdna'
-incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc #/extern/glew/include ../../gpu'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../gpu',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../windowmanager',
+    ]
+incs = ' '.join(incs)
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')

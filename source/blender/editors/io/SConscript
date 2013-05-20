@@ -28,10 +28,20 @@
 Import ('env')
 
 sources = env.Glob('*.c')
+
 defs = []
 
-incs = '../include ../../blenfont ../../blenkernel ../../blenlib ../../blenloader ../../bmesh'
-incs += '../../makesdna ../../makesrna ../../windowmanager ../../collada'
+incs = [
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../collada',
+    '../../makesrna',
+    '../../windowmanager',
+    '../../bmesh../../makesdna',
+    ]
 
 if env['WITH_BF_COLLADA']:
     defs += ['WITH_COLLADA']
@@ -39,4 +49,4 @@ if env['WITH_BF_COLLADA']:
 if env['WITH_BF_INTERNATIONAL']:
     defs += ['WITH_INTERNATIONAL']
 
-env.BlenderLib ( 'bf_editor_io', sources, Split(incs), defines=defs, libtype=['core','player'], priority=[330,210] )
+env.BlenderLib ( 'bf_editor_io', sources, incs, defines=defs, libtype=['core','player'], priority=[330,210] )

@@ -3,14 +3,27 @@ import sys
 Import ('env')
 
 sources = []
-defs = ['WITH_FREESTYLE']
-incs = ''
 
-incs += '../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna'
-incs += ' ../python ../python/intern ../render/extern/include ../render/intern/include'
-incs += ' #/extern/glew/include #/intern/guardedalloc ../freestyle'
-incs += ' ' + env['BF_PYTHON_INC']
-incs += ' ' + env['BF_PNG_INC']
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../freestyle',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../python',
+    '../python/intern',
+    '../render/extern/include',
+    '../render/intern/include',
+    env['BF_PYTHON_INC'],
+    env['BF_PNG_INC'],
+    ]
+incs = ' '.join(incs)
+
+defs = ['WITH_FREESTYLE']
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'

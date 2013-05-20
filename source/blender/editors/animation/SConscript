@@ -29,12 +29,24 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf ../../blenfont'
-incs += ' ../../bmesh ../../windowmanager #/intern/guardedalloc #/extern/glew/include ../../blenloader'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../bmesh',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../windowmanager',
+    ]
 
 defs = []
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
-env.BlenderLib ( 'bf_editors_animation', sources, Split(incs), defs, libtype=['core'], priority=[125] )
+env.BlenderLib('bf_editors_animation', sources, incs, defs, libtype=['core'], priority=[125])

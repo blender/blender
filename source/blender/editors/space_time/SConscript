@@ -29,8 +29,19 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../makesrna ../../blenloader'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../windowmanager',
+    ]
 
-env.BlenderLib ( 'bf_editors_space_time', sources, Split(incs), [], libtype=['core'], priority=[65] )
+defs = []
+
+env.BlenderLib('bf_editors_space_time', sources, incs, defs, libtype=['core'], priority=[65])

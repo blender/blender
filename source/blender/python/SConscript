@@ -29,10 +29,29 @@
 
 Import ('env')
 
-incs = '. ../editors/include ../makesdna ../makesrna ../blenfont ../blenlib ../blenkernel ../nodes'
-incs += ' ../imbuf ../blenloader ../bmesh ../gpu ../render/extern/include ../windowmanager'
-incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include #intern/cycles/blender'
-incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']
+incs = [
+    '.',
+    '#/intern/guardedalloc',
+    '#/intern/memutil',
+    '#/extern/glew/include',
+    '#/intern/audaspace/intern',
+    '#/intern/cycles/blender',
+    '../blenfont',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../bmesh',
+    '../editors/include',
+    '../gpu',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../nodes',
+    '../render/extern/include',
+    '../windowmanager',
+    env['BF_PYTHON_INC'],
+    ]
+incs = ' '.join(incs)
 
 is_debug = (env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc', 'win64-mingw') and env['BF_DEBUG'])
 

@@ -30,9 +30,23 @@ Import ('env')
 sources = env.Glob('intern/source/*.c')
 raysources = env.Glob('intern/raytrace/*.cpp')
 
-incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
-incs += ' extern/include ../blenkernel ../imbuf ../blenfont'
-incs += ' ../include ../blenloader ../../../intern/smoke/extern ../../../intern/mikktspace ../bmesh'
+incs = [
+    'extern/include',
+    'intern/include',
+    '#/intern/guardedalloc',
+    '../blenfont',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../bmesh',
+    '../imbuf',
+    '../include',
+    '../makesdna',
+    '../makesrna',
+    '../../../intern/mikktspace',
+    '../../../intern/smoke/extern',
+    ]
+incs = ' '.join(incs)
 
 cflags_raytrace = env['CCFLAGS']
 cxxflags_raytrace = env['CXXFLAGS']

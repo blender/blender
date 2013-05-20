@@ -40,7 +40,16 @@ if window_system == 'darwin':
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager', 'GHOST_Sizer']
 defs=['_USE_MATH_DEFINES']
 
-incs = '. ../string #extern/glew/include #source/blender/imbuf #source/blender/makesdna ' + env['BF_OPENGL_INC']
+incs = [
+    '.',
+    '#extern/glew/include',
+    '#source/blender/imbuf',
+    '#source/blender/makesdna',
+    '../string',
+    ]
+incs = ' '.join(incs)
+
+incs += ' ' + env['BF_OPENGL_INC']
 
 if env['WITH_GHOST_SDL']:
     for f in pf:

@@ -29,14 +29,24 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. #/intern/guardedalloc ../blenfont ../blenlib ../blenkernel'
-incs += ' ../makesdna ../editors/include'
-incs += ' ../render/extern/include ../makesrna ../nodes ../bmesh ../imbuf'
-
-incs += ' ' + env['BF_ZLIB_INC']
+incs = [
+    '.',
+    '#/intern/guardedalloc',
+    '../blenfont',
+    '../blenkernel',
+    '../blenlib',
+    '../bmesh',
+    '../editors/include',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../nodes',
+    '../render/extern/include',
+    env['BF_ZLIB_INC'],
+    ]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
-    incs += ' ' + env['BF_PTHREADS_INC']
+    incs.append(env['BF_PTHREADS_INC'])
 
 defs = []
 
@@ -44,6 +54,6 @@ if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-    env.BlenderLib ( 'bf_blenloader', sources, Split(incs), defs, libtype=['core','player'], priority = [167,30]) #, cc_compileflags=['/WX'] )
+    env.BlenderLib('bf_blenloader', sources, incs, defs, libtype=['core', 'player'], priority = [167, 30]) #, cc_compileflags=['/WX'])
 else:
-    env.BlenderLib ( 'bf_blenloader', sources, Split(incs), defs, libtype=['core','player','player2'], priority = [167,30,5] )
+    env.BlenderLib('bf_blenloader', sources, incs, defs, libtype=['core', 'player', 'player2'], priority=[167, 30, 5])

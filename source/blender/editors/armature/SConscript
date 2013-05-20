@@ -29,10 +29,24 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf ../../blenloader'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../render/extern/include ../../bmesh'
-incs += ' ../../gpu ../../makesrna #/intern/opennl/extern'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '#/intern/opennl/extern',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../bmesh',
+    '../../gpu',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../render/extern/include',
+    '../../windowmanager',
+    ]
+incs = ' '.join(incs)
 
 defs = []
 

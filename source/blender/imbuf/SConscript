@@ -30,14 +30,24 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. ../makesdna ../makesrna #/intern/guardedalloc #/intern/memutil ../blenlib'
-incs += ' ../avi ../blenkernel ../blenloader'
-incs += ' #/intern/ffmpeg #intern/opencolorio'
-
-incs += ' ' + env['BF_JPEG_INC']
-incs += ' ' + env['BF_PNG_INC']
-incs += ' ' + env['BF_TIFF_INC']
-incs += ' ' + env['BF_ZLIB_INC']
+incs = [
+    '.',
+    '#/intern/opencolorio',
+    '#/intern/ffmpeg',
+    '#/intern/guardedalloc',
+    '#/intern/memutil',
+    '../avi',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../makesdna',
+    '../makesrna',
+    env['BF_JPEG_INC'],
+    env['BF_PNG_INC'],
+    env['BF_TIFF_INC'],
+    env['BF_ZLIB_INC'],
+    ]
+incs = ' '.join(incs)
 
 defs = []
 

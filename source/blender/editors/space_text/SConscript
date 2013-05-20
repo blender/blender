@@ -29,9 +29,20 @@ Import ('env')
 
 sources = env.Glob('*.c')
 defs = []
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../python ../../makesrna ../../blenfont ../../blenloader'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../python',
+    '../../windowmanager',
+    ]
 
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')
@@ -39,4 +50,4 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
-env.BlenderLib ( 'bf_editors_space_text', sources, Split(incs), defs, libtype=['core'], priority=[95] )
+env.BlenderLib('bf_editors_space_text', sources, incs, defs, libtype=['core'], priority=[95])

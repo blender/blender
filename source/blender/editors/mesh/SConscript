@@ -31,11 +31,25 @@ sources = env.Glob('*.c')
 
 defs = []
 
-incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../gpu ../../blenloader'
-incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
-incs += ' ../../bmesh ../uvedit '
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '#/intern/elbeem/extern',
+    '../include',
+    '../uvedit',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../bmesh',
+    '../../gpu',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../render/extern/include',
+    '../../windowmanager',
+    ]
+incs = ' '.join(incs)
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'

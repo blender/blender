@@ -29,13 +29,24 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' #/intern/audaspace/intern ../../blenloader'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '#/intern/audaspace/intern',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../windowmanager',
+    ]
 
 defs = []
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
-env.BlenderLib ( 'bf_editors_space_graph', sources, Split(incs), defs, libtype=['core'], priority=[50] )
+env.BlenderLib('bf_editors_space_graph', sources, incs, defs, libtype=['core'], priority=[50])

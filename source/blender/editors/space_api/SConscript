@@ -29,9 +29,21 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../io ../../blenlib ../../blenkernel ../../blenloader ../../makesdna'
-incs += ' ../../windowmanager ../../python ../../makesrna ../../bmesh'
-incs += ' #/intern/guardedalloc #/extern/glew/include'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../io',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../bmesh',
+    '../../makesdna',
+    '../../makesrna',
+    '../../python',
+    '../../windowmanager',
+    ]
+incs = ' '.join(incs)
 
 defs = ''
 

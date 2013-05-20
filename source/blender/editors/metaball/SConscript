@@ -29,9 +29,22 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../gpu ../../blenloader'
-incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '#/intern/elbeem/extern',
+    '../include',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../gpu',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../render/extern/include',
+    '../../windowmanager',
+    ]
 
-env.BlenderLib ( 'bf_editors_metaball', sources, Split(incs), [], libtype=['core'], priority=[45] )
+defs = []
+
+env.BlenderLib ( 'bf_editors_metaball', sources, incs, defs, libtype=['core'], priority=[45] )

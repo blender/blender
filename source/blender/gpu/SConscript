@@ -32,13 +32,26 @@ sources += env.Glob('shaders/*.c')
 
 defs = [ 'GLEW_STATIC' ]
 
-incs = '../blenlib ../blenkernel ../makesdna ../makesrna ../include ../blenloader ../nodes ../nodes/intern'
-incs += ' #/extern/glew/include #intern/guardedalloc #intern/smoke/extern ../imbuf ../bmesh .'
+incs = [
+    '.',
+    '#/intern/guardedalloc',
+    '#/intern/smoke/extern',
+    '#/extern/glew/include',
+    '../blenkernel',
+    '../blenlib',
+    '../blenloader',
+    '../bmesh',
+    '../imbuf',
+    '../include',
+    '../makesdna',
+    '../makesrna',
+    '../nodes',
+    '../nodes/intern',
+    env['BF_OPENGL_INC'],
+    ]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
-    incs += ' ' + env['BF_PTHREADS_INC']
-
-incs += ' ' + env['BF_OPENGL_INC']
+    incs.append(env['BF_PTHREADS_INC'])
 
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')
@@ -59,4 +72,4 @@ sources.extend((
     os.path.join(env['DATA_SOURCES'], "gpu_shader_vsm_store_vert.glsl.c"),
     ))
 
-env.BlenderLib ( 'bf_gpu', sources, Split(incs), defines = defs, libtype=['core','player'], priority=[160,110] )
+env.BlenderLib('bf_gpu', sources, incs, defines=defs, libtype=['core', 'player'], priority=[160, 110])

@@ -29,9 +29,25 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
-incs += ' ../../nodes ../../render/extern/include ../../blenloader ../../gpu ../../compositor'
-incs += ' ../../windowmanager #intern/guardedalloc #extern/glew/include'
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../include',
+    '../../blenfont',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../blenloader',
+    '../../compositor',
+    '../../gpu',
+    '../../imbuf',
+    '../../makesdna',
+    '../../makesrna',
+    '../../nodes',
+    '../../render/extern/include',
+    '../../windowmanager',
+    ]
+incs = ' '.join(incs)
+
 defs = []
 cf = []
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

@@ -35,27 +35,45 @@ sources.remove('intern' + os.sep + 'mask.c')
 
 sources_mask = env.Glob('intern/mask*.c')
 
-incs = '. #/intern/guardedalloc #/intern/memutil'
-incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'
-incs += ' ../render/extern/include ../makesrna'
-incs += ' ../imbuf ../ikplugin ../avi #/intern/elbeem/extern ../nodes ../modifiers'
-incs += ' #/intern/iksolver/extern ../blenloader'
-incs += ' #/extern/bullet2/src'
-incs += ' #/intern/rigidbody'
-incs += ' #/intern/opennl/extern #/intern/bsp/extern'
-incs += ' ../gpu #/extern/glew/include'
-incs += ' ../bmesh'
-incs += ' #/intern/smoke/extern'
-incs += ' #/intern/mikktspace'
-incs += ' #/intern/audaspace/intern'
-incs += ' #/intern/ffmpeg'
-incs += ' #/intern/raskter'
-incs += ' #/extern/libmv'
+incs = [
+    '.',
+    '#/extern/libmv',
+    '#/intern/ffmpeg',
+    '#/intern/guardedalloc',
+    '#/intern/memutil',
+    '#/intern/mikktspace',
+    '#/intern/raskter',
+    '#/intern/rigidbody',
+    '#/extern/bullet2/src',
+    '#/extern/glew/include',
+    '#/intern/audaspace/intern',
+    '#/intern/bsp/extern',
+    '#/intern/elbeem/extern',
+    '#/intern/iksolver/extern',
+    '#/intern/opennl/extern',
+    '#/intern/smoke/extern',
+    '../avi',
+    '../blenfont',
+    '../blenlib',
+    '../blenloader',
+    '../bmesh',
+    '../gpu',
+    '../ikplugin',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../modifiers',
+    '../nodes',
+    '../render/extern/include',
+    '../windowmanager',
+    env['BF_OPENGL_INC'],
+    env['BF_ZLIB_INC'],
+    ]
+incs = ' '.join(incs)
 
-incs += ' ' + env['BF_OPENGL_INC']
-incs += ' ' + env['BF_ZLIB_INC']
-
-defs = [ 'GLEW_STATIC' ]
+defs = [
+    'GLEW_STATIC',
+    ]
 
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')

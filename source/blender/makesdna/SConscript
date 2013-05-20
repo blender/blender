@@ -33,9 +33,13 @@ defs = []
 o = SConscript('intern/SConscript')
 objs += o
 
-incs = '#/intern/guardedalloc . ../blenlib'
+incs = [
+    '.',
+    '#/intern/guardedalloc',
+    '../blenlib',
+    ]
 
 if env['WITH_BF_FREESTYLE']:
     defs.append('WITH_FREESTYLE')
 
-env.BlenderLib ( 'bf_dna', objs, Split(incs), defs, libtype=['core','player'], priority = [215,200] )
+env.BlenderLib('bf_dna', objs, incs, defs, libtype=['core', 'player'], priority = [215, 200])
