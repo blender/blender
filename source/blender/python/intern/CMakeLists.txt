@@ -242,6 +242,9 @@ if(WITH_PLAYER)
 	add_definitions(-DWITH_PLAYER)
 endif()
 
+if(WITH_OPENMP)
+	add_definitions(-DWITH_OPENMP)
+endif()
 
 
 
