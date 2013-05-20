@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_edgesplit.c
+/** \file blender/bmesh/operators/bmo_split_edges.c
  *  \ingroup bmesh
  *
  * Just a wrapper around #BM_mesh_edgesplit

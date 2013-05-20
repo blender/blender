@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_edgeloop_fill.c
+/** \file blender/bmesh/operators/bmo_fill_edgeloop.c
  *  \ingroup bmesh
  *
  * Fill discreet edge loop(s) with faces.

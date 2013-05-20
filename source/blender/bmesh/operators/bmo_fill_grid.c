@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_grid_fill.c
+/** \file blender/bmesh/operators/bmo_fill_grid.c
  *  \ingroup bmesh
  *
  * Fill 2 isolated, open edge loops with a grid of quads.
