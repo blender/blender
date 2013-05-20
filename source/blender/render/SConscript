@@ -83,7 +83,6 @@ if env['OURPLATFORM'] == 'linux':
     if env['WITH_BF_RAYOPTIMIZATION']:
         cflags_raytrace = env['CCFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
         cxxflags_raytrace = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
-    incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_RAYOPTIMIZATION']:

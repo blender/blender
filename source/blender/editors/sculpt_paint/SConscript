@@ -50,10 +50,6 @@ incs = [
     ]
 incs = ' '.join(incs)
 
-if env['OURPLATFORM'] == 'linux':
-    cflags='-pthread'
-    incs += ' ../../../extern/binreloc/include'
-
 if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_OPENMP']:
         incs += ' ' + env['BF_OPENMP_INC']

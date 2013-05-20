@@ -45,7 +45,6 @@ incs = ' '.join(incs)
 defs = []
 
 if env['WITH_BF_BINRELOC']:
-    cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
     defs.append('WITH_BINRELOC')
 
