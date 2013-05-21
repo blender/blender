@@ -1184,6 +1184,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	if (!(fabsf(obsize[0] - obsize[1]) < 1e-4f && fabsf(obsize[1] - obsize[2]) < 1e-4f))
 		BKE_report(op->reports, RPT_INFO,
 		           "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh");
+	else if (is_negative_m4(obedit->obmat))
+		BKE_report(op->reports, RPT_INFO,
+		           "Object has negative scale, unwrap will operate on a non-flipped version of the mesh");
 
 	/* remember last method for live unwrap */
 	if (RNA_struct_property_is_set(op->ptr, "method"))
