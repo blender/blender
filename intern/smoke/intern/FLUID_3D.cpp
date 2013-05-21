@@ -365,6 +365,7 @@ void FLUID_3D::step(float dt, float gravity[3])
 	int zEnd=_zRes;
 #endif
 
+	wipeBoundariesSL(0, _zRes);
 
 #if PARALLEL==1
 	#pragma omp parallel
@@ -376,7 +377,6 @@ void FLUID_3D::step(float dt, float gravity[3])
 		int zEnd = (int)((float)(i+1)*partSize + 0.5f);
 #endif
 
-		wipeBoundariesSL(zBegin, zEnd);
 		addVorticity(zBegin, zEnd);
 		addBuoyancy(_heat, _density, gravity, zBegin, zEnd);
 		addForce(zBegin, zEnd);
@@ -879,7 +879,7 @@ void FLUID_3D::wipeBoundariesSL(int zBegin, int zEnd)
 	if (zEnd == _zRes)
 	{
 		index=0;
-		int indexx=0;
+		int index_top=0;
 		const int cellsslab = totalCells - slabSize;
 
 		for (y = 0; y < _yRes; y++)
@@ -887,19 +887,19 @@ void FLUID_3D::wipeBoundariesSL(int zBegin, int zEnd)
 			{
 
 				// back slab
-				indexx = index + cellsslab;
-				_xVelocity[indexx] = 0.0f;
-				_yVelocity[indexx] = 0.0f;
-				_zVelocity[indexx] = 0.0f;
-				_density[indexx] = 0.0f;
+				index_top = index + cellsslab;
+				_xVelocity[index_top] = 0.0f;
+				_yVelocity[index_top] = 0.0f;
+				_zVelocity[index_top] = 0.0f;
+				_density[index_top] = 0.0f;
 				if (_fuel) {
-					_fuel[index] = 0.0f;
-					_react[index] = 0.0f;
+					_fuel[index_top] = 0.0f;
+					_react[index_top] = 0.0f;
 				}
 				if (_color_r) {
-					_color_r[index] = 0.0f;
-					_color_g[index] = 0.0f;
-					_color_b[index] = 0.0f;
+					_color_r[index_top] = 0.0f;
+					_color_g[index_top] = 0.0f;
+					_color_b[index_top] = 0.0f;
 				}
 			}
 	}
