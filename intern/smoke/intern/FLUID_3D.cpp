@@ -991,58 +991,10 @@ void FLUID_3D::project()
 				_pressure[index] = 0.0f;
 			}
 
-
-	/*
-	{
-		float maxvalue = 0;
-		for(unsigned int i = 0; i < _xRes * _yRes * _zRes; i++)
-		{
-			if(_divergence[i] > maxvalue)
-				maxvalue = _divergence[i];
-
-		}
-		printf("Max divergence: %f\n", maxvalue);
-	}
-	*/
-
 	copyBorderAll(_pressure, 0, _zRes);
-
-	/*
-	{
-		float maxvalue = 0;
-		for(unsigned int i = 0; i < _xRes * _yRes * _zRes; i++)
-		{
-			if(_pressure[i] > maxvalue)
-				maxvalue = _pressure[i];
-		}
-		printf("Max pressure BEFORE: %f\n", maxvalue);
-	}
-	*/
 
 	// solve Poisson equation
 	solvePressurePre(_pressure, _divergence, _obstacles);
-
-	{
-		float maxvalue = 0;
-		for(unsigned int i = 0; i < _xRes * _yRes * _zRes; i++)
-		{
-			if(_pressure[i] > maxvalue)
-				maxvalue = _pressure[i];
-
-			/* HACK: Animated collision object sometimes result in a non converging solvePressurePre() */ 
-			/*if(_pressure[i] > _dx * _dt)
-				_pressure[i] = _dx * _dt;
-			else if(_pressure[i] < -_dx * _dt)
-				_pressure[i] = -_dx * _dt;*/
-
-			// if(_obstacle[i] && _pressure[i] != 0.0)
-			// 	printf("BAD PRESSURE i\n");
-
-			// if(_pressure[i]>1)
-			// 	printf("index: %d\n", i);
-		}
-		// printf("Max pressure: %f, dx: %f\n", maxvalue, _dx);
-	}
 
 	setObstaclePressure(_pressure, 0, _zRes);
 
