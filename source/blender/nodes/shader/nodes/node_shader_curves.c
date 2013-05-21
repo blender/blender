@@ -76,8 +76,8 @@ void register_node_type_sh_curve_vec(void)
 	sh_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_curve_vec_in, sh_node_curve_vec_out);
-	node_type_size(&ntype, 200, 140, 320);
 	node_type_init(&ntype, node_shader_init_curve_vec);
+	node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, node_initexec_curves, NULL, node_shader_exec_curve_vec);
 	node_type_gpu(&ntype, gpu_shader_curve_vec);
@@ -133,8 +133,8 @@ void register_node_type_sh_curve_rgb(void)
 	sh_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_curve_rgb_in, sh_node_curve_rgb_out);
-	node_type_size(&ntype, 200, 140, 320);
 	node_type_init(&ntype, node_shader_init_curve_rgb);
+	node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, node_initexec_curves, NULL, node_shader_exec_curve_rgb);
 	node_type_gpu(&ntype, gpu_shader_curve_rgb);

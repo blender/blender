@@ -117,8 +117,6 @@ shader_node_categories = [
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),
         ]),
-    ShaderOldNodeCategory("SH_SCRIPT", "Script", items=[
-        ]),
     ShaderOldNodeCategory("SH_GROUP", "Group", items=node_group_items),
     ShaderOldNodeCategory("SH_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),

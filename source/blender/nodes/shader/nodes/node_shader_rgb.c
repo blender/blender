@@ -51,7 +51,6 @@ void register_node_type_sh_rgb(void)
 	sh_node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_rgb_out);
-	node_type_size(&ntype, 140, 80, 140);
 	node_type_gpu(&ntype, gpu_shader_rgb);
 
 	nodeRegisterType(&ntype);

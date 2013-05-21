@@ -314,7 +314,6 @@ void register_node_type_sh_material(void)
 	sh_node_type_base(&ntype, SH_NODE_MATERIAL, "Material", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_material_in, sh_node_material_out);
-	node_type_size(&ntype, 120, 80, 240);
 	node_type_init(&ntype, node_shader_init_material);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_material);
 	node_type_gpu(&ntype, gpu_shader_material);
@@ -330,8 +329,8 @@ void register_node_type_sh_material_ext(void)
 	sh_node_type_base(&ntype, SH_NODE_MATERIAL_EXT, "Extended Material", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_material_ext_in, sh_node_material_ext_out);
-	node_type_size(&ntype, 120, 80, 240);
 	node_type_init(&ntype, node_shader_init_material);
+	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_material);
 	node_type_gpu(&ntype, gpu_shader_material);
 

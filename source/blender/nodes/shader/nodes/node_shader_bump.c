@@ -61,7 +61,6 @@ void register_node_type_sh_bump(void)
 	sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bump_in, sh_node_bump_out);
-	node_type_size(&ntype, 150, 60, 200);
 	node_type_storage(&ntype, "BumpNode", node_free_standard_storage, node_copy_standard_storage);
 	node_type_gpu(&ntype, gpu_shader_bump);
 

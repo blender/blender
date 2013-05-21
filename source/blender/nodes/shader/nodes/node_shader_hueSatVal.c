@@ -87,7 +87,7 @@ void register_node_type_sh_hue_sat(void)
 	sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_hue_sat_in, sh_node_hue_sat_out);
-	node_type_size(&ntype, 150, 80, 250);
+	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_hue_sat);
 	node_type_gpu(&ntype, gpu_shader_hue_sat);
 
