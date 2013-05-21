@@ -1789,19 +1789,12 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 						if (max[1] < y) max[1] = y;
 						if (max[2] < z) max[2] = z;
 					}
-					/* velocity bounds */
-					if (em->velocity) {
-						if (min_vel[0] > em->velocity[index * 3]) min_vel[0] = em->velocity[index * 3];
-						if (min_vel[1] > em->velocity[index * 3 + 1]) min_vel[1] = em->velocity[index * 3 + 1];
-						if (min_vel[2] > em->velocity[index * 3 + 2]) min_vel[2] = em->velocity[index * 3 + 2];
-						if (max_vel[0] < em->velocity[index * 3]) max_vel[0] = em->velocity[index * 3];
-						if (max_vel[1] < em->velocity[index * 3 + 1]) max_vel[1] = em->velocity[index * 3 + 1];
-						if (max_vel[2] < em->velocity[index * 3 + 2]) max_vel[2] = em->velocity[index * 3 + 2];
-					}
 				}
 	}
 
 	/* calculate new bounds based on these values */
+	mul_v3_fl(min_vel, 1.0f / sds->dx);
+	mul_v3_fl(max_vel, 1.0f / sds->dx);
 	clampBoundsInDomain(sds, min, max, min_vel, max_vel, sds->adapt_margin + 1, dt);
 
 	for (i = 0; i < 3; i++) {
