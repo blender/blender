@@ -129,11 +129,12 @@ static int add_marker_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	float co[2];
-
-	ED_clip_mouse_pos(sc, ar, event->mval, co);
-
-	RNA_float_set_array(op->ptr, "location", co);
+	if (!RNA_struct_property_is_set(op->ptr, "location")) {
+		/* If location is not set, use mouse positio nas default. */
+		float co[2];
+		ED_clip_mouse_pos(sc, ar, event->mval, co);
+		RNA_float_set_array(op->ptr, "location", co);
+	}
 
 	return add_marker_exec(C, op);
 }
