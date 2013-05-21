@@ -338,7 +338,7 @@ StrandShadeCache *strand_shade_cache_create(void)
 void strand_shade_cache_free(StrandShadeCache *cache)
 {
 	BLI_ghash_free(cache->refcounthash, NULL, NULL);
-	BLI_ghash_free(cache->resulthash, (GHashKeyFreeFP)MEM_freeN, NULL);
+	BLI_ghash_free(cache->resulthash, MEM_freeN, NULL);
 	BLI_memarena_free(cache->memarena);
 	MEM_freeN(cache);
 }
@@ -377,7 +377,7 @@ static void strand_shade_get(Render *re, StrandShadeCache *cache, ShadeSample *s
 	/* lower reference count and remove if not needed anymore by any samples */
 	(*refcount)--;
 	if (*refcount == 0) {
-		BLI_ghash_remove(cache->resulthash, &pair, (GHashKeyFreeFP)MEM_freeN, NULL);
+		BLI_ghash_remove(cache->resulthash, &pair, MEM_freeN, NULL);
 		BLI_ghash_remove(cache->refcounthash, &pair, NULL, NULL);
 	}
 }
@@ -412,7 +412,7 @@ void strand_shade_unref(StrandShadeCache *cache, ObjectInstanceRen *obi, StrandV
 
 	(*refcount)--;
 	if (*refcount == 0) {
-		BLI_ghash_remove(cache->resulthash, &pair, (GHashKeyFreeFP)MEM_freeN, NULL);
+		BLI_ghash_remove(cache->resulthash, &pair, MEM_freeN, NULL);
 		BLI_ghash_remove(cache->refcounthash, &pair, NULL, NULL);
 	}
 }

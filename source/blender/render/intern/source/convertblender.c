@@ -895,7 +895,7 @@ static void set_object_orco(Render *re, void *ob, float *orco)
 static void free_mesh_orco_hash(Render *re) 
 {
 	if (re->orco_hash) {
-		BLI_ghash_free(re->orco_hash, NULL, (GHashValFreeFP)MEM_freeN);
+		BLI_ghash_free(re->orco_hash, NULL, MEM_freeN);
 		re->orco_hash = NULL;
 	}
 }

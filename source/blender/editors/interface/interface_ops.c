@@ -733,7 +733,7 @@ static void ui_editsource_active_but_set(uiBut *but)
 
 static void ui_editsource_active_but_clear(void)
 {
-	BLI_ghash_free(ui_editsource_info->hash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(ui_editsource_info->hash, NULL, MEM_freeN);
 	MEM_freeN(ui_editsource_info);
 	ui_editsource_info = NULL;
 }

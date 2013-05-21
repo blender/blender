@@ -743,7 +743,7 @@ void MEM_printmemlist_pydict(void)
 	MEM_printmemlist_internal(1);
 }
 
-short MEM_freeN(void *vmemh)
+void MEM_freeN(void *vmemh)
 {
 	short error = 0;
 	MemTail *memt;
@@ -1065,10 +1065,9 @@ size_t MEM_allocN_len(const void *vmemh)
 	return malloc_usable_size((void *)vmemh);
 }
 
-short MEM_freeN(void *vmemh)
+void MEM_freeN(void *vmemh)
 {
 	free(vmemh);
-	return 1;
 }
 
 void *MEM_dupallocN(const void *vmemh)

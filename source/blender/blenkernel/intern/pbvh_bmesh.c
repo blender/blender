@@ -255,7 +255,7 @@ static int pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 
 	pbvh_bmesh_node_split(bvh, prim_bbc, node_index);
 
-	BLI_ghash_free(prim_bbc, NULL, (void *)MEM_freeN);
+	BLI_ghash_free(prim_bbc, NULL, MEM_freeN);
 
 	return TRUE;
 }

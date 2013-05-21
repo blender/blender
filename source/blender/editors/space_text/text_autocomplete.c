@@ -521,7 +521,7 @@ static void text_autocomplete_free(bContext *C, wmOperator *op)
 {
 	GHash *gh = op->customdata;
 	if (gh) {
-		BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
+		BLI_ghash_free(gh, NULL, MEM_freeN);
 		op->customdata = NULL;
 	}
 

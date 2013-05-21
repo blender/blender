@@ -127,7 +127,7 @@ void BKE_curve_editNurb_keyIndex_free(EditNurb *editnurb)
 	if (!editnurb->keyindex) {
 		return;
 	}
-	BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(editnurb->keyindex, NULL, MEM_freeN);
 	editnurb->keyindex = NULL;
 }
 

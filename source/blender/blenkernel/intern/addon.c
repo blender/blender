@@ -69,7 +69,7 @@ void BKE_addon_pref_type_add(bAddonPrefType *apt)
 
 void BKE_addon_pref_type_remove(bAddonPrefType *apt)
 {
-	BLI_ghash_remove(global_addonpreftype_hash, (void *)apt->idname, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_remove(global_addonpreftype_hash, (void *)apt->idname, NULL, MEM_freeN);
 }
 
 void BKE_addon_pref_type_init(void)
@@ -80,6 +80,6 @@ void BKE_addon_pref_type_init(void)
 
 void BKE_addon_pref_type_free(void)
 {
-	BLI_ghash_free(global_addonpreftype_hash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(global_addonpreftype_hash, NULL, MEM_freeN);
 	global_addonpreftype_hash = NULL;
 }

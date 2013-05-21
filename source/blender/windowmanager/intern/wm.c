@@ -221,7 +221,7 @@ int WM_uilisttype_add(uiListType *ult)
 
 void WM_uilisttype_freelink(uiListType *ult)
 {
-	BLI_ghash_remove(uilisttypes_hash, ult->idname, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_remove(uilisttypes_hash, ult->idname, NULL, MEM_freeN);
 }
 
 /* called on initialize WM_init() */
@@ -242,7 +242,7 @@ void WM_uilisttype_free(void)
 	}
 	BLI_ghashIterator_free(iter);
 
-	BLI_ghash_free(uilisttypes_hash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(uilisttypes_hash, NULL, MEM_freeN);
 	uilisttypes_hash = NULL;
 }
 
@@ -274,7 +274,7 @@ int WM_menutype_add(MenuType *mt)
 
 void WM_menutype_freelink(MenuType *mt)
 {
-	BLI_ghash_remove(menutypes_hash, mt->idname, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_remove(menutypes_hash, mt->idname, NULL, MEM_freeN);
 }
 
 /* called on initialize WM_init() */
@@ -295,7 +295,7 @@ void WM_menutype_free(void)
 	}
 	BLI_ghashIterator_free(iter);
 
-	BLI_ghash_free(menutypes_hash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(menutypes_hash, NULL, MEM_freeN);
 	menutypes_hash = NULL;
 }
 
