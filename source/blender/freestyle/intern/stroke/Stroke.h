@@ -589,6 +589,10 @@ public:
 	 */
 	void Resample(float iSampling);
 
+    /*! Removes all vertices from the Stroke.
+     */
+    void RemoveAllVertices();
+
 	/*! Removes the stroke vertex iVertex 
 	*  from the stroke.
 	*  The length and curvilinear abscissa are updated

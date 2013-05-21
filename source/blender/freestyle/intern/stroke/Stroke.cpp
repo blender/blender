@@ -644,6 +644,15 @@ void Stroke::Resample(float iSampling)
 	}
 }
 
+void Stroke::RemoveAllVertices()
+{
+	vertex_container::iterator it = _Vertices.begin(), itend = _Vertices.end();
+	for (; it != itend; ++it)
+		delete (*it);
+	_Vertices.clear();
+	UpdateLength();
+}
+
 void Stroke::RemoveVertex(StrokeVertex *iVertex)
 {
 	vertex_container::iterator it = _Vertices.begin(), itend = _Vertices.end();

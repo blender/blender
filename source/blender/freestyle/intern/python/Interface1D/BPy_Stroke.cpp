@@ -218,6 +218,17 @@ static PyObject *Stroke_remove_vertex( BPy_Stroke *self, PyObject *args, PyObjec
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Stroke_remove_all_vertices_doc,
+".. method:: remove_all_vertices()\n"
+"\n"
+"   Removes all vertices from the Stroke.");
+
+static PyObject *Stroke_remove_all_vertices(BPy_Stroke *self)
+{
+	self->s->RemoveAllVertices();
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(Stroke_update_length_doc,
 ".. method:: update_length()\n"
 "\n"
@@ -285,6 +296,7 @@ static PyMethodDef BPy_Stroke_methods[] = {
 	{"compute_sampling", (PyCFunction)Stroke_compute_sampling, METH_VARARGS | METH_KEYWORDS,
 	                     Stroke_compute_sampling_doc},
 	{"resample", (PyCFunction)Stroke_resample, METH_VARARGS | METH_KEYWORDS, Stroke_resample_doc},
+	{"remove_all_vertices", (PyCFunction)Stroke_remove_all_vertices, METH_NOARGS, Stroke_remove_all_vertices_doc},
 	{"remove_vertex", (PyCFunction)Stroke_remove_vertex, METH_VARARGS | METH_KEYWORDS, Stroke_remove_vertex_doc},
 	{"insert_vertex", (PyCFunction)Stroke_insert_vertex, METH_VARARGS | METH_KEYWORDS, Stroke_insert_vertex_doc},
 	{"update_length", (PyCFunction)Stroke_update_length, METH_NOARGS, Stroke_update_length_doc},
