@@ -125,7 +125,7 @@ __device float3 sample_uniform_sphere(float u1, float u2)
 {
 	float z = 1.0f - 2.0f*u1;
 	float r = sqrtf(fmaxf(0.0f, 1.0f - z*z));
-	float phi = 2.0f*M_PI_F*u2;
+	float phi = M_2PI_F*u2;
 	float x = r*cosf(phi);
 	float y = r*sinf(phi);
 

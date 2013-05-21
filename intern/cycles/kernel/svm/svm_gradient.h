@@ -42,7 +42,7 @@ __device float svm_gradient(float3 p, NodeGradientType type)
 		return (3.0f*t - 2.0f*t*r);
 	}
 	else if(type == NODE_BLEND_DIAGONAL) {
-		return (x + y)/2.0f;
+		return (x + y) * 0.5f;
 	}
 	else if(type == NODE_BLEND_RADIAL) {
 		return atan2f(y, x) / M_2PI_F + 0.5f;
