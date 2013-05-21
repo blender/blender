@@ -28,6 +28,7 @@
 
 #include "DNA_object_fluidsim.h"
 
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
@@ -284,8 +285,8 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "threads");
-	RNA_def_property_range(prop, 1, 32);
-	RNA_def_property_ui_text(prop, "Simulation Threads", "Threads used to calculate the simulation");
+	RNA_def_property_range(prop, 0, BLENDER_MAX_THREADS);
+	RNA_def_property_ui_text(prop, "Simulation Threads", "Override number of threads for the simulation, 0 is automatic");
 	
 	prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolutionxyz");
