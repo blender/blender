@@ -129,14 +129,9 @@ bArgs *BLI_argsInit(int argc, const char **argv)
 	return ba;
 }
 
-static void freeItem(void *val)
-{
-	MEM_freeN(val);
-}
-
 void BLI_argsFree(struct bArgs *ba)
 {
-	BLI_ghash_free(ba->items, freeItem, freeItem);
+	BLI_ghash_free(ba->items, MEM_freeN, MEM_freeN);
 	MEM_freeN(ba->passes);
 	BLI_freelistN(&ba->docs);
 	MEM_freeN(ba);

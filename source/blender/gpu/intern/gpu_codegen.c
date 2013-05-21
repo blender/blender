@@ -255,7 +255,7 @@ void GPU_codegen_exit(void)
 		GPU_material_free(&defmaterial);
 
 	if (FUNCTION_HASH) {
-		BLI_ghash_free(FUNCTION_HASH, NULL, (GHashValFreeFP)MEM_freeN);
+		BLI_ghash_free(FUNCTION_HASH, NULL, MEM_freeN);
 		FUNCTION_HASH = NULL;
 	}
 

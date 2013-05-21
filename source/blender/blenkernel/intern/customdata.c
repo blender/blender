@@ -215,12 +215,6 @@ static void layerFree_bmesh_elem_py_ptr(void *data, int count, int size)
 	}
 }
 
-
-static void linklist_free_simple(void *link)
-{
-	MEM_freeN(link);
-}
-
 static void layerInterp_mdeformvert(void **sources, const float *weights,
                                     const float *UNUSED(sub_weights), int count, void *dest)
 {
@@ -281,7 +275,7 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 	else
 		memset(dvert, 0, sizeof(*dvert));
 
-	BLI_linklist_free(dest_dw, linklist_free_simple);
+	BLI_linklist_free(dest_dw, MEM_freeN);
 }
 
 static void layerCopy_tface(const void *source, void *dest, int count)

@@ -108,10 +108,7 @@ static void _ghashutil_keyfree(void *ptr)
 	MEM_freeN((void *)key);
 }
 
-static void _ghashutil_valfree(void *ptr)
-{
-	MEM_freeN(ptr);
-}
+#define _ghashutil_valfree MEM_freeN
 
 /***** Python's messages cache *****/
 

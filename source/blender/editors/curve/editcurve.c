@@ -402,7 +402,7 @@ static void keyIndex_delCV(EditNurb *editnurb, void *cv)
 		return;
 	}
 
-	BLI_ghash_remove(editnurb->keyindex, cv, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_remove(editnurb->keyindex, cv, NULL, MEM_freeN);
 }
 
 static void keyIndex_delBezt(EditNurb *editnurb, BezTriple *bezt)
@@ -428,7 +428,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 		a = nu->pntsu;
 
 		while (a--) {
-			BLI_ghash_remove(editnurb->keyindex, bezt, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_ghash_remove(editnurb->keyindex, bezt, NULL, MEM_freeN);
 			bezt++;
 		}
 	}
@@ -437,7 +437,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 		a = nu->pntsu * nu->pntsv;
 
 		while (a--) {
-			BLI_ghash_remove(editnurb->keyindex, bp, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_ghash_remove(editnurb->keyindex, bp, NULL, MEM_freeN);
 			bp++;
 		}
 	}
@@ -6951,7 +6951,7 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 	BKE_nurbList_free(editbase);
 
 	if (undoCurve->undoIndex) {
-		BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)MEM_freeN);
+		BLI_ghash_free(editnurb->keyindex, NULL, MEM_freeN);
 		editnurb->keyindex = dupli_keyIndexHash(undoCurve->undoIndex);
 	}
 
@@ -7037,7 +7037,7 @@ static void free_undoCurve(void *ucv)
 	BKE_nurbList_free(&undoCurve->nubase);
 
 	if (undoCurve->undoIndex)
-		BLI_ghash_free(undoCurve->undoIndex, NULL, (GHashValFreeFP)MEM_freeN);
+		BLI_ghash_free(undoCurve->undoIndex, NULL, MEM_freeN);
 
 	free_fcurves(&undoCurve->fcurves);
 	free_fcurves(&undoCurve->drivers);
