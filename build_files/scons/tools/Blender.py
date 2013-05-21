@@ -687,7 +687,7 @@ def AppIt(target=None, source=None, env=None):
         cmd = 'mkdir %s/%s.app/Contents/MacOS/lib'%(installdir, binary)
         commands.getoutput(cmd)
         instname = env['BF_CXX']
-        cmd = 'cp %s/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/'%(instname, installdir, binary)
+        cmd = 'ditto --arch %s %s/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/'%(osxarch, instname, installdir, binary)
         commands.getoutput(cmd)
         cmd = 'install_name_tool -id @executable_path/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/libgcc_s.1.dylib'%(installdir, binary)
         commands.getoutput(cmd)
