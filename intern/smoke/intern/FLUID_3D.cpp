@@ -1030,10 +1030,10 @@ void FLUID_3D::project()
 				maxvalue = _pressure[i];
 
 			/* HACK: Animated collision object sometimes result in a non converging solvePressurePre() */ 
-			if(_pressure[i] > _dx * _dt)
+			/*if(_pressure[i] > _dx * _dt)
 				_pressure[i] = _dx * _dt;
 			else if(_pressure[i] < -_dx * _dt)
-				_pressure[i] = -_dx * _dt;
+				_pressure[i] = -_dx * _dt;*/
 
 			// if(_obstacle[i] && _pressure[i] != 0.0)
 			// 	printf("BAD PRESSURE i\n");
