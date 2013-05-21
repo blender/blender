@@ -304,7 +304,7 @@ static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 			int mesh_select_mode[3];
 			PropertyRNA *prop = RNA_struct_find_property(op_prev->ptr, "mesh_select_mode_init");
 
-			if (RNA_property_is_set(op_prev->ptr, prop)) {
+			if (prop && RNA_property_is_set(op_prev->ptr, prop)) {
 				ToolSettings *ts = scene->toolsettings;
 				short selectmode_orig;
 
