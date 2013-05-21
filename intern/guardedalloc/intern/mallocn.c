@@ -745,7 +745,6 @@ void MEM_printmemlist_pydict(void)
 
 void MEM_freeN(void *vmemh)
 {
-	short error = 0;
 	MemTail *memt;
 	MemHead *memh = vmemh;
 	const char *name;
@@ -753,26 +752,26 @@ void MEM_freeN(void *vmemh)
 	if (memh == NULL) {
 		MemorY_ErroR("free", "attempt to free NULL pointer");
 		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
-		return(-1);
+		return;
 	}
 
 	if (sizeof(intptr_t) == 8) {
 		if (((intptr_t) memh) & 0x7) {
 			MemorY_ErroR("free", "attempt to free illegal pointer");
-			return(-1);
+			return;
 		}
 	}
 	else {
 		if (((intptr_t) memh) & 0x3) {
 			MemorY_ErroR("free", "attempt to free illegal pointer");
-			return(-1);
+			return;
 		}
 	}
 	
 	memh--;
 	if (memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
 		MemorY_ErroR(memh->name, "double free");
-		return(-1);
+		return;
 	}
 
 	mem_lock_thread();
@@ -790,10 +789,9 @@ void MEM_freeN(void *vmemh)
 			rem_memblock(memh);
 
 			mem_unlock_thread();
-			
-			return(0);
+
+			return;
 		}
-		error = 2;
 		MemorY_ErroR(memh->name, "end corrupt");
 		name = check_memlist(memh);
 		if (name != NULL) {
@@ -801,7 +799,6 @@ void MEM_freeN(void *vmemh)
 		}
 	}
 	else {
-		error = -1;
 		name = check_memlist(memh);
 		if (name == NULL)
 			MemorY_ErroR("free", "pointer not in memlist");
@@ -814,7 +811,7 @@ void MEM_freeN(void *vmemh)
 
 	mem_unlock_thread();
 
-	return(error);
+	return;
 }
 
 /* --------------------------------------------------------------------- */
