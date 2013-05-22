@@ -159,6 +159,52 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	                     "Location", "Location of marker on frame", -1.0f, 1.0f);
 }
 
+/********************** add marker operator *********************/
+
+static int add_marker_at_center_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	ARegion *ar = CTX_wm_region(C);
+	float pos[2];
+	int width, height;
+
+	ED_space_clip_get_size(sc, &width, &height);
+
+	if (!width || !height)
+		return OPERATOR_CANCELLED;
+
+	ED_clip_point_stable_pos(sc, ar,
+	                         BLI_rcti_size_x(&ar->winrct) / 2.0f,
+	                         BLI_rcti_size_y(&ar->winrct) / 2.0f,
+	                         &pos[0], &pos[1]);
+
+	add_marker(C, pos[0], pos[1]);
+
+	/* reset offset from locked position, so frame jumping wouldn't be so confusing */
+	sc->xlockof = 0;
+	sc->ylockof = 0;
+
+	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_add_marker_at_center(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Marker at Center";
+	ot->idname = "CLIP_OT_add_marker_at_center";
+	ot->description = "Place new marker at the center of visible frame";
+
+	/* api callbacks */
+	ot->invoke = add_marker_at_center_invoke;
+	ot->poll = ED_space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /********************** delete track operator *********************/
 
 static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
