@@ -300,6 +300,9 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			}
 		}
 
+		/* note material must be bound before setting uniforms */
+		GPU_pass_bind(material->pass, time, mipmap);
+
 		/* handle per material built-ins */
 		if (material->builtins & GPU_VIEW_MATRIX) {
 			GPU_shader_uniform_vector(shader, material->viewmatloc, 16, 1, (float*)viewmat);
@@ -308,7 +311,6 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			GPU_shader_uniform_vector(shader, material->invviewmatloc, 16, 1, (float*)viewinv);
 		}
 
-		GPU_pass_bind(material->pass, time, mipmap);
 		GPU_pass_update_uniforms(material->pass);
 
 		material->bound = 1;
