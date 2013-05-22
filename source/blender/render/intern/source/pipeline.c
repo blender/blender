@@ -2259,6 +2259,15 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 			BKE_report(reports, RPT_ERROR, "No ortho render possible for panorama");
 			return 0;
 		}
+
+#ifdef WITH_FREESTYLE
+		for (srl = scene->r.layers.first; srl; srl = srl->next) {
+			if (FRS_is_freestyle_enabled(srl)) {
+				BKE_report(reports, RPT_ERROR, "Panoramic camera not supported in Freestyle");
+				return 0;
+			}
+		}
+#endif
 	}
 
 	/* layer flag tests */
