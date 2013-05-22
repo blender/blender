@@ -373,20 +373,3 @@ int ED_space_image_maskedit_mask_poll(bContext *C)
 	return FALSE;
 }
 
-/******************** TODO ********************/
-
-/* XXX notifier? */
-
-/* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
-
-static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
-{
-	int cfra = *(int *)customdata;
-
-	BKE_image_user_check_frame_calc(iuser, cfra, 0);
-}
-
-void ED_image_update_frame(const Main *mainp, int cfra)
-{
-	BKE_image_walk_all_users(mainp, &cfra, image_update_frame);
-}

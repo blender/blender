@@ -3305,6 +3305,19 @@ void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 	}
 }
 
+/* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
+static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
+{
+	int cfra = *(int *)customdata;
+
+	BKE_image_user_check_frame_calc(iuser, cfra, 0);
+}
+
+void BKE_image_update_frame(const Main *bmain, int cfra)
+{
+	BKE_image_walk_all_users(bmain, &cfra, image_update_frame);
+}
+
 void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
 {
 	BLI_strncpy(filepath, ima->name, FILE_MAX);

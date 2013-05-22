@@ -70,6 +70,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
@@ -1236,16 +1237,20 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
+
+	/* keep this first */
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
+	/* update animated image textures for particles, modifiers, gpu, etc,
+	 * call this at the start so modifiers with textures don't lag 1 frame */
+	BKE_image_update_frame(bmain, sce->r.cfra);
 	
 	/* rebuild rigid body worlds before doing the actual frame update
 	 * this needs to be done on start frame but animation playback usually starts one frame later
 	 * we need to do it here to avoid rebuilding the world on every simulation change, which can be very expensive
 	 */
 	scene_rebuild_rbw_recursive(sce, ctime);
-
-	/* keep this first */
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	sound_set_cfra(sce->r.cfra);
 	

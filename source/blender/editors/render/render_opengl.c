@@ -542,10 +542,6 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 	}
 
-	/* update animated image textures for gpu, etc,
-	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
-	ED_image_update_frame(bmain, CFRA);
-
 	BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
 	if (view_context) {

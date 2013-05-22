@@ -1880,10 +1880,6 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
 
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
-	/* update animated image textures for gpu, etc,
-	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
-	ED_image_update_frame(bmain, scene->r.cfra);
-
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
 	/* get layers from all windows */
