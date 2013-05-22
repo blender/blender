@@ -164,7 +164,7 @@ void register_node_type_tex_output(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, NULL);
-	node_type_size(&ntype, 150, 60, 200);
+	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
 	node_type_exec(&ntype, NULL, NULL, exec);

@@ -127,7 +127,7 @@ void register_node_type_tex_bricks(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_BRICKS, "Bricks", NODE_CLASS_PATTERN, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_size(&ntype, 150, 60, 150);
+	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, init);
 	node_type_exec(&ntype, NULL, NULL, exec);
 	

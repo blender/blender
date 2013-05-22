@@ -86,7 +86,6 @@ void register_node_type_tex_valtonor(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_VALTONOR, "Value to Normal", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_size(&ntype, 90, 80, 100);
 	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	nodeRegisterType(&ntype);

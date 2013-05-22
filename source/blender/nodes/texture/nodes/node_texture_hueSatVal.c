@@ -98,7 +98,7 @@ void register_node_type_tex_hue_sat(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_size(&ntype, 150, 80, 250);
+	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	nodeRegisterType(&ntype);

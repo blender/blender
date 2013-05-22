@@ -101,7 +101,6 @@ void register_node_type_tex_texture(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_size(&ntype, 120, 80, 240);
 	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	nodeRegisterType(&ntype);

@@ -70,7 +70,6 @@ void register_node_type_tex_translate(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_size(&ntype, 90, 80, 100);
 	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	nodeRegisterType(&ntype);
