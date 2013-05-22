@@ -747,8 +747,10 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 
 /**
  * \brief Split an edge multiple times evenly
+ *
+ * \param r_varr  Optional array, verts in between (v1 -> v2)
  */
-BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
+BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr)
 {
 	int i;
 	float percent;
@@ -757,6 +759,10 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 	for (i = 0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
 		v_new = BM_edge_split(bm, e, e->v2, NULL, percent);
+		if (r_varr) {
+			/* fill in reverse order (v1 -> v2) */
+			r_varr[numcuts - i - 1] = v_new;
+		}
 	}
 	return v_new;
 }

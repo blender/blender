@@ -55,7 +55,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
 
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent);
 
-BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
+BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr);
 
 bool    BM_face_validate(BMFace *face, FILE *err);
 

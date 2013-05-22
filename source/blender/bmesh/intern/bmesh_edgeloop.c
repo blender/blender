@@ -448,12 +448,29 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const boo
 /* -------------------------------------------------------------------- */
 /* BM_edgeloop_*** functions */
 
+/* return new edgeloops */
 BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
 {
 	BMEdgeLoopStore *el_store_copy = MEM_mallocN(sizeof(*el_store), __func__);
 	*el_store_copy = *el_store;
 	BLI_duplicatelist(&el_store_copy->verts, &el_store->verts);
 	return el_store_copy;
+}
+
+BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, bool is_closed)
+{
+	BMEdgeLoopStore *el_store = MEM_callocN(sizeof(*el_store), __func__);
+	int i;
+	for (i = 0; i < v_arr_tot; i++) {
+		LinkData *node = MEM_callocN(sizeof(*node), __func__);
+		node->data = v_arr[i];
+		BLI_addtail(&el_store->verts, node);
+	}
+	el_store->len = v_arr_tot;
+	if (is_closed) {
+		el_store->flag |= BM_EDGELOOP_IS_CLOSED;
+	}
+	return el_store;
 }
 
 void BM_edgeloop_free(BMEdgeLoopStore *el_store)

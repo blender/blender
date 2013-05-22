@@ -46,6 +46,8 @@ void                BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *el
 
 /* single edgeloop */
 struct BMEdgeLoopStore *BM_edgeloop_copy(struct BMEdgeLoopStore *el_store);
+struct BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, bool is_closed);
+
 void                BM_edgeloop_free(struct BMEdgeLoopStore *el_store);
 bool                BM_edgeloop_is_closed(struct BMEdgeLoopStore *el_store);
 int                 BM_edgeloop_length_get(struct BMEdgeLoopStore *el_store);
