@@ -68,24 +68,6 @@
 /* Brush Painting for 2D image editor */
 
 /* Defines and Structs */
-/* FTOCHAR as inline function */
-BLI_INLINE unsigned char f_to_char(const float val)
-{
-	return FTOCHAR(val);
-}
-#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f)  {                                   \
-	(c)[0] = f_to_char((f)[0]);                                               \
-	(c)[1] = f_to_char((f)[1]);                                               \
-	(c)[2] = f_to_char((f)[2]);                                               \
-} (void)0
-
-#define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
-	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                  \
-	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                  \
-	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                  \
-} (void)0
-
-#define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)
 
 typedef struct BrushPainterCache {
 	int size;                    /* size override, if 0 uses 2*BKE_brush_size_get(brush) */
@@ -662,7 +644,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 }
 
 /* keep these functions in sync */
-static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_torus, float r_rgb[3])
+static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_torus, float r_rgb[4])
 {
 	if (is_torus) {
 		x %= ibuf->x;
@@ -673,14 +655,14 @@ static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_toru
 
 	if (ibuf->rect_float) {
 		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
-		IMAPAINT_FLOAT_RGB_COPY(r_rgb, rrgbf);
+		copy_v4_v4(r_rgb, rrgbf);
 	}
 	else {
-		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
-		IMAPAINT_CHAR_RGB_TO_FLOAT(r_rgb, rrgb);
+		unsigned char *rrgb = (unsigned char *)ibuf->rect + (ibuf->x * y + x) * 4;
+		straight_uchar_to_premul_float(r_rgb, rrgb);
 	}
 }
-static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_torus, const float rgb[3])
+static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_torus, const float rgb[4])
 {
 	if (is_torus) {
 		x %= ibuf->x;
@@ -691,17 +673,24 @@ static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_toru
 
 	if (ibuf->rect_float) {
 		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
-		IMAPAINT_FLOAT_RGB_COPY(rrgbf, rgb);
+		float map_alpha = (rgb[3] == 0.0f)? rrgbf[3] : rrgbf[3] / rgb[3];
+
+		mul_v3_v3fl(rrgbf, rgb, map_alpha);
 	}
 	else {
-		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
-		IMAPAINT_FLOAT_RGB_TO_CHAR(rrgb, rgb);
+		unsigned char straight[4];
+		unsigned char *rrgb = (unsigned char *)ibuf->rect + (ibuf->x * y + x) * 4;
+
+		premul_float_to_straight_uchar(straight, rgb);
+		rrgb[0] = straight[0];
+		rrgb[1] = straight[1];
+		rrgb[2] = straight[2];
 	}
 }
 
 static int paint_2d_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, float *outrgb, short torus)
 {
-	float inrgb[3];
+	float inrgb[4];
 
 	// XXX: signed unsigned mismatch
 	if ((x >= (unsigned int)(ibuf->x)) || (y >= (unsigned int)(ibuf->y))) {
@@ -712,9 +701,7 @@ static int paint_2d_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 		paint_2d_ibuf_rgb_get(ibuf, x, y, 0, inrgb);
 	}
 
-	outrgb[0] += inrgb[0];
-	outrgb[1] += inrgb[1];
-	outrgb[2] += inrgb[2];
+	add_v4_v4(outrgb, inrgb);
 
 	return 1;
 }
@@ -723,7 +710,7 @@ static void paint_2d_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, const shor
 {
 	int x, y, count, xi, yi, xo, yo;
 	int out_off[2], in_off[2], dim[2];
-	float outrgb[3];
+	float outrgb[4];
 
 	dim[0] = ibufb->x;
 	dim[1] = ibufb->y;
@@ -759,7 +746,7 @@ static void paint_2d_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, const shor
 			count += paint_2d_ibuf_add_if(ibuf, xi + 1, yi, outrgb, is_torus);
 			count += paint_2d_ibuf_add_if(ibuf, xi + 1, yi + 1, outrgb, is_torus);
 
-			mul_v3_fl(outrgb, 1.0f / (float)count);
+			mul_v4_fl(outrgb, 1.0f / (float)count);
 
 			/* write into brush buffer */
 			xo = out_off[0] + x;
@@ -842,10 +829,10 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);
 
 	IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
-	IMB_rectblend(clonebuf, clonebuf, ibuf, NULL, NULL, 0, destx, desty, destx, desty, srcx, srcy, w, h,
-	              IMB_BLEND_COPY_RGB);
 	IMB_rectblend(clonebuf, clonebuf, ibufb, NULL, NULL, 0, destx, desty, destx, desty, destx, desty, w, h,
 	              IMB_BLEND_COPY_ALPHA);
+	IMB_rectblend(clonebuf, clonebuf, ibuf, NULL, NULL, 0, destx, desty, destx, desty, srcx, srcy, w, h,
+	              IMB_BLEND_COPY_RGB);
 
 	return clonebuf;
 }
