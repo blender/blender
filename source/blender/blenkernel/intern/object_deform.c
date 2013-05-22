@@ -149,7 +149,7 @@ bool *BKE_objdef_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_t
 		}
 	}
 	else {
-		memset(dg_selection, FALSE, sizeof(char) * defbase_tot);
+		memset(dg_selection, FALSE, sizeof(*dg_selection) * defbase_tot);
 	}
 
 	return dg_selection;
