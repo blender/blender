@@ -64,6 +64,7 @@
 #include "BKE_report.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object_deform.h"
+#include "BKE_object.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -426,6 +427,13 @@ typedef enum WT_ReplaceMode {
 	WT_REPLACE_EMPTY_WEIGHTS = 2
 } WT_ReplaceMode;
 
+typedef enum WT_VertexGroupSelect {
+	WT_VGROUP_ACTIVE = 1,
+	WT_VGROUP_BONE_SELECT = 2,
+	WT_VGROUP_BONE_DEFORM = 3,
+	WT_VGROUP_ALL = 4,
+} WT_VertexGroupSelect;
+
 static EnumPropertyItem WT_vertex_group_mode_item[] = {
 	{WT_REPLACE_ACTIVE_VERTEX_GROUP,
 	 "WT_REPLACE_ACTIVE_VERTEX_GROUP", 0, "Active", "Transfer active vertex group from selected to active mesh"},
@@ -451,6 +459,18 @@ static EnumPropertyItem WT_replace_mode_item[] = {
 	 "WT_REPLACE_ALL_WEIGHTS", 0, "All", "Overwrite all weights"},
 	{WT_REPLACE_EMPTY_WEIGHTS,
 	 "WT_REPLACE_EMPTY_WEIGHTS", 0, "Empty", "Add weights to vertices with no weight"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem WT_vertex_group_select_item[] = {
+	{WT_VGROUP_ACTIVE,
+	 "ACTIVE", 0, "Active Group", "The active Vertex Group"},
+	{WT_VGROUP_BONE_SELECT,
+	 "BONE_SELECT", 0, "Pose Bone (Select)", "All Vertex Groups assigned to Selection"},
+	{WT_VGROUP_BONE_DEFORM,
+	 "BONE_DEFORM", 0, "Pose Bone (Deform)", "All Vertex Groups assigned to Deform Bones"},
+	{WT_VGROUP_ALL,
+	 "ALL", 0, "All Groups", "All Vertex Groups"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1069,6 +1089,53 @@ static void vgroup_duplicate(Object *ob)
 
 		MEM_freeN(dvert_array);
 	}
+}
+
+/**
+ * Return the subset type of the Vertex Group Selection
+ */
+static bool *vgroup_subset_from_select_type(Object *ob, WT_VertexGroupSelect subset_type, int *r_subset_count)
+{
+	bool *vgroup_validmap = NULL;
+	const int defbase_tot = BLI_countlist(&ob->defbase);
+
+	switch(subset_type) {
+		case WT_VGROUP_ALL:
+			vgroup_validmap = MEM_mallocN(defbase_tot * sizeof(*vgroup_validmap), __func__);
+			memset(vgroup_validmap, true, sizeof(bool) * defbase_tot);
+			*r_subset_count = defbase_tot;
+			break;
+		case WT_VGROUP_ACTIVE:
+		{
+			const int def_nr_active = ob->actdef - 1;
+			vgroup_validmap = MEM_mallocN(defbase_tot * sizeof(*vgroup_validmap), __func__);
+			memset(vgroup_validmap, false, sizeof(bool) * defbase_tot);
+			if (def_nr_active < defbase_tot) {
+				*r_subset_count = 1;
+				vgroup_validmap[def_nr_active] = true;
+			}
+			else {
+				*r_subset_count = 0;
+			}
+			break;
+		}
+		case WT_VGROUP_BONE_SELECT: {
+			vgroup_validmap = BKE_objdef_selected_get(ob, defbase_tot, r_subset_count);
+			break;
+		}
+		case WT_VGROUP_BONE_DEFORM: {
+			int i;
+			vgroup_validmap = BKE_objdef_validmap_get(ob, defbase_tot);
+			*r_subset_count = 0;
+			for (i = 0; i < defbase_tot; i++) {
+				if (vgroup_validmap[i])
+					*r_subset_count += 1;
+			}
+			break;
+		}
+	}
+
+	return vgroup_validmap;
 }
 
 static void vgroup_normalize(Object *ob)
@@ -1884,49 +1951,14 @@ static bool vertex_group_limit_total(Object *ob,
 	return is_change;
 }
 
-static void vgroup_clean(Object *ob, const float epsilon, const bool keep_single)
-{
-	MDeformWeight *dw;
-	MDeformVert *dv, **dvert_array = NULL;
-	int i, dvert_tot = 0;
-	const int def_nr = ob->actdef - 1;
-	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	if (!BLI_findlink(&ob->defbase, def_nr)) {
-		return;
-	}
-
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
-
-	if (dvert_array) {
-		/* only the active group */
-		for (i = 0; i < dvert_tot; i++) {
-
-			/* in case its not selected */
-			if (!(dv = dvert_array[i])) {
-				continue;
-			}
-
-			dw = defvert_find_index(dv, def_nr);
-
-			if (dw) {
-				if (dw->weight <= epsilon) {
-					if (keep_single == false || dv->totweight > 1) {
-						defvert_remove_group(dv, dw); /* dw can be NULL */
-					}
-				}
-			}
-		}
-
-		MEM_freeN(dvert_array);
-	}
-}
-
-static void vgroup_clean_all(Object *ob, const float epsilon, const bool keep_single)
+static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap,
+                                const float epsilon, const bool keep_single)
 {
 	MDeformVert **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
+	const int defbase_tot = BLI_countlist(&ob->defbase);
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -1950,9 +1982,10 @@ static void vgroup_clean_all(Object *ob, const float epsilon, const bool keep_si
 					break;
 
 				dw = dv->dw + j;
-
-				if (dw->weight <= epsilon) {
-					defvert_remove_group(dv, dw);
+				if ((dw->def_nr < defbase_tot) && vgroup_validmap[dw->def_nr]) {
+					if (dw->weight <= epsilon) {
+						defvert_remove_group(dv, dw);
+					}
 				}
 			}
 		}
@@ -2912,6 +2945,46 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static EnumPropertyItem *rna_vertex_group_selection_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+                                                PropertyRNA *UNUSED(prop), int *free)
+{
+	Object *ob;
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+
+	if (!C) /* needed for docs and i18n tools */
+		return WT_vertex_group_select_item;
+
+	ob = CTX_data_active_object(C);
+	RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ACTIVE);
+
+	if (BKE_object_pose_armature_get(ob)) {
+		RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_SELECT);
+		RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_DEFORM);
+	}
+
+	RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = true;
+
+	return item;
+}
+
+static void vgroup_operator_subset_select_props(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_enum(ot->srna,
+	                    "group_select_mode", DummyRNA_NULL_items,
+	                    WT_VGROUP_ACTIVE, "Subset",
+	                    "Define which subset of Groups shall be used");
+	RNA_def_enum_funcs(prop, rna_vertex_group_selection_itemf);
+	ot->prop = prop;
+}
+
+
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
@@ -3129,11 +3202,14 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_context(C);
 
 	float limit = RNA_float_get(op->ptr, "limit");
-	bool all_groups = RNA_boolean_get(op->ptr, "all_groups");
 	bool keep_single = RNA_boolean_get(op->ptr, "keep_single");
+	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+	int subset_count;
+	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &subset_count);
 
-	if (all_groups) vgroup_clean_all(ob, limit, keep_single);
-	else vgroup_clean(ob, limit, keep_single);
+	vgroup_clean_subset(ob, vgroup_validmap, limit, keep_single);
+
+	MEM_freeN(vgroup_validmap);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3156,8 +3232,8 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	vgroup_operator_subset_select_props(ot);
 	RNA_def_float(ot->srna, "limit", 0.0f, 0.0f, 1.0, "Limit", "Remove weights under this limit", 0.0f, 0.99f);
-	RNA_def_boolean(ot->srna, "all_groups", false, "All Groups", "Clean all vertex groups");
 	RNA_def_boolean(ot->srna, "keep_single", false, "Keep Single",
 	                "Keep verts assigned to at least one group when cleaning");
 }
