@@ -3863,6 +3863,11 @@ static void *do_projectpaint_thread(void *ph_v)
 						}
 						else {
 							mask *= brush_alpha;
+							if (ps->is_maskbrush) {
+								float texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+								CLAMP(texmask, 0.0, 1.0);
+								mask *= texmask;
+							}
 						}
 
 						if (ps->is_texbrush) {
