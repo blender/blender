@@ -354,6 +354,19 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = refraction;
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeBsdfToon)) {
+		BL::ShaderNodeBsdfToon b_toon_node(b_node);
+		ToonBsdfNode *toon = new ToonBsdfNode();
+		switch(b_toon_node.component()) {
+			case BL::ShaderNodeBsdfToon::component_DIFFUSE:
+				toon->component = ustring("Diffuse");
+				break;
+			case BL::ShaderNodeBsdfToon::component_GLOSSY:
+				toon->component = ustring("Glossy");
+				break;
+		}
+		node = toon;
+	}
 	else if (b_node.is_a(&RNA_ShaderNodeBsdfTranslucent)) {
 		node = new TranslucentBsdfNode();
 	}

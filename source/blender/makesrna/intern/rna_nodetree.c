@@ -2815,6 +2815,12 @@ static EnumPropertyItem node_glossy_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem node_toon_items[] = {
+	{SHD_TOON_DIFFUSE,    "DIFFUSE",  0, "Diffuse", ""},
+	{SHD_TOON_GLOSSY,     "GLOSSY",   0, "Glossy",  ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem node_script_mode_items[] = {
 	{NODE_SCRIPT_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text datablock"},
 	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or .oso file"},
@@ -3424,6 +3430,17 @@ static void def_glossy(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, node_glossy_items);
 	RNA_def_property_ui_text(prop, "Distribution", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_toon(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "component", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, node_toon_items);
+	RNA_def_property_ui_text(prop, "Component", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

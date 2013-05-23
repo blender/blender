@@ -740,6 +740,7 @@ struct ShadeResult;
 #define SH_NODE_HAIR_INFO				176
 #define SH_NODE_SUBSURFACE_SCATTERING	177
 #define SH_NODE_WIREFRAME				178
+#define SH_NODE_BSDF_TOON				179
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

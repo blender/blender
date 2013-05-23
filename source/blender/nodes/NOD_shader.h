@@ -97,6 +97,7 @@ void register_node_type_sh_bsdf_refraction(void);
 void register_node_type_sh_bsdf_translucent(void);
 void register_node_type_sh_bsdf_transparent(void);
 void register_node_type_sh_bsdf_velvet(void);
+void register_node_type_sh_bsdf_toon(void);
 void register_node_type_sh_bsdf_anisotropic(void);
 void register_node_type_sh_emission(void);
 void register_node_type_sh_holdout(void);

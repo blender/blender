@@ -322,6 +322,23 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			}
 			break;
 		}
+		case CLOSURE_BSDF_DIFFUSE_TOON_ID:
+		case CLOSURE_BSDF_GLOSSY_TOON_ID: {
+			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
+
+			if(sc) {
+				/* Normal, Size and Smooth */
+				sc->N = N;
+				sc->data0 = param1;
+				sc->data1 = param2;
+				
+				if (type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
+					sd->flag |= bsdf_diffuse_toon_setup(sc);
+				else
+					sd->flag |= bsdf_glossy_toon_setup(sc);
+			}
+			break;
+		}
 #ifdef __SUBSURFACE__
 		case CLOSURE_BSSRDF_ID: {
 			ShaderClosure *sc = &sd->closure[sd->num_closure];

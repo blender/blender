@@ -869,6 +869,10 @@ typedef struct NodeShaderNormalMap {
 #define SHD_GLOSSY_SHARP	1
 #define SHD_GLOSSY_GGX		2
 
+/* toon modes */
+#define SHD_TOON_DIFFUSE	0
+#define SHD_TOON_GLOSSY		1
+
 /* blend texture */
 #define SHD_BLEND_LINEAR			0
 #define SHD_BLEND_QUADRATIC			1

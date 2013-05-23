@@ -58,6 +58,7 @@ set(SRC_OSL
 	node_subsurface_scattering.osl
 	node_tangent.osl
 	node_texture_coordinate.osl
+	node_toon_bsdf.osl
 	node_translucent_bsdf.osl
 	node_transparent_bsdf.osl
 	node_value.osl

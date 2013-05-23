@@ -259,6 +259,14 @@ public:
 	static ShaderEnum distribution_enum;
 };
 
+class ToonBsdfNode : public BsdfNode {
+public:
+	SHADER_NODE_CLASS(ToonBsdfNode)
+
+	ustring component;
+	static ShaderEnum component_enum;
+};
+
 class SubsurfaceScatteringNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(SubsurfaceScatteringNode)

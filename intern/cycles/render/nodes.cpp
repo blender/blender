@@ -1482,6 +1482,41 @@ void RefractionBsdfNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_refraction_bsdf");
 }
 
+/* Toon BSDF Closure */
+
+static ShaderEnum toon_component_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Diffuse", CLOSURE_BSDF_DIFFUSE_TOON_ID);
+	enm.insert("Glossy", CLOSURE_BSDF_GLOSSY_TOON_ID);
+
+	return enm;
+}
+
+ShaderEnum ToonBsdfNode::component_enum = toon_component_init();
+
+ToonBsdfNode::ToonBsdfNode()
+{
+	component = ustring("Diffuse");
+
+	add_input("Size", SHADER_SOCKET_FLOAT, 0.5f);
+	add_input("Smooth", SHADER_SOCKET_FLOAT, 0.0f);
+}
+
+void ToonBsdfNode::compile(SVMCompiler& compiler)
+{
+	closure = (ClosureType)component_enum[component];
+	
+	BsdfNode::compile(compiler, input("Size"), input("Smooth"));
+}
+
+void ToonBsdfNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter("component", component);
+	compiler.add(this, "node_toon_bsdf");
+}
+
 /* Velvet BSDF Closure */
 
 VelvetBsdfNode::VelvetBsdfNode()

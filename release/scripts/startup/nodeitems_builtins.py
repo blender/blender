@@ -156,6 +156,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeBsdfTranslucent"),
         NodeItem("ShaderNodeBsdfAnisotropic"),
         NodeItem("ShaderNodeBsdfVelvet"),
+        NodeItem("ShaderNodeBsdfToon"),
         NodeItem("ShaderNodeSubsurfaceScattering"),
         NodeItem("ShaderNodeEmission"),
         NodeItem("ShaderNodeBackground"),

@@ -155,6 +155,7 @@ set(SRC
 	shader/nodes/node_shader_bsdf_diffuse.c
 	shader/nodes/node_shader_bsdf_glass.c
 	shader/nodes/node_shader_bsdf_glossy.c
+	shader/nodes/node_shader_bsdf_toon.c
 	shader/nodes/node_shader_bsdf_refraction.c
 	shader/nodes/node_shader_bsdf_translucent.c
 	shader/nodes/node_shader_bsdf_transparent.c

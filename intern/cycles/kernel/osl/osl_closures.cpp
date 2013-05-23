@@ -53,6 +53,7 @@
 #include "closure/bsdf_transparent.h"
 #include "closure/bsdf_ward.h"
 #include "closure/bsdf_westin.h"
+#include "closure/bsdf_toon.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -106,6 +107,18 @@ BSDF_CLOSURE_CLASS_BEGIN(Ward, ward, ward, LABEL_GLOSSY)
 	CLOSURE_FLOAT_PARAM(WardClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(WardClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(Ward, ward)
+
+BSDF_CLOSURE_CLASS_BEGIN(DiffuseToon, diffuse_toon, diffuse_toon, LABEL_DIFFUSE)
+	CLOSURE_FLOAT3_PARAM(DiffuseToonClosure, sc.N),
+	CLOSURE_FLOAT_PARAM(DiffuseToonClosure, sc.data0),
+	CLOSURE_FLOAT_PARAM(DiffuseToonClosure, sc.data1),
+BSDF_CLOSURE_CLASS_END(DiffuseToon, diffuse_toon)
+
+BSDF_CLOSURE_CLASS_BEGIN(GlossyToon, glossy_toon, glossy_toon, LABEL_GLOSSY)
+	CLOSURE_FLOAT3_PARAM(GlossyToonClosure, sc.N),
+	CLOSURE_FLOAT_PARAM(GlossyToonClosure, sc.data0),
+	CLOSURE_FLOAT_PARAM(GlossyToonClosure, sc.data1),
+BSDF_CLOSURE_CLASS_END(GlossyToon, glossy_toon)
 
 BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGX, microfacet_ggx, microfacet_ggx, LABEL_GLOSSY)
 	CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, sc.N),
@@ -181,6 +194,10 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_ward_params(), bsdf_ward_prepare);
 	register_closure(ss, "ashikhmin_velvet", id++,
 		bsdf_ashikhmin_velvet_params(), bsdf_ashikhmin_velvet_prepare);
+	register_closure(ss, "diffuse_toon", id++,
+		bsdf_diffuse_toon_params(), bsdf_diffuse_toon_prepare);
+	register_closure(ss, "glossy_toon", id++,
+		bsdf_glossy_toon_params(), bsdf_glossy_toon_prepare);
 	register_closure(ss, "westin_backscatter", id++,
 		bsdf_westin_backscatter_params(), bsdf_westin_backscatter_prepare);
 	register_closure(ss, "westin_sheen", id++,
@@ -198,10 +215,6 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bsdf_diffuse_ramp_params(), closure_bsdf_diffuse_ramp_prepare);
 	register_closure(ss, "phong_ramp", id++,
 		closure_bsdf_phong_ramp_params(), closure_bsdf_phong_ramp_prepare);
-	register_closure(ss, "diffuse_toon", id++,
-		closure_bsdf_diffuse_toon_params(), closure_bsdf_diffuse_toon_prepare);
-	register_closure(ss, "specular_toon", id++,
-		closure_bsdf_specular_toon_params(), closure_bsdf_specular_toon_prepare);
 	register_closure(ss, "bssrdf_cubic", id++,
 		closure_bssrdf_params(), closure_bssrdf_prepare);
 }
