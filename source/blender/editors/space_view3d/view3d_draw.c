@@ -942,9 +942,9 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 
 			if (bone_name) {
 				if (markern)
-					BLI_snprintf(info, sizeof(info), "(%d) %s %s %s <%s>", CFRA, ob->id.name + 2, bone_name, shapes, markern);
+					BLI_snprintf(info, sizeof(info), "(%d) %s : (%s) %s <%s>", CFRA, ob->id.name + 2, bone_name, shapes, markern);
 				else
-					BLI_snprintf(info, sizeof(info), "(%d) %s %s %s", CFRA, ob->id.name + 2, bone_name, shapes);
+					BLI_snprintf(info, sizeof(info), "(%d) %s : (%s) %s", CFRA, ob->id.name + 2, bone_name, shapes);
 			}
 			else {
 				if (markern)
