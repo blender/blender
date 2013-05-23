@@ -72,18 +72,6 @@
 
 #include "view3d_intern.h"
 
-
-/* View3d->modeselect 
- * This is a bit of a dodgy hack to enable a 'mode' menu with icons+labels
- * rather than those buttons.
- * I know the implementation's not good - it's an experiment to see if this
- * approach would work well
- *
- * This can be cleaned when I make some new 'mode' icons.
- */
-
-/* end XXX ************* */
-
 static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 
 #define B_SEL_VERT  110
@@ -311,7 +299,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	uiLayout *row;
-	int is_paint = 0;
+	bool is_paint = false;
+	int modeselect;
 	
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
@@ -325,11 +314,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	
 	/* mode */
 	if (ob) {
-		v3d->modeselect = ob->mode;
+		modeselect = ob->mode;
 		is_paint = ELEM4(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT);
 	}
 	else {
-		v3d->modeselect = OB_MODE_OBJECT;
+		modeselect = OB_MODE_OBJECT;
 	}
 
 	row = uiLayoutRow(layout, FALSE);
@@ -339,7 +328,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		int icon = ICON_OBJECT_DATAMODE;
 
 		while (item->identifier) {
-			if (item->value == v3d->modeselect && item->identifier[0]) {
+			if (item->value == modeselect && item->identifier[0]) {
 				name = IFACE_(item->name);
 				icon = item->icon;
 				break;

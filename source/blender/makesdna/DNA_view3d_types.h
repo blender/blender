@@ -162,10 +162,9 @@ typedef struct View3D {
 	float dist         DNA_DEPRECATED;
 
 	float bundle_size;			/* size of bundles in reconstructed data */
-	short bundle_drawtype;		/* display style for bundle */
-	short pad;
-	int matcap_icon;			/* icon id */
-	
+	char bundle_drawtype;		/* display style for bundle */
+	char pad[7];
+
 	unsigned int lay_used; /* used while drawing */
 	
 	short persp  DNA_DEPRECATED;
@@ -197,7 +196,8 @@ typedef struct View3D {
 	float ofs[3]  DNA_DEPRECATED;			/* XXX deprecated */
 	float cursor[3];
 
-	short modeselect;
+	short matcap_icon;			/* icon id */
+
 	short gridlines;
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	char gridflag;
@@ -211,8 +211,8 @@ typedef struct View3D {
 	struct ListBase afterdraw_xraytransp;
 	
 	/* drawflags, denoting state */
-	short zbuf, transp, xray;
-	char pad3[2];
+	char zbuf, transp, xray;
+	char pad3[5];
 
 	void *properties_storage;		/* Nkey panel stores stuff here (runtime only!) */
 	struct Material *defmaterial;	/* used by matcap now */
