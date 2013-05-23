@@ -247,8 +247,7 @@ void wm_event_do_notifiers(bContext *C)
 			if (note->window == win) {
 				if (note->category == NC_SCREEN) {
 					if (note->data == ND_SCREENBROWSE) {
-						/* free popup handlers */
-						WM_event_remove_handlers(C, &win->modalhandlers);
+						/* do not free handlers here! [#35434] */
 
 						ED_screen_set(C, note->reference);  // XXX hrms, think this over!
 						if (G.debug & G_DEBUG_EVENTS)
