@@ -1099,7 +1099,7 @@ static bool *vgroup_subset_from_select_type(Object *ob, WT_VertexGroupSelect sub
 	bool *vgroup_validmap = NULL;
 	const int defbase_tot = BLI_countlist(&ob->defbase);
 
-	switch(subset_type) {
+	switch (subset_type) {
 		case WT_VGROUP_ALL:
 			vgroup_validmap = MEM_mallocN(defbase_tot * sizeof(*vgroup_validmap), __func__);
 			memset(vgroup_validmap, true, sizeof(bool) * defbase_tot);

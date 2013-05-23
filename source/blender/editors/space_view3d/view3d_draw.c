@@ -887,7 +887,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	* and 2 BREAD_CRUMB_SEPARATORs (6)
 	* and a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1)
 	*/
-	char bread_crumbs[3*MAX_NAME + 6 + 10];
+	char bread_crumbs[3 * MAX_NAME + 6 + 10];
 	bread_crumbs[0] = '\0';
 	
 	/* get name of marker on current frame (if available) */
@@ -895,8 +895,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	
 	/* check if there is an object */
 	if (ob) {
-		strcat(bread_crumbs," ");
-		strcat(bread_crumbs,ob->id.name + 2);
+		strcat(bread_crumbs, " ");
+		strcat(bread_crumbs, ob->id.name + 2);
 
 		/* name(s) to display depends on type of object */
 		if (ob->type == OB_ARMATURE) {
@@ -907,7 +907,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 
 				if (arm->act_edbone) {
 					strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
-					strcat(bread_crumbs,((EditBone *)arm->act_edbone)->name);
+					strcat(bread_crumbs, ((EditBone *)arm->act_edbone)->name);
 				}
 			}
 			else if (ob->mode & OB_MODE_POSE) {
@@ -915,7 +915,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 
 					if (arm->act_bone->layer & arm->layer) {
 						strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
-						strcat(bread_crumbs,arm->act_bone->name);
+						strcat(bread_crumbs, arm->act_bone->name);
 					}
 				}
 			}
@@ -923,7 +923,6 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		else if (ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			Key *key = NULL;
 			KeyBlock *kb = NULL;
-			char *bone_name = NULL;
 
 			/* try to display active bone and active shapekey too (if they exist) */
 

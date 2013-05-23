@@ -679,7 +679,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 
 	/* one time initialization */
-	if(!stroke->stroke_init) {
+	if (!stroke->stroke_init) {
 		stroke->smooth_stroke_cursor =
 			    WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
 
