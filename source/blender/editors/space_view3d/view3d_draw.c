@@ -873,92 +873,84 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 /* draw info beside axes in bottom left-corner: 
  * framenum, object name, bone name (if available), marker name (if available)
  */
+
+#define BREAD_CRUMB_SEPARATOR " : "
+#define SHAPE_KEY_PINNED " (Pinned)"
+
 static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 {
 	char info[256], *markern;
 	short offset = 1.5f * UI_UNIT_X + rect->xmin;
+
+	/* 
+	* breadcrumbs can contain 3 object names (MAX_NAME)
+	* and 2 BREAD_CRUMB_SEPARATORs (6)
+	* and a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1)
+	*/
+	char bread_crumbs[3*MAX_NAME + 6 + 10];
+	bread_crumbs[0] = '\0';
 	
 	/* get name of marker on current frame (if available) */
 	markern = BKE_scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
 	if (ob) {
+		strcat(bread_crumbs," ");
+		strcat(bread_crumbs,ob->id.name + 2);
+
 		/* name(s) to display depends on type of object */
 		if (ob->type == OB_ARMATURE) {
 			bArmature *arm = ob->data;
-			char *name = NULL;
 			
 			/* show name of active bone too (if possible) */
 			if (arm->edbo) {
 
-				if (arm->act_edbone)
-					name = ((EditBone *)arm->act_edbone)->name;
-
+				if (arm->act_edbone) {
+					strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
+					strcat(bread_crumbs,((EditBone *)arm->act_edbone)->name);
+				}
 			}
 			else if (ob->mode & OB_MODE_POSE) {
 				if (arm->act_bone) {
 
-					if (arm->act_bone->layer & arm->layer)
-						name = arm->act_bone->name;
-
+					if (arm->act_bone->layer & arm->layer) {
+						strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
+						strcat(bread_crumbs,arm->act_bone->name);
+					}
 				}
 			}
-			if (name && markern)
-				BLI_snprintf(info, sizeof(info), "(%d) %s : %s <%s>", CFRA, ob->id.name + 2, name, markern);
-			else if (name)
-				BLI_snprintf(info, sizeof(info), "(%d) %s : %s", CFRA, ob->id.name + 2, name);
-			else
-				BLI_snprintf(info, sizeof(info), "(%d) %s", CFRA, ob->id.name + 2);
 		}
 		else if (ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			Key *key = NULL;
 			KeyBlock *kb = NULL;
-			char shapes[MAX_NAME + 10];
 			char *bone_name = NULL;
 
-			/* try to display active shapekey too */
-			shapes[0] = '\0';
-			key = BKE_key_from_object(ob);
-			if (key) {
-				kb = BLI_findlink(&key->block, ob->shapenr - 1);
-				if (kb) {
-					BLI_snprintf(shapes, sizeof(shapes), ": %s ", kb->name);
-					if (ob->shapeflag == OB_SHAPE_LOCK) {
-						strcat(shapes, IFACE_(" (Pinned)"));
-					}
-				}
-			}
-			
-			if (ob->type == OB_MESH) {
+			/* try to display active bone and active shapekey too (if they exist) */
+
+			if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				Object *armobj = BKE_object_pose_armature_get(ob);
 				if (armobj  && armobj->mode & OB_MODE_POSE) {
 					bArmature *arm = armobj->data;
 					if (arm->act_bone) {
-						if (arm->act_bone->layer & arm->layer)
-							bone_name = arm->act_bone->name;
+						if (arm->act_bone->layer & arm->layer) {
+							strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
+							strcat(bread_crumbs, arm->act_bone->name);
+						}
 					}
 				}
 			}
 
-			if (bone_name) {
-				if (markern)
-					BLI_snprintf(info, sizeof(info), "(%d) %s : %s %s <%s>", CFRA, ob->id.name + 2, bone_name, shapes, markern);
-				else
-					BLI_snprintf(info, sizeof(info), "(%d) %s : %s %s", CFRA, ob->id.name + 2, bone_name, shapes);
+			key = BKE_key_from_object(ob);
+			if (key) {
+				kb = BLI_findlink(&key->block, ob->shapenr - 1);
+				if (kb) {
+					strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
+					strcat(bread_crumbs, kb->name);
+					if (ob->shapeflag == OB_SHAPE_LOCK) {
+						strcat(bread_crumbs, IFACE_(SHAPE_KEY_PINNED));
+					}
+				}
 			}
-			else {
-				if (markern)
-					BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name + 2, shapes, markern);
-				else
-					BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name + 2, shapes);
-			}
-		}
-		else {
-			/* standard object */
-			if (markern)
-				BLI_snprintf(info, sizeof(info), "(%d) %s <%s>", CFRA, ob->id.name + 2, markern);
-			else
-				BLI_snprintf(info, sizeof(info), "(%d) %s", CFRA, ob->id.name + 2);
 		}
 		
 		/* color depends on whether there is a keyframe */
@@ -968,15 +960,15 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 			UI_ThemeColor(TH_TEXT_HI);
 	}
 	else {
-		/* no object */
-		if (markern)
-			BLI_snprintf(info, sizeof(info), "(%d) <%s>", CFRA, markern);
-		else
-			BLI_snprintf(info, sizeof(info), "(%d)", CFRA);
-		
+		/* no object */		
 		/* color is always white */
 		UI_ThemeColor(TH_TEXT_HI);
 	}
+
+	if (markern)
+		BLI_snprintf(info, sizeof(info), "(%d)%s <%s>", CFRA, bread_crumbs, markern);
+	else
+		BLI_snprintf(info, sizeof(info), "(%d)%s", CFRA, bread_crumbs);
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
