@@ -648,7 +648,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			} while (true);
 		}
 
-		if (owalk.is_single == false && bm_edge_is_single(l->e)) {
+		if (owalk.is_single == false && l && bm_edge_is_single(l->e)) {
 			l = NULL;
 		}
 
