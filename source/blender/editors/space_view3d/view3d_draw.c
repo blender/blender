@@ -914,7 +914,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 			Key *key = NULL;
 			KeyBlock *kb = NULL;
 			char shapes[MAX_NAME + 10];
-			
+			char *bone_name = NULL;
+
 			/* try to display active shapekey too */
 			shapes[0] = '\0';
 			key = BKE_key_from_object(ob);
@@ -928,10 +929,29 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 				}
 			}
 			
-			if (markern)
-				BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name + 2, shapes, markern);
-			else
-				BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name + 2, shapes);
+			if (ob->type == OB_MESH) {
+				Object *armobj = BKE_object_pose_armature_get(ob);
+				if (armobj  && armobj->mode & OB_MODE_POSE) {
+					bArmature *arm = armobj->data;
+					if (arm->act_bone) {
+						if (arm->act_bone->layer & arm->layer)
+							bone_name = arm->act_bone->name;
+					}
+				}
+			}
+
+			if (bone_name) {
+				if (markern)
+					BLI_snprintf(info, sizeof(info), "(%d) %s %s %s <%s>", CFRA, ob->id.name + 2, bone_name, shapes, markern);
+				else
+					BLI_snprintf(info, sizeof(info), "(%d) %s %s %s", CFRA, ob->id.name + 2, bone_name, shapes);
+			}
+			else {
+				if (markern)
+					BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name + 2, shapes, markern);
+				else
+					BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name + 2, shapes);
+			}
 		}
 		else {
 			/* standard object */
