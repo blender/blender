@@ -66,6 +66,7 @@ void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, struct ListBase *
 
 /* splines */
 struct MaskSpline *BKE_mask_spline_add(struct MaskLayer *masklay);
+bool BKE_mask_spline_remove(struct MaskLayer *mask_layer, struct MaskSpline *spline);
 void BKE_mask_point_direction_switch(struct MaskSplinePoint *point);
 void BKE_mask_spline_direction_switch(struct MaskLayer *masklay, struct MaskSpline *spline);
 

@@ -271,6 +271,17 @@ MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
 	return spline;
 }
 
+bool BKE_mask_spline_remove(MaskLayer *mask_layer, MaskSpline *spline)
+{
+	if (BLI_remlink_safe(&mask_layer->splines, spline) == FALSE) {
+		return false;
+	}
+
+	BKE_mask_spline_free(spline);
+
+	return true;
+}
+
 void BKE_mask_point_direction_switch(MaskSplinePoint *point)
 {
 	const int tot_uw = point->tot_uw;

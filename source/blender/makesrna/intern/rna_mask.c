@@ -351,6 +351,33 @@ static void rna_MaskLayer_spline_add(ID *id, MaskLayer *masklay, int number)
 	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
 
+static MaskSpline *rna_MaskLayer_spline_new(ID *id, MaskLayer *mask_layer)
+{
+	Mask *mask = (Mask *) id;
+	MaskSpline *new_spline;
+
+	new_spline = BKE_mask_spline_add(mask_layer);
+
+	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
+
+	return new_spline;
+}
+
+static void rna_MaskLayer_spline_remove(ID *id, MaskLayer *mask_layer, ReportList *reports, PointerRNA *spline_ptr)
+{
+	Mask *mask = (Mask *) id;
+	MaskSpline *spline = spline_ptr->data;
+
+	if (BKE_mask_spline_remove(mask_layer, spline) == FALSE) {
+		BKE_reportf(reports, RPT_ERROR, "Mask layer '%s' does not contain spline given", mask_layer->name);
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(spline_ptr);
+
+	DAG_id_tag_update(&mask->id, OB_RECALC_DATA);
+}
+
 static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)
 {
 	Mask *data = (Mask *)ptr->data;
@@ -374,9 +401,115 @@ static void rna_Mask_end_frame_set(PointerRNA *ptr, int value)
 	}
 }
 
-#else
+static MaskSplinePoint *rna_MaskSpline_point_new(ID *id, MaskSpline *spline)
+{
+	Mask *mask = (Mask *) id;
+	MaskSplinePoint *new_point;
+	MaskLayer *layer;
+	int active_point_index = -1;
+	int point_index;
 
-static void rna_def_maskParent(BlenderRNA *brna)
+	for (layer = mask->masklayers.first; layer; layer = layer->next) {
+		if (BLI_findindex(&layer->splines, spline) != -1) {
+			break;
+		}
+	}
+
+	if (!layer) {
+		/* Shall not happen actually */
+		BLI_assert(!"No layer found for the spline");
+		return NULL;
+	}
+
+	if (layer->act_spline == spline) {
+		active_point_index = layer->act_point - spline->points;
+	}
+
+	spline->points = MEM_recallocN(spline->points, sizeof(MaskSplinePoint) * (spline->tot_point + 1));
+	spline->tot_point++;
+
+	if (active_point_index >= 0) {
+		layer->act_point = spline->points + active_point_index;
+	}
+
+	point_index = spline->tot_point - 1;
+	new_point = spline->points + point_index;
+	new_point->bezt.h1 = new_point->bezt.h2 = HD_ALIGN;
+	BKE_mask_calc_handle_point_auto(spline, new_point, TRUE);
+	BKE_mask_parent_init(&new_point->parent);
+
+	BKE_mask_layer_shape_changed_add(layer, BKE_mask_layer_shape_spline_to_index(layer, spline) + point_index, TRUE, TRUE);
+
+	WM_main_add_notifier(NC_MASK | ND_DATA, mask);
+	DAG_id_tag_update(&mask->id, OB_RECALC_DATA);
+
+	return new_point;
+}
+
+static void rna_MaskSpline_point_remove(ID *id, MaskSpline *spline, ReportList *reports, PointerRNA *point_ptr)
+{
+	Mask *mask = (Mask *) id;
+	MaskSplinePoint *point = point_ptr->data;
+	MaskSplinePoint *new_point_array;
+	MaskLayer *layer;
+	int active_point_index = -1;
+	int point_index;
+
+	for (layer = mask->masklayers.first; layer; layer = layer->next) {
+		if (BLI_findindex(&layer->splines, spline) != -1) {
+			break;
+		}
+	}
+
+	if (!layer) {
+		/* Shall not happen actually */
+		BKE_report(reports, RPT_ERROR, "Mask layer not found for given spline");
+		return;
+	}
+
+	if (point < spline->points || point >= spline->points + spline->tot_point) {
+		BKE_report(reports, RPT_ERROR, "Point is not found in given spline");
+		return;
+	}
+
+	if (layer->act_spline == spline) {
+		active_point_index = layer->act_point - spline->points;
+	}
+
+	point_index = point - spline->points;
+
+	new_point_array = MEM_mallocN(sizeof(MaskSplinePoint) * (spline->tot_point - 1), "remove mask point");
+
+	memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * point_index);
+	memcpy(new_point_array + point_index, spline->points + point_index + 1,
+	       sizeof(MaskSplinePoint) * (spline->tot_point - point_index - 1));
+
+	MEM_freeN(spline->points);
+	spline->points = new_point_array;
+	spline->tot_point--;
+
+	if (active_point_index >= 0) {
+		if (active_point_index == point_index) {
+			layer->act_point = NULL;
+		}
+		else if (active_point_index < point_index) {
+			layer->act_point = spline->points + active_point_index;
+		}
+		else {
+			layer->act_point = spline->points + active_point_index - 1;
+		}
+	}
+
+	BKE_mask_layer_shape_changed_remove(layer, BKE_mask_layer_shape_spline_to_index(layer, spline) + point_index, 1);
+
+	WM_main_add_notifier(NC_MASK | ND_DATA, mask);
+	DAG_id_tag_update(&mask->id, 0);
+
+	RNA_POINTER_INVALIDATE(point_ptr);
+}
+
+#else
+ void rna_def_maskParent(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -513,15 +646,33 @@ static void rna_def_mask_splines(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "MaskSplines", NULL);
 	RNA_def_struct_sdna(srna, "MaskLayer");
 	RNA_def_struct_ui_text(srna, "Mask Splines", "Collection of masking splines");
 
+	/* Add the splines */
 	func = RNA_def_function(srna, "add", "rna_MaskLayer_spline_add");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a number of splines to mask layer");
 	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of splines to add to the layer", 0, INT_MAX);
+
+	/* Create new spline */
+	func = RNA_def_function(srna, "new", "rna_MaskLayer_spline_new");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Add a new spline to the layer");
+	parm = RNA_def_pointer(func, "spline", "MaskSpline", "", "The newly created spline");
+	RNA_def_function_return(func, parm);
+
+	/* Remove the spline */
+	func = RNA_def_function(srna, "remove", "rna_MaskLayer_spline_remove");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Remove a spline from a layer");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "spline", "MaskSpline", "", "The spline to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	/* active spline */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -536,6 +687,33 @@ static void rna_def_mask_splines(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_MaskLayer_active_spline_point_get", "rna_MaskLayer_active_spline_point_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking layer");
+}
+
+static void rna_def_maskSplinePoints(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	srna = RNA_def_struct(brna, "MaskSplinePoints", NULL);
+	RNA_def_struct_sdna(srna, "MaskSpline");
+	RNA_def_struct_ui_text(srna, "Mask Spline Points", "Collection of masking spline points");
+
+	/* Create new point */
+	func = RNA_def_function(srna, "new", "rna_MaskSpline_point_new");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Add a new point to the spline");
+	parm = RNA_def_pointer(func, "point", "MaskSplinePoint", "", "The newly created point");
+	RNA_def_function_return(func, parm);
+
+	/* Remove the point */
+	func = RNA_def_function(srna, "remove", "rna_MaskSpline_point_remove");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Remove a point from a spline");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "point", "MaskSplinePoint", "", "The point to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_maskSpline(BlenderRNA *brna)
@@ -599,6 +777,7 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MaskSplinePoint");
 	RNA_def_property_collection_sdna(prop, NULL, "points", "tot_point");
 	RNA_def_property_ui_text(prop, "Points", "Collection of points");
+	RNA_def_property_srna(prop, "MaskSplinePoints");
 }
 
 static void rna_def_mask_layer(BlenderRNA *brna)
@@ -621,6 +800,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 
 	rna_def_maskSpline(brna);
 	rna_def_mask_splines(brna);
+	rna_def_maskSplinePoints(brna);
 
 	srna = RNA_def_struct(brna, "MaskLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Mask Layer", "Single layer used for masking pixels");
