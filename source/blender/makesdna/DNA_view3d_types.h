@@ -163,8 +163,9 @@ typedef struct View3D {
 
 	float bundle_size;			/* size of bundles in reconstructed data */
 	char bundle_drawtype;		/* display style for bundle */
-	char pad[7];
+	char pad[3];
 
+	unsigned int lay_prev; /* for active layer toggle */
 	unsigned int lay_used; /* used while drawing */
 	
 	short persp  DNA_DEPRECATED;

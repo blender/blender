@@ -137,16 +137,17 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 
 	if (nr == 0) {
 		/* all layers */
-		if (!v3d->layact)
-			v3d->layact = 1;
+		if (!v3d->lay_prev)
+			v3d->lay_prev = 1;
 
 		if (toggle && v3d->lay == ((1 << 20) - 1)) {
 			/* return to active layer only */
-			v3d->lay = v3d->layact;
+			v3d->lay = v3d->lay_prev;
 
 			view3d_layers_editmode_ensure(scene, v3d);
 		}
 		else {
+			v3d->lay_prev = v3d->lay;
 			v3d->lay |= (1 << 20) - 1;
 		}
 	}
