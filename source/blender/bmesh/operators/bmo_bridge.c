@@ -37,6 +37,7 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 #define EDGE_MARK	4
+#define EDGE_OUT	8
 #define FACE_OUT	16
 
 /* el_a and el_b _must_ be same size */
@@ -129,6 +130,15 @@ static void bm_bridge_best_rotation(struct BMEdgeLoopStore *el_store_a, struct B
 	}
 }
 
+static void bm_face_edges_tag_out(BMesh *bm, BMFace *f)
+{
+	BMLoop *l_iter, *l_first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		BMO_elem_flag_enable(bm, l_iter->e, EDGE_OUT);
+	} while ((l_iter = l_iter->next) != l_first);
+}
+
 static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 {
 	return BMO_elem_flag_test((BMesh *)bm_v, e, EDGE_MARK);
@@ -144,6 +154,7 @@ static void bridge_loop_pair(BMesh *bm,
 	int el_store_a_len, el_store_b_len;
 	bool el_store_b_free = false;
 	float el_dir[3];
+	const bool use_edgeout = true;
 
 	el_store_a_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_a);
 	el_store_b_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_b);
@@ -188,7 +199,7 @@ static void bridge_loop_pair(BMesh *bm,
 			for (i = 0; i < 2; i++, winding_dir = -winding_dir) {
 				LinkData *el;
 				for (el = BM_edgeloop_verts_get(estore_pair[i])->first; el; el = el->next) {
-					LinkData *el_next = BM_EDGELOOP_NEXT(estore_pair[i], el);
+					LinkData *el_next = BM_EDGELINK_NEXT(estore_pair[i], el);
 					if (el_next) {
 						BMEdge *e = BM_edge_exists(el->data, el_next->data);
 						if (e && BM_edge_is_boundary(e)) {
@@ -242,8 +253,8 @@ static void bridge_loop_pair(BMesh *bm,
 			BMLoop *l_2_next = NULL;
 
 			if (is_closed) {
-				el_a_next = BM_EDGELOOP_NEXT(el_store_a, el_a);
-				el_b_next = BM_EDGELOOP_NEXT(el_store_b, el_b);
+				el_a_next = BM_EDGELINK_NEXT(el_store_a, el_a);
+				el_b_next = BM_EDGELINK_NEXT(el_store_b, el_b);
 			}
 			else {
 				el_a_next = el_a->next;
@@ -309,6 +320,11 @@ static void bridge_loop_pair(BMesh *bm,
 			BMO_elem_flag_enable(bm, f, FACE_OUT);
 			BM_elem_flag_enable(f, BM_ELEM_TAG);
 
+			/* tag all edges of the face, untag the loop edges after */
+			if (use_edgeout) {
+				bm_face_edges_tag_out(bm, f);
+			}
+
 			if (el_a_next == el_a_first) {
 				break;
 			}
@@ -349,10 +365,50 @@ static void bridge_loop_pair(BMesh *bm,
 		BMO_op_initf(bm, &op_sub, 0,
 		             "beautify_fill faces=%hf edges=ae use_restrict_tag=%b",
 		             BM_ELEM_TAG, true);
+
+		if (use_edgeout) {
+			BMOIter siter;
+			BMFace *f;
+			BMO_ITER (f, &siter, op_sub.slots_in, "faces", BM_FACE) {
+				BMO_elem_flag_enable(bm, f, FACE_OUT);
+				bm_face_edges_tag_out(bm, f);
+			}
+		}
+
 		BMO_op_exec(bm, &op_sub);
 		/* there may also be tagged faces that didnt rotate, mark input */
-		BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "geom.out", BM_FACE, FACE_OUT);
+
+		if (use_edgeout) {
+			BMOIter siter;
+			BMFace *f;
+			BMO_ITER (f, &siter, op_sub.slots_out, "geom.out", BM_FACE) {
+				BMO_elem_flag_enable(bm, f, FACE_OUT);
+				bm_face_edges_tag_out(bm, f);
+			}
+		}
+		else {
+			BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "geom.out", BM_FACE, FACE_OUT);
+		}
+
 		BMO_op_finish(bm, &op_sub);
+	}
+
+	if (use_edgeout && use_merge == false) {
+		/* we've enabled all face edges above, now disable all loop edges */
+		struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
+		int i;
+		for (i = 0; i < 2; i++) {
+			LinkData *el;
+			for (el = BM_edgeloop_verts_get(estore_pair[i])->first; el; el = el->next) {
+				LinkData *el_next = BM_EDGELINK_NEXT(estore_pair[i], el);
+				if (el_next) {
+					if (el->data != el_next->data) {
+						BMEdge *e = BM_edge_exists(el->data, el_next->data);
+						BMO_elem_flag_disable(bm, e, EDGE_OUT);
+					}
+				}
+			}
+		}
 	}
 
 	if (el_store_b_free) {
@@ -434,22 +490,13 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		change = true;
 	}
 
-	if ((count == 2) && (BM_edgeloop_length_get(eloops.first) == BM_edgeloop_length_get(eloops.last))) {
-
-
-
-	}
-	else if (count == 2) {
-
-	}
-	else {
-
-	}
-
 cleanup:
 	BM_mesh_edgeloops_free(&eloops);
 
 	if (change) {
-		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
+		if (use_merge == false) {
+			BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
+			BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
+		}
 	}
 }

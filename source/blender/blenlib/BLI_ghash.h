@@ -139,6 +139,11 @@ bool            BLI_ghashIterator_done(GHashIterator *ghi);
 	     BLI_ghashIterator_done(&gh_iter_) == false;                          \
 	     BLI_ghashIterator_step(&gh_iter_))
 
+#define GHASH_ITER_INDEX(gh_iter_, ghash_, i_)                                \
+	for (BLI_ghashIterator_init(&gh_iter_, ghash_), i_ = 0;                   \
+	     BLI_ghashIterator_done(&gh_iter_) == false;                          \
+	     BLI_ghashIterator_step(&gh_iter_), i_++)
+
 /* *** */
 
 unsigned int    BLI_ghashutil_ptrhash(const void *key);

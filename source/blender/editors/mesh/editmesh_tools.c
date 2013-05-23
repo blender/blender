@@ -51,6 +51,8 @@
 #include "BKE_main.h"
 #include "BKE_editmesh.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -141,6 +143,103 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
 	RNA_def_float(ot->srna, "fractal_along_normal", 0.0f, 0.0f, 1.0f, "Along Normal", "Apply fractal displacement along normal only", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
+}
+
+/* -------------------------------------------------------------------- */
+/* Edge Ring Subdiv
+ * (bridge code shares props)
+ */
+
+struct EdgeRingOpSubdProps {
+	int interp_mode;
+	int cuts;
+	float smooth;
+
+	int profile_shape;
+	float profile_shape_factor;
+};
+
+
+static void mesh_operator_edgering_props(wmOperatorType *ot, const int cuts_default)
+{
+	/* Note, these values must match delete_mesh() event values */
+	static EnumPropertyItem prop_subd_edgering_types[] = {
+		{SUBD_RING_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
+		{SUBD_RING_INTERP_PATH, "PATH", 0, "Blend Path", ""},
+		{SUBD_RING_INTERP_SURF, "SURFACE", 0, "Blend Surface", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	prop = RNA_def_int(ot->srna, "number_cuts", cuts_default, 0, INT_MAX, "Number of Cuts", "", 0, 64);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	RNA_def_enum(ot->srna, "interpolation", prop_subd_edgering_types, SUBD_RING_INTERP_PATH,
+	             "Interpolation", "Interpolation method");
+
+	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, FLT_MAX,
+	              "Smoothness", "Smoothness factor", 0.0f, 2.0f);
+
+	/* profile-shape */
+	RNA_def_float(ot->srna, "profile_shape_factor", 0.0f, -FLT_MAX, FLT_MAX,
+	              "Profile Factor", "", -2.0f, 2.0f);
+
+	prop = RNA_def_property(ot->srna, "profile_shape", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_enum_default(prop, PROP_SMOOTH);
+	RNA_def_property_ui_text(prop, "Profile Shape", "Shape of the profile");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+}
+
+static void mesh_operator_edgering_props_get(wmOperator *op, struct EdgeRingOpSubdProps *op_props)
+{
+	op_props->interp_mode = RNA_enum_get(op->ptr, "interpolation");
+	op_props->cuts = RNA_int_get(op->ptr, "number_cuts");
+	op_props->smooth = RNA_float_get(op->ptr, "smoothness");
+
+	op_props->profile_shape = RNA_enum_get(op->ptr, "profile_shape");
+	op_props->profile_shape_factor = RNA_float_get(op->ptr, "profile_shape_factor");
+}
+
+static int edbm_subdivide_edge_ring_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	struct EdgeRingOpSubdProps op_props;
+
+	mesh_operator_edgering_props_get(op, &op_props);
+
+	if (!EDBM_op_callf(em, op,
+	                   "subdivide_edgering edges=%he interp_mode=%i cuts=%i smooth=%f "
+	                   "profile_shape=%i profile_shape_factor=%f",
+	                   BM_ELEM_SELECT, op_props.interp_mode, op_props.cuts, op_props.smooth,
+	                   op_props.profile_shape, op_props.profile_shape_factor))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_subdivide_edgering(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Subdivide Edge-Ring";
+	ot->description = "";
+	ot->idname = "MESH_OT_subdivide_edgering";
+
+	/* api callbacks */
+	ot->exec = edbm_subdivide_edge_ring_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	mesh_operator_edgering_props(ot, 10);
 }
 
 
@@ -3823,6 +3922,22 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 			             "delete geom=%hf context=%i",
 			             BM_ELEM_TAG, DEL_FACES);
 		}
+
+		if (use_merge == false) {
+			struct EdgeRingOpSubdProps op_props;
+			mesh_operator_edgering_props_get(op, &op_props);
+
+			if (op_props.cuts) {
+				/* we only need face normals updated */
+				EDBM_mesh_normals_update(em);
+
+				BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+				             "subdivide_edgering edges=%S interp_mode=%i cuts=%i smooth=%f "
+				             "profile_shape=%i profile_shape_factor=%f",
+				             &bmop, "edges.out", op_props.interp_mode, op_props.cuts, op_props.smooth,
+				             op_props.profile_shape, op_props.profile_shape_factor);
+			}
+		}
 	}
 
 	if (totface_del_arr) {
@@ -3865,6 +3980,8 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_merge", false, "Merge", "Merge rather than creating faces");
 	RNA_def_float(ot->srna, "merge_factor", 0.5f, 0.0f, 1.0f, "Merge Factor", "", 0.0f, 1.0f);
+
+	mesh_operator_edgering_props(ot, 0);
 }
 
 static int edbm_wireframe_exec(bContext *C, wmOperator *op)

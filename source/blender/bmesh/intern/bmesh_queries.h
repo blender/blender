@@ -116,4 +116,7 @@ bool BM_face_is_any_edge_flag_test(BMFace *f, const char hflag);
 
 float BM_mesh_calc_volume(BMesh *bm, bool is_signed);
 
+/* not really any good place  to put this */
+float bmesh_subd_falloff_calc(const int falloff, float val);
+
 #endif /* __BMESH_QUERIES_H__ */

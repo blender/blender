@@ -97,6 +97,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op);
 void bmo_split_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_split_exec(BMesh *bm, BMOperator *op);
 void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op);
+void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op);
 void bmo_symmetrize_exec(BMesh *bm, BMOperator *op);
 void bmo_transform_exec(BMesh *bm, BMOperator *op);
 void bmo_translate_exec(BMesh *bm, BMOperator *op);

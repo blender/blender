@@ -61,6 +61,18 @@ enum {
 	SIM_CMP_LT
 };
 
+/* subdivide_edgering */
+enum {
+	/* just subdiv */
+	SUBD_RING_INTERP_LINEAR,
+
+	/* single bezier spline - curve follows bezier rotation */
+	SUBD_RING_INTERP_PATH,
+
+	/* beziers based on adjacent faces (fallback to tangent) */
+	SUBD_RING_INTERP_SURF,
+};
+
 /* similar face selection slot values */
 enum {
 	SIMFACE_MATERIAL = 201,

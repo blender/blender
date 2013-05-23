@@ -1416,6 +1416,7 @@ BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
 	BMEdge *e;
 
 	BLI_assert(v1 != v2);
+	BLI_assert(v1->head.htype == BM_VERT && v2->head.htype == BM_VERT);
 
 	BM_ITER_ELEM (e, &iter, v1, BM_EDGES_OF_VERT) {
 		if (e->v1 == v2 || e->v2 == v2)
@@ -1755,4 +1756,28 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 	}
 
 	return vol;
+}
+
+float bmesh_subd_falloff_calc(const int falloff, float val)
+{
+	switch (falloff) {
+		case SUBD_FALLOFF_SMOOTH:
+			val = 3.0f * val * val - 2.0f * val * val * val;
+			break;
+		case SUBD_FALLOFF_SPHERE:
+			val = sqrtf(2.0f * val - val * val);
+			break;
+		case SUBD_FALLOFF_ROOT:
+			val = sqrtf(val);
+			break;
+		case SUBD_FALLOFF_SHARP:
+			val = val * val;
+			break;
+		case SUBD_FALLOFF_LIN:
+			break;
+		default:
+			BLI_assert(0);
+	}
+
+	return val;
 }

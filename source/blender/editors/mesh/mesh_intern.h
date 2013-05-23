@@ -159,6 +159,7 @@ extern struct EnumPropertyItem *corner_type_items;
 
 /* *** editmesh_tools.c *** */
 void MESH_OT_subdivide(struct wmOperatorType *ot);
+void MESH_OT_subdivide_edgering(struct wmOperatorType *ot);
 void MESH_OT_unsubdivide(struct wmOperatorType *ot);
 void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);

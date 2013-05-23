@@ -178,25 +178,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 
 		/* falloff for multi subdivide */
 		val = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
-
-		switch (params->smooth_falloff) {
-			case SUBD_FALLOFF_SMOOTH:
-				val = 3.0f * val * val - 2.0f * val * val * val;
-				break;
-			case SUBD_FALLOFF_SPHERE:
-				val = sqrtf(2.0f * val - val * val);
-				break;
-			case SUBD_FALLOFF_ROOT:
-				val = sqrtf(val);
-				break;
-			case SUBD_FALLOFF_SHARP:
-				val = val * val;
-				break;
-			case SUBD_FALLOFF_LIN:
-				break;
-			default:
-				BLI_assert(0);
-		}
+		val = bmesh_subd_falloff_calc(params->smooth_falloff, val);
 
 		mul_v3_fl(tvec, params->smooth * val * len);
 

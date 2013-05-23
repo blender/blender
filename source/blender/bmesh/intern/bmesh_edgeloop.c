@@ -504,8 +504,27 @@ const float *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store)
 	return el_store->co;
 }
 
-
+#define NODE_AS_V(n)  ((BMVert *)((LinkData *)n)->data)
 #define NODE_AS_CO(n) ((BMVert *)((LinkData *)n)->data)->co
+
+/**
+ * edges are assined to one vert -> the next.
+ */
+void BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr)
+{
+	LinkData *node;
+	int i = 0;
+	for (node = el_store->verts.first; node && node->next; node = node->next) {
+		e_arr[i++] = BM_edge_exists(NODE_AS_V(node), NODE_AS_V(node->next));
+		BLI_assert(e_arr[i - 1] != NULL);
+	}
+
+	if (el_store->flag & BM_EDGELOOP_IS_CLOSED) {
+		e_arr[i] = BM_edge_exists(NODE_AS_V(el_store->verts.first), NODE_AS_V(el_store->verts.last));
+		BLI_assert(e_arr[i] != NULL);
+	}
+	BLI_assert(el_store->len == i + 1);
+}
 
 void BM_edgeloop_calc_center(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 {

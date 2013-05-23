@@ -54,6 +54,7 @@ int                 BM_edgeloop_length_get(struct BMEdgeLoopStore *el_store);
 struct ListBase    *BM_edgeloop_verts_get(struct BMEdgeLoopStore *el_store);
 const float        *BM_edgeloop_normal_get(struct BMEdgeLoopStore *el_store);
 const float        *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store);
+void                BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr);
 void                BM_edgeloop_calc_center(BMesh *bm, struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_calc_normal(BMesh *bm, struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_flip(BMesh *bm, struct BMEdgeLoopStore *el_store);
@@ -61,7 +62,11 @@ void                BM_edgeloop_expand(BMesh *bm, struct BMEdgeLoopStore *el_sto
 
 bool                BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a, struct BMEdgeLoopStore *el_store_b);
 
-#define BM_EDGELOOP_NEXT(el_store, elink) \
+#define BM_EDGELINK_NEXT(el_store, elink) \
 	(elink)->next ? elink->next : (BM_edgeloop_is_closed(el_store) ? BM_edgeloop_verts_get(el_store)->first : NULL)
+
+#define BM_EDGELOOP_NEXT(el_store) \
+	(CHECK_TYPE_INLINE(el_store, struct BMEdgeLoopStore), \
+	 (struct BMEdgeLoopStore *)((LinkData *)el_store)->next)
 
 #endif  /* __BMESH_EDGELOOP_H__ */

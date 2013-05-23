@@ -62,6 +62,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
 	WM_operatortype_append(MESH_OT_merge);
 	WM_operatortype_append(MESH_OT_subdivide);
+	WM_operatortype_append(MESH_OT_subdivide_edgering);
 	WM_operatortype_append(MESH_OT_unsubdivide);
 	WM_operatortype_append(MESH_OT_faces_select_linked_flat);
 	WM_operatortype_append(MESH_OT_edges_select_sharp);
