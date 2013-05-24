@@ -23,7 +23,7 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,threads:,help,with-all,with-osl,with-opencollada,all-static,force-all,\
+--long source:,install:,tmp:,threads:,help,with-all,with-osl,with-opencollada,all-static,force-all,\
 force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
 force-ffmpeg,skip-python,skip-numpy,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,\
 skip-opencollada \
@@ -34,6 +34,7 @@ DISTRO=""
 RPM=""
 SRC="$HOME/src/blender-deps"
 INST="/opt/lib"
+TMP="/tmp"
 CWD=$PWD
 
 # Do not install some optional, potentially conflicting libs by default...
@@ -78,6 +79,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     -i <path>, --install=<path>
         Use a specific path where to install built libraries (defaults to '\$INST').
+
+    --tmp=<path>
+        Use a specific temp path (defaults to '\$TMP').
 
     -t n, --threads=n
         Use a specific number of threads when building the libraries (auto-detected as '\$THREADS').
@@ -203,7 +207,7 @@ OPENEXR_SKIP=false
 _with_built_openexr=false
 
 OIIO_VERSION="1.1.10"
-OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION.tar.gz"
+OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
 OIIO_VERSION_MIN="1.1"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -284,6 +288,9 @@ while true; do
     ;;
     -i|--install)
       INST="$2"; shift; shift; continue
+    ;;
+    --tmp)
+      TMP="$2"; shift; shift; continue
     ;;
     -t|--threads)
       THREADS="$2"; shift; shift; continue
@@ -779,21 +786,25 @@ compile_OCIO() {
 
 compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
-  ilmbase_magic=4
+  ilmbase_magic=5
 
   _src=$SRC/ILMBase-$ILMBASE_VERSION
-  _inst=$INST/ilmbase-$ILMBASE_VERSION
+  _inst=$TMP/ilmbase-$ILMBASE_VERSION
 
   # Clean install if needed!
   magic_compile_check ilmbase-$ILMBASE_VERSION $ilmbase_magic
 
   if [ $? -eq 1 -o $OPENEXR_FORCE_REBUILD == true ]; then
     rm -rf $_src
+    rm -rf $_openexr_inst
     rm -rf $_inst
   fi
 
-  if [ ! -d $_inst ]; then
+  if [ ! -d $_openexr_inst ]; then
     INFO "Building ILMBase-$ILMBASE_VERSION"
+
+    # Rebuild dependecies as well!
+    OPENEXR_FORCE_REBUILD=true
 
     prepare_opt
 
@@ -851,8 +862,8 @@ EOF
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/ilmbase
-      ln -s ilmbase-$ILMBASE_VERSION $INST/ilmbase
+      rm -f $TMP/ilmbase
+      ln -s ilmbase-$ILMBASE_VERSION $TMP/ilmbase
     else
       ERROR "ILMBase-$ILMBASE_VERSION failed to compile, exiting"
       exit 1
@@ -869,13 +880,14 @@ EOF
 }
 
 compile_OPENEXR() {
+  _openexr_inst=$INST/openexr-$OPENEXR_VERSION
   compile_ILMBASE
 
   # To be changed each time we make edits that would modify the compiled result!
   openexr_magic=10
 
   _src=$SRC/OpenEXR-$OPENEXR_VERSION
-  _inst=$INST/openexr-$OPENEXR_VERSION
+  _inst=$_openexr_inst
 
   # Clean install if needed!
   magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
@@ -1027,7 +1039,7 @@ EOF
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$INST/ilmbase-$ILMBASE_VERSION"
+    cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$TMP/ilmbase"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -1047,6 +1059,8 @@ EOF
     if [ -d $_inst ]; then
       rm -f $INST/openexr
       ln -s openexr-$OPENEXR_VERSION $INST/openexr
+      # Copy ilmbase files here (blender expects same dir for ilmbase and openexr :/).
+      cp -Lrn $TMP/ilmbase/* $INST/openexr
     else
       ERROR "OpenEXR-$OPENEXR_VERSION failed to compile, exiting"
       exit 1
@@ -1066,7 +1080,7 @@ EOF
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=10
+  oiio_magic=11
 
   _src=$SRC/OpenImageIO-$OIIO_VERSION
   _inst=$INST/oiio-$OIIO_VERSION
@@ -1091,7 +1105,7 @@ compile_OIIO() {
       wget -c $OIIO_SOURCE -O "$_src.tar.gz"
 
       INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-      tar -C $SRC --transform "s,(.*/?)OpenImageIO-oiio[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
+      tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
           -xf $_src.tar.gz
 
       cd $_src
@@ -1224,6 +1238,18 @@ compile_OIIO() {
    /usr/local/lib
    /sw/lib
    /opt/local/lib)
+--- a/src/libutil/tbb_misc.cpp
++++ b/src/libutil/tbb_misc.cpp
+@@ -44,7 +44,8 @@
+ 
+ using namespace std;
+ 
+-#include "tbb/tbb_machine.h"
++//#include "tbb/tbb_machine.h"
++#include "tbb/tbb_assert_impl.h"
+ 
+ namespace tbb {
+ 
 EOF
 
       cd $CWD
@@ -1244,7 +1270,7 @@ EOF
     cmake_d="$cmake_d -D BUILDSTATIC=OFF"
 
     if [ $_with_built_openexr == true ]; then
-      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/ilmbase"
+      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
       cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
       cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
     fi
@@ -1450,8 +1476,8 @@ compile_OSL() {
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
 
     if [ $_with_built_openexr == true ]; then
-      cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr-$OPENEXR_VERSION"
-      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/ilmbase-$ILMBASE_VERSION"
+      #cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
+      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
     fi
 
     if [ -d $INST/boost ]; then
@@ -2706,6 +2732,12 @@ print_info_ffmpeglink() {
 
 print_info() {
   INFO ""
+  INFO ""
+  INFO "****WARNING****"
+  INFO "If you are experiencing issues building Blender, _*TRY A FRESH, CLEAN BUILD FIRST*_!"
+  INFO "Often, changes in the libs built by this script, or in your distro package, cannot simply be handled simply, so..."
+  INFO ""
+  INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
 
   _buildargs=""
@@ -2753,6 +2785,12 @@ print_info() {
       INFO "  $_7"
       _buildargs="$_buildargs $_1 $_2 $_3 $_4 $_5 $_6 $_7"
     fi
+  fi
+
+  if [ -d $INST/openexr ]; then
+    _1="-D OPENEXR_ROOT_DIR=$INST/openexr"
+    INFO "  $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if $WITH_OSL; then
@@ -2814,6 +2852,10 @@ print_info() {
   INFO "WITH_BF_OCIO = True"
   if [ -d $INST/ocio ]; then
     INFO "BF_OCIO = '$INST/ocio'"
+  fi
+
+  if [ -d $INST/openexr ]; then
+    INFO "BF_OPENEXR = '$INST/openexr'"
   fi
 
   INFO "WITH_BF_OIIO = True"
