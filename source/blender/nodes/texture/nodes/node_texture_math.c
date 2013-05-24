@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,7 +34,7 @@
 #include "NOD_texture.h"
 
 
-/* **************** SCALAR MATH ******************** */ 
+/* **************** SCALAR MATH ******************** */
 static bNodeSocketTemplate inputs[] = {
 	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
 	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
@@ -50,65 +50,65 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 {
 	float in0 = tex_input_value(in[0], p, thread);
 	float in1 = tex_input_value(in[1], p, thread);
-	
+
 	switch (node->custom1) {
-	
-	case 0: /* Add */
-		*out= in0 + in1; 
-		break; 
-	case 1: /* Subtract */
-		*out= in0 - in1;
-		break; 
-	case 2: /* Multiply */
-		*out= in0 * in1; 
-		break; 
-	case 3: /* Divide */
+
+		case 0: /* Add */
+			*out = in0 + in1;
+			break;
+		case 1: /* Subtract */
+			*out = in0 - in1;
+			break;
+		case 2: /* Multiply */
+			*out = in0 * in1;
+			break;
+		case 3: /* Divide */
 		{
-			if (in1==0)	/* We don't want to divide by zero. */
-				*out= 0.0;
+			if (in1 == 0) /* We don't want to divide by zero. */
+				*out = 0.0;
 			else
-				*out= in0 / in1;
-			}
-		break;
-	case 4: /* Sine */
-		{
-			*out= sin(in0);
+				*out = in0 / in1;
+			break;
 		}
-		break;
-	case 5: /* Cosine */
+		case 4: /* Sine */
 		{
-			*out= cos(in0);
+			*out = sin(in0);
+			break;
 		}
-		break;
-	case 6: /* Tangent */
+		case 5: /* Cosine */
 		{
-			*out= tan(in0);
+			*out = cos(in0);
+			break;
 		}
-		break;
-	case 7: /* Arc-Sine */
+		case 6: /* Tangent */
+		{
+			*out = tan(in0);
+			break;
+		}
+		case 7: /* Arc-Sine */
 		{
 			/* Can't do the impossible... */
 			if (in0 <= 1 && in0 >= -1)
-				*out= asin(in0);
+				*out = asin(in0);
 			else
-				*out= 0.0;
+				*out = 0.0;
+			break;
 		}
-		break;
-	case 8: /* Arc-Cosine */
+		case 8: /* Arc-Cosine */
 		{
 			/* Can't do the impossible... */
 			if (in0 <= 1 && in0 >= -1)
-				*out= acos(in0);
+				*out = acos(in0);
 			else
-				*out= 0.0;
+				*out = 0.0;
+			break;
 		}
-		break;
-	case 9: /* Arc-Tangent */
+		case 9: /* Arc-Tangent */
 		{
-			*out= atan(in0);
+			*out = atan(in0);
+			break;
 		}
-		break;
-	case 10: /* Power */
+		case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
 			if (in0 >= 0) {
@@ -123,70 +123,71 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 					*out = 0.0;
 				}
 			}
+			break;
 		}
-		break;
-	case 11: /* Logarithm */
+		case 11: /* Logarithm */
 		{
 			/* Don't want any imaginary numbers... */
 			if (in0 > 0  && in1 > 0)
-				*out= log(in0) / log(in1);
+				*out = log(in0) / log(in1);
 			else
-				*out= 0.0;
+				*out = 0.0;
+			break;
 		}
-		break;
-	case 12: /* Minimum */
+		case 12: /* Minimum */
 		{
 			if (in0 < in1)
-				*out= in0;
+				*out = in0;
 			else
-				*out= in1;
+				*out = in1;
+			break;
 		}
-		break;
-	case 13: /* Maximum */
+		case 13: /* Maximum */
 		{
 			if (in0 > in1)
-				*out= in0;
+				*out = in0;
 			else
-				*out= in1;
+				*out = in1;
+			break;
 		}
-		break;
-	case 14: /* Round */
+		case 14: /* Round */
 		{
-			*out= (in0 < 0) ? (int)(in0 - 0.5f) : (int)(in0 + 0.5f);
+			*out = (in0 < 0) ? (int)(in0 - 0.5f) : (int)(in0 + 0.5f);
+			break;
 		}
-		break; 
-		
-	case 15: /* Less Than */
+
+		case 15: /* Less Than */
 		{
 			if (in0 < in1)
-				*out= 1.0f;
+				*out = 1.0f;
 			else
-				*out= 0.0f;
+				*out = 0.0f;
+			break;
 		}
-		break;
-		
-	case 16: /* Greater Than */
+
+		case 16: /* Greater Than */
 		{
 			if (in0 > in1)
-				*out= 1.0f;
+				*out = 1.0f;
 			else
-				*out= 0.0f;
+				*out = 0.0f;
+			break;
 		}
-		break;
-		
-	case 17: /* Modulo */
+
+		case 17: /* Modulo */
 		{
 			if (in1 == 0.0f)
 				*out = 0.0f;
 			else
-				*out= fmod(in0, in1);
+				*out = fmod(in0, in1);
+			break;
 		}
-		break;
-		
-	default:
-		fprintf(stderr,
-			"%s:%d: unhandeld value in switch statement: %d\n",
-			__FILE__, __LINE__, node->custom1);
+		default:
+		{
+			fprintf(stderr,
+			        "%s:%d: unhandeld value in switch statement: %d\n",
+			        __FILE__, __LINE__, node->custom1);
+		}
 	}
 }
 
@@ -198,12 +199,12 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 void register_node_type_tex_math(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_label(&ntype, node_math_label);
 	node_type_storage(&ntype, "node_math", NULL, NULL);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	nodeRegisterType(&ntype);
 }

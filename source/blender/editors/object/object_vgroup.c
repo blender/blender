@@ -1584,7 +1584,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 }
 
 static void vgroup_levels_subset(Object *ob, bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count), 
-								 const float offset, const float gain)
+                                 const float offset, const float gain)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
@@ -1605,7 +1605,7 @@ static void vgroup_levels_subset(Object *ob, bool *vgroup_validmap, const int vg
 			}
 
 			j = vgroup_tot;
-			while(j--) {
+			while (j--) {
 				if (vgroup_validmap[j]) {
 					dw = defvert_find_index(dv, j);
 					if (dw) {
@@ -1718,7 +1718,6 @@ static void vgroup_invert_subset(Object *ob, bool *vgroup_validmap, const int vg
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
-	const int def_nr = ob->actdef - 1;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
