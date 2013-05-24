@@ -126,7 +126,7 @@ PROMPT = '>>> '
 PROMPT_MULTI = '... '
 
 
-def execute(context):
+def execute(context, is_interactive):
     sc = context.space_data
 
     try:
@@ -190,9 +190,12 @@ def execute(context):
 
     if is_multiline:
         sc.prompt = PROMPT_MULTI
-        indent = line[:len(line) - len(line.lstrip())]
-        if line.rstrip().endswith(":"):
-            indent += "    "
+        if is_interactive:
+            indent = line[:len(line) - len(line.lstrip())]
+            if line.rstrip().endswith(":"):
+                indent += "    "
+        else:
+            indent = ""
     else:
         sc.prompt = PROMPT
         indent = ""
