@@ -1951,9 +1951,9 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 	/* Polygon Normal and edge-vector */
 	/* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
 	{
-		float const *v_prev = mvert[ml[nverts - 1].v].co;
-		float const *v_curr;
 		int i_prev = nverts - 1;
+		float const *v_prev = mvert[ml[i_prev].v].co;
+		float const *v_curr;
 
 		zero_v3(polyno);
 		/* Newell's Method */
@@ -1979,14 +1979,13 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 
 		for (i = 0; i < nverts; i++) {
 			const float *cur_edge = edgevecbuf[i];
-			unsigned int vindex = ml[i].v;
 
 			/* calculate angle between the two poly edges incident on
 			 * this vertex */
 			const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
 			/* accumulate */
-			madd_v3_v3fl(tnorms[vindex], polyno, fac);
+			madd_v3_v3fl(tnorms[ml[i].v], polyno, fac);
 			prev_edge = cur_edge;
 		}
 	}
