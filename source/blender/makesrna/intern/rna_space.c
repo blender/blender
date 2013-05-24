@@ -277,9 +277,9 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, P
 	int i = V3D_MANIP_CUSTOM, totitem = 0;
 
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GLOBAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_NORMAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GIMBAL);
-	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
 
 	if (ptr->type == &RNA_SpaceView3D)
