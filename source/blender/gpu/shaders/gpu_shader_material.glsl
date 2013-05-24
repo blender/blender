@@ -2063,7 +2063,7 @@ void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, out vec4 re
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_toon(vec4 color, float size, float smooth, vec3 N, out vec4 result)
+void node_bsdf_toon(vec4 color, float size, float tsmooth, vec3 N, out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
