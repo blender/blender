@@ -113,6 +113,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-ocio
         Force the rebuild of OpenColorIO.
 
+    --force-openexr
+        Force the rebuild of OpenEXR.
+
     --force-oiio
         Force the rebuild of OpenImageIO.
 
@@ -146,6 +149,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --skip-ocio
         Unconditionally skip OpenColorIO installation/building.
+
+    --skip-openexr
+        Unconditionally skip OpenEXR installation/building.
 
     --skip-oiio
         Unconditionally skip OpenImageIO installation/building.
@@ -187,8 +193,17 @@ OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OIIO_VERSION="1.1.7"
-OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION"
+OPENEXR_VERSION="2.0.0"
+OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
+OPENEXR_VERSION_MIN="2.0"
+ILMBASE_VERSION="2.0.0"
+ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz"
+OPENEXR_FORCE_REBUILD=false
+OPENEXR_SKIP=false
+_with_built_openexr=false
+
+OIIO_VERSION="1.1.10"
+OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION.tar.gz"
 OIIO_VERSION_MIN="1.1"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -203,7 +218,7 @@ LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.3.0"
-OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-1.3.0.tar.gz"
+OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
@@ -308,7 +323,9 @@ while true; do
       shift; continue
     ;;
     --force-python)
-      PYTHON_FORCE_REBUILD=true; shift; continue
+      PYTHON_FORCE_REBUILD=true
+      NUMPY_FORCE_REBUILD=true
+      shift; continue
     ;;
     --force-numpy)
       NUMPY_FORCE_REBUILD=true; shift; continue
@@ -319,11 +336,17 @@ while true; do
     --force-ocio)
       OCIO_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-openexr)
+      OPENEXR_FORCE_REBUILD=true; shift; continue
+    ;;
     --force-oiio)
-      OIIO_FORCE_REBUILD=true; shift; continue
+      OIIO_FORCE_REBUILD=true
+      shift; continue
     ;;
     --force-llvm)
-      LLVM_FORCE_REBUILD=true; shift; continue
+      LLVM_FORCE_REBUILD=true
+      OSL_FORCE_REBUILD=true
+      shift; continue
     ;;
     --force-osl)
       OSL_FORCE_REBUILD=true; shift; continue
@@ -345,6 +368,9 @@ while true; do
     ;;
     --skip-ocio)
       OCIO_SKIP=true; shift; continue
+    ;;
+    --skip-openexr)
+      OPENEXR_SKIP=true; shift; continue
     ;;
     --skip-oiio)
       OIIO_SKIP=true; shift; continue
@@ -632,6 +658,10 @@ compile_Boost() {
   if [ ! -d $_inst ]; then
     INFO "Building Boost-$BOOST_VERSION"
 
+    # Rebuild dependecies as well!
+    OIIO_FORCE_REBUILD=true
+    OSL_FORCE_REBUILD=true
+
     prepare_opt
 
     if [ ! -d $_src ]; then
@@ -658,10 +688,6 @@ compile_Boost() {
     fi
 
     magic_compile_set boost-$BOOST_VERSION $boost_magic
-
-    # Rebuild dependecies as well!
-    OIIO_FORCE_REBUILD=true
-    OSL_FORCE_REBUILD=true
 
     cd $CWD
     INFO "Done compiling Boost-$BOOST_VERSION!"
@@ -751,31 +777,50 @@ compile_OCIO() {
   fi
 }
 
-compile_OIIO() {
+compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=7
+  ilmbase_magic=4
 
-  _src=$SRC/OpenImageIO-$OIIO_VERSION
-  _inst=$INST/oiio-$OIIO_VERSION
+  _src=$SRC/ILMBase-$ILMBASE_VERSION
+  _inst=$INST/ilmbase-$ILMBASE_VERSION
 
   # Clean install if needed!
-  magic_compile_check oiio-$OIIO_VERSION $oiio_magic
-  if [ $? -eq 1 -o $OIIO_FORCE_REBUILD == true ]; then
+  magic_compile_check ilmbase-$ILMBASE_VERSION $ilmbase_magic
+
+  if [ $? -eq 1 -o $OPENEXR_FORCE_REBUILD == true ]; then
+    rm -rf $_src
     rm -rf $_inst
   fi
 
   if [ ! -d $_inst ]; then
-    INFO "Building OpenImageIO-$OIIO_VERSION"
+    INFO "Building ILMBase-$ILMBASE_VERSION"
 
     prepare_opt
 
     if [ ! -d $_src ]; then
+      INFO "Downloading ILMBase-$ILMBASE_VERSION"
       mkdir -p $SRC
-      wget -c $OIIO_SOURCE -O "$_src.tar.gz"
+      wget -c $ILMBASE_SOURCE -O $_src.tar.gz
 
-      INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-      tar -C $SRC --transform "s,(.*/?)OpenImageIO-oiio[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
+      INFO "Unpacking ILMBase-$ILMBASE_VERSION"
+      tar -C $SRC --transform "s,(.*/?)ilmbase-[^/]*(.*),\1ILMBase-$ILMBASE_VERSION\2,x" \
           -xf $_src.tar.gz
+
+      cd $_src
+
+      # XXX Ugly patching hack!
+      cat << EOF | patch -p1
+--- a/Half/CMakeLists.txt
++++ b/Half/CMakeLists.txt
+@@ -47,6 +47,7 @@
+ 
+ INSTALL ( FILES 
+   half.h
++  halfExport.h
+   halfFunction.h
+   halfLimits.h
+   DESTINATION
+EOF
 
       cd $CWD
 
@@ -792,12 +837,423 @@ compile_OIIO() {
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D BUILDSTATIC=ON"
-	
+
+    if file /bin/cp | grep -q '32-bit'; then
+      cflags="-fPIC -m32 -march=i686"
+    else
+      cflags="-fPIC"
+    fi
+
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ..
+
+    make -j$THREADS && make install
+
+    make clean
+
+    if [ -d $_inst ]; then
+      rm -f $INST/ilmbase
+      ln -s ilmbase-$ILMBASE_VERSION $INST/ilmbase
+    else
+      ERROR "ILMBase-$ILMBASE_VERSION failed to compile, exiting"
+      exit 1
+    fi
+  else
+    INFO "Own ILMBase-$ILMBASE_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib (and openexr), use the --force-openexr option."
+  fi
+
+  magic_compile_set ilmbase-$ILMBASE_VERSION $ilmbase_magic
+
+  cd $CWD
+  INFO "Done compiling ILMBase-$ILMBASE_VERSION!"
+}
+
+compile_OPENEXR() {
+  compile_ILMBASE
+
+  # To be changed each time we make edits that would modify the compiled result!
+  openexr_magic=10
+
+  _src=$SRC/OpenEXR-$OPENEXR_VERSION
+  _inst=$INST/openexr-$OPENEXR_VERSION
+
+  # Clean install if needed!
+  magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
+  if [ $? -eq 1 -o $OPENEXR_FORCE_REBUILD == true ]; then
+    rm -rf $_src
+    rm -rf $_inst
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building OpenEXR-$OPENEXR_VERSION"
+
+    # Rebuild dependecies as well!
+    OIIO_FORCE_REBUILD=true
+    OSL_FORCE_REBUILD=true
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      INFO "Downloading OpenEXR-$OPENEXR_VERSION"
+      mkdir -p $SRC
+      wget -c $OPENEXR_SOURCE -O $_src.tar.gz
+
+      INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
+      tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" \
+          -xf $_src.tar.gz
+
+      cd $_src
+
+      # XXX Ugly patching hack!
+      cat << EOF | patch -p1
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -42,7 +42,7 @@
+ ADD_SUBDIRECTORY ( exrmakepreview )
+ ADD_SUBDIRECTORY ( exrenvmap )
+ ADD_SUBDIRECTORY ( exrmultiview )
+-ADD_SUBDIRECTORY ( exr2aces )
++#ADD_SUBDIRECTORY ( exr2aces )
+ ADD_SUBDIRECTORY ( exrmultipart )
+ 
+ ##########################
+@@ -52,11 +52,11 @@
+ # Documentation
+ INSTALL ( FILES
+   doc/TechnicalIntroduction.pdf
+-  doc/TechnicalIntroduction_2.0.pdf
++#  doc/TechnicalIntroduction_2.0.pdf
+   doc/ReadingAndWritingImageFiles.pdf
+   doc/OpenEXRFileLayout.pdf
+-  doc/OpenEXRFileLayout_2.0.pdf
+-  doc/ReadingAndWritingImageFiles_2.0.pdf
++#  doc/OpenEXRFileLayout_2.0.pdf
++#  doc/ReadingAndWritingImageFiles_2.0.pdf
+   doc/MultiViewOpenEXR.pdf
+   DESTINATION
+   ${CMAKE_INSTALL_PREFIX}/share/doc/OpenEXR-2.0.0
+--- a/IlmImfFuzzTest/CMakeLists.txt
++++ b/IlmImfFuzzTest/CMakeLists.txt
+@@ -4,7 +4,9 @@
+   fuzzFile.cpp
+   main.cpp
+   testFuzzScanLines.cpp
++  testFuzzDeepScanLines.cpp
+   testFuzzTiles.cpp
++  testFuzzDeepTiles.cpp
+   )
+ 
+ TARGET_LINK_LIBRARIES ( IlmImfFuzzTest IlmImf Iex Imath Half IlmThread ${PTHREAD_LIB} ${Z_LIB})
+--- a/IlmImfTest/CMakeLists.txt
++++ b/IlmImfTest/CMakeLists.txt
+@@ -19,22 +19,26 @@
+   testCustomAttributes.cpp
+   testDeepScanLineBasic.cpp
+   testDeepScanLineHuge.cpp
++  testDeepScanLineMultipleRead.cpp
+   testDeepTiledBasic.cpp
+   testExistingStreams.cpp
++  testFutureProofing.cpp
+   testHuf.cpp
+   testInputPart.cpp
+   testIsComplete.cpp
+   testLineOrder.cpp
+   testLut.cpp
+   testMagic.cpp
+   testMultiPartApi.cpp
+   testMultiPartFileMixingBasic.cpp
+   testMultiPartSharedAttributes.cpp
+   testMultiPartThreading.cpp
+   testMultiScanlinePartThreading.cpp
+   testMultiTiledPartThreading.cpp
+   testMultiView.cpp
+   testNativeFormat.cpp
++  testOptimized.cpp
++  testPartHelper.cpp
+   testPreviewImage.cpp
+   testRgba.cpp
+   testRgbaThreading.cpp
+--- a/IlmImf/CMakeLists.txt
++++ b/IlmImf/CMakeLists.txt
+@@ -153,18 +153,18 @@
+   ImfCompositeDeepScanLine.cpp
+ )
+ 
+-ADD_LIBRARY ( IlmImf STATIC
+-  \${ILMIMF_SRCS}
+-)
+-
+-# TARGET_LINK_LIBRARIES ( IlmImf)
+-
+-ADD_DEPENDENCIES ( IlmImf b44ExpLogTable )
++ADD_LIBRARY ( IlmImf STATIC \${ILMIMF_SRCS} )
++ADD_DEPENDENCIES ( IlmImf b44ExpLogTable )
++
++ADD_LIBRARY ( IlmImf_dyn SHARED \${ILMIMF_SRCS} )
++SET_TARGET_PROPERTIES ( IlmImf_dyn PROPERTIES OUTPUT_NAME IlmImf)
++ADD_DEPENDENCIES ( IlmImf_dyn b44ExpLogTable )
++TARGET_LINK_LIBRARIES ( IlmImf_dyn Iex Imath Half IlmThread \${Z_LIB} \${PTHREAD_LIB} )
+ 
+ # Libraries
+ 
+ INSTALL ( TARGETS
+-  IlmImf
++  IlmImf IlmImf_dyn
+   DESTINATION
+   \${CMAKE_INSTALL_PREFIX}/lib
+ )
+@@ -168,6 +167,7 @@
+ INSTALL ( FILES
+   ${CMAKE_SOURCE_DIR}/config/OpenEXRConfig.h
+   ImfForward.h
++  ImfNamespace.h
+   ImfExport.h
+   ImfAttribute.h
+   ImfBoxAttribute.h
+EOF
+
+      cd $CWD
+
+    fi
+
+    cd $_src
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi    
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$INST/ilmbase-$ILMBASE_VERSION"
+
+    if file /bin/cp | grep -q '32-bit'; then
+      cflags="-fPIC -m32 -march=i686"
+    else
+      cflags="-fPIC"
+    fi
+
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ..
+
+    make -j$THREADS && make install
+
+    # Force linking against static libs
+#    rm -f $_inst/lib/*.so*
+
+    make clean
+
+    if [ -d $_inst ]; then
+      rm -f $INST/openexr
+      ln -s openexr-$OPENEXR_VERSION $INST/openexr
+    else
+      ERROR "OpenEXR-$OPENEXR_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set openexr-$OPENEXR_VERSION $openexr_magic
+
+    cd $CWD
+    INFO "Done compiling OpenEXR-$OPENEXR_VERSION!"
+  else
+    INFO "Own OpenEXR-$OPENEXR_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-openexr option."
+  fi
+
+  _with_built_openexr=true
+}
+
+compile_OIIO() {
+  # To be changed each time we make edits that would modify the compiled result!
+  oiio_magic=10
+
+  _src=$SRC/OpenImageIO-$OIIO_VERSION
+  _inst=$INST/oiio-$OIIO_VERSION
+
+  # Clean install if needed!
+  magic_compile_check oiio-$OIIO_VERSION $oiio_magic
+  if [ $? -eq 1 -o $OIIO_FORCE_REBUILD == true ]; then
+    rm -rf $_src
+    rm -rf $_inst
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building OpenImageIO-$OIIO_VERSION"
+
+    # Rebuild dependecies as well!
+    OSL_FORCE_REBUILD=true
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+      wget -c $OIIO_SOURCE -O "$_src.tar.gz"
+
+      INFO "Unpacking OpenImageIO-$OIIO_VERSION"
+      tar -C $SRC --transform "s,(.*/?)OpenImageIO-oiio[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
+          -xf $_src.tar.gz
+
+      cd $_src
+
+      # XXX Ugly patching hack!
+      cat << EOF | patch -p1
+--- a/src/libOpenImageIO/CMakeLists.txt
++++ b/src/libOpenImageIO/CMakeLists.txt
+@@ -289,12 +289,12 @@
+ 
+ add_executable (imagebuf_test imagebuf_test.cpp)
+-link_ilmbase (imagebuf_test)
+ target_link_libraries (imagebuf_test OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (imagebuf_test)
+ add_test (unit_imagebuf imagebuf_test)
+ 
+ add_executable (imagebufalgo_test imagebufalgo_test.cpp)
+-link_ilmbase (imagebufalgo_test)
+ target_link_libraries (imagebufalgo_test OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (imagebufalgo_test)
+ add_test (unit_imagebufalgo imagebufalgo_test)
+ 
+ 
+@@ -340,5 +340,6 @@
+ 
+ add_executable (imagespeed_test imagespeed_test.cpp)
+ target_link_libraries (imagespeed_test OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (imagespeed_test)
+ #add_test (unit_hash hash_test)
+ 
+--- a/src/iconvert/CMakeLists.txt
++++ b/src/iconvert/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ set (iconvert_srcs iconvert.cpp)
+ add_executable (iconvert \${iconvert_srcs})
+-link_ilmbase (iconvert)
+ target_link_libraries (iconvert OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (iconvert)
+ oiio_install_targets (iconvert)
+ 
+--- a/src/idiff/CMakeLists.txt
++++ b/src/idiff/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ set (idiff_srcs idiff.cpp)
+ add_executable (idiff \${idiff_srcs})
+-link_ilmbase (idiff)
+ target_link_libraries (idiff OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (idiff)
+ oiio_install_targets (idiff)
+ 
+--- a/src/igrep/CMakeLists.txt
++++ b/src/igrep/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ set (igrep_srcs igrep.cpp)
+ add_executable (igrep \${igrep_srcs})
+-link_ilmbase (igrep)
+ target_link_libraries (igrep OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (igrep)
+ oiio_install_targets (igrep)
+ 
+--- a/src/iinfo/CMakeLists.txt
++++ b/src/iinfo/CMakeLists.txt
+@@ -3,7 +3,7 @@
+ if (MSVC)
+     set_target_properties (OpenImageIO PROPERTIES LINK_FLAGS psapi.lib)
+ endif (MSVC)
+-link_ilmbase (iinfo)
+ target_link_libraries (iinfo OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (iinfo)
+ oiio_install_targets (iinfo)
+ 
+--- a/src/maketx/CMakeLists.txt
++++ b/src/maketx/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ set (maketx_srcs maketx.cpp)
+ add_executable (maketx \${maketx_srcs})
+-link_ilmbase (maketx)
+ target_link_libraries (maketx OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (maketx)
+ oiio_install_targets (maketx)
+ 
+--- a/src/oiiotool/CMakeLists.txt
++++ b/src/oiiotool/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ set (oiiotool_srcs oiiotool.cpp diff.cpp imagerec.cpp printinfo.cpp)
+ add_executable (oiiotool \${oiiotool_srcs})
+-link_ilmbase (oiiotool)
+ target_link_libraries (oiiotool OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (oiiotool)
+ oiio_install_targets (oiiotool)
+ 
+--- a/src/testtex/CMakeLists.txt
++++ b/src/testtex/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ set (testtex_srcs testtex.cpp)
+ add_executable (testtex \${testtex_srcs})
+-link_ilmbase (testtex)
+ target_link_libraries (testtex OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
++link_ilmbase (testtex)
+ 
+--- a/src/cmake/modules/FindIlmBase.cmake
++++ b/src/cmake/modules/FindIlmBase.cmake
+@@ -109,11 +109,13 @@
+ # Generic search paths
+ set (IlmBase_generic_include_paths
+   /usr/include
++  /usr/include/\${CMAKE_LIBRARY_ARCHITECTURE}
+   /usr/local/include
+   /sw/include
+   /opt/local/include)
+ set (IlmBase_generic_library_paths
+   /usr/lib
++  /usr/lib/\${CMAKE_LIBRARY_ARCHITECTURE}
+   /usr/local/lib
+   /sw/lib
+   /opt/local/lib)
+--- a/src/cmake/modules/FindOpenEXR.cmake
++++ b/src/cmake/modules/FindOpenEXR.cmake
+@@ -105,11 +105,13 @@
+ # Generic search paths
+ set (OpenEXR_generic_include_paths
+   /usr/include
++  /usr/include/\${CMAKE_LIBRARY_ARCHITECTURE}
+   /usr/local/include
+   /sw/include
+   /opt/local/include)
+ set (OpenEXR_generic_library_paths
+   /usr/lib
++  /usr/lib/\${CMAKE_LIBRARY_ARCHITECTURE}
+   /usr/local/lib
+   /sw/lib
+   /opt/local/lib)
+EOF
+
+      cd $CWD
+
+    fi
+
+    cd $_src
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi    
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D BUILDSTATIC=OFF"
+
+    if [ $_with_built_openexr == true ]; then
+      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/ilmbase"
+      cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
+      cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
+    fi
+
     # Optional tests and cmd tools
     cmake_d="$cmake_d -D USE_QT=OFF"
-    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
-    cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
+    cmake_d="$cmake_d -D BUILD_TESTING=OFF"
+    #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
 
     # linking statically could give issues on Debian/Ubuntu (and probably other distros
     # which doesn't like static linking) when linking shared oiio library due to missing
@@ -806,9 +1262,10 @@ compile_OIIO() {
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
-      if $ALL_STATIC; then
-        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"
-      fi
+      # XXX Does not work (looks like static boost are built without fPIC :/ ).
+      #if $ALL_STATIC; then
+        #cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"
+      #fi
     fi
 
     # Looks like we do not need ocio in oiio for now...
@@ -836,9 +1293,6 @@ compile_OIIO() {
     fi
 
     magic_compile_set oiio-$OIIO_VERSION $oiio_magic
-
-    # Rebuild dependecies as well!
-    OSL_FORCE_REBUILD=true
 
     cd $CWD
     INFO "Done compiling OpenImageIO-$OIIO_VERSION!"
@@ -948,7 +1402,7 @@ EOF
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=8
+  osl_magic=9
 
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
   _inst=$INST/osl-$OSL_VERSION
@@ -956,6 +1410,7 @@ compile_OSL() {
   # Clean install if needed!
   magic_compile_check osl-$OSL_VERSION $osl_magic
   if [ $? -eq 1 -o $OSL_FORCE_REBUILD == true ]; then
+    rm -rf $_src
     rm -rf $_inst
   fi
 
@@ -967,13 +1422,11 @@ compile_OSL() {
     if [ ! -d $_src ]; then
       mkdir -p $SRC
 
-      # XXX Using git on my own repo for now, looks like archives are not updated immediately... :/
-#      wget -c $OSL_SOURCE -O "$_src.tar.gz"
+      wget -c $OSL_SOURCE -O "$_src.tar.gz"
 
-#      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
-#      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
-#          -xf $_src.tar.gz
-      git clone https://github.com/mont29/OpenShadingLanguage.git $_src
+      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
+      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
+          -xf $_src.tar.gz
       cd $_src
       git checkout blender-fixes
       cd $CWD
@@ -995,6 +1448,11 @@ compile_OSL() {
     cmake_d="$cmake_d -D BUILDSTATIC=ON"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
+
+    if [ $_with_built_openexr == true ]; then
+      cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr-$OPENEXR_VERSION"
+      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/ilmbase-$ILMBASE_VERSION"
+    fi
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
@@ -1290,7 +1748,7 @@ install_DEB() {
   _packages="gawk cmake cmake-curses-gui scons build-essential libjpeg-dev libpng-dev \
              libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
              libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
-             libopenexr-dev libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV \
+             libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV \
              libsdl1.2-dev libfftw3-dev patch bzip2"
 
   OPENJPEG_USE=true
@@ -1445,11 +1903,23 @@ install_DEB() {
   fi
 
   INFO ""
+  if $OPENEXR_SKIP; then
+    INFO "WARNING! Skipping OpenEXR installation, as requested..."
+  else
+    check_package_version_ge_DEB libopenexr-dev $OPENEXR_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libopenexr-dev
+    else
+      compile_OPENEXR
+    fi
+  fi
+
+  INFO ""
   if $OIIO_SKIP; then
     INFO "WARNING! Skipping OpenImageIO installation, as requested..."
   else
     check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
-    if [ $? -eq 0 ]; then
+    if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_DEB libopenimageio-dev
     else
       compile_OIIO
@@ -2376,15 +2846,16 @@ print_info() {
 
   INFO ""
   INFO ""
-  INFO "WARNING: If this script had to build boost into $INST, and you are dynamically linking "
+  INFO "WARNING: If this script had to build boost and/or OIIO into $INST, and you are dynamically linking "
   INFO "         blender against it, you will have to run those commands as root user:"
   INFO ""
   INFO "    echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
+  INFO "    echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
   INFO "    ldconfig"
   INFO ""
 }
 
-# Detect distributive type used on this machine
+# Detect distribution type used on this machine
 detect_distro
 
 if [ -z "$DISTRO" ]; then
