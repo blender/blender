@@ -474,6 +474,45 @@ static EnumPropertyItem WT_vertex_group_select_item[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem *rna_vertex_group_selection_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+                                                PropertyRNA *UNUSED(prop), int *free)
+{
+	Object *ob;
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+
+	if (!C) /* needed for docs and i18n tools */
+		return WT_vertex_group_select_item;
+
+	ob = CTX_data_active_object(C);
+	RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ACTIVE);
+
+	if (BKE_object_pose_armature_get(ob)) {
+		RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_SELECT);
+		RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_DEFORM);
+	}
+
+	RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = true;
+
+	return item;
+}
+
+static void vgroup_operator_subset_select_props(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_enum(ot->srna,
+	                    "group_select_mode", DummyRNA_NULL_items,
+	                    WT_VGROUP_ACTIVE, "Subset",
+	                    "Define which subset of Groups shall be used");
+	RNA_def_enum_funcs(prop, rna_vertex_group_selection_itemf);
+	ot->prop = prop;
+}
+
 /* Copy weight.*/
 static void vgroup_transfer_weight(float *r_weight_dst, const float weight_src, const WT_ReplaceMode replace_mode)
 {
@@ -1544,34 +1583,37 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 	}
 }
 
-static void vgroup_levels(Object *ob, float offset, float gain)
+static void vgroup_levels_subset(Object *ob, bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count), 
+								 const float offset, const float gain)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
-	const int def_nr = ob->actdef - 1;
 
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
-
-	if (!BLI_findlink(&ob->defbase, def_nr)) {
-		return;
-	}
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
+
 		for (i = 0; i < dvert_tot; i++) {
+			int j;
 
 			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}
 
-			dw = defvert_find_index(dv, def_nr);
-			if (dw) {
-				dw->weight = gain * (dw->weight + offset);
+			j = vgroup_tot;
+			while(j--) {
+				if (vgroup_validmap[j]) {
+					dw = defvert_find_index(dv, j);
+					if (dw) {
+						dw->weight = gain * (dw->weight + offset);
 
-				CLAMP(dw->weight, 0.0f, 1.0f);
+						CLAMP(dw->weight, 0.0f, 1.0f);
+					}
+				}
 			}
 		}
 
@@ -2890,8 +2932,12 @@ static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 	
 	float offset = RNA_float_get(op->ptr, "offset");
 	float gain = RNA_float_get(op->ptr, "gain");
-	
-	vgroup_levels(ob, offset, gain);
+	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+
+	int subset_count, vgroup_tot;
+
+	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	vgroup_levels_subset(ob, vgroup_validmap, vgroup_tot, subset_count, offset, gain);
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -2914,6 +2960,7 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
+	vgroup_operator_subset_select_props(ot);
 	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights", -1.0f, 1.f);
 	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by", 0.0f, 10.f);
 }
@@ -2945,46 +2992,6 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
-static EnumPropertyItem *rna_vertex_group_selection_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                PropertyRNA *UNUSED(prop), int *free)
-{
-	Object *ob;
-	EnumPropertyItem *item = NULL;
-	int totitem = 0;
-
-
-	if (!C) /* needed for docs and i18n tools */
-		return WT_vertex_group_select_item;
-
-	ob = CTX_data_active_object(C);
-	RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ACTIVE);
-
-	if (BKE_object_pose_armature_get(ob)) {
-		RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_SELECT);
-		RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_DEFORM);
-	}
-
-	RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
-
-	RNA_enum_item_end(&item, &totitem);
-	*free = true;
-
-	return item;
-}
-
-static void vgroup_operator_subset_select_props(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_enum(ot->srna,
-	                    "group_select_mode", DummyRNA_NULL_items,
-	                    WT_VGROUP_ACTIVE, "Subset",
-	                    "Define which subset of Groups shall be used");
-	RNA_def_enum_funcs(prop, rna_vertex_group_selection_itemf);
-	ot->prop = prop;
-}
-
 
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
