@@ -1094,23 +1094,23 @@ static void vgroup_duplicate(Object *ob)
 /**
  * Return the subset type of the Vertex Group Selection
  */
-static bool *vgroup_subset_from_select_type(Object *ob, WT_VertexGroupSelect subset_type, int *r_subset_count)
+static bool *vgroup_subset_from_select_type(Object *ob, WT_VertexGroupSelect subset_type, int *r_vgroup_tot, int *r_subset_count)
 {
 	bool *vgroup_validmap = NULL;
-	const int defbase_tot = BLI_countlist(&ob->defbase);
+	*r_vgroup_tot = BLI_countlist(&ob->defbase);
 
 	switch (subset_type) {
 		case WT_VGROUP_ALL:
-			vgroup_validmap = MEM_mallocN(defbase_tot * sizeof(*vgroup_validmap), __func__);
-			memset(vgroup_validmap, true, sizeof(bool) * defbase_tot);
-			*r_subset_count = defbase_tot;
+			vgroup_validmap = MEM_mallocN(*r_vgroup_tot * sizeof(*vgroup_validmap), __func__);
+			memset(vgroup_validmap, true, *r_vgroup_tot * sizeof(*vgroup_validmap));
+			*r_subset_count = *r_vgroup_tot;
 			break;
 		case WT_VGROUP_ACTIVE:
 		{
 			const int def_nr_active = ob->actdef - 1;
-			vgroup_validmap = MEM_mallocN(defbase_tot * sizeof(*vgroup_validmap), __func__);
-			memset(vgroup_validmap, false, sizeof(bool) * defbase_tot);
-			if (def_nr_active < defbase_tot) {
+			vgroup_validmap = MEM_mallocN(*r_vgroup_tot * sizeof(*vgroup_validmap), __func__);
+			memset(vgroup_validmap, false, *r_vgroup_tot * sizeof(*vgroup_validmap));
+			if (def_nr_active < *r_vgroup_tot) {
 				*r_subset_count = 1;
 				vgroup_validmap[def_nr_active] = true;
 			}
@@ -1120,14 +1120,14 @@ static bool *vgroup_subset_from_select_type(Object *ob, WT_VertexGroupSelect sub
 			break;
 		}
 		case WT_VGROUP_BONE_SELECT: {
-			vgroup_validmap = BKE_objdef_selected_get(ob, defbase_tot, r_subset_count);
+			vgroup_validmap = BKE_objdef_selected_get(ob, *r_vgroup_tot, r_subset_count);
 			break;
 		}
 		case WT_VGROUP_BONE_DEFORM: {
 			int i;
-			vgroup_validmap = BKE_objdef_validmap_get(ob, defbase_tot);
+			vgroup_validmap = BKE_objdef_validmap_get(ob, *r_vgroup_tot);
 			*r_subset_count = 0;
-			for (i = 0; i < defbase_tot; i++) {
+			for (i = 0; i < *r_vgroup_tot; i++) {
 				if (vgroup_validmap[i])
 					*r_subset_count += 1;
 			}
@@ -1671,7 +1671,7 @@ static void vgroup_lock_all(Object *ob, int action)
 	}
 }
 
-static void vgroup_invert(Object *ob, const bool auto_assign, const bool auto_remove)
+static void vgroup_invert_subset(Object *ob, bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count), const bool auto_assign, const bool auto_remove)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
@@ -1679,32 +1679,34 @@ static void vgroup_invert(Object *ob, const bool auto_assign, const bool auto_re
 	const int def_nr = ob->actdef - 1;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	if (!BLI_findlink(&ob->defbase, def_nr)) {
-		return;
-	}
-
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 		for (i = 0; i < dvert_tot; i++) {
+			int j;
 
 			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}
 
-			if (auto_assign) {
-				dw = defvert_verify_index(dv, def_nr);
-			}
-			else {
-				dw = defvert_find_index(dv, def_nr);
-			}
+			j = vgroup_tot;
+			while (j--) {
 
-			if (dw) {
-				dw->weight = 1.0f - dw->weight;
+				if (vgroup_validmap[j]) {
+					if (auto_assign) {
+						dw = defvert_verify_index(dv, j);
+					}
+					else {
+						dw = defvert_find_index(dv, j);
+					}
 
-				if (auto_remove && dw->weight <= 0.0f) {
-					defvert_remove_group(dv, dw);
+					if (dw) {
+						dw->weight = 1.0f - dw->weight;
+						if (auto_remove && dw->weight <= 0.0f) {
+							defvert_remove_group(dv, dw);
+						}
+					}
 				}
 			}
 		}
@@ -1952,13 +1954,12 @@ static bool vertex_group_limit_total(Object *ob,
 }
 
 
-static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap,
+static void vgroup_clean_subset(Object *ob, bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count),
                                 const float epsilon, const bool keep_single)
 {
 	MDeformVert **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
-	const int defbase_tot = BLI_countlist(&ob->defbase);
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -1974,7 +1975,7 @@ static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap,
 				continue;
 			}
 
-			j = dv->totweight;
+			j = vgroup_tot;
 
 			while (j--) {
 
@@ -1982,7 +1983,7 @@ static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap,
 					break;
 
 				dw = dv->dw + j;
-				if ((dw->def_nr < defbase_tot) && vgroup_validmap[dw->def_nr]) {
+				if ((dw->def_nr < vgroup_tot) && vgroup_validmap[dw->def_nr]) {
 					if (dw->weight <= epsilon) {
 						defvert_remove_group(dv, dw);
 					}
@@ -3104,7 +3105,15 @@ static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 	bool auto_assign = RNA_boolean_get(op->ptr, "auto_assign");
 	bool auto_remove = RNA_boolean_get(op->ptr, "auto_remove");
 
-	vgroup_invert(ob, auto_assign, auto_remove);
+	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+
+	int subset_count, vgroup_tot;
+
+	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	vgroup_invert_subset(ob, vgroup_validmap, vgroup_tot, subset_count, auto_assign, auto_remove);
+
+	MEM_freeN(vgroup_validmap);
+
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -3126,6 +3135,7 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	vgroup_operator_subset_select_props(ot);
 	RNA_def_boolean(ot->srna, "auto_assign", true, "Add Weights",
 	                "Add verts from groups that have zero weight before inverting");
 	RNA_def_boolean(ot->srna, "auto_remove", true, "Remove Weights",
@@ -3204,10 +3214,11 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 	float limit = RNA_float_get(op->ptr, "limit");
 	bool keep_single = RNA_boolean_get(op->ptr, "keep_single");
 	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
-	int subset_count;
-	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &subset_count);
 
-	vgroup_clean_subset(ob, vgroup_validmap, limit, keep_single);
+	int subset_count, vgroup_tot;
+
+	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	vgroup_clean_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit, keep_single);
 
 	MEM_freeN(vgroup_validmap);
 
