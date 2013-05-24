@@ -40,6 +40,8 @@
 
 #include "BLI_math_vector.h"
 
+#include "BKE_screen.h"
+
 #include "ED_view3d.h"  /* own include */
 
 #define BL_NEAR_CLIP 0.001
@@ -413,8 +415,14 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 		}
 	}
 	else {
-		const float dx = (2.0f * mval[0] / (float)ar->winx) - 1.0f;
-		const float dy = (2.0f * mval[1] / (float)ar->winy) - 1.0f;
+		float dx = (2.0f * mval[0] / (float)ar->winx) - 1.0f;
+		float dy = (2.0f * mval[1] / (float)ar->winy) - 1.0f;
+		if (rv3d->persp == RV3D_CAMOB) {
+			/* ortho camera needs offset applied */
+			const float zoomfac = BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom) * 4.0f;
+			dx += rv3d->camdx * zoomfac;
+			dy += rv3d->camdy * zoomfac;
+		}
 		line_sta[0] = (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
 		line_sta[1] = (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
 		line_sta[2] = (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
