@@ -19,6 +19,8 @@
 
 # A shell script installing/building all needed dependencies to build Blender, for some Linux distributions.
 
+##### Args and Help Handling #####
+
 # Parse command line!
 ARGS=$( \
 getopt \
@@ -172,6 +174,8 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --skip-ffmpeg
         Unconditionally skip FFMpeg installation/building.\""
 
+##### Main Vars #####
+
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
 PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
@@ -190,6 +194,7 @@ BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/b
 BOOST_VERSION_MIN="1.49"
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
+_need_boost_ldconfig=false
 
 OCIO_VERSION="1.0.7"
 OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
@@ -211,6 +216,7 @@ OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.t
 OIIO_VERSION_MIN="1.1"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
+_need_oiio_ldconfig=false
 
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
@@ -262,6 +268,7 @@ LANG_BACK=$LANG
 LANG=""
 export LANG
 
+##### Generic Helpers #####
 
 _echo() {
   if [ "X$1" = "X-n" ]; then
@@ -278,6 +285,8 @@ ERROR() {
 INFO() {
   _echo "$@"
 }
+
+##### Args Handling #####
 
 # Finish parsing the commandline args.
 eval set -- "$ARGS"
@@ -414,6 +423,8 @@ if $WITH_ALL; then
   WITH_OPENCOLLADA=true
 fi
 
+##### Generic Helpers #####
+
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_eq() {
@@ -498,28 +509,7 @@ version_match() {
   return $ret
 }
 
-detect_distro() {
-  if [ -f /etc/debian_version ]; then
-    DISTRO="DEB"
-  elif [ -f /etc/arch-release ]; then
-    DISTRO="ARCH"
-  elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
-    DISTRO="RPM"
-  fi
-}
-
-rpm_flavour() {
-  if [ -f /etc/redhat-release ]; then
-    if [ "`grep '6\.' /etc/redhat-release`" ]; then
-      RPM="RHEL"
-    else
-      RPM="FEDORA"
-    fi
-  elif [ -f /etc/SuSE-release ]; then
-    RPM="SUSE"
-  fi
-}
-
+##### Generic compile helpers #####
 prepare_opt() {
   INFO "Ensuring $INST exists and is writable by us"
   if [ ! -d  $INST ]; then
@@ -546,17 +536,41 @@ magic_compile_set() {
   touch $INST/.$1-magiccheck-$2
 }
 
+# Note: should clean nicely in $INST, but not in $SRC, when we switch to a new version of a lib...
+_clean() {
+  rm -rf `readlink -f $_inst_shortcut`
+  rm -rf $_src
+  rm -rf $_inst
+  rm -rf $_inst_shortcut
+}
+
+_create_inst_shortcut() {
+  rm -f $_inst_shortcut
+  ln -s $_inst $_inst_shortcut
+}
+
+#### Build Python ####
+_init_python() {
+  _src=$SRC/Python-$PYTHON_VERSION
+  _inst=$INST/python-$PYTHON_VERSION
+  _inst_shortcut=$INST/python-3.3
+}
+
+clean_Python() {
+  clean_Numpy
+  _init_python
+  _clean
+}
+
 compile_Python() {
   # To be changed each time we make edits that would modify the compiled result!
   py_magic=0
-
-  _src=$SRC/Python-$PYTHON_VERSION
-  _inst=$INST/python-$PYTHON_VERSION
+  _init_python
 
   # Clean install if needed!
   magic_compile_check python-$PYTHON_VERSION $py_magic
   if [ $? -eq 1 -o $PYTHON_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
+    clean_Python
   fi
 
   if [ ! -d $_inst ]; then
@@ -582,8 +596,7 @@ compile_Python() {
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/python-3.3
-      ln -s python-$PYTHON_VERSION $INST/python-3.3
+      _create_inst_shortcut
     else
       ERROR "Python--$PYTHON_VERSION failed to compile, exiting"
       exit 1
@@ -599,19 +612,29 @@ compile_Python() {
   fi
 }
 
-compile_Numpy() {
-  # To be changed each time we make edits that would modify the compiled result!
-  py_magic=0
-
+##### Build Numpy #####
+_init_numpy() {
   _src=$SRC/numpy-$NUMPY_VERSION
   _inst=$INST/numpy-$NUMPY_VERSION
   _python=$INST/python-$PYTHON_VERSION
   _site=lib/python3.3/site-packages
+  _inst_shortcut=$_python/$_site/numpy
+}
+
+clean_Numpy() {
+  _init_numpy
+  _clean
+}
+
+compile_Numpy() {
+  # To be changed each time we make edits that would modify the compiled result!
+  py_magic=0
+  _init_numpy
 
   # Clean install if needed!
   magic_compile_check numpy-$NUMPY_VERSION $py_magic
   if [ $? -eq 1 -o $NUMPY_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
+    clean_Numpy
   fi
 
   if [ ! -d $_inst ]; then
@@ -632,8 +655,9 @@ compile_Numpy() {
     $_python/bin/python3 setup.py install --prefix=$_inst
 
     if [ -d $_inst ]; then
-      rm -f $_python/$_site/numpy
-      ln -s $_inst/$_site/numpy $_python/$_site/numpy
+      # Can't use _create_inst_shortcut here...
+      rm -f $_inst_shortcut
+      ln -s $_inst/$_site/numpy $_inst_shortcut
     else
       ERROR "Numpy-$NUMPY_VERSION failed to compile, exiting"
       exit 1
@@ -649,17 +673,28 @@ compile_Numpy() {
   fi
 }
 
+#### Build Boost ####
+_init_boost() {
+  _src=$SRC/boost-$BOOST_VERSION
+  _inst=$INST/boost-$BOOST_VERSION
+  _inst_shortcut=$INST/boost
+}
+
+clean_Boost() {
+  _init_boost
+  _clean
+}
+
 compile_Boost() {
   # To be changed each time we make edits that would modify the compiled result!
   boost_magic=7
 
-  _src=$SRC/boost-$BOOST_VERSION
-  _inst=$INST/boost-$BOOST_VERSION
+  _init_boost
 
   # Clean install if needed!
   magic_compile_check boost-$BOOST_VERSION $boost_magic
   if [ $? -eq 1 -o $BOOST_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
+    clean_Boost
   fi
 
   if [ ! -d $_inst ]; then
@@ -687,14 +722,16 @@ compile_Boost() {
     ./b2 --clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/boost
-      ln -s boost-$BOOST_VERSION $INST/boost
+      _create_inst_shortcut
     else
       ERROR "Boost-$BOOST_VERSION failed to compile, exiting"
       exit 1
     fi
 
     magic_compile_set boost-$BOOST_VERSION $boost_magic
+
+    # Just always run it, much simpler this way!
+    _need_boost_ldconfig=true
 
     cd $CWD
     INFO "Done compiling Boost-$BOOST_VERSION!"
@@ -704,17 +741,27 @@ compile_Boost() {
   fi
 }
 
+#### Build OCIO ####
+_init_ocio() {
+  _src=$SRC/OpenColorIO-$OCIO_VERSION
+  _inst=$INST/ocio-$OCIO_VERSION
+  _inst_shortcut=$INST/ocio
+}
+
+clean_OCIO() {
+  _init_ocio
+  _clean
+}
+
 compile_OCIO() {
   # To be changed each time we make edits that would modify the compiled result!
   ocio_magic=1
-
-  _src=$SRC/OpenColorIO-$OCIO_VERSION
-  _inst=$INST/ocio-$OCIO_VERSION
+  _init_ocio
 
   # Clean install if needed!
   magic_compile_check ocio-$OCIO_VERSION $ocio_magic
   if [ $? -eq 1 -o $OCIO_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
+    clean_OCIO
   fi
 
   if [ ! -d $_inst ]; then
@@ -767,8 +814,7 @@ compile_OCIO() {
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/ocio
-      ln -s ocio-$OCIO_VERSION $INST/ocio
+      _create_inst_shortcut
     else
       ERROR "OpenColorIO-$OCIO_VERSION failed to compile, exiting"
       exit 1
@@ -784,20 +830,29 @@ compile_OCIO() {
   fi
 }
 
+#### Build ILMBase ####
+_init_ilmbase() {
+  _src=$SRC/ILMBase-$ILMBASE_VERSION
+  _inst=$TMP/ilmbase-$ILMBASE_VERSION
+  _inst_shortcut=$TMP/ilmbase
+}
+
+clean_ILMBASE() {
+  _init_ilmbase
+  _clean
+}
+
 compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
   ilmbase_magic=5
-
-  _src=$SRC/ILMBase-$ILMBASE_VERSION
-  _inst=$TMP/ilmbase-$ILMBASE_VERSION
+  _init_ilmbase
 
   # Clean install if needed!
   magic_compile_check ilmbase-$ILMBASE_VERSION $ilmbase_magic
 
   if [ $? -eq 1 -o $OPENEXR_FORCE_REBUILD == true ]; then
-    rm -rf $_src
+    clean_ILMBASE
     rm -rf $_openexr_inst
-    rm -rf $_inst
   fi
 
   if [ ! -d $_openexr_inst ]; then
@@ -862,8 +917,7 @@ EOF
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $TMP/ilmbase
-      ln -s ilmbase-$ILMBASE_VERSION $TMP/ilmbase
+      _create_inst_shortcut
     else
       ERROR "ILMBase-$ILMBASE_VERSION failed to compile, exiting"
       exit 1
@@ -879,22 +933,33 @@ EOF
   INFO "Done compiling ILMBase-$ILMBASE_VERSION!"
 }
 
-compile_OPENEXR() {
-  _openexr_inst=$INST/openexr-$OPENEXR_VERSION
-  compile_ILMBASE
-
-  # To be changed each time we make edits that would modify the compiled result!
-  openexr_magic=10
-
+#### Build OpenEXR ####
+_init_openexr() {
   _src=$SRC/OpenEXR-$OPENEXR_VERSION
   _inst=$_openexr_inst
+  _inst_shortcut=$INST/openexr
+}
+
+clean_OPENEXR() {
+  clean_ILMBASE
+  _init_openexr
+  _clean
+}
+
+compile_OPENEXR() {
+  # To be changed each time we make edits that would modify the compiled result!
+  openexr_magic=10
 
   # Clean install if needed!
   magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
   if [ $? -eq 1 -o $OPENEXR_FORCE_REBUILD == true ]; then
-    rm -rf $_src
-    rm -rf $_inst
+    clean_OPENEXR
   fi
+
+  _openexr_inst=$INST/openexr-$OPENEXR_VERSION
+  compile_ILMBASE
+  _ilmbase_inst=$_inst_shortcut
+  _init_openexr
 
   if [ ! -d $_inst ]; then
     INFO "Building OpenEXR-$OPENEXR_VERSION"
@@ -1039,7 +1104,7 @@ EOF
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$TMP/ilmbase"
+    cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$_ilmbase_inst"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -1057,10 +1122,9 @@ EOF
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/openexr
-      ln -s openexr-$OPENEXR_VERSION $INST/openexr
+      _create_inst_shortcut
       # Copy ilmbase files here (blender expects same dir for ilmbase and openexr :/).
-      cp -Lrn $TMP/ilmbase/* $INST/openexr
+      cp -Lrn $_ilmbase_inst/* $_inst_shortcut
     else
       ERROR "OpenEXR-$OPENEXR_VERSION failed to compile, exiting"
       exit 1
@@ -1078,18 +1142,27 @@ EOF
   _with_built_openexr=true
 }
 
+#### Build OIIO ####
+_init_oiio() {
+  _src=$SRC/OpenImageIO-$OIIO_VERSION
+  _inst=$INST/oiio-$OIIO_VERSION
+  _inst_shortcut=$INST/oiio
+}
+
+clean_OIIO() {
+  _init_oiio
+  _clean
+}
+
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
   oiio_magic=11
-
-  _src=$SRC/OpenImageIO-$OIIO_VERSION
-  _inst=$INST/oiio-$OIIO_VERSION
+  _init_oiio
 
   # Clean install if needed!
   magic_compile_check oiio-$OIIO_VERSION $oiio_magic
   if [ $? -eq 1 -o $OIIO_FORCE_REBUILD == true ]; then
-    rm -rf $_src
-    rm -rf $_inst
+    clean_OIIO
   fi
 
   if [ ! -d $_inst ]; then
@@ -1311,14 +1384,16 @@ EOF
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/oiio
-      ln -s oiio-$OIIO_VERSION $INST/oiio
+      _create_inst_shortcut
     else
       ERROR "OpenImageIO-$OIIO_VERSION failed to compile, exiting"
       exit 1
     fi
 
     magic_compile_set oiio-$OIIO_VERSION $oiio_magic
+
+    # Just always run it, much simpler this way!
+    _need_oiio_ldconfig=true
 
     cd $CWD
     INFO "Done compiling OpenImageIO-$OIIO_VERSION!"
@@ -1328,19 +1403,28 @@ EOF
   fi
 }
 
+#### Build LLVM ####
+_init_llvm() {
+  _src=$SRC/LLVM-$LLVM_VERSION
+  _src_clang=$SRC/CLANG-$LLVM_VERSION
+  _inst=$INST/llvm-$LLVM_VERSION
+  _inst_shortcut=$INST/llvm
+}
+
+clean_LLVM() {
+  _init_llvm
+  _clean
+}
+
 compile_LLVM() {
   # To be changed each time we make edits that would modify the compiled result!
   llvm_magic=1
-
-  _src=$SRC/LLVM-$LLVM_VERSION
-  _inst=$INST/llvm-$LLVM_VERSION
-  _src_clang=$SRC/CLANG-$LLVM_VERSION
+  _init_llvm
 
   # Clean install if needed!
   magic_compile_check llvm-$LLVM_VERSION $llvm_magic
   if [ $? -eq 1 -o $LLVM_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
-    rm -rf $_inst_clang
+    clean_LLVM
   fi
 
   if [ ! -d $_inst ]; then
@@ -1387,7 +1471,7 @@ EOF
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -1406,8 +1490,7 @@ EOF
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/llvm
-      ln -s llvm-$LLVM_VERSION $INST/llvm
+      _create_inst_shortcut
     else
       ERROR "LLVM-$LLVM_VERSION failed to compile, exiting"
       exit 1
@@ -1426,18 +1509,27 @@ EOF
   fi
 }
 
+#### Build OSL ####
+_init_osl() {
+  _src=$SRC/OpenShadingLanguage-$OSL_VERSION
+  _inst=$INST/osl-$OSL_VERSION
+  _inst_shortcut=$INST/osl
+}
+
+clean_OSL() {
+  _init_osl
+  _clean
+}
+
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
   osl_magic=9
-
-  _src=$SRC/OpenShadingLanguage-$OSL_VERSION
-  _inst=$INST/osl-$OSL_VERSION
+  _init_osl
 
   # Clean install if needed!
   magic_compile_check osl-$OSL_VERSION $osl_magic
   if [ $? -eq 1 -o $OSL_FORCE_REBUILD == true ]; then
-    rm -rf $_src
-    rm -rf $_inst
+    clean_OSL
   fi
 
   if [ ! -d $_inst ]; then
@@ -1459,8 +1551,6 @@ compile_OSL() {
     fi
 
     cd $_src
-    # XXX For now, always update from latest repo...
-    git pull origin
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1476,7 +1566,7 @@ compile_OSL() {
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
 
     if [ $_with_built_openexr == true ]; then
-      #cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
+      #cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr" # XXX Not used!
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
     fi
 
@@ -1505,8 +1595,7 @@ compile_OSL() {
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/osl
-      ln -s osl-$OSL_VERSION $INST/osl
+      _create_inst_shortcut
     else
       ERROR "OpenShadingLanguage-$OSL_VERSION failed to compile, exiting"
       exit 1
@@ -1522,17 +1611,27 @@ compile_OSL() {
   fi
 }
 
+#### Build OpenCOLLADA ####
+_init_opencollada() {
+  _src=$SRC/OpenCOLLADA-$OPENCOLLADA_VERSION
+  _inst=$INST/opencollada-$OPENCOLLADA_VERSION
+  _inst_shortcut=$INST/opencollada
+}
+
+clean_OpenCOLLADA() {
+  _init_opencollada
+  _clean
+}
+
 compile_OpenCOLLADA() {
   # To be changed each time we make edits that would modify the compiled results!
   opencollada_magic=6
-
-  _src=$SRC/OpenCOLLADA-$OPENCOLLADA_VERSION
-  _inst=$INST/opencollada-$OPENCOLLADA_VERSION
+  _init_opencollada
 
   # Clean install if needed!
   magic_compile_check opencollada-$OPENCOLLADA_VERSION $opencollada_magic
   if [ $? -eq 1 -o $OPENCOLLADA_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
+    clean_OpenCOLLADA
   fi
 
   if [ ! -d $_inst ]; then
@@ -1573,8 +1672,7 @@ compile_OpenCOLLADA() {
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/opencollada
-      ln -s opencollada-$OPENCOLLADA_VERSION $INST/opencollada
+      _create_inst_shortcut
     else
       ERROR "OpenCOLLADA-$OPENCOLLADA_VERSION failed to compile, exiting"
       exit 1
@@ -1590,17 +1688,27 @@ compile_OpenCOLLADA() {
   fi
 }
 
+#### Build FFMPEG ####
+_init_ffmpeg() {
+  _src=$SRC/ffmpeg-$FFMPEG_VERSION
+  _inst=$INST/ffmpeg-$FFMPEG_VERSION
+  _inst_shortcut=$INST/ffmpeg
+}
+
+clean_FFmpeg() {
+  _init_ffmpeg
+  _clean
+}
+
 compile_FFmpeg() {
   # To be changed each time we make edits that would modify the compiled result!
   ffmpeg_magic=3
-
-  _src=$SRC/ffmpeg-$FFMPEG_VERSION
-  _inst=$INST/ffmpeg-$FFMPEG_VERSION
+  _init_ffmpeg
 
   # Clean install if needed!
   magic_compile_check ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
   if [ $? -eq 1 -o $FFMPEG_FORCE_REBUILD == true ]; then
-    rm -rf $_inst
+    clean_FFmpeg
   fi
 
   if [ ! -d $_inst ]; then
@@ -1667,8 +1775,7 @@ compile_FFmpeg() {
     make clean
 
     if [ -d $_inst ]; then
-      rm -f $INST/ffmpeg
-      ln -s ffmpeg-$FFMPEG_VERSION $INST/ffmpeg
+      _create_inst_shortcut
     else
       ERROR "FFmpeg-$FFMPEG_VERSION failed to compile, exiting"
       exit 1
@@ -1685,7 +1792,7 @@ compile_FFmpeg() {
 }
 
 
-
+#### Install on DEB-like ####
 get_package_version_DEB() {
     dpkg-query -W -f '${Version}' $1 | sed -r 's/.*:\s*([0-9]+:)(([0-9]+\.?)+).*/\2/'
 }
@@ -1882,6 +1989,7 @@ install_DEB() {
           INFO "WARNING! Sorry, using python package but no numpy package available!"
         fi
       fi
+      clean_Python
     else
       compile_Python
       INFO ""
@@ -1908,6 +2016,7 @@ install_DEB() {
         install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
                              libboost-regex$boost_version-dev libboost-system$boost_version-dev \
                              libboost-thread$boost_version-dev
+        clean_Boost
       else
         compile_Boost
       fi
@@ -1923,6 +2032,7 @@ install_DEB() {
     check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_DEB libopencolorio-dev
+      clean_OCIO
     else
       compile_OCIO
     fi
@@ -1935,6 +2045,7 @@ install_DEB() {
     check_package_version_ge_DEB libopenexr-dev $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_DEB libopenexr-dev
+      clean_OPENEXR
     else
       compile_OPENEXR
     fi
@@ -1947,6 +2058,7 @@ install_DEB() {
     check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_DEB libopenimageio-dev
+      clean_OIIO
     else
       compile_OIIO
     fi
@@ -1964,12 +2076,14 @@ install_DEB() {
         install_packages_DEB llvm-$LLVM_VERSION-dev clang
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION
+        clean_LLVM
       else
         check_package_DEB llvm-$LLVM_VERSION_MIN-dev
         if [ $? -eq 0 ]; then
           install_packages_DEB llvm-$LLVM_VERSION_MIN-dev clang
           have_llvm=true
           LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+          clean_LLVM
         else
           install_packages_DEB libffi-dev
           # LLVM can't find the debian ffi header dir
@@ -2023,6 +2137,7 @@ install_DEB() {
 #      if [ ! -z "$ffmpeg_version" ]; then
 #        if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
 #          install_packages_DEB libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
+#          clean_FFmpeg
 #        else
 #          compile_FFmpeg
 #        fi
@@ -2033,6 +2148,18 @@ install_DEB() {
 }
 
 
+#### Install on RPM-like ####
+rpm_flavour() {
+  if [ -f /etc/redhat-release ]; then
+    if [ "`grep '6\.' /etc/redhat-release`" ]; then
+      RPM="RHEL"
+    else
+      RPM="FEDORA"
+    fi
+  elif [ -f /etc/SuSE-release ]; then
+    RPM="SUSE"
+  fi
+}
 
 get_package_version_RPM() {
   rpm_flavour
@@ -2269,6 +2396,7 @@ install_RPM() {
           INFO "WARNING! Sorry, using python package but no numpy package available!"
         fi
       fi
+      clean_Python
     else
       compile_Python
       INFO ""
@@ -2287,6 +2415,7 @@ install_RPM() {
     check_package_version_ge_RPM boost-devel $BOOST_VERSION
     if [ $? -eq 0 ]; then
       install_packages_RPM boost-devel
+      clean_Boost
     else
       compile_Boost
     fi
@@ -2299,6 +2428,7 @@ install_RPM() {
     check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM OpenColorIO-devel
+      clean_OCIO
     else
       compile_OCIO
     fi
@@ -2311,6 +2441,7 @@ install_RPM() {
     check_package_version_ge_RPM $OPENEXR_DEV $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM $OPENEXR_DEV
+      clean_OPENEXR
     else
       compile_OPENEXR
     fi
@@ -2323,6 +2454,7 @@ install_RPM() {
     check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_RPM OpenImageIO-devel
+      clean_OIIO
     else
       compile_OIIO
     fi
@@ -2345,6 +2477,7 @@ install_RPM() {
         fi
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION
+        clean_LLVM
       else
         #
         # Better to compile it than use minimum version from repo...
@@ -2396,6 +2529,7 @@ install_RPM() {
     check_package_version_ge_RPM ffmpeg $FFMPEG_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM ffmpeg ffmpeg-devel
+      clean_FFmpeg
     else
       INFO ""
       compile_FFmpeg
@@ -2404,6 +2538,7 @@ install_RPM() {
 }
 
 
+#### Install on ARCH-like ####
 get_package_version_ARCH() {
   pacman -Si $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
 }
@@ -2545,6 +2680,7 @@ install_ARCH() {
           fi
         fi
       fi
+      clean_Python
     else
       compile_Python
       INFO ""
@@ -2565,6 +2701,7 @@ install_ARCH() {
     check_package_version_ge_ARCH boost $BOOST_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH boost
+      clean_Boost
     else
       compile_Boost
     fi
@@ -2577,6 +2714,7 @@ install_ARCH() {
     check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH opencolorio yaml-cpp tinyxml
+      clean_OCIO
     else
       install_packages_ARCH yaml-cpp tinyxml
       compile_OCIO
@@ -2590,6 +2728,7 @@ install_ARCH() {
     check_package_version_ge_ARCH openimageio $OIIO_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH openimageio
+      clean_OIIO
     else
       compile_OIIO
     fi
@@ -2608,6 +2747,7 @@ install_ARCH() {
         have_llvm=true
         LLVM_VERSION=`check_package_version_ge_ARCH llvm`
         LLVM_VERSION_FOUND=$LLVM_VERSION
+        clean_LLVM
       else
         install_packages_ARCH libffi
         # LLVM can't find the arch ffi header dir...
@@ -2629,6 +2769,7 @@ install_ARCH() {
         check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
         if [ $? -eq 0 ]; then
           install_packages_ARCH openshadinglanguage
+          clean_OSL
         else
           #XXX Note: will fail to build with LLVM 3.2! 
           INFO ""
@@ -2649,6 +2790,7 @@ install_ARCH() {
       check_package_ARCH opencollada
       if [ $? -eq 0 ]; then
         install_packages_ARCH opencollada
+        clean_OpenCOLLADA
       else
         install_packages_ARCH pcre git
         INFO ""
@@ -2666,12 +2808,15 @@ install_ARCH() {
     check_package_version_ge_ARCH ffmpeg $FFMPEG_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH ffmpeg
+      clean_FFmpeg
     else
       compile_FFmpeg
     fi
   fi
 }
 
+
+#### Printing User Info ####
 
 print_info_ffmpeglink_DEB() {
   if $ALL_STATIC; then
@@ -2900,30 +3045,43 @@ print_info() {
     INFO "WITH_BF_3DMOUSE = False"
   fi
 
-  INFO ""
-  INFO ""
-  INFO "WARNING: If this script had to build boost and/or OIIO into $INST, and you are dynamically linking "
-  INFO "         blender against it, you will have to run those commands as root user:"
-  INFO ""
-  INFO "    echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
-  INFO "    echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
-  INFO "    ldconfig"
-  INFO ""
+  #INFO ""
+  #INFO ""
+  #INFO "WARNING: If this script had to build boost and/or OIIO into $INST, and you are dynamically linking "
+  #INFO "         blender against it, you will have to run those commands as root user:"
+  #INFO ""
+  #INFO "    echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
+  #INFO "    echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
+  #INFO "    ldconfig"
+  #INFO ""
 }
 
+#### "Main" ####
 # Detect distribution type used on this machine
-detect_distro
-
-if [ -z "$DISTRO" ]; then
+if [ -f /etc/debian_version ]; then
+  DISTRO="DEB"
+  install_DEB
+elif [ -f /etc/arch-release ]; then
+  DISTRO="ARCH"
+  install_ARCH
+elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
+  DISTRO="RPM"
+  install_RPM
+else
   ERROR "Failed to detect distribution type"
   exit 1
-elif [ "$DISTRO" = "DEB" ]; then
-  install_DEB
-elif [ "$DISTRO" = "RPM" ]; then
-  install_RPM
-elif [ "$DISTRO" = "ARCH" ]; then
-  install_ARCH
 fi
+
+INFO ""
+INFO "Running ldconfig..."
+if [ _need_boost_ldconfig == true ]; then
+  sudo sh -c 'echo "$INST/boost/lib" > /etc/ld.so.conf.d/boost.conf'
+fi
+if [ _need_oiio_ldconfig == true ]; then
+  sudo sh -c 'echo "$INST/oiio/lib" > /etc/ld.so.conf.d/oiio.conf'
+fi
+sudo ldconfig
+INFO ""
 
 print_info | tee BUILD_NOTES.txt
 INFO ""
