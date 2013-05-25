@@ -2167,8 +2167,9 @@ install_RPM() {
   THEORA_USE=true
 
   if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+    OPENEXR_DEV="openexr-devel"
 
-    _packages="$_packages libsqlite3x-devel openexr-devel fftw-devel SDL-devel"
+    _packages="$_packages libsqlite3x-devel fftw-devel SDL-devel"
 
     if $WITH_ALL; then
       _packages="$_packages jack-audio-connection-kit-devel"
@@ -2204,8 +2205,9 @@ install_RPM() {
     fi
 
   elif [ $RPM = "SUSE" ]; then
+    OPENEXR_DEV="libopenexr-devel"
 
-    _packages="$_packages cmake sqlite3-devel libopenexr-devel fftw3-devel libSDL-devel"
+    _packages="$_packages cmake sqlite3-devel fftw3-devel libSDL-devel"
 
     INFO ""
     install_packages_RPM $_packages
@@ -2303,11 +2305,23 @@ install_RPM() {
   fi
 
   INFO ""
+  if $OPENEXR_SKIP; then
+    INFO "WARNING! Skipping OpenEXR installation, as requested..."
+  else
+    check_package_version_ge_RPM $OPENEXR_DEV $OPENEXR_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $OPENEXR_DEV
+    else
+      compile_OPENEXR
+    fi
+  fi
+
+  INFO ""
   if $OIIO_SKIP; then
     INFO "WARNING! Skipping OpenImageIO installation, as requested..."
   else
     check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
-    if [ $? -eq 0 ]; then
+    if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_RPM OpenImageIO-devel
     else
       compile_OIIO
