@@ -984,14 +984,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					if (wParam == SC_KEYMENU) 
 					{
 						eventHandled = true;
-					}// else
-						/* XXX Disable for now due to area resizing issue. bug# 34990 */
-					/*if((wParam&0xfff0)==SC_SIZE)
-					{
-						window->registerMouseClickEvent(0);
-						window->m_wsh.startSizing(wParam);
-						eventHandled = true;
-					}*/
+					}
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Tablet events, processed
@@ -1029,10 +1022,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					break;
 				case WM_LBUTTONUP:
 					window->registerMouseClickEvent(1);
-					if(window->m_wsh.isWinChanges())
-						window->m_wsh.accept();
-					else
-						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
+					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
 					break;
 				case WM_MBUTTONUP:
 					window->registerMouseClickEvent(1);
@@ -1052,10 +1042,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					}
 					break;
 				case WM_MOUSEMOVE:
-					if(window->m_wsh.isWinChanges())
-						window->m_wsh.updateWindowSize();
-					else
-						event = processCursorEvent(GHOST_kEventCursorMove, window);
+					event = processCursorEvent(GHOST_kEventCursorMove, window);
 					break;
 				case WM_MOUSEWHEEL:
 					/* The WM_MOUSEWHEEL message is sent to the focus window 
@@ -1129,6 +1116,19 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				}
+				case WM_ENTERSIZEMOVE:
+					/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
+					 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
+					 * clicks the window's title bar or sizing border, or when the window passes the 
+					 * WM_SYSCOMMAND message to the DefWindowProc function and the wParam parameter of the 
+					 * message specifies the SC_MOVE or SC_SIZE value. The operation is complete when 
+					 * DefWindowProc returns. 
+					 */
+					window->m_inLiveResize = 1;
+					break;
+				case WM_EXITSIZEMOVE:
+					window->m_inLiveResize = 0;
+					break;
 				case WM_PAINT:
 					/* An application sends the WM_PAINT message when the system or another application 
 					 * makes a request to paint a portion of an application's window. The message is sent
@@ -1136,8 +1136,14 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * function when the application obtains a WM_PAINT message by using the GetMessage or 
 					 * PeekMessage function. 
 					 */
+					if(!window->m_inLiveResize)
+					{
 					event = processWindowEvent(GHOST_kEventWindowUpdate, window);
 					::ValidateRect(hwnd, NULL);
+					}
+					else {
+						eventHandled = true;
+					}
 					break;
 				case WM_GETMINMAXINFO:
 					/* The WM_GETMINMAXINFO message is sent to a window when the size or 
@@ -1148,6 +1154,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					processMinMaxInfo((MINMAXINFO *) lParam);
 					/* Let DefWindowProc handle it. */
 					break;
+				case WM_SIZING:
 				case WM_SIZE:
 					/* The WM_SIZE message is sent to a window after its size has changed.
 					 * The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
@@ -1155,23 +1162,27 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc.
 					 */
-					event = processWindowEvent(GHOST_kEventWindowSize, window);
+						system->pushEvent(processWindowEvent(GHOST_kEventWindowSize, window));
+						system->dispatchEvents();
+						eventHandled = true;
 					break;
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
 					break;
 				case WM_MOVING:
-				/* The WM_MOVING message is sent to a window that the user is moving. By processing
-				 * this message, an application can monitor the size and position of the drag rectangle
-				 * and, if needed, change its size or position.
-				 */
+					/* The WM_MOVING message is sent to a window that the user is moving. By processing
+					 * this message, an application can monitor the size and position of the drag rectangle
+					 * and, if needed, change its size or position.
+					 */
 				case WM_MOVE:
 					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
 					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc. 
 					 */
-					event = processWindowEvent(GHOST_kEventWindowMove, window);
+						system->pushEvent(processWindowEvent(GHOST_kEventWindowMove, window));
+						system->dispatchEvents();
+						eventHandled = true;
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored
@@ -1223,14 +1234,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				 */
 				case WM_SETFOCUS:
 				/* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
-				case WM_ENTERSIZEMOVE:
-					/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
-					 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
-					 * clicks the window's title bar or sizing border, or when the window passes the 
-					 * WM_SYSCOMMAND message to the DefWindowProc function and the wParam parameter of the 
-					 * message specifies the SC_MOVE or SC_SIZE value. The operation is complete when 
-					 * DefWindowProc returns. 
-					 */
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Other events
@@ -1256,9 +1259,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
-				case WM_CANCELMODE:
-					if(window->m_wsh.isWinChanges())
-						window->m_wsh.cancel();
 
 			}
 		}

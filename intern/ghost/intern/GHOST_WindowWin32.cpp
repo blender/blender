@@ -146,7 +146,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_normal_state(GHOST_kWindowStateNormal),
 	m_stereo(stereoVisual),
 	m_nextWindow(NULL),
-	m_parentWindowHwnd(parentwindowhwnd)
+	m_parentWindowHwnd(parentwindowhwnd),
+	m_inLiveResize(false)
 {
 	OSVERSIONINFOEX versionInfo;
 	bool hasMinVersionForTaskbar = false;
@@ -263,9 +264,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 
 		// Store a pointer to this class in the window structure
 		::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR) this);
-
-		m_wsh.setHWND(m_hWnd);
-		m_wsh.setMinSize(320, 240);
 
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
