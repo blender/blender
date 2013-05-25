@@ -357,7 +357,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		uiBlockLayoutResolve(node->block, NULL, &buty);
 		
 		/* ensure minimum socket height in case layout is empty */
-		buty = MIN2(buty, dy - NODE_DY);
+		buty = min_ii(buty, dy - NODE_DY);
 		
 		nsock->locx = locx + NODE_WIDTH(node);
 		/* place the socket circle in the middle of the layout */
@@ -444,7 +444,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		uiBlockLayoutResolve(node->block, NULL, &buty);
 		
 		/* ensure minimum socket height in case layout is empty */
-		buty = MIN2(buty, dy - NODE_DY);
+		buty = min_ii(buty, dy - NODE_DY);
 		
 		nsock->locx = locx;
 		/* place the socket circle in the middle of the layout */

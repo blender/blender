@@ -44,10 +44,10 @@
 static float P(float k)
 {
 	float p1, p2, p3, p4;
-	p1 = MAX2(k + 2.0f, 0);
-	p2 = MAX2(k + 1.0f, 0);
-	p3 = MAX2(k, 0);
-	p4 = MAX2(k - 1.0f, 0);
+	p1 = max_ff(k + 2.0f, 0.0f);
+	p2 = max_ff(k + 1.0f, 0.0f);
+	p3 = max_ff(k, 0.0f);
+	p4 = max_ff(k - 1.0f, 0.0f);
 	return (float)(1.0f / 6.0f) * (p1 * p1 * p1 - 4.0f * p2 * p2 * p2 + 6.0f * p3 * p3 * p3 - 4.0f * p4 * p4 * p4);
 }
 
