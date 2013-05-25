@@ -293,8 +293,9 @@ typedef bool _BLI_Bool;
 /* simple stack */
 #define STACK_DECLARE(stack)   unsigned int _##stack##_index
 #define STACK_INIT(stack)      ((void)stack, (void)((_##stack##_index) = 0))
-#define STACK_SIZE(stack)      ((void)stack, (void)(_##stack##_index))
+#define STACK_SIZE(stack)      ((void)stack, (_##stack##_index))
 #define STACK_PUSH(stack, val)  (void)((stack)[(_##stack##_index)++] = val)
+#define STACK_PUSH_RET(stack)  ((void)stack, ((stack)[(_##stack##_index)++]))
 #define STACK_POP(stack)       ((_##stack##_index) ? ((stack)[--(_##stack##_index)]) : NULL)
 #define STACK_FREE(stack)      ((void)stack)
 
