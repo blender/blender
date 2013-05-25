@@ -847,25 +847,59 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 	}
 }
 
+/* helper functioon for 'BM_mesh_copy' */
+static BMFace *bm_mesh_copy_new_face(BMesh *bm_new, BMesh *bm_old,
+                                     BMVert **vtable, BMEdge **etable,
+                                     BMFace *f)
+{
+	BMLoop **loops = BLI_array_alloca(loops, f->len);
+	BMVert **verts = BLI_array_alloca(verts, f->len);
+	BMEdge **edges = BLI_array_alloca(edges, f->len);
+
+	BMFace *f_new;
+	BMLoop *l_iter, *l_first;
+	int j;
+
+	j = 0;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		loops[j] = l_iter;
+		verts[j] = vtable[BM_elem_index_get(l_iter->v)];
+		edges[j] = etable[BM_elem_index_get(l_iter->e)];
+		j++;
+	} while ((l_iter = l_iter->next) != l_first);
+
+	f_new = BM_face_create(bm_new, verts, edges, f->len, BM_CREATE_SKIP_CD);
+
+	if (UNLIKELY(f_new == NULL)) {
+		return NULL;
+	}
+
+	/* use totface in case adding some faces fails */
+	BM_elem_index_set(f_new, (bm_new->totface - 1)); /* set_inline */
+
+	BM_elem_attrs_copy(bm_old, bm_new, f, f_new);
+
+	j = 0;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
+	do {
+		BM_elem_attrs_copy(bm_old, bm_new, loops[j], l_iter);
+		j++;
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return f_new;
+}
+
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
-#define USE_FAST_FACE_COPY
-
 	BMesh *bm_new;
-	BMVert *v, *v2, **vtable = NULL;
-	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
+	BMVert *v, *v_new, **vtable = NULL;
+	BMEdge *e, *e_new, **etable = NULL;
+	BMFace *f, *f_new, **ftable = NULL;
 	BMElem **eletable;
-	BLI_array_declare(edges);
-	BMLoop *l, /* *l2, */ **loops = NULL;
-	BLI_array_declare(loops);
-#ifdef USE_FAST_FACE_COPY
-	BMVert **verts = NULL;
-	BLI_array_declare(verts);
-#endif
-	BMFace *f, *f2, **ftable = NULL;
 	BMEditSelection *ese;
-	BMIter iter, liter;
-	int i, j;
+	BMIter iter;
+	int i;
 	const BMAllocTemplate allocsize = {bm_old->totvert,
 	                                   bm_old->totedge,
 	                                   bm_old->totloop,
@@ -888,13 +922,12 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	etable = MEM_mallocN(sizeof(BMEdge *) * bm_old->totedge, "BM_mesh_copy etable");
 	ftable = MEM_mallocN(sizeof(BMFace *) * bm_old->totface, "BM_mesh_copy ftable");
 
-	v = BM_iter_new(&iter, bm_old, BM_VERTS_OF_MESH, NULL);
-	for (i = 0; v; v = BM_iter_step(&iter), i++) {
-		v2 = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD); /* copy between meshes so cant use 'example' argument */
-		BM_elem_attrs_copy(bm_old, bm_new, v, v2);
-		vtable[i] = v2;
+	BM_ITER_MESH_INDEX (v, &iter, bm_old, BM_VERTS_OF_MESH, i) {
+		v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD); /* copy between meshes so cant use 'example' argument */
+		BM_elem_attrs_copy(bm_old, bm_new, v, v_new);
+		vtable[i] = v_new;
 		BM_elem_index_set(v, i); /* set_inline */
-		BM_elem_index_set(v2, i); /* set_inline */
+		BM_elem_index_set(v_new, i); /* set_inline */
 	}
 	bm_old->elem_index_dirty &= ~BM_VERT;
 	bm_new->elem_index_dirty &= ~BM_VERT;
@@ -902,17 +935,16 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	/* safety check */
 	BLI_assert(i == bm_old->totvert);
 	
-	e = BM_iter_new(&iter, bm_old, BM_EDGES_OF_MESH, NULL);
-	for (i = 0; e; e = BM_iter_step(&iter), i++) {
-		e2 = BM_edge_create(bm_new,
-		                    vtable[BM_elem_index_get(e->v1)],
-		                    vtable[BM_elem_index_get(e->v2)],
-		                    e, BM_CREATE_SKIP_CD);
+	BM_ITER_MESH_INDEX (e, &iter, bm_old, BM_EDGES_OF_MESH, i) {
+		e_new = BM_edge_create(bm_new,
+		                       vtable[BM_elem_index_get(e->v1)],
+		                       vtable[BM_elem_index_get(e->v2)],
+		                       e, BM_CREATE_SKIP_CD);
 
-		BM_elem_attrs_copy(bm_old, bm_new, e, e2);
-		etable[i] = e2;
+		BM_elem_attrs_copy(bm_old, bm_new, e, e_new);
+		etable[i] = e_new;
 		BM_elem_index_set(e, i); /* set_inline */
-		BM_elem_index_set(e2, i); /* set_inline */
+		BM_elem_index_set(e_new, i); /* set_inline */
 	}
 	bm_old->elem_index_dirty &= ~BM_EDGE;
 	bm_new->elem_index_dirty &= ~BM_EDGE;
@@ -920,61 +952,14 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	/* safety check */
 	BLI_assert(i == bm_old->totedge);
 	
-	f = BM_iter_new(&iter, bm_old, BM_FACES_OF_MESH, NULL);
-	for (i = 0; f; f = BM_iter_step(&iter), i++) {
+	BM_ITER_MESH_INDEX (f, &iter, bm_old, BM_FACES_OF_MESH, i) {
 		BM_elem_index_set(f, i); /* set_inline */
 
-		BLI_array_empty(loops);
-		BLI_array_empty(edges);
-		BLI_array_grow_items(loops, f->len);
-		BLI_array_grow_items(edges, f->len);
+		f_new = bm_mesh_copy_new_face(bm_new, bm_old, vtable, etable, f);
 
-#ifdef USE_FAST_FACE_COPY
-		BLI_array_empty(verts);
-		BLI_array_grow_items(verts, f->len);
-#endif
+		ftable[i] = f_new;
 
-		l = BM_iter_new(&liter, bm_old, BM_LOOPS_OF_FACE, f);
-		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
-			loops[j] = l;
-			edges[j] = etable[BM_elem_index_get(l->e)];
-
-#ifdef USE_FAST_FACE_COPY
-			verts[j] = vtable[BM_elem_index_get(l->v)];
-#endif
-		}
-
-#ifdef USE_FAST_FACE_COPY
-		f2 = BM_face_create(bm_new, verts, edges, f->len, BM_CREATE_SKIP_CD);
-#else
-		v = vtable[BM_elem_index_get(loops[0]->v)];
-		v2 = vtable[BM_elem_index_get(loops[1]->v)];
-
-		if (!bmesh_verts_in_edge(v, v2, edges[0])) {
-			v = vtable[BM_elem_index_get(loops[BLI_array_count(loops) - 1]->v)];
-			v2 = vtable[BM_elem_index_get(loops[0]->v)];
-		}
-
-		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, BM_CREATE_SKIP_CD);
-#endif
-
-		if (UNLIKELY(f2 == NULL)) {
-			continue;
-		}
-		/* use totface in case adding some faces fails */
-		BM_elem_index_set(f2, (bm_new->totface - 1)); /* set_inline */
-
-		ftable[i] = f2;
-
-		BM_elem_attrs_copy(bm_old, bm_new, f, f2);
-		copy_v3_v3(f2->no, f->no);
-
-		l = BM_iter_new(&liter, bm_new, BM_LOOPS_OF_FACE, f2);
-		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
-			BM_elem_attrs_copy(bm_old, bm_new, loops[j], l);
-		}
-
-		if (f == bm_old->act_face) bm_new->act_face = f2;
+		if (f == bm_old->act_face) bm_new->act_face = f_new;
 	}
 	bm_old->elem_index_dirty &= ~BM_FACE;
 	bm_new->elem_index_dirty &= ~BM_FACE;
@@ -1013,12 +998,6 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	MEM_freeN(vtable);
 	MEM_freeN(ftable);
 
-#ifdef USE_FAST_FACE_COPY
-	BLI_array_free(verts);
-#endif
-
-	BLI_array_free(loops);
-	BLI_array_free(edges);
 	return bm_new;
 }
 
