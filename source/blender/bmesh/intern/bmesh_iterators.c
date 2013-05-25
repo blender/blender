@@ -286,21 +286,6 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
 	return count;
 }
 
-
-/**
- * \brief Init Iterator
- *
- * Clears the internal state of an iterator for begin() callbacks.
- */
-static void init_iterator(BMIter *iter)
-{
-//	iter->v_first = iter->v_next = NULL; // UNUSED
-	iter->e_first = iter->e_next = NULL;
-	iter->l_first = iter->l_next = NULL;
-//	iter->f_first = iter->f_next = NULL; // UNUSED
-	iter->ldata = NULL;
-}
-
 /**
  * Notes on iterator implementation:
  *
@@ -319,88 +304,90 @@ static void init_iterator(BMIter *iter)
  * VERT OF MESH CALLBACKS
  */
 
-void bmiter__vert_of_mesh_begin(BMIter *iter)
+void bmiter__vert_of_mesh_begin(struct BMIter__vert_of_mesh *iter)
 {
 	BLI_mempool_iternew(iter->bm->vpool, &iter->pooliter);
 }
 
-void  *bmiter__vert_of_mesh_step(BMIter *iter)
+void *bmiter__vert_of_mesh_step(struct BMIter__vert_of_mesh *iter)
 {
 	return BLI_mempool_iterstep(&iter->pooliter);
-
 }
 
-void  bmiter__edge_of_mesh_begin(BMIter *iter)
+void bmiter__edge_of_mesh_begin(struct BMIter__edge_of_mesh *iter)
 {
 	BLI_mempool_iternew(iter->bm->epool, &iter->pooliter);
-	iter->count = iter->bm->totedge;  /* */
 }
 
-void  *bmiter__edge_of_mesh_step(BMIter *iter)
+void  *bmiter__edge_of_mesh_step(struct BMIter__edge_of_mesh *iter)
 {
 	return BLI_mempool_iterstep(&iter->pooliter);
-
 }
 
-void  bmiter__face_of_mesh_begin(BMIter *iter)
+void  bmiter__face_of_mesh_begin(struct BMIter__face_of_mesh *iter)
 {
 	BLI_mempool_iternew(iter->bm->fpool, &iter->pooliter);
 }
 
-void  *bmiter__face_of_mesh_step(BMIter *iter)
+void  *bmiter__face_of_mesh_step(struct BMIter__face_of_mesh *iter)
 {
 	return BLI_mempool_iterstep(&iter->pooliter);
-
 }
 
 /*
  * EDGE OF VERT CALLBACKS
  */
 
-void  bmiter__edge_of_vert_begin(BMIter *iter)
+void  bmiter__edge_of_vert_begin(struct BMIter__edge_of_vert *iter)
 {
-	init_iterator(iter);
 	if (iter->vdata->e) {
 		iter->e_first = iter->vdata->e;
 		iter->e_next = iter->vdata->e;
 	}
+	else {
+		iter->e_first = NULL;
+		iter->e_next = NULL;
+	}
 }
 
-void  *bmiter__edge_of_vert_step(BMIter *iter)
+void  *bmiter__edge_of_vert_step(struct BMIter__edge_of_vert *iter)
 {
-	BMEdge *current = iter->e_next;
+	BMEdge *e_curr = iter->e_next;
 
-	if (iter->e_next)
+	if (iter->e_next) {
 		iter->e_next = bmesh_disk_edge_next(iter->e_next, iter->vdata);
-	
-	if (iter->e_next == iter->e_first) iter->e_next = NULL;
+		if (iter->e_next == iter->e_first) {
+			iter->e_next = NULL;
+		}
+	}
 
-	return current;
+	return e_curr;
 }
 
 /*
  * FACE OF VERT CALLBACKS
  */
 
-void  bmiter__face_of_vert_begin(BMIter *iter)
+void  bmiter__face_of_vert_begin(struct BMIter__face_of_vert *iter)
 {
-	init_iterator(iter);
-	iter->count = 0;
-	if (iter->vdata->e)
-		iter->count = bmesh_disk_facevert_count(iter->vdata);
-	if (iter->count) {
+	((BMIter *)iter)->count = bmesh_disk_facevert_count(iter->vdata);
+	if (((BMIter *)iter)->count) {
 		iter->e_first = bmesh_disk_faceedge_find_first(iter->vdata->e, iter->vdata);
 		iter->e_next = iter->e_first;
 		iter->l_first = bmesh_radial_faceloop_find_first(iter->e_first->l, iter->vdata);
 		iter->l_next = iter->l_first;
 	}
+	else {
+		iter->l_first = iter->l_next = NULL;
+		iter->e_first = iter->e_next = NULL;
+	}
 }
-void  *bmiter__face_of_vert_step(BMIter *iter)
+void  *bmiter__face_of_vert_step(struct BMIter__face_of_vert *iter)
 {
-	BMLoop *current = iter->l_next;
+	BMLoop *l_curr = iter->l_next;
 
-	if (iter->count && iter->l_next) {
-		iter->count--;
+	if (((BMIter *)iter)->count && iter->l_next) {
+		((BMIter *)iter)->count--;
 		iter->l_next = bmesh_radial_faceloop_find_next(iter->l_next, iter->vdata);
 		if (iter->l_next == iter->l_first) {
 			iter->e_next = bmesh_disk_faceedge_find_next(iter->e_next, iter->vdata);
@@ -409,9 +396,11 @@ void  *bmiter__face_of_vert_step(BMIter *iter)
 		}
 	}
 	
-	if (!iter->count) iter->l_next = NULL;
+	if (!((BMIter *)iter)->count) {
+		iter->l_next = NULL;
+	}
 
-	return current ? current->f : NULL;
+	return l_curr ? l_curr->f : NULL;
 }
 
 
@@ -420,25 +409,26 @@ void  *bmiter__face_of_vert_step(BMIter *iter)
  *
  */
 
-void  bmiter__loop_of_vert_begin(BMIter *iter)
+void  bmiter__loop_of_vert_begin(struct BMIter__loop_of_vert *iter)
 {
-	init_iterator(iter);
-	iter->count = 0;
-	if (iter->vdata->e)
-		iter->count = bmesh_disk_facevert_count(iter->vdata);
-	if (iter->count) {
+	((BMIter *)iter)->count = bmesh_disk_facevert_count(iter->vdata);
+	if (((BMIter *)iter)->count) {
 		iter->e_first = bmesh_disk_faceedge_find_first(iter->vdata->e, iter->vdata);
 		iter->e_next = iter->e_first;
 		iter->l_first = bmesh_radial_faceloop_find_first(iter->e_first->l, iter->vdata);
 		iter->l_next = iter->l_first;
 	}
+	else {
+		iter->l_first = iter->l_next = NULL;
+		iter->e_first = iter->e_next = NULL;
+	}
 }
-void  *bmiter__loop_of_vert_step(BMIter *iter)
+void  *bmiter__loop_of_vert_step(struct BMIter__loop_of_vert *iter)
 {
-	BMLoop *current = iter->l_next;
+	BMLoop *l_curr = iter->l_next;
 
-	if (iter->count) {
-		iter->count--;
+	if (((BMIter *)iter)->count) {
+		((BMIter *)iter)->count--;
 		iter->l_next = bmesh_radial_faceloop_find_next(iter->l_next, iter->vdata);
 		if (iter->l_next == iter->l_first) {
 			iter->e_next = bmesh_disk_faceedge_find_next(iter->e_next, iter->vdata);
@@ -447,106 +437,85 @@ void  *bmiter__loop_of_vert_step(BMIter *iter)
 		}
 	}
 	
-	if (!iter->count) iter->l_next = NULL;
-
-	
-	if (current) {
-		return current;
-	}
-
-	return NULL;
-}
-
-
-void  bmiter__loops_of_edge_begin(BMIter *iter)
-{
-	BMLoop *l;
-
-	l = iter->edata->l;
-
-	/* note sure why this sets ldata ... */
-	init_iterator(iter);
-	
-	iter->l_first = iter->l_next = l;
-}
-
-void  *bmiter__loops_of_edge_step(BMIter *iter)
-{
-	BMLoop *current = iter->l_next;
-
-	if (iter->l_next) {
-		iter->l_next = iter->l_next->radial_next;
-	}
-
-	if (iter->l_next == iter->l_first) {
+	if (!((BMIter *)iter)->count) {
 		iter->l_next = NULL;
 	}
 
-	if (current) {
-		return current;
-	}
-
-	return NULL;
+	/* NULL on finish */
+	return l_curr;
 }
 
-void  bmiter__loops_of_loop_begin(BMIter *iter)
+/*
+ * LOOP OF EDGE CALLBACKS
+ */
+
+void  bmiter__loop_of_edge_begin(struct BMIter__loop_of_edge *iter)
 {
-	BMLoop *l;
+	iter->l_first = iter->l_next = iter->edata->l;
+}
 
-	l = iter->ldata;
+void  *bmiter__loop_of_edge_step(struct BMIter__loop_of_edge *iter)
+{
+	BMLoop *l_curr = iter->l_next;
 
-	/* note sure why this sets ldata ... */
-	init_iterator(iter);
+	if (iter->l_next) {
+		iter->l_next = iter->l_next->radial_next;
+		if (iter->l_next == iter->l_first) {
+			iter->l_next = NULL;
+		}
+	}
 
-	iter->l_first = l;
+	/* NULL on finish */
+	return l_curr;
+}
+
+/*
+ * LOOP OF LOOP CALLBACKS
+ */
+
+void  bmiter__loop_of_loop_begin(struct BMIter__loop_of_loop *iter)
+{
+	iter->l_first = iter->ldata;
 	iter->l_next = iter->l_first->radial_next;
 	
 	if (iter->l_next == iter->l_first)
 		iter->l_next = NULL;
 }
 
-void  *bmiter__loops_of_loop_step(BMIter *iter)
+void  *bmiter__loop_of_loop_step(struct BMIter__loop_of_loop *iter)
 {
-	BMLoop *current = iter->l_next;
+	BMLoop *l_curr = iter->l_next;
 	
 	if (iter->l_next) {
 		iter->l_next = iter->l_next->radial_next;
+		if (iter->l_next == iter->l_first) {
+			iter->l_next = NULL;
+		}
 	}
 
-	if (iter->l_next == iter->l_first) {
-		iter->l_next = NULL;
-	}
-
-	if (current) {
-		return current;
-	}
-
-	return NULL;
+	/* NULL on finish */
+	return l_curr;
 }
 
 /*
  * FACE OF EDGE CALLBACKS
  */
 
-void  bmiter__face_of_edge_begin(BMIter *iter)
+void  bmiter__face_of_edge_begin(struct BMIter__face_of_edge *iter)
 {
-	init_iterator(iter);
-	
-	if (iter->edata->l) {
-		iter->l_first = iter->edata->l;
-		iter->l_next = iter->edata->l;
-	}
+	iter->l_first = iter->l_next = iter->edata->l;
 }
 
-void  *bmiter__face_of_edge_step(BMIter *iter)
+void  *bmiter__face_of_edge_step(struct BMIter__face_of_edge *iter)
 {
 	BMLoop *current = iter->l_next;
 
 	if (iter->l_next) {
 		iter->l_next = iter->l_next->radial_next;
+		if (iter->l_next == iter->l_first) {
+			iter->l_next = NULL;
+		}
 	}
-
-	if (iter->l_next == iter->l_first) iter->l_next = NULL;
 
 	return current ? current->f : NULL;
 }
@@ -555,19 +524,17 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
  * VERTS OF EDGE CALLBACKS
  */
 
-void  bmiter__vert_of_edge_begin(BMIter *iter)
+void  bmiter__vert_of_edge_begin(struct BMIter__vert_of_edge *iter)
 {
-	init_iterator(iter);
-	iter->count = 0;
+	((BMIter *)iter)->count = 0;
 }
 
-void  *bmiter__vert_of_edge_step(BMIter *iter)
+void  *bmiter__vert_of_edge_step(struct BMIter__vert_of_edge *iter)
 {
-	iter->count++;
-	switch (iter->count) {
-		case 1:
+	switch (((BMIter *)iter)->count++) {
+		case 0:
 			return iter->edata->v1;
-		case 2:
+		case 1:
 			return iter->edata->v2;
 		default:
 			return NULL;
@@ -578,58 +545,67 @@ void  *bmiter__vert_of_edge_step(BMIter *iter)
  * VERT OF FACE CALLBACKS
  */
 
-void  bmiter__vert_of_face_begin(BMIter *iter)
+void  bmiter__vert_of_face_begin(struct BMIter__vert_of_face *iter)
 {
-	init_iterator(iter);
 	iter->l_first = iter->l_next = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
-void  *bmiter__vert_of_face_step(BMIter *iter)
+void  *bmiter__vert_of_face_step(struct BMIter__vert_of_face *iter)
 {
-	BMLoop *current = iter->l_next;
+	BMLoop *l_curr = iter->l_next;
 
-	if (iter->l_next) iter->l_next = iter->l_next->next;
-	if (iter->l_next == iter->l_first) iter->l_next = NULL;
+	if (iter->l_next) {
+		iter->l_next = iter->l_next->next;
+		if (iter->l_next == iter->l_first) {
+			iter->l_next = NULL;
+		}
+	}
 
-	return current ? current->v : NULL;
+	return l_curr ? l_curr->v : NULL;
 }
 
 /*
  * EDGE OF FACE CALLBACKS
  */
 
-void  bmiter__edge_of_face_begin(BMIter *iter)
+void  bmiter__edge_of_face_begin(struct BMIter__edge_of_face *iter)
 {
-	init_iterator(iter);
 	iter->l_first = iter->l_next = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
-void  *bmiter__edge_of_face_step(BMIter *iter)
+void  *bmiter__edge_of_face_step(struct BMIter__edge_of_face *iter)
 {
-	BMLoop *current = iter->l_next;
+	BMLoop *l_curr = iter->l_next;
 
-	if (iter->l_next) iter->l_next = iter->l_next->next;
-	if (iter->l_next == iter->l_first) iter->l_next = NULL;
+	if (iter->l_next) {
+		iter->l_next = iter->l_next->next;
+		if (iter->l_next == iter->l_first) {
+			iter->l_next = NULL;
+		}
+	}
 	
-	return current ? current->e : NULL;
+	return l_curr ? l_curr->e : NULL;
 }
 
 /*
  * LOOP OF FACE CALLBACKS
  */
 
-void  bmiter__loop_of_face_begin(BMIter *iter)
+void  bmiter__loop_of_face_begin(struct BMIter__loop_of_face *iter)
 {
-	init_iterator(iter);
 	iter->l_first = iter->l_next = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
-void  *bmiter__loop_of_face_step(BMIter *iter)
+void  *bmiter__loop_of_face_step(struct BMIter__loop_of_face *iter)
 {
-	BMLoop *current = iter->l_next;
+	BMLoop *l_curr = iter->l_next;
 
-	if (iter->l_next) iter->l_next = iter->l_next->next;
-	if (iter->l_next == iter->l_first) iter->l_next = NULL;
+	if (iter->l_next) {
+		iter->l_next = iter->l_next->next;
+		if (iter->l_next == iter->l_first) {
+			iter->l_next = NULL;
+		}
+	}
 
-	return current;
+	return l_curr;
 }
