@@ -1839,7 +1839,7 @@ static void interp_weights_uv_v2_apply(const float uv[2], float r_pt[2], const f
 	r_pt[1] +=  dvec[0] * uv[1];
 }
 
-/* when a now points added - resize all shapekey array  */
+/* when a new points added - resize all shapekey array  */
 void BKE_mask_layer_shape_changed_add(MaskLayer *masklay, int index,
                                       int do_init, int do_init_interpolate)
 {

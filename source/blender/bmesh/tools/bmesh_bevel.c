@@ -358,7 +358,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 		madd_v3_v3fl(off1a, norm_perp1, e1->offset);
 		copy_v3_v3(meetco, off1a);
 	}
-	else if (fabs(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
+	else if (fabsf(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
 		/* special case e1 and e2 are antiparallel, so bevel is into
 		 * a zero-area face.  Just make the offset point on the
 		 * common line, at offset distance from v. */
@@ -441,7 +441,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
 	}
-	else if (fabs(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
+	else if (fabsf(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
 		slide_dist(e2, v, e2->offset, meetco);
 	}
 	else {

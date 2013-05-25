@@ -333,7 +333,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("\t...will ignore 8 because there is no space between the -f and the frame value\n\n");
 
 	printf("Argument Order:\n");
-	printf("Arguments are executed in the order they are given. eg\n");
+	printf("\targuments are executed in the order they are given. eg\n");
 	printf("\t\t\"blender --background test.blend --render-frame 1 --render-output /tmp\"\n");
 	printf("\t...will not render to /tmp because '--render-frame 1' renders before the output path is set\n");
 	printf("\t\t\"blender --background --render-output /tmp test.blend --render-frame 1\"\n");
@@ -344,7 +344,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
 	printf("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
 	printf("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
-	printf("  $Directory for user data files (icons, translations, ..).\n");
+	printf("  Directory for user data files (icons, translations, ..).\n");
 	printf("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
 	printf("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32

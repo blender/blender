@@ -30,18 +30,7 @@ import datetime
 
 def man_format(data):
     data = data.replace("-", "\\-")
-    data = data.replace("\t", "    ")
-    # data = data.replace("$", "\\fI")
-
-    data_ls = []
-    for w in data.split():
-        if w.startswith("$"):
-            w = "\\fI" + w[1:] + "\\fR"
-
-        data_ls.append(w)
-
-    data = data[:len(data) - len(data.lstrip())] + " ".join(data_ls)
-
+    data = data.replace("\t", "  ")
     return data
 
 # allow passing blender as argument
