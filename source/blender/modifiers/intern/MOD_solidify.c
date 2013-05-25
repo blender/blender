@@ -112,10 +112,11 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 			ml = mloop + mp->loopstart;
 
-			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
+			for (j = 0, ml_v2 = ml[mp->totloop - 1].v;
 			     j < mp->totloop;
-			     j++, ml++, ml_v2 = ml_v1, ml_v1 = ml->v)
+			     j++, ml++, ml_v2 = ml_v1)
 			{
+				ml_v1 = ml->v;
 				/* --- add edge ref to face --- */
 				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2);
 				if (!edge_ref) {
