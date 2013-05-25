@@ -53,17 +53,7 @@ enum {
 #endif
 
 #pragma mark Cocoa window delegate object
-/* live resize ugly patch
-extern "C" {
-	struct bContext;
-	typedef struct bContext bContext;
-	bContext* ghostC;
-	extern int wm_window_timer(const bContext *C);
-	extern void wm_window_process_events(const bContext *C);
-	extern void wm_event_do_handlers(bContext *C);
-	extern void wm_event_do_notifiers(bContext *C);
-	extern void wm_draw_update(bContext *C);
-};*/
+
 @interface CocoaWindowDelegate : NSObject
 <NSWindowDelegate>
 {
@@ -125,14 +115,10 @@ extern "C" {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//}
 #endif
-	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
+	/* Live resize, send event, gets handled in wm_window.c. Needed because live resize runs in a modal loop, not letting main loop run */
 	 if ([[notification object] inLiveResize]) {
 		systemCocoa->dispatchEvents();
-		wm_window_timer(ghostC);
-		wm_event_do_handlers(ghostC);
-		wm_event_do_notifiers(ghostC);
-		wm_draw_update(ghostC);
-	}*/
+	}
 }
 
 - (void)windowDidChangeBackingProperties:(NSNotification *)notification

@@ -887,7 +887,7 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 					}
 					else {
 						m_multisampleEnabled = GHOST_kSuccess;
-						printf("Multisample failed to initialized\n");
+						printf("Multisample failed to initialize\n");
 						success = GHOST_kSuccess;
 					}
 				}
