@@ -718,9 +718,10 @@ int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 	}
 	else if (op->opm) {
 		/* for macros, check all have exec() we can call */
-		wmOperator *opm;
-		for (opm = op->opm->type->macro.first; opm; opm = opm->next) {
-			if (opm->type->exec == NULL) {
+		wmOperatorTypeMacro *otmacro;
+		for (otmacro = op->opm->type->macro.first; otmacro; otmacro = otmacro->next) {
+			wmOperatorType *otm = WM_operatortype_find(otmacro->idname, 0);
+			if (otm && otm->exec == NULL) {
 				return false;
 			}
 		}
