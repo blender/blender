@@ -2369,7 +2369,10 @@ static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 	
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (efa == data->efa_act) {
-			glColor4ubv(data->cols[2]);
+			if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
+				glColor4ubv(data->cols[1]);
+			else
+				glColor4ubv(data->cols[2]);
 			return DM_DRAW_OPTION_STIPPLE;
 		}
 		else {
