@@ -396,7 +396,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		          ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos * xscale - 0.3f * UI_DPI_ICON_SIZE, UI_DPI_ICON_SIZE, icon_id);
+	UI_icon_draw(xpos * xscale - 0.45f * UI_DPI_ICON_SIZE, UI_DPI_ICON_SIZE, icon_id);
 	
 	glDisable(GL_BLEND);
 	
