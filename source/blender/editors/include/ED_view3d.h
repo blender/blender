@@ -215,7 +215,7 @@ void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, cons
 bool ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d,
                               float *r_clipsta, float *r_clipend, const bool use_ortho_factor);
 bool ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi,
-                             struct rctf *r_viewplane, float *r_clipsta, float *r_clipend);
+                             struct rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar,
                                   struct View3D *v3d, struct RegionView3D *rv3d,
                                   struct rctf *r_viewborder, const bool no_shift);

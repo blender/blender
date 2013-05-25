@@ -688,7 +688,7 @@ bool ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *r_clipsta,
 
 /* also exposed in previewrender.c */
 bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
-                             rctf *r_viewplane, float *r_clipsta, float *r_clipend)
+                             rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
 {
 	CameraParams params;
 
@@ -699,6 +699,7 @@ bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy
 	if (r_viewplane) *r_viewplane = params.viewplane;
 	if (r_clipsta) *r_clipsta = params.clipsta;
 	if (r_clipend) *r_clipend = params.clipend;
+	if (r_pixsize) *r_pixsize = params.viewdx;
 	
 	return params.is_ortho;
 }
@@ -713,7 +714,7 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)
 	float clipsta, clipend, x1, y1, x2, y2;
 	int orth;
 	
-	orth = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend);
+	orth = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
 	rv3d->is_persp = !orth;
 
 #if 0

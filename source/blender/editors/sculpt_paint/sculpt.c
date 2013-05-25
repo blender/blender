@@ -4935,7 +4935,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 
 		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 
-		paint_cursor_start(C, sculpt_poll);
+		paint_cursor_start(C, sculpt_mode_poll_view3d);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);

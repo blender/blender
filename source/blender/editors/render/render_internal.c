@@ -760,12 +760,12 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 
 /* returns true if OK  */
 static bool render_view3d_get_rects(ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine,
-                                    float *r_clipsta, float *r_clipend, bool *r_ortho)
+                                    float *r_clipsta, float *r_clipend, float *r_pixsize, bool *r_ortho)
 {
 	
 	if (ar->winx < 4 || ar->winy < 4) return false;
 	
-	*r_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, r_clipsta, r_clipend);
+	*r_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, r_clipsta, r_clipend, r_pixsize);
 	
 	engine->resolution_x = ar->winx;
 	engine->resolution_y = ar->winy;
@@ -819,13 +819,13 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	RenderData rdata;
 	rctf viewplane;
 	rcti cliprct;
-	float clipsta, clipend;
+	float clipsta, clipend, pixsize;
 	bool orth, restore = 0;
 	char name[32];
 		
 	G.is_break = FALSE;
 	
-	if (false == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &orth))
+	if (false == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &pixsize, &orth))
 		return;
 	
 	rp->stop = stop;
@@ -875,6 +875,8 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	else
 		RE_SetWindow(re, &viewplane, clipsta, clipend);
 
+	RE_SetPixelSize(re, pixsize);
+	
 	/* database free can crash on a empty Render... */
 	if (rp->keep_data == 0 && rstats->convertdone)
 		RE_Database_Free(re);
@@ -1002,7 +1004,7 @@ static int render_view3d_changed(RenderEngine *engine, const bContext *C)
 			update |= PR_UPDATE_VIEW;
 		}
 		
-		render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, &orth);
+		render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, NULL, &orth);
 		RE_GetViewPlane(re, &viewplane1, &disprect1);
 		
 		if (BLI_rctf_compare(&viewplane, &viewplane1, 0.00001f) == 0)
