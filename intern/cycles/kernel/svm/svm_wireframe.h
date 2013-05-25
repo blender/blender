@@ -45,9 +45,9 @@ __device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *stack
 
 	/* Calculate wireframe */
 #ifdef __HAIR__
-	if (sd->segment == ~0) {
+	if (sd->prim != ~0 && sd->segment == ~0) {
 #else
-	{
+	if (sd->prim != ~0) {
 #endif
 		float3 Co[3];
 		float pixelwidth = 1.0f;
