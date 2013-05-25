@@ -89,7 +89,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 	/* don't add _##arr##_count below because it must be zero */              \
 	 (_bli_array_totalsize_static(arr) >= _##arr##_count + num)) ?            \
 	/* we have an empty array and a static var big enough */                  \
-	(arr = (void *)_##arr##_static)                                           \
+	(void)(arr = (void *)_##arr##_static)                                     \
 	    :                                                                     \
 	/* use existing static array or allocate */                               \
 	(LIKELY(_bli_array_totalsize(arr) >= _##arr##_count + num) ?              \
