@@ -14,11 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
  
-float fresnel_dielectric(vector Incoming, normal Normal, float eta)
+float fresnel_dielectric_cos(float cosi, float eta)
 {
 	/* compute fresnel reflectance without explicitly computing
 	 * the refracted direction */
-	float c = fabs(dot(Incoming, Normal));
+	float c = fabs(cosi);
 	float g = eta * eta - 1 + c * c;
 	float result;
 

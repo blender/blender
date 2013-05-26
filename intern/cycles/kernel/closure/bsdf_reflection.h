@@ -59,7 +59,6 @@ __device float3 bsdf_reflection_eval_transmit(const ShaderClosure *sc, const flo
 
 __device int bsdf_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	//const BsdfReflectionClosure *self = (const BsdfReflectionClosure*)sc->data;
 	float3 N = sc->N;
 
 	// only one direction is possible

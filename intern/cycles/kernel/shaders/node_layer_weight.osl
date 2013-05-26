@@ -26,14 +26,15 @@ shader node_layer_weight(
 	output float Facing = 0.0)
 {
 	float blend = Blend;
+	float cosi = dot(I, Normal);
 
 	/* Fresnel */ 
 	float eta = max(1.0 - Blend, 1e-5);
 	eta = backfacing() ? eta : 1.0 / eta;
-	Fresnel = fresnel_dielectric(I, Normal, eta);
+	Fresnel = fresnel_dielectric_cos(cosi, eta);
 
 	/* Facing */ 
-	Facing = abs(dot(I, Normal));
+	Facing = fabs(cosi);
 
 	if (blend != 0.5) {
 		blend = clamp(blend, 0.0, 1.0 - 1e-5);
