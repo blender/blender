@@ -312,7 +312,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
 
 /* ------------------ Scrollwheel Versions (2) ---------------------- */
 
-/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+/* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
@@ -356,7 +356,7 @@ static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 
 
 
-/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+/* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollleft_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
@@ -399,7 +399,7 @@ static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 }
 
 
-/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+/* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
@@ -449,7 +449,7 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 
 
 
-/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+/* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollup_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
@@ -738,7 +738,7 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
 }
 	
-/* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
+/* this operator only needs this single callback, where it calls the view_zoom_*() methods */
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -1175,7 +1175,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		 */
 		float zoom, center, size;
 		
-		/* TODO: is this zoom factor calculation valid? It seems to produce same results everytime... */
+		/* TODO: is this zoom factor calculation valid? It seems to produce same results every time... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
 			size = BLI_rctf_size_x(&cur_new);
 			zoom = size / BLI_rctf_size_x(&rect);

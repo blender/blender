@@ -541,7 +541,8 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 		BLI_addtail(&animcopybuf, aci);
 		
 		/* add selected keyframes to buffer */
-		// TODO: currently, we resize array everytime we add a new vert - this works ok as long as it is assumed only a few keys are copied
+		/* TODO: currently, we resize array every time we add a new vert -
+		 * this works ok as long as it is assumed only a few keys are copied */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (BEZSELECTED(bezt)) {
 				/* add to buffer */

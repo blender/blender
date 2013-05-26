@@ -257,7 +257,7 @@ AviError AVI_set_compress_option(AviMovie *movie,
                                  int stream,
                                  AviOption option,
                                  void *opt_data);
-/* Hmmm... there should be some explanantion about what these mean */
+/* Hmmm... there should be some explanation about what these mean */
 /**
  * Compression option, for use in avi_set_compress_option
  */

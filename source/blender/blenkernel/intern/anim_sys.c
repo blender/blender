@@ -2296,7 +2296,7 @@ void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ct
 	 *	- Overrides allow editing, by overwriting the value(s) set from animation-data, with the
 	 *	  value last set by the user (and not keyframed yet). 
 	 *	- Overrides are cleared upon frame change and/or keyframing
-	 *	- It is best that we execute this everytime, so that no errors are likely to occur.
+	 *	- It is best that we execute this every time, so that no errors are likely to occur.
 	 */
 	animsys_evaluate_overrides(&id_ptr, adt);
 	

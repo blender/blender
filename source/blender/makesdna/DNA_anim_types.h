@@ -275,7 +275,7 @@ typedef struct DriverTarget {
 	char pchan_name[32];	/* name of the posebone to use (for vars where DTAR_FLAG_STRUCT_REF is used) */
 	short transChan;		/* transform channel index (for DVAR_TYPE_TRANSFORM_CHAN)*/
 	
-	short flag;				/* flags for the validity of the target (NOTE: these get reset everytime the types change) */
+	short flag;				/* flags for the validity of the target (NOTE: these get reset every time the types change) */
 	int idtype;				/* type of ID-block that this target can use */
 } DriverTarget;
 

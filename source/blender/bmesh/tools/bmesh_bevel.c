@@ -99,7 +99,7 @@ typedef struct VMesh {
 		M_ADJ,          /* "adjacent edges" mesh pattern */
 		M_ADJ_SUBDIV,   /* like M_ADJ, but using subdivision */
 		M_TRI_FAN,      /* a simple polygon - fan filled */
-		M_QUAD_STRIP,   /* a simple polygon - cut into paralelle strips */
+		M_QUAD_STRIP,   /* a simple polygon - cut into parallel strips */
 	} mesh_kind;
 //	int _pad;
 } VMesh;

@@ -1350,7 +1350,7 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 	}
 	
 	/* build a hash-table of all the strips in the tracks 
-	 *	- this is easier than iterating over all the tracks+strips hierarchy everytime
+	 *	- this is easier than iterating over all the tracks+strips hierarchy every time
 	 *	  (and probably faster)
 	 */
 	gh = BLI_ghash_str_new("nlastrip_validate_name gh");

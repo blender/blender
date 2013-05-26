@@ -4711,7 +4711,7 @@ void BKE_get_constraint_targets_for_solving(bConstraint *con, bConstraintOb *cob
 /* ---------- Evaluation ----------- */
 
 /* This function is called whenever constraints need to be evaluated. Currently, all
- * constraints that can be evaluated are everytime this gets run.
+ * constraints that can be evaluated are every time this gets run.
  *
  * BKE_constraints_make_evalob and BKE_constraints_clear_evalob should be called before and 
  * after running this function, to sort out cob

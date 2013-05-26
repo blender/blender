@@ -691,7 +691,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		}
 		case DEL_FACES:
 		{
-			/* go through and mark all edges and all verts of all faces for delet */
+			/* go through and mark all edges and all verts of all faces for delete */
 			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 				if (BMO_elem_flag_test(bm, f, oflag)) {
 					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter))
@@ -847,7 +847,7 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 	}
 }
 
-/* helper functioon for 'BM_mesh_copy' */
+/* helper function for 'BM_mesh_copy' */
 static BMFace *bm_mesh_copy_new_face(BMesh *bm_new, BMesh *bm_old,
                                      BMVert **vtable, BMEdge **etable,
                                      BMFace *f)
@@ -923,7 +923,8 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	ftable = MEM_mallocN(sizeof(BMFace *) * bm_old->totface, "BM_mesh_copy ftable");
 
 	BM_ITER_MESH_INDEX (v, &iter, bm_old, BM_VERTS_OF_MESH, i) {
-		v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD); /* copy between meshes so cant use 'example' argument */
+		/* copy between meshes so cant use 'example' argument */
+		v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD);
 		BM_elem_attrs_copy(bm_old, bm_new, v, v_new);
 		vtable[i] = v_new;
 		BM_elem_index_set(v, i); /* set_inline */

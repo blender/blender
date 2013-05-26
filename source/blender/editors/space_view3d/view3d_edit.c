@@ -682,7 +682,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 {
 	RegionView3D *rv3d = vod->rv3d;
 
-	rv3d->view = RV3D_VIEW_USER; /* need to reset everytime because of view snapping */
+	rv3d->view = RV3D_VIEW_USER; /* need to reset every time because of view snapping */
 
 	if (U.flag & USER_TRACKBALL) {
 		float phi, si, q1[4], dvec[3], newvec[3];
