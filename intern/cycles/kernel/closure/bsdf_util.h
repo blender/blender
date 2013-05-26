@@ -46,12 +46,7 @@ __device float fresnel_dielectric(float eta, const float3 N,
 {
 	float cos = dot(N, I), neta;
 	float3 Nn;
-	// compute reflection
-	*R = (2 * cos)* N - I;
-#ifdef __RAY_DIFFERENTIALS__
-	*dRdx = (2 * dot(N, dIdx)) * N - dIdx;
-	*dRdy = (2 * dot(N, dIdy)) * N - dIdy;
-#endif
+
 	// check which side of the surface we are on
 	if(cos > 0) {
 		// we are on the outside of the surface, going in
@@ -60,13 +55,20 @@ __device float fresnel_dielectric(float eta, const float3 N,
 		*is_inside = false;
 	}
 	else {
-		// we are inside the surface, 
+		// we are inside the surface
 		cos  = -cos;
 		neta = eta;
 		Nn   = -N;
 		*is_inside = true;
 	}
+	
+	// compute reflection
 	*R = (2 * cos)* Nn - I;
+#ifdef __RAY_DIFFERENTIALS__
+	*dRdx = (2 * dot(Nn, dIdx)) * Nn - dIdx;
+	*dRdy = (2 * dot(Nn, dIdy)) * Nn - dIdy;
+#endif
+	
 	float arg = 1 -(neta * neta *(1 -(cos * cos)));
 	if(arg < 0) {
 		*T = make_float3(0.0f, 0.0f, 0.0f);
