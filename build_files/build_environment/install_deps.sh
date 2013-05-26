@@ -730,15 +730,15 @@ compile_Boost() {
 
     magic_compile_set boost-$BOOST_VERSION $boost_magic
 
-    # Just always run it, much simpler this way!
-    _need_boost_ldconfig=true
-
     cd $CWD
     INFO "Done compiling Boost-$BOOST_VERSION!"
   else
     INFO "Own Boost-$BOOST_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-boost option."
   fi
+
+  # Just always run it, much simpler this way!
+  _need_boost_ldconfig=true
 }
 
 #### Build OCIO ####
@@ -1392,15 +1392,15 @@ EOF
 
     magic_compile_set oiio-$OIIO_VERSION $oiio_magic
 
-    # Just always run it, much simpler this way!
-    _need_oiio_ldconfig=true
-
     cd $CWD
     INFO "Done compiling OpenImageIO-$OIIO_VERSION!"
   else
     INFO "Own OpenImageIO-$OIIO_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-oiio option."
   fi
+
+  # Just always run it, much simpler this way!
+  _need_oiio_ldconfig=true
 }
 
 #### Build LLVM ####
@@ -2894,7 +2894,9 @@ print_info() {
   INFO ""
   INFO "****WARNING****"
   INFO "If you are experiencing issues building Blender, _*TRY A FRESH, CLEAN BUILD FIRST*_!"
-  INFO "Often, changes in the libs built by this script, or in your distro package, cannot simply be handled simply, so..."
+  INFO "The same goes for install_deps itself, if you encounter issues, please first erase everything in $SRC and $INST"
+  INFO "(provided obviously you did not add anything yourself in those dirs!), and run install_deps.sh again!"
+  INFO "Often, changes in the libs built by this script, or in your distro package, cannot be handled simply, so..."
   INFO ""
   INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
@@ -3074,13 +3076,13 @@ fi
 
 INFO ""
 INFO "Running ldconfig..."
-if [ _need_boost_ldconfig == true ]; then
-  sudo sh -c 'echo "$INST/boost/lib" > /etc/ld.so.conf.d/boost.conf'
+if [ $_need_boost_ldconfig == true ]; then
+  sudo sh -c "echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
 fi
-if [ _need_oiio_ldconfig == true ]; then
-  sudo sh -c 'echo "$INST/oiio/lib" > /etc/ld.so.conf.d/oiio.conf'
+if [ $_need_oiio_ldconfig == true ]; then
+  sudo sh -c "echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
 fi
-sudo ldconfig
+sudo /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
 INFO ""
 
 print_info | tee BUILD_NOTES.txt
