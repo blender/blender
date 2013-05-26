@@ -161,7 +161,7 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 			c0min = max(ldiff * c0min, c0min - extmax);
 			c0max = min(hdiff * c0max, c0max + extmax);
 		}
-		if(__float_as_int(cnodes.z) & PATH_RAY_CURVE) {
+		if(__float_as_int(cnodes.w) & PATH_RAY_CURVE) {
 			c1min = max(ldiff * c1min, c1min - extmax);
 			c1max = min(hdiff * c1max, c1max + extmax);
 		}
