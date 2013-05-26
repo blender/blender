@@ -2026,7 +2026,7 @@ static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap, const i
 				continue;
 			}
 
-			j = vgroup_tot;
+			j = dv->totweight;
 
 			while (j--) {
 
