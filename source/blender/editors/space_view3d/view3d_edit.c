@@ -3196,8 +3196,13 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 			align_active = false;
 		}
 		else {
+			const float z_flip_quat[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 			float obact_quat[4];
 			float twmat[3][3];
+
+			/* flip the input, the end result being that an object
+			 * with no rotation behaves as if 'align_active' is off */
+			mul_qt_qtqt(new_quat, new_quat, z_flip_quat);
 
 			/* same as transform manipulator when normal is set */
 			ED_getTransformOrientationMatrix(C, twmat, false);
