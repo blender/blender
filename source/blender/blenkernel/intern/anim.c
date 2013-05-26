@@ -784,10 +784,10 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 			if (!is_zero_v3(group->dupli_ofs)) {
 				copy_m4_m4(tmat, go->ob->obmat);
 				sub_v3_v3v3(tmat[3], tmat[3], group->dupli_ofs);
-				mult_m4_m4m4(mat, ob->obmat, tmat);
+				mul_m4_m4m4(mat, ob->obmat, tmat);
 			}
 			else {
-				mult_m4_m4m4(mat, ob->obmat, go->ob->obmat);
+				mul_m4_m4m4(mat, ob->obmat, go->ob->obmat);
 			}
 			
 			dob = new_dupli_object(lb, go->ob, mat, ob->lay, persistent_id, level, id, OB_DUPLIGROUP, flag);
@@ -1018,7 +1018,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					 * when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
 					 */
 					if (par_space_mat)
-						mult_m4_m4m4(vdd.obmat, par_space_mat, ob->obmat);
+						mul_m4_m4m4(vdd.obmat, par_space_mat, ob->obmat);
 					else
 						copy_m4_m4(vdd.obmat, ob->obmat);
 
@@ -1153,7 +1153,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 					 * when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
 					 */
 					if (par_space_mat)
-						mult_m4_m4m4(ob__obmat, par_space_mat, ob->obmat);
+						mul_m4_m4m4(ob__obmat, par_space_mat, ob->obmat);
 					else
 						copy_m4_m4(ob__obmat, ob->obmat);
 					
@@ -1471,10 +1471,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					if (!is_zero_v3(part->dup_group->dupli_ofs))
 						sub_v3_v3v3(tmat[3], tmat[3], part->dup_group->dupli_ofs);
 					/* individual particle transform */
-					mult_m4_m4m4(tmat, pamat, tmat);
+					mul_m4_m4m4(tmat, pamat, tmat);
 
 					if (par_space_mat)
-						mult_m4_m4m4(mat, par_space_mat, tmat);
+						mul_m4_m4m4(mat, par_space_mat, tmat);
 					else
 						copy_m4_m4(mat, tmat);
 
@@ -1514,7 +1514,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					
 					/* add scaling if requested */
 					if ((part->draw & PART_DRAW_NO_SCALE_OB) == 0)
-						mult_m4_m4m4(obmat, obmat, size_mat);
+						mul_m4_m4m4(obmat, obmat, size_mat);
 				}
 				else if (part->draw & PART_DRAW_NO_SCALE_OB) {
 					/* remove scaling */
@@ -1524,22 +1524,22 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					size_to_mat4(size_mat, original_size);
 					invert_m4(size_mat);
 
-					mult_m4_m4m4(obmat, obmat, size_mat);
+					mul_m4_m4m4(obmat, obmat, size_mat);
 				}
 				
 				/* Normal particles and cached hair live in global space so we need to
 				 * remove the real emitter's transformation before 2nd order duplication.
 				 */
 				if (par_space_mat && GS(id->name) != ID_GR)
-					mult_m4_m4m4(mat, psys->imat, pamat);
+					mul_m4_m4m4(mat, psys->imat, pamat);
 				else
 					copy_m4_m4(mat, pamat);
 
-				mult_m4_m4m4(tmat, mat, obmat);
+				mul_m4_m4m4(tmat, mat, obmat);
 				mul_mat3_m4_fl(tmat, size * scale);
 
 				if (par_space_mat)
-					mult_m4_m4m4(mat, par_space_mat, tmat);
+					mul_m4_m4m4(mat, par_space_mat, tmat);
 				else
 					copy_m4_m4(mat, tmat);
 

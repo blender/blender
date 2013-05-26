@@ -119,7 +119,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	/* init everything */
 	if (!psys || !ob || !pd) return;
 
-	mult_m4_m4m4(obview, ob->obmat, re->viewinv);
+	mul_m4_m4m4(obview, ob->obmat, re->viewinv);
 	
 	/* Just to create a valid rendering context for particles */
 	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);

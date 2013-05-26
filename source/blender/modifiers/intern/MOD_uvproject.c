@@ -212,7 +212,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				params.viewplane.ymax *= scay;
 
 				BKE_camera_params_compute_matrix(&params);
-				mult_m4_m4m4(tmpmat, params.winmat, projectors[i].projmat);
+				mul_m4_m4m4(tmpmat, params.winmat, projectors[i].projmat);
 			}
 		}
 		else {
@@ -223,7 +223,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		mul_mat3_m4_fl(offsetmat, 0.5);
 		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
 
-		mult_m4_m4m4(projectors[i].projmat, offsetmat, tmpmat);
+		mul_m4_m4m4(projectors[i].projmat, offsetmat, tmpmat);
 
 		/* calculate worldspace projector normal (for best projector test) */
 		projectors[i].normal[0] = 0;

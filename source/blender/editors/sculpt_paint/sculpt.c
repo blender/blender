@@ -1256,7 +1256,7 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob,
 	/* Scale by brush radius */
 	normalize_m4(mat);
 	scale_m4_fl(scale, cache->radius);
-	mult_m4_m4m4(tmat, mat, scale);
+	mul_m4_m4m4(tmat, mat, scale);
 
 	/* Return inverse (for converting from modelspace coords to local
 	 * area coords) */
@@ -2729,7 +2729,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
 	/* scale mat */
 	scale_m4_fl(scale, ss->cache->radius);
-	mult_m4_m4m4(tmat, mat, scale);
+	mul_m4_m4m4(tmat, mat, scale);
 	invert_m4_m4(mat, tmat);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)

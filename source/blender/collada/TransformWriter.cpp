@@ -40,7 +40,7 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 	if (parent_mat) {
 		float invpar[4][4];
 		invert_m4_m4(invpar, parent_mat);
-		mult_m4_m4m4(local, invpar, mat);
+		mul_m4_m4m4(local, invpar, mat);
 	}
 	else {
 		copy_m4_m4(local, mat);
@@ -82,7 +82,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 		// calculate local mat
 
 		invert_m4_m4(imat, ob->parent->obmat);
-		mult_m4_m4m4(mat, imat, tmat);
+		mul_m4_m4m4(mat, imat, tmat);
 
 		// done
 

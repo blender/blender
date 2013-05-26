@@ -418,7 +418,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	for (j = 0; j < count - 1; j++) {
 		float tmp_mat[4][4];
-		mult_m4_m4m4(tmp_mat, offset, final_offset);
+		mul_m4_m4m4(tmp_mat, offset, final_offset);
 		copy_m4_m4(final_offset, tmp_mat);
 	}
 
@@ -539,7 +539,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 		if (end_cap) {
 			float endoffset[4][4];
-			mult_m4_m4m4(endoffset, offset, final_offset);
+			mul_m4_m4m4(endoffset, offset, final_offset);
 			bm_merge_dm_transform(bm, end_cap, endoffset, amd,
 			                      &dupe_op, (count == 1) ? dupe_op.slots_in : dupe_op.slots_out,
 			                      (count == 1) ? "geom" : "geom.out", &weld_op);

@@ -1204,7 +1204,7 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 
 		mat4_to_size(size, ob->obmat);
 		size_to_mat4(size_mat, size);
-		mult_m4_m4m4(mat, mat, size_mat);
+		mul_m4_m4m4(mat, mat, size_mat);
 
 		copy_m4_m4(ob->obmat, mat);
 	}

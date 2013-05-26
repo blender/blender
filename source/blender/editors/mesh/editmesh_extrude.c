@@ -165,7 +165,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
 					invert_m4_m4(imtx, mmd->mirror_ob->obmat);
-					mult_m4_m4m4(mtx, imtx, obedit->obmat);
+					mul_m4_m4m4(mtx, imtx, obedit->obmat);
 				}
 
 				BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {

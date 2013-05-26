@@ -109,7 +109,7 @@ void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBo
 
 		// get world-space
 		if (parent) {
-			mult_m4_m4m4(mat, parent_mat, obmat);
+			mul_m4_m4m4(mat, parent_mat, obmat);
 		}
 		else {
 			copy_m4_m4(mat, obmat);
@@ -486,10 +486,10 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 
 	// get world-space
 	if (parentname) {
-		mult_m4_m4m4(mat, parent_mat, obmat);
+		mul_m4_m4m4(mat, parent_mat, obmat);
 		bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, parentname);
 
-		mult_m4_m4m4(pchan->pose_mat, parchan->pose_mat, mat);
+		mul_m4_m4m4(pchan->pose_mat, parchan->pose_mat, mat);
 
 	}
 	else {
@@ -497,7 +497,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 		copy_m4_m4(mat, obmat);
 		float invObmat[4][4];
 		invert_m4_m4(invObmat, ob_arm->obmat);
-		mult_m4_m4m4(pchan->pose_mat, invObmat, mat);
+		mul_m4_m4m4(pchan->pose_mat, invObmat, mat);
 		
 	}
 

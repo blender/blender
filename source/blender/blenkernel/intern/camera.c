@@ -159,7 +159,7 @@ float BKE_camera_object_dof_distance(Object *ob)
 		copy_m4_m4(obmat, ob->obmat);
 		normalize_m4(obmat);
 		invert_m4_m4(imat, obmat);
-		mult_m4_m4m4(mat, imat, cam->dof_ob->obmat);
+		mul_m4_m4m4(mat, imat, cam->dof_ob->obmat);
 		return fabsf(mat[3][2]);
 	}
 	return cam->YF_dofdist;

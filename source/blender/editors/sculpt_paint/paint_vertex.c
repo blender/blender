@@ -2249,7 +2249,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 
 	/* imat for normals */
-	mult_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(wpd->wpimat, imat);
 
@@ -2318,7 +2318,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
 	/* load projection matrix */
-	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
+	mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 
@@ -2859,7 +2859,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);
 	
 	/* some old cruft to sort out later */
-	mult_m4_m4m4(mat, vpd->vc.rv3d->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, vpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(vpd->vpimat, imat);
 
@@ -3002,7 +3002,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
 	/* load projection matrix */
-	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
+	mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	/* which faces are involved */
 	if (vp->flag & VP_AREA) {

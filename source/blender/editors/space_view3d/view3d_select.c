@@ -116,7 +116,7 @@ void view3d_get_transformation(const ARegion *ar, RegionView3D *rv3d, Object *ob
 	int i, j;
 
 	if (ob) {
-		mult_m4_m4m4(cpy, rv3d->viewmat, ob->obmat);
+		mul_m4_m4m4(cpy, rv3d->viewmat, ob->obmat);
 	}
 	else {
 		copy_m4_m4(cpy, rv3d->viewmat);

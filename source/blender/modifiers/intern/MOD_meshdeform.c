@@ -224,8 +224,8 @@ static void meshdeformModifier_do(
 
 	/* compute matrices to go in and out of cage object space */
 	invert_m4_m4(imat, mmd->object->obmat);
-	mult_m4_m4m4(cagemat, imat, ob->obmat);
-	mult_m4_m4m4(cmat, mmd->bindmat, cagemat);
+	mul_m4_m4m4(cagemat, imat, ob->obmat);
+	mul_m4_m4m4(cmat, mmd->bindmat, cagemat);
 	invert_m4_m4(iobmat, cmat);
 	copy_m3_m4(icagemat, iobmat);
 

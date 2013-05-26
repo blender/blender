@@ -2238,7 +2238,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	setwinmatrixview3d(ar, v3d, NULL);
 	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
-	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
 	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
 
@@ -2275,7 +2275,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 	setwinmatrixview3d(ar, v3d, NULL);
 	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 	
-	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
 	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
 	
@@ -2467,7 +2467,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		copy_m4_m4(rv3d.winmat, winmat);
 		copy_m4_m4(rv3d.viewmat, viewmat);
 		invert_m4_m4(rv3d.viewinv, rv3d.viewmat);
-		mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
+		mul_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
@@ -2540,7 +2540,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 		setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
 	/* update utilitity matrices */
-	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
 	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
 
@@ -2840,7 +2840,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 		v3d.lens = params.lens;
 	}
 
-	mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
+	mul_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag,

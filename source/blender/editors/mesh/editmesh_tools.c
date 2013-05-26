@@ -3226,7 +3226,7 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 		float fact = reverse ? -1.0 : 1.0;
 		int coidx = (action == SRT_VIEW_ZAXIS) ? 2 : 0;
 
-		mult_m4_m4m4(mat, rv3d->viewmat, ob->obmat);  /* Apply the view matrix to the object matrix. */
+		mul_m4_m4m4(mat, rv3d->viewmat, ob->obmat);  /* Apply the view matrix to the object matrix. */
 
 		if (totelem[0]) {
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");

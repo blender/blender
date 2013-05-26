@@ -546,8 +546,8 @@ void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, Object *ob, float pm
 {
 	float vmat[4][4];
 
-	mult_m4_m4m4(vmat, (float (*)[4])rv3d->viewmat, ob->obmat);
-	mult_m4_m4m4(pmat, (float (*)[4])rv3d->winmat, vmat);
+	mul_m4_m4m4(vmat, (float (*)[4])rv3d->viewmat, ob->obmat);
+	mul_m4_m4m4(pmat, (float (*)[4])rv3d->winmat, vmat);
 }
 
 /**

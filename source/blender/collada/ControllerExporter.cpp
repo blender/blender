@@ -513,11 +513,11 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 				float temp[4][4];
 				unit_m4(temp);
 				copy_v3_v3(temp[3], pchan->bone->arm_mat[3]);
-				mult_m4_m4m4(world, ob_arm->obmat, temp);
+				mul_m4_m4m4(world, ob_arm->obmat, temp);
 			}
 			else {
 				// make world-space matrix, arm_mat is armature-space
-				mult_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
+				mul_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
 			}
 
 			invert_m4_m4(mat, world);

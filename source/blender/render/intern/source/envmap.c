@@ -257,7 +257,7 @@ static void env_set_imats(Render *re)
 	
 	base = re->scene->base.first;
 	while (base) {
-		mult_m4_m4m4(mat, re->viewmat, base->object->obmat);
+		mul_m4_m4m4(mat, re->viewmat, base->object->obmat);
 		invert_m4_m4(base->object->imat, mat);
 		
 		base = base->next;
@@ -294,7 +294,7 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 		/* append or set matrix depending on dupli */
 		if (obi->flag & R_DUPLI_TRANSFORMED) {
 			copy_m4_m4(tmpmat, obi->mat);
-			mult_m4_m4m4(obi->mat, tmat, tmpmat);
+			mul_m4_m4m4(obi->mat, tmat, tmpmat);
 		}
 		else if (do_rotate == 1)
 			copy_m4_m4(obi->mat, tmat);
@@ -329,9 +329,9 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 		
 		/* copy from add_render_lamp */
 		if (do_rotate == 1)
-			mult_m4_m4m4(tmpmat, re->viewmat, go->ob->obmat);
+			mul_m4_m4m4(tmpmat, re->viewmat, go->ob->obmat);
 		else
-			mult_m4_m4m4(tmpmat, re->viewmat_orig, go->ob->obmat);
+			mul_m4_m4m4(tmpmat, re->viewmat_orig, go->ob->obmat);
 		invert_m4_m4(go->ob->imat, tmpmat);
 		
 		copy_m3_m4(lar->mat, tmpmat);
@@ -362,10 +362,10 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 		
 			if (lar->shb) {
 				if (do_rotate == 1) {
-					mult_m4_m4m4(smat, lar->shb->viewmat, mat_inverse);
-					mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, smat);
+					mul_m4_m4m4(smat, lar->shb->viewmat, mat_inverse);
+					mul_m4_m4m4(lar->shb->persmat, lar->shb->winmat, smat);
 				}
-				else mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, lar->shb->viewmat);
+				else mul_m4_m4m4(lar->shb->persmat, lar->shb->winmat, lar->shb->viewmat);
 			}
 		}
 	}
@@ -460,7 +460,7 @@ static void render_envmap(Render *re, EnvMap *env)
 	normalize_m4(orthmat);
 	
 	/* need imat later for texture imat */
-	mult_m4_m4m4(mat, re->viewmat, orthmat);
+	mul_m4_m4m4(mat, re->viewmat, orthmat);
 	invert_m4_m4(tmat, mat);
 	copy_m3_m4(env->obimat, tmat);
 
@@ -479,7 +479,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		copy_m4_m4(envre->viewinv, tmat);
 		
 		/* we have to correct for the already rotated vertexcoords */
-		mult_m4_m4m4(tmat, envre->viewmat, oldviewinv);
+		mul_m4_m4m4(tmat, envre->viewmat, oldviewinv);
 		invert_m4_m4(env->imat, tmat);
 		
 		env_rotate_scene(envre, tmat, 1);
@@ -561,7 +561,7 @@ void make_envmaps(Render *re)
 							normalize_m4(orthmat);
 							
 							/* need imat later for texture imat */
-							mult_m4_m4m4(mat, re->viewmat, orthmat);
+							mul_m4_m4m4(mat, re->viewmat, orthmat);
 							invert_m4_m4(tmat, mat);
 							copy_m3_m4(env->obimat, tmat);
 						}

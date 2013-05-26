@@ -145,9 +145,9 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
 			invert_m4_m4(v3d->camera->imat, v3d->camera->obmat);
-			mult_m4_m4m4(diff_mat, view_mat, v3d->camera->imat);
+			mul_m4_m4m4(diff_mat, view_mat, v3d->camera->imat);
 
-			mult_m4_m4m4(parent_mat, diff_mat, root_parent->obmat);
+			mul_m4_m4m4(parent_mat, diff_mat, root_parent->obmat);
 
 			BKE_object_tfm_protected_backup(root_parent, &obtfm);
 			BKE_object_apply_mat4(root_parent, parent_mat, true, false);

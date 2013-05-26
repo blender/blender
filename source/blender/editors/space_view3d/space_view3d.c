@@ -226,8 +226,8 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 {
 	/* local viewmat and persmat, to calculate projections */
-	mult_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->obmat);
-	mult_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->obmat);
+	mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->obmat);
+	mul_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->obmat);
 
 	/* initializes object space clipping, speeds up clip tests */
 	ED_view3d_clipping_local(rv3d, ob->obmat);

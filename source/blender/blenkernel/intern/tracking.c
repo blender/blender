@@ -292,7 +292,7 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking, MovieTrackingOb
 		float imat[4][4];
 
 		invert_m4_m4(imat, camera->mat);
-		mult_m4_m4m4(mat, winmat, imat);
+		mul_m4_m4m4(mat, winmat, imat);
 	}
 	else {
 		copy_m4_m4(mat, winmat);
@@ -1458,7 +1458,7 @@ static void reconstructed_camera_scale_set(MovieTrackingObject *object, float ma
 		float smat[4][4];
 
 		scale_m4_fl(smat, 1.0f / object->scale);
-		mult_m4_m4m4(mat, mat, smat);
+		mul_m4_m4m4(mat, mat, smat);
 	}
 }
 
@@ -3032,7 +3032,7 @@ static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, M
 				origin_set = true;
 			}
 			else {
-				mult_m4_m4m4(mat, imat, mat);
+				mul_m4_m4m4(mat, imat, mat);
 			}
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);

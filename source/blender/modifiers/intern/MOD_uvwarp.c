@@ -98,7 +98,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 {
 	bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
 	if (pchan) {
-		mult_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
+		mul_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
 	}
 	else {
 		copy_m4_m4(mat, ob->obmat);
@@ -139,7 +139,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	matrix_from_obj_pchan(mat_dst, umd->object_dst, umd->bone_dst);
 
 	invert_m4_m4(imat_dst, mat_dst);
-	mult_m4_m4m4(warp_mat, imat_dst, mat_src);
+	mul_m4_m4m4(warp_mat, imat_dst, mat_src);
 
 	/* apply warp */
 	if (!is_zero_v2(umd->center)) {
@@ -152,8 +152,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		invert_m4_m4(imat_cent, mat_cent);
 
-		mult_m4_m4m4(warp_mat, warp_mat, imat_cent);
-		mult_m4_m4m4(warp_mat, mat_cent, warp_mat);
+		mul_m4_m4m4(warp_mat, warp_mat, imat_cent);
+		mul_m4_m4m4(warp_mat, mat_cent, warp_mat);
 	}
 
 	/* make sure we're using an existing layer */

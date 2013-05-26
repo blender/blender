@@ -67,7 +67,7 @@ void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::
 		}
 
 		copy_m4_m4(copy, mat);
-		mult_m4_m4m4(mat, copy, cur);
+		mul_m4_m4m4(mat, copy, cur);
 		
 		if (animation_map) {
 			// AnimationList that drives this Transformation

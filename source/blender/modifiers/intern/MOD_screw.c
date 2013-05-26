@@ -202,7 +202,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* calc the matrix relative to the axis object */
 		invert_m4_m4(mtx_tmp_a, ob->obmat);
 		copy_m4_m4(mtx_tx_inv, ltmd->ob_axis->obmat);
-		mult_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
+		mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 
 		/* calc the axis vec */
 		mul_mat3_m4_v3(mtx_tx, axis_vec); /* only rotation component */

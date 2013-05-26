@@ -204,7 +204,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 						copy_m4_m4(temp, bone->arm_mat);
 						temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 
-						mult_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
+						mul_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
 					}
 
 					se->writeNodes(*i, sce);
@@ -257,11 +257,11 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		/*bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
 		float invpar[4][4];
 		invert_m4_m4(invpar, parchan->pose_mat);
-		mult_m4_m4m4(mat, invpar, pchan->pose_mat);*/
+		mul_m4_m4m4(mat, invpar, pchan->pose_mat);*/
 		
 		float invpar[4][4];
 		invert_m4_m4(invpar, bone->parent->arm_mat);
-		mult_m4_m4m4(mat, invpar, bone->arm_mat);
+		mul_m4_m4m4(mat, invpar, bone->arm_mat);
 
 	}
 	else {
@@ -281,13 +281,13 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 		invert_m4(temp);
 
-		mult_m4_m4m4(mat, mat, temp);
+		mul_m4_m4m4(mat, mat, temp);
 
 		if (bone->parent) {
 			copy_m4_m4(temp, bone->parent->arm_mat);
 			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 
-			mult_m4_m4m4(mat, temp, mat);
+			mul_m4_m4m4(mat, temp, mat);
 		}
 	}
 

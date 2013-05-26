@@ -243,7 +243,7 @@ static float metadensity(Object *ob, const float co[3])
 	
 	/* transform co to meta-element */
 	float tco[3] = {co[0], co[1], co[2]};
-	mult_m4_m4m4(mat, R.viewmat, ob->obmat);
+	mul_m4_m4m4(mat, R.viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	mul_m4_v3(imat, tco);
 	

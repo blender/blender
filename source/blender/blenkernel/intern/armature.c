@@ -505,9 +505,9 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		if (prev->bone->segments == 1) {
 			/* find the previous roll to interpolate */
 			if (rest)
-				mult_m4_m4m4(difmat, imat, prev->bone->arm_mat);
+				mul_m4_m4m4(difmat, imat, prev->bone->arm_mat);
 			else
-				mult_m4_m4m4(difmat, imat, prev->pose_mat);
+				mul_m4_m4m4(difmat, imat, prev->pose_mat);
 			copy_m3_m4(result, difmat); /* the desired rotation at beginning of next bone */
 
 			vec_roll_to_mat3(h1, 0.0f, mat3); /* the result of vec_roll without roll */
@@ -543,9 +543,9 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 
 		/* find the next roll to interpolate as well */
 		if (rest)
-			mult_m4_m4m4(difmat, imat, next->bone->arm_mat);
+			mul_m4_m4m4(difmat, imat, next->bone->arm_mat);
 		else
-			mult_m4_m4m4(difmat, imat, next->pose_mat);
+			mul_m4_m4m4(difmat, imat, next->pose_mat);
 		copy_m3_m4(result, difmat); /* the desired rotation at beginning of next bone */
 
 		vec_roll_to_mat3(h2, 0.0f, mat3); /* the result of vec_roll without roll */
@@ -844,7 +844,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 
 	invert_m4_m4(obinv, target->obmat);
 	copy_m4_m4(premat, target->obmat);
-	mult_m4_m4m4(postmat, obinv, armOb->obmat);
+	mul_m4_m4m4(postmat, obinv, armOb->obmat);
 	invert_m4_m4(premat, postmat);
 
 	/* bone defmats are already in the channels, chan_mat */
@@ -1109,7 +1109,7 @@ void BKE_armature_mat_world_to_pose(Object *ob, float inmat[4][4], float outmat[
 	invert_m4_m4(obmat, ob->obmat);
 
 	/* multiply given matrix by object's-inverse to find pose-space matrix */
-	mult_m4_m4m4(outmat, inmat, obmat);
+	mul_m4_m4m4(outmat, inmat, obmat);
 }
 
 /* Convert World-Space Location to Pose-Space Location
@@ -1181,7 +1181,7 @@ void BKE_pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[4][4], float 
 		/* Compose the rotscale matrix for this bone. */
 		if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_NO_SCALE)) {
 			/* Parent rest rotation and scale. */
-			mult_m4_m4m4(rotscale_mat, parbone->arm_mat, offs_bone);
+			mul_m4_m4m4(rotscale_mat, parbone->arm_mat, offs_bone);
 		}
 		else if (bone->flag & BONE_HINGE) {
 			/* Parent rest rotation and pose scale. */
@@ -1192,19 +1192,19 @@ void BKE_pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[4][4], float 
 			size_to_mat4(tmat, tscale);
 
 			/* Applies the parent pose scale to the rest matrix. */
-			mult_m4_m4m4(tmat, tmat, parbone->arm_mat);
+			mul_m4_m4m4(tmat, tmat, parbone->arm_mat);
 
-			mult_m4_m4m4(rotscale_mat, tmat, offs_bone);
+			mul_m4_m4m4(rotscale_mat, tmat, offs_bone);
 		}
 		else if (bone->flag & BONE_NO_SCALE) {
 			/* Parent pose rotation and rest scale (i.e. no scaling). */
 			float tmat[4][4];
 			copy_m4_m4(tmat, parchan->pose_mat);
 			normalize_m4(tmat);
-			mult_m4_m4m4(rotscale_mat, tmat, offs_bone);
+			mul_m4_m4m4(rotscale_mat, tmat, offs_bone);
 		}
 		else
-			mult_m4_m4m4(rotscale_mat, parchan->pose_mat, offs_bone);
+			mul_m4_m4m4(rotscale_mat, parchan->pose_mat, offs_bone);
 
 		/* Compose the loc matrix for this bone. */
 		/* NOTE: That version does not modify bone's loc when HINGE/NO_SCALE options are set. */
@@ -1224,11 +1224,11 @@ void BKE_pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[4][4], float 
 			mul_m3_m3m3(bone_rotscale, tmat3, bone_rotscale);
 
 			copy_m4_m3(tmat4, bone_rotscale);
-			mult_m4_m4m4(loc_mat, bone_loc, tmat4);
+			mul_m4_m4m4(loc_mat, bone_loc, tmat4);
 		}
 		/* Those flags do not affect position, use plain parent transform space! */
 		else if (bone->flag & (BONE_HINGE | BONE_NO_SCALE)) {
-			mult_m4_m4m4(loc_mat, parchan->pose_mat, offs_bone);
+			mul_m4_m4m4(loc_mat, parchan->pose_mat, offs_bone);
 		}
 		/* Else (i.e. default, usual case), just use the same matrix for rotation/scaling, and location. */
 		else
@@ -1263,7 +1263,7 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[4][4], float
 	invert_m4(rotscale_mat);
 	invert_m4(loc_mat);
 
-	mult_m4_m4m4(outmat, rotscale_mat, inmat_);
+	mul_m4_m4m4(outmat, rotscale_mat, inmat_);
 	mul_v3_m4v3(outmat[3], loc_mat, inmat_[3]);
 }
 
@@ -1277,7 +1277,7 @@ void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[4][4], float
 
 	BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 
-	mult_m4_m4m4(outmat, rotscale_mat, inmat_);
+	mul_m4_m4m4(outmat, rotscale_mat, inmat_);
 	mul_v3_m4v3(outmat[3], loc_mat, inmat_[3]);
 }
 
@@ -1349,7 +1349,7 @@ void BKE_armature_mat_pose_to_delta(float delta_mat[4][4], float pose_mat[4][4],
 	float imat[4][4];
 
 	invert_m4_m4(imat, arm_mat);
-	mult_m4_m4m4(delta_mat, imat, pose_mat);
+	mul_m4_m4m4(delta_mat, imat, pose_mat);
 }
 
 /* **************** Rotation Mode Conversions ****************************** */
@@ -1522,7 +1522,7 @@ void BKE_armature_where_is_bone(Bone *bone, Bone *prevbone)
 		get_offset_bone_mat(bone, offs_bone);
 
 		/* Compose the matrix for this bone  */
-		mult_m4_m4m4(bone->arm_mat, prevbone->arm_mat, offs_bone);
+		mul_m4_m4m4(bone->arm_mat, prevbone->arm_mat, offs_bone);
 	}
 	else {
 		copy_m4_m3(bone->arm_mat, bone->bone_mat);
@@ -2523,7 +2523,7 @@ void BKE_pose_where_is(Scene *scene, Object *ob)
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (pchan->bone) {
 			invert_m4_m4(imat, pchan->bone->arm_mat);
-			mult_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
+			mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
 		}
 	}
 }

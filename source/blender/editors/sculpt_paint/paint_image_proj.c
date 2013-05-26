@@ -2930,8 +2930,8 @@ static void project_paint_begin(ProjPaintState *ps)
 			}
 
 			/* same as #ED_view3d_ob_project_mat_get */
-			mult_m4_m4m4(vmat, viewmat, ps->ob->obmat);
-			mult_m4_m4m4(ps->projectMat, winmat, vmat);
+			mul_m4_m4m4(vmat, viewmat, ps->ob->obmat);
+			mul_m4_m4m4(ps->projectMat, winmat, vmat);
 		}
 
 

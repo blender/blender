@@ -1444,7 +1444,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	 *   this is closer to making a copy of the object - in-place. */
 	if (gob) {
 		ob->rotmode = target->rotmode;
-		mult_m4_m4m4(ob->obmat, gob->obmat, target->obmat);
+		mul_m4_m4m4(ob->obmat, gob->obmat, target->obmat);
 		if (gob->dup_group) { /* should always be true */
 			float tvec[3];
 			copy_v3_v3(tvec, gob->dup_group->dupli_ofs);
@@ -1673,9 +1673,9 @@ void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, c
 
 	if (use_parent && ob->parent) {
 		float rmat[4][4], diff_mat[4][4], imat[4][4];
-		mult_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
+		mul_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
 		invert_m4_m4(imat, diff_mat);
-		mult_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
+		mul_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
 		BKE_object_apply_mat4(ob, rmat, use_compat, FALSE);
 		
 		/* same as below, use rmat rather than mat */
@@ -1799,7 +1799,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 		if (cu->flag & CU_PATH_RADIUS) {
 			float tmat[4][4], rmat[4][4];
 			scale_m4_fl(tmat, radius);
-			mult_m4_m4m4(rmat, tmat, mat);
+			mul_m4_m4m4(rmat, tmat, mat);
 			copy_m4_m4(mat, rmat);
 		}
 
@@ -2620,7 +2620,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 				if (ob->proxy_from->proxy_group) { /* transform proxy into group space */
 					Object *obg = ob->proxy_from->proxy_group;
 					invert_m4_m4(obg->imat, obg->obmat);
-					mult_m4_m4m4(ob->obmat, obg->imat, ob->proxy_from->obmat);
+					mul_m4_m4m4(ob->obmat, obg->imat, ob->proxy_from->obmat);
 					if (obg->dup_group) { /* should always be true */
 						add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
 					}

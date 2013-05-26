@@ -2189,7 +2189,7 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_
 	/* For skin root drawing */
 	data.has_vskin = CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN);
 	/* view-aligned matrix */
-	mult_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
+	mul_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
 	invert_m4(data.imat);
 
 	bglBegin(GL_POINTS);
@@ -4251,7 +4251,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if ((base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP)) {
 		float mat[4][4];
-		mult_m4_m4m4(mat, ob->obmat, psys->imat);
+		mul_m4_m4m4(mat, ob->obmat, psys->imat);
 		glMultMatrixf(mat);
 	}
 

@@ -142,7 +142,7 @@ void swap_m4m4(float m1[4][4], float m2[4][4])
 
 /******************************** Arithmetic *********************************/
 
-void mult_m4_m4m4(float m1[4][4], float m3_[4][4], float m2_[4][4])
+void mul_m4_m4m4(float m1[4][4], float m3_[4][4], float m2_[4][4])
 {
 	float m2[4][4], m3[4][4];
 
@@ -215,7 +215,7 @@ void mul_m4_m4m3(float m1[4][4], float m3_[4][4], float m2_[3][3])
 }
 
 /* m1 = m2 * m3, ignore the elements on the 4th row/column of m3 */
-void mult_m3_m3m4(float m1[3][3], float m3_[4][4], float m2_[3][3])
+void mul_m3_m3m4(float m1[3][3], float m3_[4][4], float m2_[3][3])
 {
 	float m2[3][3], m3[4][4];
 
@@ -298,19 +298,19 @@ void mul_serie_m4(float answ[4][4], float m1[4][4],
 
 	if (m1 == NULL || m2 == NULL) return;
 
-	mult_m4_m4m4(answ, m1, m2);
+	mul_m4_m4m4(answ, m1, m2);
 	if (m3) {
-		mult_m4_m4m4(temp, answ, m3);
+		mul_m4_m4m4(temp, answ, m3);
 		if (m4) {
-			mult_m4_m4m4(answ, temp, m4);
+			mul_m4_m4m4(answ, temp, m4);
 			if (m5) {
-				mult_m4_m4m4(temp, answ, m5);
+				mul_m4_m4m4(temp, answ, m5);
 				if (m6) {
-					mult_m4_m4m4(answ, temp, m6);
+					mul_m4_m4m4(answ, temp, m6);
 					if (m7) {
-						mult_m4_m4m4(temp, answ, m7);
+						mul_m4_m4m4(temp, answ, m7);
 						if (m8) {
-							mult_m4_m4m4(answ, temp, m8);
+							mul_m4_m4m4(answ, temp, m8);
 						}
 						else copy_m4_m4(answ, temp);
 					}

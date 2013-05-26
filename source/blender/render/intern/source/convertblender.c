@@ -1659,14 +1659,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 	
 /* 2.5 setup matrices */
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);	/* need to be that way, for imat texture */
 	copy_m3_m4(nmat, ob->imat);
 	transpose_m3(nmat);
 
 	if (psys->flag & PSYS_USE_IMAT) {
 		/* psys->imat is the original emitter's inverse matrix, ob->obmat is the duplicated object's matrix */
-		mult_m4_m4m4(duplimat, ob->obmat, psys->imat);
+		mul_m4_m4m4(duplimat, ob->obmat, psys->imat);
 		use_duplimat = TRUE;
 	}
 
@@ -2108,7 +2108,7 @@ static void make_render_halos(Render *re, ObjectRen *obr, Mesh *UNUSED(me), int 
 	float vec[3], hasize, mat[4][4], imat[3][3];
 	int a, ok, seed= ma->seed1;
 
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	copy_m3_m4(imat, ob->imat);
 
 	re->flag |= R_HALO;
@@ -2405,7 +2405,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	if (ob!=BKE_mball_basis_find(re->scene, ob))
 		return;
 
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 	copy_m3_m4(imat, ob->imat);
 	negative_scale = is_negative_m4(mat);
@@ -2800,7 +2800,7 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 	nu= cu->nurb.first;
 	if (nu==0) return;
 
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 
 	/* material array */
@@ -2870,7 +2870,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	dl= disp.first;
 	if (dl==NULL) return;
 	
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 
 	/* local object -> world space transform for normals */
@@ -3324,7 +3324,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	me= ob->data;
 
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 	copy_m3_m4(imat, ob->imat);
 	negative_scale= is_negative_m4(mat);
@@ -3748,7 +3748,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[4][4])
 	/* matrix: combination of inverse view and lampmat */
 	/* calculate again: the ortho-render has no correct viewinv */
 	invert_m4_m4(viewinv, re->viewmat);
-	mult_m4_m4m4(shb->viewmat, shb->winmat, viewinv);
+	mul_m4_m4m4(shb->viewmat, shb->winmat, viewinv);
 	
 	/* projection */
 	shb->d= lar->clipsta;
@@ -3826,7 +3826,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	BLI_addtail(&re->lampren, lar);
 	go->lampren= lar;
 
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 
 	copy_m3_m4(lar->mat, mat);
@@ -4569,7 +4569,7 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
 	int first = 1;
 
-	mult_m4_m4m4(obmat, re->viewmat, obr->obmat);
+	mul_m4_m4m4(obmat, re->viewmat, obr->obmat);
 	invert_m4_m4(imat, obmat);
 
 	/* for objects instanced by dupliverts/faces/particles, we go over the
@@ -4582,7 +4582,7 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 			/* compute difference between object matrix and
 			 * object matrix with dupli transform, in viewspace */
 			copy_m4_m4(obimat, obi->mat);
-			mult_m4_m4m4(obi->mat, obimat, imat);
+			mul_m4_m4m4(obi->mat, obimat, imat);
 
 			copy_m3_m4(nmat, obi->mat);
 			invert_m3_m3(obi->nmat, nmat);
@@ -4604,7 +4604,7 @@ static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRe
 {
 	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
 
-	mult_m4_m4m4(obmat, re->viewmat, obr->obmat);
+	mul_m4_m4m4(obmat, re->viewmat, obr->obmat);
 	invert_m4_m4(imat, obmat);
 
 	obi->obr= obr;
@@ -4612,7 +4612,7 @@ static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRe
 	/* compute difference between object matrix and
 	 * object matrix with dupli transform, in viewspace */
 	copy_m4_m4(obimat, obi->mat);
-	mult_m4_m4m4(obi->mat, obimat, imat);
+	mul_m4_m4m4(obi->mat, obimat, imat);
 
 	copy_m3_m4(nmat, obi->mat);
 	invert_m3_m3(obi->nmat, nmat);
@@ -4814,7 +4814,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 	else if (render_object_type(ob->type))
 		add_render_object(re, ob, par, dob, timeoffset);
 	else {
-		mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat, mat);
 	}
 	
@@ -5066,7 +5066,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * See bug: [#28744] - campbell */
 	for (ob= re->main->object.first; ob; ob= ob->id.next) {
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
-		mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat_ren, mat);
 		copy_m4_m4(ob->imat, ob->imat_ren);
 		/* each object should only be rendered once */
@@ -5138,7 +5138,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						 * this is a duplivert/face/particle, or it is a non-animated object in
 						 * a dupligroup that has already been created before */
 						if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, 0))) {
-							mult_m4_m4m4(mat, re->viewmat, dob->mat);
+							mul_m4_m4m4(mat, re->viewmat, dob->mat);
 														/* ob = particle system, use that layer */
 							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], 0, mat, ob->lay); 
 
@@ -5166,7 +5166,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						for (psys=obd->particlesystem.first; psys; psys=psys->next) {
 							if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, psysindex))) {
 								if (obi == NULL)
-									mult_m4_m4m4(mat, re->viewmat, dob->mat);
+									mul_m4_m4m4(mat, re->viewmat, dob->mat);
 								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], psysindex++, mat, obd->lay);
 
 								set_dupli_tex_mat(re, obi, dob);
@@ -5388,7 +5388,7 @@ void RE_DataBase_IncrementalView(Render *re, float viewmat[4][4], int restore)
 	invert_m4_m4(oldviewinv, re->viewmat_orig);
 	
 	/* we have to correct for the already rotated vertexcoords */
-	mult_m4_m4m4(tmat, viewmat, oldviewinv);
+	mul_m4_m4m4(tmat, viewmat, oldviewinv);
 	
 	copy_m4_m4(re->viewmat, viewmat);
 	invert_m4_m4(re->viewinv, re->viewmat);
@@ -5546,7 +5546,7 @@ static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen
 		int a;
 
 		if (obi->flag & R_TRANSFORMED)
-			mult_m4_m4m4(winmat, re->winmat, obi->mat);
+			mul_m4_m4m4(winmat, re->winmat, obi->mat);
 		else
 			copy_m4_m4(winmat, re->winmat);
 
@@ -5583,7 +5583,7 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 	int a, *face, *index;
 
 	if (obi->flag & R_TRANSFORMED)
-		mult_m4_m4m4(winmat, re->winmat, obi->mat);
+		mul_m4_m4m4(winmat, re->winmat, obi->mat);
 	else
 		copy_m4_m4(winmat, re->winmat);
 
@@ -5677,7 +5677,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	velarray = fss->meshVelocities;
 
 	if (obi->flag & R_TRANSFORMED)
-		mult_m4_m4m4(winmat, re->winmat, obi->mat);
+		mul_m4_m4m4(winmat, re->winmat, obi->mat);
 	else
 		copy_m4_m4(winmat, re->winmat);
 	
@@ -5766,7 +5766,7 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 			vec= obilb->vectors= MEM_mallocN(2*sizeof(float)*totvector, "vector array");
 
 			if (obi->flag & R_TRANSFORMED)
-				mult_m4_m4m4(winmat, re->winmat, obi->mat);
+				mul_m4_m4m4(winmat, re->winmat, obi->mat);
 			else
 				copy_m4_m4(winmat, re->winmat);
 
