@@ -2919,7 +2919,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* modified dm support */
 	prop = RNA_def_property(srna, "use_modifier_stack", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_modifier_stack", 0);
-	RNA_def_property_ui_text(prop, "Use Modifier Stack", "Emit particles from mesh with modifiers applied"
+	RNA_def_property_ui_text(prop, "Use Modifier Stack", "Emit particles from mesh with modifiers applied "
 	                               "(must use same subsurf level for viewport and render for correct results)");
 	RNA_def_property_update(prop, 0, "rna_Particle_change_type");
 
