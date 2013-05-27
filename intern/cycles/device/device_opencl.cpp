@@ -38,7 +38,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#define CL_MEM_PTR(p) ((cl_mem)(unsigned long)(p))
+#define CL_MEM_PTR(p) ((cl_mem)(uintptr_t)(p))
 
 static cl_device_type opencl_device_type()
 {
@@ -57,7 +57,57 @@ static cl_device_type opencl_device_type()
 			return CL_DEVICE_TYPE_ACCELERATOR;
 	}
 
-	return CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+	return CL_DEVICE_TYPE_ALL;
+}
+
+static bool opencl_kernel_use_debug()
+{
+	return (getenv("CYCLES_OPENCL_DEBUG") != NULL);
+}
+
+static bool opencl_kernel_use_advanced_shading(const string& platform)
+{
+	/* keep this in sync with kernel_types.h! */
+	if(platform == "NVIDIA CUDA")
+		return false;
+	else if(platform == "Apple")
+		return false;
+	else if(platform == "AMD Accelerated Parallel Processing")
+		return false;
+	else if(platform == "Intel(R) OpenCL")
+		return true;
+
+	return false;
+}
+
+static string opencl_kernel_build_options(const string& platform, const string *debug_src = NULL)
+{
+	string build_options = " -cl-fast-relaxed-math ";
+
+	if(platform == "NVIDIA CUDA")
+		build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
+
+	else if(platform == "Apple")
+		build_options += "-D__KERNEL_OPENCL_APPLE__ -Wno-missing-prototypes ";
+
+	else if(platform == "AMD Accelerated Parallel Processing")
+		build_options += "-D__KERNEL_OPENCL_AMD__ ";
+
+	else if(platform == "Intel(R) OpenCL") {
+		build_options += "-D__KERNEL_OPENCL_INTEL_CPU__";
+
+		/* options for gdb source level kernel debugging. this segfaults on linux currently */
+		if(opencl_kernel_use_debug() && debug_src)
+			build_options += "-g -s \"" + *debug_src + "\"";
+	}
+
+	if(opencl_kernel_use_debug())
+		build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
+
+	if (opencl_kernel_use_advanced_shading(platform))
+		build_options += "-D__KERNEL_OPENCL_NEED_ADVANCED_SHADING__ ";
+	
+	return build_options;
 }
 
 class OpenCLDevice : public Device
@@ -72,9 +122,14 @@ public:
 	cl_kernel ckPathTraceKernel;
 	cl_kernel ckFilmConvertKernel;
 	cl_int ciErr;
-	map<string, device_vector<uchar>*> const_mem_map;
-	map<string, device_memory*> mem_map;
+
+	typedef map<string, device_vector<uchar>*> ConstMemMap;
+	typedef map<string, device_ptr> MemMap;
+
+	ConstMemMap const_mem_map;
+	MemMap mem_map;
 	device_ptr null_mem;
+
 	bool device_initialized;
 	string platform_name;
 
@@ -169,6 +224,7 @@ public:
 	{
 		background = background_;
 		cpPlatform = NULL;
+		cdDevice = NULL;
 		cxContext = NULL;
 		cqCommandQueue = NULL;
 		cpProgram = NULL;
@@ -189,38 +245,64 @@ public:
 			return;
 		}
 
-		ciErr = clGetPlatformIDs(1, &cpPlatform, NULL);
+		vector<cl_platform_id> platforms(num_platforms, NULL);
+
+		ciErr = clGetPlatformIDs(num_platforms, &platforms[0], NULL);
 		if(opencl_error(ciErr))
 			return;
 
-		char name[256];
-		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(name), &name, NULL);
-		platform_name = name;
+		int num_base = 0;
+		int total_devices = 0;
 
-		/* get devices */
-		vector<cl_device_id> device_ids;
-		cl_uint num_devices;
+		for (int platform = 0; platform < num_platforms; platform++) {
+			cl_uint num_devices;
 
-		if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), 0, NULL, &num_devices)))
+			if(opencl_error(clGetDeviceIDs(platforms[platform], opencl_device_type(), 0, NULL, &num_devices)))
+				return;
+
+			total_devices += num_devices;
+
+			if(info.num - num_base >= num_devices) {
+				/* num doesn't refer to a device in this platform */
+				num_base += num_devices;
+				continue;
+			}
+
+			/* device is in this platform */
+			cpPlatform = platforms[platform];
+
+			/* get devices */
+			vector<cl_device_id> device_ids(num_devices, NULL);
+
+			if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL)))
+				return;
+
+			cdDevice = device_ids[info.num - num_base];
+
+			char name[256];
+			clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(name), &name, NULL);
+			platform_name = name;
+
+			break;
+		}
+
+		if(total_devices == 0) {
+			opencl_error("OpenCL: no devices found.");
 			return;
-
-		if(info.num > num_devices) {
-			if(num_devices == 0)
-				opencl_error("OpenCL: no devices found.");
-			else
-				opencl_error("OpenCL: specified device not found.");
+		}
+		else if (!cdDevice) {
+			opencl_error("OpenCL: specified device not found.");
 			return;
 		}
 
-		device_ids.resize(num_devices);
-		
-		if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL)))
-			return;
-
-		cdDevice = device_ids[info.num];
+		/* Create context properties array to specify platform */
+		const cl_context_properties context_props[] = {
+			CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
+			0, 0
+		};
 
 		/* create context */
-		cxContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
+		cxContext = clCreateContext(context_props, 1, &cdDevice, NULL, NULL, &ciErr);
 		if(opencl_error(ciErr))
 			return;
 
@@ -229,6 +311,9 @@ public:
 			return;
 
 		null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
+		if(opencl_error(ciErr))
+			return;
+
 		device_initialized = true;
 	}
 
@@ -265,7 +350,7 @@ public:
 		return true;
 	}
 
-	bool load_binary(const string& kernel_path, const string& clbin)
+	bool load_binary(const string& kernel_path, const string& clbin, const string *debug_src = NULL)
 	{
 		/* read binary into memory */
 		vector<uint8_t> binary;
@@ -288,7 +373,7 @@ public:
 			return false;
 		}
 
-		if(!build_kernel(kernel_path))
+		if(!build_kernel(kernel_path, debug_src))
 			return false;
 
 		return true;
@@ -315,57 +400,44 @@ public:
 		return true;
 	}
 
-	string kernel_build_options()
+	bool build_kernel(const string& kernel_path, const string *debug_src = NULL)
 	{
-		string build_options = " -cl-fast-relaxed-math ";
-		
-		if(platform_name == "NVIDIA CUDA")
-			build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
-
-		else if(platform_name == "Apple")
-			build_options += "-D__KERNEL_OPENCL_APPLE__ -Wno-missing-prototypes";
-
-		else if(platform_name == "AMD Accelerated Parallel Processing")
-			build_options += "-D__KERNEL_OPENCL_AMD__ ";
-
-		return build_options;
-	}
-
-	bool build_kernel(const string& kernel_path)
-	{
-		string build_options = kernel_build_options();
+		string build_options = opencl_kernel_build_options(platform_name, debug_src);
 	
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
-		if(ciErr != CL_SUCCESS) {
-			/* show build errors */
-			char *build_log;
-			size_t ret_val_size;
+		/* show warnings even if build is successful */
+		size_t ret_val_size = 0;
 
-			clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+		clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
-			build_log = new char[ret_val_size+1];
-			clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
+		if(ret_val_size > 1) {
+			vector<char> build_log(ret_val_size+1);
+			clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, &build_log[0], NULL);
 
 			build_log[ret_val_size] = '\0';
+			fprintf(stderr, "OpenCL kernel build output:\n");
+			fprintf(stderr, "%s\n", &build_log[0]);
+		}
+
+		if(ciErr != CL_SUCCESS) {
 			opencl_error("OpenCL build failed: errors in console");
-			fprintf(stderr, "%s\n", build_log);
-
-			delete[] build_log;
-
 			return false;
 		}
 
 		return true;
 	}
 
-	bool compile_kernel(const string& kernel_path, const string& kernel_md5)
+	bool compile_kernel(const string& kernel_path, const string& kernel_md5, const string *debug_src = NULL)
 	{
 		/* we compile kernels consisting of many files. unfortunately opencl
 		 * kernel caches do not seem to recognize changes in included files.
 		 * so we force recompile on changes by adding the md5 hash of all files */
 		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
 		source = path_source_replace_includes(source, kernel_path);
+
+		if (debug_src)
+			path_write_text(*debug_src, source);
 
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
@@ -378,7 +450,7 @@ public:
 		double starttime = time_dt();
 		printf("Compiling OpenCL kernel ...\n");
 
-		if(!build_kernel(kernel_path))
+		if(!build_kernel(kernel_path, debug_src))
 			return false;
 
 		printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
@@ -401,7 +473,7 @@ public:
 		md5.append((uint8_t*)name, strlen(name));
 		md5.append((uint8_t*)driver, strlen(driver));
 
-		string options = kernel_build_options();
+		string options = opencl_kernel_build_options(platform_name);
 		md5.append((uint8_t*)options.c_str(), options.size());
 
 		return md5.get_hex();
@@ -424,18 +496,26 @@ public:
 		string kernel_md5 = path_files_md5_hash(kernel_path);
 		string device_md5 = device_md5_hash();
 
-		/* try to use cache binary */
+		/* path to cached binary */
 		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());
 		clbin = path_user_get(path_join("cache", clbin));
 
-		if(path_exists(clbin)) {
-			/* if exists already, try use it */
-			if(!load_binary(kernel_path, clbin))
-				return false;
+		/* path to preprocessed source for debugging */
+		string clsrc, *debug_src = NULL;
+		
+		if (opencl_kernel_use_debug()) {
+			clsrc = string_printf("cycles_kernel_%s_%s.cl", device_md5.c_str(), kernel_md5.c_str());
+			clsrc = path_user_get(path_join("cache", clsrc));
+			debug_src = &clsrc;
+		}
+
+		/* if exists already, try use it */
+		if(path_exists(clbin) && load_binary(kernel_path, clbin, debug_src)) {
+			/* kernel loaded from binary */
 		}
 		else {
-			/* compile kernel */
-			if(!compile_kernel(kernel_path, kernel_md5))
+			/* if does not exist or loading binary failed, compile kernel */
+			if(!compile_kernel(kernel_path, kernel_md5, debug_src))
 				return false;
 
 			/* save binary for reuse */
@@ -461,7 +541,7 @@ public:
 		if(null_mem)
 			clReleaseMemObject(CL_MEM_PTR(null_mem));
 
-		map<string, device_vector<uchar>*>::iterator mt;
+		ConstMemMap::iterator mt;
 		for(mt = const_mem_map.begin(); mt != const_mem_map.end(); mt++) {
 			mem_free(*(mt->second));
 			delete mt->second;
@@ -533,26 +613,29 @@ public:
 
 	void const_copy_to(const char *name, void *host, size_t size)
 	{
-		if(const_mem_map.find(name) == const_mem_map.end()) {
+		ConstMemMap::iterator i = const_mem_map.find(name);
+
+		if(i == const_mem_map.end()) {
 			device_vector<uchar> *data = new device_vector<uchar>();
 			data->copy((uchar*)host, size);
 
 			mem_alloc(*data, MEM_READ_ONLY);
-			const_mem_map[name] = data;
+			i = const_mem_map.insert(ConstMemMap::value_type(name, data)).first;
 		}
 		else {
-			device_vector<uchar> *data = const_mem_map[name];
+			device_vector<uchar> *data = i->second;
 			data->copy((uchar*)host, size);
 		}
 
-		mem_copy_to(*const_mem_map[name]);
+		mem_copy_to(*i->second);
 	}
 
 	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
 	{
 		mem_alloc(mem, MEM_READ_ONLY);
 		mem_copy_to(mem);
-		mem_map[name] = &mem;
+		assert(mem_map.find(name) == mem_map.end());
+		mem_map.insert(MemMap::value_type(name, mem.device_pointer));
 	}
 
 	void tex_free(device_memory& mem)
@@ -565,6 +648,33 @@ public:
 	{
 		int r = global_size % group_size;
 		return global_size + ((r == 0)? 0: group_size - r);
+	}
+
+	void enqueue_kernel(cl_kernel kernel, size_t w, size_t h)
+	{
+		size_t workgroup_size, max_work_items[3];
+
+		clGetKernelWorkGroupInfo(kernel, cdDevice,
+			CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &workgroup_size, NULL);
+		clGetDeviceInfo(cdDevice,
+			CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(size_t)*3, max_work_items, NULL);
+	
+		/* try to divide evenly over 2 dimensions */
+		size_t sqrt_workgroup_size = max(sqrt((double)workgroup_size), 1.0);
+		size_t local_size[2] = {sqrt_workgroup_size, sqrt_workgroup_size};
+
+		/* some implementations have max size 1 on 2nd dimension */
+		if (local_size[1] > max_work_items[1]) {
+			local_size[0] = workgroup_size/max_work_items[1];
+			local_size[1] = max_work_items[1];
+		}
+
+		size_t global_size[2] = {global_size_round_up(local_size[0], w), global_size_round_up(local_size[1], h)};
+
+		/* run kernel */
+		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, local_size, 0, NULL, NULL);
+		opencl_assert(ciErr);
+		opencl_assert(clFinish(cqCommandQueue));
 	}
 
 	void path_trace(RenderTile& rtile, int sample)
@@ -582,7 +692,7 @@ public:
 		cl_int d_stride = rtile.stride;
 
 		/* sample arguments */
-		int narg = 0;
+		cl_uint narg = 0;
 		ciErr = 0;
 
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data);
@@ -603,31 +713,17 @@ public:
 
 		opencl_assert(ciErr);
 
-		size_t workgroup_size;
-
-		clGetKernelWorkGroupInfo(ckPathTraceKernel, cdDevice,
-			CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &workgroup_size, NULL);
-	
-		workgroup_size = max(sqrt((double)workgroup_size), 1.0);
-
-		size_t local_size[2] = {workgroup_size, workgroup_size};
-		size_t global_size[2] = {global_size_round_up(local_size[0], d_w), global_size_round_up(local_size[1], d_h)};
-
-		/* run kernel */
-		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, ckPathTraceKernel, 2, NULL, global_size, local_size, 0, NULL, NULL);
-		opencl_assert(ciErr);
-		opencl_assert(clFinish(cqCommandQueue));
+		enqueue_kernel(ckPathTraceKernel, d_w, d_h);
 	}
 
-	cl_int set_kernel_arg_mem(cl_kernel kernel, int *narg, const char *name)
+	cl_int set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name)
 	{
 		cl_mem ptr;
 		cl_int err = 0;
 
-		if(mem_map.find(name) != mem_map.end()) {
-			device_memory *mem = mem_map[name];
-		
-			ptr = CL_MEM_PTR(mem->device_pointer);
+		MemMap::iterator i = mem_map.find(name);
+		if(i != mem_map.end()) {
+			ptr = CL_MEM_PTR(i->second);
 		}
 		else {
 			/* work around NULL not working, even though the spec says otherwise */
@@ -655,7 +751,7 @@ public:
 		cl_int d_stride = task.stride;
 
 		/* sample arguments */
-		int narg = 0;
+		cl_uint narg = 0;
 		ciErr = 0;
 
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data);
@@ -676,20 +772,7 @@ public:
 
 		opencl_assert(ciErr);
 
-		size_t workgroup_size;
-
-		clGetKernelWorkGroupInfo(ckFilmConvertKernel, cdDevice,
-			CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &workgroup_size, NULL);
-	
-		workgroup_size = max(sqrt((double)workgroup_size), 1.0);
-
-		size_t local_size[2] = {workgroup_size, workgroup_size};
-		size_t global_size[2] = {global_size_round_up(local_size[0], d_w), global_size_round_up(local_size[1], d_h)};
-
-		/* run kernel */
-		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, ckFilmConvertKernel, 2, NULL, global_size, local_size, 0, NULL, NULL);
-		opencl_assert(ciErr);
-		opencl_assert(clFinish(cqCommandQueue));
+		enqueue_kernel(ckFilmConvertKernel, d_w, d_h);
 	}
 
 	void thread_run(DeviceTask *task)
@@ -769,34 +852,44 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	if(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS)
 		return;
 
-	if(clGetDeviceIDs(platform_ids[0], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
-		return;
-	
-	device_ids.resize(num_devices);
+	/* devices are numbered consecutively across platforms */
+	int num_base = 0;
 
-	if(clGetDeviceIDs(platform_ids[0], opencl_device_type(), num_devices, &device_ids[0], NULL) != CL_SUCCESS)
-		return;
-	
-	/* add devices */
-	for(int num = 0; num < num_devices; num++) {
-		cl_device_id device_id = device_ids[num];
-		char name[1024] = "\0";
-
-		if(clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(name), &name, NULL) != CL_SUCCESS)
+	for (int platform = 0; platform < num_platforms; platform++, num_base += num_devices) {
+		num_devices = 0;
+		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 			continue;
 
-		DeviceInfo info;
+		device_ids.resize(num_devices);
 
-		info.type = DEVICE_OPENCL;
-		info.description = string(name);
-		info.id = string_printf("OPENCL_%d", num);
-		info.num = num;
-		/* we don't know if it's used for display, but assume it is */
-		info.display_device = true;
-		info.advanced_shading = false;
-		info.pack_images = true;
+		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), num_devices, &device_ids[0], NULL) != CL_SUCCESS)
+			continue;
 
-		devices.push_back(info);
+		char pname[256];
+		clGetPlatformInfo(platform_ids[platform], CL_PLATFORM_NAME, sizeof(pname), &pname, NULL);
+		string platform_name = pname;
+
+		/* add devices */
+		for(int num = 0; num < num_devices; num++) {
+			cl_device_id device_id = device_ids[num];
+			char name[1024] = "\0";
+
+			if(clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(name), &name, NULL) != CL_SUCCESS)
+				continue;
+
+			DeviceInfo info;
+
+			info.type = DEVICE_OPENCL;
+			info.description = string(name);
+			info.num = num_base + num;
+			info.id = string_printf("OPENCL_%d", info.num);
+			/* we don't know if it's used for display, but assume it is */
+			info.display_device = true;
+			info.advanced_shading = opencl_kernel_use_advanced_shading(platform_name);
+			info.pack_images = true;
+
+			devices.push_back(info);
+		}
 	}
 }
 

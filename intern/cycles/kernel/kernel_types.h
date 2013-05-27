@@ -66,9 +66,11 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_OPENCL__
 
+/* keep __KERNEL_ADV_SHADING__ in sync with opencl_kernel_use_advanced_shading! */
+
 #ifdef __KERNEL_OPENCL_NVIDIA__
 #define __KERNEL_SHADING__
-#define __MULTI_CLOSURE__
+//#define __KERNEL_ADV_SHADING__
 #endif
 
 #ifdef __KERNEL_OPENCL_APPLE__
@@ -83,6 +85,11 @@ CCL_NAMESPACE_BEGIN
 #define __HOLDOUT__
 #define __PROCEDURAL_TEXTURES__
 #define __EXTRA_NODES__
+#endif
+
+#ifdef __KERNEL_OPENCL_INTEL_CPU__
+#define __KERNEL_SHADING__
+#define __KERNEL_ADV_SHADING__
 #endif
 
 #endif
@@ -122,7 +129,12 @@ CCL_NAMESPACE_BEGIN
 #define __OBJECT_MOTION__
 #define __HAIR__
 #endif
-//#define __SOBOL_FULL_SCREEN__
+
+/* Sanity check */
+
+#if defined(__KERNEL_OPENCL_NEED_ADVANCED_SHADING__) && !defined(__MULTI_CLOSURE__)
+#error "OpenCL: mismatch between advanced shading flags in device_opencl.cpp and kernel_types.h"
+#endif
 
 /* Shader Evaluation */
 

@@ -103,6 +103,7 @@
 #define atan2f(x, y) atan2(((float)x), ((float)y))
 #define fmaxf(x, y) fmax(((float)x), ((float)y))
 #define fminf(x, y) fmin(((float)x), ((float)y))
+#define fmodf(x, y) fmod((float)x, (float)y)
 
 /* data lookup defines */
 #define kernel_data (*kg->data)

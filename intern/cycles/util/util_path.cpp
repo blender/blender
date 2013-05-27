@@ -145,6 +145,14 @@ bool path_write_binary(const string& path, const vector<uint8_t>& binary)
 	return true;
 }
 
+bool path_write_text(const string& path, string& text)
+{
+	vector<uint8_t> binary(text.length(), 0);
+	std::copy(text.begin(), text.end(), binary.begin());
+
+	return path_write_binary(path, binary);
+}
+
 bool path_read_binary(const string& path, vector<uint8_t>& binary)
 {
 	binary.resize(boost::filesystem::file_size(path));
@@ -176,7 +184,7 @@ bool path_read_text(const string& path, string& text)
 
 	if(!path_exists(path) || !path_read_binary(path, binary))
 		return false;
-	
+
 	const char *str = (const char*)&binary[0];
 	size_t size = binary.size();
 	text = string(str, size);
