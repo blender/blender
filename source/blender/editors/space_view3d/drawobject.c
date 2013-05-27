@@ -2369,10 +2369,7 @@ static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 	
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (efa == data->efa_act) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
-				glColor4ubv(data->cols[1]);
-			else
-				glColor4ubv(data->cols[2]);
+			glColor4ubv(data->cols[2]);
 			return DM_DRAW_OPTION_STIPPLE;
 		}
 		else {
@@ -2968,7 +2965,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 {
 	Mesh *me = ob->data;
-	BMFace *efa_act = BM_active_face_get(em->bm, false, false); /* annoying but active faces is stored differently */
+	BMFace *efa_act = BM_active_face_get(em->bm, false, true); /* annoying but active faces is stored differently */
 	BMEdge *eed_act = NULL;
 	BMVert *eve_act = NULL;
 	
