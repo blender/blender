@@ -785,14 +785,14 @@ static void act_vert_def(Object *ob, BMVert **r_eve, MDeformVert **r_dvert)
 			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
 
 			if (ese && ese->htype == BM_VERT) {
-				*r_eve = (BMVert *)ese->ele;
+				if (r_eve) *r_eve = (BMVert *)ese->ele;
 				*r_dvert = BM_ELEM_CD_GET_VOID_P(*r_eve, cd_dvert_offset);
 				return;
 			}
 		}
 	}
 
-	*r_eve = NULL;
+	if (r_eve) *r_eve = NULL;
 	*r_dvert = NULL;
 }
 
@@ -982,10 +982,9 @@ static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
-	BMVert *eve_act;
 	MDeformVert *dvert_act;
 
-	act_vert_def(ob, &eve_act, &dvert_act);
+	act_vert_def(ob, NULL, &dvert_act);
 
 	return dvert_act ? dvert_act->totweight : 0;
 }
@@ -997,10 +996,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 
-	BMVert *eve;
 	MDeformVert *dv;
 
-	act_vert_def(ob, &eve, &dv);
+	act_vert_def(ob, NULL, &dv);
 
 	if (dv && dv->totweight) {
 		uiLayout *col;
