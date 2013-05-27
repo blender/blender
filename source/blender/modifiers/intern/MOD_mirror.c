@@ -99,7 +99,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 {
 	const float tolerance_sq = mmd->tolerance * mmd->tolerance;
 	const int do_vtargetmap = !(mmd->flag & MOD_MIR_NO_MERGE);
-	int is_vtargetmap = FALSE; /* true when it should be used */
+	int tot_vtargetmap = 0;  /* total merge vertices */
 
 	DerivedMesh *result;
 	const int maxVerts = dm->getNumVerts(dm);
@@ -187,7 +187,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			 * should be mapped for merging */
 			if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
 				*vtmap_a = maxVerts + i;
-				is_vtargetmap = TRUE;
+				tot_vtargetmap++;
 			}
 			else {
 				*vtmap_a = -1;
@@ -288,8 +288,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	if (do_vtargetmap) {
 		/* slow - so only call if one or more merge verts are found,
 		 * users may leave this on and not realize there is nothing to merge - campbell */
-		if (is_vtargetmap) {
-			result = CDDM_merge_verts(result, vtargetmap);
+		if (tot_vtargetmap) {
+			result = CDDM_merge_verts(result, vtargetmap, tot_vtargetmap);
 		}
 		MEM_freeN(vtargetmap);
 	}

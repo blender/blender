@@ -296,6 +296,7 @@ typedef bool _BLI_Bool;
 #define STACK_SIZE(stack)      ((void)stack, (_##stack##_index))
 #define STACK_PUSH(stack, val)  (void)((stack)[(_##stack##_index)++] = val)
 #define STACK_PUSH_RET(stack)  ((void)stack, ((stack)[(_##stack##_index)++]))
+#define STACK_PUSH_RET_PTR(stack)  ((void)stack, &((stack)[(_##stack##_index)++]))
 #define STACK_POP(stack)       ((_##stack##_index) ? ((stack)[--(_##stack##_index)]) : NULL)
 #define STACK_FREE(stack)      ((void)stack)
 
