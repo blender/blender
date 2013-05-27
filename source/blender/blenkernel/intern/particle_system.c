@@ -341,6 +341,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 	 *            each original elements can reference its derived elements
 	 */
 	Mesh *me= (Mesh*)ob->data;
+	bool use_modifier_stack= psys->part->use_modifier_stack;
 	PARTICLE_P;
 	
 	/* CACHE LOCATIONS */
@@ -351,17 +352,33 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 
 		if (psys->part->from == PART_FROM_VERT) {
 			totdmelem= dm->getNumVerts(dm);
-			totelem= me->totvert;
-			origindex= dm->getVertDataArray(dm, CD_ORIGINDEX);
+
+			if (use_modifier_stack) {
+				totelem= totdmelem;
+				origindex= NULL;
+			}
+			else {
+				totelem= me->totvert;
+				origindex= dm->getVertDataArray(dm, CD_ORIGINDEX);
+			}
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
 			totdmelem= dm->getNumTessFaces(dm);
-			totelem= me->totpoly;
-			origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-			/* for face lookups we need the poly origindex too */
-			origindex_poly = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-			if (origindex_poly == NULL) {
-				origindex = NULL;
+
+			if (use_modifier_stack) {
+				totelem= totdmelem;
+				origindex= NULL;
+				origindex_poly= NULL;
+			}
+			else {
+				totelem= me->totpoly;
+				origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+
+				/* for face lookups we need the poly origindex too */
+				origindex_poly= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+				if (origindex_poly == NULL) {
+					origindex= NULL;
+				}
 			}
 		}
 	
@@ -373,11 +390,16 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 			node->link = SET_INT_IN_POINTER(i);
 
 			/* may be vertex or face origindex */
-			origindex_final = origindex ? origindex[i] : ORIGINDEX_NONE;
+			if (use_modifier_stack) {
+				origindex_final = i;
+			}
+			else {
+				origindex_final = origindex ? origindex[i] : ORIGINDEX_NONE;
 
-			/* if we have a poly source, do an index lookup */
-			if (origindex_poly && origindex_final != ORIGINDEX_NONE) {
-				origindex_final = origindex_poly[origindex_final];
+				/* if we have a poly source, do an index lookup */
+				if (origindex_poly && origindex_final != ORIGINDEX_NONE) {
+					origindex_final = origindex_poly[origindex_final];
+				}
 			}
 
 			if (origindex_final != ORIGINDEX_NONE) {
@@ -395,18 +417,27 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		/* cache the verts/faces! */
 		LOOP_PARTICLES {
 			if (pa->num < 0) {
-				pa->num_dmcache = -1;
+				pa->num_dmcache = DMCACHE_NOTFOUND;
 				continue;
 			}
 
 			if (psys->part->from == PART_FROM_VERT) {
-				if (nodearray[pa->num])
+				if (pa->num < totelem && nodearray[pa->num])
 					pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
+				else
+					pa->num_dmcache = DMCACHE_NOTFOUND;
 			}
 			else { /* FROM_FACE/FROM_VOLUME */
 				/* Note that sometimes the pa->num is over the nodearray size, this is bad, maybe there is a better place to fix this,
 				 * but for now passing NULL is OK. every face will be searched for the particle so its slower - Campbell */
-				pa->num_dmcache= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, pa->num < totelem ? nodearray[pa->num] : NULL);
+				if (use_modifier_stack) {
+					if (pa->num < totelem && nodearray[pa->num])
+						pa->num_dmcache = GET_INT_FROM_POINTER(nodearray[pa->num]->link);
+					else
+						pa->num_dmcache = DMCACHE_NOTFOUND;
+				}
+				else
+					pa->num_dmcache= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, pa->num < totelem ? nodearray[pa->num] : NULL);
 			}
 		}
 
@@ -419,7 +450,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		 * an invalid value, just in case */
 		
 		LOOP_PARTICLES
-			pa->num_dmcache = -1;
+			pa->num_dmcache = DMCACHE_NOTFOUND;
 	}
 }
 
@@ -1110,7 +1141,10 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		distr = part->distr;
 		BLI_srandom(31415926 + psys->seed);
 		
-		dm= CDDM_from_mesh((Mesh*)ob->data, ob);
+		if (psys->part->use_modifier_stack)
+			dm = finaldm;
+		else
+			dm= CDDM_from_mesh((Mesh*)ob->data, ob);
 
 		/* BMESH ONLY, for verts we don't care about tessfaces */
 		if (from != PART_FROM_VERT) {
@@ -1118,7 +1152,8 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		}
 
 		/* we need orco for consistent distributions */
-		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
+		if (!CustomData_has_layer(&dm->vertData, CD_ORCO))
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
 
 		if (from == PART_FROM_VERT) {
 			MVert *mv= dm->getVertDataArray(dm, CD_MVERT);

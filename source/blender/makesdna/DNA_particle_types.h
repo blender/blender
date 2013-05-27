@@ -243,6 +243,11 @@ typedef struct ParticleSettings {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct PartDeflect *pd;
 	struct PartDeflect *pd2;
+
+	/* modified dm support */
+	short use_modifier_stack;
+	short pad[3];
+
 } ParticleSettings;
 
 typedef struct ParticleSystem {

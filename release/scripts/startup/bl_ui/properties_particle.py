@@ -213,6 +213,9 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
 
         if part.type == 'HAIR' and not part.use_advanced_hair:
             row.prop(part, "hair_length")
+
+            row = layout.row()
+            row.prop(part, "use_modifier_stack")
             return
 
         if part.type != 'HAIR':
@@ -249,6 +252,9 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
             elif part.distribution == 'GRID':
                 row.prop(part, "grid_resolution")
                 row.prop(part, "grid_random", text="Random", slider=True)
+
+        row = layout.row()
+        row.prop(part, "use_modifier_stack")
 
 
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
