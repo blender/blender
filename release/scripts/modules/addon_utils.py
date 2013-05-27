@@ -219,6 +219,25 @@ def check(module_name):
 
     return loaded_default, loaded_state
 
+# utility functions
+
+
+def _addon_ensure(module_name):
+    addons = _user_preferences.addons
+    addon = _user_preferences.addons.get(module_name)
+    if not addon:
+        addon = _user_preferences.addons.new()
+        addon.module = module_name
+
+
+def _addon_remove(module_name):
+    addons = _user_preferences.addons
+
+    while module_name in addons:
+        addon = addons.get(module_name)
+        if addon:
+            addons.remove(addon)
+
 
 def enable(module_name, default_set=True, persistent=False):
     """
@@ -257,6 +276,11 @@ def enable(module_name, default_set=True, persistent=False):
                 return None
             mod.__addon_enabled__ = False
 
+    # add the addon first it may want to initialize its own preferences.
+    # must remove on fail through.
+    if default_set:
+        _addon_ensure(module_name)
+
     # Split registering up into 3 steps so we can undo
     # if it fails par way through.
 
@@ -271,6 +295,7 @@ def enable(module_name, default_set=True, persistent=False):
             mod.__addon_enabled__ = False
         except:
             handle_error()
+            _addon_remove(module_name)
             return None
 
         # 2) try register collected modules
@@ -284,16 +309,10 @@ def enable(module_name, default_set=True, persistent=False):
                   getattr(mod, "__file__", module_name))
             handle_error()
             del sys.modules[module_name]
+            _addon_remove(module_name)
             return None
 
     # * OK loaded successfully! *
-    if default_set:
-        # just in case its enabled already
-        ext = _user_preferences.addons.get(module_name)
-        if not ext:
-            ext = _user_preferences.addons.new()
-            ext.module = module_name
-
     mod.__addon_enabled__ = True
     mod.__addon_persistent__ = persistent
 
@@ -332,13 +351,8 @@ def disable(module_name, default_set=True):
               (module_name, "disabled" if mod is None else "loaded"))
 
     # could be in more than once, unlikely but better do this just in case.
-    addons = _user_preferences.addons
-
     if default_set:
-        while module_name in addons:
-            addon = addons.get(module_name)
-            if addon:
-                addons.remove(addon)
+        _addon_remove(module_name)
 
     if _bpy.app.debug_python:
         print("\taddon_utils.disable", module_name)
