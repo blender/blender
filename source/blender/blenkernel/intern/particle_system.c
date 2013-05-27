@@ -4130,6 +4130,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part=psys->part;
+	RNG *rng;
 	BoidBrainData bbd;
 	ParticleTexture ptex;
 	PARTICLE_P;
@@ -4157,6 +4158,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	BLI_srandom(31415926 + (int)cfra + psys->seed);
+	/* for now do both, boids us 'rng' */
+	rng = BLI_rng_new_srandom(31415926 + (int)cfra + psys->seed);
 
 	psys_update_effectors(sim);
 
@@ -4173,6 +4176,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			bbd.cfra = cfra;
 			bbd.dfra = dfra;
 			bbd.timestep = timestep;
+			bbd.rng = rng;
 
 			psys_update_particle_tree(psys, cfra);
 
@@ -4356,6 +4360,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	free_collider_cache(&sim->colliders);
+	BLI_rng_free(rng);
 }
 static void update_children(ParticleSimulationData *sim)
 {
