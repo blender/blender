@@ -382,6 +382,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	if (block) { /* buttons */
 		uiBut *but;
 		int yi = 200;
+		const float tilt_limit = DEG2RADF(21600.0f);
 		const int buth = 20 * UI_DPI_FAC;
 		const int but_margin = 2;
 		const char *c;
@@ -458,7 +459,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			uiDefButR(block, NUM, 0, IFACE_("Radius"), 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "radius", 0, 0.0, 100.0, 1, 3, NULL);
 			uiDefButR(block, NUM, 0, IFACE_("Tilt"), 0, yi -= buth + but_margin, 200, buth,
-			          &data_ptr, "tilt", 0, -FLT_MAX, FLT_MAX, 1, 3, NULL);
+			          &data_ptr, "tilt", 0, -tilt_limit, tilt_limit, 1, 3, NULL);
 		}
 		else if (totcurvedata > 1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"),
@@ -469,7 +470,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			          &(tfp->ve_median[C_RADIUS]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
 			but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Tilt:"),
 			                0, yi -= buth + but_margin, 200, buth,
-			                &(tfp->ve_median[C_TILT]), -FLT_MAX, FLT_MAX, 1, 3,
+			                &(tfp->ve_median[C_TILT]), -tilt_limit, tilt_limit, 1, 3,
 			                TIP_("Tilt of curve control points"));
 			uiButSetUnitType(but, PROP_UNIT_ROTATION);
 		}
