@@ -64,6 +64,8 @@
 #include "ED_screen.h"
 #include "ED_armature.h"
 
+#include "RE_engine.h"
+
 #ifdef WITH_GAMEENGINE
 #include "BL_System.h"
 #endif
@@ -1214,6 +1216,13 @@ static void restore_localviewdata(ScrArea *sa, int free)
 				if (free) {
 					MEM_freeN(rv3d->localvd);
 					rv3d->localvd = NULL;
+				}
+			}
+
+			if (v3d->drawtype != OB_RENDER) {
+				if (rv3d->render_engine) {
+					RE_engine_free(rv3d->render_engine);
+					rv3d->render_engine = NULL;
 				}
 			}
 		}
