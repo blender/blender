@@ -2612,7 +2612,7 @@ install_ARCH() {
   THEORA_DEV="libtheora"
 
   _packages="base-devel scons cmake libxi glew libpng libtiff wget openal \
-             $OPENJPEG_DEV $VORBIS_DEV $THEORA_DEV  openexr yasm sdl fftw"
+             $OPENJPEG_DEV $VORBIS_DEV $THEORA_DEV yasm sdl fftw"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -2718,6 +2718,19 @@ install_ARCH() {
     else
       install_packages_ARCH yaml-cpp tinyxml
       compile_OCIO
+    fi
+  fi
+
+  INFO ""
+  if $OPENEXR_SKIP; then
+    INFO "WARNING! Skipping OpenEXR installation, as requested..."
+  else
+    check_package_version_ge_ARCH openexr $OPENEXR_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH openexr
+      clean_OPENEXR
+    else
+      compile_OPENEXR
     fi
   fi
 
