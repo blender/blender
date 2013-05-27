@@ -500,8 +500,6 @@ static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 	/* default now: refresh node is starting preview */
 	SpaceNode *snode = sa->spacedata.first;
 	
-	ED_preview_kill_jobs(C);
-	
 	snode_set_context(C);
 
 	if (snode->nodetree) {
