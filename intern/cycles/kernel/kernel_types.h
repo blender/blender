@@ -70,7 +70,7 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_OPENCL_NVIDIA__
 #define __KERNEL_SHADING__
-//#define __KERNEL_ADV_SHADING__
+#define __KERNEL_ADV_SHADING__
 #endif
 
 #ifdef __KERNEL_OPENCL_APPLE__

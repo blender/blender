@@ -69,7 +69,7 @@ static bool opencl_kernel_use_advanced_shading(const string& platform)
 {
 	/* keep this in sync with kernel_types.h! */
 	if(platform == "NVIDIA CUDA")
-		return false;
+		return true;
 	else if(platform == "Apple")
 		return false;
 	else if(platform == "AMD Accelerated Parallel Processing")
