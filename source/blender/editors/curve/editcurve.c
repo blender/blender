@@ -1177,6 +1177,10 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 int ED_curve_updateAnimPaths(Curve *cu)
 {
 	AnimData *adt = BKE_animdata_from_id(&cu->id);
+	EditNurb *editnurb = cu->editnurb;
+
+	if (!editnurb->keyindex)
+		return 0;
 
 	if (!curve_is_animated(cu)) return 0;
 
@@ -1416,12 +1420,14 @@ static int separate_exec(bContext *C, wmOperator *op)
 	newedit = newcu->editnurb;
 	BKE_nurbList_free(&newedit->nurbs);
 	BKE_curve_editNurb_keyIndex_free(newedit);
+	newedit->keyindex = NULL;
 
 	/* 3. move over parts from old object */
 	for (nu = oldedit->nurbs.first; nu; nu = nu1) {
 		nu1 = nu->next;
 
 		if (isNurbsel(nu)) {
+			keyIndex_delNurb(oldedit, nu);
 			BLI_remlink(&oldedit->nurbs, nu);
 			BLI_addtail(&newedit->nurbs, nu);
 		}
