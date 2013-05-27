@@ -72,9 +72,9 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 			tx = give_current_object_texture(ob);
 			if (tx) {
 				if (ob->type == OB_LAMP)
-					*r_from = (ID*)ob->data;
+					*r_from = (ID *)ob->data;
 				else
-					*r_from = (ID*)give_current_material(ob, ob->actcol);
+					*r_from = (ID *)give_current_material(ob, ob->actcol);
 				
 				/* from is not set fully for material nodes, should be ID + Node then */
 				*r_id = &tx->id;
@@ -169,7 +169,7 @@ void register_node_tree_type_tex(void)
 	tt->type = NTREE_TEXTURE;
 	strcpy(tt->idname, "TextureNodeTree");
 	strcpy(tt->ui_name, "Texture");
-	tt->ui_icon = 0;	/* defined in drawnode.c */
+	tt->ui_icon = 0;    /* defined in drawnode.c */
 	strcpy(tt->ui_description, "");
 	
 	tt->foreach_nodeclass = foreach_nodeclass;

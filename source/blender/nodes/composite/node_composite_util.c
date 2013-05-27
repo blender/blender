@@ -34,19 +34,19 @@
 
 int cmp_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
-	return (strcmp(ntree->idname, "CompositorNodeTree")==0);
+	return STREQ(ntree->idname, "CompositorNodeTree");
 }
 
 void cmp_node_update_default(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	bNodeSocket *sock;
-	for (sock= node->outputs.first; sock; sock= sock->next) {
+	for (sock = node->outputs.first; sock; sock = sock->next) {
 		if (sock->cache) {
 			//free_compbuf(sock->cache);
 			//sock->cache= NULL;
 		}
 	}
-	node->need_exec= 1;
+	node->need_exec = 1;
 }
 
 void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)

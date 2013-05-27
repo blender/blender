@@ -66,7 +66,7 @@
 bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifier)
 {
 	bNodeSocket *sock;
-	for (sock=groupnode->inputs.first; sock; sock = sock->next)
+	for (sock = groupnode->inputs.first; sock; sock = sock->next)
 		if (STREQ(sock->identifier, identifier))
 			return sock;
 	return NULL;
@@ -75,7 +75,7 @@ bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifi
 bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identifier)
 {
 	bNodeSocket *sock;
-	for (sock=groupnode->outputs.first; sock; sock = sock->next)
+	for (sock = groupnode->outputs.first; sock; sock = sock->next)
 		if (STREQ(sock->identifier, identifier))
 			return sock;
 	return NULL;
@@ -90,11 +90,11 @@ const char *node_group_label(bNode *node)
 int node_group_poll_instance(bNode *node, bNodeTree *nodetree)
 {
 	if (node->typeinfo->poll(node->typeinfo, nodetree)) {
-		bNodeTree *grouptree = (bNodeTree*)node->id;
+		bNodeTree *grouptree = (bNodeTree *)node->id;
 		if (grouptree)
 			return nodeGroupPoll(nodetree, grouptree);
 		else
-			return TRUE;	/* without a linked node tree, group node is always ok */
+			return TRUE;    /* without a linked node tree, group node is always ok */
 	}
 	else
 		return FALSE;
@@ -108,7 +108,7 @@ int nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree)
 	if (nodetree == grouptree)
 		return 0;
 	
-	for (node=grouptree->nodes.first; node; node=node->next) {
+	for (node = grouptree->nodes.first; node; node = node->next) {
 		if (node->typeinfo->poll_instance && !node->typeinfo->poll_instance(node, nodetree)) {
 			valid = 0;
 			break;
@@ -122,7 +122,7 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, bNode *gnode, bNodeSoc
 {
 	bNodeSocket *sock;
 	
-	for (sock= verify_lb->first; sock; sock= sock->next) {
+	for (sock = verify_lb->first; sock; sock = sock->next) {
 		if (STREQ(sock->identifier, iosock->identifier))
 			break;
 	}
@@ -178,7 +178,7 @@ void node_group_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *i
 {
 	/* check inputs and outputs, and remove or insert them */
 	if (id == node->id) {
-		bNodeTree *ngroup= (bNodeTree *)node->id;
+		bNodeTree *ngroup = (bNodeTree *)node->id;
 		group_verify_socket_list(ntree, node, &ngroup->inputs, &node->inputs, SOCK_IN);
 		group_verify_socket_list(ntree, node, &ngroup->outputs, &node->outputs, SOCK_OUT);
 	}
@@ -199,13 +199,13 @@ static void node_frame_init(bNodeTree *UNUSED(ntree), bNode *node)
 void register_node_type_frame(void)
 {
 	/* frame type is used for all tree types, needs dynamic allocation */
-	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "frame node type");
+	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "frame node type");
 
-	node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND|NODE_OPTIONS);
+	node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND | NODE_OPTIONS);
 	node_type_init(ntype, node_frame_init);
 	node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
 	node_type_size(ntype, 150, 100, 0);
-	node_type_compatibility(ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ntype);
@@ -245,7 +245,7 @@ static void node_reroute_init(bNodeTree *ntree, bNode *node)
 void register_node_type_reroute(void)
 {
 	/* frame type is used for all tree types, needs dynamic allocation */
-	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "frame node type");
+	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "frame node type");
 	
 	node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
 	node_type_init(ntype, node_reroute_init);
@@ -287,9 +287,9 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
 	}
 	
 	/* determine socket type from unambiguous input/output connection if possible */
-	if (input->limit==1 && input->link)
+	if (input->limit == 1 && input->link)
 		type = input->link->fromsock->type;
-	else if (output->limit==1 && output->link)
+	else if (output->limit == 1 && output->link)
 		type = output->link->tosock->type;
 	
 	/* arbitrary, could also test output->type, both are the same */
@@ -408,13 +408,13 @@ static void node_group_input_update(bNodeTree *ntree, bNode *node)
 void register_node_type_group_input(void)
 {
 	/* used for all tree types, needs dynamic allocation */
-	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "node type");
+	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
 	
 	node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE, NODE_OPTIONS);
 	node_type_size(ntype, 140, 80, 200);
 	node_type_init(ntype, node_group_input_init);
 	node_type_update(ntype, node_group_input_update, node_group_input_verify);
-	node_type_compatibility(ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ntype);
@@ -495,13 +495,13 @@ static void node_group_output_update(bNodeTree *ntree, bNode *node)
 void register_node_type_group_output(void)
 {
 	/* used for all tree types, needs dynamic allocation */
-	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "node type");
+	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
 	
 	node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE, NODE_OPTIONS);
 	node_type_size(ntype, 140, 80, 200);
 	node_type_init(ntype, node_group_output_init);
 	node_type_update(ntype, node_group_output_update, node_group_output_verify);
-	node_type_compatibility(ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ntype);

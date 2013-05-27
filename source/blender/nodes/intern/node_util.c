@@ -112,7 +112,7 @@ const char *node_filter_label(bNode *node)
 
 void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 {
-	bNodeSocket *fromsock_first=NULL, *tosock_first=NULL;	/* used for fallback link if no other reconnections are found */
+	bNodeSocket *fromsock_first = NULL, *tosock_first = NULL;   /* used for fallback link if no other reconnections are found */
 	int datatype;
 	int num_links_in = 0, num_links_out = 0, num_reconnect = 0;
 
@@ -120,7 +120,7 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 	if (!ntree)
 		return;
 
-	for (datatype=0; datatype < NUM_SOCKET_TYPES; ++datatype) {
+	for (datatype = 0; datatype < NUM_SOCKET_TYPES; ++datatype) {
 		bNodeSocket *fromsock, *tosock;
 		int fromindex, toindex;
 		bNodeLink *link;
@@ -129,7 +129,7 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 		
 		fromindex = INT_MAX;
 		fromsock = NULL;
-		for (link=ntree->links.first; link; link=link->next) {
+		for (link = ntree->links.first; link; link = link->next) {
 			if (nodeLinkIsHidden(link))
 				continue;
 			if (link->tonode == node && link->tosock->type == datatype) {
@@ -148,7 +148,7 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 		
 		toindex = INT_MAX;
 		tosock = NULL;
-		for (link=ntree->links.first; link; link=link->next) {
+		for (link = ntree->links.first; link; link = link->next) {
 			if (nodeLinkIsHidden(link))
 				continue;
 			if (link->fromnode == node && link->fromsock->type == datatype) {
@@ -182,7 +182,7 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 	/* if there is one input and one output link, but no reconnections by type,
 	 * simply connect those two sockets.
 	 */
-	if (num_reconnect==0 && num_links_in==1 && num_links_out==1) {
+	if ((num_reconnect == 0) && (num_links_in == 1) && (num_links_out == 1)) {
 		bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
 		ilink->fromnode = node;
 		ilink->fromsock = fromsock_first;

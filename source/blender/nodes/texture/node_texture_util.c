@@ -52,7 +52,7 @@
 
 int tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
-	return (strcmp(ntree->idname, "TextureNodeTree")==0);
+	return STREQ(ntree->idname, "TextureNodeTree");
 }
 
 void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag)

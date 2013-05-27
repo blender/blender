@@ -97,9 +97,9 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	bNodeSocket *sock;
 	
-	for (sock= node->outputs.first; sock; sock= sock->next) {
+	for (sock = node->outputs.first; sock; sock = sock->next) {
 		if (sock->cache) {
-			sock->cache= NULL;
+			sock->cache = NULL;
 		}
 	}
 }
@@ -119,7 +119,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		/* ensure new user input gets handled ok */
-		node->need_exec= 0;
+		node->need_exec = 0;
 		node->new_node->original = node;
 		
 		/* move over the compbufs */
@@ -128,16 +128,16 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 		if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 			if (node->id) {
 				if (node->flag & NODE_DO_OUTPUT)
-					node->new_node->id= (ID *)node->id;
+					node->new_node->id = (ID *)node->id;
 				else
-					node->new_node->id= NULL;
+					node->new_node->id = NULL;
 			}
 		}
 		
-		for (sock= node->outputs.first; sock; sock= sock->next) {
-			sock->new_sock->cache= sock->cache;
-			sock->cache= NULL;
-			sock->new_sock->new_sock= sock;
+		for (sock = node->outputs.first; sock; sock = sock->next) {
+			sock->new_sock->cache = sock->cache;
+			sock->cache = NULL;
+			sock->new_sock->new_sock = sock;
 		}
 	}
 	
@@ -151,8 +151,8 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 			 */
 			if (node->need_exec) {
 				bNodeLink *link;
-				for (link=localtree->links.first; link; link=link->next)
-					if (link->fromnode==node && link->tonode)
+				for (link = localtree->links.first; link; link = link->next)
+					if (link->fromnode == node && link->tonode)
 						link->tonode->need_exec = 1;
 			}
 			
@@ -175,7 +175,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 	/* move over the compbufs and previews */
 	BKE_node_preview_merge_tree(ntree, localtree, true);
 	
-	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
@@ -183,7 +183,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
 				}
 			}
-			else if (lnode->type==CMP_NODE_MOVIEDISTORTION) {
+			else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {
 				/* special case for distortion node: distortion context is allocating in exec function
 				 * and to achieve much better performance on further calls this context should be
 				 * copied back to original node */
@@ -191,15 +191,15 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 					if (lnode->new_node->storage)
 						BKE_tracking_distortion_free(lnode->new_node->storage);
 
-					lnode->new_node->storage= BKE_tracking_distortion_copy(lnode->storage);
+					lnode->new_node->storage = BKE_tracking_distortion_copy(lnode->storage);
 				}
 			}
 			
-			for (lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
+			for (lsock = lnode->outputs.first; lsock; lsock = lsock->next) {
 				if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
-					lsock->new_sock->cache= lsock->cache;
-					lsock->cache= NULL;
-					lsock->new_sock= NULL;
+					lsock->new_sock->cache = lsock->cache;
+					lsock->cache = NULL;
+					lsock->new_sock = NULL;
 				}
 			}
 		}
@@ -227,7 +227,7 @@ void register_node_tree_type_cmp(void)
 	tt->type = NTREE_COMPOSIT;
 	strcpy(tt->idname, "CompositorNodeTree");
 	strcpy(tt->ui_name, "Compositing");
-	tt->ui_icon = 0;	/* defined in drawnode.c */
+	tt->ui_icon = 0;    /* defined in drawnode.c */
 	strcpy(tt->ui_description, "");
 	
 	tt->free_cache = free_cache;
@@ -277,7 +277,7 @@ static void force_hidden_passes(bNode *node, int passflag)
 {
 	bNodeSocket *sock;
 	
-	for (sock= node->outputs.first; sock; sock= sock->next)
+	for (sock = node->outputs.first; sock; sock = sock->next)
 		sock->flag &= ~SOCK_UNAVAIL;
 	
 	set_output_visible(node, passflag, RRES_OUT_IMAGE,            SCE_PASS_COMBINED);
