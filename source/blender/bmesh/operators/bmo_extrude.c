@@ -409,6 +409,12 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
+		/* skip creating face for excluded edges see [#35503] */
+		if (BMO_slot_map_contains(slot_edges_exclude, e)) {
+			/* simply skip creating the face */
+			continue;
+		}
+
 		e_new = *(BMEdge **)BMO_iter_map_value(&siter);
 
 		if (!e_new) {
