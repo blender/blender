@@ -785,8 +785,9 @@ static void act_vert_def(Object *ob, BMVert **r_eve, MDeformVert **r_dvert)
 			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
 
 			if (ese && ese->htype == BM_VERT) {
-				if (r_eve) *r_eve = (BMVert *)ese->ele;
-				*r_dvert = BM_ELEM_CD_GET_VOID_P(*r_eve, cd_dvert_offset);
+				BMVert *eve = (BMVert *)ese->ele;
+				if (r_eve) *r_eve = eve;
+				*r_dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 				return;
 			}
 		}

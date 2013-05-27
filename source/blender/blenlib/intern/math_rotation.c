@@ -573,21 +573,15 @@ void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4],
 {
 	float quat[4], omega, cosom, sinom, sc1, sc2;
 
-	cosom = quat1[0] * quat2[0] + quat1[1] * quat2[1] + quat1[2] * quat2[2] + quat1[3] * quat2[3];
+	cosom = dot_qtqt(quat1, quat2);
 
 	/* rotate around shortest angle */
 	if (cosom < 0.0f) {
 		cosom = -cosom;
-		quat[0] = -quat1[0];
-		quat[1] = -quat1[1];
-		quat[2] = -quat1[2];
-		quat[3] = -quat1[3];
+		negate_v4_v4(quat, quat1);
 	}
 	else {
-		quat[0] = quat1[0];
-		quat[1] = quat1[1];
-		quat[2] = quat1[2];
-		quat[3] = quat1[3];
+		copy_qt_qt(quat, quat1);
 	}
 
 	if ((1.0f - cosom) > 0.0001f) {
@@ -640,7 +634,7 @@ void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const f
 		n[0] = 1.0f;
 	}
 
-	angle = -0.5f * (float)saacos(vec[2]);
+	angle = -0.5f * saacos(vec[2]);
 	co = cosf(angle);
 	si = sinf(angle);
 	q1[0] = co;

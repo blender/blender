@@ -270,8 +270,7 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
 	node->done = 1;
 	
 	/* recursive update */
-	for (link = ntree->links.first; link; link = link->next)
-	{
+	for (link = ntree->links.first; link; link = link->next) {
 		bNode *fromnode = link->fromnode;
 		bNode *tonode = link->tonode;
 		if (!tonode || !fromnode)
