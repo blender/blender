@@ -3312,11 +3312,12 @@ static int edbm_select_ungrouped_poll(bContext *C)
 	if (ED_operator_editmesh(C)) {
 		Object *obedit = CTX_data_edit_object(C);
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
 		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
 			CTX_wm_operator_poll_msg_set(C, "Must be in vertex selection mode");
 		}
-		else if (obedit->defbase.first == NULL) {
+		else if (obedit->defbase.first == NULL || cd_dvert_offset == -1) {
 			CTX_wm_operator_poll_msg_set(C, "No weights/vertex groups on object");
 		}
 		else {
@@ -3330,6 +3331,8 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
 	BMVert *eve;
 	BMIter iter;
 
@@ -3339,7 +3342,7 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
 
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-			MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+			MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			/* no dv or dv set with no weight */
 			if (ELEM(NULL, dv, dv->dw)) {
 				BM_vert_select_set(em->bm, eve, true);

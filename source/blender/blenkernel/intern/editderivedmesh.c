@@ -1428,6 +1428,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), __func__);
 	BMesh *bm = em->bm;
+	const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+	const int cd_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 
 	bmdm->em = em;
 
@@ -1485,7 +1487,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 	bmdm->vertexCos = vertexCos;
 
-	if (CustomData_has_layer(&bm->vdata, CD_MDEFORMVERT)) {
+	if (cd_dvert_offset != -1) {
 		BMIter iter;
 		BMVert *eve;
 		int i;
@@ -1494,11 +1496,11 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 		BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 			DM_set_vert_data(&bmdm->dm, i, CD_MDEFORMVERT,
-			                 CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT));
+			                 BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset));
 		}
 	}
 
-	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+	if (cd_skin_offset != -1) {
 		BMIter iter;
 		BMVert *eve;
 		int i;
@@ -1507,8 +1509,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 		BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 			DM_set_vert_data(&bmdm->dm, i, CD_MVERT_SKIN,
-			                 CustomData_bmesh_get(&bm->vdata, eve->head.data,
-			                                      CD_MVERT_SKIN));
+			                 BM_ELEM_CD_GET_VOID_P(eve, cd_skin_offset));
 		}
 	}
 
@@ -1538,9 +1539,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 			/* following Mesh convention; we use vertex coordinate itself
 			 * for normal in this case */
-			if (normalize_v3(no) == 0.0f) {
-				copy_v3_v3(no, vertexCos[i]);
-				normalize_v3(no);
+			if (UNLIKELY(normalize_v3(no) == 0.0f)) {
+				normalize_v3_v3(no, vertexCos[i]);
 			}
 		}
 	}

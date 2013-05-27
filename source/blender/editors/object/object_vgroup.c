@@ -223,11 +223,13 @@ static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_t
 
 				if (me->edit_btmesh) {
 					BMEditMesh *em = me->edit_btmesh;
+					BMesh *bm = em->bm;
+					const int cd_dvert_offset  = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 					BMIter iter;
 					BMVert *eve;
 					int i;
 
-					if (!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
+					if (cd_dvert_offset == -1) {
 						return false;
 					}
 
@@ -240,13 +242,13 @@ static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_t
 					if (use_vert_sel) {
 						BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 							(*dvert_arr)[i] = BM_elem_flag_test(eve, BM_ELEM_SELECT) ?
-							                  CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT) : NULL;
+							                  BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset) : NULL;
 							i++;
 						}
 					}
 					else {
 						BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-							(*dvert_arr)[i] = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+							(*dvert_arr)[i] = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 							i++;
 						}
 					}
@@ -983,12 +985,19 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 		Mesh *me = ob->data;
 
 		if (me->edit_btmesh) {
+			BMEditMesh *em = me->edit_btmesh;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			/* warning, this lookup is _not_ fast */
-			BMVert *eve = BM_vert_at_index(me->edit_btmesh->bm, vertnum);
-			if (!eve) {
+			BMVert *eve;
+
+			EDBM_index_arrays_ensure(em, BM_VERT);
+
+			if ((cd_dvert_offset != -1) || (eve = EDBM_vert_at_index(em, vertnum))) {
+				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+			}
+			else {
 				return 0.0f;
 			}
-			dv = CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 		}
 		else {
 			if (me->dvert) {
@@ -1052,12 +1061,13 @@ static void vgroup_select_verts(Object *ob, int select)
 
 		if (me->edit_btmesh) {
 			BMEditMesh *em = me->edit_btmesh;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			BMIter iter;
 			BMVert *eve;
 
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-					MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 					if (defvert_find_index(dv, def_nr)) {
 						BM_vert_select_set(em->bm, eve, select);
 					}
@@ -1831,6 +1841,8 @@ static void vgroup_blend(Object *ob, const float fac)
 		vg_users = MEM_callocN(sizeof(int) * dvert_tot, "vgroup_blend_i");
 
 		if (bm) {
+			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+
 			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				sel1 = BM_elem_flag_test(eed->v1, BM_ELEM_SELECT);
 				sel2 = BM_elem_flag_test(eed->v2, BM_ELEM_SELECT);
@@ -1849,7 +1861,7 @@ static void vgroup_blend(Object *ob, const float fac)
 						eve = eed->v1;
 					}
 
-					dv = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 					dw = defvert_find_index(dv, def_nr);
 					if (dw) {
 						vg_weights[i1] += dw->weight;
@@ -1860,7 +1872,7 @@ static void vgroup_blend(Object *ob, const float fac)
 
 			BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
-					dv = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
 					dw = defvert_verify_index(dv, def_nr);
 					dw->weight = (fac * (vg_weights[i] / (float)vg_users[i])) + (ifac * dw->weight);
@@ -2152,9 +2164,10 @@ void ED_vgroup_mirror(Object *ob,
 		BMEditMesh *em = me->edit_btmesh;
 
 		if (em) {
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			BMIter iter;
 
-			if (!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
+			if (cd_dvert_offset == -1) {
 				goto cleanup;
 			}
 
@@ -2167,11 +2180,10 @@ void ED_vgroup_mirror(Object *ob,
 					sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
 
 					if ((sel || sel_mirr) && (eve != eve_mirr)) {
-						dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
-						dvert_mirr = CustomData_bmesh_get(&em->bm->vdata, eve_mirr->head.data, CD_MDEFORMVERT);
-						if (dvert && dvert_mirr) {
-							VGROUP_MIRR_OP;
-						}
+						dvert      = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+						dvert_mirr = BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset);
+
+						VGROUP_MIRR_OP;
 					}
 
 					/* don't use these again */
@@ -2402,11 +2414,13 @@ static void vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 
 		if (me->edit_btmesh) {
 			BMEditMesh *em = me->edit_btmesh;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
 			BMVert *eve;
 			BMIter iter;
 
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
 				if (dv && dv->dw && (allverts || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
 					MDeformWeight *dw = defvert_find_index(dv, def_nr);
@@ -2470,12 +2484,14 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 		BMEditMesh *em = me->edit_btmesh;
+		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
 		BMIter iter;
 		BMVert *eve;
 		MDeformVert *dvert;
 		
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+			dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
 			if (dvert)
 				for (i = 0; i < dvert->totweight; i++)
@@ -2598,6 +2614,8 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
 		if (me->edit_btmesh) {
 			BMEditMesh *em = me->edit_btmesh;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
 			BMIter iter;
 			BMVert *eve;
 
@@ -2609,7 +2627,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 				if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 					MDeformVert *dv;
 					MDeformWeight *dw;
-					dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT); /* can be NULL */
+					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset); /* can be NULL */
 					dw = defvert_verify_index(dv, def_nr);
 					if (dw) {
 						dw->weight = weight;
@@ -3615,13 +3633,17 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 	if (ob->mode == OB_MODE_EDIT) {
 		if (ob->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(ob);
-			BMIter iter;
-			BMVert *eve;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
-			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
-				if (dvert && dvert->totweight) {
-					defvert_remap(dvert, sort_map, defbase_tot);
+			if (cd_dvert_offset != -1) {
+				BMIter iter;
+				BMVert *eve;
+
+				BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+					dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+					if (dvert->totweight) {
+						defvert_remap(dvert, sort_map, defbase_tot);
+					}
 				}
 			}
 		}
@@ -3637,10 +3659,12 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
 
 		/*create as necessary*/
-		while (dvert && dvert_tot--) {
-			if (dvert->totweight)
-				defvert_remap(dvert, sort_map, defbase_tot);
-			dvert++;
+		if (dvert) {
+			while (dvert_tot--) {
+				if (dvert->totweight)
+					defvert_remap(dvert, sort_map, defbase_tot);
+				dvert++;
+			}
 		}
 	}
 

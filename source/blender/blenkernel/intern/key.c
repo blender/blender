@@ -1067,12 +1067,10 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		weights = MEM_callocN(totvert * sizeof(float), "weights");
 
 		if (em) {
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-				dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
-
-				if (dvert) {
-					weights[i] = defvert_find_weight(dvert, defgrp_index);
-				}
+				dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+				weights[i] = defvert_find_weight(dvert, defgrp_index);
 			}
 		}
 		else {

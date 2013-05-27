@@ -102,11 +102,13 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	return totvert;
 }
 
-static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, float *cent)
+static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, float *cent)
 {
+	const int cd_dvert_offset = obedit->actdef ? CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT) : -1;
+
 	zero_v3(cent);
 
-	if (obedit->actdef) {
+	if (cd_dvert_offset != -1) {
 		const int defgrp_index = obedit->actdef - 1;
 		int totvert = 0;
 
@@ -116,24 +118,22 @@ static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, fl
 
 		/* find the vertices */
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+			dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
-			if (dvert) {
-				if (defvert_find_weight(dvert, defgrp_index) > 0.0f) {
-					add_v3_v3(cent, eve->co);
-					totvert++;
-				}
+			if (defvert_find_weight(dvert, defgrp_index) > 0.0f) {
+				add_v3_v3(cent, eve->co);
+				totvert++;
 			}
 		}
 		if (totvert) {
 			bDeformGroup *dg = BLI_findlink(&obedit->defbase, defgrp_index);
 			BLI_strncpy(name, dg->name, sizeof(dg->name));
 			mul_v3_fl(cent, 1.0f / (float)totvert);
-			return 1;
+			return true;
 		}
 	}
 	
-	return 0;
+	return false;
 }	
 
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
@@ -296,7 +296,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	return totvert;
 }
 
-static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+static bool object_hook_index_array(Scene *scene, Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar = NULL;
 	*tot = 0;
@@ -319,11 +319,10 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 
 			/* check selected vertices first */
 			if (return_editmesh_indexar(em, tot, indexar, cent_r)) {
-				return 1;
+				return true;
 			}
 			else {
-				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
-				return ret;
+				return return_editmesh_vgroup(obedit, em, name, cent_r);
 			}
 		}
 		case OB_CURVE:
@@ -335,7 +334,7 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 			return return_editlattice_indexar(lt->editlatt->latt, tot, indexar, cent_r);
 		}
 		default:
-			return 0;
+			return false;
 	}
 }
 
