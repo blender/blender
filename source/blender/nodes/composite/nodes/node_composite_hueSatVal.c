@@ -46,11 +46,11 @@ static bNodeSocketTemplate cmp_node_hue_sat_out[] = {
 
 static void node_composit_init_hue_sat(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
-	node->storage= nhs;
-	nhs->hue= 0.5f;
-	nhs->sat= 1.0f;
-	nhs->val= 1.0f;
+	NodeHueSat *nhs = MEM_callocN(sizeof(NodeHueSat), "node hue sat");
+	node->storage = nhs;
+	nhs->hue = 0.5f;
+	nhs->sat = 1.0f;
+	nhs->val = 1.0f;
 }
 
 void register_node_type_cmp_hue_sat(void)

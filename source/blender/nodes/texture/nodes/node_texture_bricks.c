@@ -47,7 +47,7 @@ static bNodeSocketTemplate inputs[] = {
 };
 static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Color")},
-	{ -1, 0, ""	}
+	{ -1, 0, ""}
 };
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
@@ -91,15 +91,15 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	
 	rownum = (int)floor(y / row_height);
 	
-	if ( node->custom1 && node->custom2 ) {
-		brick_width *= ((int)(rownum) % node->custom2 ) ? 1.0f : node->custom4;      /* squash */
-		offset = ((int)(rownum) % node->custom1 ) ? 0 : (brick_width*node->custom3); /* offset */
+	if (node->custom1 && node->custom2) {
+		brick_width *= ((int)(rownum) % node->custom2) ? 1.0f : node->custom4;         /* squash */
+		offset = ((int)(rownum) % node->custom1) ? 0 : (brick_width * node->custom3);  /* offset */
 	}
 	
-	bricknum = (int)floor((x+offset) / brick_width);
+	bricknum = (int)floor((x + offset) / brick_width);
 	
-	ins_x = (x+offset) - brick_width*bricknum;
-	ins_y = y - row_height*rownum;
+	ins_x = (x + offset) - brick_width * bricknum;
+	ins_y = y - row_height * rownum;
 	
 	tint = noise((rownum << 16) + (bricknum & 0xFFFF)) + bias;
 	CLAMP(tint, 0.0f, 1.0f);
@@ -125,7 +125,7 @@ void register_node_type_tex_bricks(void)
 {
 	static bNodeType ntype;
 	
-	tex_node_type_base(&ntype, TEX_NODE_BRICKS, "Bricks", NODE_CLASS_PATTERN, NODE_PREVIEW|NODE_OPTIONS);
+	tex_node_type_base(&ntype, TEX_NODE_BRICKS, "Bricks", NODE_CLASS_PATTERN, NODE_PREVIEW | NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, init);

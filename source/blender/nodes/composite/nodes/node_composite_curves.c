@@ -43,9 +43,9 @@ static bNodeSocketTemplate cmp_node_time_out[] = {
 
 static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom1= 1;
-	node->custom2= 250;
-	node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->custom1 = 1;
+	node->custom2 = 250;
+	node->storage = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_cmp_curve_time(void)
@@ -76,7 +76,7 @@ static bNodeSocketTemplate cmp_node_curve_vec_out[] = {
 
 static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
+	node->storage = curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_cmp_curve_vec(void)
@@ -109,7 +109,7 @@ static bNodeSocketTemplate cmp_node_curve_rgb_out[] = {
 
 static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->storage = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_cmp_curve_rgb(void)

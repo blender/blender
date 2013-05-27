@@ -23,8 +23,7 @@
  * Contributor(s): none yet.
  * 
  * ***** END GPL LICENSE BLOCK *****
-
-*/
+ */
 
 /** \file blender/nodes/composite/nodes/node_composite_premulkey.c
  *  \ingroup cmpnodes

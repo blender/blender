@@ -54,7 +54,7 @@ static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	NodeTexMagic *tex = (NodeTexMagic*)node->storage;
+	NodeTexMagic *tex = (NodeTexMagic *)node->storage;
 	float depth = tex->depth;
 
 	if (!in[0].link)

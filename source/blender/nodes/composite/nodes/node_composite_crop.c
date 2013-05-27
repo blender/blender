@@ -45,12 +45,12 @@ static bNodeSocketTemplate cmp_node_crop_out[] = {
 
 static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
-	node->storage= nxy;
-	nxy->x1= 0;
-	nxy->x2= 0;
-	nxy->y1= 0;
-	nxy->y2= 0;
+	NodeTwoXYs *nxy = MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
+	node->storage = nxy;
+	nxy->x1 = 0;
+	nxy->x2 = 0;
+	nxy->y1 = 0;
+	nxy->y2 = 0;
 }
 
 void register_node_type_cmp_crop(void)

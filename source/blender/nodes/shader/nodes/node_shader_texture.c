@@ -51,9 +51,9 @@ static bNodeSocketTemplate sh_node_texture_out[] = {
 static void node_shader_exec_texture(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)
 {
 	if (data && node->id) {
-		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		ShadeInput *shi = ((ShaderCallData *)data)->shi;
 		TexResult texres;
-		bNodeSocket *sock_vector= node->inputs.first;
+		bNodeSocket *sock_vector = node->inputs.first;
 		float vec[3], nor[3] = {0.0f, 0.0f, 0.0f};
 		int retval;
 		short which_output = node->custom1;
@@ -63,19 +63,19 @@ static void node_shader_exec_texture(void *data, int UNUSED(thread), bNode *node
 		/* out: value, color, normal */
 		
 		/* we should find out if a normal as output is needed, for now we do all */
-		texres.nor= nor;
-		texres.tr= texres.tg= texres.tb= 0.0f;
+		texres.nor = nor;
+		texres.tr = texres.tg = texres.tb = 0.0f;
 		
 		/* don't use in[0]->hasinput, see material node for explanation */
 		if (sock_vector->link) {
 			nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 			
-			if (in[0]->datatype==NS_OSA_VECTORS) {
-				float *fp= in[0]->data;
-				retval = multitex_nodes((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres, thread, which_output, NULL, NULL, NULL);
+			if (in[0]->datatype == NS_OSA_VECTORS) {
+				float *fp = in[0]->data;
+				retval = multitex_nodes((Tex *)node->id, vec, fp, fp + 3, shi->osatex, &texres, thread, which_output, NULL, NULL, NULL);
 			}
-			else if (in[0]->datatype==NS_OSA_VALUES) {
-				float *fp= in[0]->data;
+			else if (in[0]->datatype == NS_OSA_VALUES) {
+				float *fp = in[0]->data;
 				float dxt[3], dyt[3];
 				
 				dxt[0] = fp[0]; dxt[1] = dxt[2] = 0.0f;
@@ -91,8 +91,8 @@ static void node_shader_exec_texture(void *data, int UNUSED(thread), bNode *node
 		}
 		
 		/* stupid exception */
-		if ( ((Tex *)node->id)->type==TEX_STUCCI) {
-			texres.tin= 0.5f + 0.7f*texres.nor[0];
+		if ( ((Tex *)node->id)->type == TEX_STUCCI) {
+			texres.tin = 0.5f + 0.7f * texres.nor[0];
 			CLAMP(texres.tin, 0.0f, 1.0f);
 		}
 		
@@ -122,7 +122,7 @@ static void node_shader_exec_texture(void *data, int UNUSED(thread), bNode *node
 
 static int gpu_shader_texture(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	Tex *tex = (Tex*)node->id;
+	Tex *tex = (Tex *)node->id;
 
 	if (tex && tex->type == TEX_IMAGE && tex->ima) {
 		GPUNodeLink *texlink = GPU_image(tex->ima, &tex->iuser, FALSE);
@@ -130,7 +130,7 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 
 		if (ret) {
 			ImBuf *ibuf = BKE_image_acquire_ibuf(tex->ima, &tex->iuser, NULL);
-			if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) ==0 &&
+			if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
 			    GPU_material_do_color_management(mat))
 			{
 				GPU_link(mat, "srgb_to_linearrgb", out[1].link, &out[1].link);
@@ -148,7 +148,7 @@ void register_node_type_sh_texture(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	sh_node_type_base(&ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS | NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_texture_in, sh_node_texture_out);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_texture);

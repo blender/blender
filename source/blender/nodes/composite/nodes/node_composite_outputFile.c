@@ -51,9 +51,9 @@
 /* find unique path */
 static bool unique_path_unique_check(void *arg, const char *name)
 {
-	struct {ListBase *lb; bNodeSocket *sock;} *data= arg;
+	struct {ListBase *lb; bNodeSocket *sock; } *data = arg;
 	bNodeSocket *sock;
-	for (sock=data->lb->first; sock; sock = sock->next) {
+	for (sock = data->lb->first; sock; sock = sock->next) {
 		if (sock != data->sock) {
 			NodeImageMultiFileSocket *sockdata = sock->storage;
 			if (STREQ(sockdata->path, name))
@@ -65,7 +65,7 @@ static bool unique_path_unique_check(void *arg, const char *name)
 void ntreeCompositOutputFileUniquePath(ListBase *list, bNodeSocket *sock, const char defname[], char delim)
 {
 	NodeImageMultiFileSocket *sockdata;
-	struct {ListBase *lb; bNodeSocket *sock;} data;
+	struct {ListBase *lb; bNodeSocket *sock; } data;
 	data.lb = list;
 	data.sock = sock;
 
@@ -80,9 +80,9 @@ void ntreeCompositOutputFileUniquePath(ListBase *list, bNodeSocket *sock, const 
 /* find unique EXR layer */
 static bool unique_layer_unique_check(void *arg, const char *name)
 {
-	struct {ListBase *lb; bNodeSocket *sock;} *data= arg;
+	struct {ListBase *lb; bNodeSocket *sock; } *data = arg;
 	bNodeSocket *sock;
-	for (sock=data->lb->first; sock; sock = sock->next) {
+	for (sock = data->lb->first; sock; sock = sock->next) {
 		if (sock != data->sock) {
 			NodeImageMultiFileSocket *sockdata = sock->storage;
 			if (STREQ(sockdata->layer, name))
@@ -94,7 +94,7 @@ static bool unique_layer_unique_check(void *arg, const char *name)
 void ntreeCompositOutputFileUniqueLayer(ListBase *list, bNodeSocket *sock, const char defname[], char delim)
 {
 	NodeImageMultiFileSocket *sockdata;
-	struct {ListBase *lb; bNodeSocket *sock;} data;
+	struct {ListBase *lb; bNodeSocket *sock; } data;
 	data.lb = list;
 	data.sock = sock;
 
@@ -121,9 +121,9 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, con
 	ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 	
 	if (im_format) {
-		sockdata->format= *im_format;
+		sockdata->format = *im_format;
 		if (BKE_imtype_is_movie(sockdata->format.imtype)) {
-			sockdata->format.imtype= R_IMF_IMTYPE_OPENEXR;
+			sockdata->format.imtype = R_IMF_IMTYPE_OPENEXR;
 		}
 	}
 	else
@@ -145,7 +145,7 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 	if (!sock)
 		return 0;
 	
-	if (nimf->active_input == totinputs-1)
+	if (nimf->active_input == totinputs - 1)
 		--nimf->active_input;
 	
 	/* free format data */
@@ -175,9 +175,9 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 	Scene *scene = CTX_data_scene(C);
 	bNodeTree *ntree = ptr->id.data;
 	bNode *node = ptr->data;
-	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
+	NodeImageMultiFile *nimf = MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
 	ImageFormatData *format = NULL;
-	node->storage= nimf;
+	node->storage = nimf;
 	
 	if (scene) {
 		RenderData *rd = &scene->r;
@@ -185,7 +185,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 		BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
 		nimf->format = rd->im_format;
 		if (BKE_imtype_is_movie(nimf->format.imtype)) {
-			nimf->format.imtype= R_IMF_IMTYPE_OPENEXR;
+			nimf->format.imtype = R_IMF_IMTYPE_OPENEXR;
 		}
 		
 		format = &nimf->format;
@@ -216,7 +216,7 @@ static void copy_output_file(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bN
 	dest_node->storage = MEM_dupallocN(src_node->storage);
 	
 	/* duplicate storage data in sockets */
-	for (src_sock=src_node->inputs.first, dest_sock=dest_node->inputs.first; src_sock && dest_sock; src_sock=src_sock->next, dest_sock=dest_sock->next) {
+	for (src_sock = src_node->inputs.first, dest_sock = dest_node->inputs.first; src_sock && dest_sock; src_sock = src_sock->next, dest_sock = dest_sock->next) {
 		dest_sock->storage = MEM_dupallocN(src_sock->storage);
 	}
 }
@@ -241,7 +241,7 @@ void register_node_type_cmp_output_file(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS|NODE_PREVIEW);
+	cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS | NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	ntype.initfunc_api = init_output_file;
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);

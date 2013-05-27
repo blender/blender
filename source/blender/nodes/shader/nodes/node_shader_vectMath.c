@@ -73,7 +73,7 @@ static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), b
 		out[0]->vec[1] = vec1[1] + vec2[1];
 		out[0]->vec[2] = vec1[2] + vec2[2];
 		
-		out[1]->vec[0] = normalize_v3(out[0]->vec );
+		out[1]->vec[0] = normalize_v3(out[0]->vec);
 	}
 	else if (node->custom1 == 3) {	/* Dot product */
 		out[1]->vec[0] = (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]) + (vec1[2] * vec2[2]);
@@ -83,7 +83,7 @@ static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), b
 		out[0]->vec[1] = (vec1[2] * vec2[0]) - (vec1[0] * vec2[2]);
 		out[0]->vec[2] = (vec1[0] * vec2[1]) - (vec1[1] * vec2[0]);
 		
-		out[1]->vec[0] = normalize_v3(out[0]->vec );
+		out[1]->vec[0] = normalize_v3(out[0]->vec);
 	}
 	else if (node->custom1 == 5) {	/* Normalize */
 		if (in[0]->hasinput || !in[1]->hasinput) {	/* This one only takes one input, so we've got to choose. */
@@ -97,7 +97,7 @@ static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), b
 			out[0]->vec[2] = vec2[2];
 		}
 		
-		out[1]->vec[0] = normalize_v3(out[0]->vec );
+		out[1]->vec[0] = normalize_v3(out[0]->vec);
 	}
 	
 }
@@ -144,7 +144,7 @@ void register_node_type_sh_vect_math(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_VECT_MATH, "Vector Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_vect_math_in, sh_node_vect_math_out);
 	node_type_label(&ntype, node_vect_math_label);
 	node_type_storage(&ntype, "node_vect_math", NULL, NULL);

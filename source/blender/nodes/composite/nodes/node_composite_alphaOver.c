@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_alphaover_out[] = {
 
 static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
+	node->storage = MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
 void register_node_type_cmp_alphaover(void)

@@ -49,29 +49,29 @@ static bNodeSocketTemplate cmp_node_colorcorrection_out[] = {
 
 static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeColorCorrection *n= node->storage= MEM_callocN(sizeof(NodeColorCorrection), "node colorcorrection");
+	NodeColorCorrection *n = node->storage = MEM_callocN(sizeof(NodeColorCorrection), "node colorcorrection");
 	n->startmidtones = 0.2f;
 	n->endmidtones = 0.7f;
 	n->master.contrast = 1.0f;
 	n->master.gain = 1.0f;
 	n->master.gamma = 1.0f;
-	n->master.lift= 0.0f;
-	n->master.saturation= 1.0f;
+	n->master.lift = 0.0f;
+	n->master.saturation = 1.0f;
 	n->midtones.contrast = 1.0f;
 	n->midtones.gain = 1.0f;
 	n->midtones.gamma = 1.0f;
-	n->midtones.lift= 0.0f;
-	n->midtones.saturation= 1.0f;
+	n->midtones.lift = 0.0f;
+	n->midtones.saturation = 1.0f;
 	n->shadows.contrast = 1.0f;
 	n->shadows.gain = 1.0f;
 	n->shadows.gamma = 1.0f;
-	n->shadows.lift= 0.0f;
-	n->shadows.saturation= 1.0f;
+	n->shadows.lift = 0.0f;
+	n->shadows.saturation = 1.0f;
 	n->highlights.contrast = 1.0f;
 	n->highlights.gain = 1.0f;
 	n->highlights.gamma = 1.0f;
-	n->highlights.lift= 0.0f;
-	n->highlights.saturation= 1.0f;
+	n->highlights.lift = 0.0f;
+	n->highlights.saturation = 1.0f;
 	node->custom1 = 7; // red + green + blue enabled
 }
 

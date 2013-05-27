@@ -60,7 +60,7 @@ static void copy_stack(bNodeStack *to, bNodeStack *from)
 
 static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanceKey key)
 {
-	bNodeTree *ngroup= (bNodeTree*)node->id;
+	bNodeTree *ngroup = (bNodeTree *)node->id;
 	void *exec;
 	
 	if (!ngroup)
@@ -74,7 +74,7 @@ static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanc
 
 static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
-	bNodeTreeExec*gexec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
 	
 	ntreeTexEndExecTree_internal(gexec);
 }
@@ -84,7 +84,7 @@ static void group_freeexec(bNode *UNUSED(node), void *nodedata)
  */
 static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 {
-	bNodeTree *ngroup = (bNodeTree*)gnode->id;
+	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNode *node;
 	bNodeSocket *sock;
 	bNodeStack *ns;
@@ -105,7 +105,7 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
  */
 static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstack)
 {
-	bNodeTree *ngroup = (bNodeTree*)gnode->id;
+	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNode *node;
 	bNodeSocket *sock;
 	bNodeStack *ns;
@@ -118,14 +118,14 @@ static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
 				if (ns)
 					copy_stack(out[a], ns);
 			}
-			break;	/* only one active output node */
+			break;  /* only one active output node */
 		}
 	}
 }
 
 static void group_execute(void *data, int thread, struct bNode *node, bNodeExecData *execdata, struct bNodeStack **in, struct bNodeStack **out)
 {
-	bNodeTreeExec *exec= execdata->data;
+	bNodeTreeExec *exec = execdata->data;
 	bNodeThreadStack *nts;
 	
 	if (!exec)
@@ -136,7 +136,7 @@ static void group_execute(void *data, int thread, struct bNode *node, bNodeExecD
 	 */
 	{
 		bNode *inode;
-		for (inode=exec->nodetree->nodes.first; inode; inode=inode->next)
+		for (inode = exec->nodetree->nodes.first; inode; inode = inode->next)
 			inode->need_exec = 1;
 	}
 	

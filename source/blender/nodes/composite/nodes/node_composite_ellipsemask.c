@@ -67,7 +67,3 @@ void register_node_type_cmp_ellipsemask(void)
 
 	nodeRegisterType(&ntype);
 }
-
-
-
-

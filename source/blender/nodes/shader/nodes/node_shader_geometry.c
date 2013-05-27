@@ -43,8 +43,8 @@ static bNodeSocketTemplate sh_node_geometry_out[] = {
 static int node_shader_gpu_geometry(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_geometry", in, out,
-		GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
-		GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
+	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
+	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
 }
 
 /* node type definition */

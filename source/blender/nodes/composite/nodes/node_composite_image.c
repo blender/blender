@@ -153,7 +153,7 @@ static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node,
 	NodeImageLayer *sockdata;
 	RenderPass *rpass;
 	int index;
-	for (rpass=rl->passes.first, index=0; rpass; rpass=rpass->next, ++index) {
+	for (rpass = rl->passes.first, index = 0; rpass; rpass = rpass->next, ++index) {
 		int type;
 		if (rpass->channels == 1)
 			type = SOCK_FLOAT;
@@ -172,7 +172,7 @@ static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node,
 
 static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 {
-	Image *ima= (Image *)node->id;
+	Image *ima = (Image *)node->id;
 	if (ima) {
 		ImageUser *iuser = node->storage;
 		ImageUser load_iuser = {NULL};
@@ -194,31 +194,31 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 		ibuf = BKE_image_acquire_ibuf(ima, &load_iuser, NULL);
 		
 		if (ima->rr) {
-			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+			RenderLayer *rl = BLI_findlink(&ima->rr->layers, iuser->layer);
 			
 			if (rl) {
-				if (ima->type!=IMA_TYPE_MULTILAYER)
+				if (ima->type != IMA_TYPE_MULTILAYER)
 					cmp_node_image_add_render_pass_outputs(ntree, node, rl->passflag);
 				else
 					cmp_node_image_add_multilayer_outputs(ntree, node, rl);
 			}
 			else
-				cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
+				cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE | RRES_OUT_ALPHA);
 		}
 		else
-			cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA|RRES_OUT_Z);
+			cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE | RRES_OUT_ALPHA | RRES_OUT_Z);
 		
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 	else
-		cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
+		cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE | RRES_OUT_ALPHA);
 }
 
 static bNodeSocket *cmp_node_image_output_find_match(bNode *UNUSED(node), bNodeSocket *newsock, ListBase *oldsocklist)
 {
 	bNodeSocket *sock;
 	
-	for (sock=oldsocklist->first; sock; sock = sock->next)
+	for (sock = oldsocklist->first; sock; sock = sock->next)
 		if (STREQ(sock->name, newsock->name))
 			return sock;
 	return NULL;
@@ -257,7 +257,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node)
 	/* XXX make callback */
 	cmp_node_image_create_outputs(ntree, node);
 	
-	for (newsock = node->outputs.first; newsock; newsock=newsock->next) {
+	for (newsock = node->outputs.first; newsock; newsock = newsock->next) {
 		/* XXX make callback */
 		oldsock = cmp_node_image_output_find_match(node, newsock, &oldsocklist);
 		if (oldsock) {
@@ -267,11 +267,11 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node)
 	}
 	
 	/* move links to new socket */
-	for (oldsock=oldsocklist.first, oldindex=0; oldsock; oldsock=oldsock->next, ++oldindex) {
+	for (oldsock = oldsocklist.first, oldindex = 0; oldsock; oldsock = oldsock->next, ++oldindex) {
 		newsock = cmp_node_image_output_relink(node, oldsock, oldindex);
 		
 		if (newsock) {
-			for (link=ntree->links.first; link; link=link->next) {
+			for (link = ntree->links.first; link; link = link->next) {
 				if (link->fromsock == oldsock)
 					link->fromsock = newsock;
 			}
@@ -283,7 +283,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node)
 	 * but the nodeRemoveSocket function works anyway. In future this
 	 * should become part of the core code, so can take care of this behavior.
 	 */
-	for (oldsock=oldsocklist.first; oldsock; oldsock=oldsock_next) {
+	for (oldsock = oldsocklist.first; oldsock; oldsock = oldsock_next) {
 		oldsock_next = oldsock->next;
 		MEM_freeN(oldsock->storage);
 		nodeRemoveSocket(ntree, node, oldsock);
@@ -299,12 +299,12 @@ static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 
 static void node_composit_init_image(bNodeTree *ntree, bNode *node)
 {
-	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
-	node->storage= iuser;
-	iuser->frames= 1;
-	iuser->sfra= 1;
-	iuser->fie_ima= 2;
-	iuser->ok= 1;
+	ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
+	node->storage = iuser;
+	iuser->frames = 1;
+	iuser->sfra = 1;
+	iuser->fie_ima = 2;
+	iuser->ok = 1;
 	
 	/* setup initial outputs */
 	cmp_node_image_verify_outputs(ntree, node);
@@ -325,10 +325,10 @@ static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree), bNode *dest_
 {
 	bNodeSocket *sock;
 	
-	dest_node->storage= MEM_dupallocN(src_node->storage);
+	dest_node->storage = MEM_dupallocN(src_node->storage);
 	
 	/* copy extra socket info */
-	for (sock=src_node->outputs.first; sock; sock = sock->next)
+	for (sock = src_node->outputs.first; sock; sock = sock->next)
 		sock->new_sock->storage = MEM_dupallocN(sock->storage);
 }
 
@@ -336,7 +336,7 @@ void register_node_type_cmp_image(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW | NODE_OPTIONS);
 	node_type_init(&ntype, node_composit_init_image);
 	node_type_storage(&ntype, "ImageUser", node_composit_free_image, node_composit_copy_image);
 	node_type_update(&ntype, cmp_node_image_update, NULL);
@@ -349,7 +349,7 @@ void register_node_type_cmp_image(void)
 
 static int node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
-	if (strcmp(ntree->idname, "CompositorNodeTree")==0) {
+	if (strcmp(ntree->idname, "CompositorNodeTree") == 0) {
 		Scene *scene;
 		
 		/* XXX ugly: check if ntree is a local scene node tree.
@@ -369,7 +369,7 @@ void register_node_type_cmp_rlayers(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW | NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_rlayers_out);
 	ntype.poll = node_composit_poll_rlayers;
 

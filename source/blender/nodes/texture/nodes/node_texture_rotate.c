@@ -53,13 +53,13 @@ static void rotate(float new_co[3], float a, float ax[3], const float co[3])
 	float perp[3];
 	float cp[3];
 	
-	float cos_a = cos(a * (float)(2*M_PI));
-	float sin_a = sin(a * (float)(2*M_PI));
+	float cos_a = cosf(a * (float)(2 * M_PI));
+	float sin_a = sinf(a * (float)(2 * M_PI));
 	
 	// x' = xcosa + n(n.x)(1-cosa) + (x*n)sina
 	
 	mul_v3_v3fl(perp, co, cos_a);
-	mul_v3_v3fl(para, ax, dot_v3v3(co, ax)*(1 - cos_a));
+	mul_v3_v3fl(para, ax, dot_v3v3(co, ax) * (1 - cos_a));
 	
 	cross_v3_v3v3(cp, ax, co);
 	mul_v3_fl(cp, sin_a);
@@ -73,7 +73,7 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
 {
 	float new_co[3], new_dxt[3], new_dyt[3], a, ax[3];
 	
-	a= tex_input_value(in[1], p, thread);
+	a = tex_input_value(in[1], p, thread);
 	tex_input_vec(ax, in[2], p, thread);
 
 	rotate(new_co, a, ax, p->co);

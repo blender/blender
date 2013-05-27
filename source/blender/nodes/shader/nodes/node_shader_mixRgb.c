@@ -65,9 +65,9 @@ static void node_shader_exec_mix_rgb(void *UNUSED(data), int UNUSED(thread), bNo
 static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	static const char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
-		"mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
-		"mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
-		"mix_val", "mix_color", "mix_soft", "mix_linear"};
+		                          "mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
+		                          "mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
+		                          "mix_val", "mix_color", "mix_soft", "mix_linear"};
 
 	return GPU_stack_link(mat, names[node->custom1], in, out);
 }
@@ -78,7 +78,7 @@ void register_node_type_sh_mix_rgb(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_mix_rgb_in, sh_node_mix_rgb_out);
 	node_type_label(&ntype, node_blend_label);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_mix_rgb);

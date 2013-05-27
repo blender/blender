@@ -50,8 +50,8 @@ static void node_shader_exec_squeeze(void *UNUSED(data), int UNUSED(thread), bNo
 	float vec[3];
 	
 	nodestack_get_vec(vec, SOCK_FLOAT, in[0]);
-	nodestack_get_vec(vec+1, SOCK_FLOAT, in[1]);
-	nodestack_get_vec(vec+2, SOCK_FLOAT, in[2]);
+	nodestack_get_vec(vec + 1, SOCK_FLOAT, in[1]);
+	nodestack_get_vec(vec + 2, SOCK_FLOAT, in[2]);
 
 	out[0]->vec[0] = 1.0f / (1.0f + powf(M_E, -((vec[0] - vec[2]) * vec[1])));
 }

@@ -48,7 +48,7 @@ void register_node_type_cmp_texture(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS | NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_texture_in, cmp_node_texture_out);
 
 	nodeRegisterType(&ntype);

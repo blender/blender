@@ -48,8 +48,8 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), bNod
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
 
 	return GPU_stack_link(mat, "node_tex_coord", in, out,
-		GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
-		GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), orco, mtface);
+	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
+	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), orco, mtface);
 }
 
 /* node type definition */

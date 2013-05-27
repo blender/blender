@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[] = {
 
 static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeColorBalance *n= node->storage= MEM_callocN(sizeof(NodeColorBalance), "node colorbalance");
+	NodeColorBalance *n = node->storage = MEM_callocN(sizeof(NodeColorBalance), "node colorbalance");
 
 	n->lift[0] = n->lift[1] = n->lift[2] = 1.0f;
 	n->gamma[0] = n->gamma[1] = n->gamma[2] = 1.0f;

@@ -50,20 +50,20 @@ static bNodeSocketTemplate outputs[] = {
 static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat, float val, float *in, float fac)
 {
 	if (fac != 0 && (hue != 0.5f || sat != 1 || val != 1)) {
-		float col[3], hsv[3], mfac= 1.0f - fac;
+		float col[3], hsv[3], mfac = 1.0f - fac;
 		
-		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
-		hsv[0]+= (hue - 0.5f);
-		if (hsv[0]>1.0f) hsv[0]-=1.0f; else if (hsv[0]<0.0f) hsv[0]+= 1.0f;
-		hsv[1]*= sat;
-		if (hsv[1]>1.0f) hsv[1] = 1.0f; else if (hsv[1]<0.0f) hsv[1] = 0.0f;
-		hsv[2]*= val;
-		if (hsv[2]>1.0f) hsv[2] = 1.0f; else if (hsv[2]<0.0f) hsv[2] = 0.0f;
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
-		
-		out[0] = mfac*in[0] + fac*col[0];
-		out[1] = mfac*in[1] + fac*col[1];
-		out[2] = mfac*in[2] + fac*col[2];
+		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv + 1, hsv + 2);
+		hsv[0] += (hue - 0.5f);
+		if (hsv[0] > 1.0f) hsv[0] -= 1.0f; else if (hsv[0] < 0.0f) hsv[0] += 1.0f;
+		hsv[1] *= sat;
+		if (hsv[1] > 1.0f) hsv[1] = 1.0f; else if (hsv[1] < 0.0f) hsv[1] = 0.0f;
+		hsv[2] *= val;
+		if (hsv[2] > 1.0f) hsv[2] = 1.0f; else if (hsv[2] < 0.0f) hsv[2] = 0.0f;
+		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
+
+		out[0] = mfac * in[0] + fac * col[0];
+		out[1] = mfac * in[1] + fac * col[1];
+		out[2] = mfac * in[2] + fac * col[2];
 	}
 	else {
 		copy_v4_v4(out, in);

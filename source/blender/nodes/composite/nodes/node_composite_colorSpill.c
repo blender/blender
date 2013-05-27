@@ -45,13 +45,13 @@ static bNodeSocketTemplate cmp_node_color_spill_out[] = {
 
 static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeColorspill *ncs= MEM_callocN(sizeof(NodeColorspill), "node colorspill");
-	node->storage=ncs;
-	node->custom1= 2; /* green channel */
-	node->custom2= 0; /* simple limit algo*/
-	ncs->limchan= 0;  /* limit by red */
-	ncs->limscale= 1.0f; /* limit scaling factor */
-	ncs->unspill=0;   /* do not use unspill */
+	NodeColorspill *ncs = MEM_callocN(sizeof(NodeColorspill), "node colorspill");
+	node->storage = ncs;
+	node->custom1 = 2; /* green channel */
+	node->custom2 = 0; /* simple limit algo*/
+	ncs->limchan = 0;  /* limit by red */
+	ncs->limscale = 1.0f; /* limit scaling factor */
+	ncs->unspill = 0;   /* do not use unspill */
 }
 
 void register_node_type_cmp_color_spill(void)

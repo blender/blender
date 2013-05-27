@@ -47,7 +47,7 @@ static bNodeSocketTemplate sh_node_invert_out[] = {
 };
 
 static void node_shader_exec_invert(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, 
-bNodeStack **out) 
+                                    bNodeStack **out)
 {
 	float col[3], facm;
 
@@ -59,9 +59,9 @@ bNodeStack **out)
 	if (in[0]->vec[0] < 1.0f) {
 		facm = 1.0f - in[0]->vec[0];
 
-		col[0] = in[0]->vec[0]*col[0] + (facm*in[1]->vec[0]);
-		col[1] = in[0]->vec[0]*col[1] + (facm*in[1]->vec[1]);
-		col[2] = in[0]->vec[0]*col[2] + (facm*in[1]->vec[2]);
+		col[0] = in[0]->vec[0] * col[0] + (facm * in[1]->vec[0]);
+		col[1] = in[0]->vec[0] * col[1] + (facm * in[1]->vec[1]);
+		col[2] = in[0]->vec[0] * col[2] + (facm * in[1]->vec[2]);
 	}
 	
 	copy_v3_v3(out[0]->vec, col);
@@ -77,7 +77,7 @@ void register_node_type_sh_invert(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_invert_in, sh_node_invert_out);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_invert);
 	node_type_gpu(&ntype, gpu_shader_invert);

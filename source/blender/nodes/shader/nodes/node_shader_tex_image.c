@@ -48,18 +48,18 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 	default_tex_mapping(&tex->base.tex_mapping);
 	default_color_mapping(&tex->base.color_mapping);
 	tex->color_space = SHD_COLORSPACE_COLOR;
-	tex->iuser.frames= 1;
-	tex->iuser.sfra= 1;
-	tex->iuser.fie_ima= 2;
-	tex->iuser.ok= 1;
+	tex->iuser.frames = 1;
+	tex->iuser.sfra = 1;
+	tex->iuser.fie_ima = 2;
+	tex->iuser.ok = 1;
 
 	node->storage = tex;
 }
 
 static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	Image *ima= (Image*)node->id;
-	ImageUser *iuser= NULL;
+	Image *ima = (Image *)node->id;
+	ImageUser *iuser = NULL;
 	NodeTexImage *tex = node->storage;
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
 	int ret;

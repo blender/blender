@@ -44,10 +44,10 @@ static bNodeSocketTemplate time_outputs[] = {
 static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))
 {
 	/* stack order output: fac */
-	float fac= 0.0f;
+	float fac = 0.0f;
 	
 	if (node->custom1 < node->custom2)
-		fac = (p->cfra - node->custom1)/(float)(node->custom2-node->custom1);
+		fac = (p->cfra - node->custom1) / (float)(node->custom2 - node->custom1);
 	
 	curvemapping_initialize(node->storage);
 	fac = curvemapping_evaluateF(node->storage, 0, fac);
@@ -62,9 +62,9 @@ static void time_exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData
 
 static void time_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom1= 1;
-	node->custom2= 250;
-	node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->custom1 = 1;
+	node->custom2 = 250;
+	node->storage = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_tex_curve_time(void)
@@ -89,7 +89,7 @@ static bNodeSocketTemplate rgb_inputs[] = {
 
 static bNodeSocketTemplate rgb_outputs[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""}
 };
 
 static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
@@ -108,7 +108,7 @@ static void rgb_exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData 
 
 static void rgb_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->storage = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_tex_curve_rgb(void)

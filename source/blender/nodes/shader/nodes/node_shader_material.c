@@ -80,7 +80,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 	if (data && node->id) {
 		ShadeResult shrnode;
 		ShadeInput *shi;
-		ShaderCallData *shcd= data;
+		ShaderCallData *shcd = data;
 		float col[4];
 		bNodeSocket *sock;
 		char hasinput[NUM_MAT_IN] = {'\0'};
@@ -91,15 +91,15 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		 * we just want to know if a node input uses external data or the material setting.
 		 * this is an ugly hack, but so is this node as a whole.
 		 */
-		for (sock = node->inputs.first, i=0; sock; sock = sock->next, ++i)
+		for (sock = node->inputs.first, i = 0; sock; sock = sock->next, ++i)
 			hasinput[i] = (sock->link != NULL);
 		
-		shi= shcd->shi;
-		shi->mat= (Material *)node->id;
+		shi = shcd->shi;
+		shi->mat = (Material *)node->id;
 		
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
+		memcpy(&shi->r, &shi->mat->r, 23 * sizeof(float));
+		shi->har = shi->mat->har;
 		
 		/* write values */
 		if (hasinput[MAT_IN_COLOR])
@@ -147,9 +147,9 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		if (shi->mat->mode & MA_TRANSP)
 			shi->mode |= MA_TRANSP;
 
-		shi->nodes= 1; /* temp hack to prevent trashadow recursion */
-		node_shader_lamp_loop(shi, &shrnode);	/* clears shrnode */
-		shi->nodes= 0;
+		shi->nodes = 1; /* temp hack to prevent trashadow recursion */
+		node_shader_lamp_loop(shi, &shrnode);   /* clears shrnode */
+		shi->nodes = 0;
 		
 		shi->mode = mode;
 
@@ -196,12 +196,12 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 			float combined[4], alpha;
 
 			copy_v4_v4(combined, shcd->shr->combined);
-			alpha= shcd->shr->alpha;
+			alpha = shcd->shr->alpha;
 
-			*(shcd->shr)= shrnode;
+			*(shcd->shr) = shrnode;
 
 			copy_v4_v4(shcd->shr->combined, combined);
-			shcd->shr->alpha= alpha;
+			shcd->shr->alpha = alpha;
 		}
 	}
 }
@@ -209,7 +209,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 
 static void node_shader_init_material(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
+	node->custom1 = SH_NODE_MAT_DIFF | SH_NODE_MAT_SPEC;
 }
 
 /* XXX this is also done as a local static function in gpu_codegen.c,
@@ -236,10 +236,10 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		 * the constant input stack values (e.g. in case material node is inside a group).
 		 * we just want to know if a node input uses external data or the material setting.
 		 */
-		for (sock = node->inputs.first, i=0; sock; sock = sock->next, ++i)
+		for (sock = node->inputs.first, i = 0; sock; sock = sock->next, ++i)
 			hasinput[i] = (sock->link != NULL);
 
-		GPU_shadeinput_set(mat, (Material*)node->id, &shi);
+		GPU_shadeinput_set(mat, (Material *)node->id, &shi);
 
 		/* write values */
 		if (hasinput[MAT_IN_COLOR])
@@ -264,18 +264,18 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			if (hasinput[MAT_IN_AMB])
-				shi.amb= gpu_get_input_link(&in[MAT_IN_AMB]);
+				shi.amb = gpu_get_input_link(&in[MAT_IN_AMB]);
 			if (hasinput[MAT_IN_EMIT])
-				shi.emit= gpu_get_input_link(&in[MAT_IN_EMIT]);
+				shi.emit = gpu_get_input_link(&in[MAT_IN_EMIT]);
 			if (hasinput[MAT_IN_ALPHA])
-				shi.alpha= gpu_get_input_link(&in[MAT_IN_ALPHA]);
+				shi.alpha = gpu_get_input_link(&in[MAT_IN_ALPHA]);
 		}
 
 		GPU_shaderesult_set(&shi, &shr); /* clears shr */
 		
 		/* write to outputs */
 		if (node->custom1 & SH_NODE_MAT_DIFF) {
-			out[MAT_OUT_COLOR].link= shr.combined;
+			out[MAT_OUT_COLOR].link = shr.combined;
 
 			if (!(node->custom1 & SH_NODE_MAT_SPEC)) {
 				GPUNodeLink *link;
@@ -283,7 +283,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 			}
 		}
 		else if (node->custom1 & SH_NODE_MAT_SPEC) {
-			out[MAT_OUT_COLOR].link= shr.spec;
+			out[MAT_OUT_COLOR].link = shr.spec;
 		}
 		else
 			GPU_link(mat, "set_rgb_zero", &out[MAT_OUT_COLOR].link);
@@ -311,7 +311,7 @@ void register_node_type_sh_material(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_MATERIAL, "Material", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	sh_node_type_base(&ntype, SH_NODE_MATERIAL, "Material", NODE_CLASS_INPUT, NODE_OPTIONS | NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_material_in, sh_node_material_out);
 	node_type_init(&ntype, node_shader_init_material);
@@ -326,7 +326,7 @@ void register_node_type_sh_material_ext(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_MATERIAL_EXT, "Extended Material", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	sh_node_type_base(&ntype, SH_NODE_MATERIAL_EXT, "Extended Material", NODE_CLASS_INPUT, NODE_OPTIONS | NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_material_ext_in, sh_node_material_ext_out);
 	node_type_init(&ntype, node_shader_init_material);

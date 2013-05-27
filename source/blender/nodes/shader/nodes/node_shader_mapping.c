@@ -46,8 +46,8 @@ static bNodeSocketTemplate sh_node_mapping_out[] = {
 /* do the regular mapping options for blender textures */
 static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
-	TexMapping *texmap= node->storage;
-	float *vec= out[0]->vec;
+	TexMapping *texmap = node->storage;
+	float *vec = out[0]->vec;
 	
 	/* stack order input:  vector */
 	/* stack order output: vector */
@@ -55,28 +55,28 @@ static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNo
 	mul_m4_v3(texmap->mat, vec);
 	
 	if (texmap->flag & TEXMAP_CLIP_MIN) {
-		if (vec[0]<texmap->min[0]) vec[0] = texmap->min[0];
-		if (vec[1]<texmap->min[1]) vec[1] = texmap->min[1];
-		if (vec[2]<texmap->min[2]) vec[2] = texmap->min[2];
+		if (vec[0] < texmap->min[0]) vec[0] = texmap->min[0];
+		if (vec[1] < texmap->min[1]) vec[1] = texmap->min[1];
+		if (vec[2] < texmap->min[2]) vec[2] = texmap->min[2];
 	}
 	if (texmap->flag & TEXMAP_CLIP_MAX) {
-		if (vec[0]>texmap->max[0]) vec[0] = texmap->max[0];
-		if (vec[1]>texmap->max[1]) vec[1] = texmap->max[1];
-		if (vec[2]>texmap->max[2]) vec[2] = texmap->max[2];
+		if (vec[0] > texmap->max[0]) vec[0] = texmap->max[0];
+		if (vec[1] > texmap->max[1]) vec[1] = texmap->max[1];
+		if (vec[2] > texmap->max[2]) vec[2] = texmap->max[2];
 	}
 }
 
 
 static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage= add_tex_mapping();
+	node->storage = add_tex_mapping();
 }
 
 static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	TexMapping *texmap= node->storage;
-	float domin= (texmap->flag & TEXMAP_CLIP_MIN) != 0;
-	float domax= (texmap->flag & TEXMAP_CLIP_MAX) != 0;
+	TexMapping *texmap = node->storage;
+	float domin = (texmap->flag & TEXMAP_CLIP_MIN) != 0;
+	float domax = (texmap->flag & TEXMAP_CLIP_MAX) != 0;
 	GPUNodeLink *tmat = GPU_uniform((float *)texmap->mat);
 	GPUNodeLink *tmin = GPU_uniform(texmap->min);
 	GPUNodeLink *tmax = GPU_uniform(texmap->max);
@@ -91,7 +91,7 @@ void register_node_type_sh_mapping(void)
 	static bNodeType ntype;
 	
 	sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_mapping_in, sh_node_mapping_out);
 	node_type_size(&ntype, 320, 160, 360);
 	node_type_init(&ntype, node_shader_init_mapping);
