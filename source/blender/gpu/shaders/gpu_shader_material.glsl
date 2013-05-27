@@ -2273,6 +2273,11 @@ void node_object_info(out vec3 location, out float object_index, out float mater
 	random = 0.0;
 }
 
+void node_normal_map(float strength, vec4 color, vec3 N, out vec3 result)
+{
+	result = N;
+}
+
 void node_bump(float strength, float dist, float height, vec3 N, out vec3 result)
 {
 	result = N;

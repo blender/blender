@@ -276,13 +276,17 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 		object_normal_transform(kg, sd, &N);
 	}
 	else {
+		/* strange blender convention */
+		color.y = -color.y;
+		color.z = -color.z;
+	
 		/* object, world space */
 		N = color;
 
 		if(space == NODE_NORMAL_MAP_OBJECT)
 			object_normal_transform(kg, sd, &N);
-
-		N = normalize(N);
+		else
+			N = normalize(N);
 	}
 
 	float strength = stack_load_float(stack, strength_offset);
