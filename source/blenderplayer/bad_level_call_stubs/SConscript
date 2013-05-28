@@ -33,7 +33,6 @@ incs = [
     '#/intern/guardedalloc',
     '#/source/blender/makesdna',
     '#/source/blender/makesrna',
-    '#/source/blender/blenloader',
     '#/source/blender/blenlib',
     ]
 

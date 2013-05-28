@@ -46,7 +46,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "BLO_sys_types.h"  /* for intptr_t support */
+#include "BLI_sys_types.h"  /* for intptr_t support */
 
 /* Utils */
 

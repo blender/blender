@@ -28,7 +28,6 @@ set(INC
 	../avi
 	../blenkernel
 	../blenlib
-	../blenloader
 	../imbuf
 	../imbuf/intern
 	../makesdna

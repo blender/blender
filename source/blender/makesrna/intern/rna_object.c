@@ -51,7 +51,7 @@
 
 #include "rna_internal.h"
 
-#include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
+#include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 #include "ED_mesh.h"
 
 #include "WM_api.h"

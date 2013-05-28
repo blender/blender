@@ -30,7 +30,6 @@
 
 #include <stddef.h>
 #include "guardedalloc/MEM_guardedalloc.h"
-#include "guardedalloc/MEM_sys_types.h"
 
 template<typename _Tp>
 struct MEM_Allocator

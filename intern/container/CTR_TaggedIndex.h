@@ -43,7 +43,7 @@
 
 #include <functional>
 
-#include "MEM_sys_types.h"
+#include "../../source/blender/blenlib/BLI_sys_types.h"
 
 enum {
 	empty_tag = 0x0,

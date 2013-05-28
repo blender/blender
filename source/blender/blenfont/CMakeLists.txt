@@ -25,7 +25,6 @@ set(INC
 	.
 	../blenkernel
 	../blenlib
-	../blenloader
 	../editors/include
 	../makesdna
 	../makesrna

@@ -34,7 +34,7 @@
 #include <math.h>
 #include <float.h>
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

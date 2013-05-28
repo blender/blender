@@ -9,7 +9,6 @@ incs = [
     '#/extern/glew/include',
     '../blenkernel',
     '../blenlib',
-    '../blenloader',
     '../freestyle',
     '../imbuf',
     '../makesdna',

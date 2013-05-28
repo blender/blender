@@ -87,7 +87,6 @@ add_library(blenfont_lib ${SRC_NEW})
 # grr, blenfont needs BLI
 include_directories(
 		"../../../source/blender/blenlib"
-		"../../../source/blender/blenloader"
 		)
 add_library(bli_lib 
 		"../../../source/blender/blenlib/intern/fileops.c"

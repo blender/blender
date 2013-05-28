@@ -40,7 +40,7 @@
 
 #include "DNA_object_types.h"
 
-/* #include "BLO_sys_types.h" */
+/* #include "BLI_sys_types.h" */
 
 #include "rna_internal.h"  /* own include */
 

@@ -42,7 +42,7 @@
 
 
 /* 
-// DG: original BLO_sys_types.h is in source/blender/blenkernel 
+// DG: original BLI_sys_types.h is in source/blender/blenkernel
 // but is not allowed be accessed here because of bad-level-call
 // jesterKing: renamed to superlu_sys_types.h
 */

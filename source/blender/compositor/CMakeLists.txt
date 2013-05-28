@@ -31,7 +31,6 @@ set(INC
 	../blenkernel
 	../blenlib
 	../blenlib
-	../blenloader
 	../imbuf
 	../makesdna
 	../makesrna

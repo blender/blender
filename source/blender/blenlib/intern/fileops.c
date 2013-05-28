@@ -65,8 +65,7 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
-
-#include "MEM_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h" // for intptr_t support
 
 
 /* gzip the file in from and write it to "to". 

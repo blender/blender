@@ -45,7 +45,7 @@
 #endif
 
 /* hrmf, we need a better include then this */
-#include "../blenloader/BLO_sys_types.h" /* needed for int64_t only! */
+#include "../blenlib/BLI_sys_types.h" /* needed for int64_t only! */
 
 /* non-id name variables should use this length */
 #define MAX_NAME 64

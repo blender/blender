@@ -28,7 +28,7 @@
 
 #include <stddef.h>
 
-#include "BLO_sys_types.h"  /* for intptr_t */
+#include "BLI_sys_types.h"  /* for intptr_t */
 
 #include "MEM_guardedalloc.h"
 

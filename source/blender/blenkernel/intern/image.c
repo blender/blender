@@ -89,7 +89,7 @@
 
 #include "GPU_draw.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h" // for intptr_t support
 
 /* for image user iteration */
 #include "DNA_node_types.h"

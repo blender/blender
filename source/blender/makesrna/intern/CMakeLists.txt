@@ -257,7 +257,6 @@ blender_include_dirs(
 	.
 	..
 	../../blenkernel
-	../../blenloader
 	../../blenlib
 	../../bmesh
 	../../blenfont

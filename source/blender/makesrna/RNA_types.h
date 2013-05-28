@@ -25,7 +25,7 @@
  */
 
 
-#include "BLO_sys_types.h"
+#include "../blenlib/BLI_sys_types.h"
 
 #ifndef __RNA_TYPES_H__
 #define __RNA_TYPES_H__

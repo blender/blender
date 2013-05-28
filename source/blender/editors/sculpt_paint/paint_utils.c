@@ -63,7 +63,7 @@
 #include "ED_view3d.h"
 #include "ED_screen.h"
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 #include "ED_mesh.h" /* for face mask functions */
 
 #include "WM_api.h"

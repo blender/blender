@@ -34,7 +34,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"

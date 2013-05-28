@@ -60,7 +60,7 @@
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h" // for intptr_t support
 
 static void boundbox_displist(Object *ob);
 static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase);

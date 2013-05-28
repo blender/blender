@@ -59,7 +59,7 @@
 #include "BKE_object.h"
 #include "BKE_curve.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h" // for intptr_t support
 
 #include "ED_object.h"
 #include "ED_mesh.h"

@@ -26,7 +26,7 @@
 set(INC
 	.
 	../SceneGraph
-	../../blender/blenloader
+	../../blender/blenlib
 	../../../intern/guardedalloc
 	../../../intern/moto/include
 	../../../intern/string

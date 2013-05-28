@@ -6,7 +6,7 @@
 #include "KX_ScalarInterpolator.h"
 #include "KX_GameObject.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h" // for intptr_t support
 
 bool KX_MaterialIpoController::Update(double currentTime)
 {

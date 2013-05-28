@@ -53,7 +53,7 @@
 #ifndef __AVI_AVI_H__
 #define __AVI_AVI_H__
 
-#include "MEM_sys_types.h"
+#include "BLI_sys_types.h"
 #include <stdio.h> /* for FILE */
 
 typedef struct _AviChunk {

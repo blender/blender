@@ -39,7 +39,6 @@ incs = [
     '../blenfont',
     '../blenkernel',
     '../windowmanager',
-    '../blenloader',
     '../makesdna',
     '../makesrna',
     '../editors/include',

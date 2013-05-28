@@ -47,7 +47,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

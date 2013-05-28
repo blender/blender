@@ -48,7 +48,8 @@
 
 #define MAP_FAILED ((void *)-1)
 
-#include "MEM_sys_types.h" // needed for intptr_t
+/* needed for uintptr_t, exception, dont use BLI anywhere else in MEM_* */
+#include "../../source/blender/blenlib/BLI_sys_types.h"
 
 void *mmap(void *start, size_t len, int prot, int flags, int fd, off_t offset);
 intptr_t munmap(void *ptr, intptr_t size);

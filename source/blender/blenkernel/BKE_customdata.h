@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#include "../blenloader/BLO_sys_types.h" /* XXX, should have a more generic include for this */
+#include "BLI_sys_types.h" /* XXX, should have a more generic include for this */
 #include "BLI_utildefines.h"
 
 struct BMesh;

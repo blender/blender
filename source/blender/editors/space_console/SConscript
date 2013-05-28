@@ -40,7 +40,6 @@ incs = [
     '../../blenlib',
     '../../windowmanager',
     '../../blenfont',
-    '../../blenloader',
     ]
 
 if env['WITH_BF_PYTHON']:

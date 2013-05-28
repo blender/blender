@@ -35,7 +35,6 @@ incs = [
     '../include',
     '../../blenkernel',
     '../../blenlib',
-    '../../blenloader',
     '../../imbuf',
     '../../makesdna',
     '../../makesrna',

@@ -44,7 +44,6 @@ incs = [
     '../blenfont',
     '../blenkernel',
     '../blenlib',
-    '../blenloader',
     '../editors/include',
     '../gpu',
     '../imbuf',

@@ -32,7 +32,7 @@
 #ifndef __UI_INTERFACE_H__
 #define __UI_INTERFACE_H__
 
-#include "BLO_sys_types.h" /* size_t */
+#include "BLI_sys_types.h" /* size_t */
 #include "RNA_types.h"
 #include "DNA_userdef_types.h"
 

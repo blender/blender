@@ -47,7 +47,6 @@ incs  = ['.',
          '../avi',
          '../imbuf',
          '../imbuf/intern',
-         '../blenloader',
          '../render/extern/include',
          '../editors/include',
          '#/intern/audaspace/intern']

@@ -121,7 +121,7 @@
 #include "transform.h"
 #include "bmesh.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h" // for intptr_t support
 
 
 /* local function prototype - for Object/Bone Constraints */

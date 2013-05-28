@@ -35,7 +35,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_edgehash.h"

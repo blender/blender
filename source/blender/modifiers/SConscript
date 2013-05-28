@@ -38,7 +38,6 @@ incs = [
     '#/extern/glew/include',
     '#/intern/opennl/extern',
     '../render/extern/include',
-    '../blenloader',
     '../bmesh',
     '../include',
     '../blenlib',

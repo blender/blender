@@ -36,7 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "IMB_anim.h"
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 #include "BKE_global.h"
 #include "BLI_dynstr.h"
 #include "BLI_path_util.h"

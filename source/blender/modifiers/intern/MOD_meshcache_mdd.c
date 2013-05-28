@@ -28,7 +28,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"

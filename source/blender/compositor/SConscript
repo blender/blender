@@ -38,7 +38,6 @@ incs = [
     '#/intern/opencl',
     '../blenkernel',
     '../blenlib',
-    '../blenloader',
     '../imbuf',
     '../makesdna',
     '../makesrna',

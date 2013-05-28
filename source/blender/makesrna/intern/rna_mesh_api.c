@@ -34,7 +34,7 @@
 
 #include "RNA_define.h"
 
-#include "BLO_sys_types.h"
+#include "BLI_sys_types.h"
 
 #include "BLI_utildefines.h"
 

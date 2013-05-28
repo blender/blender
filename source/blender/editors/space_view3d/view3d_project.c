@@ -33,7 +33,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLO_sys_types.h"  /* int64_t */
+#include "BLI_sys_types.h"  /* int64_t */
 
 #include "BIF_gl.h"  /* bglMats */
 #include "BIF_glutil.h"  /* bglMats */

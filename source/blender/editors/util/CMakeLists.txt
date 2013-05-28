@@ -23,7 +23,6 @@ set(INC
 	../../blenfont
 	../../blenkernel
 	../../blenlib
-	../../blenloader
 	../../bmesh
 	../../makesdna
 	../../makesrna

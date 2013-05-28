@@ -38,7 +38,6 @@ incs = [
     '#/extern/glew/include',
     '../blenkernel',
     '../blenlib',
-    '../blenloader',
     '../editors/include',
     '../imbuf',
     '../makesdna',

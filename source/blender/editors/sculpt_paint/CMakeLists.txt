@@ -24,7 +24,6 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenfont
-	../../blenloader
 	../../bmesh
 	../../gpu
 	../../imbuf

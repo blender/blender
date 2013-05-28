@@ -24,7 +24,7 @@
  *  \ingroup bli
  */
 
-#include "MEM_sys_types.h"
+#include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_endian_switch.h"
 

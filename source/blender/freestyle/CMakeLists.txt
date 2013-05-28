@@ -26,9 +26,18 @@
 file(GLOB_RECURSE SRC *.cpp *.h)
 
 set(INC 
-  ../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna
-  ../python ../python/intern ../render/extern/include ../render/intern/include
-  ../../../extern/glew/include ../../../intern/guardedalloc ../freestyle
+  ../blenkernel
+  ../blenlib
+  ../freestyle
+  ../imbuf
+  ../makesdna
+  ../makesrna
+  ../python
+  ../python/intern
+  ../render/extern/include
+  ../render/intern/include
+  ../../../extern/glew/include
+  ../../../intern/guardedalloc
 )
 
 set(INC_SYS

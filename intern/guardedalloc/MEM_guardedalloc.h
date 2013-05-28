@@ -61,7 +61,9 @@
 #define __MEM_GUARDEDALLOC_H__
 
 #include <stdio.h>          /* needed for FILE* */
-#include "MEM_sys_types.h"  /* needed for uintptr_t */
+
+/* needed for uintptr_t, exception, dont use BLI anywhere else in MEM_* */
+#include "../../source/blender/blenlib/BLI_sys_types.h"
 
 /* some GNU attributes are only available from GCC 4.3 */
 #define MEM_GNU_ATTRIBUTES (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))

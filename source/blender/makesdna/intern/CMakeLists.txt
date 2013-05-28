@@ -29,7 +29,6 @@ add_definitions(-DWITH_DNA_GHASH)
 
 blender_include_dirs(
 	../../../../intern/guardedalloc
-	../../blenloader
 	../../blenlib
 	..
 )

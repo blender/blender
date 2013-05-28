@@ -45,7 +45,7 @@ incs += ' #source/blender/makesdna #source/blender/makesrna #source/blender/pyth
 incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions #source/gameengine/Network'
 incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common'
 incs += ' #source/gameengine/Physics/Dummy'
-incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #source/blender/gpu'
+incs += ' #source/blender/misc #extern/glew/include #source/blender/gpu'
 incs += ' #extern/recastnavigation/Recast/Include #extern/recastnavigation/Detour/Include'
 
 incs += ' ' + env['BF_BULLET_INC']
