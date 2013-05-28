@@ -16,8 +16,6 @@
 #include "MT_Tuple3.h"
 #include "MT_Tuple4.h"
 
-#define SHADER_ATTRIBMAX 1
-
 /**
  * BL_Sampler
  *  Sampler access 

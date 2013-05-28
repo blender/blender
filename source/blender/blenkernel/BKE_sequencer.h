@@ -46,10 +46,6 @@ struct bSound;
 
 struct SeqIndexBuildContext;
 
-#define BUILD_SEQAR_COUNT_NOTHING  0
-#define BUILD_SEQAR_COUNT_CURRENT  1
-#define BUILD_SEQAR_COUNT_CHILDREN 2
-
 #define EARLY_NO_INPUT      -1
 #define EARLY_DO_EFFECT     0
 #define EARLY_USE_INPUT_1   1

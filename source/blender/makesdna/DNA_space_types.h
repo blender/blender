@@ -1131,11 +1131,6 @@ typedef enum eSpaceClip_GPencil_Source {
 
 /* **************** SPACE DEFINES ********************* */
 
-/* headerbuttons: 450-499 */
-#define B_IMASELHOME        451
-#define B_IMASELREMOVEBIP   452
-
-
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
 typedef enum eSpace_Type {

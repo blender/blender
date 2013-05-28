@@ -197,7 +197,7 @@ typedef struct Lamp {
 
 
 /* ray_samp_type */
-#define LA_SAMP_ROUND	1
+// #define LA_SAMP_ROUND	1  // UNUSED
 #define LA_SAMP_UMBRA	2
 #define LA_SAMP_DITHER	4
 #define LA_SAMP_JITTER	8

@@ -99,10 +99,10 @@ struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
 int			WM_window_pixels_x		(struct wmWindow *win);
 int			WM_window_pixels_y		(struct wmWindow *win);
 
-		/* defines for 'type' WM_window_open_temp */
+/* defines for 'type' WM_window_open_temp */
 #define WM_WINDOW_RENDER		0
 #define WM_WINDOW_USERPREFS		1
-#define WM_WINDOW_FILESEL		2
+// #define WM_WINDOW_FILESEL		2  // UNUSED
 
 void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 			

@@ -52,7 +52,6 @@
 #include "KX_IPhysicsController.h" /* for suspend/resume */
 #include "DNA_object_types.h"
 #include "SCA_LogicManager.h" /* for ConvertPythonToGameObject to search object names */
-#define KX_OB_DYNAMIC 1
 
 //Forward declarations.
 struct KX_ClientObjectInfo;

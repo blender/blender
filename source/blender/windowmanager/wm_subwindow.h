@@ -34,8 +34,6 @@
 
 
 /* *************** internal api ************** */
-#define WM_MAXSUBWIN	256
-
 void	wm_subwindows_free(wmWindow *win);
 
 int		wm_subwindow_open(wmWindow *win, rcti *winrct);

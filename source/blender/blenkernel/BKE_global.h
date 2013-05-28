@@ -173,11 +173,6 @@ enum {
 
 #define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_MESH_COMPAT | G_FILE_SAVE_COPY)
 
-/* G.windowstate */
-#define G_WINDOWSTATE_USERDEF       0
-#define G_WINDOWSTATE_BORDER        1
-#define G_WINDOWSTATE_FULLSCREEN    2
-
 /* ENDIAN_ORDER: indicates what endianness the platform where the file was
  * written had. */
 #if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)

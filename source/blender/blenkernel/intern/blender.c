@@ -146,8 +146,8 @@ void initglobals(void)
 	else
 		BLI_snprintf(versionstr, sizeof(versionstr), "v%d.%02d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
 
-#ifdef _WIN32   // FULLSCREEN
-	G.windowstate = G_WINDOWSTATE_USERDEF;
+#ifdef _WIN32
+	G.windowstate = 0;
 #endif
 
 	G.charstart = 0x0000;

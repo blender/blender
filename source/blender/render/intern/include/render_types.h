@@ -84,7 +84,7 @@ typedef struct QMCSampler {
 	double offs[BLENDER_MAX_THREADS][2];
 } QMCSampler;
 
-#define SAMP_TYPE_JITTERED		0
+// #define SAMP_TYPE_JITTERED		0  // UNUSED
 #define SAMP_TYPE_HALTON		1
 #define SAMP_TYPE_HAMMERSLEY	2
 

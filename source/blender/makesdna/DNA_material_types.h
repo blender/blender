@@ -425,9 +425,6 @@ typedef struct Material {
 #define MA_HAIR			10
 #define MA_ATMOS		11
 
-/* pr_back */
-#define MA_DARK			1
-
 /* sss_flag */
 #define MA_DIFF_SSS		1
 

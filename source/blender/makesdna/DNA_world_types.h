@@ -186,7 +186,7 @@ typedef struct World {
 #define WOMAP_HORIZ		2
 #define WOMAP_ZENUP		4
 #define WOMAP_ZENDOWN	8
-#define WOMAP_MIST		16 /* Deprecated */
+// #define WOMAP_MIST		16 /* Deprecated */
 
 /* flag */
 #define WO_DS_EXPAND	(1<<0)

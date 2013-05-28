@@ -54,7 +54,7 @@ typedef struct bProperty {
 #define GPROP_INT		1
 #define GPROP_FLOAT		2
 #define GPROP_STRING	3
-#define GPROP_VECTOR	4
+// #define GPROP_VECTOR	4  // UNUSED
 #define GPROP_TIME		5
 
 /* property->flag */
