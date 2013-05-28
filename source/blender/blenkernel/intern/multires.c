@@ -857,6 +857,12 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 	MEM_freeN(origco);
 	cddm->release(cddm);
 
+	/* Vertices were moved around, need to update normals after all the vertices are updated
+	 * Probably this is possible to do in the loop above, but this is rather tricky because
+	 * we don't know all needed vertices' coordinates there yet.
+	 */
+	BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+
 	/* subdivide the mesh to highest level without displacements */
 	cddm = CDDM_from_mesh(me, NULL);
 	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
