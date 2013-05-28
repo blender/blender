@@ -585,19 +585,19 @@ So it's best to consider modifying library data an advanced usage of the API and
 Edit Mode / Memory Access
 -------------------------
 
-Switching edit-mode ``bpy.ops.object.mode_set(mode='EDIT')`` / ``bpy.ops.object.mode_set(mode='OBJECT')`` will re-allocate objects data, any references to a meshes vertices/faces/uvs, armatures bones, curves points etc cannot be accessed after switching edit-mode.
+Switching edit-mode ``bpy.ops.object.mode_set(mode='EDIT')`` / ``bpy.ops.object.mode_set(mode='OBJECT')`` will re-allocate objects data, any references to a meshes vertices/polygons/uvs, armatures bones, curves points etc cannot be accessed after switching edit-mode.
 
 Only the reference to the data its self can be re-accessed, the following example will crash.
 
 .. code-block:: python
 
    mesh = bpy.context.active_object.data
-   faces = mesh.faces
+   polygons = mesh.polygons
    bpy.ops.object.mode_set(mode='EDIT')
    bpy.ops.object.mode_set(mode='OBJECT')
 
    # this will crash
-   print(faces)
+   print(polygons)
 
 
 So after switching edit-mode you need to re-access any object data variables, the following example shows how to avoid the crash above.
@@ -605,13 +605,13 @@ So after switching edit-mode you need to re-access any object data variables, th
 .. code-block:: python
 
    mesh = bpy.context.active_object.data
-   faces = mesh.faces
+   polygons = mesh.polygons
    bpy.ops.object.mode_set(mode='EDIT')
    bpy.ops.object.mode_set(mode='OBJECT')
 
-   # faces have been re-allocated
-   faces = mesh.faces
-   print(faces)
+   # polygons have been re-allocated
+   polygons = mesh.polygons
+   print(polygons)
 
 
 These kinds of problems can happen for any functions which re-allocate the object data but are most common when switching edit-mode.
@@ -620,7 +620,7 @@ These kinds of problems can happen for any functions which re-allocate the objec
 Array Re-Allocation
 -------------------
 
-When adding new points to a curve or vertices's/edges/faces to a mesh, internally the array which stores this data is re-allocated.
+When adding new points to a curve or vertices's/edges/polygons to a mesh, internally the array which stores this data is re-allocated.
 
 .. code-block:: python
 
