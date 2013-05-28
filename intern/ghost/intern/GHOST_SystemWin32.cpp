@@ -1162,9 +1162,16 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc.
 					 */
-						system->pushEvent(processWindowEvent(GHOST_kEventWindowSize, window));
-						system->dispatchEvents();
-						eventHandled = true;
+					/* we get first WM_SIZE before we fully init. So, do not dispatch before we continiously resizng */
+						if(window->m_inLiveResize)
+						{
+							system->pushEvent(processWindowEvent(GHOST_kEventWindowSize, window));
+							system->dispatchEvents();
+						}
+						else
+						{
+							event = processWindowEvent(GHOST_kEventWindowSize, window);
+						}
 					break;
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
@@ -1180,9 +1187,17 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc. 
 					 */
-						system->pushEvent(processWindowEvent(GHOST_kEventWindowMove, window));
-						system->dispatchEvents();
-						eventHandled = true;
+						/* see WM_SIZE comment*/
+						if(window->m_inLiveResize)
+						{
+							system->pushEvent(processWindowEvent(GHOST_kEventWindowMove, window));
+							system->dispatchEvents();
+						}						
+						else
+						{
+							event = processWindowEvent(GHOST_kEventWindowMove, window);
+						}
+
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored
