@@ -1282,7 +1282,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 			mul_mat3_m4_v3(sds->imat, &particle_vel[valid_particles * 3]);
 
 			if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
-				BLI_kdtree_insert(tree, p, pos, NULL);
+				BLI_kdtree_insert(tree, valid_particles, pos, NULL);
 			}
 
 			/* calculate emission map bounds */
@@ -1326,8 +1326,8 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 				}
 			}   // particles loop
 		}
-		else // MOD_SMOKE_FLOW_USE_PART_SIZE
-		{
+		else if (valid_particles > 0) { // MOD_SMOKE_FLOW_USE_PART_SIZE
+
 			int min[3], max[3], res[3];
 			float hr = 1.0f / ((float)hires_multiplier);
 			/* slightly adjust high res antialias smoothness based on number of divisions
@@ -1368,6 +1368,11 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 
 							if (nearest.dist < range) {
 								em->influence[index] = (nearest.dist < solid) ? 1.0f : (1.0f - (nearest.dist-solid) / smooth);
+								/* Uses particle velocity as initial velocity for smoke */
+								if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
+								{
+									VECADDFAC(&em->velocity[index * 3], &em->velocity[index * 3], &particle_vel[nearest.index * 3], sfs->vel_multi);
+								}
 							}
 						}
 
@@ -1394,6 +1399,9 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 					}
 			}
 			BLI_end_threaded_malloc();
+		}
+
+		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
 			BLI_kdtree_free(tree);
 		}
 
