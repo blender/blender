@@ -36,7 +36,9 @@
  *   any data in Blender. This block is not serialized, but built anew
  *   for every fresh Blender run.
  */
+
 #include "DNA_listBase.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
