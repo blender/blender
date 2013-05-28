@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BokehDirectionalBlurOperation_h
-#define _COM_DirectionalBlurOperation_h
+#ifndef __COM_DIRECTIONALBLUROPERATION_H__
+#define __COM_DIRECTIONALBLUROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 

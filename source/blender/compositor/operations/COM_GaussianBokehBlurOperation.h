@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BokehGaussianBokehBlurOperation_h
-#define _COM_GaussianBokehBlurOperation_h
+#ifndef __COM_GAUSSIANBOKEHBLUROPERATION_H__
+#define __COM_GAUSSIANBOKEHBLUROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "COM_BlurBaseOperation.h"
 #include "COM_QualityStepHelper.h"

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BokehVariableSizeBokehBlurOperation_h
-#define _COM_VariableSizeBokehBlurOperation_h
+#ifndef __COM_VARIABLESIZEBOKEHBLUROPERATION_H__
+#define __COM_VARIABLESIZEBOKEHBLUROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 

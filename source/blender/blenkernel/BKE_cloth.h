@@ -45,8 +45,6 @@ struct CollisionTree;
 
 #define DO_INLINE MALWAYS_INLINE
 
-#define CLOTH_MAX_THREAD 2
-
 /* goal defines */
 #define SOFTGOALSNAP  0.999f
 

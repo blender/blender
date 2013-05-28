@@ -65,7 +65,7 @@
 /* -------------------------------------------------------------------- */
 /* Specialized Utility Funcs */
 
-#ifdef DEBUG
+#ifndef NDEBUG
 static unsigned int bm_verts_tag_count(BMesh *bm)
 {
 	int count = 0;
