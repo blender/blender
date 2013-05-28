@@ -1162,7 +1162,7 @@ def draw_device(self, context):
         device_type = context.user_preferences.system.compute_device_type
         if device_type == 'CUDA':
             layout.prop(cscene, "device")
-        elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
+        elif device_type == 'OPENCL':
             layout.prop(cscene, "device")
 
         if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'NONE'):
