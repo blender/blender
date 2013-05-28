@@ -1949,7 +1949,7 @@ static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
  * to max_weights regardless of type, otherwise, only limit the number of influencing bones per vertex*/
 static bool vgroup_limit_total_subset(Object *ob,
                                       const bool *vgroup_validmap,
-                                      const int vgroup_tot,
+                                      const int UNUSED(vgroup_tot),
                                       const int subset_count,
                                       const int max_weights)
 {
