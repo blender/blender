@@ -32,45 +32,11 @@
  *  \ingroup bli
  */
 
+/* avoid many includes for now */
+#include "BLI_sys_types.h"
+
 #ifndef NDEBUG /* for BLI_assert */
 #include <stdio.h>
-#endif
-
-/* note: use of (int, TRUE / FALSE) is deprecated,
- * use (bool, true / false) instead */
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-# ifndef HAVE__BOOL
-#  ifdef __cplusplus
-typedef bool _BLI_Bool;
-#  else
-/* using char here may cause nasty tricky bugs, e.g.
- *     bool is_bit_flag = RNA_property_flag(prop) & PROP_ENUM_FLAG;
- * as PROP_ENUM_FLAG is farther than 8th bit, do_translate would be always false!
- */
-#   define _BLI_Bool unsigned int
-#  endif
-# else
-#  define _BLI_Bool _Bool
-# endif
-# define bool _BLI_Bool
-# define false 0
-# define true 1
-# define __bool_true_false_are_defined 1
-#endif
-
-/* remove this when we're ready to remove TRUE/FALSE completely */
-#ifdef WITH_BOOL_COMPAT
-/* interim until all occurrences of these can be updated to stdbool */
-/* XXX Why not use the true/false velues here? */
-# ifndef FALSE
-#   define FALSE 0
-# endif
-
-# ifndef TRUE
-#   define TRUE 1
-# endif
 #endif
 
 /* useful for finding bad use of min/max */
