@@ -2614,13 +2614,15 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
 		if (me->edit_btmesh) {
 			BMEditMesh *em = me->edit_btmesh;
-			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+			int cd_dvert_offset;
 
 			BMIter iter;
 			BMVert *eve;
 
 			if (!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT))
 				BM_data_layer_add(em->bm, &em->bm->vdata, CD_MDEFORMVERT);
+
+			cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
