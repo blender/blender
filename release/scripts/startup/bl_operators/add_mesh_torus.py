@@ -93,12 +93,16 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
                          "center of the cross sections"),
             min=0.01, max=100.0,
             default=1.0,
+            subtype='DISTANCE',
+            unit='LENGTH',
             )
     minor_radius = FloatProperty(
             name="Minor Radius",
             description="Radius of the torus' cross section",
             min=0.01, max=100.0,
             default=0.25,
+            subtype='DISTANCE',
+            unit='LENGTH',
             )
     major_segments = IntProperty(
             name="Major Segments",
@@ -122,24 +126,31 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             description="Total Exterior Radius of the torus",
             min=0.01, max=100.0,
             default=1.0,
+            subtype='DISTANCE',
+            unit='LENGTH',
             )
     abso_minor_rad = FloatProperty(
             name="Inside Radius",
             description="Total Interior Radius of the torus",
             min=0.01, max=100.0,
             default=0.5,
+            subtype='DISTANCE',
+            unit='LENGTH',
             )
 
+    def invoke(self, context, event):
+        object_utils.object_add_grid_scale_apply_operator(self, context)
+        return self.execute(context)
+
     def execute(self, context):
-        grid_scale = object_utils.object_add_grid_scale(context)
 
         if self.use_abso is True:
             extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
             self.major_radius = self.abso_minor_rad + extra_helper
             self.minor_radius = extra_helper
 
-        verts_loc, faces = add_torus(self.major_radius * grid_scale,
-                                     self.minor_radius * grid_scale,
+        verts_loc, faces = add_torus(self.major_radius,
+                                     self.minor_radius,
                                      self.major_segments,
                                      self.minor_segments)
 

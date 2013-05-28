@@ -95,6 +95,15 @@ static void make_prim_finish(bContext *C, Object *obedit, bool was_editmode, int
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }
 
+static void make_prim_radius_prop(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+}
+
+
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
@@ -109,7 +118,8 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	em = BKE_editmesh_from_object(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
-	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4", 1, 1, dia, mat))
+	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4",
+	                              1, 1, RNA_float_get(op->ptr, "radius"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -127,12 +137,14 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_plane_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_plane_exec;
 	ot->poll = ED_operator_scene_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	make_prim_radius_prop(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -149,7 +161,9 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cube"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
-	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_cube matrix=%m4 size=%f", mat, dia * 2.0f)) {
+	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_cube matrix=%m4 size=%f",
+	                              mat, RNA_float_get(op->ptr, "radius") * 2.0f))
+	{
 		return OPERATOR_CANCELLED;
 	}
 
@@ -167,12 +181,14 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_cube_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_cube_exec;
 	ot->poll = ED_operator_scene_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	make_prim_radius_prop(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -214,8 +230,6 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Add Circle";
 	ot->description = "Construct a circle mesh";
@@ -231,8 +245,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
-	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	make_prim_radius_prop(ot);
 	RNA_def_enum(ot->srna, "fill_type", fill_type_items, 0, "Fill Type", "");
 
 	ED_object_add_generic_props(ot, true);
@@ -290,8 +303,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
-	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	make_prim_radius_prop(ot);
 	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Cap Fill Type", "");
@@ -376,7 +388,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4",
 	                              RNA_int_get(op->ptr, "x_subdivisions"),
 	                              RNA_int_get(op->ptr, "y_subdivisions"),
-	                              RNA_float_get(op->ptr, "size"), mat))
+	                              RNA_float_get(op->ptr, "radius"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -388,8 +400,6 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Add Grid";
 	ot->description = "Construct a grid mesh";
@@ -406,8 +416,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
 	RNA_def_int(ot->srna, "y_subdivisions", 10, 3, INT_MAX, "Y Subdivisions", "", 3, 1000);
-	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
-	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	make_prim_radius_prop(ot);
 
 	ED_object_add_generic_props(ot, true);
 }
@@ -427,6 +436,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 		rot[0] += (float)M_PI / 2.0f;
 
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Suzanne"), &dia, mat, &was_editmode, loc, rot, layer);
+	dia = RNA_float_get(op->ptr, "radius");
 	mat[0][0] *= dia;
 	mat[1][1] *= dia;
 	mat[2][2] *= dia;
@@ -450,10 +460,12 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_monkey_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_monkey_exec;
 	ot->poll = ED_operator_scene_editable;
 
 	/* flags */
+	make_prim_radius_prop(ot);
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, true);
