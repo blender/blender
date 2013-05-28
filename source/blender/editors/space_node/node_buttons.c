@@ -79,8 +79,10 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
+	bNodeSocket *sock;
 	uiLayout *layout, *row, *col, *sub;
 	PointerRNA ptr, opptr;
+	bool show_inputs;
 	
 	/* verify pointers, and create RNA pointer for the node */
 	if (ELEM(NULL, ntree, node))
@@ -129,6 +131,33 @@ static void active_node_panel(const bContext *C, Panel *pa)
 		uiItemS(layout);
 		uiItemS(layout);
 		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
+	}
+	
+	uiItemS(layout);
+	
+	/* socket input values */
+	/* XXX this is not quite perfect yet, it still shows sockets without meaningful input values
+	 * and does not yet use the socket link template - but better than nothing.
+	 * Eventually could move this panel to python
+	 * and leave it up to the individual node system implementation.
+	 */
+	show_inputs = false;
+	for (sock = node->inputs.first; sock; sock = sock->next) {
+		if (!nodeSocketIsHidden(sock) && !(sock->flag & SOCK_IN_USE)) {
+			show_inputs = true;
+			break;
+		}
+	}
+	if (show_inputs) {
+		uiItemL(layout, "Inputs:", 0);
+		for (sock = node->inputs.first; sock; sock = sock->next) {
+			if (!nodeSocketIsHidden(sock) && !(sock->flag & SOCK_IN_USE)) {
+				uiLayout *row = uiLayoutRow(layout, false);
+				PointerRNA sock_ptr;
+				RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &sock_ptr);
+				sock->typeinfo->draw((bContext *)C, row, &sock_ptr, &ptr, sock->name);
+			}
+		}
 	}
 }
 
