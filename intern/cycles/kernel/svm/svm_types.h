@@ -309,7 +309,9 @@ typedef enum NodeTangentAxis {
 typedef enum NodeNormalMapSpace {
 	NODE_NORMAL_MAP_TANGENT,
 	NODE_NORMAL_MAP_OBJECT,
-	NODE_NORMAL_MAP_WORLD
+	NODE_NORMAL_MAP_WORLD,
+	NODE_NORMAL_MAP_BLENDER_OBJECT,
+	NODE_NORMAL_MAP_BLENDER_WORLD,
 } NodeNormalMapSpace;
 
 typedef enum ShaderType {

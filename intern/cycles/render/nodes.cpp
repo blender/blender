@@ -3344,6 +3344,8 @@ static ShaderEnum normal_map_space_init()
 	enm.insert("Tangent", NODE_NORMAL_MAP_TANGENT);
 	enm.insert("Object", NODE_NORMAL_MAP_OBJECT);
 	enm.insert("World", NODE_NORMAL_MAP_WORLD);
+	enm.insert("Blender Object", NODE_NORMAL_MAP_BLENDER_OBJECT);
+	enm.insert("Blender World", NODE_NORMAL_MAP_BLENDER_WORLD);
 
 	return enm;
 }

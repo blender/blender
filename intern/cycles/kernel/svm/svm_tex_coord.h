@@ -277,13 +277,15 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 	}
 	else {
 		/* strange blender convention */
-		color.y = -color.y;
-		color.z = -color.z;
+		if(space == NODE_NORMAL_MAP_BLENDER_OBJECT || space == NODE_NORMAL_MAP_BLENDER_WORLD) {
+			color.y = -color.y;
+			color.z = -color.z;
+		}
 	
 		/* object, world space */
 		N = color;
 
-		if(space == NODE_NORMAL_MAP_OBJECT)
+		if(space == NODE_NORMAL_MAP_OBJECT || space == NODE_NORMAL_MAP_BLENDER_OBJECT)
 			object_normal_transform(kg, sd, &N);
 		else
 			N = normalize(N);
