@@ -170,7 +170,7 @@ void register_node_tree_type_sh(void)
 	strcpy(tt->idname, "ShaderNodeTree");
 	strcpy(tt->ui_name, "Shader");
 	tt->ui_icon = 0;    /* defined in drawnode.c */
-	strcpy(tt->ui_description, "");
+	strcpy(tt->ui_description, "Shader nodes");
 	
 	tt->foreach_nodeclass = foreach_nodeclass;
 	tt->localize = localize;

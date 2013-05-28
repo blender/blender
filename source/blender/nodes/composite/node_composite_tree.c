@@ -228,7 +228,7 @@ void register_node_tree_type_cmp(void)
 	strcpy(tt->idname, "CompositorNodeTree");
 	strcpy(tt->ui_name, "Compositing");
 	tt->ui_icon = 0;    /* defined in drawnode.c */
-	strcpy(tt->ui_description, "");
+	strcpy(tt->ui_description, "Compositing nodes");
 	
 	tt->free_cache = free_cache;
 	tt->free_node_cache = free_node_cache;
