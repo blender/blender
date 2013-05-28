@@ -675,6 +675,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 			else                        vec[2] = 1.0f;
 			cross_v3_v3v3(r_plane, eve->no, vec);
 		}
+		normalize_v3(r_plane);
 	}
 	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed = (BMEdge *)ese->ele;
@@ -690,74 +691,12 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 		else {
 			sub_v3_v3v3(r_plane, eed->v1->co, eed->v2->co);
 		}
-		
+		normalize_v3(r_plane);
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;
-		float vec[3] = {0.0f, 0.0f, 0.0f};
-		
-		/* for now, use face normal */
-
-		/* make a fake plane thats at rightangles to the normal
-		 * we cant make a crossvec from a vec thats the same as the vec
-		 * unlikely but possible, so make sure if the normal is (0, 0, 1)
-		 * that vec isn't the same or in the same direction even. */
-		if (UNLIKELY(efa->len < 3)) {
-			/* crappy fallback method */
-			if      (efa->no[0] < 0.5f)	vec[0] = 1.0f;
-			else if (efa->no[1] < 0.5f)	vec[1] = 1.0f;
-			else                        vec[2] = 1.0f;
-			cross_v3_v3v3(r_plane, efa->no, vec);
-		}
-		else {
-			if (efa->len == 3) {
-				BMVert *verts[3];
-				float lens[3];
-				float difs[3];
-				int  order[3] = {0, 1, 2};
-
-				BM_face_as_array_vert_tri(efa, verts);
-
-				lens[0] = len_v3v3(verts[0]->co, verts[1]->co);
-				lens[1] = len_v3v3(verts[1]->co, verts[2]->co);
-				lens[2] = len_v3v3(verts[2]->co, verts[0]->co);
-
-				/* find the shortest or the longest loop */
-				difs[0] = fabsf(lens[1] - lens[2]);
-				difs[1] = fabsf(lens[2] - lens[0]);
-				difs[2] = fabsf(lens[0] - lens[1]);
-
-				axis_sort_v3(difs, order);
-				sub_v3_v3v3(r_plane, verts[order[0]]->co, verts[(order[0] + 1) % 3]->co);
-			}
-			else if (efa->len == 4) {
-				BMVert *verts[4];
-				float vecA[3], vecB[3];
-
-				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
-				BM_face_as_array_vert_quad(efa, verts);
-
-				sub_v3_v3v3(vecA, verts[3]->co, verts[2]->co);
-				sub_v3_v3v3(vecB, verts[0]->co, verts[1]->co);
-				add_v3_v3v3(r_plane, vecA, vecB);
-
-				sub_v3_v3v3(vecA, verts[0]->co, verts[3]->co);
-				sub_v3_v3v3(vecB, verts[1]->co, verts[2]->co);
-				add_v3_v3v3(vec, vecA, vecB);
-				/* use the biggest edge length */
-				if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec)) {
-					copy_v3_v3(r_plane, vec);
-				}
-			}
-			else {
-				BMLoop *l_long  = BM_face_find_longest_loop(efa);
-
-				sub_v3_v3v3(r_plane, l_long->v->co, l_long->next->v->co);
-			}
-
-		}
+		BM_face_calc_plane(efa, r_plane);
 	}
-	normalize_v3(r_plane);
 }
 
 
