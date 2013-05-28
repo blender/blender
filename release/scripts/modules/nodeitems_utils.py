@@ -36,13 +36,18 @@ class NodeCategory():
         elif callable(items):
             self.items = items
         else:
-            self.items = lambda context: items
+            def items_gen(context):
+                for item in items:
+                    if item.poll is None or item.poll(context):
+                        yield item
+            self.items = items_gen
 
 class NodeItem():
-    def __init__(self, nodetype, label=None, settings={}):
+    def __init__(self, nodetype, label=None, settings={}, poll=None):
         self.nodetype = nodetype
         self._label = label
         self.settings = settings
+        self.poll = poll
 
     @property
     def label(self):

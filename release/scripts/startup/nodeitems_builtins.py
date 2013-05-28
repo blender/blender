@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+import bpy
 import nodeitems_utils
 from nodeitems_utils import NodeCategory, NodeItem
 
@@ -80,6 +81,13 @@ def node_group_items(context):
 
         yield NodeItem(node_tree_group_type[group.bl_idname], group.name, { "node_tree" : "bpy.data.node_groups[%r]" % group.name })
 
+# only show input/output nodes inside node groups
+def group_input_output_item_poll(context):
+    space = context.space_data
+    if space.edit_tree in bpy.data.node_groups.values():
+        return True
+    return False
+
 
 # All standard node categories currently used in nodes.
 
@@ -93,9 +101,11 @@ shader_node_categories = [
         NodeItem("ShaderNodeTexture"),
         NodeItem("ShaderNodeGeometry"),
         NodeItem("ShaderNodeExtendedMaterial"),
+        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     ShaderOldNodeCategory("SH_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutput"),
+        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     ShaderOldNodeCategory("SH_OP_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),
@@ -139,11 +149,13 @@ shader_node_categories = [
         NodeItem("ShaderNodeHairInfo"),
         NodeItem("ShaderNodeParticleInfo"),
         NodeItem("ShaderNodeCameraData"),
+        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutputMaterial"),
         NodeItem("ShaderNodeOutputLamp"),
         NodeItem("ShaderNodeOutputWorld"),
+        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_SHADER", "Shader", items=[
         NodeItem("ShaderNodeMixShader"),
@@ -223,6 +235,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeBokehImage"),
         NodeItem("CompositorNodeTime"),
         NodeItem("CompositorNodeTrackPos"),
+        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     CompositorNodeCategory("CMP_OUTPUT", "Output", items = [
         NodeItem("CompositorNodeComposite"),
@@ -230,6 +243,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeSplitViewer"),
         NodeItem("CompositorNodeOutputFile"),
         NodeItem("CompositorNodeLevels"),
+        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     CompositorNodeCategory("CMP_OP_COLOR", "Color", items = [
         NodeItem("CompositorNodeMixRGB"),
@@ -324,10 +338,12 @@ texture_node_categories = [
         NodeItem("TextureNodeCoordinates"),
         NodeItem("TextureNodeTexture"),
         NodeItem("TextureNodeImage"),
+        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     TextureNodeCategory("TEX_OUTPUT", "Output", items = [
         NodeItem("TextureNodeOutput"),
         NodeItem("TextureNodeViewer"),
+        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     TextureNodeCategory("TEX_OP_COLOR", "Color", items = [
         NodeItem("TextureNodeMixRGB"),
