@@ -531,10 +531,6 @@ int Trackball(TransInfo *t, const int mval[2]);
 void initPushPull(TransInfo *t);
 int PushPull(TransInfo *t, const int mval[2]);
 
-void initBevel(TransInfo *t);
-int handleEventBevel(TransInfo *t, const struct wmEvent *event);
-int Bevel(TransInfo *t, const int mval[2]);
-
 void initBevelWeight(TransInfo *t);
 int BevelWeight(TransInfo *t, const int mval[2]);
 

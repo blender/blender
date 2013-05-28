@@ -50,11 +50,14 @@
 #include <stdio.h>
 
 #include "MEM_guardedalloc.h"
-#include "BKE_global.h"
 #include "IMB_imbuf_types.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_bmfont_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "BKE_global.h"
 
 void printfGlyph(bmGlyph *glyph)
 {

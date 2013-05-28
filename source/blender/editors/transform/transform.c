@@ -2050,9 +2050,6 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		case TFM_MIRROR:
 			initMirror(t);
 			break;
-		case TFM_BEVEL:
-			initBevel(t);
-			break;
 		case TFM_BWEIGHT:
 			initBevelWeight(t);
 			break;
@@ -4446,121 +4443,6 @@ int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 		mul_v3_fl(vec, td->factor);
 
 		add_v3_v3v3(td->loc, td->iloc, vec);
-	}
-
-	recalcData(t);
-
-	ED_area_headerprint(t->sa, str);
-
-	return 1;
-}
-
-/* ************************** BEVEL **************************** */
-
-void initBevel(TransInfo *t)
-{
-	t->transform = Bevel;
-	t->handleEvent = handleEventBevel;
-
-	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
-
-	t->mode = TFM_BEVEL;
-	t->flag |= T_NO_CONSTRAINT;
-	t->num.flag |= NUM_NO_NEGATIVE;
-
-	t->idx_max = 0;
-	t->num.idx_max = 0;
-	t->snap[0] = 0.0f;
-	t->snap[1] = 0.1f;
-	t->snap[2] = t->snap[1] * 0.1f;
-
-	t->num.increment = t->snap[1];
-
-	/* DON'T KNOW WHY THIS IS NEEDED */
-	if (G.editBMesh->imval[0] == 0 && G.editBMesh->imval[1] == 0) {
-		/* save the initial mouse co */
-		G.editBMesh->imval[0] = t->imval[0];
-		G.editBMesh->imval[1] = t->imval[1];
-	}
-	else {
-		/* restore the mouse co from a previous call to initTransform() */
-		t->imval[0] = G.editBMesh->imval[0];
-		t->imval[1] = G.editBMesh->imval[1];
-	}
-}
-
-int handleEventBevel(TransInfo *t, const wmEvent *event)
-{
-	if (event->val == KM_PRESS) {
-		if (!G.editBMesh) return 0;
-
-		switch (event->type) {
-			case MIDDLEMOUSE:
-				G.editBMesh->options ^= BME_BEVEL_VERT;
-				t->state = TRANS_CANCEL;
-				return 1;
-			//case PADPLUSKEY:
-			//	G.editBMesh->options ^= BME_BEVEL_RES;
-			//	G.editBMesh->res += 1;
-			//	if (G.editBMesh->res > 4) {
-			//		G.editBMesh->res = 4;
-			//	}
-			//	t->state = TRANS_CANCEL;
-			//	return 1;
-			//case PADMINUS:
-			//	G.editBMesh->options ^= BME_BEVEL_RES;
-			//	G.editBMesh->res -= 1;
-			//	if (G.editBMesh->res < 0) {
-			//		G.editBMesh->res = 0;
-			//	}
-			//	t->state = TRANS_CANCEL;
-			//	return 1;
-			default:
-				return 0;
-		}
-	}
-	return 0;
-}
-
-int Bevel(TransInfo *t, const int UNUSED(mval[2]))
-{
-	float distance, d;
-	int i;
-	char str[MAX_INFO_LEN];
-	const char *mode;
-	TransData *td = t->data;
-
-	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? IFACE_("verts only") : IFACE_("normal");
-	distance = t->values[0] / 4; /* 4 just seemed a nice value to me, nothing special */
-
-	distance = fabs(distance);
-
-	snapGrid(t, &distance);
-
-	applyNumInput(&t->num, &distance);
-
-	/* header print for NumInput */
-	if (hasNumInput(&t->num)) {
-		char c[NUM_STR_REP_LEN];
-
-		outputNumInput(&(t->num), c);
-
-		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel - Dist: %s, Mode: %s (MMB to toggle))"), c, mode);
-	}
-	else {
-		/* default header print */
-		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bevel - Dist: %.4f, Mode: %s (MMB to toggle))"), distance, mode);
-	}
-
-	if (distance < 0) distance = -distance;
-	for (i = 0; i < t->total; i++, td++) {
-		if (td->axismtx[1][0] > 0 && distance > td->axismtx[1][0]) {
-			d = td->axismtx[1][0];
-		}
-		else {
-			d = distance;
-		}
-		madd_v3_v3v3fl(td->loc, td->center, td->axismtx[0], (*td->val) * d);
 	}
 
 	recalcData(t);

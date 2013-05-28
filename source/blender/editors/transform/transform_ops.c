@@ -147,7 +147,6 @@ EnumPropertyItem transform_mode_types[] =
 	{TFM_TIME_SCALE, "TIME_SCALE", 0, "Time_Scale", ""},
 	{TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time_Extend", ""},
 	{TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake_Time", ""},
-	{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
 	{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
 	{TFM_ALIGN, "ALIGN", 0, "Align", ""},
 	{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
