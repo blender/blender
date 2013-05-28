@@ -39,13 +39,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "../blenkernel/BKE_global.h"  /* G.background, bad level include (no function calls) */
-
 #define WIN32_SKIP_HKEY_PROTECTION      // need to use HKEY
 #include "BLI_winstuff.h"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.h"z
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+
+#include "../blenkernel/BKE_global.h"  /* G.background, bad level include (no function calls) */
 
 #include "utf_winfunc.h"
 #include "utfconv.h"
