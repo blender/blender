@@ -1963,6 +1963,7 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 
 			/* Unrelated to normalize, calcualte edge-vector */
 			sub_v3_v3v3(edgevecbuf[i_prev], v_prev, v_curr);
+			normalize_v3(edgevecbuf[i_prev]);
 			i_prev = i;
 
 			v_prev = v_curr;
