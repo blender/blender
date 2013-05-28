@@ -2283,8 +2283,8 @@ void CDDM_calc_normals(DerivedMesh *dm)
 		poly_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, dm->numPolyData);
 	}
 
-	BKE_mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-	                      dm->numLoopData, dm->numPolyData, poly_nors);
+	BKE_mesh_calc_normals_poly(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	                               dm->numLoopData, dm->numPolyData, poly_nors);
 }
 
 void CDDM_calc_normals_tessface(DerivedMesh *dm)

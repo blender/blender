@@ -896,8 +896,6 @@ void MESH_OT_customdata_clear_skin(wmOperatorType *ot)
 
 void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 {
-	int *polyindex = NULL;
-	float (*face_nors)[3];
 	bool tessface_input = false;
 
 	if (mesh->totface > 0 && mesh->totpoly == 0) {
@@ -920,28 +918,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 		BKE_mesh_tessface_clear(mesh);
 	}
 
-	/* note on this if/else - looks like these layers are not needed
-	 * so rather then add poly-index layer and calculate normals for it
-	 * calculate normals only for the mvert's. - campbell */
-#ifdef USE_BMESH_MPOLY_NORMALS
-	polyindex = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
-	/* add a normals layer for tessellated faces, a tessface normal will
-	 * contain the normal of the poly the face was tessellated from. */
-	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
-
-	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                                 mesh->mloop, mesh->mpoly,
-	                                 mesh->totloop, mesh->totpoly,
-	                                 NULL /* polyNors_r */,
-	                                 mesh->mface, mesh->totface,
-	                                 polyindex, face_nors, false);
-#else
-	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                      NULL);
-	(void)polyindex;
-	(void)face_nors;
-#endif
+	BKE_mesh_calc_normals(mesh);
 
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
@@ -1255,19 +1232,6 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 	}
 
 	mesh_add_polys(mesh, count);
-}
-
-void ED_mesh_calc_normals(Mesh *mesh)
-{
-#ifdef USE_BMESH_MPOLY_NORMALS
-	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                                 mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                                 NULL, NULL, 0, NULL, NULL, false);
-#else
-	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                      NULL);
-#endif
 }
 
 void ED_mesh_calc_tessface(Mesh *mesh)

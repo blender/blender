@@ -356,7 +356,6 @@ void uiLayoutSetScaleX(struct uiLayout *layout, float scale) {STUB_ASSERT(0);}
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) {STUB_ASSERT(0);}
 void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {STUB_ASSERT(0);}
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base) {STUB_ASSERT(0);}
-void ED_mesh_calc_normals(struct Mesh *me) {STUB_ASSERT(0);}
 void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces) {STUB_ASSERT(0);}
 void ED_mesh_material_add(struct Mesh *me, struct Material *ma) {STUB_ASSERT(0);}
 void ED_mesh_transform(struct Mesh *me, float *mat) {STUB_ASSERT(0);}

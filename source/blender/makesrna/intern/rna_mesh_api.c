@@ -66,7 +66,7 @@ void RNA_api_mesh(StructRNA *srna)
 	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func = RNA_def_function(srna, "calc_normals", "ED_mesh_calc_normals");
+	func = RNA_def_function(srna, "calc_normals", "BKE_mesh_calc_normals");
 	RNA_def_function_ui_description(func, "Calculate vertex normals");
 
 	func = RNA_def_function(srna, "calc_tessface", "ED_mesh_calc_tessface");

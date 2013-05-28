@@ -507,7 +507,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	BKE_mesh_update_customdata_pointers(me, false);
 
 	/* update normals in case objects with non-uniform scale are joined */
-	ED_mesh_calc_normals(me);
+	BKE_mesh_calc_normals(me);
 	
 	/* old material array */
 	for (a = 1; a <= ob->totcol; a++) {

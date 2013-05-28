@@ -503,7 +503,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			}
 			
 			/* update normals */
-			BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+			BKE_mesh_calc_normals(me);
 		}
 		else if (ob->type == OB_ARMATURE) {
 			ED_armature_apply_transform(ob, mat);

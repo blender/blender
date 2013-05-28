@@ -1197,7 +1197,7 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 
 		BKE_mesh_update_customdata_pointers(me, true);
 
-		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+		BKE_mesh_calc_normals(me);
 
 		BKE_mesh_calc_edges(me, true, false);
 	}
@@ -1591,7 +1591,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 			me->mloopuv = CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_ASSIGN, alluv, me->totloop, uvname);
 		}
 
-		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+		BKE_mesh_calc_normals(me);
 	}
 	else {
 		me = BKE_mesh_add(G.main, "Mesh");
@@ -1907,7 +1907,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 	if (only_face_normals == FALSE) {
 		/* vertex normals are optional, they require some extra calculations,
 		 * so make them optional */
-		BKE_mesh_calc_normals(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors);
+		BKE_mesh_calc_normals_poly(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors);
 	}
 	else {
 		/* only calc poly normals */
@@ -1929,7 +1929,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 			}
 			else {
 				/* eek, we're not corresponding to polys */
-				printf("error in BKE_mesh_calc_normals; tessellation face indices are incorrect.  normals may look bad.\n");
+				printf("error in %s: tessellation face indices are incorrect.  normals may look bad.\n", __func__);
 			}
 		}
 	}
@@ -1993,10 +1993,10 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 
 }
 
-void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
-                           int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3])
+void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
+                                int UNUSED(numLoops), int numPolys, float (*r_polynors)[3])
 {
-	float (*pnors)[3] = polyNors_r;
+	float (*pnors)[3] = r_polynors;
 	float (*tnorms)[3];
 	float tpnor[3];  /* temp poly normal */
 	int i;
@@ -2023,6 +2023,13 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 	}
 
 	MEM_freeN(tnorms);
+}
+
+void BKE_mesh_calc_normals(Mesh *mesh)
+{
+	BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert,
+	                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                           NULL);
 }
 
 void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3])

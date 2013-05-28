@@ -861,7 +861,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 	 * Probably this is possible to do in the loop above, but this is rather tricky because
 	 * we don't know all needed vertices' coordinates there yet.
 	 */
-	BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+	BKE_mesh_calc_normals(me);
 
 	/* subdivide the mesh to highest level without displacements */
 	cddm = CDDM_from_mesh(me, NULL);
