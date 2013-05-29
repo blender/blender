@@ -248,7 +248,8 @@ typedef struct ProjPaintState {
 	short is_ortho;
 	bool do_masking;              /* use masking during painting. Some operations such as airbrush may disable */
 	bool is_texbrush;              /* only to avoid running  */
-	bool is_maskbrush;
+	bool is_maskbrush;            /* mask brush is applied before masking */
+	bool is_maskbrush_tiled;      /* mask brush is applied after masking */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
 #endif
@@ -3845,7 +3846,14 @@ static void *do_projectpaint_thread(void *ph_v)
 							 * and never exceeds it, which gives nice smooth results. */
 							float mask_accum = projPixel->mask_accum;
 
-							mask = mask_accum + (brush_alpha * 65535.0f - mask_accum) * mask;
+							if (ps->is_maskbrush) {
+								float texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+								CLAMP(texmask, 0.0, 1.0);
+								mask = mask_accum + (brush_alpha * texmask * 65535.0f - mask_accum) * mask;
+							}
+							else {
+								mask = mask_accum + (brush_alpha * 65535.0f - mask_accum) * mask;
+							}
 							mask_short = (unsigned short)mask;
 
 							if (mask_short > projPixel->mask_accum) {
@@ -3857,8 +3865,14 @@ static void *do_projectpaint_thread(void *ph_v)
 								continue;
 							}
 						}
-						else
+						else {
 							mask *= brush_alpha;
+							if (ps->is_maskbrush) {
+								float texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+								CLAMP(texmask, 0.0, 1.0);
+								mask *= texmask;
+							}
+						}
 
 						if (ps->is_texbrush) {
 							MTex *mtex = &brush->mtex;
@@ -3881,7 +3895,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							mask *= texrgba[3];
 						}
 
-						if (ps->is_maskbrush) {
+						if (ps->is_maskbrush_tiled) {
 							mask *= BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
 						}
 
@@ -4103,13 +4117,23 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 		                  (brush->mtex.tex && !ELEM3(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)))
 		                 ? false : true;
 		ps->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? true : false;
-		ps->is_maskbrush = (brush->mask_mtex.tex) ? true : false;
+		ps->is_maskbrush = false;
+		ps->is_maskbrush_tiled = false;
+		if (brush->mask_mtex.tex) {
+			if (ELEM(brush->mask_mtex.brush_map_mode, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_TILED)) {
+				ps->is_maskbrush_tiled = true;
+			}
+			else {
+				ps->is_maskbrush = true;
+			}
+		}
 	}
 	else {
 		/* brush may be NULL*/
 		ps->do_masking = false;
 		ps->is_texbrush = false;
 		ps->is_maskbrush = false;
+		ps->is_maskbrush_tiled = false;
 	}
 
 	/* sizeof(ProjPixel), since we alloc this a _lot_ */
@@ -4294,6 +4318,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	/* override */
 	ps.is_texbrush = false;
 	ps.is_maskbrush = false;
+	ps.is_maskbrush_tiled = false;
 	ps.do_masking = false;
 	orig_brush_size = BKE_brush_size_get(scene, ps.brush);
 	BKE_brush_size_set(scene, ps.brush, 32); /* cover the whole image */
