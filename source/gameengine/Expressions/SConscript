@@ -41,7 +41,7 @@ incs = [
 defs = []
 
 if env['WITH_BF_PYTHON']:
-    incs.append(env['BF_PYTHON_INC'])
+    incs += env['BF_PYTHON_INC'].split()
     defs.append('WITH_PYTHON')
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
