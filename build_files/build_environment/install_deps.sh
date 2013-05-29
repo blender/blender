@@ -67,6 +67,8 @@ Building OSL: \$WITH_OSL (use --with-osl option to enable it).
 Building OpenCOLLADA: \$WITH_OPENCOLLADA (use --with-opencollada option to enable it).
 All static linking: \$ALL_STATIC (use --all-static option to enable it).
 
+WARNING: Static build works fine with CMake, but with scons it may be tricky to get a valid Blender build!
+
 Example:
 Full install without OpenCOLLADA: --with-all --skip-opencollada
 
@@ -3022,20 +3024,31 @@ print_info() {
     INFO "BF_PYTHON = '$INST/python-$PYTHON_VERSION_MIN'"
     INFO "BF_PYTHON_ABI_FLAGS = 'm'"
   fi
+  if $ALL_STATIC; then
+    INFO "WITH_BF_STATICPYTHON = True"
+  fi
 
   INFO "WITH_BF_OCIO = True"
   if [ -d $INST/ocio ]; then
     INFO "BF_OCIO = '$INST/ocio'"
   fi
+  # XXX Always static for now :/
+  INFO "WITH_BF_STATICOCIO = True"
 
   if [ -d $INST/openexr ]; then
     INFO "BF_OPENEXR = '$INST/openexr'"
   fi
+  # XXX Always static for now :/
+  INFO "WITH_BF_STATICOPENEXR = True"
 
   INFO "WITH_BF_OIIO = True"
   if [ -d $INST/oiio ]; then
     INFO "BF_OIIO = '$INST/oiio'"
   fi
+  # XXX No more static oiio for now :/
+  #if $ALL_STATIC; then
+    #INFO "WITH_BF_STATICOIIO = True"
+  #fi
   INFO "WITH_BF_CYCLES = True"
 
   if [ -d $INST/osl ]; then
@@ -3046,11 +3059,27 @@ print_info() {
   if [ -d $INST/boost ]; then
     INFO "BF_BOOST = '$INST/boost'"
   fi
+  # XXX Broken in scons...
+  #if $ALL_STATIC; then
+    #INFO "WITH_BF_STATICBOOST = True"
+  #fi
+
+  if $WITH_OPENCOLLADA; then
+    INFO "WITH_BF_COLLADA = True"
+    if [ -d $INST/opencollada ]; then
+      INFO "BF_OPENCOLLADA = '$INST/opencollada'"
+    fi
+  fi
 
   _ffmpeg_list_sep=" "
-  INFO "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   if [ -d $INST/ffmpeg ]; then
     INFO "BF_FFMPEG = '$INST/ffmpeg'"
+  fi
+  if $ALL_STATIC; then
+    INFO "WITH_BF_STATICFFMPEG = True"
+    INFO "BF_FFMPEG_LIB_STATIC = '\${BF_FFMPEG_LIBPATH}/libavformat.a \${BF_FFMPEG_LIBPATH}/libavcodec.a \${BF_FFMPEG_LIBPATH}/libswscale.a \${BF_FFMPEG_LIBPATH}/libavutil.a \${BF_FFMPEG_LIBPATH}/libavdevice.a `print_info_ffmpeglink`'"
+  else
+    INFO "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   fi
 
   if ! $WITH_ALL; then
@@ -3060,15 +3089,13 @@ print_info() {
     INFO "WITH_BF_3DMOUSE = False"
   fi
 
-  #INFO ""
-  #INFO ""
-  #INFO "WARNING: If this script had to build boost and/or OIIO into $INST, and you are dynamically linking "
-  #INFO "         blender against it, you will have to run those commands as root user:"
-  #INFO ""
-  #INFO "    echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
-  #INFO "    echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
-  #INFO "    ldconfig"
-  #INFO ""
+  if $ALL_STATIC; then
+    INFO "LLIB = ["xml2", "expat"] + LLIB"
+
+  INFO ""
+  INFO "NOTE: static build with scons are very tricky to set-up, if you choose that option"
+  INFO "      you will likely have to edit these settings manually!"
+  INFO ""
 }
 
 #### "Main" ####
