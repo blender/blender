@@ -44,10 +44,10 @@ extern "C" FLUID_3D *smoke_init(int *res, float dx, float dtdef, int use_heat, i
 	return fluid;
 }
 
-extern "C" WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype, int use_fire, int use_colors)
+extern "C" WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype, const char *noisefile_path, int use_fire, int use_colors)
 {
 	if (amplify)
-		return new WTURBULENCE(res[0],res[1],res[2], amplify, noisetype, use_fire, use_colors);
+		return new WTURBULENCE(res[0],res[1],res[2], amplify, noisetype, noisefile_path, use_fire, use_colors);
 	else 
 		return NULL;
 }
@@ -436,9 +436,9 @@ extern "C" unsigned char *smoke_get_obstacle_anim(FLUID_3D *fluid)
 }
 #endif
 
-extern "C" void smoke_turbulence_set_noise(WTURBULENCE *wt, int type)
+extern "C" void smoke_turbulence_set_noise(WTURBULENCE *wt, int type, const char *noisefile_path)
 {
-	wt->setNoise(type);
+	wt->setNoise(type, noisefile_path);
 }
 
 extern "C" void flame_get_spectrum(unsigned char *spec, int width, float t1, float t2)

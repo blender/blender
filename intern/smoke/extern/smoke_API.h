@@ -74,7 +74,7 @@ size_t smoke_get_index2d(int x, int max_x, int y);
 void smoke_dissolve(struct FLUID_3D *fluid, int speed, int log);
 
 // wavelet turbulence functions
-struct WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype, int use_fire, int use_colors);
+struct WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype, const char *noisefile_path, int use_fire, int use_colors);
 void smoke_turbulence_free(struct WTURBULENCE *wt);
 void smoke_turbulence_step(struct WTURBULENCE *wt, struct FLUID_3D *fluid);
 
@@ -89,7 +89,7 @@ float *smoke_turbulence_get_fuel(struct WTURBULENCE *wt);
 float *smoke_turbulence_get_react(struct WTURBULENCE *wt);
 void smoke_turbulence_get_res(struct WTURBULENCE *wt, int *res);
 int smoke_turbulence_get_cells(struct WTURBULENCE *wt);
-void smoke_turbulence_set_noise(struct WTURBULENCE *wt, int type);
+void smoke_turbulence_set_noise(struct WTURBULENCE *wt, int type, const char *noisefile_path);
 void smoke_initWaveletBlenderRNA(struct WTURBULENCE *wt, float *strength);
 void smoke_dissolve_wavelet(struct WTURBULENCE *wt, int speed, int log);
 

@@ -634,6 +634,11 @@ static int playback_mode(int argc, const char **argv, void *UNUSED(data))
 {
 	/* not if -b was given first */
 	if (G.background == 0) {
+#ifdef WITH_FFMPEG
+		/* Setup FFmpeg with current debug flags. */
+		IMB_ffmpeg_init();
+#endif
+
 		WM_main_playanim(argc, argv); /* not the same argc and argv as before */
 		exit(0); /* 2.4x didn't do this */
 	}

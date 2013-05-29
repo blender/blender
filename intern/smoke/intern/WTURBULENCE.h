@@ -36,7 +36,7 @@ struct WTURBULENCE
 {
 	public:
 		// both config files can be NULL, altCfg might override values from noiseCfg
-		WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype, int init_fire, int init_colors);
+		WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype, const char *noisefile_path, int init_fire, int init_colors);
 
 		/// destructor
 		virtual ~WTURBULENCE();
@@ -44,7 +44,7 @@ struct WTURBULENCE
 		void initFire();
 		void initColors(float init_r, float init_g, float init_b);
 		
-		void setNoise(int type);
+		void setNoise(int type, const char *noisefile_path);
 		void initBlenderRNA(float *strength);
 
 		// step more readable version -- no rotation correction

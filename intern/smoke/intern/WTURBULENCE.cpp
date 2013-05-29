@@ -51,7 +51,7 @@ static const float persistence = 0.56123f;
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype, int init_fire, int init_colors)
+WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype, const char *noisefile_path, int init_fire, int init_colors)
 {
 	// if noise magnitude is below this threshold, its contribution
 	// is negilgible, so stop evaluating new octaves
@@ -131,15 +131,7 @@ WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int no
 	
 	// noise tiles
 	_noiseTile = new float[noiseTileSize * noiseTileSize * noiseTileSize];
-	/*
-	std::string noiseTileFilename = std::string("noise.wavelets");
-	generateTile_WAVELET(_noiseTile, noiseTileFilename);
-	*/
-	setNoise(noisetype);
-	/*
-	std::string noiseTileFilename = std::string("noise.fft");
-	generatTile_FFT(_noiseTile, noiseTileFilename);
-	*/
+	setNoise(noisetype, noisefile_path);
 }
 
 void WTURBULENCE::initFire()
@@ -216,13 +208,13 @@ WTURBULENCE::~WTURBULENCE() {
 // type (1<<1) = FFT / 4
 // type (1<<2) = curl / 8
 //////////////////////////////////////////////////////////////////////
-void WTURBULENCE::setNoise(int type)
+void WTURBULENCE::setNoise(int type, const char *noisefile_path)
 {
 	if(type == (1<<1)) // FFT
 	{
 #ifdef WITH_FFTW3
 		// needs fft
-		std::string noiseTileFilename = std::string("noise.fft");
+		std::string noiseTileFilename = std::string(noisefile_path) + std::string("noise.fft");
 		generatTile_FFT(_noiseTile, noiseTileFilename);
 		return;
 #else
@@ -237,7 +229,7 @@ void WTURBULENCE::setNoise(int type)
 	}
 #endif
 
-	std::string noiseTileFilename = std::string("noise.wavelets");
+	std::string noiseTileFilename = std::string(noisefile_path) + std::string("noise.wavelets");
 	generateTile_WAVELET(_noiseTile, noiseTileFilename);
 }
 
