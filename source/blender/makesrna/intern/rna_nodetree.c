@@ -2329,6 +2329,11 @@ static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, struct bConte
 		RNA_pointer_create(id, &RNA_Node, node, &ptr);
 		node->typeinfo->uifuncbut(layout, C, &ptr);
 	}
+	else if (node->typeinfo->uifunc) {
+		PointerRNA ptr;
+		RNA_pointer_create(id, &RNA_Node, node, &ptr);
+		node->typeinfo->uifunc(layout, C, &ptr);
+	}
 }
 
 static void rna_CompositorNode_tag_need_exec(bNode *node)
