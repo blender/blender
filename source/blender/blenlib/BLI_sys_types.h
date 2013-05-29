@@ -46,8 +46,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
- 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+
+/* MSVC 2010 and 2012 (>=1600) have stdint.h so we should use this for consistency */
+#if defined(_WIN32) && !defined(FREE_WINDOWS) && _MSC_VER <= 1500
 
 /* The __intXX are built-in types of the visual compiler! So we don't
  * need to include anything else here. */
@@ -99,7 +100,8 @@ typedef uint64_t u_int64_t;
 
 #include <inttypes.h>
 
-#elif defined(FREE_WINDOWS)
+/* MinGW and MSVC >= 2010 */
+#elif defined(FREE_WINDOWS) || _MSC_VER >= 1600
 #include <stdint.h>
 
 #else
