@@ -201,7 +201,7 @@ void register_node_type_frame(void)
 	/* frame type is used for all tree types, needs dynamic allocation */
 	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "frame node type");
 
-	node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND | NODE_OPTIONS);
+	node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND);
 	node_type_init(ntype, node_frame_init);
 	node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
 	node_type_size(ntype, 150, 100, 0);
@@ -409,7 +409,7 @@ void register_node_type_group_input(void)
 	/* used for all tree types, needs dynamic allocation */
 	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
 	
-	node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE, NODE_OPTIONS);
+	node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE, 0);
 	node_type_size(ntype, 140, 80, 200);
 	node_type_init(ntype, node_group_input_init);
 	node_type_update(ntype, node_group_input_update, node_group_input_verify);
@@ -496,7 +496,7 @@ void register_node_type_group_output(void)
 	/* used for all tree types, needs dynamic allocation */
 	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
 	
-	node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE, NODE_OPTIONS);
+	node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE, 0);
 	node_type_size(ntype, 140, 80, 200);
 	node_type_init(ntype, node_group_output_init);
 	node_type_update(ntype, node_group_output_update, node_group_output_verify);

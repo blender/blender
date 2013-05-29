@@ -99,7 +99,7 @@ void register_node_type_sh_combrgb(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTOR, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_combrgb_in, sh_node_combrgb_out);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_combrgb);

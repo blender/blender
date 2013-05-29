@@ -58,7 +58,7 @@ void register_node_type_sh_bump(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bump_in, sh_node_bump_out);
 	node_type_storage(&ntype, "BumpNode", node_free_standard_storage, node_copy_standard_storage);

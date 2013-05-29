@@ -48,7 +48,7 @@ void register_node_type_cmp_gamma(void)
 {
 	static bNodeType ntype;
 	
-	cmp_node_type_base(&ntype, CMP_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_gamma_in, cmp_node_gamma_out);
 	
 	nodeRegisterType(&ntype);

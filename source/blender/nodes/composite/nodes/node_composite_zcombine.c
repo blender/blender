@@ -52,7 +52,7 @@ void register_node_type_cmp_zcombine(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_zcombine_in, cmp_node_zcombine_out);
 
 	nodeRegisterType(&ntype);

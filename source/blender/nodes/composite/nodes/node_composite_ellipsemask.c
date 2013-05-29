@@ -59,7 +59,7 @@ void register_node_type_cmp_ellipsemask(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_MASK_ELLIPSE, "Ellipse Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_MASK_ELLIPSE, "Ellipse Mask", NODE_CLASS_MATTE, 0);
 	node_type_socket_templates(&ntype, cmp_node_ellipsemask_in, cmp_node_ellipsemask_out);
 	node_type_size(&ntype, 260, 110, 320);
 	node_type_init(&ntype, node_composit_init_ellipsemask);

@@ -58,7 +58,7 @@ void register_node_type_cmp_color_spill(void)
 {
 	static bNodeType ntype;
 	
-	cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE, 0);
 	node_type_socket_templates(&ntype, cmp_node_color_spill_in, cmp_node_color_spill_out);
 	node_type_init(&ntype, node_composit_init_color_spill);
 	node_type_storage(&ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);

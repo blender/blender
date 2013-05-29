@@ -43,7 +43,7 @@ void register_node_type_cmp_composite(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT, NODE_OPTIONS | NODE_PREVIEW);
+	cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_composite_in, NULL);
 
 	/* Do not allow muting for this node. */

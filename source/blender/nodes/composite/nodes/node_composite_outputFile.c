@@ -241,7 +241,7 @@ void register_node_type_cmp_output_file(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS | NODE_PREVIEW);
+	cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	ntype.initfunc_api = init_output_file;
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);

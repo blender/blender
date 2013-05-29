@@ -65,7 +65,7 @@ void register_node_type_cmp_defocus(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER, 0);
 	node_type_socket_templates(&ntype, cmp_node_defocus_in, cmp_node_defocus_out);
 	node_type_init(&ntype, node_composit_init_defocus);
 	node_type_storage(&ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);

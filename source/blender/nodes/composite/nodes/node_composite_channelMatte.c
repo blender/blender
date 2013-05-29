@@ -64,7 +64,7 @@ void register_node_type_cmp_channel_matte(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE, NODE_PREVIEW | NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_channel_matte_in, cmp_node_channel_matte_out);
 	node_type_init(&ntype, node_composit_init_channel_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);

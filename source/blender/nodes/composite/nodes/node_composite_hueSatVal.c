@@ -57,7 +57,7 @@ void register_node_type_cmp_hue_sat(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_hue_sat_in, cmp_node_hue_sat_out);
 	node_type_init(&ntype, node_composit_init_hue_sat);
 	node_type_storage(&ntype, "NodeHueSat", node_free_standard_storage, node_copy_standard_storage);

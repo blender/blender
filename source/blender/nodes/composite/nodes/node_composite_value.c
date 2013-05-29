@@ -42,7 +42,7 @@ void register_node_type_cmp_value(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
 	node_type_socket_templates(&ntype, NULL, cmp_node_value_out);
 	node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 

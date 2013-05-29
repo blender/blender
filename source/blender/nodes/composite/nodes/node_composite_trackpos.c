@@ -50,7 +50,7 @@ void register_node_type_cmp_trackpos(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT, 0);
 	node_type_socket_templates(&ntype, NULL, cmp_node_trackpos_out);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);

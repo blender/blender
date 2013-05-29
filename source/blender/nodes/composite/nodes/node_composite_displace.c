@@ -51,7 +51,7 @@ void register_node_type_cmp_displace(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT, 0);
 	node_type_socket_templates(&ntype, cmp_node_displace_in, cmp_node_displace_out);
 
 	nodeRegisterType(&ntype);

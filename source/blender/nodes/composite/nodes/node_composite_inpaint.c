@@ -48,7 +48,7 @@ void register_node_type_cmp_inpaint(void)
 {
 	static bNodeType ntype;
 	
-	cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER, 0);
 	node_type_socket_templates(&ntype, cmp_node_inpaint_in, cmp_node_inpaint_out);
 
 	nodeRegisterType(&ntype);

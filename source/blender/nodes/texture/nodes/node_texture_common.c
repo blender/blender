@@ -156,7 +156,7 @@ void register_node_type_tex_group(void)
 	/* NB: cannot use sh_node_type_base for node group, because it would map the node type
 	 * to the shared NODE_GROUP integer type id.
 	 */
-	node_type_base_custom(&ntype, "TextureNodeGroup", "Group", NODE_CLASS_GROUP, NODE_OPTIONS | NODE_CONST_OUTPUT);
+	node_type_base_custom(&ntype, "TextureNodeGroup", "Group", NODE_CLASS_GROUP, NODE_CONST_OUTPUT);
 	ntype.type = NODE_GROUP;
 	ntype.poll = tex_node_poll_default;
 	ntype.poll_instance = node_group_poll_instance;

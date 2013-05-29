@@ -300,7 +300,7 @@ void register_node_type_tex_proc_##name(void) \
 { \
 	static bNodeType ntype; \
 	\
-	tex_node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW | NODE_OPTIONS); \
+	tex_node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW); \
 	node_type_socket_templates(&ntype, name##_inputs, outputs); \
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE); \
 	node_type_init(&ntype, init); \

@@ -48,7 +48,7 @@ void register_node_type_cmp_normal(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_normal_in, cmp_node_normal_out);
 
 	nodeRegisterType(&ntype);

@@ -47,7 +47,7 @@ void register_node_type_cmp_flip(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, 0);
 	node_type_socket_templates(&ntype, cmp_node_flip_in, cmp_node_flip_out);
 
 	nodeRegisterType(&ntype);

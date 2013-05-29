@@ -63,7 +63,7 @@ void register_node_type_cmp_keyingscreen(void)
 {
 	static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, NODE_OPTIONS);
+	cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, 0);
 	node_type_socket_templates(&ntype, NULL, cmp_node_keyingscreen_out);
 	node_type_init(&ntype, node_composit_init_keyingscreen);
 	node_type_storage(&ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
