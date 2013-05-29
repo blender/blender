@@ -783,7 +783,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	Image *ima;
 	ImBuf *ibuf;
 	float zoomx, zoomy;
-	int show_viewer, show_render;
+	bool show_viewer, show_render, show_paint;
 	void *lock;
 
 	/* XXX can we do this in refresh? */
@@ -810,8 +810,9 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	ima = ED_space_image(sima);
 	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
-	show_viewer = (ima && ima->source == IMA_SRC_VIEWER);
-	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT);
+	show_viewer = (ima && ima->source == IMA_SRC_VIEWER) != 0;
+	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT) != 0;
+	show_paint = (ima && (sima->mode == SI_MODE_PAINT) && (show_viewer == false) && (show_render == false));
 
 	if (show_viewer) {
 		/* use locked draw for drawing viewer image buffer since the compositor
@@ -835,7 +836,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	if (sima->mode == SI_MODE_PAINT)
+	if (show_paint)
 		draw_image_paint_helpers(C, ar, scene, zoomx, zoomy);
 
 	/* XXX integrate this code */

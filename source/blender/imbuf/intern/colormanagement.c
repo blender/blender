@@ -672,7 +672,7 @@ void IMB_colormanagement_display_settings_from_ctx(const bContext *C,
 	*view_settings_r = &scene->view_settings;
 	*display_settings_r = &scene->display_settings;
 
-	if (sima) {
+	if (sima && sima->image) {
 		if ((sima->image->flag & IMA_VIEW_AS_RENDER) == 0)
 			*view_settings_r = NULL;
 	}

@@ -1597,7 +1597,15 @@ void paste_matcopybuf(Material *ma)
 		mtex = ma->mtex[a];
 		if (mtex) {
 			ma->mtex[a] = MEM_dupallocN(mtex);
-			if (mtex->tex) id_us_plus((ID *)mtex->tex);
+			if (mtex->tex) {
+				/* first check this is in main (we may have loaded another file) [#35500] */
+				if (BLI_findindex(&G.main->tex, mtex->tex) != -1) {
+					id_us_plus((ID *)mtex->tex);
+				}
+				else {
+					ma->mtex[a]->tex = NULL;
+				}
+			}
 		}
 	}
 

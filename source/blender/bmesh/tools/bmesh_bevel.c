@@ -310,6 +310,19 @@ static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3
 	return bev_create_ngon(bm, varr, v4 ? 4 : 3, facerep);
 }
 
+/* Calculate coordinates of a point a distance d from v on e->e and return it in slideco */
+static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
+{
+	float dir[3], len;
+
+	sub_v3_v3v3(dir, v->co, BM_edge_other_vert(e->e, v)->co);
+	len = normalize_v3(dir);
+	if (d > len)
+		d = len - (float)(50.0 * BEVEL_EPSILON_D);
+	copy_v3_v3(slideco, v->co);
+	madd_v3_v3fl(slideco, dir, -d);
+}
+
 /*
  * Calculate the meeting point between the offset edges for e1 and e2, putting answer in meetco.
  * e1 and e2 share vertex v and face f (may be NULL) and viewed from the normal side of
@@ -324,13 +337,14 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
                         int on_right, float meetco[3])
 {
 	float dir1[3], dir2[3], norm_v[3], norm_perp1[3], norm_perp2[3],
-	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], ang;
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
 	sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
 
-	if (angle_v3v3(dir1, dir2) < 100.0f * BEVEL_EPSILON) {
+	ang = angle_v3v3(dir1, dir2);
+	if (ang < 100.0f * BEVEL_EPSILON) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
 		 * if offsets are different, we're out of luck: just use e1->offset */
@@ -343,6 +357,12 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 		copy_v3_v3(off1a, v->co);
 		madd_v3_v3fl(off1a, norm_perp1, e1->offset);
 		copy_v3_v3(meetco, off1a);
+	}
+	else if (fabs(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
+		/* special case e1 and e2 are antiparallel, so bevel is into
+		 * a zero-area face.  Just make the offset point on the
+		 * common line, at offset distance from v. */
+		slide_dist(e2, v, e2->offset, meetco);
 	}
 	else {
 		/* get normal to plane where meet point should be */
@@ -391,7 +411,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 {
 	float dir1[3], dir2[3], dirmid[3], norm_perp1[3], norm_perp2[3],
 	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3],
-	      f1no[3], f2no[3];
+	      f1no[3], f2no[3], ang;
 	int iret;
 
 	/* get direction vectors for two offset lines */
@@ -416,9 +436,13 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 	madd_v3_v3fl(off2a, norm_perp2, e2->offset);
 	add_v3_v3v3(off2b, off2a, dir2);
 
-	if (angle_v3v3(dir1, dir2) < 100.0f * BEVEL_EPSILON) {
+	ang = angle_v3v3(dir1, dir2);
+	if (ang < 100.0f * BEVEL_EPSILON) {
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
+	}
+	else if (fabs(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
+		slide_dist(e2, v, e2->offset, meetco);
 	}
 	else {
 		iret = isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
@@ -467,19 +491,6 @@ static void offset_in_plane(EdgeHalf *e, const float plane_no[3], int left, floa
 	normalize_v3(fdir);
 	copy_v3_v3(r, v->co);
 	madd_v3_v3fl(r, fdir, e->offset);
-}
-
-/* Calculate coordinates of a point a distance d from v on e->e and return it in slideco */
-static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
-{
-	float dir[3], len;
-
-	sub_v3_v3v3(dir, v->co, BM_edge_other_vert(e->e, v)->co);
-	len = normalize_v3(dir);
-	if (d > len)
-		d = len - (float)(50.0 * BEVEL_EPSILON_D);
-	copy_v3_v3(slideco, v->co);
-	madd_v3_v3fl(slideco, dir, -d);
 }
 
 /* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco */

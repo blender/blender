@@ -151,7 +151,10 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 					continue;
 
 			if (BLI_strcasestr(id->name + 2, str)) {
-				char name_ui[MAX_ID_NAME];
+				/* +1 is needed because name_uiprefix_id used 3 letter prefix
+				 * followed by ID_NAME-2 characters from id->name
+				 */
+				char name_ui[MAX_ID_NAME + 1];
 				name_uiprefix_id(name_ui, id);
 
 				iconid = ui_id_icon_get((bContext *)C, id, template->preview);
