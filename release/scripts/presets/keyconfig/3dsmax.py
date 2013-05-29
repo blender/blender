@@ -82,7 +82,7 @@ kmi = km.keymap_items.new('info.reports_display_update', 'TIMER_REPORT', 'ANY', 
 km = kc.keymaps.new('Screen', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('screen.animation_step', 'TIMER0', 'ANY', any=True)
-kmi = km.keymap_items.new('screen.region_blend', 'TIMER', 'ANY', any=True)
+kmi = km.keymap_items.new('screen.region_blend', 'TIMER_REGION', 'ANY', any=True)
 kmi = km.keymap_items.new('screen.screen_set', 'RIGHT_ARROW', 'PRESS', ctrl=True)
 kmi.properties.delta = 1
 kmi = km.keymap_items.new('screen.screen_set', 'LEFT_ARROW', 'PRESS', ctrl=True)
@@ -202,7 +202,9 @@ kmi = km.keymap_items.new('paint.face_select_linked_pick', 'L', 'PRESS')
 km = kc.keymaps.new('Weight Paint Vertex Selection', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('paint.vert_select_all', 'A', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('paint.vert_select_inverse', 'I', 'PRESS', ctrl=True)
+kmi.properties.action = 'SELECT'
+kmi = km.keymap_items.new('paint.vert_select_all', 'I', 'PRESS', ctrl=True)
+kmi.properties.action = 'INVERT'
 kmi = km.keymap_items.new('view3d.select_border', 'B', 'PRESS')
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_A', 'ANY', ctrl=True)
 kmi.properties.deselect = False
@@ -1032,16 +1034,8 @@ kmi = km.keymap_items.new('node.select_lasso', 'EVT_TWEAK_A', 'ANY', shift=True,
 kmi.properties.deselect = True
 kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS')
 kmi.properties.detach = False
-kmi.properties.expose = False
 kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.detach = True
-kmi.properties.expose = False
-kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS', shift=True)
-kmi.properties.detach = False
-kmi.properties.expose = True
-kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
-kmi.properties.detach = True
-kmi.properties.expose = True
 kmi = km.keymap_items.new('node.resize', 'LEFTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('node.add_reroute', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.links_cut', 'LEFTMOUSE', 'PRESS', ctrl=True)
@@ -1088,40 +1082,25 @@ kmi = km.keymap_items.new('node.select_same_type_step', 'LEFT_BRACKET', 'PRESS',
 kmi.properties.prev = True
 kmi = km.keymap_items.new('node.find_node', 'F', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.group_make', 'G', 'PRESS', ctrl=True)
-kmi.properties.node_type = 'ShaderNodeGroup'
 kmi = km.keymap_items.new('node.group_ungroup', 'G', 'PRESS', alt=True)
-kmi.properties.node_type = 'ShaderNodeGroup'
 kmi = km.keymap_items.new('node.group_separate', 'P', 'PRESS')
-kmi.properties.node_type = 'ShaderNodeGroup'
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS')
-kmi.properties.node_type = 'ShaderNodeGroup'
 kmi.properties.exit = False
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS', shift=True)
-kmi.properties.node_type = 'ShaderNodeGroup'
 kmi.properties.exit = True
 kmi = km.keymap_items.new('node.group_make', 'G', 'PRESS', ctrl=True)
-kmi.properties.node_type = 'CompositorNodeGroup'
 kmi = km.keymap_items.new('node.group_ungroup', 'G', 'PRESS', alt=True)
-kmi.properties.node_type = 'CompositorNodeGroup'
 kmi = km.keymap_items.new('node.group_separate', 'P', 'PRESS')
-kmi.properties.node_type = 'CompositorNodeGroup'
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS')
-kmi.properties.node_type = 'CompositorNodeGroup'
 kmi.properties.exit = False
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS', shift=True)
-kmi.properties.node_type = 'CompositorNodeGroup'
 kmi.properties.exit = True
 kmi = km.keymap_items.new('node.group_make', 'G', 'PRESS', ctrl=True)
-kmi.properties.node_type = 'TextureNodeGroup'
 kmi = km.keymap_items.new('node.group_ungroup', 'G', 'PRESS', alt=True)
-kmi.properties.node_type = 'TextureNodeGroup'
 kmi = km.keymap_items.new('node.group_separate', 'P', 'PRESS')
-kmi.properties.node_type = 'TextureNodeGroup'
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS')
-kmi.properties.node_type = 'TextureNodeGroup'
 kmi.properties.exit = False
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS', shift=True)
-kmi.properties.node_type = 'TextureNodeGroup'
 kmi.properties.exit = True
 kmi = km.keymap_items.new('node.read_renderlayers', 'R', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.read_fullsamplelayers', 'R', 'PRESS', shift=True)
@@ -1606,9 +1585,11 @@ kmi = km.keymap_items.new('transform.rotate', 'R', 'PRESS')
 km = kc.keymaps.new('Image Paint', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('paint.image_paint', 'LEFTMOUSE', 'PRESS')
+kmi.properties.mode = 'NORMAL'
+kmi = km.keymap_items.new('paint.image_paint', 'LEFTMOUSE', 'PRESS', ctrl=True)
+kmi.properties.mode = 'INVERT'
 kmi = km.keymap_items.new('paint.grab_clone', 'RIGHTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('paint.sample_color', 'RIGHTMOUSE', 'PRESS')
-kmi = km.keymap_items.new('paint.clone_cursor_set', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('brush.active_index_set', 'ONE', 'PRESS')
 kmi.properties.mode = 'image_paint'
 kmi.properties.index = 0
