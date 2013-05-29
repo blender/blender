@@ -224,9 +224,11 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	}
 
 	/* keep this before interpolation [#29761] */
-	if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
-		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
-			texres->talpha = TRUE;
+	if (ima) {
+		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
+			if ((tex->imaflag & TEX_CALCALPHA) == 0) {
+				texres->talpha = TRUE;
+			}
 		}
 	}
 
@@ -1529,9 +1531,11 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 
-	if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
-		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
-			texres->talpha = TRUE;
+	if (ima) {
+		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
+			if ((tex->imaflag & TEX_CALCALPHA) == 0) {
+				texres->talpha = TRUE;
+			}
 		}
 	}
 	

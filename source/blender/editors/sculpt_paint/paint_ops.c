@@ -411,6 +411,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 		{OB_MODE_TEXTURE_PAINT, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
+	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name = "Brush Select";
@@ -430,8 +431,10 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "weight_paint_tool", brush_vertex_tool_items, 0, "Weight Paint Tool", "");
 	RNA_def_enum(ot->srna, "texture_paint_tool", brush_image_tool_items, 0, "Texture Paint Tool", "");
 
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
-	RNA_def_boolean(ot->srna, "create_missing", 0, "Create Missing", "If the requested brush type does not exist, create a new brush");
+	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "create_missing", 0, "Create Missing", "If the requested brush type does not exist, create a new brush");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static wmKeyMapItem *keymap_brush_select(wmKeyMap *keymap, int paint_mode,
