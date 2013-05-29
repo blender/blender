@@ -1947,16 +1947,16 @@ static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
 /* Used for limiting the number of influencing bones per vertex when exporting
  * skinned meshes.  if all_deform_weights is True, limit all deform modifiers
  * to max_weights regardless of type, otherwise, only limit the number of influencing bones per vertex*/
-static bool vgroup_limit_total_subset(Object *ob,
-                                      const bool *vgroup_validmap,
-                                      const int UNUSED(vgroup_tot),
-                                      const int subset_count,
-                                      const int max_weights)
+static int vgroup_limit_total_subset(Object *ob,
+                                     const bool *vgroup_validmap,
+                                     const int vgroup_tot,
+                                     const int subset_count,
+                                     const int max_weights)
 {
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
-	bool is_change = false;
+	int remove_tot = 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -1983,14 +1983,15 @@ static bool vgroup_limit_total_subset(Object *ob,
 				dw_temp = MEM_mallocN(sizeof(MDeformWeight) * dv->totweight, __func__);
 				bone_count = 0; non_bone_count = 0;
 				for (j = 0; j < dv->totweight; j++) {
-					BLI_assert(dv->dw[j].def_nr < vgroup_tot);
-					if (!vgroup_validmap[dv->dw[j].def_nr]) {
-						dw_temp[non_bone_count] = dv->dw[j];
-						non_bone_count += 1;
-					}
-					else {
+					if (LIKELY(dv->dw[j].def_nr < vgroup_tot) &&
+					    vgroup_validmap[dv->dw[j].def_nr])
+					{
 						dw_temp[dv->totweight - 1 - bone_count] = dv->dw[j];
 						bone_count += 1;
+					}
+					else {
+						dw_temp[non_bone_count] = dv->dw[j];
+						non_bone_count += 1;
 					}
 				}
 				BLI_assert(bone_count + non_bone_count == dv->totweight);
@@ -2001,7 +2002,7 @@ static bool vgroup_limit_total_subset(Object *ob,
 					/* Do we want to clean/normalize here? */
 					MEM_freeN(dv->dw);
 					dv->dw = MEM_reallocN(dw_temp, sizeof(MDeformWeight) * dv->totweight);
-					is_change = true;
+					remove_tot += num_to_drop;
 				}
 				else {
 					MEM_freeN(dw_temp);
@@ -2013,7 +2014,7 @@ static bool vgroup_limit_total_subset(Object *ob,
 
 	}
 
-	return is_change;
+	return remove_tot;
 }
 
 
@@ -3297,12 +3298,13 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 	int subset_count, vgroup_tot;
 
 	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
-	bool changed = vgroup_limit_total_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit);
+	int remove_tot = vgroup_limit_total_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit);
 
 	MEM_freeN(vgroup_validmap);
 
-	if (changed) {
+	BKE_reportf(op->reports, remove_tot ? RPT_INFO : RPT_WARNING, "%d vertex weights limited", remove_tot);
 
+	if (remove_tot) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -3310,8 +3312,6 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_WARNING, "No vertex groups limited");
-
 		/* note, would normally return cancelled, except we want the redo
 		 * UI to show up for users to change */
 		return OPERATOR_FINISHED;
