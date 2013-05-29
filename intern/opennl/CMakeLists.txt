@@ -84,7 +84,6 @@ set(SRC
 	superlu/xerbla.c
 
 	extern/ONL_opennl.h
-	superlu/superlu_sys_types.h
 	superlu/Cnames.h
 	superlu/ssp_defs.h
 	superlu/supermatrix.h

@@ -11,7 +11,9 @@
  */
 #include "ssp_defs.h"
 
-#include "superlu_sys_types.h" // needed for intptr_t
+
+/* blender only: needed for int_ptr, no other BLI used here */
+#include "../../../source/blender/blenlib/BLI_sys_types.h"
 
 /* Constants */
 #define NO_MEMTYPE  4      /* 0: lusup;
