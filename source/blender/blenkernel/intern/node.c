@@ -117,7 +117,7 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 	if (node->flag & NODE_INIT)
 		return;
 	
-	node->flag = NODE_SELECT | ntype->flag;
+	node->flag = NODE_SELECT | NODE_OPTIONS | ntype->flag;
 	node->width = ntype->width;
 	node->miniwidth = 42.0f;
 	node->height = ntype->height;
