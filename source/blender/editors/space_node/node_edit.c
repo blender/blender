@@ -1411,7 +1411,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 			
 			if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0)
 				continue;
-			if (toggle_flag == NODE_OPTIONS && (node->typeinfo->flag & NODE_OPTIONS) == 0)
+			if (toggle_flag == NODE_OPTIONS && !(node->typeinfo->uifunc || node->typeinfo->uifuncbut))
 				continue;
 			
 			if (node->flag & toggle_flag)
@@ -1425,7 +1425,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 			
 			if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0)
 				continue;
-			if (toggle_flag == NODE_OPTIONS && (node->typeinfo->flag & NODE_OPTIONS) == 0)
+			if (toggle_flag == NODE_OPTIONS && !(node->typeinfo->uifunc || node->typeinfo->uifuncbut))
 				continue;
 			
 			if ((tot_eq && tot_neq) || tot_eq == 0)

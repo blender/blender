@@ -207,7 +207,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 			break;
 
 	if (node_from)
-		if (!(node_from->inputs.first == NULL && !(node_from->typeinfo->flag & NODE_OPTIONS)))
+		if (node_from->inputs.first || node_from->typeinfo->uifunc || node_from->typeinfo->uifuncbut)
 			node_from = NULL;
 
 	if (node_prev && node_prev->type == type && node_link_item_compare(node_prev, item)) {
