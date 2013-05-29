@@ -68,29 +68,26 @@ static void bm_bridge_splice_loops(BMesh *bm, LinkData *el_a, LinkData *el_b, co
  * if that fails just get any loop thats on the vert (the first one) */
 static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BMLoop **l2)
 {
-	BMIter liter;
-	BMLoop *l;
+	BMEdge *e = BM_edge_exists(v1, v2);
+	BMLoop *l = e->l;
 
-	if ((v1->e && v1->e->l) &&
-	    (v2->e && v2->e->l))
-	{
-		BM_ITER_ELEM (l, &liter, v1, BM_LOOPS_OF_VERT) {
-			if (l->prev->v == v2) {
-				*l1 = l;
-				*l2 = l->prev;
-				return;
-			}
-			else if (l->next->v == v2) {
-				*l1 = l;
-				*l2 = l->next;
-				return;
-			}
+	if (l) {
+		if (l->v == v1) {
+			*l1 = l;
+			*l2 = l->next;
+			return;
+		}
+		else {
+			*l2 = l;
+			*l1 = l->next;
+			return;
 		}
 	}
-
-	/* fallback to _any_ loop */
-	*l1 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v1, 0);
-	*l2 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v2, 0);
+	else {
+		/* fallback to _any_ loop */
+		*l1 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v1, 0);
+		*l2 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v2, 0);
+	}
 }
 
 /* el_b can have any offset */
@@ -247,10 +244,10 @@ static void bridge_loop_pair(BMesh *bm,
 			BMLoop *l_iter;
 			BMVert *v_a, *v_b, *v_a_next, *v_b_next;
 
-			BMLoop *l_1 = NULL;
-			BMLoop *l_2 = NULL;
-			BMLoop *l_1_next = NULL;
-			BMLoop *l_2_next = NULL;
+			BMLoop *l_a = NULL;
+			BMLoop *l_b = NULL;
+			BMLoop *l_a_next = NULL;
+			BMLoop *l_b_next = NULL;
 
 			if (is_closed) {
 				el_a_next = BM_EDGELINK_NEXT(el_store_a, el_a);
@@ -271,22 +268,20 @@ static void bridge_loop_pair(BMesh *bm,
 
 			/* get loop data - before making the face */
 			if (v_b != v_b_next) {
-				bm_vert_loop_pair(bm, v_a, v_b, &l_1, &l_2);
-				bm_vert_loop_pair(bm, v_a_next, v_b_next, &l_1_next, &l_2_next);
+				bm_vert_loop_pair(bm, v_a, v_a_next, &l_a, &l_a_next);
+				bm_vert_loop_pair(bm, v_b, v_b_next, &l_b, &l_b_next);
 			}
 			else {
 				/* lazy, could be more clever here */
-				l_1      = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_a, 0);
-				l_1_next = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_a_next, 0);
-				l_2      = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_b, 0);
-				l_2_next = l_2;
+				bm_vert_loop_pair(bm, v_a, v_a_next, &l_a, &l_a_next);
+				l_b = l_b_next = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_b, 0);
 			}
 
-			if (l_1 && l_1_next == NULL) l_1_next = l_1;
-			if (l_1_next && l_1 == NULL) l_1 = l_1_next;
-			if (l_2 && l_2_next == NULL) l_2_next = l_2;
-			if (l_2_next && l_2 == NULL) l_2 = l_2_next;
-			f_example = l_1 ? l_1->f : (l_2 ? l_2->f : NULL);
+			if (l_a && l_a_next == NULL) l_a_next = l_a;
+			if (l_a_next && l_a == NULL) l_a = l_a_next;
+			if (l_b && l_b_next == NULL) l_b_next = l_b;
+			if (l_b_next && l_b == NULL) l_b = l_b_next;
+			f_example = l_a ? l_a->f : (l_b ? l_b->f : NULL);
 
 			if (v_b != v_b_next) {
 				BMVert *v_arr[4] = {v_a, v_b, v_b_next, v_a_next};
@@ -295,10 +290,10 @@ static void bridge_loop_pair(BMesh *bm,
 					f = BM_face_create_ngon_verts(bm, v_arr, 4, 0, false, true);
 
 					l_iter = BM_FACE_FIRST_LOOP(f);
-					if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
-					if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-					if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
-					if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+					if (l_b)      BM_elem_attrs_copy(bm, bm, l_b,      l_iter); l_iter = l_iter->next;
+					if (l_b_next) BM_elem_attrs_copy(bm, bm, l_b_next, l_iter); l_iter = l_iter->next;
+					if (l_a_next) BM_elem_attrs_copy(bm, bm, l_a_next, l_iter); l_iter = l_iter->next;
+					if (l_a)      BM_elem_attrs_copy(bm, bm, l_a,      l_iter);
 				}
 			}
 			else {
@@ -308,9 +303,9 @@ static void bridge_loop_pair(BMesh *bm,
 					f = BM_face_create_ngon_verts(bm, v_arr, 3, 0, false, true);
 
 					l_iter = BM_FACE_FIRST_LOOP(f);
-					if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
-					if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-					if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+					if (l_b)      BM_elem_attrs_copy(bm, bm, l_b,      l_iter); l_iter = l_iter->next;
+					if (l_a_next) BM_elem_attrs_copy(bm, bm, l_a_next, l_iter); l_iter = l_iter->next;
+					if (l_a)      BM_elem_attrs_copy(bm, bm, l_a,      l_iter);
 				}
 			}
 
