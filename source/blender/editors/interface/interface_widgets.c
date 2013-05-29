@@ -3411,7 +3411,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	if (wt) {
 		//rcti disablerect = *rect; /* rect gets clipped smaller for text */
 		int roundboxalign, state;
-		bool disabled = FALSE;
+		bool disabled = false;
 		
 		roundboxalign = widget_roundbox_set(but, rect);
 
@@ -3420,7 +3420,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		
 		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))
 			if (but->dt != UI_EMBOSSP)
-				disabled = TRUE;
+				disabled = true;
 		
 		if (disabled)
 			ui_widget_color_disabled(wt);

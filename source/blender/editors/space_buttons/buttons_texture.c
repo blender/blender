@@ -258,7 +258,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	World *wrld = NULL;
 	Brush *brush = NULL;
 	ID *pinid = sbuts->pinid;
-	bool limited_mode = sbuts->flag & SB_TEX_USER_LIMITED;
+	bool limited_mode = (sbuts->flag & SB_TEX_USER_LIMITED) != 0;
 
 	/* get data from context */
 	if (pinid) {

@@ -573,7 +573,7 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 	bool is_any_error = 0;
 
 	for (i = 0; i < 3; i++) {
-		const bool is_dirty = (flag_types[i] & bm->elem_index_dirty);
+		const bool is_dirty = (flag_types[i] & bm->elem_index_dirty) != 0;
 		int index = 0;
 		bool is_error = false;
 		int err_val = 0;

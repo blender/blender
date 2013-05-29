@@ -1086,7 +1086,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 
 #if 0
 	bool do_rotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == false);
-	bool do_translate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
+	bool do_translate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM)) != 0;
 #endif
 
 	bool do_rotate = (fly->pan_view == false);

@@ -472,7 +472,7 @@ void RE_FreePersistentData(void)
 /* disprect is optional, if NULL it assumes full window render */
 void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *srl, int winx, int winy, rcti *disprect)
 {
-	bool had_freestyle = (re->r.mode & R_EDGE_FRS);
+	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
 
 	re->ok = TRUE;   /* maybe flag */
 	

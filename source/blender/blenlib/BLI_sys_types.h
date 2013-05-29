@@ -119,11 +119,8 @@ typedef uint64_t u_int64_t;
 #  ifdef __cplusplus
 typedef bool _BLI_Bool;
 #  else
-/* using char here may cause nasty tricky bugs, e.g.
- *     bool is_bit_flag = RNA_property_flag(prop) & PROP_ENUM_FLAG;
- * as PROP_ENUM_FLAG is farther than 8th bit, do_translate would be always false!
- */
-#   define _BLI_Bool unsigned int
+/* Make sure bool is alays defined with the same size for both C and C++ */
+#   define _BLI_Bool unsigned char
 #  endif
 # else
 #  define _BLI_Bool _Bool

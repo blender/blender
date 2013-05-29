@@ -132,7 +132,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
 	FILE *fp = NULL;
 
-	bool is_16bit  = (ibuf->ftype & PNG_16BIT);
+	bool is_16bit  = (ibuf->ftype & PNG_16BIT) != 0;
 	bool has_float = (ibuf->rect_float != NULL);
 	int channels_in_float = ibuf->channels ? ibuf->channels : 4;
 
