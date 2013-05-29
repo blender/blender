@@ -29,12 +29,17 @@ Import ('env')
 
 sources = env.Glob('*.cpp') #'NG_NetworkMessage.cpp NG_NetworkObject.cpp NG_NetworkScene.cpp'
 
-incs = '. #intern/string #intern/moto/include #intern/container'
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/string',
+    '#intern/moto/include',
+    ]
 
 defs = []
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')
-    incs += ' #intern/guardedalloc'
+    incs.append('#intern/guardedalloc')
 
-env.BlenderLib ( 'ge_logic_ngnetwork', sources, Split(incs), defs, libtype=['core','player'], priority=[400,130] )
+env.BlenderLib('ge_logic_ngnetwork', sources, incs, defs, libtype=['core', 'player'], priority=[400, 130])

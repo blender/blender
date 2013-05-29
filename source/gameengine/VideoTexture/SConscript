@@ -31,15 +31,31 @@ Import ('env')
 
 sources = env.Glob('*.cpp')
 
-incs = '. #source/gameengine/Ketsji #source/gameengine/Expressions'
-incs += ' #source/gameengine/GameLogic #source/gameengine/SceneGraph #source/gameengine/Rasterizer'
-incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
-incs += ' #source/gameengine/BlenderRoutines'
-incs += ' #source/blender/editors/include #source/blender/blenlib #source/blender/blenkernel'
-incs += ' #source/blender/makesdna #source/blender/imbuf #source/blender/python #source/blender/python/generic'
-incs += ' #source/blender/gpu #intern/string #intern/moto/include'
-incs += ' #intern/guardedalloc #intern/container #extern/glew/include'
-incs += ' #intern/ffmpeg'
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/ffmpeg',
+    '#intern/guardedalloc',
+    '#intern/string',
+    '#extern/glew/include',
+    '#intern/moto/include',
+    '#source/blender/blenkernel',
+    '#source/blender/blenlib',
+    '#source/blender/gpu',
+    '#source/blender/imbuf',
+    '#source/blender/makesdna',
+    '#source/blender/python',
+    '#source/gameengine/BlenderRoutines',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Ketsji',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/SceneGraph',
+    '#source/blender/editors/include',
+    '#source/blender/python/generic',
+    '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+    ]
+incs = ' '.join(incs)
 
 defs = ['GLEW_STATIC'] 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc','win32-mingw', 'win64-mingw'):

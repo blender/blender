@@ -28,25 +28,45 @@
 Import ('env')
 
 sources = env.Glob('*.cpp')
-defs = [ 'GLEW_STATIC' ]
 
-incs = '. #intern/string #intern/guardedalloc'
-incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
-incs += ' #source/gameengine/Converter #source/blender/imbuf'
-incs += ' #intern/ghost/include #intern/container'
-incs += ' #intern/audaspace/intern'
-incs += ' #intern/moto/include #source/gameengine/Ketsji #source/blender/blenlib'
-incs += ' #source/blender/blenkernel #source/blender'
-incs += ' #source/blender/blenfont #source/blender/editors/include'
-incs += ' #source/blender/makesdna #source/blender/makesrna'
-incs += ' #source/gameengine/Rasterizer #source/gameengine/GameLogic'
-incs += ' #source/gameengine/Expressions #source/gameengine/Network'
-incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common'
-incs += ' #source/gameengine/Physics/Bullet'
-incs += ' #source/gameengine/Network/LoopBackNetwork'
-incs += ' #source/blender/misc #source/blender/blenloader'
-incs += ' #extern/glew/include #source/blender/gpu'
-incs += ' #source/blender/windowmanager'
+defs = [
+    'GLEW_STATIC',
+    ]
+
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/guardedalloc',
+    '#intern/string',
+    '#source/blender',
+    '#extern/glew/include',
+    '#intern/audaspace/intern',
+    '#intern/ghost/include',
+    '#intern/moto/include',
+    '#source/blender/blenfont',
+    '#source/blender/blenkernel',
+    '#source/blender/blenlib',
+    '#source/blender/blenloader',
+    '#source/blender/gpu',
+    '#source/blender/imbuf',
+    '#source/blender/makesdna',
+    '#source/blender/makesrna',
+    '#source/blender/misc',
+    '#source/blender/windowmanager',
+    '#source/gameengine/Converter',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Ketsji',
+    '#source/gameengine/Network',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/SceneGraph',
+    '#source/blender/editors/include',
+    '#source/gameengine/Network/LoopBackNetwork',
+    '#source/gameengine/Physics/Bullet',
+    '#source/gameengine/Physics/common',
+    '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+    ]
+incs = ' '.join(incs)
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')

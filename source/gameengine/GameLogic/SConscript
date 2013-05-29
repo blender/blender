@@ -29,10 +29,18 @@ Import ('env')
 
 sources = env.Glob('*.cpp') + env.Glob('Joystick/*.cpp')
 
-incs = '. #/intern/string #intern/container #intern/ghost'
-incs += ' #/source/gameengine/Expressions #/intern/moto/include'
-incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
-incs += ' #/source/blender/blenlib'
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/ghost',
+    '#/intern/string',
+    '#/intern/moto/include',
+    '#/source/blender/blenlib',
+    '#/source/gameengine/Expressions',
+    '#/source/gameengine/Rasterizer',
+    '#/source/gameengine/SceneGraph',
+    ]
+incs = ' '.join(incs)
 
 defs = []
 

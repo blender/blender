@@ -5,10 +5,24 @@ sources = env.Glob('*.cpp')
 
 defs = [ 'GLEW_STATIC' ]
 
-incs = '. #intern/string #intern/moto/include #source/gameengine/Rasterizer #source/gameengine/BlenderRoutines '
-incs += ' #intern/container #source/blender/gpu #extern/glew/include ' + env['BF_OPENGL_INC']
-incs += ' #source/blender/gameengine/Ketsji #source/gameengine/SceneGraph #source/blender/makesdna #source/blender/blenkernel'
-incs += ' #intern/guardedalloc #source/blender/blenlib'
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/guardedalloc',
+    '#intern/string',
+    '#extern/glew/include',
+    '#intern/moto/include',
+    '#source/blender/blenkernel',
+    '#source/blender/blenlib',
+    '#source/blender/gpu',
+    '#source/blender/makesdna',
+    '#source/gameengine/BlenderRoutines',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/SceneGraph',
+    '#source/blender/gameengine/Ketsji',
+    env['BF_OPENGL_INC'],
+    ]
+incs = ' '.join(incs)
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')

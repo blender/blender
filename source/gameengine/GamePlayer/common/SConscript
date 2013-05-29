@@ -29,54 +29,60 @@ import sys
 Import ('env')
 
 
-source_files = ['bmfont.cpp',
-                'GPC_Canvas.cpp',
-                'GPC_Engine.cpp',
-                'GPC_KeyboardDevice.cpp',
-                'GPC_MouseDevice.cpp',
-                'GPC_RawImage.cpp',
-                'GPC_RawLoadDotBlendArray.cpp',
-                'GPC_RawLogoArrays.cpp',
-                'GPC_RenderTools.cpp',
-                'GPC_System.cpp']
+source_files = [
+    'bmfont.cpp',
+    'GPC_Canvas.cpp',
+    'GPC_Engine.cpp',
+    'GPC_KeyboardDevice.cpp',
+    'GPC_MouseDevice.cpp',
+    'GPC_RawImage.cpp',
+    'GPC_RawLoadDotBlendArray.cpp',
+    'GPC_RawLogoArrays.cpp',
+    'GPC_RenderTools.cpp',
+    'GPC_System.cpp',
+    ]
 
-incs = ['.',
-        '#intern/string',
-        '#intern/ghost',
-        '#intern/guardedalloc',
-        '#intern/moto/include',
-        '#intern/container',
-        '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
-        '#source/gameengine/Converter',
-        '#source/gameengine/BlenderRoutines',
-        '#source/blender/imbuf',
-        '#source/gameengine/Ketsji',
-        '#source/blender/blenlib',
-        '#source/blender/blenfont',
-        '#source/blender/blenkernel',
-        '#source/blender',
-        '#source/blender/include',
-        '#source/blender/makesdna',
-        '#source/gameengine/Rasterizer',
-        '#source/gameengine/GameLogic',
-        '#source/gameengine/Expressions',
-        '#source/gameengine/Network',
-        '#source/gameengine/SceneGraph',
-        '#source/gameengine/Physics/common',
-        '#source/gameengine/Network/LoopBackNetwork',
-        '#source/gameengine/GamePlayer/ghost',
-        '#source/blender/misc',
-        '#source/blender/blenloader',
-        '#source/blender/gpu',
-        '#extern/glew/include']
+incs = [
+    '.',
+    '#intern/string',
+    '#intern/ghost',
+    '#intern/guardedalloc',
+    '#intern/moto/include',
+    '#intern/container',
+    '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+    '#source/gameengine/Converter',
+    '#source/gameengine/BlenderRoutines',
+    '#source/blender/imbuf',
+    '#source/gameengine/Ketsji',
+    '#source/blender/blenlib',
+    '#source/blender/blenfont',
+    '#source/blender/blenkernel',
+    '#source/blender',
+    '#source/blender/include',
+    '#source/blender/makesdna',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/Network',
+    '#source/gameengine/SceneGraph',
+    '#source/gameengine/Physics/common',
+    '#source/gameengine/Network/LoopBackNetwork',
+    '#source/gameengine/GamePlayer/ghost',
+    '#source/blender/misc',
+    '#source/blender/blenloader',
+    '#source/blender/gpu',
+    '#extern/glew/include',
+    ]
 
-defs = [ 'GLEW_STATIC' ]
+defs = [
+    'GLEW_STATIC',
+    ]
 
 if env['WITH_BF_PYTHON']:
-    incs += Split(env['BF_PYTHON_INC'])
+    incs.extend(Split(env['BF_PYTHON_INC']))
     defs.append('WITH_PYTHON')
 
-incs += Split(env['BF_PNG_INC'])
-incs += Split(env['BF_ZLIB_INC'])
+incs.extend(Split(env['BF_PNG_INC']))
+incs.extend(Split(env['BF_ZLIB_INC']))
 
 env.BlenderLib (libname='ge_player_common', sources=source_files, includes=incs, defines = defs, libtype=['player'], priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -29,7 +29,12 @@ Import ('env')
 
 sources = 'DummyPhysicsEnvironment.cpp'
 
-incs = '. ../common ../../../../intern/moto/include'
+incs = [
+    '.',
+    '../common',
+    '../../../../intern/moto/include',
+    ]
+incs = ' '.join(incs)
 
 defs = []
 

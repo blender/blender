@@ -29,10 +29,18 @@ Import ('env')
 
 sources = env.Glob('*.cpp')
 
-incs = '. #intern/string #intern/moto/include'
-incs += ' #source/gameengine/Ketsji #intern/container'
-incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions'
-incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/string',
+    '#intern/moto/include',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Ketsji',
+    '#source/gameengine/Network',
+    '#source/gameengine/SceneGraph',
+    ]
+incs = ' '.join(incs)
 
 defs = []
 

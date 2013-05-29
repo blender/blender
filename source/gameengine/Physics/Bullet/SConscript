@@ -29,20 +29,24 @@ Import ('env')
 
 sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp'
 
-incs = '. ../common'
-incs += ' #intern/string'
-incs += ' #intern/moto/include'
-incs += ' #extern/glew/include'
-incs += ' #source/gameengine/Rasterizer'
-incs += ' #source/gameengine/Ketsji'
-incs += ' #source/gameengine/Expressions'
-incs += ' #source/gameengine/GameLogic'
-incs += ' #source/gameengine/SceneGraph'
-incs += ' #source/blender/makesdna'
-incs += ' #source/blender/blenkernel'
-incs += ' #source/blender/blenlib'
-incs += ' #intern/guardedalloc'
-incs += ' #intern/container'
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/guardedalloc',
+    '#intern/string',
+    '#extern/glew/include',
+    '#intern/moto/include',
+    '#source/blender/blenkernel',
+    '#source/blender/blenlib',
+    '#source/blender/makesdna',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Ketsji',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/SceneGraph',
+    '../common',
+    ]
+incs = ' '.join(incs)
 
 incs += ' ' + env['BF_BULLET_INC']
 
