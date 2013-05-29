@@ -733,7 +733,7 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
 /* note, this is not the best place for the function to be but moved
  * here to for the purpose of syncing with bmesh */
 
-typedef int MirrTopoHash_t;
+typedef unsigned int MirrTopoHash_t;
 
 typedef struct MirrTopoVert_t {
 	MirrTopoHash_t hash;
@@ -798,6 +798,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	MirrTopoHash_t *topo_hash = NULL;
 	MirrTopoHash_t *topo_hash_prev = NULL;
 	MirrTopoVert_t *topo_pairs;
+	MirrTopoHash_t  topo_pass = 1;
 
 	intptr_t *index_lookup; /* direct access to mesh_topo_store->index_lookup */
 
@@ -843,15 +844,15 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 
 		if (em) {
 			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-				topo_hash[BM_elem_index_get(eed->v1)] += topo_hash_prev[BM_elem_index_get(eed->v2)];
-				topo_hash[BM_elem_index_get(eed->v2)] += topo_hash_prev[BM_elem_index_get(eed->v1)];
+				topo_hash[BM_elem_index_get(eed->v1)] += topo_hash_prev[BM_elem_index_get(eed->v2)] * topo_pass;
+				topo_hash[BM_elem_index_get(eed->v2)] += topo_hash_prev[BM_elem_index_get(eed->v1)] * topo_pass;
 			}
 		}
 		else {
 			for (a = 0, medge = me->medge; a < me->totedge; a++, medge++) {
 				/* This can make really big numbers, wrapping around here is fine */
-				topo_hash[medge->v1] += topo_hash_prev[medge->v2];
-				topo_hash[medge->v2] += topo_hash_prev[medge->v1];
+				topo_hash[medge->v1] += topo_hash_prev[medge->v2] * topo_pass;
+				topo_hash[medge->v2] += topo_hash_prev[medge->v1] * topo_pass;
 			}
 		}
 		memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
@@ -876,6 +877,8 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		}
 		/* Copy the hash calculated this iter, so we can use them next time */
 		memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
+
+		topo_pass++;
 	}
 
 	/* Hash/Index pairs are needed for sorting to find index pairs */
