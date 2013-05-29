@@ -163,10 +163,15 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
     bl_idname = "node.add_search"
     bl_label = "Search and Add Node"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_property = "node_item"
+
+    _enum_item_hack = []
 
     # Create an enum list from node items
     def node_enum_items(self, context):
-        enum_items = []
+        enum_items = NODE_OT_add_search._enum_item_hack
+        enum_items.clear()
+
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             nodetype = getattr(bpy.types, item.nodetype, None)
             if nodetype:
@@ -175,14 +180,13 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
 
     # Look up the item based on index
     def find_node_item(self, context):
+        node_item = int(self.node_item)
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
-            if str(index) == self.type:
+            if index == node_item:
                 return item
         return None
 
-    # XXX this should be called 'node_item' but the operator search
-    # property is hardcoded to 'type' by a hack in bpy_operator_wrap.c ...
-    type = EnumProperty(
+    node_item = EnumProperty(
             name="Node Type",
             description="Node type",
             items=node_enum_items,
@@ -190,6 +194,10 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
 
     def execute(self, context):
         item = self.find_node_item(context)
+
+        # no need to keep
+        self._enum_item_hack.clear()
+        
         if item:
             # apply settings from the node item
             for setting in item.settings.items():
