@@ -76,6 +76,49 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
+    _frame_rate_args_prev = None
+    _preset_class = None
+    @staticmethod
+    def _draw_framerate_label(*args):
+        # avoids re-creating text string each draw
+        if RENDER_PT_dimensions._frame_rate_args_prev == args:
+            return RENDER_PT_dimensions._frame_rate_ret
+
+        fps, fps_base, preset_label = args
+        
+        if fps_base == 1.0:
+            fps_rate = round(fps)
+        else:
+            fps_rate = round(fps / fps_base, 2)
+
+        # TODO: Change the following to iterate over existing presets
+        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
+
+        if custom_framerate is True:
+            fps_label_text = "Custom (%r fps)" % fps_rate
+            show_framerate = True
+        else:
+            fps_label_text = "%r fps" % fps_rate
+            show_framerate = (preset_label == "Custom")
+
+        RENDER_PT_dimensions._frame_rate_args_prev = args
+        RENDER_PT_dimensions._frame_rate_ret = args = (fps_label_text, show_framerate)
+        return args
+
+    @staticmethod
+    def draw_framerate(sub, rd):
+        if RENDER_PT_dimensions._preset_class is None:
+            RENDER_PT_dimensions._preset_class = bpy.types.RENDER_MT_framerate_presets
+
+        args = rd.fps, rd.fps_base, RENDER_PT_dimensions._preset_class.bl_label
+        fps_label_text, show_framerate = RENDER_PT_dimensions._draw_framerate_label(*args)
+
+        sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
+
+        if show_framerate:
+            sub.prop(rd, "fps")
+            sub.prop(rd, "fps_base", text="/")
+
     def draw(self, context):
         layout = self.layout
 
@@ -114,24 +157,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         sub.prop(scene, "frame_step")
 
         sub.label(text="Frame Rate:")
-        if rd.fps_base == 1:
-            fps_rate = round(rd.fps / rd.fps_base)
-        else:
-            fps_rate = round(rd.fps / rd.fps_base, 2)
 
-        # TODO: Change the following to iterate over existing presets
-        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
+        self.draw_framerate(sub, rd)
 
-        if custom_framerate is True:
-            fps_label_text = "Custom (" + str(fps_rate) + " fps)"
-        else:
-            fps_label_text = str(fps_rate) + " fps"
-
-        sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
-
-        if custom_framerate or (bpy.types.RENDER_MT_framerate_presets.bl_label == "Custom"):
-            sub.prop(rd, "fps")
-            sub.prop(rd, "fps_base", text="/")
         subrow = sub.row(align=True)
         subrow.label(text="Time Remapping:")
         subrow = sub.row(align=True)

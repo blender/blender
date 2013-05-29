@@ -75,12 +75,10 @@ static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BM
 		if (l->v == v1) {
 			*l1 = l;
 			*l2 = l->next;
-			return;
 		}
 		else {
 			*l2 = l;
 			*l1 = l->next;
-			return;
 		}
 	}
 	else {
