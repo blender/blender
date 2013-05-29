@@ -65,102 +65,6 @@ static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 	return (snode && snode->nodetree);
 }
 
-/* poll callback for active node */
-static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	
-	return (snode && snode->edittree && nodeGetActive(snode->edittree));
-}
-
-/* active node */
-static void active_node_panel(const bContext *C, Panel *pa)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	bNodeTree *ntree = (snode) ? snode->edittree : NULL;
-	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
-	bNodeSocket *sock;
-	uiLayout *layout, *row, *col, *sub;
-	PointerRNA ptr, opptr;
-	bool show_inputs;
-	
-	/* verify pointers, and create RNA pointer for the node */
-	if (ELEM(NULL, ntree, node))
-		return;
-	//if (node->id) /* for group nodes */
-	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);
-	//else
-	RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
-	
-	layout = uiLayoutColumn(pa->layout, FALSE);
-	uiLayoutSetContextPointer(layout, "node", &ptr);
-	
-	/* draw this node's name, etc. */
-	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);
-	uiItemS(layout);
-	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "NODE_OT_hide_socket_toggle");
-	uiItemS(layout);
-	uiItemS(layout);
-
-	row = uiLayoutRow(layout, FALSE);
-	
-	col = uiLayoutColumn(row, TRUE);
-	uiItemM(col, (bContext *)C, "NODE_MT_node_color_presets", NULL, 0);
-	uiItemR(col, &ptr, "use_custom_color", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
-	sub = uiLayoutRow(col, FALSE);
-	if (!(node->flag & NODE_CUSTOM_COLOR))
-		uiLayoutSetEnabled(sub, FALSE);
-	uiItemR(sub, &ptr, "color", 0, "", ICON_NONE);
-	
-	col = uiLayoutColumn(row, TRUE);
-	uiItemO(col, "", ICON_ZOOMIN, "node.node_color_preset_add");
-	opptr = uiItemFullO(col, "node.node_color_preset_add", "", ICON_ZOOMOUT, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-	RNA_boolean_set(&opptr, "remove_active", 1);
-	uiItemM(col, (bContext *)C, "NODE_MT_node_color_specials", "", ICON_DOWNARROW_HLT);
-	
-	/* draw this node's settings */
-	if (node->typeinfo && node->typeinfo->uifuncbut) {
-		uiItemS(layout);
-		uiItemS(layout);
-		node->typeinfo->uifuncbut(layout, (bContext *)C, &ptr);
-	}
-	else if (node->typeinfo && node->typeinfo->uifunc) {
-		uiItemS(layout);
-		uiItemS(layout);
-		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
-	}
-	
-	uiItemS(layout);
-	
-	/* socket input values */
-	/* XXX this is not quite perfect yet, it still shows sockets without meaningful input values
-	 * and does not yet use the socket link template - but better than nothing.
-	 * Eventually could move this panel to python
-	 * and leave it up to the individual node system implementation.
-	 */
-	show_inputs = false;
-	for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (!nodeSocketIsHidden(sock) && !(sock->flag & SOCK_IN_USE)) {
-			show_inputs = true;
-			break;
-		}
-	}
-	if (show_inputs) {
-		uiItemL(layout, "Inputs:", 0);
-		for (sock = node->inputs.first; sock; sock = sock->next) {
-			if (!nodeSocketIsHidden(sock) && !(sock->flag & SOCK_IN_USE)) {
-				uiLayout *row = uiLayoutRow(layout, false);
-				PointerRNA sock_ptr;
-				RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &sock_ptr);
-				sock->typeinfo->draw((bContext *)C, row, &sock_ptr, &ptr, sock->name);
-			}
-		}
-	}
-}
-
 static int node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
@@ -275,14 +179,6 @@ void node_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 	
-	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel active node");
-	strcpy(pt->idname, "NODE_PT_item");
-	strcpy(pt->label, N_("Active Node"));
-	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = active_node_panel;
-	pt->poll = active_node_poll;
-	BLI_addtail(&art->paneltypes, pt);
-
 	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel node sockets");
 	strcpy(pt->idname, "NODE_PT_sockets");
 	strcpy(pt->label, N_("Sockets"));

@@ -231,8 +231,106 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
+class NODE_MT_node_color_presets(Menu):
+    """Predefined node color"""
+    bl_label = "Color Presets"
+    preset_subdir = "node_color"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class NODE_MT_node_color_specials(Menu):
+    bl_label = "Node Color Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("node.node_copy_color", icon='COPY_ID')
+
+
+class NODE_PT_active_node_generic(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Node"
+#    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return context.active_node is not None
+
+    def draw(self, context):
+        layout = self.layout
+        node = context.active_node
+
+        layout.prop(node, "name", icon='NODE')
+        layout.prop(node, "label", icon='NODE')
+
+
+class NODE_PT_active_node_color(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Color"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return context.active_node is not None
+
+    def draw_header(self, context):
+        node = context.active_node
+        self.layout.prop(node, "use_custom_color", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        node = context.active_node
+
+        layout.enabled = node.use_custom_color
+
+        row = layout.row()
+        col = row.column()
+        col.menu("NODE_MT_node_color_presets")
+        col.prop(node, "color", text="")
+        col = row.column(align=True)
+        col.operator("node.node_color_preset_add", text="", icon='ZOOMIN').remove_active = False
+        col.operator("node.node_color_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        col.menu("NODE_MT_node_color_specials", text="", icon='DOWNARROW_HLT')
+
+
+class NODE_PT_active_node_properties(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Properties"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return context.active_node is not None
+
+    def draw(self, context):
+        layout = self.layout
+        node = context.active_node
+        # set "node" context pointer for the panel layout
+        layout.context_pointer_set("node", node)
+
+        if hasattr(node, "draw_buttons_ext"):
+            node.draw_buttons_ext(context, layout)
+        elif hasattr(node, "draw_buttons"):
+            node.draw_buttons(context, layout)
+
+        # XXX this could be filtered further to exclude socket types which don't have meaningful input values (e.g. cycles shader)
+        value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.hide and not socket.is_linked]
+        if value_inputs:
+            layout.separator()
+            layout.label("Inputs:")
+            for socket in value_inputs:
+                row = layout.row()
+                socket.draw(context, row, node, socket.name)
+
+
 # Node Backdrop options
-class NODE_PT_properties(Panel):
+class NODE_PT_backdrop(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Backdrop"
@@ -289,23 +387,6 @@ class NODE_PT_quality(bpy.types.Panel):
         col.prop(tree, "use_viewer_border")
         col.prop(snode, "show_highlight")
         col.prop(snode, "use_hidden_preview")
-
-
-class NODE_MT_node_color_presets(Menu):
-    """Predefined node color"""
-    bl_label = "Color Presets"
-    preset_subdir = "node_color"
-    preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
-
-
-class NODE_MT_node_color_specials(Menu):
-    bl_label = "Node Color Specials"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("node.node_copy_color", icon='COPY_ID')
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):
