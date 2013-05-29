@@ -376,6 +376,12 @@ static Vector2 ComputeCenterTangent(Vector2 *d, int center)
 	tHatCenter[0] = (V1[0] + V2[0]) / 2.0;
 	tHatCenter[1] = (V1[1] + V2[1]) / 2.0;
 	tHatCenter = *V2Normalize(&tHatCenter);
+
+	/* avoid numerical singularity in the special case when V1 == -V2 */
+	if (V2Length(&tHatCenter) < M_EPSILON) {
+		tHatCenter = *V2Normalize(&V1);
+	}
+
 	return tHatCenter;
 }
 
