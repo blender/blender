@@ -121,6 +121,7 @@ EnumPropertyItem event_timer_type_items[] = {
 	{TIMERJOBS, "TIMER_JOBS", 0, "Timer Jobs", ""},
 	{TIMERAUTOSAVE, "TIMER_AUTOSAVE", 0, "Timer Autosave", ""},
 	{TIMERREPORT, "TIMER_REPORT", 0, "Timer Report", ""},
+	{TIMERREGION, "TIMERREGION", 0, "Timer Region", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -334,6 +335,7 @@ EnumPropertyItem event_type_items[] = {
 	{TIMERJOBS, "TIMER_JOBS", 0, "Timer Jobs", ""},
 	{TIMERAUTOSAVE, "TIMER_AUTOSAVE", 0, "Timer Autosave", ""},
 	{TIMERREPORT, "TIMER_REPORT", 0, "Timer Report", ""},
+	{TIMERREGION, "TIMER_REGION", 0, "Timer Region", ""},
 	{0, "", 0, NULL, NULL},
 	{NDOF_MOTION, "NDOF_MOTION", 0, "NDOF Motion", ""},
 	/* buttons on all 3dconnexion devices */
