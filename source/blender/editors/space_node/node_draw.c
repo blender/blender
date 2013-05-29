@@ -402,8 +402,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	}
 
 	/* buttons rect? */
-	/* TODO: NODE_OPTION shall be cleaned up */
-	if (/*(node->flag & NODE_OPTIONS) && */node->typeinfo->uifunc) {
+	if ((node->flag & NODE_OPTIONS) && node->typeinfo->uifunc) {
 		dy -= NODE_DYS / 2;
 
 		/* set this for uifunc() that don't use layout engine yet */
