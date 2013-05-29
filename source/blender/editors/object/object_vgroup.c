@@ -2282,9 +2282,12 @@ void ED_vgroup_mirror(Object *ob,
 		}
 	}
 
+	/* disabled, confusing when you have an active pose bone */
+#if 0
 	/* flip active group index */
 	if (flip_vgroups && flip_map[def_nr] >= 0)
 		ob->actdef = flip_map[def_nr] + 1;
+#endif
 
 cleanup:
 	if (flip_map) MEM_freeN(flip_map);
