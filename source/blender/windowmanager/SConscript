@@ -32,7 +32,6 @@ sources = env.Glob('intern/*.c')
 
 incs = [
     '.',
-    '#/intern/elbeem',
     '#/intern/ghost',
     '#/intern/guardedalloc',
     '#/intern/memutil',
@@ -42,7 +41,6 @@ incs = [
     '../blenkernel',
     '../blenlib',
     '../blenloader',
-    '../bmesh',
     '../compositor',
     '../editors/include',
     '../gpu',
@@ -51,7 +49,6 @@ incs = [
     '../makesrna',
     '../nodes',
     '../python',
-    '../radiosity/extern/include',
     '../render/extern/include',
     env['BF_ZLIB_INC'],
     ]

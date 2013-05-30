@@ -36,7 +36,6 @@ incs = [
     '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
-    '../../imbuf',
     '../../makesdna',
     '../../makesrna',
     '../../windowmanager',

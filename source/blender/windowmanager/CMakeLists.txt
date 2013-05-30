@@ -31,7 +31,6 @@ set(INC
 	../blenloader
 	../compositor
 	../editors/include
-	../editors/io
 	../gpu
 	../imbuf
 	../makesdna
@@ -39,11 +38,9 @@ set(INC
 	../nodes
 	../render/extern/include
 	../../gameengine/BlenderRoutines
-	../../../intern/elbeem/extern
 	../../../intern/ghost
 	../../../intern/guardedalloc
 	../../../intern/memutil
-	../../../intern/opennl/extern
 )
 
 set(INC_SYS

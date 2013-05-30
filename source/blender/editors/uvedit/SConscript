@@ -41,7 +41,6 @@ incs = [
     '../../blenlib',
     '../../bmesh',
     '../../gpu',
-    '../../imbuf',
     '../../makesdna',
     '../../makesrna',
     '../../windowmanager',

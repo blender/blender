@@ -41,6 +41,8 @@
 
 #include "GPU_buffers.h"
 
+#include "bmesh.h"
+
 #include "pbvh_intern.h"
 
 #define LEAF_LIMIT 10000

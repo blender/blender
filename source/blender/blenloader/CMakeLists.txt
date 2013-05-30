@@ -28,12 +28,12 @@ set(INC
 	../blenfont
 	../blenkernel
 	../blenlib
+	../imbuf
 	../makesdna
 	../makesrna
 	../nodes
 	../render/extern/include
 	../../../intern/guardedalloc
-	../imbuf
 )
 
 set(INC_SYS

@@ -34,7 +34,6 @@ defs = []
 incs = [
     '#/intern/guardedalloc',
     '#/extern/glew/include',
-    '#/intern/elbeem/extern',
     '../include',
     '../uvedit',
     '../../blenfont',

@@ -269,4 +269,3 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	ED_keymap_proportional_cycle(keyconf, keymap);
 	ED_keymap_proportional_editmode(keyconf, keymap, TRUE);
 }
-

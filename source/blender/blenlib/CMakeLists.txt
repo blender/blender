@@ -29,7 +29,6 @@ set(INC
 	.
 	# ../blenkernel  # dont add this back!
 	../makesdna
-	../makesrna
 	../../../intern/ghost
 	../../../intern/guardedalloc
 	../../../extern/wcwidth

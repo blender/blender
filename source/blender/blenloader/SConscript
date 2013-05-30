@@ -35,8 +35,6 @@ incs = [
     '../blenfont',
     '../blenkernel',
     '../blenlib',
-    '../bmesh',
-    '../editors/include',
     '../imbuf',
     '../makesdna',
     '../makesrna',

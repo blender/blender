@@ -36,10 +36,8 @@ incs = [
     '../io',
     '../../blenkernel',
     '../../blenlib',
-    '../../bmesh',
     '../../makesdna',
     '../../makesrna',
-    '../../python',
     '../../windowmanager',
     ]
 incs = ' '.join(incs)

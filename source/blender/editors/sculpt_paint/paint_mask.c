@@ -54,6 +54,8 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 
+#include "bmesh.h"
+
 #include "paint_intern.h"
 #include "sculpt_intern.h" /* for undo push */
 

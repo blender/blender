@@ -30,9 +30,6 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
-/* Needed for BMesh functions used in the PBVH iterator macro */
-#include "bmesh.h"
-
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
@@ -43,6 +40,8 @@ struct MFace;
 struct MVert;
 struct PBVH;
 struct PBVHNode;
+struct BMesh;
+struct BMLog;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -123,7 +122,7 @@ unsigned int **BKE_pbvh_grid_hidden(const PBVH *bvh);
 void BKE_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
 
 /* Only valid for type == PBVH_BMESH */
-BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
+struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size);
 
 typedef enum {
@@ -329,4 +328,3 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***nodes,  int *totnode);
 void pbvh_show_diffuse_color_set(PBVH *bvh, int show_diffuse_color);
 
 #endif /* __BKE_PBVH_H__ */
-

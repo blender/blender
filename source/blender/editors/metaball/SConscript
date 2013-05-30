@@ -31,13 +31,9 @@ sources = env.Glob('*.c')
 
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
-    '#/intern/elbeem/extern',
     '../include',
     '../../blenkernel',
     '../../blenlib',
-    '../../gpu',
-    '../../imbuf',
     '../../makesdna',
     '../../makesrna',
     '../../render/extern/include',

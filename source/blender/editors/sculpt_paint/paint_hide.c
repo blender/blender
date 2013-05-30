@@ -64,6 +64,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "bmesh.h"
+
 #include "paint_intern.h"
 #include "sculpt_intern.h" /* for undo push */
 

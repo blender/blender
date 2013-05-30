@@ -33,15 +33,10 @@ defs = []
 
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
-    '#/intern/elbeem/extern',
     '../include',
     '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
-    '../../bmesh',
-    '../../gpu',
-    '../../imbuf',
     '../../makesdna',
     '../../makesrna',
     '../../render/extern/include',
