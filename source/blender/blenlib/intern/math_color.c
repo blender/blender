@@ -197,17 +197,26 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 	if (hexcol[0] == '#') hexcol++;
 
 	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi) == 3) {
-		*r = ri * (1.0f / 255.0f);
-		*g = gi * (1.0f / 255.0f);
-		*b = bi * (1.0f / 255.0f);
-		CLAMP(*r, 0.0f, 1.0f);
-		CLAMP(*g, 0.0f, 1.0f);
-		CLAMP(*b, 0.0f, 1.0f);
+		/* six digit hex colors */
+	}
+	else if (sscanf(hexcol, "%01x%01x%01x", &ri, &gi, &bi) == 3) {
+		/* three digit hex colors (#123 becomes #112233) */
+		ri += ri << 4;
+		gi += gi << 4;
+		bi += bi << 4;
 	}
 	else {
 		/* avoid using un-initialized vars */
 		*r = *g = *b = 0.0f;
+		return;
 	}
+
+	*r = ri * (1.0f / 255.0f);
+	*g = gi * (1.0f / 255.0f);
+	*b = bi * (1.0f / 255.0f);
+	CLAMP(*r, 0.0f, 1.0f);
+	CLAMP(*g, 0.0f, 1.0f);
+	CLAMP(*b, 0.0f, 1.0f);
 }
 
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
