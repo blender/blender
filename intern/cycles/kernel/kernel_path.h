@@ -1115,14 +1115,17 @@ __device void kernel_path_trace(KernelGlobals *kg,
 
 	/* sample camera ray */
 	Ray ray;
-
-	float lens_u = path_rng(kg, &rng, sample, PRNG_LENS_U);
-	float lens_v = path_rng(kg, &rng, sample, PRNG_LENS_V);
-
-#ifdef __CAMERA_MOTION__
-	float time = path_rng(kg, &rng, sample, PRNG_TIME);
-#else
+	
+	float lens_u = 0.0f, lens_v = 0.0f;
 	float time = 0.0f;
+	
+	if(kernel_data.cam.aperturesize > 0.0f) {
+		lens_u = path_rng(kg, &rng, sample, PRNG_LENS_U);
+		lens_v = path_rng(kg, &rng, sample, PRNG_LENS_V);
+	}
+#ifdef __CAMERA_MOTION__
+	if(kernel_data.cam.shuttertime != -1.0f)
+		time = path_rng(kg, &rng, sample, PRNG_TIME);
 #endif
 
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, &ray);

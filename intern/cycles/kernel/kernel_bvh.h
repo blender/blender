@@ -119,8 +119,6 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	bool *closestChild1, int *nodeAddr0, int *nodeAddr1,
 	float3 P, float3 idir, float t, uint visibility, int nodeAddr, float difl, float extmax)
 {
-	float hdiff = 1.0f + difl;
-	float ldiff = 1.0f - difl;
 #else
 __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	bool *traverseChild0, bool *traverseChild1,
@@ -157,6 +155,8 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 
 #ifdef __HAIR__
 	if(difl != 0.0f) {
+		float hdiff = 1.0f + difl;
+		float ldiff = 1.0f - difl;
 		if(__float_as_int(cnodes.z) & PATH_RAY_CURVE) {
 			c0min = max(ldiff * c0min, c0min - extmax);
 			c0max = min(hdiff * c0max, c0max + extmax);
