@@ -23,8 +23,6 @@
 // Necessary for M_E when building with MSVC.
 #define _USE_MATH_DEFINES
 
-#include "libmv/tracking/esm_region_tracker.h"
-
 #include "libmv/image/image.h"
 #include "libmv/image/sample.h"
 #include "libmv/numeric/numeric.h"

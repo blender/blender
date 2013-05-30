@@ -1,3 +1,12 @@
+commit f61b8198b9bddd8d2fa53feae7924aa23df48cbd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu May 30 18:00:03 2013 +0600
+
+    Code cleanup
+    
+    - Made some arguments passing to detector const.
+    - Remove unneeded include from track_region header.
+
 commit 61ac890908a397860cabc60207500039876532cc
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon May 13 04:44:14 2013 +0600
@@ -624,13 +633,3 @@ Date:   Fri Mar 1 17:40:38 2013 +0600
     refining are much more usable than it were before.
     
     Thanks to Keir for the help and code review!
-
-commit 5d6c2e7a27bdd1a1b23bf289d70a9b8f62514c9a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Mar 1 17:37:35 2013 +0600
-
-    Increase verbosity level for reprojected markers info
-    
-    This information is useful, but in cases when you, say,
-    working on a bundler it's annoying to scroll all the
-    information up.
