@@ -1893,8 +1893,7 @@ static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 			}
 		}
 
-		if (update_normals)
-			CDDM_calc_normals(result);
+		result->dirty |= DM_DIRTY_NORMALS;
 	}
 	/* make a copy of dm to use as brush data */
 	if (pmd->brush) {

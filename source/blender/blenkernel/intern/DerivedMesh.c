@@ -843,6 +843,8 @@ static DerivedMesh *modwrap_applyModifier(
         ModifierApplyFlag flag)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
 	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		DM_ensure_normals(dm);
 	}
@@ -856,6 +858,8 @@ static DerivedMesh *modwrap_applyModifierEM(
         ModifierApplyFlag flag)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
 	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		DM_ensure_normals(dm);
 	}
@@ -869,6 +873,8 @@ static void modwrap_deformVerts(
         ModifierApplyFlag flag)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
 	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		DM_ensure_normals(dm);
 	}
@@ -881,6 +887,8 @@ static void modwrap_deformVertsEM(
         float (*vertexCos)[3], int numVerts)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
 	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		DM_ensure_normals(dm);
 	}
@@ -1437,6 +1445,9 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
  */
 static void dm_ensure_display_normals(DerivedMesh *dm)
 {
+	/* this is for final output only, up until now this layer should be missing */
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
 	if ((dm->type == DM_TYPE_CDDM) &&
 	    ((dm->dirty & DM_DIRTY_NORMALS) || CustomData_has_layer(&dm->faceData, CD_NORMAL) == FALSE))
 	{
