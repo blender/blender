@@ -3114,22 +3114,24 @@ void DM_init_origspace(DerivedMesh *dm)
 #ifndef NDEBUG
 #include "BLI_dynstr.h"
 
-static void dm_debug_info_layers(DynStr *dynstr, DerivedMesh *dm, void *(*getElemDataArray)(DerivedMesh *, int))
+static void dm_debug_info_layers(DynStr *dynstr, DerivedMesh *dm, CustomData *cd,
+                                 void *(*getElemDataArray)(DerivedMesh *, int))
 {
 	int type;
 
 	for (type = 0; type < CD_NUMTYPES; type++) {
-		/* note: doesnt account for multiple layers */
-		void *pt = getElemDataArray(dm, type);
-		if (pt) {
+		if (CustomData_has_layer(cd, type)) {
+			/* note: doesnt account for multiple layers */
 			const char *name = CustomData_layertype_name(type);
 			const int size = CustomData_sizeof(type);
+			const void *pt = getElemDataArray(dm, type);
+			const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
 			const char *structname;
 			int structnum;
 			CustomData_file_write_info(type, &structname, &structnum);
 			BLI_dynstr_appendf(dynstr,
 			                   "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-			                   name, structname, type, (void *)pt, size, (int)(MEM_allocN_len(pt) / size));
+			                   name, structname, type, (void *)pt, size, pt_size);
 		}
 	}
 }
@@ -3156,23 +3158,23 @@ char *DM_debug_info(DerivedMesh *dm)
 	BLI_dynstr_appendf(dynstr, "    'deformedOnly': %d,\n", dm->deformedOnly);
 
 	BLI_dynstr_appendf(dynstr, "    'vertexLayers': (\n");
-	dm_debug_info_layers(dynstr, dm, dm->getVertDataArray);
-	BLI_dynstr_appendf(dynstr, "    ),\n");
-
-	BLI_dynstr_appendf(dynstr, "    'loopLayers': (\n");
-	dm_debug_info_layers(dynstr, dm, DM_get_loop_data_layer);
+	dm_debug_info_layers(dynstr, dm, &dm->vertData, dm->getVertDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 
 	BLI_dynstr_appendf(dynstr, "    'edgeLayers': (\n");
-	dm_debug_info_layers(dynstr, dm, dm->getEdgeDataArray);
+	dm_debug_info_layers(dynstr, dm, &dm->edgeData, dm->getEdgeDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "    'tessFaceLayers': (\n");
-	dm_debug_info_layers(dynstr, dm, dm->getTessFaceDataArray);
+	BLI_dynstr_appendf(dynstr, "    'loopLayers': (\n");
+	dm_debug_info_layers(dynstr, dm, &dm->loopData, dm->getLoopDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 
 	BLI_dynstr_appendf(dynstr, "    'polyLayers': (\n");
-	dm_debug_info_layers(dynstr, dm, DM_get_poly_data_layer);
+	dm_debug_info_layers(dynstr, dm, &dm->polyData, dm->getPolyDataArray);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'tessFaceLayers': (\n");
+	dm_debug_info_layers(dynstr, dm, &dm->faceData, dm->getTessFaceDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 
 	BLI_dynstr_appendf(dynstr, "}\n");
