@@ -71,8 +71,6 @@ void BLI_addhead(ListBase *listbase, void *vlink)
 	Link *link = vlink;
 
 	if (link == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	link->next = listbase->first;
 	link->prev = NULL;
@@ -91,8 +89,6 @@ void BLI_addtail(ListBase *listbase, void *vlink)
 	Link *link = vlink;
 
 	if (link == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	link->next = NULL;
 	link->prev = listbase->last;
@@ -111,8 +107,6 @@ void BLI_remlink(ListBase *listbase, void *vlink)
 	Link *link = vlink;
 
 	if (link == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	if (link->next) link->next->prev = link->prev;
 	if (link->prev) link->prev->next = link->next;
@@ -144,8 +138,6 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 	Link *link = vlink;
 
 	if (link == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	BLI_remlink(listbase, link);
 	MEM_freeN(link);
@@ -164,8 +156,6 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 	Link *next = NULL;
 	
 	if (cmp == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	if (listbase->first != listbase->last) {
 		for (previous = listbase->first, current = previous->next; current; current = next) {
@@ -194,8 +184,6 @@ void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
 
 	/* newlink before nextlink */
 	if (newlink == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	/* empty list */
 	if (listbase->first == NULL) {
@@ -237,8 +225,6 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 
 	/* newlink before nextlink */
 	if (newlink == NULL) return;
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 
 	/* empty list */
 	if (listbase->first == NULL) {
@@ -276,10 +262,6 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 void BLI_freelist(ListBase *listbase)
 {
 	Link *link, *next;
-
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) 
-		return;
 	
 	link = listbase->first;
 	while (link) {
@@ -298,9 +280,6 @@ void BLI_freelist(ListBase *listbase)
 void BLI_freelistN(ListBase *listbase)
 {
 	Link *link, *next;
-
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return;
 	
 	link = listbase->first;
 	while (link) {
@@ -375,9 +354,7 @@ int BLI_findindex(const ListBase *listbase, const void *vlink)
 {
 	Link *link = NULL;
 	int number = 0;
-	
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return -1;
+
 	if (vlink == NULL) return -1;
 	
 	link = listbase->first;
@@ -401,9 +378,6 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 	Link *link = NULL;
 	const char *id_iter;
 
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return NULL;
-
 	for (link = listbase->first; link; link = link->next) {
 		id_iter = ((const char *)link) + offset;
 
@@ -424,9 +398,6 @@ void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset
 	Link *link = NULL;
 	const char *id_iter;
 
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return NULL;
-
 	for (link = listbase->last; link; link = link->prev) {
 		id_iter = ((const char *)link) + offset;
 
@@ -446,9 +417,6 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
 {
 	Link *link = NULL;
 	const char *id_iter;
-
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return NULL;
 
 	for (link = listbase->first; link; link = link->next) {
 		/* exact copy of BLI_findstring(), except for this line */
@@ -471,9 +439,6 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 	Link *link = NULL;
 	const char *id_iter;
 
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return NULL;
-
 	for (link = listbase->last; link; link = link->prev) {
 		/* exact copy of BLI_rfindstring(), except for this line */
 		id_iter = *((const char **)(((const char *)link) + offset));
@@ -494,9 +459,6 @@ void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
 {
 	Link *link = NULL;
 	const void *ptr_iter;
-
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return NULL;
 
 	for (link = listbase->first; link; link = link->next) {
 		/* exact copy of BLI_findstring(), except for this line */
@@ -519,9 +481,6 @@ void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
 	Link *link = NULL;
 	const void *ptr_iter;
 
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return NULL;
-
 	for (link = listbase->last; link; link = link->prev) {
 		/* exact copy of BLI_rfindstring(), except for this line */
 		ptr_iter = *((const void **)(((const char *)link) + offset));
@@ -543,9 +502,6 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
 	Link *link = NULL;
 	const char *id_iter;
 	int i = 0;
-
-	BLI_assert(listbase != NULL);
-	if (listbase == NULL) return -1;
 
 	link = listbase->first;
 	while (link) {
