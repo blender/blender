@@ -1723,7 +1723,8 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	MenuItemLevel *lvl;
-	char namestr[UI_MAX_NAME_STR], keybuf[128];
+	char namestr_buf[UI_MAX_NAME_STR], keybuf[128];
+	char *namestr = namestr_buf;
 
 	UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -1734,9 +1735,9 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 	}
 
 	if (name)
-		BLI_strncpy(namestr, name, sizeof(namestr));
+		namestr += BLI_strncpy_rlen(namestr, name, sizeof(namestr_buf));
 	else
-		BLI_strncpy(namestr, RNA_struct_ui_name(ot->srna), sizeof(namestr));
+		namestr += BLI_strncpy_rlen(namestr, RNA_struct_ui_name(ot->srna), sizeof(namestr_buf));
 
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon = ICON_BLANK1;
@@ -1751,12 +1752,11 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 		if (ot->prop &&
 		    WM_key_event_operator_string(C, ot->idname, layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf)))
 		{
-			strncat(namestr, "|", sizeof(namestr) - 1);
-			strncat(namestr, keybuf, sizeof(namestr) - 1);
+			namestr += BLI_snprintf(namestr, sizeof(namestr_buf) - (namestr - namestr_buf) , "|%s", name);
 		}
 	}
 
-	ui_item_menu(layout, namestr, icon, menu_item_enum_opname_menu, NULL, lvl, RNA_struct_ui_description(ot->srna),
+	ui_item_menu(layout, namestr_buf, icon, menu_item_enum_opname_menu, NULL, lvl, RNA_struct_ui_description(ot->srna),
 	             true);
 }
 
