@@ -1841,6 +1841,7 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 
 	dm = CDDM_new(totvert, totedge, 0, totloop, totpoly);
 	dm->deformedOnly = 1;
+	dm->dirty |= DM_DIRTY_NORMALS;
 
 	cddm = (CDDerivedMesh *)dm;
 
@@ -2197,6 +2198,8 @@ void CDDM_apply_vert_coords(DerivedMesh *dm, float (*vertCoords)[3])
 
 	for (i = 0; i < dm->numVertData; ++i, ++vert)
 		copy_v3_v3(vert->co, vertCoords[i]);
+
+	cddm->dm.dirty |= DM_DIRTY_NORMALS;
 }
 
 void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
@@ -2211,6 +2214,8 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 
 	for (i = 0; i < dm->numVertData; ++i, ++vert)
 		copy_v3_v3_short(vert->no, vertNormals[i]);
+
+	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
 
 void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const short only_face_normals)
@@ -2255,6 +2260,8 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const short only_face_normals
 
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN,
 	                     face_nors, dm->numTessFaceData);
+
+	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
 
 
@@ -2285,6 +2292,8 @@ void CDDM_calc_normals(DerivedMesh *dm)
 
 	BKE_mesh_calc_normals_poly(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
 	                               dm->numLoopData, dm->numPolyData, poly_nors);
+
+	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
 
 void CDDM_calc_normals_tessface(DerivedMesh *dm)
@@ -2305,6 +2314,8 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
 
 	BKE_mesh_calc_normals_tessface(cddm->mvert, dm->numVertData,
 	                               cddm->mface, dm->numTessFaceData, face_nors);
+
+	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
 
 #if 1

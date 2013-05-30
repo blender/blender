@@ -157,7 +157,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	/* note: i_alt is aligned with bmesh faces which may not always align with mpolys */
 	mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
-	face_normals = CustomData_get_layer(&dm->polyData, CD_NORMAL);  /* can be NULL */
+	face_normals = (dm->dirty & DM_DIRTY_NORMALS) ? NULL : CustomData_get_layer(&dm->polyData, CD_NORMAL);
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l_iter;
 		BMLoop *l_first;

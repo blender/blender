@@ -2602,6 +2602,7 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 
 
 	CDDM_calc_edges(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 	return result;
 }
 

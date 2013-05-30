@@ -386,6 +386,8 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 		}
 	}
 
+	result->dirty |= DM_DIRTY_NORMALS;
+
 	return result;
 }
 
@@ -543,7 +545,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	result = doOcean(md, ob, derivedData, 0);
 
 	if (result != derivedData)
-		CDDM_calc_normals(result);
+		result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }

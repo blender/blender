@@ -136,7 +136,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
 	if (result != derivedData)
-		CDDM_calc_normals(result);
+		result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }

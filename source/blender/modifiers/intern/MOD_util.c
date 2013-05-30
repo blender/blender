@@ -184,11 +184,9 @@ DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float 
 	else {
 		dm = CDDM_copy(dm);
 		CDDM_apply_vert_coords(dm, vertexCos);
+		dm->dirty |= DM_DIRTY_NORMALS;
 	}
 
-	if (dm)
-		CDDM_calc_normals(dm);
-	
 	return dm;
 }
 
@@ -204,7 +202,7 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 
 		if (vertexCos) {
 			CDDM_apply_vert_coords(dm, vertexCos);
-			//CDDM_calc_normals(dm);
+			dm->dirty |= DM_DIRTY_NORMALS;
 		}
 		
 		if (orco)

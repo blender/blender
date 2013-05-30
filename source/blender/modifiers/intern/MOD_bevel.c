@@ -171,7 +171,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
 	BM_mesh_free(bm);
 
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }
@@ -208,7 +208,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	/* until we allow for dirty normal flag, always calc,
 	 * note: calculating on the CDDM is faster then the BMesh equivalent */
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }

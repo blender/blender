@@ -202,7 +202,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	}
 
 	CDDM_calc_edges(result);
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 	return result;
 }
 

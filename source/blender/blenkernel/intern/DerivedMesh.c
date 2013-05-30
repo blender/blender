@@ -376,6 +376,14 @@ void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 	}
 }
 
+void DM_ensure_normals(DerivedMesh *dm)
+{
+	if (dm->dirty & DM_DIRTY_NORMALS) {
+		dm->calcNormals(dm);
+	}
+	BLI_assert((dm->dirty & DM_DIRTY_NORMALS) == 0);
+}
+
 /* note: until all modifiers can take MPoly's as input,
  * use this at the start of modifiers  */
 void DM_ensure_tessface(DerivedMesh *dm)
@@ -818,15 +826,67 @@ DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
 	if (!dm)
 		return NULL;
 	
-	if (vertCos)
+	if (vertCos) {
 		CDDM_apply_vert_coords(dm, vertCos);
-
-	CDDM_calc_normals(dm);
+	}
 
 	return dm;
 }
 
 /***/
+
+/* wrapper around ModifierTypeInfo.applyModifier that ensures valid normals */
+
+static DerivedMesh *modwrap_applyModifier(
+        ModifierData *md, Object *ob,
+        DerivedMesh *dm,
+        ModifierApplyFlag flag)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	return mti->applyModifier(md, ob, dm, flag);
+}
+
+static DerivedMesh *modwrap_applyModifierEM(
+        ModifierData *md, Object *ob,
+        BMEditMesh *em,
+        DerivedMesh *dm,
+        ModifierApplyFlag flag)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	return mti->applyModifierEM(md, ob, em, dm, flag);
+}
+
+static void modwrap_deformVerts(
+        ModifierData *md, Object *ob,
+        DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts,
+        ModifierApplyFlag flag)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	mti->deformVerts(md, ob, dm, vertexCos, numVerts, flag);
+}
+
+static void modwrap_deformVertsEM(
+        ModifierData *md, Object *ob,
+        BMEditMesh *em, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	mti->deformVertsEM(md, ob, em, dm, vertexCos, numVerts);
+}
+/* end modifier callback wrappers */
 
 DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, 
                                               ModifierData *md, int build_shapekey_layers)
@@ -849,7 +909,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		int numVerts;
 		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
-		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0);
+		modwrap_deformVerts(md, ob, NULL, deformedVerts, numVerts, 0);
 		dm = mesh_create_derived(me, ob, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -863,7 +923,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		if (build_shapekey_layers)
 			add_shapekey_layers(tdm, me, ob);
 		
-		dm = mti->applyModifier(md, ob, tdm, 0);
+		dm = modwrap_applyModifier(md, ob, tdm, 0);
 
 		if (tdm != dm) tdm->release(tdm);
 	}
@@ -936,8 +996,6 @@ static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMEditMesh *em, int lay
 		CDDM_apply_vert_coords(dm, orco);
 		if (free) MEM_freeN(orco);
 	}
-
-	CDDM_calc_normals(dm);
 
 	return dm;
 }
@@ -1372,6 +1430,20 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 	}
 }
 
+/**
+ * Called after calculating all modifiers.
+ *
+ * \note tessfaces should already be calculated.
+ */
+static void dm_ensure_display_normals(DerivedMesh *dm)
+{
+	if ((dm->type == DM_TYPE_CDDM) &&
+	    ((dm->dirty & DM_DIRTY_NORMALS) || CustomData_has_layer(&dm->faceData, CD_NORMAL) == FALSE))
+	{
+		/* if normals are dirty we want to calculate vertex normals too */
+		CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+	}
+}
 /* new value for useDeform -1  (hack for the gameengine):
  * - apply only the modifier stack of the object, skipping the virtual modifiers,
  * - don't apply the key
@@ -1468,7 +1540,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if (!deformedVerts)
 					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 
-				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, deform_app_flags);
+				modwrap_deformVerts(md, ob, NULL, deformedVerts, numVerts, deform_app_flags);
 			}
 			else {
 				break;
@@ -1491,7 +1563,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			
 			if (deformedVerts) {
 				CDDM_apply_vert_coords(*deform_r, deformedVerts);
-				CDDM_calc_normals(*deform_r);
 			}
 		}
 	}
@@ -1582,11 +1653,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				/* XXX, this covers bug #23673, but we may need normal calc for other types */
 				if (dm && dm->type == DM_TYPE_CDDM) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals(dm);
 				}
 			}
 
-			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, deform_app_flags);
+			modwrap_deformVerts(md, ob, dm, deformedVerts, numVerts, deform_app_flags);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -1605,7 +1675,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					dm = tdm;
 
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals(dm);
 				}
 			}
 			else {
@@ -1616,7 +1685,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				if (deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals(dm);
 				}
 
 				if (do_init_wmcol)
@@ -1667,7 +1735,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			ndm = mti->applyModifier(md, ob, dm, app_flags);
+			ndm = modwrap_applyModifier(md, ob, dm, app_flags);
 
 			if (ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -1692,7 +1760,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				DM_set_only_copy(orcodm, nextmask | CD_MASK_ORIGINDEX |
 				                 (mti->requiredDataMask ?
 				                  mti->requiredDataMask(ob, md) : 0));
-				ndm = mti->applyModifier(md, ob, orcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+
+				ndm = modwrap_applyModifier(md, ob, orcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1708,7 +1777,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
-				ndm = mti->applyModifier(md, ob, clothorcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+
+				ndm = modwrap_applyModifier(md, ob, clothorcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1751,7 +1821,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		dm->release(dm);
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
-		CDDM_calc_normals(finaldm);
 
 #if 0 /* For later nice mod preview! */
 		/* In case we need modified weights in CD_PREVIEW_MCOL, we have to re-compute it. */
@@ -1769,22 +1838,14 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 #endif
 	}
 	else {
-		int recalc_normals = 0;
-
 		finaldm = CDDM_from_mesh(me, ob);
 		
 		if (build_shapekey_layers) {
 			add_shapekey_layers(finaldm, me, ob);
-			recalc_normals = 1;
 		}
 		
 		if (deformedVerts) {
 			CDDM_apply_vert_coords(finaldm, deformedVerts);
-			recalc_normals = 1;
-		}
-
-		if (recalc_normals) {
-			CDDM_calc_normals(finaldm);
 		}
 
 		/* In this case, we should never have weight-modifying modifiers in stack... */
@@ -1848,11 +1909,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 * note that this isn't a problem for subsurf (only quads) or editmode
 		 * which deals with drawing differently.
 		 *
-		 * Never calc vertex normals because other code ensures these are up to date.
+		 * Only calc vertex normals if they are flagged as dirty.
 		 */
-		if ((finaldm->type == DM_TYPE_CDDM) && (CustomData_has_layer(&finaldm->faceData, CD_NORMAL) == FALSE)) {
-			CDDM_calc_normals_mapping_ex(finaldm, TRUE);
-		}
+		dm_ensure_display_normals(finaldm);
 	}
 
 #ifdef WITH_GAMEENGINE
@@ -1984,9 +2043,9 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			}
 
 			if (mti->deformVertsEM)
-				mti->deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
+				modwrap_deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
 			else
-				mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0);
+				modwrap_deformVerts(md, ob, dm, deformedVerts, numVerts, 0);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -1999,7 +2058,6 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 					dm = tdm;
 
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals(dm);
 				}
 				else if (cage_r && dm == *cage_r) {
 					/* dm may be changed by this modifier, so we need to copy it
@@ -2013,7 +2071,6 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 				if (deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals(dm);
 				}
 
 				if (do_init_wmcol) {
@@ -2031,9 +2088,9 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
 				if (mti->applyModifierEM)
-					ndm = mti->applyModifierEM(md, ob, em, orcodm, MOD_APPLY_ORCO);
+					ndm = modwrap_applyModifierEM(md, ob, em, orcodm, MOD_APPLY_ORCO);
 				else
-					ndm = mti->applyModifier(md, ob, orcodm, MOD_APPLY_ORCO);
+					ndm = modwrap_applyModifier(md, ob, orcodm, MOD_APPLY_ORCO);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -2053,9 +2110,9 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 					DM_init_origspace(dm);
 				}
 			}
-			
+
 			if (mti->applyModifierEM)
-				ndm = mti->applyModifierEM(md, ob, em, dm, MOD_APPLY_USECACHE);
+				ndm = modwrap_applyModifierEM(md, ob, em, dm, MOD_APPLY_USECACHE);
 			else
 				ndm = mti->applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
 
@@ -2100,22 +2157,13 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		if (!(cage_r && dm == *cage_r)) dm->release(dm);
 
 		CDDM_apply_vert_coords(*final_r, deformedVerts);
-		CDDM_calc_normals(*final_r); /* was CDDM_calc_normals_mapping - campbell */
 	}
 	else if (dm) {
 		*final_r = dm;
-
-		/* once we support skipping normal calculation with modifiers we may want to add this back */
-#if 0	// was added for bmesh but is not needed
-		(*final_r)->calcNormals(*final_r);
-#endif
 	}
 	else if (!deformedVerts && cage_r && *cage_r) {
 		/* cage should already have up to date normals */
 		*final_r = *cage_r;
-#if 0	// was added for bmesh but is not needed
-		(*final_r)->calcNormals(*final_r);
-#endif
 
 		/* In this case, we should never have weight-modifying modifiers in stack... */
 		if (do_init_wmcol)
@@ -2151,6 +2199,9 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		}
 	}
 	/* --- */
+
+	/* same as mesh_calc_modifiers */
+	dm_ensure_display_normals(*final_r);
 
 	/* add an orco layer if needed */
 	if (dataMask & CD_MASK_ORCO)
@@ -2191,6 +2242,8 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
 		 * but this avoids waiting on first stroke) */
 		ob->sculpt->pbvh = ob->derivedFinal->getPBVH(ob, ob->derivedFinal);
 	}
+
+	BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS));
 }
 
 static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, CustomDataMask dataMask)
@@ -2217,6 +2270,8 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 	em->lastDataMask = dataMask;
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;
+
+	BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS));
 }
 
 static CustomDataMask object_get_datamask(Scene *scene, Object *ob)
@@ -2271,6 +2326,7 @@ DerivedMesh *mesh_get_derived_final(Scene *scene, Object *ob, CustomDataMask dat
 	if (!ob->derivedFinal || (dataMask & ob->lastDataMask) != dataMask)
 		mesh_build_data(scene, ob, dataMask, 0);
 
+	if (ob->derivedFinal) { BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
 	return ob->derivedFinal;
 }
 
@@ -2380,6 +2436,7 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, 
 	}
 
 	*final_r = em->derivedFinal;
+	if (em->derivedFinal) { BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
 	return em->derivedCage;
 }
 

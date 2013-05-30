@@ -3071,9 +3071,10 @@ static void ccgDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 	/* Nothing to do: CCG handles creating its own tessfaces */
 }
 
-static void ccgDM_calcNormals(DerivedMesh *UNUSED(dm))
+static void ccgDM_calcNormals(DerivedMesh *dm)
 {
 	/* Nothing to do: CCG calculates normals during drawing */
+	dm->dirty &= ~DM_DIRTY_NORMALS;
 }
 
 static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,

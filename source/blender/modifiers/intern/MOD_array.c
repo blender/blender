@@ -565,11 +565,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
 		/* Update normals in case offset object has rotation. */
-		
-		/* BMESH_TODO: check if normal recalc needed under any other
-		 * conditions? */
-
-		CDDM_calc_normals(result);
+		result->dirty |= DM_DIRTY_NORMALS;
 	}
 
 	BM_mesh_free(bm);
@@ -590,9 +586,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 
 	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
-
-	//if (result != dm)
-	//	CDDM_calc_normals_mapping(result);
 
 	return result;
 }

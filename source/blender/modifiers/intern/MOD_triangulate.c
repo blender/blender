@@ -54,7 +54,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 	for (i = 0; i < total_edges; i++, me++)
 		me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }

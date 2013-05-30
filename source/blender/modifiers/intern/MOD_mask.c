@@ -384,7 +384,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* why is this needed? - campbell */
 	/* recalculate normals */
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 	
 	/* free hashes */
 	BLI_ghash_free(vertHash, NULL, NULL);

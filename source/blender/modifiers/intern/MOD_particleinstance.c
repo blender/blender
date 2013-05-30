@@ -391,7 +391,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (size)
 		MEM_freeN(size);
 
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }

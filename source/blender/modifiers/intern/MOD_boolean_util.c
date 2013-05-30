@@ -485,7 +485,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	DM_ensure_tessface(result);
 #endif
 
-	CDDM_calc_normals(result);
+	result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }

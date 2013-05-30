@@ -74,10 +74,11 @@ typedef struct EditDerivedBMesh {
 	float (*polyNos)[3];
 } EditDerivedBMesh;
 
-static void emDM_calcNormals(DerivedMesh *UNUSED(dm))
+static void emDM_calcNormals(DerivedMesh *dm)
 {
 	/* Nothing to do: normals are already calculated and stored on the
 	 * BMVerts and BMFaces */
+	dm->dirty &= ~DM_DIRTY_NORMALS;
 }
 
 static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))

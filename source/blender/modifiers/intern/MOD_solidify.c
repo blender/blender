@@ -820,7 +820,7 @@ static DerivedMesh *applyModifier(
 
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if (dvert) {
-		CDDM_calc_normals(result);
+		result->dirty |= DM_DIRTY_NORMALS;
 	}
 
 	if (numFaces == 0 && numEdges != 0) {

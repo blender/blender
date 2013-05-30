@@ -971,7 +971,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	/* finalization */
 	CDDM_calc_edges_tessface(explode);
 	CDDM_tessfaces_to_faces(explode);
-	CDDM_calc_normals(explode);
+	explode->dirty |= DM_DIRTY_NORMALS;
 
 	if (psmd->psys->lattice) {
 		end_latt_deform(psmd->psys->lattice);
