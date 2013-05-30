@@ -96,7 +96,7 @@ void libmv_tracksDestroy(libmv_Tracks * /*libmv_tracks*/)
 
 libmv_Reconstruction *libmv_solveReconstruction(const libmv_Tracks * /*libmv_tracks*/,
 			const libmv_cameraIntrinsicsOptions * /*libmv_camera_intrinsics_options*/,
-			const libmv_reconstructionOptions * /*libmv_reconstruction_options*/,
+			libmv_reconstructionOptions * /*libmv_reconstruction_options*/,
 			reconstruct_progress_update_cb /*progress_update_callback*/,
 			void * /*callback_customdata*/)
 {
