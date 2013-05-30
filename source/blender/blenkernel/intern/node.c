@@ -475,7 +475,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree, bNode *UNUSED(node), int in_ou
 		BLI_strncpy(auto_identifier, name, sizeof(auto_identifier));
 	}
 	/* make the identifier unique */
-	BLI_uniquename_cb(unique_identifier_check, lb, NULL, '.', auto_identifier, sizeof(auto_identifier));
+	BLI_uniquename_cb(unique_identifier_check, lb, "socket", '.', auto_identifier, sizeof(auto_identifier));
 	
 	sock = MEM_callocN(sizeof(bNodeSocket), "sock");
 	sock->in_out = in_out;

@@ -7770,20 +7770,20 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 		for (node=ntree->nodes.first; node; node=node->next) {
 			for (sock = node->inputs.first; sock; sock = sock->next) {
 				BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
-				BLI_uniquename(&node->inputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+				BLI_uniquename(&node->inputs, sock, "socket", '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 			}
 			for (sock = node->outputs.first; sock; sock = sock->next) {
 				BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
-				BLI_uniquename(&node->outputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+				BLI_uniquename(&node->outputs, sock, "socket", '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 			}
 		}
 		for (sock = ntree->inputs.first; sock; sock = sock->next) {
 			BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
-			BLI_uniquename(&ntree->inputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+			BLI_uniquename(&ntree->inputs, sock, "socket", '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 		}
 		for (sock = ntree->outputs.first; sock; sock = sock->next) {
 			BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
-			BLI_uniquename(&ntree->outputs, sock, sock->identifier, '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
+			BLI_uniquename(&ntree->outputs, sock, "socket", '.', offsetof(bNodeSocket, identifier), sizeof(sock->identifier));
 		}
 	}
 }
