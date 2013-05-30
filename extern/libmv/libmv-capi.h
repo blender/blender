@@ -92,7 +92,9 @@ typedef struct libmv_cameraIntrinsicsOptions {
 } libmv_cameraIntrinsicsOptions;
 
 typedef struct libmv_reconstructionOptions {
+	int select_keyframes;
 	int keyframe1, keyframe2;
+
 	int refine_intrinsics;
 
 	double success_threshold;
@@ -103,7 +105,7 @@ typedef void (*reconstruct_progress_update_cb) (void *customdata, double progres
 
 struct libmv_Reconstruction *libmv_solveReconstruction(const struct libmv_Tracks *libmv_tracks,
 			const libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-			const libmv_reconstructionOptions *libmv_reconstruction_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
 			reconstruct_progress_update_cb progress_update_callback,
 			void *callback_customdata);
 struct libmv_Reconstruction *libmv_solveModal(const struct libmv_Tracks *libmv_tracks,

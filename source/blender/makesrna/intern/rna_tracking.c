@@ -614,6 +614,13 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	                         "Use fallback reconstruction algorithm in cases main reconstruction algorithm failed "
 	                         "(could give better solution with bad tracks)");
 
+	/* use keyframe selection */
+	prop = RNA_def_property(srna, "use_keyframe_selection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "reconstruction_flag", TRACKING_USE_KEYFRAME_SELECTION);
+	RNA_def_property_ui_text(prop, "Keyframe Selection",
+	                         "Automatically select keyframes when solving camera/object motion");
+
 	/* intrinsics refinement during bundle adjustment */
 	prop = RNA_def_property(srna, "refine_intrinsics", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "refine_camera_intrinsics");

@@ -366,9 +366,10 @@ enum {
 	TRACKING_SPEED_DOUBLE   = 5
 };
 
-/* MovieTrackingObject->reconstruction_flag */
+/* MovieTrackingSettings->reconstruction_flag */
 enum {
-	TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0)
+	TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0),
+	TRACKING_USE_KEYFRAME_SELECTION      = (1 << 1)
 };
 
 /* MovieTrackingSettings->refine_camera_intrinsics */

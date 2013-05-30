@@ -2857,6 +2857,7 @@ void BKE_tracking_refine_marker(MovieClip *clip, MovieTrackingTrack *track, Movi
 
 typedef struct MovieReconstructContext {
 	struct libmv_Tracks *tracks;
+	bool select_keyframes;
 	int keyframe1, keyframe2;
 	short refine_flags;
 
@@ -3130,12 +3131,15 @@ int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObje
 		/* TODO: check for number of tracks? */
 		return TRUE;
 	}
-	else if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
-		BLI_strncpy(error_msg,
-		            N_("At least 8 common tracks on both of keyframes are needed for reconstruction"),
-		            error_size);
+	else if ((tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) == 0) {
+		/* automatic keyframe selection does not require any pre-process checks */
+		if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
+			BLI_strncpy(error_msg,
+			            N_("At least 8 common tracks on both of keyframes are needed for reconstruction"),
+			            error_size);
 
-		return FALSE;
+			return FALSE;
+		}
 	}
 
 #ifndef WITH_LIBMV
@@ -3165,6 +3169,9 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 	BLI_strncpy(context->object_name, object->name, sizeof(context->object_name));
 	context->is_camera = object->flag & TRACKING_OBJECT_CAMERA;
 	context->motion_flag = tracking->settings.motion_flag;
+
+	context->select_keyframes =
+		(tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) != 0;
 
 	context->focal_length = camera->focal;
 	context->principal_point[0] = camera->principal[0];
@@ -3269,6 +3276,8 @@ static void camraIntrincicsOptionsFromContext(libmv_cameraIntrinsicsOptions *cam
 static void reconstructionOptionsFromContext(libmv_reconstructionOptions *reconstruction_options,
                                              MovieReconstructContext *context)
 {
+	reconstruction_options->select_keyframes = context->select_keyframes;
+
 	reconstruction_options->keyframe1 = context->keyframe1;
 	reconstruction_options->keyframe2 = context->keyframe2;
 
@@ -3317,6 +3326,12 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 		                                                    &camera_intrinsics_options,
 		                                                    &reconstruction_options,
 		                                                    reconstruct_update_solve_cb, &progressdata);
+
+		if (context->select_keyframes) {
+			/* store actual keyframes used for reconstruction to update them in the interface later */
+			context->keyframe1 = reconstruction_options.keyframe1;
+			context->keyframe2 = reconstruction_options.keyframe2;
+		}
 	}
 
 	error = libmv_reprojectionError(context->reconstruction);
@@ -3330,18 +3345,22 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 int BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieTracking *tracking)
 {
 	MovieTrackingReconstruction *reconstruction;
+	MovieTrackingObject *object;
 
 	tracks_map_merge(context->tracks_map, tracking);
 	BKE_tracking_dopesheet_tag_update(tracking);
 
-	if (context->is_camera) {
+	object = BKE_tracking_object_get_named(tracking, context->object_name);
+	
+	if (context->is_camera)
 		reconstruction = &tracking->reconstruction;
-	}
-	else {
-		MovieTrackingObject *object;
-
-		object = BKE_tracking_object_get_named(tracking, context->object_name);
+	else
 		reconstruction = &object->reconstruction;
+
+	/* update keyframe in the interface */
+	if (context->select_keyframes) {
+		object->keyframe1 = context->keyframe1;
+		object->keyframe2 = context->keyframe2;
 	}
 
 	reconstruction->error = context->reprojection_error;

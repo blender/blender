@@ -56,6 +56,7 @@
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/modal_solver.h"
 #include "libmv/simple_pipeline/reconstruction_scale.h"
+#include "libmv/simple_pipeline/keyframe_selection.h"
 
 #ifdef _MSC_VER
 #  define snprintf _snprintf
@@ -497,9 +498,82 @@ static void finishReconstruction(const libmv::Tracks &tracks, const libmv::Camer
 	libmv_reconstruction->error = libmv::EuclideanReprojectionError(tracks, reconstruction, camera_intrinsics);
 }
 
+static bool selectTwoKeyframesBasedOnGRICAndVariance(
+                          libmv::Tracks &tracks,
+                          libmv::Tracks &normalized_tracks,
+                          libmv::CameraIntrinsics &camera_intrinsics,
+                          libmv::ReconstructionOptions &reconstruction_options,
+                          int &keyframe1,
+                          int &keyframe2)
+{
+	libmv::vector<int> keyframes;
+
+	/* Get list of all keyframe candidates first. */
+	SelectkeyframesBasedOnGRICAndVariance(normalized_tracks,
+	                                      camera_intrinsics,
+	                                      keyframes);
+
+	if (keyframes.size() < 2) {
+		LG << "Not enough keyframes detected by GRIC";
+		return false;
+	}
+	else if (keyframes.size() == 2) {
+		keyframe1 = keyframes[0];
+		keyframe2 = keyframes[1];
+		return true;
+	}
+
+	/* Now choose two keyframes with minimal reprojection error after initial
+	 * reconstruction choose keyframes with the least reprojection error after
+	 * solving from two candidate keyframes.
+	 *
+	 * In fact, currently libmv returns single pair only, so this code will
+	 * not actually run. But in the future this could change, so let's stay
+	 * prepared.
+	 */
+	int previous_keyframe = keyframes[0];
+	double best_error = std::numeric_limits<double>::max();
+	for (int i = 1; i < keyframes.size(); i++) {
+		libmv::EuclideanReconstruction reconstruction;
+		int current_keyframe = keyframes[i];
+
+		libmv::vector<libmv::Marker> keyframe_markers =
+			normalized_tracks.MarkersForTracksInBothImages(previous_keyframe,
+			                                               current_keyframe);
+
+		libmv::Tracks keyframe_tracks(keyframe_markers);
+
+		/* get a solution from two keyframes only */
+		libmv::EuclideanReconstructTwoFrames(keyframe_markers, &reconstruction);
+		libmv::EuclideanBundle(keyframe_tracks, &reconstruction);
+		libmv::EuclideanCompleteReconstruction(reconstruction_options,
+		                                       keyframe_tracks,
+		                                       &reconstruction, NULL);
+
+		double current_error =
+			libmv::EuclideanReprojectionError(tracks,
+			                                  reconstruction,
+			                                  camera_intrinsics);
+
+		LG << "Error between " << previous_keyframe
+		   << " and " << current_keyframe
+		   << ": " << current_error;
+
+		if (current_error < best_error) {
+			best_error = current_error;
+			keyframe1 = previous_keyframe;
+			keyframe2 = current_keyframe;
+		}
+
+		previous_keyframe = current_keyframe;
+	}
+
+	return true;
+}
+
 libmv_Reconstruction *libmv_solveReconstruction(const libmv_Tracks *libmv_tracks,
 			const libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-			const libmv_reconstructionOptions *libmv_reconstruction_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
 			reconstruct_progress_update_cb progress_update_callback,
 			void *callback_customdata)
 {
@@ -512,19 +586,38 @@ libmv_Reconstruction *libmv_solveReconstruction(const libmv_Tracks *libmv_tracks
 	ReconstructUpdateCallback update_callback =
 		ReconstructUpdateCallback(progress_update_callback, callback_customdata);
 
+	/* Retrieve reconstruction options from C-API to libmv API */
 	cameraIntrinsicsFromOptions(libmv_camera_intrinsics_options, &camera_intrinsics);
 
-	/* Invert the camera intrinsics */
-	libmv::Tracks normalized_tracks = getNormalizedTracks(tracks, camera_intrinsics);
-
-	/* actual reconstruction */
 	libmv::ReconstructionOptions reconstruction_options;
 	reconstruction_options.success_threshold = libmv_reconstruction_options->success_threshold;
 	reconstruction_options.use_fallback_reconstruction = libmv_reconstruction_options->use_fallback_reconstruction;
 
+	/* Invert the camera intrinsics */
+	libmv::Tracks normalized_tracks = getNormalizedTracks(tracks, camera_intrinsics);
+
+	/* keyframe selection */
 	int keyframe1 = libmv_reconstruction_options->keyframe1,
 	    keyframe2 = libmv_reconstruction_options->keyframe2;
 
+	if (libmv_reconstruction_options->select_keyframes) {
+		LG << "Using automatic keyframe selection";
+
+		update_callback.invoke(0, "Selecting keyframes");
+
+		selectTwoKeyframesBasedOnGRICAndVariance(tracks,
+		                                         normalized_tracks,
+		                                         camera_intrinsics,
+		                                         reconstruction_options,
+		                                         keyframe1,
+		                                         keyframe2);
+
+		/* so keyframes in the interface would be updated */
+		libmv_reconstruction_options->keyframe1 = keyframe1;
+		libmv_reconstruction_options->keyframe2 = keyframe2;
+	}
+
+	/* actual reconstruction */
 	LG << "frames to init from: " << keyframe1 << " " << keyframe2;
 
 	libmv::vector<libmv::Marker> keyframe_markers =
