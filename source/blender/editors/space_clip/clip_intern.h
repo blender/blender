@@ -145,7 +145,7 @@ struct MovieTrackingTrack *tracking_marker_check_slide(struct bContext *C, const
                                                        int *area_r, int *action_r, int *corner_r);
 
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
-void CLIP_OT_add_marker_at_center(struct wmOperatorType *ot);
+void CLIP_OT_add_marker_at_click(struct wmOperatorType *ot);
 void CLIP_OT_delete_track(struct wmOperatorType *ot);
 void CLIP_OT_delete_marker(struct wmOperatorType *ot);
 

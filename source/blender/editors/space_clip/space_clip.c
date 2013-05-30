@@ -465,7 +465,7 @@ static void clip_operatortypes(void)
 
 	/* markers */
 	WM_operatortype_append(CLIP_OT_add_marker);
-	WM_operatortype_append(CLIP_OT_add_marker_at_center);
+	WM_operatortype_append(CLIP_OT_add_marker_at_click);
 	WM_operatortype_append(CLIP_OT_slide_marker);
 	WM_operatortype_append(CLIP_OT_delete_track);
 	WM_operatortype_append(CLIP_OT_delete_marker);

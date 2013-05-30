@@ -211,7 +211,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
         settings = clip.tracking.settings
 
         col = layout.column(align=True)
-        props = col.operator("clip.add_marker_at_center", text="Add Marker")
+        props = col.operator("clip.add_marker_at_click", text="Add Marker")
         col.operator("clip.detect_features")
         col.operator("clip.delete_track")
 

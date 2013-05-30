@@ -72,6 +72,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "UI_view2d.h"
@@ -163,44 +165,65 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 
 /********************** add marker operator *********************/
 
-static int add_marker_at_center_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static int add_marker_at_click_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip_get_clip(sc);
-	ARegion *ar = CTX_wm_region(C);
-	float pos[2];
+	ED_area_headerprint(CTX_wm_area(C), IFACE_("Use LMB click to define location where place the marker"));
 
-	ED_clip_point_stable_pos(sc, ar,
-	                         BLI_rcti_size_x(&ar->winrct) / 2.0f,
-	                         BLI_rcti_size_y(&ar->winrct) / 2.0f,
-	                         &pos[0], &pos[1]);
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, op);
 
-	if (!add_marker(C, pos[0], pos[1])) {
-		return OPERATOR_CANCELLED;
-	}
-
-	/* reset offset from locked position, so frame jumping wouldn't be so confusing */
-	sc->xlockof = 0;
-	sc->ylockof = 0;
-
-	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
-
-	return OPERATOR_FINISHED;
+	return OPERATOR_RUNNING_MODAL;
 }
 
-void CLIP_OT_add_marker_at_center(wmOperatorType *ot)
+static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	 SpaceClip *sc = CTX_wm_space_clip(C);
+	 MovieClip *clip = ED_space_clip_get_clip(sc);
+	 ARegion *ar = CTX_wm_region(C);
+	 float pos[2];
+
+	 switch(event->type) {
+	 	case MOUSEMOVE:
+			return OPERATOR_RUNNING_MODAL;
+			break;
+
+	    case LEFTMOUSE:
+			ED_area_headerprint(CTX_wm_area(C), NULL);
+
+			ED_clip_point_stable_pos(sc, ar,
+			                         event->x - ar->winrct.xmin,
+			                         event->y - ar->winrct.ymin,
+			                         &pos[0], &pos[1]);
+
+			if (!add_marker(C, pos[0], pos[1]))
+				return OPERATOR_CANCELLED;
+
+			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
+			return OPERATOR_FINISHED;
+			break;
+
+		case ESCKEY:
+			 ED_area_headerprint(CTX_wm_area(C), NULL);
+			 return OPERATOR_CANCELLED;
+    }
+
+   return OPERATOR_PASS_THROUGH;
+}
+
+void CLIP_OT_add_marker_at_click(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Marker at Center";
-	ot->idname = "CLIP_OT_add_marker_at_center";
-	ot->description = "Place new marker at the center of visible frame";
+	ot->name = "Add Marker at Click";
+	ot->idname = "CLIP_OT_add_marker_at_click";
+	ot->description = "Place new marker at the desired (clicked) position";
 
 	/* api callbacks */
-	ot->invoke = add_marker_at_center_invoke;
+	ot->invoke = add_marker_at_click_invoke;
 	ot->poll = ED_space_clip_tracking_poll;
+	ot->modal = add_marker_at_click_modal;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 }
 
 /********************** delete track operator *********************/
