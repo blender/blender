@@ -93,6 +93,7 @@ typedef struct bUnitDef {
 
 #define B_UNIT_DEF_NONE 0
 #define B_UNIT_DEF_SUPPRESS 1 /* Use for units that are not used enough to be translated into for common use */
+#define B_UNIT_DEF_TENTH 2 /* Display a unit even if its value is 0.1, eg 0.1mm instead of 100um */
 
 /* define a single unit */
 typedef struct bUnitCollection {
@@ -114,7 +115,7 @@ static struct bUnitDef buMetricLenDef[] = {
 	{"meter", "meters",             "m",   NULL, "Meters",     UN_SC_M, 0.0,      B_UNIT_DEF_NONE},     /* base unit */
 	{"decimeter", "decimeters",     "dm",  NULL, "10 Centimeters", UN_SC_DM, 0.0, B_UNIT_DEF_SUPPRESS},
 	{"centimeter", "centimeters",   "cm",  NULL, "Centimeters", UN_SC_CM, 0.0,    B_UNIT_DEF_NONE},
-	{"millimeter", "millimeters",   "mm",  NULL, "Millimeters", UN_SC_MM, 0.0,    B_UNIT_DEF_NONE},
+	{"millimeter", "millimeters",   "mm",  NULL, "Millimeters", UN_SC_MM, 0.0,    B_UNIT_DEF_NONE | B_UNIT_DEF_TENTH},
 	{"micrometer", "micrometers",   "µm",  "um", "Micrometers", UN_SC_UM, 0.0,    B_UNIT_DEF_NONE},     // micron too?
 
 	/* These get displayed because of float precision problems in the transform header,
@@ -147,7 +148,7 @@ static struct bUnitDef buMetricAreaDef[] = {
 	{"square meter",      "square meters",      "m²",  "m2",    "Square Meters", UN_SC_M * UN_SC_M, 0.0,          B_UNIT_DEF_NONE},   /* base unit */
 	{"square decimeter",  "square decimetees",  "dm²", "dm2",   "Square Decimeters", UN_SC_DM * UN_SC_DM, 0.0,    B_UNIT_DEF_SUPPRESS},
 	{"square centimeter", "square centimeters", "cm²", "cm2",   "Square Centimeters", UN_SC_CM * UN_SC_CM, 0.0,   B_UNIT_DEF_NONE},
-	{"square millimeter", "square millimeters", "mm²", "mm2",   "Square Millimeters", UN_SC_MM * UN_SC_MM, 0.0,   B_UNIT_DEF_NONE},
+	{"square millimeter", "square millimeters", "mm²", "mm2",   "Square Millimeters", UN_SC_MM * UN_SC_MM, 0.0,   B_UNIT_DEF_NONE | B_UNIT_DEF_TENTH},
 	{"square micrometer", "square micrometers", "µm²", "um2",   "Square Micrometers", UN_SC_UM * UN_SC_UM, 0.0,   B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
 };
@@ -173,7 +174,7 @@ static struct bUnitDef buMetricVolDef[] = {
 	{"cubic meter",      "cubic meters",      "m³",   "m3",   "Cubic Meters", UN_SC_M * UN_SC_M * UN_SC_M, 0.0,           B_UNIT_DEF_NONE}, /* base unit */
 	{"cubic decimeter",  "cubic decimeters",  "dm³",  "dm3",  "Cubic Decimeters", UN_SC_DM * UN_SC_DM * UN_SC_DM, 0.0,    B_UNIT_DEF_SUPPRESS},
 	{"cubic centimeter", "cubic centimeters", "cm³",  "cm3",  "Cubic Centimeters", UN_SC_CM * UN_SC_CM * UN_SC_CM, 0.0,   B_UNIT_DEF_NONE},
-	{"cubic millimeter", "cubic millimeters", "mm³",  "mm3",  "Cubic Millimeters", UN_SC_MM * UN_SC_MM * UN_SC_MM, 0.0,   B_UNIT_DEF_NONE},
+	{"cubic millimeter", "cubic millimeters", "mm³",  "mm3",  "Cubic Millimeters", UN_SC_MM * UN_SC_MM * UN_SC_MM, 0.0,   B_UNIT_DEF_NONE | B_UNIT_DEF_TENTH},
 	{"cubic micrometer", "cubic micrometers", "µm³",  "um3",  "Cubic Micrometers", UN_SC_UM * UN_SC_UM * UN_SC_UM, 0.0,   B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
 };
@@ -311,8 +312,16 @@ static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *un
 			continue;
 
 		/* scale down scalar so 1cm doesnt convert to 10mm because of float error */
-		if (value_abs >= unit->scalar * (1.0 - EPS))
-			return unit;
+		if (UNLIKELY(unit->flag & B_UNIT_DEF_TENTH)) {
+			if (value_abs >= unit->scalar * (0.1 - EPS)) {
+				return unit;
+			}
+		}
+		else {
+			if (value_abs >= unit->scalar * (1.0 - EPS)) {
+				return unit;
+			}
+		}
 	}
 
 	return unit_default(usys);
