@@ -2455,6 +2455,10 @@ static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip, MovieClipUser
 	int keyed_framenr;
 
 	marker_keyed = tracking_context_get_keyframed_marker(track, curfra, backwards);
+	if (marker_keyed == NULL) {
+		return NULL;
+	}
+
 	keyed_framenr = marker_keyed->framenr;
 
 	*marker_keyed_r = marker_keyed;
@@ -2816,8 +2820,14 @@ void BKE_tracking_refine_marker(MovieClip *clip, MovieTrackingTrack *track, Movi
 	reference_framenr = backwards ? marker->framenr + 1 : marker->framenr - 1;
 	reference_ibuf = tracking_context_get_reference_ibuf(clip, &user, clip_flag, track, reference_framenr,
 	                                                     backwards, &reference_marker);
-	if (reference_ibuf == NULL)
+	if (reference_ibuf == NULL) {
 		return;
+	}
+
+	/* Could not refine with self. */
+	if (reference_marker == marker) {
+		return;
+	}
 
 	/* Destination image buffer has got frame number corresponding to refining marker. */
 	destination_ibuf = BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MOVIECLIP_CACHE_SKIP);
