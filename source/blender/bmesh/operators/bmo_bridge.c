@@ -175,11 +175,27 @@ static void bridge_loop_pair(BMesh *bm,
 		BM_edgeloop_calc_normal(bm, el_store_b);
 	}
 	else {
+		ListBase *lb_a = BM_edgeloop_verts_get(el_store_a);
+		ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
+
 		/* normalizing isn't strictly needed but without we may get very large values */
 		float no[3];
+		float dir_a[3], dir_b[3];
+
+		sub_v3_v3v3(dir_a,
+		            ((BMVert *)(((LinkData *)lb_a->first)->data))->co,
+		            ((BMVert *)(((LinkData *)lb_a->last)->data))->co);
+		sub_v3_v3v3(dir_b,
+		            ((BMVert *)(((LinkData *)lb_b->first)->data))->co,
+		            ((BMVert *)(((LinkData *)lb_b->last)->data))->co);
+
+		/* this isnt totally reliable but works well in most cases */
+		if (dot_v3v3(dir_a, dir_b) < 0.0f) {
+			BM_edgeloop_flip(bm, el_store_b);
+		}
+
 		normalize_v3_v3(no, el_dir);
 		BM_edgeloop_calc_normal_aligned(bm, el_store_a, no);
-		negate_v3(no);
 		BM_edgeloop_calc_normal_aligned(bm, el_store_b, no);
 	}
 
