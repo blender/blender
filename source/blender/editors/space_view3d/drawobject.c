@@ -2657,7 +2657,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }
 
-static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
 	const short txt_flag = V3D_CACHE_TEXT_ASCII | V3D_CACHE_TEXT_LOCALCLIP;
 	Mesh *me = ob->data;
@@ -2670,6 +2670,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
 	const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
 	const bool do_moving = G.moving;
+	float clip_planes[4][4];
 
 	BMIter iter;
 	int i;
@@ -2681,7 +2682,16 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 	else if (grid <= 1.0f) conv_float = "%.4g";
 	else if (grid <= 10.0f) conv_float = "%.3g";
 	else conv_float = "%.2g";
-	
+
+	if (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_EDGEANG)) {
+		BoundBox bb;
+		bglMats mats = {{0}};
+		const rcti rect = {0, ar->winx, 0, ar->winy};
+
+		view3d_get_transformation(ar, ar->regiondata, em->ob, &mats);
+		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &rect);
+	}
+
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		BMEdge *eed;
 
@@ -2698,22 +2708,28 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 				copy_v3_v3(v1, eed->v1->co);
 				copy_v3_v3(v2, eed->v2->co);
 
-				mid_v3_v3v3(vmid, v1, v2);
+				if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4)) {
 
-				if (do_global) {
-					mul_mat3_m4_v3(ob->obmat, v1);
-					mul_mat3_m4_v3(ob->obmat, v2);
-				}
+					mid_v3_v3v3(vmid, v1, v2);
 
-				if (unit->system) {
-					bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
-					               unit->system, B_UNIT_LENGTH, do_split, false);
-				}
-				else {
-					BLI_snprintf(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
-				}
+					copy_v3_v3(v1, eed->v1->co);
+					copy_v3_v3(v2, eed->v2->co);
 
-				view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
+					if (do_global) {
+						mul_mat3_m4_v3(ob->obmat, v1);
+						mul_mat3_m4_v3(ob->obmat, v2);
+					}
+
+					if (unit->system) {
+						bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
+									   unit->system, B_UNIT_LENGTH, do_split, false);
+					}
+					else {
+						BLI_snprintf(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
+					}
+
+					view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
+				}
 			}
 		}
 	}
@@ -2742,28 +2758,34 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 				                   BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)
 				                   )))
 				{
-					float angle;
 					copy_v3_v3(v1, eed->v1->co);
 					copy_v3_v3(v2, eed->v2->co);
 
-					mid_v3_v3v3(vmid, v1, v2);
+					if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4)) {
+						float angle;
 
-					if (do_global) {
-						float no_a[3];
-						float no_b[3];
-						copy_v3_v3(no_a, l_a->f->no);
-						copy_v3_v3(no_b, l_b->f->no);
-						mul_mat3_m4_v3(ob->imat, no_a);
-						mul_mat3_m4_v3(ob->imat, no_b);
-						angle = angle_v3v3(no_a, no_b);
+						mid_v3_v3v3(vmid, v1, v2);
+
+						copy_v3_v3(v1, eed->v1->co);
+						copy_v3_v3(v2, eed->v2->co);
+
+						if (do_global) {
+							float no_a[3];
+							float no_b[3];
+							copy_v3_v3(no_a, l_a->f->no);
+							copy_v3_v3(no_b, l_b->f->no);
+							mul_mat3_m4_v3(ob->imat, no_a);
+							mul_mat3_m4_v3(ob->imat, no_b);
+							angle = angle_v3v3(no_a, no_b);
+						}
+						else {
+							angle = angle_normalized_v3v3(l_a->f->no, l_b->f->no);
+						}
+
+						BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
+
+						view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
 					}
-					else {
-						angle = angle_normalized_v3v3(l_a->f->no, l_b->f->no);
-					}
-
-					BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
-
-					view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
 				}
 			}
 		}
@@ -2960,10 +2982,11 @@ static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 		return DM_DRAW_OPTION_NORMAL;
 }
 
-static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
+static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
                           Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const char dt)
 
 {
+	RegionView3D *rv3d = ar->regiondata;
 	Mesh *me = ob->data;
 	BMFace *efa_act = BM_active_face_get(em->bm, false, true); /* annoying but active faces is stored differently */
 	BMEdge *eed_act = NULL;
@@ -3158,7 +3181,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		                     ME_DRAWEXTRA_EDGEANG)) &&
 		    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
-			draw_em_measure_stats(v3d, ob, em, &scene->unit);
+			draw_em_measure_stats(ar, v3d, ob, em, &scene->unit);
 		}
 
 		if ((G.debug & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
@@ -3490,7 +3513,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 		}
 
-		draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
+		draw_em_fancy(scene, ar, v3d, ob, em, cageDM, finalDM, dt);
 
 		GPU_end_object_materials();
 
