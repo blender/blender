@@ -254,8 +254,8 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				continue;
 
 			do {
-				if (BLI_smallhash_haskey(hash, (intptr_t)e2) ||
-				    BLI_smallhash_haskey(hash, (intptr_t)v))
+				if (BLI_smallhash_haskey(hash, (uintptr_t)e2) ||
+				    BLI_smallhash_haskey(hash, (uintptr_t)v))
 				{
 					ok = 0;
 					break;
@@ -264,7 +264,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				BLI_array_append(verts, v);
 				BLI_array_append(edges, e2);
 
-				BLI_smallhash_insert(hash, (intptr_t)e2, NULL);
+				BLI_smallhash_insert(hash, (uintptr_t)e2, NULL);
 
 				v = BM_edge_other_vert(e2, v);
 				e2 = i ? rotsys_prevedge(e2, v, edata, vdata) : rotsys_nextedge(e2, v, edata, vdata);

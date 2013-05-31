@@ -1212,7 +1212,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 		for (ref = lst->first; ref; ref = ref->next) {
 			KnifeEdge *kfe = ref->ref;
 
-			if (BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
+			if (BLI_smallhash_haskey(ehash, (uintptr_t)kfe)) {
 				continue;  /* We already found a hit on this knife edge */
 			}
 
@@ -1271,7 +1271,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 				}
 
 				/* ok, if visible add the new point */
-				if (!f_hit && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
+				if (!f_hit && !BLI_smallhash_haskey(ehash, (uintptr_t)kfe)) {
 					BMEdgeHit hit;
 	
 					if (len_squared_v3v3(p, kcd->curr.co) < depsilon_sq ||
@@ -1315,7 +1315,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 					knife_project_v2(kcd, hit.cagehit, hit.schit);
 
 					BLI_array_append(edges, hit);
-					BLI_smallhash_insert(ehash, (intptr_t)kfe, NULL);
+					BLI_smallhash_insert(ehash, (uintptr_t)kfe, NULL);
 				}
 			}
 		}
@@ -1900,13 +1900,13 @@ static void remerge_faces(KnifeTool_OpData *kcd)
 		if (!BMO_elem_flag_test(bm, f, FACE_NEW))
 			continue;
 
-		if (BLI_smallhash_haskey(visit, (intptr_t)f))
+		if (BLI_smallhash_haskey(visit, (uintptr_t)f))
 			continue;
 
 		BLI_array_empty(stack);
 		BLI_array_empty(faces);
 		BLI_array_append(stack, f);
-		BLI_smallhash_insert(visit, (intptr_t)f, NULL);
+		BLI_smallhash_insert(visit, (uintptr_t)f, NULL);
 
 		do {
 			f2 = BLI_array_pop(stack);
@@ -1923,10 +1923,10 @@ static void remerge_faces(KnifeTool_OpData *kcd)
 				BM_ITER_ELEM (f3, &fiter, e, BM_FACES_OF_EDGE) {
 					if (!BMO_elem_flag_test(bm, f3, FACE_NEW))
 						continue;
-					if (BLI_smallhash_haskey(visit, (intptr_t)f3))
+					if (BLI_smallhash_haskey(visit, (uintptr_t)f3))
 						continue;
 
-					BLI_smallhash_insert(visit, (intptr_t)f3, NULL);
+					BLI_smallhash_insert(visit, (uintptr_t)f3, NULL);
 					BLI_array_append(stack, f3);
 				}
 			}
@@ -2086,34 +2086,34 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 		BLI_scanfill_begin(&sf_ctx);
 
 		for (entry = face_nets[i].first; entry; entry = entry->next) {
-			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
+			if (!BLI_smallhash_haskey(hash, (uintptr_t)entry->kfe->v1)) {
 				sf_vert = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v1->v->co);
 				sf_vert->poly_nr = 0;
 				rnd_offset_co(rng, sf_vert->co, rndscale);
 				sf_vert->tmp.p = entry->kfe->v1->v;
-				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v1, sf_vert);
+				BLI_smallhash_insert(hash, (uintptr_t)entry->kfe->v1, sf_vert);
 			}
 
-			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
+			if (!BLI_smallhash_haskey(hash, (uintptr_t)entry->kfe->v2)) {
 				sf_vert = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v2->v->co);
 				sf_vert->poly_nr = 0;
 				rnd_offset_co(rng, sf_vert->co, rndscale);
 				sf_vert->tmp.p = entry->kfe->v2->v;
-				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v2, sf_vert);
+				BLI_smallhash_insert(hash, (uintptr_t)entry->kfe->v2, sf_vert);
 			}
 		}
 
 		for (j = 0, entry = face_nets[i].first; entry; entry = entry->next, j++) {
-			sf_vert_last = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
-			sf_vert = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
+			sf_vert_last = BLI_smallhash_lookup(hash, (uintptr_t)entry->kfe->v1);
+			sf_vert = BLI_smallhash_lookup(hash, (uintptr_t)entry->kfe->v2);
 
 			sf_vert->poly_nr++;
 			sf_vert_last->poly_nr++;
 		}
 
 		for (j = 0, entry = face_nets[i].first; entry; entry = entry->next, j++) {
-			sf_vert_last = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
-			sf_vert = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
+			sf_vert_last = BLI_smallhash_lookup(hash, (uintptr_t)entry->kfe->v1);
+			sf_vert = BLI_smallhash_lookup(hash, (uintptr_t)entry->kfe->v2);
 
 			if (sf_vert->poly_nr > 1 && sf_vert_last->poly_nr > 1) {
 				ScanFillEdge *sf_edge;
