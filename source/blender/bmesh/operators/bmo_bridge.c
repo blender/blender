@@ -168,6 +168,21 @@ static void bridge_loop_pair(BMesh *bm,
 	}
 
 	sub_v3_v3v3(el_dir, BM_edgeloop_center_get(el_store_a), BM_edgeloop_center_get(el_store_b));
+
+	if (is_closed) {
+		/* if all loops are closed this will calculate twice for all loops */
+		BM_edgeloop_calc_normal(bm, el_store_a);
+		BM_edgeloop_calc_normal(bm, el_store_b);
+	}
+	else {
+		/* normalizing isn't strictly needed but without we may get very large values */
+		float no[3];
+		normalize_v3_v3(no, el_dir);
+		BM_edgeloop_calc_normal_aligned(bm, el_store_a, no);
+		negate_v3(no);
+		BM_edgeloop_calc_normal_aligned(bm, el_store_b, no);
+	}
+
 	if ((dot_v3v3(BM_edgeloop_normal_get(el_store_a), el_dir) < 0.0f) !=
 		(dot_v3v3(BM_edgeloop_normal_get(el_store_b), el_dir) < 0.0f))
 	{
@@ -426,7 +441,6 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 	count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, bm);
 
-	BM_mesh_edgeloops_calc_normal(bm, &eloops);
 	BM_mesh_edgeloops_calc_center(bm, &eloops);
 
 	if (count < 2) {
