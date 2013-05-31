@@ -502,8 +502,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 		            filepath, errno ? strerror(errno) : TIP_("unknown error stating file"));
 	}
 	
-	if (text->flags & TXT_ISDIRTY)
-		text->flags ^= TXT_ISDIRTY;
+	text->flags &= ~TXT_ISDIRTY;
 }
 
 static int text_save_exec(bContext *C, wmOperator *op)

@@ -177,17 +177,17 @@ static int add_marker_at_click_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	 SpaceClip *sc = CTX_wm_space_clip(C);
-	 MovieClip *clip = ED_space_clip_get_clip(sc);
-	 ARegion *ar = CTX_wm_region(C);
-	 float pos[2];
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	ARegion *ar = CTX_wm_region(C);
+	float pos[2];
 
-	 switch(event->type) {
-	 	case MOUSEMOVE:
+	switch (event->type) {
+		case MOUSEMOVE:
 			return OPERATOR_RUNNING_MODAL;
 			break;
 
-	    case LEFTMOUSE:
+		case LEFTMOUSE:
 			ED_area_headerprint(CTX_wm_area(C), NULL);
 
 			ED_clip_point_stable_pos(sc, ar,
@@ -203,11 +203,11 @@ static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const 
 			break;
 
 		case ESCKEY:
-			 ED_area_headerprint(CTX_wm_area(C), NULL);
-			 return OPERATOR_CANCELLED;
-    }
+			ED_area_headerprint(CTX_wm_area(C), NULL);
+			return OPERATOR_CANCELLED;
+	}
 
-   return OPERATOR_PASS_THROUGH;
+	return OPERATOR_PASS_THROUGH;
 }
 
 void CLIP_OT_add_marker_at_click(wmOperatorType *ot)

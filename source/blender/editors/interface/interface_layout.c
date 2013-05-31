@@ -1752,7 +1752,7 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 		if (ot->prop &&
 		    WM_key_event_operator_string(C, ot->idname, layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf)))
 		{
-			namestr += BLI_snprintf(namestr, sizeof(namestr_buf) - (namestr - namestr_buf) , "|%s", name);
+			namestr += BLI_snprintf(namestr, sizeof(namestr_buf) - (namestr - namestr_buf), "|%s", name);
 		}
 	}
 

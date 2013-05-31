@@ -1564,10 +1564,11 @@ void BKE_pbvh_node_draw(PBVHNode *node, void *data_v)
 	glColor3f(1, 0, 0);
 #endif
 
-	if (!(node->flag & PBVH_FullyHidden))
+	if (!(node->flag & PBVH_FullyHidden)) {
 		GPU_draw_buffers(node->draw_buffers,
-						 data->setMaterial,
-						 data->wireframe);
+		                 data->setMaterial,
+		                 data->wireframe);
+	}
 }
 
 typedef enum {
