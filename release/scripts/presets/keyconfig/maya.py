@@ -964,10 +964,10 @@ kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
 kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', ctrl=True)
-kmi.properties.center = True
+kmi.properties.center = False
 kmi.properties.extend = False
 kmi.properties.toggle = False
-kmi.properties.deselect = False
+kmi.properties.deselect = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
 kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', alt=True)
