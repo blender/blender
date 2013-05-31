@@ -609,7 +609,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 
 		if (is_movie) {
-			ok = oglrender->mh->append_movie(&scene->r, SFRA, CFRA, (int *)ibuf_save->rect,
+			ok = oglrender->mh->append_movie(&scene->r, PSFRA, CFRA, (int *)ibuf_save->rect,
 			                                 oglrender->sizex, oglrender->sizey, oglrender->reports);
 			if (ok) {
 				printf("Append frame %d", scene->r.cfra);
