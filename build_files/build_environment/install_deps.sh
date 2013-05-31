@@ -3091,6 +3091,7 @@ print_info() {
 
   if $ALL_STATIC; then
     INFO "LLIB = ["xml2", "expat"] + LLIB"
+  fi
 
   INFO ""
   INFO "NOTE: static build with scons are very tricky to set-up, if you choose that option"
