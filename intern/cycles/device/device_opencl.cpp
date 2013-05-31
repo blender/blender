@@ -104,11 +104,193 @@ static string opencl_kernel_build_options(const string& platform, const string *
 	if(opencl_kernel_use_debug())
 		build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
 
-	if (opencl_kernel_use_advanced_shading(platform))
+	if(opencl_kernel_use_advanced_shading(platform))
 		build_options += "-D__KERNEL_OPENCL_NEED_ADVANCED_SHADING__ ";
 	
 	return build_options;
 }
+
+/* thread safe cache for contexts and programs */
+class OpenCLCache
+{
+	struct Slot
+	{
+		thread_mutex *mutex;
+		cl_context context;
+		cl_program program;
+
+		Slot() : mutex(NULL), context(NULL), program(NULL) {}
+
+		Slot(const Slot &rhs)
+			: mutex(rhs.mutex)
+			, context(rhs.context)
+			, program(rhs.program)
+		{
+			/* copy can only happen in map insert, assert that */
+			assert(mutex == NULL);
+		}
+
+		~Slot()
+		{
+			delete mutex;
+			mutex = NULL;
+		}
+	};
+
+	/* key is combination of platform ID and device ID */
+	typedef pair<cl_platform_id, cl_device_id> PlatformDevicePair;
+
+	/* map of Slot objects */
+	typedef map<PlatformDevicePair, Slot> CacheMap;
+	CacheMap cache;
+
+	thread_mutex cache_lock;
+
+	/* lazy instantiate */
+	static OpenCLCache &global_instance()
+	{
+		static OpenCLCache instance;
+		return instance;
+	}
+
+	OpenCLCache()
+	{
+	}
+
+	~OpenCLCache()
+	{
+		/* Intel OpenCL bug raises SIGABRT due to pure virtual call
+		 * so this is disabled. It's not necessary to free objects
+		 * at process exit anyway.
+		 * http://software.intel.com/en-us/forums/topic/370083#comments */
+
+		//flush();
+	}
+
+	/* lookup something in the cache. If this returns NULL, slot_locker
+	 * will be holding a lock for the cache. slot_locker should refer to a
+	 * default constructed thread_scoped_lock */
+	template<typename T>
+	static T get_something(cl_platform_id platform, cl_device_id device,
+		T Slot::*member, cl_int (*retain_func)(T), thread_scoped_lock &slot_locker)
+	{
+		assert(platform != NULL);
+
+		OpenCLCache &self = global_instance();
+
+		thread_scoped_lock cache_lock(self.cache_lock);
+
+		pair<CacheMap::iterator,bool> ins = self.cache.insert(
+			CacheMap::value_type(PlatformDevicePair(platform, device), Slot()));
+
+		Slot &slot = ins.first->second;
+
+		/* create slot lock only while holding cache lock */
+		if(!slot.mutex)
+			slot.mutex = new thread_mutex;
+
+		/* need to unlock cache before locking slot, to allow store to complete */
+		cache_lock.unlock();
+
+		/* lock the slot */
+		slot_locker = thread_scoped_lock(*slot.mutex);
+
+		/* If the thing isn't cached */
+		if(slot.*member == NULL) {
+			/* return with the caller's lock holder holding the slot lock */
+			return NULL;
+		}
+
+		/* the item was already cached, release the slot lock */
+		slot_locker.unlock();
+
+		/* caller is going to release it when done with it, so retain it */
+		cl_int ciErr = retain_func(slot.*member);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
+
+		return slot.*member;
+	}
+
+	/* store something in the cache. you MUST have tried to get the item before storing to it */
+	template<typename T>
+	static void store_something(cl_platform_id platform, cl_device_id device, T thing,
+		T Slot::*member, cl_int (*retain_func)(T), thread_scoped_lock &slot_locker)
+	{
+		assert(platform != NULL);
+		assert(device != NULL);
+		assert(thing != NULL);
+
+		OpenCLCache &self = global_instance();
+
+		thread_scoped_lock cache_lock(self.cache_lock);
+		CacheMap::iterator i = self.cache.find(PlatformDevicePair(platform, device));
+		cache_lock.unlock();
+
+		Slot &slot = i->second;
+
+		/* sanity check */
+		assert(i != self.cache.end());
+		assert(slot.*member == NULL);
+
+		slot.*member = thing;
+
+		/* unlock the slot */
+		slot_locker.unlock();
+
+		/* increment reference count in OpenCL.
+		 * The caller is going to release the object when done with it. */
+		cl_int ciErr = retain_func(thing);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
+	}
+
+public:
+	/* see get_something comment */
+	static cl_context get_context(cl_platform_id platform, cl_device_id device,
+		thread_scoped_lock &slot_locker)
+	{
+		return get_something(platform, device, &Slot::context, clRetainContext, slot_locker);
+	}
+
+	/* see get_something comment */
+	static cl_program get_program(cl_platform_id platform, cl_device_id device,
+		thread_scoped_lock &slot_locker)
+	{
+		return get_something(platform, device, &Slot::program, clRetainProgram, slot_locker);
+	}
+
+	/* see store_something comment */
+	static void store_context(cl_platform_id platform, cl_device_id device, cl_context context,
+		thread_scoped_lock &slot_locker)
+	{
+		store_something(platform, device, context, &Slot::context, clRetainContext, slot_locker);
+	}
+
+	/* see store_something comment */
+	static void store_program(cl_platform_id platform, cl_device_id device, cl_program program,
+		thread_scoped_lock &slot_locker)
+	{
+		store_something(platform, device, program, &Slot::program, clRetainProgram, slot_locker);
+	}
+
+	/* discard all cached contexts and programs
+	 * the parameter is a temporary workaround. See OpenCLCache::~OpenCLCache */
+	static void flush()
+	{
+		OpenCLCache &self = global_instance();
+		thread_scoped_lock cache_lock(self.cache_lock);
+
+		foreach(CacheMap::value_type &item, self.cache) {
+			if(item.second.program != NULL)
+				clReleaseProgram(item.second.program);
+			if(item.second.context != NULL)
+				clReleaseContext(item.second.context);
+		}
+
+		self.cache.clear();
+	}
+};
 
 class OpenCLDevice : public Device
 {
@@ -290,21 +472,34 @@ public:
 			opencl_error("OpenCL: no devices found.");
 			return;
 		}
-		else if (!cdDevice) {
+		else if(!cdDevice) {
 			opencl_error("OpenCL: specified device not found.");
 			return;
 		}
 
-		/* Create context properties array to specify platform */
-		const cl_context_properties context_props[] = {
-			CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
-			0, 0
-		};
+		{
+			/* try to use cached context */
+			thread_scoped_lock cache_locker;
+			cxContext = OpenCLCache::get_context(cpPlatform, cdDevice, cache_locker);
 
-		/* create context */
-		cxContext = clCreateContext(context_props, 1, &cdDevice, NULL, NULL, &ciErr);
-		if(opencl_error(ciErr))
-			return;
+			if(cxContext == NULL) {
+				/* create context properties array to specify platform */
+				const cl_context_properties context_props[] = {
+					CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
+					0, 0
+				};
+
+				/* create context */
+				cxContext = clCreateContext(context_props, 1, &cdDevice,
+					context_notify_callback, cdDevice, &ciErr);
+
+				if(opencl_error(ciErr))
+					return;
+
+				/* cache it */
+				OpenCLCache::store_context(cpPlatform, cdDevice, cxContext, cache_locker);
+			}
+		}
 
 		cqCommandQueue = clCreateCommandQueue(cxContext, cdDevice, 0, &ciErr);
 		if(opencl_error(ciErr))
@@ -315,6 +510,15 @@ public:
 			return;
 
 		device_initialized = true;
+	}
+
+	static void context_notify_callback(const char *err_info,
+		const void *private_info, size_t cb, void *user_data)
+	{
+		char name[256];
+		clGetDeviceInfo((cl_device_id)user_data, CL_DEVICE_NAME, sizeof(name), &name, NULL);
+
+		fprintf(stderr, "OpenCL error (%s): %s\n", name, err_info);
 	}
 
 	bool opencl_version_check()
@@ -436,7 +640,7 @@ public:
 		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
 		source = path_source_replace_includes(source, kernel_path);
 
-		if (debug_src)
+		if(debug_src)
 			path_write_text(*debug_src, source);
 
 		size_t source_len = source.size();
@@ -487,39 +691,49 @@ public:
 			return false;
 		}
 
-		/* verify we have right opencl version */
-		if(!opencl_version_check())
-			return false;
+		/* try to use cached kernel */
+		thread_scoped_lock cache_locker;
+		cpProgram = OpenCLCache::get_program(cpPlatform, cdDevice, cache_locker);
 
-		/* md5 hash to detect changes */
-		string kernel_path = path_get("kernel");
-		string kernel_md5 = path_files_md5_hash(kernel_path);
-		string device_md5 = device_md5_hash();
-
-		/* path to cached binary */
-		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());
-		clbin = path_user_get(path_join("cache", clbin));
-
-		/* path to preprocessed source for debugging */
-		string clsrc, *debug_src = NULL;
-		
-		if (opencl_kernel_use_debug()) {
-			clsrc = string_printf("cycles_kernel_%s_%s.cl", device_md5.c_str(), kernel_md5.c_str());
-			clsrc = path_user_get(path_join("cache", clsrc));
-			debug_src = &clsrc;
-		}
-
-		/* if exists already, try use it */
-		if(path_exists(clbin) && load_binary(kernel_path, clbin, debug_src)) {
-			/* kernel loaded from binary */
-		}
-		else {
-			/* if does not exist or loading binary failed, compile kernel */
-			if(!compile_kernel(kernel_path, kernel_md5, debug_src))
+		if(!cpProgram) {
+			/* verify we have right opencl version */
+			if(!opencl_version_check())
 				return false;
 
-			/* save binary for reuse */
-			save_binary(clbin);
+			/* md5 hash to detect changes */
+			string kernel_path = path_get("kernel");
+			string kernel_md5 = path_files_md5_hash(kernel_path);
+			string device_md5 = device_md5_hash();
+
+			/* path to cached binary */
+			string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());
+			clbin = path_user_get(path_join("cache", clbin));
+
+			/* path to preprocessed source for debugging */
+			string clsrc, *debug_src = NULL;
+
+			if(opencl_kernel_use_debug()) {
+				clsrc = string_printf("cycles_kernel_%s_%s.cl", device_md5.c_str(), kernel_md5.c_str());
+				clsrc = path_user_get(path_join("cache", clsrc));
+				debug_src = &clsrc;
+			}
+
+			/* if exists already, try use it */
+			if(path_exists(clbin) && load_binary(kernel_path, clbin, debug_src)) {
+				/* kernel loaded from binary */
+			}
+			else {
+				/* if does not exist or loading binary failed, compile kernel */
+				if(!compile_kernel(kernel_path, kernel_md5, debug_src))
+					return false;
+
+				/* save binary for reuse */
+				if(!save_binary(clbin))
+					return false;
+			}
+
+			/* cache the program */
+			OpenCLCache::store_program(cpPlatform, cdDevice, cpProgram, cache_locker);
 		}
 
 		/* find kernels */
@@ -563,12 +777,17 @@ public:
 	{
 		size_t size = mem.memory_size();
 
+		cl_mem_flags mem_flag;
+		void *mem_ptr = NULL;
+
 		if(type == MEM_READ_ONLY)
-			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, size, NULL, &ciErr);
+			mem_flag = CL_MEM_READ_ONLY;
 		else if(type == MEM_WRITE_ONLY)
-			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_WRITE_ONLY, size, NULL, &ciErr);
+			mem_flag = CL_MEM_WRITE_ONLY;
 		else
-			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_WRITE, size, NULL, &ciErr);
+			mem_flag = CL_MEM_READ_WRITE;
+
+		mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, mem_flag, size, mem_ptr, &ciErr);
 
 		opencl_assert(ciErr);
 
@@ -664,7 +883,7 @@ public:
 		size_t local_size[2] = {sqrt_workgroup_size, sqrt_workgroup_size};
 
 		/* some implementations have max size 1 on 2nd dimension */
-		if (local_size[1] > max_work_items[1]) {
+		if(local_size[1] > max_work_items[1]) {
 			local_size[0] = workgroup_size/max_work_items[1];
 			local_size[1] = max_work_items[1];
 		}
@@ -674,7 +893,7 @@ public:
 		/* run kernel */
 		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, local_size, 0, NULL, NULL);
 		opencl_assert(ciErr);
-		opencl_assert(clFinish(cqCommandQueue));
+		opencl_assert(clFlush(cqCommandQueue));
 	}
 
 	void path_trace(RenderTile& rtile, int sample)
@@ -789,7 +1008,7 @@ public:
 				int end_sample = tile.start_sample + tile.num_samples;
 
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task->get_cancel()) {
+					if(task->get_cancel()) {
 						if(task->need_finish_queue == false)
 							break;
 					}
@@ -798,7 +1017,7 @@ public:
 
 					tile.sample = sample + 1;
 
-					task->update_progress(tile);
+					//task->update_progress(tile);
 				}
 
 				task->release_tile(tile);

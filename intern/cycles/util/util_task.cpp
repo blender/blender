@@ -21,6 +21,15 @@
 #include "util_system.h"
 #include "util_task.h"
 
+//#define THREADING_DEBUG_ENABLED
+
+#ifdef THREADING_DEBUG_ENABLED
+#include <stdio.h>
+#define THREADING_DEBUG(...) do { printf(__VA_ARGS__); fflush(stdout); } while(0)
+#else
+#define THREADING_DEBUG(...)
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Task Pool */
@@ -95,8 +104,11 @@ void TaskPool::wait_work()
 		if(num == 0)
 			break;
 
-		if(!found_entry)
+		if(!found_entry) {
+			THREADING_DEBUG("num==%d, Waiting for condition in TaskPool::wait_work !found_entry\n", num);
 			num_cond.wait(num_lock);
+			THREADING_DEBUG("num==%d, condition wait done in TaskPool::wait_work !found_entry\n", num);
+		}
 	}
 }
 
@@ -109,8 +121,11 @@ void TaskPool::cancel()
 	{
 		thread_scoped_lock num_lock(num_mutex);
 
-		while(num)
+		while(num) {
+			THREADING_DEBUG("num==%d, Waiting for condition in TaskPool::cancel\n", num);
 			num_cond.wait(num_lock);
+			THREADING_DEBUG("num==%d condition wait done in TaskPool::cancel\n", num);
+		}
 	}
 
 	do_cancel = false;
@@ -134,8 +149,10 @@ void TaskPool::num_decrease(int done)
 	num -= done;
 
 	assert(num >= 0);
-	if(num == 0)
+	if(num == 0) {
+		THREADING_DEBUG("num==%d, notifying all in TaskPool::num_decrease\n", num);
 		num_cond.notify_all();
+	}
 
 	num_mutex.unlock();
 }
@@ -144,6 +161,7 @@ void TaskPool::num_increase()
 {
 	thread_scoped_lock num_lock(num_mutex);
 	num++;
+	THREADING_DEBUG("num==%d, notifying all in TaskPool::num_increase\n", num);
 	num_cond.notify_all();
 }
 

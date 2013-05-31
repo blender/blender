@@ -58,12 +58,23 @@ double time_dt()
 	return now.tv_sec + now.tv_usec*1e-6;
 }
 
+/* sleep t seconds */
 void time_sleep(double t)
 {
-	if(t >= 1.0)
-		sleep((int)t);
+	/* get whole seconds */
+	int s = (int)t;
 
-	usleep((int)(t*1e6));
+	if(s >= 1) {
+		sleep(s);
+
+		/* adjust parameter to remove whole seconds */
+		t -= s;
+	}
+
+	/* get microseconds */
+	int us = (int)(t * 1e6);
+	if (us > 0)
+		usleep(us);
 }
 
 CCL_NAMESPACE_END
