@@ -873,7 +873,7 @@ static void modwrap_deformVerts(
         ModifierApplyFlag flag)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+	BLI_assert(!dm || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
 
 	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		DM_ensure_normals(dm);
@@ -887,7 +887,7 @@ static void modwrap_deformVertsEM(
         float (*vertexCos)[3], int numVerts)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+	BLI_assert(!dm || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
 
 	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		DM_ensure_normals(dm);

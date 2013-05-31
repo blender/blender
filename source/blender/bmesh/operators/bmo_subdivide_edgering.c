@@ -86,6 +86,7 @@ static float bezier_handle_calc_length_v3(const float co_a[3], const float no_a[
 	const float dot = dot_v3v3(no_a, no_b);
 	/* gives closest approx at a circle with 2 parallel handles */
 	float fac = 1.333333f;
+	float len;
 	if (dot < 0.0f) {
 		/* scale down to 0.666 if we point directly at each other rough but ok */
 		/* TODO, current blend from dot may not be optimal but its also a detail */
@@ -93,7 +94,25 @@ static float bezier_handle_calc_length_v3(const float co_a[3], const float no_a[
 		fac = (fac * t) + (0.75f * (1.0f - t));
 	}
 
-	return (len_v3v3(co_a, co_b) * 0.5f) * fac;
+#if 0
+	len = len_v3v3(co_a, co_b);
+#else
+	/* 2d length projected on plane of normals */
+	{
+		float co_a_ofs[3];
+		cross_v3_v3v3(co_a_ofs, no_a, no_b);
+		if (len_squared_v3(co_a_ofs) > FLT_EPSILON) {
+			add_v3_v3(co_a_ofs, co_a);
+			closest_to_line_v3(co_a_ofs, co_b, co_a, co_a_ofs);
+		}
+		else {
+			copy_v3_v3(co_a_ofs, co_a);
+		}
+		len = len_v3v3(co_a_ofs, co_b);
+	}
+#endif
+
+	return (len * 0.5f) * fac;
 }
 
 static void bm_edgeloop_vert_tag(struct BMEdgeLoopStore *el_store, const bool tag)
