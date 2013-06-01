@@ -1764,9 +1764,8 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.separator()
         layout.operator("mesh.symmetrize")
-        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
-        layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         layout.operator("mesh.duplicate_move")
+        layout.menu("VIEW3D_MT_edit_mesh_extrude")
         layout.menu("VIEW3D_MT_edit_mesh_delete")
 
         layout.separator()

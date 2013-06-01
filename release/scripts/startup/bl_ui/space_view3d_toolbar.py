@@ -166,8 +166,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Add:")
-        col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
-        col.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
+
+        col.menu("VIEW3D_MT_edit_mesh_extrude")
         col.operator("mesh.subdivide")
         col.operator("mesh.loopcut_slide")
         col.operator("mesh.duplicate_move", text="Duplicate")
@@ -196,7 +196,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="UV Mapping:")
-        col.operator("wm.call_menu", text="Unwrap").name = "VIEW3D_MT_uv_map"
+        col.menu("VIEW3D_MT_uv_map", text="Unwrap")
         col.operator("mesh.mark_seam").clear = False
         col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
