@@ -410,7 +410,7 @@ void register_node_type_group_input(void)
 	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
 	
 	node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE, 0);
-	node_type_size(ntype, 140, 80, 200);
+	node_type_size(ntype, 140, 80, 400);
 	node_type_init(ntype, node_group_input_init);
 	node_type_update(ntype, node_group_input_update, node_group_input_verify);
 	node_type_compatibility(ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
@@ -497,7 +497,7 @@ void register_node_type_group_output(void)
 	bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
 	
 	node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE, 0);
-	node_type_size(ntype, 140, 80, 200);
+	node_type_size(ntype, 140, 80, 400);
 	node_type_init(ntype, node_group_output_init);
 	node_type_update(ntype, node_group_output_update, node_group_output_verify);
 	node_type_compatibility(ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
