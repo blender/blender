@@ -128,6 +128,19 @@ class Object(bpy_types.ID):
                      if self in scene.objects[:])
 
 
+class WindowManager(bpy_types.ID):
+    __slots__ = ()
+
+    def popup_menu(self, draw_func, title="", icon='NONE'):
+        import bpy
+        popup = self.pupmenu_begin__internal(title, icon)
+
+        try:
+            draw_func(popup, bpy.context)
+        finally:
+            self.pupmenu_end__internal(popup)
+
+
 class _GenericBone:
     """
     functions for bones, common between Armature/Pose/Edit bones.

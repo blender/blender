@@ -626,6 +626,7 @@ extern StructRNA RNA_TransformConstraint;
 extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIList;
+extern StructRNA RNA_UIPopupMenu;
 extern StructRNA RNA_UVWarpModifier;
 extern StructRNA RNA_UVProjectModifier;
 extern StructRNA RNA_UVProjector;

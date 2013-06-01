@@ -45,6 +45,7 @@
 
 #ifdef RNA_RUNTIME
 
+#include "UI_interface.h"
 #include "BKE_context.h"
 
 static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
@@ -250,6 +251,24 @@ static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, Point
 	RNA_POINTER_INVALIDATE(keyconf_ptr);
 }
 
+/* popup menu wrapper */
+static PointerRNA rna_PupMenuBegin(bContext *C, const char *title, int icon)
+{
+	PointerRNA r_ptr;
+	void *data;
+
+	data = (void *)uiPupMenuBegin(C, title, icon);
+
+	RNA_pointer_create(NULL, &RNA_UIPopupMenu, data, &r_ptr);
+
+	return r_ptr;
+}
+
+static void rna_PupMenuEnd(bContext *C, PointerRNA *handle)
+{
+	uiPupMenuEnd(C, handle->data);
+}
+
 #else
 
 #define WM_GEN_INVOKE_EVENT (1 << 0)
@@ -348,7 +367,25 @@ void RNA_api_wm(StructRNA *srna)
 	func = RNA_def_function(srna, "invoke_confirm", "rna_Operator_confirm");
 	RNA_def_function_ui_description(func, "Operator confirmation");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
-	
+
+
+	/* wrap uiPupMenuBegin */
+	func = RNA_def_function(srna, "pupmenu_begin__internal", "rna_PupMenuBegin");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	parm = RNA_def_string(func, "title", "", 0, "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(parm, icon_items);
+	/* return */
+	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
+	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_function_return(func, parm);
+
+	/* wrap uiPupMenuEnd */
+	func = RNA_def_function(srna, "pupmenu_end__internal", "rna_PupMenuEnd");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
+	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
 }
 
 void RNA_api_operator(StructRNA *srna)

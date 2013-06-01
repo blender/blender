@@ -3015,6 +3015,7 @@ void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 		return;
 	}
 
+	BLI_assert(func->c_ret == NULL);
 	func->c_ret = ret;
 
 	RNA_def_function_output(func, ret);

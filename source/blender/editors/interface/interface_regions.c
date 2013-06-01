@@ -2368,7 +2368,6 @@ struct uiPopupMenu {
 
 	int mx, my;
 	bool popup, slideout;
-	int startx, starty, maxrow;
 
 	uiMenuCreateFunc menu_func;
 	void *menu_arg;
