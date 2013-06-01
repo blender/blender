@@ -250,28 +250,28 @@ public:
 	static cl_context get_context(cl_platform_id platform, cl_device_id device,
 		thread_scoped_lock &slot_locker)
 	{
-		return get_something(platform, device, &Slot::context, clRetainContext, slot_locker);
+		return get_something<cl_context>(platform, device, &Slot::context, clRetainContext, slot_locker);
 	}
 
 	/* see get_something comment */
 	static cl_program get_program(cl_platform_id platform, cl_device_id device,
 		thread_scoped_lock &slot_locker)
 	{
-		return get_something(platform, device, &Slot::program, clRetainProgram, slot_locker);
+		return get_something<cl_program>(platform, device, &Slot::program, clRetainProgram, slot_locker);
 	}
 
 	/* see store_something comment */
 	static void store_context(cl_platform_id platform, cl_device_id device, cl_context context,
 		thread_scoped_lock &slot_locker)
 	{
-		store_something(platform, device, context, &Slot::context, clRetainContext, slot_locker);
+		store_something<cl_context>(platform, device, context, &Slot::context, clRetainContext, slot_locker);
 	}
 
 	/* see store_something comment */
 	static void store_program(cl_platform_id platform, cl_device_id device, cl_program program,
 		thread_scoped_lock &slot_locker)
 	{
-		store_something(platform, device, program, &Slot::program, clRetainProgram, slot_locker);
+		store_something<cl_program>(platform, device, program, &Slot::program, clRetainProgram, slot_locker);
 	}
 
 	/* discard all cached contexts and programs
