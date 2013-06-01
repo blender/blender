@@ -860,56 +860,59 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 	}
 }
 
+static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *buf, const size_t buf_len)
+{
+	MenuType *mt;
+	bool found = false;
+
+	if (but->optype) {
+		IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+
+		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
+		                                 buf, buf_len))
+		{
+			found = true;
+		}
+	}
+	else if ((mt = uiButGetMenuType(but))) {
+		IDProperty *prop_menu;
+		IDProperty *prop_menu_name;
+
+		/* annoying, create a property */
+		IDPropertyTemplate val = {0};
+		prop_menu = IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
+		IDP_AddToGroup(prop_menu, (prop_menu_name = IDP_NewString("", "name", sizeof(mt->idname))));
+
+		IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
+
+		if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true,
+		                                 buf, buf_len))
+		{
+			found = true;
+		}
+
+		IDP_FreeProperty(prop_menu);
+		MEM_freeN(prop_menu);
+	}
+
+	return found;
+}
+
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 	char buf[128];
-
-	/* for menu's */
-	MenuType *mt;
-	IDProperty *prop_menu = NULL;
-	IDProperty *prop_menu_name = NULL;
 
 	/* only do it before bounding */
 	if (block->rect.xmin != block->rect.xmax)
 		return;
 
 	for (but = block->buttons.first; but; but = but->next) {
-		if (but->optype) {
-			IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 
-			if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
-			                                 buf, sizeof(buf)))
-			{
-				ui_but_add_shortcut(but, buf, FALSE);
-			}
-		}
-		else if ((mt = uiButGetMenuType(but))) {
-			/* only allocate menu property once */
-			if (prop_menu == NULL) {
-				/* annoying, create a property */
-				IDPropertyTemplate val = {0};
-				prop_menu = IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
-				IDP_AddToGroup(prop_menu, (prop_menu_name = IDP_NewString("", "name", sizeof(mt->idname))));
-			}
-
-			IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
-
-			if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true,
-			                                 buf, sizeof(buf)))
-			{
-				ui_but_add_shortcut(but, buf, FALSE);
-			}
+		if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+			ui_but_add_shortcut(but, buf, FALSE);
 		}
 	}
-
-	if (prop_menu) {
-		IDP_FreeProperty(prop_menu);
-		MEM_freeN(prop_menu);
-	}
-
-#undef UI_MENU_KEY_STR_CAT
-
 }
 
 void uiEndBlock(const bContext *C, uiBlock *block)
@@ -4088,16 +4091,9 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 			}
 		}
 		else if (type == BUT_GET_OP_KEYMAP) {
-			if (but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
-				/* operator keymap (not menus, they already have it) */
-				IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
-				char buf[512];
-
-				if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
-				                                 buf, sizeof(buf)))
-				{
-					tmp = BLI_strdup(buf);
-				}
+			char buf[128];
+			if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+				tmp = BLI_strdup(buf);
 			}
 		}
 
