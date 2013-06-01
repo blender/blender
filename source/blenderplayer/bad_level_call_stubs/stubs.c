@@ -534,6 +534,9 @@ char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value) {STUB_ASSERT(0); return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item_str(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value) {STUB_ASSERT(0); return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items) {STUB_ASSERT(0); return (struct wmKeyMap *) NULL;}
+struct uiPopupMenu *uiPupMenuBegin(struct bContext *C, const char *title, int icon) {STUB_ASSERT(0); return (struct uiPopupMenu *) NULL;}
+void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head) {STUB_ASSERT(0);}
+struct uiLayout *uiPupMenuLayout(struct uiPopupMenu *head) {STUB_ASSERT(0); return (struct uiLayout *) NULL;}
 
 /* RNA COLLADA dependency */
 int collada_export(struct Scene *sce, const char *filepath) {STUB_ASSERT(0); return 0; }

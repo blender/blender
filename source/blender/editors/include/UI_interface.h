@@ -333,7 +333,7 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
 
 typedef struct uiPopupMenu uiPopupMenu;
 
-uiPopupMenu *uiPupMenuBegin(struct bContext *C, const char *title, int icon);
+struct uiPopupMenu *uiPupMenuBegin(struct bContext *C, const char *title, int icon);
 void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head);
 struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
