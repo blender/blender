@@ -19,7 +19,7 @@
 import sys
 import bpy
 
-from bpy.props import (EnumProperty, StringProperty)
+from bpy.props import (BoolProperty, EnumProperty, StringProperty)
 
 
 class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
@@ -138,4 +138,38 @@ class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
                 path = 'polygons[%d].use_freestyle_face_mark' % i
                 ks.paths.add(mesh, path, index=0)
         bpy.ops.object.mode_set(mode=ob_mode, toggle=False)
+        return {'FINISHED'}
+
+
+class SCENE_OT_freestyle_module_open(bpy.types.Operator):
+    """Open a style module file"""
+    bl_idname = "scene.freestyle_module_open"
+    bl_label = "Open Style Module File"
+    bl_options = {'INTERNAL'}
+
+    filepath = StringProperty(subtype='FILE_PATH')
+
+    make_internal = BoolProperty(
+        name="Make internal",
+        description="Make module file internal after loading",
+        default=True)
+
+    @classmethod
+    def poll(cls, context):
+        rl = context.scene.render.layers.active
+        return rl and rl.freestyle_settings.mode == 'SCRIPT'
+
+    def invoke(self, context, event):
+        self.freestyle_module = context.freestyle_module
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        text = bpy.data.texts.load(self.filepath)
+        if self.make_internal:
+            text.is_in_memory = True
+            text.is_dirty = True
+            text.filepath = ""
+        self.freestyle_module.script = text
         return {'FINISHED'}
