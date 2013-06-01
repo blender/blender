@@ -172,7 +172,7 @@ class OpenCLCache
 	 * default constructed thread_scoped_lock */
 	template<typename T>
 	static T get_something(cl_platform_id platform, cl_device_id device,
-		T Slot::*member, cl_int (*retain_func)(T), thread_scoped_lock &slot_locker)
+		T Slot::*member, thread_scoped_lock &slot_locker)
 	{
 		assert(platform != NULL);
 
@@ -204,18 +204,13 @@ class OpenCLCache
 		/* the item was already cached, release the slot lock */
 		slot_locker.unlock();
 
-		/* caller is going to release it when done with it, so retain it */
-		cl_int ciErr = retain_func(slot.*member);
-		assert(ciErr == CL_SUCCESS);
-		(void)ciErr;
-
 		return slot.*member;
 	}
 
 	/* store something in the cache. you MUST have tried to get the item before storing to it */
 	template<typename T>
 	static void store_something(cl_platform_id platform, cl_device_id device, T thing,
-		T Slot::*member, cl_int (*retain_func)(T), thread_scoped_lock &slot_locker)
+		T Slot::*member, thread_scoped_lock &slot_locker)
 	{
 		assert(platform != NULL);
 		assert(device != NULL);
@@ -237,12 +232,6 @@ class OpenCLCache
 
 		/* unlock the slot */
 		slot_locker.unlock();
-
-		/* increment reference count in OpenCL.
-		 * The caller is going to release the object when done with it. */
-		cl_int ciErr = retain_func(thing);
-		assert(ciErr == CL_SUCCESS);
-		(void)ciErr;
 	}
 
 public:
@@ -250,28 +239,54 @@ public:
 	static cl_context get_context(cl_platform_id platform, cl_device_id device,
 		thread_scoped_lock &slot_locker)
 	{
-		return get_something<cl_context>(platform, device, &Slot::context, clRetainContext, slot_locker);
+		cl_context context = get_something<cl_context>(platform, device, &Slot::context, slot_locker);
+
+		/* caller is going to release it when done with it, so retain it */
+		cl_int ciErr = clRetainContext(context);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
+
+		return context;
 	}
 
 	/* see get_something comment */
 	static cl_program get_program(cl_platform_id platform, cl_device_id device,
 		thread_scoped_lock &slot_locker)
 	{
-		return get_something<cl_program>(platform, device, &Slot::program, clRetainProgram, slot_locker);
+		cl_program program = get_something<cl_program>(platform, device, &Slot::program, slot_locker);
+
+		/* caller is going to release it when done with it, so retain it */
+		cl_int ciErr = clRetainProgram(program);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
+
+		return program;
 	}
 
 	/* see store_something comment */
 	static void store_context(cl_platform_id platform, cl_device_id device, cl_context context,
 		thread_scoped_lock &slot_locker)
 	{
-		store_something<cl_context>(platform, device, context, &Slot::context, clRetainContext, slot_locker);
+		store_something<cl_context>(platform, device, context, &Slot::context, slot_locker);
+
+		/* increment reference count in OpenCL.
+		 * The caller is going to release the object when done with it. */
+		cl_int ciErr = clRetainContext(context);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
 	}
 
 	/* see store_something comment */
 	static void store_program(cl_platform_id platform, cl_device_id device, cl_program program,
 		thread_scoped_lock &slot_locker)
 	{
-		store_something<cl_program>(platform, device, program, &Slot::program, clRetainProgram, slot_locker);
+		store_something<cl_program>(platform, device, program, &Slot::program, slot_locker);
+
+		/* increment reference count in OpenCL.
+		 * The caller is going to release the object when done with it. */
+		cl_int ciErr = clRetainProgram(program);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
 	}
 
 	/* discard all cached contexts and programs
