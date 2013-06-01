@@ -33,7 +33,8 @@
 namespace libmv {
 namespace {
 
-Vec2 NorrmalizedToPixelSpace(Vec2 vec, const CameraIntrinsics &intrinsics) {
+Vec2 NorrmalizedToPixelSpace(const Vec2 &vec,
+                             const CameraIntrinsics &intrinsics) {
   Vec2 result;
 
   double focal_length_x = intrinsics.focal_length_x();
@@ -62,7 +63,8 @@ Mat3 IntrinsicsNormalizationMatrix(const CameraIntrinsics &intrinsics) {
 
 class HomographySymmetricGeometricCostFunctor {
  public:
-  HomographySymmetricGeometricCostFunctor(Vec2 x, Vec2 y)
+  HomographySymmetricGeometricCostFunctor(const Vec2 &x,
+                                          const Vec2 &y)
       : x_(x), y_(y) { }
 
   template<typename T>
@@ -141,7 +143,8 @@ void ComputeHomographyFromCorrespondences(const Mat &x1, const Mat &x2,
 
 class FundamentalSymmetricEpipolarCostFunctor {
  public:
-  FundamentalSymmetricEpipolarCostFunctor(Vec2 x, Vec2 y)
+  FundamentalSymmetricEpipolarCostFunctor(const Vec2 &x,
+                                          const Vec2 &y)
     : x_(x), y_(y) {}
 
   template<typename T>

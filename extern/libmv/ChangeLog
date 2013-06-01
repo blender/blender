@@ -1,3 +1,12 @@
+commit 2cd653e2952379da7daf56edcd9e71b0aa929f90
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Jun 1 16:20:35 2013 +0600
+
+    Pass vectors by a reference
+    
+    Saves couple of time which used to waste on copying objects,
+    also solves win32 compilation errors caused by alignment.
+
 commit f61b8198b9bddd8d2fa53feae7924aa23df48cbd
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu May 30 18:00:03 2013 +0600
@@ -593,43 +602,3 @@ Date:   Fri Mar 1 17:44:54 2013 +0600
 
     Fixed incorrect order of arguments passing
     to EXPECT_EQ in keyframe selection tests.
-
-commit d38ebb74693fdf5b8f0fecf62a3d8c9c53b0b84a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Mar 1 17:40:38 2013 +0600
-
-    Modal (aka tripod) solver rework
-    
-    Several major things are done in this commit:
-    
-    - First of all, logic of modal solver was changed.
-      We do not rely on only minimizer to take care of
-      guessing rotation for frame, but we're using
-      analytical rotation computation for point clouds
-      to obtain initial rotation.
-    
-      Then this rotation is being refined using Ceres
-      minimizer and now instead of minimizing average
-      distance between points of point of two clouds,
-      minimization of reprojection error of point
-      cloud onto frame happens.
-    
-      This gives quite a bit of precision improvement.
-    
-    - Second bigger improvement here is using bundle
-      adjustment for a result of first step when we're
-      only estimating rotation between neighbor images
-      and reprojecting markers.
-    
-      This averages error across the image sequence
-      avoiding error accumulation. Also, this will
-      tweak bundles themselves a bit for better match.
-    
-    - And last bigger improvement here is support of
-      camera intrinsics refirenment.
-    
-    This allowed to significantly improve solution
-    for real-life footage and results after such
-    refining are much more usable than it were before.
-    
-    Thanks to Keir for the help and code review!
