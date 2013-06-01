@@ -599,6 +599,8 @@ __device void svm_node_mix_closure(ShaderData *sd, float *stack,
 	decode_node_uchar4(node.y, &weight_offset, &in_weight_offset, &weight1_offset, &weight2_offset);
 
 	float weight = stack_load_float(stack, weight_offset);
+	weight = clamp(weight, 0.0f, 1.0f);
+
 	float in_weight = (stack_valid(in_weight_offset))? stack_load_float(stack, in_weight_offset): 1.0f;
 
 	if(stack_valid(weight1_offset))
