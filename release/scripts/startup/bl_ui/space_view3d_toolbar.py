@@ -160,7 +160,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Deform:")
-        col.operator("transform.edge_slide")
+        row = col.row(align=True)
+        row.operator("transform.edge_slide", text="Slide Edge")
+        row.operator("transform.vert_slide", text="Vertex")
         col.operator("mesh.noise")
         col.operator("mesh.vertices_smooth")
 
@@ -168,6 +170,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.label(text="Add:")
 
         col.menu("VIEW3D_MT_edit_mesh_extrude")
+        col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
+        col.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         col.operator("mesh.subdivide")
         col.operator("mesh.loopcut_slide")
         col.operator("mesh.duplicate_move", text="Duplicate")
@@ -186,7 +190,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col = layout.column(align=True)
         col.label(text="Remove:")
         col.menu("VIEW3D_MT_edit_mesh_delete")
-        col.operator("mesh.merge")
+        col.operator_menu_enum("mesh.merge", "type")
         col.operator("mesh.remove_doubles")
 
         col = layout.column(align=True)
