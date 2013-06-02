@@ -1112,7 +1112,6 @@ kmi = km.keymap_items.new('uv.select_linked', 'L', 'PRESS', shift=True, ctrl=Tru
 kmi.properties.extend = True
 kmi = km.keymap_items.new('uv.select_linked_pick', 'L', 'PRESS', shift=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('uv.unlink_selected', 'L', 'PRESS', alt=True)
 kmi = km.keymap_items.new('uv.select_all', 'A', 'PRESS', ctrl=True)
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('uv.select_all', 'I', 'PRESS', ctrl=True)

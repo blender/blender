@@ -2530,72 +2530,6 @@ static void UV_OT_select_split(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit; /* requires space image */;
 }
 
-/* ******************** unlink selection operator **************** */
-
-static int uv_unlink_selection_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = scene->toolsettings;
-	Object *obedit = CTX_data_edit_object(C);
-	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MTexPoly *tf;
-	MLoopUV *luv;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
-
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot unlink selection when sync selection is enabled");
-		return OPERATOR_CANCELLED;
-	}
-	
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		int desel = 0;
-
-		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-		if (!uvedit_face_visible_test(scene, ima, efa, tf))
-			continue;
-
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			
-			if (!(luv->flag & MLOOPUV_VERTSEL)) {
-				desel = 1;
-				break;
-			}
-		}
-
-		if (desel) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				luv->flag &= ~MLOOPUV_VERTSEL;
-			}
-		}
-	}
-	
-	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-	return OPERATOR_FINISHED;
-}
-
-static void UV_OT_unlink_selected(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Unlink Selection";
-	ot->description = "Unlink selected UV vertices from active UV map";
-	ot->idname = "UV_OT_unlink_selected";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-	/* api callbacks */
-	ot->exec = uv_unlink_selection_exec;
-	ot->poll = ED_operator_uvedit;
-}
-
 static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short select)
 {
 	/* bmesh API handles flushing but not on de-select */
@@ -4145,7 +4079,6 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_select_linked_pick);
 	WM_operatortype_append(UV_OT_select_split);
-	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
 	WM_operatortype_append(UV_OT_select_lasso);
@@ -4228,7 +4161,6 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "UV_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "UV_OT_unlink_selected", LKEY, KM_PRESS, KM_ALT, 0);
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
