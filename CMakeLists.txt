@@ -1088,11 +1088,7 @@ elseif(WIN32)
 		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
-		if(CMAKE_CL_64)
-			set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz.lib)
-		else()
-			set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/zlib.lib)
-		endif()
+		set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
 
 		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)

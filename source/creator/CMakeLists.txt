@@ -538,23 +538,6 @@ elseif(WIN32)
 		unset(_PYTHON_VERSION_NO_DOTS)
 	endif()
 
-	if(CMAKE_CL_64)
-		# png is statically linked on win64
-		install(
-			FILES ${LIBDIR}/zlib/lib/zlib.dll
-			DESTINATION ${TARGETDIR}
-		)
-	else()
-		#not needed since we link statically, maybe also unneeded for MinGW?
-		if(NOT WITH_MINGW64)
-			install(
-				FILES
-					${LIBDIR}/zlib/lib/zlib.dll
-				DESTINATION ${TARGETDIR}
-			)
-		endif()
-	endif()
-
 	if(MSVC)
 		install(
 			FILES ${LIBDIR}/pthreads/lib/pthreadVC2.dll

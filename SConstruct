@@ -910,7 +910,6 @@ else:
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     dllsources = []
 
-    dllsources += ['${BF_ZLIB_LIBPATH}/zlib.dll']
     # Used when linking to libtiff was dynamic
     # keep it here until compilation on all platform would be ok
     # dllsources += ['${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']

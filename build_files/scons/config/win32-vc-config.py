@@ -82,7 +82,7 @@ BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
-BF_ZLIB_LIB = 'libz'
+BF_ZLIB_LIB = 'libz_st'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
