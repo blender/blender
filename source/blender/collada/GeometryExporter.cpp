@@ -439,7 +439,8 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
-	if (!CustomData_has_layer(&me->ldata, CD_MLOOPCOL))
+	MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+	if (mloopcol == NULL)
 		return;
 
 
@@ -456,18 +457,15 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
 	source.prepareToAppendValues();
 
-	int index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
-	MCol *mcol = (MCol *)me->ldata.layers[index].data;
-
 	MPoly *mpoly;
 	int i;
 	for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
-		MCol *color = mcol + mpoly->loopstart;
-		for (int j = 0; j < mpoly->totloop; j++, color++) {
+		MLoopCol *mlc = mloopcol + mpoly->loopstart;
+		for (int j = 0; j < mpoly->totloop; j++, mlc++) {
 			source.appendValues(
-					color->b / 255.0f,
-					color->g / 255.0f,
-					color->r / 255.0f 
+					mlc->r / 255.0f,
+					mlc->g / 255.0f,
+					mlc->b / 255.0f
 			);
 		}
 	}
