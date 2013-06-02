@@ -563,7 +563,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	result = CDDM_from_bmesh(bm, FALSE);
 
-	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
+	if ((dm->dirty & DM_DIRTY_NORMALS) ||
+	    ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)))
+	{
 		/* Update normals in case offset object has rotation. */
 		result->dirty |= DM_DIRTY_NORMALS;
 	}
