@@ -249,24 +249,30 @@ static GHash *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
 				el_store_other = BLI_ghash_lookup(vert_eloop_gh, v_other);
 
-				BLI_assert(el_store != NULL);
-				BLI_assert(el_store_other != NULL);
+				/* in rare cases we cant find a match */
+				if (el_store_other) {
+					pair_test.first = el_store;
+					pair_test.second = el_store_other;
 
-				pair_test.first = el_store;
-				pair_test.second = el_store_other;
+					if (pair_test.first > pair_test.second)
+						SWAP(const void *, pair_test.first, pair_test.second);
 
-				if (pair_test.first > pair_test.second)
-					SWAP(const void *, pair_test.first, pair_test.second);
+					if (!BLI_ghash_haskey(eloop_pair_gh, &pair_test)) {
+						GHashPair *pair = BLI_ghashutil_pairalloc(pair_test.first, pair_test.second);
+						BLI_ghash_insert(eloop_pair_gh, pair, NULL);
+					}
 
-				if (!BLI_ghash_haskey(eloop_pair_gh, &pair_test)) {
-					GHashPair *pair = BLI_ghashutil_pairalloc(pair_test.first, pair_test.second);
-					BLI_ghash_insert(eloop_pair_gh, pair, NULL);
 				}
 			}
 		}
 	}
 
 	BLI_ghash_free(vert_eloop_gh, NULL, NULL);
+
+	if (BLI_ghash_size(eloop_pair_gh) == 0) {
+		BLI_ghash_free(eloop_pair_gh, NULL, NULL);
+		eloop_pair_gh = NULL;
+	}
 
 	return eloop_pair_gh;
 }
@@ -1151,15 +1157,26 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 			                          interp_mode, cuts, smooth, falloff_cache);
 			bm_edgering_pair_store_free(lpair, interp_mode);
 		}
+		else {
+			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+			                "Edge-ring pair isn't connected");
+			goto cleanup;
+		}
 	}
 	else {
 		GHashIterator gh_iter;
 		int i;
 
 		GHash *eloop_pairs_gh = bm_edgering_pair_calc(bm, &eloops_rim);
+		LoopPairStore **lpair_arr;
 
-		const int eloop_pairs_len = BLI_ghash_size(eloop_pairs_gh);
-		LoopPairStore **lpair_arr = BLI_array_alloca(lpair_arr, eloop_pairs_len);
+		if (eloop_pairs_gh == NULL) {
+			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+			                "Edge-rings are not connected");
+			goto cleanup;
+		}
+
+		lpair_arr = BLI_array_alloca(lpair_arr, BLI_ghash_size(eloop_pairs_gh));
 
 		/* first cache pairs */
 		GHASH_ITER_INDEX (gh_iter, eloop_pairs_gh, i) {
