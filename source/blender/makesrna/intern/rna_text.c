@@ -148,6 +148,7 @@ static void rna_def_text(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISDIRTY);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dirty", "Text file has been edited since last save");
 
 	prop = RNA_def_property(srna, "is_modified", PROP_BOOLEAN, PROP_NONE);
@@ -157,6 +158,7 @@ static void rna_def_text(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "is_in_memory", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISMEM);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Memory", "Text file is in memory, without a corresponding file on disk");
 	
 	prop = RNA_def_property(srna, "use_module", PROP_BOOLEAN, PROP_NONE);

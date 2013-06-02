@@ -238,7 +238,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text = BKE_text_load(bmain, str, G.main->name);
+	text = BKE_text_load_ex(bmain, str, G.main->name, internal);
 
 	if (!text) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -263,13 +263,6 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	else if (st) {
 		st->text = text;
 		st->top = 0;
-	}
-	
-	if (internal) {
-		if (text->name)
-			MEM_freeN(text->name);
-		
-		text->name = NULL;
 	}
 
 	text_drawcache_tag_update(st, 1);
