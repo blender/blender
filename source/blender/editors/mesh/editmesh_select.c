@@ -1421,20 +1421,15 @@ static void edgetag_context_set(BMesh *bm, Scene *scene, BMEdge *e, int val)
 			break;
 #ifdef WITH_FREESTYLE
 		case EDGE_MODE_TAG_FREESTYLE:
-			{
-				FreestyleEdge *fed;
-
-				if (!CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
-					BM_data_layer_add(bm, &bm->pdata, CD_FREESTYLE_FACE);
-				}
-
-				fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
-				if (!val)
-					fed->flag &= ~FREESTYLE_EDGE_MARK;
-				else
-					fed->flag |= FREESTYLE_EDGE_MARK;
-			}
+		{
+			FreestyleEdge *fed;
+			fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+			if (!val)
+				fed->flag &= ~FREESTYLE_EDGE_MARK;
+			else
+				fed->flag |= FREESTYLE_EDGE_MARK;
 			break;
+		}
 #endif
 	}
 }
@@ -1475,6 +1470,13 @@ static void edgetag_ensure_cd_flag(Scene *scene, Mesh *me)
 		case EDGE_MODE_TAG_BEVEL:
 			BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT);
 			break;
+#ifdef WITH_FREESTYLE
+		case EDGE_MODE_TAG_FREESTYLE:
+			if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
+				BM_data_layer_add(bm, &bm->edata, CD_FREESTYLE_EDGE);
+			}
+			break;
+#endif
 		default:
 			break;
 	}
