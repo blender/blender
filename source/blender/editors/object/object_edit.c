@@ -382,6 +382,11 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
 	if (ED_object_editmode_load_ex(obedit, freedata) == false) {
+		/* in rare cases (background mode) its possible active object
+		 * is flagged for editmode, without 'obedit' being set [#35489] */
+		if (UNLIKELY(scene->basact && (scene->basact->object->mode & OB_MODE_EDIT))) {
+			scene->basact->object->mode &= ~OB_MODE_EDIT;
+		}
 		if (flag & EM_WAITCURSOR) waitcursor(0);
 		return;
 	}
