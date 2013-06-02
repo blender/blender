@@ -7662,6 +7662,11 @@ void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
 	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, FALSE);
 }
 
+void UI_remove_popup_handlers_all(bContext *C, ListBase *handlers)
+{
+	WM_event_free_ui_handler_all(C, handlers, ui_handler_popup, ui_handler_remove_popup);
+}
+
 bool UI_textbutton_activate_event(const bContext *C, ARegion *ar,
                                   const void *rna_poin_data, const char *rna_prop_id)
 {

@@ -687,6 +687,7 @@ void uiScalePanels(struct ARegion *ar, float new_width);
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *popup);
 void UI_remove_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *popup);
+void UI_remove_popup_handlers_all(struct bContext *C, struct ListBase *handlers);
 
 /* Module
  *
