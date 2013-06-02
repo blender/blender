@@ -201,7 +201,7 @@ __device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, int sta
 		/* create ray */
 		Ray ray;
 		ray.P = p1;
-		ray.D = normalize_len(p2 - p1, &ray.t);
+		ray.D = normalize_length(p2 - p1, &ray.t);
 		ray.dP = sd->dP;
 		ray.dD = differential3_zero();
 		ray.time = sd->time;

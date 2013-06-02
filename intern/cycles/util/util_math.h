@@ -296,19 +296,19 @@ __device_inline bool operator==(const int2 a, const int2 b)
 	return (a.x == b.x && a.y == b.y);
 }
 
-__device_inline float len(const float2 a)
+__device_inline float length(const float2 a)
 {
 	return sqrtf(dot(a, a));
 }
 
 __device_inline float2 normalize(const float2 a)
 {
-	return a/len(a);
+	return a/length(a);
 }
 
-__device_inline float2 normalize_len(const float2 a, float *t)
+__device_inline float2 normalize_length(const float2 a, float *t)
 {
-	*t = len(a);
+	*t = length(a);
 	return a/(*t);
 }
 
@@ -454,14 +454,13 @@ __device_inline float3 cross(const float3 a, const float3 b)
 	return r;
 }
 
-#endif
-
-__device_inline float len(const float3 a)
+__device_inline float length(const float3 a)
 {
 	return sqrtf(dot(a, a));
 }
+#endif
 
-__device_inline float len_squared(const float3 a)
+__device_inline float length_squared(const float3 a)
 {
 	return dot(a, a);
 }
@@ -470,14 +469,14 @@ __device_inline float len_squared(const float3 a)
 
 __device_inline float3 normalize(const float3 a)
 {
-	return a/len(a);
+	return a/length(a);
 }
 
 #endif
 
-__device_inline float3 normalize_len(const float3 a, float *t)
+__device_inline float3 normalize_length(const float3 a, float *t)
 {
-	*t = len(a);
+	*t = length(a);
 	return a/(*t);
 }
 
@@ -787,14 +786,14 @@ __device_inline float dot(const float4& a, const float4& b)
 	return reduce_add(a * b);
 }
 
-__device_inline float len(const float4 a)
+__device_inline float length(const float4 a)
 {
 	return sqrtf(dot(a, a));
 }
 
 __device_inline float4 normalize(const float4 a)
 {
-	return a/len(a);
+	return a/length(a);
 }
 
 __device_inline float4 min(float4 a, float4 b)
@@ -1050,7 +1049,7 @@ template<class A, class B> A lerp(const A& a, const A& b, const B& t)
 
 __device_inline float triangle_area(const float3 v1, const float3 v2, const float3 v3)
 {
-	return len(cross(v3 - v2, v1 - v2))*0.5f;
+	return length(cross(v3 - v2, v1 - v2))*0.5f;
 }
 
 #endif
@@ -1212,7 +1211,7 @@ __device bool ray_aligned_disk_intersect(
 {
 	/* aligned disk normal */
 	float disk_t;
-	float3 disk_N = normalize_len(ray_P - disk_P, &disk_t);
+	float3 disk_N = normalize_length(ray_P - disk_P, &disk_t);
 	float div = dot(ray_D, disk_N);
 
 	if(div == 0.0f)
@@ -1225,7 +1224,7 @@ __device bool ray_aligned_disk_intersect(
 	
 	/* test if within radius */
 	float3 P = ray_P + ray_D*t;
-	if(len_squared(P - disk_P) > disk_radius*disk_radius)
+	if(length_squared(P - disk_P) > disk_radius*disk_radius)
 		return false;
 
 	*isect_P = P;

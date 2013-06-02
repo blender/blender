@@ -25,7 +25,7 @@ __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, fl
 	if(distance_metric == NODE_VORONOI_DISTANCE_SQUARED)
 		return dot(d, d);
 	if(distance_metric == NODE_VORONOI_ACTUAL_DISTANCE)
-		return len(d);
+		return length(d);
 	if(distance_metric == NODE_VORONOI_MANHATTAN)
 		return fabsf(d.x) + fabsf(d.y) + fabsf(d.z);
 	if(distance_metric == NODE_VORONOI_CHEBYCHEV)

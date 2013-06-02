@@ -98,8 +98,8 @@ void EdgeDice::stitch_triangles(vector<int>& outer, vector<int>& inner)
 		}
 		else {
 			/* length of diagonals */
-			float len1 = len(mesh_P[inner[i]] - mesh_P[outer[j+1]]);
-			float len2 = len(mesh_P[outer[j]] - mesh_P[inner[i+1]]);
+			float len1 = length(mesh_P[inner[i]] - mesh_P[outer[j+1]]);
+			float len2 = length(mesh_P[outer[j]] - mesh_P[inner[i+1]]);
 
 			/* use smallest diagonal */
 			if(len1 < len2)

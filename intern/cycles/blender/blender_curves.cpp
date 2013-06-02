@@ -224,7 +224,7 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 						float3 cKey = make_float3(nco[0],nco[1],nco[2]);
 						cKey = transform_point(&itfm, cKey);
 						if(step_no > 0)
-							curve_length += len(cKey - pcKey);
+							curve_length += length(cKey - pcKey);
 						CData->curvekey_co.push_back(cKey);
 						CData->curvekey_time.push_back(curve_length);
 						pcKey = cKey;
@@ -473,7 +473,7 @@ void ExportCurveTriangleRibbons(Mesh *mesh, ParticleCurveData *CData, int interp
 		for( int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
 
 			float3 firstxbasis = cross(make_float3(1.0f,0.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]);
-			if(len_squared(firstxbasis)!= 0.0f)
+			if(length_squared(firstxbasis)!= 0.0f)
 				firstxbasis = normalize(firstxbasis);
 			else
 				firstxbasis = normalize(cross(make_float3(0.0f,1.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]));
@@ -499,7 +499,7 @@ void ExportCurveTriangleRibbons(Mesh *mesh, ParticleCurveData *CData, int interp
 
 				xbasis = cross(v1,v2);
 
-				if(len_squared(xbasis) >= 0.05f * len_squared(v1) * len_squared(v2)) {
+				if(length_squared(xbasis) >= 0.05f * length_squared(v1) * length_squared(v2)) {
 					firstxbasis = normalize(xbasis);
 					break;
 				}
@@ -528,7 +528,7 @@ void ExportCurveTriangleRibbons(Mesh *mesh, ParticleCurveData *CData, int interp
 
 				xbasis = cross(v1,v2);
 
-				if(len_squared(xbasis) >= 0.05f * len_squared(v1) * len_squared(v2)) {
+				if(length_squared(xbasis) >= 0.05f * length_squared(v1) * length_squared(v2)) {
 					xbasis = normalize(xbasis);
 					firstxbasis = xbasis;
 				}
@@ -586,7 +586,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 		for( int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
 
 			float3 firstxbasis = cross(make_float3(1.0f,0.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]);
-			if(len_squared(firstxbasis)!= 0.0f)
+			if(length_squared(firstxbasis)!= 0.0f)
 				firstxbasis = normalize(firstxbasis);
 			else
 				firstxbasis = normalize(cross(make_float3(0.0f,1.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]));
@@ -613,7 +613,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 
 				xbasis = cross(v1,v2);
 
-				if(len_squared(xbasis) >= 0.05f * len_squared(v1) * len_squared(v2)) {
+				if(length_squared(xbasis) >= 0.05f * length_squared(v1) * length_squared(v2)) {
 					firstxbasis = normalize(xbasis);
 					break;
 				}
@@ -643,7 +643,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 
 				xbasis = cross(v1,v2);
 
-				if(len_squared(xbasis) >= 0.05f * len_squared(v1) * len_squared(v2)) {
+				if(length_squared(xbasis) >= 0.05f * length_squared(v1) * length_squared(v2)) {
 					xbasis = normalize(xbasis);
 					firstxbasis = xbasis;
 				}

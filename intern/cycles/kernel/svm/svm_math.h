@@ -82,7 +82,7 @@ __device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, f
 		*Fac = average_fac(*Vector);
 	}
 	else if(type == NODE_VECTOR_MATH_AVERAGE) {
-		*Fac = len(Vector1 + Vector2);
+		*Fac = length(Vector1 + Vector2);
 		*Vector = normalize(Vector1 + Vector2);
 	}
 	else if(type == NODE_VECTOR_MATH_DOT_PRODUCT) {
@@ -91,11 +91,11 @@ __device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, f
 	}
 	else if(type == NODE_VECTOR_MATH_CROSS_PRODUCT) {
 		float3 c = cross(Vector1, Vector2);
-		*Fac = len(c);
+		*Fac = length(c);
 		*Vector = normalize(c);
 	}
 	else if(type == NODE_VECTOR_MATH_NORMALIZE) {
-		*Fac = len(Vector1);
+		*Fac = length(Vector1);
 		*Vector = normalize(Vector1);
 	}
 	else {

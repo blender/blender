@@ -133,7 +133,7 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 		else {
 			/* other lights, avoid self-intersection */
 			ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
-			ray->D = normalize_len(ray->D, &ray->t);
+			ray->D = normalize_length(ray->D, &ray->t);
 		}
 
 		ray->dP = sd->dP;

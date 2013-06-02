@@ -287,7 +287,7 @@ void BVH::pack_curve_segment(int idx, float4 woop[3])
 	float3 v1 = mesh->curve_keys[k1].co;
 
 	float3 d0 = v1 - v0;
-	float l =  len(d0);
+	float l =  length(d0);
 	
 	/*Plan
 	*Transform tfm = make_transform(

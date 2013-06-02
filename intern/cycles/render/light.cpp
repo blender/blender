@@ -276,7 +276,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 							p2 = transform_point(&tfm, p2);
 						}
 				
-						totarea += M_PI_F * (r1 + r2) * len(p1 - p2);
+						totarea += M_PI_F * (r1 + r2) * length(p1 - p2);
 					}
 				}
 
@@ -547,7 +547,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		else if(light->type == LIGHT_AREA) {
 			float3 axisu = light->axisu*(light->sizeu*light->size);
 			float3 axisv = light->axisv*(light->sizev*light->size);
-			float area = len(axisu)*len(axisv);
+			float area = length(axisu)*length(axisv);
 			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
 
 			if(light->use_mis && area > 0.0f)
