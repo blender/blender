@@ -345,7 +345,9 @@ ModifierTypeInfo modifierType_Mirror = {
 	                        eModifierTypeFlag_SupportsMapping |
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode |
-	                        eModifierTypeFlag_AcceptsCVs,
+	                        eModifierTypeFlag_AcceptsCVs |
+	                        /* this is only the case when 'MOD_MIR_VGROUP' is used */
+	                        eModifierTypeFlag_UsesPreview,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,
