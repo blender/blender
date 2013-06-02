@@ -4091,9 +4091,11 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 			}
 		}
 		else if (type == BUT_GET_OP_KEYMAP) {
-			char buf[128];
-			if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
-				tmp = BLI_strdup(buf);
+			if (!ui_block_is_menu(but->block)) {
+				char buf[128];
+				if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+					tmp = BLI_strdup(buf);
+				}
 			}
 		}
 

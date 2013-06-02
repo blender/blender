@@ -50,7 +50,7 @@
 
 #include "MEM_guardedalloc.h"
 
-/* should always be defined except for experemental cases */
+/* should always be defined except for experimental cases */
 #ifdef WITH_GUARDEDALLOC
 
 /* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
