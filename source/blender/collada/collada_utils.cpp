@@ -383,12 +383,13 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 
 }
 
-void bc_triangulate_mesh(Mesh *me) {
+void bc_triangulate_mesh(Mesh *me)
+{
 	bool use_beauty = false;
 	bool tag_only   = false;
 	 
 	BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default);
-	BM_mesh_bm_from_me(bm, me, FALSE, 0);
+	BM_mesh_bm_from_me(bm, me, true, false, 0);
 	BM_mesh_triangulate(bm, use_beauty, tag_only, NULL, NULL);
 	BM_mesh_bm_to_me(bm, me, FALSE);
 	BM_mesh_free(bm);

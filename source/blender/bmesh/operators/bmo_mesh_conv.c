@@ -45,7 +45,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	Mesh *me     = BMO_slot_ptr_get(op->slots_in,  "mesh");
 	bool set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
 
-	BM_mesh_bm_from_me(bm, me, set_key, ob->shapenr);
+	BM_mesh_bm_from_me(bm, me, false, set_key, ob->shapenr);
 
 	if (me->key && ob->shapenr > me->key->totkey) {
 		ob->shapenr = me->key->totkey - 1;

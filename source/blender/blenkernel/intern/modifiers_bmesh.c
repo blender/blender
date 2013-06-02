@@ -61,7 +61,7 @@ static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
  *
  * \note The mesh may already have geometry. see 'is_init'
  */
-void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
+void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 {
 	MVert *mv, *mvert;
 	MEdge *me, *medge;
@@ -182,11 +182,13 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data, true);
 
-		if (face_normals) {
-			copy_v3_v3(f->no, face_normals[i]);
-		}
-		else {
-			BM_face_normal_update(f);
+		if (calc_face_normal) {
+			if (face_normals) {
+				copy_v3_v3(f->no, face_normals[i]);
+			}
+			else {
+				BM_face_normal_update(f);
+			}
 		}
 
 		if (UNLIKELY(has_orig_hflag & BM_FACE)) {
@@ -202,7 +204,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 /* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
  * new geometry will be put in there.*/
-BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, int do_tessellate)
+BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, const bool do_tessellate)
 {
 	BMEditMesh *em = existing;
 	BMesh *bm;
@@ -214,7 +216,7 @@ BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, int do_tessel
 		bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	}
 
-	DM_to_bmesh_ex(dm, bm);
+	DM_to_bmesh_ex(dm, bm, do_tessellate);
 
 	if (!em) {
 		em = BKE_editmesh_create(bm, do_tessellate);
@@ -228,13 +230,13 @@ BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, int do_tessel
 	return em;
 }
 
-BMesh *DM_to_bmesh(DerivedMesh *dm)
+BMesh *DM_to_bmesh(DerivedMesh *dm, const bool calc_face_normal)
 {
 	BMesh *bm;
 
 	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
-	DM_to_bmesh_ex(dm, bm);
+	DM_to_bmesh_ex(dm, bm, calc_face_normal);
 
 	return bm;
 }

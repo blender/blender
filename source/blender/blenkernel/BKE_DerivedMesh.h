@@ -474,11 +474,11 @@ int DM_release(DerivedMesh *dm);
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob, CustomDataMask mask);
 
 struct BMEditMesh *DM_to_editbmesh(struct DerivedMesh *dm,
-                                   struct BMEditMesh *existing, int do_tessellate);
+                                   struct BMEditMesh *existing, const bool do_tessellate);
 
 /* conversion to bmesh only */
-void          DM_to_bmesh_ex(struct DerivedMesh *dm, struct BMesh *bm);
-struct BMesh *DM_to_bmesh(struct DerivedMesh *dm);
+void          DM_to_bmesh_ex(struct DerivedMesh *dm, struct BMesh *bm, const bool calc_face_normal);
+struct BMesh *DM_to_bmesh(struct DerivedMesh *dm, const bool calc_face_normal);
 
 
 /** Utility function to convert a DerivedMesh to a shape key block */

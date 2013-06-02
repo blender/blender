@@ -113,7 +113,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	const bool vertex_only = (bmd->flags & BME_BEVEL_VERT) != 0;
 	const bool do_clamp = !(bmd->flags & BME_BEVEL_OVERLAP_OK);
 
-	bm = DM_to_bmesh(dm);
+	bm = DM_to_bmesh(dm, true);
 
 	if (vertex_only) {
 		if ((bmd->lim_flags & BME_BEVEL_VGROUP) && bmd->defgrp_name[0]) {

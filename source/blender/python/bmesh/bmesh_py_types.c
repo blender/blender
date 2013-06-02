@@ -917,7 +917,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 }
 
 PyDoc_STRVAR(bpy_bmesh_from_object_doc,
-".. method:: from_object(object, scene, deform=True, render=False, cage=False)\n"
+".. method:: from_object(object, scene, deform=True, render=False, cage=False, face_normals=True)\n"
 "\n"
 "   Initialize this bmesh from existing object datablock (currently only meshes are supported).\n"
 "\n"
@@ -929,6 +929,8 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
 "   :type render: boolean\n"
 "   :arg cage: Get the mesh as a deformed cage.\n"
 "   :type cage: boolean\n"
+"   :arg face_normals: Calculate face normals.\n"
+"   :type face_normals: boolean\n"
 );
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 {
@@ -940,12 +942,13 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 	int use_deform = true;
 	int use_render = false;
 	int use_cage   = false;
+	int use_fnorm  = true;
 	DerivedMesh *dm;
 	const int mask = CD_MASK_BMESH;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "OO|iii:from_object", &py_object, &py_scene, &use_render, &use_cage) ||
+	if (!PyArg_ParseTuple(args, "OO|iiii:from_object", &py_object, &py_scene, &use_render, &use_cage, &use_fnorm) ||
 	    !(ob    = PyC_RNA_AsPointer(py_object, "Object")) ||
 	    !(scene = PyC_RNA_AsPointer(py_scene,  "Scene")))
 	{
@@ -1011,7 +1014,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 
 	bm = self->bm;
 
-	DM_to_bmesh_ex(dm, bm);
+	DM_to_bmesh_ex(dm, bm, use_fnorm);
 
 	dm->release(dm);
 
@@ -1020,7 +1023,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 
 
 PyDoc_STRVAR(bpy_bmesh_from_mesh_doc,
-".. method:: from_mesh(mesh, use_shape_key=False, shape_key_index=0)\n"
+".. method:: from_mesh(mesh, face_normals=True, use_shape_key=False, shape_key_index=0)\n"
 "\n"
 "   Initialize this bmesh from existing mesh datablock.\n"
 "\n"
@@ -1033,15 +1036,16 @@ PyDoc_STRVAR(bpy_bmesh_from_mesh_doc,
 );
 static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
-	static const char *kwlist[] = {"mesh", "use_shape_key", "shape_key_index", NULL};
+	static const char *kwlist[] = {"mesh", "face_normals", "use_shape_key", "shape_key_index", NULL};
 	BMesh *bm;
 	PyObject *py_mesh;
 	Mesh *me;
+	int use_fnorm  = true;
 	int use_shape_key = false;
 	int shape_key_index = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|ii:from_mesh", (char **)kwlist,
-	                                 &py_mesh, &use_shape_key, &shape_key_index) ||
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|iii:from_mesh", (char **)kwlist,
+	                                 &py_mesh, &use_fnorm, &use_shape_key, &shape_key_index) ||
 	    !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
 	{
 		return NULL;
@@ -1049,7 +1053,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
 	bm = self->bm;
 
-	BM_mesh_bm_from_me(bm, me, use_shape_key, shape_key_index + 1);
+	BM_mesh_bm_from_me(bm, me, use_fnorm, use_shape_key, shape_key_index + 1);
 
 	Py_RETURN_NONE;
 }

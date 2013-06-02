@@ -40,7 +40,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 	int total_edges, i;
 	MEdge *me;
 
-	bm = DM_to_bmesh(dm);
+	bm = DM_to_bmesh(dm, true);
 
 	BM_mesh_triangulate(bm, (flag & MOD_TRIANGULATE_BEAUTY), false, NULL, NULL);
 

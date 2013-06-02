@@ -56,8 +56,9 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMIter iter;
 	BMEdge *e;
 	float threshold = cosf((emd->split_angle + 0.00001f) * (float)M_PI / 180.0f);
+	const bool calc_face_normals = (emd->flags & MOD_EDGESPLIT_FROMANGLE) != 0;
 
-	bm = DM_to_bmesh(dm);
+	bm = DM_to_bmesh(dm, calc_face_normals);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {

@@ -2598,7 +2598,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 					bm_old = BM_mesh_create(&bm_mesh_allocsize_default);
 
-					BM_mesh_bm_from_me(bm_old, me, false, 0);
+					BM_mesh_bm_from_me(bm_old, me, false, false, 0);
 
 					if      (type == 1) retval_iter = mesh_separate_material(bmain, scene, base_iter, bm_old);
 					else if (type == 2) retval_iter = mesh_separate_loose(bmain, scene, base_iter, bm_old);

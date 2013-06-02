@@ -228,7 +228,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 	/* Add the DerivedMesh's elements to the BMesh. The pre-existing
 	 * elements were already tagged, so the new elements can be
 	 * identified by not having the BM_ELEM_TAG flag set. */
-	DM_to_bmesh_ex(dm, bm);
+	DM_to_bmesh_ex(dm, bm, false);
 
 	if (amd->flags & MOD_ARR_MERGE) {
 		/* if merging is enabled, find doubles */
@@ -330,7 +330,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
                                           int UNUSED(initFlags))
 {
 	DerivedMesh *result;
-	BMesh *bm = DM_to_bmesh(dm);
+	BMesh *bm = DM_to_bmesh(dm, false);
 	BMOperator first_dupe_op, dupe_op, old_dupe_op, weld_op;
 	BMVert **first_geom = NULL;
 	int i, j;

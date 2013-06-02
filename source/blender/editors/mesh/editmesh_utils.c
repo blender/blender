@@ -655,10 +655,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 
 	bm = BM_mesh_create(&allocsize);
 
-	BM_mesh_bm_from_me(bm, &um->me, false, ob->shapenr);
-
-	/* face normals need recalculation since we are not calling through an operator */
-	BM_mesh_normals_update(bm);
+	BM_mesh_bm_from_me(bm, &um->me, true, false, ob->shapenr);
 
 	em_tmp = BKE_editmesh_create(bm, true);
 	*em = *em_tmp;
