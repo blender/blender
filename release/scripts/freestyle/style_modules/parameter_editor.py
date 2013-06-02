@@ -184,7 +184,7 @@ def iter_t2d_along_stroke(stroke):
         p = it.object.point
         distance += (prev - p).length
         prev = p.copy() # need a copy because the point can be altered
-        t = min(distance / total, 1.0)
+        t = min(distance / total, 1.0) if total > 0.0 else 0.0
         yield it, t
         it.increment()
 
