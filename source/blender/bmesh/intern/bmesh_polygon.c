@@ -831,6 +831,8 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 	const float cos_threshold = 0.9f;
 	const float bias = 1.0f + 1e-6f;
 
+	BLI_assert(len_squared_v3(f->no) > FLT_EPSILON);
+
 	if (f->len == 4) {
 		BMLoop *larr[4];
 		int i = 0, i4;

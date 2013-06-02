@@ -869,6 +869,8 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 	int totfaces = 0; /* total faces added */
 	float mat_2d[3][3];
 
+	BLI_assert(!nor_proj || len_squared_v3(nor_proj) > FLT_EPSILON);
+
 	/* reset variables */
 	eve = sf_ctx->fillvertbase.first;
 	a = 0;
