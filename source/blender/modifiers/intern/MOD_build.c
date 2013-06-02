@@ -296,6 +296,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MEM_freeN(edgeMap);
 	MEM_freeN(faceMap);
 
+	if (dm->dirty & DM_DIRTY_NORMALS) {
+		result->dirty |= DM_DIRTY_NORMALS;
+	}
+
 	return result;
 }
 

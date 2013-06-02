@@ -197,6 +197,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	TIMEIT_END(decim);
 #endif
 
+	result->dirty = DM_DIRTY_NORMALS;
+
 	return result;
 }
 

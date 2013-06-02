@@ -819,7 +819,7 @@ static DerivedMesh *applyModifier(
 		MEM_freeN(old_vert_arr);
 
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
-	if (dvert) {
+	if ((dm->dirty & DM_DIRTY_NORMALS) || dvert) {
 		result->dirty |= DM_DIRTY_NORMALS;
 	}
 
@@ -832,6 +832,12 @@ static DerivedMesh *applyModifier(
 
 #undef SOLIDIFY_SIDE_NORMALS
 
+static bool dependsOnNormals(ModifierData *md)
+{
+	SolidifyModifierData *smd = (SolidifyModifierData *) md;
+
+	return (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) == 0;
+}
 
 ModifierTypeInfo modifierType_Solidify = {
 	/* name */              "Solidify",
@@ -858,7 +864,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */  NULL,
+	/* dependsOnNormals */  dependsOnNormals,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
