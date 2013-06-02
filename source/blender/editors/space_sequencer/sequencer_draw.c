@@ -823,7 +823,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	SeqRenderData context;
 	ImBuf *ibuf;
 	int rectx, recty;
-	float render_size = 0.0;
+	float render_size;
 	float proxy_size = 100.0;
 	short is_break = G.is_break;
 
