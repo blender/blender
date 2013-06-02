@@ -88,19 +88,25 @@ void MovieClipBaseOperation::determineResolution(unsigned int resolution[2], uns
 
 void MovieClipBaseOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	if (this->m_movieClipBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+	ImBuf *ibuf = this->m_movieClipBuffer;
+
+	if (ibuf == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+		zero_v4(output);
+	}
+	if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+		/* Happens for multilayer exr, i.e. */
 		zero_v4(output);
 	}
 	else {
 		switch (sampler) {
 			case COM_PS_NEAREST:
-				nearest_interpolation_color(this->m_movieClipBuffer, NULL, output, x, y);
+				nearest_interpolation_color(ibuf, NULL, output, x, y);
 				break;
 			case COM_PS_BILINEAR:
-				bilinear_interpolation_color(this->m_movieClipBuffer, NULL, output, x, y);
+				bilinear_interpolation_color(ibuf, NULL, output, x, y);
 				break;
 			case COM_PS_BICUBIC:
-				bicubic_interpolation_color(this->m_movieClipBuffer, NULL, output, x, y);
+				bicubic_interpolation_color(ibuf, NULL, output, x, y);
 				break;
 		}
 	}
