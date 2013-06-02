@@ -748,9 +748,9 @@ typedef enum CurveFlag {
 	/* runtime flags */
 	CURVE_KN_BACKFACING = 1,				/* backside of cylinder? */
 	CURVE_KN_ENCLOSEFILTER = 2,				/* don't consider strands surrounding start point? */
-	CURVE_KN_CURVEDATA = 4,				/* curve data available? */
-	CURVE_KN_INTERPOLATE = 8,				/* render as a curve? - not supported yet */
-	CURVE_KN_ACCURATE = 16,				/* use accurate intersections test? */
+	CURVE_KN_CURVEDATA = 4,					/* curve data available? */
+	CURVE_KN_INTERPOLATE = 8,				/* render as a curve? */
+	CURVE_KN_ACCURATE = 16,					/* use accurate intersections test? */
 	CURVE_KN_INTERSECTCORRECTION = 32,		/* correct for width after determing closest midpoint? */
 	CURVE_KN_POSTINTERSECTCORRECTION = 64,	/* correct for width after intersect? */
 	CURVE_KN_NORMALCORRECTION = 128,		/* correct tangent normal for slope? */

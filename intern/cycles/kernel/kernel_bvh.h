@@ -298,7 +298,7 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 
 	/*obtain curve parameters*/
 	{
-		/*ray transform created - this shold be created at beginning of intersection loop*/
+		/*ray transform created - this should be created at beginning of intersection loop*/
 		Transform htfm;
 		float d = sqrtf(dir.x * dir.x + dir.z * dir.z);
 		htfm = make_transform(

@@ -102,7 +102,7 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 	if(is_zero(light_eval))
 		return false;
 
-	/* todo: use visbility flag to skip lights */
+	/* todo: use visibility flag to skip lights */
 
 	/* evaluate BSDF at shading point */
 	float bsdf_pdf;
