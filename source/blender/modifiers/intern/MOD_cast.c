@@ -78,16 +78,16 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(tcmd->defgrp_name, cmd->defgrp_name, sizeof(tcmd->defgrp_name));
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	CastModifierData *cmd = (CastModifierData *) md;
 	short flag;
 	
 	flag = cmd->flag & (MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z);
 
-	if ((cmd->fac == 0.0f) || flag == 0) return 1;
+	if ((cmd->fac == 0.0f) || flag == 0) return true;
 
-	return 0;
+	return false;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

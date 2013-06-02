@@ -59,7 +59,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->operation = bmd->operation;
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 

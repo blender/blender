@@ -282,7 +282,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static int dependsOnTime(ModifierData *md)
+static bool dependsOnTime(ModifierData *md)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
 
@@ -338,7 +338,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 		                 "WeightVGProximity Modifier");
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
 	/* If no vertex group, bypass. */

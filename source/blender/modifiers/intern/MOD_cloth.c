@@ -159,9 +159,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tclmd->clothObject = NULL;
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 
 static void freeData(ModifierData *md)

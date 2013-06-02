@@ -96,13 +96,13 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(tmcmd->filepath, mcmd->filepath, sizeof(tmcmd->filepath));
 }
 
-static int dependsOnTime(ModifierData *md)
+static bool dependsOnTime(ModifierData *md)
 {
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 	return (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA);
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *) md;
 

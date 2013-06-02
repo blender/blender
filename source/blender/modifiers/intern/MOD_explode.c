@@ -80,9 +80,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	temd->protect = emd->protect;
 	temd->vgroup = emd->vgroup;
 }
-static int dependsOnTime(ModifierData *UNUSED(md)) 
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {

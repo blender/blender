@@ -71,9 +71,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->seed = bmd->seed;
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),

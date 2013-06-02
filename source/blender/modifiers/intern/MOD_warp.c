@@ -97,7 +97,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static int dependsOnTime(ModifierData *md)
+static bool dependsOnTime(ModifierData *md)
 {
 	WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -105,7 +105,7 @@ static int dependsOnTime(ModifierData *md)
 		return BKE_texture_dependsOnTime(wmd->texture);
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 
@@ -116,7 +116,7 @@ static void freeData(ModifierData *md)
 }
 
 
-static int isDisabled(ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(userRenderParams))
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 

@@ -930,12 +930,6 @@ static void foreachObjectLink(
 	walk(userData, ob, &ltmd->ob_axis);
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
-{
-	return 0;
-}
-
-
 ModifierTypeInfo modifierType_Screw = {
 	/* name */              "Screw",
 	/* structName */        "ScrewModifierData",
@@ -959,7 +953,7 @@ ModifierTypeInfo modifierType_Screw = {
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,

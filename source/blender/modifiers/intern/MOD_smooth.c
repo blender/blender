@@ -70,7 +70,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	SmoothModifierData *smd = (SmoothModifierData *) md;
 	short flag;

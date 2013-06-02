@@ -74,7 +74,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(userRenderParams))
 {
 	LatticeModifierData *lmd = (LatticeModifierData *) md;
 

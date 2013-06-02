@@ -1420,10 +1420,10 @@ void BKE_free_oceantex(struct OceanTex *ot)
 
 
 /* ------------------------------------------------------------------------- */
-int BKE_texture_dependsOnTime(const struct Tex *texture)
+bool BKE_texture_dependsOnTime(const struct Tex *texture)
 {
 	if (texture->ima &&
-	         ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+	    ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
 	{
 		return 1;
 	}

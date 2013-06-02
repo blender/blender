@@ -100,9 +100,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 
 static void foreachObjectLink(

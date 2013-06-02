@@ -80,8 +80,8 @@ struct BLaplacianSystem {
 };
 typedef struct BLaplacianSystem LaplacianSystem;
 
-static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md);
-static int is_disabled(ModifierData *md, int UNUSED(useRenderParams));
+static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
+static bool is_disabled(ModifierData *md, int useRenderParams);
 static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4);
 static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces);
 static float cotan_weight(float *v1, float *v2, float *v3);
@@ -215,7 +215,7 @@ static void copy_data(ModifierData *md, ModifierData *target)
 	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
 }
 
-static int is_disabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool is_disabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
 	short flag;

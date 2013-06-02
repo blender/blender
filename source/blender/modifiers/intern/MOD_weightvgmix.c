@@ -161,13 +161,13 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static int dependsOnTime(ModifierData *md)
+static bool dependsOnTime(ModifierData *md)
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 
 	if (wmd->mask_texture)
 		return BKE_texture_dependsOnTime(wmd->mask_texture);
-	return 0;
+	return false;
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob,
@@ -210,7 +210,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 		                 "WeightVGMix Modifier");
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	/* If no vertex group, bypass. */

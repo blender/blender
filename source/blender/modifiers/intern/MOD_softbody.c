@@ -53,9 +53,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 
 

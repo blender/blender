@@ -43,9 +43,9 @@
  * no other functions will be called
  */
 
-static int isDisabled(ModifierData *UNUSED(md), int UNUSED(userRenderParams))
+static bool isDisabled(ModifierData *UNUSED(md), int UNUSED(userRenderParams))
 {
-	return 1;
+	return true;
 }
 
 ModifierTypeInfo modifierType_None = {

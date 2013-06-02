@@ -108,9 +108,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	return smokeModifier_do(smd, md->scene, ob, dm);
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

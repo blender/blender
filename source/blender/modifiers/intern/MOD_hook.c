@@ -94,7 +94,7 @@ static void freeData(ModifierData *md)
 	if (hmd->indexar) MEM_freeN(hmd->indexar);
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	HookModifierData *hmd = (HookModifierData *) md;
 

@@ -127,14 +127,14 @@ void modifier_unique_name(ListBase *modifiers, ModifierData *md)
 	}
 }
 
-int modifier_dependsOnTime(ModifierData *md) 
+bool modifier_dependsOnTime(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	return mti->dependsOnTime && mti->dependsOnTime(md);
 }
 
-int modifier_supportsMapping(ModifierData *md)
+bool modifier_supportsMapping(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -142,7 +142,7 @@ int modifier_supportsMapping(ModifierData *md)
 	        (mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
-int modifier_isPreview(ModifierData *md)
+bool modifier_isPreview(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -237,7 +237,7 @@ void modifier_copyData(ModifierData *md, ModifierData *target)
 		mti->copyData(md, target);
 }
 
-int modifier_couldBeCage(struct Scene *scene, ModifierData *md)
+bool modifier_couldBeCage(struct Scene *scene, ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -249,13 +249,13 @@ int modifier_couldBeCage(struct Scene *scene, ModifierData *md)
 	        modifier_supportsMapping(md));
 }
 
-int modifier_isSameTopology(ModifierData *md)
+bool modifier_isSameTopology(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	return ELEM(mti->type, eModifierTypeType_OnlyDeform, eModifierTypeType_NonGeometrical);
 }
 
-int modifier_isNonGeometrical(ModifierData *md)
+bool modifier_isNonGeometrical(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	return (mti->type == eModifierTypeType_NonGeometrical);
@@ -320,35 +320,35 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCag
 }
 
 
-int modifiers_isSoftbodyEnabled(Object *ob)
+bool modifiers_isSoftbodyEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifiers_isClothEnabled(Object *ob)
+bool modifiers_isClothEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifiers_isModifierEnabled(Object *ob, int modifierType)
+bool modifiers_isModifierEnabled(Object *ob, int modifierType)
 {
 	ModifierData *md = modifiers_findByType(ob, modifierType);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifiers_isParticleEnabled(Object *ob)
+bool modifiers_isParticleEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleSystem);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
+bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -569,7 +569,7 @@ Object *modifiers_isDeformedByCurve(Object *ob)
 	return NULL;
 }
 
-int modifiers_usesArmature(Object *ob, bArmature *arm)
+bool modifiers_usesArmature(Object *ob, bArmature *arm)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 
@@ -577,24 +577,24 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 		if (md->type == eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData *) md;
 			if (amd->object && amd->object->data == arm)
-				return 1;
+				return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-int modifier_isCorrectableDeformed(ModifierData *md)
+bool modifier_isCorrectableDeformed(ModifierData *md)
 {
 	if (md->type == eModifierType_Armature)
-		return 1;
+		return true;
 	if (md->type == eModifierType_ShapeKey)
-		return 1;
+		return true;
 	
-	return 0;
+	return false;
 }
 
-int modifiers_isCorrectableDeformed(Object *ob)
+bool modifiers_isCorrectableDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
@@ -603,24 +603,24 @@ int modifiers_isCorrectableDeformed(Object *ob)
 			/* pass */
 		}
 		else if (modifier_isCorrectableDeformed(md)) {
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 /* Check whether the given object has a modifier in its stack that uses WEIGHT_MCOL CD layer
  * to preview something... Used by DynamicPaint and WeightVG currently. */
-int modifiers_isPreview(Object *ob)
+bool modifiers_isPreview(Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
 
 	for (; md; md = md->next) {
 		if (modifier_isPreview(md))
-			return TRUE;
+			return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 void modifier_freeTemporaryData(ModifierData *md)

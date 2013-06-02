@@ -139,9 +139,9 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-static int dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return 1;
+	return true;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,

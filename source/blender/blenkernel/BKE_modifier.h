@@ -248,7 +248,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional (assumes never disabled if not present).
 	 */
-	int (*isDisabled)(struct ModifierData *md, int userRenderParams);
+	bool (*isDisabled)(struct ModifierData *md, int userRenderParams);
 
 	/* Add the appropriate relations to the DEP graph depending on the
 	 * modifier data. 
@@ -263,7 +263,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional (assumes false if not present).
 	 */
-	int (*dependsOnTime)(struct ModifierData *md);
+	bool (*dependsOnTime)(struct ModifierData *md);
 
 
 	/* True when a deform modifier uses normals, the requiredDataMask
@@ -273,7 +273,7 @@ typedef struct ModifierTypeInfo {
 	 * this is needed because applying 2 deform modifiers will give the
 	 * second modifier bogus normals.
 	 * */
-	int (*dependsOnNormals)(struct ModifierData *md);
+	bool (*dependsOnNormals)(struct ModifierData *md);
 
 
 	/* Should call the given walk function on with a pointer to each Object
@@ -318,19 +318,19 @@ void          modifier_free(struct ModifierData *md);
 void          modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
 
 void          modifier_copyData(struct ModifierData *md, struct ModifierData *target);
-int           modifier_dependsOnTime(struct ModifierData *md);
-int           modifier_supportsMapping(struct ModifierData *md);
-int           modifier_couldBeCage(struct Scene *scene, struct ModifierData *md);
-int           modifier_isCorrectableDeformed(struct ModifierData *md);
-int           modifier_isSameTopology(ModifierData *md);
-int           modifier_isNonGeometrical(ModifierData *md);
-int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
+bool          modifier_dependsOnTime(struct ModifierData *md);
+bool          modifier_supportsMapping(struct ModifierData *md);
+bool          modifier_couldBeCage(struct Scene *scene, struct ModifierData *md);
+bool          modifier_isCorrectableDeformed(struct ModifierData *md);
+bool          modifier_isSameTopology(ModifierData *md);
+bool          modifier_isNonGeometrical(ModifierData *md);
+bool          modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, const char *format, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf, 2, 3)))
 #endif
 ;
-int           modifier_isPreview(struct ModifierData *md);
+bool          modifier_isPreview(struct ModifierData *md);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
                                           ObjectWalkFunc walk,
@@ -348,18 +348,18 @@ void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
                                      int *lastPossibleCageIndex_r, int virtual_);
 
-int           modifiers_isModifierEnabled(struct Object *ob, int modifierType);
-int           modifiers_isSoftbodyEnabled(struct Object *ob);
-int           modifiers_isClothEnabled(struct Object *ob);
-int           modifiers_isParticleEnabled(struct Object *ob);
+bool          modifiers_isModifierEnabled(struct Object *ob, int modifierType);
+bool          modifiers_isSoftbodyEnabled(struct Object *ob);
+bool          modifiers_isClothEnabled(struct Object *ob);
+bool          modifiers_isParticleEnabled(struct Object *ob);
 
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 struct Object *modifiers_isDeformedByCurve(struct Object *ob);
-int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
-int           modifiers_isCorrectableDeformed(struct Object *ob);
+bool          modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
+bool          modifiers_isCorrectableDeformed(struct Object *ob);
 void          modifier_freeTemporaryData(struct ModifierData *md);
-int           modifiers_isPreview(struct Object *ob);
+bool          modifiers_isPreview(struct Object *ob);
 
 typedef struct CDMaskLink {
 	struct CDMaskLink *next;

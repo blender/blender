@@ -95,7 +95,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static int dependsOnTime(ModifierData *md)
+static bool dependsOnTime(ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
@@ -103,11 +103,11 @@ static int dependsOnTime(ModifierData *md)
 		return BKE_texture_dependsOnTime(dmd->texture);
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 
-static int dependsOnNormals(ModifierData *md)
+static bool dependsOnNormals(ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	return (dmd->direction == MOD_DISP_DIR_NOR);
@@ -137,7 +137,7 @@ static void foreachTexLink(ModifierData *md, Object *ob,
 	walk(userData, ob, md, "texture");
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 	return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);

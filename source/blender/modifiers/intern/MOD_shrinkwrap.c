@@ -95,7 +95,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
 	return !smd->target;
@@ -161,7 +161,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		                 DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
 }
 
-static int dependsOnNormals(ModifierData *md)
+static bool dependsOnNormals(ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
