@@ -762,6 +762,7 @@ typedef struct uiDragToggleHandle {
 	eButType but_type_start;
 
 	bool xy_lock[2];
+	int  xy_init[2];
 	int  xy_last[2];
 } uiDragToggleHandle;
 
@@ -893,6 +894,13 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 
 	if (done) {
 		wmWindow *win = CTX_wm_window(C);
+		ARegion *ar = CTX_wm_region(C);
+		uiBut *but = ui_but_find_mouse_over(ar, drag_info->xy_init[0], drag_info->xy_init[1]);
+
+		if (but) {
+			ui_apply_undo(but);
+		}
+
 		WM_event_remove_ui_handler(&win->modalhandlers,
 		                           ui_handler_region_drag_toggle,
 		                           ui_handler_region_drag_toggle_remove,
@@ -952,6 +960,7 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
 			drag_info->but_type_start = but->type;
+			copy_v2_v2_int(drag_info->xy_init, &event->x);
 			copy_v2_v2_int(drag_info->xy_last, &event->x);
 
 			/* needed for toggle drag on popups */
