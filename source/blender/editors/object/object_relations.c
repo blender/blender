@@ -1712,6 +1712,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 	//Camera *cam;
 	Base *base;
 	Mesh *me;
+	Lattice *lat;
 	ID *id;
 	int a;
 
@@ -1722,9 +1723,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 			
 			if (id && id->us > 1 && id->lib == NULL) {
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-				
-				BKE_copy_animdata_id_action(id);
-				
+
 				switch (ob->type) {
 					case OB_LAMP:
 						ob->data = la = BKE_lamp_copy(ob->data);
@@ -1738,10 +1737,9 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						ob->data = BKE_camera_copy(ob->data);
 						break;
 					case OB_MESH:
-						ob->data = BKE_mesh_copy(ob->data);
-						//me = ob->data;
-						//if (me && me->key)
-						//	ipo_idnew(me->key->ipo);	/* drivers */
+						ob->data = me = BKE_mesh_copy(ob->data);
+						if (me->key)
+							BKE_copy_animdata_id_action((ID*)me->key);
 						break;
 					case OB_MBALL:
 						ob->data = BKE_mball_copy(ob->data);
@@ -1752,9 +1750,13 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						ob->data = cu = BKE_curve_copy(ob->data);
 						ID_NEW(cu->bevobj);
 						ID_NEW(cu->taperobj);
+						if (cu->key)
+							BKE_copy_animdata_id_action((ID*)cu->key);
 						break;
 					case OB_LATTICE:
-						ob->data = BKE_lattice_copy(ob->data);
+						ob->data = lat = BKE_lattice_copy(ob->data);
+						if (lat->key)
+							BKE_copy_animdata_id_action((ID*)lat->key);
 						break;
 					case OB_ARMATURE:
 						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1769,7 +1771,14 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 							printf("ERROR %s: can't copy %s\n", __func__, id->name);
 						return;
 				}
-				
+
+				/* Copy animation data after object data became local,
+				 * otherwise old and new object data will share the same
+				 * AnimData structure, which is not what we want.
+				 *                                             (sergey)
+				 */
+				BKE_copy_animdata_id_action((ID*)ob->data);
+
 				id->us--;
 				id->newid = ob->data;
 				
