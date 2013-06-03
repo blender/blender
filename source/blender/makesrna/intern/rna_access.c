@@ -4469,6 +4469,16 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 	data_path = RNA_path_from_ID_to_property(ptr, prop);
 
+	if (data_path == NULL) {
+		/* this may not be an ID at all, check for simple when pointer owns property.
+		 * TODO, more complex nested case */
+		if (!RNA_struct_is_ID(ptr->type)) {
+			if (RNA_struct_find_property(ptr, RNA_property_identifier(prop)) == prop) {
+				data_path = BLI_strdup(RNA_property_identifier(prop));
+			}
+		}
+	}
+
 	if ((index == -1) || (RNA_property_array_check(prop) == FALSE)) {
 		ret = BLI_sprintfN("%s",
 		                   data_path);
