@@ -585,6 +585,14 @@ static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
 	win->newscreen = value.data;
 }
 
+int rna_Window_screen_assign_poll(PointerRNA *ptr, PointerRNA value)
+{
+	bScreen *screen = (bScreen *)value.id.data;
+
+	return !screen->temp;
+}
+
+
 static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
 {
 	wmWindow *win = (wmWindow *)ptr->data;
@@ -1706,7 +1714,7 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Screen");
 	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL, "rna_Window_screen_assign_poll");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 
