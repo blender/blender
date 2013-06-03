@@ -633,7 +633,8 @@ static int connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	HairKey *key;
 	BVHTreeFromMesh bvhtree= {NULL};
 	BVHTreeNearest nearest;
-	MFace *mface;
+	MFace *mface, *mf;
+	MVert *mvert;
 	DerivedMesh *dm = NULL;
 	int numverts;
 	int i, k;
@@ -646,21 +647,27 @@ static int connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	edit= psys->edit;
 	point=  edit ? edit->points : NULL;
 	
-	if (psmd->dm->deformedOnly)
+	if (psmd->dm->deformedOnly) {
 		/* we don't want to mess up psmd->dm when converting to global coordinates below */
-		dm= CDDM_copy(psmd->dm);
-	else
-		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+		dm = psmd->dm;
+	}
+	else {
+		dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+	}
+	/* don't modify the original vertices */
+	dm = CDDM_copy(dm);
 
 	/* BMESH_ONLY, deform dm may not have tessface */
 	DM_ensure_tessface(dm);
 
-
 	numverts = dm->getNumVerts(dm);
+
+	mvert = dm->getVertArray(dm);
+	mface = dm->getTessFaceArray(dm);
 
 	/* convert to global coordinates */
 	for (i=0; i<numverts; i++)
-		mul_m4_v3(ob->obmat, CDDM_get_vert(dm, i)->co);
+		mul_m4_v3(ob->obmat, mvert[i].co);
 
 	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
 
@@ -678,13 +685,13 @@ static int connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 			continue;
 		}
 
-		mface = CDDM_get_tessface(dm, nearest.index);
+		mf = &mface[nearest.index];
 
-		copy_v3_v3(v[0], CDDM_get_vert(dm, mface->v1)->co);
-		copy_v3_v3(v[1], CDDM_get_vert(dm, mface->v2)->co);
-		copy_v3_v3(v[2], CDDM_get_vert(dm, mface->v3)->co);
-		if (mface->v4) {
-			copy_v3_v3(v[3], CDDM_get_vert(dm, mface->v4)->co);
+		copy_v3_v3(v[0], mvert[mf->v1].co);
+		copy_v3_v3(v[1], mvert[mf->v2].co);
+		copy_v3_v3(v[2], mvert[mf->v3].co);
+		if (mf->v4) {
+			copy_v3_v3(v[3], mvert[mf->v4].co);
 			interp_weights_poly_v3(pa->fuv, v, 4, nearest.co);
 		}
 		else
