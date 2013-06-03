@@ -296,11 +296,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
 	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
-	if (scene->lay & 0xFF000000)
-		spos += sprintf(spos, IFACE_("Localview | "));
-	else if (scene->r.scemode & R_SINGLE_LAYER)
-		spos += sprintf(spos, IFACE_("Single Layer | "));
-
+	spos += sprintf(spos, "%s | ", (scene->lay & 0xFF000000) ? IFACE_("Localview") : IFACE_("Single Layer"));
 	spos += sprintf(spos, IFACE_("Frame:%d "), (scene->r.cfra));
 
 	if (rs->statstr) {
