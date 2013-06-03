@@ -42,6 +42,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_editmesh.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
@@ -49,6 +51,13 @@
 #include "rna_internal.h"
 
 #include "WM_types.h"
+
+EnumPropertyItem mesh_delimit_mode_items[] = {
+	{BMO_DELIM_NORMAL, "NORMAL", 0, "Normal", "Delimit by face directions"},
+	{BMO_DELIM_MATERIAL, "MATERIAL", 0, "Material", "Delimit by face material"},
+	{BMO_DELIM_SEAM, "SEAM", 0, "Seam", "Delimit by edge seams"},
+	{0, NULL, 0, NULL, NULL},
+};
 
 #ifdef RNA_RUNTIME
 
@@ -60,7 +69,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_editmesh.h"
 #include "BKE_report.h"
 
 #include "ED_mesh.h" /* XXX Bad level call */

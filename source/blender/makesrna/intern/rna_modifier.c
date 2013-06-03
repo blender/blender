@@ -1216,6 +1216,13 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS);
 	RNA_def_property_ui_text(prop, "All Boundaries", "Dissolve all vertices inbetween face boundaries (planar only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "delimit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG); /* important to run before default set */
+	RNA_def_property_enum_items(prop, mesh_delimit_mode_items);
+	RNA_def_property_ui_text(prop, "Delimit", "Limit merging geometry");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	/* end dissolve-only option */
 
 

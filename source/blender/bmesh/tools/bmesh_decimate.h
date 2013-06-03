@@ -33,9 +33,11 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations);
 
 void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
+                                  const BMO_Delimit delimit,
                                   BMVert **vinput_arr, const int vinput_len,
                                   BMEdge **einput_arr, const int einput_len);
-void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries);
+void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
+                               const BMO_Delimit delimit);
 
 /* these weights are accumulated so too high values may reach 'inf' too quickly */
 #define BM_MESH_DECIM_WEIGHT_MAX 100000.0f

@@ -262,6 +262,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         else:  # decimate_type == 'DISSOLVE':
             layout.prop(md, "angle_limit")
             layout.prop(md, "use_dissolve_boundaries")
+            layout.label("Delimit:")
+            row = layout.row()
+            row.prop(md, "delimit")
 
         layout.label(text=iface_("Face Count: %d") % md.face_count, translate=False)
 

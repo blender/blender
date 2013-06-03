@@ -367,7 +367,8 @@ typedef struct DecimateModifierData {
 
 	float percent;  /* (mode == MOD_DECIM_MODE_COLLAPSE) */
 	short   iter;   /* (mode == MOD_DECIM_MODE_UNSUBDIV) */
-	short   pad;
+	char delimit;   /* (mode == MOD_DECIM_MODE_DISSOLVE) */
+	char pad;
 	float   angle;  /* (mode == MOD_DECIM_MODE_DISSOLVE) */
 
 	char defgrp_name[64];	/* MAX_VGROUP_NAME */

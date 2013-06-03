@@ -70,6 +70,7 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 }
 
 void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
+                                  const BMO_Delimit delimit,
                                   BMVert **vinput_arr, const int vinput_len,
                                   BMEdge **einput_arr, const int einput_len)
 {
@@ -77,7 +78,6 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 	DissolveElemWeight *weight_elems = MEM_mallocN(max_ii(einput_len, vinput_len) *
 	                                               sizeof(DissolveElemWeight), __func__);
 	int i, tot_found;
-
 	BMIter iter;
 	BMEdge *e_iter;
 	BMEdge **earray;
@@ -94,7 +94,13 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 	/* go through and split edge */
 	for (i = 0, tot_found = 0; i < einput_len; i++) {
 		BMEdge *e = einput_arr[i];
-		const float angle = BM_edge_calc_face_angle(e);
+		const bool is_contig = BM_edge_is_contiguous(e);
+		float angle;
+
+		angle = BM_edge_calc_face_angle(e);
+		if (is_contig == false) {
+			angle = (float)M_PI - angle;
+		}
 
 		if (angle < angle_limit) {
 			tot_found++;
@@ -108,12 +114,39 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 
 		for (i = 0; i < tot_found; i++) {
 			BMEdge *e = (BMEdge *)weight_elems[i].ele;
+			const bool is_contig = BM_edge_is_contiguous(e);
+			float angle;
 
-			if (/* may have become non-manifold */
-			    BM_edge_is_manifold(e) &&
-			    /* check twice because cumulative effect could dissolve over angle limit */
-			    (BM_edge_calc_face_angle(e) < angle_limit))
+			/* may have become non-manifold */
+			if (!BM_edge_is_manifold(e)) {
+				continue;
+			}
+
+			if ((delimit & BMO_DELIM_SEAM) &&
+			    (BM_elem_flag_test(e, BM_ELEM_SEAM)))
 			{
+				continue;
+			}
+
+			if ((delimit & BMO_DELIM_MATERIAL) &&
+			    (e->l->f->mat_nr != e->l->radial_next->f->mat_nr))
+			{
+				continue;
+			}
+
+			if ((delimit & BMO_DELIM_NORMAL) &&
+			    (is_contig == false))
+			{
+				continue;
+			}
+
+			/* check twice because cumulative effect could dissolve over angle limit */
+			angle = BM_edge_calc_face_angle(e);
+			if (is_contig == false) {
+				angle = (float)M_PI - angle;
+			}
+
+			if (angle < angle_limit) {
 				BMFace *f_new = BM_faces_join_pair(bm, e->l->f,
 				                                   e->l->radial_next->f,
 				                                   e,
@@ -223,7 +256,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 	MEM_freeN(weight_elems);
 }
 
-void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries)
+void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
+                               const BMO_Delimit delimit)
 {
 	int vinput_len;
 	int einput_len;
@@ -231,7 +265,9 @@ void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do
 	BMVert **vinput_arr = BM_iter_as_arrayN(bm, BM_VERTS_OF_MESH, NULL, &vinput_len, NULL, 0);
 	BMEdge **einput_arr = BM_iter_as_arrayN(bm, BM_EDGES_OF_MESH, NULL, &einput_len, NULL, 0);
 
+
 	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
+	                             delimit,
 	                             vinput_arr, vinput_len,
 	                             einput_arr, einput_len);
 

@@ -941,6 +941,7 @@ static BMOpDefine bmo_dissolve_limit_def = {
 	 {"use_dissolve_boundaries", BMO_OP_SLOT_BOOL},
 	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
 	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
+	 {"delimit", BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */

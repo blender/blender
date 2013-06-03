@@ -52,6 +52,7 @@ extern EnumPropertyItem snap_target_items[];
 extern EnumPropertyItem snap_element_items[];
 extern EnumPropertyItem snap_node_element_items[];
 extern EnumPropertyItem mesh_select_mode_items[];
+extern EnumPropertyItem mesh_delimit_mode_items[];
 extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
 extern EnumPropertyItem modifier_type_items[];
