@@ -525,6 +525,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 {
 	wmWindow *win;
 	ScrArea *sa;
+	Scene *scene = CTX_data_scene(C);
 	
 	/* changes rect to fit within desktop */
 	wm_window_check_position(position);
@@ -550,9 +551,16 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 		wm_window_raise(win);
 	}
 	
-	/* add new screen? */
-	if (win->screen == NULL)
-		win->screen = ED_screen_add(win, CTX_data_scene(C), "temp");
+	if (win->screen == NULL) {
+		/* add new screen */
+		win->screen = ED_screen_add(win, scene, "temp");
+	}
+	else {
+		/* switch scene for rendering */
+		if (win->screen->scene != scene)
+			ED_screen_set_scene(C, win->screen, scene);
+	}
+
 	win->screen->temp = 1; 
 	
 	/* make window active, and validate/resize */
