@@ -370,6 +370,10 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 	split = testsplitpoint(sa, dir, fac);
 	if (split == 0) return NULL;
 	
+	/* note regarding (fac > 0.5f) checks below.
+	 * notmally it shouldn't matter which is used since the copy should match the original
+	 * however with viewport rendering and python console this isn't the case. - campbell */
+
 	if (dir == 'h') {
 		/* new vertices */
 		sv1 = screen_addvert(sc, sa->v1->vec.x, split);
@@ -382,13 +386,24 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 		screen_addedge(sc, sv2, sa->v4);
 		screen_addedge(sc, sv1, sv2);
 		
-		/* new areas: top */
-		newa = screen_addarea(sc, sv1, sa->v2, sa->v3, sv2, sa->headertype, sa->spacetype);
+		if (fac > 0.5f) {
+			/* new areas: top */
+			newa = screen_addarea(sc, sv1, sa->v2, sa->v3, sv2, sa->headertype, sa->spacetype);
+
+			/* area below */
+			sa->v2 = sv1;
+			sa->v3 = sv2;
+		}
+		else {
+			/* new areas: bottom */
+			newa = screen_addarea(sc, sa->v1, sv1, sv2, sa->v4, sa->headertype, sa->spacetype);
+
+			/* area above */
+			sa->v1 = sv1;
+			sa->v4 = sv2;
+		}
+
 		area_copy_data(newa, sa, 0);
-		
-		/* area below */
-		sa->v2 = sv1;
-		sa->v3 = sv2;
 		
 	}
 	else {
@@ -403,13 +418,24 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 		screen_addedge(sc, sv2, sa->v3);
 		screen_addedge(sc, sv1, sv2);
 		
-		/* new areas: left */
-		newa = screen_addarea(sc, sa->v1, sa->v2, sv2, sv1, sa->headertype, sa->spacetype);
+		if (fac > 0.5f) {
+			/* new areas: right */
+			newa = screen_addarea(sc, sv1, sv2, sa->v3, sa->v4, sa->headertype, sa->spacetype);
+
+			/* area left */
+			sa->v3 = sv2;
+			sa->v4 = sv1;
+		}
+		else {
+			/* new areas: left */
+			newa = screen_addarea(sc, sa->v1, sa->v2, sv2, sv1, sa->headertype, sa->spacetype);
+
+			/* area right */
+			sa->v1 = sv1;
+			sa->v2 = sv2;
+		}
+
 		area_copy_data(newa, sa, 0);
-		
-		/* area right */
-		sa->v1 = sv1;
-		sa->v2 = sv2;
 	}
 	
 	/* remove double vertices en edges */

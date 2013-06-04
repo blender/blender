@@ -133,7 +133,7 @@ typedef struct uiList {				/* some list UI data need to be saved in file */
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	
-	ScrVert *v1, *v2, *v3, *v4;
+	ScrVert *v1, *v2, *v3, *v4;		/* ordered (bl, tl, tr, br) */
 	bScreen *full;			/* if area==full, this is the parent */
 
 	rcti totrct;			/* rect bound by v1 v2 v3 v4 */
