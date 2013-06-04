@@ -2408,10 +2408,11 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 
 /* only in editmode */
 /* removes from active defgroup, if allverts==0 only selected vertices */
-static void vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformGroup *dg)
+static bool vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformGroup *dg)
 {
 	MDeformVert *dv;
 	const int def_nr = BLI_findindex(&ob->defbase, dg);
+	bool change = false;
 
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
@@ -2420,34 +2421,36 @@ static void vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 			BMEditMesh *em = me->edit_btmesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
-			BMVert *eve;
-			BMIter iter;
+			if (cd_dvert_offset != -1) {
+				BMVert *eve;
+				BMIter iter;
 
-			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+				BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
-				if (dv && dv->dw && (allverts || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
-					MDeformWeight *dw = defvert_find_index(dv, def_nr);
-					defvert_remove_group(dv, dw); /* dw can be NULL */
+					if (dv && dv->dw && (allverts || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
+						MDeformWeight *dw = defvert_find_index(dv, def_nr);
+						defvert_remove_group(dv, dw); /* dw can be NULL */
+						change = true;
+					}
 				}
 			}
 		}
 		else {
-			MVert *mv;
-			int i;
+			if (me->dvert) {
+				MVert *mv;
+				int i;
 
-			if (!me->dvert) {
-				ED_vgroup_data_create(&me->id);
-			}
+				mv = me->mvert;
+				dv = me->dvert;
 
-			mv = me->mvert;
-			dv = me->dvert;
-
-			for (i = 0; i < me->totvert; i++, mv++, dv++) {
-				if (mv->flag & SELECT) {
-					if (dv->dw && (allverts || (mv->flag & SELECT))) {
-						MDeformWeight *dw = defvert_find_index(dv, def_nr);
-						defvert_remove_group(dv, dw); /* dw can be NULL */
+				for (i = 0; i < me->totvert; i++, mv++, dv++) {
+					if (mv->flag & SELECT) {
+						if (dv->dw && (allverts || (mv->flag & SELECT))) {
+							MDeformWeight *dw = defvert_find_index(dv, def_nr);
+							defvert_remove_group(dv, dw); /* dw can be NULL */
+							change = true;
+						}
 					}
 				}
 			}
@@ -2468,10 +2471,13 @@ static void vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 
 					dw = defvert_find_index(dv, def_nr);
 					defvert_remove_group(dv, dw); /* dw can be NULL */
+					change = true;
 				}
 			}
 		}
 	}
+
+	return change;
 }
 
 static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
@@ -2482,10 +2488,11 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	assert(dg_index > -1);
 
 	/* Make sure that no verts are using this group */
-	vgroup_active_remove_verts(ob, true, dg);
-
+	if (vgroup_active_remove_verts(ob, true, dg) == false) {
+		/* do nothing */
+	}
 	/* Make sure that any verts with higher indices are adjusted accordingly */
-	if (ob->type == OB_MESH) {
+	else if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 		BMEditMesh *em = me->edit_btmesh;
 		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -2493,7 +2500,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 		BMIter iter;
 		BMVert *eve;
 		MDeformVert *dvert;
-		
+
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
@@ -2508,7 +2515,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 		BPoint *bp;
 		MDeformVert *dvert = lt->dvert;
 		int a, tot;
-		
+
 		if (dvert) {
 			tot = lt->pntsu * lt->pntsv * lt->pntsw;
 			for (a = 0, bp = lt->def; a < tot; a++, bp++, dvert++) {
@@ -2691,16 +2698,18 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
 /* only in editmode */
 /* removes from all defgroup, if allverts==0 only selected vertices */
-static void vgroup_remove_verts(Object *ob, int allverts)
+static bool vgroup_remove_verts(Object *ob, int allverts)
 {
+	bool change = false;
 	/* To prevent code redundancy, we just use vgroup_active_remove_verts, but that
 	 * only operates on the active vgroup. So we iterate through all groups, by changing
 	 * active group index
 	 */
 	bDeformGroup *dg;
 	for (dg = ob->defbase.first; dg; dg = dg->next) {
-		vgroup_active_remove_verts(ob, allverts, dg);
+		change |= vgroup_active_remove_verts(ob, allverts, dg);
 	}
+	return change;
 }
 
 /********************** vertex group operators *********************/
@@ -2840,16 +2849,17 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 
-	if (RNA_boolean_get(op->ptr, "all"))
-		vgroup_remove_verts(ob, 0);
+	if (RNA_boolean_get(op->ptr, "all")) {
+		if (vgroup_remove_verts(ob, 0) == false) {
+			return OPERATOR_CANCELLED;
+		}
+	}
 	else {
 		bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef - 1);
 
-		if (dg == NULL) {
+		if ((dg == NULL) || (vgroup_active_remove_verts(ob, false, dg) == false)) {
 			return OPERATOR_CANCELLED;
 		}
-
-		vgroup_active_remove_verts(ob, false, dg);
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

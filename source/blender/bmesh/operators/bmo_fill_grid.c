@@ -64,15 +64,15 @@ static void quad_edges_to_normal(
 
 static void quad_verts_to_barycentric_tri(
         float tri[3][3],
-        float co_a[3],
-        float co_b[3],
+        const float co_a[3],
+        const float co_b[3],
 
-        float co_a_next[3],
-        float co_b_next[3],
+        const float co_a_next[3],
+        const float co_b_next[3],
 
-        float co_a_prev[3],
-        float co_b_prev[3],
-        bool is_flip
+        const float co_a_prev[3],
+        const float co_b_prev[3],
+        const bool is_flip
         )
 {
 	float no[3];
