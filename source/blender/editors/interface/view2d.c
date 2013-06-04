@@ -1860,7 +1860,7 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
  *	- column, row				= the 2d-coordinates (in 2D-view / 'tot' rect space) the cell exists at
  *	- rect					= coordinates of the cell (passed as single var instead of 4 separate, as it's more useful this way)
  */
-void UI_view2d_listview_cell_to_view(View2D *v2d, short columnwidth, short rowheight,
+void UI_view2d_listview_cell_to_view(View2D *v2d, float columnwidth, float rowheight,
                                      float startx, float starty,
                                      int column, int row, rctf *rect)
 {
@@ -1905,7 +1905,7 @@ void UI_view2d_listview_cell_to_view(View2D *v2d, short columnwidth, short rowhe
  *	- viewx, viewy			= 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
  *	- column, row				= the 'coordinates' of the relevant 'cell'
  */
-void UI_view2d_listview_view_to_cell(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, 
+void UI_view2d_listview_view_to_cell(View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
                                      float viewx, float viewy, int *column, int *row)
 {
 	/* adjust view coordinates to be all positive ints, corrected for the start offset */
@@ -1938,7 +1938,7 @@ void UI_view2d_listview_view_to_cell(View2D *v2d, short columnwidth, short rowhe
  *	- startx, starty			= coordinates that the list starts from, which should be (0,0) for most views
  *	- column/row_min/max		= the starting and ending column/row indices
  */
-void UI_view2d_listview_visible_cells(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, 
+void UI_view2d_listview_visible_cells(View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
                                       int *column_min, int *column_max, int *row_min, int *row_max)
 {
 	/* using 'cur' rect coordinates, call the cell-getting function to get the cells for this */
