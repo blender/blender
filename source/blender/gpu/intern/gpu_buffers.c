@@ -2311,6 +2311,8 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers)
 void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
 					  int wireframe)
 {
+	/* sets material from the first face, to solve properly face would need to
+	 * be sorted in buckets by materials */
 	if (buffers->totface) {
 		const MFace *f = &buffers->mface[buffers->face_indices[0]];
 		if (!setMaterial(f->mat_nr + 1, NULL))
@@ -2319,6 +2321,10 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
 	else if (buffers->totgrid) {
 		const DMFlagMat *f = &buffers->grid_flag_mats[buffers->grid_indices[0]];
 		if (!setMaterial(f->mat_nr + 1, NULL))
+			return;
+	}
+	else {
+		if (!setMaterial(1, NULL))
 			return;
 	}
 
