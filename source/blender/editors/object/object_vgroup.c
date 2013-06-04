@@ -1062,21 +1062,24 @@ static void vgroup_select_verts(Object *ob, int select)
 		if (me->edit_btmesh) {
 			BMEditMesh *em = me->edit_btmesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-			BMIter iter;
-			BMVert *eve;
 
-			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-					MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-					if (defvert_find_index(dv, def_nr)) {
-						BM_vert_select_set(em->bm, eve, select);
+			if (cd_dvert_offset != -1) {
+				BMIter iter;
+				BMVert *eve;
+
+				BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+						MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+						if (defvert_find_index(dv, def_nr)) {
+							BM_vert_select_set(em->bm, eve, select);
+						}
 					}
 				}
-			}
 
-			/* this has to be called, because this function operates on vertices only */
-			if (select) EDBM_select_flush(em);  /* vertices to edges/faces */
-			else EDBM_deselect_flush(em);
+				/* this has to be called, because this function operates on vertices only */
+				if (select) EDBM_select_flush(em);  /* vertices to edges/faces */
+				else EDBM_deselect_flush(em);
+			}
 		}
 		else {
 			if (me->dvert) {
