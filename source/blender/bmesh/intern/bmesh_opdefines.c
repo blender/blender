@@ -1276,27 +1276,6 @@ static BMOpDefine bmo_reverse_colors_def = {
 };
 
 /*
- * Shortest Path.
- *
- * Select the shortest path between 2 verts.
- */
-static BMOpDefine bmo_shortest_path_def = {
-	"shortest_path",
-	/* slots_in */
-	{{"vert_start", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},   /* start vertex */
-	 {"vert_end", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},     /* end vertex */
-	 {"type", BMO_OP_SLOT_INT},             /* type of selection */
-	 {{'\0'}},
-	},
-	/* slots_out */
-	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* output vertices */
-	 {{'\0'}},
-	},
-	bmo_shortest_path_exec,
-	BMO_OPTYPE_FLAG_SELECT_FLUSH,
-};
-
-/*
  * Edge Split.
  *
  * Disconnects faces along input edges.
@@ -1769,7 +1748,6 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_rotate_edges_def,
 	&bmo_rotate_uvs_def,
 	&bmo_scale_def,
-	&bmo_shortest_path_def,
 	&bmo_similar_edges_def,
 	&bmo_similar_faces_def,
 	&bmo_similar_verts_def,

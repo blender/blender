@@ -47,6 +47,7 @@ set(SRC
 	editmesh_knife.c
 	editmesh_knife_project.c
 	editmesh_loopcut.c
+	editmesh_path.c
 	editmesh_rip.c
 	editmesh_select.c
 	editmesh_tools.c

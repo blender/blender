@@ -624,7 +624,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.operator("mesh.select_axis", text="Side of Active")
 
         layout.operator("mesh.select_linked", text="Linked")
-        layout.operator("mesh.select_vertex_path", text="Vertex Path")
+        layout.operator("mesh.shortest_path_select", text="Shortest Path")
         layout.operator("mesh.loop_multi_select", text="Edge Loop").ring = False
         layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
 
@@ -1829,7 +1829,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
 
         layout.operator("mesh.blend_from_shape")
         layout.operator("mesh.shape_propagate_to_all")
-        layout.operator("mesh.select_vertex_path")
+        layout.operator("mesh.shortest_path_select")
         layout.operator("mesh.sort_elements")
         layout.operator("mesh.symmetrize")
 
@@ -1901,8 +1901,6 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.vertices_smooth")
         layout.operator("mesh.remove_doubles")
         layout.operator("mesh.sort_elements", text="Sort Vertices").elements = {'VERT'}
-
-        layout.operator("mesh.select_vertex_path")
 
         layout.operator("mesh.blend_from_shape")
 

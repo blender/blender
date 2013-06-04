@@ -1869,7 +1869,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
 	RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups");
 
-	/* use with MESH_OT_select_shortest_path */
+	/* use with MESH_OT_shortest_path_pick */
 	prop = RNA_def_property(srna, "edge_path_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "edge_mode");
 	RNA_def_property_enum_items(prop, edge_tag_items);

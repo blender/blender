@@ -122,6 +122,8 @@ set(SRC
 	tools/bmesh_decimate.h
 	tools/bmesh_edgesplit.c
 	tools/bmesh_edgesplit.h
+	tools/bmesh_path.c
+	tools/bmesh_path.h
 	tools/bmesh_triangulate.c
 	tools/bmesh_triangulate.h
 

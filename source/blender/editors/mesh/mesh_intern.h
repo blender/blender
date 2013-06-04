@@ -112,7 +112,7 @@ void MESH_OT_inset(struct wmOperatorType *ot);
 
 /* *** editmesh_knife.c *** */
 void MESH_OT_knife_tool(struct wmOperatorType *ot);
-void MESH_OT_knife_project(wmOperatorType *ot);
+void MESH_OT_knife_project(struct wmOperatorType *ot);
 void EDBM_mesh_knife(struct bContext *C, struct LinkNode *polys, bool use_tag);
 
 struct wmKeyMap *knifetool_modal_keymap(struct wmKeyConfig *keyconf);
@@ -134,7 +134,7 @@ void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_select_all(struct wmOperatorType *ot);
 void MESH_OT_select_interior_faces(struct wmOperatorType *ot);
-void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
+void MESH_OT_shortest_path_pick(struct wmOperatorType *ot);
 void MESH_OT_select_linked(struct wmOperatorType *ot);
 void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_select_face_by_sides(struct wmOperatorType *ot);
@@ -152,7 +152,7 @@ void MESH_OT_select_axis(struct wmOperatorType *ot);
 void MESH_OT_select_next_loop(struct wmOperatorType *ot);
 void MESH_OT_region_to_loop(struct wmOperatorType *ot);
 void MESH_OT_loop_to_region(struct wmOperatorType *ot);
-void MESH_OT_select_vertex_path(struct wmOperatorType *ot);
+void MESH_OT_shortest_path_select(struct wmOperatorType *ot);
 
 extern struct EnumPropertyItem *corner_type_items;
 
