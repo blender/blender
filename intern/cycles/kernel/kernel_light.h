@@ -263,7 +263,7 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 				/* sphere light */
 				ls->P += sphere_light_sample(P, ls->P, radius, randu, randv);
 
-			ls->D = normalize_length(ls->P - P, &ls->t);
+			ls->D = normalize_len(ls->P - P, &ls->t);
 			ls->Ng = -ls->D;
 
 			float invarea = data1.z;
@@ -287,7 +287,7 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 
 			ls->P += area_light_sample(axisu, axisv, randu, randv);
 			ls->Ng = D;
-			ls->D = normalize_length(ls->P - P, &ls->t);
+			ls->D = normalize_len(ls->P - P, &ls->t);
 
 			float invarea = data2.x;
 
@@ -487,7 +487,7 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 
-	float l = length(float4_to_float3(P2) - float4_to_float3(P1));
+	float l = len(float4_to_float3(P2) - float4_to_float3(P1));
 
 	float r1 = P1.w;
 	float r2 = P2.w;
@@ -569,7 +569,7 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 			triangle_light_sample(kg, prim, object, randu, randv, time, ls);
 
 		/* compute incoming direction, distance and pdf */
-		ls->D = normalize_length(ls->P - P, &ls->t);
+		ls->D = normalize_len(ls->P - P, &ls->t);
 		ls->pdf = triangle_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 	}
 	else {

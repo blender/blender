@@ -74,7 +74,7 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend)
 		float3 P = project(patch, Pstart + t*(Pend - Pstart));
 
 		if(i > 0) {
-			float L = length(P - Plast);
+			float L = len(P - Plast);
 			Lsum += L;
 			Lmax = max(L, Lmax);
 		}

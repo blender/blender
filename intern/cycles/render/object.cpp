@@ -200,7 +200,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 						float r2 = mesh->curve_keys[first_key + i + 1].radius;
 
 						/* currently ignores segment overlaps*/
-						surface_area += M_PI_F *(r1 + r2) * length(p1 - p2);
+						surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
 					}
 				}
 
@@ -233,7 +233,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 					p2 = transform_point(&tfm, p2);
 
 					/* currently ignores segment overlaps*/
-					surface_area += M_PI_F *(r1 + r2) * length(p1 - p2);
+					surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
 				}
 			}
 		}

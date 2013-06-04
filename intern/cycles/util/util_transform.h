@@ -268,12 +268,12 @@ __device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
 	Transform ttfm = transform_transpose(tfm);
 	float eps = 1e-6f; 
 	
-	float sx = length_squared(float4_to_float3(tfm.x));
-	float sy = length_squared(float4_to_float3(tfm.y));
-	float sz = length_squared(float4_to_float3(tfm.z));
-	float stx = length_squared(float4_to_float3(ttfm.x));
-	float sty = length_squared(float4_to_float3(ttfm.y));
-	float stz = length_squared(float4_to_float3(ttfm.z));
+	float sx = len_squared(float4_to_float3(tfm.x));
+	float sy = len_squared(float4_to_float3(tfm.y));
+	float sz = len_squared(float4_to_float3(tfm.z));
+	float stx = len_squared(float4_to_float3(ttfm.x));
+	float sty = len_squared(float4_to_float3(ttfm.y));
+	float stz = len_squared(float4_to_float3(ttfm.z));
 
 	if(fabsf(sx - sy) < eps && fabsf(sx - sz) < eps &&
 	   fabsf(sx - stx) < eps && fabsf(sx - sty) < eps &&

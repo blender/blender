@@ -66,8 +66,8 @@ __device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *stack
 		if(pixel_size) {
 			// Project the derivatives of P to the viewing plane defined
 			// by I so we have a measure of how big is a pixel at this point
-			float pixelwidth_x = length(sd->dP.dx - dot(sd->dP.dx, sd->I) * sd->I);
-			float pixelwidth_y = length(sd->dP.dy - dot(sd->dP.dy, sd->I) * sd->I);
+			float pixelwidth_x = len(sd->dP.dx - dot(sd->dP.dx, sd->I) * sd->I);
+			float pixelwidth_y = len(sd->dP.dy - dot(sd->dP.dy, sd->I) * sd->I);
 			// Take the average of both axis' length
 			pixelwidth = (pixelwidth_x + pixelwidth_y) * 0.5f;
 		}

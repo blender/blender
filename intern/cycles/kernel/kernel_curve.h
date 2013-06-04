@@ -122,7 +122,7 @@ __device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 	if(sd->segment != ~0) {
 		float normalmix = kernel_data.curve_kernel_data.normalmix;
 
-		tgN = -(-sd->I - sd->dPdu * (dot(sd->dPdu,-sd->I) * normalmix / length_squared(sd->dPdu)));
+		tgN = -(-sd->I - sd->dPdu * (dot(sd->dPdu,-sd->I) * normalmix / len_squared(sd->dPdu)));
 		tgN = normalize(tgN);
 
 		/* need to find suitable scaled gd for corrected normal */

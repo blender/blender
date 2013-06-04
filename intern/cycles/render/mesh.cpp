@@ -187,7 +187,7 @@ void Mesh::add_face_normals()
 			float3 v2 = verts_ptr[t.v[2]];
 
 			float3 norm = cross(v1 - v0, v2 - v0);
-			float normlen = length(norm);
+			float normlen = len(norm);
 			if(normlen == 0.0f)
 				fN[i] = make_float3(0.0f, 0.0f, 0.0f);
 			else

@@ -64,7 +64,7 @@ __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray 
 	float3 dir = transform_direction(&tfm, ray->D);
 
 	float len;
-	dir = normalize_length(dir, &len);
+	dir = normalize_len(dir, &len);
 
 	*idir = bvh_inverse_direction(dir);
 
@@ -76,7 +76,7 @@ __device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *
 {
 	if(*t != FLT_MAX) {
 		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-		*t *= length(transform_direction(&tfm, 1.0f/(*idir)));
+		*t *= len(transform_direction(&tfm, 1.0f/(*idir)));
 	}
 
 	*P = ray->P;
@@ -94,7 +94,7 @@ __device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, con
 	float3 dir = transform_direction(&itfm, ray->D);
 
 	float len;
-	dir = normalize_length(dir, &len);
+	dir = normalize_len(dir, &len);
 
 	*idir = bvh_inverse_direction(dir);
 
@@ -105,7 +105,7 @@ __device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, con
 __device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
 {
 	if(*t != FLT_MAX)
-		*t *= length(transform_direction(tfm, 1.0f/(*idir)));
+		*t *= len(transform_direction(tfm, 1.0f/(*idir)));
 
 	*P = ray->P;
 	*idir = bvh_inverse_direction(ray->D);
@@ -489,14 +489,14 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 				t = p_curr.z;
 			}
 			else {
-				float l = length(p_en - p_st);
+				float l = len(p_en - p_st);
 				/*minimum width extension*/
 				float or1 = r1;
 				float or2 = r2;
 				if(difl != 0.0f) {
-					mw_extension = min(length(p_st - P) * difl, extmax);
+					mw_extension = min(len(p_st - P) * difl, extmax);
 					or1 = r1 < mw_extension ? mw_extension : r1;
-					mw_extension = min(length(p_en - P) * difl, extmax);
+					mw_extension = min(len(p_en - P) * difl, extmax);
 					or2 = r2 < mw_extension ? mw_extension : r2;
 				}
 				/* --- */
@@ -611,9 +611,9 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float r1 = or1;
 	float r2 = or2;
 	if(difl != 0.0f) {
-		float pixelsize = min(length(p1 - P) * difl, extmax);
+		float pixelsize = min(len(p1 - P) * difl, extmax);
 		r1 = or1 < pixelsize ? pixelsize : or1;
-		pixelsize = min(length(p2 - P) * difl, extmax);
+		pixelsize = min(len(p2 - P) * difl, extmax);
 		r2 = or2 < pixelsize ? pixelsize : or2;
 	}
 	/* --- */
@@ -621,14 +621,14 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float mr = max(r1,r2);
 	float3 dif = P - p1;
 	float3 dir = 1.0f/idir;
-	float l = length(p2 - p1);
+	float l = len(p2 - p1);
 
 	float sp_r = mr + 0.5f * l;
 	float3 sphere_dif = P - ((p1 + p2) * 0.5f);
 	float sphere_b = dot(dir,sphere_dif);
 	sphere_dif = sphere_dif - sphere_b * dir;
 	sphere_b = dot(dir,sphere_dif);
-	float sdisc = sphere_b * sphere_b - length_squared(sphere_dif) + sp_r * sp_r;
+	float sdisc = sphere_b * sphere_b - len_squared(sphere_dif) + sp_r * sp_r;
 	if(sdisc < 0.0f)
 		return;
 
@@ -652,8 +652,8 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	/* test minimum separation*/
 	float3 cprod = cross(tg, dir);
 	float3 cprod2 = cross(tg, dif);
-	float cprodsq = length_squared(cprod);
-	float cprod2sq = length_squared(cprod2);
+	float cprodsq = len_squared(cprod);
+	float cprod2sq = len_squared(cprod2);
 	float distscaled = dot(cprod,dif);
 
 	if(cprodsq == 0)
@@ -1010,7 +1010,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 
 		P = transform_point(&tfm, P);
 		D = transform_direction(&tfm, D*t);
-		D = normalize_length(D, &t);
+		D = normalize_len(D, &t);
 	}
 
 	P = P + D*t;
@@ -1080,7 +1080,7 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 
 		P = transform_point(&tfm, P);
 		D = transform_direction(&tfm, D*t);
-		D = normalize_length(D, &t);
+		D = normalize_len(D, &t);
 	}
 
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
@@ -1092,7 +1092,7 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 	float l = 1.0f;
-	float3 tg = normalize_length(float4_to_float3(P2 - P1),&l);
+	float3 tg = normalize_len(float4_to_float3(P2 - P1),&l);
 	float r1 = P1.w;
 	float r2 = P2.w;
 	float gd = ((r2 - r1)/l);

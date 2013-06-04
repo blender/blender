@@ -255,7 +255,7 @@ __device_inline float camera_distance(KernelGlobals *kg, float3 P)
 		return fabsf(dot((P - camP), camD));
 	}
 	else
-		return length(P - camP);
+		return len(P - camP);
 }
 
 CCL_NAMESPACE_END

@@ -29,7 +29,7 @@ __device_noinline float svm_wave(NodeWaveType type, float3 p, float scale, float
 	if(type == NODE_WAVE_BANDS)
 		n = (p.x + p.y + p.z) * 10.0f;
 	else /* if(type == NODE_WAVE_RINGS) */
-		n = length(p) * 20.0f;
+		n = len(p) * 20.0f;
 	
 	if(distortion != 0.0f)
 		n += distortion * noise_turbulence(p*dscale, NODE_NOISE_PERLIN, detail, 0);
