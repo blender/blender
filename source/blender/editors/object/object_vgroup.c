@@ -2850,9 +2850,12 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 
 static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
+	const bool use_all_groups = RNA_boolean_get(op->ptr, "use_all_groups");
+	const bool use_all_verts = RNA_boolean_get(op->ptr, "use_all_verts");
+
 	Object *ob = ED_object_context(C);
 
-	if (RNA_boolean_get(op->ptr, "all")) {
+	if (use_all_groups) {
 		if (vgroup_remove_verts(ob, 0) == false) {
 			return OPERATOR_CANCELLED;
 		}
@@ -2860,7 +2863,7 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 	else {
 		bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef - 1);
 
-		if ((dg == NULL) || (vgroup_active_remove_verts(ob, false, dg) == false)) {
+		if ((dg == NULL) || (vgroup_active_remove_verts(ob, use_all_verts, dg) == false)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -2873,6 +2876,7 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	/* identifiers */
 	ot->name = "Remove from Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_remove_from";
@@ -2889,7 +2893,10 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
+	prop = RNA_def_boolean(ot->srna, "use_all_groups", 0, "All Groups", "Remove from all Groups");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "use_all_verts", 0, "All verts", "Clear Active Group");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
