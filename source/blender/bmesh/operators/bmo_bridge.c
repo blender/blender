@@ -488,6 +488,9 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (count > 2) {
+		if (use_pairs) {
+			BM_mesh_edgeloops_calc_normal(bm, &eloops);
+		}
 		BM_mesh_edgeloops_calc_order(bm, &eloops, use_pairs);
 	}
 
