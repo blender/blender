@@ -2143,7 +2143,7 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	generated = attr_orco;
 	normal = normalize((obinvmat*(viewinvmat*vec4(N, 0.0))).xyz);
 	uv = attr_uv;
-	object = I;
+	object = (obinvmat*(viewinvmat*vec4(I, 1.0))).xyz;
 	camera = I;
 	window = gl_FragCoord.xyz;
 	reflection = reflect(N, I);
