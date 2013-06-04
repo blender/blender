@@ -2623,6 +2623,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 	if (retval) {
 		/* delay depsgraph recalc until all objects are duplicated */
 		DAG_relations_tag_update(bmain);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 		return OPERATOR_FINISHED;
 	}
