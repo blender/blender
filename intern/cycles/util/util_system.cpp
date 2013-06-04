@@ -199,7 +199,12 @@ bool system_cpu_support_sse3()
 
 #else
 
-bool system_cpu_support_optimized()
+bool system_cpu_support_sse2()
+{
+	return false;
+}
+
+bool system_cpu_support_sse3()
 {
 	return false;
 }
