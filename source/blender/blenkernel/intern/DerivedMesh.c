@@ -491,6 +491,8 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 	CustomData_reset(&tmp.ldata);
 	CustomData_reset(&tmp.pdata);
 
+	DM_ensure_normals(dm);
+
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
 	totloop = tmp.totloop = dm->getNumLoops(dm);
