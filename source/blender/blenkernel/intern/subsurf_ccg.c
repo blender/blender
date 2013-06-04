@@ -29,6 +29,9 @@
  *  \ingroup bke
  */
 
+#if __STDC_VERSION__ >= 199901L
+#  define USE_DYNSIZE
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +67,10 @@
 #include "BKE_editmesh.h"
 
 #include "PIL_time.h"
-#include "BLI_array.h"
+
+#ifndef USE_DYNSIZE
+#  include "BLI_array.h"
+#endif
 
 #include "GL/glew.h"
 
@@ -288,8 +294,10 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	UvMapVert *v;
 	UvVertMap *vmap;
 	float limit[2];
+#ifndef USE_DYNSIZE
 	CCGVertHDL *fverts = NULL;
 	BLI_array_declare(fverts);
+#endif
 	EdgeHash *ehash;
 	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
@@ -335,8 +343,12 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		/* unsigned int *fv = &mp->v1; */
 		MLoop *ml = mloop + mp->loopstart;
 
+#ifdef USE_DYNSIZE
+		CCGVertHDL fverts[nverts];
+#else
 		BLI_array_empty(fverts);
 		BLI_array_grow_items(fverts, nverts);
+#endif
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
@@ -371,14 +383,20 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		int nverts = mp->totloop;
 		CCGFace *f;
 
+#ifdef USE_DYNSIZE
+		CCGVertHDL fverts[nverts];
+#else
 		BLI_array_empty(fverts);
 		BLI_array_grow_items(fverts, nverts);
+#endif
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 		ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), nverts, fverts, &f);
 	}
 
+#ifndef USE_DYNSIZE
 	BLI_array_free(fverts);
+#endif
 
 	BKE_mesh_uv_vert_map_free(vmap);
 	ccgSubSurf_processSync(ss);
@@ -552,8 +570,10 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
                                      float (*vertexCos)[3], int useFlatSubdiv)
 {
 	float creaseFactor = (float) ccgSubSurf_getSubdivisionLevels(ss);
+#ifndef USE_DYNSIZE
 	CCGVertHDL *fVerts = NULL;
 	BLI_array_declare(fVerts);
+#endif
 	MVert *mvert = dm->getVertArray(dm);
 	MEdge *medge = dm->getEdgeArray(dm);
 	/* MFace *mface = dm->getTessFaceArray(dm); */ /* UNUSED */
@@ -606,8 +626,12 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		CCGFace *f;
 
+#ifdef USE_DYNSIZE
+		CCGVertHDL fVerts[mp->totloop];
+#else
 		BLI_array_empty(fVerts);
 		BLI_array_grow_items(fVerts, mp->totloop);
+#endif
 
 		ml = mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
@@ -638,7 +662,9 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 
 	ccgSubSurf_processSync(ss);
 
+#ifndef USE_DYNSIZE
 	BLI_array_free(fVerts);
+#endif
 }
 
 /***/
@@ -3092,9 +3118,12 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int *vertOrigIndex, *faceOrigIndex, *polyOrigIndex, *base_polyOrigIndex; /* *edgeOrigIndex - as yet, unused  */
 	short *edgeFlags;
 	DMFlagMat *faceFlags;
-	int *loopidx = NULL, *vertidx = NULL, *polyidx = NULL;
+	int *polyidx = NULL;
+#ifndef USE_DYNSIZE
+	int *loopidx = NULL, *vertidx = NULL;
 	BLI_array_declare(loopidx);
 	BLI_array_declare(vertidx);
+#endif
 	int loopindex, loopindex2;
 	int edgeSize, has_edge_origindex;
 	int gridSize;
@@ -3293,7 +3322,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		int g2_wid = gridCuts + 2;
 		float *w, *w2;
 		int s, x, y;
-		
+#ifdef USE_DYNSIZE
+		int loopidx[numVerts], vertidx[numVerts];
+#endif
+
 		w = get_ss_weights(&wtable, gridCuts, numVerts);
 
 		ccgdm->faceMap[index].startVert = vertNum;
@@ -3307,14 +3339,18 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		/* set the face base vert */
 		*((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
+#ifndef USE_DYNSIZE
 		BLI_array_empty(loopidx);
 		BLI_array_grow_items(loopidx, numVerts);
+#endif
 		for (s = 0; s < numVerts; s++) {
 			loopidx[s] = loopindex++;
 		}
-		
+
+#ifndef USE_DYNSIZE
 		BLI_array_empty(vertidx);
 		BLI_array_grow_items(vertidx, numVerts);
+#endif
 		for (s = 0; s < numVerts; s++) {
 			CCGVert *v = ccgSubSurf_getFaceVert(f, s);
 			vertidx[s] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
@@ -3512,8 +3548,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	/* All tessellated CD layers were updated! */
 	ccgdm->dm.dirty &= ~DM_DIRTY_TESS_CDLAYERS;
 
+#ifndef USE_DYNSIZE
 	BLI_array_free(vertidx);
 	BLI_array_free(loopidx);
+#endif
 	free_ss_weights(&wtable);
 
 	return ccgdm;
