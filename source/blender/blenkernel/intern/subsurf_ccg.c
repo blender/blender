@@ -273,7 +273,7 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct ML
 				break;
 		}
 
-		fverts[j] = SET_INT_IN_POINTER(mpoly[nv->f].loopstart + nv->tfindex);
+		fverts[j] = SET_UINT_IN_POINTER(mpoly[nv->f].loopstart + nv->tfindex);
 	}
 }
 
@@ -284,7 +284,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumPolys(dm);
-	int i, j, seam;
+	int i, j, j_next, seam;
 	UvMapVert *v;
 	UvVertMap *vmap;
 	float limit[2];
@@ -340,11 +340,11 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
-		for (j = 0; j < nverts; j++) {
-			int v0 = GET_INT_FROM_POINTER(fverts[j]);
-			int v1 = GET_INT_FROM_POINTER(fverts[(j + 1) % nverts]);
+		for (j = 0, j_next = nverts - 1; j < nverts; j_next = j++) {
+			unsigned int v0 = GET_UINT_FROM_POINTER(fverts[j]);
+			unsigned int v1 = GET_UINT_FROM_POINTER(fverts[j_next]);
 			MVert *mv0 = mvert + (ml[j].v);
-			MVert *mv1 = mvert + (ml[((j + 1) % nverts)].v);
+			MVert *mv1 = mvert + (ml[j_next].v);
 
 			if (!BLI_edgehash_haskey(ehash, v0, v1)) {
 				CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j);
@@ -356,7 +356,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 				else
 					crease = ccgSubSurf_getEdgeCrease(orige);
 
-				ccgSubSurf_syncEdge(ss, ehdl, fverts[j], fverts[(j + 1) % nverts], crease, &e);
+				ccgSubSurf_syncEdge(ss, ehdl, fverts[j], fverts[j_next], crease, &e);
 				BLI_edgehash_insert(ehash, v0, v1, NULL);
 			}
 		}
@@ -595,8 +595,8 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		crease = useFlatSubdiv ? creaseFactor :
 		         me->crease * creaseFactor / 255.0f;
 
-		ccgSubSurf_syncEdge(ss, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(me->v1),
-		                    SET_INT_IN_POINTER(me->v2), crease, &e);
+		ccgSubSurf_syncEdge(ss, SET_INT_IN_POINTER(i), SET_UINT_IN_POINTER(me->v1),
+		                    SET_UINT_IN_POINTER(me->v2), crease, &e);
 
 		((int *)ccgSubSurf_getEdgeUserData(ss, e))[1] = (index) ? *index++ : i;
 	}
@@ -611,7 +611,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 
 		ml = mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
-			fVerts[j] = SET_INT_IN_POINTER(ml->v);
+			fVerts[j] = SET_UINT_IN_POINTER(ml->v);
 		}
 
 		/* this is very bad, means mesh is internally inconsistent.
@@ -1324,7 +1324,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridSize - 1; y++) {
 				for (x = 0; x < gridSize - 1; x++) {
-					int v1, v2, v3, v4;
+					unsigned int v1, v2, v3, v4;
 
 					v1 = getFaceIndex(ss, f, S, x + 0, y + 0,
 					                  edgeSize, gridSize);
@@ -1337,19 +1337,19 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 					                  edgeSize, gridSize);
 
 					mv->v = v1;
-					mv->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
+					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
 					mv++, i++;
 
 					mv->v = v2;
-					mv->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
+					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
 					mv++, i++;
 
 					mv->v = v3;
-					mv->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
+					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
 					mv++, i++;
 
 					mv->v = v4;
-					mv->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
+					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
 					mv++, i++;
 				}
 			}
