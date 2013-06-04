@@ -527,7 +527,7 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		/* if selection history isn't available, find two selected elements */
-
+		ele_src = ele_dst = NULL;
 		if ((em->selectmode & SCE_SELECT_VERTEX) && (em->bm->totvertsel >= 2)) {
 			BM_ITER_MESH (ele, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
@@ -538,7 +538,8 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		if ((ele_src == NULL) && (em->selectmode & SCE_SELECT_EDGE) && (em->bm->totedgesel >= 2)) {
+		if ((ele_dst == NULL) && (em->selectmode & SCE_SELECT_EDGE) && (em->bm->totedgesel >= 2)) {
+			ele_src = NULL;
 			BM_ITER_MESH (ele, &iter, em->bm, BM_EDGES_OF_MESH) {
 				if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
 					if      (ele_src == NULL) ele_src = ele;
@@ -548,7 +549,8 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		if ((ele_src == NULL) && (em->selectmode & SCE_SELECT_FACE) && (em->bm->totfacesel >= 2)) {
+		if ((ele_dst == NULL) && (em->selectmode & SCE_SELECT_FACE) && (em->bm->totfacesel >= 2)) {
+			ele_src = NULL;
 			BM_ITER_MESH (ele, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
 					if      (ele_src == NULL) ele_src = ele;
