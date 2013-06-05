@@ -47,7 +47,7 @@ typedef struct BMEdgeLoopStore {
 } BMEdgeLoopStore;
 
 #define BM_EDGELOOP_IS_CLOSED (1 << 0)
-
+#define EDGELOOP_EPS 0.00001f
 
 /* -------------------------------------------------------------------- */
 /* BM_mesh_edgeloops_find & Util Functions  */
@@ -580,7 +580,7 @@ void BM_edgeloop_calc_center(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 
 }
 
-void BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
+bool BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 {
 	LinkData *node_curr = el_store->verts.first;
 	float const *v_prev = NODE_AS_CO(el_store->verts.last);
@@ -601,8 +601,13 @@ void BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 		}
 	} while (true);
 
-	if (UNLIKELY(normalize_v3(el_store->no) == 0.0f)) {
+	if (UNLIKELY(normalize_v3(el_store->no) < EDGELOOP_EPS)) {
 		el_store->no[2] = 1.0f; /* other axis set to 0.0 */
+		return false;
+
+	}
+	else {
+		return true;
 	}
 }
 
@@ -612,7 +617,7 @@ void BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
  *
  * Instead use an alignment vector and calculate the normal based on that.
  */
-void BM_edgeloop_calc_normal_aligned(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store, const float no_align[3])
+bool BM_edgeloop_calc_normal_aligned(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store, const float no_align[3])
 {
 	LinkData *node_curr = el_store->verts.first;
 	float const *v_prev = NODE_AS_CO(el_store->verts.last);
@@ -637,8 +642,12 @@ void BM_edgeloop_calc_normal_aligned(BMesh *UNUSED(bm), BMEdgeLoopStore *el_stor
 		}
 	} while (true);
 
-	if (UNLIKELY(normalize_v3(el_store->no) == 0.0f)) {
+	if (UNLIKELY(normalize_v3(el_store->no) < EDGELOOP_EPS)) {
 		el_store->no[2] = 1.0f; /* other axis set to 0.0 */
+		return false;
+	}
+	else {
+		return true;
 	}
 }
 

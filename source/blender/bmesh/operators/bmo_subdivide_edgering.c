@@ -547,6 +547,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm, LoopPairStore *lpair,
 {
 	const int resolu = cuts + 2;
 	const int dims = 3;
+	bool is_a_no_valid, is_b_no_valid;
 	int i;
 
 	float el_store_a_co[3], el_store_b_co[3];
@@ -559,20 +560,30 @@ static void bm_edgering_pair_interpolate(BMesh *bm, LoopPairStore *lpair,
 	BM_edgeloop_calc_center(bm, el_store_a);
 	BM_edgeloop_calc_center(bm, el_store_b);
 
-	BM_edgeloop_calc_normal(bm, el_store_a);
-	BM_edgeloop_calc_normal(bm, el_store_b);
+	is_a_no_valid = BM_edgeloop_calc_normal(bm, el_store_a);
+	is_b_no_valid = BM_edgeloop_calc_normal(bm, el_store_b);
 
 	copy_v3_v3(el_store_a_co, BM_edgeloop_center_get(el_store_a));
 	copy_v3_v3(el_store_b_co, BM_edgeloop_center_get(el_store_b));
-
-	copy_v3_v3(el_store_a_no, BM_edgeloop_normal_get(el_store_a));
-	copy_v3_v3(el_store_b_no, BM_edgeloop_normal_get(el_store_b));
 
 	/* correct normals need to be flipped to face each other
 	 * we know both normals point in the same direction so one will need flipping */
 	{
 		float el_dir[3];
+		float no[3];
 		sub_v3_v3v3(el_dir, el_store_a_co, el_store_b_co);
+		normalize_v3_v3(no, el_dir);
+
+		if (is_a_no_valid == false) {
+			is_a_no_valid = BM_edgeloop_calc_normal_aligned(bm, el_store_a, no);
+		}
+		if (is_b_no_valid == false) {
+			is_b_no_valid = BM_edgeloop_calc_normal_aligned(bm, el_store_b, no);
+		}
+		(void)is_a_no_valid, (void)is_b_no_valid;
+
+		copy_v3_v3(el_store_a_no, BM_edgeloop_normal_get(el_store_a));
+		copy_v3_v3(el_store_b_no, BM_edgeloop_normal_get(el_store_b));
 
 		if (dot_v3v3(el_store_a_no, el_dir) > 0.0f) {
 			negate_v3(el_store_a_no);
