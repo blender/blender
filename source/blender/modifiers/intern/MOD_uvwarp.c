@@ -105,7 +105,10 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 	}
 }
 
-#define OMP_LIMIT 1000
+#ifdef _OPENMP
+#  define OMP_LIMIT 1000
+#endif
+
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
                                   ModifierApplyFlag UNUSED(flag))

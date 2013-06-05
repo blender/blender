@@ -21,7 +21,7 @@
 import bpy
 from bpy.types import Operator
 
-from bpy.props import EnumProperty
+from bpy.props import EnumProperty, IntProperty
 
 
 class MeshMirrorUV(Operator):
@@ -36,6 +36,14 @@ class MeshMirrorUV(Operator):
                    ('NEGATIVE', "Negative", "")),
             )
 
+    precision = IntProperty(
+            name="Precision",
+            description=("Tolerance for finding vertex duplicates"),
+            min=1, max=16,
+            soft_min=1, soft_max=16,
+            default=3,
+            )
+
     @classmethod
     def poll(cls, context):
         obj = context.active_object
@@ -43,6 +51,8 @@ class MeshMirrorUV(Operator):
 
     def execute(self, context):
         DIR = (self.direction == 'NEGATIVE')
+        precision = self.precision
+        double_warn = 0
 
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')
@@ -55,12 +65,14 @@ class MeshMirrorUV(Operator):
         mirror_gt = {}
         mirror_lt = {}
 
-        vcos = (v.co.to_tuple(5) for v in mesh.vertices)
+        vcos = (v.co.to_tuple(precision) for v in mesh.vertices)
 
         for i, co in enumerate(vcos):
             if co[0] >= 0.0:
+                double_warn += co in mirror_gt
                 mirror_gt[co] = i
             if co[0] <= 0.0:
+                double_warn += co in mirror_lt
                 mirror_lt[co] = i
 
         #for i, v in enumerate(mesh.vertices):
@@ -95,10 +107,7 @@ class MeshMirrorUV(Operator):
                          (uv.select for uv in uv_loops[lstart:lend]))
             # Vert idx of the poly.
             vidxs[i] = tuple(l.vertex_index for l in loops[lstart:lend])
-            # As we have no poly.center yet...
-            pcents[i] = tuple(map(lambda x: x / p.loop_total,
-                                  map(sum, zip(*(verts[idx].co
-                                                 for idx in vidxs[i])))))
+            pcents[i] = p.center
             # Preparing next step finding matching polys.
             mirror_pm[tuple(sorted(vidxs[i]))] = i
 
@@ -134,5 +143,10 @@ class MeshMirrorUV(Operator):
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+        if double_warn:
+            self.report({'WARNING'},
+                        "%d duplicates found, mirror may be incomplete" %
+                        double_warn)
 
         return {'FINISHED'}
