@@ -88,17 +88,34 @@ static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int f
 
 /*********************** remove shape key ***********************/
 
-static int ED_object_shape_key_remove(bContext *C, Object *ob)
+static bool ED_object_shape_key_remove_all(Main *bmain, Object *ob)
 {
-	Main *bmain = CTX_data_main(C);
-	KeyBlock *kb, *rkb;
 	Key *key;
-	//IpoCurve *icu;
 
 	key = BKE_key_from_object(ob);
 	if (key == NULL)
-		return 0;
-	
+		return false;
+
+	switch (GS(key->from->name)) {
+		case ID_ME: ((Mesh *)key->from)->key    = NULL; break;
+		case ID_CU: ((Curve *)key->from)->key   = NULL; break;
+		case ID_LT: ((Lattice *)key->from)->key = NULL; break;
+	}
+
+	BKE_libblock_free_us(&(bmain->key), key);
+
+	return true;
+}
+
+static bool ED_object_shape_key_remove(Main *bmain, Object *ob)
+{
+	KeyBlock *kb, *rkb;
+	Key *key;
+
+	key = BKE_key_from_object(ob);
+	if (key == NULL)
+		return false;
+
 	kb = BLI_findlink(&key->block, ob->shapenr - 1);
 
 	if (kb) {
@@ -145,11 +162,8 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 
 		BKE_libblock_free_us(&(bmain->key), key);
 	}
-	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-	return 1;
+	return true;
 }
 
 static bool object_shape_key_mirror(bContext *C, Object *ob,
@@ -311,14 +325,28 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys");
 }
 
-static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int shape_key_remove_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
+	bool change = false;
 
-	if (!ED_object_shape_key_remove(C, ob))
+	if (RNA_boolean_get(op->ptr, "all")) {
+		change = ED_object_shape_key_remove_all(bmain, ob);
+	}
+	else {
+		change = ED_object_shape_key_remove(bmain, ob);
+	}
+
+	if (change) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
 		return OPERATOR_CANCELLED;
-	
-	return OPERATOR_FINISHED;
+	}
 }
 
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
@@ -334,6 +362,9 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove all shape keys");
 }
 
 static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))

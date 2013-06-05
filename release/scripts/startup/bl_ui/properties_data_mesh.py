@@ -54,6 +54,7 @@ class MESH_MT_shape_key_specials(Menu):
         layout.operator("object.join_shapes", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT')
         layout.operator("object.shape_key_add", icon='ZOOMIN', text="New Shape From Mix").from_mix = True
+        layout.operator("object.shape_key_remove", icon='X', text="Delete All Shapes").all = True
 
 
 class MESH_UL_vgroups(UIList):
@@ -257,7 +258,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.operator("object.shape_key_add", icon='ZOOMIN', text="").from_mix = False
-        sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="")
+        sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="").all = False
         sub.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
 
         if kb:

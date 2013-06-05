@@ -2830,7 +2830,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
+	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove all vertex groups");
 }
 
 static int vertex_group_assign_exec(bContext *C, wmOperator *op)
