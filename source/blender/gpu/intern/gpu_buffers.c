@@ -2323,7 +2323,7 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
 		if (!setMaterial(f->mat_nr + 1, NULL))
 			return;
 	}
-	else {
+	else if (setMaterial) {
 		if (!setMaterial(1, NULL))
 			return;
 	}
