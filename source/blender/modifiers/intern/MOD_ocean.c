@@ -232,6 +232,12 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 #endif /* WITH_OCEANSIM */
 
+static bool dependsOnNormals(ModifierData *md)
+{
+	OceanModifierData *omd = (OceanModifierData *)md;
+	return (omd->geometry_mode != MOD_OCEAN_GEOM_GENERATE);
+}
+
 #if 0
 static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, float *oy)
 {
@@ -437,8 +443,10 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 		simulate_ocean_modifier(omd);
 	}
 
-	if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE)
+	if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
 		dm = generate_ocean_geometry(omd);
+		DM_ensure_normals(dm);
+	}
 	else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
 		dm = CDDM_copy(derivedData);
 	}
@@ -542,6 +550,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 {
 	DerivedMesh *result;
 
+	CDDM_calc_normals(derivedData);
+
 	result = doOcean(md, ob, derivedData, 0);
 
 	if (result != derivedData)
@@ -573,7 +583,7 @@ ModifierTypeInfo modifierType_Ocean = {
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 };
