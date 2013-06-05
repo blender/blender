@@ -2313,19 +2313,21 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
 {
 	/* sets material from the first face, to solve properly face would need to
 	 * be sorted in buckets by materials */
-	if (buffers->totface) {
-		const MFace *f = &buffers->mface[buffers->face_indices[0]];
-		if (!setMaterial(f->mat_nr + 1, NULL))
-			return;
-	}
-	else if (buffers->totgrid) {
-		const DMFlagMat *f = &buffers->grid_flag_mats[buffers->grid_indices[0]];
-		if (!setMaterial(f->mat_nr + 1, NULL))
-			return;
-	}
-	else if (setMaterial) {
-		if (!setMaterial(1, NULL))
-			return;
+	if (setMaterial) {
+		if (buffers->totface) {
+			const MFace *f = &buffers->mface[buffers->face_indices[0]];
+			if (!setMaterial(f->mat_nr + 1, NULL))
+				return;
+		}
+		else if (buffers->totgrid) {
+			const DMFlagMat *f = &buffers->grid_flag_mats[buffers->grid_indices[0]];
+			if (!setMaterial(f->mat_nr + 1, NULL))
+				return;
+		}
+		else {
+			if (!setMaterial(1, NULL))
+				return;
+		}
 	}
 
 	glShadeModel((buffers->smooth || buffers->totface) ? GL_SMOOTH : GL_FLAT);
