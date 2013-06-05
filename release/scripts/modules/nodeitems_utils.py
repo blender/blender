@@ -57,6 +57,27 @@ class NodeItem():
             # if no custom label is defined, fall back to the node type UI name
             return getattr(bpy.types, self.nodetype).bl_rna.name
 
+    # NB: is a staticmethod because called with an explicit self argument
+    # NodeItemCustom sets this as a variable attribute in __init__
+    @staticmethod
+    def draw(self, layout, context):
+        default_context = bpy.app.translations.contexts.default
+
+        props = layout.operator("node.add_node", text=self.label, text_ctxt=default_context)
+        props.type = self.nodetype
+        props.use_transform = True
+
+        for setting in self.settings.items():
+            ops = props.settings.add()
+            ops.name = setting[0]
+            ops.value = setting[1]
+
+
+class NodeItemCustom():
+    def __init__(self, poll=None, draw=None):
+        self.poll = poll
+        self.draw = draw
+
 
 _node_categories = {}
 
@@ -71,14 +92,7 @@ def register_node_categories(identifier, cat_list):
         col = layout.column()
         default_context = bpy.app.translations.contexts.default
         for item in self.category.items(context):
-            props = col.operator("node.add_node", text=item.label, text_ctxt=default_context)
-            props.type = item.nodetype
-            props.use_transform = True
-
-            for setting in item.settings.items():
-                ops = props.settings.add()
-                ops.name = setting[0]
-                ops.value = setting[1]
+            item.draw(item, col, context)
 
     menu_types = []
     panel_types = []

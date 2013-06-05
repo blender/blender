@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 import nodeitems_utils
-from nodeitems_utils import NodeCategory, NodeItem
+from nodeitems_utils import NodeCategory, NodeItem, NodeItemCustom
 
 
 # Subclasses for standard node types
@@ -47,6 +47,11 @@ class TextureNodeCategory(NodeCategory):
         return context.space_data.tree_type == 'TextureNodeTree'
 
 
+# menu entry for making a new group from selected nodes
+def group_make_draw(self, layout, context):
+    layout.operator("node.group_make")
+    layout.separator()
+
 # maps node tree type to group node type
 node_tree_group_type = {
     'CompositorNodeTree'    : 'CompositorNodeGroup',
@@ -61,6 +66,8 @@ def node_group_items(context):
     ntree = space.edit_tree
     if not ntree:
         return
+
+    yield NodeItemCustom(draw=group_make_draw)
 
     def contains_group(nodetree, group):
         if nodetree == group:
