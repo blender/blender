@@ -1050,6 +1050,15 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, "NODE_OT_translate_attach", GKEY, KM_PRESS, 0, 0);
 			WM_keymap_add_item(keymap, "NODE_OT_translate_attach", EVT_TWEAK_A, KM_ANY, 0, 0);
 			WM_keymap_add_item(keymap, "NODE_OT_translate_attach", EVT_TWEAK_S, KM_ANY, 0, 0);
+			/* NB: small trick: macro operator poll may fail due to library data edit,
+			 * in that case the secondary regular operators are called with same keymap.
+			 */
+			kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
+			RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
+			kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_A, KM_ANY, 0, 0);
+			RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
+			kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
 
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 

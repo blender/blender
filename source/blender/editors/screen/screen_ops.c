@@ -260,6 +260,16 @@ int ED_operator_node_active(bContext *C)
 	return 0;
 }
 
+int ED_operator_node_editable(bContext *C)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	
+	if (snode && snode->edittree && snode->edittree->id.lib == NULL)
+		return 1;
+	
+	return 0;
+}
+
 /* XXX rename */
 int ED_operator_graphedit_active(bContext *C)
 {

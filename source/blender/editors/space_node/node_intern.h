@@ -176,6 +176,7 @@ void snode_set_context(const struct bContext *C);
 
 void snode_update(struct SpaceNode *snode, struct bNode *node);
 int composite_node_active(struct bContext *C);
+int composite_node_editable(struct bContext *C);
 
 int node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);

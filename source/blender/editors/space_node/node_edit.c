@@ -318,6 +318,17 @@ int composite_node_active(bContext *C)
 	return 0;
 }
 
+/* operator poll callback */
+int composite_node_editable(bContext *C)
+{
+	if (ED_operator_node_editable(C)) {
+		SpaceNode *snode = CTX_wm_space_node(C);
+		if (ED_node_is_compositor(snode))
+			return 1;
+	}
+	return 0;
+}
+
 static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 {
 	bNode *node;
@@ -1239,7 +1250,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = node_duplicate_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1611,7 +1622,7 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = node_mute_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1653,7 +1664,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = node_delete_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1696,7 +1707,7 @@ void NODE_OT_delete_reconnect(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_delete_reconnect_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1743,7 +1754,7 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = node_output_file_add_socket_exec;
-	ot->poll = composite_node_active;
+	ot->poll = composite_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1789,7 +1800,7 @@ void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = node_output_file_remove_active_socket_exec;
-	ot->poll = composite_node_active;
+	ot->poll = composite_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1859,7 +1870,7 @@ void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = node_output_file_move_active_socket_exec;
-	ot->poll = composite_node_active;
+	ot->poll = composite_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1907,7 +1918,7 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_copy_color_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2100,7 +2111,7 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = node_clipboard_paste_exec;
 	ot->invoke = node_clipboard_paste_invoke;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2172,7 +2183,7 @@ void NODE_OT_tree_socket_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = ntree_socket_add_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2218,7 +2229,7 @@ void NODE_OT_tree_socket_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = ntree_socket_remove_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2286,7 +2297,7 @@ void NODE_OT_tree_socket_move(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = ntree_socket_move_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2304,6 +2315,9 @@ static int node_shader_script_update_poll(bContext *C)
 	bNode *node;
 	Text *text;
 
+	if (!ED_operator_node_editable(C))
+		return 0;
+
 	/* test if we have a render engine that supports shaders scripts */
 	if (!(type && type->update_script_node))
 		return 0;
@@ -2311,7 +2325,7 @@ static int node_shader_script_update_poll(bContext *C)
 	/* see if we have a shader script node in context */
 	node = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript).data;
 
-	if (!node && snode && snode->edittree)
+	if (!node)
 		node = nodeGetActive(snode->edittree);
 
 	if (node && node->type == SH_NODE_SCRIPT) {

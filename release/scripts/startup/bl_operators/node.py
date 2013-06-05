@@ -100,7 +100,7 @@ class NodeAddOperator():
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree to add nodes to
-        return (space.type == 'NODE_EDITOR' and space.edit_tree)
+        return (space.type == 'NODE_EDITOR' and space.edit_tree and not space.edit_tree.library)
 
     # Default execute simply adds a node
     def execute(self, context):
@@ -231,7 +231,7 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree
-        return (space.type == 'NODE_EDITOR' and space.edit_tree)
+        return (space.type == 'NODE_EDITOR' and space.edit_tree and not space.edit_tree.library)
 
     def execute(self, context):
         space = context.space_data

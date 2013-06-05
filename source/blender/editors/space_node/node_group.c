@@ -71,7 +71,7 @@
 
 static int node_group_operator_poll(bContext *C)
 {
-	if (ED_operator_node_active(C)) {
+	if (ED_operator_node_editable(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
 		
 		/* Group operators only defined for standard node tree types.

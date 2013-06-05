@@ -386,7 +386,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_active_link_viewer;
-	ot->poll = composite_node_active;
+	ot->poll = composite_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -690,7 +690,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	ot->invoke = node_link_invoke;
 	ot->modal = node_link_modal;
 //	ot->exec = node_link_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 	ot->cancel = node_link_cancel;
 
 	/* flags */
@@ -731,7 +731,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = node_make_link_exec;
-	ot->poll = ED_operator_node_active; // XXX we need a special poll which checks that there are selected input/output sockets
+	ot->poll = ED_operator_node_editable; // XXX we need a special poll which checks that there are selected input/output sockets
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -826,7 +826,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	ot->exec = cut_links_exec;
 	ot->cancel = WM_gesture_lines_cancel;
 
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -868,7 +868,7 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 	ot->description = "Remove all links to selected nodes, and try to connect neighbor nodes together";
 
 	ot->exec = detach_links_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -937,7 +937,7 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_parent_set_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -971,7 +971,7 @@ void NODE_OT_parent_clear(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_parent_clear_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1057,7 +1057,7 @@ void NODE_OT_join(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_join_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1137,7 +1137,7 @@ void NODE_OT_attach(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = node_attach_exec;
 	ot->invoke = node_attach_invoke;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1206,7 +1206,7 @@ void NODE_OT_detach(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_detach_exec;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

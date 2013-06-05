@@ -308,7 +308,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 	ot->exec = add_reroute_exec;
 	ot->cancel = WM_gesture_lines_cancel;
 
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -416,7 +416,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	/* callbacks */
 	ot->exec = node_add_file_exec;
 	ot->invoke = node_add_file_invoke;
-	ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
