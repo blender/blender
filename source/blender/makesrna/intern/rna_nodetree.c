@@ -1364,22 +1364,6 @@ static StructRNA *rna_Node_register(Main *bmain, ReportList *reports,
 	return nt->ext.srna;
 }
 
-static StructRNA *rna_NodeGroup_register(Main *bmain, ReportList *reports,
-                                         void *data, const char *identifier,
-                                         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
-{
-	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_NodeGroup, data, identifier, validate, call, free);
-	if (!nt)
-		return NULL;
-	
-	nodeRegisterType(nt);
-	
-	/* update while blender is running */
-	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
-	
-	return nt->ext.srna;
-}
-
 static StructRNA *rna_ShaderNode_register(Main *bmain, ReportList *reports,
                                           void *data, const char *identifier,
                                           StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
@@ -2861,8 +2845,6 @@ static void def_group_output(StructRNA *srna)
 static void def_group(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-	RNA_def_struct_register_funcs(srna, "rna_NodeGroup_register", "rna_Node_unregister", NULL);
 	
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -7232,6 +7214,10 @@ static void define_specific_node(BlenderRNA *brna, const char *struct_name, cons
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
+	
+	/* XXX hack, want to avoid "NodeInternal" prefix, so use "Node" in NOD_static_types.h and replace here */
+	if (STREQ(base_name, "Node"))
+		base_name = "NodeInternal";
 	
 	srna = RNA_def_struct(brna, struct_name, base_name);
 	RNA_def_struct_ui_text(srna, ui_name, ui_desc);
