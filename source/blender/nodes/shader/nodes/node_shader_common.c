@@ -89,7 +89,8 @@ static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
 	bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
 	
-	ntreeShaderEndExecTree_internal(gexec);
+	if (gexec)
+		ntreeShaderEndExecTree_internal(gexec);
 }
 
 /* Copy inputs to the internal stack.
