@@ -931,20 +931,26 @@ elseif(WIN32)
 	#  include(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
 		include(CheckCSourceCompiles)
 		# Setup 64bit and 64bit windows systems
 		CHECK_C_SOURCE_COMPILES("
 			#ifndef __MINGW64__
 			#error
 			#endif
-			main(){}
+			int main(void) { return 0; }
 			" 
 			WITH_MINGW64)
 		
 		if(WITH_MINGW64)
 			message(STATUS "Compiling for 64 bit with MinGW-w64.")
 			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
+		else()
+			message(STATUS "Compiling for 32 bit with MinGW-w32.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
+			
+			if(WITH_RAYOPTIMIZATION)
+				message(WARNING "MinGW-w32 is known to be unstable with 'WITH_RAYOPTIMIZATION' option enabled.")
+			endif()
 		endif()
 	else()
 		# Setup 64bit and 64bit windows systems
