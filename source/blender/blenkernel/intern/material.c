@@ -308,6 +308,9 @@ void BKE_material_make_local(Material *ma)
 	if (ma->id.us == 1) {
 		id_clear_lib_data(bmain, &ma->id);
 		extern_local_material(ma);
+		/* nodetree uses same lib */
+		if (ma->nodetree)
+			ma->nodetree->id.lib = NULL;
 		return;
 	}
 
@@ -370,6 +373,9 @@ void BKE_material_make_local(Material *ma)
 	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &ma->id);
 		extern_local_material(ma);
+		/* nodetree uses same lib */
+		if (ma->nodetree)
+			ma->nodetree->id.lib = NULL;
 	}
 	/* Both user and local, so copy. */
 	else if (is_local && is_lib) {

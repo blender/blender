@@ -179,6 +179,9 @@ void BKE_world_make_local(World *wrld)
 	if (wrld->id.lib == NULL) return;
 	if (wrld->id.us == 1) {
 		id_clear_lib_data(bmain, &wrld->id);
+		/* nodetree uses same lib */
+		if (wrld->nodetree)
+			wrld->nodetree->id.lib = NULL;
 		return;
 	}
 	
@@ -191,6 +194,9 @@ void BKE_world_make_local(World *wrld)
 
 	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &wrld->id);
+		/* nodetree uses same lib */
+		if (wrld->nodetree)
+			wrld->nodetree->id.lib = NULL;
 	}
 	else if (is_local && is_lib) {
 		World *wrld_new = BKE_world_copy(wrld);

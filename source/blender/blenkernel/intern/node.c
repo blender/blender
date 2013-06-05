@@ -1124,6 +1124,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 	}
 	else {
 		newtree = MEM_dupallocN(ntree);
+		ntree->id.lib = NULL;	/* same as owning datablock id.lib */
 		BKE_libblock_copy_data(&newtree->id, &ntree->id, true); /* copy animdata and ID props */
 	}
 

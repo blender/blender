@@ -765,6 +765,9 @@ void BKE_texture_make_local(Tex *tex)
 	if (tex->id.us == 1) {
 		id_clear_lib_data(bmain, &tex->id);
 		extern_local_texture(tex);
+		/* nodetree uses same lib */
+		if (tex->nodetree)
+			tex->nodetree->id.lib = NULL;
 		return;
 	}
 	
@@ -824,6 +827,9 @@ void BKE_texture_make_local(Tex *tex)
 	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &tex->id);
 		extern_local_texture(tex);
+		/* nodetree uses same lib */
+		if (tex->nodetree)
+			tex->nodetree->id.lib = NULL;
 	}
 	else if (is_local && is_lib) {
 		Tex *tex_new = BKE_texture_copy(tex);
