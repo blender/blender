@@ -69,7 +69,26 @@
 #include "NOD_common.h"
 #include "NOD_socket.h"
 
-static int node_group_operator_poll(bContext *C)
+static int node_group_operator_active(bContext *C)
+{
+	if (ED_operator_node_active(C)) {
+		SpaceNode *snode = CTX_wm_space_node(C);
+		
+		/* Group operators only defined for standard node tree types.
+		 * Disabled otherwise to allow pynodes define their own operators
+		 * with same keymap.
+		 */
+		if (STREQ(snode->tree_idname, "ShaderNodeTree") ||
+		    STREQ(snode->tree_idname, "CompositorNodeTree") ||
+		    STREQ(snode->tree_idname, "TextureNodeTree"))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+static int node_group_operator_editable(bContext *C)
 {
 	if (ED_operator_node_editable(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
@@ -135,12 +154,8 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
 	if (gnode && !exit) {
 		bNodeTree *ngroup = (bNodeTree *)gnode->id;
 		
-		if (ngroup) {
-			if (ngroup->id.lib)
-				ntreeMakeLocal(ngroup);
-			
+		if (ngroup)
 			ED_node_tree_push(snode, ngroup, gnode);
-		}
 	}
 	else
 		ED_node_tree_pop(snode);
@@ -148,21 +163,6 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
 	
 	return OPERATOR_FINISHED;
-}
-
-static int node_group_edit_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	const char *node_idname = group_node_idname(C);
-	bNode *gnode;
-	
-	gnode = node_group_get_active(C, node_idname);
-	
-	if (gnode && gnode->id && gnode->id->lib) {
-		WM_operator_confirm_message(C, op, "Make group local?");
-		return OPERATOR_CANCELLED;
-	}
-
-	return node_group_edit_exec(C, op);
 }
 
 void NODE_OT_group_edit(wmOperatorType *ot)
@@ -173,9 +173,8 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 	ot->idname = "NODE_OT_group_edit";
 	
 	/* api callbacks */
-	ot->invoke = node_group_edit_invoke;
 	ot->exec = node_group_edit_exec;
-	ot->poll = node_group_operator_poll;
+	ot->poll = node_group_operator_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -385,7 +384,7 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = node_group_ungroup_exec;
-	ot->poll = node_group_operator_poll;
+	ot->poll = node_group_operator_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -588,7 +587,7 @@ void NODE_OT_group_separate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = node_group_separate_invoke;
 	ot->exec = node_group_separate_exec;
-	ot->poll = node_group_operator_poll;
+	ot->poll = node_group_operator_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -953,7 +952,7 @@ void NODE_OT_group_make(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = node_group_make_exec;
-	ot->poll = node_group_operator_poll;
+	ot->poll = node_group_operator_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1004,7 +1003,7 @@ void NODE_OT_group_insert(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = node_group_insert_exec;
-	ot->poll = node_group_operator_poll;
+	ot->poll = node_group_operator_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
