@@ -73,10 +73,15 @@
 
 /* ****************************** MIRROR **************** */
 
-void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, bool extend)
+void EDBM_select_mirrored(BMEditMesh *em, bool extend,
+                          int *r_totmirr, int *r_totfail)
 {
 	BMVert *v1, *v2;
 	BMIter iter;
+	int totmirr = 0;
+	int totfail = 0;
+
+	*r_totmirr = *r_totfail = 0;
 
 	BM_ITER_MESH (v1, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(v1, BM_ELEM_SELECT) || BM_elem_flag_test(v1, BM_ELEM_HIDDEN)) {
@@ -87,7 +92,7 @@ void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, bool extend)
 		}
 	}
 
-	EDBM_verts_mirror_cache_begin(em, true);
+	EDBM_verts_mirror_cache_begin(em, true, true);
 
 	if (!extend)
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -97,12 +102,21 @@ void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, bool extend)
 			continue;
 
 		v2 = EDBM_verts_mirror_get(em, v1);
-		if (v2 && !BM_elem_flag_test(v2, BM_ELEM_HIDDEN)) {
-			BM_vert_select_set(em->bm, v2, true);
+		if (v2) {
+			if (!BM_elem_flag_test(v2, BM_ELEM_HIDDEN)) {
+				BM_vert_select_set(em->bm, v2, true);
+				totmirr++;
+			}
+		}
+		else {
+			totfail++;
 		}
 	}
 
 	EDBM_verts_mirror_cache_end(em);
+
+	*r_totmirr = totmirr;
+	*r_totfail = totfail;
 }
 
 void EDBM_automerge(Scene *scene, Object *obedit, bool update)
@@ -2206,9 +2220,14 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 	bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (em->bm->totvert && em->bm->totvertsel) {
-		EDBM_select_mirrored(obedit, em, extend);
-		EDBM_selectmode_flush(em);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		int totmirr, totfail;
+		EDBM_select_mirrored(em, extend, &totmirr, &totfail);
+		if (totmirr) {
+			EDBM_selectmode_flush(em);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
+
+		ED_mesh_report_mirror(op, totmirr, totfail);
 	}
 
 	return OPERATOR_FINISHED;

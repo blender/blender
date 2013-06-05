@@ -2122,7 +2122,8 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 /* TODO, vgroup locking */
 /* TODO, face masking */
 void ED_vgroup_mirror(Object *ob,
-                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups)
+                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups,
+                      int *r_totmirr, int *r_totfail)
 {
 
 #define VGROUP_MIRR_OP                                                        \
@@ -2136,8 +2137,11 @@ void ED_vgroup_mirror(Object *ob,
 	BMVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
 	char sel, sel_mirr;
-	int *flip_map, flip_map_len;
+	int *flip_map = NULL, flip_map_len;
 	const int def_nr = ob->actdef - 1;
+	int totmirr = 0, totfail = 0;
+
+	*r_totmirr = *r_totfail = 0;
 
 	if ((mirror_weights == false && flip_vgroups == false) ||
 	    (BLI_findlink(&ob->defbase, def_nr) == NULL))
@@ -2175,24 +2179,30 @@ void ED_vgroup_mirror(Object *ob,
 				goto cleanup;
 			}
 
-			EDBM_verts_mirror_cache_begin(em, false);
+			EDBM_verts_mirror_cache_begin(em, true, false);
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if ((eve_mirr = EDBM_verts_mirror_get(em, eve))) {
-					sel = BM_elem_flag_test(eve, BM_ELEM_SELECT);
-					sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
+					if (eve_mirr != eve) {
+						sel = BM_elem_flag_test(eve, BM_ELEM_SELECT);
+						sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
 
-					if ((sel || sel_mirr) && (eve != eve_mirr)) {
-						dvert      = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-						dvert_mirr = BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset);
+						if ((sel || sel_mirr) && (eve != eve_mirr)) {
+							dvert      = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+							dvert_mirr = BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset);
 
-						VGROUP_MIRR_OP;
+							VGROUP_MIRR_OP;
+							totmirr++;
+						}
 					}
 
 					/* don't use these again */
 					EDBM_verts_mirror_cache_clear(em, eve);
 					EDBM_verts_mirror_cache_clear(em, eve_mirr);
+				}
+				else {
+					totfail++;
 				}
 			}
 			EDBM_verts_mirror_cache_end(em);
@@ -2217,26 +2227,33 @@ void ED_vgroup_mirror(Object *ob,
 			}
 
 			for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
-				if (    ((mv->flag & ME_VERT_TMP_TAG) == 0) &&
-				        ((vidx_mirr = mesh_get_x_mirror_vert(ob, vidx)) != -1) &&
-				        (vidx != vidx_mirr) &&
-				        ((((mv_mirr = me->mvert + vidx_mirr)->flag) & ME_VERT_TMP_TAG) == 0))
-				{
+				if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
+					if ((vidx_mirr = mesh_get_x_mirror_vert(ob, vidx)) != -1) {
+						if (vidx != vidx_mirr) {
+							mv_mirr = &me->mvert[vidx_mirr];
+							if ((mv_mirr->flag & ME_VERT_TMP_TAG) == 0) {
 
-					if (use_vert_sel) {
-						sel = mv->flag & SELECT;
-						sel_mirr = mv_mirr->flag & SELECT;
+								if (use_vert_sel) {
+									sel = mv->flag & SELECT;
+									sel_mirr = mv_mirr->flag & SELECT;
+								}
+
+								if (sel || sel_mirr) {
+									dvert = &me->dvert[vidx];
+									dvert_mirr = &me->dvert[vidx_mirr];
+
+									VGROUP_MIRR_OP;
+									totmirr++;
+								}
+
+								mv->flag |= ME_VERT_TMP_TAG;
+								mv_mirr->flag |= ME_VERT_TMP_TAG;
+							}
+						}
 					}
-
-					if (sel || sel_mirr) {
-						dvert = &me->dvert[vidx];
-						dvert_mirr = &me->dvert[vidx_mirr];
-
-						VGROUP_MIRR_OP;
+					else {
+						totfail++;
 					}
-
-					mv->flag |= ME_VERT_TMP_TAG;
-					mv_mirr->flag |= ME_VERT_TMP_TAG;
 				}
 			}
 		}
@@ -2278,6 +2295,7 @@ void ED_vgroup_mirror(Object *ob,
 							dvert_mirr = &lt->dvert[i2];
 
 							VGROUP_MIRR_OP;
+							totmirr++;
 						}
 					}
 				}
@@ -2293,6 +2311,9 @@ void ED_vgroup_mirror(Object *ob,
 #endif
 
 cleanup:
+	*r_totmirr = totmirr;
+	*r_totfail = totfail;
+
 	if (flip_map) MEM_freeN(flip_map);
 
 #undef VGROUP_MIRR_OP
@@ -3362,11 +3383,15 @@ void OBJECT_OT_vertex_group_limit_total(wmOperatorType *ot)
 static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
+	int totmirr = 0, totfail = 0;
 
 	ED_vgroup_mirror(ob,
 	                 RNA_boolean_get(op->ptr, "mirror_weights"),
 	                 RNA_boolean_get(op->ptr, "flip_group_names"),
-	                 RNA_boolean_get(op->ptr, "all_groups"));
+	                 RNA_boolean_get(op->ptr, "all_groups"),
+	                 &totmirr, &totfail);
+
+	ED_mesh_report_mirror(op, totmirr, totfail);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

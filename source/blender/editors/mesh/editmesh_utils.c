@@ -1134,6 +1134,9 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
  *  ...
  *  EDBM_verts_mirror_cache_end(em);
  *
+ * \param use_self  Allow a vertex to reference its self.
+ * \param use_select  Only cache selected verts.
+ *
  * \note why do we only allow x axis mirror editing?
  */
 
@@ -1141,13 +1144,14 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
  * preference */
 #define BM_SEARCH_MAXDIST_MIRR 0.00002f
 #define BM_CD_LAYER_ID "__mirror_index"
-void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
+void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_self, const bool use_select)
 {
 	Mesh *me = (Mesh *)em->ob->data;
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMVert *v;
-	int li, topo = 0;
+	bool topo = false;
+	int cd_vmirr_offset;
 
 	/* one or the other is used depending if topo is enabled */
 	struct BMBVHTree *tree = NULL;
@@ -1159,13 +1163,16 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 
 	EDBM_index_arrays_ensure(em, BM_VERT);
 
-	if (!CustomData_get_layer_named(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID)) {
+	em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
+	if (em->mirror_cdlayer == -1) {
 		BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
+		em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
 	}
 
-	li = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
+	cd_vmirr_offset = CustomData_get_n_offset(&bm->vdata, CD_PROP_INT,
+	                                          em->mirror_cdlayer - CustomData_get_layer_index(&bm->vdata, CD_PROP_INT));
 
-	bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
+	bm->vdata.layers[em->mirror_cdlayer].flag |= CD_FLAG_TEMPORARY;
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -1183,20 +1190,20 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 			/* do nothing */
 		}
 		else {
-			BMVert *mirr;
-			int *idx = CustomData_bmesh_get_layer_n(&bm->vdata, v->head.data, li);
+			BMVert *v_mirr;
+			int *idx = BM_ELEM_CD_GET_VOID_P(v, cd_vmirr_offset);
 
 			if (topo) {
-				mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, BM_elem_index_get(v));
+				v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, BM_elem_index_get(v));
 			}
 			else {
 				float co[3] = {-v->co[0], v->co[1], v->co[2]};
-				mirr = BKE_bmbvh_find_vert_closest(tree, co, BM_SEARCH_MAXDIST_MIRR);
+				v_mirr = BKE_bmbvh_find_vert_closest(tree, co, BM_SEARCH_MAXDIST_MIRR);
 			}
 
-			if (mirr && mirr != v) {
-				*idx = BM_elem_index_get(mirr);
-				idx = CustomData_bmesh_get_layer_n(&bm->vdata, mirr->head.data, li);
+			if (v_mirr && (use_self || (v_mirr != v))) {
+				*idx = BM_elem_index_get(v_mirr);
+				idx = BM_ELEM_CD_GET_VOID_P(v_mirr, cd_vmirr_offset);
 				*idx = BM_elem_index_get(v);
 			}
 			else {
@@ -1213,8 +1220,6 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_select)
 	else {
 		BKE_bmbvh_free(tree);
 	}
-
-	em->mirror_cdlayer = li;
 }
 
 BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)

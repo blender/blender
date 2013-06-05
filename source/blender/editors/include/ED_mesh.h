@@ -76,7 +76,7 @@ struct MeshStatVis;
 
 
 /* editmesh_utils.c */
-void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const bool use_select); /* note, replaces EM_cache_x_mirror_vert in trunk */
+void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const bool use_self, const bool use_select);
 void           EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVert *v);
@@ -141,7 +141,8 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e,
                        struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
 
 /* editmesh_select.c */
-void EDBM_select_mirrored(struct Object *obedit, struct BMEditMesh *em, bool extend);
+void EDBM_select_mirrored(struct BMEditMesh *em, bool extend,
+                          int *r_totmirr, int *r_totfail);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update);
 
 bool EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
@@ -237,7 +238,8 @@ void                 ED_vgroup_data_clamp_range(struct ID *id, const int total);
 bool                 ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
 bool                 ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
 void                 ED_vgroup_mirror(struct Object *ob,
-                                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups);
+                                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups,
+                                      int *r_totmirr, int *r_totfail);
 
 bool                 ED_vgroup_object_is_edit_mode(struct Object *ob);
 
@@ -272,6 +274,8 @@ int  ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set)
 bool ED_mesh_color_remove_index(struct Mesh *me, const int n);
 bool ED_mesh_color_remove_active(struct Mesh *me);
 bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);
+
+void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
 
 /* mesh backup */
 typedef struct BMBackup {

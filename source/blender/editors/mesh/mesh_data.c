@@ -1243,3 +1243,13 @@ void ED_mesh_calc_tessface(Mesh *mesh)
 		BKE_mesh_tessface_calc(mesh);
 	}
 }
+
+void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
+{
+	if (totfail) {
+		BKE_reportf(op->reports, RPT_WARNING, "%d vertices mirrored, %d failed", totmirr, totfail);
+	}
+	else {
+		BKE_reportf(op->reports, RPT_INFO, "%d vertices mirrored", totmirr);
+	}
+}

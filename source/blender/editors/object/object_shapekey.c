@@ -152,10 +152,14 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 	return 1;
 }
 
-static int object_shape_key_mirror(bContext *C, Object *ob)
+static bool object_shape_key_mirror(bContext *C, Object *ob,
+                                    int *r_totmirr, int *r_totfail)
 {
 	KeyBlock *kb;
 	Key *key;
+	int totmirr = 0, totfail = 0;
+
+	*r_totmirr = *r_totfail = 0;
 
 	key = BKE_key_from_object(ob);
 	if (key == NULL)
@@ -182,6 +186,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 					fp1 = ((float *)kb->data) + i1 * 3;
 					fp1[0] = -fp1[0];
 					tag_elem[i1] = 1;
+					totmirr++;
 				}
 				else if (i2 != -1) {
 					if (tag_elem[i1] == 0 && tag_elem[i2] == 0) {
@@ -195,8 +200,12 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 						/* flip x axis */
 						fp1[0] = -fp1[0];
 						fp2[0] = -fp2[0];
+						totmirr++;
 					}
 					tag_elem[i1] = tag_elem[i2] = 1;
+				}
+				else {
+					totfail++;
 				}
 			}
 
@@ -224,6 +233,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 							i1 = LT_INDEX(lt, u, v, w);
 							fp1 = ((float *)kb->data) + i1 * 3;
 							fp1[0] = -fp1[0];
+							totmirr++;
 						}
 						else {
 							i1 = LT_INDEX(lt, u, v, w);
@@ -237,6 +247,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 							copy_v3_v3(fp2, tvec);
 							fp1[0] = -fp1[0];
 							fp2[0] = -fp2[0];
+							totmirr++;
 						}
 					}
 				}
@@ -246,6 +257,9 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 		MEM_freeN(tag_elem);
 	}
 	
+	*r_totmirr = totmirr;
+	*r_totfail = totfail;
+
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -390,12 +404,15 @@ void OBJECT_OT_shape_key_retime(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
+static int shape_key_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
+	int totmirr = 0, totfail = 0;
 
-	if (!object_shape_key_mirror(C, ob))
+	if (!object_shape_key_mirror(C, ob, &totmirr, &totfail))
 		return OPERATOR_CANCELLED;
+
+	ED_mesh_report_mirror(op, totmirr, totfail);
 
 	return OPERATOR_FINISHED;
 }
