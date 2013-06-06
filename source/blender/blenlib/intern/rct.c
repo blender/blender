@@ -101,6 +101,25 @@ bool BLI_rctf_isect_pt_v(const rctf *rect, const float xy[2])
 	return true;
 }
 
+/**
+ * is \a rct_b inside \a rct_a
+ */
+bool BLI_rctf_inside_rctf(rctf *rct_a, const rctf *rct_b)
+{
+	return ((rct_a->xmin <= rct_b->xmin) &&
+	        (rct_a->xmax >= rct_b->xmax) &&
+	        (rct_a->ymin <= rct_b->ymin) &&
+	        (rct_a->ymax >= rct_b->ymax));
+}
+bool BLI_rcti_inside_rcti(rcti *rct_a, const rcti *rct_b)
+{
+	return ((rct_a->xmin <= rct_b->xmin) &&
+	        (rct_a->xmax >= rct_b->xmax) &&
+	        (rct_a->ymin <= rct_b->ymin) &&
+	        (rct_a->ymax >= rct_b->ymax));
+}
+
+
 /* based closely on 'isect_line_line_v2_int', but in modified so corner cases are treated as intersections */
 static int isect_segments_i(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {

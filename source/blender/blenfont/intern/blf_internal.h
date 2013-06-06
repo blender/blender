@@ -71,6 +71,6 @@ struct GlyphBLF *blf_glyph_search(struct GlyphCacheBLF *gc, unsigned int c);
 struct GlyphBLF *blf_glyph_add(struct FontBLF *font, unsigned int index, unsigned int c);
 
 void blf_glyph_free(struct GlyphBLF *g);
-int blf_glyph_render(struct FontBLF *font, struct GlyphBLF *g, float x, float y);
+void blf_glyph_render(struct FontBLF *font, struct GlyphBLF *g, float x, float y);
 
 #endif /* __BLF_INTERNAL_H__ */
