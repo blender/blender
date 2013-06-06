@@ -883,10 +883,10 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	short offset = 1.5f * UI_UNIT_X + rect->xmin;
 
 	/* 
-	* breadcrumbs can contain 3 object names (MAX_NAME)
-	* and 2 BREAD_CRUMB_SEPARATORs (6)
-	* and a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1)
-	*/
+	 * breadcrumbs can contain 3 object names (MAX_NAME)
+	 * and 2 BREAD_CRUMB_SEPARATORs (6)
+	 * and a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1)
+	 */
 	char bread_crumbs[3 * MAX_NAME + 6 + 10];
 	bread_crumbs[0] = '\0';
 	

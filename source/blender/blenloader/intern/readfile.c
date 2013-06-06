@@ -9350,10 +9350,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		/* TIP: to initialize new variables added, use the new function
-		   DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")
-		   example: 
-				if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
-					user->image_gpubuffer_limit = 10;
+		 * DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")
+		 * example:
+		 * if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
+		 *     user->image_gpubuffer_limit = 10;
 		 */
 		
 	}

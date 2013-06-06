@@ -65,7 +65,7 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 static OverlayControlFlags overlay_flags = 0;
 
-void BKE_paint_invalidate_overlay_tex (Scene *scene, const Tex *tex)
+void BKE_paint_invalidate_overlay_tex(Scene *scene, const Tex *tex)
 {
 	Paint *p = BKE_paint_get_active(scene);
 	Brush *br = p->brush;
@@ -79,7 +79,7 @@ void BKE_paint_invalidate_overlay_tex (Scene *scene, const Tex *tex)
 		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
 }
 
-void BKE_paint_invalidate_cursor_overlay (Scene *scene, CurveMapping *curve)
+void BKE_paint_invalidate_cursor_overlay(Scene *scene, CurveMapping *curve)
 {
 	Paint *p = BKE_paint_get_active(scene);
 	Brush *br = p->brush;

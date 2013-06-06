@@ -133,7 +133,7 @@ void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float
  * Specialized function for calculating normals.
  * fastpath for:
  *
-* \code{.c}
+ * \code{.c}
  * add_v3_v3v3(r, a, b);
  * normalize_v3(r)
  * mul_v3_fl(r, angle_normalized_v3v3(a, b) / M_PI_2);

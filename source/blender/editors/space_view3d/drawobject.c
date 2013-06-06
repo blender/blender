@@ -2722,7 +2722,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 
 					if (unit->system) {
 						bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
-									   unit->system, B_UNIT_LENGTH, do_split, false);
+						               unit->system, B_UNIT_LENGTH, do_split, false);
 					}
 					else {
 						BLI_snprintf(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));

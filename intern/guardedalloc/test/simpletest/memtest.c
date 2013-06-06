@@ -47,7 +47,7 @@ static void mem_error_cb(const char *errorStr)
 	fflush(stderr);
 }
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	int verbose       = 0;
 	int error_status  = 0;

@@ -1276,7 +1276,7 @@ struct GPU_Buffers {
 	unsigned int tot_tri, tot_quad;
 
 	/* The PBVH ensures that either all faces in the node are
-	   smooth-shaded or all faces are flat-shaded */
+	 * smooth-shaded or all faces are flat-shaded */
 	int smooth;
 
 	int show_diffuse_color;
@@ -1392,8 +1392,8 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 
 		if (vert_data) {
 			/* Vertex data is shared if smooth-shaded, but separate
-			   copies are made for flat shading because normals
-			   shouldn't be shared. */
+			 * copies are made for flat shading because normals
+			 * shouldn't be shared. */
 			if (buffers->smooth) {
 				for (i = 0; i < totvert; ++i) {
 					MVert *v = mvert + vert_indices[i];
@@ -1518,8 +1518,8 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 	}
 
 	/* An element index buffer is used for smooth shading, but flat
-	   shading requires separate vertex normals so an index buffer is
-	   can't be used there. */
+	 * shading requires separate vertex normals so an index buffer is
+	 * can't be used there. */
 	if (gpu_vbo_enabled() && buffers->smooth)
 		glGenBuffersARB(1, &buffers->index_buf);
 
@@ -1941,7 +1941,7 @@ static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 }
 
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
-   shading, an element index buffer. */
+ * shading, an element index buffer. */
 void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 							  BMesh *bm,
 							  GHash *bm_faces,
@@ -1982,7 +1982,7 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 
 		if (buffers->smooth) {
 			/* Vertices get an index assigned for use in the triangle
-			   index buffer */
+			 * index buffer */
 			bm->elem_index_dirty |= BM_VERT;
 
 			GHASH_ITER (gh_iter, bm_unique_verts) {

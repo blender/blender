@@ -1564,7 +1564,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	glPointSize(1.0);
 }
 
-static UvEdge *uv_edge_get (BMLoop *l, StitchState *state)
+static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
 {
 	UvEdge tmp_edge;
 

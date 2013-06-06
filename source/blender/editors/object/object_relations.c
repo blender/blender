@@ -1739,7 +1739,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 					case OB_MESH:
 						ob->data = me = BKE_mesh_copy(ob->data);
 						if (me->key)
-							BKE_copy_animdata_id_action((ID*)me->key);
+							BKE_copy_animdata_id_action((ID *)me->key);
 						break;
 					case OB_MBALL:
 						ob->data = BKE_mball_copy(ob->data);
@@ -1751,12 +1751,12 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						ID_NEW(cu->bevobj);
 						ID_NEW(cu->taperobj);
 						if (cu->key)
-							BKE_copy_animdata_id_action((ID*)cu->key);
+							BKE_copy_animdata_id_action((ID *)cu->key);
 						break;
 					case OB_LATTICE:
 						ob->data = lat = BKE_lattice_copy(ob->data);
 						if (lat->key)
-							BKE_copy_animdata_id_action((ID*)lat->key);
+							BKE_copy_animdata_id_action((ID *)lat->key);
 						break;
 					case OB_ARMATURE:
 						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1777,7 +1777,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 				 * AnimData structure, which is not what we want.
 				 *                                             (sergey)
 				 */
-				BKE_copy_animdata_id_action((ID*)ob->data);
+				BKE_copy_animdata_id_action((ID *)ob->data);
 
 				id->us--;
 				id->newid = ob->data;
