@@ -270,9 +270,9 @@ uiStyle *UI_GetStyleDraw(void)
 	_style = *style;
 	
 	_style.paneltitle.shadx = (short)(UI_DPI_FAC * _style.paneltitle.shadx);
-	_style.paneltitle.shady = (short)(UI_DPI_FAC * _style.grouplabel.shady);
+	_style.paneltitle.shady = (short)(UI_DPI_FAC * _style.paneltitle.shady);
 	_style.grouplabel.shadx = (short)(UI_DPI_FAC * _style.grouplabel.shadx);
-	_style.grouplabel.shady = (short)(UI_DPI_FAC * _style.paneltitle.shady);
+	_style.grouplabel.shady = (short)(UI_DPI_FAC * _style.grouplabel.shady);
 	_style.widgetlabel.shadx = (short)(UI_DPI_FAC * _style.widgetlabel.shadx);
 	_style.widgetlabel.shady = (short)(UI_DPI_FAC * _style.widgetlabel.shady);
 	
