@@ -903,7 +903,9 @@ class VIEW3D_MT_object_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
+        scene = context.scene
         obj = context.object
+
         if obj.type == 'CAMERA':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -959,17 +961,23 @@ class VIEW3D_MT_object_specials(Menu):
         if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-            props = layout.operator("wm.context_modal_mouse", text="Energy")
-            props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.energy"
-            props.header_text = "Lamp Energy: %.3f"
-
-            if obj.data.type in {'SPOT', 'AREA', 'POINT'}:
-                props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
+            if scene.render.use_shading_nodes:
+                props = layout.operator("wm.context_modal_mouse", text="Size")
                 props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.distance"
-                props.input_scale = 0.1
-                props.header_text = "Lamp Falloff Distance: %.1f"
+                props.data_path_item = "data.shadow_soft_size"
+                props.header_text = "Lamp Size: %.3f"
+            else:
+                props = layout.operator("wm.context_modal_mouse", text="Energy")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.energy"
+                props.header_text = "Lamp Energy: %.3f"
+
+                if obj.data.type in {'SPOT', 'AREA', 'POINT'}:
+                    props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.distance"
+                    props.input_scale = 0.1
+                    props.header_text = "Lamp Falloff Distance: %.1f"
 
             if obj.data.type == 'SPOT':
                 layout.separator()
@@ -985,17 +993,18 @@ class VIEW3D_MT_object_specials(Menu):
                 props.input_scale = -0.01
                 props.header_text = "Spot Blend: %.2f"
 
-                props = layout.operator("wm.context_modal_mouse", text="Clip Start")
-                props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.shadow_buffer_clip_start"
-                props.input_scale = 0.05
-                props.header_text = "Clip Start: %.2f"
+                if not scene.render.use_shading_nodes:
+                    props = layout.operator("wm.context_modal_mouse", text="Clip Start")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.shadow_buffer_clip_start"
+                    props.input_scale = 0.05
+                    props.header_text = "Clip Start: %.2f"
 
-                props = layout.operator("wm.context_modal_mouse", text="Clip End")
-                props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.shadow_buffer_clip_end"
-                props.input_scale = 0.05
-                props.header_text = "Clip End: %.2f"
+                    props = layout.operator("wm.context_modal_mouse", text="Clip End")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.shadow_buffer_clip_end"
+                    props.input_scale = 0.05
+                    props.header_text = "Clip End: %.2f"
 
         layout.separator()
 
