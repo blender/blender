@@ -254,8 +254,19 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	/* initialize the list with previous folders */
 	if (!sfile->folders_prev)
 		sfile->folders_prev = folderlist_new();
-	if (!sfile->params->dir[0])
-		BLI_cleanup_dir(G.main->name, sfile->params->dir);
+
+	if (!sfile->params->dir[0]) {
+		if (G.main->name[0]) {
+			BLI_split_dir_part(G.main->name, sfile->params->dir, sizeof(sfile->params->dir));
+		}
+		else {
+			const char *doc_path = BLI_getDefaultDocumentFolder();
+			if (doc_path) {
+				BLI_strncpy(sfile->params->dir, doc_path, sizeof(sfile->params->dir));
+			}
+		}
+	}
+
 	folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
 	/* switching thumbnails needs to recalc layout [#28809] */
