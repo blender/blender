@@ -254,6 +254,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	/* initialize the list with previous folders */
 	if (!sfile->folders_prev)
 		sfile->folders_prev = folderlist_new();
+	if (!sfile->params->dir[0])
+		BLI_cleanup_dir(G.main->name, sfile->params->dir);
 	folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
 	/* switching thumbnails needs to recalc layout [#28809] */
