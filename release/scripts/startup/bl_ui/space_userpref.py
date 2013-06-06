@@ -23,59 +23,6 @@ from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
 
 
-def ui_style_items(col, context):
-    """ UI Style settings """
-
-    split = col.split()
-
-    col = split.column()
-    col.label(text="Kerning Style:")
-    col.row().prop(context, "font_kerning_style", expand=True)
-    col.prop(context, "points")
-
-    col = split.column()
-    col.label(text="Shadow Offset:")
-    col.prop(context, "shadow_offset_x", text="X")
-    col.prop(context, "shadow_offset_y", text="Y")
-
-    col = split.column()
-    col.prop(context, "shadow")
-    col.prop(context, "shadowalpha")
-    col.prop(context, "shadowcolor")
-
-
-def ui_items_general(col, context):
-    """ General UI Theme Settings (User Interface)
-    """
-
-    row = col.row()
-
-    subsplit = row.split(percentage=0.95)
-
-    padding = subsplit.split(percentage=0.15)
-    colsub = padding.column()
-    colsub = padding.column()
-    colsub.row().prop(context, "outline")
-    colsub.row().prop(context, "item", slider=True)
-    colsub.row().prop(context, "inner", slider=True)
-    colsub.row().prop(context, "inner_sel", slider=True)
-
-    subsplit = row.split(percentage=0.85)
-
-    padding = subsplit.split(percentage=0.15)
-    colsub = padding.column()
-    colsub = padding.column()
-    colsub.row().prop(context, "text")
-    colsub.row().prop(context, "text_sel")
-    colsub.prop(context, "show_shaded")
-    subsub = colsub.column(align=True)
-    subsub.active = context.show_shaded
-    subsub.prop(context, "shadetop")
-    subsub.prop(context, "shadedown")
-
-    col.separator()
-
-
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
 
@@ -589,6 +536,58 @@ class USERPREF_PT_theme(Panel):
 
         theme_generic_recurse(themedata)
 
+    @staticmethod
+    def _theme_widget_style(layout, widget_style):
+
+        row = layout.row()
+
+        subsplit = row.split(percentage=0.95)
+
+        padding = subsplit.split(percentage=0.15)
+        colsub = padding.column()
+        colsub = padding.column()
+        colsub.row().prop(widget_style, "outline")
+        colsub.row().prop(widget_style, "item", slider=True)
+        colsub.row().prop(widget_style, "inner", slider=True)
+        colsub.row().prop(widget_style, "inner_sel", slider=True)
+
+        subsplit = row.split(percentage=0.85)
+
+        padding = subsplit.split(percentage=0.15)
+        colsub = padding.column()
+        colsub = padding.column()
+        colsub.row().prop(widget_style, "text")
+        colsub.row().prop(widget_style, "text_sel")
+        colsub.prop(widget_style, "show_shaded")
+        subsub = colsub.column(align=True)
+        subsub.active = widget_style.show_shaded
+        subsub.prop(widget_style, "shadetop")
+        subsub.prop(widget_style, "shadedown")
+
+        layout.separator()
+
+    @staticmethod
+    def _ui_font_style(layout, font_style):
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Kerning Style:")
+        col.row().prop(font_style, "font_kerning_style", expand=True)
+        col.prop(font_style, "points")
+
+        col = split.column()
+        col.label(text="Shadow Offset:")
+        col.prop(font_style, "shadow_offset_x", text="X")
+        col.prop(font_style, "shadow_offset_y", text="Y")
+
+        col = split.column()
+        col.prop(font_style, "shadow")
+        col.prop(font_style, "shadow_alpha")
+        col.prop(font_style, "shadow_value")
+
+        layout.separator()
+
     @classmethod
     def poll(cls, context):
         userpref = context.user_preferences
@@ -622,76 +621,60 @@ class USERPREF_PT_theme(Panel):
 
         if theme.theme_area == 'USER_INTERFACE':
             col = split.column()
+            ui = theme.user_interface
 
-            ui = theme.user_interface.wcol_regular
             col.label(text="Regular:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_regular)
 
-            ui = theme.user_interface.wcol_tool
             col.label(text="Tool:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_tool)
 
-            ui = theme.user_interface.wcol_radio
             col.label(text="Radio Buttons:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_radio)
 
-            ui = theme.user_interface.wcol_text
             col.label(text="Text:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_text)
 
-            ui = theme.user_interface.wcol_option
             col.label(text="Option:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_option)
 
-            ui = theme.user_interface.wcol_toggle
             col.label(text="Toggle:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_toggle)
 
-            ui = theme.user_interface.wcol_num
             col.label(text="Number Field:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_num)
 
-            ui = theme.user_interface.wcol_numslider
             col.label(text="Value Slider:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_numslider)
 
-            ui = theme.user_interface.wcol_box
             col.label(text="Box:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_box)
 
-            ui = theme.user_interface.wcol_menu
             col.label(text="Menu:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_menu)
 
-            ui = theme.user_interface.wcol_pulldown
             col.label(text="Pulldown:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_pulldown)
 
-            ui = theme.user_interface.wcol_menu_back
             col.label(text="Menu Back:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_menu_back)
 
-            ui = theme.user_interface.wcol_tooltip
             col.label(text="Tooltip:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_tooltip)
 
-            ui = theme.user_interface.wcol_menu_item
             col.label(text="Menu Item:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_menu_item)
 
-            ui = theme.user_interface.wcol_scroll
             col.label(text="Scroll Bar:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_scroll)
 
-            ui = theme.user_interface.wcol_progress
             col.label(text="Progress Bar:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_progress)
 
-            ui = theme.user_interface.wcol_list_item
             col.label(text="List Item:")
-            ui_items_general(col, ui)
+            self._theme_widget_style(col, ui.wcol_list_item)
 
-            ui = theme.user_interface.wcol_state
+            ui_state = theme.user_interface.wcol_state
             col.label(text="State:")
 
             row = col.row()
@@ -701,24 +684,22 @@ class USERPREF_PT_theme(Panel):
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
-            colsub.row().prop(ui, "inner_anim")
-            colsub.row().prop(ui, "inner_anim_sel")
-            colsub.row().prop(ui, "inner_driven")
-            colsub.row().prop(ui, "inner_driven_sel")
+            colsub.row().prop(ui_state, "inner_anim")
+            colsub.row().prop(ui_state, "inner_anim_sel")
+            colsub.row().prop(ui_state, "inner_driven")
+            colsub.row().prop(ui_state, "inner_driven_sel")
 
             subsplit = row.split(percentage=0.85)
 
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
-            colsub.row().prop(ui, "inner_key")
-            colsub.row().prop(ui, "inner_key_sel")
-            colsub.row().prop(ui, "blend")
+            colsub.row().prop(ui_state, "inner_key")
+            colsub.row().prop(ui_state, "inner_key_sel")
+            colsub.row().prop(ui_state, "blend")
 
             col.separator()
             col.separator()
-
-            ui = theme.user_interface
 
             col.label("Menu Shadow:")
 
@@ -763,7 +744,6 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            ui = theme.user_interface
             col.label("Axis Colors:")
 
             row = col.row()
@@ -813,23 +793,18 @@ class USERPREF_PT_theme(Panel):
 
             style = context.user_preferences.ui_styles[0]
 
-            ui = style.panel_title
             col.label(text="Panel Title:")
-            ui_style_items(col, ui)
+            self._ui_font_style(col, style.panel_title)
 
             col.separator()
-            col.separator()
 
-            ui = style.widget
             col.label(text="Widget:")
-            ui_style_items(col, ui)
+            self._ui_font_style(col, style.widget)
 
             col.separator()
-            col.separator()
 
-            ui = style.widget_label
             col.label(text="Widget Label:")
-            ui_style_items(col, ui)
+            self._ui_font_style(col, style.widget_label)
         else:
             self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
