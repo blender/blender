@@ -2385,7 +2385,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Empty Display Size", "Size of display for empties in the viewport");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-	prop = RNA_def_property(srna, "empty_image_offset", PROP_FLOAT, PROP_DISTANCE);
+	prop = RNA_def_property(srna, "empty_image_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ima_ofs");
 	RNA_def_property_ui_text(prop, "Origin Offset", "Origin offset distance");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 0.1f, 2);
