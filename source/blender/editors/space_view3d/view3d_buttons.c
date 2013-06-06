@@ -798,30 +798,6 @@ static void act_vert_def(Object *ob, BMVert **r_eve, MDeformVert **r_dvert)
 	*r_dvert = NULL;
 }
 
-static void act_vert_def_wp(Object *ob, MDeformVert **dvert)
-{
-	if (ob && ob->mode && ob->type == OB_MESH && ob->defbase.first)
-	{
-		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-			int i;
-			Mesh *me = ob->data;
-	 
-			for(i=0; i < me->totvert; i++) {
-				if (me->mvert[i].flag & SELECT) {
-					*dvert = me->dvert+i;
-					return;
-				}
-			}
-		}
-		else {
-			act_vert_def(ob, NULL, dvert);
-			return;
-		}
-	}
-	*dvert = NULL;
-}
-
-
 static void editvert_mirror_update(Object *ob, BMVert *eve, int def_nr, int index,
                                    const int cd_dvert_offset)
 {
@@ -1010,7 +986,7 @@ static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 	Object *ob = OBACT;
 	MDeformVert *dvert_act;
 
-	act_vert_def_wp(ob, &dvert_act);
+	act_vert_def(ob, NULL, &dvert_act);
 
 	return dvert_act ? dvert_act->totweight : 0;
 }
@@ -1024,7 +1000,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 	MDeformVert *dv;
 
-	act_vert_def_wp(ob, &dv);
+	act_vert_def(ob, NULL, &dv);
 
 	if (dv && dv->totweight) {
 		uiLayout *col;
