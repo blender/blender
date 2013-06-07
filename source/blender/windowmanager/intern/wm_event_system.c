@@ -380,8 +380,8 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	int retval;
 	
 	/* UI code doesn't handle return values - it just always returns break. 
-	 * to make the DBL_CLICK conversion work, we just don't send this to UI */
-	if (event->val == KM_DBL_CLICK)
+	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
+	if (event->type != LEFTMOUSE && event->val == KM_DBL_CLICK)
 		return WM_HANDLER_CONTINUE;
 	
 	/* UI is quite aggressive with swallowing events, like scrollwheel */

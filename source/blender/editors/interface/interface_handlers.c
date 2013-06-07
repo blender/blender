@@ -2192,11 +2192,14 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			break;
 		case LEFTMOUSE:
 		{
+			bool had_selection = but->selsta != but->selend;
+			
 			/* exit on LMB only on RELEASE for searchbox, to mimic other popups, and allow multiple menu levels */
 			if (data->searchbox)
 				inbox = ui_searchbox_inside(data->searchbox, event->x, event->y);
 
-			if (event->val == KM_PRESS) {
+			/* for double click: we do a press again for when you first click on button (selects all text, no cursor pos) */
+			if (event->val == KM_PRESS || event->val == KM_DBL_CLICK) {
 				mx = event->x;
 				my = event->y;
 				ui_window_to_block(data->region, block, &mx, &my);
@@ -2216,6 +2219,14 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 					retval = WM_UI_HANDLER_BREAK;
 				}
+			}
+			
+			/* only select a word in button if there was no selection before */
+			if (event->val == KM_DBL_CLICK && had_selection == false) {
+				ui_textedit_move(but, data, STRCUR_DIR_PREV, 0, STRCUR_JUMP_DELIM);
+				ui_textedit_move(but, data, STRCUR_DIR_NEXT, true, STRCUR_JUMP_DELIM);
+				retval = WM_UI_HANDLER_BREAK;
+				changed = true;
 			}
 			else if (inbox) {
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
