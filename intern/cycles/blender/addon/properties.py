@@ -114,6 +114,11 @@ enum_use_layer_samples = (
     ('IGNORE', "Ignore", "Ignore per render layer number of samples"),
     )
 
+enum_sampling_pattern = (
+    ('SOBOL', "Sobol", "Use Sobol random sampling pattern"),
+    ('CORRELATED_MUTI_JITTER', "Correlated Multi-Jitter", "Use Correlated Multi-Jitter random sampling pattern"),
+    )
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -217,6 +222,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Number of subsurface scattering samples to render for each AA sample",
                 min=1, max=10000,
                 default=1,
+                )
+
+        cls.sampling_pattern = EnumProperty(
+                name="Sampling Pattern",
+                description="Random sampling pattern used by the integrator",
+                items=enum_sampling_pattern,
+                default='SOBOL',
                 )
 
         cls.use_layer_samples = EnumProperty(

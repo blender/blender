@@ -117,6 +117,7 @@ CCL_NAMESPACE_BEGIN
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
 #define __CLAMP_SAMPLE__
+#define __CMJ__
 
 #ifdef __KERNEL_SHADING__
 #define __SVM__
@@ -164,8 +165,10 @@ enum PathTraceDimension {
 	PRNG_LENS_V = 3,
 #ifdef __CAMERA_MOTION__
 	PRNG_TIME = 4,
-	PRNG_UNUSED = 5,
-	PRNG_BASE_NUM = 6,
+	PRNG_UNUSED_0 = 5,
+	PRNG_UNUSED_1 = 6,	/* for some reason (6, 7) is a bad sobol pattern */
+	PRNG_UNUSED_2 = 7,  /* with a low number of samples (< 64) */
+	PRNG_BASE_NUM = 8,
 #else
 	PRNG_BASE_NUM = 4,
 #endif
@@ -179,6 +182,11 @@ enum PathTraceDimension {
 	PRNG_LIGHT_F = 6,
 	PRNG_TERMINATE = 7,
 	PRNG_BOUNCE_NUM = 8
+};
+
+enum SamplingPattern {
+	SAMPLING_PATTERN_SOBOL = 0,
+	SAMPLING_PATTERN_CMJ = 1
 };
 
 /* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
@@ -728,6 +736,7 @@ typedef struct KernelIntegrator {
 
 	/* non-progressive */
 	int progressive;
+	int aa_samples;
 	int diffuse_samples;
 	int glossy_samples;
 	int transmission_samples;
@@ -736,7 +745,11 @@ typedef struct KernelIntegrator {
 	int use_lamp_mis;
 	int subsurface_samples;
 
-	int pad1, pad2, pad3;
+	/* sampler */
+	int sampling_pattern;
+
+	/* padding */
+	int pad;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

@@ -19,6 +19,8 @@
 #ifndef __INTEGRATOR_H__
 #define __INTEGRATOR_H__
 
+#include "kernel_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 class Device;
@@ -49,6 +51,7 @@ public:
 	float sample_clamp;
 	bool motion_blur;
 
+	int aa_samples;
 	int diffuse_samples;
 	int glossy_samples;
 	int transmission_samples;
@@ -57,6 +60,8 @@ public:
 	int subsurface_samples;
 
 	bool progressive;
+
+	SamplingPattern sampling_pattern;
 
 	bool need_update;
 

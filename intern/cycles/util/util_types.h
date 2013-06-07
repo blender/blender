@@ -59,6 +59,8 @@
 
 /* SIMD Types */
 
+#ifndef __KERNEL_GPU__
+
 /* not enabled, globally applying it just gives slowdown,
  * but useful for testing. */
 //#define __KERNEL_SSE__
@@ -88,11 +90,11 @@
 #endif
 
 #ifndef _WIN32
-#ifndef __KERNEL_GPU__
 
 #include <stdint.h>
 
 #endif
+
 #endif
 
 CCL_NAMESPACE_BEGIN

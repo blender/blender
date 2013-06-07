@@ -33,6 +33,7 @@ set(SRC_HEADERS
 	kernel_emission.h
 	kernel_film.h
 	kernel_globals.h
+	kernel_jitter.h
 	kernel_light.h
 	kernel_math.h
 	kernel_montecarlo.h

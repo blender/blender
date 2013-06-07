@@ -199,6 +199,9 @@ void BlenderSync::sync_integrator()
 	integrator->subsurface_samples = get_int(cscene, "subsurface_samples");
 	integrator->progressive = get_boolean(cscene, "progressive");
 
+	if(experimental)
+		integrator->sampling_pattern = (SamplingPattern)RNA_enum_get(&cscene, "sampling_pattern");
+
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
 }
