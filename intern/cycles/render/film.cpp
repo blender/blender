@@ -65,6 +65,9 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.components = 1;
 			pass.filter = false;
 			break;
+		case PASS_MIST:
+			pass.components = 1;
+			break;
 		case PASS_NORMAL:
 			pass.components = 4;
 			break;
@@ -252,6 +255,10 @@ Film::Film()
 	filter_width = 1.0f;
 	filter_table_offset = TABLE_OFFSET_INVALID;
 
+	mist_start = 0.0f;
+	mist_depth = 100.0f;
+	mist_falloff = 1.0f;
+
 	need_update = true;
 }
 
@@ -283,6 +290,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				break;
 			case PASS_DEPTH:
 				kfilm->pass_depth = kfilm->pass_stride;
+				break;
+			case PASS_MIST:
+				kfilm->pass_mist = kfilm->pass_stride;
+				kfilm->use_light_pass = 1;
 				break;
 			case PASS_NORMAL:
 				kfilm->pass_normal = kfilm->pass_stride;
@@ -365,6 +376,11 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	vector<float> table = filter_table(filter_type, filter_width);
 	filter_table_offset = scene->lookup_tables->add_table(dscene, table);
 	kfilm->filter_table_offset = (int)filter_table_offset;
+
+	/* mist pass parameters */
+	kfilm->mist_start = mist_start;
+	kfilm->mist_inv_depth = (mist_depth > 0.0f)? 1.0f/mist_depth: 0.0f;
+	kfilm->mist_falloff = mist_falloff;
 
 	need_update = false;
 }

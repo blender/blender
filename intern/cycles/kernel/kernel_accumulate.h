@@ -141,6 +141,7 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
 		L->ao = make_float3(0.0f, 0.0f, 0.0f);
 		L->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		L->mist = 0.0f;
 	}
 	else
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);

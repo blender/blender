@@ -326,16 +326,15 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(rl, "use_pass_combined")
         col.prop(rl, "use_pass_z")
+        col.prop(rl, "use_pass_mist")
         col.prop(rl, "use_pass_normal")
         col.prop(rl, "use_pass_vector")
         col.prop(rl, "use_pass_uv")
         col.prop(rl, "use_pass_object_index")
         col.prop(rl, "use_pass_material_index")
-        col.prop(rl, "use_pass_ambient_occlusion")
         col.prop(rl, "use_pass_shadow")
 
         col = split.column()
-        col.label()
         col.label(text="Diffuse:")
         row = col.row(align=True)
         row.prop(rl, "use_pass_diffuse_direct", text="Direct", toggle=True)
@@ -354,6 +353,7 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
 
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
+        col.prop(rl, "use_pass_ambient_occlusion")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -747,6 +747,31 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
         row = layout.row()
         row.prop(light, "ao_factor", text="Factor")
         row.prop(light, "distance", text="Distance")
+
+class CyclesWorld_PT_mist(CyclesButtonsPanel, Panel):
+    bl_label = "Mist Pass"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if CyclesButtonsPanel.poll(context):
+            for rl in context.scene.render.layers:
+                if rl.use_pass_mist:
+                    return True
+
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+
+        split = layout.split(align=True)
+        split.prop(world.mist_settings, "start")
+        split.prop(world.mist_settings, "depth")
+
+        layout.prop(world.mist_settings, "falloff")
 
 
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):

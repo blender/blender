@@ -253,7 +253,8 @@ typedef enum PassType {
 	PASS_AO = 131072,
 	PASS_SHADOW = 262144,
 	PASS_MOTION = 524288,
-	PASS_MOTION_WEIGHT = 1048576
+	PASS_MOTION_WEIGHT = 1048576,
+	PASS_MIST = 2097152
 } PassType;
 
 #define PASS_ALL (~0)
@@ -290,6 +291,7 @@ typedef struct PathRadiance {
 	float3 path_transmission;
 
 	float4 shadow;
+	float mist;
 } PathRadiance;
 
 typedef struct BsdfEval {
@@ -658,9 +660,13 @@ typedef struct KernelFilm {
 
 	int pass_shadow;
 	float pass_shadow_scale;
-
 	int filter_table_offset;
-	int filter_pad;
+	int pass_pad1;
+
+	int pass_mist;
+	float mist_start;
+	float mist_inv_depth;
+	float mist_falloff;
 } KernelFilm;
 
 typedef struct KernelBackground {

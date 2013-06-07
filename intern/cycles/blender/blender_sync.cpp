@@ -208,6 +208,7 @@ void BlenderSync::sync_integrator()
 void BlenderSync::sync_film()
 {
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	BL::WorldMistSettings b_mist = b_scene.world().mist_settings();
 
 	Film *film = scene->film;
 	Film prevfilm = *film;
@@ -215,6 +216,21 @@ void BlenderSync::sync_film()
 	film->exposure = get_float(cscene, "film_exposure");
 	film->filter_type = (FilterType)RNA_enum_get(&cscene, "filter_type");
 	film->filter_width = (film->filter_type == FILTER_BOX)? 1.0f: get_float(cscene, "filter_width");
+
+	film->mist_start = b_mist.start();
+	film->mist_depth = b_mist.depth();
+
+	switch(b_mist.falloff()) {
+		case BL::WorldMistSettings::falloff_QUADRATIC:
+			film->mist_falloff = 2.0f;
+			break;
+		case BL::WorldMistSettings::falloff_LINEAR:
+			film->mist_falloff = 1.0f;
+			break;
+		case BL::WorldMistSettings::falloff_INVERSE_QUADRATIC:
+			film->mist_falloff = 0.5f;
+			break;
+	}
 
 	if(film->modified(prevfilm))
 		film->tag_update(scene);

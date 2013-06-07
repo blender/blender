@@ -187,6 +187,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 
 		case BL::RenderPass::type_Z:
 			return PASS_DEPTH;
+		case BL::RenderPass::type_MIST:
+			return PASS_MIST;
 		case BL::RenderPass::type_NORMAL:
 			return PASS_NORMAL;
 		case BL::RenderPass::type_OBJECT_INDEX:
@@ -233,7 +235,6 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 		case BL::RenderPass::type_REFRACTION:
 		case BL::RenderPass::type_SPECULAR:
 		case BL::RenderPass::type_REFLECTION:
-		case BL::RenderPass::type_MIST:
 			return PASS_NONE;
 	}
 	
