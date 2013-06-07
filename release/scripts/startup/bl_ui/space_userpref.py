@@ -488,7 +488,10 @@ class USERPREF_MT_interface_theme_presets(Menu):
     preset_subdir = "interface_theme"
     preset_operator = "script.execute_preset"
     preset_type = 'XML'
-    preset_xml_map = (("user_preferences.themes[0]", "Theme"), )
+    preset_xml_map = (
+        ("user_preferences.themes[0]", "Theme"),
+        ("user_preferences.ui_styles[0]", "ThemeStyle"),
+        )
     draw = Menu.draw_preset
 
 

@@ -1001,6 +1001,13 @@ void ui_theme_init_default(void)
 	btheme->tclip.handle_vertex_size = 4;
 }
 
+void ui_style_init_default(void)
+{
+	BLI_freelistN(&U.uistyles);
+	/* gets automatically re-allocated */
+	uiStyleInit();
+}
+
 
 void UI_SetTheme(int spacetype, int regionid)
 {

@@ -351,6 +351,7 @@ static void UI_OT_eyedropper(wmOperatorType *ot)
 static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ui_theme_init_default();
+	ui_style_init_default();
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
 	return OPERATOR_FINISHED;
