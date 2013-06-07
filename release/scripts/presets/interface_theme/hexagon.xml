@@ -239,15 +239,18 @@
                    vertex="#334cca"
                    vertex_select="#0097da"
                    vertex_size="3"
+                   vertex_unreferenced="#000000"
                    edge_select="#1151ce"
                    edge_seam="#e69632"
                    edge_sharp="#ff2020"
                    edge_crease="#cc0099"
                    edge_facesel="#4b4b4b"
+                   freestyle_edge_mark="#7fff7f"
                    face="#affff418"
                    face_select="#1151ce66"
                    face_dot="#4fc9ff"
                    facedot_size="3"
+                   freestyle_face_mark="#7fff7f33"
                    nurb_uline="#909000"
                    nurb_vline="#803060"
                    nurb_sel_uline="#f0ff40"
@@ -263,6 +266,7 @@
                    handle_sel_align="#f090a0"
                    lastsel_point="#ffffff"
                    extra_edge_len="#200000"
+                   extra_edge_angle="#202000"
                    extra_face_angle="#00008a"
                    extra_face_area="#002000"
                    editmesh_active="#00e8ff80"
@@ -311,6 +315,7 @@
                         vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="3"
+                        vertex_unreferenced="#000000"
                         handle_free="#000000"
                         handle_auto="#909000"
                         handle_vect="#409030"
@@ -490,10 +495,12 @@
       <ThemeImageEditor vertex="#334cca"
                         vertex_select="#50c8ff"
                         vertex_size="3"
+                        vertex_unreferenced="#000000"
                         face="#ffffff0a"
                         face_select="#50c8ff3c"
                         face_dot="#50c8ff"
                         facedot_size="3"
+                        freestyle_face_mark="#7fff7f33"
                         editmesh_active="#ffffff80"
                         scope_back="#646875ff"
                         preview_stitch_face="#1242b026"
@@ -660,6 +667,7 @@
                        converter_node="#686a84"
                        operator_node="#6c697e"
                        group_node="#69756e"
+                       group_socket_node="#dfca35"
                        frame_node="#9a9b9ba0"
                        matte_node="#977474"
                        distor_node="#749797"
@@ -974,4 +982,36 @@
       </ThemeBoneColorSet>
     </bone_color_sets>
   </Theme>
+  <ThemeStyle>
+    <panel_title>
+      <ThemeFontStyle points="12"
+                      font_kerning_style="FITTED"
+                      shadow="1"
+                      shadow_offset_x="0"
+                      shadow_offset_y="-1"
+                      shadow_alpha="0.15"
+                      shadow_value="1">
+      </ThemeFontStyle>
+    </panel_title>
+    <widget_label>
+      <ThemeFontStyle points="11"
+                      font_kerning_style="FITTED"
+                      shadow="3"
+                      shadow_offset_x="0"
+                      shadow_offset_y="-1"
+                      shadow_alpha="0.15"
+                      shadow_value="1">
+      </ThemeFontStyle>
+    </widget_label>
+    <widget>
+      <ThemeFontStyle points="11"
+                      font_kerning_style="FITTED"
+                      shadow="0"
+                      shadow_offset_x="0"
+                      shadow_offset_y="0"
+                      shadow_alpha="0.25"
+                      shadow_value="0">
+      </ThemeFontStyle>
+    </widget>
+  </ThemeStyle>
 </bpy>
