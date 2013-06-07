@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 __device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, uint ior_value, uint out_offset)
 {
-	float eta = (stack_valid(ior_offset))? stack_load_float(stack, ior_offset): __int_as_float(ior_value);
+	float eta = (stack_valid(ior_offset))? stack_load_float(stack, ior_offset): __uint_as_float(ior_value);
 	eta = fmaxf(eta, 1.0f + 1e-5f);
 	eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
@@ -37,7 +37,7 @@ __device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 {
 	uint blend_offset = node.y;
 	uint blend_value = node.z;
-	float blend = (stack_valid(blend_offset))? stack_load_float(stack, blend_offset): __int_as_float(blend_value);
+	float blend = (stack_valid(blend_offset))? stack_load_float(stack, blend_offset): __uint_as_float(blend_value);
 
 	uint type, out_offset;
 	decode_node_uchar4(node.w, &type, &out_offset, NULL, NULL);

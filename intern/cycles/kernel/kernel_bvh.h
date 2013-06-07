@@ -171,8 +171,8 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
 	/* this visibility test gives a 5% performance hit, how to solve? */
-	*traverseChild0 = (c0max >= c0min) && (__float_as_int(cnodes.z) & visibility);
-	*traverseChild1 = (c1max >= c1min) && (__float_as_int(cnodes.w) & visibility);
+	*traverseChild0 = (c0max >= c0min) && (__float_as_uint(cnodes.z) & visibility);
+	*traverseChild1 = (c1max >= c1min) && (__float_as_uint(cnodes.w) & visibility);
 #else
 	*traverseChild0 = (c0max >= c0min);
 	*traverseChild1 = (c1max >= c1min);

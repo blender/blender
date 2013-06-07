@@ -77,7 +77,7 @@ __device float3 hsv_to_rgb(float3 hsv)
 			h = 0.0f;
 		
 		h *= 6.0f;
-		i = floor(h);
+		i = floorf(h);
 		f = h - i;
 		rgb = make_float3(f, f, f);
 		p = v*(1.0f-s);
@@ -112,7 +112,7 @@ __device void svm_node_hsv(KernelGlobals *kg, ShaderData *sd, float *stack, uint
 
 	/* remember: fmod doesn't work for negative numbers here */
 	color.x += hue + 0.5f;
-	color.x = fmod(color.x, 1.0f);
+	color.x = fmodf(color.x, 1.0f);
 	color.y *= sat;
 	color.z *= val;
 

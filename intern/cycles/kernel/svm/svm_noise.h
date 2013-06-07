@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
 
 __device int quick_floor(float x)
 {
-	return (int)x - ((x < 0) ? 1 : 0);
+	return float_to_int(x) - ((x < 0) ? 1 : 0);
 }
 
 __device float bits_to_01(uint bits)

@@ -163,6 +163,25 @@ __device_inline float clamp(float a, float mn, float mx)
 
 #endif
 
+__device_inline int float_to_int(float f)
+{
+#ifdef __KERNEL_SSE2__
+	return _mm_cvtt_ss2si(_mm_load_ss(&f));
+#else
+	return (int)f;
+#endif
+}
+
+__device_inline int floor_to_int(float f)
+{
+	return float_to_int(floorf(f));
+}
+
+__device_inline int ceil_to_int(float f)
+{
+	return float_to_int(ceilf(f));
+}
+
 __device_inline float signf(float f)
 {
 	return (f < 0.0f)? -1.0f: 1.0f;
@@ -990,23 +1009,23 @@ __device_inline void print_int4(const char *label, const int4& a)
 
 #ifndef __KERNEL_OPENCL__
 
-__device_inline unsigned int as_int(uint i)
+__device_inline int as_int(uint i)
 {
-	union { unsigned int ui; int i; } u;
+	union { uint ui; int i; } u;
 	u.ui = i;
 	return u.i;
 }
 
-__device_inline unsigned int as_uint(int i)
+__device_inline uint as_uint(int i)
 {
-	union { unsigned int ui; int i; } u;
+	union { uint ui; int i; } u;
 	u.i = i;
 	return u.ui;
 }
 
-__device_inline unsigned int as_uint(float f)
+__device_inline uint as_uint(float f)
 {
-	union { unsigned int i; float f; } u;
+	union { uint i; float f; } u;
 	u.f = f;
 	return u.i;
 }

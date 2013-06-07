@@ -29,9 +29,9 @@ __device_noinline float svm_checker(float3 p, float scale)
 	p.y = (p.y + 0.00001f)*0.9999f;
 	p.z = (p.z + 0.00001f)*0.9999f;
 
-	int xi = (int)fabsf(floorf(p.x));
-	int yi = (int)fabsf(floorf(p.y));
-	int zi = (int)fabsf(floorf(p.z));
+	int xi = float_to_int(fabsf(floorf(p.x)));
+	int yi = float_to_int(fabsf(floorf(p.y)));
+	int zi = float_to_int(fabsf(floorf(p.z)));
 
 	return ((xi % 2 == yi % 2) == (zi % 2))? 1.0f: 0.0f;
 }

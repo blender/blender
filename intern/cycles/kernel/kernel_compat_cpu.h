@@ -88,7 +88,7 @@ template<typename T> struct texture_image  {
 
 	float frac(float x, int *ix)
 	{
-		int i = (int)x - ((x < 0.0f)? 1: 0);
+		int i = float_to_int(x) - ((x < 0.0f)? 1: 0);
 		*ix = i;
 		return x - (float)i;
 	}

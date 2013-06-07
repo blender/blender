@@ -68,13 +68,13 @@ __device float bssrdf_reduced_albedo_Rd(float alpha_, float A, float ro)
 {
 	float sq;
 
-	sq = sqrt(3.0f*(1.0f - alpha_));
+	sq = sqrtf(3.0f*(1.0f - alpha_));
 	return (alpha_/2.0f)*(1.0f + expf((-4.0f/3.0f)*A*sq))*expf(-sq) - ro;
 }
 
 __device float bssrdf_compute_reduced_albedo(float A, float ro)
 {
-	const float tolerance = 1e-8;
+	const float tolerance = 1e-8f;
 	const int max_iteration_count = 20;
 	float d, fsub, xn_1 = 0.0f, xn = 1.0f, fxn, fxn_1;
 	int i;
@@ -138,8 +138,8 @@ __device float bssrdf_original(const BSSRDFParams *ss, float r)
 	float rr = r*r;
 	float sr, sv, Rdr, Rdv;
 
-	sr = sqrt(rr + ss->zr*ss->zr);
-	sv = sqrt(rr + ss->zv*ss->zv);
+	sr = sqrtf(rr + ss->zr*ss->zr);
+	sv = sqrtf(rr + ss->zv*ss->zv);
 
 	Rdr = ss->zr*(1.0f + ss->sigma_tr*sr)*expf(-ss->sigma_tr*sr)/(sr*sr*sr);
 	Rdv = ss->zv*(1.0f + ss->sigma_tr*sv)*expf(-ss->sigma_tr*sv)/(sv*sv*sv);

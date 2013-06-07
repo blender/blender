@@ -38,14 +38,14 @@ __device_noinline float2 svm_brick(float3 p, float scale, float mortar_size, flo
 	float offset = 0.0f;
 	float x, y;
 
-	rownum = (int)floor(p.y / row_height);
+	rownum = floor_to_int(p.y / row_height);
 	
 	if(offset_frequency && squash_frequency) {
 		brick_width *= ((int)(rownum) % squash_frequency ) ? 1.0f : squash_amount; /* squash */
 		offset = ((int)(rownum) % offset_frequency ) ? 0 : (brick_width*offset_amount); /* offset */
 	}
 
-	bricknum = (int)floor((p.x+offset) / brick_width);
+	bricknum = floor_to_int((p.x+offset) / brick_width);
 
 	x = (p.x+offset) - brick_width*bricknum;
 	y = p.y - row_height*rownum;

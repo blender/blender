@@ -119,8 +119,8 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 	float3 N = stack_valid(data_node.y)? stack_load_float3(stack, data_node.y): sd->N; 
 #endif
 
-	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __int_as_float(node.z);
-	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __int_as_float(node.w);
+	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
+	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
 
 	switch(type) {
 		case CLOSURE_BSDF_DIFFUSE_ID: {
@@ -422,8 +422,8 @@ __device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *
 	float mix_weight = 1.0f;
 #endif
 
-	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __int_as_float(node.z);
-	//float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __int_as_float(node.w);
+	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
+	//float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
 
 	switch(type) {
 		case CLOSURE_VOLUME_TRANSPARENT_ID: {
@@ -553,13 +553,13 @@ __device_inline void svm_node_closure_store_weight(ShaderData *sd, float3 weight
 
 __device void svm_node_closure_set_weight(ShaderData *sd, uint r, uint g, uint b)
 {
-	float3 weight = make_float3(__int_as_float(r), __int_as_float(g), __int_as_float(b));
+	float3 weight = make_float3(__uint_as_float(r), __uint_as_float(g), __uint_as_float(b));
 	svm_node_closure_store_weight(sd, weight);
 }
 
 __device void svm_node_emission_set_weight_total(KernelGlobals *kg, ShaderData *sd, uint r, uint g, uint b)
 {
-	float3 weight = make_float3(__int_as_float(r), __int_as_float(g), __int_as_float(b));
+	float3 weight = make_float3(__uint_as_float(r), __uint_as_float(g), __uint_as_float(b));
 
 	if(sd->object != ~0)
 		weight /= object_surface_area(kg, sd->object);

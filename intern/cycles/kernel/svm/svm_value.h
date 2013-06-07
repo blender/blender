@@ -22,14 +22,14 @@ CCL_NAMESPACE_BEGIN
 
 __device void svm_node_value_f(KernelGlobals *kg, ShaderData *sd, float *stack, uint ivalue, uint out_offset)
 {
-	stack_store_float(stack, out_offset, __int_as_float(ivalue));
+	stack_store_float(stack, out_offset, __uint_as_float(ivalue));
 }
 
 __device void svm_node_value_v(KernelGlobals *kg, ShaderData *sd, float *stack, uint out_offset, int *offset)
 {
 	/* read extra data */
 	uint4 node1 = read_node(kg, offset);
-	float3 p = make_float3(__int_as_float(node1.y), __int_as_float(node1.z), __int_as_float(node1.w));
+	float3 p = make_float3(__uint_as_float(node1.y), __uint_as_float(node1.z), __uint_as_float(node1.w));
 
 	stack_store_float3(stack, out_offset, p);
 }

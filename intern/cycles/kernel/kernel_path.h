@@ -44,7 +44,7 @@
 CCL_NAMESPACE_BEGIN
 
 typedef struct PathState {
-	uint flag;
+	int flag;
 	int bounce;
 
 	int diffuse_bounce;

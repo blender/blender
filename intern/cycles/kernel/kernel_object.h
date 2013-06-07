@@ -201,7 +201,7 @@ __device_inline uint object_particle_id(KernelGlobals *kg, int object)
 
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
 	float4 f = kernel_tex_fetch(__objects, offset);
-	return __float_as_int(f.w);
+	return __float_as_uint(f.w);
 }
 
 __device_inline float3 object_dupli_generated(KernelGlobals *kg, int object)

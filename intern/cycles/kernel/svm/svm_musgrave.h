@@ -32,10 +32,10 @@ __device_noinline float noise_musgrave_fBm(float3 p, NodeNoiseBasis basis, float
 	float rmd;
 	float value = 0.0f;
 	float pwr = 1.0f;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	int i;
 
-	for(i = 0; i < (int)octaves; i++) {
+	for(i = 0; i < float_to_int(octaves); i++) {
 		value += snoise(p) * pwr;
 		pwr *= pwHL;
 		p *= lacunarity;
@@ -60,10 +60,10 @@ __device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis ba
 	float rmd;
 	float value = 1.0f;
 	float pwr = 1.0f;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	int i;
 
-	for(i = 0; i < (int)octaves; i++) {
+	for(i = 0; i < float_to_int(octaves); i++) {
 		value *= (pwr * snoise(p) + 1.0f);
 		pwr *= pwHL;
 		p *= lacunarity;
@@ -87,7 +87,7 @@ __device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis ba
 __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset)
 {
 	float value, increment, rmd;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	float pwr = pwHL;
 	int i;
 
@@ -95,7 +95,7 @@ __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis b
 	value = offset + snoise(p);
 	p *= lacunarity;
 
-	for(i = 1; i < (int)octaves; i++) {
+	for(i = 1; i < float_to_int(octaves); i++) {
 		increment = (snoise(p) + offset) * pwr * value;
 		value += increment;
 		pwr *= pwHL;
@@ -122,7 +122,7 @@ __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis b
 __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset, float gain)
 {
 	float result, signal, weight, rmd;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	float pwr = pwHL;
 	int i;
 
@@ -130,7 +130,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
 	weight = gain * result;
 	p *= lacunarity;
 
-	for(i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+	for(i = 1; (weight > 0.001f) && (i < float_to_int(octaves)); i++) {
 		if(weight > 1.0f)
 			weight = 1.0f;
 
@@ -159,7 +159,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
 __device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset, float gain)
 {
 	float result, signal, weight;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	float pwr = pwHL;
 	int i;
 
@@ -168,7 +168,7 @@ __device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseB
 	result = signal;
 	weight = 1.0f;
 
-	for(i = 1; i < (int)octaves; i++) {
+	for(i = 1; i < float_to_int(octaves); i++) {
 		p *= lacunarity;
 		weight = clamp(signal * gain, 0.0f, 1.0f);
 		signal = offset - fabsf(snoise(p));

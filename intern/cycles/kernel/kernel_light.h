@@ -124,8 +124,8 @@ __device float background_light_pdf(KernelGlobals *kg, float3 direction)
 	if(sin_theta == 0.0f)
 		return 0.0f;
 
-	int index_u = clamp((int)(uv.x * res), 0, res - 1);
-	int index_v = clamp((int)(uv.y * res), 0, res - 1);
+	int index_u = clamp(float_to_int(uv.x * res), 0, res - 1);
+	int index_v = clamp(float_to_int(uv.y * res), 0, res - 1);
 
 	/* pdfs in V direction */
 	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + res);

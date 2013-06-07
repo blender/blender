@@ -94,7 +94,7 @@ __device float lookup_table_read(KernelGlobals *kg, float x, int offset, int siz
 {
 	x = clamp(x, 0.0f, 1.0f)*(size-1);
 
-	int index = min((int)x, size-1);
+	int index = min(float_to_int(x), size-1);
 	int nindex = min(index+1, size-1);
 	float t = x - index;
 
@@ -110,7 +110,7 @@ __device float lookup_table_read_2D(KernelGlobals *kg, float x, float y, int off
 {
 	y = clamp(y, 0.0f, 1.0f)*(ysize-1);
 
-	int index = min((int)y, ysize-1);
+	int index = min(float_to_int(y), ysize-1);
 	int nindex = min(index+1, ysize-1);
 	float t = y - index;
 

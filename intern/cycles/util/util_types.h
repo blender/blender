@@ -70,6 +70,21 @@
 #include <tmmintrin.h> /* SSE 3 */
 #include <smmintrin.h> /* SSE 4 */
 
+#define __KERNEL_SSE2__
+#define __KERNEL_SSE3__
+#define __KERNEL_SSE4__
+
+#else
+
+#ifdef __x86_64__
+
+#include <xmmintrin.h> /* SSE 1 */
+#include <emmintrin.h> /* SSE 2 */
+
+#define __KERNEL_SSE2__
+
+#endif
+
 #endif
 
 #ifndef _WIN32
