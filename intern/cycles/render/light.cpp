@@ -18,6 +18,7 @@
 
 #include "device.h"
 #include "integrator.h"
+#include "film.h"
 #include "light.h"
 #include "mesh.h"
 #include "object.h"
@@ -116,6 +117,9 @@ Light::Light()
 
 	cast_shadow = true;
 	use_mis = false;
+	use_diffuse = true;
+	use_glossy = true;
+	use_transmission = true;
 
 	shader = 0;
 	samples = 1;
@@ -221,9 +225,23 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			bool transform_applied = mesh->transform_applied;
 			Transform tfm = object->tfm;
 			int object_id = j;
+			int shader_id = SHADER_MASK;
 
 			if(transform_applied)
 				object_id = ~object_id;
+
+			if(!(object->visibility & PATH_RAY_DIFFUSE)) {
+				shader_id |= SHADER_EXCLUDE_DIFFUSE;
+				scene->film->use_light_visibility = true;
+			}
+			if(!(object->visibility & PATH_RAY_GLOSSY)) {
+				shader_id |= SHADER_EXCLUDE_GLOSSY;
+				scene->film->use_light_visibility = true;
+			}
+			if(!(object->visibility & PATH_RAY_TRANSMIT)) {
+				shader_id |= SHADER_EXCLUDE_TRANSMIT;
+				scene->film->use_light_visibility = true;
+			}
 
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
 				Shader *shader = scene->shaders[mesh->shader[i]];
@@ -231,7 +249,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 				if(shader->sample_as_light && shader->has_surface_emission) {
 					distribution[offset].x = totarea;
 					distribution[offset].y = __int_as_float(i + mesh->tri_offset);
-					distribution[offset].z = __int_as_float(~0);
+					distribution[offset].z = __int_as_float(shader_id);
 					distribution[offset].w = __int_as_float(object_id);
 					offset++;
 
@@ -250,7 +268,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 				}
 			}
 
-			/*sample as light disabled for strands*/
+			/* sample as light disabled for strands */
 #if 0
 			size_t i = 0;
 
@@ -262,7 +280,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 					for(int j = 0; j < curve.num_segments(); j++) {
 						distribution[offset].x = totarea;
 						distribution[offset].y = __int_as_float(i + mesh->curve_offset); // XXX fix kernel code
-						distribution[offset].z = __int_as_float(j);
+						distribution[offset].z = __int_as_float(j) & SHADER_MASK;
 						distribution[offset].w = __int_as_float(object_id);
 						offset++;
 				
@@ -493,6 +511,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			}
 		}
 	}
+	scene->film->use_light_visibility = false;
 
 	for(size_t i = 0; i < scene->lights.size(); i++) {
 		Light *light = scene->lights[i];
@@ -503,6 +522,19 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 
 		if(!light->cast_shadow)
 			shader_id &= ~SHADER_CAST_SHADOW;
+
+		if(!light->use_diffuse) {
+			shader_id |= SHADER_EXCLUDE_DIFFUSE;
+			scene->film->use_light_visibility = true;
+		}
+		if(!light->use_glossy) {
+			shader_id |= SHADER_EXCLUDE_GLOSSY;
+			scene->film->use_light_visibility = true;
+		}
+		if(!light->use_transmission) {
+			shader_id |= SHADER_EXCLUDE_TRANSMIT;
+			scene->film->use_light_visibility = true;
+		}
 
 		if(light->type == LIGHT_POINT) {
 			shader_id &= ~SHADER_AREA_LIGHT;

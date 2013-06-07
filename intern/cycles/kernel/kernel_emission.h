@@ -102,8 +102,6 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 	if(is_zero(light_eval))
 		return false;
 
-	/* todo: use visibility flag to skip lights */
-
 	/* evaluate BSDF at shading point */
 	float bsdf_pdf;
 
@@ -116,6 +114,18 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 	}
 	
 	bsdf_eval_mul(eval, light_eval/ls.pdf);
+
+#ifdef __PASSES__
+	/* use visibility flag to skip lights */
+	if(ls.shader & SHADER_EXCLUDE_ANY) {
+		if(ls.shader & SHADER_EXCLUDE_DIFFUSE)
+			eval->diffuse = make_float3(0.0f, 0.0f, 0.0f);
+		if(ls.shader & SHADER_EXCLUDE_GLOSSY)
+			eval->glossy = make_float3(0.0f, 0.0f, 0.0f);
+		if(ls.shader & SHADER_EXCLUDE_TRANSMIT)
+			eval->transmission = make_float3(0.0f, 0.0f, 0.0f);
+	}
+#endif
 
 	if(bsdf_eval_is_zero(eval))
 		return false;
@@ -185,7 +195,19 @@ __device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int p
 
 	if(!lamp_light_eval(kg, lamp, ray->P, ray->D, ray->t, &ls))
 		return false;
-	
+
+#ifdef __PASSES__
+	/* use visibility flag to skip lights */
+	if(ls.shader & SHADER_EXCLUDE_ANY) {
+		if((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE))
+			return false;
+		if((ls.shader & SHADER_EXCLUDE_GLOSSY) && (path_flag & PATH_RAY_GLOSSY))
+			return false;
+		if((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT))
+			return false;
+	}
+#endif
+
 	/* todo: missing texture coordinates */
 	float u = 0.0f;
 	float v = 0.0f;

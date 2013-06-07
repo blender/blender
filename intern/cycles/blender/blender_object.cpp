@@ -159,6 +159,12 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 	light->use_mis = get_boolean(clamp, "use_multiple_importance_sampling");
 	light->samples = get_int(clamp, "samples");
 
+	/* visibility */
+	uint visibility = object_ray_visibility(b_ob);
+	light->use_diffuse = (visibility & PATH_RAY_DIFFUSE) != 0;
+	light->use_glossy = (visibility & PATH_RAY_GLOSSY) != 0;
+	light->use_transmission = (visibility & PATH_RAY_TRANSMIT) != 0;
+
 	/* tag */
 	light->tag_update(scene);
 }

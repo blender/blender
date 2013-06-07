@@ -259,6 +259,8 @@ Film::Film()
 	mist_depth = 100.0f;
 	mist_falloff = 1.0f;
 
+	use_light_visibility = false;
+
 	need_update = true;
 }
 
@@ -279,7 +281,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kfilm->exposure = exposure;
 	kfilm->pass_flag = 0;
 	kfilm->pass_stride = 0;
-	kfilm->use_light_pass = 0;
+	kfilm->use_light_pass = use_light_visibility;
 
 	foreach(Pass& pass, passes) {
 		kfilm->pass_flag |= pass.type;

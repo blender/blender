@@ -61,6 +61,8 @@ public:
 	float mist_depth;
 	float mist_falloff;
 
+	bool use_light_visibility;
+
 	bool need_update;
 
 	Film();

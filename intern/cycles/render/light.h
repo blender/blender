@@ -53,6 +53,9 @@ public:
 
 	bool cast_shadow;
 	bool use_mis;
+	bool use_diffuse;
+	bool use_glossy;
+	bool use_transmission;
 
 	int shader;
 	int samples;
