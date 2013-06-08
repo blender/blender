@@ -20,38 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
-__device_inline float3 svm_background_position(KernelGlobals *kg, float3 P)
-{
-	Transform cameratoworld = kernel_data.cam.cameratoworld;
-	float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
-
-	return camP + P;
-}
-
-__device_inline float3 svm_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
-{
-	if(kernel_data.cam.type != CAMERA_PANORAMA) {
-		if(sd->object == ~0)
-			P = svm_background_position(kg, P);
-
-		Transform tfm = kernel_data.cam.worldtondc;
-		return transform_perspective(&tfm, P);
-	}
-	else {
-		Transform tfm = kernel_data.cam.worldtocamera;
-
-		if(sd->object != ~0)
-			P = normalize(transform_point(&tfm, P));
-		else
-			P = normalize(transform_direction(&tfm, P));
-
-		float2 uv = direction_to_panorama(kg, P);
-
-		return make_float3(uv.x, uv.y, 0.0f);
-	}
-}
-
-__device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+__device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
 {
 	float3 data;
 
@@ -80,11 +49,14 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 			if(sd->object != ~0)
 				data = transform_point(&tfm, sd->P);
 			else
-				data = transform_point(&tfm, svm_background_position(kg, sd->P));
+				data = transform_point(&tfm, sd->P + camera_position(kg));
 			break;
 		}
 		case NODE_TEXCO_WINDOW: {
-			data = svm_world_to_ndc(kg, sd, sd->P);
+			if((path_flag & PATH_RAY_CAMERA) && sd->object == ~0 && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+				data = camera_world_to_ndc(kg, sd, sd->ray_P);
+			else
+				data = camera_world_to_ndc(kg, sd, sd->P);
 			data.z = 0.0f;
 			break;
 		}
@@ -108,7 +80,7 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 	stack_store_float3(stack, out_offset, data);
 }
 
-__device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+__device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -138,11 +110,14 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 			if(sd->object != ~0)
 				data = transform_point(&tfm, sd->P + sd->dP.dx);
 			else
-				data = transform_point(&tfm, svm_background_position(kg, sd->P + sd->dP.dx));
+				data = transform_point(&tfm, sd->P + sd->dP.dx + camera_position(kg));
 			break;
 		}
 		case NODE_TEXCO_WINDOW: {
-			data = svm_world_to_ndc(kg, sd, sd->P + sd->dP.dx);
+			if((path_flag & PATH_RAY_CAMERA) && sd->object == ~0 && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+				data = camera_world_to_ndc(kg, sd, sd->ray_P + sd->ray_dP.dx);
+			else
+				data = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dx);
 			data.z = 0.0f;
 			break;
 		}
@@ -169,7 +144,7 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 #endif
 }
 
-__device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+__device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -199,11 +174,14 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 			if(sd->object != ~0)
 				data = transform_point(&tfm, sd->P + sd->dP.dy);
 			else
-				data = transform_point(&tfm, svm_background_position(kg, sd->P + sd->dP.dy));
+				data = transform_point(&tfm, sd->P + sd->dP.dy + camera_position(kg));
 			break;
 		}
 		case NODE_TEXCO_WINDOW: {
-			data = svm_world_to_ndc(kg, sd, sd->P + sd->dP.dy);
+			if((path_flag & PATH_RAY_CAMERA) && sd->object == ~0 && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+				data = camera_world_to_ndc(kg, sd, sd->ray_P + sd->ray_dP.dy);
+			else
+				data = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dy);
 			data.z = 0.0f;
 			break;
 		}

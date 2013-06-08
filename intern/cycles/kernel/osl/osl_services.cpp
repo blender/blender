@@ -43,6 +43,7 @@
 #include "kernel_primitive.h"
 #include "kernel_projection.h"
 #include "kernel_accumulate.h"
+#include "kernel_camera.h"
 #include "kernel_shader.h"
 
 CCL_NAMESPACE_BEGIN
@@ -653,12 +654,36 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
                                                  TypeDesc type, bool derivatives, void *val)
 {
-	/* Ray Length */
 	if (name == u_path_ray_length) {
+		/* Ray Length */
 		float f = sd->ray_length;
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	
+	else if (name == u_ndc) {
+		/* NDC coordinates with special exception for otho */
+		OSLThreadData *tdata = kg->osl_tdata;
+		OSL::ShaderGlobals *globals = &tdata->globals;
+		float3 ndc[3];
+
+		if((globals->raytype & PATH_RAY_CAMERA) && sd->object == ~0 && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+			ndc[0] = camera_world_to_ndc(kg, sd, sd->ray_P);
+
+			if(derivatives) {
+				ndc[1] = camera_world_to_ndc(kg, sd, sd->ray_P + sd->ray_dP.dx) - ndc[0];
+				ndc[2] = camera_world_to_ndc(kg, sd, sd->ray_P + sd->ray_dP.dy) - ndc[0];
+			}
+		}
+		else {
+			ndc[0] = camera_world_to_ndc(kg, sd, sd->P);
+
+			if(derivatives) {
+				ndc[1] = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dx) - ndc[0];
+				ndc[2] = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dy) - ndc[0];
+			}
+		}
+
+		return set_attribute_float3(ndc, type, derivatives, val);
+	}
 	else
 		return false;
 }

@@ -245,6 +245,12 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 
 /* Utilities */
 
+__device_inline float3 camera_position(KernelGlobals *kg)
+{
+	Transform cameratoworld = kernel_data.cam.cameratoworld;
+	return make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+}
+
 __device_inline float camera_distance(KernelGlobals *kg, float3 P)
 {
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
@@ -256,6 +262,31 @@ __device_inline float camera_distance(KernelGlobals *kg, float3 P)
 	}
 	else
 		return len(P - camP);
+}
+
+__device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
+{
+	if(kernel_data.cam.type != CAMERA_PANORAMA) {
+		/* perspective / ortho */
+		if(sd->object == ~0 && kernel_data.cam.type == CAMERA_PERSPECTIVE)
+			P += camera_position(kg);
+
+		Transform tfm = kernel_data.cam.worldtondc;
+		return transform_perspective(&tfm, P);
+	}
+	else {
+		/* panorama */
+		Transform tfm = kernel_data.cam.worldtocamera;
+
+		if(sd->object != ~0)
+			P = normalize(transform_point(&tfm, P));
+		else
+			P = normalize(transform_direction(&tfm, P));
+
+		float2 uv = direction_to_panorama(kg, P);
+
+		return make_float3(uv.x, uv.y, 0.0f);
+	}
 }
 
 CCL_NAMESPACE_END

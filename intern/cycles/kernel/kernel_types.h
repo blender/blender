@@ -572,6 +572,10 @@ typedef struct ShaderData {
 	ShaderClosure closure;
 #endif
 
+	/* ray start position, only set for backgrounds */
+	float3 ray_P;
+	differential3 ray_dP;
+
 #ifdef __OSL__
 	struct KernelGlobals *osl_globals;
 #endif

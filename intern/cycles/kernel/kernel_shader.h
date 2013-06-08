@@ -402,9 +402,9 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 {
 	/* vectors */
 	sd->P = ray->D;
-	sd->N = -sd->P;
-	sd->Ng = -sd->P;
-	sd->I = -sd->P;
+	sd->N = -ray->D;
+	sd->Ng = -ray->D;
+	sd->I = -ray->D;
 	sd->shader = kernel_data.background.shader;
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 #ifdef __OBJECT_MOTION__
@@ -437,6 +437,10 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	sd->du = differential_zero();
 	sd->dv = differential_zero();
 #endif
+
+	/* for NDC coordinates */
+	sd->ray_P = ray->P;
+	sd->ray_dP = ray->dP;
 }
 
 /* BSDF */
