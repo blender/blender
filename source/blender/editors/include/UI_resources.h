@@ -80,6 +80,7 @@ enum {
 
 	TH_GRID,
 	TH_WIRE,
+	TH_WIRE_EDIT,
 	TH_SELECT,
 	TH_ACTIVE,
 	TH_GROUP,

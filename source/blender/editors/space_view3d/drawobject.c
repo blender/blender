@@ -1916,7 +1916,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	if (is_edit) {
 		lt = lt->editlatt->latt;
 
-		cpack(0x004000);
+		UI_ThemeColor(TH_WIRE_EDIT);
 		
 		if (ob->defbase.first && lt->dvert) {
 			actdef_wcol = ob->actdef;
@@ -2461,7 +2461,7 @@ static DMDrawOption draw_dm_creases__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *crease != 0.0f) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_CREASE, *crease);
+		UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_CREASE, *crease);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -2485,7 +2485,7 @@ static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *bweight != 0.0f) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, *bweight);
+		UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_SELECT, *bweight);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -2547,7 +2547,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 		int pass;
 
 		UI_GetThemeColor3ubv(sel ? TH_VERTEX_SELECT : TH_VERTEX, col);
-		UI_GetThemeColor3ubv(sel ? TH_FACE_DOT : TH_WIRE, fcol);
+		UI_GetThemeColor3ubv(sel ? TH_FACE_DOT : TH_WIRE_EDIT, fcol);
 
 		for (pass = 0; pass < 2; pass++) {
 			float size = UI_GetThemeValuef(TH_VERTEX_SIZE);
@@ -2604,7 +2604,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 	/* since this function does transparent... */
 	UI_GetThemeColor4ubv(TH_EDGE_SELECT, selCol);
-	UI_GetThemeColor4ubv(TH_WIRE, wireCol);
+	UI_GetThemeColor4ubv(TH_WIRE_EDIT, wireCol);
 	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, actCol);
 	
 	/* when sel only is used, don't render wire, only selected, this is used for
@@ -3045,14 +3045,14 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 		/* Setup for drawing wire over, disable zbuffer
 		 * write to show selected edge wires better */
-		UI_ThemeColor(TH_WIRE);
+		UI_ThemeColor(TH_WIRE_EDIT);
 
 		bglPolygonOffset(rv3d->dist, 1.0);
 		glDepthMask(0);
 	}
 	else {
 		if (cageDM != finalDM) {
-			UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+			UI_ThemeColorBlend(TH_WIRE_EDIT, TH_BACK, 0.7);
 			finalDM->drawEdges(finalDM, 1, 0);
 		}
 	}
@@ -5479,7 +5479,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	unsigned char wire_col[3];
 
 	/* DispList */
-	UI_GetThemeColor3ubv(TH_WIRE, wire_col);
+	UI_GetThemeColor3ubv(TH_WIRE_EDIT, wire_col);
 	glColor3ubv(wire_col);
 
 	drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
@@ -5511,7 +5511,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	 * when at its lowest, don't render normals */
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
 
-		UI_ThemeColor(TH_WIRE);
+		UI_ThemeColor(TH_WIRE_EDIT);
 		for (bl = cu->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
 			BevPoint *bevp = (BevPoint *)(bl + 1);
 			int nr = bl->nr;
@@ -5778,7 +5778,7 @@ static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	if (mb->editelems) {
 		if ((G.f & G_PICKSEL) == 0) {
 			unsigned char wire_col[4];
-			UI_GetThemeColor4ubv(TH_WIRE, wire_col);
+			UI_GetThemeColor4ubv(TH_WIRE_EDIT, wire_col);
 			glColor3ubv(wire_col);
 
 			drawDispList(scene, v3d, rv3d, base, dt, dflag, wire_col);
@@ -6233,7 +6233,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsign
 	if (ELEM4(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
 
 		if (scene->obedit == ob) {
-			UI_ThemeColor(TH_WIRE);
+			UI_ThemeColor(TH_WIRE_EDIT);
 		}
 		else {
 			glColor3ubv(ob_wire_col);
@@ -6337,12 +6337,12 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 {
 	Object *ob = base->object;
 	int colindex = 0;
-
+	const bool is_edit = (ob->mode & OB_MODE_EDIT) != 0;
 	/* confusing logic here, there are 2 methods of setting the color
 	 * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
 	 *
 	 * note: no theme yet for 'colindex' */
-	int theme_id = TH_WIRE;
+	int theme_id = is_edit ? TH_WIRE_EDIT : TH_WIRE;
 	int theme_shade = 0;
 
 	if ((scene->obedit == NULL) &&
@@ -6605,7 +6605,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 
 				if (cu->linewidth != 0.0f) {
-					UI_ThemeColor(TH_WIRE);
+					UI_ThemeColor(TH_WIRE_EDIT);
 					copy_v3_v3(vec1, ob->orig);
 					copy_v3_v3(vec2, ob->orig);
 					vec1[0] += cu->linewidth;

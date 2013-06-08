@@ -302,13 +302,13 @@ static void set_ebone_glColor(const unsigned int boneflag)
 		UI_ThemeColor(TH_EDGE_SELECT);
 	}
 	else if (boneflag & BONE_DRAW_ACTIVE) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, 0.15f); /* unselected active */
+		UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f); /* unselected active */
 	}
 	else if (boneflag & BONE_SELECTED) {
 		UI_ThemeColorShade(TH_EDGE_SELECT, -20);
 	}
 	else {
-		UI_ThemeColor(TH_WIRE);
+		UI_ThemeColor(TH_WIRE_EDIT);
 	}
 }
 
@@ -817,7 +817,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 	/* base */
 	if (armflag & ARM_EDITMODE) {
 		if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_SELECT);
-		else UI_ThemeColor(TH_WIRE);
+		else UI_ThemeColor(TH_WIRE_EDIT);
 	}
 	
 	sub_v3_v3v3(dirvec, tailvec, headvec);
@@ -1014,7 +1014,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		if (armflag & ARM_POSEMODE)
 			set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
 		else if (armflag & ARM_EDITMODE) {
-			UI_ThemeColor(TH_WIRE);
+			UI_ThemeColor(TH_WIRE_EDIT);
 		}
 		
 		/*	Draw root point if we are not connected */
@@ -2212,7 +2212,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 				
 				/* offset to parent */
 				if (eBone->parent) {
-					UI_ThemeColor(TH_WIRE);
+					UI_ThemeColor(TH_WIRE_EDIT);
 					glLoadName(-1);  /* -1 here is OK! */
 					setlinestyle(3);
 					
