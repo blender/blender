@@ -659,6 +659,17 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 
 	*err_str = NULL;
 
+	/* bone heat needs triangulated faces */
+	BKE_mesh_tessface_ensure(me);
+
+	for (tottri = 0, a = 0, mf = me->mface; a < me->totface; mf++, a++) {
+		tottri++;
+		if (mf->v4) tottri++;
+	}
+
+	if (tottri == 0)
+		return;
+
 	/* count triangles and create mask */
 	if ((use_face_sel = ((me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0)) ||
 	    (use_vert_sel = ((me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0)))
@@ -684,14 +695,6 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 				}
 			}
 		}
-	}
-
-	/* bone heat needs triangulated faces */
-	BKE_mesh_tessface_ensure(me);
-
-	for (tottri = 0, a = 0, mf = me->mface; a < me->totface; mf++, a++) {
-		tottri++;
-		if (mf->v4) tottri++;
 	}
 
 	/* create laplacian */
