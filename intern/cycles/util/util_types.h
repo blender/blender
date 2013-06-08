@@ -80,8 +80,14 @@
 
 #ifdef __x86_64__
 
+/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
+ * Since we can't avoid including <windows.h>, better only include that */
+#ifdef FREE_WINDOWS64
+#include <windows.h>
+#else
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
+#endif
 
 #define __KERNEL_SSE2__
 
