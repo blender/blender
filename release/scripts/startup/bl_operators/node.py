@@ -173,9 +173,10 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
         enum_items.clear()
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
-            nodetype = getattr(bpy.types, item.nodetype, None)
-            if nodetype:
-                enum_items.append((str(index), item.label, nodetype.bl_rna.description, index))
+            if isinstance(item, nodeitems_utils.NodeItem):
+                nodetype = getattr(bpy.types, item.nodetype, None)
+                if nodetype:
+                    enum_items.append((str(index), item.label, nodetype.bl_rna.description, index))
         return enum_items
 
     # Look up the item based on index
