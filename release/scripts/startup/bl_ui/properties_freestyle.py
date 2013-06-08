@@ -56,9 +56,8 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
         row.label(text="Line Thickness:")
         row.prop(rd, "line_thickness_mode", expand=True)
         
-        row = layout.row()
-        row.active = (rd.line_thickness_mode == 'ABSOLUTE')
-        row.prop(rd, "line_thickness")
+        if (rd.line_thickness_mode == 'ABSOLUTE'):
+            layout.prop(rd, "line_thickness")
 
         row = layout.row()
         row.label(text="Line style settings are found in the Render Layers context")
