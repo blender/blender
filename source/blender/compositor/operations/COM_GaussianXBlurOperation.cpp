@@ -83,12 +83,10 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int bufferstarty = inputBuffer->getRect()->ymin;
 
 	int miny = y;
-	// int maxy = y;  // UNUSED
 	int minx = x - this->m_rad;
 	int maxx = x + this->m_rad;
 	miny = max(miny, inputBuffer->getRect()->ymin);
 	minx = max(minx, inputBuffer->getRect()->xmin);
-	// maxy = min(maxy, inputBuffer->getRect()->ymax);
 	maxx = min(maxx, inputBuffer->getRect()->xmax - 1);
 
 	int step = getStep();
