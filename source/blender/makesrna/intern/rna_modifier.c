@@ -3042,7 +3042,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rem_threshold");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, -1);
-	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex's weight "
+	RNA_def_property_ui_text(prop, "Remove Threshold", "Upper bound for a vertex's weight "
 	                         "to be removed from the vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -3126,18 +3126,18 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 {
 	static EnumPropertyItem weightvg_proximity_modes_items[] = {
-		{MOD_WVG_PROXIMITY_OBJECT, "OBJECT", 0, "Object Distance",
+		{MOD_WVG_PROXIMITY_OBJECT, "OBJECT", 0, "Object",
 		                           "Use distance between affected and target objects"},
-		{MOD_WVG_PROXIMITY_GEOMETRY, "GEOMETRY", 0, "Geometry Distance",
+		{MOD_WVG_PROXIMITY_GEOMETRY, "GEOMETRY", 0, "Geometry",
 		                             "Use distance between affected object's vertices and target "
 		                             "object, or target object's geometry"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem proximity_geometry_items[] = {
-		{MOD_WVG_PROXIMITY_GEOM_VERTS, "VERTEX", ICON_VERTEXSEL, "Vertex", "Compute distance to nearest vertex"},
-		{MOD_WVG_PROXIMITY_GEOM_EDGES, "EDGE", ICON_EDGESEL, "Edge", "Compute distance to nearest edge"},
-		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", ICON_FACESEL, "Face", "Compute distance to nearest face"},
+		{MOD_WVG_PROXIMITY_GEOM_VERTS, "VERTEX", 0, "Vertex", "Compute distance to nearest vertex"},
+		{MOD_WVG_PROXIMITY_GEOM_EDGES, "EDGE", 0, "Edge", "Compute distance to nearest edge"},
+		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", 0, "Face", "Compute distance to nearest face"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3195,13 +3195,13 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "min_dist", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, -1);
-	RNA_def_property_ui_text(prop, "Lowest Dist", "Distance mapping to weight 0.0");
+	RNA_def_property_ui_text(prop, "Lowest", "Distance mapping to weight 0.0");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "max_dist", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, -1);
-	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0");
+	RNA_def_property_ui_text(prop, "Highest", "Distance mapping to weight 1.0");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);

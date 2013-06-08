@@ -119,12 +119,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop(md, "end_cap")
 
     def BEVEL(self, layout, ob, md):
-        layout.prop(md, "width")
-        layout.prop(md, "segments")
-
         split = layout.split()
-        split.prop(md, "use_only_vertices")
-        split.prop(md, "use_clamp_overlap")
+        
+        col = split.column()
+        col.prop(md, "width")
+        col.prop(md, "segments")
+
+        col = split.column()
+        col.prop(md, "use_only_vertices")
+        col.prop(md, "use_clamp_overlap")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
@@ -979,30 +982,31 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def VERTEX_WEIGHT_EDIT(self, layout, ob, md):
         split = layout.split()
+        
         col = split.column()
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
-        col = split.column()
         col.label(text="Default Weight:")
         col.prop(md, "default_weight", text="")
+        
+        col = split.column()
+        col.prop(md, "use_add")
+        sub = col.column()
+        sub.active = md.use_add
+        sub.prop(md, "add_threshold")
+        
+        col = col.column()
+        col.prop(md, "use_remove")
+        sub = col.column()
+        sub.active = md.use_remove
+        sub.prop(md, "remove_threshold")
+        
+        layout.separator()
 
         layout.prop(md, "falloff_type")
         if md.falloff_type == 'CURVE':
-            col = layout.column()
-            col.template_curve_mapping(md, "map_curve")
-
-        split = layout.split(percentage=0.4)
-        split.prop(md, "use_add")
-        row = split.row()
-        row.active = md.use_add
-        row.prop(md, "add_threshold")
-
-        split = layout.split(percentage=0.4)
-        split.prop(md, "use_remove")
-        row = split.row()
-        row.active = md.use_remove
-        row.prop(md, "remove_threshold")
+            layout.template_curve_mapping(md, "map_curve")
 
         # Common mask options
         layout.separator()
@@ -1043,15 +1047,21 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Target Object:")
         col.prop(md, "target", text="")
-
-        layout.row().prop(md, "proximity_mode", expand=True)
+        
+        split = layout.split()
+        
+        col = split.column()
+        col.label(text="Distance:")
+        col.prop(md, "proximity_mode", text="")
         if md.proximity_mode == 'GEOMETRY':
-            layout.row().prop(md, "proximity_geometry")
-
-        row = layout.row()
-        row.prop(md, "min_dist")
-        row.prop(md, "max_dist")
-
+            col.row().prop(md, "proximity_geometry")
+            
+        col = split.column()
+        col.label()
+        col.prop(md, "min_dist")
+        col.prop(md, "max_dist")
+        
+        layout.separator()
         layout.prop(md, "falloff_type")
 
         # Common mask options
