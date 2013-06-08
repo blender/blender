@@ -65,6 +65,7 @@ public:
 
 class LightManager {
 public:
+	bool use_light_visibility;
 	bool need_update;
 
 	LightManager();

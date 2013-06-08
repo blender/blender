@@ -135,6 +135,7 @@ void Light::tag_update(Scene *scene)
 LightManager::LightManager()
 {
 	need_update = true;
+	use_light_visibility = false;
 }
 
 LightManager::~LightManager()
@@ -232,15 +233,15 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 			if(!(object->visibility & PATH_RAY_DIFFUSE)) {
 				shader_id |= SHADER_EXCLUDE_DIFFUSE;
-				scene->film->use_light_visibility = true;
+				use_light_visibility = true;
 			}
 			if(!(object->visibility & PATH_RAY_GLOSSY)) {
 				shader_id |= SHADER_EXCLUDE_GLOSSY;
-				scene->film->use_light_visibility = true;
+				use_light_visibility = true;
 			}
 			if(!(object->visibility & PATH_RAY_TRANSMIT)) {
 				shader_id |= SHADER_EXCLUDE_TRANSMIT;
-				scene->film->use_light_visibility = true;
+				use_light_visibility = true;
 			}
 
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
@@ -511,7 +512,6 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			}
 		}
 	}
-	scene->film->use_light_visibility = false;
 
 	for(size_t i = 0; i < scene->lights.size(); i++) {
 		Light *light = scene->lights[i];
@@ -525,15 +525,15 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 
 		if(!light->use_diffuse) {
 			shader_id |= SHADER_EXCLUDE_DIFFUSE;
-			scene->film->use_light_visibility = true;
+			use_light_visibility = true;
 		}
 		if(!light->use_glossy) {
 			shader_id |= SHADER_EXCLUDE_GLOSSY;
-			scene->film->use_light_visibility = true;
+			use_light_visibility = true;
 		}
 		if(!light->use_transmission) {
 			shader_id |= SHADER_EXCLUDE_TRANSMIT;
-			scene->film->use_light_visibility = true;
+			use_light_visibility = true;
 		}
 
 		if(light->type == LIGHT_POINT) {
@@ -618,6 +618,8 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 
 	device_free(device, dscene);
 
+	use_light_visibility = false;
+
 	device_update_points(device, dscene, scene);
 	if(progress.get_cancel()) return;
 
@@ -626,6 +628,11 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 
 	device_update_background(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
+
+	if(use_light_visibility != scene->film->use_light_visibility) {
+		scene->film->use_light_visibility = use_light_visibility;
+		scene->film->tag_update(scene);
+	}
 
 	need_update = false;
 }
