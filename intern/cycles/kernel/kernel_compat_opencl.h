@@ -98,6 +98,7 @@
 #define tanf(x) tan(((float)x))
 #define logf(x) log(((float)x))
 #define floorf(x) floor(((float)x))
+#define ceilf(x) ceil(((float)x))
 #define expf(x) exp(((float)x))
 #define hypotf(x, y) hypot(((float)x), ((float)y))
 #define atan2f(x, y) atan2(((float)x), ((float)y))
