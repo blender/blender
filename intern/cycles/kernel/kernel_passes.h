@@ -154,7 +154,7 @@ __device_inline void kernel_write_light_passes(KernelGlobals *kg, __global float
 		kernel_write_pass_float4(buffer + kernel_data.film.pass_shadow, sample, shadow);
 	}
 	if(flag & PASS_MIST)
-		kernel_write_pass_float(buffer + kernel_data.film.pass_mist, sample, L->mist);
+		kernel_write_pass_float(buffer + kernel_data.film.pass_mist, sample, 1.0f - L->mist);
 #endif
 }
 
