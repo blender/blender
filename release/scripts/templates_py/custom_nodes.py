@@ -120,8 +120,43 @@ class MyCustomNode(bpy.types.Node, MyCustomTreeNode):
         layout.prop(self, "myStringProperty")
 
 
+### Node Categories ###
+# Node categories are a python system for automatically
+# extending the Add menu, toolbar panels and search operator.
+# For more examples see release/scripts/startup/nodeitems_builtins.py
 
+import nodeitems_utils
+from nodeitems_utils import NodeCategory, NodeItem
 
+# our own base class with an appropriate poll function,
+# so the categories only show up in our own tree type
+class MyNodeCategory(NodeCategory):
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.tree_type == 'CustomTreeType'
+
+# all categories in a list
+node_categories = [
+    # identifier, label, items list
+    MyNodeCategory("SOMENODES", "Some Nodes", items=[
+        # our basic node
+        NodeItem("CustomNodeType"),
+        ]),
+    MyNodeCategory("OTHERNODES", "Other Nodes", items=[
+        # the node item can have additional settings,
+        # which are applied to new nodes
+        # NB: settings values are stored as string expressions,
+        # for this reason they should be converted to strings using repr()
+        NodeItem("CustomNodeType", label="Node A", settings={
+            "myStringProperty" : repr("Lorem ipsum dolor sit amet"),
+            "myFloatProperty" : repr(1.0),
+            }),
+        NodeItem("CustomNodeType", label="Node B", settings={
+            "myStringProperty" : repr("consectetur adipisicing elit"),
+            "myFloatProperty" : repr(2.0),
+            }),
+        ]),
+    ]
 
 
 def register():
@@ -129,8 +164,12 @@ def register():
     bpy.utils.register_class(MyCustomSocket)
     bpy.utils.register_class(MyCustomNode)
 
+    nodeitems_utils.register_node_categories("CUSTOM_NODES", node_categories)
+
 
 def unregister():
+    nodeitems_utils.unregister_node_categories("CUSTOM_NODES")
+
     bpy.utils.unregister_class(MyCustomTree)
     bpy.utils.unregister_class(MyCustomSocket)
     bpy.utils.unregister_class(MyCustomNode)
