@@ -120,7 +120,7 @@ float *ED_sculpt_get_last_stroke(struct Object *ob)
 
 void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
 {
-	if (ob->sculpt->last_stroke_valid) {
+	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {
 		float fac = 1.0f / ob->sculpt->average_stroke_counter;
 		mul_v3_v3fl(stroke, ob->sculpt->average_stroke_accum, fac);
 	}
@@ -2980,6 +2980,7 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 	/* Only act if some verts are inside the brush area */
 	if (totnode) {
 		PBVHTopologyUpdateMode mode = PBVH_Subdivide;
+		float location[3];
 
 		if ((sd->flags & SCULPT_DYNTOPO_COLLAPSE) ||
 			(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY))
@@ -3006,6 +3007,13 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 		}
 
 		MEM_freeN(nodes);
+
+		/* update average stroke position */
+		copy_v3_v3(location, ss->cache->true_location);
+		mul_m4_v3(ob->obmat, location);
+
+		add_v3_v3(ob->sculpt->average_stroke_accum, location);
+		ob->sculpt->average_stroke_counter++;
 	}
 }
 
