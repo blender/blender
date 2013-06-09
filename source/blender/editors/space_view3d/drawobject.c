@@ -260,18 +260,6 @@ static const unsigned int colortab[] = {
 	0x0, 0x403000, 0xFFFF88
 };
 
-
-static float cube[8][3] = {
-	{-1.0, -1.0, -1.0},
-	{-1.0, -1.0,  1.0},
-	{-1.0,  1.0,  1.0},
-	{-1.0,  1.0, -1.0},
-	{ 1.0, -1.0, -1.0},
-	{ 1.0, -1.0,  1.0},
-	{ 1.0,  1.0,  1.0},
-	{ 1.0,  1.0, -1.0},
-};
-
 /* ----------------- OpenGL Circle Drawing - Tables for Optimized Drawing Speed ------------------ */
 /* 32 values of sin function (still same result!) */
 #define CIRCLE_RESOL 32
@@ -863,28 +851,6 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 }
 
 /* ******************** primitive drawing ******************* */
-
-static void drawcube(void)
-{
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-	glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[6]);
-	glVertex3fv(cube[7]); glVertex3fv(cube[4]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[1]); glVertex3fv(cube[5]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[3]); glVertex3fv(cube[7]);
-	glEnd();
-}
 
 /* draws a cube on given the scaling of the cube, assuming that
  * all required matrices have been set (used for drawing empties)
@@ -6121,6 +6087,7 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 
 static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 {
+	BoundBox  bb_local;
 	BoundBox *bb = NULL;
 	
 	if (ob->type == OB_MESH) {
@@ -6142,8 +6109,9 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		bb = BKE_armature_boundbox_get(ob);
 	}
 	else {
-		drawcube();
-		return;
+		const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+		bb = &bb_local;
+		BKE_boundbox_init_from_minmax(bb, min, max);
 	}
 	
 	if (bb == NULL) return;
