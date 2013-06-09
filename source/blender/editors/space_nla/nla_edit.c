@@ -412,6 +412,11 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 		            act->id.name + 2);
 	}
 	
+	/* add tracks to empty but selected animdata blocks so that strips can be added to those directly
+	 * without having to manually add tracks first
+	 */
+	nlaedit_add_tracks_empty(&ac);
+	
 	/* get a list of the editable tracks being shown in the NLA
 	 *	- this is limited to active ones for now, but could be expanded to 
 	 */
@@ -419,7 +424,9 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	if (items == 0) {
-		BKE_report(op->reports, RPT_ERROR, "No active track(s) to add strip to");
+		BKE_report(op->reports, RPT_ERROR, 
+		           "No active track(s) to add strip to. "
+		           "Select an existing track or add one before trying again");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1670,8 +1677,6 @@ static int nlaedit_apply_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get a list of the editable tracks being shown in the NLA */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	/* init the editing data */
 	
 	/* for each NLA-Track, apply scale of all selected strips */
 	for (ale = anim_data.first; ale; ale = ale->next) {

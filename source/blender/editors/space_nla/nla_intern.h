@@ -71,8 +71,7 @@ void NLA_OT_click_select(wmOperatorType *ot);
 /* **************************************** */
 /* nla_edit.c */
 
-/* defines for snap strips
- */
+/* defines for snap strips */
 enum eNlaEdit_Snap_Mode {
 	NLAEDIT_SNAP_CFRA = 1,
 	NLAEDIT_SNAP_NEAREST_FRAME,
@@ -121,6 +120,11 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_channels.c */
+
+bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel);
+bool nlaedit_add_tracks_empty(bAnimContext *ac);
+
+/* --- */
 
 void NLA_OT_channels_click(wmOperatorType *ot);
 
