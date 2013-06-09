@@ -25,7 +25,7 @@ __device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint fro
 	switch(type) {
 		case NODE_CONVERT_FI: {
 			float f = stack_load_float(stack, from);
-			stack_store_int(stack, to, (int)f);
+			stack_store_int(stack, to, float_to_int(f));
 			break;
 		}
 		case NODE_CONVERT_FV: {
