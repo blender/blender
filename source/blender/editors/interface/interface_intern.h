@@ -230,10 +230,6 @@ struct uiBut {
 	short modifier_key;
 	short iconadd;
 
-	/* IDPOIN data */
-	uiIDPoinFuncFP idpoin_func;
-	ID **idpoin_idpp;
-
 	/* BLOCK data */
 	uiBlockCreateFunc block_create_func;
 
@@ -460,8 +456,6 @@ struct uiPopupBlockHandle {
 };
 
 uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
-void ui_block_func_ICONROW(struct bContext *C, uiLayout *layout, void *arg_but);
-void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_but);
 
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);

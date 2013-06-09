@@ -481,7 +481,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->totline++;
 	}
 
-	if (ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* full string */
 		ui_get_but_string(but, buf, sizeof(buf));
 		if (buf[0]) {
@@ -1768,18 +1768,34 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	const char *instr = arg_str;
 	int columns, rows, a, b;
 	int column_start = 0, column_end = 0;
+	int nbr_entries_nosepr = 0;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	/* compute menu data */
 	md = decompose_menu_string(instr);
 
-	/* columns and row estimation */
-	columns = (md->nitems + 20) / 20;
+	/* Run some "tweaking" checks. */
+	entry = md->items;
+	for (a = 0; a < md->nitems; a++, entry++) {
+		if (entry->sepr) {
+			/* inconsistent, but menus with labels do not look good flipped */
+			if (entry->str[0]) {
+				block->flag |= UI_BLOCK_NO_FLIP;
+				nbr_entries_nosepr++;
+			}
+			/* We do not want simple separators in nbr_entries_nosepr count */
+			continue;
+		}
+		nbr_entries_nosepr++;
+	}
+
+	/* Columns and row estimation. Ignore simple separators here. */
+	columns = (nbr_entries_nosepr + 20) / 20;
 	if (columns < 1)
 		columns = 1;
 	if (columns > 8)
-		columns = (md->nitems + 25) / 25;
+		columns = (nbr_entries_nosepr + 25) / 25;
 
 	rows = md->nitems / columns;
 	if (rows < 1)
@@ -1796,15 +1812,6 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			uiItemL(layout, md->title, ICON_NONE);
 			bt = block->buttons.last;
 			bt->flag = UI_TEXT_LEFT;
-		}
-	}
-
-	/* inconsistent, but menus with labels do not look good flipped */
-	entry = md->items;
-	for (a = 0; a < md->nitems; a++, entry++) {
-		if (entry->sepr && entry->str[0]) {
-			block->flag |= UI_BLOCK_NO_FLIP;
-			break;
 		}
 	}
 
@@ -1837,9 +1844,14 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			entry = &md->items[column_start + column_end - 1 - a];
 
 		if (entry->sepr) {
-			uiItemL(column, entry->str, entry->icon);
-			bt = block->buttons.last;
-			bt->flag = UI_TEXT_LEFT;
+			if (entry->str[0]) {
+				uiItemL(column, entry->str, entry->icon);
+				bt = block->buttons.last;
+				bt->flag = UI_TEXT_LEFT;
+			}
+			else {
+				uiItemS(column);
+			}
 		}
 		else if (entry->icon) {
 			uiDefIconTextButF(block, BUTM, B_NOP, entry->icon, entry->str, 0, 0,
@@ -1851,53 +1863,6 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 		}
 	}
 	
-	menudata_free(md);
-}
-
-void ui_block_func_ICONROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
-{
-	uiBlock *block = uiLayoutGetBlock(layout);
-	uiPopupBlockHandle *handle = block->handle;
-	uiBut *but = arg_but;
-	int a;
-	
-	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
-	
-	for (a = (int)but->hardmin; a <= (int)but->hardmax; a++)
-		uiDefIconButF(block, BUTM, B_NOP, but->icon + (a - but->hardmin), 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
-		              &handle->retvalue, (float)a, 0.0, 0, -1, "");
-}
-
-void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
-{
-	uiBlock *block = uiLayoutGetBlock(layout);
-	uiPopupBlockHandle *handle = block->handle;
-	uiBut *but = arg_but, *bt;
-	MenuData *md;
-	MenuEntry *entry;
-	int a;
-	
-	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
-
-	md = decompose_menu_string(but->str);
-
-	/* title */
-	if (md->title) {
-		bt = uiDefBut(block, LABEL, 0, md->title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-		bt->flag = UI_TEXT_LEFT;
-	}
-
-	/* loop through the menu options and draw them out with icons & text labels */
-	for (a = 0; a < md->nitems; a++) {
-		entry = &md->items[md->nitems - a - 1];
-
-		if (entry->sepr)
-			uiItemS(layout);
-		else
-			uiDefIconTextButF(block, BUTM, B_NOP, (short)((but->icon) + (entry->retval - but->hardmin)), entry->str,
-			                  0, 0, UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, -1, "");
-	}
-
 	menudata_free(md);
 }
 

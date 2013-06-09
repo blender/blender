@@ -58,25 +58,30 @@
 
 #include "RNA_enum_types.h"
 
+
 EnumPropertyItem space_type_items[] = {
-	{SPACE_EMPTY, "EMPTY", 0, "Empty", ""},
-	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
-	{SPACE_IPO, "GRAPH_EDITOR", 0, "Graph Editor", ""},
-	{SPACE_OUTLINER, "OUTLINER", 0, "Outliner", ""},
-	{SPACE_BUTS, "PROPERTIES", 0, "Properties", ""},
-	{SPACE_FILE, "FILE_BROWSER", 0, "File Browser", ""},
-	{SPACE_IMAGE, "IMAGE_EDITOR", 0, "Image Editor", ""},
-	{SPACE_INFO, "INFO", 0, "Info", ""},
-	{SPACE_SEQ, "SEQUENCE_EDITOR", 0, "Sequence Editor", ""},
-	{SPACE_TEXT, "TEXT_EDITOR", 0, "Text Editor", ""},
-	{SPACE_ACTION, "DOPESHEET_EDITOR", 0, "Dope Sheet Editor", ""},
-	{SPACE_NLA, "NLA_EDITOR", 0, "NLA Editor", ""},
-	{SPACE_TIME, "TIMELINE", 0, "Timeline", ""},
-	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
-	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
-	{SPACE_CONSOLE, "CONSOLE", 0, "Python Console", ""},
-	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
-	{SPACE_CLIP, "CLIP_EDITOR", 0, "Clip Editor", ""},
+	{SPACE_VIEW3D, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
+	{0, "", ICON_NONE, NULL, NULL},
+	{SPACE_TIME, "TIMELINE", ICON_TIME, "Timeline", ""},
+	{SPACE_IPO, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
+	{SPACE_ACTION, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet", ""},
+	{SPACE_NLA, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
+	{0, "", ICON_NONE, NULL, NULL},
+	{SPACE_IMAGE, "IMAGE_EDITOR", ICON_IMAGE_COL, "UV/Image Editor", ""},
+	{SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequence Editor", ""},
+	{SPACE_CLIP, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
+	{SPACE_TEXT, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
+	{SPACE_NODE, "NODE_EDITOR", ICON_NODETREE, "Node Editor", ""},
+	{SPACE_LOGIC, "LOGIC_EDITOR", ICON_LOGIC, "Logic Editor", ""},
+	{0, "", ICON_NONE, NULL, NULL},
+	{SPACE_BUTS, "PROPERTIES", ICON_BUTS, "Properties", ""},
+	{SPACE_OUTLINER, "OUTLINER", ICON_OOPS, "Outliner", ""},
+	{SPACE_USERPREF, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
+	{SPACE_INFO, "INFO", ICON_INFO, "Info", ""},
+	{0, "", ICON_NONE, NULL, NULL},
+	{SPACE_FILE, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
+	{0, "", ICON_NONE, NULL, NULL},
+	{SPACE_CONSOLE, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

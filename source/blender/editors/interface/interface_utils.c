@@ -113,7 +113,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			if (icon == ICON_DOT)
 				icon = 0;
 
-			but = uiDefIconTextButR_prop(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+			but = uiDefIconTextButR_prop(block, SEARCH_MENU, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_COLLECTION:

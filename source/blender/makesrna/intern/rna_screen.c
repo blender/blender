@@ -105,6 +105,7 @@ static int rna_Screen_fullscreen_get(PointerRNA *ptr)
 	return (sc->full != 0);
 }
 
+
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
 	ScrArea *sa = (ScrArea *)ptr->data;
@@ -204,8 +205,9 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", NULL);
-	RNA_def_property_ui_text(prop, "Type", "Space type");
+	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
 
 	prop = RNA_def_property(srna, "x", PROP_INT, PROP_NONE);

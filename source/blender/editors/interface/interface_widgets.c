@@ -891,22 +891,11 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 		float ofs = 1.0f / aspect;
 		
 		if (but->flag & UI_ICON_LEFT) {
-			if (but->type == BUT_TOGDUAL) {
-				if (but->drawstr[0]) {
-					xs = rect->xmin - ofs;
-				}
-				else {
-					xs = (rect->xmin + rect->xmax - height) / 2.0f;
-				}
-			}
-			else if (but->block->flag & UI_BLOCK_LOOP) {
+			if (but->block->flag & UI_BLOCK_LOOP) {
 				if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK))
 					xs = rect->xmin + 4.0f * ofs;
 				else
 					xs = rect->xmin + ofs;
-			}
-			else if ((but->type == ICONROW) || (but->type == ICONTEXTROW)) {
-				xs = rect->xmin + 3.0f * ofs;
 			}
 			else {
 				xs = rect->xmin + 4.0f * ofs;
@@ -1220,13 +1209,12 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 #if 0
 	ui_rasterpos_safe(x, y, but->aspect);
-	if (but->type == IDPOIN) transopts = 0;  /* no translation, of course! */
-	else transopts = ui_translate_buttons();
+	transopts = ui_translate_buttons();
 #endif
 
 	/* cut string in 2 parts - only for menu entries */
 	if ((but->block->flag & UI_BLOCK_LOOP)) {
-		if (ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS) == 0) {
+		if (ELEM3(but->type, NUM, TEX, NUMSLI) == 0) {
 			cpoin = strchr(but->drawstr, '|');
 			if (cpoin) *cpoin = 0;
 		}
@@ -1292,7 +1280,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (but->editstr && but->pos >= 0) {
 		ui_text_clip_cursor(fstyle, but, rect);
 	}
-	else if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
+	else if (ELEM(but->type, NUM, NUMSLI)) {
 		ui_text_clip_right_label(fstyle, but, rect);
 	}
 	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
@@ -1306,64 +1294,46 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 
 	/* check for button text label */
-	if (but->type == ICONTEXTROW) {
-		widget_draw_icon(but, (BIFIconID) (but->icon + but->iconadd), 1.0f, rect);
+	if (but->type == MENU && (but->flag & UI_BUT_NODE_LINK)) {
+		int tmp = rect->xmin;
+		rect->xmin = rect->xmax - BLI_rcti_size_y(rect) - 1;
+		widget_draw_icon(but, ICON_LAYER_USED, alpha, rect);
+		rect->xmin = tmp;
 	}
-	else {
 
-		if (but->type == BUT_TOGDUAL) {
-			int dualset = 0;
-			if (but->pointype == UI_BUT_POIN_SHORT) {
-				dualset = UI_BITBUT_TEST(*(((short *)but->poin) + 1), but->bitnr);
-			}
-			else if (but->pointype == UI_BUT_POIN_INT) {
-				dualset = UI_BITBUT_TEST(*(((int *)but->poin) + 1), but->bitnr);
-			}
+	/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+	 * and offset the text label to accommodate it */
 
-			widget_draw_icon(but, ICON_DOT, dualset ? alpha : 0.25f, rect);
-		}
-		else if (but->type == MENU && (but->flag & UI_BUT_NODE_LINK)) {
-			int tmp = rect->xmin;
-			rect->xmin = rect->xmax - BLI_rcti_size_y(rect) - 1;
-			widget_draw_icon(but, ICON_LAYER_USED, alpha, rect);
-			rect->xmin = tmp;
-		}
+	if (but->flag & UI_HAS_ICON) {
+		widget_draw_icon(but, but->icon + but->iconadd, alpha, rect);
+		
+		/* icons default draw 0.8f x height */
+		rect->xmin += (int)(0.8f * BLI_rcti_size_y(rect));
 
-		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		 * and offset the text label to accommodate it */
-
-		if (but->flag & UI_HAS_ICON) {
-			widget_draw_icon(but, but->icon + but->iconadd, alpha, rect);
-			
-			/* icons default draw 0.8f x height */
-			rect->xmin += (int)(0.8f * BLI_rcti_size_y(rect));
-
-			if (but->editstr || (but->flag & UI_TEXT_LEFT)) {
-				rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
-			}
-			else if ((but->flag & UI_TEXT_RIGHT)) {
-				rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
-			}
-		}
-		else if ((but->flag & UI_TEXT_LEFT)) {
+		if (but->editstr || (but->flag & UI_TEXT_LEFT)) {
 			rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 		}
 		else if ((but->flag & UI_TEXT_RIGHT)) {
 			rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 		}
-		
-		/* unlink icon for this button type */
-		if (but->type == SEARCH_MENU_UNLINK && !but->editstr && but->drawstr[0]) {
-			rcti temp = *rect;
-
-			temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
-			widget_draw_icon(but, ICON_X, alpha, &temp);
-		}
-
-		/* always draw text for textbutton cursor */
-		widget_draw_text(fstyle, wcol, but, rect);
-
 	}
+	else if ((but->flag & UI_TEXT_LEFT)) {
+		rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+	}
+	else if ((but->flag & UI_TEXT_RIGHT)) {
+		rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+	}
+	
+	/* unlink icon for this button type */
+	if (but->type == SEARCH_MENU_UNLINK && !but->editstr && but->drawstr[0]) {
+		rcti temp = *rect;
+
+		temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
+		widget_draw_icon(but, ICON_X, alpha, &temp);
+	}
+
+	/* always draw text for textbutton cursor */
+	widget_draw_text(fstyle, wcol, but, rect);
 
 	ui_button_text_password_hide(password_str, but, TRUE);
 }
@@ -3279,7 +3249,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case TOGBUT:
 			case TOG:
 			case TOGN:
-			case TOG3:
 				wt = widget_type(UI_WTYPE_TOGGLE);
 				break;
 				
@@ -3300,7 +3269,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				
 			case MENU:
 			case BLOCK:
-			case ICONTEXTROW:
 				/* new node-link button, not active yet XXX */
 				if (but->flag & UI_BUT_NODE_LINK)
 					wt = widget_type(UI_WTYPE_MENU_NODE_LINK);

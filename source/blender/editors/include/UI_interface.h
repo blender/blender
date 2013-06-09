@@ -210,20 +210,14 @@ typedef enum {
 	BUT           = (1 << 9),
 	ROW           = (2 << 9),
 	TOG           = (3 << 9),
-	SLI           = (4 << 9),
 	NUM           = (5 << 9),
 	TEX           = (6 << 9),
-	TOG3          = (7 << 9),
-	TOGR          = (8 << 9),
 	TOGN          = (9 << 9),
 	LABEL         = (10 << 9),
 	MENU          = (11 << 9),  /* Dropdown list, actually! */
-	ICONROW       = (12 << 9),
 	ICONTOG       = (13 << 9),
 	NUMSLI        = (14 << 9),
 	COLOR         = (15 << 9),
-	IDPOIN        = (16 << 9),
-	/* HSVSLI     = (17 << 9), */  /* UNUSED */
 	SCROLL        = (18 << 9),
 	BLOCK         = (19 << 9),
 	BUTM          = (20 << 9),
@@ -231,18 +225,13 @@ typedef enum {
 	LINK          = (22 << 9),
 	INLINK        = (23 << 9),
 	KEYEVT        = (24 << 9),
-	ICONTEXTROW   = (25 << 9),
 	HSVCUBE       = (26 << 9),
 	PULLDOWN      = (27 << 9),  /* Menu, actually! */
 	ROUNDBOX      = (28 << 9),
-	CHARTAB       = (29 << 9),
 	BUT_COLORBAND = (30 << 9),
 	BUT_NORMAL    = (31 << 9),
 	BUT_CURVE     = (32 << 9),
-	BUT_TOGDUAL   = (33 << 9),
 	ICONTOGN      = (34 << 9),
-	/* FTPREVIEW  = (35 << 9), */  /* UNUSED */
-	NUMABS        = (36 << 9),
 	TOGBUT        = (37 << 9),
 	OPTION        = (38 << 9),
 	OPTIONN       = (39 << 9),
@@ -560,7 +549,6 @@ void uiButGetStrInfo(struct bContext *C, uiBut *but, ...);
 /* Special Buttons
  *
  * Buttons with a more specific purpose:
- * - IDPoinBut: for creating buttons that work on a pointer to an ID block.
  * - MenuBut: buttons that popup a menu (in headers usually).
  * - PulldownBut: like MenuBut, but creating a uiBlock (for compatibility).
  * - BlockBut: buttons that popup a block with more buttons.
@@ -581,12 +569,6 @@ void uiButGetStrInfo(struct bContext *C, uiBut *but, ...);
 #define UI_ID_BROWSE_RENDER 1024
 #define UI_ID_PREVIEWS      2048
 #define UI_ID_FULL          (UI_ID_RENAME | UI_ID_BROWSE | UI_ID_ADD_NEW | UI_ID_OPEN | UI_ID_ALONE | UI_ID_DELETE | UI_ID_LOCAL)
-
-typedef void (*uiIDPoinFuncFP)(struct bContext *C, const char *str, struct ID **idpp);
-typedef void (*uiIDPoinFunc)(struct bContext *C, struct ID *id, int event);
-
-uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, const char *str,
-                      int x, int y, short width, short height, void *idpp, const char *tip);
 
 int uiIconFromID(struct ID *id);
 
