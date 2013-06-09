@@ -1768,18 +1768,34 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	const char *instr = arg_str;
 	int columns, rows, a, b;
 	int column_start = 0, column_end = 0;
+	int nbr_entries_nosepr = 0;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	/* compute menu data */
 	md = decompose_menu_string(instr);
 
-	/* columns and row estimation */
-	columns = (md->nitems + 20) / 20;
+	/* Run some "tweaking" checks. */
+	entry = md->items;
+	for (a = 0; a < md->nitems; a++, entry++) {
+		if (entry->sepr) {
+			/* inconsistent, but menus with labels do not look good flipped */
+			if (entry->str[0]) {
+				block->flag |= UI_BLOCK_NO_FLIP;
+				nbr_entries_nosepr++;
+			}
+			/* We do not want simple separators in nbr_entries_nosepr count */
+			continue;
+		}
+		nbr_entries_nosepr++;
+	}
+
+	/* Columns and row estimation. Ignore simple separators here. */
+	columns = (nbr_entries_nosepr + 20) / 20;
 	if (columns < 1)
 		columns = 1;
 	if (columns > 8)
-		columns = (md->nitems + 25) / 25;
+		columns = (nbr_entries_nosepr + 25) / 25;
 
 	rows = md->nitems / columns;
 	if (rows < 1)
@@ -1796,15 +1812,6 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			uiItemL(layout, md->title, ICON_NONE);
 			bt = block->buttons.last;
 			bt->flag = UI_TEXT_LEFT;
-		}
-	}
-
-	/* inconsistent, but menus with labels do not look good flipped */
-	entry = md->items;
-	for (a = 0; a < md->nitems; a++, entry++) {
-		if (entry->sepr && entry->str[0]) {
-			block->flag |= UI_BLOCK_NO_FLIP;
-			break;
 		}
 	}
 
@@ -1837,9 +1844,14 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			entry = &md->items[column_start + column_end - 1 - a];
 
 		if (entry->sepr) {
-			uiItemL(column, entry->str, entry->icon);
-			bt = block->buttons.last;
-			bt->flag = UI_TEXT_LEFT;
+			if (entry->str[0]) {
+				uiItemL(column, entry->str, entry->icon);
+				bt = block->buttons.last;
+				bt->flag = UI_TEXT_LEFT;
+			}
+			else {
+				uiItemS(column);
+			}
 		}
 		else if (entry->icon) {
 			uiDefIconTextButF(block, BUTM, B_NOP, entry->icon, entry->str, 0, 0,

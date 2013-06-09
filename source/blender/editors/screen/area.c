@@ -46,6 +46,9 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
+#include "RNA_access.h"
+#include "RNA_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_subwindow.h"
@@ -1494,71 +1497,19 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
 }
 
-static const char *editortype_pup(void)
-{
-	const char *types = N_(
-	    "Editor type: %t"
-	    "|3D View %x1"
-
-	    "|%l"
-
-	    "|Timeline %x15"
-	    "|Graph Editor %x2"
-	    "|Dope Sheet %x12"
-	    "|NLA Editor %x13"
-
-	    "|%l"
-
-	    "|UV/Image Editor %x6"
-
-	    "|Video Sequence Editor %x8"
-	    "|Movie Clip Editor %x20"
-	    "|Text Editor %x9"
-	    "|Node Editor %x16"
-	    "|Logic Editor %x17"
-
-	    "|%l"
-
-	    "|Properties %x4"
-	    "|Outliner %x3"
-	    "|User Preferences %x19"
-	    "|Info %x7"
-
-	    "|%l"
-
-	    "|File Browser %x5"
-
-	    "|%l"
-
-	    "|Python Console %x18"
-	    );
-
-	return IFACE_(types);
-}
-
-static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
-{
-	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
-	ED_area_tag_redraw(CTX_wm_area(C));
-
-	/* send space change notifier */
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, CTX_wm_area(C));
-}
-
 /* returns offset for next button in header */
 int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	uiBut *but;
+	bScreen *scr = CTX_wm_screen(C);
+	PointerRNA areaptr;
 	int xco = 0.4 * U.widget_unit;
-	
-	but = uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
-	                        editortype_pup(), xco, yco, 1.5 * U.widget_unit, U.widget_unit,
-	                        &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0,
-	                        TIP_("Display current editor type (click for a menu of available types)"));
-	uiButSetFunc(but, spacefunc, NULL, NULL);
-	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-	
+
+	RNA_pointer_create(&(scr->id), &RNA_Area, sa, &areaptr);
+
+	uiDefButR(block, MENU, 0, NULL, xco, yco, 1.5 * U.widget_unit, U.widget_unit,
+	          &areaptr, "type", 0, 0.0f, 0.0f, 0.0f, 0.0f, "");
+
 	return xco + 1.7 * U.widget_unit;
 }
 
