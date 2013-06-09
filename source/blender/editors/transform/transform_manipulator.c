@@ -65,6 +65,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
+#include "BKE_lattice.h"
 
 #include "BIF_gl.h"
 
@@ -469,18 +470,23 @@ int calc_manipulator_stats(const bContext *C)
 			}
 		}
 		else if (obedit->type == OB_LATTICE) {
+			Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 			BPoint *bp;
-			Lattice *lt = obedit->data;
 
-			bp = lt->editlatt->latt->def;
-
-			a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
-			while (a--) {
-				if (bp->f1 & SELECT) {
-					calc_tw_center(scene, bp->vec);
-					totsel++;
+			if ((v3d->around == V3D_ACTIVE) && (bp = BKE_lattice_active_point_get(lt))) {
+				calc_tw_center(scene, bp->vec);
+				totsel++;
+			}
+			else {
+				bp = lt->def;
+				a = lt->pntsu * lt->pntsv * lt->pntsw;
+				while (a--) {
+					if (bp->f1 & SELECT) {
+						calc_tw_center(scene, bp->vec);
+						totsel++;
+					}
+					bp++;
 				}
-				bp++;
 			}
 		}
 

@@ -1641,6 +1641,15 @@ void calculateCenter(TransInfo *t)
 						break;
 					}
 				}
+				else if (t->obedit && t->obedit->type == OB_LATTICE) {
+					BPoint *actbp = BKE_lattice_active_point_get(t->obedit->data);
+
+					if (actbp) {
+						copy_v3_v3(t->center, actbp->vec);
+						calculateCenter2D(t);
+						break;
+					}
+				}
 			} /* END EDIT MODE ACTIVE ELEMENT */
 
 			calculateCenterMedian(t);

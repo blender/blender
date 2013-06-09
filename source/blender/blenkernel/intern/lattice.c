@@ -168,6 +168,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	lt->pntsv = vNew;
 	lt->pntsw = wNew;
 
+	lt->actbp = LT_ACTBP_NONE;
 	MEM_freeN(lt->def);
 	lt->def = MEM_callocN(lt->pntsu * lt->pntsv * lt->pntsw * sizeof(BPoint), "lattice bp");
 	
@@ -192,6 +193,7 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 	
 	lt->def = MEM_callocN(sizeof(BPoint), "lattvert"); /* temporary */
 	BKE_lattice_resize(lt, 2, 2, 2, NULL);  /* creates a uniform lattice */
+	lt->actbp = LT_ACTBP_NONE;
 		
 	return lt;
 }
@@ -1010,6 +1012,24 @@ struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *oblatt)
 	BLI_assert(oblatt->type == OB_LATTICE);
 	if (lt->editlatt) lt = lt->editlatt->latt;
 	return lt->dvert;
+}
+
+struct BPoint *BKE_lattice_active_point_get(Lattice *lt)
+{
+	BLI_assert(GS(lt->id.name) == ID_LT);
+
+	if (lt->editlatt) {
+		lt = lt->editlatt->latt;
+	}
+
+	BLI_assert(lt->actbp < lt->pntsu * lt->pntsv * lt->pntsw);
+
+	if ((lt->actbp != LT_ACTBP_NONE) && (lt->actbp < lt->pntsu * lt->pntsv * lt->pntsw)) {
+		return &lt->def[lt->actbp];
+	}
+	else {
+		return NULL;
+	}
 }
 
 void BKE_lattice_center_median(struct Lattice *lt, float cent[3])

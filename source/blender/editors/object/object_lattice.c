@@ -154,6 +154,7 @@ void load_editLatt(Object *obedit)
 		lt->typeu = editlt->typeu;
 		lt->typev = editlt->typev;
 		lt->typew = editlt->typew;
+		lt->actbp = editlt->actbp;
 	}
 
 	if (lt->dvert) {
@@ -180,7 +181,8 @@ void ED_setflagsLatt(Object *obedit, int flag)
 	bp = lt->editlatt->latt->def;
 	
 	a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
-	
+	lt->editlatt->latt->actbp = LT_ACTBP_NONE;
+
 	while (a--) {
 		if (bp->hide == 0) {
 			bp->f1 = flag;
@@ -224,6 +226,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 		case SEL_INVERT:
 			bp = lt->editlatt->latt->def;
 			a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
+			lt->editlatt->latt->actbp = LT_ACTBP_NONE;
 
 			while (a--) {
 				if (bp->hide == 0) {
@@ -642,8 +645,10 @@ bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, b
 {
 	ViewContext vc;
 	BPoint *bp = NULL;
+	Lattice *lt;
 
 	view3d_set_viewcontext(C, &vc);
+	lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
 	bp = findnearestLattvert(&vc, mval, TRUE);
 
 	if (bp) {
@@ -661,6 +666,13 @@ bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, b
 			bp->f1 |= SELECT;
 		}
 
+		if (bp->f1 & SELECT) {
+			lt->actbp = bp - lt->def;
+		}
+		else {
+			lt->actbp = LT_ACTBP_NONE;
+		}
+
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
 		return true;
@@ -673,7 +685,7 @@ bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, b
 
 typedef struct UndoLattice {
 	BPoint *def;
-	int pntsu, pntsv, pntsw;
+	int pntsu, pntsv, pntsw, actbp;
 } UndoLattice;
 
 static void undoLatt_to_editLatt(void *data, void *edata, void *UNUSED(obdata))
@@ -683,6 +695,7 @@ static void undoLatt_to_editLatt(void *data, void *edata, void *UNUSED(obdata))
 	int a = editlatt->latt->pntsu * editlatt->latt->pntsv * editlatt->latt->pntsw;
 
 	memcpy(editlatt->latt->def, ult->def, a * sizeof(BPoint));
+	editlatt->latt->actbp = ult->actbp;
 }
 
 static void *editLatt_to_undoLatt(void *edata, void *UNUSED(obdata))
@@ -694,6 +707,7 @@ static void *editLatt_to_undoLatt(void *edata, void *UNUSED(obdata))
 	ult->pntsu = editlatt->latt->pntsu;
 	ult->pntsv = editlatt->latt->pntsv;
 	ult->pntsw = editlatt->latt->pntsw;
+	ult->actbp = editlatt->latt->actbp;
 	
 	return ult;
 }

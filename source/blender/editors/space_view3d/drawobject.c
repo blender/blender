@@ -1847,13 +1847,15 @@ static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D 
 	glDisable(GL_BLEND);
 }
 
-static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
+static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short sel)
 {
 	BPoint *bp = lt->def;
 	float *co = dl ? dl->verts : NULL;
 	int u, v, w;
 
-	UI_ThemeColor(sel ? TH_VERTEX_SELECT : TH_VERTEX);
+	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
+	UI_ThemeColor(color);
+
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 
@@ -1865,7 +1867,13 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 				int uxt = (u == 0 || u == lt->pntsu - 1);
 				if (!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
 					if (bp->hide == 0) {
-						if ((bp->f1 & SELECT) == sel) {
+						/* check for active BPoint and ensure selected */
+						if ((bp == actbp) && (bp->f1 & SELECT)) {
+							UI_ThemeColor(TH_LASTSEL_POINT);
+							bglVertex3fv(dl ? co : bp->vec);
+							UI_ThemeColor(color);
+						}
+						else if ((bp->f1 & SELECT) == sel) {
 							bglVertex3fv(dl ? co : bp->vec);
 						}
 					}
@@ -1954,10 +1962,12 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 		glShadeModel(GL_FLAT);
 
 	if (is_edit) {
+		BPoint *actbp = BKE_lattice_active_point_get(lt);
+
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		
-		lattice_draw_verts(lt, dl, 0);
-		lattice_draw_verts(lt, dl, 1);
+		lattice_draw_verts(lt, dl, actbp, 0);
+		lattice_draw_verts(lt, dl, actbp, 1);
 		
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
