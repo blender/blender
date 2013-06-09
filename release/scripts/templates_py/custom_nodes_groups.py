@@ -4,6 +4,10 @@ from bpy_types import NodeTree, Node, NodeSocket
 # Implementation of custom nodes from Python
 
 
+# Shortcut for node type menu
+def add_nodetype(layout, type):
+    layout.operator("node.add_node", text=type.bl_label).type = type.bl_rna.identifier
+
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class MyCustomTree(NodeTree):
     # Description string
@@ -17,6 +21,11 @@ class MyCustomTree(NodeTree):
     #       This can be used to make additional tree types for groups and similar nodes (see below)
     #       Only one base tree class is needed in the editor for selecting the general category
     bl_icon = 'NODETREE'
+
+    def draw_add_menu(self, context, layout):
+        layout.label("Hello World!")
+        add_nodetype(layout, bpy.types.CustomNodeType)
+        add_nodetype(layout, bpy.types.MyCustomGroup)
 
 
 # Custom socket type
