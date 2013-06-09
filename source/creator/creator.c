@@ -1250,9 +1250,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		/* WM_file_read() runs normally but since we're in background mode do here */
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_driver_reset();
-		BPY_app_handlers_reset(FALSE);
-		BPY_modules_load_user(C);
+		BPY_python_reset(C);
 #endif
 
 		/* happens for the UI on file reading too (huh? (ton))*/

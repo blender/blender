@@ -174,10 +174,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BPY_context_set(C); /* necessary evil */
 	BPY_python_start(argc, argv);
 
-	BPY_driver_reset();
-	BPY_app_handlers_reset(FALSE); /* causes addon callbacks to be freed [#28068],
-	                                * but this is actually what we want. */
-	BPY_modules_load_user(C);
+	BPY_python_reset(C);
 #else
 	(void)argc; /* unused */
 	(void)argv; /* unused */

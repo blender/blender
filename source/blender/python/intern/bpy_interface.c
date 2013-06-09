@@ -396,6 +396,13 @@ void BPY_python_end(void)
 
 }
 
+void BPY_python_reset(bContext *C)
+{
+	BPY_driver_reset();
+	BPY_app_handlers_reset(false);
+	BPY_modules_load_user(C);
+}
+
 static void python_script_error_jump_text(struct Text *text)
 {
 	int lineno;

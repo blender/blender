@@ -437,9 +437,7 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_driver_reset();
-		BPY_app_handlers_reset(FALSE);
-		BPY_modules_load_user(C);
+		BPY_python_reset(C);
 #endif
 
 		/* important to do before NULL'ing the context */
@@ -590,9 +588,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		/* sync addons, these may have changed from the defaults */
 		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
-		BPY_driver_reset();
-		BPY_app_handlers_reset(FALSE);
-		BPY_modules_load_user(C);
+		BPY_python_reset(C);
 	}
 #endif
 
