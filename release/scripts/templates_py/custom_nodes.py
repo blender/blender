@@ -1,6 +1,5 @@
 import bpy
-# XXX these don't work yet ...
-#from bpy_types import NodeTree, Node, NodeSocket
+from bpy_types import NodeTree, Node, NodeSocket
 
 # Implementation of custom nodes from Python
 
@@ -10,7 +9,7 @@ def add_nodetype(layout, type):
     layout.operator("node.add_node", text=type.bl_label).type = type.bl_rna.identifier
 
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
-class MyCustomTree(bpy.types.NodeTree):
+class MyCustomTree(NodeTree):
     # Description string
     '''A custom node tree type that will show up in the node editor header'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -30,7 +29,7 @@ class MyCustomTree(bpy.types.NodeTree):
 
 
 # Custom socket type
-class MyCustomSocket(bpy.types.NodeSocket):
+class MyCustomSocket(NodeSocket):
     # Description string
     '''Custom node socket type'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -59,7 +58,7 @@ class MyCustomSocket(bpy.types.NodeSocket):
     def draw_color(self, context, node):
         return (1.0, 0.4, 0.216, 0.5)
 
-# Base class for all custom nodes in this tree type.
+# Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
 class MyCustomTreeNode :
     @classmethod
@@ -67,7 +66,7 @@ class MyCustomTreeNode :
         return ntree.bl_idname == 'CustomTreeType'
 
 # Derived from the Node base type.
-class MyCustomNode(bpy.types.Node, MyCustomTreeNode):
+class MyCustomNode(Node, MyCustomTreeNode):
     # === Basics ===
     # Description string
     '''A custom node'''
