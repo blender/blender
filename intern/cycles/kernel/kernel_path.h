@@ -233,7 +233,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 	return result;
 }
 
-__device float4 kernel_path_progressive(KernelGlobals *kg, RNG rng, int sample, Ray ray, __global float *buffer)
+__device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -271,7 +271,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG rng, int sample, 
 			}
 
 			extmax = kernel_data.curve_kernel_data.maximum_width;
-			lcg_state = lcg_init(rng + rng_offset + sample*0x51633e2d);
+			lcg_state = lcg_init(*rng + rng_offset + sample*0x51633e2d);
 		}
 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
@@ -399,7 +399,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG rng, int sample, 
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_init(rng + rng_offset + sample*0x68bc21eb);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
@@ -538,7 +538,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG rng, int sample, 
 
 #ifdef __NON_PROGRESSIVE__
 
-__device void kernel_path_indirect(KernelGlobals *kg, RNG rng, int sample, Ray ray, __global float *buffer,
+__device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
 	float3 throughput, int num_samples, int num_total_samples,
 	float min_ray_pdf, float ray_pdf, PathState state, int rng_offset, PathRadiance *L)
 {
@@ -644,7 +644,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG rng, int sample, Ray r
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_init(rng + rng_offset + sample*0x68bc21eb);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
 			}
 		}
@@ -767,7 +767,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG rng, int sample, Ray r
 	}
 }
 
-__device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, RNG rng, int sample,
+__device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, RNG *rng, int sample,
 	ShaderData *sd, float3 throughput, float num_samples_adjust,
 	float min_ray_pdf, float ray_pdf, PathState state,
 	int rng_offset, PathRadiance *L, __global float *buffer)
@@ -830,13 +830,13 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 		for(int i = 0; i < kernel_data.integrator.num_all_lights; i++) {
 			int num_samples = ceil_to_int(num_samples_adjust*light_select_num_samples(kg, i));
 			float num_samples_inv = num_samples_adjust/(num_samples*kernel_data.integrator.num_all_lights);
-			RNG lamp_rng = cmj_hash(rng, i);
+			RNG lamp_rng = cmj_hash(*rng, i);
 
 			if(kernel_data.integrator.pdf_triangles != 0.0f)
 				num_samples_inv *= 0.5f;
 
 			for(int j = 0; j < num_samples; j++) {
-				float2 light_uv = path_rng_2D(kg, lamp_rng, sample*num_samples + j, aa_samples*num_samples, rng_offset + PRNG_LIGHT_U);
+				float2 light_uv = path_rng_2D(kg, &lamp_rng, sample*num_samples + j, aa_samples*num_samples, rng_offset + PRNG_LIGHT_U);
 				float light_u = light_uv.x;
 				float light_v = light_uv.y;
 
@@ -905,7 +905,7 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 		num_samples = ceil_to_int(num_samples_adjust*num_samples);
 
 		float num_samples_inv = num_samples_adjust/num_samples;
-		RNG bsdf_rng = cmj_hash(rng, i);
+		RNG bsdf_rng = cmj_hash(*rng, i);
 
 		for(int j = 0; j < num_samples; j++) {
 			/* sample BSDF */
@@ -913,7 +913,7 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 			BsdfEval bsdf_eval;
 			float3 bsdf_omega_in;
 			differential3 bsdf_domega_in;
-			float2 bsdf_uv = path_rng_2D(kg, bsdf_rng, sample*num_samples + j, aa_samples*num_samples, rng_offset + PRNG_BSDF_U);
+			float2 bsdf_uv = path_rng_2D(kg, &bsdf_rng, sample*num_samples + j, aa_samples*num_samples, rng_offset + PRNG_BSDF_U);
 			float bsdf_u = bsdf_uv.x;
 			float bsdf_v = bsdf_uv.y;
 			int label;
@@ -964,7 +964,7 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 	}
 }
 
-__device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG rng, int sample, Ray ray, __global float *buffer)
+__device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -997,7 +997,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG rng, int samp
 			}
 
 			extmax = kernel_data.curve_kernel_data.maximum_width;
-			lcg_state = lcg_init(rng + rng_offset + sample*0x51633e2d);
+			lcg_state = lcg_init(*rng + rng_offset + sample*0x51633e2d);
 		}
 
 		if(!scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax)) {
@@ -1090,7 +1090,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG rng, int samp
 					continue;
 
 				/* set up random number generator */
-				uint lcg_state = lcg_init(rng + rng_offset + sample*0x68bc21eb);
+				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				int num_samples = kernel_data.integrator.subsurface_samples;
 				float num_samples_inv = 1.0f/num_samples;
 
@@ -1163,7 +1163,7 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	float lens_u = 0.0f, lens_v = 0.0f;
 
 	if(kernel_data.cam.aperturesize > 0.0f) {
-		float2 lens_uv = path_rng_2D(kg, rng, sample, num_samples, PRNG_LENS_U);
+		float2 lens_uv = path_rng_2D(kg, &rng, sample, num_samples, PRNG_LENS_U);
 		lens_u = lens_uv.x;
 		lens_v = lens_uv.y;
 	}
@@ -1172,7 +1172,7 @@ __device void kernel_path_trace(KernelGlobals *kg,
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.shuttertime != -1.0f)
-		time = path_rng_1D(kg, rng, sample, num_samples, PRNG_TIME);
+		time = path_rng_1D(kg, &rng, sample, num_samples, PRNG_TIME);
 #endif
 
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, &ray);
@@ -1184,10 +1184,10 @@ __device void kernel_path_trace(KernelGlobals *kg,
 #ifdef __NON_PROGRESSIVE__
 		if(kernel_data.integrator.progressive)
 #endif
-			L = kernel_path_progressive(kg, rng, sample, ray, buffer);
+			L = kernel_path_progressive(kg, &rng, sample, ray, buffer);
 #ifdef __NON_PROGRESSIVE__
 		else
-			L = kernel_path_non_progressive(kg, rng, sample, ray, buffer);
+			L = kernel_path_non_progressive(kg, &rng, sample, ray, buffer);
 #endif
 	}
 	else
