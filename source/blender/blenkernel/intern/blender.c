@@ -792,25 +792,6 @@ const char *BKE_undo_get_name(int nr, int *active)
 	return NULL;
 }
 
-char *BKE_undo_menu_string(void)
-{
-	UndoElem *uel;
-	DynStr *ds = BLI_dynstr_new();
-	char *menu;
-
-	BLI_dynstr_append(ds, "Global Undo History %t");
-	
-	for (uel = undobase.first; uel; uel = uel->next) {
-		BLI_dynstr_append(ds, "|");
-		BLI_dynstr_append(ds, uel->name);
-	}
-
-	menu = BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
-
-	return menu;
-}
-
 /* saves .blend using undo buffer, returns 1 == success */
 int BKE_undo_save_file(const char *filename)
 {

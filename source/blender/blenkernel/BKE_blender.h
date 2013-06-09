@@ -96,7 +96,6 @@ extern void BKE_undo_step(struct bContext *C, int step);
 extern void BKE_undo_name(struct bContext *C, const char *name);
 extern int BKE_undo_valid(const char *name);
 extern void BKE_reset_undo(void);
-extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(struct bContext *C, int nr);
 extern const char *BKE_undo_get_name(int nr, int *active);
 extern int BKE_undo_save_file(const char *filename);

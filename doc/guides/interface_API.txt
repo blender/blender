@@ -19,26 +19,22 @@ Contents
 4. API for uiButton 
 4.1 UiDefBut
 	1. BUT
-	2. TOG or TOGN or TOGR
+	2. TOG or TOGN
 	   TOG|BIT|<nr>
-	3. TOG3|BIT|<nr>
-	4. ROW
-	5. SLI or NUMSLI or HSVSLI
-	6. NUM
-	7. TEX
-	8. LABEL
-	9  SEPR
-	10. MENU
-	11.	COL
+	3. ROW
+	4. NUMSLI or HSVSLI
+	5. NUM
+	6. TEX
+	7. LABEL
+	8  SEPR
+	9. MENU
+	10.	COL
 4.2 Icon buttons
-	12. ICONROW
-	13. ICONTEXTROW
 4.3 pulldown menus / block buttons
 	14. BLOCK
 4.4 specials
 	15. KEYEVT
 	16. LINK and INLINK
-	17. IDPOIN
 4.5 uiButton control fuctions
 
 
@@ -289,55 +285,49 @@ type:
 	Activation button. (like "Render")
 	Passing on a pointer is not needed
 	
-2. TOG or TOGN or TOGR
+2. TOG or TOGN
 	Toggle button (like "Lock")
 	The pointer value is set either at 0 or 1
 	If pressed, it calls the optional function with arguments provided.
 	Type TOGN: works negative, when pressed it sets at 0
-	Type TOGR: is part of a row, redraws automatically all buttons with same *poin
 
 	"|BIT|<nr>"
 	When added to type, it works on a single bit <nr> (lowest order bit: nr = '0')
 
-3. TOG3|BIT|<nr>
-	A toggle with 3 values!
-	Can be only used for short *poin.
-	In the third toggle setting, the bit <nr> of *( poin+1) is set.
-	
-4. ROW
+3. ROW
 	Button that's part of a row. 
 	in "min" you set a row-id number, in "max" the value you want *poin to be
 	assigned when you press the button. Always pass on these values as floats.
 	When this button is pressed, it sets the "max" value to *poin, and redraws
 	all buttons with the same row-id number.
 
-5. SLI or NUMSLI or HSVSLI
-	Slider, number-slider or hsv-slider button.
+4. NUMSLI or HSVSLI
+	Number-slider or hsv-slider button.
 	"min" and "max" are to clamp the value to.
 	If you want a button type "Col" to be updated, make 'a1' equal to 'retval'
 	from the COL button.
 	
-6. NUM
+5. NUM
 	Number button
 	Set the clamping values 'min' and 'max' always as float.
 	For UiDefButF, set a 'step' in 'a1', in 1/100's. The step value is the increment or
 	decrement when you click once on the right or left side of a button.
 	The optional button function is additionally called for each change of the *poin value.
 	
-7. TEX
+6. TEX
 	Text string button.
 	Pointertype is standard a char. Value 'max' is length of string (pass as float).
 	When button is left with ESC, it doesn't put the 'retval' at the queue.
 	
-8. LABEL
+7. LABEL
 	Label button.
 	Only displays text. 
 	If 'min' is set at 1.0, the text is printed in white.
 	
-9  SEPR
+8  SEPR
 	A separator line, typically used within pulldown menus.
 	
-10. MENU
+9. MENU
 	Menu button.
 	The syntax of the string in *name defines the menu items:
 		- %t means the previous text becomes the title
@@ -346,7 +336,7 @@ type:
 			without returnvalues, the first item gets value 0 (incl. title!)
 	Example: "Do something %t| turn left %2| turn right %1| nothing %0"
 	
-11.	COLOR
+10.	COLOR
 	A special button that only visualizes a RGB value
 	In 'retval' you can put a code, which is used to identify for sliders if it needs
 	redraws while using the sliders. Check button '5'.
@@ -370,19 +360,6 @@ uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *s
 			float min, float max, float a1, float a2,  char *tip)
 
 	Same again, but now with an icon and string as button name.
-
-Two special icon buttons are available in Blender:
-
-12. ICONROW
-	(uiDefIconBut)
-	This button pops up a vertical menu with a row of icons to choose from.
-	'max' = amount of icons. The icons are supposed to be ordered in a sequence
-	It writes in *poin which item in the menu was choosen (starting with 0).
-
-13. ICONTEXTROW
-	(uiDefIconTextBut)
-	Same as previous, but with the texts next to it.
-
 
 
 -----------4.3 pulldown menus / block buttons
@@ -463,37 +440,6 @@ uiDefIconBut(block, INLINK, 0, ICON_INLINK, x1, y1, w, h, void *poin, short from
 	poin: the pointer of the datablock you want to create links to
 	fromcode: a short identifying which LINK buttons can connect to it 			  
 	
-
-
-17. IDPOIN
-void uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, int retval, char *str, 
-			short x1, short y1, short x2, short y2, void *idpp, char *tip)
-
-	The ID struct is a generic part in structs like Object, Material, Mesh, etc.
-	Most linking options in Blender happens using ID's. (Mesh -> Material).
-	
-	This special button in Blender visualizes an ID pointer with its name. Typing in
-	a new name, changes the pointer. For most ID types in Blender functions have been
-	written already, needed by this button, to check validity of names, and assign the pointer.
-	
-	(BTW: the 'void *idpp' has to be a pointer to the ID pointer!)
-
-	Example function that can be put in 'func':
-	
-	void test_scriptpoin_but(char *name, ID **idpp)
-	{
-		ID *id;
-		
-		id= G.main->text.first;
-		while(id) {
-			if( strcmp(name, id->name+2)==0 ) {
-				*idpp= id;
-				return;
-			}
-			id= id->next;
-		}
-		*idpp= 0;
-	}
 
 
 ------------- 4.5 uiButton control fuctions

@@ -1140,9 +1140,6 @@ int ui_is_but_push_ex(uiBut *but, double *value)
 				break;
 			case TOGBUT:
 			case TOG:
-			case TOGR:
-			case TOG3:
-			case BUT_TOGDUAL:
 			case ICONTOG:
 			case OPTION:
 				UI_GET_BUT_VALUE_INIT(but, *value);
@@ -1420,7 +1417,7 @@ bool ui_is_but_float(uiBut *but)
 
 bool ui_is_but_bool(uiBut *but)
 {
-	if (ELEM5(but->type, TOG, TOGN, TOGR, ICONTOG, ICONTOGN))
+	if (ELEM4(but->type, TOG, TOGN, ICONTOG, ICONTOGN))
 		return true;
 
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
@@ -1620,8 +1617,6 @@ int ui_get_but_string_max_length(uiBut *but)
 {
 	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK))
 		return but->hardmax;
-	else if (but->type == IDPOIN)
-		return MAX_ID_NAME - 2;
 	else
 		return UI_MAX_DRAW_STR;
 }
@@ -1716,7 +1711,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
  */
 void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
 {
-	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (but->rnaprop && ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		PropertyType type;
 		const char *buf = NULL;
 		int buf_len;
@@ -1752,18 +1747,6 @@ void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int 
 			memcpy(str, buf, MIN2(maxlen, (size_t)buf_len + 1));
 			MEM_freeN((void *)buf);
 		}
-	}
-	else if (but->type == IDPOIN) {
-		/* ID pointer */
-		if (but->idpoin_idpp) { /* Can be NULL for ID properties by python */
-			ID *id = *(but->idpoin_idpp);
-			if (id) {
-				BLI_strncpy(str, id->name + 2, maxlen);
-				return;
-			}
-		}
-		str[0] = '\0';
-		return;
 	}
 	else if (but->type == TEX) {
 		/* string */
@@ -1865,7 +1848,7 @@ bool ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double
 
 bool ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
-	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (but->rnaprop && ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -1910,11 +1893,6 @@ bool ui_set_but_string(bContext *C, uiBut *but, const char *str)
 			}
 		}
 	}
-	else if (but->type == IDPOIN) {
-		/* ID pointer */
-		but->idpoin_func(C, str, but->idpoin_idpp);
-		return true;
-	}
 	else if (but->type == TEX) {
 		/* string */
 		if (ui_is_but_utf8(but)) BLI_strncpy_utf8(but->poin, str, but->hardmax);
@@ -1944,7 +1922,6 @@ bool ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		}
 
 		if (!ui_is_but_float(but)) value = (int)floor(value + 0.5);
-		if (but->type == NUMABS) value = fabs(value);
 
 		/* not that we use hard limits here */
 		if (value < (double)but->hardmin) value = but->hardmin;
@@ -2285,7 +2262,6 @@ void ui_check_but(uiBut *but)
 	/* test for min and max, icon sliders, etc */
 	switch (but->type) {
 		case NUM:
-		case SLI:
 		case SCROLL:
 		case NUMSLI:
 			UI_GET_BUT_VALUE_INIT(but, value);
@@ -2293,15 +2269,6 @@ void ui_check_but(uiBut *but)
 			else if (value > (double)but->hardmax) ui_set_but_val(but, but->hardmax);
 			break;
 			
-		case NUMABS:
-		{
-			double value_abs;
-			UI_GET_BUT_VALUE_INIT(but, value);
-			value_abs = fabs(value);
-			if (value_abs < (double)but->hardmin) ui_set_but_val(but, but->hardmin);
-			else if (value_abs > (double)but->hardmax) ui_set_but_val(but, but->hardmax);
-			break;
-		}
 		case ICONTOG: 
 		case ICONTOGN:
 			if (!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
@@ -2310,20 +2277,6 @@ void ui_check_but(uiBut *but)
 			}
 			break;
 			
-		case ICONROW:
-			if (!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
-				UI_GET_BUT_VALUE_INIT(but, value);
-				but->iconadd = (int)value - (int)(but->hardmin);
-			}
-			break;
-			
-		case ICONTEXTROW:
-			if (!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
-				UI_GET_BUT_VALUE_INIT(but, value);
-				but->iconadd = (int)value - (int)(but->hardmin);
-			}
-			break;
-
 			/* quiet warnings for unhandled types */
 		default:
 			break;
@@ -2337,7 +2290,6 @@ void ui_check_but(uiBut *but)
 	switch (but->type) {
 	
 		case MENU:
-		case ICONTEXTROW:
 		
 			if (BLI_rctf_size_x(&but->rect) > 24.0f) {
 				UI_GET_BUT_VALUE_INIT(but, value);
@@ -2347,7 +2299,6 @@ void ui_check_but(uiBut *but)
 	
 		case NUM:
 		case NUMSLI:
-		case NUMABS:
 
 			UI_GET_BUT_VALUE_INIT(but, value);
 
@@ -2394,7 +2345,6 @@ void ui_check_but(uiBut *but)
 		
 			break;
 
-		case IDPOIN:
 		case TEX:
 		case SEARCH_MENU:
 		case SEARCH_MENU_UNLINK:
@@ -2444,14 +2394,6 @@ void ui_check_but(uiBut *but)
 
 			break;
 
-		case BUT_TOGDUAL:
-			/* trying to get the dual-icon to left of text... not very nice */
-			if (but->str[0]) {
-				BLI_strncpy(but->drawstr, "  ", UI_MAX_DRAW_STR);
-				BLI_strncpy(but->drawstr + 2, but->str, UI_MAX_DRAW_STR - 2);
-			}
-			break;
-		
 		case HSVCUBE:
 		case HSVCIRCLE:
 			break;
@@ -2771,7 +2713,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	
 	but->pos = -1;   /* cursor invisible */
 
-	if (ELEM3(but->type, NUM, NUMABS, NUMSLI)) {    /* add a space to name */
+	if (ELEM(but->type, NUM, NUMSLI)) {    /* add a space to name */
 		/* slen remains unchanged from previous assignment, ensure this stays true */
 		if (slen > 0 && slen < UI_MAX_NAME_STR - 2) {
 			if (but->str[slen - 1] != ' ') {
@@ -2782,12 +2724,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	if ((block->flag & UI_BLOCK_LOOP) ||
-	    ELEM9(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
+	    ELEM8(but->type, MENU, TEX, LABEL, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
 	{
 		but->flag |= (UI_TEXT_LEFT | UI_ICON_LEFT);
-	}
-	else if (but->type == BUT_TOGDUAL) {
-		but->flag |= UI_ICON_LEFT;
 	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
@@ -3162,26 +3101,6 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 	}
 	MEM_freeN(autocpl->truncate);
 	MEM_freeN(autocpl);
-}
-
-/* autocomplete callback for ID buttons */
-static void autocomplete_id(bContext *C, char *str, void *arg_v)
-{
-	int blocktype = (intptr_t)arg_v;
-	ListBase *listb = which_libbase(CTX_data_main(C), blocktype);
-	
-	if (listb == NULL) return;
-	
-	/* search if str matches the beginning of an ID struct */
-	if (str[0]) {
-		AutoComplete *autocpl = autocomplete_begin(str, MAX_ID_NAME - 2);
-		ID *id;
-		
-		for (id = listb->first; id; id = id->next)
-			autocomplete_do_name(autocpl, id->name + 2);
-
-		autocomplete_end(autocpl, str);
-	}
 }
 
 static void ui_check_but_and_iconize(uiBut *but, int icon)
@@ -3673,19 +3592,6 @@ void uiButSetCompleteFunc(uiBut *but, uiButCompleteFunc func, void *arg)
 {
 	but->autocomplete_func = func;
 	but->autofunc_arg = arg;
-}
-
-uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, const char *str, int x, int y, short width, short height, void *idpp, const char *tip)
-{
-	uiBut *but = ui_def_but(block, IDPOIN, retval, str, x, y, width, height, NULL, 0.0, 0.0, 0.0, 0.0, tip);
-	but->idpoin_func = func;
-	but->idpoin_idpp = (ID **) idpp;
-	ui_check_but(but);
-	
-	if (blocktype)
-		uiButSetCompleteFunc(but, autocomplete_id, (void *)(intptr_t)blocktype);
-
-	return but;
 }
 
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip)

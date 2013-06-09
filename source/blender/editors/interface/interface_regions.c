@@ -481,7 +481,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->totline++;
 	}
 
-	if (ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* full string */
 		ui_get_but_string(but, buf, sizeof(buf));
 		if (buf[0]) {
@@ -1863,53 +1863,6 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 		}
 	}
 	
-	menudata_free(md);
-}
-
-void ui_block_func_ICONROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
-{
-	uiBlock *block = uiLayoutGetBlock(layout);
-	uiPopupBlockHandle *handle = block->handle;
-	uiBut *but = arg_but;
-	int a;
-	
-	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
-	
-	for (a = (int)but->hardmin; a <= (int)but->hardmax; a++)
-		uiDefIconButF(block, BUTM, B_NOP, but->icon + (a - but->hardmin), 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
-		              &handle->retvalue, (float)a, 0.0, 0, -1, "");
-}
-
-void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
-{
-	uiBlock *block = uiLayoutGetBlock(layout);
-	uiPopupBlockHandle *handle = block->handle;
-	uiBut *but = arg_but, *bt;
-	MenuData *md;
-	MenuEntry *entry;
-	int a;
-	
-	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
-
-	md = decompose_menu_string(but->str);
-
-	/* title */
-	if (md->title) {
-		bt = uiDefBut(block, LABEL, 0, md->title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-		bt->flag = UI_TEXT_LEFT;
-	}
-
-	/* loop through the menu options and draw them out with icons & text labels */
-	for (a = 0; a < md->nitems; a++) {
-		entry = &md->items[md->nitems - a - 1];
-
-		if (entry->sepr)
-			uiItemS(layout);
-		else
-			uiDefIconTextButF(block, BUTM, B_NOP, (short)((but->icon) + (entry->retval - but->hardmin)), entry->str,
-			                  0, 0, UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, -1, "");
-	}
-
 	menudata_free(md);
 }
 
