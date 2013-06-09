@@ -3259,15 +3259,16 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			case 1: /* rotation */
 				for (i = 0; i < 3; i++) {
 					float tmin, tmax;
+					float val;
 					
 					tmin = data->to_min[i];
 					tmax = data->to_max[i];
 					
 					/* all values here should be in degrees */
-					eul[i] = tmin + (sval[(int)data->map[i]] * (tmax - tmin));
+					val = tmin + (sval[(int)data->map[i]] * (tmax - tmin));
 					
-					/* now convert final value back to radians */
-					eul[i] = DEG2RADF(eul[i]);
+					/* now convert final value back to radians, and add to original rotation (so that it can still be rotated) */
+					eul[i] += DEG2RADF(val);
 				}
 				break;
 			default: /* location */

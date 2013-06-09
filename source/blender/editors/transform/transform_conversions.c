@@ -4563,16 +4563,17 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 			if ((con->flag & CONSTRAINT_DISABLE) == 0 && (con->enforce != 0.0f)) {
 				/* (affirmative) returns for specific constraints here... */
 				/* constraints that require this regardless  */
-				if (ELEM5(con->type,
+				if (ELEM6(con->type,
 				          CONSTRAINT_TYPE_CHILDOF,
 				          CONSTRAINT_TYPE_FOLLOWPATH,
 				          CONSTRAINT_TYPE_CLAMPTO,
 				          CONSTRAINT_TYPE_OBJECTSOLVER,
-				          CONSTRAINT_TYPE_FOLLOWTRACK))
+				          CONSTRAINT_TYPE_FOLLOWTRACK,
+				          CONSTRAINT_TYPE_TRANSFORM))
 				{
 					return true;
 				}
-
+				
 				/* constraints that require this only under special conditions */
 				if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
 					/* CopyRot constraint only does this when rotating, and offset is on */
