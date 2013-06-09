@@ -1264,8 +1264,14 @@ static void gp_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2
 {
 	Nurb *nu;
 	const float delta = minmax_weights[0];
-	const float fac = 1.0f / (minmax_weights[1] - delta);
+	float fac;
 	int i;
+	
+	/* when delta == minmax_weights[0] == minmax_weights[1], we get div by zero [#35686] */
+	if (IS_EQ(delta, minmax_weights[1]))
+		fac = 1.0f;
+	else
+		fac = 1.0f / (minmax_weights[1] - delta);
 	
 	for (nu = cu->nurb.first; nu; nu = nu->next) {
 		if (nu->bezt) {
@@ -1361,12 +1367,14 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	}
 
 	/* If link_strokes, be sure first and last points have a zero weight/size! */
-	if (link_strokes)
+	if (link_strokes) {
 		gp_stroke_finalize_curve_endpoints(cu);
-
+	}
+	
 	/* Update curve's weights, if needed */
-	if (norm_weights && ((minmax_weights[0] > 0.0f) || (minmax_weights[1] < 1.0f)))
+	if (norm_weights && ((minmax_weights[0] > 0.0f) || (minmax_weights[1] < 1.0f))) {
 		gp_stroke_norm_curve_weights(cu, minmax_weights);
+	}
 
 	/* Create the path animation, if needed */
 	gp_stroke_path_animation(C, reports, cu, gtd);
