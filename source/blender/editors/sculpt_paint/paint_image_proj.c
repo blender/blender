@@ -3794,6 +3794,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
 
 						straight_uchar_to_premul_float(newColor_f, projPixel->newColor.ch);
+						IMB_colormanagement_colorspace_to_scene_linear_v4(newColor_f, TRUE, ps->reproject_ibuf->rect_colorspace);
 						mul_v4_v4fl(newColor_f, newColor_f, mask);
 
 						blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f,
