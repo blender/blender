@@ -888,9 +888,9 @@ int isect_point_quad_v2(const float pt[2], const float v1[2], const float v2[2],
  * test if the line starting at p1 ending at p2 intersects the triangle v0..v2
  * return non zero if it does
  */
-int isect_line_tri_v3(const float p1[3], const float p2[3],
-                      const float v0[3], const float v1[3], const float v2[3],
-                      float *r_lambda, float r_uv[2])
+bool isect_line_tri_v3(const float p1[3], const float p2[3],
+                       const float v0[3], const float v1[3], const float v2[3],
+                       float *r_lambda, float r_uv[2])
 {
 
 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
@@ -930,9 +930,9 @@ int isect_line_tri_v3(const float p1[3], const float p2[3],
  * test if the ray starting at p1 going in d direction intersects the triangle v0..v2
  * return non zero if it does
  */
-int isect_ray_tri_v3(const float p1[3], const float d[3],
-                     const float v0[3], const float v1[3], const float v2[3],
-                     float *r_lambda, float r_uv[2])
+bool isect_ray_tri_v3(const float p1[3], const float d[3],
+                      const float v0[3], const float v1[3], const float v2[3],
+                      float *r_lambda, float r_uv[2])
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
@@ -972,9 +972,9 @@ int isect_ray_tri_v3(const float p1[3], const float d[3],
  * if clip is nonzero, will only return true if lambda is >= 0.0
  * (i.e. intersection point is along positive d)
  */
-int isect_ray_plane_v3(const float p1[3], const float d[3],
-                       const float v0[3], const float v1[3], const float v2[3],
-                       float *r_lambda, const int clip)
+bool isect_ray_plane_v3(const float p1[3], const float d[3],
+                        const float v0[3], const float v1[3], const float v2[3],
+                        float *r_lambda, const int clip)
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f;
@@ -1004,9 +1004,9 @@ int isect_ray_plane_v3(const float p1[3], const float d[3],
 	return 1;
 }
 
-int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
-                             const float v0[3], const float v1[3], const float v2[3],
-                             float *r_lambda, float uv[2], const float epsilon)
+bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
+                              const float v0[3], const float v1[3], const float v2[3],
+                              float *r_lambda, float uv[2], const float epsilon)
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
@@ -1040,9 +1040,9 @@ int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 	return 1;
 }
 
-int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
-                               const float v0[3], const float v1[3], const float v2[3],
-                               float *r_lambda, float r_uv[2], const float threshold)
+bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
+                                const float v0[3], const float v1[3], const float v2[3],
+                                float *r_lambda, float r_uv[2], const float threshold)
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
@@ -1100,9 +1100,9 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
  * \param plane_no The direction of the plane (does not need to be normalized).
  * \param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
  */
-int isect_line_plane_v3(float out[3],
-                        const float l1[3], const float l2[3],
-                        const float plane_co[3], const float plane_no[3], const bool no_flip)
+bool isect_line_plane_v3(float out[3],
+                         const float l1[3], const float l2[3],
+                         const float plane_co[3], const float plane_no[3], const bool no_flip)
 {
 	float l_vec[3]; /* l1 -> l2 normalized vector */
 	float p_no[3]; /* 'plane_no' normalized */
@@ -1174,7 +1174,7 @@ void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
 /* Adapted from the paper by Kasper Fauerby */
 
 /* "Improved Collision detection and Response" */
-static int getLowestRoot(const float a, const float b, const float c, const float maxR, float *root)
+static bool getLowestRoot(const float a, const float b, const float c, const float maxR, float *root)
 {
 	/* Check if a solution exists */
 	float determinant = b * b - 4.0f * a * c;
@@ -1208,15 +1208,15 @@ static int getLowestRoot(const float a, const float b, const float c, const floa
 	return 0;
 }
 
-int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
-                                 const float v0[3], const float v1[3], const float v2[3],
-                                 float *r_lambda, float ipoint[3])
+bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
+                                  const float v0[3], const float v1[3], const float v2[3],
+                                  float *r_lambda, float ipoint[3])
 {
 	float e1[3], e2[3], e3[3], point[3], vel[3], /*dist[3],*/ nor[3], temp[3], bv[3];
 	float a, b, c, d, e, x, y, z, radius2 = radius * radius;
 	float elen2, edotv, edotbv, nordotv;
 	float newLambda;
-	int found_by_sweep = 0;
+	bool found_by_sweep = false;
 
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
@@ -1396,8 +1396,8 @@ int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const flo
 	return found_by_sweep;
 }
 
-int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3],
-                            const float v0[3], const float v1[3], const float v2[3], float *r_lambda)
+bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3],
+                             const float v0[3], const float v1[3], const float v2[3], float *r_lambda)
 {
 	float p[3], e1[3], e2[3];
 	float u, v, f;
@@ -1513,7 +1513,9 @@ int isect_line_line_v3(const float v1[3], const float v2[3], const float v3[3], 
 /* Intersection point strictly between the two lines
  * 0 when no intersection is found
  * */
-int isect_line_line_strict_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3], float vi[3], float *r_lambda)
+bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
+                               const float v3[3], const float v4[3],
+                               float vi[3], float *r_lambda)
 {
 	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
 	float d;
@@ -1561,7 +1563,7 @@ int isect_line_line_strict_v3(const float v1[3], const float v2[3], const float 
 	}
 }
 
-int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3])
+bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3])
 {
 	return (min1[0] < max2[0] && min1[1] < max2[1] && min1[2] < max2[2] &&
 	        min2[0] < max1[0] && min2[1] < max1[1] && min2[2] < max1[2]);
@@ -1581,8 +1583,8 @@ void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3],
 }
 
 /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
-int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
-                   const float bb_max[3], float *tmin_out)
+bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
+                    const float bb_max[3], float *tmin_out)
 {
 	float bbox[2][3];
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
@@ -1913,7 +1915,7 @@ int isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y
 	return isect_point_tri_v2(p, v1, v2, v3);
 }
 
-static int point_in_slice(const float p[3], const float v1[3], const float l1[3], const float l2[3])
+static bool point_in_slice(const float p[3], const float v1[3], const float l1[3], const float l2[3])
 {
 	/*
 	 * what is a slice ?
@@ -1962,7 +1964,7 @@ static int point_in_slice_m(float p[3], float origin[3], float normal[3], float 
 }
 #endif
 
-int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3])
+bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	if (!point_in_slice(p, v1, v2, v3)) return 0;
 	if (!point_in_slice(p, v2, v3, v1)) return 0;

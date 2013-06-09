@@ -1268,7 +1268,7 @@ static void gp_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2
 	int i;
 	
 	/* when delta == minmax_weights[0] == minmax_weights[1], we get div by zero [#35686] */
-	if (IS_EQ(delta, minmax_weights[1]))
+	if (IS_EQF(delta, minmax_weights[1]))
 		fac = 1.0f;
 	else
 		fac = 1.0f / (minmax_weights[1] - delta);

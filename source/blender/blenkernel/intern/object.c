@@ -1139,7 +1139,7 @@ static void copy_object_pose(Object *obn, Object *ob)
 	}
 }
 
-int BKE_object_pose_context_check(Object *ob)
+bool BKE_object_pose_context_check(Object *ob)
 {
 	if ((ob) &&
 	    (ob->type == OB_ARMATURE) &&
@@ -2223,7 +2223,7 @@ void BKE_object_workob_calc_parent(Scene *scene, Object *ob, Object *workob)
 BoundBox *BKE_boundbox_alloc_unit(void)
 {
 	BoundBox *bb;
-	float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {-1.0f, -1.0f, -1.0f};
+	const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {-1.0f, -1.0f, -1.0f};
 
 	bb = MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
 	BKE_boundbox_init_from_minmax(bb, min, max);
@@ -2231,7 +2231,7 @@ BoundBox *BKE_boundbox_alloc_unit(void)
 	return bb;
 }
 
-void BKE_boundbox_init_from_minmax(BoundBox *bb, float min[3], float max[3])
+void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float max[3])
 {
 	bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = min[0];
 	bb->vec[4][0] = bb->vec[5][0] = bb->vec[6][0] = bb->vec[7][0] = max[0];
@@ -2412,9 +2412,9 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 	}
 }
 
-int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
+bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
 {
-	int ok = FALSE;
+	bool ok = false;
 	if ((ob->transflag & OB_DUPLI) == 0) {
 		return ok;
 	}
@@ -2874,15 +2874,17 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
  * Test a bounding box for ray intersection
  * assumes the ray is already local to the boundbox space
  */
-int BKE_boundbox_ray_hit_check(struct BoundBox *bb, float ray_start[3], float ray_normal[3])
+bool BKE_boundbox_ray_hit_check(struct BoundBox *bb, const float ray_start[3], const float ray_normal[3])
 {
-	static int triangle_indexes[12][3] = {{0, 1, 2}, {0, 2, 3},
-	                                      {3, 2, 6}, {3, 6, 7},
-	                                      {1, 2, 6}, {1, 6, 5},
-	                                      {5, 6, 7}, {4, 5, 7},
-	                                      {0, 3, 7}, {0, 4, 7},
-	                                      {0, 1, 5}, {0, 4, 5}};
-	int result = 0;
+	const int triangle_indexes[12][3] = {
+	    {0, 1, 2}, {0, 2, 3},
+	    {3, 2, 6}, {3, 6, 7},
+	    {1, 2, 6}, {1, 6, 5},
+	    {5, 6, 7}, {4, 5, 7},
+	    {0, 3, 7}, {0, 4, 7},
+	    {0, 1, 5}, {0, 4, 5}};
+
+	bool result = false;
 	int i;
 	
 	for (i = 0; i < 12 && result == 0; i++) {
