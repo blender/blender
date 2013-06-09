@@ -83,10 +83,6 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	wmWindow *win;
 	static int recursive_check = FALSE;
 
-	/* why do this function then? :) */
-	if (updated == 0)
-		return;
-	
 	/* don't do this render engine update if we're updating the scene from
 	 * other threads doing e.g. rendering or baking jobs */
 	if (!BLI_thread_is_main())
@@ -126,6 +122,9 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 				rv3d = ar->regiondata;
 				engine = rv3d->render_engine;
 
+				/* call update if the scene changed, or if the render engine
+				 * tagged itself for update (e.g. because it was busy at the
+				 * time of the last update) */
 				if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
 
 					CTX_wm_screen_set(C, sc);
