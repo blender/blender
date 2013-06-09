@@ -120,44 +120,21 @@ class MyCustomNode(bpy.types.Node, MyCustomTreeNode):
         layout.prop(self, "myStringProperty")
 
 
-# A customized group-like node.
-class MyCustomGroup(bpy.types.NodeGroup, MyCustomTreeNode):
-    # === Basics ===
-    # Description string
-    '''A custom group node'''
-    # Label for nice name display
-    bl_label = 'Custom Group Node'
-    bl_group_tree_idname = 'CustomTreeType'
 
-    orks = bpy.props.IntProperty(default=3)
-    dwarfs = bpy.props.IntProperty(default=12)
-    wizards = bpy.props.IntProperty(default=1)
 
-    # Additional buttons displayed on the node.
-    def draw_buttons(self, context, layout):
-        col = layout.column(align=True)
-        col.prop(self, "orks")
-        col.prop(self, "dwarfs")
-        col.prop(self, "wizards")
-
-        layout.label("The Node Tree:")
-        layout.prop(self, "node_tree", text="")
 
 
 def register():
     bpy.utils.register_class(MyCustomTree)
     bpy.utils.register_class(MyCustomSocket)
     bpy.utils.register_class(MyCustomNode)
-    bpy.utils.register_class(MyCustomGroup)
 
 
 def unregister():
     bpy.utils.unregister_class(MyCustomTree)
     bpy.utils.unregister_class(MyCustomSocket)
     bpy.utils.unregister_class(MyCustomNode)
-    bpy.utils.unregister_class(MyCustomGroup)
 
 
 if __name__ == "__main__":
     register()
-
