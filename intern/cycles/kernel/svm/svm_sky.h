@@ -18,26 +18,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float3 xyY_to_xyz(float x, float y, float Y)
-{
-	float X, Z;
-
-	if(y != 0.0f) X = (x / y) * Y;
-	else X = 0.0f;
-
-	if(y != 0.0f && Y != 0.0f) Z = (1.0f - x - y) / y * Y;
-	else Z = 0.0f;
-
-	return make_float3(X, Y, Z);
-}
-
-__device float3 xyz_to_rgb(float x, float y, float z)
-{
-	return make_float3(3.240479f * x + -1.537150f * y + -0.498535f * z,
-					  -0.969256f * x +  1.875991f * y +  0.041556f * z,
-					   0.055648f * x + -0.204043f * y +  1.057311f * z);
-}
-
 /*
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits

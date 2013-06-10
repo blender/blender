@@ -152,6 +152,7 @@ CCL_NAMESPACE_END
 #include "svm_displace.h"
 #include "svm_fresnel.h"
 #include "svm_wireframe.h"
+#include "svm_wavelength.h"
 #include "svm_camera.h"
 #include "svm_geometry.h"
 #include "svm_hsv.h"
@@ -362,6 +363,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_wireframe(kg, sd, stack, node.y, node.z, node.w);
 				break;
 #ifdef __EXTRA_NODES__
+			case NODE_WAVELENGTH:
+				svm_node_wavelength(sd, stack, node.y, node.z);
+				break;
 			case NODE_SET_DISPLACEMENT:
 				svm_node_set_displacement(sd, stack, node.y);
 				break;

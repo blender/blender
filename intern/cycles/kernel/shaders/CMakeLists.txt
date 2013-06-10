@@ -67,6 +67,7 @@ set(SRC_OSL
 	node_velvet_bsdf.osl
 	node_voronoi_texture.osl
 	node_ward_bsdf.osl
+	node_wavelength.osl
 	node_wave_texture.osl
 	node_wireframe.osl
 )

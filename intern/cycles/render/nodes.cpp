@@ -2953,6 +2953,30 @@ void WireframeNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_wireframe");
 }
 
+/* Wavelength */
+
+WavelengthNode::WavelengthNode()
+: ShaderNode("Wavelength")
+{
+	add_input("Wavelength", SHADER_SOCKET_FLOAT, 500.0f);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void WavelengthNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *wavelength_in = input("Wavelength");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(wavelength_in);
+	compiler.stack_assign(color_out);
+	compiler.add_node(NODE_WAVELENGTH, wavelength_in->stack_offset, color_out->stack_offset, NULL);
+}
+
+void WavelengthNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_wavelength");
+}
+
 /* Output */
 
 OutputNode::OutputNode()

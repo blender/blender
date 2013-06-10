@@ -16,28 +16,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "svm_hsv.h"
-
 CCL_NAMESPACE_BEGIN
-
-__device float3 svm_lerp(const float3 a, const float3 b, float t)
-{
-	return (a * (1.0f - t) + b * t);
-}
 
 __device float3 svm_mix_blend(float t, float3 col1, float3 col2)
 {
-	return svm_lerp(col1, col2, t);
+	return interp(col1, col2, t);
 }
 
 __device float3 svm_mix_add(float t, float3 col1, float3 col2)
 {
-	return svm_lerp(col1, col1 + col2, t);
+	return interp(col1, col1 + col2, t);
 }
 
 __device float3 svm_mix_mul(float t, float3 col1, float3 col2)
 {
-	return svm_lerp(col1, col1 * col2, t);
+	return interp(col1, col1 * col2, t);
 }
 
 __device float3 svm_mix_screen(float t, float3 col1, float3 col2)
@@ -75,7 +68,7 @@ __device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
 
 __device float3 svm_mix_sub(float t, float3 col1, float3 col2)
 {
-	return svm_lerp(col1, col1 - col2, t);
+	return interp(col1, col1 - col2, t);
 }
 
 __device float3 svm_mix_div(float t, float3 col1, float3 col2)
@@ -93,7 +86,7 @@ __device float3 svm_mix_div(float t, float3 col1, float3 col2)
 
 __device float3 svm_mix_diff(float t, float3 col1, float3 col2)
 {
-	return svm_lerp(col1, fabs(col1 - col2), t);
+	return interp(col1, fabs(col1 - col2), t);
 }
 
 __device float3 svm_mix_dark(float t, float3 col1, float3 col2)
@@ -191,7 +184,7 @@ __device float3 svm_mix_hue(float t, float3 col1, float3 col2)
 		hsv.x = hsv2.x;
 		float3 tmp = hsv_to_rgb(hsv); 
 
-		outcol = svm_lerp(outcol, tmp, t);
+		outcol = interp(outcol, tmp, t);
 	}
 
 	return outcol;
@@ -238,7 +231,7 @@ __device float3 svm_mix_color(float t, float3 col1, float3 col2)
 		hsv.y = hsv2.y;
 		float3 tmp = hsv_to_rgb(hsv); 
 
-		outcol = svm_lerp(outcol, tmp, t);
+		outcol = interp(outcol, tmp, t);
 	}
 
 	return outcol;

@@ -397,6 +397,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		wire->use_pixel_size = b_wireframe_node.use_pixel_size();
 		node = wire;
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeWavelength)) {
+		node = new WavelengthNode();
+	}
 	else if (b_node.is_a(&RNA_ShaderNodeLightPath)) {
 		node = new LightPathNode();
 	}

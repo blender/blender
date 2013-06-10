@@ -457,6 +457,11 @@ public:
 	bool use_pixel_size;
 };
 
+class WavelengthNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(WavelengthNode)
+};
+
 class MathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MathNode)
