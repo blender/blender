@@ -317,11 +317,6 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 				b_node.outputs.remove(b_sock);
 				b_sock = BL::NodeSocket(PointerRNA_NULL);
 			}
-			
-			if (!b_sock) {
-				/* create new socket */
-				b_sock = b_node.outputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
-			}
 		}
 		else {
 			b_sock = b_node.inputs[param->name];
@@ -331,15 +326,16 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 				b_node.inputs.remove(b_sock);
 				b_sock = BL::NodeSocket(PointerRNA_NULL);
 			}
-			
-			if (!b_sock) {
-				/* create new socket */
-				b_sock = b_node.inputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
-			}
 		}
 
-		/* set default value */
-		if(b_sock) {
+		if(!b_sock) {
+			/* create new socket */
+			if(param->isoutput)
+				b_sock = b_node.outputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
+			else
+				b_sock = b_node.inputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
+
+			/* set default value */
 			if(data_type == BL::NodeSocket::type_VALUE) {
 				set_float(b_sock.ptr, "default_value", default_float);
 			}
