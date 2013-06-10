@@ -856,7 +856,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.fractal = fractal;
 	params.along_normal = along_normal;
 	params.use_smooth  = (smooth  != 0.0f);
-	params.use_smooth_even = BMO_slot_get(op->slots_in, "use_smooth_even");
+	params.use_smooth_even = BMO_slot_bool_get(op->slots_in, "use_smooth_even");
 	params.use_fractal = (fractal != 0.0f);
 	params.use_sphere  = use_sphere;
 
