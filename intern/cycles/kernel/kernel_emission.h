@@ -199,11 +199,9 @@ __device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int p
 #ifdef __PASSES__
 	/* use visibility flag to skip lights */
 	if(ls.shader & SHADER_EXCLUDE_ANY) {
-		if((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE))
-			return false;
-		if((ls.shader & SHADER_EXCLUDE_GLOSSY) && (path_flag & PATH_RAY_GLOSSY))
-			return false;
-		if((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT))
+		if(((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE)) ||
+		   ((ls.shader & SHADER_EXCLUDE_GLOSSY) && (path_flag & PATH_RAY_GLOSSY)) ||
+		   ((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT)))
 			return false;
 	}
 #endif
@@ -229,9 +227,21 @@ __device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int p
 __device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf)
 {
 #ifdef __BACKGROUND__
+	int shader = kernel_data.background.shader;
+
+	/* use visibility flag to skip lights */
+	if(shader & SHADER_EXCLUDE_ANY) {
+		if(((shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE)) ||
+		   ((shader & SHADER_EXCLUDE_GLOSSY) && (path_flag & PATH_RAY_GLOSSY)) ||
+		   ((shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT)) ||
+		   ((shader & SHADER_EXCLUDE_CAMERA) && (path_flag & PATH_RAY_CAMERA)))
+			return make_float3(0.0f, 0.0f, 0.0f);
+	}
+
 	/* evaluate background closure */
 	ShaderData sd;
 	shader_setup_from_background(kg, &sd, ray);
+
 	float3 L = shader_eval_background(kg, &sd, path_flag, SHADER_CONTEXT_EMISSION);
 
 #ifdef __BACKGROUND_MIS__

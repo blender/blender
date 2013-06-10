@@ -589,6 +589,12 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
                 type=cls,
                 )
 
+        bpy.types.World.cycles_visibility = PointerProperty(
+                name="Cycles Visibility Settings",
+                description="Cycles visibility settings",
+                type=cls,
+                )
+
         cls.camera = BoolProperty(
                 name="Camera",
                 description="Object visibility for camera rays",

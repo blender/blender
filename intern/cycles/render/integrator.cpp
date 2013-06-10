@@ -173,7 +173,8 @@ bool Integrator::modified(const Integrator& integrator)
 		ao_samples == integrator.ao_samples &&
 		mesh_light_samples == integrator.mesh_light_samples &&
 		subsurface_samples == integrator.subsurface_samples &&
-		motion_blur == integrator.motion_blur);
+		motion_blur == integrator.motion_blur &&
+		sampling_pattern == integrator.sampling_pattern);
 }
 
 void Integrator::tag_update(Scene *scene)

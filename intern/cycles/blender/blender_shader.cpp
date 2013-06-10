@@ -895,8 +895,8 @@ void BlenderSync::sync_world(bool update_all)
 			graph->connect(closure->output("Background"), out->input("Surface"));
 		}
 
-		/* AO */
 		if(b_world) {
+			/* AO */
 			BL::WorldLighting b_light = b_world.light_settings();
 
 			if(b_light.use_ambient_occlusion())
@@ -905,6 +905,17 @@ void BlenderSync::sync_world(bool update_all)
 				background->ao_factor = 0.0f;
 
 			background->ao_distance = b_light.distance();
+
+			/* visibility */
+			PointerRNA cvisibility = RNA_pointer_get(&b_world.ptr, "cycles_visibility");
+			uint visibility = 0;
+
+			visibility |= get_boolean(cvisibility, "camera")? PATH_RAY_CAMERA: 0;
+			visibility |= get_boolean(cvisibility, "diffuse")? PATH_RAY_DIFFUSE: 0;
+			visibility |= get_boolean(cvisibility, "glossy")? PATH_RAY_GLOSSY: 0;
+			visibility |= get_boolean(cvisibility, "transmission")? PATH_RAY_TRANSMIT: 0;
+
+			background->visibility = visibility;
 		}
 
 		shader->set_graph(graph);

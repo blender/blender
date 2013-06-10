@@ -34,6 +34,8 @@ public:
 
 	bool use;
 
+	uint visibility;
+
 	bool transparent;
 	bool need_update;
 
