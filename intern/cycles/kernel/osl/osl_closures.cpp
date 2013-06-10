@@ -198,6 +198,8 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_diffuse_toon_params(), bsdf_diffuse_toon_prepare);
 	register_closure(ss, "glossy_toon", id++,
 		bsdf_glossy_toon_params(), bsdf_glossy_toon_prepare);
+	register_closure(ss, "specular_toon", id++,
+		bsdf_glossy_toon_params(), bsdf_glossy_toon_prepare);
 	register_closure(ss, "westin_backscatter", id++,
 		bsdf_westin_backscatter_params(), bsdf_westin_backscatter_prepare);
 	register_closure(ss, "westin_sheen", id++,

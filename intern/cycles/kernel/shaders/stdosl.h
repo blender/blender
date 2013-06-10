@@ -467,10 +467,7 @@ closure color bssrdf_cubic(normal N, vector radius) BUILTIN;
 
 // Backwards compatibility
 
-closure color specular_toon(normal N, float size, float smooth)
-{
-	return glossy_toon(N, size, smooth);
-}
+closure color specular_toon(normal N, float size, float smooth) BUILTIN;
 
 // Renderer state
 int raytype (string typename) BUILTIN;

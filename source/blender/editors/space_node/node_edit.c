@@ -2315,9 +2315,6 @@ static int node_shader_script_update_poll(bContext *C)
 	bNode *node;
 	Text *text;
 
-	if (!ED_operator_node_editable(C))
-		return 0;
-
 	/* test if we have a render engine that supports shaders scripts */
 	if (!(type && type->update_script_node))
 		return 0;
@@ -2325,14 +2322,14 @@ static int node_shader_script_update_poll(bContext *C)
 	/* see if we have a shader script node in context */
 	node = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript).data;
 
-	if (!node)
+	if (!node && snode && snode->edittree)
 		node = nodeGetActive(snode->edittree);
 
 	if (node && node->type == SH_NODE_SCRIPT) {
 		NodeShaderScript *nss = node->storage;
 
 		if (node->id || nss->filepath[0]) {
-			return 1;
+			return ED_operator_node_editable(C);
 		}
 	}
 
