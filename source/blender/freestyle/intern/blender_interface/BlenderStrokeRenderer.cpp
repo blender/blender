@@ -69,7 +69,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 
 	old_scene = re->scene;
 
-	char name[22];
+	char name[MAX_ID_NAME - 2];
 	BLI_snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name + 2);
 	freestyle_scene = BKE_scene_add(freestyle_bmain, name);
 	freestyle_scene->r.cfra = old_scene->r.cfra;
