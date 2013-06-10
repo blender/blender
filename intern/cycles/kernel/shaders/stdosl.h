@@ -465,6 +465,13 @@ closure color holdout() BUILTIN;
 closure color ambient_occlusion() BUILTIN;
 closure color bssrdf_cubic(normal N, vector radius) BUILTIN;
 
+// Backwards compatibility
+
+closure color specular_toon(normal N, float size, float smooth)
+{
+	return glossy_toon(N, size, smooth);
+}
+
 // Renderer state
 int raytype (string typename) BUILTIN;
 // the individual 'isFOOray' functions are deprecated
