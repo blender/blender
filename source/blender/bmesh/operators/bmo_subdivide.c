@@ -49,6 +49,7 @@ typedef struct SubDParams {
 	float along_normal;
 	//int beauty;
 	bool use_smooth;
+	bool use_smooth_even;
 	bool use_sphere;
 	bool use_fractal;
 	int seed;
@@ -179,6 +180,10 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		/* falloff for multi subdivide */
 		val = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
 		val = bmesh_subd_falloff_calc(params->smooth_falloff, val);
+
+		if (params->use_smooth_even) {
+			val *= BM_vert_calc_shell_factor(v);
+		}
 
 		mul_v3_fl(tvec, params->smooth * val * len);
 
@@ -830,6 +835,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.fractal = fractal;
 	params.along_normal = along_normal;
 	params.use_smooth  = (smooth  != 0.0f);
+	params.use_smooth_even = BMO_slot_get(op->slots_in, "use_smooth_even");
 	params.use_fractal = (fractal != 0.0f);
 	params.use_sphere  = use_sphere;
 	params.origkey = skey;
@@ -1146,7 +1152,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 /* editmesh-emulating function */
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        const float smooth, const short smooth_falloff,
+                        const float smooth, const short smooth_falloff, const bool use_smooth_even,
                         const float fractal, const float along_normal,
                         const int numcuts,
                         const int seltype, const int cornertype,
@@ -1159,7 +1165,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	/* use_sphere isnt exposed here since its only used for new primitives */
 	BMO_op_initf(bm, &op, BMO_FLAG_DEFAULTS,
 	             "subdivide_edges edges=%he "
-	             "smooth=%f smooth_falloff=%i "
+	             "smooth=%f smooth_falloff=%i use_smooth_even=%b "
 	             "fractal=%f along_normal=%f "
 	             "cuts=%i "
 	             "quad_corner_type=%i "
@@ -1167,7 +1173,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	             "use_only_quads=%b "
 	             "seed=%i",
 	             edge_hflag,
-	             smooth, smooth_falloff,
+	             smooth, smooth_falloff, use_smooth_even,
 	             fractal, along_normal,
 	             numcuts,
 	             cornertype,

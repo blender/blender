@@ -122,7 +122,7 @@ extern const int         bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        const float smooth, const short smooth_falloff,
+                        const float smooth, const short smooth_falloff, const bool use_smooth_even,
                         const float fractal, const float along_normal,
                         const int numcuts,
                         const int seltype, const int cornertype,
