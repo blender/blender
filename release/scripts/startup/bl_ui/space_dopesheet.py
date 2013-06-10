@@ -67,6 +67,8 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
                 row.prop(dopesheet, "show_meshes", text="")
             if bpy.data.shape_keys:
                 row.prop(dopesheet, "show_shapekeys", text="")
+            if bpy.data.meshes:
+                row.prop(dopesheet, "show_modifiers", text="")
             if bpy.data.materials:
                 row.prop(dopesheet, "show_materials", text="")
             if bpy.data.lamps:

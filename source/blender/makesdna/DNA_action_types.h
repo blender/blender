@@ -159,7 +159,9 @@ typedef enum eMotionPaths_ViewFlag {
 	/* show keyframe/frame numbers */
 	MOTIONPATH_VIEW_KFNOS       = (1 << 2),
 	/* find keyframes in whole action (instead of just in matching group name) */
-	MOTIONPATH_VIEW_KFACT       = (1 << 3)
+	MOTIONPATH_VIEW_KFACT       = (1 << 3),
+	/* draw lines on path */
+	MOTIONPATH_VIEW_LINES       = (1 << 4)
 } eMotionPath_ViewFlag;
 
 /* bAnimVizSettings->path_bakeflag */
@@ -561,6 +563,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NOTEX            = (1 << 20),
 	ADS_FILTER_NOSPK            = (1 << 21),
 	ADS_FILTER_NOLINESTYLE      = (1 << 22),
+	ADS_FILTER_NOMODIFIERS      = (1 << 23),
 
 	/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT        = (1 << 25),  /* if the AnimData block has no NLA data, don't include to just show Action-line */
@@ -571,7 +574,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_ONLY_ERRORS		= (1 << 28),  /* show only F-Curves which are disabled/have errors - for debugging drivers */
 	
 	/* combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK)
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS)
 } eDopeSheet_FilterFlag;	
 
 /* DopeSheet general flags */
