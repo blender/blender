@@ -28,7 +28,6 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
     "Extrude individual elements and move"
     bl_label = "Extrude Individual and Move"
     bl_idname = "view3d.edit_mesh_extrude_individual_move"
-    bl_options = {'UNDO'}
 
     def execute(self, context):
         mesh = context.object.data
@@ -97,6 +96,7 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
     "Select element under the mouse, deselect everything is there's nothing under the mouse"
     bl_label = "Select or Deselect All"
     bl_idname = "view3d.select_or_deselect_all"
+    bl_options = {'UNDO'}
 
     extend = BoolProperty(
             name="Extend",
