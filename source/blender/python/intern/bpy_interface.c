@@ -777,7 +777,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 		/* pass */
 	}
 	else if (item == Py_None) {
-		/* pass */
+		done = true;
 	}
 	else if (BPy_StructRNA_Check(item)) {
 		ptr = &(((BPy_StructRNA *)item)->ptr);

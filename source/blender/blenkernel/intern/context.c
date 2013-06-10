@@ -268,9 +268,9 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	memset(result, 0, sizeof(bContextDataResult));
 #ifdef WITH_PYTHON
 	if (CTX_py_dict_get(C)) {
-		return BPY_context_member_get(C, member, result);
-//		if (BPY_context_member_get(C, member, result))
-//			return 1;
+		if (BPY_context_member_get(C, member, result)) {
+			return 1;
+		}
 	}
 #endif
 
