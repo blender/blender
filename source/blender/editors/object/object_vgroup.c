@@ -993,7 +993,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 
 			EDBM_index_arrays_ensure(em, BM_VERT);
 
-			if ((cd_dvert_offset != -1) || (eve = EDBM_vert_at_index(em, vertnum))) {
+			if ((cd_dvert_offset != -1) && (eve = EDBM_vert_at_index(em, vertnum))) {
 				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
 			else {
