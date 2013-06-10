@@ -73,27 +73,27 @@ __device void svm_node_wavelength(ShaderData *sd, float *stack, uint wavelength,
 	};
 
 	float lambda_nm = stack_load_float(stack, wavelength);
-	float3 rgb;
-	
     float ii = (lambda_nm-380.0f) / 5.0f;  // scaled 0..80
     int i = float_to_int(ii);
+	float3 color;
+	
     if (i < 0 || i >= 80) {
-        rgb = make_float3(0.0f, 0.0f, 0.0f);
+        color = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else {
 		ii -= i;
 		float *c = cie_colour_match[i];
-		rgb = lerp_interp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
+		color = lerp_interp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
 	}
 	
-	rgb = xyz_to_rgb(rgb.x, rgb.y, rgb.z);
-	rgb *= 1.0/2.52;    // Empirical scale from lg to make all comps <= 1
+	color = xyz_to_rgb(color.x, color.y, color.z);
+	color *= 1.0f/2.52f;    // Empirical scale from lg to make all comps <= 1
 	
-	/* Clamp to Zero if values are smaller */
-	rgb = max(rgb, make_float3(0.0f, 0.0f, 0.0f));
+	/* Clamp to zero if values are smaller */
+	color = max(color, make_float3(0.0f, 0.0f, 0.0f));
 
 	if(stack_valid(color_out))
-		stack_store_float3(stack, color_out, rgb);
+		stack_store_float3(stack, color_out, color);
 }
 
 CCL_NAMESPACE_END
