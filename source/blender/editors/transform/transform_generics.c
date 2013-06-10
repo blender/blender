@@ -908,6 +908,9 @@ static void recalcData_view3d(TransInfo *t)
 			 * otherwise proxies don't function correctly
 			 */
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+
+			if(t->flag & T_TEXTURE)
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 }
