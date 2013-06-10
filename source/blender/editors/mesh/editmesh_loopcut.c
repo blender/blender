@@ -295,7 +295,8 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			 * Note though that it will break edgeslide in this specific case.
 			 * See [#31939]. */
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-			                   smoothness, smooth_falloff, 0.0f, 0.0f,
+			                   smoothness, smooth_falloff, true,
+			                   0.0f, 0.0f,
 			                   cuts,
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, true,
 			                   use_only_quads, 0);

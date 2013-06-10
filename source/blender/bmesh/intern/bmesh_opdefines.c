@@ -1010,6 +1010,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	 {"use_single_edge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
 	 {"use_only_quads", BMO_OP_SLOT_BOOL},  /* only subdivide quads (for loopcut) */
 	 {"use_sphere", BMO_OP_SLOT_BOOL},     /* for making new primitives only */
+	 {"use_smooth_even", BMO_OP_SLOT_BOOL},  /* maintain even offset when smoothing */
 	 {{'\0'}},
 	},
 	/* slots_out */

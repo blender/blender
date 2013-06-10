@@ -908,6 +908,9 @@ static void recalcData_view3d(TransInfo *t)
 			 * otherwise proxies don't function correctly
 			 */
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+
+			if(t->flag & T_TEXTURE)
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 }
@@ -1641,6 +1644,15 @@ void calculateCenter(TransInfo *t)
 						break;
 					}
 				}
+				else if (t->obedit && t->obedit->type == OB_LATTICE) {
+					BPoint *actbp = BKE_lattice_active_point_get(t->obedit->data);
+
+					if (actbp) {
+						copy_v3_v3(t->center, actbp->vec);
+						calculateCenter2D(t);
+						break;
+					}
+				}
 			} /* END EDIT MODE ACTIVE ELEMENT */
 
 			calculateCenterMedian(t);
@@ -1702,7 +1714,19 @@ void calculateCenter(TransInfo *t)
 		else {
 			copy_v3_v3(vec, t->center);
 		}
-		t->zfac = ED_view3d_calc_zfac(t->ar->regiondata, vec, NULL);
+
+		/* zfac is only used convertViewVec only in cases operator was invoked in RGN_TYPE_WINDOW
+		 * and never used in other cases.
+		 *
+		 * We need special case here as well, since ED_view3d_calc_zfac will crahs when called
+		 * for a region different from RGN_TYPE_WINDOW.
+		 */
+		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+			t->zfac = ED_view3d_calc_zfac(t->ar->regiondata, vec, NULL);
+		}
+		else {
+			t->zfac = 0.0f;
+		}
 	}
 }
 

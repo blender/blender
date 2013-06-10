@@ -452,6 +452,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SHADING_NODES);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
+	prop = RNA_def_property(srna, "bl_use_exclude_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_EXCLUDE_LAYERS);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
 	RNA_define_verify_sdna(1);
 }
 

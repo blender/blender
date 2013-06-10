@@ -87,6 +87,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_mask.h"
 #include "BKE_sequencer.h"
@@ -1550,20 +1551,20 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 {
 	SceneRenderLayer *srl;
 	size_t items = 0;
-
+	
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		FreestyleLineSet *lineset;
-
+		
 		/* skip render layers without Freestyle enabled */
 		if (!(srl->layflag & SCE_LAY_FRS))
 			continue;
-
+		
 		/* loop over linesets defined in the render layer */
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			ListBase tmp_data = {NULL, NULL};
 			size_t tmp_items = 0;
-
+			
 			/* add scene-level animation channels */
 			BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_LS_SCED(linestyle))
 			{
@@ -1571,7 +1572,7 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 				tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)linestyle, filter_mode);
 			}
 			END_ANIMFILTER_SUBCHANNELS;
-
+			
 			/* did we find anything? */
 			if (tmp_items) {
 				/* include anim-expand widget first */
@@ -1588,6 +1589,49 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 				items += tmp_items;
 			}
 		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
+static size_t animdata_filter_ds_texture(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, 
+                                         Tex *tex, ID *owner_id, int filter_mode)
+{
+	ListBase tmp_data = {NULL, NULL};
+	size_t tmp_items = 0;
+	size_t items = 0;
+	
+	/* add texture's animation data to temp collection */
+	BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_TEX_DATA(tex)) 
+	{
+		/* texture animdata */
+		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)tex, filter_mode);
+		
+		/* nodes */
+		if ((tex->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
+			/* owner_id as id instead of texture, since it'll otherwise be impossible to track the depth */
+			// FIXME: perhaps as a result, textures should NOT be included under materials, but under their own section instead
+			// so that free-floating textures can also be animated
+			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)tex, tex->nodetree, filter_mode);
+		}
+	}
+	END_ANIMFILTER_SUBCHANNELS;
+	
+	/* did we find anything? */
+	if (tmp_items) {
+		/* include texture-expand widget? */
+		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+			/* check if filtering by active status */
+			if (ANIMCHANNEL_ACTIVEOK(tex)) {
+				ANIMCHANNEL_NEW_CHANNEL(tex, ANIMTYPE_DSTEX, owner_id);
+			}
+		}
+		
+		/* now add the list of collected channels */
+		BLI_movelisttolist(anim_data, &tmp_data);
+		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		items += tmp_items;
 	}
 	
 	/* return the number of items added to the list */
@@ -1636,44 +1680,13 @@ static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data,
 	/* firstly check that we actuallly have some textures, by gathering all textures in a temp list */
 	for (a = 0; a < MAX_MTEX; a++) {
 		Tex *tex = (mtex[a]) ? mtex[a]->tex : NULL;
-		ListBase tmp_data = {NULL, NULL};
-		size_t tmp_items = 0;
 		
 		/* for now, if no texture returned, skip (this shouldn't confuse the user I hope) */
 		if (tex == NULL) 
 			continue;
 		
-		/* add texture's animation data to temp collection */
-		BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_TEX_DATA(tex)) 
-		{
-			/* texture animdata */
-			tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)tex, filter_mode);
-			
-			/* nodes */
-			if ((tex->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
-				/* owner_id as id instead of texture, since it'll otherwise be impossible to track the depth */
-				// FIXME: perhaps as a result, textures should NOT be included under materials, but under their own section instead
-				// so that free-floating textures can also be animated
-				tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)tex, tex->nodetree, filter_mode);
-			}
-		}
-		END_ANIMFILTER_SUBCHANNELS;
-		
-		/* did we find anything? */
-		if (tmp_items) {
-			/* include texture-expand widget? */
-			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-				/* check if filtering by active status */
-				if (ANIMCHANNEL_ACTIVEOK(tex)) {
-					ANIMCHANNEL_NEW_CHANNEL(tex, ANIMTYPE_DSTEX, owner_id);
-				}
-			}
-			
-			/* now add the list of collected channels */
-			BLI_movelisttolist(anim_data, &tmp_data);
-			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
-			items += tmp_items;
-		}
+		/* add texture's anim channels */
+		items += animdata_filter_ds_texture(ac, anim_data, ads, tex, owner_id, filter_mode);
 	}
 	
 	/* return the number of items added to the list */
@@ -1763,6 +1776,87 @@ static size_t animdata_filter_ds_materials(bAnimContext *ac, ListBase *anim_data
 	return items;
 }
 
+
+/* ............ */
+
+/* Temporary context for modifier linked-data channel extraction */
+typedef struct tAnimFilterModifiersContext {
+	bAnimContext *ac;	/* anim editor context */
+	bDopeSheet *ads;    /* dopesheet filtering settings */
+	
+	ListBase tmp_data;  /* list of channels created (but not yet added to the main list) */
+	size_t items;       /* number of channels created */
+	
+	int filter_mode;    /* flags for stuff we want to filter */
+} tAnimFilterModifiersContext;
+
+
+/* dependency walker callback for modifier dependencies */
+static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin)
+{
+	tAnimFilterModifiersContext *afm = (tAnimFilterModifiersContext *)afm_ptr;
+	ID *owner_id = &ob->id;
+	ID *id = *idpoin;
+	
+	/* NOTE: the walker only guarantees to give us all the ID-ptr *slots*, 
+	 * not just the ones which are actually used, so be careful!
+	 */
+	if (id == NULL)
+		return;
+		
+	/* check if this is something we're interested in... */
+	switch (GS(id->name)) {
+		case ID_TE: /* Textures */
+		{
+			Tex *tex = (Tex *)id;
+			if (!(afm->ads->filterflag & ADS_FILTER_NOTEX)) {	
+				afm->items += animdata_filter_ds_texture(afm->ac, &afm->tmp_data, afm->ads, tex, owner_id, afm->filter_mode);
+			}
+		}
+		break;
+		
+		/* TODO: images? */
+	}
+}
+
+/* animation linked to data used by modifiers 
+ * NOTE: strictly speaking, modifier animation is already included under Object level
+ *       but for some modifiers (e.g. Displace), there can be linked data that has settings
+ *       which would be nice to animate (i.e. texture parameters) but which are not actually
+ *       attached to any other objects/materials/etc. in the scene
+ */
+// TODO: do we want an expander for this?
+static size_t animdata_filter_ds_modifiers(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
+{
+	tAnimFilterModifiersContext afm = {NULL};
+	size_t items = 0;
+	
+	/* 1) create a temporary "context" containing all the info we have here to pass to the callback 
+	 *    use to walk thorugh the dependencies of the modifiers
+	 *
+	 * ! Assumes that all other unspecified values (i.e. accumulation buffers) are zero'd out properly
+	 */
+	afm.ac          = ac;
+	afm.ads         = ads;
+	afm.filter_mode = filter_mode;
+	
+	/* 2) walk over dependencies */
+	modifiers_foreachIDLink(ob, animfilter_modifier_idpoin_cb, &afm);
+	
+	/* 3) extract data from the context, merging it back into the standard list */
+	if (afm.items) {
+		/* now add the list of collected channels */
+		BLI_movelisttolist(anim_data, &afm.tmp_data);
+		BLI_assert((afm.tmp_data.first == afm.tmp_data.last) && (afm.tmp_data.first == NULL));
+		items += afm.items;
+	}
+	
+	return items;
+}
+
+/* ............ */
+
+
 static size_t animdata_filter_ds_particles(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
 	ParticleSystem *psys;
@@ -1804,6 +1898,7 @@ static size_t animdata_filter_ds_particles(bAnimContext *ac, ListBase *anim_data
 	/* return the number of items added to the list */
 	return items;
 }
+
 
 static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
@@ -1985,6 +2080,7 @@ static size_t animdata_filter_ds_keyanim(bAnimContext *ac, ListBase *anim_data, 
 	return items;
 }
 
+
 /* object-level animation */
 static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
@@ -2061,6 +2157,11 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 		/* shape-key */
 		if ((key && key->adt) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 			tmp_items += animdata_filter_ds_keyanim(ac, &tmp_data, ads, ob, key, filter_mode);
+		}
+		
+		/* modifiers */
+		if ((ob->modifiers.first) && !(ads->filterflag & ADS_FILTER_NOMODIFIERS)) {
+			tmp_items += animdata_filter_ds_modifiers(ac, &tmp_data, ads, ob, filter_mode);
 		}
 		
 		/* materials */

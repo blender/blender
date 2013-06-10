@@ -422,7 +422,7 @@ static void render_endjob(void *rjv)
 		free_main(rj->main);
 
 	/* else the frame will not update for the original value */
-	if (!(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {
+	if (rj->anim && !(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {
 		/* possible this fails of loading new file while rendering */
 		if (G.main->wm.first) {
 			ED_update_for_newframe(G.main, rj->scene, 1);

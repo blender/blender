@@ -40,6 +40,7 @@ class CyclesRender(bpy.types.RenderEngine):
     bl_label = "Cycles Render"
     bl_use_shading_nodes = True
     bl_use_preview = True
+    bl_use_exclude_layers = True
 
     def __init__(self):
         self.session = None

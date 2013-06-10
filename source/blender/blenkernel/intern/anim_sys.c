@@ -1689,43 +1689,39 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 }
 
 /* accumulate (i.e. blend) the given value on to the channel it affects */
-static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short newChan, float value)
+static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short UNUSED(newChan), float value)
 {
 	NlaStrip *strip = nes->strip;
 	short blendmode = strip->blendmode;
 	float inf = strip->influence;
 	
-	/* if channel is new, just store value regardless of blending factors, etc. */
-	if (newChan) {
-		nec->value = value;
-		return;
-	}
-		
 	/* if this is being performed as part of transition evaluation, incorporate
 	 * an additional weighting factor for the influence
 	 */
 	if (nes->strip_mode == NES_TIME_TRANSITION_END) 
 		inf *= nes->strip_time;
 	
-	/* premultiply the value by the weighting factor */
+	/* optimisation: no need to try applying if there is no influence */
 	if (IS_EQ(inf, 0)) return;
-	value *= inf;
 	
 	/* perform blending */
 	switch (blendmode) {
 		case NLASTRIP_MODE_ADD:
 			/* simply add the scaled value on to the stack */
-			nec->value += value;
+			nec->value += (value * inf);
 			break;
 			
 		case NLASTRIP_MODE_SUBTRACT:
 			/* simply subtract the scaled value from the stack */
-			nec->value -= value;
+			nec->value -= (value * inf);
 			break;
 			
 		case NLASTRIP_MODE_MULTIPLY:
 			/* multiply the scaled value with the stack */
-			nec->value *= value;
+			/* Formula Used: 
+			 *     result = fac * (a * b) + (1 - fac) * a 
+			 */
+			nec->value = inf * (nec->value * value)  +   (1 - inf) * nec->value;
 			break;
 		
 		case NLASTRIP_MODE_REPLACE:
@@ -1734,7 +1730,7 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short
 			 *	- the influence of the accumulated data (elsewhere, that is called dstweight) 
 			 *	  is 1 - influence, since the strip's influence is srcweight
 			 */
-			nec->value = nec->value * (1.0f - inf)   +   value;
+			nec->value = nec->value * (1.0f - inf)   +   (value * inf);
 			break;
 	}
 }

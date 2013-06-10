@@ -93,6 +93,9 @@ typedef struct Global {
 
 	/* save the allowed windowstate of blender when using -W or -w (GHOST_TWindowState) */
 	int windowstate;
+
+	/* message to use when autoexec fails */
+	char autoexec_fail[200];
 } Global;
 
 /* **************** GLOBAL ********************* */
@@ -109,6 +112,8 @@ typedef struct Global {
 
 #define G_SCRIPT_AUTOEXEC (1 << 13)
 #define G_SCRIPT_OVERRIDE_PREF (1 << 14) /* when this flag is set ignore the userprefs */
+#define G_SCRIPT_AUTOEXEC_FAIL (1 << 15)
+#define G_SCRIPT_AUTOEXEC_FAIL_QUIET (1 << 16)
 
 /* #define G_NOFROZEN	(1 << 17) also removed */
 /* #define G_GREASEPENCIL   (1 << 17)   also removed */

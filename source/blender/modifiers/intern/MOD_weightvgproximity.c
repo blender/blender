@@ -47,6 +47,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"       /* For SpaceTransform stuff. */
@@ -242,6 +243,14 @@ static void initData(ModifierData *md)
 	wmd->max_dist             = 1.0f; /* vert arbitrary distance, but don't use 0 */
 }
 
+static void freeData(ModifierData *md)
+{
+	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
+	if (wmd->mask_texture) {
+		id_us_min(&wmd->mask_texture->id);
+	}
+}
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	WeightVGProximityModifierData *wmd  = (WeightVGProximityModifierData *) md;
@@ -263,6 +272,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
 	twmd->min_dist               = wmd->min_dist;
 	twmd->max_dist               = wmd->max_dist;
+
+	if (twmd->mask_texture) {
+		id_us_plus(&twmd->mask_texture->id);
+	}
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
@@ -563,7 +576,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
+	/* freeData */          freeData,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,

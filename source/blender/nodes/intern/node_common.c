@@ -105,6 +105,12 @@ int nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree)
 	bNode *node;
 	int valid = 1;
 	
+	/* unspecified node group, generally allowed
+	 * (if anything, should be avoided on operator level)
+	 */
+	if (grouptree == NULL)
+		return 1;
+	
 	if (nodetree == grouptree)
 		return 0;
 	

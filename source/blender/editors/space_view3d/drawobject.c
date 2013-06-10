@@ -260,18 +260,6 @@ static const unsigned int colortab[] = {
 	0x0, 0x403000, 0xFFFF88
 };
 
-
-static float cube[8][3] = {
-	{-1.0, -1.0, -1.0},
-	{-1.0, -1.0,  1.0},
-	{-1.0,  1.0,  1.0},
-	{-1.0,  1.0, -1.0},
-	{ 1.0, -1.0, -1.0},
-	{ 1.0, -1.0,  1.0},
-	{ 1.0,  1.0,  1.0},
-	{ 1.0,  1.0, -1.0},
-};
-
 /* ----------------- OpenGL Circle Drawing - Tables for Optimized Drawing Speed ------------------ */
 /* 32 values of sin function (still same result!) */
 #define CIRCLE_RESOL 32
@@ -863,28 +851,6 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 }
 
 /* ******************** primitive drawing ******************* */
-
-static void drawcube(void)
-{
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-	glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[6]);
-	glVertex3fv(cube[7]); glVertex3fv(cube[4]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[1]); glVertex3fv(cube[5]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[3]); glVertex3fv(cube[7]);
-	glEnd();
-}
 
 /* draws a cube on given the scaling of the cube, assuming that
  * all required matrices have been set (used for drawing empties)
@@ -1847,13 +1813,15 @@ static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D 
 	glDisable(GL_BLEND);
 }
 
-static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
+static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short sel)
 {
 	BPoint *bp = lt->def;
 	float *co = dl ? dl->verts : NULL;
 	int u, v, w;
 
-	UI_ThemeColor(sel ? TH_VERTEX_SELECT : TH_VERTEX);
+	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
+	UI_ThemeColor(color);
+
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 
@@ -1865,7 +1833,13 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 				int uxt = (u == 0 || u == lt->pntsu - 1);
 				if (!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
 					if (bp->hide == 0) {
-						if ((bp->f1 & SELECT) == sel) {
+						/* check for active BPoint and ensure selected */
+						if ((bp == actbp) && (bp->f1 & SELECT)) {
+							UI_ThemeColor(TH_LASTSEL_POINT);
+							bglVertex3fv(dl ? co : bp->vec);
+							UI_ThemeColor(color);
+						}
+						else if ((bp->f1 & SELECT) == sel) {
 							bglVertex3fv(dl ? co : bp->vec);
 						}
 					}
@@ -1954,10 +1928,12 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 		glShadeModel(GL_FLAT);
 
 	if (is_edit) {
+		BPoint *actbp = BKE_lattice_active_point_get(lt);
+
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		
-		lattice_draw_verts(lt, dl, 0);
-		lattice_draw_verts(lt, dl, 1);
+		lattice_draw_verts(lt, dl, actbp, 0);
+		lattice_draw_verts(lt, dl, actbp, 1);
 		
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
@@ -6111,6 +6087,7 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 
 static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 {
+	BoundBox  bb_local;
 	BoundBox *bb = NULL;
 	
 	if (ob->type == OB_MESH) {
@@ -6132,8 +6109,9 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		bb = BKE_armature_boundbox_get(ob);
 	}
 	else {
-		drawcube();
-		return;
+		const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+		bb = &bb_local;
+		BKE_boundbox_init_from_minmax(bb, min, max);
 	}
 	
 	if (bb == NULL) return;

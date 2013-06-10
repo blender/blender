@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -109,4 +110,24 @@ void SCRIPT_OT_reload(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = script_reload_exec;
+}
+
+static int script_autoexec_warn_clear_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	G.f |= G_SCRIPT_AUTOEXEC_FAIL_QUIET;
+	return OPERATOR_FINISHED;
+}
+
+void SCRIPT_OT_autoexec_warn_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Continue Untrusted";
+	ot->description = "Ignore autoexec warning";
+	ot->idname = "SCRIPT_OT_autoexec_warn_clear";
+
+	/* flags */
+	ot->flag = OPTYPE_INTERNAL;
+
+	/* api callbacks */
+	ot->exec = script_autoexec_warn_clear_exec;
 }

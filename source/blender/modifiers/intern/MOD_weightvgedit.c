@@ -43,6 +43,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_colortools.h"       /* CurveMapping. */
 #include "BKE_deform.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
@@ -77,6 +78,10 @@ static void freeData(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData *) md;
 	curvemapping_free(wmd->cmap_curve);
+
+	if (wmd->mask_texture) {
+		id_us_min(&wmd->mask_texture->id);
+	}
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -102,6 +107,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->mask_tex_mapping       = wmd->mask_tex_mapping;
 	twmd->mask_tex_map_obj       = wmd->mask_tex_map_obj;
 	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
+
+	if (twmd->mask_texture) {
+		id_us_plus(&twmd->mask_texture->id);
+	}
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

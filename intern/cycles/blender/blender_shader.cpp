@@ -708,10 +708,13 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				graph->add(proxy);
 			}
 		}
-		else if (b_node->is_a(&RNA_ShaderNodeGroup)) {
+		else if (b_node->is_a(&RNA_ShaderNodeGroup) || b_node->is_a(&RNA_NodeCustomGroup)) {
 			
-			BL::NodeGroup b_gnode(*b_node);
-			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
+			BL::ShaderNodeTree b_group_ntree(PointerRNA_NULL);
+			if (b_node->is_a(&RNA_ShaderNodeGroup))
+				b_group_ntree = BL::ShaderNodeTree(((BL::NodeGroup)(*b_node)).node_tree());
+			else
+				b_group_ntree = BL::ShaderNodeTree(((BL::NodeCustomGroup)(*b_node)).node_tree());
 			ProxyMap group_proxy_input_map, group_proxy_output_map;
 			
 			/* Add a proxy node for each socket
@@ -895,8 +898,8 @@ void BlenderSync::sync_world(bool update_all)
 			graph->connect(closure->output("Background"), out->input("Surface"));
 		}
 
-		/* AO */
 		if(b_world) {
+			/* AO */
 			BL::WorldLighting b_light = b_world.light_settings();
 
 			if(b_light.use_ambient_occlusion())
@@ -905,6 +908,17 @@ void BlenderSync::sync_world(bool update_all)
 				background->ao_factor = 0.0f;
 
 			background->ao_distance = b_light.distance();
+
+			/* visibility */
+			PointerRNA cvisibility = RNA_pointer_get(&b_world.ptr, "cycles_visibility");
+			uint visibility = 0;
+
+			visibility |= get_boolean(cvisibility, "camera")? PATH_RAY_CAMERA: 0;
+			visibility |= get_boolean(cvisibility, "diffuse")? PATH_RAY_DIFFUSE: 0;
+			visibility |= get_boolean(cvisibility, "glossy")? PATH_RAY_GLOSSY: 0;
+			visibility |= get_boolean(cvisibility, "transmission")? PATH_RAY_TRANSMIT: 0;
+
+			background->visibility = visibility;
 		}
 
 		shader->set_graph(graph);

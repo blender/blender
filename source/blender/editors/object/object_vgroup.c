@@ -65,6 +65,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_object_deform.h"
 #include "BKE_object.h"
+#include "BKE_lattice.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -992,7 +993,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 
 			EDBM_index_arrays_ensure(em, BM_VERT);
 
-			if ((cd_dvert_offset != -1) || (eve = EDBM_vert_at_index(em, vertnum))) {
+			if ((cd_dvert_offset != -1) && (eve = EDBM_vert_at_index(em, vertnum))) {
 				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
 			else {
@@ -1108,7 +1109,7 @@ static void vgroup_select_verts(Object *ob, int select)
 		
 		if (lt->dvert) {
 			MDeformVert *dv;
-			BPoint *bp;
+			BPoint *bp, *actbp = BKE_lattice_active_point_get(lt);
 			int a, tot;
 			
 			dv = lt->dvert;
@@ -1117,7 +1118,10 @@ static void vgroup_select_verts(Object *ob, int select)
 			for (a = 0, bp = lt->def; a < tot; a++, bp++, dv++) {
 				if (defvert_find_index(dv, def_nr)) {
 					if (select) bp->f1 |=  SELECT;
-					else bp->f1 &= ~SELECT;
+					else {
+						bp->f1 &= ~SELECT;
+						if (actbp && bp == actbp) lt->actbp = LT_ACTBP_NONE;
+					}
 				}
 			}
 		}

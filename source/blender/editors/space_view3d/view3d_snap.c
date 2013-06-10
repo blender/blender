@@ -1015,6 +1015,14 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 			
 			mul_m4_v3(obedit->obmat, curs);
 		}
+		else if (obedit->type == OB_LATTICE) {
+			BPoint *actbp = BKE_lattice_active_point_get(obedit->data);
+
+			if (actbp) {
+				copy_v3_v3(curs, actbp->vec);
+				mul_m4_v3(obedit->obmat, curs);
+			}
+		}
 	}
 	else {
 		if (obact) {

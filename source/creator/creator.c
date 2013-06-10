@@ -1250,9 +1250,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		/* WM_file_read() runs normally but since we're in background mode do here */
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_driver_reset();
-		BPY_app_handlers_reset(FALSE);
-		BPY_modules_load_user(C);
+		BPY_python_reset(C);
 #endif
 
 		/* happens for the UI on file reading too (huh? (ton))*/
@@ -1641,11 +1639,21 @@ int main(int argc, const char **argv)
 		WM_exit(C);
 	}
 	else {
-		if ((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC)) {
-			if (WM_init_game(C))
-				return 0;
+		if (G.fileflags & G_FILE_AUTOPLAY) {
+			if (G.f & G_SCRIPT_AUTOEXEC) {
+				if (WM_init_game(C)) {
+					return 0;
+				}
+			}
+			else {
+				if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+					G.f |= G_SCRIPT_AUTOEXEC_FAIL;
+					BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Game AutoStart");
+				}
+			}
 		}
-		else if (!G.file_loaded) {
+
+		if (!G.file_loaded) {
 			WM_init_splash(C);
 		}
 	}

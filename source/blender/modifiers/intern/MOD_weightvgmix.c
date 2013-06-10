@@ -39,6 +39,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
@@ -123,6 +124,14 @@ static void initData(ModifierData *md)
 	wmd->mask_tex_mapping       = MOD_DISP_MAP_LOCAL;
 }
 
+static void freeData(ModifierData *md)
+{
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
+	if (wmd->mask_texture) {
+		id_us_min(&wmd->mask_texture->id);
+	}
+}
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData *) md;
@@ -142,6 +151,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->mask_tex_mapping       = wmd->mask_tex_mapping;
 	twmd->mask_tex_map_obj       = wmd->mask_tex_map_obj;
 	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
+
+	if (twmd->mask_texture) {
+		id_us_plus(&twmd->mask_texture->id);
+	}
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
@@ -418,7 +431,7 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
+	/* freeData */          freeData,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,

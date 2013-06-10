@@ -43,9 +43,10 @@
 #include "BLI_string.h"
 
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_object.h"
 #include "BKE_deform.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_library.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "depsgraph_private.h"
@@ -77,6 +78,14 @@ static void initData(ModifierData *md)
 	wmd->defgrp_name[0] = 0;
 }
 
+static void freeData(ModifierData *md)
+{
+	WaveModifierData *wmd = (WaveModifierData *) md;
+	if (wmd->texture) {
+		id_us_min(&wmd->texture->id);
+	}
+}
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	WaveModifierData *wmd = (WaveModifierData *) md;
@@ -98,6 +107,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->map_object = wmd->map_object;
 	twmd->texmapping = wmd->texmapping;
 	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
+
+	if (twmd->texture) {
+		id_us_plus(&twmd->texture->id);
+	}
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
@@ -378,7 +391,7 @@ ModifierTypeInfo modifierType_Wave = {
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
+	/* freeData */          freeData,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,

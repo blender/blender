@@ -124,7 +124,7 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (change) {
 		WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
-		DAG_id_tag_update(&mask->id, 0);
+		DAG_id_tag_update(&mask->id, OB_RECALC_DATA);
 
 		return OPERATOR_FINISHED;
 	}

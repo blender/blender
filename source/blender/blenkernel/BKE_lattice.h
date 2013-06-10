@@ -75,6 +75,7 @@ void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
 void    BKE_lattice_modifiers_calc(struct Scene *scene, struct Object *ob);
 
 struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
+struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
 
 void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3]);
 void BKE_lattice_center_median(struct Lattice *lt, float cent[3]);

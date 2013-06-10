@@ -327,7 +327,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 	/* make sure we're not trying to read a directory.... */
 
 	len = strlen(name);
-	if (ELEM(name[len - 1], '/', '\\')) {
+	if (len > 0 && ELEM(name[len - 1], '/', '\\')) {
 		retval = BKE_READ_EXOTIC_FAIL_PATH;
 	}
 	else {
@@ -437,9 +437,7 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_driver_reset();
-		BPY_app_handlers_reset(FALSE);
-		BPY_modules_load_user(C);
+		BPY_python_reset(C);
 #endif
 
 		/* important to do before NULL'ing the context */
@@ -543,7 +541,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 
-#ifdef WITH_PYTHON_SECURITY /* not default */
+#ifdef WITH_PYTHON_SECURITY
 		/* use alternative setting for security nuts
 		 * otherwise we'd need to patch the binary blob - startup.blend.c */
 		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
@@ -590,9 +588,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		/* sync addons, these may have changed from the defaults */
 		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
-		BPY_driver_reset();
-		BPY_app_handlers_reset(FALSE);
-		BPY_modules_load_user(C);
+		BPY_python_reset(C);
 	}
 #endif
 

@@ -1525,13 +1525,14 @@ void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const int do_newframe
 	}
 }
 
-void BKE_mask_update_scene(Main *bmain, Scene *scene, const int do_newframe)
+void BKE_mask_update_scene(Main *bmain, Scene *scene)
 {
 	Mask *mask;
 
 	for (mask = bmain->mask.first; mask; mask = mask->id.next) {
-		if (mask->id.flag & LIB_ID_RECALC) {
-			BKE_mask_evaluate_all_masks(bmain, CFRA, do_newframe);
+		if (mask->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)) {
+			bool do_new_frame = (mask->id.flag & LIB_ID_RECALC_DATA) != 0;
+			BKE_mask_evaluate_all_masks(bmain, CFRA, do_new_frame);
 		}
 	}
 }

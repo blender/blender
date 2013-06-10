@@ -37,6 +37,8 @@ Background::Background()
 
 	use = true;
 
+	visibility = ~0;
+
 	transparent = false;
 	need_update = true;
 }
@@ -64,6 +66,15 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	else
 		kbackground->shader = scene->shader_manager->get_shader_id(scene->default_empty);
 
+	if(!(visibility & PATH_RAY_DIFFUSE))
+		kbackground->shader |= SHADER_EXCLUDE_DIFFUSE;
+	if(!(visibility & PATH_RAY_GLOSSY))
+		kbackground->shader |= SHADER_EXCLUDE_GLOSSY;
+	if(!(visibility & PATH_RAY_TRANSMIT))
+		kbackground->shader |= SHADER_EXCLUDE_TRANSMIT;
+	if(!(visibility & PATH_RAY_CAMERA))
+		kbackground->shader |= SHADER_EXCLUDE_CAMERA;
+
 	need_update = false;
 }
 
@@ -76,7 +87,8 @@ bool Background::modified(const Background& background)
 	return !(transparent == background.transparent &&
 		use == background.use &&
 		ao_factor == background.ao_factor &&
-		ao_distance == background.ao_distance);
+		ao_distance == background.ao_distance &&
+		visibility == background.visibility);
 }
 
 void Background::tag_update(Scene *scene)

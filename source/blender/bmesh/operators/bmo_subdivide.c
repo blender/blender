@@ -40,7 +40,6 @@
 #include "intern/bmesh_private.h"
 #include "intern/bmesh_operators_private.h"
 
-
 typedef struct SubDParams {
 	int numcuts;
 	float smooth;
@@ -49,15 +48,36 @@ typedef struct SubDParams {
 	float along_normal;
 	//int beauty;
 	bool use_smooth;
+	bool use_smooth_even;
 	bool use_sphere;
 	bool use_fractal;
 	int seed;
-	int origkey; /* shapekey holding displaced vertex coordinates for current geometry */
 	BMOperator *op;
 	BMOpSlot *slot_edge_percents;  /* BMO_slot_get(params->op->slots_in, "edge_percents"); */
 	BMOpSlot *slot_custom_patterns;  /* BMO_slot_get(params->op->slots_in, "custom_patterns"); */
 	float fractal_ofs[3];
+
+	/* rumtime storage for shape key */
+	struct {
+		int cd_vert_shape_offset;
+		int cd_vert_shape_offset_tmp;
+		int totlayer;
+
+		/* shapekey holding displaced vertex coordinates for current geometry */
+		int tmpkey;
+	} shape_info;
+
 } SubDParams;
+
+static void bmo_subd_init_shape_info(BMesh *bm, SubDParams *params)
+{
+	const int skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;
+	params->shape_info.tmpkey = skey;
+	params->shape_info.cd_vert_shape_offset = CustomData_get_offset(&bm->vdata, CD_SHAPEKEY);
+	params->shape_info.cd_vert_shape_offset_tmp = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, skey);
+	params->shape_info.totlayer = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY);
+
+}
 
 typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts,
                                      const SubDParams *params);
@@ -141,16 +161,15 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 	return NULL;
 }
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
-static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDParams *params, float perc,
+static void alter_co(BMVert *v, BMEdge *UNUSED(origed), const SubDParams *params, float perc,
                      BMVert *vsta, BMVert *vend)
 {
 	float tvec[3], prev_co[3], fac;
-	float *co = NULL;
-	int i, totlayer = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY);
+	float *co = BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset_tmp);
+	int i;
 	
 	BM_vert_normal_update_all(v);
 
-	co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, params->origkey);
 	copy_v3_v3(co, v->co);
 	copy_v3_v3(prev_co, co);
 
@@ -180,14 +199,18 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		val = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
 		val = bmesh_subd_falloff_calc(params->smooth_falloff, val);
 
+		if (params->use_smooth_even) {
+			val *= BM_vert_calc_shell_factor(v);
+		}
+
 		mul_v3_fl(tvec, params->smooth * val * len);
 
 		add_v3_v3(co, tvec);
 	}
 
 	if (params->use_fractal) {
-		float len = len_v3v3(vsta->co, vend->co);
-		float normal[3] = {0.0f, 0.0f, 0.0f}, co2[3], base1[3], base2[3];
+		const float len = len_v3v3(vsta->co, vend->co);
+		float normal[3], co2[3], base1[3], base2[3];
 
 		fac = params->fractal * len;
 
@@ -214,13 +237,15 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 	 * for now its ok to simply apply the difference IMHO - campbell */
 	sub_v3_v3v3(tvec, prev_co, co);
 
-	for (i = 0; i < totlayer; i++) {
-		if (params->origkey != i) {
-			co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, i);
-			sub_v3_v3(co, tvec);
+	if (params->shape_info.totlayer > 1) {
+		/* skip the last layer since its the temp */
+		i = params->shape_info.totlayer - 1;
+		co = BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset);
+		while (i--) {
+			BLI_assert(co != BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset_tmp));
+			sub_v3_v3(co += 3, tvec);
 		}
 	}
-
 }
 
 /* assumes in the edge is the correct interpolated vertices already */
@@ -238,7 +263,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	BMO_elem_flag_enable(bm, ev, ELE_INNER);
 
 	/* offset for smooth or sphere or fractal */
-	alter_co(bm, ev, oedge, params, percent2, vsta, vend);
+	alter_co(ev, oedge, params, percent2, vsta, vend);
 
 #if 0 //BMESH_TODO
 	/* clip if needed by mirror modifier */
@@ -308,8 +333,8 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *par
 		if (v->e && v->e->l) BM_CHECK_ELEMENT(v->e->l->f);
 	}
 	
-	alter_co(bm, v1, &e_tmp, params, 0, &v1_tmp, &v2_tmp);
-	alter_co(bm, v2, &e_tmp, params, 1.0, &v1_tmp, &v2_tmp);
+	alter_co(v1, &e_tmp, params, 0, &v1_tmp, &v2_tmp);
+	alter_co(v2, &e_tmp, params, 1.0, &v1_tmp, &v2_tmp);
 }
 
 /* note: the patterns are rotated as necessary to
@@ -759,7 +784,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
 	bool use_sphere, use_single_edge, use_grid_fill, use_only_quads;
-	int cornertype, skey, seed, i, j, matched, a, b, numcuts, totesel, smooth_falloff;
+	int cornertype, seed, i, j, matched, a, b, numcuts, totesel, smooth_falloff;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
 	
@@ -810,10 +835,11 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	
 	/* add a temporary shapekey layer to store displacements on current geometry */
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
-	skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;
+
+	bmo_subd_init_shape_info(bm, &params);
 	
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-		float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, skey);
+		float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
 		copy_v3_v3(co, v->co);
 	}
 
@@ -830,9 +856,9 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.fractal = fractal;
 	params.along_normal = along_normal;
 	params.use_smooth  = (smooth  != 0.0f);
+	params.use_smooth_even = BMO_slot_bool_get(op->slots_in, "use_smooth_even");
 	params.use_fractal = (fractal != 0.0f);
 	params.use_sphere  = use_sphere;
-	params.origkey = skey;
 
 	if (params.use_fractal) {
 		RNG *rng = BLI_rng_new_srandom(seed);
@@ -981,7 +1007,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* copy original-geometry displacements to current coordinates */
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-		float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, skey);
+		float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
 		copy_v3_v3(v->co, co);
 	}
 
@@ -1126,11 +1152,11 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* copy original-geometry displacements to current coordinates */
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-		float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, skey);
+		float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
 		copy_v3_v3(v->co, co);
 	}
 
-	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
+	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 	
 	if (facedata) BLI_array_free(facedata);
 	if (edges) BLI_array_free(edges);
@@ -1146,7 +1172,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 /* editmesh-emulating function */
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        const float smooth, const short smooth_falloff,
+                        const float smooth, const short smooth_falloff, const bool use_smooth_even,
                         const float fractal, const float along_normal,
                         const int numcuts,
                         const int seltype, const int cornertype,
@@ -1159,7 +1185,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	/* use_sphere isnt exposed here since its only used for new primitives */
 	BMO_op_initf(bm, &op, BMO_FLAG_DEFAULTS,
 	             "subdivide_edges edges=%he "
-	             "smooth=%f smooth_falloff=%i "
+	             "smooth=%f smooth_falloff=%i use_smooth_even=%b "
 	             "fractal=%f along_normal=%f "
 	             "cuts=%i "
 	             "quad_corner_type=%i "
@@ -1167,7 +1193,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	             "use_only_quads=%b "
 	             "seed=%i",
 	             edge_hflag,
-	             smooth, smooth_falloff,
+	             smooth, smooth_falloff, use_smooth_even,
 	             fractal, along_normal,
 	             numcuts,
 	             cornertype,
@@ -1205,16 +1231,14 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e;
 	SubDParams params = {0};
-	int skey;
 	
 	params.numcuts = BMO_slot_int_get(op->slots_in, "cuts");
 	params.op = op;
 	params.slot_edge_percents = BMO_slot_get(op->slots_in, "edge_percents");
 	
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
-	skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;
-	
-	params.origkey = skey;
+
+	bmo_subd_init_shape_info(bm, &params);
 
 	/* go through and split edges */
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
@@ -1223,5 +1247,5 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL_NOLOOP, ELE_SPLIT);
 
-	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
+	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 }

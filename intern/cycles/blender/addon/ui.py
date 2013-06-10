@@ -542,7 +542,9 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
         flow.prop(visibility, "diffuse")
         flow.prop(visibility, "glossy")
         flow.prop(visibility, "transmission")
-        flow.prop(visibility, "shadow")
+
+        if ob.type != 'LAMP':
+            flow.prop(visibility, "shadow")
 
 
 def find_node(material, nodetype):
@@ -775,6 +777,29 @@ class CyclesWorld_PT_mist(CyclesButtonsPanel, Panel):
         split.prop(world.mist_settings, "depth")
 
         layout.prop(world.mist_settings, "falloff")
+
+
+class CyclesWorld_PT_ray_visibility(CyclesButtonsPanel, Panel):
+    bl_label = "Ray Visibility"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return CyclesButtonsPanel.poll(context) and context.world
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+        visibility = world.cycles_visibility
+
+        flow = layout.column_flow()
+
+        flow.prop(visibility, "camera")
+        flow.prop(visibility, "diffuse")
+        flow.prop(visibility, "glossy")
+        flow.prop(visibility, "transmission")
 
 
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):

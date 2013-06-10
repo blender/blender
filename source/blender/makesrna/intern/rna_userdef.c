@@ -152,6 +152,13 @@ static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain), Scene *UNUSE
 	else G.f |=  G_SCRIPT_AUTOEXEC;
 }
 
+static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	UserDef *userdef = (UserDef *)ptr->data;
+	if (userdef->flag & USER_FILENOUI) G.fileflags |= G_FILE_NO_UI;
+	else G.fileflags &= ~G_FILE_NO_UI;
+}
+
 static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
@@ -3907,6 +3914,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_load_ui", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_FILENOUI);
 	RNA_def_property_ui_text(prop, "Load UI", "Load user interface setup when loading .blend files");
+	RNA_def_property_update(prop, 0, "rna_userdef_load_ui_update");
 
 	prop = RNA_def_property(srna, "font_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "fontdir");

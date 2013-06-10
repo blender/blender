@@ -105,6 +105,15 @@ static int rna_Screen_fullscreen_get(PointerRNA *ptr)
 	return (sc->full != 0);
 }
 
+/* UI compatible list: should not be needed, but for now we need to keep EMPTY
+ * at least in the static version of this enum for python scripts. */
+static EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+                                             PropertyRNA *UNUSED(prop), int *free)
+{
+	/* +1 to skip SPACE_EMPTY */
+	*free = 0;
+	return space_type_items + 1;
+}
 
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
@@ -204,7 +213,7 @@ static void rna_def_area(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, space_type_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", NULL);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", "rna_Area_type_itemf");
 	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

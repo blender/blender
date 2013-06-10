@@ -56,8 +56,8 @@ typedef struct Lattice {
 	short pntsu, pntsv, pntsw, flag;
 	short opntsu, opntsv, opntsw, pad2;
 	char typeu, typev, typew, pad3;
-	int pad;
-	
+	int actbp; /* active element index, unset with LT_ACTBP_NONE */
+
 	float fu, fv, fw, du, dv, dw;
 	
 	struct BPoint *def;
@@ -84,6 +84,8 @@ typedef struct Lattice {
 #define LT_DS_EXPAND	4
 
 #define LT_INDEX(lt, u, v, w) ((w) * ((lt)->pntsu * (lt)->pntsv) + ((v) * (lt)->pntsu) + (u))
+
+#define LT_ACTBP_NONE	-1
 
 #endif
 

@@ -219,6 +219,12 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 	return 0;
 }
 
+static PyObject *bpy_app_global_flag_get(PyObject *UNUSED(self), void *closure)
+{
+	const int flag = GET_INT_FROM_POINTER(closure);
+	return PyBool_FromLong(G.f & flag);
+}
+
 PyDoc_STRVAR(bpy_app_tempdir_doc,
 "String, the temp directory used by blender (read-only)"
 );
@@ -243,6 +249,11 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 	return bpy_pydriver_Dict;
 }
 
+static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void *UNUSED(closure))
+{
+	return PyC_UnicodeFromByte(G.autoexec_fail);
+}
+
 
 static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug",           bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG},
@@ -256,6 +267,11 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug_value", bpy_app_debug_value_get, bpy_app_debug_value_set, (char *)bpy_app_debug_value_doc, NULL},
 	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)bpy_app_tempdir_doc, NULL},
 	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)bpy_app_driver_dict_doc, NULL},
+
+	/* security */
+	{(char *)"autoexec_fail", bpy_app_global_flag_get, NULL, NULL, (void *)G_SCRIPT_AUTOEXEC_FAIL},
+	{(char *)"autoexec_fail_quiet", bpy_app_global_flag_get, NULL, NULL, (void *)G_SCRIPT_AUTOEXEC_FAIL_QUIET},
+	{(char *)"autoexec_fail_message", bpy_app_autoexec_fail_message_get, NULL, NULL, NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 
