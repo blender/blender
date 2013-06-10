@@ -327,7 +327,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 	/* make sure we're not trying to read a directory.... */
 
 	len = strlen(name);
-	if (ELEM(name[len - 1], '/', '\\')) {
+	if (len > 0 && ELEM(name[len - 1], '/', '\\')) {
 		retval = BKE_READ_EXOTIC_FAIL_PATH;
 	}
 	else {
