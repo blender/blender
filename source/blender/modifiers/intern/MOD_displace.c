@@ -42,6 +42,7 @@
 
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"
 #include "BKE_deform.h"
@@ -79,6 +80,18 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tdmd->texmapping = dmd->texmapping;
 	tdmd->map_object = dmd->map_object;
 	BLI_strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, sizeof(tdmd->uvlayer_name));
+
+	if (tdmd->texture) {
+		id_us_plus(&tdmd->texture->id);
+	}
+}
+
+static void freeData(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
+	if (dmd->texture) {
+		id_us_min(&dmd->texture->id);
+	}
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
@@ -292,7 +305,7 @@ ModifierTypeInfo modifierType_Displace = {
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
+	/* freeData */          freeData,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
