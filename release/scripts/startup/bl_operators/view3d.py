@@ -28,6 +28,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
     "Extrude individual elements and move"
     bl_label = "Extrude Individual and Move"
     bl_idname = "view3d.edit_mesh_extrude_individual_move"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         mesh = context.object.data
