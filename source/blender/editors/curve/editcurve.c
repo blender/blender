@@ -4624,18 +4624,19 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	ViewContext vc;
 
-	if (rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
+	view3d_set_viewcontext(C, &vc);
+
+	if (vc.rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
 		Curve *cu;
-		ViewContext vc;
 		float location[3];
+		const bool use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
+		                       (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
 		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
-
-		view3d_set_viewcontext(C, &vc);
 
 		cu = vc.obedit->data;
 
@@ -4652,6 +4653,14 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 
 		ED_view3d_win_to_3d_int(vc.ar, location, event->mval, location);
+
+		if (use_proj) {
+			const float mval[2] = {UNPACK2(event->mval)};
+			float no_dummy[3];
+			float dist_px_dummy;
+			snapObjectsContext(C, mval, &dist_px_dummy, location, no_dummy, SNAP_NOT_OBEDIT);
+		}
+
 		RNA_float_set_array(op->ptr, "location", location);
 	}
 
