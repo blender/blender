@@ -58,6 +58,26 @@ color color_unpremultiply(color c, float alpha)
 
 /* Color Operations */
 
+color xyY_to_xyz(float x, float y, float Y)
+{
+	float X, Z;
+
+	if (y != 0.0) X = (x / y) * Y;
+	else X = 0.0;
+
+	if (y != 0.0 && Y != 0.0) Z = ((1.0 - x - y) / y) * Y;
+	else Z = 0.0;
+
+	return color(X, Y, Z);
+}
+
+color xyz_to_rgb(float x, float y, float z)
+{
+	return color( 3.240479 * x + -1.537150 * y + -0.498535 * z,
+	             -0.969256 * x +  1.875991 * y +  0.041556 * z,
+	              0.055648 * x + -0.204043 * y +  1.057311 * z);
+}
+
 color rgb_to_hsv(color rgb)
 {
 	float cmax, cmin, h, s, v, cdelta;

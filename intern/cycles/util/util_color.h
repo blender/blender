@@ -40,6 +40,100 @@ __device float color_scene_linear_to_srgb(float c)
 		return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
+__device float3 rgb_to_hsv(float3 rgb)
+{
+	float cmax, cmin, h, s, v, cdelta;
+	float3 c;
+
+	cmax = fmaxf(rgb.x, fmaxf(rgb.y, rgb.z));
+	cmin = min(rgb.x, min(rgb.y, rgb.z));
+	cdelta = cmax - cmin;
+
+	v = cmax;
+
+	if(cmax != 0.0f) {
+		s = cdelta/cmax;
+	}
+	else {
+		s = 0.0f;
+		h = 0.0f;
+	}
+
+	if(s == 0.0f) {
+		h = 0.0f;
+	}
+	else {
+		float3 cmax3 = make_float3(cmax, cmax, cmax);
+		c = (cmax3 - rgb)/cdelta;
+
+		if(rgb.x == cmax) h = c.z - c.y;
+		else if(rgb.y == cmax) h = 2.0f + c.x -  c.z;
+		else h = 4.0f + c.y - c.x;
+
+		h /= 6.0f;
+
+		if(h < 0.0f)
+			h += 1.0f;
+	}
+
+	return make_float3(h, s, v);
+}
+
+__device float3 hsv_to_rgb(float3 hsv)
+{
+	float i, f, p, q, t, h, s, v;
+	float3 rgb;
+
+	h = hsv.x;
+	s = hsv.y;
+	v = hsv.z;
+
+	if(s == 0.0f) {
+		rgb = make_float3(v, v, v);
+	}
+	else {
+		if(h == 1.0f)
+			h = 0.0f;
+		
+		h *= 6.0f;
+		i = floorf(h);
+		f = h - i;
+		rgb = make_float3(f, f, f);
+		p = v*(1.0f-s);
+		q = v*(1.0f-(s*f));
+		t = v*(1.0f-(s*(1.0f-f)));
+		
+		if(i == 0.0f) rgb = make_float3(v, t, p);
+		else if(i == 1.0f) rgb = make_float3(q, v, p);
+		else if(i == 2.0f) rgb = make_float3(p, v, t);
+		else if(i == 3.0f) rgb = make_float3(p, q, v);
+		else if(i == 4.0f) rgb = make_float3(t, p, v);
+		else rgb = make_float3(v, p, q);
+	}
+
+	return rgb;
+}
+
+__device float3 xyY_to_xyz(float x, float y, float Y)
+{
+	float X, Z;
+
+	if(y != 0.0f) X = (x / y) * Y;
+	else X = 0.0f;
+
+	if(y != 0.0f && Y != 0.0f) Z = (1.0f - x - y) / y * Y;
+	else Z = 0.0f;
+
+	return make_float3(X, Y, Z);
+}
+
+__device float3 xyz_to_rgb(float x, float y, float z)
+{
+	return make_float3(3.240479f * x + -1.537150f * y + -0.498535f * z,
+					  -0.969256f * x +  1.875991f * y +  0.041556f * z,
+					   0.055648f * x + -0.204043f * y +  1.057311f * z);
+}
+
 #ifndef __KERNEL_OPENCL__
 
 __device float3 color_srgb_to_scene_linear(float3 c)

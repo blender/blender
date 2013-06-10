@@ -34,19 +34,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Wavelength to RGB */
 
-/* ToDo: Move these 2 functions to an util file */
-__device float3 xyz_to_rgb_wave(float x, float y, float z)
-{
-	return make_float3(3.240479f * x + -1.537150f * y + -0.498535f * z,
-					  -0.969256f * x +  1.875991f * y +  0.041556f * z,
-					   0.055648f * x + -0.204043f * y +  1.057311f * z);
-}
-
-__device float3 wavelength_lerp(const float3 a, const float3 b, float t)
-{
-	return (a * (1.0f - t) + b * t);
-}
-
 __device void svm_node_wavelength(ShaderData *sd, float *stack, uint wavelength, uint color_out)
 {	
 	// CIE colour matching functions xBar, yBar, and zBar for
@@ -96,10 +83,10 @@ __device void svm_node_wavelength(ShaderData *sd, float *stack, uint wavelength,
 	else {
 		ii -= i;
 		float *c = cie_colour_match[i];
-		rgb = wavelength_lerp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
+		rgb = lerp_interp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
 	}
 	
-	rgb = xyz_to_rgb_wave(rgb.x, rgb.y, rgb.z);
+	rgb = xyz_to_rgb(rgb.x, rgb.y, rgb.z);
 	rgb *= 1.0/2.52;    // Empirical scale from lg to make all comps <= 1
 	
 	/* Clamp to Zero if values are smaller */
