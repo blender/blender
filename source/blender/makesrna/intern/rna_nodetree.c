@@ -201,6 +201,7 @@ EnumPropertyItem prop_wave_items[] = {
 #include "ED_node.h"
 #include "ED_render.h"
 
+#include "NOD_common.h"
 #include "NOD_socket.h"
 
 #include "RE_engine.h"
@@ -2317,6 +2318,25 @@ static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, struct bConte
 	}
 }
 
+static StructRNA *rna_NodeCustomGroup_register(Main *bmain, ReportList *reports,
+                                               void *data, const char *identifier,
+                                               StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_NodeCustomGroup, data, identifier, validate, call, free);
+	if (!nt)
+		return NULL;
+	
+	/* this updates the group node instance from the tree's interface */
+	nt->verifyfunc = node_group_verify;
+	
+	nodeRegisterType(nt);
+	
+	/* update while blender is running */
+	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+	
+	return nt->ext.srna;
+}
+
 static void rna_CompositorNode_tag_need_exec(bNode *node)
 {
 	node->need_exec = TRUE;
@@ -2859,6 +2879,19 @@ static void def_group(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "PropertyGroup");
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
+}
+
+static void def_custom_group(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	
+	srna = RNA_def_struct(brna, "NodeCustomGroup", "Node");
+	RNA_def_struct_ui_text(srna, "Custom Group", "Base node type for custom registered node group types");
+	RNA_def_struct_sdna(srna, "bNode");
+
+	RNA_def_struct_register_funcs(srna, "rna_NodeCustomGroup_register", "rna_Node_unregister", NULL);
+
+	def_group(srna);
 }
 
 static void def_frame(StructRNA *srna)
@@ -7306,6 +7339,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, "ShaderNodeGroup", "ShaderNode", "Group", "", def_group);
 	define_specific_node(brna, "CompositorNodeGroup", "CompositorNode", "Group", "", def_group);
 	define_specific_node(brna, "TextureNodeGroup", "TextureNode", "Group", "", def_group);
+	def_custom_group(brna);
 	
 	/* special socket types */
 	rna_def_cmp_output_file_slot_file(brna);
