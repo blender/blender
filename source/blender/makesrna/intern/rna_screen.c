@@ -106,6 +106,55 @@ static int rna_Screen_fullscreen_get(PointerRNA *ptr)
 }
 
 
+/* Returns an UI-compatible list */
+/* Note: Should not be needed, but for now we need to keep EMPTY at least in the static version of this enum, so... */
+static EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+                                             PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *item = NULL;
+	EnumPropertyItem sep = {0, "", ICON_NONE, NULL, NULL};
+	int totitem = 0;
+
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_VIEW3D);
+
+	RNA_enum_item_add(&item, &totitem, &sep);
+
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_TIME);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_IPO);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_ACTION);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_NLA);
+
+	RNA_enum_item_add(&item, &totitem, &sep);
+
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_IMAGE);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_SEQ);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_CLIP);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_TEXT);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_NODE);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_LOGIC);
+
+	RNA_enum_item_add(&item, &totitem, &sep);
+
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_BUTS);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_OUTLINER);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_USERPREF);
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_INFO);
+
+	RNA_enum_item_add(&item, &totitem, &sep);
+
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_FILE);
+
+	RNA_enum_item_add(&item, &totitem, &sep);
+
+	RNA_enum_items_add_value(&item, &totitem, space_type_items, SPACE_CONSOLE);
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = 1;
+
+	return item;
+}
+
+
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
 	ScrArea *sa = (ScrArea *)ptr->data;
@@ -204,7 +253,7 @@ static void rna_def_area(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, space_type_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", NULL);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", "rna_Area_type_itemf");
 	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

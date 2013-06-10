@@ -60,6 +60,7 @@
 
 
 EnumPropertyItem space_type_items[] = {
+#if 0  /* XXX This can't work right now, because keymaps export abused SPACE_EMPTY, so we need it in RNA for now. */
 	{SPACE_VIEW3D, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
 	{0, "", ICON_NONE, NULL, NULL},
 	{SPACE_TIME, "TIMELINE", ICON_TIME, "Timeline", ""},
@@ -82,6 +83,26 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_FILE, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
 	{0, "", ICON_NONE, NULL, NULL},
 	{SPACE_CONSOLE, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
+#else
+	{SPACE_EMPTY, "EMPTY", ICON_NONE, "Empty", ""},
+	{SPACE_VIEW3D, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
+	{SPACE_IPO, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
+	{SPACE_OUTLINER, "OUTLINER", ICON_OOPS, "Outliner", ""},
+	{SPACE_BUTS, "PROPERTIES", ICON_BUTS, "Properties", ""},
+	{SPACE_FILE, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
+	{SPACE_IMAGE, "IMAGE_EDITOR", ICON_IMAGE_COL, "UV/Image Editor", ""},
+	{SPACE_INFO, "INFO", ICON_INFO, "Info", ""},
+	{SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequence Editor", ""},
+	{SPACE_TEXT, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
+	{SPACE_ACTION, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet", ""},
+	{SPACE_NLA, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
+	{SPACE_TIME, "TIMELINE", ICON_TIME, "Timeline", ""},
+	{SPACE_NODE, "NODE_EDITOR", ICON_NODETREE, "Node Editor", ""},
+	{SPACE_LOGIC, "LOGIC_EDITOR", ICON_LOGIC, "Logic Editor", ""},
+	{SPACE_CONSOLE, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
+	{SPACE_USERPREF, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
+	{SPACE_CLIP, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
+#endif
 	{0, NULL, 0, NULL, NULL}
 };
 
