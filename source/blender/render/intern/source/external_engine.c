@@ -410,8 +410,30 @@ int RE_engine_render(Render *re, int do_all)
 
 	/* update animation here so any render layer animation is applied before
 	 * creating the render result */
-	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0)
-		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
+	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0) {
+		unsigned int lay = re->lay;
+
+		/* don't update layers excluded on all render layers */
+		if (type->flag & RE_USE_EXCLUDE_LAYERS) {
+			SceneRenderLayer *srl;
+			unsigned int non_excluded_lay = 0;
+
+			if (re->r.scemode & R_SINGLE_LAYER) {
+				srl = BLI_findlink(&re->r.layers, re->r.actlay);
+				if (srl)
+					non_excluded_lay |= ~srl->lay_exclude;
+			}
+			else {
+				for (srl = re->r.layers.first; srl; srl = srl->next)
+					if (!(srl->layflag & SCE_LAY_DISABLE))
+						non_excluded_lay |= ~srl->lay_exclude;
+			}
+
+			lay &= non_excluded_lay;
+		}
+
+		BKE_scene_update_for_newframe(re->main, re->scene, lay);
+	}
 
 	/* create render result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
