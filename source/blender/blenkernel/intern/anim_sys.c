@@ -1689,7 +1689,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 }
 
 /* accumulate (i.e. blend) the given value on to the channel it affects */
-static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short newChan, float value)
+static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short UNUSED(newChan), float value)
 {
 	NlaStrip *strip = nes->strip;
 	short blendmode = strip->blendmode;
