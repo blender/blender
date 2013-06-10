@@ -1695,12 +1695,6 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short
 	short blendmode = strip->blendmode;
 	float inf = strip->influence;
 	
-	/* if channel is new, just store value regardless of blending factors, etc. */
-	if (newChan) {
-		nec->value = value;
-		return;
-	}
-		
 	/* if this is being performed as part of transition evaluation, incorporate
 	 * an additional weighting factor for the influence
 	 */
