@@ -899,12 +899,36 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 		printf("multilayer read: bad channel name: %s\n", name);
 		return 0;
 	}
-	else if (len > 1) {
-		BLI_strncpy(tokenbuf, token, len);
-		printf("multilayer read: channel token too long: %s\n", tokenbuf);
-		return 0;
+	else if (len == 1) {
+		echan->chan_id = token[0];
 	}
-	echan->chan_id = token[0];
+	else if (len > 1) {
+		bool ok = false;
+
+		if (len == 2) {
+			/* some multilayers are using two-letter channels name,
+			 * like, MX or NZ, which is basically has structure of
+			 *   <pass_prefix><component>
+			 *
+			 * This is a bit silly, but see file from [#35658].
+			 *
+			 * Here we do some magic to distinguish such cases.
+			 */
+			if (ELEM3(token[1], 'X', 'Y', 'Z') ||
+			    ELEM3(token[1], 'R', 'G', 'B') ||
+			    ELEM3(token[1], 'U', 'V', 'A'))
+			{
+				echan->chan_id = token[1];
+				ok = true;
+			}
+		}
+
+		if (ok == false) {
+			BLI_strncpy(tokenbuf, token, std::min(len + 1, EXR_TOT_MAXNAME));
+			printf("multilayer read: channel token too long: %s\n", tokenbuf);
+			return 0;
+		}
+	}
 	end -= len + 1; /* +1 to skip '.' separator */
 
 	/* second token is pass name */
