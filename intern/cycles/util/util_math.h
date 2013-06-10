@@ -590,11 +590,6 @@ __device_inline float3 interp(float3 a, float3 b, float t)
 	return a + t*(b - a);
 }
 
-__device_inline float3 lerp_interp(const float3 a, const float3 b, float t)
-{
-	return (a * (1.0f - t) + b * t);
-}
-
 __device_inline bool is_zero(const float3 a)
 {
 #ifdef __KERNEL_SSE__

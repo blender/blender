@@ -10,13 +10,13 @@
  * modification, are permitted provided that the following conditions are
  * met:
  * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *	 notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ *	 notice, this list of conditions and the following disclaimer in the
+ *	 documentation and/or other materials provided with the distribution.
  * * Neither the name of Sony Pictures Imageworks nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
+ *	 contributors may be used to endorse or promote products derived from
+ *	 this software without specific prior written permission.
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -37,12 +37,12 @@ CCL_NAMESPACE_BEGIN
 __device void svm_node_wavelength(ShaderData *sd, float *stack, uint wavelength, uint color_out)
 {	
 	// CIE colour matching functions xBar, yBar, and zBar for
-	//   wavelengths from 380 through 780 nanometers, every 5
-	//   nanometers.  For a wavelength lambda in this range:
-	//        cie_colour_match[(lambda - 380) / 5][0] = xBar
-	//        cie_colour_match[(lambda - 380) / 5][1] = yBar
-	//        cie_colour_match[(lambda - 380) / 5][2] = zBar
-	float cie_colour_match[81][3] = {
+	//	 wavelengths from 380 through 780 nanometers, every 5
+	//	 nanometers.  For a wavelength lambda in this range:
+	//		  cie_colour_match[(lambda - 380) / 5][0] = xBar
+	//		  cie_colour_match[(lambda - 380) / 5][1] = yBar
+	//		  cie_colour_match[(lambda - 380) / 5][2] = zBar
+	const float cie_colour_match[81][3] = {
 		{0.0014,0.0000,0.0065}, {0.0022,0.0001,0.0105}, {0.0042,0.0001,0.0201},
 		{0.0076,0.0002,0.0362}, {0.0143,0.0004,0.0679}, {0.0232,0.0006,0.1102},
 		{0.0435,0.0012,0.2074}, {0.0776,0.0022,0.3713}, {0.1344,0.0040,0.6456},
@@ -73,21 +73,21 @@ __device void svm_node_wavelength(ShaderData *sd, float *stack, uint wavelength,
 	};
 
 	float lambda_nm = stack_load_float(stack, wavelength);
-    float ii = (lambda_nm-380.0f) / 5.0f;  // scaled 0..80
-    int i = float_to_int(ii);
+	float ii = (lambda_nm-380.0f) * (1.0f/5.0f);  // scaled 0..80
+	int i = float_to_int(ii);
 	float3 color;
 	
-    if (i < 0 || i >= 80) {
-        color = make_float3(0.0f, 0.0f, 0.0f);
+	if (i < 0 || i >= 80) {
+		color = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else {
 		ii -= i;
-		float *c = cie_colour_match[i];
-		color = lerp_interp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
+		const float *c = cie_colour_match[i];
+		color = interp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
 	}
 	
 	color = xyz_to_rgb(color.x, color.y, color.z);
-	color *= 1.0f/2.52f;    // Empirical scale from lg to make all comps <= 1
+	color *= 1.0f/2.52f;	// Empirical scale from lg to make all comps <= 1
 	
 	/* Clamp to zero if values are smaller */
 	color = max(color, make_float3(0.0f, 0.0f, 0.0f));
