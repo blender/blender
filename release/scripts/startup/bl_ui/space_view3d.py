@@ -959,27 +959,51 @@ class VIEW3D_MT_object_specials(Menu):
             props.header_text = "Empty Draw Size: %.3f"
 
         if obj.type == 'LAMP':
+            lamp = obj.data
+
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             if scene.render.use_shading_nodes:
-                props = layout.operator("wm.context_modal_mouse", text="Size")
-                props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.shadow_soft_size"
-                props.header_text = "Lamp Size: %.3f"
+                try:
+                    value = lamp.node_tree.nodes["Emission"].inputs["Strength"].default_value
+
+                    props = layout.operator("wm.context_modal_mouse", text="Strength")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value"
+                    props.header_text = "Lamp Strength: %.3f"
+                    props.input_scale = 0.1
+                except AttributeError:
+                    pass
+
+                if lamp.type == 'AREA' and lamp.shape == 'RECTANGLE':
+                    props = layout.operator("wm.context_modal_mouse", text="Size X")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.size"
+                    props.header_text = "Lamp Size X: %.3f"
+
+                    props = layout.operator("wm.context_modal_mouse", text="Size Y")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.size"
+                    props.header_text = "Lamp Size Y: %.3f"
+                elif lamp.type in  {'SPOT', 'AREA', 'POINT', 'SUN'}:
+                    props = layout.operator("wm.context_modal_mouse", text="Size")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.shadow_soft_size"
+                    props.header_text = "Lamp Size: %.3f"
             else:
                 props = layout.operator("wm.context_modal_mouse", text="Energy")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.energy"
                 props.header_text = "Lamp Energy: %.3f"
 
-                if obj.data.type in {'SPOT', 'AREA', 'POINT'}:
+                if lamp.type in {'SPOT', 'AREA', 'POINT'}:
                     props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.distance"
                     props.input_scale = 0.1
                     props.header_text = "Lamp Falloff Distance: %.1f"
 
-            if obj.data.type == 'SPOT':
+            if lamp.type == 'SPOT':
                 layout.separator()
                 props = layout.operator("wm.context_modal_mouse", text="Spot Size")
                 props.data_path_iter = "selected_editable_objects"
