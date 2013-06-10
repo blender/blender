@@ -1639,11 +1639,21 @@ int main(int argc, const char **argv)
 		WM_exit(C);
 	}
 	else {
-		if ((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC)) {
-			if (WM_init_game(C))
-				return 0;
+		if (G.fileflags & G_FILE_AUTOPLAY) {
+			if (G.f & G_SCRIPT_AUTOEXEC) {
+				if (WM_init_game(C)) {
+					return 0;
+				}
+			}
+			else {
+				if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+					G.f |= G_SCRIPT_AUTOEXEC_FAIL;
+					BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Game AutoStart");
+				}
+			}
 		}
-		else if (!G.file_loaded) {
+
+		if (!G.file_loaded) {
 			WM_init_splash(C);
 		}
 	}

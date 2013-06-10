@@ -37,6 +37,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -189,7 +190,12 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 		return 0.0f;
 
 	if (!(G.f & G_SCRIPT_AUTOEXEC)) {
-		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
+		if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+			G.f |= G_SCRIPT_AUTOEXEC_FAIL;
+			BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", driver->expression);
+
+			printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
+		}
 		return 0.0f;
 	}
 

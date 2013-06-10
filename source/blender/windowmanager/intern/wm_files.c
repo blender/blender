@@ -541,7 +541,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 
-#ifdef WITH_PYTHON_SECURITY /* not default */
+#ifdef WITH_PYTHON_SECURITY
 		/* use alternative setting for security nuts
 		 * otherwise we'd need to patch the binary blob - startup.blend.c */
 		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
