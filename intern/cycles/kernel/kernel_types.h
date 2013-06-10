@@ -55,6 +55,7 @@ CCL_NAMESPACE_BEGIN
 #define __OSL__
 #endif
 #define __SUBSURFACE__
+#define __CMJ__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -117,7 +118,6 @@ CCL_NAMESPACE_BEGIN
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
 #define __CLAMP_SAMPLE__
-#define __CMJ__
 
 #ifdef __KERNEL_SHADING__
 #define __SVM__
