@@ -209,8 +209,8 @@ static void alter_co(BMVert *v, BMEdge *UNUSED(origed), const SubDParams *params
 	}
 
 	if (params->use_fractal) {
-		float len = len_v3v3(vsta->co, vend->co);
-		float normal[3] = {0.0f, 0.0f, 0.0f}, co2[3], base1[3], base2[3];
+		const float len = len_v3v3(vsta->co, vend->co);
+		float normal[3], co2[3], base1[3], base2[3];
 
 		fac = params->fractal * len;
 

@@ -1922,7 +1922,7 @@ static void open_set_load_ui(wmOperator *op, bool use_prefs)
 	if (!RNA_property_is_set(op->ptr, prop)) {
 		RNA_property_boolean_set(op->ptr, prop, use_prefs ?
 		                         (U.flag & USER_FILENOUI) == 0 :
-		                         (G.fileflags |= G_FILE_NO_UI) == 0);
+		                         (G.fileflags & G_FILE_NO_UI) == 0);
 	}
 }
 
