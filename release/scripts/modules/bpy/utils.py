@@ -482,8 +482,9 @@ def preset_find(name, preset_path, display_name=False, ext=".py"):
                 return filepath
 
 
-def keyconfig_set(filepath):
+def keyconfig_set(filepath, report=None):
     from os.path import basename, splitext
+    from itertools import chain
 
     if _bpy.app.debug_python:
         print("loading preset:", filepath)
@@ -496,25 +497,36 @@ def keyconfig_set(filepath):
         keyfile = open(filepath)
         exec(compile(keyfile.read(), filepath, "exec"), {"__file__": filepath})
         keyfile.close()
+        error_msg = ""
     except:
         import traceback
-        traceback.print_exc()
+        error_msg = traceback.format_exc()
 
-    kc_new = [kc for kc in keyconfigs if kc not in keyconfigs_old][0]
+    if error_msg:
+        if report is not None:
+            report({'ERROR'}, error_msg)
+        print(error_msg)
 
-    kc_new.name = ""
+    kc_new = next(chain(iter(kc for kc in keyconfigs if kc not in keyconfigs_old), (None,)))
+    if kc_new is None:
+        if report is not None:
+            report({'ERROR'}, "Failed to load keymap %r" % filepath)
+        return False
+    else:
+        kc_new.name = ""
 
-    # remove duplicates
-    name = splitext(basename(filepath))[0]
-    while True:
-        kc_dupe = keyconfigs.get(name)
-        if kc_dupe:
-            keyconfigs.remove(kc_dupe)
-        else:
-            break
+        # remove duplicates
+        name = splitext(basename(filepath))[0]
+        while True:
+            kc_dupe = keyconfigs.get(name)
+            if kc_dupe:
+                keyconfigs.remove(kc_dupe)
+            else:
+                break
 
-    kc_new.name = name
-    keyconfigs.active = kc_new
+        kc_new.name = name
+        keyconfigs.active = kc_new
+        return True
 
 
 def user_resource(resource_type, path="", create=False):
