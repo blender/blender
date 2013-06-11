@@ -2969,7 +2969,7 @@ void WavelengthNode::compile(SVMCompiler& compiler)
 
 	compiler.stack_assign(wavelength_in);
 	compiler.stack_assign(color_out);
-	compiler.add_node(NODE_WAVELENGTH, wavelength_in->stack_offset, color_out->stack_offset, NULL);
+	compiler.add_node(NODE_WAVELENGTH, wavelength_in->stack_offset, color_out->stack_offset);
 }
 
 void WavelengthNode::compile(OSLCompiler& compiler)
