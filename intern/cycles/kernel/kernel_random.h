@@ -102,8 +102,16 @@ __device uint sobol_lookup(const uint m, const uint frame, const uint ex, const 
 	return index;
 }
 
-__device_inline float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dimension)
+__device_inline float path_rng_1D(KernelGlobals *kg, RNG *rng, int sample, int num_samples, int dimension)
 {
+#ifdef __CMJ__
+	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
+		/* correlated multi-jittered */
+		int p = *rng + dimension;
+		return cmj_sample_1D(sample, num_samples, p);
+	}
+#endif
+
 #ifdef __SOBOL_FULL_SCREEN__
 	uint result = sobol_dimension(kg, *rng, dimension);
 	float r = (float)result * (1.0f/(float)0xFFFFFFFF);
@@ -117,41 +125,27 @@ __device_inline float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dime
 	float shift;
 
 	if(dimension & 1)
-		shift = (*rng >> 16)*(1.0f/(float)0xFFFF);
+		shift = (*rng >> 16)/((float)0xFFFF);
 	else
-		shift = (*rng & 0xFFFF)*(1.0f/(float)0xFFFF);
+		shift = (*rng & 0xFFFF)/((float)0xFFFF);
 
 	return r + shift - floorf(r + shift);
 #endif
 }
 
-__device_inline float path_rng_1D(KernelGlobals *kg, RNG *rng, int sample, int num_samples, int dimension)
+__device_inline void path_rng_2D(KernelGlobals *kg, RNG *rng, int sample, int num_samples, int dimension, float *fx, float *fy)
 {
 #ifdef __CMJ__
 	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
 		/* correlated multi-jittered */
 		int p = *rng + dimension;
-		return cmj_sample_1D(sample, num_samples, p);
+		cmj_sample_2D(sample, num_samples, p, fx, fy);
 	}
 #endif
 
 	/* sobol */
-	return path_rng(kg, rng, sample, dimension);
-}
-
-__device_inline float2 path_rng_2D(KernelGlobals *kg, RNG *rng, int sample, int num_samples, int dimension)
-{
-#ifdef __CMJ__
-	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
-		/* correlated multi-jittered */
-		int p = *rng + dimension;
-		return cmj_sample_2D(sample, num_samples, p);
-	}
-#endif
-
-	/* sobol */
-	return make_float2(path_rng(kg, rng, sample, dimension),
-	                   path_rng(kg, rng, sample, dimension + 1));
+	*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
+	*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
 }
 
 __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, int num_samples, RNG *rng, int x, int y, float *fx, float *fy)
@@ -184,10 +178,7 @@ __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, 
 		*fy = 0.5f;
 	}
 	else {
-		float2 fxy = path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U);
-
-		*fx = fxy.x;
-		*fy = fxy.y;
+		path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U, fx, fy);
 	}
 #endif
 }
@@ -203,20 +194,19 @@ __device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng)
 
 __device float path_rng(KernelGlobals *kg, RNG& rng, int sample, int dimension)
 {
+}
+
+__device_inline float path_rng_1D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
+{
 	/* implicit mod 2^32 */
 	rng = (1103515245*(rng) + 12345);
 	return (float)rng * (1.0f/(float)0xFFFFFFFF);
 }
 
-__device_inline float path_rng_1D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
+__device_inline void path_rng_2D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension, float *fx, float *fy)
 {
-	return path_rng(kg, rng, sample, dimension);
-}
-
-__device_inline float2 path_rng_2D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
-{
-	return make_float2(path_rng(kg, rng, sample, dimension),
-	                   path_rng(kg, rng, sample, dimension + 1));
+	*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
+	*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
 }
 
 __device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, int num_samples, RNG *rng, int x, int y, float *fx, float *fy)
@@ -231,10 +221,7 @@ __device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sam
 		*fy = 0.5f;
 	}
 	else {
-		float2 fxy = path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U);
-
-		*fx = fxy.x;
-		*fy = fxy.y;
+		path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U, fx, fy);
 	}
 }
 
