@@ -432,10 +432,8 @@ static void bm_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
 static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	MDisps *mdisps;
-	BMLoop *l_iter;
-	BMLoop *l_first;
-	float x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
-	int ix, iy, res;
+	float d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
+	int ix, res;
 	float axis_x[3], axis_y[3];
 	
 	/* ignore 2-edged faces */
@@ -467,10 +465,15 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 
 	res = (int)sqrt(mdisps->totdisp);
 	d = 1.0f / (float)(res - 1);
-	for (x = 0.0f, ix = 0; ix < res; x += d, ix++) {
+	#pragma omp parallel for if(res > 3)
+	for (ix = 0; ix < res; ix++) {
+		float x = d * ix, y;
+		int iy;
 		for (y = 0.0f, iy = 0; iy < res; y += d, iy++) {
+			BMLoop *l_iter;
+			BMLoop *l_first;
 			float co1[3], co2[3], co[3];
-			
+
 			copy_v3_v3(co1, e1);
 			
 			mul_v3_fl(co1, y);
