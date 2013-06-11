@@ -442,7 +442,7 @@ static void render_endjob(void *rjv)
 
 	/* XXX render stability hack */
 	G.is_rendering = FALSE;
-	WM_main_add_notifier(NC_WINDOW, NULL);
+	WM_main_add_notifier(NC_SCENE|ND_RENDER_RESULT, NULL);
 
 	/* Partial render result will always update display buffer
 	 * for first render layer only. This is nice because you'll
