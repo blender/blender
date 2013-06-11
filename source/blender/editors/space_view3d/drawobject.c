@@ -5460,7 +5460,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 	drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
 	
 	/* first non-selected and active handles */
 	index = 0;
@@ -5481,7 +5481,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		drawvertsN(nu, 0, hide_handles, NULL);
 	}
 	
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
 
 	/* direction vectors for 3d curve paths
 	 * when at its lowest, don't render normals */
