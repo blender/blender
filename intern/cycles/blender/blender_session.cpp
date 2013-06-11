@@ -102,10 +102,13 @@ void BlenderSession::create_session()
 	/* create sync */
 	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, session_params.device.type == DEVICE_CPU);
 
-	/* for final render we will do sync per render layer */
+	/* for final render we will do data sync per render layer */
 	if(b_v3d) {
 		sync->sync_data(b_v3d, b_engine.camera_override());
 		sync->sync_view(b_v3d, b_rv3d, width, height);
+	}
+	else {
+		sync->sync_camera(b_render, b_engine.camera_override(), width, height);
 	}
 
 	/* set buffer parameters */
