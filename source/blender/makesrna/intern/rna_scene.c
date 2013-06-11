@@ -1255,6 +1255,12 @@ static void object_simplify_update(Object *ob)
 	ModifierData *md;
 	ParticleSystem *psys;
 
+	if ((ob->id.flag & LIB_DOIT) == 0) {
+		return;
+	}
+
+	ob->id.flag &= ~LIB_DOIT;
+
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
 			ob->recalc |= PSYS_RECALC_CHILD;
@@ -1279,6 +1285,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), Poi
 	Scene *sce_iter;
 	Base *base;
 
+	tag_main_lb(&bmain->object, TRUE);
 	for (SETLOOPER(sce, sce_iter, base))
 		object_simplify_update(base->object);
 	
