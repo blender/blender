@@ -86,7 +86,7 @@ public:
 	void toggleEdgeTesselationNature(Nature::EdgeNature iNature);
 	void DrawStrokes();
 	void ResetRenderCount();
-	Render *RenderStrokes(Render *re);
+	Render *RenderStrokes(Render *re, bool render);
 	void SwapStyleModules(unsigned i1, unsigned i2);
 	void InsertStyleModule(unsigned index, const char *iFileName);
 	void InsertStyleModule(unsigned index, const char *iName, struct Text *iText);
