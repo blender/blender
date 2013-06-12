@@ -31,6 +31,7 @@
 
 extern "C" {
 	#include "BKE_movieclip.h"
+	#include "BKE_node.h"
 	#include "BKE_tracking.h"
 }
 
@@ -42,7 +43,7 @@ TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 	this->m_trackingObjectName[0] = 0;
 	this->m_trackName[0] = 0;
 	this->m_axis = 0;
-	this->m_position = POSITION_ABSOLUTE;
+	this->m_position = CMP_TRACKPOS_ABSOLUTE;
 	this->m_relativeFrame = 0;
 }
 
@@ -77,7 +78,7 @@ void TrackPositionOperation::initExecution()
 
 			copy_v2_v2(this->m_markerPos, marker->pos);
 
-			if (this->m_position == POSITION_RELATIVE_START) {
+			if (this->m_position == CMP_TRACKPOS_RELATIVE_START) {
 				int i;
 
 				for (i = 0; i < track->markersnr; i++) {
@@ -90,7 +91,7 @@ void TrackPositionOperation::initExecution()
 					}
 				}
 			}
-			else if (this->m_position == POSITION_RELATIVE_FRAME) {
+			else if (this->m_position == CMP_TRACKPOS_RELATIVE_FRAME) {
 				int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip,
 				                                                                    this->m_relativeFrame);
 

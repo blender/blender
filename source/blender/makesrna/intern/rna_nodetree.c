@@ -5714,9 +5714,12 @@ static void def_cmp_trackpos(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem position_items[] = {
-		{0, "ABSOLUTE", 0, "Absolute",  "Output absolute position of a marker"},
-		{1, "RELATIVE_START", 0, "Relative Start",  "Output position of a marker relative to first marker of a track"},
-		{2, "RELATIVE_FRAME", 0, "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{CMP_TRACKPOS_ABSOLUTE, "ABSOLUTE", 0,
+		 "Absolute",  "Output absolute position of a marker"},
+		{CMP_TRACKPOS_RELATIVE_START, "RELATIVE_START", 0,
+		 "Relative Start",  "Output position of a marker relative to first marker of a track"},
+		{CMP_TRACKPOS_RELATIVE_FRAME, "RELATIVE_FRAME", 0,
+		 "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

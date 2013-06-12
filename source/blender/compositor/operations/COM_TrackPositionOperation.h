@@ -39,12 +39,6 @@
  */
 class TrackPositionOperation : public NodeOperation {
 protected:
-	enum {
-		POSITION_ABSOLUTE = 0,
-		POSITION_RELATIVE_START,
-		POSITION_RELATIVE_FRAME
-	};
-
 	MovieClip *m_movieClip;
 	int m_framenumber;
 	char m_trackingObjectName[64];
