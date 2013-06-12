@@ -36,7 +36,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -59,11 +58,17 @@ typedef struct EdgeFaceRef {
 	int f2;
 } EdgeFaceRef;
 
+BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
+{
+	return (edge_ref->f1 != 0) && (edge_ref->f2 != 0);
+}
+
 static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 {
 	int i, numVerts, numEdges, numFaces;
 	MPoly *mpoly, *mp;
 	MLoop *mloop, *ml;
+	MEdge *medge, *ed;
 	MVert *mvert, *mv;
 
 	float (*face_nors)[3];
@@ -74,6 +79,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	numEdges = dm->getNumEdges(dm);
 	numFaces = dm->getNumPolys(dm);
 	mpoly = dm->getPolyArray(dm);
+	medge = dm->getEdgeArray(dm);
 	mvert = dm->getVertArray(dm);
 	mloop = dm->getLoopArray(dm);
 
@@ -95,18 +101,12 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	mp = mpoly;
 
 	{
-		EdgeHash *edge_hash = BLI_edgehash_new();
-		EdgeHashIterator *edge_iter;
-		int edge_ref_count = 0;
-		unsigned int ed_v1, ed_v2; /* use when getting the key */
 		EdgeFaceRef *edge_ref_array = MEM_callocN(sizeof(EdgeFaceRef) * (size_t)numEdges, "Edge Connectivity");
 		EdgeFaceRef *edge_ref;
 		float edge_normal[3];
 
 		/* This loop adds an edge hash if its not there, and adds the face index */
 		for (i = 0; i < numFaces; i++, mp++) {
-			unsigned int ml_v1;
-			unsigned int ml_v2;
 			int j;
 
 			f_no = face_nors[i];
@@ -115,18 +115,12 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 			ml = mloop + mp->loopstart;
 
-			for (j = 0, ml_v2 = ml[mp->totloop - 1].v;
-			     j < mp->totloop;
-			     j++, ml++, ml_v2 = ml_v1)
-			{
-				ml_v1 = ml->v;
+			for (j = 0; j < mp->totloop; j++, ml++) {
 				/* --- add edge ref to face --- */
-				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2);
-				if (!edge_ref) {
-					edge_ref = &edge_ref_array[edge_ref_count++];
+				edge_ref = &edge_ref_array[ml->e];
+				if (!edgeref_is_init(edge_ref)) {
 					edge_ref->f1 =  i;
 					edge_ref->f2 = -1;
-					BLI_edgehash_insert(edge_hash, ml_v1, ml_v2, edge_ref);
 				}
 				else {
 					edge_ref->f2 = i;
@@ -135,15 +129,10 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 			}
 		}
 
-		for (edge_iter = BLI_edgehashIterator_new(edge_hash);
-		     !BLI_edgehashIterator_isDone(edge_iter);
-		     BLI_edgehashIterator_step(edge_iter))
-		{
-			/* Get the edge vert indices, and edge value (the face indices that use it)*/
-			BLI_edgehashIterator_getKey(edge_iter, &ed_v1, &ed_v2);
-			edge_ref = BLI_edgehashIterator_getValue(edge_iter);
+		for (i = 0, ed = medge, edge_ref = edge_ref_array; i < numEdges; i++, ed++, edge_ref++) {
+			/* Get the edge vert indices, and edge value (the face indices that use it) */
 
-			if (edge_ref->f2 != -1) {
+			if (edgeref_is_init(edge_ref) && (edge_ref->f2 != -1)) {
 				/* We have 2 faces using this edge, calculate the edges normal
 				 * using the angle between the 2 faces as a weighting */
 #if 0
@@ -160,11 +149,9 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 				/* an edge without another attached- the weight on this is undefined */
 				copy_v3_v3(edge_normal, face_nors[edge_ref->f1]);
 			}
-			add_v3_v3(temp_nors[ed_v1], edge_normal);
-			add_v3_v3(temp_nors[ed_v2], edge_normal);
+			add_v3_v3(temp_nors[ed->v1], edge_normal);
+			add_v3_v3(temp_nors[ed->v2], edge_normal);
 		}
-		BLI_edgehashIterator_free(edge_iter);
-		BLI_edgehash_free(edge_hash, NULL);
 		MEM_freeN(edge_ref_array);
 	}
 
@@ -286,9 +273,6 @@ static DerivedMesh *applyModifier(
 	STACK_INIT(new_edge_arr);
 
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
-		EdgeHash *edgehash = BLI_edgehash_new();
-		EdgeHashIterator *ehi;
-		unsigned int v1, v2;
 		unsigned int eidx;
 
 #define INVALID_UNUSED ((unsigned int)-1)
@@ -309,9 +293,8 @@ static DerivedMesh *applyModifier(
 		fill_vn_i(edge_users, numEdges, INVALID_UNUSED);
 #endif
 
-		for (i = 0, ed = orig_medge; i < numEdges; i++, ed++) {
-			BLI_edgehash_insert(edgehash, ed->v1, ed->v2, SET_UINT_IN_POINTER(i));
-			edge_users[i] = INVALID_UNUSED;
+		for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
+			edge_users[eidx] = INVALID_UNUSED;
 		}
 
 		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
@@ -327,7 +310,7 @@ static DerivedMesh *applyModifier(
 			{
 				ml_v1 = ml->v;
 				/* add edge user */
-				eidx = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2));
+				eidx = ml->e;
 				if (edge_users[eidx] == INVALID_UNUSED) {
 					ed = orig_medge + eidx;
 					edge_users[eidx] = (ml_v1 < ml_v2) == (ed->v1 < ed->v2) ? i : (i + numFaces);
@@ -339,19 +322,15 @@ static DerivedMesh *applyModifier(
 			}
 		}
 
-		ehi = BLI_edgehashIterator_new(edgehash);
-		for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-			eidx = GET_UINT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+		for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
 			if (!ELEM(edge_users[eidx], INVALID_UNUSED, INVALID_PAIR)) {
-				BLI_edgehashIterator_getKey(ehi, &v1, &v2);
-				orig_mvert[v1].flag |= ME_VERT_TMP_TAG;
-				orig_mvert[v2].flag |= ME_VERT_TMP_TAG;
+				orig_mvert[ed->v1].flag |= ME_VERT_TMP_TAG;
+				orig_mvert[ed->v2].flag |= ME_VERT_TMP_TAG;
 				STACK_PUSH(new_edge_arr, eidx);
 				newFaces++;
 				newLoops += 4;
 			}
 		}
-		BLI_edgehashIterator_free(ehi);
 
 #undef INVALID_UNUSED
 #undef INVALID_PAIR
@@ -365,8 +344,6 @@ static DerivedMesh *applyModifier(
 				mv->flag &= ~ME_VERT_TMP_TAG;
 			}
 		}
-
-		BLI_edgehash_free(edgehash, NULL);
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
