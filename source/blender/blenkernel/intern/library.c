@@ -1428,11 +1428,26 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
  * don't have other library users. */
 void id_clear_lib_data(Main *bmain, ID *id)
 {
+	bNodeTree *ntree = NULL;
+
 	BKE_id_lib_local_paths(bmain, id->lib, id);
 
 	id->lib = NULL;
 	id->flag = LIB_LOCAL;
 	new_id(which_libbase(bmain, GS(id->name)), id, NULL);
+
+	/* internal bNodeTree blocks inside ID types below
+	 * also stores id->lib, make sure this stays in sync.
+	 */
+	switch (GS(id->name)) {
+		case ID_SCE:	ntree = ((Scene *)id)->nodetree;		break;
+		case ID_MA:		ntree = ((Material *)id)->nodetree;		break;
+		case ID_LA:		ntree = ((Lamp *)id)->nodetree;			break;
+		case ID_WO:		ntree = ((World *)id)->nodetree;		break;
+		case ID_TE:		ntree = ((Tex *)id)->nodetree;			break;
+	}
+	if (ntree)
+		ntree->id.lib = NULL;
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
