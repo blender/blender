@@ -50,6 +50,9 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
+/* skip shell thickness for non-manifold edges, see [#35710] */
+#define USE_NONMANIFOLD_WORKAROUND
+
 /* *** derived mesh high quality normal calculation function  *** */
 /* could be exposed for other functions to use */
 
@@ -119,7 +122,9 @@ static void dm_calc_normal(DerivedMesh *dm, float (*face_nors)[3], float (*r_ver
 				else {
 					/* 3+ faces using an edge, we can't handle this usefully */
 					edge_ref->f1 = edge_ref->f2 = -1;
+#ifdef USE_NONMANIFOLD_WORKAROUND
 					medge[ml->e].flag |= ME_EDGE_TMP_TAG;
+#endif
 				}
 				/* --- done --- */
 			}
@@ -494,9 +499,9 @@ static DerivedMesh *applyModifier(
 		}
 	}
 	else {
-		/* make a face normal layer if not present */
+#ifdef USE_NONMANIFOLD_WORKAROUND
 		const bool check_non_manifold = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) != 0;
-
+#endif
 		/* same as EM_solidify() in editmesh_lib.c */
 		float *vert_angles = MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum = vert_angles + numVerts;
@@ -537,6 +542,7 @@ static DerivedMesh *applyModifier(
 				vidx = ml[i_curr].v;
 				vert_accum[vidx] += angle;
 
+#ifdef USE_NONMANIFOLD_WORKAROUND
 				/* skip 3+ face user edges */
 				if ((check_non_manifold == false) ||
 				    LIKELY(((orig_medge[ml[i_curr].e].flag & ME_EDGE_TMP_TAG) == 0) &&
@@ -547,6 +553,9 @@ static DerivedMesh *applyModifier(
 				else {
 					vert_angles[vidx] += angle;
 				}
+#else
+				vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
+#endif
 				/* --- end non-angle-calc section --- */
 
 
