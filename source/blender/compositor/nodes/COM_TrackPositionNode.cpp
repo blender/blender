@@ -27,6 +27,8 @@
 
 extern "C" {
 	#include "DNA_movieclip_types.h"
+
+	#include "BKE_node.h"
 }
 
 TrackPositionNode::TrackPositionNode(bNode *editorNode) : Node(editorNode)
@@ -44,13 +46,21 @@ void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 
 	NodeTrackPosData *trackpos_data = (NodeTrackPosData *) editorNode->storage;
 
+	int frame_number;
+	if (editorNode->custom1 == CMP_TRACKPOS_ABSOLUTE_FRAME) {
+		frame_number = editorNode->custom2;
+	}
+	else {
+		frame_number = context->getFramenumber();
+	}
+
 	TrackPositionOperation *operationX = new TrackPositionOperation();
 	TrackPositionOperation *operationY = new TrackPositionOperation();
 
 	operationX->setMovieClip(clip);
 	operationX->setTrackingObject(trackpos_data->tracking_object);
 	operationX->setTrackName(trackpos_data->track_name);
-	operationX->setFramenumber(context->getFramenumber());
+	operationX->setFramenumber(frame_number);
 	operationX->setAxis(0);
 	operationX->setPosition(editorNode->custom1);
 	operationX->setRelativeFrame(editorNode->custom2);
@@ -58,7 +68,7 @@ void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	operationY->setMovieClip(clip);
 	operationY->setTrackingObject(trackpos_data->tracking_object);
 	operationY->setTrackName(trackpos_data->track_name);
-	operationY->setFramenumber(context->getFramenumber());
+	operationY->setFramenumber(frame_number);
 	operationY->setAxis(1);
 	operationY->setPosition(editorNode->custom1);
 	operationY->setRelativeFrame(editorNode->custom2);

@@ -2216,7 +2216,7 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 
 		uiItemR(layout, ptr, "position", 0, NULL, ICON_NONE);
 
-		if (node->custom1 == 2) {
+		if (ELEM(node->custom1, CMP_TRACKPOS_RELATIVE_FRAME, CMP_TRACKPOS_ABSOLUTE_FRAME)) {
 			uiItemR(layout, ptr, "frame_relative", 0, NULL, ICON_NONE);
 		}
 	}

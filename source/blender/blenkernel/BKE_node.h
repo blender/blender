@@ -921,6 +921,7 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_TRACKPOS_ABSOLUTE			0
 #define CMP_TRACKPOS_RELATIVE_START	1
 #define CMP_TRACKPOS_RELATIVE_FRAME	2
+#define CMP_TRACKPOS_ABSOLUTE_FRAME	3
 
 /* API */
 struct CompBuf;

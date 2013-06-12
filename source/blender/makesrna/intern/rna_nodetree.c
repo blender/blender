@@ -5720,6 +5720,8 @@ static void def_cmp_trackpos(StructRNA *srna)
 		 "Relative Start",  "Output position of a marker relative to first marker of a track"},
 		{CMP_TRACKPOS_RELATIVE_FRAME, "RELATIVE_FRAME", 0,
 		 "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{CMP_TRACKPOS_ABSOLUTE_FRAME, "ABSOLUTE_FRAME", 0,
+		 "Absolute Frame",  "Output absolute position of a marker at given frame number"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
