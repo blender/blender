@@ -180,7 +180,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 
 	DriverVar *dvar;
 	double result = 0.0; /* default return */
-	char *expr = NULL;
+	const char *expr;
 	short targets_ok = 1;
 	int i;
 
@@ -192,9 +192,9 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 	if (!(G.f & G_SCRIPT_AUTOEXEC)) {
 		if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
 			G.f |= G_SCRIPT_AUTOEXEC_FAIL;
-			BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", driver->expression);
+			BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
 
-			printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
+			printf("skipping driver '%s', automatic scripts are disabled\n", expr);
 		}
 		return 0.0f;
 	}

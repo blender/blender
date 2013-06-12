@@ -67,14 +67,13 @@ class INFO_HT_header(Header):
 
         if bpy.app.autoexec_fail is True and bpy.app.autoexec_fail_quiet is False:
             layout.operator_context = 'EXEC_DEFAULT'
-            row.label("Script failed to auto-run", icon='ERROR')
+            row.label("Auto-run disabled: %s" % bpy.app.autoexec_fail_message, icon='ERROR')
             if bpy.data.is_saved:
                 props = row.operator("wm.open_mainfile", icon='SCREEN_BACK', text="Reload Trusted")
                 props.filepath = bpy.data.filepath
                 props.use_scripts = True
 
-            row.operator("script.autoexec_warn_clear", icon='CANCEL')
-            row.label("Skipping: (%s)" % bpy.app.autoexec_fail_message)
+            row.operator("script.autoexec_warn_clear", text="Ignore")
             return
 
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
