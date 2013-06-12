@@ -37,7 +37,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_array.h"
 #include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -241,10 +240,13 @@ static DerivedMesh *applyModifier(
 	const short mat_ofs_rim = mat_nr_max ? smd->mat_ofs_rim : 0;
 
 	/* use for edges */
+	/* over-alloc new_vert_arr, old_vert_arr */
 	int *new_vert_arr = NULL;
-	BLI_array_declare(new_vert_arr);
+	STACK_DECLARE(new_vert_arr);
+
 	int *new_edge_arr = NULL;
-	BLI_array_declare(new_edge_arr);
+	STACK_DECLARE(new_edge_arr);
+
 	int *old_vert_arr = MEM_callocN(sizeof(int) * numVerts, "old_vert_arr in solidify");
 
 	int *edge_users = NULL;
@@ -276,6 +278,9 @@ static DerivedMesh *applyModifier(
 	orig_mloop = dm->getLoopArray(dm);
 	orig_mpoly = dm->getPolyArray(dm);
 
+	STACK_INIT(new_vert_arr);
+	STACK_INIT(new_edge_arr);
+
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
 		EdgeHash *edgehash = BLI_edgehash_new();
 		EdgeHashIterator *ehi;
@@ -285,8 +290,11 @@ static DerivedMesh *applyModifier(
 #define INVALID_UNUSED -1
 #define INVALID_PAIR -2
 
-		edge_users = MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
-		edge_order = MEM_mallocN(sizeof(char) * numEdges, "solid_mod eorder");
+		new_vert_arr = MEM_mallocN(sizeof(*new_vert_arr) * (numVerts * 2), __func__);
+		new_edge_arr = MEM_mallocN(sizeof(*new_edge_arr) * ((numEdges * 2) + numVerts), __func__);
+
+		edge_users = MEM_mallocN(sizeof(*edge_users) * numEdges, "solid_mod edges");
+		edge_order = MEM_mallocN(sizeof(*edge_order) * numEdges, "solid_mod eorder");
 
 		for (i = 0, mv = orig_mvert; i < numVerts; i++, mv++) {
 			mv->flag &= ~ME_VERT_TMP_TAG;
@@ -337,7 +345,7 @@ static DerivedMesh *applyModifier(
 				BLI_edgehashIterator_getKey(ehi, &v1, &v2);
 				orig_mvert[v1].flag |= ME_VERT_TMP_TAG;
 				orig_mvert[v2].flag |= ME_VERT_TMP_TAG;
-				BLI_array_append(new_edge_arr, eidx);
+				STACK_PUSH(new_edge_arr, eidx);
 				newFaces++;
 				newLoops += 4;
 			}
@@ -346,8 +354,8 @@ static DerivedMesh *applyModifier(
 
 		for (i = 0, mv = orig_mvert; i < numVerts; i++, mv++) {
 			if (mv->flag & ME_VERT_TMP_TAG) {
-				old_vert_arr[i] = BLI_array_count(new_vert_arr);
-				BLI_array_append(new_vert_arr, i);
+				old_vert_arr[i] = STACK_SIZE(new_vert_arr);
+				STACK_PUSH(new_vert_arr, i);
 				newEdges++;
 
 				mv->flag &= ~ME_VERT_TMP_TAG;
@@ -820,8 +828,8 @@ static DerivedMesh *applyModifier(
 		}
 #endif
 
-		BLI_array_free(new_vert_arr);
-		BLI_array_free(new_edge_arr);
+		MEM_freeN(new_vert_arr);
+		MEM_freeN(new_edge_arr);
 		MEM_freeN(edge_users);
 		MEM_freeN(edge_order);
 	}
