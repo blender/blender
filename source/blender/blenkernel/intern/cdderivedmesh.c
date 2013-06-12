@@ -2291,7 +2291,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	}
 
 	BKE_mesh_calc_normals_poly(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-	                               dm->numLoopData, dm->numPolyData, poly_nors);
+	                               dm->numLoopData, dm->numPolyData, poly_nors, false);
 
 	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
@@ -2306,7 +2306,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 
 	BKE_mesh_calc_normals_poly(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-	                           dm->numLoopData, dm->numPolyData, NULL);
+	                           dm->numLoopData, dm->numPolyData, NULL, false);
 
 	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }

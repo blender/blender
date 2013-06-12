@@ -63,17 +63,18 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 	return !((edge_ref->f1 == 0) && (edge_ref->f2 == 0));
 }
 
-static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
+/**
+ * \param dm  Mesh to calculate normals for.
+ * \param face_nors  Precalculated face normals.
+ * \param r_vert_nors  Return vert normals.
+ */
+static void dm_calc_normal(DerivedMesh *dm, float (*face_nors)[3], float (*r_vert_nors)[3])
 {
 	int i, numVerts, numEdges, numFaces;
 	MPoly *mpoly, *mp;
 	MLoop *mloop, *ml;
 	MEdge *medge, *ed;
 	MVert *mvert, *mv;
-
-	float (*face_nors)[3];
-	float *f_no;
-	bool calc_face_nors = false;
 
 	numVerts = dm->getNumVerts(dm);
 	numEdges = dm->getNumEdges(dm);
@@ -91,12 +92,6 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	cddm->mvert = mv;
 #endif
 
-	face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
-	if (!face_nors) {
-		calc_face_nors = true;
-		face_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, numFaces);
-	}
-
 	mv = mvert;
 	mp = mpoly;
 
@@ -108,10 +103,6 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		/* This loop adds an edge hash if its not there, and adds the face index */
 		for (i = 0; i < numFaces; i++, mp++) {
 			int j;
-
-			f_no = face_nors[i];
-			if (calc_face_nors)
-				BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
 
 			ml = mloop + mp->loopstart;
 
@@ -155,8 +146,8 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 					/* an edge without another attached- the weight on this is undefined */
 					copy_v3_v3(edge_normal, face_nors[edge_ref->f1]);
 				}
-				add_v3_v3(temp_nors[ed->v1], edge_normal);
-				add_v3_v3(temp_nors[ed->v2], edge_normal);
+				add_v3_v3(r_vert_nors[ed->v1], edge_normal);
+				add_v3_v3(r_vert_nors[ed->v2], edge_normal);
 			}
 		}
 		MEM_freeN(edge_ref_array);
@@ -164,8 +155,8 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 	/* normalize vertex normals and assign */
 	for (i = 0; i < numVerts; i++, mv++) {
-		if (normalize_v3(temp_nors[i]) == 0.0f) {
-			normal_short_to_float_v3(temp_nors[i], mv->no);
+		if (normalize_v3(r_vert_nors[i]) == 0.0f) {
+			normal_short_to_float_v3(r_vert_nors[i], mv->no);
 		}
 	}
 }
@@ -230,7 +221,8 @@ static DerivedMesh *applyModifier(
 	const unsigned int numVerts = (unsigned int)dm->getNumVerts(dm);
 	const unsigned int numEdges = (unsigned int)dm->getNumEdges(dm);
 	const unsigned int numFaces = (unsigned int)dm->getNumPolys(dm);
-	unsigned int numLoops = 0, newLoops = 0, newFaces = 0, newEdges = 0;
+	const unsigned int numLoops = (unsigned int)dm->getNumLoops(dm);
+	unsigned int newLoops = 0, newFaces = 0, newEdges = 0;
 
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
@@ -251,8 +243,9 @@ static DerivedMesh *applyModifier(
 	char *edge_order = NULL;
 
 	float (*vert_nors)[3] = NULL;
+	float (*face_nors)[3] = NULL;
 
-	float (*face_nors_result)[3] = NULL;
+	const bool need_face_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) || (smd->flag & MOD_SOLIDIFY_EVEN);
 
 	const float ofs_orig = -(((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 	const float ofs_new  = smd->offset + ofs_orig;
@@ -268,13 +261,20 @@ static DerivedMesh *applyModifier(
 
 	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
-	numLoops = (unsigned int)dm->numLoopData;
-	newLoops = 0;
-
 	orig_mvert = dm->getVertArray(dm);
 	orig_medge = dm->getEdgeArray(dm);
 	orig_mloop = dm->getLoopArray(dm);
 	orig_mpoly = dm->getPolyArray(dm);
+
+	if (need_face_normals) {
+		/* calculate only face normals */
+		face_nors = MEM_mallocN(sizeof(*face_nors) * (size_t)numFaces, __func__);
+		BKE_mesh_calc_normals_poly(
+		            orig_mvert, (int)numVerts,
+		            orig_mloop, orig_mpoly,
+		            (int)numLoops, (int)numFaces,
+		            face_nors, true);
+	}
 
 	STACK_INIT(new_vert_arr);
 	STACK_INIT(new_edge_arr);
@@ -355,7 +355,7 @@ static DerivedMesh *applyModifier(
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
 		vert_nors = MEM_callocN(sizeof(float) * (size_t)numVerts * 3, "mod_solid_vno_hq");
-		dm_calc_normal(dm, vert_nors);
+		dm_calc_normal(dm, face_nors, vert_nors);
 	}
 
 	result = CDDM_from_template(dm,
@@ -380,9 +380,6 @@ static DerivedMesh *applyModifier(
 
 	DM_copy_poly_data(dm, result, 0, 0, (int)numFaces);
 	DM_copy_poly_data(dm, result, 0, (int)numFaces, (int)numFaces);
-
-	/* if the original has it, get the result so we can update it */
-	face_nors_result = CustomData_get_layer(&result->polyData, CD_NORMAL);
 
 	/* flip normals */
 	mp = mpoly + numFaces;
@@ -413,10 +410,6 @@ static DerivedMesh *applyModifier(
 		for (j = 0; j < mp->totloop; j++) {
 			ml2[j].e += numEdges;
 			ml2[j].v += numVerts;
-		}
-
-		if (face_nors_result) {
-			negate_v3_v3(face_nors_result[numFaces + i], face_nors_result[i]);
 		}
 	}
 
@@ -503,19 +496,11 @@ static DerivedMesh *applyModifier(
 	else {
 		/* make a face normal layer if not present */
 		const bool check_non_manifold = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) != 0;
-		float (*face_nors)[3];
-		bool face_nors_calc = false;
 
 		/* same as EM_solidify() in editmesh_lib.c */
 		float *vert_angles = MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum = vert_angles + numVerts;
 		unsigned int vidx;
-
-		face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
-		if (!face_nors) {
-			face_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, dm->numPolyData);
-			face_nors_calc = true;
-		}
 
 		if (vert_nors == NULL) {
 			vert_nors = MEM_mallocN(sizeof(float) * numVerts * 3, "mod_solid_vno");
@@ -529,22 +514,17 @@ static DerivedMesh *applyModifier(
 			float nor_prev[3];
 			float nor_next[3];
 
-			int i_this = mp->totloop - 1;
+			int i_curr = mp->totloop - 1;
 			int i_next = 0;
 
 			ml = &mloop[mp->loopstart];
 
-			/* --- not related to angle calc --- */
-			if (face_nors_calc)
-				BKE_mesh_calc_poly_normal(mp, ml, mvert, face_nors[i]);
-			/* --- end non-angle-calc section --- */
-
-			sub_v3_v3v3(nor_prev, mvert[ml[i_this - 1].v].co, mvert[ml[i_this].v].co);
+			sub_v3_v3v3(nor_prev, mvert[ml[i_curr - 1].v].co, mvert[ml[i_curr].v].co);
 			normalize_v3(nor_prev);
 
 			while (i_next < mp->totloop) {
 				float angle;
-				sub_v3_v3v3(nor_next, mvert[ml[i_this].v].co, mvert[ml[i_next].v].co);
+				sub_v3_v3v3(nor_next, mvert[ml[i_curr].v].co, mvert[ml[i_next].v].co);
 				normalize_v3(nor_next);
 				angle = angle_normalized_v3v3(nor_prev, nor_next);
 
@@ -554,12 +534,12 @@ static DerivedMesh *applyModifier(
 					angle = FLT_EPSILON;
 				}
 
-				vidx = ml[i_this].v;
+				vidx = ml[i_curr].v;
 				vert_accum[vidx] += angle;
 
 				/* skip 3+ face user edges */
 				if ((check_non_manifold == false) ||
-				    LIKELY(((orig_medge[ml[i_this].e].flag & ME_EDGE_TMP_TAG) == 0) &&
+				    LIKELY(((orig_medge[ml[i_curr].e].flag & ME_EDGE_TMP_TAG) == 0) &&
 				           ((orig_medge[ml[i_next].e].flag & ME_EDGE_TMP_TAG) == 0)))
 				{
 					vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
@@ -572,7 +552,7 @@ static DerivedMesh *applyModifier(
 
 				/* step */
 				copy_v3_v3(nor_prev, nor_next);
-				i_this = i_next;
+				i_curr = i_next;
 				i_next++;
 			}
 		}
@@ -800,10 +780,6 @@ static DerivedMesh *applyModifier(
 
 				add_v3_v3(edge_vert_nos[ed->v1], nor);
 				add_v3_v3(edge_vert_nos[ed->v2], nor);
-
-				if (face_nors_result) {
-					copy_v3_v3(face_nors_result[(numFaces * 2) + i], nor);
-				}
 			}
 #endif
 		}
@@ -844,6 +820,9 @@ static DerivedMesh *applyModifier(
 
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
+
+	if (face_nors)
+		MEM_freeN(face_nors);
 
 	if (numFaces == 0 && numEdges != 0) {
 		modifier_setError(md, "Faces needed for useful output");
