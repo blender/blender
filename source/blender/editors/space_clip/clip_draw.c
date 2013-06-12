@@ -1428,15 +1428,16 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 		ibuf = ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
 
 		if (ibuf) {
-			float loc[2];
+			float translation[2];
 			float aspect = clip->tracking.camera.pixel_aspect;
 
 			if (width != ibuf->x)
-				mul_v2_v2fl(loc, sc->loc, (float)width / ibuf->x);
+				mul_v2_v2fl(translation, sc->loc, (float)width / ibuf->x);
 			else
-				copy_v2_v2(loc, sc->loc);
+				copy_v2_v2(translation, sc->loc);
 
-			BKE_tracking_stabilization_data_to_mat4(width, height, aspect, loc, sc->scale, sc->angle, sc->stabmat);
+			BKE_tracking_stabilization_data_to_mat4(width, height, aspect,
+			                                        translation, sc->scale, sc->angle, sc->stabmat);
 
 			unit_m4(smat);
 			smat[0][0] = 1.0f / width;
