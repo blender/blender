@@ -138,4 +138,6 @@ void register_node_type_cmp_switch(void);
 void register_node_type_cmp_pixelate(void);
 void register_node_type_cmp_trackpos(void);
 
+void node_cmp_rlayers_force_hidden_passes(struct bNode *node);
+
 #endif

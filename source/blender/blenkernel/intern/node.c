@@ -150,6 +150,9 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 		ntype->initfunc_api(C, &ptr);
 	}
 	
+	if (node->id)
+		id_us_plus(node->id);
+	
 	node->flag |= NODE_INIT;
 }
 

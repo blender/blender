@@ -32,6 +32,8 @@
 
 #include "node_composite_util.h"
 
+#include "BKE_image.h"
+
 /* **************** SPLIT VIEWER ******************** */
 static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
@@ -47,6 +49,8 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
 	iuser->fie_ima = 2;
 	iuser->ok = 1;
 	node->custom1 = 50;  /* default 50% split */
+	
+	node->id = (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
 void register_node_type_cmp_splitviewer(void)

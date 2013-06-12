@@ -33,6 +33,10 @@
 
 #include "node_composite_util.h"
 
+#include "BKE_context.h"
+
+#include "RNA_access.h"
+
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_stabilize2d_in[] = {
@@ -45,8 +49,13 @@ static bNodeSocketTemplate cmp_node_stabilize2d_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(const bContext *C, PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+	Scene *scene = CTX_data_scene(C);
+	
+	node->id = (ID *)scene->clip;
+	
 	/* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
 	node->custom1 = 1;
 }
@@ -57,7 +66,7 @@ void register_node_type_cmp_stabilize2d(void)
 
 	cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT, 0);
 	node_type_socket_templates(&ntype, cmp_node_stabilize2d_in, cmp_node_stabilize2d_out);
-	node_type_init(&ntype, init);
+	ntype.initfunc_api = init;
 
 	nodeRegisterType(&ntype);
 }
