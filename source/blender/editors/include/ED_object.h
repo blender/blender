@@ -200,6 +200,22 @@ int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
+/* object_vgroup.c */
+typedef enum eVGroupSelect {
+	WT_VGROUP_ACTIVE = 1,
+	WT_VGROUP_BONE_SELECT = 2,
+	WT_VGROUP_BONE_DEFORM = 3,
+	WT_VGROUP_ALL = 4,
+} eVGroupSelect;
+
+#define WT_VGROUP_MASK_ALL \
+	((1 << WT_VGROUP_ACTIVE) | \
+	 (1 << WT_VGROUP_BONE_SELECT) | \
+	 (1 << WT_VGROUP_BONE_DEFORM) | \
+	 (1 << WT_VGROUP_ALL))
+
+bool *ED_vgroup_subset_from_select_type(struct Object *ob, eVGroupSelect subset_type, int *r_vgroup_tot, int *r_subset_count);
+
 #ifdef __cplusplus
 }
 #endif
