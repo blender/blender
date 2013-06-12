@@ -60,7 +60,7 @@ typedef struct EdgeFaceRef {
 
 BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 {
-	return (edge_ref->f1 != 0) && (edge_ref->f2 != 0);
+	return !((edge_ref->f1 == 0) && (edge_ref->f2 == 0));
 }
 
 static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
@@ -128,6 +128,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 				else {
 					/* 3+ faces using an edge, we can't handle this usefully */
 					edge_ref->f1 = edge_ref->f2 = -1;
+					medge[ml->e].flag |= ME_EDGE_TMP_TAG;
 				}
 				/* --- done --- */
 			}
@@ -501,6 +502,7 @@ static DerivedMesh *applyModifier(
 	}
 	else {
 		/* make a face normal layer if not present */
+		const bool check_non_manifold = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) != 0;
 		float (*face_nors)[3];
 		bool face_nors_calc = false;
 
@@ -551,9 +553,20 @@ static DerivedMesh *applyModifier(
 				if (angle < FLT_EPSILON) {
 					angle = FLT_EPSILON;
 				}
+
 				vidx = ml[i_this].v;
 				vert_accum[vidx] += angle;
-				vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
+
+				/* skip 3+ face user edges */
+				if ((check_non_manifold == false) ||
+				    LIKELY(((orig_medge[ml[i_this].e].flag & ME_EDGE_TMP_TAG) == 0) &&
+				           ((orig_medge[ml[i_next].e].flag & ME_EDGE_TMP_TAG) == 0)))
+				{
+					vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
+				}
+				else {
+					vert_angles[vidx] += angle;
+				}
 				/* --- end non-angle-calc section --- */
 
 

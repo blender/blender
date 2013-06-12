@@ -309,7 +309,7 @@ typedef struct FreestyleFace {
 						/* reserve 16 for ME_HIDE */
 #define ME_EDGERENDER		(1<<5)
 #define ME_LOOSEEDGE		(1<<7)
-/* #define ME_SEAM_LAST		(1<<8) */ /* UNUSED */
+#define ME_EDGE_TMP_TAG		(1 << 8)
 #define ME_SHARP			(1<<9)    /* only reason this flag remains a 'short' */
 
 /* puno = vertexnormal (mface) */
