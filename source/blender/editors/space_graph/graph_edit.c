@@ -1745,7 +1745,9 @@ void GRAPH_OT_euler_filter(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Euler Discontinuity Filter";
 	ot->idname = "GRAPH_OT_euler_filter";
-	ot->description = "Fixes the most common causes of gimbal lock in the selected Euler Rotation F-Curves";
+	ot->description = "Fix large jumps and flips in the selected "
+	                  "Euler Rotation F-Curves arising from rotation "
+	                  "values being clipped when baking physics";
 	
 	/* api callbacks */
 	ot->exec = graphkeys_euler_filter_exec;

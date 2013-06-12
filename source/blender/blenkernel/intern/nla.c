@@ -503,7 +503,7 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode)
 
 
 /* Non clipped mapping for strip-time <-> global time
- *	mode = eNlaTime_ConvertModesp[] -> NLATIME_CONVERT_*
+ *	mode = eNlaTime_ConvertModes -> NLATIME_CONVERT_*
  *
  * Public API method - perform this mapping using the given AnimData block
  * and perform any necessary sanity checks on the value
