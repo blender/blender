@@ -65,7 +65,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 	float (*face_nors)[3];
 	float *f_no;
-	int calc_face_nors = 0;
+	bool calc_face_nors = false;
 
 	numVerts = dm->getNumVerts(dm);
 	numEdges = dm->getNumEdges(dm);
@@ -84,7 +84,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 	face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 	if (!face_nors) {
-		calc_face_nors = 1;
+		calc_face_nors = true;
 		face_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, numFaces);
 	}
 
@@ -504,7 +504,7 @@ static DerivedMesh *applyModifier(
 	else {
 		/* make a face normal layer if not present */
 		float (*face_nors)[3];
-		int face_nors_calc = 0;
+		bool face_nors_calc = false;
 
 		/* same as EM_solidify() in editmesh_lib.c */
 		float *vert_angles = MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
@@ -514,7 +514,7 @@ static DerivedMesh *applyModifier(
 		face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 		if (!face_nors) {
 			face_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, dm->numPolyData);
-			face_nors_calc = 1;
+			face_nors_calc = true;
 		}
 
 		if (vert_nors == NULL) {
@@ -633,10 +633,16 @@ static DerivedMesh *applyModifier(
 	if (vert_nors)
 		MEM_freeN(vert_nors);
 
-	/* flip vertex normals for copied verts */
-	mv = mvert + numVerts;
-	for (i = 0; i < numVerts; i++, mv++) {
-		negate_v3_short(mv->no);
+	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
+	if ((dm->dirty & DM_DIRTY_NORMALS) || (smd->flag & MOD_SOLIDIFY_RIM) || dvert) {
+		result->dirty |= DM_DIRTY_NORMALS;
+	}
+	else {
+		/* flip vertex normals for copied verts */
+		mv = mvert + numVerts;
+		for (i = 0; i < numVerts; i++, mv++) {
+			negate_v3_short(mv->no);
+		}
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
@@ -653,8 +659,9 @@ static DerivedMesh *applyModifier(
 #define SOLIDIFY_SIDE_NORMALS
 
 #ifdef SOLIDIFY_SIDE_NORMALS
+		const bool do_side_normals = !(result->dirty & DM_DIRTY_NORMALS);
 		/* annoying to allocate these since we only need the edge verts, */
-		float (*edge_vert_nos)[3] = MEM_callocN(sizeof(float) * numVerts * 3, "solidify_edge_nos");
+		float (*edge_vert_nos)[3] = do_side_normals ? MEM_callocN(sizeof(float) * numVerts * 3, __func__) : NULL;
 		float nor[3];
 #endif
 		const unsigned char crease_rim = smd->crease_rim * 255.0f;
@@ -772,41 +779,45 @@ static DerivedMesh *applyModifier(
 			}
 
 #ifdef SOLIDIFY_SIDE_NORMALS
-			normal_quad_v3(nor,
-			               mvert[ml[j - 4].v].co,
-			               mvert[ml[j - 3].v].co,
-			               mvert[ml[j - 2].v].co,
-			               mvert[ml[j - 1].v].co);
+			if (do_side_normals) {
+				normal_quad_v3(nor,
+				               mvert[ml[j - 4].v].co,
+				               mvert[ml[j - 3].v].co,
+				               mvert[ml[j - 2].v].co,
+				               mvert[ml[j - 1].v].co);
 
-			add_v3_v3(edge_vert_nos[ed->v1], nor);
-			add_v3_v3(edge_vert_nos[ed->v2], nor);
+				add_v3_v3(edge_vert_nos[ed->v1], nor);
+				add_v3_v3(edge_vert_nos[ed->v2], nor);
 
-			if (face_nors_result) {
-				copy_v3_v3(face_nors_result[(numFaces * 2) + i], nor);
+				if (face_nors_result) {
+					copy_v3_v3(face_nors_result[(numFaces * 2) + i], nor);
+				}
 			}
 #endif
 		}
 
 #ifdef SOLIDIFY_SIDE_NORMALS
-		ed = medge + (numEdges * 2);
-		for (i = 0; i < newEdges; i++, ed++) {
-			float nor_cpy[3];
-			short *nor_short;
-			int k;
+		if (do_side_normals) {
+			ed = medge + (numEdges * 2);
+			for (i = 0; i < newEdges; i++, ed++) {
+				float nor_cpy[3];
+				short *nor_short;
+				int k;
 
-			/* note, only the first vertex (lower half of the index) is calculated */
-			normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
+				/* note, only the first vertex (lower half of the index) is calculated */
+				normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
 
-			for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
-				nor_short = mvert[*(&ed->v1 + k)].no;
-				normal_short_to_float_v3(nor, nor_short);
-				add_v3_v3(nor, nor_cpy);
-				normalize_v3(nor);
-				normal_float_to_short_v3(nor_short, nor);
+				for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
+					nor_short = mvert[*(&ed->v1 + k)].no;
+					normal_short_to_float_v3(nor, nor_short);
+					add_v3_v3(nor, nor_cpy);
+					normalize_v3(nor);
+					normal_float_to_short_v3(nor_short, nor);
+				}
 			}
-		}
 
-		MEM_freeN(edge_vert_nos);
+			MEM_freeN(edge_vert_nos);
+		}
 #endif
 
 		BLI_array_free(new_vert_arr);
@@ -818,11 +829,6 @@ static DerivedMesh *applyModifier(
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
 
-	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
-	if ((dm->dirty & DM_DIRTY_NORMALS) || dvert) {
-		result->dirty |= DM_DIRTY_NORMALS;
-	}
-
 	if (numFaces == 0 && numEdges != 0) {
 		modifier_setError(md, "Faces needed for useful output");
 	}
@@ -832,11 +838,11 @@ static DerivedMesh *applyModifier(
 
 #undef SOLIDIFY_SIDE_NORMALS
 
-static bool dependsOnNormals(ModifierData *md)
+static bool dependsOnNormals(ModifierData *UNUSED(md))
 {
-	SolidifyModifierData *smd = (SolidifyModifierData *) md;
-
-	return (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) == 0;
+	/* even when we calculate our own normals,
+	 * the vertex normals are used as a fallback */
+	return true;
 }
 
 ModifierTypeInfo modifierType_Solidify = {
