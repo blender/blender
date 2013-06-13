@@ -318,8 +318,12 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	return object;
 }
 
-static bool object_render_hide_original(BL::Object::dupli_type_enum dupli_type)
+static bool object_render_hide_original(BL::Object::type_enum ob_type, BL::Object::dupli_type_enum dupli_type)
 {
+	/* metaball exception, they duplicate self */
+	if(ob_type == BL::Object::type_META)
+		return false;
+
 	return (dupli_type == BL::Object::dupli_type_VERTS ||
 	        dupli_type == BL::Object::dupli_type_FACES ||
 	        dupli_type == BL::Object::dupli_type_FRAMES);
@@ -352,7 +356,7 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 
 	/* hide original object for duplis */
 	BL::Object parent = b_ob.parent();
-	if(parent && object_render_hide_original(parent.dupli_type()))
+	if(parent && object_render_hide_original(b_ob.type(), parent.dupli_type()))
 		if(parent_hide)
 			hide = true;
 
@@ -364,7 +368,7 @@ static bool object_render_hide_duplis(BL::Object b_ob)
 {
 	BL::Object parent = b_ob.parent();
 
-	return (parent && object_render_hide_original(parent.dupli_type()));
+	return (parent && object_render_hide_original(b_ob.type(), parent.dupli_type()));
 }
 
 /* Object Loop */
