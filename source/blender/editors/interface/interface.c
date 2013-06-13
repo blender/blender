@@ -138,15 +138,11 @@ void ui_block_to_window(const ARegion *ar, uiBlock *block, int *x, int *y)
 	*y = (int)(fy + 0.5f);
 }
 
-void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, const rctf *graph, rcti *winr)
+void ui_block_to_window_rctf(const ARegion *ar, uiBlock *block, rctf *rct_dst, const rctf *rct_src)
 {
-	rctf tmpr;
-
-	tmpr = *graph;
-	ui_block_to_window_fl(ar, block, &tmpr.xmin, &tmpr.ymin);
-	ui_block_to_window_fl(ar, block, &tmpr.xmax, &tmpr.ymax);
-
-	BLI_rcti_rctf_copy(winr, &tmpr);
+	*rct_dst = *rct_src;
+	ui_block_to_window_fl(ar, block, &rct_dst->xmin, &rct_dst->ymin);
+	ui_block_to_window_fl(ar, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
 void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y)   /* for mouse cursor */
@@ -1023,11 +1019,10 @@ void ui_fontscale(short *points, float aspect)
 /* project button or block (but==NULL) to pixels in regionspace */
 static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
 {
-	rctf rectf = (but) ? but->rect : block->rect;
-	
-	ui_block_to_window_fl(ar, block, &rectf.xmin, &rectf.ymin);
-	ui_block_to_window_fl(ar, block, &rectf.xmax, &rectf.ymax);
-	
+	rctf rectf;
+
+	ui_block_to_window_rctf(ar, block, &rectf, (but) ? &but->rect : &block->rect);
+
 	rectf.xmin -= ar->winrct.xmin;
 	rectf.ymin -= ar->winrct.ymin;
 	rectf.xmax -= ar->winrct.xmin;
