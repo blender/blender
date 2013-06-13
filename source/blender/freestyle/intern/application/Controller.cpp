@@ -833,17 +833,18 @@ void Controller::ResetRenderCount()
 	_render_count = 0;
 }
 
-Render *Controller::RenderStrokes(Render *re)
+Render *Controller::RenderStrokes(Render *re, bool render)
 {
 	_Chrono.start();
 	BlenderStrokeRenderer *blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
-	_Canvas->Render(blenderRenderer);
+	if (render)
+		_Canvas->Render(blenderRenderer);
 	real d = _Chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Temporary scene generation: " << d << endl;
 	}
 	_Chrono.start();
-	Render *freestyle_render = blenderRenderer->RenderScene(re);
+	Render *freestyle_render = blenderRenderer->RenderScene(re, render);
 	d = _Chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Stroke rendering  : " << d << endl;

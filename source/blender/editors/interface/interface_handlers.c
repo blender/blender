@@ -2128,8 +2128,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				changed = true;
 			}
 			else if (inbox) {
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				retval = WM_UI_HANDLER_BREAK;
+				/* if we allow activation on key press, it gives problems launching operators [#35713] */
+				if (event->val == KM_RELEASE) {
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+					retval = WM_UI_HANDLER_BREAK;
+				}
 			}
 			break;
 		}

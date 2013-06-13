@@ -51,7 +51,7 @@ public:
 
 	Object *NewMesh() const;
 
-	Render *RenderScene(Render *re);
+	Render *RenderScene(Render *re, bool render);
 
 protected:
 	Main *freestyle_bmain;

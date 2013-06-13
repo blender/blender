@@ -3602,18 +3602,18 @@ static bool stabilization_median_point_get(MovieTracking *tracking, int framenr,
  * NOTE: frame number should be in clip space, not scene space
  */
 static void stabilization_calculate_data(MovieTracking *tracking, int framenr, float width, float height,
-                                         float firstmedian[2], float median[2], float loc[2],
-                                         float *scale, float *angle)
+                                         float firstmedian[2], float median[2],
+                                         float translation[2], float *scale, float *angle)
 {
 	MovieTrackingStabilization *stab = &tracking->stabilization;
 
 	*scale = (stab->scale - 1.0f) * stab->scaleinf + 1.0f;
 	*angle = 0.0f;
 
-	loc[0] = (firstmedian[0] - median[0]) * width * (*scale);
-	loc[1] = (firstmedian[1] - median[1]) * height * (*scale);
+	translation[0] = (firstmedian[0] - median[0]) * width * (*scale);
+	translation[1] = (firstmedian[1] - median[1]) * height * (*scale);
 
-	mul_v2_fl(loc, stab->locinf);
+	mul_v2_fl(translation, stab->locinf);
 
 	if ((stab->flag & TRACKING_STABILIZE_ROTATION) && stab->rot_track && stab->rotinf) {
 		MovieTrackingMarker *marker;
@@ -3635,8 +3635,8 @@ static void stabilization_calculate_data(MovieTracking *tracking, int framenr, f
 		*angle *= stab->rotinf;
 
 		/* convert to rotation around image center */
-		loc[0] -= (x0 + (x - x0) * cosf(*angle) - (y - y0) * sinf(*angle) - x) * (*scale);
-		loc[1] -= (y0 + (x - x0) * sinf(*angle) + (y - y0) * cosf(*angle) - y) * (*scale);
+		translation[0] -= (x0 + (x - x0) * cosf(*angle) - (y - y0) * sinf(*angle) - x) * (*scale);
+		translation[1] -= (y0 + (x - x0) * sinf(*angle) + (y - y0) * cosf(*angle) - y) * (*scale);
 	}
 }
 
@@ -3679,7 +3679,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 		 */
 		for (cfra = sfra; cfra <= efra; cfra++) {
 			float median[2];
-			float loc[2], angle, tmp_scale;
+			float translation[2], angle, tmp_scale;
 			int i;
 			float mat[4][4];
 			float points[4][2] = {{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
@@ -3687,9 +3687,9 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 
 			stabilization_median_point_get(tracking, cfra, median);
 
-			stabilization_calculate_data(tracking, cfra, width, height, firstmedian, median, loc, &tmp_scale, &angle);
+			stabilization_calculate_data(tracking, cfra, width, height, firstmedian, median, translation, &tmp_scale, &angle);
 
-			BKE_tracking_stabilization_data_to_mat4(width, height, aspect, loc, 1.0f, angle, mat);
+			BKE_tracking_stabilization_data_to_mat4(width, height, aspect, translation, 1.0f, angle, mat);
 
 			si = sin(angle);
 			co = cos(angle);
@@ -3715,8 +3715,8 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 						const float rotDx[4][2] = {{1.0f, 0.0f}, {0.0f, -1.0f}, {-1.0f, 0.0f}, {0.0f, 1.0f}};
 						const float rotDy[4][2] = {{0.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, -1.0f}, {-1.0f, 0.0f}};
 
-						float dx = loc[0] * rotDx[j][0] + loc[1] * rotDx[j][1],
-						      dy = loc[0] * rotDy[j][0] + loc[1] * rotDy[j][1];
+						float dx = translation[0] * rotDx[j][0] + translation[1] * rotDx[j][1],
+						      dy = translation[0] * rotDy[j][0] + translation[1] * rotDy[j][1];
 
 						float w, h, E, F, G, H, I, J, K, S;
 
@@ -3772,14 +3772,14 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
  * NOTE: frame number should be in clip space, not scene space
  */
 void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, int width, int height,
-                                         float loc[2], float *scale, float *angle)
+                                         float translation[2], float *scale, float *angle)
 {
 	float firstmedian[2], median[2];
 	MovieTrackingStabilization *stab = &tracking->stabilization;
 
 	/* Early output if stabilization is disabled. */
 	if ((stab->flag & TRACKING_2D_STABILIZATION) == 0) {
-		zero_v2(loc);
+		zero_v2(translation);
 		*scale = 1.0f;
 		*angle = 0.0f;
 
@@ -3803,16 +3803,18 @@ void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, i
 			if (stab->flag & TRACKING_AUTOSCALE)
 				stabilization_calculate_autoscale_factor(tracking, width, height);
 
-			stabilization_calculate_data(tracking, framenr, width, height, firstmedian, median, loc, scale, angle);
+			stabilization_calculate_data(tracking, framenr, width, height, firstmedian, median,
+			                             translation, scale, angle);
 
 			stab->ok = TRUE;
 		}
 		else {
-			stabilization_calculate_data(tracking, framenr, width, height, firstmedian, median, loc, scale, angle);
+			stabilization_calculate_data(tracking, framenr, width, height, firstmedian, median,
+			                             translation, scale, angle);
 		}
 	}
 	else {
-		zero_v2(loc);
+		zero_v2(translation);
 		*scale = 1.0f;
 		*angle = 0.0f;
 	}
@@ -3824,7 +3826,7 @@ void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, i
  * NOTE: frame number should be in clip space, not scene space
  */
 ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf *ibuf,
-                                    float loc[2], float *scale, float *angle)
+                                    float translation[2], float *scale, float *angle)
 {
 	float tloc[2], tscale, tangle;
 	MovieTrackingStabilization *stab = &tracking->stabilization;
@@ -3836,16 +3838,16 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	void (*interpolation)(struct ImBuf *, struct ImBuf *, float, float, int, int) = NULL;
 	int ibuf_flags;
 
-	if (loc)
-		copy_v2_v2(tloc, loc);
+	if (translation)
+		copy_v2_v2(tloc, translation);
 
 	if (scale)
 		tscale = *scale;
 
 	/* Perform early output if no stabilization is used. */
 	if ((stab->flag & TRACKING_2D_STABILIZATION) == 0) {
-		if (loc)
-			zero_v2(loc);
+		if (translation)
+			zero_v2(translation);
 
 		if (scale)
 			*scale = 1.0f;
@@ -3902,8 +3904,8 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	if (tmpibuf->rect_float)
 		tmpibuf->userflags |= IB_RECT_INVALID;
 
-	if (loc)
-		copy_v2_v2(loc, tloc);
+	if (translation)
+		copy_v2_v2(translation, tloc);
 
 	if (scale)
 		*scale = tscale;
@@ -3921,33 +3923,43 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
  * NOTE: The reaosn it is 4x4 matrix is because it's
  *       used for OpenGL drawing directly.
  */
-void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect, float loc[2],
-                                             float scale, float angle, float mat[4][4])
+void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect,
+                                             float translation[2], float scale, float angle,
+                                             float mat[4][4])
 {
-	float lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4], amat[4][4], iamat[4][4];
-	float svec[3] = {scale, scale, scale};
+	float translation_mat[4][4], rotation_mat[4][4], scale_mat[4][4],
+	      center_mat[4][4], inv_center_mat[4][4],
+	      aspect_mat[4][4], inv_aspect_mat[4][4];
+	float scale_vector[3] = {scale, scale, scale};
 
-	unit_m4(rmat);
-	unit_m4(lmat);
-	unit_m4(smat);
-	unit_m4(cmat);
-	unit_m4(amat);
+	unit_m4(translation_mat);
+	unit_m4(rotation_mat);
+	unit_m4(scale_mat);
+	unit_m4(center_mat);
+	unit_m4(aspect_mat);
 
 	/* aspect ratio correction matrix */
-	amat[0][0] = 1.0f / aspect;
-	invert_m4_m4(iamat, amat);
+	aspect_mat[0][0] = 1.0f / aspect;
+	invert_m4_m4(inv_aspect_mat, aspect_mat);
 
-	/* image center as rotation center */
-	cmat[3][0] = (float)width / 2.0f;
-	cmat[3][1] = (float)height / 2.0f;
-	invert_m4_m4(icmat, cmat);
+	/* image center as rotation center
+	 *
+	 * Rotation matrix is constructing in a way rotaion happens around image center,
+	 * and it's matter of calculating trasnlation in a way, that applying translation
+	 * after rotation would make it so rotation happens around median point of tracks
+	 * used for translation stabilization.
+	 */
+	center_mat[3][0] = (float)width / 2.0f;
+	center_mat[3][1] = (float)height / 2.0f;
+	invert_m4_m4(inv_center_mat, center_mat);
 
-	size_to_mat4(smat, svec);       /* scale matrix */
-	add_v2_v2(lmat[3], loc);        /* translation matrix */
-	rotate_m4(rmat, 'Z', angle);    /* rotation matrix */
+	size_to_mat4(scale_mat, scale_vector);       /* scale matrix */
+	add_v2_v2(translation_mat[3], translation);  /* translation matrix */
+	rotate_m4(rotation_mat, 'Z', angle);         /* rotation matrix */
 
 	/* compose transformation matrix */
-	mul_serie_m4(mat, lmat, cmat, amat, rmat, iamat, smat, icmat, NULL);
+	mul_serie_m4(mat, translation_mat, center_mat, aspect_mat, rotation_mat, inv_aspect_mat,
+	             scale_mat, inv_center_mat, NULL);
 }
 
 /*********************** Dopesheet functions *************************/

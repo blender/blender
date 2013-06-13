@@ -64,13 +64,11 @@
 
 /* XXX Does some additional initialization on top of nodeAddNode
  * Can be used with both custom and static nodes, if idname==NULL the static int type will be used instead.
- * Can be called from menus too, but they should do own undopush and redraws.
  */
 bNode *node_add_node(const bContext *C, const char *idname, int type, float locx, float locy)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	bNode *node = NULL;
 	
 	node_deselect_all(snode);
@@ -95,20 +93,6 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 	
 	ntreeUpdateTree(bmain, snode->edittree);
 	ED_node_set_active(bmain, snode->edittree, node);
-	
-	if (snode->nodetree->type == NTREE_COMPOSIT) {
-		if (ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE)) {
-			node->id = &scene->id;
-		}
-		else if (ELEM3(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_MOVIEDISTORTION, CMP_NODE_STABILIZE2D)) {
-			node->id = (ID *)scene->clip;
-		}
-		
-		ntreeCompositForceHidden(snode->edittree, scene);
-	}
-	
-	if (node->id)
-		id_us_plus(node->id);
 	
 	if (snode->flag & SNODE_USE_HIDDEN_PREVIEW)
 		node->flag &= ~NODE_PREVIEW;

@@ -74,7 +74,7 @@ static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(
 	*r_ntree = scene->nodetree;
 	
 	/* update output sockets based on available layers */
-	ntreeCompositForceHidden(scene->nodetree, scene);
+	ntreeCompositForceHidden(scene->nodetree);
 	
 }
 
@@ -262,69 +262,17 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int 
 
 /* *********************************************** */
 
-static void set_output_visible(bNode *node, int passflag, int index, int pass)
-{
-	bNodeSocket *sock = BLI_findlink(&node->outputs, index);
-	/* clear the SOCK_HIDDEN flag as well, in case a socket was hidden before */
-	if (passflag & pass)
-		sock->flag &= ~(SOCK_HIDDEN | SOCK_UNAVAIL);
-	else
-		sock->flag |= SOCK_UNAVAIL;
-}
-
-/* clumsy checking... should do dynamic outputs once */
-static void force_hidden_passes(bNode *node, int passflag)
-{
-	bNodeSocket *sock;
-	
-	for (sock = node->outputs.first; sock; sock = sock->next)
-		sock->flag &= ~SOCK_UNAVAIL;
-	
-	set_output_visible(node, passflag, RRES_OUT_IMAGE,            SCE_PASS_COMBINED);
-	set_output_visible(node, passflag, RRES_OUT_ALPHA,            SCE_PASS_COMBINED);
-	
-	set_output_visible(node, passflag, RRES_OUT_Z,                SCE_PASS_Z);
-	set_output_visible(node, passflag, RRES_OUT_NORMAL,           SCE_PASS_NORMAL);
-	set_output_visible(node, passflag, RRES_OUT_VEC,              SCE_PASS_VECTOR);
-	set_output_visible(node, passflag, RRES_OUT_UV,               SCE_PASS_UV);
-	set_output_visible(node, passflag, RRES_OUT_RGBA,             SCE_PASS_RGBA);
-	set_output_visible(node, passflag, RRES_OUT_DIFF,             SCE_PASS_DIFFUSE);
-	set_output_visible(node, passflag, RRES_OUT_SPEC,             SCE_PASS_SPEC);
-	set_output_visible(node, passflag, RRES_OUT_SHADOW,           SCE_PASS_SHADOW);
-	set_output_visible(node, passflag, RRES_OUT_AO,               SCE_PASS_AO);
-	set_output_visible(node, passflag, RRES_OUT_REFLECT,          SCE_PASS_REFLECT);
-	set_output_visible(node, passflag, RRES_OUT_REFRACT,          SCE_PASS_REFRACT);
-	set_output_visible(node, passflag, RRES_OUT_INDIRECT,         SCE_PASS_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_INDEXOB,          SCE_PASS_INDEXOB);
-	set_output_visible(node, passflag, RRES_OUT_INDEXMA,          SCE_PASS_INDEXMA);
-	set_output_visible(node, passflag, RRES_OUT_MIST,             SCE_PASS_MIST);
-	set_output_visible(node, passflag, RRES_OUT_EMIT,             SCE_PASS_EMIT);
-	set_output_visible(node, passflag, RRES_OUT_ENV,              SCE_PASS_ENVIRONMENT);
-	set_output_visible(node, passflag, RRES_OUT_DIFF_DIRECT,      SCE_PASS_DIFFUSE_DIRECT);
-	set_output_visible(node, passflag, RRES_OUT_DIFF_INDIRECT,    SCE_PASS_DIFFUSE_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_DIFF_COLOR,       SCE_PASS_DIFFUSE_COLOR);
-	set_output_visible(node, passflag, RRES_OUT_GLOSSY_DIRECT,    SCE_PASS_GLOSSY_DIRECT);
-	set_output_visible(node, passflag, RRES_OUT_GLOSSY_INDIRECT,  SCE_PASS_GLOSSY_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_GLOSSY_COLOR,     SCE_PASS_GLOSSY_COLOR);
-	set_output_visible(node, passflag, RRES_OUT_TRANSM_DIRECT,    SCE_PASS_TRANSM_DIRECT);
-	set_output_visible(node, passflag, RRES_OUT_TRANSM_INDIRECT,  SCE_PASS_TRANSM_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_TRANSM_COLOR,     SCE_PASS_TRANSM_COLOR);
-}
-
 /* based on rules, force sockets hidden always */
-void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
+void ntreeCompositForceHidden(bNodeTree *ntree)
 {
 	bNode *node;
 
 	if (ntree == NULL) return;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_R_LAYERS) {
-			Scene *sce = node->id ? (Scene *)node->id : curscene;
-			SceneRenderLayer *srl = BLI_findlink(&sce->r.layers, node->custom1);
-			if (srl)
-				force_hidden_passes(node, srl->passflag);
-		}
+		if (node->type == CMP_NODE_R_LAYERS)
+			node_cmp_rlayers_force_hidden_passes(node);
+		
 		/* XXX this stuff is called all the time, don't want that.
 		 * Updates should only happen when actually necessary.
 		 */

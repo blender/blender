@@ -172,9 +172,6 @@ void BKE_lamp_make_local(Lamp *la)
 	if (la->id.lib == NULL) return;
 	if (la->id.us == 1) {
 		id_clear_lib_data(bmain, &la->id);
-		/* nodetree uses same lib */
-		if (la->nodetree)
-			la->nodetree->id.lib = NULL;
 		return;
 	}
 	
@@ -189,9 +186,6 @@ void BKE_lamp_make_local(Lamp *la)
 	
 	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &la->id);
-		/* nodetree uses same lib */
-		if (la->nodetree)
-			la->nodetree->id.lib = NULL;
 	}
 	else if (is_local && is_lib) {
 		Lamp *la_new = BKE_lamp_copy(la);

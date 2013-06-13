@@ -724,23 +724,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	node = nodeAddNode(C, ntree, type);
 	BLI_assert(node && node->typeinfo);
 	
-	/* XXX ugly stuff, should be done with specialized operators (after actual node creation)! */
-	if (ntree->type == NTREE_COMPOSIT) {
-		if (ELEM4(node->type, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE, CMP_NODE_R_LAYERS)) {
-			/* annoying, find the node tree we are in, scene can be NULL */
-			Scene *scene;
-			for (scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next) {
-				if (scene->nodetree == ntree) {
-					break;
-				}
-			}
-			node->id = (ID *)scene;
-			id_us_plus(node->id);
-		}
-		
-		ntreeCompositForceHidden(ntree, CTX_data_scene(C));
-	}
-	else if (ntree->type == NTREE_TEXTURE) {
+	if (ntree->type == NTREE_TEXTURE) {
 		ntreeTexCheckCyclics(ntree);
 	}
 	
@@ -5730,9 +5714,14 @@ static void def_cmp_trackpos(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem position_items[] = {
-		{0, "ABSOLUTE", 0, "Absolute",  "Output absolute position of a marker"},
-		{1, "RELATIVE_START", 0, "Relative Start",  "Output position of a marker relative to first marker of a track"},
-		{2, "RELATIVE_FRAME", 0, "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{CMP_TRACKPOS_ABSOLUTE, "ABSOLUTE", 0,
+		 "Absolute",  "Output absolute position of a marker"},
+		{CMP_TRACKPOS_RELATIVE_START, "RELATIVE_START", 0,
+		 "Relative Start",  "Output position of a marker relative to first marker of a track"},
+		{CMP_TRACKPOS_RELATIVE_FRAME, "RELATIVE_FRAME", 0,
+		 "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{CMP_TRACKPOS_ABSOLUTE_FRAME, "ABSOLUTE_FRAME", 0,
+		 "Absolute Frame",  "Output absolute position of a marker at given frame number"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

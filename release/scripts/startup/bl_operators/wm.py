@@ -1199,9 +1199,10 @@ class WM_OT_keyconfig_activate(Operator):
             )
 
     def execute(self, context):
-        bpy.utils.keyconfig_set(self.filepath)
-        return {'FINISHED'}
-
+        if bpy.utils.keyconfig_set(self.filepath, report=self.report):
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
 
 class WM_OT_appconfig_default(Operator):
     bl_idname = "wm.appconfig_default"
@@ -1386,9 +1387,10 @@ class WM_OT_keyconfig_import(Operator):
             return {'CANCELLED'}
 
         # sneaky way to check we're actually running the code.
-        bpy.utils.keyconfig_set(path)
-
-        return {'FINISHED'}
+        if bpy.utils.keyconfig_set(path, report=self.report):
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
 
     def invoke(self, context, event):
         wm = context.window_manager

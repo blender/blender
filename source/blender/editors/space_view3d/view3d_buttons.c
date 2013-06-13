@@ -70,6 +70,7 @@
 
 #include "ED_armature.h"
 #include "ED_gpencil.h"
+#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -1005,8 +1006,10 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 	if (dv && dv->totweight) {
 		uiLayout *col;
 		bDeformGroup *dg;
-		MDeformWeight *dw = dv->dw;
 		unsigned int i;
+		int subset_count, vgroup_tot;
+		bool *vgroup_validmap;
+		eVGroupSelect subset_type = WT_VGROUP_ALL;
 		int yco = 0;
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
@@ -1016,16 +1019,21 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiBlockBeginAlign(block);
 
-		for (i = dv->totweight; i != 0; i--, dw++) {
-			dg = BLI_findlink(&ob->defbase, dw->def_nr);
-			if (dg) {
-				uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + dw->def_nr, dg->name, 0, yco, 180, 20,
-				          &dw->weight, 0.0, 1.0, 1, 3, "");
-				uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + dw->def_nr, "C", 180, yco, 20, 20,
-				         NULL, 0, 0, 0, 0, TIP_("Copy this group's weight to other selected verts"));
-				yco -= 20;
+		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
+			if (vgroup_validmap[i]) {
+				MDeformWeight *dw = defvert_find_index(dv, i);
+				if (dw) {
+					uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, dg->name, 0, yco, 180, 20,
+								&dw->weight, 0.0, 1.0, 1, 3, "");
+					uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + i, "C", 180, yco, 20, 20,
+								NULL, 0, 0, 0, 0, TIP_("Copy this group's weight to other selected verts"));
+					yco -= 20;
+				}
 			}
 		}
+		MEM_freeN(vgroup_validmap);
+
 		yco -= 2;
 
 		uiBlockEndAlign(block);

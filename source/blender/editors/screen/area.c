@@ -1339,6 +1339,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	
 	sa1->headertype = sa2->headertype;
 	sa1->spacetype = sa2->spacetype;
+	sa1->type = sa2->type;
 	sa1->butspacetype = sa2->butspacetype;
 	
 	if (swap_space == 1) {

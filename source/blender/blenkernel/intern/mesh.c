@@ -1907,7 +1907,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 	if (only_face_normals == FALSE) {
 		/* vertex normals are optional, they require some extra calculations,
 		 * so make them optional */
-		BKE_mesh_calc_normals_poly(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors);
+		BKE_mesh_calc_normals_poly(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors, false);
 	}
 	else {
 		/* only calc poly normals */
@@ -1994,12 +1994,23 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 }
 
 void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
-                                int UNUSED(numLoops), int numPolys, float (*r_polynors)[3])
+                                int UNUSED(numLoops), int numPolys, float (*r_polynors)[3],
+                                const bool only_face_normals)
 {
 	float (*pnors)[3] = r_polynors;
 	float (*tnorms)[3];
 	int i;
 	MPoly *mp;
+
+	if (only_face_normals) {
+		BLI_assert(pnors != NULL);
+
+#pragma omp parallel for if (numPolys > BM_OMP_LIMIT)
+		for (i = 0; i < numPolys; i++) {
+			BKE_mesh_calc_poly_normal(&mpolys[i], mloop + mpolys[i].loopstart, mverts, pnors[i]);
+		}
+		return;
+	}
 
 	/* first go through and calculate normals for all the polys */
 	tnorms = MEM_callocN(sizeof(*tnorms) * numVerts, __func__);
@@ -2037,7 +2048,7 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 {
 	BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert,
 	                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                           NULL);
+	                           NULL, false);
 }
 
 void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3])

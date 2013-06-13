@@ -371,11 +371,12 @@ typedef struct CDMaskLink {
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, 
+struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene,
                                            struct Object *ob,
                                            struct ModifierData *md,
                                            CustomDataMask dataMask,
-                                           int required_mode);
+                                           int required_mode,
+                                           ModifierData *previewmd, CustomDataMask previewmask);
 struct ModifierData *modifiers_getLastPreview(struct Scene *scene,
                                               struct ModifierData *md,
                                               int required_mode);

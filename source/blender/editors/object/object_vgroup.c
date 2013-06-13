@@ -430,19 +430,6 @@ typedef enum WT_ReplaceMode {
 	WT_REPLACE_EMPTY_WEIGHTS = 2
 } WT_ReplaceMode;
 
-typedef enum WT_VertexGroupSelect {
-	WT_VGROUP_ACTIVE = 1,
-	WT_VGROUP_BONE_SELECT = 2,
-	WT_VGROUP_BONE_DEFORM = 3,
-	WT_VGROUP_ALL = 4,
-} WT_VertexGroupSelect;
-
-#define WT_VGROUP_MASK_ALL \
-	((1 << WT_VGROUP_ACTIVE) | \
-	 (1 << WT_VGROUP_BONE_SELECT) | \
-	 (1 << WT_VGROUP_BONE_DEFORM) | \
-	 (1 << WT_VGROUP_ALL))
-
 static EnumPropertyItem WT_vertex_group_mode_item[] = {
 	{WT_REPLACE_ACTIVE_VERTEX_GROUP,
 	 "WT_REPLACE_ACTIVE_VERTEX_GROUP", 0, "Active", "Transfer active vertex group from selected to active mesh"},
@@ -1179,7 +1166,7 @@ static void vgroup_duplicate(Object *ob)
 /**
  * Return the subset type of the Vertex Group Selection
  */
-static bool *vgroup_subset_from_select_type(Object *ob, WT_VertexGroupSelect subset_type, int *r_vgroup_tot, int *r_subset_count)
+bool *ED_vgroup_subset_from_select_type(Object *ob, eVGroupSelect subset_type, int *r_vgroup_tot, int *r_subset_count)
 {
 	bool *vgroup_validmap = NULL;
 	*r_vgroup_tot = BLI_countlist(&ob->defbase);
@@ -3010,11 +2997,11 @@ static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 	
 	float offset = RNA_float_get(op->ptr, "offset");
 	float gain = RNA_float_get(op->ptr, "gain");
-	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	vgroup_levels_subset(ob, vgroup_validmap, vgroup_tot, subset_count, offset, gain);
 
 	MEM_freeN(vgroup_validmap);
@@ -3192,11 +3179,11 @@ static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 	bool auto_assign = RNA_boolean_get(op->ptr, "auto_assign");
 	bool auto_remove = RNA_boolean_get(op->ptr, "auto_remove");
 
-	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	vgroup_invert_subset(ob, vgroup_validmap, vgroup_tot, subset_count, auto_assign, auto_remove);
 
 	MEM_freeN(vgroup_validmap);
@@ -3300,11 +3287,11 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 
 	float limit = RNA_float_get(op->ptr, "limit");
 	bool keep_single = RNA_boolean_get(op->ptr, "keep_single");
-	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	vgroup_clean_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit, keep_single);
 
 	MEM_freeN(vgroup_validmap);
@@ -3341,11 +3328,11 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_context(C);
 
 	const int limit = RNA_int_get(op->ptr, "limit");
-	WT_VertexGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	int remove_tot = vgroup_limit_total_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit);
 
 	MEM_freeN(vgroup_validmap);

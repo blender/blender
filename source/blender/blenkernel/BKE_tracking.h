@@ -204,10 +204,10 @@ void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ListBase *t
 
 /* **** 2D stabilization **** */
 void BKE_tracking_stabilization_data_get(struct MovieTracking *tracking, int framenr, int width, int height,
-                                         float loc[2], float *scale, float *angle);
+                                         float translation[2], float *scale, float *angle);
 struct ImBuf *BKE_tracking_stabilize_frame(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf,
-                                           float loc[2], float *scale, float *angle);
-void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect, float loc[2],
+                                           float translation[2], float *scale, float *angle);
+void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect, float translation[2],
                                              float scale, float angle, float mat[4][4]);
 
 /* Dopesheet */

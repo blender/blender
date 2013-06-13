@@ -146,7 +146,7 @@ __device_noinline float cmj_sample_1D(int s, int N, int p)
 	return (x + jx)*invN;
 }
 
-__device_noinline float2 cmj_sample_2D(int s, int N, int p)
+__device_noinline void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 {
 	int m = float_to_int(sqrtf(N));
 	int n = (N + m - 1)/m;
@@ -173,7 +173,8 @@ __device_noinline float2 cmj_sample_2D(int s, int N, int p)
 	float jx = cmj_randfloat(s, p * 0x967a889b);
 	float jy = cmj_randfloat(s, p * 0x368cc8b7);
 
-	return make_float2((sx + (sy + jx)*invn)*invm, (s + jy)*invN);
+	*fx = (sx + (sy + jx)*invn)*invm;
+	*fy = (s + jy)*invN;
 }
 #endif
 

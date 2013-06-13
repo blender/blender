@@ -33,6 +33,10 @@
 
 #include "node_composite_util.h"
 
+#include "BKE_context.h"
+
+#include "RNA_access.h"
+
 static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	SOCK_RGBA,		0,	N_("Image")},
 	{	SOCK_FLOAT,		0,	N_("Alpha")},
@@ -43,10 +47,13 @@ static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(const bContext *C, PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+	Scene *scene = CTX_data_scene(C);
 	MovieClipUser *user = MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
 
+	node->id = (ID *)scene->clip;
 	node->storage = user;
 	user->framenr = 1;
 }
@@ -57,7 +64,7 @@ void register_node_type_cmp_movieclip(void)
 
 	cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, cmp_node_movieclip_out);
-	node_type_init(&ntype, init);
+	ntype.initfunc_api = init;
 	node_type_storage(&ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
 
 	nodeRegisterType(&ntype);
