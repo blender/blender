@@ -6967,9 +6967,9 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a node link to this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "input", "NodeSocket", "", "The input socket");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "output", "NodeSocket", "", "The output socket");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	RNA_def_boolean(func, "verify_limits", TRUE, "Verify Limits", "Remove existing links if connection limit is exceeded");
 	/* return */
 	parm = RNA_def_pointer(func, "link", "NodeLink", "", "New node link");
