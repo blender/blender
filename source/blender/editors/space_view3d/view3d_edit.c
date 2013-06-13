@@ -134,6 +134,8 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 
 		if ((U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0 && (root_parent = v3d->camera->parent)) {
 			Object *ob_update;
+			float tmat[4][4];
+			float imat[4][4];
 			float view_mat[4][4];
 			float diff_mat[4][4];
 			float parent_mat[4][4];
@@ -144,8 +146,10 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 
 			ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
-			invert_m4_m4(v3d->camera->imat, v3d->camera->obmat);
-			mul_m4_m4m4(diff_mat, view_mat, v3d->camera->imat);
+			normalize_m4_m4(tmat, v3d->camera->obmat);
+
+			invert_m4_m4(imat, tmat);
+			mul_m4_m4m4(diff_mat, view_mat, imat);
 
 			mul_m4_m4m4(parent_mat, diff_mat, root_parent->obmat);
 
@@ -161,9 +165,11 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			}
 		}
 		else {
+			/* always maintain the same scale */
+			const short protect_scale_all = (OB_LOCK_SCALEX | OB_LOCK_SCALEY | OB_LOCK_SCALEZ);
 			BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
 			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag | protect_scale_all);
 
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, v3d->camera);
@@ -4167,7 +4173,8 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 	/* Quat */
 	if (quat) {
 		float imat[4][4];
-		invert_m4_m4(imat, mat);
+		normalize_m4_m4(imat, mat);
+		invert_m4(imat);
 		mat4_to_quat(quat, imat);
 	}
 
