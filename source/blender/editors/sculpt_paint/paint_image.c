@@ -523,7 +523,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 	Brush *brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
 
 	/* initial brush values. Maybe it should be considered moving these to stroke system */
-	float startsize = BKE_brush_size_get(scene, brush);
+	float startsize = (float)BKE_brush_size_get(scene, brush);
 	float startalpha = BKE_brush_alpha_get(scene, brush);
 
 	float mouse[2];

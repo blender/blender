@@ -71,7 +71,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, (int)(COM_PREVIEW_SIZE * aspect), FALSE);
 
 	/* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
-	bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL);
+	bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
 	WorkScheduler::initialize(use_opencl);
 
 	/* set progress bar to 0% and status to init compositing */

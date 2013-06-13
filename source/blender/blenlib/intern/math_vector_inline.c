@@ -594,7 +594,7 @@ MINLINE float len_manhattan_v2(const float v[2])
 	return fabsf(v[0]) + fabsf(v[1]);
 }
 
-MINLINE float len_manhattan_v2_int(const int v[2])
+MINLINE int len_manhattan_v2_int(const int v[2])
 {
 	return ABS(v[0]) + ABS(v[1]);
 }
@@ -647,7 +647,7 @@ MINLINE float len_manhattan_v2v2(const float a[2], const float b[2])
 	return len_manhattan_v2(d);
 }
 
-MINLINE float len_manhattan_v2v2_int(const int a[2], const int b[2])
+MINLINE int len_manhattan_v2v2_int(const int a[2], const int b[2])
 {
 	int d[2];
 
