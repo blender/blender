@@ -1794,17 +1794,18 @@ void GPU_state_init(void)
 	// glDisable(GL_MULTISAMPLE);
 }
 
+#ifdef DEBUG
 /* debugging aid */
 static void gpu_get_print(const char *name, GLenum type)
 {
-	float value[16];
+	float value[32];
 	int a;
 	
 	memset(value, 0, sizeof(value));
 	glGetFloatv(type, value);
 
 	printf("%s: ", name);
-	for (a=0; a<16; a++)
+	for (a = 0; a < 32; a++)
 		printf("%.2f ", value[a]);
 	printf("\n");
 }
@@ -2156,4 +2157,4 @@ void GPU_state_print(void)
 	gpu_get_print("GL_ZOOM_X", GL_ZOOM_X);
 	gpu_get_print("GL_ZOOM_Y", GL_ZOOM_Y);
 }
-
+#endif
