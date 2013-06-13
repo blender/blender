@@ -993,6 +993,8 @@ static void sss_free_tree(SSSData *sss)
 void make_sss_tree(Render *re)
 {
 	Material *mat;
+
+	free_sss(re);
 	
 	re->sss_hash= BLI_ghash_ptr_new("make_sss_tree gh");
 
