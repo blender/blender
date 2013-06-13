@@ -209,7 +209,8 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
-		if(!motion)
+		/* don't use lamps for excluded layers used as mask layer */
+		if(!motion && !((layer_flag & render_layer.holdout_layer) && (layer_flag & render_layer.exclude_layer)))
 			sync_light(b_parent, persistent_id, b_ob, tfm);
 
 		return NULL;
