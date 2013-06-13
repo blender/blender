@@ -219,6 +219,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),
         NodeItem("ShaderNodeWavelength"),
+        NodeItem("ShaderNodeBlackbody"),
         ]),
     ShaderNewNodeCategory("SH_NEW_SCRIPT", "Script", items=[
         NodeItem("ShaderNodeScript"),

@@ -400,6 +400,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	else if (b_node.is_a(&RNA_ShaderNodeWavelength)) {
 		node = new WavelengthNode();
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeBlackbody)) {
+		node = new BlackbodyNode();
+	}
 	else if (b_node.is_a(&RNA_ShaderNodeLightPath)) {
 		node = new LightPathNode();
 	}

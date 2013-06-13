@@ -2977,6 +2977,32 @@ void WavelengthNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_wavelength");
 }
 
+/* Blackbody */
+
+BlackbodyNode::BlackbodyNode()
+: ShaderNode("Blackbody")
+{
+	add_input("Temperature", SHADER_SOCKET_FLOAT, 1200.0f);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void BlackbodyNode::compile(SVMCompiler& compiler)
+{
+/*
+	ShaderInput *temperature in = input("Temperature");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(temperature_in);
+	compiler.stack_assign(color_out);
+	compiler.add_node(NODE_BLACKBODY, temperature_in->stack_offset, color_out->stack_offset);
+*/
+}
+
+void BlackbodyNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_blackbody");
+}
+
 /* Output */
 
 OutputNode::OutputNode()

@@ -462,6 +462,11 @@ public:
 	SHADER_NODE_CLASS(WavelengthNode)
 };
 
+class BlackbodyNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(BlackbodyNode)
+};
+
 class MathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MathNode)
