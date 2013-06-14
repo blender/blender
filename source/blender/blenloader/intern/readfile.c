@@ -9476,6 +9476,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 
 	{
+		bScreen *sc;
 		Object *ob;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -9486,6 +9487,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
 						if (!smd->flow->particle_size) {
 							smd->flow->particle_size = 1.0f;
+						}
+					}
+				}
+			}
+		}
+
+		/*
+		 * FIX some files have a zoom level of 0, and was checked during the drawing of the node space
+		 *
+		 * We moved this check to the do versions to be sure the value makes any sense.
+		 */
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_NODE)
+					{
+						SpaceNode *snode = (SpaceNode *)sl;
+						if (snode->zoom < 0.02)
+						{
+							snode->zoom = 1.0;
 						}
 					}
 				}
