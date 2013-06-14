@@ -849,15 +849,15 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 
 /* ************** make edges in a Mesh, for outside of editmode */
 
-struct edgesort {
+struct EdgeSort {
 	unsigned int v1, v2;
-	short is_loose, is_draw;
+	char is_loose, is_draw;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed,
+static void to_edgesort(struct EdgeSort *ed,
                         unsigned int v1, unsigned int v2,
-                        short is_loose, short is_draw)
+                        char is_loose, short is_draw)
 {
 	if (v1 < v2) {
 		ed->v1 = v1; ed->v2 = v2;
@@ -871,7 +871,7 @@ static void to_edgesort(struct edgesort *ed,
 
 static int vergedgesort(const void *v1, const void *v2)
 {
-	const struct edgesort *x1 = v1, *x2 = v2;
+	const struct EdgeSort *x1 = v1, *x2 = v2;
 
 	if (x1->v1 > x2->v1) return 1;
 	else if (x1->v1 < x2->v1) return -1;
@@ -882,17 +882,22 @@ static int vergedgesort(const void *v1, const void *v2)
 }
 
 
-/* Create edges based on known verts and faces */
+/* Create edges based on known verts and faces,
+ * this function is only used when loading very old blend files */
+
 static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
                              MPoly *allpoly, int UNUSED(totvert), int totface, int UNUSED(totloop), int totpoly,
-                             int old, MEdge **alledge, int *_totedge)
+                             const bool use_old,
+                             MEdge **r_medge, int *r_totedge)
 {
 	MPoly *mpoly;
 	MFace *mface;
-	MEdge *medge;
+	MEdge *medge, *med;
 	EdgeHash *hash = BLI_edgehash_new();
-	struct edgesort *edsort, *ed;
-	int a, totedge = 0, final = 0;
+	struct EdgeSort *edsort, *ed;
+	int a, totedge = 0;
+	unsigned int totedge_final = 0;
+	unsigned int edge_index;
 
 	/* we put all edges in array, sort them, and detect doubles that way */
 
@@ -904,12 +909,12 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 
 	if (totedge == 0) {
 		/* flag that mesh has edges */
-		(*alledge) = MEM_callocN(0, "make mesh edges");
-		(*_totedge) = 0;
+		(*r_medge) = MEM_callocN(0, __func__);
+		(*r_totedge) = 0;
 		return;
 	}
 
-	ed = edsort = MEM_mallocN(totedge * sizeof(struct edgesort), "edgesort");
+	ed = edsort = MEM_mallocN(totedge * sizeof(struct EdgeSort), "EdgeSort");
 
 	for (a = totface, mface = allface; a > 0; a--, mface++) {
 		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
@@ -924,32 +929,31 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 		}
 	}
 
-	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
+	qsort(edsort, totedge, sizeof(struct EdgeSort), vergedgesort);
 
 	/* count final amount */
 	for (a = totedge, ed = edsort; a > 1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
-		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) final++;
+		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) totedge_final++;
 	}
-	final++;
+	totedge_final++;
 
-	(*alledge) = medge = MEM_callocN(sizeof(MEdge) * final, "BKE_mesh_make_edges mdge");
-	(*_totedge) = final;
+	medge = MEM_callocN(sizeof(MEdge) * totedge_final, __func__);
 
-	for (a = totedge, ed = edsort; a > 1; a--, ed++) {
+	for (a = totedge, med = medge, ed = edsort; a > 1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
 		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) {
-			medge->v1 = ed->v1;
-			medge->v2 = ed->v2;
-			if (old == 0 || ed->is_draw) medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
-			if (ed->is_loose) medge->flag |= ME_LOOSEEDGE;
+			med->v1 = ed->v1;
+			med->v2 = ed->v2;
+			if (use_old == false || ed->is_draw) med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+			if (ed->is_loose) med->flag |= ME_LOOSEEDGE;
 
 			/* order is swapped so extruding this edge as a surface wont flip face normals
 			 * with cyclic curves */
 			if (ed->v1 + 1 != ed->v2) {
-				SWAP(unsigned int, medge->v1, medge->v2);
+				SWAP(unsigned int, med->v1, med->v2);
 			}
-			medge++;
+			med++;
 		}
 		else {
 			/* equal edge, we merge the drawflag */
@@ -957,18 +961,17 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 		}
 	}
 	/* last edge */
-	medge->v1 = ed->v1;
-	medge->v2 = ed->v2;
-	medge->flag = ME_EDGEDRAW;
-	if (ed->is_loose) medge->flag |= ME_LOOSEEDGE;
-	medge->flag |= ME_EDGERENDER;
+	med->v1 = ed->v1;
+	med->v2 = ed->v2;
+	med->flag = ME_EDGEDRAW;
+	if (ed->is_loose) med->flag |= ME_LOOSEEDGE;
+	med->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);
 	
 	/* set edge members of mloops */
-	medge = *alledge;
-	for (a = 0; a < *_totedge; a++, medge++) {
-		BLI_edgehash_insert(hash, medge->v1, medge->v2, SET_INT_IN_POINTER(a));
+	for (edge_index = 0, med = medge; edge_index < totedge_final; edge_index++, med++) {
+		BLI_edgehash_insert(hash, med->v1, med->v2, SET_UINT_IN_POINTER(edge_index));
 	}
 	
 	mpoly = allpoly;
@@ -980,21 +983,27 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 		ml = &ml_next[i - 1];                  /* last loop */
 
 		while (i-- != 0) {
-			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
+			ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
 			ml = ml_next;
 			ml_next++;
 		}
 	}
 	
 	BLI_edgehash_free(hash, NULL);
+
+	*r_medge = medge;
+	*r_totedge = totedge_final;
 }
 
-void BKE_mesh_make_edges(Mesh *me, int old)
+void BKE_mesh_make_edges(Mesh *me, const bool use_old)
 {
 	MEdge *medge;
 	int totedge = 0;
 
-	make_edges_mdata(me->mvert, me->mface, me->mloop, me->mpoly, me->totvert, me->totface, me->totloop, me->totpoly, old, &medge, &totedge);
+	make_edges_mdata(me->mvert, me->mface, me->mloop, me->mpoly,
+	                 me->totvert, me->totface, me->totloop, me->totpoly,
+	                 use_old, &medge, &totedge);
+
 	if (totedge == 0) {
 		/* flag that mesh has edges */
 		me->medge = medge;
