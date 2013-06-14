@@ -6720,7 +6720,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			break;
 		case OB_LATTICE:
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				drawlattice(scene, v3d, ob);
+				/* Do not allow boundbox in edit nor pose mode! */
+				if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
+					dt = OB_WIRE;
+				if (dt == OB_BOUNDBOX) {
+					draw_bounding_volume(scene, ob, ob->boundtype);
+				}
+				else {
+					drawlattice(scene, v3d, ob);
+				}
 			}
 			break;
 		case OB_ARMATURE:
