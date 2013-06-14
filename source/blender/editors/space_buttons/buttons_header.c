@@ -58,7 +58,6 @@
 
 
 #define B_CONTEXT_SWITCH    101
-#define B_BUTSPREVIEW       102
 
 static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 {
@@ -95,7 +94,6 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 
 	switch (event) {
 		case B_CONTEXT_SWITCH:
-		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
 
 			set_texture_context(C, sbuts);
