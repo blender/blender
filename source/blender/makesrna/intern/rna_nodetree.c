@@ -1653,6 +1653,13 @@ static void rna_Node_height_range(PointerRNA *ptr, float *min, float *max, float
 	*max = *softmax = node->typeinfo->maxheight;
 }
 
+static void rna_Node_dimensions_get(PointerRNA *ptr, float *value)
+{
+	bNode *node = ptr->data;
+	value[0] = node->totr.xmax - node->totr.xmin;
+	value[1] = node->totr.ymax - node->totr.ymin;
+}
+
 
 /* ******** Node Socket ******** */
 
@@ -6652,6 +6659,12 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_height_range");
 	RNA_def_property_ui_text(prop, "Height", "Height of the node");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+	
+	prop = RNA_def_property(srna, "dimensions", PROP_FLOAT, PROP_XYZ_LENGTH);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_Node_dimensions_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Dimensions", "Absolute bounding box dimensions of the node");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique node identifier");
