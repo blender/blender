@@ -105,6 +105,10 @@ float BKE_mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
 void BKE_mesh_calc_poly_angles(struct MPoly *mpoly, struct MLoop *loopstart,
                                struct MVert *mvarray, float angles[]);
 
+int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge, const int totedge,
+                                const struct MPoly *mpoly, const int totpoly,
+                                const struct MLoop *mloop, const int totloop);
+
 void BKE_mesh_calc_relative_deform(
         const struct MPoly *mpoly, const int totpoly,
         const struct MLoop *mloop, const int totvert,

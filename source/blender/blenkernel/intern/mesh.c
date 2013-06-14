@@ -3203,6 +3203,91 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
 	return total_area;
 }
 
+
+int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
+                                const MPoly *mpoly, const int totpoly,
+                                const MLoop *mloop, const int totloop)
+{
+	int *poly_groups = MEM_callocN(sizeof(int) * totpoly, __func__);
+	int *poly_stack  = MEM_mallocN(sizeof(int) * totpoly, __func__);
+	STACK_DECLARE(poly_stack);
+
+	int poly_prev = 0;
+	int poly_group_id = 1;
+
+	/* map vars */
+	MeshElemMap *edge_poly_map;
+	int *edge_poly_mem;
+
+	BKE_mesh_edge_poly_map_create(&edge_poly_map, &edge_poly_mem,
+	                              medge, totedge,
+	                              mpoly, totpoly,
+	                              mloop, totloop);
+
+	STACK_INIT(poly_stack);
+
+	while (true) {
+		int poly;
+
+		for (poly = poly_prev; poly < totpoly; poly++) {
+			if (poly_groups[poly] == 0) {
+				break;
+			}
+		}
+
+		if (poly == totpoly) {
+			/* all done */
+			break;
+		}
+
+		/* start searching from here next time */
+		poly_prev = poly + 1;
+
+		poly_groups[poly] = poly_group_id;
+		STACK_PUSH(poly_stack, poly);
+
+		while ((poly = STACK_POP_ELSE(poly_stack, -1)) != -1) {
+
+			const MPoly *mp = &mpoly[poly];
+			const MLoop *ml;
+			int j = mp->totloop;
+
+			BLI_assert(poly_groups[poly] == poly_group_id);
+
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				if (!(medge[ml->e].flag & ME_SHARP)) {
+					/* loop over poly users */
+					const MeshElemMap *map_ele = &edge_poly_map[ml->e];
+					int *p = map_ele->indices;
+					int i = map_ele->count;
+
+					for (; i--; p++) {
+						/* if we meet other non initialized its a bug */
+						BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
+
+						if (poly_groups[*p] == 0) {
+							poly_groups[*p] = poly_group_id;
+							STACK_PUSH(poly_stack, *p);
+						}
+					}
+				}
+			}
+		}
+
+		poly_group_id++;
+	}
+
+	MEM_freeN(edge_poly_map);
+	MEM_freeN(edge_poly_mem);
+	MEM_freeN(poly_stack);
+
+	STACK_FREE(poly_stack);
+
+	return poly_groups;
+}
+
+
+
 /**
  * This function takes the difference between 2 vertex-coord-arrays
  * (\a vert_cos_src, \a vert_cos_dst),
