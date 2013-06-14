@@ -310,6 +310,11 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map, int **r_mem,
 void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
                                    const struct MEdge *medge, int totvert, int totedge);
 
+void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map, int **r_mem,
+                                   const struct MEdge *medge, const int totedge,
+                                   const struct MPoly *mpoly, const int totpoly,
+                                   const struct MLoop *mloop, const int totloop);
+
 /* vertex level transformations & checks (no derived mesh) */
 
 int BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);

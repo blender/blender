@@ -2524,6 +2524,51 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
 	*r_mem = indices;
 }
 
+void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map, int **r_mem,
+                                   const MEdge *UNUSED(medge), const int totedge,
+                                   const MPoly *mpoly, const int totpoly,
+                                   const MLoop *mloop, const int totloop)
+{
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totedge, "edge-poly map");
+	int *indices = MEM_mallocN(sizeof(int) * totloop, "edge-poly map mem");
+	int *index_step;
+	const MPoly *mp;
+	int i;
+
+	/* count face users */
+	for (i = 0, mp = mpoly; i < totpoly; mp++, i++) {
+		const MLoop *ml;
+		int j = mp->totloop;
+		for (ml = &mloop[mp->loopstart]; j--; ml++) {
+			map[ml->e].count++;
+		}
+	}
+
+	/* create offsets */
+	index_step = indices;
+	for (i = 0; i < totedge; i++) {
+		map[i].indices = index_step;
+		index_step += map[i].count;
+
+		/* re-count, using this as an index below */
+		map[i].count = 0;
+
+	}
+
+	/* assign poly-edge users */
+	for (i = 0, mp = mpoly; i < totpoly; mp++, i++) {
+		const MLoop *ml;
+		int j = mp->totloop;
+		for (ml = &mloop[mp->loopstart]; j--; ml++) {
+			MeshElemMap *map_ele = &map[ml->e];
+			map_ele->indices[map_ele->count++] = i;
+		}
+	}
+
+	*r_map = map;
+	*r_mem = indices;
+}
+
 void BKE_mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
                                      CustomData *pdata, int lindex[4], int findex,
                                      const int polyindex,
