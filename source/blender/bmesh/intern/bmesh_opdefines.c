@@ -896,23 +896,6 @@ static BMOpDefine bmo_dissolve_edges_def = {
 };
 
 /*
- * Dissolve Edge Loop.
- */
-static BMOpDefine bmo_dissolve_edge_loop_def = {
-	"dissolve_edge_loop",
-	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
-	 {{'\0'}},
-	},
-	/* slots_out */
-	{{"region.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-	 {{'\0'}},
-	},
-	bmo_dissolve_edgeloop_exec,
-	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
-};
-
-/*
  * Dissolve Faces.
  */
 static BMOpDefine bmo_dissolve_faces_def = {
@@ -1715,7 +1698,6 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_create_uvsphere_def,
 	&bmo_create_vert_def,
 	&bmo_delete_def,
-	&bmo_dissolve_edge_loop_def,
 	&bmo_dissolve_edges_def,
 	&bmo_dissolve_faces_def,
 	&bmo_dissolve_limit_def,
