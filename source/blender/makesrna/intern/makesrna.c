@@ -1823,7 +1823,9 @@ static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *UNUSED(srn
 		flag = dp->prop->flag;
 		pout = (flag & PROP_OUTPUT);
 
-		if (type == PROP_POINTER)
+		if (flag & PROP_DYNAMIC)
+			ptrstr = pout ? "**" : "*";
+		else if (type == PROP_POINTER)
 			ptrstr = pout ? "*": "";
 		else if (dp->prop->arraydimension)
 			ptrstr = "*";

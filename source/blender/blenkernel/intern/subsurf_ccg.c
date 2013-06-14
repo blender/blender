@@ -29,7 +29,7 @@
  *  \ingroup bke
  */
 
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #  define USE_DYNSIZE
 #endif
 

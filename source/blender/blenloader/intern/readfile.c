@@ -9503,11 +9503,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_NODE)
-					{
+					if (sl->spacetype == SPACE_NODE) {
 						SpaceNode *snode = (SpaceNode *)sl;
-						if (snode->zoom < 0.02)
-						{
+						if (snode->zoom < 0.02f) {
 							snode->zoom = 1.0;
 						}
 					}

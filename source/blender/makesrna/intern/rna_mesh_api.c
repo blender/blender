@@ -59,8 +59,6 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, st
 
 void rna_Mesh_calc_smooth_groups(struct Mesh *mesh, int *r_poly_group_len, int **r_poly_group, int *r_group_total)
 {
-	int totgroups;
-
 	*r_poly_group_len = mesh->totpoly;
 	*r_poly_group = BKE_mesh_calc_smoothgroups(
 	                    mesh->medge, mesh->totedge,
