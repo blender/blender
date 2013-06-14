@@ -884,6 +884,7 @@ static BMOpDefine bmo_dissolve_edges_def = {
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
 	 {"use_verts", BMO_OP_SLOT_BOOL},  /* dissolve verts left between only 2 edges. */
+	 {"use_face_split", BMO_OP_SLOT_BOOL},
 	 {{'\0'}},
 	},
 	/* slots_out */

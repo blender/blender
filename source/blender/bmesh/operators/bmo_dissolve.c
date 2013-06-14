@@ -39,8 +39,10 @@
 #define FACE_ORIG   2
 #define FACE_NEW    4
 #define EDGE_MARK   1
+#define EDGE_TAG    2
 
 #define VERT_MARK   1
+#define VERT_TAG    2
 
 static bool UNUSED_FUNCTION(check_hole_in_region) (BMesh *bm, BMFace *f)
 {
@@ -71,6 +73,30 @@ static bool UNUSED_FUNCTION(check_hole_in_region) (BMesh *bm, BMFace *f)
 	BMW_end(&regwalker);
 
 	return true;
+}
+
+static void bm_face_split(BMesh *bm, const short oflag)
+{
+	BMIter iter;
+	BMVert *v;
+
+	BMIter liter;
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		if (BMO_elem_flag_test(bm, v, oflag)) {
+			if (BM_vert_edge_count(v) > 2) {
+				BMLoop *l;
+				BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+					if (l->f->len > 3) {
+						if (BMO_elem_flag_test(bm, l->next->v, oflag) == 0 &&
+						    BMO_elem_flag_test(bm, l->prev->v, oflag) == 0)
+						{
+							BM_face_split(bm, l->f, l->next->v, l->prev->v, NULL, NULL, true);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
@@ -272,6 +298,28 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 
 	const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
+	const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
+
+	if (use_face_split) {
+		BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_TAG);
+
+		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+			BMIter iter;
+			int untag_count = 0;
+			BM_ITER_ELEM(e, &iter, v, BM_EDGES_OF_VERT) {
+				if (!BMO_elem_flag_test(bm, e, EDGE_TAG)) {
+					untag_count++;
+				}
+			}
+
+			/* check that we have 2 edges remaining after dissolve */
+			if (untag_count <= 2) {
+				BMO_elem_flag_enable(bm, v, VERT_TAG);
+			}
+		}
+
+		bm_face_split(bm, VERT_TAG);
+	}
 
 	if (use_verts) {
 		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
@@ -366,23 +414,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_MARK);
 	
 	if (use_face_split) {
-		BMIter liter;
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
-				if (BM_vert_edge_count(v) > 2) {
-					BMLoop *l;
-					BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-						if (l->f->len > 3) {
-							if (BMO_elem_flag_test(bm, l->next->v, VERT_MARK) == 0 &&
-								BMO_elem_flag_test(bm, l->prev->v, VERT_MARK) == 0)
-							{
-								BM_face_split(bm, l->f, l->next->v, l->prev->v, NULL, NULL, true);
-							}
-						}
-					}
-				}
-			}
-		}
+		bm_face_split(bm, VERT_MARK);
 	}
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

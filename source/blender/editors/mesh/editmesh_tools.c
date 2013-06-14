@@ -2991,9 +2991,14 @@ static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
 
-	if (!EDBM_op_callf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+	if (!EDBM_op_callf(em, op,
+	                   "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
+	                   BM_ELEM_SELECT, use_verts, use_face_split))
+	{
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, true, true);
 
@@ -3015,6 +3020,8 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
+	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
+	                "Split off face corners to maintain surrounding geometry");
 }
 
 static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
