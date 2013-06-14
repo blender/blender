@@ -3203,26 +3203,40 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
 	return total_area;
 }
 
-
+/**
+ * Calculate smooth groups from sharp edges.
+ *
+ * \param r_totgroup The total number of groups, 1 or more.
+ * \return Polygon aligned array of group index values (starting at 1)
+ */
 int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
                                 const MPoly *mpoly, const int totpoly,
-                                const MLoop *mloop, const int totloop)
+                                const MLoop *mloop, const int totloop,
+                                int *r_totgroup)
 {
-	int *poly_groups = MEM_callocN(sizeof(int) * totpoly, __func__);
-	int *poly_stack  = MEM_mallocN(sizeof(int) * totpoly, __func__);
+	int *poly_groups;
+	int *poly_stack;
 	STACK_DECLARE(poly_stack);
 
 	int poly_prev = 0;
-	int poly_group_id = 1;
+	int poly_group_id = 0;
 
 	/* map vars */
 	MeshElemMap *edge_poly_map;
 	int *edge_poly_mem;
 
+	if (totpoly == 0) {
+		*r_totgroup = 0;
+		return NULL;
+	}
+
 	BKE_mesh_edge_poly_map_create(&edge_poly_map, &edge_poly_mem,
 	                              medge, totedge,
 	                              mpoly, totpoly,
 	                              mloop, totloop);
+
+	poly_groups = MEM_callocN(sizeof(int) * totpoly, __func__);
+	poly_stack  = MEM_mallocN(sizeof(int) * totpoly, __func__);
 
 	STACK_INIT(poly_stack);
 
@@ -3242,6 +3256,9 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 
 		/* start searching from here next time */
 		poly_prev = poly + 1;
+
+		/* group starts at 1 */
+		poly_group_id++;
 
 		poly_groups[poly] = poly_group_id;
 		STACK_PUSH(poly_stack, poly);
@@ -3273,8 +3290,6 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 				}
 			}
 		}
-
-		poly_group_id++;
 	}
 
 	MEM_freeN(edge_poly_map);
@@ -3282,6 +3297,8 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 	MEM_freeN(poly_stack);
 
 	STACK_FREE(poly_stack);
+
+	*r_totgroup = poly_group_id;
 
 	return poly_groups;
 }

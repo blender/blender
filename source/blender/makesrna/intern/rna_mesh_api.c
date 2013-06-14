@@ -44,6 +44,9 @@
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
+
+#include "DNA_mesh_types.h"
+
 static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
 {
 	const char *ret = BKE_mesh_cmp(mesh, mesh2, FLT_EPSILON * 60);
@@ -52,6 +55,18 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, st
 		ret = "Same";
 	
 	return ret;
+}
+
+void rna_Mesh_calc_smooth_groups(struct Mesh *mesh, int *r_poly_group_len, int **r_poly_group, int *r_group_total)
+{
+	int totgroups;
+
+	*r_poly_group_len = mesh->totpoly;
+	*r_poly_group = BKE_mesh_calc_smoothgroups(
+	                    mesh->medge, mesh->totedge,
+	                    mesh->mpoly, mesh->totpoly,
+	                    mesh->mloop, mesh->totloop,
+	                    r_group_total);
 }
 
 #else
@@ -71,6 +86,15 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func = RNA_def_function(srna, "calc_tessface", "ED_mesh_calc_tessface");
 	RNA_def_function_ui_description(func, "Calculate face tessellation (supports editmode too)");
+
+	func = RNA_def_function(srna, "calc_smooth_groups", "rna_Mesh_calc_smooth_groups");
+	RNA_def_function_ui_description(func, "Calculate smooth groups from sharp edges");
+	/* return values */
+	parm = RNA_def_int_array(func, "poly_groups", 1, NULL, 0, 0, "", "Smooth Groups", 0, 0);
+	RNA_def_property_flag(parm, PROP_DYNAMIC | PROP_OUTPUT);
+	parm = RNA_def_int(func, "groups", 0, 0, INT_MAX, "groups", "Total number of groups", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_OUTPUT);
+
 
 	func = RNA_def_function(srna, "update", "ED_mesh_update");
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");
