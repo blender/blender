@@ -303,11 +303,11 @@ typedef struct IndexNode {
 	int index;
 } IndexNode;
 
-void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
+void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map, int **r_mem,
                                    const struct MPoly *mface, const struct MLoop *mloop,
                                    int totvert, int totface, int totloop);
 
-void BKE_mesh_vert_edge_map_create(MeshElemMap **map, int **mem,
+void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
                                    const struct MEdge *medge, int totvert, int totedge);
 
 /* vertex level transformations & checks (no derived mesh) */

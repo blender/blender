@@ -2441,32 +2441,30 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
 /* Generates a map where the key is the vertex and the value is a list
  * of polys that use that vertex as a corner. The lists are allocated
  * from one memory pool. */
-void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
+void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map, int **r_mem,
                                    const MPoly *mpoly, const MLoop *mloop,
                                    int totvert, int totpoly, int totloop)
 {
-	int i, j;
-	int *indices;
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
+	int *indices = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
 
-	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
-	(*mem) = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
+	int i, j;
 
 	/* Count number of polys for each vertex */
 	for (i = 0; i < totpoly; i++) {
 		const MPoly *p = &mpoly[i];
 		
 		for (j = 0; j < p->totloop; j++)
-			(*map)[mloop[p->loopstart + j].v].count++;
+			map[mloop[p->loopstart + j].v].count++;
 	}
 
 	/* Assign indices mem */
-	indices = (*mem);
 	for (i = 0; i < totvert; i++) {
-		(*map)[i].indices = indices;
-		indices += (*map)[i].count;
+		map[i].indices = indices;
+		indices += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
-		(*map)[i].count = 0;
+		map[i].count = 0;
 	}
 		
 	/* Find the users */
@@ -2476,49 +2474,54 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
 		for (j = 0; j < p->totloop; j++) {
 			int v = mloop[p->loopstart + j].v;
 			
-			(*map)[v].indices[(*map)[v].count] = i;
-			(*map)[v].count++;
+			map[v].indices[map[v].count] = i;
+			map[v].count++;
 		}
 	}
+
+	*r_map = map;
+	*r_mem = indices;
 }
 
 /* Generates a map where the key is the vertex and the value is a list
  * of edges that use that vertex as an endpoint. The lists are allocated
  * from one memory pool. */
-void BKE_mesh_vert_edge_map_create(MeshElemMap **map, int **mem,
+void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
                                    const MEdge *medge, int totvert, int totedge)
 {
-	int i, *indices;
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
+	int *indices = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
 
-	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
-	(*mem) = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
+	int i;
 
 	/* Count number of edges for each vertex */
 	for (i = 0; i < totedge; i++) {
-		(*map)[medge[i].v1].count++;
-		(*map)[medge[i].v2].count++;
+		map[medge[i].v1].count++;
+		map[medge[i].v2].count++;
 	}
 
 	/* Assign indices mem */
-	indices = (*mem);
 	for (i = 0; i < totvert; i++) {
-		(*map)[i].indices = indices;
-		indices += (*map)[i].count;
+		map[i].indices = indices;
+		indices += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
-		(*map)[i].count = 0;
+		map[i].count = 0;
 	}
 		
 	/* Find the users */
 	for (i = 0; i < totedge; i++) {
 		const int v[2] = {medge[i].v1, medge[i].v2};
 
-		(*map)[v[0]].indices[(*map)[v[0]].count] = i;
-		(*map)[v[1]].indices[(*map)[v[1]].count] = i;
+		map[v[0]].indices[map[v[0]].count] = i;
+		map[v[1]].indices[map[v[1]].count] = i;
 		
-		(*map)[v[0]].count++;
-		(*map)[v[1]].count++;
+		map[v[0]].count++;
+		map[v[1]].count++;
 	}
+
+	*r_map = map;
+	*r_mem = indices;
 }
 
 void BKE_mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
