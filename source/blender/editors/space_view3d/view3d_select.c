@@ -420,7 +420,7 @@ static void do_lasso_select_objects(ViewContext *vc, const int mcords[][2], cons
 				ED_base_object_select(base, select ? BA_SELECT : BA_DESELECT);
 				base->object->flag = base->flag;
 			}
-			if (base->object->mode & OB_MODE_POSE) {
+			if (vc->obact == base->object && (base->object->mode & OB_MODE_POSE)) {
 				do_lasso_select_pose(vc, base->object, mcords, moves, select);
 			}
 		}
