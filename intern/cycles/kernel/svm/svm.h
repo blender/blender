@@ -146,6 +146,7 @@ CCL_NAMESPACE_END
 
 #include "svm_attribute.h"
 #include "svm_gradient.h"
+#include "svm_blackbody.h"
 #include "svm_closure.h"
 #include "svm_noisetex.h"
 #include "svm_convert.h"
@@ -365,6 +366,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 #ifdef __EXTRA_NODES__
 			case NODE_WAVELENGTH:
 				svm_node_wavelength(sd, stack, node.y, node.z);
+				break;
+			case NODE_BLACKBODY:
+				svm_node_blackbody(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_SET_DISPLACEMENT:
 				svm_node_set_displacement(sd, stack, node.y);

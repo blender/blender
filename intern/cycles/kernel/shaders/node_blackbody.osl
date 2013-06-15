@@ -22,6 +22,10 @@ shader node_blackbody(
 	float Temperature = 1200.0,
 	output color Color = 0.0)
 {
-	Color = blackbody(Temperature);
+	color rgb = blackbody(Temperature);
+	
+	/* Scale by luminance */
+	float l = luminance(rgb);
+	Color = rgb /= l;
 }
 

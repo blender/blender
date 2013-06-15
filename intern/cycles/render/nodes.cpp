@@ -2988,14 +2988,12 @@ BlackbodyNode::BlackbodyNode()
 
 void BlackbodyNode::compile(SVMCompiler& compiler)
 {
-/*
-	ShaderInput *temperature in = input("Temperature");
+	ShaderInput *temperature_in = input("Temperature");
 	ShaderOutput *color_out = output("Color");
 
 	compiler.stack_assign(temperature_in);
 	compiler.stack_assign(color_out);
 	compiler.add_node(NODE_BLACKBODY, temperature_in->stack_offset, color_out->stack_offset);
-*/
 }
 
 void BlackbodyNode::compile(OSLCompiler& compiler)

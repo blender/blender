@@ -29,7 +29,7 @@
 
 /* **************** Blackbody ******************** */
 static bNodeSocketTemplate sh_node_blackbody_in[] = {
-	{	SOCK_FLOAT, 1, N_("Temperature"),	1200.0f, 0.0f, 0.0f, 0.0f, 1.0f, 10000.0f},
+	{	SOCK_FLOAT, 1, N_("Temperature"),	1500.0f, 0.0f, 0.0f, 0.0f, 800.0f, 12000.0f},
 	{	-1, 0, ""	}
 };
 
