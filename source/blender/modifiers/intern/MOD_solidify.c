@@ -310,24 +310,26 @@ static DerivedMesh *applyModifier(
 		}
 
 		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
+			MLoop *ml_prev;
 			int j;
 
 			ml = orig_mloop + mp->loopstart;
+			ml_prev = ml + (mp->totloop - 1);
 
 			for (j = 0; j < mp->totloop; j++, ml++) {
 				/* add edge user */
-				eidx = ml->e;
+				eidx = ml_prev->e;
 				if (edge_users[eidx] == INVALID_UNUSED) {
-					unsigned int ml_v_next = (j + 1 != mp->totloop) ? ml[1].v : ml[-j].v;
 					ed = orig_medge + eidx;
-					BLI_assert(ELEM(ml->v,     ed->v1, ed->v2) &&
-					           ELEM(ml_v_next, ed->v1, ed->v2));
-					edge_users[eidx] = (ml->v > ml_v_next) == (ed->v1 < ed->v2) ? i : (i + numFaces);
+					BLI_assert(ELEM(ml_prev->v,    ed->v1, ed->v2) &&
+					           ELEM(ml->v, ed->v1, ed->v2));
+					edge_users[eidx] = (ml_prev->v > ml->v) == (ed->v1 < ed->v2) ? i : (i + numFaces);
 					edge_order[eidx] = j;
 				}
 				else {
 					edge_users[eidx] = INVALID_PAIR;
 				}
+				ml_prev = ml;
 			}
 		}
 
