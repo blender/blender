@@ -552,10 +552,10 @@ set(SRC
 	intern/winged_edge/WingedEdgeBuilder.h
 )
 
-set(INC 
+set(INC
+	.
 	../blenkernel
 	../blenlib
-	../freestyle
 	../imbuf
 	../makesdna
 	../makesrna
