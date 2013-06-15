@@ -1973,7 +1973,7 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 
 	/* TODO define selected color */
 	unsigned char base_col[3] = {0x0, 0x0, 0x0};
-	unsigned char sel_col[3] = {0xd8, 0xd8, 0x0};
+	unsigned char sel_col[3] = {0xd8, 0xb8, 0x0};
 	unsigned char act_col[3] = {0xff, 0xff, 0xff};
 
 	data.mvert = me->mvert;
