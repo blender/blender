@@ -64,6 +64,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mball.h"
+#include "BKE_mesh.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -754,6 +755,9 @@ static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], sh
 
 	}
 
+	if (select == false) {
+		BKE_mesh_mselect_validate(me);
+	}
 	paintvert_flush_flags(ob);
 }
 static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], short moves, bool extend, bool select)
@@ -1670,6 +1674,9 @@ static int do_paintvert_box_select(ViewContext *vc, rcti *rect, bool select, boo
 		meshobject_foreachScreenVert(vc, do_paintvert_box_select__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 	}
 
+	if (select == false) {
+		BKE_mesh_mselect_validate(me);
+	}
 	paintvert_flush_flags(vc->obact);
 
 	return OPERATOR_FINISHED;
@@ -2140,6 +2147,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, true);
 }
 
+
 /* mouse selection in weight paint */
 /* gets called via generic mouse select operator */
 static bool mouse_weight_paint_vertex_select(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, Object *obact)
@@ -2166,6 +2174,15 @@ static bool mouse_weight_paint_vertex_select(bContext *C, const int mval[2], boo
 			paintvert_deselect_all_visible(obact, SEL_DESELECT, false);
 			mv->flag |= SELECT;
 		}
+
+		/* update mselect */
+		if (mv->flag & SELECT) {
+			BKE_mesh_mselect_active_set(me, index, ME_VSEL);
+		}
+		else {
+			BKE_mesh_mselect_validate(me);
+		}
+
 		paintvert_flush_flags(obact);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
 		return true;
@@ -2419,6 +2436,9 @@ static void paint_vertsel_circle_select(ViewContext *vc, const bool select, cons
 		meshobject_foreachScreenVert(vc, paint_vertsel_circle_select_doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 	}
 
+	if (select != LEFTMOUSE) {
+		BKE_mesh_mselect_validate(me);
+	}
 	paintvert_flush_flags(ob);
 }
 
