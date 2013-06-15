@@ -3774,8 +3774,10 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
 
 void BKE_mesh_mselect_clear(Mesh *me)
 {
-	MEM_freeN(me->mselect);
-	me->mselect = NULL;
+	if (me->mselect) {
+		MEM_freeN(me->mselect);
+		me->mselect = NULL;
+	}
 	me->totselect = 0;
 }
 
