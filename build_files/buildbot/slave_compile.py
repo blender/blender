@@ -143,6 +143,8 @@ else:
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             if builder.find('mingw') != -1:
                 scons_options.append('BF_TOOLSET=mingw')
+            scons_options.append('BF_NUMJOBS=1')
+
         elif builder.find('mac') != -1:
             if builder.find('x86_64') != -1:
                 config = 'user-config-mac-x86_64.py'
