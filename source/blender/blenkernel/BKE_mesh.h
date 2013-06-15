@@ -361,6 +361,13 @@ void BKE_mesh_poly_edgehash_insert(struct EdgeHash *ehash, const struct MPoly *m
 
 void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
 
+
+void BKE_mesh_mselect_clear(struct Mesh *me);
+void BKE_mesh_mselect_validate(struct Mesh *me);
+int  BKE_mesh_mselect_find(struct Mesh *me, int index, int type);
+int  BKE_mesh_mselect_active_get(struct Mesh *me, int type);
+void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
+
 #ifdef __cplusplus
 }
 #endif
