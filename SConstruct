@@ -46,9 +46,7 @@ import os
 import os.path
 import string
 import shutil
-import glob
 import re
-from tempfile import mkdtemp
 
 # store path to tools
 toolpath=os.path.join(".", "build_files", "scons", "tools")
@@ -58,7 +56,6 @@ sys.path.append(toolpath)
 
 import Blender
 import btools
-import bcolors
 
 EnsureSConsVersion(1,0,0)
 
@@ -121,7 +118,7 @@ if tempbitness in (32, 64): # only set if 32 or 64 has been given
 
 if bitness:
     B.bitness = bitness
-else: 
+else:
     B.bitness = tempbitness
 
 
@@ -171,6 +168,10 @@ if sys.platform=='win32':
         platform = 'win64-vc' if bitness == 64 else 'win32-vc'
     elif env['CC'] in ['gcc']:
         platform = 'win64-mingw' if bitness == 64 else 'win32-mingw'
+
+if 'mingw' in platform:
+    print "Setting custom spawn function"
+    btools.SetupSpawn(env)
 
 env.SConscriptChdir(0)
 
@@ -303,7 +304,7 @@ if env['OURPLATFORM']=='darwin':
             env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
             env['BF_3DMOUSE_INC'] = '/Library/Frameworks/3DconnexionClient.framework/Headers'
 
-    # for now, Mac builders must download and install the JackOSX framework 
+    # for now, Mac builders must download and install the JackOSX framework
     # necessary header file lives here when installed:
     # /Library/Frameworks/Jackmp.framework/Versions/A/Headers/jack.h
     if env['WITH_BF_JACK'] == 1:
@@ -313,13 +314,13 @@ if env['OURPLATFORM']=='darwin':
         else:
             env.Append(LINKFLAGS=['-L/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
-    if env['WITH_BF_CYCLES_OSL'] == 1:	
+    if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
         # we need 2 variants of passing the oslexec with the force_load option, string and list type atm
         env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
         env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker',OSX_OSL_LIBPATH +'/liboslexec.a'])
 
-    # Trying to get rid of eventually clashes, we export some explicite as local symbols		
+    # Trying to get rid of eventually clashes, we export some explicite as local symbols
     env.Append(LINKFLAGS=['-Xlinker','-unexported_symbols_list','-Xlinker','./source/creator/osx_locals.map'])
 
 if env['WITH_BF_OPENMP'] == 1:
@@ -330,10 +331,10 @@ if env['WITH_BF_OPENMP'] == 1:
                 env.Append(LINKFLAGS=['-openmp', '-static-intel'])
                 env['CCFLAGS'].append('-openmp')
             else:
-                env.Append(CCFLAGS=['-fopenmp']) 
+                env.Append(CCFLAGS=['-fopenmp'])
 
 if env['WITH_GHOST_COCOA'] == True:
-    env.Append(CPPFLAGS=['-DGHOST_COCOA']) 
+    env.Append(CPPFLAGS=['-DGHOST_COCOA'])
 
 if env['USE_QTKIT'] == True:
     env.Append(CPPFLAGS=['-DUSE_QTKIT'])
@@ -370,7 +371,7 @@ if env['WITH_BF_FLUID'] == 1:
 
 # build with ocean sim?
 if env['WITH_BF_OCEANSIM'] == 1:
-    env['WITH_BF_FFTW3']  = 1  # ocean needs fftw3 so enable it 
+    env['WITH_BF_FFTW3']  = 1  # ocean needs fftw3 so enable it
     env['CPPFLAGS'].append('-DWITH_MOD_OCEANSIM')
 
 
@@ -517,9 +518,9 @@ def data_to_c_simple(FILE_FROM):
 	filename_only = os.path.basename(FILE_FROM)
 	FILE_TO = os.path.join(env['DATA_SOURCES'], filename_only + ".c")
 	VAR_NAME = "datatoc_" + filename_only.replace(".", "_")
-	
+
 	data_to_c(FILE_FROM, FILE_TO, VAR_NAME)
-	
+
 
 if B.targets != ['cudakernels']:
     data_to_c("source/blender/compositor/operations/COM_OpenCLKernels.cl",
@@ -960,7 +961,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 
         else:
             dllsources.append('${LCGDIR}/opencolorio/bin/libOpenColorIO.dll')
-			
+
     dllsources.append('#source/icons/blender.exe.manifest')
 
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
@@ -990,7 +991,7 @@ if env['OURPLATFORM'] == 'win64-mingw':
 
     if(env['WITH_BF_OPENMP']):
         dllsources.append('${LCGDIR}/binaries/libgomp-1.dll')
-		
+
     if env['WITH_BF_OCIO']:
         dllsources.append('${LCGDIR}/opencolorio/bin/libOpenColorIO.dll')
 
