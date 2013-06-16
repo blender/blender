@@ -333,3 +333,5 @@ const char *clErrorString(cl_int error)
 
 CCL_NAMESPACE_END
 
+#ifdef CLCC_DYNLIB_CLOSE
+#endif

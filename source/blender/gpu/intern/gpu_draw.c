@@ -34,7 +34,10 @@
 
 #include "GL/glew.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_linklist.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_lamp_types.h"
@@ -51,9 +54,6 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "BLI_threads.h"
-#include "BLI_blenlib.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_global.h"
@@ -1123,19 +1123,18 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 #endif // WITH_SMOKE
 }
 
-static ListBase image_free_queue = {NULL, NULL};
+static LinkNode *image_free_queue = NULL;
 
 static void gpu_queue_image_for_free(Image *ima)
 {
-	Image *cpy = MEM_dupallocN(ima);
-
 	BLI_lock_thread(LOCK_OPENGL);
-	BLI_addtail(&image_free_queue, cpy);
+	BLI_linklist_append(&image_free_queue, ima);
 	BLI_unlock_thread(LOCK_OPENGL);
 }
 
 void GPU_free_unused_buffers(void)
 {
+	LinkNode *node;
 	Image *ima;
 
 	if (!BLI_thread_is_main())
@@ -1144,10 +1143,16 @@ void GPU_free_unused_buffers(void)
 	BLI_lock_thread(LOCK_OPENGL);
 
 	/* images */
-	for (ima=image_free_queue.first; ima; ima=ima->id.next)
-		GPU_free_image(ima);
+	for (node=image_free_queue; node; node=node->next) {
+		ima = node->link;
 
-	BLI_freelistN(&image_free_queue);
+		/* check in case it was freed in the meantime */
+		if (BLI_findindex(&G.main->image, ima) != -1)
+			GPU_free_image(ima);
+	}
+
+	BLI_linklist_free(image_free_queue, NULL);
+	image_free_queue = NULL;
 
 	/* vbo buffers */
 	/* it's probably not necessary to free all buffers every frame */
@@ -1794,17 +1799,18 @@ void GPU_state_init(void)
 	// glDisable(GL_MULTISAMPLE);
 }
 
+#ifdef DEBUG
 /* debugging aid */
 static void gpu_get_print(const char *name, GLenum type)
 {
-	float value[16];
+	float value[32];
 	int a;
 	
 	memset(value, 0, sizeof(value));
 	glGetFloatv(type, value);
 
 	printf("%s: ", name);
-	for (a=0; a<16; a++)
+	for (a = 0; a < 32; a++)
 		printf("%.2f ", value[a]);
 	printf("\n");
 }
@@ -2156,4 +2162,4 @@ void GPU_state_print(void)
 	gpu_get_print("GL_ZOOM_X", GL_ZOOM_X);
 	gpu_get_print("GL_ZOOM_Y", GL_ZOOM_Y);
 }
-
+#endif

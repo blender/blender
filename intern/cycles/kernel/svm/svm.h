@@ -360,10 +360,10 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_LAYER_WEIGHT:
 				svm_node_layer_weight(sd, stack, node);
 				break;
+#ifdef __EXTRA_NODES__
 			case NODE_WIREFRAME:
 				svm_node_wireframe(kg, sd, stack, node.y, node.z, node.w);
 				break;
-#ifdef __EXTRA_NODES__
 			case NODE_WAVELENGTH:
 				svm_node_wavelength(sd, stack, node.y, node.z);
 				break;

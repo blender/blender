@@ -73,7 +73,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	ImageUser *imageuser = (ImageUser *)editorNode->storage;
 	int framenumber = context->getFramenumber();
 	int numberOfOutputs = this->getNumberOfOutputSockets();
-	bool outputStraightAlpha = editorNode->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
+	bool outputStraightAlpha = (editorNode->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT) != 0;
 	BKE_image_user_frame_calc(imageuser, context->getFramenumber(), 0);
 
 	/* force a load, we assume iuser index will be set OK anyway */

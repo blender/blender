@@ -72,6 +72,13 @@ __attribute__((nonnull))
 #endif
 ;
 
+size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
+
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))

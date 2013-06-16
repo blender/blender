@@ -48,6 +48,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -1122,6 +1123,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(C);
 	
+	BKE_icon_changed(BKE_icon_getid(&sima->image->id));
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, sima->image);
 

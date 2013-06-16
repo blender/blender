@@ -839,6 +839,37 @@ static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 	sbuts->re_align = 1;
 }
 
+static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+                                                                   PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	if (ED_texture_context_check_world(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_WORLD);
+	}
+
+	if (ED_texture_context_check_lamp(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LAMP);
+	}
+	else if (ED_texture_context_check_material(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_MATERIAL);
+	}
+
+	if (ED_texture_context_check_particles(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
+	}
+
+	if (ED_texture_context_check_others(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_OTHER);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = 1;
+
+	return item;
+}
+
 /* Space Console */
 static void rna_ConsoleLine_body_get(PointerRNA *ptr, char *value)
 {
@@ -1127,37 +1158,6 @@ void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
 {
 	ED_node_tree_pop(snode);
 	ED_node_tree_update(C);
-}
-
-static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                                   PropertyRNA *UNUSED(prop), int *free)
-{
-	EnumPropertyItem *item = NULL;
-	int totitem = 0;
-
-	if (ED_texture_context_check_world(C)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_WORLD);
-	}
-
-	if (ED_texture_context_check_lamp(C)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LAMP);
-	}
-	else if (ED_texture_context_check_material(C)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_MATERIAL);
-	}
-
-	if (ED_texture_context_check_particles(C)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
-	}
-
-	if (ED_texture_context_check_others(C)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_OTHER);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
-
-	return item;
 }
 
 static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)

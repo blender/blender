@@ -2280,7 +2280,7 @@ PyObject *KX_GameObject::pyattr_get_localTransform(void *self_v, const KX_PYATTR
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 
-	double *mat = MT_CmMatrix4x4().getPointer();
+	double mat[16];
 
 	MT_Transform trans;
 	

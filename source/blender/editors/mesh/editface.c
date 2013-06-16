@@ -619,6 +619,17 @@ void paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 		}
 	}
 
+	/* handle mselect */
+	if (action == SEL_SELECT) {
+		/* pass */
+	}
+	else if (ELEM(action, SEL_DESELECT, SEL_INVERT)) {
+		BKE_mesh_mselect_clear(me);
+	}
+	else {
+		BKE_mesh_mselect_validate(me);
+	}
+
 	if (flush_flags) {
 		paintvert_flush_flags(ob);
 	}

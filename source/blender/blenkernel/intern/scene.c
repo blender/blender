@@ -1045,6 +1045,21 @@ float BKE_scene_frame_get_from_ctime(Scene *scene, const float frame)
 	return ctime;
 }
 
+/**
+ * Sets the frame int/float components.
+ */
+void BKE_scene_frame_set(struct Scene *scene, double cfra)
+{
+	double intpart;
+	scene->r.subframe = modf(cfra, &intpart);
+	scene->r.cfra = (int)intpart;
+
+	if (cfra < 0.0) {
+		scene->r.cfra -= 1;
+		scene->r.subframe = 1.0f + scene->r.subframe;
+	}
+}
+
 /* drivers support/hacks 
  *  - this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
  *	- these are always run since the depsgraph can't handle non-object data

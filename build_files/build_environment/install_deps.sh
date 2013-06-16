@@ -1158,7 +1158,7 @@ clean_OIIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=11
+  oiio_magic=12
   _init_oiio
 
   # Clean install if needed!
@@ -1352,6 +1352,7 @@ EOF
 
     # Optional tests and cmd tools
     cmake_d="$cmake_d -D USE_QT=OFF"
+    cmake_d="$cmake_d -D USE_PYTHON=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
     #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
@@ -1373,6 +1374,7 @@ EOF
 #    if [ -d $INST/ocio ]; then
 #      cmake_d="$cmake_d -D OCIO_PATH=$INST/ocio"
 #    fi
+    cmake_d="$cmake_d -D USE_OCIO=OFF"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"

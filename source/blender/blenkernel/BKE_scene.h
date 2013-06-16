@@ -99,6 +99,7 @@ int BKE_scene_validate_setscene(struct Main *bmain, struct Scene *sce);
 
 float BKE_scene_frame_get(struct Scene *scene);
 float BKE_scene_frame_get_from_ctime(struct Scene *scene, const float frame);
+void  BKE_scene_frame_set(struct Scene *scene, double cfra);
 
 void BKE_scene_update_tagged(struct Main *bmain, struct Scene *sce);
 

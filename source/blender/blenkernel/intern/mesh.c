@@ -849,15 +849,15 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 
 /* ************** make edges in a Mesh, for outside of editmode */
 
-struct edgesort {
+struct EdgeSort {
 	unsigned int v1, v2;
-	short is_loose, is_draw;
+	char is_loose, is_draw;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed,
+static void to_edgesort(struct EdgeSort *ed,
                         unsigned int v1, unsigned int v2,
-                        short is_loose, short is_draw)
+                        char is_loose, short is_draw)
 {
 	if (v1 < v2) {
 		ed->v1 = v1; ed->v2 = v2;
@@ -871,7 +871,7 @@ static void to_edgesort(struct edgesort *ed,
 
 static int vergedgesort(const void *v1, const void *v2)
 {
-	const struct edgesort *x1 = v1, *x2 = v2;
+	const struct EdgeSort *x1 = v1, *x2 = v2;
 
 	if (x1->v1 > x2->v1) return 1;
 	else if (x1->v1 < x2->v1) return -1;
@@ -882,17 +882,22 @@ static int vergedgesort(const void *v1, const void *v2)
 }
 
 
-/* Create edges based on known verts and faces */
+/* Create edges based on known verts and faces,
+ * this function is only used when loading very old blend files */
+
 static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
                              MPoly *allpoly, int UNUSED(totvert), int totface, int UNUSED(totloop), int totpoly,
-                             int old, MEdge **alledge, int *_totedge)
+                             const bool use_old,
+                             MEdge **r_medge, int *r_totedge)
 {
 	MPoly *mpoly;
 	MFace *mface;
-	MEdge *medge;
+	MEdge *medge, *med;
 	EdgeHash *hash = BLI_edgehash_new();
-	struct edgesort *edsort, *ed;
-	int a, totedge = 0, final = 0;
+	struct EdgeSort *edsort, *ed;
+	int a, totedge = 0;
+	unsigned int totedge_final = 0;
+	unsigned int edge_index;
 
 	/* we put all edges in array, sort them, and detect doubles that way */
 
@@ -904,12 +909,12 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 
 	if (totedge == 0) {
 		/* flag that mesh has edges */
-		(*alledge) = MEM_callocN(0, "make mesh edges");
-		(*_totedge) = 0;
+		(*r_medge) = MEM_callocN(0, __func__);
+		(*r_totedge) = 0;
 		return;
 	}
 
-	ed = edsort = MEM_mallocN(totedge * sizeof(struct edgesort), "edgesort");
+	ed = edsort = MEM_mallocN(totedge * sizeof(struct EdgeSort), "EdgeSort");
 
 	for (a = totface, mface = allface; a > 0; a--, mface++) {
 		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
@@ -924,32 +929,31 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 		}
 	}
 
-	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
+	qsort(edsort, totedge, sizeof(struct EdgeSort), vergedgesort);
 
 	/* count final amount */
 	for (a = totedge, ed = edsort; a > 1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
-		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) final++;
+		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) totedge_final++;
 	}
-	final++;
+	totedge_final++;
 
-	(*alledge) = medge = MEM_callocN(sizeof(MEdge) * final, "BKE_mesh_make_edges mdge");
-	(*_totedge) = final;
+	medge = MEM_callocN(sizeof(MEdge) * totedge_final, __func__);
 
-	for (a = totedge, ed = edsort; a > 1; a--, ed++) {
+	for (a = totedge, med = medge, ed = edsort; a > 1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
 		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) {
-			medge->v1 = ed->v1;
-			medge->v2 = ed->v2;
-			if (old == 0 || ed->is_draw) medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
-			if (ed->is_loose) medge->flag |= ME_LOOSEEDGE;
+			med->v1 = ed->v1;
+			med->v2 = ed->v2;
+			if (use_old == false || ed->is_draw) med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+			if (ed->is_loose) med->flag |= ME_LOOSEEDGE;
 
 			/* order is swapped so extruding this edge as a surface wont flip face normals
 			 * with cyclic curves */
 			if (ed->v1 + 1 != ed->v2) {
-				SWAP(unsigned int, medge->v1, medge->v2);
+				SWAP(unsigned int, med->v1, med->v2);
 			}
-			medge++;
+			med++;
 		}
 		else {
 			/* equal edge, we merge the drawflag */
@@ -957,18 +961,17 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 		}
 	}
 	/* last edge */
-	medge->v1 = ed->v1;
-	medge->v2 = ed->v2;
-	medge->flag = ME_EDGEDRAW;
-	if (ed->is_loose) medge->flag |= ME_LOOSEEDGE;
-	medge->flag |= ME_EDGERENDER;
+	med->v1 = ed->v1;
+	med->v2 = ed->v2;
+	med->flag = ME_EDGEDRAW;
+	if (ed->is_loose) med->flag |= ME_LOOSEEDGE;
+	med->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);
 	
 	/* set edge members of mloops */
-	medge = *alledge;
-	for (a = 0; a < *_totedge; a++, medge++) {
-		BLI_edgehash_insert(hash, medge->v1, medge->v2, SET_INT_IN_POINTER(a));
+	for (edge_index = 0, med = medge; edge_index < totedge_final; edge_index++, med++) {
+		BLI_edgehash_insert(hash, med->v1, med->v2, SET_UINT_IN_POINTER(edge_index));
 	}
 	
 	mpoly = allpoly;
@@ -980,21 +983,27 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 		ml = &ml_next[i - 1];                  /* last loop */
 
 		while (i-- != 0) {
-			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
+			ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
 			ml = ml_next;
 			ml_next++;
 		}
 	}
 	
 	BLI_edgehash_free(hash, NULL);
+
+	*r_medge = medge;
+	*r_totedge = totedge_final;
 }
 
-void BKE_mesh_make_edges(Mesh *me, int old)
+void BKE_mesh_make_edges(Mesh *me, const bool use_old)
 {
 	MEdge *medge;
 	int totedge = 0;
 
-	make_edges_mdata(me->mvert, me->mface, me->mloop, me->mpoly, me->totvert, me->totface, me->totloop, me->totpoly, old, &medge, &totedge);
+	make_edges_mdata(me->mvert, me->mface, me->mloop, me->mpoly,
+	                 me->totvert, me->totface, me->totloop, me->totpoly,
+	                 use_old, &medge, &totedge);
+
 	if (totedge == 0) {
 		/* flag that mesh has edges */
 		me->medge = medge;
@@ -2432,32 +2441,30 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
 /* Generates a map where the key is the vertex and the value is a list
  * of polys that use that vertex as a corner. The lists are allocated
  * from one memory pool. */
-void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
+void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map, int **r_mem,
                                    const MPoly *mpoly, const MLoop *mloop,
                                    int totvert, int totpoly, int totloop)
 {
-	int i, j;
-	int *indices;
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
+	int *indices = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
 
-	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
-	(*mem) = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
+	int i, j;
 
 	/* Count number of polys for each vertex */
 	for (i = 0; i < totpoly; i++) {
 		const MPoly *p = &mpoly[i];
 		
 		for (j = 0; j < p->totloop; j++)
-			(*map)[mloop[p->loopstart + j].v].count++;
+			map[mloop[p->loopstart + j].v].count++;
 	}
 
 	/* Assign indices mem */
-	indices = (*mem);
 	for (i = 0; i < totvert; i++) {
-		(*map)[i].indices = indices;
-		indices += (*map)[i].count;
+		map[i].indices = indices;
+		indices += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
-		(*map)[i].count = 0;
+		map[i].count = 0;
 	}
 		
 	/* Find the users */
@@ -2467,49 +2474,99 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **map, int **mem,
 		for (j = 0; j < p->totloop; j++) {
 			int v = mloop[p->loopstart + j].v;
 			
-			(*map)[v].indices[(*map)[v].count] = i;
-			(*map)[v].count++;
+			map[v].indices[map[v].count] = i;
+			map[v].count++;
 		}
 	}
+
+	*r_map = map;
+	*r_mem = indices;
 }
 
 /* Generates a map where the key is the vertex and the value is a list
  * of edges that use that vertex as an endpoint. The lists are allocated
  * from one memory pool. */
-void BKE_mesh_vert_edge_map_create(MeshElemMap **map, int **mem,
+void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
                                    const MEdge *medge, int totvert, int totedge)
 {
-	int i, *indices;
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
+	int *indices = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
 
-	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
-	(*mem) = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
+	int i;
 
 	/* Count number of edges for each vertex */
 	for (i = 0; i < totedge; i++) {
-		(*map)[medge[i].v1].count++;
-		(*map)[medge[i].v2].count++;
+		map[medge[i].v1].count++;
+		map[medge[i].v2].count++;
 	}
 
 	/* Assign indices mem */
-	indices = (*mem);
 	for (i = 0; i < totvert; i++) {
-		(*map)[i].indices = indices;
-		indices += (*map)[i].count;
+		map[i].indices = indices;
+		indices += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
-		(*map)[i].count = 0;
+		map[i].count = 0;
 	}
 		
 	/* Find the users */
 	for (i = 0; i < totedge; i++) {
 		const int v[2] = {medge[i].v1, medge[i].v2};
 
-		(*map)[v[0]].indices[(*map)[v[0]].count] = i;
-		(*map)[v[1]].indices[(*map)[v[1]].count] = i;
+		map[v[0]].indices[map[v[0]].count] = i;
+		map[v[1]].indices[map[v[1]].count] = i;
 		
-		(*map)[v[0]].count++;
-		(*map)[v[1]].count++;
+		map[v[0]].count++;
+		map[v[1]].count++;
 	}
+
+	*r_map = map;
+	*r_mem = indices;
+}
+
+void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map, int **r_mem,
+                                   const MEdge *UNUSED(medge), const int totedge,
+                                   const MPoly *mpoly, const int totpoly,
+                                   const MLoop *mloop, const int totloop)
+{
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totedge, "edge-poly map");
+	int *indices = MEM_mallocN(sizeof(int) * totloop, "edge-poly map mem");
+	int *index_step;
+	const MPoly *mp;
+	int i;
+
+	/* count face users */
+	for (i = 0, mp = mpoly; i < totpoly; mp++, i++) {
+		const MLoop *ml;
+		int j = mp->totloop;
+		for (ml = &mloop[mp->loopstart]; j--; ml++) {
+			map[ml->e].count++;
+		}
+	}
+
+	/* create offsets */
+	index_step = indices;
+	for (i = 0; i < totedge; i++) {
+		map[i].indices = index_step;
+		index_step += map[i].count;
+
+		/* re-count, using this as an index below */
+		map[i].count = 0;
+
+	}
+
+	/* assign poly-edge users */
+	for (i = 0, mp = mpoly; i < totpoly; mp++, i++) {
+		const MLoop *ml;
+		int j = mp->totloop;
+		for (ml = &mloop[mp->loopstart]; j--; ml++) {
+			MeshElemMap *map_ele = &map[ml->e];
+			map_ele->indices[map_ele->count++] = i;
+		}
+	}
+
+	*r_map = map;
+	*r_mem = indices;
 }
 
 void BKE_mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
@@ -3147,6 +3204,108 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
 }
 
 /**
+ * Calculate smooth groups from sharp edges.
+ *
+ * \param r_totgroup The total number of groups, 1 or more.
+ * \return Polygon aligned array of group index values (starting at 1)
+ */
+int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
+                                const MPoly *mpoly, const int totpoly,
+                                const MLoop *mloop, const int totloop,
+                                int *r_totgroup)
+{
+	int *poly_groups;
+	int *poly_stack;
+	STACK_DECLARE(poly_stack);
+
+	int poly_prev = 0;
+	int poly_group_id = 0;
+
+	/* map vars */
+	MeshElemMap *edge_poly_map;
+	int *edge_poly_mem;
+
+	if (totpoly == 0) {
+		*r_totgroup = 0;
+		return NULL;
+	}
+
+	BKE_mesh_edge_poly_map_create(&edge_poly_map, &edge_poly_mem,
+	                              medge, totedge,
+	                              mpoly, totpoly,
+	                              mloop, totloop);
+
+	poly_groups = MEM_callocN(sizeof(int) * totpoly, __func__);
+	poly_stack  = MEM_mallocN(sizeof(int) * totpoly, __func__);
+
+	STACK_INIT(poly_stack);
+
+	while (true) {
+		int poly;
+
+		for (poly = poly_prev; poly < totpoly; poly++) {
+			if (poly_groups[poly] == 0) {
+				break;
+			}
+		}
+
+		if (poly == totpoly) {
+			/* all done */
+			break;
+		}
+
+		/* start searching from here next time */
+		poly_prev = poly + 1;
+
+		/* group starts at 1 */
+		poly_group_id++;
+
+		poly_groups[poly] = poly_group_id;
+		STACK_PUSH(poly_stack, poly);
+
+		while ((poly = STACK_POP_ELSE(poly_stack, -1)) != -1) {
+
+			const MPoly *mp = &mpoly[poly];
+			const MLoop *ml;
+			int j = mp->totloop;
+
+			BLI_assert(poly_groups[poly] == poly_group_id);
+
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				if (!(medge[ml->e].flag & ME_SHARP)) {
+					/* loop over poly users */
+					const MeshElemMap *map_ele = &edge_poly_map[ml->e];
+					int *p = map_ele->indices;
+					int i = map_ele->count;
+
+					for (; i--; p++) {
+						/* if we meet other non initialized its a bug */
+						BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
+
+						if (poly_groups[*p] == 0) {
+							poly_groups[*p] = poly_group_id;
+							STACK_PUSH(poly_stack, *p);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	MEM_freeN(edge_poly_map);
+	MEM_freeN(edge_poly_mem);
+	MEM_freeN(poly_stack);
+
+	STACK_FREE(poly_stack);
+
+	*r_totgroup = poly_group_id;
+
+	return poly_groups;
+}
+
+
+
+/**
  * This function takes the difference between 2 vertex-coord-arrays
  * (\a vert_cos_src, \a vert_cos_dst),
  * and applies the difference to \a vert_cos_new relative to \a vert_cos_org.
@@ -3607,4 +3766,133 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
 		}
 
 	}
+}
+
+
+/* -------------------------------------------------------------------- */
+/* MSelect functions (currently used in weight paint mode) */
+
+void BKE_mesh_mselect_clear(Mesh *me)
+{
+	if (me->mselect) {
+		MEM_freeN(me->mselect);
+		me->mselect = NULL;
+	}
+	me->totselect = 0;
+}
+
+void BKE_mesh_mselect_validate(Mesh *me)
+{
+	MSelect *mselect_src, *mselect_dst;
+	int i_src, i_dst;
+
+	if (me->totselect == 0)
+		return;
+
+	mselect_src = me->mselect;
+	mselect_dst = MEM_mallocN(sizeof(MSelect) * (me->totselect), "Mesh selection history");
+
+	for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
+		int index = mselect_src[i_src].index;
+		switch (mselect_src[i_src].type) {
+			case ME_VSEL:
+			{
+				if (me->mvert[index].flag & SELECT) {
+					mselect_dst[i_dst] = mselect_src[i_src];
+					i_dst++;
+				}
+				break;
+			}
+			case ME_ESEL:
+			{
+				if (me->medge[index].flag & SELECT) {
+					mselect_dst[i_dst] = mselect_src[i_src];
+					i_dst++;
+				}
+				break;
+			}
+			case ME_FSEL:
+			{
+				if (me->mpoly[index].flag & SELECT) {
+					mselect_dst[i_dst] = mselect_src[i_src];
+					i_dst++;
+				}
+				break;
+			}
+			default:
+			{
+				BLI_assert(0);
+				break;
+			}
+		}
+	}
+
+	MEM_freeN(mselect_src);
+
+	if (i_dst == 0) {
+		MEM_freeN(mselect_dst);
+		mselect_dst = NULL;
+	}
+	else if (i_dst != me->totselect) {
+		mselect_dst = MEM_reallocN(mselect_dst, sizeof(MSelect) * i_dst);
+	}
+
+	me->totselect = i_dst;
+	me->mselect = mselect_dst;
+
+}
+
+/**
+ * Return the index within me->mselect, or -1
+ */
+int BKE_mesh_mselect_find(Mesh *me, int index, int type)
+{
+	int i;
+
+	BLI_assert(ELEM3(type, ME_VSEL, ME_ESEL, ME_FSEL));
+
+	for (i = 0; i < me->totselect; i++) {
+		if ((me->mselect[i].index == index) &&
+			(me->mselect[i].type == type))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * Return The index of the active element.
+ */
+int BKE_mesh_mselect_active_get(Mesh *me, int type)
+{
+	BLI_assert(ELEM3(type, ME_VSEL, ME_ESEL, ME_FSEL));
+
+	if (me->totselect) {
+		if (me->mselect[me->totselect - 1].type == type) {
+			return me->mselect[me->totselect - 1].index;
+		}
+	}
+	return -1;
+}
+
+void BKE_mesh_mselect_active_set(Mesh *me, int index, int type)
+{
+	const int msel_index = BKE_mesh_mselect_find(me, index, type);
+
+	if (msel_index == -1) {
+		/* add to the end */
+		me->mselect = MEM_reallocN(me->mselect, sizeof(MSelect) * (me->totselect + 1));
+		me->mselect[me->totselect].index = index;
+		me->mselect[me->totselect].type  = type;
+		me->totselect++;
+	}
+	else if (msel_index != me->totselect - 1) {
+		/* move to the end */
+		SWAP(MSelect, me->mselect[msel_index], me->mselect[me->totselect - 1]);
+	}
+
+	BLI_assert((me->mselect[me->totselect - 1].index == index) &&
+	           (me->mselect[me->totselect - 1].type  == type));
 }

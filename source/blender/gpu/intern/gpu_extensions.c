@@ -1159,9 +1159,9 @@ static const char *gpu_shader_standard_defines(void)
 	/* some useful defines to detect GPU type */
 	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
 		return "#define GPU_ATI\n";
-	else if(GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
+	else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
 		return "#define GPU_NVIDIA\n";
-	else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
+	else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
 		return "#define GPU_INTEL\n";
 	
 	return "";

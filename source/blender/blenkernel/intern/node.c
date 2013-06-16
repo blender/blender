@@ -1999,7 +1999,11 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree, int in_out,
 	bNodeSocketType *stype = nodeSocketTypeFind(idname);
 	bNodeSocket *sock;
 	int own_index = ntree->cur_index++;
-	
+
+	if (stype == NULL) {
+		return NULL;
+	}
+
 	sock = MEM_callocN(sizeof(bNodeSocket), "socket template");
 	BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
 	node_socket_set_typeinfo(ntree, sock, stype);

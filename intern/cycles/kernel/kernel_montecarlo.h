@@ -39,7 +39,7 @@ CCL_NAMESPACE_BEGIN
 /// [-1,1] uniformly distributed over a unit sphere.
 __device void to_unit_disk(float *x, float *y)
 {
-	float phi = 2.0f * M_PI_F * (*x);
+	float phi = M_2PI_F * (*x);
 	float r = sqrtf(*y);
 
 	*x = r * cosf(phi);

@@ -138,7 +138,8 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
         
         col = split.column()
         col.prop(freestyle, "use_smoothness")
-        col.prop(freestyle, "use_material_boundaries")
+        if freestyle.mode == 'SCRIPT':
+            col.prop(freestyle, "use_material_boundaries")
         
         # Advanced options are hidden by default to warn new users
         if freestyle.use_advanced_options:

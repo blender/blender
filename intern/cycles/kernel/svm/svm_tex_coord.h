@@ -241,10 +241,13 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 		float sign = primitive_attribute_float(kg, sd, attr_sign_elem, attr_sign_offset, NULL, NULL);
 		float3 normal;
 
-		if(sd->shader & SHADER_SMOOTH_NORMAL)
+		if(sd->shader & SHADER_SMOOTH_NORMAL) {
 			normal = primitive_attribute_float3(kg, sd, attr_normal_elem, attr_normal_offset, NULL, NULL);
-		else
-			normal = sd->N;
+		}
+		else {
+			normal = sd->Ng;
+			object_inverse_normal_transform(kg, sd, &normal);
+		}
 
 		/* apply normal map */
 		float3 B = sign * cross(normal, tangent);

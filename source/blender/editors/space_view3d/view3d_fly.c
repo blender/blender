@@ -762,12 +762,18 @@ static void flyMoveCamera(bContext *C, RegionView3D *rv3d, FlyInfo *fly,
 	else {
 		float view_mat[4][4];
 		float size_mat[4][4];
+		float size_back[3];
+
+		/* even though we handle the size matrix, this still changes over time */
+		copy_v3_v3(size_back, v3d->camera->size);
 
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 		size_to_mat4(size_mat, v3d->camera->size);
 		mul_m4_m4m4(view_mat, view_mat, size_mat);
 
 		BKE_object_apply_mat4(v3d->camera, view_mat, true, true);
+
+		copy_v3_v3(v3d->camera->size, size_back);
 
 		id_key = &v3d->camera->id;
 	}

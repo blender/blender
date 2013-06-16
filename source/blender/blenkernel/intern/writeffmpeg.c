@@ -747,7 +747,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 #endif
 
 	if (c->frame_size == 0)
-		// used to be if((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
+		// used to be if ((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
 		// not sure if that is needed anymore, so let's try out if there are any
 		// complaints regarding some ffmpeg versions users might have
 		audio_input_samples = FF_MIN_BUFFER_SIZE * 8 / c->bits_per_coded_sample / c->channels;

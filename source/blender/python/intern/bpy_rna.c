@@ -3425,11 +3425,14 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
 
 		RNA_PROP_BEGIN (&tptr, itemptr, iterprop)
 		{
-			idname = RNA_function_identifier(itemptr.data);
+			FunctionRNA *func = itemptr.data;
+			if (RNA_function_defined(func)) {
+				idname = RNA_function_identifier(itemptr.data);
 
-			pystring = PyUnicode_FromString(idname);
-			PyList_Append(list, pystring);
-			Py_DECREF(pystring);
+				pystring = PyUnicode_FromString(idname);
+				PyList_Append(list, pystring);
+				Py_DECREF(pystring);
+			}
 		}
 		RNA_PROP_END;
 	}

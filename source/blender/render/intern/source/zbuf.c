@@ -4148,15 +4148,24 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 				}
 				if (addpassflag & SCE_PASS_INDEXMA) {
 					ObjectRen *obr = R.objectinstance[zrow[totface-1].obi].obr;
+					int p = zrow[totface-1].p;
 					Material *mat = NULL;
 
 					if (zrow[totface-1].segment == -1) {
-						if (obr->vlaknodes)
-							mat = obr->vlaknodes->vlak->mat;
+						int facenr = (p - 1) & RE_QUAD_MASK;
+						VlakRen *vlr = NULL;
+
+						if (facenr >= 0 && facenr < obr->totvlak)
+							vlr = RE_findOrAddVlak(obr, facenr);
+
+						if (vlr)
+							mat = vlr->mat;
 					}
 					else {
-						if (obr->strandbuf)
-							mat = obr->strandbuf->ma;
+						StrandRen *strand = RE_findOrAddStrand(obr, p - 1);
+
+						if (strand)
+							mat = strand->buffer->ma;
 					}
 
 					if (mat) {
