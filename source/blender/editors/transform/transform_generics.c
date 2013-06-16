@@ -1031,6 +1031,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
 	Object *obedit = CTX_data_edit_object(C);
+	PropertyRNA *prop;
 	
 	/* moving: is shown in drawobject() (transform color) */
 //  TRANSFORM_FIX_ME
@@ -1128,10 +1129,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		if (v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 		
-		if (op && (RNA_struct_find_property(op->ptr, "constraint_orientation") &&
-		           RNA_struct_property_is_set(op->ptr, "constraint_orientation")))
+		if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+		           RNA_property_is_set(op->ptr, prop)))
 		{
-			t->current_orientation = RNA_enum_get(op->ptr, "constraint_orientation");
+			t->current_orientation = RNA_property_enum_get(op->ptr, prop);
 
 			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
 				t->current_orientation = V3D_MANIP_GLOBAL;
@@ -1149,9 +1150,9 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		}
 
 		/* initialize UV transform from */
-		if (op && RNA_struct_find_property(op->ptr, "correct_uv")) {
-			if (RNA_struct_property_is_set(op->ptr, "correct_uv")) {
-				if (RNA_boolean_get(op->ptr, "correct_uv")) {
+		if (op && ((prop = RNA_struct_find_property(op->ptr, "correct_uv")))) {
+			if (RNA_property_is_set(op->ptr, prop)) {
+				if (RNA_property_boolean_get(op->ptr, prop)) {
 					t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
 				}
 				else {
@@ -1159,7 +1160,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 				}
 			}
 			else {
-				RNA_boolean_set(op->ptr, "correct_uv", t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT);
+				RNA_property_boolean_set(op->ptr, prop, t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT);
 			}
 		}
 
@@ -1212,8 +1213,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		t->around = V3D_CENTER;
 	}
 	
-	if (op && RNA_struct_property_is_set(op->ptr, "release_confirm")) {
-		if (RNA_boolean_get(op->ptr, "release_confirm")) {
+	if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
+	           RNA_property_is_set(op->ptr, prop)))
+	{
+		if (RNA_property_boolean_get(op->ptr, prop)) {
 			t->flag |= T_RELEASE_CONFIRM;
 		}
 	}
@@ -1223,10 +1226,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		}
 	}
 
-	if (op && (RNA_struct_find_property(op->ptr, "mirror") &&
-	           RNA_struct_property_is_set(op->ptr, "mirror")))
+	if (op && ((prop = RNA_struct_find_property(op->ptr, "mirror")) &&
+	           RNA_property_is_set(op->ptr, prop)))
 	{
-		if (RNA_boolean_get(op->ptr, "mirror")) {
+		if (RNA_property_boolean_get(op->ptr, prop)) {
 			t->flag |= T_MIRROR;
 			t->mirror = 1;
 		}
@@ -1240,9 +1243,9 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	}
 	
 	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
-	if (op && RNA_struct_find_property(op->ptr, "proportional")) {
-		if (RNA_struct_property_is_set(op->ptr, "proportional")) {
-			switch (RNA_enum_get(op->ptr, "proportional")) {
+	if (op && (prop = RNA_struct_find_property(op->ptr, "proportional"))) {
+		if (RNA_property_is_set(op->ptr, prop)) {
+			switch (RNA_property_enum_get(op->ptr, prop)) {
 				case PROP_EDIT_CONNECTED:
 					t->flag |= T_PROP_CONNECTED;
 				case PROP_EDIT_ON:
@@ -1277,10 +1280,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 			}
 		}
 		
-		if (op && (RNA_struct_find_property(op->ptr, "proportional_size") &&
-		           RNA_struct_property_is_set(op->ptr, "proportional_size")))
+		if (op && ((prop = RNA_struct_find_property(op->ptr, "proportional_size")) &&
+		           RNA_property_is_set(op->ptr, prop)))
 		{
-			t->prop_size = RNA_float_get(op->ptr, "proportional_size");
+			t->prop_size = RNA_property_float_get(op->ptr, prop);
 		}
 		else {
 			t->prop_size = ts->proportional_size;
@@ -1293,10 +1296,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 			t->prop_size = 1.0f;
 		}
 		
-		if (op && (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") &&
-		           RNA_struct_property_is_set(op->ptr, "proportional_edit_falloff")))
+		if (op && ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
+		           RNA_property_is_set(op->ptr, prop)))
 		{
-			t->prop_mode = RNA_enum_get(op->ptr, "proportional_edit_falloff");
+			t->prop_mode = RNA_property_enum_get(op->ptr, prop);
 		}
 		else {
 			t->prop_mode = ts->prop_mode;
