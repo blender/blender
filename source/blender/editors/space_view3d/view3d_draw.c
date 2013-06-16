@@ -874,29 +874,35 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
  * framenum, object name, bone name (if available), marker name (if available)
  */
 
-#define BREAD_CRUMB_SEPARATOR " : "
-#define SHAPE_KEY_PINNED " (Pinned)"
-
 static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 {
-	char info[256], *markern;
+	const int cfra = CFRA;
+	const char *msg_pin = " (Pinned)";
+	const char *msg_sep = " : ";
+
+	char info[300];
+	char *markern;
+	char *s = info;
 	short offset = 1.5f * UI_UNIT_X + rect->xmin;
 
+	s += sprintf(s, "(%d)", cfra);
+
 	/* 
-	 * breadcrumbs can contain 3 object names (MAX_NAME)
-	 * and 2 BREAD_CRUMB_SEPARATORs (6)
-	 * and a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1)
+	 * info can contain:
+	 * - a frame (7 + 2)
+	 * - 3 object names (MAX_NAME)
+	 * - 2 BREAD_CRUMB_SEPARATORs (6)
+	 * - a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1) - translated, so give some room!
+	 * - a marker name (MAX_NAME + 3)
 	 */
-	char bread_crumbs[3 * MAX_NAME + 6 + 10];
-	bread_crumbs[0] = '\0';
-	
+
 	/* get name of marker on current frame (if available) */
-	markern = BKE_scene_find_marker_name(scene, CFRA);
+	markern = BKE_scene_find_marker_name(scene, cfra);
 	
 	/* check if there is an object */
 	if (ob) {
-		strcat(bread_crumbs, " ");
-		strcat(bread_crumbs, ob->id.name + 2);
+		*s++ = ' ';
+		s += BLI_strcpy_rlen(s, ob->id.name + 2);
 
 		/* name(s) to display depends on type of object */
 		if (ob->type == OB_ARMATURE) {
@@ -904,18 +910,17 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 			
 			/* show name of active bone too (if possible) */
 			if (arm->edbo) {
-
 				if (arm->act_edbone) {
-					strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
-					strcat(bread_crumbs, ((EditBone *)arm->act_edbone)->name);
+					s += BLI_strcpy_rlen(s, msg_sep);
+					s += BLI_strcpy_rlen(s, arm->act_edbone->name);
 				}
 			}
 			else if (ob->mode & OB_MODE_POSE) {
 				if (arm->act_bone) {
 
 					if (arm->act_bone->layer & arm->layer) {
-						strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
-						strcat(bread_crumbs, arm->act_bone->name);
+						s += BLI_strcpy_rlen(s, msg_sep);
+						s += BLI_strcpy_rlen(s, arm->act_bone->name);
 					}
 				}
 			}
@@ -932,8 +937,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 					bArmature *arm = armobj->data;
 					if (arm->act_bone) {
 						if (arm->act_bone->layer & arm->layer) {
-							strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
-							strcat(bread_crumbs, arm->act_bone->name);
+							s += BLI_strcpy_rlen(s, msg_sep);
+							s += BLI_strcpy_rlen(s, arm->act_bone->name);
 						}
 					}
 				}
@@ -943,17 +948,17 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 			if (key) {
 				kb = BLI_findlink(&key->block, ob->shapenr - 1);
 				if (kb) {
-					strcat(bread_crumbs, BREAD_CRUMB_SEPARATOR);
-					strcat(bread_crumbs, kb->name);
-					if (ob->shapeflag == OB_SHAPE_LOCK) {
-						strcat(bread_crumbs, IFACE_(SHAPE_KEY_PINNED));
+					s += BLI_strcpy_rlen(s, msg_sep);
+					s += BLI_strcpy_rlen(s, kb->name);
+					if (ob->shapeflag & OB_SHAPE_LOCK) {
+						s += BLI_strcpy_rlen(s, IFACE_(msg_pin));
 					}
 				}
 			}
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
+		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)cfra, ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -964,10 +969,9 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		UI_ThemeColor(TH_TEXT_HI);
 	}
 
-	if (markern)
-		BLI_snprintf(info, sizeof(info), "(%d)%s <%s>", CFRA, bread_crumbs, markern);
-	else
-		BLI_snprintf(info, sizeof(info), "(%d)%s", CFRA, bread_crumbs);
+	if (markern) {
+		s += sprintf(s, " <%s>", markern);
+	}
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
