@@ -56,12 +56,11 @@
 
 static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 {
-	float cfra = (float)frame + subframe;
+	double cfra = (double)frame + (double)subframe;
 
-	scene->r.cfra = floorf(cfra);
-	scene->r.subframe = cfra - floorf(cfra);
-	
-	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
+	CLAMP(cfra, MINAFRAME, MAXFRAME);
+	BKE_scene_frame_set(scene, cfra);
+
 	BKE_scene_update_for_newframe(G.main, scene, (1 << 20) - 1);
 	BKE_scene_camera_switch_update(scene);
 

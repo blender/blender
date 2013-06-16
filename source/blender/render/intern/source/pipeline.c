@@ -1113,7 +1113,6 @@ void RE_TileProcessor(Render *re)
 
 static void do_render_3d(Render *re)
 {
-	float cfra;
 	int cfra_backup;
 
 	/* try external */
@@ -1126,9 +1125,7 @@ static void do_render_3d(Render *re)
 	/* add motion blur and fields offset to frames */
 	cfra_backup = re->scene->r.cfra;
 
-	cfra = re->scene->r.cfra + re->mblur_offs + re->field_offs;
-	re->scene->r.cfra = floorf(cfra);
-	re->scene->r.subframe = cfra - floorf(cfra);
+	BKE_scene_frame_set(re->scene, (double)re->scene->r.cfra + (double)re->mblur_offs + (double)re->field_offs);
 
 	/* lock drawing in UI during data phase */
 	if (re->draw_lock)
