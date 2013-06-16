@@ -1055,7 +1055,7 @@ static void vgroup_normalize_active(Object *ob)
 static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = OBACT;
+	Object *ob = scene->basact->object;
 
 	/* XXX TODO Use operators? */
 	if (event == B_VGRP_PNL_NORMALIZE) {
@@ -1069,6 +1069,9 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 	}
 	else if (event >= B_VGRP_PNL_EDIT_SINGLE) {
 		vgroup_adjust_active(ob, event - B_VGRP_PNL_EDIT_SINGLE);
+	}
+	else {
+		BLI_assert(0);
 	}
 
 #if 0 /* TODO */
@@ -1100,7 +1103,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 {
 	uiBlock *block = uiLayoutAbsoluteBlock(pa->layout);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = OBACT;
+	Object *ob = scene->basact->object;
 
 	MDeformVert *dv;
 
@@ -1350,40 +1353,45 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 }
 
-static void view3d_panel_object(const bContext *C, Panel *pa)
+static int view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	Scene *scene = CTX_data_scene(C);
+	return (scene->basact != NULL);
+}
+
+static void view3d_panel_transform(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	Object *ob = OBACT;
-	PointerRNA obptr;
+	Object *ob = scene->basact->object;
 	uiLayout *col;
-	float lim;
-
-	if (ob == NULL)
-		return;
-
-	lim = 10000.0f * max_ff(1.0f, v3d->grid);
 
 	block = uiLayoutGetBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	col = uiLayoutColumn(pa->layout, FALSE);
-	RNA_id_pointer_create(&ob->id, &obptr);
 
 	if (ob == obedit) {
-		if (ob->type == OB_ARMATURE)
+		if (ob->type == OB_ARMATURE) {
 			v3d_editarmature_buts(col, ob);
-		else if (ob->type == OB_MBALL)
+		}
+		else if (ob->type == OB_MBALL) {
 			v3d_editmetaball_buts(col, ob);
-		else
+		}
+		else {
+			View3D *v3d = CTX_wm_view3d(C);
+			const float lim = 10000.0f * max_ff(1.0f, v3d->grid);
 			v3d_editvertex_buts(col, v3d, ob, lim);
+		}
 	}
 	else if (ob->mode & OB_MODE_POSE) {
 		v3d_posearmature_buts(col, ob);
 	}
 	else {
+		PointerRNA obptr;
+
+		RNA_id_pointer_create(&ob->id, &obptr);
 		v3d_transform_butsR(col, &obptr);
 	}
 }
@@ -1393,10 +1401,11 @@ void view3d_buttons_register(ARegionType *art)
 	PanelType *pt;
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
-	strcpy(pt->idname, "VIEW3D_PT_object");
+	strcpy(pt->idname, "VIEW3D_PT_transform");
 	strcpy(pt->label, N_("Transform"));  /* XXX C panels not  available through RNA (bpy.types)! */
 	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = view3d_panel_object;
+	pt->draw = view3d_panel_transform;
+	pt->poll = view3d_panel_transform_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
