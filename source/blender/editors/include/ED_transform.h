@@ -137,6 +137,7 @@ void BIF_TransformSetUndo(const char *str);
 /* to be able to add operator properties to other operators */
 
 #define P_MIRROR        (1 << 0)
+#define P_MIRROR_DUMMY  (P_MIRROR | (1 << 9))
 #define P_PROPORTIONAL  (1 << 1)
 #define P_AXIS          (1 << 2)
 #define P_SNAP          (1 << 3)
@@ -145,6 +146,7 @@ void BIF_TransformSetUndo(const char *str);
 #define P_CONSTRAINT    (1 << 6)
 #define P_OPTIONS       (1 << 7)
 #define P_CORRECT_UV    (1 << 8)
+#define P_NO_DEFAULTS   (1 << 10)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

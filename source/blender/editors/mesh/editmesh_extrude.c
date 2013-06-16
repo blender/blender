@@ -46,6 +46,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"  /* own include */
@@ -429,7 +430,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
@@ -460,7 +461,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* to give to transform */
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
@@ -491,7 +492,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* to give to transform */
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
@@ -521,7 +522,7 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 /* *************** add-click-mesh (extrude) operator ************** */

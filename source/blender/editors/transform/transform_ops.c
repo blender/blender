@@ -500,7 +500,11 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	}
 
 	if (flags & P_MIRROR) {
-		RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+		prop = RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+		if (flags & P_MIRROR_DUMMY) {
+			/* only used so macros can disable this option */
+			RNA_def_property_flag(prop, PROP_HIDDEN);
+		}
 	}
 
 
@@ -539,9 +543,11 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UVs", "Correct UV coordinates when transforming");
 	}
 
-	// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
-	/*prop =*/ RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
-	//RNA_def_property_flag(prop, PROP_HIDDEN);
+	if ((flags & P_NO_DEFAULTS) == 0) {
+		// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
+		/*prop =*/ RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
+		//RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
 }
 
 static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
