@@ -2371,13 +2371,13 @@ void ui_check_but(uiBut *but)
 					char *str = but->drawstr;
 
 					if (but->modifier_key & KM_SHIFT)
-						str = strcat(str, "Shift ");
+						str += BLI_strcpy_rlen(str, "Shift ");
 					if (but->modifier_key & KM_CTRL)
-						str = strcat(str, "Ctrl ");
+						str += BLI_strcpy_rlen(str, "Ctrl ");
 					if (but->modifier_key & KM_ALT)
-						str = strcat(str, "Alt ");
+						str += BLI_strcpy_rlen(str, "Alt ");
 					if (but->modifier_key & KM_OSKEY)
-						str = strcat(str, "Cmd ");
+						str += BLI_strcpy_rlen(str, "Cmd ");
 
 					(void)str; /* UNUSED */
 				}
