@@ -773,8 +773,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 #define B_VGRP_PNL_COPY 1
 #define B_VGRP_PNL_NORMALIZE 2
-#define B_VGRP_PNL_EDIT_SINGLE 8 /* or greater */
-#define B_VGRP_PNL_COPY_SINGLE 16384 /* or greater */
+#define B_VGRP_PNL_TOGGLE_USE_ALL 4
+#define B_VGRP_PNL_EDIT_SINGLE 8       /* or greater */
+#define B_VGRP_PNL_DELETE_SINGLE  4096 /* or greater */
+#define B_VGRP_PNL_COPY_SINGLE    8192 /* or greater */
+#define B_VGRP_PNL_ACTIVE        16384 /* or greater */
+
 
 static MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
 {
@@ -902,6 +906,18 @@ static void vgroup_adjust_active(Object *ob, int def_nr)
 			}
 		}
 	}
+}
+
+static void vgroup_remove_weight(Object *ob, const int def_nr)
+{
+	MDeformVert *dvert_act;
+	MDeformWeight *dw;
+
+	dvert_act = ED_mesh_active_dvert_get_only(ob);
+
+	dw = defvert_find_index(dvert_act, def_nr);
+	defvert_remove_group(dvert_act, dw);
+
 }
 
 static void vgroup_copy_active_to_sel(Object *ob)
@@ -1064,8 +1080,14 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 	else if (event == B_VGRP_PNL_COPY) {
 		vgroup_copy_active_to_sel(ob);
 	}
+	else if (event >= B_VGRP_PNL_ACTIVE) {
+		ob->actdef = event - B_VGRP_PNL_ACTIVE + 1;
+	}
 	else if (event >= B_VGRP_PNL_COPY_SINGLE) {
 		vgroup_copy_active_to_sel_single(ob, event - B_VGRP_PNL_COPY_SINGLE);
+	}
+	else if (event >= B_VGRP_PNL_DELETE_SINGLE) {
+		vgroup_remove_weight(ob, event - B_VGRP_PNL_DELETE_SINGLE);
 	}
 	else if (event >= B_VGRP_PNL_EDIT_SINGLE) {
 		vgroup_adjust_active(ob, event - B_VGRP_PNL_EDIT_SINGLE);
@@ -1121,22 +1143,33 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
 
-		col = uiLayoutColumn(pa->layout, false);
+		col = uiLayoutColumn(pa->layout, true);
 
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
 			if (vgroup_validmap[i]) {
 				MDeformWeight *dw = defvert_find_index(dv, i);
 				if (dw) {
+					int x, xco = 0;
 					row = uiLayoutRow(col, true);
 					(void)row;
 					uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, dg->name,
-					          0, yco, UI_UNIT_X * 9, UI_UNIT_Y,
+					          xco, yco, (x = UI_UNIT_X * 9), UI_UNIT_Y,
 					          &dw->weight, 0.0, 1.0, 1, 3, "");
+					xco += x;
+
 					uiDefIconBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + i, ICON_PASTEDOWN,
-					             UI_UNIT_X * 9, yco, UI_UNIT_X, UI_UNIT_Y,
+					             xco, yco, (x = UI_UNIT_X), UI_UNIT_Y,
 					             NULL, 0, 0, 0, 0, TIP_("Copy this group's weight to other selected verts"));
+					xco += x;
+
+					uiDefIconBut(block, BUT, B_VGRP_PNL_DELETE_SINGLE + i, ICON_X,
+					             xco, yco, (x = UI_UNIT_X), UI_UNIT_Y,
+					             NULL, 0, 0, 0, 0, TIP_("Delete this weight from the vertex."));
+					xco += x;
+
 					yco -= UI_UNIT_Y;
+					(void)xco;
 				}
 			}
 		}
@@ -1144,6 +1177,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		yco -= 2;
 
+		col = uiLayoutColumn(pa->layout, true);
 		row = uiLayoutRow(col, true);
 
 		uiDefBut(block, BUT, B_VGRP_PNL_NORMALIZE, IFACE_("Normalize"),
