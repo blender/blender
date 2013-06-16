@@ -1134,6 +1134,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 	if (dv && dv->totweight) {
 		uiLayout *col;
 		uiLayout *row;
+		uiLayout *box;
+		uiBut *but;
 		bDeformGroup *dg;
 		unsigned int i;
 		int subset_count, vgroup_tot;
@@ -1142,8 +1144,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		int yco = 0;
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
+		box = uiLayoutBox(pa->layout);
 
-		col = uiLayoutColumn(pa->layout, true);
+		col = uiLayoutColumn(box, true);
 
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
@@ -1153,9 +1156,24 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					int x, xco = 0;
 					row = uiLayoutRow(col, true);
 					(void)row;
-					uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, dg->name,
-					          xco, yco, (x = UI_UNIT_X * 9), UI_UNIT_Y,
+
+					uiBlockSetEmboss(block, UI_EMBOSSN);
+					but = uiDefBut(block, BUT, B_VGRP_PNL_ACTIVE + i, dg->name,
+					         xco, yco, (x = UI_UNIT_X * 5), UI_UNIT_Y,
+					         NULL, 0.0, 1.0, 1, 3, "");
+					uiButSetFlag(but, UI_TEXT_LEFT);
+
+					if (ob->actdef != i + 1) {
+						uiButSetFlag(but, UI_BUT_INACTIVE);
+					}
+					xco += x;
+
+					//uiBlockSetEmboss(block, UI_EMBOSS);
+
+					but = uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, "",
+					          xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
 					          &dw->weight, 0.0, 1.0, 1, 3, "");
+					uiButSetFlag(but, UI_TEXT_LEFT);
 					xco += x;
 
 					uiDefIconBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + i, ICON_PASTEDOWN,
@@ -1177,6 +1195,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		yco -= 2;
 
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		col = uiLayoutColumn(pa->layout, true);
 		row = uiLayoutRow(col, true);
 
