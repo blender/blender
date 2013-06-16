@@ -1111,6 +1111,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 	if (dv && dv->totweight) {
 		uiLayout *col;
+		uiLayout *row;
 		bDeformGroup *dg;
 		unsigned int i;
 		int subset_count, vgroup_tot;
@@ -1120,21 +1121,22 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
 
-		col = uiLayoutColumn(pa->layout, FALSE);
-		block = uiLayoutAbsoluteBlock(col);
-
-		uiBlockBeginAlign(block);
+		col = uiLayoutColumn(pa->layout, false);
 
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
 			if (vgroup_validmap[i]) {
 				MDeformWeight *dw = defvert_find_index(dv, i);
 				if (dw) {
-					uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, dg->name, 0, yco, 180, 20,
+					row = uiLayoutRow(col, true);
+					(void)row;
+					uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, dg->name,
+					          0, yco, UI_UNIT_X * 9, UI_UNIT_Y,
 					          &dw->weight, 0.0, 1.0, 1, 3, "");
-					uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + i, "C", 180, yco, 20, 20,
-					         NULL, 0, 0, 0, 0, TIP_("Copy this group's weight to other selected verts"));
-					yco -= 20;
+					uiDefIconBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + i, ICON_PASTEDOWN,
+					             UI_UNIT_X * 9, yco, UI_UNIT_X, UI_UNIT_Y,
+					             NULL, 0, 0, 0, 0, TIP_("Copy this group's weight to other selected verts"));
+					yco -= UI_UNIT_Y;
 				}
 			}
 		}
@@ -1142,13 +1144,14 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		yco -= 2;
 
-		uiBlockEndAlign(block);
-		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_VGRP_PNL_NORMALIZE, IFACE_("Normalize"), 0, yco, 100, 20,
+		row = uiLayoutRow(col, true);
+
+		uiDefBut(block, BUT, B_VGRP_PNL_NORMALIZE, IFACE_("Normalize"),
+		         0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		         NULL, 0, 0, 0, 0, TIP_("Normalize active vertex weights"));
-		uiDefBut(block, BUT, B_VGRP_PNL_COPY, IFACE_("Copy"), 100, yco, 100, 20,
+		uiDefBut(block, BUT, B_VGRP_PNL_COPY, IFACE_("Copy"),
+		         UI_UNIT_X * 5, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		         NULL, 0, 0, 0, 0, TIP_("Copy active vertex to other selected verts"));
-		uiBlockEndAlign(block);
 	}
 }
 
