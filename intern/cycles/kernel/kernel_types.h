@@ -807,6 +807,12 @@ typedef struct KernelBSSRDF {
 	int pad1, pad2;
 } KernelBSSRDF;
 
+typedef struct KernelBLACKBODY {
+	int table_offset;
+	int pad1, pad2, pad3;
+} KernelBLACKBODY;
+
+
 typedef struct KernelData {
 	KernelCamera cam;
 	KernelFilm film;
@@ -816,6 +822,7 @@ typedef struct KernelData {
 	KernelBVH bvh;
 	KernelCurves curve_kernel_data;
 	KernelBSSRDF bssrdf;
+	KernelBLACKBODY blackbody;
 } KernelData;
 
 CCL_NAMESPACE_END

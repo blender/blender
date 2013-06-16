@@ -36,70 +36,52 @@ CCL_NAMESPACE_BEGIN
 
 __device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *stack, uint temperature_offset, uint col_offset)
 {
+	/* ToDo: move those defines to kernel_types.h ? */
+	float bb_drapper = 800.0f;
+	float bb_max_table_range = 12000.0f;
+	float bb_table_xpower = 1.5f;
+	float bb_table_ypower = 5.0f;
+	float bb_table_spacing = 2.0f;
+
 	/* Output */
-	float3 color_rgb;
+	float3 color_rgb = make_float3(0.0f, 0.0f, 0.0f);
 
 	/* Input */
 	float temperature = stack_load_float(stack, temperature_offset);
 
-	/* ToDo: Use a lookup table to speed this up and outsource it from the kernel */
-	float X = 0, Y = 0, Z = 0;
-
-	const float cie_colour_match[81][3] = {
-		{0.0014,0.0000,0.0065}, {0.0022,0.0001,0.0105}, {0.0042,0.0001,0.0201},
-		{0.0076,0.0002,0.0362}, {0.0143,0.0004,0.0679}, {0.0232,0.0006,0.1102},
-		{0.0435,0.0012,0.2074}, {0.0776,0.0022,0.3713}, {0.1344,0.0040,0.6456},
-		{0.2148,0.0073,1.0391}, {0.2839,0.0116,1.3856}, {0.3285,0.0168,1.6230},
-		{0.3483,0.0230,1.7471}, {0.3481,0.0298,1.7826}, {0.3362,0.0380,1.7721},
-		{0.3187,0.0480,1.7441}, {0.2908,0.0600,1.6692}, {0.2511,0.0739,1.5281},
-		{0.1954,0.0910,1.2876}, {0.1421,0.1126,1.0419}, {0.0956,0.1390,0.8130},
-		{0.0580,0.1693,0.6162}, {0.0320,0.2080,0.4652}, {0.0147,0.2586,0.3533},
-		{0.0049,0.3230,0.2720}, {0.0024,0.4073,0.2123}, {0.0093,0.5030,0.1582},
-		{0.0291,0.6082,0.1117}, {0.0633,0.7100,0.0782}, {0.1096,0.7932,0.0573},
-		{0.1655,0.8620,0.0422}, {0.2257,0.9149,0.0298}, {0.2904,0.9540,0.0203},
-		{0.3597,0.9803,0.0134}, {0.4334,0.9950,0.0087}, {0.5121,1.0000,0.0057},
-		{0.5945,0.9950,0.0039}, {0.6784,0.9786,0.0027}, {0.7621,0.9520,0.0021},
-		{0.8425,0.9154,0.0018}, {0.9163,0.8700,0.0017}, {0.9786,0.8163,0.0014},
-		{1.0263,0.7570,0.0011}, {1.0567,0.6949,0.0010}, {1.0622,0.6310,0.0008},
-		{1.0456,0.5668,0.0006}, {1.0026,0.5030,0.0003}, {0.9384,0.4412,0.0002},
-		{0.8544,0.3810,0.0002}, {0.7514,0.3210,0.0001}, {0.6424,0.2650,0.0000},
-		{0.5419,0.2170,0.0000}, {0.4479,0.1750,0.0000}, {0.3608,0.1382,0.0000},
-		{0.2835,0.1070,0.0000}, {0.2187,0.0816,0.0000}, {0.1649,0.0610,0.0000},
-		{0.1212,0.0446,0.0000}, {0.0874,0.0320,0.0000}, {0.0636,0.0232,0.0000},
-		{0.0468,0.0170,0.0000}, {0.0329,0.0119,0.0000}, {0.0227,0.0082,0.0000},
-		{0.0158,0.0057,0.0000}, {0.0114,0.0041,0.0000}, {0.0081,0.0029,0.0000},
-		{0.0058,0.0021,0.0000}, {0.0041,0.0015,0.0000}, {0.0029,0.0010,0.0000},
-		{0.0020,0.0007,0.0000}, {0.0014,0.0005,0.0000}, {0.0010,0.0004,0.0000},
-		{0.0007,0.0002,0.0000}, {0.0005,0.0002,0.0000}, {0.0003,0.0001,0.0000},
-		{0.0002,0.0001,0.0000}, {0.0002,0.0001,0.0000}, {0.0001,0.0000,0.0000},
-		{0.0001,0.0000,0.0000}, {0.0001,0.0000,0.0000}, {0.0000,0.0000,0.0000}
-	};
-
-	const float c1 = 3.74183e-16; // 2*pi*h*c^2, W*m^2
-	const float c2 = 1.4388e-2;   // h*c/k, m*K, h is Planck's const, k is Boltzmann's
-	const float dlambda = 5.0f * 1e-9;  // in meters
-
-	for (int i = 0; i < 81; ++i) {
-		float lambda = 380.0f + 5.0f * i;
-		float wlm = lambda * 1e-9;   // Wavelength in meters
-		// N.B. spec_intens returns result in W/m^2 but it's a differential,
-		// needs to be scaled by dlambda!
-		float spec_intens = (c1 * powf(wlm, -5.0)) / (expf(c2 / (wlm * temperature)) -1.0f);
-		float Me = spec_intens * dlambda;
-
-		X += Me * cie_colour_match[i][0];
-		Y += Me * cie_colour_match[i][1];
-		Z += Me * cie_colour_match[i][2];
+	if (temperature < bb_drapper) {
+		/* just return very very dim red */
+		color_rgb = make_float3(1.0e-6f,0.0f,0.0f);
 	}
+	else if (temperature <= bb_max_table_range) {
+		/* This is the overall size of the table (317*3+3) */
+		const int lookuptablesize = 954;
+		const float lookuptablesizef = 954.0f;
 
-	/* Convert to RGB */
-	color_rgb = xyz_to_rgb(X, Y, Z);
+		/* reconstruct a proper index for the table lookup, compared to OSL we don't look up two colors
+		just one (the OSL-lerp is also automatically done for us by "lookup_table_read") */
+		float t = powf ((temperature - bb_drapper) / bb_table_spacing, 1.0f/bb_table_xpower);
 
-	/* Clamp to zero if values are smaller */
-	color_rgb = max(color_rgb, make_float3(0.0f, 0.0f, 0.0f));
+		int blackbody_table_offset = kernel_data.blackbody.table_offset;
 
-	/* Scale color by luminance */
-	color_rgb /= Y;
+		/* Retrieve colors from the lookup table */
+		float lutval = t/lookuptablesizef;
+		float R = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
+		lutval = (t + 317.0f*1.0f)/lookuptablesizef;
+		float G = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
+		lutval = (t + 317.0f*2.0f)/lookuptablesizef;
+		float B = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
+
+		R = powf(R, bb_table_ypower);
+		G = powf(G, bb_table_ypower);
+		B = powf(B, bb_table_ypower);
+
+		/* Luminance */
+		float l = linear_rgb_to_gray(make_float3(R, G, B));
+
+		color_rgb = make_float3(R, G, B);
+		color_rgb /= l;
+	}
 
 	if (stack_valid(col_offset))
 		stack_store_float3(stack, col_offset, color_rgb);

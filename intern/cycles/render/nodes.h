@@ -465,6 +465,8 @@ public:
 class BlackbodyNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BlackbodyNode)
+	
+	bool has_converter_blackbody() { return true; }
 };
 
 class MathNode : public ShaderNode {

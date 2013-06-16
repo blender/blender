@@ -17,6 +17,7 @@
  */
 
 #include "bssrdf.h"
+#include "blackbody.h"
 #include "device.h"
 #include "graph.h"
 #include "light.h"
@@ -49,6 +50,7 @@ Shader::Shader()
 	has_surface_transparent = false;
 	has_surface_emission = false;
 	has_surface_bssrdf = false;
+	has_converter_blackbody = false;
 	has_volume = false;
 	has_displacement = false;
 
@@ -125,6 +127,7 @@ ShaderManager::ShaderManager()
 {
 	need_update = true;
 	bssrdf_table_offset = TABLE_OFFSET_INVALID;
+	blackbody_table_offset = TABLE_OFFSET_INVALID;
 }
 
 ShaderManager::~ShaderManager()
@@ -216,6 +219,7 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_surface_bssrdf = false;
+	bool has_converter_blackbody = false;
 
 	foreach(Shader *shader, scene->shaders) {
 		uint flag = 0;
@@ -230,6 +234,8 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_HOMOGENEOUS_VOLUME;
 		if(shader->has_surface_bssrdf)
 			has_surface_bssrdf = true;
+		if(shader->has_converter_blackbody)
+			has_converter_blackbody = true;
 
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
@@ -255,6 +261,21 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 		scene->lookup_tables->remove_table(bssrdf_table_offset);
 		bssrdf_table_offset = TABLE_OFFSET_INVALID;
 	}
+
+	/* blackbody lookup table */
+	KernelBLACKBODY *kblackbody = &dscene->data.blackbody;
+	
+	if(has_converter_blackbody && blackbody_table_offset == TABLE_OFFSET_INVALID) {
+		vector<float> table = blackbody_table();
+		blackbody_table_offset = scene->lookup_tables->add_table(dscene, table);
+		
+		kblackbody->table_offset = (int)blackbody_table_offset;
+	}
+	else if(!has_converter_blackbody && blackbody_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(blackbody_table_offset);
+		blackbody_table_offset = TABLE_OFFSET_INVALID;
+	}
+
 }
 
 void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
@@ -262,6 +283,11 @@ void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scen
 	if(bssrdf_table_offset != TABLE_OFFSET_INVALID) {
 		scene->lookup_tables->remove_table(bssrdf_table_offset);
 		bssrdf_table_offset = TABLE_OFFSET_INVALID;
+	}
+
+	if(blackbody_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(blackbody_table_offset);
+		blackbody_table_offset = TABLE_OFFSET_INVALID;
 	}
 
 	device->tex_free(dscene->shader_flag);
