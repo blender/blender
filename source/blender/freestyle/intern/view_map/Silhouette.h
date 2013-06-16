@@ -1668,6 +1668,7 @@ public:
 			FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(ioEdge);
 			se->setNormal(fes->normal());
 			se->setFrsMaterialIndex(fes->frs_materialIndex());
+			se->setFaceMark(fes->faceMark());
 		}
 		else {
 			newEdge = new FEdgeSharp(ioNewVertex, B);
@@ -1677,6 +1678,8 @@ public:
 			se->setNormalB(fes->normalB());
 			se->setaFrsMaterialIndex(fes->aFrsMaterialIndex());
 			se->setbFrsMaterialIndex(fes->bFrsMaterialIndex());
+			se->setaFaceMark(fes->aFaceMark());
+			se->setbFaceMark(fes->bFaceMark());
 		}
 		newEdge->setNature(ioEdge->getNature());
 
