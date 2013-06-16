@@ -885,6 +885,9 @@ class FaceMarkBothUP1D(UnaryPredicate1D):
             if fe.is_smooth:
                 if fe.face_mark:
                     return True
+            elif (fe.nature & Nature.BORDER):
+                if fe.face_mark_left:
+                    return True
             else:
                 if fe.face_mark_right and fe.face_mark_left:
                     return True
@@ -897,6 +900,9 @@ class FaceMarkOneUP1D(UnaryPredicate1D):
         while fe is not None:
             if fe.is_smooth:
                 if fe.face_mark:
+                    return True
+            elif (fe.nature & Nature.BORDER):
+                if fe.face_mark_left:
                     return True
             else:
                 if fe.face_mark_right or fe.face_mark_left:
