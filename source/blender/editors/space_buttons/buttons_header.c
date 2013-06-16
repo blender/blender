@@ -79,6 +79,27 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 	else if ((sbuts->mainb == BCONTEXT_PARTICLE) && ED_texture_context_check_particles(C)) {
 		sbuts->texture_context = SB_TEXC_PARTICLES;
 	}
+	else if ((ELEM(sbuts->mainb, BCONTEXT_MODIFIER, BCONTEXT_PHYSICS)) && ED_texture_context_check_others(C)) {
+		sbuts->texture_context = SB_TEXC_OTHER;
+	}
+	/* Second pass: sbuts->mainbuser still contains the previous button context.
+	 * Useful e.g. when we switch to material, no material present, add a material, switch to texture.
+	 * See #35741. */
+	else if ((sbuts->mainbuser == BCONTEXT_WORLD) && ED_texture_context_check_world(C)) {
+		sbuts->texture_context = SB_TEXC_WORLD;
+	}
+	else if ((sbuts->mainbuser == BCONTEXT_MATERIAL) && ED_texture_context_check_material(C)) {
+		sbuts->texture_context = SB_TEXC_MATERIAL;
+	}
+	else if ((sbuts->mainbuser == BCONTEXT_DATA) && ED_texture_context_check_lamp(C)) {
+		sbuts->texture_context = SB_TEXC_LAMP;
+	}
+	else if ((sbuts->mainbuser == BCONTEXT_PARTICLE) && ED_texture_context_check_particles(C)) {
+		sbuts->texture_context = SB_TEXC_PARTICLES;
+	}
+	else if ((ELEM(sbuts->mainbuser, BCONTEXT_MODIFIER, BCONTEXT_PHYSICS)) && ED_texture_context_check_others(C)) {
+		sbuts->texture_context = SB_TEXC_OTHER;
+	}
 	/* Else, just be sure that current context is valid! */
 	else {
 		buttons_check_texture_context(C, sbuts);
