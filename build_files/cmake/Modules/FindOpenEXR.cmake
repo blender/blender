@@ -52,11 +52,11 @@ SET(_openexr_SEARCH_DIRS
 
 FIND_PATH(OPENEXR_INCLUDE_DIR
   NAMES
-    ImfXdr.h
+    OpenEXR/ImfXdr.h
   HINTS
     ${_openexr_SEARCH_DIRS}
   PATH_SUFFIXES
-    include/OpenEXR
+    include
 )
 
 SET(_openexr_LIBRARIES)
@@ -82,7 +82,8 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenEXR  DEFAULT_MSG
 
 IF(OPENEXR_FOUND)
   SET(OPENEXR_LIBRARIES ${_openexr_LIBRARIES})
-  SET(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR})
+  # Both include paths are needed because of dummy OSL headers mixing #include <OpenEXR/foo.h> and #include <foo.h> :(
+  SET(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR_INCLUDE_DIR}/OpenEXR)
 ENDIF()
 
 MARK_AS_ADVANCED(OPENEXR_INCLUDE_DIR)
