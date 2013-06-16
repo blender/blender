@@ -233,8 +233,6 @@ class OurSpawn:
             stderr=subprocess.PIPE, startupinfo=startupinfo, shell = False, env=env)
         data, err = proc.communicate()
         rv = proc.wait()
-        if data:
-            print(data)
         if err:
             print(err)
         return rv
