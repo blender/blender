@@ -134,8 +134,8 @@ def brush_mask_texture_settings(layout, brush):
         layout.operator("brush.stencil_reset_transform").mask = True
 
     if brush.mask_texture:
-        layout.label(text="Mask Mapping:")
         col = layout.column()
+        col.label(text="Angle:")
         col.active = brush.brush_capabilities.has_texture_angle
         col.prop(mask_tex_slot, "angle", text="")
 
