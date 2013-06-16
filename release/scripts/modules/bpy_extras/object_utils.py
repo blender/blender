@@ -25,7 +25,7 @@ __all__ = (
     "object_add_grid_scale",
     "object_add_grid_scale_apply_operator",
     "object_image_guess",
-    "world_to_camera",
+    "world_to_camera_view",
     )
 
 
@@ -268,12 +268,14 @@ def object_image_guess(obj, bm=None):
     return None
 
 
-def world_to_camera(scene, obj, coord):
+def world_to_camera_view(scene, obj, coord):
     """
-    Returns the 2d camera space coords for a 3d point.
+    Returns the camera space coords for a 3d point.
+    (also known as: normalized device coordinates - NDC).
 
     Where (0, 0) is the bottom left and (1, 1) is the top right of the camera frame.
     values outside 0-1 are also supported.
+    A negative 'z' value means the point is behind the camera.
 
     Takes shift-x/y, lens angle and sensor size into account
     as well as perspective/ortho projections.
@@ -284,7 +286,7 @@ def world_to_camera(scene, obj, coord):
     :type obj: :class:`bpy.types.Object`
     :arg coord: World space location.
     :type coord: :class:`mathutils.Vector`
-    :return: normalized 2d vector.
+    :return: a vector where X and Y map to the view plane and Z is the depth on the view axis.
     :rtype: :class:`mathutils.Vector`
     """
     from mathutils import Vector
