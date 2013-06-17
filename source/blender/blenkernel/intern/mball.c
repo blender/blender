@@ -112,19 +112,6 @@ typedef struct intlists {       /* list of list of integers */
 	struct intlists *next;      /* remaining elements */
 } INTLISTS;
 
-typedef struct process {        /* parameters, function, storage */
-	/* what happens here? floats, I think. */
-	/*  float (*function)(void);	 */	/* implicit surface function */
-	float (*function)(float, float, float);
-	float size, delta;          /* cube size, normal delta */
-	int bounds;                 /* cube range within lattice */
-	CUBES *cubes;               /* active cubes */
-	VERTICES vertices;          /* surface vertices */
-	CENTERLIST **centers;       /* cube center hash table */
-	CORNER **corners;           /* corner value hash table */
-	EDGELIST **edges;           /* edge and vertex id hash table */
-} PROCESS;
-
 /* dividing scene using octal tree makes polygonisation faster */
 typedef struct ml_pointer {
 	struct ml_pointer *next, *prev;
@@ -153,20 +140,41 @@ struct pgn_elements {
 	char *data;
 };
 
-/* Forward declarations */
-static int vertid(const CORNER *c1, const CORNER *c2, PROCESS *p, MetaBall *mb);
-static int setcenter(CENTERLIST *table[], const int i, const int j, const int k);
-static CORNER *setcorner(PROCESS *p, int i, int j, int k);
-static void converge(const float p1[3], const float p2[3], float v1, float v2,
-                     float (*function)(float, float, float), float p[3], MetaBall *mb, int f);
-
-/* Global variables */
-static struct {
+typedef struct process {        /* parameters, function, storage */
+	/* ** old G_mb contents ** */
 	float thresh;
 	int totelem;
 	MetaElem **mainb;
 	octal_tree *metaball_tree;
-} G_mb = {0};
+
+	/* ** old process contents ** */
+
+	/* what happens here? floats, I think. */
+	/*  float (*function)(void);	 */	/* implicit surface function */
+	float (*function)(struct process*, float, float, float);
+	float size, delta;          /* cube size, normal delta */
+	int bounds;                 /* cube range within lattice */
+	CUBES *cubes;               /* active cubes */
+	VERTICES vertices;          /* surface vertices */
+	CENTERLIST **centers;       /* cube center hash table */
+	CORNER **corners;           /* corner value hash table */
+	EDGELIST **edges;           /* edge and vertex id hash table */
+
+	/* Runtime things */
+	int *indices;
+	int totindex, curindex;
+
+	int pgn_offset;
+	struct pgn_elements *pgn_current;
+	ListBase pgn_list;
+} PROCESS;
+
+/* Forward declarations */
+static int vertid(PROCESS *process, const CORNER *c1, const CORNER *c2, MetaBall *mb);
+static int setcenter(PROCESS *process, CENTERLIST *table[], const int i, const int j, const int k);
+static CORNER *setcorner(PROCESS *process, int i, int j, int k);
+static void converge(PROCESS *process, const float p1[3], const float p2[3], float v1, float v2,
+                     float p[3], MetaBall *mb, int f);
 
 /* Functions */
 
@@ -519,55 +527,29 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
 	Scene *sce_iter = scene;
 	Base *base;
 	Object *ob, *bob = basis;
-	MetaElem *ml = NULL;
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 
 	BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
-	G_mb.totelem = 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
 	if (F_ERROR == BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
 		return NULL;
-	
+
 	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
-		
 		if (ob->type == OB_MBALL) {
-			if (ob == bob) {
-				MetaBall *mb = ob->data;
-				
-				/* if bob object is in edit mode, then dynamic list of all MetaElems
-				 * is stored in editelems */
-				if (mb->editelems) ml = mb->editelems->first;
-				/* if bob object is in object mode */
-				else ml = mb->elems.first;
-			}
-			else {
+			if (ob != bob) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
 
 				/* object ob has to be in same "group" ... it means, that it has to have
 				 * same base of its name */
 				if (strcmp(obname, basisname) == 0) {
-					MetaBall *mb = ob->data;
-					
-					/* if object is in edit mode, then dynamic list of all MetaElems
-					 * is stored in editelems */
-					if (mb->editelems) ml = mb->editelems->first;
-					/* if bob object is in object mode */
-					else ml = mb->elems.first;
-					
 					if (obnr < basisnr) {
 						if (!(ob->flag & OB_FROMDUPLI)) {
 							basis = ob;
 							basisnr = obnr;
 						}
 					}
-				}
-			}
-			
-			for ( ; ml; ml = ml->next) {
-				if (!(ml->flag & MB_HIDE)) {
-					G_mb.totelem++;
 				}
 			}
 		}
@@ -768,60 +750,57 @@ static octal_node *find_metaball_octal_node(octal_node *node, float x, float y, 
 	return node;
 }
 
-static float metaball(float x, float y, float z)
+static float metaball(PROCESS *process, float x, float y, float z)
 /*  float x, y, z; */
 {
+	octal_tree *metaball_tree = process->metaball_tree;
 	struct octal_node *node;
 	struct ml_pointer *ml_p;
 	float dens = 0;
 	int a;
 	
-	if (G_mb.totelem > 1) {
-		node = find_metaball_octal_node(G_mb.metaball_tree->first, x, y, z, G_mb.metaball_tree->depth);
+	if (process->totelem > 1) {
+		node = find_metaball_octal_node(metaball_tree->first, x, y, z, metaball_tree->depth);
 		if (node) {
 			for (ml_p = node->elems.first; ml_p; ml_p = ml_p->next) {
 				dens += densfunc(ml_p->ml, x, y, z);
 			}
 
-			dens += -0.5f * (G_mb.metaball_tree->pos - node->pos);
-			dens +=  0.5f * (G_mb.metaball_tree->neg - node->neg);
+			dens += -0.5f * (metaball_tree->pos - node->pos);
+			dens +=  0.5f * (metaball_tree->neg - node->neg);
 		}
 		else {
-			for (a = 0; a < G_mb.totelem; a++) {
-				dens += densfunc(G_mb.mainb[a], x, y, z);
+			for (a = 0; a < process->totelem; a++) {
+				dens += densfunc(process->mainb[a], x, y, z);
 			}
 		}
 	}
 	else {
-		dens += densfunc(G_mb.mainb[0], x, y, z);
+		dens += densfunc(process->mainb[0], x, y, z);
 	}
 
-	return G_mb.thresh - dens;
+	return process->thresh - dens;
 }
 
 /* ******************************************** */
 
-static int *indices = NULL;
-static int totindex, curindex;
-
-
-static void accum_mballfaces(int i1, int i2, int i3, int i4)
+static void accum_mballfaces(PROCESS *process, int i1, int i2, int i3, int i4)
 {
 	int *newi, *cur;
 	/* static int i = 0; I would like to delete altogether, but I don't dare to, yet */
 
-	if (totindex == curindex) {
-		totindex += 256;
-		newi = MEM_mallocN(4 * sizeof(int) * totindex, "vertindex");
+	if (process->totindex == process->curindex) {
+		process->totindex += 256;
+		newi = MEM_mallocN(4 * sizeof(int) * process->totindex, "vertindex");
 		
-		if (indices) {
-			memcpy(newi, indices, 4 * sizeof(int) * (totindex - 256));
-			MEM_freeN(indices);
+		if (process->indices) {
+			memcpy(newi, process->indices, 4 * sizeof(int) * (process->totindex - 256));
+			MEM_freeN(process->indices);
 		}
-		indices = newi;
+		process->indices = newi;
 	}
 	
-	cur = indices + 4 * curindex;
+	cur = process->indices + 4 * process->curindex;
 
 	/* displists now support array drawing, we treat tri's as fake quad */
 	
@@ -833,63 +812,62 @@ static void accum_mballfaces(int i1, int i2, int i3, int i4)
 	else 
 		cur[3] = i4;
 	
-	curindex++;
+	process->curindex++;
 
 }
 
 /* ******************* MEMORY MANAGEMENT *********************** */
-static void *new_pgn_element(int size)
+static void *new_pgn_element(PROCESS *process, int size)
 {
 	/* during polygonize 1000s of elements are allocated
 	 * and never freed in between. Freeing only done at the end.
 	 */
 	int blocksize = 16384;
-	static int offs = 0;     /* the current free address */
-	static struct pgn_elements *cur = NULL;
-	static ListBase lb = {NULL, NULL};
 	void *adr;
 	
 	if (size > 10000 || size == 0) {
 		printf("incorrect use of new_pgn_element\n");
 	}
 	else if (size == -1) {
-		cur = lb.first;
+		struct pgn_elements *cur = process->pgn_list.first;
 		while (cur) {
 			MEM_freeN(cur->data);
 			cur = cur->next;
 		}
-		BLI_freelistN(&lb);
+		BLI_freelistN(&process->pgn_list);
 		
 		return NULL;
 	}
 	
 	size = 4 * ( (size + 3) / 4);
 	
-	if (cur) {
-		if (size + offs < blocksize) {
-			adr = (void *) (cur->data + offs);
-			offs += size;
+	if (process->pgn_current) {
+		if (size + process->pgn_offset < blocksize) {
+			adr = (void *) (process->pgn_current->data + process->pgn_offset);
+			process->pgn_offset += size;
 			return adr;
 		}
 	}
 	
-	cur = MEM_callocN(sizeof(struct pgn_elements), "newpgn");
-	cur->data = MEM_callocN(blocksize, "newpgn");
-	BLI_addtail(&lb, cur);
+	process->pgn_current = MEM_callocN(sizeof(struct pgn_elements), "newpgn");
+	process->pgn_current->data = MEM_callocN(blocksize, "newpgn");
+	BLI_addtail(&process->pgn_list, process->pgn_current);
 	
-	offs = size;
-	return cur->data;
+	process->pgn_offset = size;
+	return process->pgn_current->data;
 }
 
-static void freepolygonize(PROCESS *p)
+static void freepolygonize(PROCESS *process)
 {
-	MEM_freeN(p->corners);
-	MEM_freeN(p->edges);
-	MEM_freeN(p->centers);
+	MEM_freeN(process->corners);
+	MEM_freeN(process->edges);
+	MEM_freeN(process->centers);
 
-	new_pgn_element(-1);
-	
-	if (p->vertices.ptr) MEM_freeN(p->vertices.ptr);
+	new_pgn_element(process, -1);
+
+	if (process->vertices.ptr) {
+		MEM_freeN(process->vertices.ptr);
+	}
 }
 
 /**** Cubical Polygonization (optional) ****/
@@ -928,7 +906,7 @@ static int rightface[12] = {
 
 /* docube: triangulate the cube directly, without decomposition */
 
-static void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
+static void docube(PROCESS *process, CUBE *cube, MetaBall *mb)
 {
 	INTLISTS *polys;
 	CORNER *c1, *c2;
@@ -945,45 +923,45 @@ static void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
 			c1 = cube->corners[corner1[edges->i]];
 			c2 = cube->corners[corner2[edges->i]];
 			
-			indexar[count] = vertid(c1, c2, p, mb);
+			indexar[count] = vertid(process, c1, c2, mb);
 			count++;
 		}
 		if (count > 2) {
 			switch (count) {
 				case 3:
-					accum_mballfaces(indexar[2], indexar[1], indexar[0], 0);
+					accum_mballfaces(process, indexar[2], indexar[1], indexar[0], 0);
 					break;
 				case 4:
-					if (indexar[0] == 0) accum_mballfaces(indexar[0], indexar[3], indexar[2], indexar[1]);
-					else accum_mballfaces(indexar[3], indexar[2], indexar[1], indexar[0]);
+					if (indexar[0] == 0) accum_mballfaces(process, indexar[0], indexar[3], indexar[2], indexar[1]);
+					else accum_mballfaces(process, indexar[3], indexar[2], indexar[1], indexar[0]);
 					break;
 				case 5:
-					if (indexar[0] == 0) accum_mballfaces(indexar[0], indexar[3], indexar[2], indexar[1]);
-					else accum_mballfaces(indexar[3], indexar[2], indexar[1], indexar[0]);
+					if (indexar[0] == 0) accum_mballfaces(process, indexar[0], indexar[3], indexar[2], indexar[1]);
+					else accum_mballfaces(process, indexar[3], indexar[2], indexar[1], indexar[0]);
 				
-					accum_mballfaces(indexar[4], indexar[3], indexar[0], 0);
+					accum_mballfaces(process, indexar[4], indexar[3], indexar[0], 0);
 					break;
 				case 6:
 					if (indexar[0] == 0) {
-						accum_mballfaces(indexar[0], indexar[3], indexar[2], indexar[1]);
-						accum_mballfaces(indexar[0], indexar[5], indexar[4], indexar[3]);
+						accum_mballfaces(process, indexar[0], indexar[3], indexar[2], indexar[1]);
+						accum_mballfaces(process, indexar[0], indexar[5], indexar[4], indexar[3]);
 					}
 					else {
-						accum_mballfaces(indexar[3], indexar[2], indexar[1], indexar[0]);
-						accum_mballfaces(indexar[5], indexar[4], indexar[3], indexar[0]);
+						accum_mballfaces(process, indexar[3], indexar[2], indexar[1], indexar[0]);
+						accum_mballfaces(process, indexar[5], indexar[4], indexar[3], indexar[0]);
 					}
 					break;
 				case 7:
 					if (indexar[0] == 0) {
-						accum_mballfaces(indexar[0], indexar[3], indexar[2], indexar[1]);
-						accum_mballfaces(indexar[0], indexar[5], indexar[4], indexar[3]);
+						accum_mballfaces(process, indexar[0], indexar[3], indexar[2], indexar[1]);
+						accum_mballfaces(process, indexar[0], indexar[5], indexar[4], indexar[3]);
 					}
 					else {
-						accum_mballfaces(indexar[3], indexar[2], indexar[1], indexar[0]);
-						accum_mballfaces(indexar[5], indexar[4], indexar[3], indexar[0]);
+						accum_mballfaces(process, indexar[3], indexar[2], indexar[1], indexar[0]);
+						accum_mballfaces(process, indexar[5], indexar[4], indexar[3], indexar[0]);
 					}
 				
-					accum_mballfaces(indexar[6], indexar[5], indexar[0], 0);
+					accum_mballfaces(process, indexar[6], indexar[5], indexar[0], 0);
 
 					break;
 			}
@@ -996,10 +974,10 @@ static void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
  * if surface crosses face, compute other four corners of adjacent cube
  * and add new cube to cube stack */
 
-static void testface(int i, int j, int k, CUBE *old, int bit, int c1, int c2, int c3, int c4, PROCESS *p)
+static void testface(PROCESS *process, int i, int j, int k, CUBE *old, int bit, int c1, int c2, int c3, int c4)
 {
 	CUBE newc;
-	CUBES *oldcubes = p->cubes;
+	CUBES *oldcubes = process->cubes;
 	CORNER *corn1, *corn2, *corn3, *corn4;
 	int n, pos;
 
@@ -1015,12 +993,13 @@ static void testface(int i, int j, int k, CUBE *old, int bit, int c1, int c2, in
 	/* test if cube out of bounds */
 	/*if ( abs(i) > p->bounds || abs(j) > p->bounds || abs(k) > p->bounds) return;*/
 	/* test if already visited (always as last) */
-	if (setcenter(p->centers, i, j, k)) return;
-
+	if (setcenter(process, process->centers, i, j, k)) {
+		return;
+	}
 
 	/* create new cube and add cube to top of stack: */
-	p->cubes = (CUBES *) new_pgn_element(sizeof(CUBES));
-	p->cubes->next = oldcubes;
+	process->cubes = (CUBES *) new_pgn_element(process, sizeof(CUBES));
+	process->cubes->next = oldcubes;
 	
 	newc.i = i;
 	newc.j = j;
@@ -1032,22 +1011,22 @@ static void testface(int i, int j, int k, CUBE *old, int bit, int c1, int c2, in
 	newc.corners[FLIP(c3, bit)] = corn3;
 	newc.corners[FLIP(c4, bit)] = corn4;
 
-	if (newc.corners[0] == NULL) newc.corners[0] = setcorner(p, i, j, k);
-	if (newc.corners[1] == NULL) newc.corners[1] = setcorner(p, i, j, k + 1);
-	if (newc.corners[2] == NULL) newc.corners[2] = setcorner(p, i, j + 1, k);
-	if (newc.corners[3] == NULL) newc.corners[3] = setcorner(p, i, j + 1, k + 1);
-	if (newc.corners[4] == NULL) newc.corners[4] = setcorner(p, i + 1, j, k);
-	if (newc.corners[5] == NULL) newc.corners[5] = setcorner(p, i + 1, j, k + 1);
-	if (newc.corners[6] == NULL) newc.corners[6] = setcorner(p, i + 1, j + 1, k);
-	if (newc.corners[7] == NULL) newc.corners[7] = setcorner(p, i + 1, j + 1, k + 1);
+	if (newc.corners[0] == NULL) newc.corners[0] = setcorner(process, i, j, k);
+	if (newc.corners[1] == NULL) newc.corners[1] = setcorner(process, i, j, k + 1);
+	if (newc.corners[2] == NULL) newc.corners[2] = setcorner(process, i, j + 1, k);
+	if (newc.corners[3] == NULL) newc.corners[3] = setcorner(process, i, j + 1, k + 1);
+	if (newc.corners[4] == NULL) newc.corners[4] = setcorner(process, i + 1, j, k);
+	if (newc.corners[5] == NULL) newc.corners[5] = setcorner(process, i + 1, j, k + 1);
+	if (newc.corners[6] == NULL) newc.corners[6] = setcorner(process, i + 1, j + 1, k);
+	if (newc.corners[7] == NULL) newc.corners[7] = setcorner(process, i + 1, j + 1, k + 1);
 
-	p->cubes->cube = newc;
+	process->cubes->cube = newc;
 }
 
 /* setcorner: return corner with the given lattice location
  * set (and cache) its function value */
 
-static CORNER *setcorner(PROCESS *p, int i, int j, int k)
+static CORNER *setcorner(PROCESS *process, int i, int j, int k)
 {
 	/* for speed, do corner value caching here */
 	CORNER *c;
@@ -1055,7 +1034,7 @@ static CORNER *setcorner(PROCESS *p, int i, int j, int k)
 
 	/* does corner exist? */
 	index = HASH(i, j, k);
-	c = p->corners[index];
+	c = process->corners[index];
 	
 	for (; c != NULL; c = c->next) {
 		if (c->i == i && c->j == j && c->k == k) {
@@ -1063,18 +1042,18 @@ static CORNER *setcorner(PROCESS *p, int i, int j, int k)
 		}
 	}
 
-	c = (CORNER *) new_pgn_element(sizeof(CORNER));
+	c = (CORNER *) new_pgn_element(process, sizeof(CORNER));
 
 	c->i = i; 
-	c->co[0] = ((float)i - 0.5f) * p->size;
+	c->co[0] = ((float)i - 0.5f) * process->size;
 	c->j = j; 
-	c->co[1] = ((float)j - 0.5f) * p->size;
+	c->co[1] = ((float)j - 0.5f) * process->size;
 	c->k = k; 
-	c->co[2] = ((float)k - 0.5f) * p->size;
-	c->value = p->function(c->co[0], c->co[1], c->co[2]);
+	c->co[2] = ((float)k - 0.5f) * process->size;
+	c->value = process->function(process, c->co[0], c->co[1], c->co[2]);
 	
-	c->next = p->corners[index];
-	p->corners[index] = c;
+	c->next = process->corners[index];
+	process->corners[index] = c;
 	
 	return c;
 }
@@ -1196,7 +1175,7 @@ void BKE_mball_cubeTable_free(void)
 /* setcenter: set (i, j, k) entry of table[]
  * return 1 if already set; otherwise, set and return 0 */
 
-static int setcenter(CENTERLIST *table[], const int i, const int j, const int k)
+static int setcenter(PROCESS *process, CENTERLIST *table[], const int i, const int j, const int k)
 {
 	int index;
 	CENTERLIST *newc, *l, *q;
@@ -1208,7 +1187,7 @@ static int setcenter(CENTERLIST *table[], const int i, const int j, const int k)
 		if (l->i == i && l->j == j && l->k == k) return 1;
 	}
 	
-	newc = (CENTERLIST *) new_pgn_element(sizeof(CENTERLIST));
+	newc = (CENTERLIST *) new_pgn_element(process, sizeof(CENTERLIST));
 	newc->i = i; 
 	newc->j = j; 
 	newc->k = k; 
@@ -1221,7 +1200,8 @@ static int setcenter(CENTERLIST *table[], const int i, const int j, const int k)
 
 /* setedge: set vertex id for edge */
 
-static void setedge(EDGELIST *table[],
+static void setedge(PROCESS *process,
+                    EDGELIST *table[],
                     int i1, int j1,
                     int k1, int i2,
                     int j2, int k2,
@@ -1242,7 +1222,7 @@ static void setedge(EDGELIST *table[],
 		k2 = t;
 	}
 	index = HASH(i1, j1, k1) + HASH(i2, j2, k2);
-	newe = (EDGELIST *) new_pgn_element(sizeof(EDGELIST));
+	newe = (EDGELIST *) new_pgn_element(process, sizeof(EDGELIST));
 	newe->i1 = i1; 
 	newe->j1 = j1; 
 	newe->k1 = k1;
@@ -1316,14 +1296,14 @@ static void addtovertices(VERTICES *vertices, VERTEX v)
 
 /* vnormal: compute unit length surface normal at point */
 
-static void vnormal(const float point[3], PROCESS *p, float r_no[3])
+static void vnormal(PROCESS *process, const float point[3], float r_no[3])
 {
-	const float delta = 0.2f * p->delta;
-	const float f = p->function(point[0], point[1], point[2]);
+	const float delta = 0.2f * process->delta;
+	const float f = process->function(process, point[0], point[1], point[2]);
 
-	r_no[0] = p->function(point[0] + delta, point[1], point[2]) - f;
-	r_no[1] = p->function(point[0], point[1] + delta, point[2]) - f;
-	r_no[2] = p->function(point[0], point[1], point[2] + delta) - f;
+	r_no[0] = process->function(process, point[0] + delta, point[1], point[2]) - f;
+	r_no[1] = process->function(process, point[0], point[1] + delta, point[2]) - f;
+	r_no[2] = process->function(process, point[0], point[1], point[2] + delta) - f;
 
 #if 1
 	normalize_v3(r_no);
@@ -1335,11 +1315,11 @@ static void vnormal(const float point[3], PROCESS *p, float r_no[3])
 		
 		delta *= 2.0f;
 		
-		f = p->function(point[0], point[1], point[2]);
+		f = process->function(process, point[0], point[1], point[2]);
 	
-		tvec[0] = p->function(point[0] + delta, point[1], point[2]) - f;
-		tvec[1] = p->function(point[0], point[1] + delta, point[2]) - f;
-		tvec[2] = p->function(point[0], point[1], point[2] + delta) - f;
+		tvec[0] = process->function(process, point[0] + delta, point[1], point[2]) - f;
+		tvec[1] = process->function(process, point[0], point[1] + delta, point[2]) - f;
+		tvec[2] = process->function(process, point[0], point[1], point[2] + delta) - f;
 	
 		if (normalize_v3(tvec) != 0.0f) {
 			add_v3_v3(r_no, tvec);
@@ -1350,32 +1330,30 @@ static void vnormal(const float point[3], PROCESS *p, float r_no[3])
 }
 
 
-static int vertid(const CORNER *c1, const CORNER *c2, PROCESS *p, MetaBall *mb)
+static int vertid(PROCESS *process, const CORNER *c1, const CORNER *c2, MetaBall *mb)
 {
 	VERTEX v;
-	int vid = getedge(p->edges, c1->i, c1->j, c1->k, c2->i, c2->j, c2->k);
+	int vid = getedge(process->edges, c1->i, c1->j, c1->k, c2->i, c2->j, c2->k);
 
 	if (vid != -1) {
 		return vid;  /* previously computed */
 	}
 
-	converge(c1->co, c2->co, c1->value, c2->value, p->function, v.co, mb, 1); /* position */
-	vnormal(v.co, p, v.no);
+	converge(process, c1->co, c2->co, c1->value, c2->value, v.co, mb, 1); /* position */
+	vnormal(process, v.co, v.no);
 
-	addtovertices(&p->vertices, v);            /* save vertex */
-	vid = p->vertices.count - 1;
-	setedge(p->edges, c1->i, c1->j, c1->k, c2->i, c2->j, c2->k, vid);
+	addtovertices(&process->vertices, v);            /* save vertex */
+	vid = process->vertices.count - 1;
+	setedge(process, process->edges, c1->i, c1->j, c1->k, c2->i, c2->j, c2->k, vid);
 	
 	return vid;
 }
 
 
-
-
 /* converge: from two points of differing sign, converge to zero crossing */
 /* watch it: p1 and p2 are used to calculate */
-static void converge(const float p1[3], const float p2[3], float v1, float v2,
-                     float (*function)(float, float, float), float p[3], MetaBall *mb, int f)
+static void converge(PROCESS *process, const float p1[3], const float p2[3], float v1, float v2,
+                     float p[3], MetaBall *mb, int f)
 {
 	int i = 0;
 	float pos[3], neg[3];
@@ -1426,8 +1404,8 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p[0] = 0.5f * (pos[0] + neg[0]);
-			if ((function(p[0], p[1], p[2])) > 0.0f) pos[0] = p[0];
-			else                                     neg[0] = p[0];
+			if ((process->function(process, p[0], p[1], p[2])) > 0.0f) pos[0] = p[0];
+			else                                                       neg[0] = p[0];
 		}
 	}
 
@@ -1437,8 +1415,8 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p[1] = 0.5f * (pos[1] + neg[1]);
-			if ((function(p[0], p[1], p[2])) > 0.0f) pos[1] = p[1];
-			else                                     neg[1] = p[1];
+			if ((process->function(process, p[0], p[1], p[2])) > 0.0f) pos[1] = p[1];
+			else                                                       neg[1] = p[1];
 		}
 	}
 
@@ -1448,8 +1426,8 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p[2] = 0.5f * (pos[2] + neg[2]);
-			if ((function(p[0], p[1], p[2])) > 0.0f) pos[2] = p[2];
-			else                                     neg[2] = p[2];
+			if ((process->function(process, p[0], p[1], p[2])) > 0.0f) pos[2] = p[2];
+			else                                                       neg[2] = p[2];
 		}
 	}
 
@@ -1461,7 +1439,7 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 			return;
 		}
 
-		if ((function(p[0], p[1], p[2])) > 0.0f) {
+		if ((process->function(process, p[0], p[1], p[2])) > 0.0f) {
 			copy_v3_v3(pos, &p[0]);
 		}
 		else {
@@ -1471,7 +1449,7 @@ static void converge(const float p1[3], const float p2[3], float v1, float v2,
 }
 
 /* ************************************** */
-static void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
+static void add_cube(PROCESS *process, int i, int j, int k, int count)
 {
 	CUBES *ncube;
 	int n;
@@ -1483,11 +1461,11 @@ static void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
 		for (b = j - 1; b < j + count; b++)
 			for (c = k - 1; c < k + count; c++) {
 				/* test if cube has been found before */
-				if (setcenter(mbproc->centers, a, b, c) == 0) {
+				if (setcenter(process, process->centers, a, b, c) == 0) {
 					/* push cube on stack: */
-					ncube = (CUBES *) new_pgn_element(sizeof(CUBES));
-					ncube->next = mbproc->cubes;
-					mbproc->cubes = ncube;
+					ncube = (CUBES *) new_pgn_element(process, sizeof(CUBES));
+					ncube->next = process->cubes;
+					process->cubes = ncube;
 
 					ncube->cube.i = a;
 					ncube->cube.j = b;
@@ -1495,18 +1473,18 @@ static void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
 
 					/* set corners of initial cube: */
 					for (n = 0; n < 8; n++)
-						ncube->cube.corners[n] = setcorner(mbproc, a + MB_BIT(n, 2), b + MB_BIT(n, 1), c + MB_BIT(n, 0));
+						ncube->cube.corners[n] = setcorner(process, a + MB_BIT(n, 2), b + MB_BIT(n, 1), c + MB_BIT(n, 0));
 				}
 			}
 }
 
 
-static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
+static void find_first_points(PROCESS *process, MetaBall *mb, int a)
 {
 	MetaElem *ml;
 	float f;
 
-	ml = G_mb.mainb[a];
+	ml = process->mainb[a];
 	f = 1.0f - (mb->thresh / ml->s);
 
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
@@ -1521,7 +1499,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 		float tmp_v, workp_v, max_len, nx, ny, nz, max_dim;
 
 		calc_mballco(ml, in);
-		in_v = mbproc->function(in[0], in[1], in[2]);
+		in_v = process->function(process, in[0], in[1], in[2]);
 
 		for (i = 0; i < 3; i++) {
 			switch (ml->type) {
@@ -1566,16 +1544,16 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 
 					calc_mballco(ml, out);
 
-					/*out_v = mbproc->function(out[0], out[1], out[2]);*/ /*UNUSED*/
+					/*out_v = process->function(out[0], out[1], out[2]);*/ /*UNUSED*/
 
 					/* find "first points" on Implicit Surface of MetaElemnt ml */
 					copy_v3_v3(workp, in);
 					workp_v = in_v;
 					max_len = len_v3v3(out, in);
 
-					nx = abs((out[0] - in[0]) / mbproc->size);
-					ny = abs((out[1] - in[1]) / mbproc->size);
-					nz = abs((out[2] - in[2]) / mbproc->size);
+					nx = abs((out[0] - in[0]) / process->size);
+					ny = abs((out[1] - in[1]) / process->size);
+					nz = abs((out[2] - in[2]) / process->size);
 					
 					max_dim = max_fff(nx, ny, nz);
 					if (max_dim != 0.0f) {
@@ -1589,22 +1567,22 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 							add_v3_v3(workp, dvec);
 
 							/* compute value of implicite function */
-							tmp_v = mbproc->function(workp[0], workp[1], workp[2]);
+							tmp_v = process->function(process, workp[0], workp[1], workp[2]);
 							/* add cube to the stack, when value of implicite function crosses zero value */
 							if ((tmp_v < 0.0f && workp_v >= 0.0f) || (tmp_v > 0.0f && workp_v <= 0.0f)) {
 
 								/* indexes of CUBE, which includes "first point" */
-								c_i = (int)floor(workp[0] / mbproc->size);
-								c_j = (int)floor(workp[1] / mbproc->size);
-								c_k = (int)floor(workp[2] / mbproc->size);
+								c_i = (int)floor(workp[0] / process->size);
+								c_j = (int)floor(workp[1] / process->size);
+								c_k = (int)floor(workp[2] / process->size);
 								
 								/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
 								 * this cube includes found point of Implicit Surface */
 								if ((ml->flag & MB_NEGATIVE) == 0) {
-									add_cube(mbproc, c_i, c_j, c_k, 1);
+									add_cube(process, c_i, c_j, c_k, 1);
 								}
 								else {
-									add_cube(mbproc, c_i, c_j, c_k, 2);
+									add_cube(process, c_i, c_j, c_k, 2);
 								}
 							}
 							len = len_v3v3(workp, in);
@@ -1618,43 +1596,43 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	}
 }
 
-static void polygonize(PROCESS *mbproc, MetaBall *mb)
+static void polygonize(PROCESS *process, MetaBall *mb)
 {
 	CUBE c;
 	int a;
 
-	mbproc->vertices.count = mbproc->vertices.max = 0;
-	mbproc->vertices.ptr = NULL;
+	process->vertices.count = process->vertices.max = 0;
+	process->vertices.ptr = NULL;
 
 	/* allocate hash tables and build cube polygon table: */
-	mbproc->centers = MEM_callocN(HASHSIZE * sizeof(CENTERLIST *), "mbproc->centers");
-	mbproc->corners = MEM_callocN(HASHSIZE * sizeof(CORNER *), "mbproc->corners");
-	mbproc->edges = MEM_callocN(2 * HASHSIZE * sizeof(EDGELIST *), "mbproc->edges");
+	process->centers = MEM_callocN(HASHSIZE * sizeof(CENTERLIST *), "mbproc->centers");
+	process->corners = MEM_callocN(HASHSIZE * sizeof(CORNER *), "mbproc->corners");
+	process->edges = MEM_callocN(2 * HASHSIZE * sizeof(EDGELIST *), "mbproc->edges");
 	makecubetable();
 
-	for (a = 0; a < G_mb.totelem; a++) {
+	for (a = 0; a < process->totelem; a++) {
 
 		/* try to find 8 points on the surface for each MetaElem */
-		find_first_points(mbproc, mb, a);
+		find_first_points(process, mb, a);
 	}
 
 	/* polygonize all MetaElems of current MetaBall */
-	while (mbproc->cubes != NULL) { /* process active cubes till none left */
-		c = mbproc->cubes->cube;
+	while (process->cubes != NULL) { /* process active cubes till none left */
+		c = process->cubes->cube;
 
 		/* polygonize the cube directly: */
-		docube(&c, mbproc, mb);
+		docube(process, &c, mb);
 		
 		/* pop current cube from stack */
-		mbproc->cubes = mbproc->cubes->next;
+		process->cubes = process->cubes->next;
 		
 		/* test six face directions, maybe add to stack: */
-		testface(c.i - 1, c.j, c.k, &c, 2, LBN, LBF, LTN, LTF, mbproc);
-		testface(c.i + 1, c.j, c.k, &c, 2, RBN, RBF, RTN, RTF, mbproc);
-		testface(c.i, c.j - 1, c.k, &c, 1, LBN, LBF, RBN, RBF, mbproc);
-		testface(c.i, c.j + 1, c.k, &c, 1, LTN, LTF, RTN, RTF, mbproc);
-		testface(c.i, c.j, c.k - 1, &c, 0, LBN, LTN, RBN, RTN, mbproc);
-		testface(c.i, c.j, c.k + 1, &c, 0, LBF, LTF, RBF, RTF, mbproc);
+		testface(process, c.i - 1, c.j, c.k, &c, 2, LBN, LBF, LTN, LTF);
+		testface(process, c.i + 1, c.j, c.k, &c, 2, RBN, RBF, RTN, RTF);
+		testface(process, c.i, c.j - 1, c.k, &c, 1, LBN, LBF, RBN, RBF);
+		testface(process, c.i, c.j + 1, c.k, &c, 1, LTN, LTF, RTN, RTF);
+		testface(process, c.i, c.j, c.k - 1, &c, 0, LBN, LTN, RBN, RTN);
+		testface(process, c.i, c.j, c.k + 1, &c, 0, LBF, LTF, RBF, RTF);
 	}
 }
 
@@ -1666,7 +1644,7 @@ BLI_INLINE void copy_v3_fl3(float v[3], float x, float y, float z)
 	v[2] = z;
 }
 
-static float init_meta(Scene *scene, Object *ob)    /* return totsize */
+static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return totsize */
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -1733,7 +1711,7 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 					ml_count++;
 					ml = ml->next;
 				}
-				G_mb.totelem -= ml_count;
+				process->totelem -= ml_count;
 			}
 			else {
 				while (ml) {
@@ -1763,12 +1741,12 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 						mul_m4_m4m4(temp1, temp2, temp3);
 
 						/* make a copy because of duplicates */
-						G_mb.mainb[a] = new_pgn_element(sizeof(MetaElem));
-						*(G_mb.mainb[a]) = *ml;
-						G_mb.mainb[a]->bb = new_pgn_element(sizeof(BoundBox));
+						process->mainb[a] = new_pgn_element(process, sizeof(MetaElem));
+						*(process->mainb[a]) = *ml;
+						process->mainb[a]->bb = new_pgn_element(process, sizeof(BoundBox));
 
-						mat = new_pgn_element(4 * 4 * sizeof(float));
-						imat = new_pgn_element(4 * 4 * sizeof(float));
+						mat = new_pgn_element(process, 4 * 4 * sizeof(float));
+						imat = new_pgn_element(process, 4 * 4 * sizeof(float));
 
 						/* mat is the matrix to transform from mball into the basis-mball */
 						invert_m4_m4(obinv, obmat);
@@ -1778,10 +1756,10 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 
 						invert_m4_m4(imat, mat);
 
-						G_mb.mainb[a]->rad2 = ml->rad * ml->rad;
+						process->mainb[a]->rad2 = ml->rad * ml->rad;
 
-						G_mb.mainb[a]->mat = (float *) mat;
-						G_mb.mainb[a]->imat = (float *) imat;
+						process->mainb[a]->mat = (float *) mat;
+						process->mainb[a]->imat = (float *) imat;
 
 						if (!MB_TYPE_SIZE_SQUARED(ml->type)) {
 							expx = ml->expx;
@@ -1796,40 +1774,40 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 
 						/* untransformed Bounding Box of MetaElem */
 						/* TODO, its possible the elem type has been changed and the exp* values can use a fallback */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[0], -expx, -expy, -expz);  /* 0 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[1], +expx, -expy, -expz);  /* 1 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[2], +expx, +expy, -expz);  /* 2 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[3], -expx, +expy, -expz);  /* 3 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[4], -expx, -expy, +expz);  /* 4 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[5], +expx, -expy, +expz);  /* 5 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[6], +expx, +expy, +expz);  /* 6 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[7], -expx, +expy, +expz);  /* 7 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[0], -expx, -expy, -expz);  /* 0 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[1], +expx, -expy, -expz);  /* 1 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[2], +expx, +expy, -expz);  /* 2 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[3], -expx, +expy, -expz);  /* 3 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[4], -expx, -expy, +expz);  /* 4 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[5], +expx, -expy, +expz);  /* 5 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[6], +expx, +expy, +expz);  /* 6 */
+						copy_v3_fl3(process->mainb[a]->bb->vec[7], -expx, +expy, +expz);  /* 7 */
 
 						/* transformation of Metalem bb */
 						for (i = 0; i < 8; i++)
-							mul_m4_v3((float (*)[4])mat, G_mb.mainb[a]->bb->vec[i]);
+							mul_m4_v3((float (*)[4])mat, process->mainb[a]->bb->vec[i]);
 
 						/* find max and min of transformed bb */
 						for (i = 0; i < 8; i++) {
 							/* find maximums */
-							if (G_mb.mainb[a]->bb->vec[i][0] > max_x) max_x = G_mb.mainb[a]->bb->vec[i][0];
-							if (G_mb.mainb[a]->bb->vec[i][1] > max_y) max_y = G_mb.mainb[a]->bb->vec[i][1];
-							if (G_mb.mainb[a]->bb->vec[i][2] > max_z) max_z = G_mb.mainb[a]->bb->vec[i][2];
+							if (process->mainb[a]->bb->vec[i][0] > max_x) max_x = process->mainb[a]->bb->vec[i][0];
+							if (process->mainb[a]->bb->vec[i][1] > max_y) max_y = process->mainb[a]->bb->vec[i][1];
+							if (process->mainb[a]->bb->vec[i][2] > max_z) max_z = process->mainb[a]->bb->vec[i][2];
 							/* find  minimums */
-							if (G_mb.mainb[a]->bb->vec[i][0] < min_x) min_x = G_mb.mainb[a]->bb->vec[i][0];
-							if (G_mb.mainb[a]->bb->vec[i][1] < min_y) min_y = G_mb.mainb[a]->bb->vec[i][1];
-							if (G_mb.mainb[a]->bb->vec[i][2] < min_z) min_z = G_mb.mainb[a]->bb->vec[i][2];
+							if (process->mainb[a]->bb->vec[i][0] < min_x) min_x = process->mainb[a]->bb->vec[i][0];
+							if (process->mainb[a]->bb->vec[i][1] < min_y) min_y = process->mainb[a]->bb->vec[i][1];
+							if (process->mainb[a]->bb->vec[i][2] < min_z) min_z = process->mainb[a]->bb->vec[i][2];
 						}
 					
 						/* create "new" bb, only point 0 and 6, which are
 						 * necessary for octal tree filling */
-						G_mb.mainb[a]->bb->vec[0][0] = min_x - ml->rad;
-						G_mb.mainb[a]->bb->vec[0][1] = min_y - ml->rad;
-						G_mb.mainb[a]->bb->vec[0][2] = min_z - ml->rad;
+						process->mainb[a]->bb->vec[0][0] = min_x - ml->rad;
+						process->mainb[a]->bb->vec[0][1] = min_y - ml->rad;
+						process->mainb[a]->bb->vec[0][2] = min_z - ml->rad;
 
-						G_mb.mainb[a]->bb->vec[6][0] = max_x + ml->rad;
-						G_mb.mainb[a]->bb->vec[6][1] = max_y + ml->rad;
-						G_mb.mainb[a]->bb->vec[6][2] = max_z + ml->rad;
+						process->mainb[a]->bb->vec[6][0] = max_x + ml->rad;
+						process->mainb[a]->bb->vec[6][1] = max_y + ml->rad;
+						process->mainb[a]->bb->vec[6][2] = max_z + ml->rad;
 
 						a++;
 					}
@@ -1842,13 +1820,13 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 	
 	/* totsize (= 'manhattan' radius) */
 	totsize = 0.0;
-	for (a = 0; a < G_mb.totelem; a++) {
+	for (a = 0; a < process->totelem; a++) {
 		
-		vec[0] = G_mb.mainb[a]->x + G_mb.mainb[a]->rad + G_mb.mainb[a]->expx;
-		vec[1] = G_mb.mainb[a]->y + G_mb.mainb[a]->rad + G_mb.mainb[a]->expy;
-		vec[2] = G_mb.mainb[a]->z + G_mb.mainb[a]->rad + G_mb.mainb[a]->expz;
+		vec[0] = process->mainb[a]->x + process->mainb[a]->rad + process->mainb[a]->expx;
+		vec[1] = process->mainb[a]->y + process->mainb[a]->rad + process->mainb[a]->expy;
+		vec[2] = process->mainb[a]->z + process->mainb[a]->rad + process->mainb[a]->expz;
 
-		calc_mballco(G_mb.mainb[a], vec);
+		calc_mballco(process->mainb[a], vec);
 	
 		size = fabsf(vec[0]);
 		if (size > totsize) totsize = size;
@@ -1857,11 +1835,11 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 		size = fabsf(vec[2]);
 		if (size > totsize) totsize = size;
 
-		vec[0] = G_mb.mainb[a]->x - G_mb.mainb[a]->rad;
-		vec[1] = G_mb.mainb[a]->y - G_mb.mainb[a]->rad;
-		vec[2] = G_mb.mainb[a]->z - G_mb.mainb[a]->rad;
+		vec[0] = process->mainb[a]->x - process->mainb[a]->rad;
+		vec[1] = process->mainb[a]->y - process->mainb[a]->rad;
+		vec[2] = process->mainb[a]->z - process->mainb[a]->rad;
 				
-		calc_mballco(G_mb.mainb[a], vec);
+		calc_mballco(process->mainb[a], vec);
 	
 		size = fabsf(vec[0]);
 		if (size > totsize) totsize = size;
@@ -1871,8 +1849,8 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 		if (size > totsize) totsize = size;
 	}
 
-	for (a = 0; a < G_mb.totelem; a++) {
-		G_mb.thresh += densfunc(G_mb.mainb[a], 2.0f * totsize, 2.0f * totsize, 2.0f * totsize);
+	for (a = 0; a < process->totelem; a++) {
+		process->thresh += densfunc(process->mainb[a], 2.0f * totsize, 2.0f * totsize, 2.0f * totsize);
 	}
 
 	return totsize;
@@ -2181,20 +2159,20 @@ static void free_metaball_octal_node(octal_node *node)
 }
 
 /* If scene include more than one MetaElem, then octree is used */
-static void init_metaball_octal_tree(int depth)
+static void init_metaball_octal_tree(PROCESS *process, int depth)
 {
 	struct octal_node *node;
 	ml_pointer *ml_p;
 	float size[3];
 	int a;
 	
-	G_mb.metaball_tree = MEM_mallocN(sizeof(octal_tree), "metaball_octal_tree");
-	G_mb.metaball_tree->first = node = MEM_mallocN(sizeof(octal_node), "metaball_octal_node");
+	process->metaball_tree = MEM_mallocN(sizeof(octal_tree), "metaball_octal_tree");
+	process->metaball_tree->first = node = MEM_mallocN(sizeof(octal_node), "metaball_octal_node");
 	/* maximal depth of octree */
-	G_mb.metaball_tree->depth = depth;
+	process->metaball_tree->depth = depth;
 
-	G_mb.metaball_tree->neg = node->neg = 0;
-	G_mb.metaball_tree->pos = node->pos = 0;
+	process->metaball_tree->neg = node->neg = 0;
+	process->metaball_tree->pos = node->pos = 0;
 	
 	node->elems.first = NULL;
 	node->elems.last = NULL;
@@ -2207,26 +2185,26 @@ static void init_metaball_octal_tree(int depth)
 	node->x_max = node->y_max = node->z_max = -FLT_MAX;
 
 	/* size of octal tree scene */
-	for (a = 0; a < G_mb.totelem; a++) {
-		if (G_mb.mainb[a]->bb->vec[0][0] < node->x_min) node->x_min = G_mb.mainb[a]->bb->vec[0][0];
-		if (G_mb.mainb[a]->bb->vec[0][1] < node->y_min) node->y_min = G_mb.mainb[a]->bb->vec[0][1];
-		if (G_mb.mainb[a]->bb->vec[0][2] < node->z_min) node->z_min = G_mb.mainb[a]->bb->vec[0][2];
+	for (a = 0; a < process->totelem; a++) {
+		if (process->mainb[a]->bb->vec[0][0] < node->x_min) node->x_min = process->mainb[a]->bb->vec[0][0];
+		if (process->mainb[a]->bb->vec[0][1] < node->y_min) node->y_min = process->mainb[a]->bb->vec[0][1];
+		if (process->mainb[a]->bb->vec[0][2] < node->z_min) node->z_min = process->mainb[a]->bb->vec[0][2];
 
-		if (G_mb.mainb[a]->bb->vec[6][0] > node->x_max) node->x_max = G_mb.mainb[a]->bb->vec[6][0];
-		if (G_mb.mainb[a]->bb->vec[6][1] > node->y_max) node->y_max = G_mb.mainb[a]->bb->vec[6][1];
-		if (G_mb.mainb[a]->bb->vec[6][2] > node->z_max) node->z_max = G_mb.mainb[a]->bb->vec[6][2];
+		if (process->mainb[a]->bb->vec[6][0] > node->x_max) node->x_max = process->mainb[a]->bb->vec[6][0];
+		if (process->mainb[a]->bb->vec[6][1] > node->y_max) node->y_max = process->mainb[a]->bb->vec[6][1];
+		if (process->mainb[a]->bb->vec[6][2] > node->z_max) node->z_max = process->mainb[a]->bb->vec[6][2];
 
 		ml_p = MEM_mallocN(sizeof(ml_pointer), "ml_pointer");
-		ml_p->ml = G_mb.mainb[a];
+		ml_p->ml = process->mainb[a];
 		BLI_addtail(&node->elems, ml_p);
 
-		if ((G_mb.mainb[a]->flag & MB_NEGATIVE) == 0) {
+		if ((process->mainb[a]->flag & MB_NEGATIVE) == 0) {
 			/* number of positive MetaElem in scene */
-			G_mb.metaball_tree->pos++;
+			process->metaball_tree->pos++;
 		}
 		else {
 			/* number of negative MetaElem in scene */
-			G_mb.metaball_tree->neg++;
+			process->metaball_tree->neg++;
 		}
 	}
 
@@ -2236,61 +2214,106 @@ static void init_metaball_octal_tree(int depth)
 	size[2] = node->z_max - node->z_min;
 
 	/* first node is subdivided recursively */
-	subdivide_metaball_octal_node(node, size[0], size[1], size[2], G_mb.metaball_tree->depth);
+	subdivide_metaball_octal_node(node, size[0], size[1], size[2], process->metaball_tree->depth);
+}
+
+static void mball_count(PROCESS *process, Scene *scene, Object *basis)
+{
+	Scene *sce_iter = scene;
+	Base *base;
+	Object *ob, *bob = basis;
+	MetaElem *ml = NULL;
+	int basisnr, obnr;
+	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
+
+	BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
+	process->totelem = 0;
+
+	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
+	if (F_ERROR == BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
+		return;
+
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
+		if (ob->type == OB_MBALL) {
+			if (ob == bob) {
+				MetaBall *mb = ob->data;
+
+				/* if bob object is in edit mode, then dynamic list of all MetaElems
+				 * is stored in editelems */
+				if (mb->editelems) ml = mb->editelems->first;
+				/* if bob object is in object mode */
+				else ml = mb->elems.first;
+			}
+			else {
+				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
+
+				/* object ob has to be in same "group" ... it means, that it has to have
+				 * same base of its name */
+				if (strcmp(obname, basisname) == 0) {
+					MetaBall *mb = ob->data;
+
+					/* if object is in edit mode, then dynamic list of all MetaElems
+					 * is stored in editelems */
+					if (mb->editelems) ml = mb->editelems->first;
+					/* if bob object is in object mode */
+					else ml = mb->elems.first;
+				}
+			}
+
+			for ( ; ml; ml = ml->next) {
+				if (!(ml->flag & MB_HIDE)) {
+					process->totelem++;
+				}
+			}
+		}
+	}
 }
 
 void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 {
-	PROCESS mbproc;
 	MetaBall *mb;
 	DispList *dl;
 	int a, nr_cubes;
 	float *co, *no, totsize, width;
+	PROCESS process = {0};
 
 	mb = ob->data;
 
-	if (G_mb.totelem == 0) return;
+	mball_count(&process, scene, ob);
+
+	if (process.totelem == 0) return;
 	if ((G.is_rendering == FALSE) && (mb->flag == MB_UPDATE_NEVER)) return;
 	if (G.moving && mb->flag == MB_UPDATE_FAST) return;
 
-	curindex = totindex = 0;
-	indices = NULL;
-	G_mb.thresh = mb->thresh;
+	process.thresh = mb->thresh;
 
 	/* total number of MetaElems (totelem) is precomputed in find_basis_mball() function */
-	G_mb.mainb = MEM_mallocN(sizeof(void *) * G_mb.totelem, "mainb");
+	process.mainb = MEM_mallocN(sizeof(void *) * process.totelem, "mainb");
 	
 	/* initialize all mainb (MetaElems) */
-	totsize = init_meta(scene, ob);
-
-	if (G_mb.metaball_tree) {
-		free_metaball_octal_node(G_mb.metaball_tree->first);
-		MEM_freeN(G_mb.metaball_tree);
-		G_mb.metaball_tree = NULL;
-	}
+	totsize = init_meta(&process, scene, ob);
 
 	/* if scene includes more than one MetaElem, then octal tree optimization is used */
-	if ((G_mb.totelem >    1) && (G_mb.totelem <=   64)) init_metaball_octal_tree(1);
-	if ((G_mb.totelem >   64) && (G_mb.totelem <=  128)) init_metaball_octal_tree(2);
-	if ((G_mb.totelem >  128) && (G_mb.totelem <=  512)) init_metaball_octal_tree(3);
-	if ((G_mb.totelem >  512) && (G_mb.totelem <= 1024)) init_metaball_octal_tree(4);
-	if (G_mb.totelem  > 1024)                            init_metaball_octal_tree(5);
+	if ((process.totelem >    1) && (process.totelem <=   64)) init_metaball_octal_tree(&process, 1);
+	if ((process.totelem >   64) && (process.totelem <=  128)) init_metaball_octal_tree(&process, 2);
+	if ((process.totelem >  128) && (process.totelem <=  512)) init_metaball_octal_tree(&process, 3);
+	if ((process.totelem >  512) && (process.totelem <= 1024)) init_metaball_octal_tree(&process, 4);
+	if (process.totelem  > 1024)                               init_metaball_octal_tree(&process, 5);
 
 	/* don't polygonize metaballs with too high resolution (base mball to small)
 	 * note: Eps was 0.0001f but this was giving problems for blood animation for durian, using 0.00001f */
-	if (G_mb.metaball_tree) {
-		if (ob->size[0] <= 0.00001f * (G_mb.metaball_tree->first->x_max - G_mb.metaball_tree->first->x_min) ||
-		    ob->size[1] <= 0.00001f * (G_mb.metaball_tree->first->y_max - G_mb.metaball_tree->first->y_min) ||
-		    ob->size[2] <= 0.00001f * (G_mb.metaball_tree->first->z_max - G_mb.metaball_tree->first->z_min))
+	if (process.metaball_tree) {
+		if (ob->size[0] <= 0.00001f * (process.metaball_tree->first->x_max - process.metaball_tree->first->x_min) ||
+		    ob->size[1] <= 0.00001f * (process.metaball_tree->first->y_max - process.metaball_tree->first->y_min) ||
+		    ob->size[2] <= 0.00001f * (process.metaball_tree->first->z_max - process.metaball_tree->first->z_min))
 		{
-			new_pgn_element(-1); /* free values created by init_meta */
+			new_pgn_element(&process, -1); /* free values created by init_meta */
 
-			MEM_freeN(G_mb.mainb);
+			MEM_freeN(process.mainb);
 
 			/* free tree */
-			free_metaball_octal_node(G_mb.metaball_tree->first);
-			MEM_freeN(G_mb.metaball_tree);
-			G_mb.metaball_tree = NULL;
+			free_metaball_octal_node(process.metaball_tree->first);
+			MEM_freeN(process.metaball_tree);
 
 			return;
 		}
@@ -2308,46 +2331,46 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	nr_cubes = (int)(0.5f + totsize / width);
 
 	/* init process */
-	mbproc.function = metaball;
-	mbproc.size = width;
-	mbproc.bounds = nr_cubes;
-	mbproc.cubes = NULL;
-	mbproc.delta = width / (float)(RES * RES);
+	process.function = metaball;
+	process.size = width;
+	process.bounds = nr_cubes;
+	process.cubes = NULL;
+	process.delta = width / (float)(RES * RES);
 
-	polygonize(&mbproc, mb);
+	polygonize(&process, mb);
 	
-	MEM_freeN(G_mb.mainb);
+	MEM_freeN(process.mainb);
 
 	/* free octal tree */
-	if (G_mb.totelem > 1) {
-		free_metaball_octal_node(G_mb.metaball_tree->first);
-		MEM_freeN(G_mb.metaball_tree);
-		G_mb.metaball_tree = NULL;
+	if (process.totelem > 1) {
+		free_metaball_octal_node(process.metaball_tree->first);
+		MEM_freeN(process.metaball_tree);
+		process.metaball_tree = NULL;
 	}
 
-	if (curindex) {
-		VERTEX *ptr = mbproc.vertices.ptr;
+	if (process.curindex) {
+		VERTEX *ptr = process.vertices.ptr;
 
 		dl = MEM_callocN(sizeof(DispList), "mbaldisp");
 		BLI_addtail(dispbase, dl);
 		dl->type = DL_INDEX4;
-		dl->nr = mbproc.vertices.count;
-		dl->parts = curindex;
+		dl->nr = process.vertices.count;
+		dl->parts = process.curindex;
 
-		dl->index = indices;
-		indices = NULL;
+		dl->index = process.indices;
+		process.indices = NULL;
 
-		a = mbproc.vertices.count;
+		a = process.vertices.count;
 		dl->verts = co = MEM_mallocN(sizeof(float) * 3 * a, "mballverts");
 		dl->nors = no = MEM_mallocN(sizeof(float) * 3 * a, "mballnors");
 
-		for (a = 0; a < mbproc.vertices.count; ptr++, a++, no += 3, co += 3) {
+		for (a = 0; a < process.vertices.count; ptr++, a++, no += 3, co += 3) {
 			copy_v3_v3(co, ptr->co);
 			copy_v3_v3(no, ptr->no);
 		}
 	}
 
-	freepolygonize(&mbproc);
+	freepolygonize(&process);
 }
 
 /* basic vertex data functions */
