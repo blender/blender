@@ -34,6 +34,8 @@
 #include "util_color.h"
 #include "util_math.h"
 
+#include "kernel_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 vector<float> blackbody_table()
@@ -94,18 +96,11 @@ vector<float> blackbody_table()
 	/* Blackbody table from 800 to 12k Kelvin (317 entries) */
 	vector<float> blackbody_table(317*3+3);
 
-	/* ToDo: move those defines to kernel_types.h ? */
-	float bb_drapper = 800.0f;
-	float bb_max_table_range = 12000.0f;
-	float bb_table_xpower = 1.5f;
-	float bb_table_ypower = 5.0f;
-	float bb_table_spacing = 2.0f;
-
 	float X, Y, Z;
 
 	/* ToDo: bring this back to what OSL does with the lastTemperature limit ? */
 	for (int i = 0;  i <= 317;  ++i) {
-		float Temperature = powf (float(i), bb_table_xpower) * bb_table_spacing + bb_drapper;
+		float Temperature = powf (float(i), BB_TABLE_XPOWER) * BB_TABLE_SPACING + BB_DRAPPER;
 		X = 0;
 		Y = 0;
 		Z = 0;
@@ -130,9 +125,9 @@ vector<float> blackbody_table()
 		/* Clamp to zero if values are smaller */
 		col = max(col, make_float3(0.0f, 0.0f, 0.0f));
 
-		col.x = powf(col.x, 1.0f / bb_table_ypower);
-		col.y = powf(col.y, 1.0f / bb_table_ypower);
-		col.z = powf(col.z, 1.0f / bb_table_ypower);
+		col.x = powf(col.x, 1.0f / BB_TABLE_YPOWER);
+		col.y = powf(col.y, 1.0f / BB_TABLE_YPOWER);
+		col.z = powf(col.z, 1.0f / BB_TABLE_YPOWER);
 
 		/* Store in table in RRRGGGBBB format */
 		blackbody_table[i] = col.x;
