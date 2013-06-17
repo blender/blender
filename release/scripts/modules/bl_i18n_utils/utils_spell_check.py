@@ -58,6 +58,7 @@ class SpellChecker():
         "arcsine", "arccosine", "arctangent",
         "autoclip",
         "autocomplete",
+        "autoexec",
         "autoname",
         "autosave",
         "autoscale",
@@ -437,6 +438,7 @@ class SpellChecker():
         "oren",
         "prewitt",
         "runge",
+        "sobol",
         "verlet",
         "worley",
 

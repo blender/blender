@@ -1183,7 +1183,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 					uiDefIconBut(block, BUT, B_VGRP_PNL_DELETE_SINGLE + i, ICON_X,
 					             xco, yco, (x = UI_UNIT_X), UI_UNIT_Y,
-					             NULL, 0, 0, 0, 0, TIP_("Delete this weight from the vertex."));
+					             NULL, 0, 0, 0, 0, TIP_("Delete this weight from the vertex"));
 					xco += x;
 
 					yco -= UI_UNIT_Y;
