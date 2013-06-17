@@ -712,12 +712,6 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 	if (!ob || ob->type != OB_MBALL)
 		return;
 
-	/* XXX: mball stuff uses plenty of global variables
-	 *      while this is unchanged updating during render is unsafe
-	 */
-	if (G.is_rendering)
-		return;
-
 	BKE_displist_free(&(ob->disp));
 
 	if (ob->type == OB_MBALL) {
