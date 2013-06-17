@@ -196,7 +196,7 @@ static void sort_trans_data(TransInfo *t)
 
 /* distance calculated from not-selected vertex to nearest selected vertex
  * warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
-static void set_prop_dist(TransInfo *t, short with_dist)
+static void set_prop_dist(TransInfo *t, const bool with_dist)
 {
 	TransData *tob;
 	int a;
@@ -216,12 +216,9 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 				if (td->flag & TD_SELECTED) {
 					sub_v3_v3v3(vec, tob->center, td->center);
 					mul_m3_v3(tob->mtx, vec);
-					dist = normalize_v3(vec);
-					if (tob->rdist == -1.0f) {
-						tob->rdist = dist;
-					}
-					else if (dist < tob->rdist) {
-						tob->rdist = dist;
+					dist = len_squared_v3(vec);
+					if ((tob->rdist == -1.0f) || (dist < (tob->rdist * tob->rdist))) {
+						tob->rdist = sqrtf(dist);
 					}
 				}
 				else {
