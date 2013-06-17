@@ -2905,9 +2905,9 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_boolean(ot->srna, "use_all_groups", 0, "All Groups", "Remove from all Groups");
+	prop = RNA_def_boolean(ot->srna, "use_all_groups", 0, "All Groups", "Remove from all groups");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "use_all_verts", 0, "All verts", "Clear Active Group");
+	prop = RNA_def_boolean(ot->srna, "use_all_verts", 0, "All Verts", "Clear the active group");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

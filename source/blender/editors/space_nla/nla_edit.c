@@ -425,8 +425,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	
 	if (items == 0) {
 		BKE_report(op->reports, RPT_ERROR, 
-		           "No active track(s) to add strip to. "
-		           "Select an existing track or add one before trying again");
+		           "No active track(s) to add strip to, select an existing track or add one before trying again");
 		return OPERATOR_CANCELLED;
 	}
 	
