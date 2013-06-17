@@ -751,12 +751,6 @@ function(delayed_do_install
 	endif()
 endfunction()
 
-macro(set_lib_path
-		lvar
-		lproj)
-		set(${lvar} ${LIBDIR}/${lproj})
-endmacro()
-
 
 macro(data_to_c
       file_from file_to

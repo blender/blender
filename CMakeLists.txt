@@ -1124,26 +1124,22 @@ elseif(WIN32)
 				${OPENCOLLADA}/include/opencollada/COLLADASaxFrameworkLoader
 				${OPENCOLLADA}/include/opencollada/GeneratedSaxParser
 			)
-			set_lib_path(OPENCOLLADA_LIBPATH "opencollada")
 
 			set(OPENCOLLADA_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADAFramework.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADABaseUtils.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADAStreamWriter.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/MathMLSolver.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/GeneratedSaxParser.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/xml.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/buffer.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/ftoa.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/UTF.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
+				${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
+				${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
+				${OPENCOLLADA}/lib/opencollada/xml.lib
+				${OPENCOLLADA}/lib/opencollada/buffer.lib
+				${OPENCOLLADA}/lib/opencollada/ftoa.lib
+				${OPENCOLLADA}/lib/opencollada/UTF.lib
 			)
 			set(PCRE_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/pcre.lib
+				${OPENCOLLADA}/lib/opencollada/pcre.lib
 			)
-			
-			unset(OPENCOLLADA_LIBPATH)
-			
 		endif()
 
 		if(WITH_CODEC_FFMPEG)
@@ -1172,7 +1168,7 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			set_lib_path(OPENEXR "openexr")
+			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
@@ -1201,11 +1197,9 @@ elseif(WIN32)
 		if(WITH_PYTHON)
 			set(PYTHON_VERSION 3.3) # CACHE STRING)
 
-			set_lib_path(PYTHON "python")
 			string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 			# Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs
 			set(PYTHON_LIBRARY ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.lib)
-			# set(PYTHON_LIBRARY ${PYTHON}/lib/python${_PYTHON_VERSION_NO_DOTS}.lib) #CACHE FILEPATH
 			unset(_PYTHON_VERSION_NO_DOTS)
 
 			# Shared includes for both vc2008 and vc2010
