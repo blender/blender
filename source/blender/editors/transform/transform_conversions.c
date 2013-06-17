@@ -1775,6 +1775,30 @@ void flushTransParticles(TransInfo *t)
 
 /* ********************* mesh ****************** */
 
+static bool bmesh_test_dist_add(BMVert *v, BMVert *v_other,
+                                float *dists, const float *dists_prev,
+                                float mtx[3][3])
+{
+	if ((BM_elem_flag_test(v_other, BM_ELEM_SELECT) == 0) &&
+	    (BM_elem_flag_test(v_other, BM_ELEM_HIDDEN) == 0))
+	{
+		const int i = BM_elem_index_get(v);
+		const int i_other = BM_elem_index_get(v_other);
+		float vec[3];
+		sub_v3_v3v3(vec, v->co, v_other->co);
+		mul_m3_v3(mtx, vec);
+
+		dists[i_other] = min_ff(dists_prev[i] + len_v3(vec), dists[i_other]);
+
+		if (!BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
+			BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float *dists)
 {
 	/* need to be very careful of feedback loops here, store previous dist's to avoid feedback */
@@ -1816,27 +1840,29 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 		memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
 
 		while ((v = STACK_POP(queue))) {
-			BMIter eiter;
+			BMIter iter;
 			BMEdge *e;
-			int i = BM_elem_index_get(v);
+			BMLoop *l;
 
-			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				float vec[3];
-				BMVert *v_other = BM_edge_other_vert(e, v);
-				const int i_other = BM_elem_index_get(v_other);
-
-				if (BM_elem_flag_test(v_other, BM_ELEM_SELECT) || BM_elem_flag_test(v_other, BM_ELEM_HIDDEN)) {
-					continue;
+			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+				if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == 0) {
+					BMVert *v_other = BM_edge_other_vert(e, v);
+					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+						STACK_PUSH(queue_next, v_other);
+					}
 				}
-
-				sub_v3_v3v3(vec, v->co, v_other->co);
-				mul_m3_v3(mtx, vec);
-
-				dists[i_other] = min_ff(dists_prev[i] + len_v3(vec), dists[i_other]);
-
-				if (!BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-					BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-					STACK_PUSH(queue_next, v_other);
+			}
+			
+			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+				if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len > 3)) {
+					BMLoop *l_end = l->prev;
+					l = l->next->next;
+					do {
+						BMVert *v_other = l->v;
+						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+							STACK_PUSH(queue_next, v_other);
+						}
+					} while ((l = l->next) != l_end);
 				}
 			}
 		}
