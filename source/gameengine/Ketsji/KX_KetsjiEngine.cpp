@@ -521,10 +521,23 @@ void KX_KetsjiEngine::EndFrame()
 		RenderDebugProperties();
 	}
 
-	m_average_framerate = m_logger->GetAverage();
-	if (m_average_framerate < 1e-6)
-		m_average_framerate = 1e-6;
-	m_average_framerate = 1.0/m_average_framerate;
+	double tottime = m_logger->GetAverage(), time;
+	if (tottime < 1e-6)
+		tottime = 1e-6;
+
+#ifdef WITH_PYTHON
+	for (int i = tc_first; i < tc_numCategories; ++i) {
+		time = m_logger->GetAverage((KX_TimeCategory)i);
+		PyObject *val = PyTuple_New(2);
+		PyTuple_SetItem(val, 0, PyFloat_FromDouble(time*1000.f));
+		PyTuple_SetItem(val, 1, PyFloat_FromDouble(time/tottime * 100.f));
+
+		PyDict_SetItemString(m_pyprofiledict, m_profileLabels[i], val);
+		Py_DECREF(val);
+	}
+#endif
+
+	m_average_framerate = 1.0/tottime;
 
 	// Go to next profiling measurement, time spend after this call is shown in the next frame.
 	m_logger->NextMeasurement(m_kxsystem->GetTimeInSeconds());
@@ -1526,15 +1539,6 @@ void KX_KetsjiEngine::RenderDebugProperties()
 
 			m_rendertools->RenderBox2D(xcoord + (int)(2.2 * profile_indent), ycoord, m_canvas->GetWidth(), m_canvas->GetHeight(), time/tottime);
 			ycoord += const_ysize;
-
-#ifdef WITH_PYTHON
-			PyObject *val = PyTuple_New(2);
-			PyTuple_SetItem(val, 0, PyFloat_FromDouble(time*1000.f));
-			PyTuple_SetItem(val, 1, PyFloat_FromDouble(time/tottime * 100.f));
-
-			PyDict_SetItemString(m_pyprofiledict, m_profileLabels[j], val);
-			Py_DECREF(val);
-#endif
 		}
 	}
 	// Add the ymargin for titles below the other section of debug info
