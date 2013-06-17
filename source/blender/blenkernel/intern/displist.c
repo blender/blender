@@ -716,7 +716,7 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 
 	if (ob->type == OB_MBALL) {
 		if (ob == BKE_mball_basis_find(scene, ob)) {
-			BKE_mball_polygonize(scene, ob, &ob->disp);
+			BKE_mball_polygonize(scene, ob, &ob->disp, false);
 			BKE_mball_texspace_calc(ob);
 
 			object_deform_mball(ob, &ob->disp);
@@ -728,7 +728,7 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 
 void BKE_displist_make_mball_forRender(Scene *scene, Object *ob, ListBase *dispbase)
 {
-	BKE_mball_polygonize(scene, ob, dispbase);
+	BKE_mball_polygonize(scene, ob, dispbase, true);
 	BKE_mball_texspace_calc(ob);
 
 	object_deform_mball(ob, dispbase);
@@ -1390,7 +1390,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (!forOrco)
 			curve_calc_modifiers_pre(scene, ob, forRender, renderResolution, &originalVerts, &deformedVerts, &numVerts);
 
-		BKE_curve_bevelList_make(ob);
+		BKE_curve_bevelList_make(ob, forRender != FALSE);
 
 		/* If curve has no bevel will return nothing */
 		BKE_curve_bevel_make(scene, ob, &dlbev, forRender, renderResolution);

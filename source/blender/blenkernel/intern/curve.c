@@ -2269,7 +2269,7 @@ static void make_bevel_list_2D(BevList *bl)
 	}
 }
 
-void BKE_curve_bevelList_make(Object *ob)
+void BKE_curve_bevelList_make(Object *ob, bool for_render)
 {
 	/*
 	 * - convert all curves to polys, with indication of resol and flags for double-vertices
@@ -2325,7 +2325,7 @@ void BKE_curve_bevelList_make(Object *ob)
 			bl->nr = 0;
 		}
 		else {
-			if (G.is_rendering && cu->resolu_ren != 0)
+			if (for_render && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else
 				resolu = nu->resolu;
