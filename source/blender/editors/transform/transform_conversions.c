@@ -1785,13 +1785,13 @@ static bool bmesh_test_dist_add(BMVert *v, BMVert *v_other,
 		const int i = BM_elem_index_get(v);
 		const int i_other = BM_elem_index_get(v_other);
 		float vec[3];
+		float dist_other;
 		sub_v3_v3v3(vec, v->co, v_other->co);
 		mul_m3_v3(mtx, vec);
 
-		dists[i_other] = min_ff(dists_prev[i] + len_v3(vec), dists[i_other]);
-
-		if (!BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-			BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+		dist_other = dists_prev[i] + len_v3(vec);
+		if (dist_other < dists[i_other]) {
+			dists[i_other] = dist_other;
 			return true;
 		}
 	}
@@ -1807,6 +1807,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 	BMVert **queue = MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__);
 	STACK_DECLARE(queue);
 
+	/* any BM_ELEM_TAG'd vertex is in 'queue_next', so we don't add in twice */
 	BMVert **queue_next = MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__);
 	STACK_DECLARE(queue_next);
 
@@ -1820,14 +1821,12 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 
 		BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
 			BM_elem_index_set(v, i); /* set_inline */
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
 
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT) == 0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-				BM_elem_flag_disable(v, BM_ELEM_TAG);
-
 				dists[i] = FLT_MAX;
 			}
 			else {
-				BM_elem_flag_enable(v, BM_ELEM_TAG);
 				STACK_PUSH(queue, v);
 
 				dists[i] = 0.0f;
@@ -1837,6 +1836,8 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 
 	do {
 		BMVert *v;
+		unsigned int i;
+
 		memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
 
 		while ((v = STACK_POP(queue))) {
@@ -1844,15 +1845,20 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 			BMEdge *e;
 			BMLoop *l;
 
+			/* connected edge-verts */
 			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 				if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == 0) {
 					BMVert *v_other = BM_edge_other_vert(e, v);
 					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
-						STACK_PUSH(queue_next, v_other);
+						if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+							BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+							STACK_PUSH(queue_next, v_other);
+						}
 					}
 				}
 			}
 			
+			/* connected face-verts (excluding adjacent verts) */
 			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 				if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len > 3)) {
 					BMLoop *l_end = l->prev;
@@ -1860,14 +1866,25 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 					do {
 						BMVert *v_other = l->v;
 						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
-							STACK_PUSH(queue_next, v_other);
+							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+								STACK_PUSH(queue_next, v_other);
+							}
 						}
 					} while ((l = l->next) != l_end);
 				}
 			}
 		}
 
+		/* clear for the next loop */
+		for (i = 0; i < STACK_SIZE(queue_next); i++) {
+			BM_elem_flag_disable(queue_next[i], BM_ELEM_TAG);
+		}
+
 		STACK_SWAP(queue, queue_next);
+
+		/* none should be tagged now since 'queue_next' is empty */
+		BLI_assert(BM_iter_mesh_count_flag(BM_VERTS_OF_MESH, bm, BM_ELEM_TAG, true) == 0);
 
 	} while (STACK_SIZE(queue));
 
