@@ -62,6 +62,7 @@ CCL_NAMESPACE_BEGIN
 #define __KERNEL_SHADING__
 #if __CUDA_ARCH__ >= 200
 #define __KERNEL_ADV_SHADING__
+#define __NON_PROGRESSIVE__
 #endif
 #endif
 

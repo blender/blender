@@ -385,7 +385,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	params.background = background;
 
 	/* samples */
-	if(get_boolean(cscene, "progressive") == 0 && params.device.type == DEVICE_CPU) {
+	if(get_boolean(cscene, "progressive") == 0) {
 		if(background) {
 			params.samples = get_int(cscene, "aa_samples");
 		}

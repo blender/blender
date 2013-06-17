@@ -916,8 +916,15 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 				sci->sample_weight += scj->sample_weight;
 
 				int size = sd->num_closure - (j+1);
-				if(size > 0)
+				if(size > 0) {
+#ifdef __KERNEL_GPU__
+					for(int k = 0; k < size; k++) {
+						scj[k] = scj[k+1];
+					}
+#else
 					memmove(scj, scj+1, size*sizeof(ShaderClosure));
+#endif
+				}
 
 				sd->num_closure--;
 				j--;
