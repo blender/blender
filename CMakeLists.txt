@@ -1199,12 +1199,7 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			# normally cached but not since we include them with blender
-			if(MSVC10)
-				set(PYTHON_VERSION 3.3) # CACHE STRING)
-			else()
-				set(PYTHON_VERSION 3.3) # CACHE STRING)
-			endif()
+			set(PYTHON_VERSION 3.3) # CACHE STRING)
 
 			set_lib_path(PYTHON "python")
 			string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
@@ -1228,10 +1223,6 @@ elseif(WIN32)
 				set(BOOST_LIBPATH ${BOOST}/lib)
 				set(BOOST_POSTFIX "vc110-mt-s-1_53.lib")
 				set(BOOST_DEBUG_POSTFIX "vc110-mt-sgd-1_53.lib")
-			elseif(MSVC10)
-				set(BOOST_LIBPATH ${BOOST}/vc2010/lib)
-				set(BOOST_POSTFIX "vc100-mt-s-1_49.lib")
-				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_49.lib")
 			else()
 				set(BOOST_LIBPATH ${BOOST}/lib)
 				set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
@@ -2082,13 +2073,6 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 	set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556")
 	set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556")
 
-endif()
-
-# MSVC2010 fails to links C++ libs right
-if(MSVC10)
-	if(WITH_OPENCOLLADA)
-		message(WARNING "MSVC 2010 does not support OpenCollada, disabling WITH_OPENCOLLADA. To enable support use Use MSVC 2008")
-	endif()
 endif()
 
 # ensure python header is found since detection can fail, this could happen
