@@ -37,7 +37,7 @@ shader node_normal_map(
 
 		getattribute("geom:is_smooth", is_smooth);
 		if (!is_smooth)
-			ninterp = Ng;
+			ninterp = normalize(transform("world", "object", Ng));
 
 		// get _unnormalized_ interpolated normal and tangent
 		if (getattribute(attr_name, tangent) &&

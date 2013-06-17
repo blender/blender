@@ -465,7 +465,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 
 	res = (int)sqrt(mdisps->totdisp);
 	d = 1.0f / (float)(res - 1);
-	#pragma omp parallel for if(res > 3)
+#pragma omp parallel for if (res > 3)
 	for (ix = 0; ix < res; ix++) {
 		float x = d * ix, y;
 		int iy;

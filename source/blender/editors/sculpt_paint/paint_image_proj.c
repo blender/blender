@@ -3525,7 +3525,7 @@ static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, floa
 		clone_rgba[0] = clone_pt[0];
 		clone_rgba[1] = clone_pt[1];
 		clone_rgba[2] = clone_pt[2];
-		clone_rgba[3] = clone_pt[3] * mask;
+		clone_rgba[3] = (unsigned char)(clone_pt[3] * mask);
 
 		if (ps->do_masking) {
 			IMB_blend_color_byte(projPixel->pixel.ch_pt, projPixel->origColor.ch, clone_rgba, ps->blend);

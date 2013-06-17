@@ -93,7 +93,7 @@ void MovieClipBaseOperation::executePixel(float output[4], float x, float y, Pix
 	if (ibuf == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		zero_v4(output);
 	}
-	if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+	else if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
 		/* Happens for multilayer exr, i.e. */
 		zero_v4(output);
 	}

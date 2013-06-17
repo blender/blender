@@ -2991,9 +2991,14 @@ static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
 
-	if (!EDBM_op_callf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+	if (!EDBM_op_callf(em, op,
+	                   "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
+	                   BM_ELEM_SELECT, use_verts, use_face_split))
+	{
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, true, true);
 
@@ -3015,6 +3020,8 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
+	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
+	                "Split off face corners to maintain surrounding geometry");
 }
 
 static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
@@ -3127,6 +3134,63 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	                "Dissolve all vertices inbetween face boundaries");
 	RNA_def_enum_flag(ot->srna, "delimit", mesh_delimit_mode_items, 0, "Delimit",
 	                  "Delimit dissolve operation");
+}
+
+/* internally uses dissolve */
+static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
+
+	/* deal with selection */
+	{
+		BMEdge *e;
+		BMIter iter;
+
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+
+		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+				BMLoop *l_iter = e->l;
+				do {
+					BM_elem_flag_enable(l_iter->f, BM_ELEM_TAG);
+				} while ((l_iter = l_iter->radial_next) != e->l);
+			}
+		}
+	}
+
+	if (!EDBM_op_callf(em, op,
+	                   "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
+	                   BM_ELEM_SELECT, true, use_face_split))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, BM_ELEM_TAG);
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_delete_edgeloop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete Edge Loop";
+	ot->description = "Delete an edge loop by merging the faces on each side";
+	ot->idname = "MESH_OT_delete_edgeloop";
+
+	/* api callbacks */
+	ot->exec = edbm_delete_edgeloop_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "use_face_split", true, "Face Split",
+	                "Split off face corners to maintain surrounding geometry");
 }
 
 static int edbm_split_exec(bContext *C, wmOperator *op)

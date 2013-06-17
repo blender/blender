@@ -540,6 +540,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	if (success == 0) {
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
+		BLI_init_temporary_dir(U.tempdir);
 
 #ifdef WITH_PYTHON_SECURITY
 		/* use alternative setting for security nuts

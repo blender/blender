@@ -1942,20 +1942,25 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 /* ***************** ******************** */
 
 /*  draw callback */
+
+typedef struct drawDMVertSel_userData {
+	MVert *mvert;
+	int active;
+	unsigned char *col[3];  /* (base, sel, act) */
+	char sel_prev;
+} drawDMVertSel_userData;
+
 static void drawSelectedVertices__mapFunc(void *userData, int index, const float co[3],
                                           const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
-	MVert *mv = &((MVert *)userData)[index];
+	drawDMVertSel_userData *data = userData;
+	MVert *mv = &data->mvert[index];
 
 	if (!(mv->flag & ME_HIDE)) {
-		const char sel = mv->flag & SELECT;
-
-		/* TODO define selected color */
-		if (sel) {
-			glColor3f(1.0f, 1.0f, 0.0f);
-		}
-		else {
-			glColor3f(0.0f, 0.0f, 0.0f);
+		const char sel = (index == data->active) ? 2 : (mv->flag & SELECT);
+		if (sel != data->sel_prev) {
+			glColor3ubv(data->col[sel]);
+			data->sel_prev = sel;
 		}
 
 		glVertex3fv(co);
@@ -1964,8 +1969,23 @@ static void drawSelectedVertices__mapFunc(void *userData, int index, const float
 
 static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 {
+	drawDMVertSel_userData data;
+
+	/* TODO define selected color */
+	unsigned char base_col[3] = {0x0, 0x0, 0x0};
+	unsigned char sel_col[3] = {0xd8, 0xb8, 0x0};
+	unsigned char act_col[3] = {0xff, 0xff, 0xff};
+
+	data.mvert = me->mvert;
+	data.active = BKE_mesh_mselect_active_get(me, ME_VSEL);
+	data.sel_prev = 0xff;
+
+	data.col[0] = base_col;
+	data.col[1] = sel_col;
+	data.col[2] = act_col;
+
 	glBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
+	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, &data);
 	glEnd();
 }
 
@@ -6720,7 +6740,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			break;
 		case OB_LATTICE:
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				drawlattice(scene, v3d, ob);
+				/* Do not allow boundbox in edit nor pose mode! */
+				if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
+					dt = OB_WIRE;
+				if (dt == OB_BOUNDBOX) {
+					draw_bounding_volume(scene, ob, ob->boundtype);
+				}
+				else {
+					drawlattice(scene, v3d, ob);
+				}
 			}
 			break;
 		case OB_ARMATURE:

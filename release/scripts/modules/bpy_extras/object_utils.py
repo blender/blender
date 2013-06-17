@@ -25,6 +25,7 @@ __all__ = (
     "object_add_grid_scale",
     "object_add_grid_scale_apply_operator",
     "object_image_guess",
+    "world_to_camera_view",
     )
 
 
@@ -265,3 +266,46 @@ def object_image_guess(obj, bm=None):
                         if image is not None:
                             return image
     return None
+
+
+def world_to_camera_view(scene, obj, coord):
+    """
+    Returns the camera space coords for a 3d point.
+    (also known as: normalized device coordinates - NDC).
+
+    Where (0, 0) is the bottom left and (1, 1) is the top right of the camera frame.
+    values outside 0-1 are also supported.
+    A negative 'z' value means the point is behind the camera.
+
+    Takes shift-x/y, lens angle and sensor size into account
+    as well as perspective/ortho projections.
+
+    :arg scene: Scene to use for frame size.
+    :type scene: :class:`bpy.types.Scene`
+    :arg obj: Camera object.
+    :type obj: :class:`bpy.types.Object`
+    :arg coord: World space location.
+    :type coord: :class:`mathutils.Vector`
+    :return: a vector where X and Y map to the view plane and Z is the depth on the view axis.
+    :rtype: :class:`mathutils.Vector`
+    """
+    from mathutils import Vector
+
+    co_local = obj.matrix_world.normalized().inverted() * coord
+    z = -co_local.z
+
+    camera = obj.data
+    frame = [-v for v in camera.view_frame(scene=scene)[:3]]
+    if camera.type != 'ORTHO':
+        if z == 0.0:
+            return Vector((0.5, 0.5, 0.0))
+        else:
+            frame = [(v / (v.z / z)) for v in frame]
+
+    min_x, max_x = frame[1].x, frame[2].x
+    min_y, max_y = frame[0].y, frame[1].y
+
+    x = (co_local.x - min_x) / (max_x - min_x)
+    y = (co_local.y - min_y) / (max_y - min_y)
+
+    return Vector((x, y, z))

@@ -136,8 +136,8 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage& oImage) co
 		int ymin = border().getMin().y();
 		int xmax = border().getMax().x();
 		int ymax = border().getMax().y();
-		int rectx = _pass_z.width;
-		int recty = _pass_z.height;
+		int rectx = _pass_diffuse.width;
+		int recty = _pass_diffuse.height;
 		float xfac = ((float)rectx) / ((float)(xmax - xmin));
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
 #if 0

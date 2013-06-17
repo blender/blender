@@ -58,33 +58,6 @@
 
 
 #define B_CONTEXT_SWITCH    101
-#define B_BUTSPREVIEW       102
-
-static void set_texture_context(const bContext *C, SpaceButs *sbuts)
-{
-	Scene *scene = CTX_data_scene(C);
-
-	if (BKE_scene_use_new_shading_nodes(scene)) {
-		return;  /* No texture context in new shading mode */
-	}
-
-	if ((sbuts->mainb == BCONTEXT_WORLD) && ED_texture_context_check_world(C)) {
-		sbuts->texture_context = SB_TEXC_WORLD;
-	}
-	else if ((sbuts->mainb == BCONTEXT_MATERIAL) && ED_texture_context_check_material(C)) {
-		sbuts->texture_context = SB_TEXC_MATERIAL;
-	}
-	else if ((sbuts->mainb == BCONTEXT_DATA) && ED_texture_context_check_lamp(C)) {
-		sbuts->texture_context = SB_TEXC_LAMP;
-	}
-	else if ((sbuts->mainb == BCONTEXT_PARTICLE) && ED_texture_context_check_particles(C)) {
-		sbuts->texture_context = SB_TEXC_PARTICLES;
-	}
-	/* Else, just be sure that current context is valid! */
-	else {
-		buttons_check_texture_context(C, sbuts);
-	}
-}
 
 static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 {
@@ -95,10 +68,7 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 
 	switch (event) {
 		case B_CONTEXT_SWITCH:
-		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
-
-			set_texture_context(C, sbuts);
 
 			sbuts->preview = 1;
 			break;

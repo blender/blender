@@ -917,6 +917,11 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_SCALE_RENDERSIZE_FRAME_ASPECT  (1 << 0)
 #define CMP_SCALE_RENDERSIZE_FRAME_CROP    (1 << 1)
 
+/* track position node, in custom1 */
+#define CMP_TRACKPOS_ABSOLUTE			0
+#define CMP_TRACKPOS_RELATIVE_START	1
+#define CMP_TRACKPOS_RELATIVE_FRAME	2
+#define CMP_TRACKPOS_ABSOLUTE_FRAME	3
 
 /* API */
 struct CompBuf;
@@ -925,7 +930,7 @@ void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int r
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
-void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
+void ntreeCompositForceHidden(struct bNodeTree *ntree);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree, struct bNode *node,

@@ -709,7 +709,7 @@ static void bake_freejob(void *bkv)
 	if (bkr->result == BAKE_RESULT_NO_OBJECTS)
 		BKE_report(bkr->reports, RPT_ERROR, "No objects or images found to bake to");
 	else if (bkr->result == BAKE_RESULT_FEEDBACK_LOOP)
-		BKE_report(bkr->reports, RPT_WARNING, "Feedback loop detected");
+		BKE_report(bkr->reports, RPT_WARNING, "Circular reference in texture stack");
 
 	MEM_freeN(bkr);
 	G.is_rendering = FALSE;
@@ -833,7 +833,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			if (bkr.result == BAKE_RESULT_NO_OBJECTS)
 				BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");
 			else if (bkr.result == BAKE_RESULT_FEEDBACK_LOOP)
-				BKE_report(op->reports, RPT_ERROR, "Feedback loop detected");
+				BKE_report(op->reports, RPT_ERROR, "Circular reference in texture stack");
 
 			finish_bake_internal(&bkr);
 

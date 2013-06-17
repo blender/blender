@@ -103,7 +103,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 	if (ob->parent) {
 		// If parentinv is identity don't add it.
 		bool add_parinv = false;
-    		
+
 		for (int i = 0; i < 16; ++i) {
 			float f = (i % 4 == i / 4) ? 1.0f : 0.0f;
 			add_parinv |= (ob->parentinv[i % 4][i / 4] != f);

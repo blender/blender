@@ -363,7 +363,9 @@ bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode
 	return 1;
 }
 
-CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
+CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md,
+                                    CustomDataMask dataMask, int required_mode,
+                                    ModifierData *previewmd, CustomDataMask previewmask)
 {
 	CDMaskLink *dataMasks = NULL;
 	CDMaskLink *curr, *prev;
@@ -374,9 +376,14 @@ CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierDat
 
 		curr = MEM_callocN(sizeof(CDMaskLink), "CDMaskLink");
 		
-		if (modifier_isEnabled(scene, md, required_mode))
+		if (modifier_isEnabled(scene, md, required_mode)) {
 			if (mti->requiredDataMask)
 				curr->mask = mti->requiredDataMask(ob, md);
+
+			if (previewmd == md) {
+				curr->mask |= previewmask;
+			}
+		}
 
 		/* prepend new datamask */
 		curr->next = dataMasks;

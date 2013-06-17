@@ -5394,6 +5394,10 @@ void RE_DataBase_IncrementalView(Render *re, float viewmat[4][4], int restore)
 	invert_m4_m4(re->viewinv, re->viewmat);
 	
 	env_rotate_scene(re, tmat, !restore);
+
+	/* SSS points distribution depends on view */
+	if ((re->r.mode & R_SSS) && !re->test_break(re->tbh))
+		make_sss_tree(re);
 }
 
 

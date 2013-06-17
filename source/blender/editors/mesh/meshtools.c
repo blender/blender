@@ -947,7 +947,6 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 	else {
 		return mesh_get_x_mirror_vert_spatial(ob, index);
 	}
-	return 0;
 }
 
 static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, const float co[3])

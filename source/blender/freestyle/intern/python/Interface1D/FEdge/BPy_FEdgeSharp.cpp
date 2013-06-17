@@ -290,7 +290,7 @@ PyDoc_STRVAR(FEdgeSharp_material_index_left_doc,
 
 static PyObject *FEdgeSharp_material_index_left_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
 {
-	return PyLong_FromLong(self->fes->aFrsMaterialIndex());
+	return PyLong_FromLong(self->fes->bFrsMaterialIndex());
 }
 
 static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))

@@ -57,7 +57,7 @@ __device float3 spherical_to_direction(float theta, float phi)
 
 __device float2 direction_to_equirectangular(float3 dir)
 {
-	float u = -atan2f(dir.y, dir.x)/(2.0f*M_PI_F) + 0.5f;
+	float u = -atan2f(dir.y, dir.x)/(M_2PI_F) + 0.5f;
 	float v = atan2f(dir.z, hypotf(dir.x, dir.y))/M_PI_F + 0.5f;
 
 	return make_float2(u, v);

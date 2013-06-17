@@ -1195,7 +1195,7 @@ static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *activescene, Po
 	Scene *scene = (Scene *)ptr->id.data;
 
 	if (scene->nodetree)
-		ntreeCompositForceHidden(scene->nodetree, scene);
+		ntreeCompositForceHidden(scene->nodetree);
 	
 	rna_Scene_glsl_update(bmain, activescene, ptr);
 }

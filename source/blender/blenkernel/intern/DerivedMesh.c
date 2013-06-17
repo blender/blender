@@ -1482,7 +1482,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	ModifierData *firstmd, *md, *previewmd = NULL;
 	CDMaskLink *datamasks, *curr;
 	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
-	CustomDataMask mask, nextmask, append_mask = CD_MASK_ORIGINDEX;
+	CustomDataMask mask, nextmask, previewmask = 0, append_mask = CD_MASK_ORIGINDEX;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm = NULL, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
@@ -1532,16 +1532,23 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	if (useRenderParams) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
-	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
-	curr = datamasks;
-
 	if (do_mod_wmcol || do_mod_mcol) {
 		/* Find the last active modifier generating a preview, or NULL if none. */
 		/* XXX Currently, DPaint modifier just ignores this.
 		 *     Needs a stupid hack...
 		 *     The whole "modifier preview" thing has to be (re?)designed, anyway! */
 		previewmd = modifiers_getLastPreview(scene, md, required_mode);
+
+		/* even if the modifier doesn't need the data, to make a preview it may */
+		if (previewmd) {
+			if (do_mod_wmcol) {
+				previewmask = CD_MASK_MDEFORMVERT;
+			}
+		}
 	}
+
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode, previewmd, previewmask);
+	curr = datamasks;
 
 	if (deform_r) *deform_r = NULL;
 	*final_r = NULL;
@@ -2028,7 +2035,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	dm = NULL;
 	md = modifiers_getVirtualModifierList(ob);
 
-	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode, NULL, 0);
 
 	curr = datamasks;
 	for (i = 0; md; i++, md = md->next, curr = curr->next) {

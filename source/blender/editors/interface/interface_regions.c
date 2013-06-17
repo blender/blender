@@ -835,25 +835,27 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 	/* apply step */
 	data->active += step;
 	
-	if (data->items.totitem == 0)
-		data->active = 0;
-	else if (data->active > data->items.totitem) {
+	if (data->items.totitem == 0) {
+		data->active = -1;
+	}
+	else if (data->active >= data->items.totitem) {
 		if (data->items.more) {
 			data->items.offset++;
-			data->active = data->items.totitem;
+			data->active = data->items.totitem - 1;
 			ui_searchbox_update(C, ar, but, false);
 		}
-		else
-			data->active = data->items.totitem;
+		else {
+			data->active = data->items.totitem - 1;
+		}
 	}
-	else if (data->active < 1) {
+	else if (data->active < 0) {
 		if (data->items.offset) {
 			data->items.offset--;
-			data->active = 1;
+			data->active = 0;
 			ui_searchbox_update(C, ar, but, false);
 		}
-		else if (data->active < 0)
-			data->active = 0;
+		else if (data->active < -1)
+			data->active = -1;
 	}
 	
 	ED_region_tag_redraw(ar);
@@ -913,15 +915,13 @@ bool ui_searchbox_apply(uiBut *but, ARegion *ar)
 
 	but->func_arg2 = NULL;
 	
-	if (data->active) {
-		char *name = data->items.names[data->active - 1];
-		char *cpoin = strchr(name, '|');
+	if (data->active != -1) {
+		const char *name = data->items.names[data->active];
+		const char *name_sep = strchr(name, '|');
+
+		BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen);
 		
-		if (cpoin) cpoin[0] = 0;
-		BLI_strncpy(but->editstr, name, data->items.maxstrlen);
-		if (cpoin) cpoin[0] = '|';
-		
-		but->func_arg2 = data->items.pointers[data->active - 1];
+		but->func_arg2 = data->items.pointers[data->active];
 
 		return true;
 	}
@@ -955,8 +955,8 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *eve
 				for (a = 0; a < data->items.totitem; a++) {
 					ui_searchbox_butrect(&rect, data, a);
 					if (BLI_rcti_isect_pt(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
-						if (data->active != a + 1) {
-							data->active = a + 1;
+						if (data->active != a) {
+							data->active = a;
 							ui_searchbox_select(C, ar, but, 0);
 							break;
 						}
@@ -980,7 +980,7 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 	}
 	else {
 		data->items.offset_i = data->items.offset = 0;
-		data->active = 0;
+		data->active = -1;
 		
 		/* handle active */
 		if (but->search_func && but->func_arg2) {
@@ -992,19 +992,19 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 			if (data->items.totitem) {
 				/* first case, begin of list */
 				if (data->items.offset_i < data->items.maxitem) {
-					data->active = data->items.offset_i + 1;
+					data->active = data->items.offset_i;
 					data->items.offset_i = 0;
 				}
 				else {
 					/* second case, end of list */
 					if (data->items.totitem - data->items.offset_i <= data->items.maxitem) {
-						data->active = 1 + data->items.offset_i - data->items.totitem + data->items.maxitem;
+						data->active = data->items.offset_i - data->items.totitem + data->items.maxitem;
 						data->items.offset_i = data->items.totitem - data->items.maxitem;
 					}
 					else {
 						/* center active item */
 						data->items.offset_i -= data->items.maxitem / 2;
-						data->active = 1 + data->items.maxitem / 2;
+						data->active = data->items.maxitem / 2;
 					}
 				}
 			}
@@ -1018,19 +1018,19 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
 	
 	/* handle case where editstr is equal to one of items */
-	if (reset && data->active == 0) {
+	if (reset && data->active == -1) {
 		int a;
 		
 		for (a = 0; a < data->items.totitem; a++) {
-			char *cpoin = strchr(data->items.names[a], '|');
-			
-			if (cpoin) cpoin[0] = 0;
-			if (0 == strcmp(but->editstr, data->items.names[a]))
-				data->active = a + 1;
-			if (cpoin) cpoin[0] = '|';
+			const char *name = data->items.names[a];
+			const char *name_sep = strchr(name, '|');
+			if (STREQLEN(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen)) {
+				data->active = a;
+				break;
+			}
 		}
 		if (data->items.totitem == 1 && but->editstr[0])
-			data->active = 1;
+			data->active = 0;
 	}
 
 	/* validate selected item */
@@ -1075,9 +1075,9 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				
 				/* widget itself */
 				if (data->preview)
-					ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a + 1) == data->active ? UI_ACTIVE : 0);
+					ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a == data->active) ? UI_ACTIVE : 0);
 				else 
-					ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a + 1) == data->active ? UI_ACTIVE : 0);
+					ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a == data->active) ? UI_ACTIVE : 0);
 			}
 			
 			/* indicate more */
@@ -1101,7 +1101,7 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */
-				ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a + 1) == data->active ? UI_ACTIVE : 0);
+				ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a == data->active) ? UI_ACTIVE : 0);
 				
 			}
 			/* indicate more */
@@ -2090,7 +2090,7 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, in
 
 
 /* a HS circle, V slider, rgb/hsv/hex sliders */
-static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, PropertyRNA *prop, int show_picker)
+static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, PropertyRNA *prop, bool show_picker)
 {
 	static short colormode = 0;  /* temp? 0=rgb, 1=hsv, 2=hex */
 	uiBut *bt;

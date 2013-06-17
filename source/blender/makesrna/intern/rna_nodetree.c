@@ -724,23 +724,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	node = nodeAddNode(C, ntree, type);
 	BLI_assert(node && node->typeinfo);
 	
-	/* XXX ugly stuff, should be done with specialized operators (after actual node creation)! */
-	if (ntree->type == NTREE_COMPOSIT) {
-		if (ELEM4(node->type, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE, CMP_NODE_R_LAYERS)) {
-			/* annoying, find the node tree we are in, scene can be NULL */
-			Scene *scene;
-			for (scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next) {
-				if (scene->nodetree == ntree) {
-					break;
-				}
-			}
-			node->id = (ID *)scene;
-			id_us_plus(node->id);
-		}
-		
-		ntreeCompositForceHidden(ntree, CTX_data_scene(C));
-	}
-	else if (ntree->type == NTREE_TEXTURE) {
+	if (ntree->type == NTREE_TEXTURE) {
 		ntreeTexCheckCyclics(ntree);
 	}
 	
@@ -1037,6 +1021,68 @@ static void rna_NodeTree_outputs_clear(bNodeTree *ntree, ReportList *reports)
 		ntreeRemoveSocketInterface(ntree, sock);
 	}
 
+	ntreeUpdateTree(G.main, ntree);
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+}
+
+static void rna_NodeTree_inputs_move(bNodeTree *ntree, int from_index, int to_index)
+{
+	bNodeSocket *sock;
+	
+	if (from_index == to_index)
+		return;
+	if (from_index < 0 || to_index < 0)
+		return;
+	
+	sock = BLI_findlink(&ntree->inputs, from_index);
+	if (to_index < from_index) {
+		bNodeSocket *nextsock = BLI_findlink(&ntree->inputs, to_index);
+		if (nextsock) {
+			BLI_remlink(&ntree->inputs, sock);
+			BLI_insertlinkbefore(&ntree->inputs, nextsock, sock);
+		}
+	}
+	else {
+		bNodeSocket *prevsock = BLI_findlink(&ntree->inputs, to_index);
+		if (prevsock) {
+			BLI_remlink(&ntree->inputs, sock);
+			BLI_insertlinkafter(&ntree->inputs, prevsock, sock);
+		}
+	}
+	
+	ntree->update |= NTREE_UPDATE_GROUP_IN;
+	
+	ntreeUpdateTree(G.main, ntree);
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+}
+
+static void rna_NodeTree_outputs_move(bNodeTree *ntree, int from_index, int to_index)
+{
+	bNodeSocket *sock;
+	
+	if (from_index == to_index)
+		return;
+	if (from_index < 0 || to_index < 0)
+		return;
+	
+	sock = BLI_findlink(&ntree->outputs, from_index);
+	if (to_index < from_index) {
+		bNodeSocket *nextsock = BLI_findlink(&ntree->outputs, to_index);
+		if (nextsock) {
+			BLI_remlink(&ntree->outputs, sock);
+			BLI_insertlinkbefore(&ntree->outputs, nextsock, sock);
+		}
+	}
+	else {
+		bNodeSocket *prevsock = BLI_findlink(&ntree->outputs, to_index);
+		if (prevsock) {
+			BLI_remlink(&ntree->outputs, sock);
+			BLI_insertlinkafter(&ntree->outputs, prevsock, sock);
+		}
+	}
+	
+	ntree->update |= NTREE_UPDATE_GROUP_OUT;
+	
 	ntreeUpdateTree(G.main, ntree);
 	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -1667,6 +1713,13 @@ static void rna_Node_height_range(PointerRNA *ptr, float *min, float *max, float
 	bNode *node = ptr->data;
 	*min = *softmin = node->typeinfo->minheight;
 	*max = *softmax = node->typeinfo->maxheight;
+}
+
+static void rna_Node_dimensions_get(PointerRNA *ptr, float *value)
+{
+	bNode *node = ptr->data;
+	value[0] = node->totr.xmax - node->totr.xmin;
+	value[1] = node->totr.ymax - node->totr.ymin;
 }
 
 
@@ -5730,9 +5783,14 @@ static void def_cmp_trackpos(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem position_items[] = {
-		{0, "ABSOLUTE", 0, "Absolute",  "Output absolute position of a marker"},
-		{1, "RELATIVE_START", 0, "Relative Start",  "Output position of a marker relative to first marker of a track"},
-		{2, "RELATIVE_FRAME", 0, "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{CMP_TRACKPOS_ABSOLUTE, "ABSOLUTE", 0,
+		 "Absolute",  "Output absolute position of a marker"},
+		{CMP_TRACKPOS_RELATIVE_START, "RELATIVE_START", 0,
+		 "Relative Start",  "Output position of a marker relative to first marker of a track"},
+		{CMP_TRACKPOS_RELATIVE_FRAME, "RELATIVE_FRAME", 0,
+		 "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{CMP_TRACKPOS_ABSOLUTE_FRAME, "ABSOLUTE_FRAME", 0,
+		 "Absolute Frame",  "Output absolute position of a marker at given frame number"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -6664,6 +6722,12 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Height", "Height of the node");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 	
+	prop = RNA_def_property(srna, "dimensions", PROP_FLOAT, PROP_XYZ_LENGTH);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_Node_dimensions_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Dimensions", "Absolute bounding box dimensions of the node");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique node identifier");
 	RNA_def_struct_name_property(srna, prop);
@@ -6978,9 +7042,9 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a node link to this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "input", "NodeSocket", "", "The input socket");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "output", "NodeSocket", "", "The output socket");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	RNA_def_boolean(func, "verify_limits", TRUE, "Verify Limits", "Remove existing links if connection limit is exceeded");
 	/* return */
 	parm = RNA_def_pointer(func, "link", "NodeLink", "", "New node link");
@@ -7007,6 +7071,7 @@ static void rna_def_node_tree_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, 
 	const char *uiname =  (in_out == SOCK_IN ? "Node Tree Inputs" : "Node Tree Outputs");
 	const char *newfunc = (in_out == SOCK_IN ? "rna_NodeTree_inputs_new" : "rna_NodeTree_outputs_new");
 	const char *clearfunc = (in_out == SOCK_IN ? "rna_NodeTree_inputs_clear" : "rna_NodeTree_outputs_clear");
+	const char *movefunc = (in_out == SOCK_IN ? "rna_NodeTree_inputs_move" : "rna_NodeTree_outputs_move");
 
 	RNA_def_property_srna(cprop, structtype);
 	srna = RNA_def_struct(brna, structtype, NULL);
@@ -7033,6 +7098,13 @@ static void rna_def_node_tree_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, 
 	func = RNA_def_function(srna, "clear", clearfunc);
 	RNA_def_function_ui_description(func, "Remove all sockets from this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+
+	func = RNA_def_function(srna, "move", movefunc);
+	RNA_def_function_ui_description(func, "Move a socket to another position");
+	parm = RNA_def_int(func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the socket to move", 0, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "to_index", -1, 0, INT_MAX, "To Index", "Target index for the socket", 0, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 static void rna_def_nodetree(BlenderRNA *brna)
