@@ -69,15 +69,19 @@
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
 #include <pmmintrin.h> /* SSE 3 */
-#include <tmmintrin.h> /* SSE 3 */
+#include <tmmintrin.h> /* SSSE 3 */
 #include <smmintrin.h> /* SSE 4 */
 
 #ifndef __KERNEL_SSE2__
 #define __KERNEL_SSE2__
 #endif
 
-#ifndef __KERNEL_SSE3__
-#define __KERNEL_SSE3__
+#ifndef __KERNEL_SSSE3__
+#define __KERNEL_SSSE3__
+#endif
+
+#ifndef __KERNEL_SSSE3__
+#define __KERNEL_SSSE3__
 #endif
 
 #ifndef __KERNEL_SSE4__
@@ -86,7 +90,7 @@
 
 #else
 
-#if defined(__x86_64__) || defined(__KERNEL_SSE3__)
+#if defined(__x86_64__) || defined(__KERNEL_SSSE3__)
 
 /* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
  * Since we can't avoid including <windows.h>, better only include that */
@@ -96,9 +100,11 @@
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
 
-#ifdef __KERNEL_SSE3__
+#ifdef __KERNEL_SSSE3__
 #include <pmmintrin.h> /* SSE 3 */
-#include <tmmintrin.h> /* SSE 3 */
+#endif
+#ifdef __KERNEL_SSSE3__
+#include <tmmintrin.h> /* SSSE 3 */
 #endif
 #endif
 
@@ -110,10 +116,9 @@
 
 #endif
 
+/* int8_t, uint16_t, and friends */
 #ifndef _WIN32
-
 #include <stdint.h>
-
 #endif
 
 #endif
@@ -486,7 +491,7 @@ __device_inline int4 make_int4(const float3& f)
 
 #endif
 
-#ifdef __KERNEL_SSE3__
+#ifdef __KERNEL_SSSE3__
 
 /* SSE shuffle utility functions */
 
