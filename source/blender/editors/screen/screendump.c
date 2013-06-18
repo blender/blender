@@ -220,7 +220,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	return OPERATOR_CANCELLED;
 }
 
-static int screenshot_check(bContext *UNUSED(C), wmOperator *op)
+static bool screenshot_check(bContext *UNUSED(C), wmOperator *op)
 {
 	ScreenshotData *scd = op->customdata;
 	return WM_operator_filesel_ensure_ext_imtype(op, &scd->im_format);

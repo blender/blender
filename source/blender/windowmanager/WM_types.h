@@ -531,7 +531,7 @@ typedef struct wmOperatorType {
 	 * is changed. It can correct its own properties or report errors for
 	 * invalid settings in exceptional cases.
 	 * Boolean return value, True denotes a change has been made and to redraw */
-	int (*check)(struct bContext *, struct wmOperator *);
+	bool (*check)(struct bContext *, struct wmOperator *);
 
 	/* for modal temporary operators, initially invoke is called. then
 	 * any further events are handled in modal. if the operation is

@@ -1038,7 +1038,7 @@ int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event
 	}
 }
 
-int WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
+bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
 {
 	PropertyRNA *prop;
 	char filepath[FILE_MAX];
@@ -2400,7 +2400,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 }
 
 /* function used for WM_OT_save_mainfile too */
-static int blend_save_check(bContext *UNUSED(C), wmOperator *op)
+static bool blend_save_check(bContext *UNUSED(C), wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
