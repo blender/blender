@@ -196,7 +196,7 @@ static void sort_trans_data(TransInfo *t)
 
 /* distance calculated from not-selected vertex to nearest selected vertex
  * warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
-static void set_prop_dist(TransInfo *t, short with_dist)
+static void set_prop_dist(TransInfo *t, const bool with_dist)
 {
 	TransData *tob;
 	int a;
@@ -216,12 +216,9 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 				if (td->flag & TD_SELECTED) {
 					sub_v3_v3v3(vec, tob->center, td->center);
 					mul_m3_v3(tob->mtx, vec);
-					dist = normalize_v3(vec);
-					if (tob->rdist == -1.0f) {
-						tob->rdist = dist;
-					}
-					else if (dist < tob->rdist) {
-						tob->rdist = dist;
+					dist = len_squared_v3(vec);
+					if ((tob->rdist == -1.0f) || (dist < (tob->rdist * tob->rdist))) {
+						tob->rdist = sqrtf(dist);
 					}
 				}
 				else {
@@ -1778,90 +1775,125 @@ void flushTransParticles(TransInfo *t)
 
 /* ********************* mesh ****************** */
 
-/* I did this wrong, it should be a breadth-first search
- * but instead it's a depth-first search, fudged
- * to report shortest distances.  I have no idea how fast
- * or slow this is. */
-static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[3][3], float *dists)
+static bool bmesh_test_dist_add(BMVert *v, BMVert *v_other,
+                                float *dists, const float *dists_prev,
+                                float mtx[3][3])
 {
-	BMVert **queue = NULL;
-	float *dqueue = NULL;
-	int *tots = MEM_callocN(sizeof(int) * em->bm->totvert, "tots editmesh_set_connectivity_distance");
-	BLI_array_declare(queue);
-	BLI_array_declare(dqueue);
-	SmallHash svisit, *visit = &svisit;
-	BMVert *v;
-	BMIter viter;
-	int i, start;
-	
-	fill_vn_fl(dists, em->bm->totvert, FLT_MAX);
+	if ((BM_elem_flag_test(v_other, BM_ELEM_SELECT) == 0) &&
+	    (BM_elem_flag_test(v_other, BM_ELEM_HIDDEN) == 0))
+	{
+		const int i = BM_elem_index_get(v);
+		const int i_other = BM_elem_index_get(v_other);
+		float vec[3];
+		float dist_other;
+		sub_v3_v3v3(vec, v->co, v_other->co);
+		mul_m3_v3(mtx, vec);
 
-	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
-
-	BLI_smallhash_init(visit);
-
-	BM_ITER_MESH (v, &viter, em->bm, BM_VERTS_OF_MESH) {
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT) == 0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			continue;
-			
-		
-		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);
-		BLI_array_append(queue, v);
-		BLI_array_append(dqueue, 0.0f);
-		dists[BM_elem_index_get(v)] = 0.0f;
-	}
-	
-	start = 0;
-	while (start < BLI_array_count(queue)) {
-		BMIter eiter;
-		BMEdge *e;
-		BMVert *v3, *v2;
-		float d, vec[3];
-		
-		v2 = queue[start];
-		d = dqueue[start];
-		
-		BM_ITER_ELEM (e, &eiter, v2, BM_EDGES_OF_VERT) {
-			float d2;
-			v3 = BM_edge_other_vert(e, v2);
-			
-			if (BM_elem_flag_test(v3, BM_ELEM_SELECT) || BM_elem_flag_test(v3, BM_ELEM_HIDDEN))
-				continue;
-			
-			sub_v3_v3v3(vec, v2->co, v3->co);
-			mul_m3_v3(mtx, vec);
-			
-			d2 = d + len_v3(vec);
-			
-			if (dists[BM_elem_index_get(v3)] != FLT_MAX)
-				dists[BM_elem_index_get(v3)] = min_ff(d2, dists[BM_elem_index_get(v3)]);
-			else
-				dists[BM_elem_index_get(v3)] = d2;
-			
-			tots[BM_elem_index_get(v3)] = 1;
-
-			if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
-				continue;
-			
-			BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
-			
-			BLI_array_append(queue, v3);
-			BLI_array_append(dqueue, d2);
+		dist_other = dists_prev[i] + len_v3(vec);
+		if (dist_other < dists[i_other]) {
+			dists[i_other] = dist_other;
+			return true;
 		}
-		
-		start++;
 	}
 
-	BLI_smallhash_release(visit);
-	
-	for (i = 0; i < em->bm->totvert; i++) {
-		if (tots[i])
-			dists[i] /= (float)tots[i];
+	return false;
+}
+
+static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float *dists)
+{
+	/* need to be very careful of feedback loops here, store previous dist's to avoid feedback */
+	float *dists_prev = MEM_mallocN(bm->totvert * sizeof(float), __func__);
+
+	BMVert **queue = MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__);
+	STACK_DECLARE(queue);
+
+	/* any BM_ELEM_TAG'd vertex is in 'queue_next', so we don't add in twice */
+	BMVert **queue_next = MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__);
+	STACK_DECLARE(queue_next);
+
+	STACK_INIT(queue);
+	STACK_INIT(queue_next);
+
+	{
+		BMIter viter;
+		BMVert *v;
+		int i;
+
+		BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+			BM_elem_index_set(v, i); /* set_inline */
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
+
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT) == 0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+				dists[i] = FLT_MAX;
+			}
+			else {
+				STACK_PUSH(queue, v);
+
+				dists[i] = 0.0f;
+			}
+		}
 	}
-	
-	BLI_array_free(queue);
-	BLI_array_free(dqueue);
-	MEM_freeN(tots);
+
+	do {
+		BMVert *v;
+		unsigned int i;
+
+		memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
+
+		while ((v = STACK_POP(queue))) {
+			BMIter iter;
+			BMEdge *e;
+			BMLoop *l;
+
+			/* connected edge-verts */
+			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+				if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == 0) {
+					BMVert *v_other = BM_edge_other_vert(e, v);
+					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+						if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+							BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+							STACK_PUSH(queue_next, v_other);
+						}
+					}
+				}
+			}
+			
+			/* connected face-verts (excluding adjacent verts) */
+			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+				if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len > 3)) {
+					BMLoop *l_end = l->prev;
+					l = l->next->next;
+					do {
+						BMVert *v_other = l->v;
+						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+								STACK_PUSH(queue_next, v_other);
+							}
+						}
+					} while ((l = l->next) != l_end);
+				}
+			}
+		}
+
+		/* clear for the next loop */
+		for (i = 0; i < STACK_SIZE(queue_next); i++) {
+			BM_elem_flag_disable(queue_next[i], BM_ELEM_TAG);
+		}
+
+		STACK_SWAP(queue, queue_next);
+
+		/* none should be tagged now since 'queue_next' is empty */
+		BLI_assert(BM_iter_mesh_count_flag(BM_VERTS_OF_MESH, bm, BM_ELEM_TAG, true) == 0);
+
+	} while (STACK_SIZE(queue));
+
+	STACK_FREE(queue);
+	STACK_FREE(queue_next);
+
+	MEM_freeN(queue);
+	MEM_freeN(queue_next);
+	MEM_freeN(dists_prev);
 }
 
 static BMElem *bm_vert_single_select_face(BMVert *eve)
@@ -2099,7 +2131,7 @@ static void createTransEditVerts(TransInfo *t)
 	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	if (propmode & T_PROP_CONNECTED) {
-		editmesh_set_connectivity_distance(em, mtx, dists);
+		editmesh_set_connectivity_distance(em->bm, mtx, dists);
 	}
 
 	/* detect CrazySpace [tm] */

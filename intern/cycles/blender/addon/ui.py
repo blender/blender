@@ -919,6 +919,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(mat, "pass_index")
+        col.prop(cmat, "use_transparent_shadow")
 
         layout.prop(cmat, "sample_as_light")
 

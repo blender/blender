@@ -488,18 +488,16 @@ elseif(WIN32)
 	)
 
 	if(WITH_PYTHON)
-		set_lib_path(PYLIB "python")
-
 		string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
 		install(
-			FILES ${PYLIB}/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
+			FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
 			DESTINATION ${TARGETDIR}
 			CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
 		)
 
 		install(
-			FILES ${PYLIB}/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+			FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
 			DESTINATION ${TARGETDIR}
 			CONFIGURATIONS Debug
 		)

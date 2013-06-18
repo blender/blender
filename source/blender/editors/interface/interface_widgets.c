@@ -2286,8 +2286,7 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 }
 
 /* ************ button callbacks, draw ***************** */
-
-static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, bool emboss)
 {
 	uiWidgetBase wtb;
 	const float rad = 0.5f * BLI_rcti_size_y(rect);
@@ -2298,9 +2297,10 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	
 	widget_init(&wtb);
 	
-	/* fully rounded */
-	round_box_edges(&wtb, roundboxalign, rect, rad);
-	
+	if (!emboss) {
+		round_box_edges(&wtb, roundboxalign, rect, rad);
+	}
+
 	/* decoration */
 	if (!(state & UI_TEXTINPUT)) {
 		widget_num_tria(&wtb.tria1, rect, 0.6f, 'l');
@@ -2312,6 +2312,19 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	/* text space */
 	rect->xmin += textofs;
 	rect->xmax -= textofs;
+}
+
+static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	widget_numbut_draw(wcol, rect, state, roundboxalign, false);
+}
+
+/*
+ * Draw number buttons still with triangles when field is not embossed
+*/
+static void widget_numbut_embossn(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	widget_numbut_draw(wcol, rect, state, roundboxalign, true);
 }
 
 int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
@@ -2671,7 +2684,7 @@ static void widget_normal(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUS
 	ui_draw_but_NORMAL(but, wcol, rect);
 }
 
-static void widget_icon_has_anim(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
+static void widget_icon_has_anim(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	if (state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT)) {
 		uiWidgetBase wtb;
@@ -2684,6 +2697,11 @@ static void widget_icon_has_anim(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti 
 		rad = 0.5f * BLI_rcti_size_y(rect);
 		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 		widgetbase_draw(&wtb, wcol);
+	}
+	else if (but->type == NUM) {
+		/* Draw number buttons still with left/right 
+		 * triangles when field is not embossed */
+		widget_numbut_embossn(but, wcol, rect, state, roundboxalign);
 	}
 }
 

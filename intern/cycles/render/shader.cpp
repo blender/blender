@@ -42,7 +42,8 @@ Shader::Shader()
 	graph = NULL;
 	graph_bump = NULL;
 
-	sample_as_light = true;
+	use_mis = true;
+	use_transparent_shadow = true;
 	homogeneous_volume = false;
 
 	has_surface = false;
@@ -88,7 +89,7 @@ void Shader::tag_update(Scene *scene)
 	/* if the shader previously was emissive, update light distribution,
 	 * if the new shader is emissive, a light manager update tag will be
 	 * done in the shader manager device update. */
-	if(sample_as_light && has_surface_emission)
+	if(use_mis && has_surface_emission)
 		scene->light_manager->need_update = true;
 
 	/* get requested attributes. this could be optimized by pruning unused
@@ -220,10 +221,10 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	foreach(Shader *shader, scene->shaders) {
 		uint flag = 0;
 
-		if(shader->sample_as_light)
-			flag |= SD_SAMPLE_AS_LIGHT;
-		if(shader->has_surface_transparent)
-			flag |= SD_HAS_SURFACE_TRANSPARENT;
+		if(shader->use_mis)
+			flag |= SD_USE_MIS;
+		if(shader->has_surface_transparent && shader->use_transparent_shadow)
+			flag |= SD_HAS_TRANSPARENT_SHADOW;
 		if(shader->has_volume)
 			flag |= SD_HAS_VOLUME;
 		if(shader->homogeneous_volume)

@@ -22,6 +22,8 @@
 
 #ifdef WITH_OPTIMIZED_KERNEL
 
+#define __KERNEL_SSE3__
+
 #include "kernel.h"
 #include "kernel_compat_cpu.h"
 #include "kernel_math.h"

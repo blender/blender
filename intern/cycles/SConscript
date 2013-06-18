@@ -86,7 +86,7 @@ if env['WITH_BF_RAYOPTIMIZATION']:
         sse3_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
     else:
         sse2_cxxflags.append('-ffast-math -msse -msse2 -mfpmath=sse'.split())
-        sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mfpmath=sse'.split())
+        sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse'.split())
     
     defs.append('WITH_OPTIMIZED_KERNEL')
     optim_defs = defs[:]
