@@ -31,8 +31,6 @@
  *  \ingroup bli
  */
 
-#include "BLI_string.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

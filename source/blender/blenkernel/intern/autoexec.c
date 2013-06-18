@@ -34,6 +34,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_fnmatch.h"
+#include "BLI_string.h"
 #include "BLI_path_util.h"
 
 #include "BKE_autoexec.h"  /* own include */
