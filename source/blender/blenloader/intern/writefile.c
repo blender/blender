@@ -860,6 +860,7 @@ static void write_userdef(WriteData *wd)
 	wmKeyMapItem *kmi;
 	wmKeyMapDiffItem *kmdi;
 	bAddon *bext;
+	bPathCompare *path_cmp;
 	uiStyle *style;
 	
 	writestruct(wd, USER, "UserDef", 1, &U);
@@ -887,6 +888,10 @@ static void write_userdef(WriteData *wd)
 		if (bext->prop) {
 			IDP_WriteProperty(bext->prop, wd);
 		}
+	}
+
+	for (path_cmp = U.autoexec_paths.first; path_cmp; path_cmp = path_cmp->next) {
+		writestruct(wd, DATA, "bPathCompare", 1, path_cmp);
 	}
 	
 	for (style= U.uistyles.first; style; style= style->next) {

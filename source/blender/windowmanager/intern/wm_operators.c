@@ -60,6 +60,7 @@
 
 #include "BLO_readfile.h"
 
+#include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -1868,6 +1869,47 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
+static int wm_userpref_autoexec_add_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
+	BLI_addtail(&U.autoexec_paths, path_cmp);
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_userpref_autoexec_path_add(wmOperatorType *ot)
+{
+	ot->name = "Add Autoexec Path";
+	ot->idname = "WM_OT_userpref_autoexec_path_add";
+
+	ot->exec = wm_userpref_autoexec_add_exec;
+	ot->poll = WM_operator_winactive;
+
+	ot->flag = OPTYPE_INTERNAL;
+}
+
+static int wm_userpref_autoexec_remove_exec(bContext *UNUSED(C), wmOperator *op)
+{
+	const int index = RNA_int_get(op->ptr, "index");
+	bPathCompare *path_cmp = BLI_findlink(&U.autoexec_paths, index);
+	if (path_cmp) {
+		BLI_freelinkN(&U.autoexec_paths, path_cmp);
+	}
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_userpref_autoexec_path_remove(wmOperatorType *ot)
+{
+	ot->name = "Remove Autoexec Path";
+	ot->idname = "WM_OT_userpref_autoexec_path_remove";
+
+	ot->exec = wm_userpref_autoexec_remove_exec;
+	ot->poll = WM_operator_winactive;
+
+	ot->flag = OPTYPE_INTERNAL;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+}
+
 static void WM_OT_save_userpref(wmOperatorType *ot)
 {
 	ot->name = "Save User Settings";
@@ -1916,6 +1958,12 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 
 /* *************** open file **************** */
 
+/* currently fits in a pointer */
+struct FileRuntime {
+	bool is_untrusted;
+};
+
+
 static void open_set_load_ui(wmOperator *op, bool use_prefs)
 {
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "load_ui");
@@ -1960,6 +2008,7 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	RNA_string_set(op->ptr, "filepath", openname);
 	open_set_load_ui(op, true);
 	open_set_use_scripts(op, true);
+	op->customdata = NULL;
 
 	WM_event_add_fileselect(C, op);
 
@@ -1990,9 +2039,63 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
+	/* autoexec is already set correctly for invoke() for exec() though we need to initialize */
+	if (!RNA_struct_property_is_set(op->ptr, "use_scripts")) {
+		WM_file_autoexec_init(path);
+	}
 	WM_file_read(C, path, op->reports);
-	
+
 	return OPERATOR_FINISHED;
+}
+
+static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
+{
+	struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
+	bool is_untrusted = false;
+	char path[FILE_MAX];
+	char *lslash;
+
+	RNA_string_get(op->ptr, "filepath", path);
+
+	/* get the dir */
+	lslash = (char *)BLI_last_slash(path);
+	if (lslash) *(lslash + 1) = '\0';
+
+	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
+		if (BKE_autoexec_match(path) == true) {
+			RNA_property_boolean_set(op->ptr, prop, false);
+			is_untrusted = true;
+		}
+	}
+
+	if (file_info) {
+		file_info->is_untrusted = is_untrusted;
+	}
+
+	return is_untrusted;
+}
+
+static void wm_open_mainfile_ui(bContext *UNUSED(C), wmOperator *op)
+{
+	struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+	uiLayout *layout = op->layout;
+	uiLayout *col = op->layout;
+	const char *autoexec_text = NULL;
+
+	uiItemR(layout, op->ptr, "load_ui", 0, NULL, ICON_NONE);
+
+	col = uiLayoutColumn(layout, false);
+	if (file_info->is_untrusted) {
+		autoexec_text = "Trusted Source [Untrusted Path]";
+		uiLayoutSetActive(col, false);
+		uiLayoutSetEnabled(col, false);
+	}
+	else {
+		autoexec_text = "Trusted Source";
+	}
+
+	uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
 }
 
 static void WM_OT_open_mainfile(wmOperatorType *ot)
@@ -2003,6 +2106,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 
 	ot->invoke = wm_open_mainfile_invoke;
 	ot->exec = wm_open_mainfile_exec;
+	ot->check = wm_open_mainfile_check;
+	ot->ui = wm_open_mainfile_ui;
 	/* ommit window poll so this can work in background mode */
 
 	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_OPENFILE,
@@ -2233,6 +2338,7 @@ void WM_recover_last_session(bContext *C, ReportList *reports)
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		
 		/* load file */
+		WM_file_autoexec_init(filename);
 		WM_file_read(C, filename, reports);
 	
 		G.fileflags &= ~G_FILE_RECOVER;
@@ -2279,6 +2385,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	/* load file */
+	WM_file_autoexec_init(path);
 	WM_file_read(C, path, op->reports);
 
 	G.fileflags &= ~G_FILE_RECOVER;
@@ -4044,6 +4151,8 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_save_userpref);
+	WM_operatortype_append(WM_OT_userpref_autoexec_path_add);
+	WM_operatortype_append(WM_OT_userpref_autoexec_path_remove);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_quit_blender);
 	WM_operatortype_append(WM_OT_open_mainfile);

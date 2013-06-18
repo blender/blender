@@ -63,6 +63,7 @@ set(SRC
 	intern/anim.c
 	intern/anim_sys.c
 	intern/armature.c
+	intern/autoexec.c
 	intern/blender.c
 	intern/bmfont.c
 	intern/boids.c
@@ -163,6 +164,7 @@ set(SRC
 	BKE_anim.h
 	BKE_animsys.h
 	BKE_armature.h
+	BKE_autoexec.h
 	BKE_blender.h
 	BKE_bmesh.h
 	BKE_bmfont.h
