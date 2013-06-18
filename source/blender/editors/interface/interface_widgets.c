@@ -2322,7 +2322,7 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 /*
  * Draw number buttons still with triangles when field is not embossed
 */
-static void widget_numbut_embossn(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_numbut_embossn(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	widget_numbut_draw(wcol, rect, state, roundboxalign, true);
 }
