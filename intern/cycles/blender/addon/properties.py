@@ -504,6 +504,12 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                             "objects that emit little light compared to other light sources",
                 default=True,
                 )
+        cls.use_transparent_shadow = BoolProperty(
+                name="Transparent Shadows",
+                description="Use transparent shadows for this material if it contains a Transparent BSDF"
+                            "disabling will render faster but not give accurate shadows",
+                default=True,
+                )
         cls.homogeneous_volume = BoolProperty(
                 name="Homogeneous Volume",
                 description="When using volume rendering, assume volume has the same density everywhere, "

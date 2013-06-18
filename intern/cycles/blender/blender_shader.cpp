@@ -860,7 +860,8 @@ void BlenderSync::sync_materials(bool update_all)
 
 			/* settings */
 			PointerRNA cmat = RNA_pointer_get(&b_mat->ptr, "cycles");
-			shader->sample_as_light = get_boolean(cmat, "sample_as_light");
+			shader->use_mis = get_boolean(cmat, "sample_as_light");
+			shader->use_transparent_shadow = get_boolean(cmat, "use_transparent_shadow");
 			shader->homogeneous_volume = get_boolean(cmat, "homogeneous_volume");
 
 			shader->set_graph(graph);

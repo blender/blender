@@ -100,7 +100,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		compiler.background = (shader == scene->shaders[scene->default_background]);
 		compiler.compile(og, shader);
 
-		if(shader->sample_as_light && shader->has_surface_emission)
+		if(shader->use_mis && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 	}
 
