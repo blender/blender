@@ -23,6 +23,11 @@
 
 #include <stdlib.h>
 
+	// Needed for _BistScanForward and _BitScanReverse on MSVC 2012 
+#	if defined(_MSC_VER) && _MSC_VER >= 1700
+#		include <intrin.h>
+#	endif
+
 #endif
 
 /* Qualifiers for kernel code shared by CPU and GPU */
