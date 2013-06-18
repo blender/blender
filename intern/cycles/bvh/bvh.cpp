@@ -579,6 +579,7 @@ void RegularBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
 	int nextNodeIdx = 0;
 
 	vector<BVHStackEntry> stack;
+	stack.reserve(BVHParams::MAX_DEPTH*2);
 	stack.push_back(BVHStackEntry(root, nextNodeIdx++));
 
 	while(stack.size()) {
@@ -776,6 +777,7 @@ void QBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
 	int nextNodeIdx = 0;
 
 	vector<BVHStackEntry> stack;
+	stack.reserve(BVHParams::MAX_DEPTH*2);
 	stack.push_back(BVHStackEntry(root, nextNodeIdx++));
 
 	while(stack.size()) {

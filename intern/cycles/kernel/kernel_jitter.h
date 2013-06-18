@@ -37,7 +37,7 @@ __device_inline int cmj_fast_mod_pow2(int a, int b)
 /* a must be > 0 and b must be > 1 */
 __device_inline int cmj_fast_div_pow2(int a, int b)
 {
-#ifdef __KERNEL_SSE2__
+#if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
 	return a >> __builtin_ctz(b);
 #else
 	return a/b;
@@ -46,7 +46,7 @@ __device_inline int cmj_fast_div_pow2(int a, int b)
 
 __device_inline uint cmj_w_mask(uint w)
 {
-#ifdef __KERNEL_SSE2__
+#if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
 	return ((1 << (32 - __builtin_clz(w))) - 1);
 #else
 	w |= w >> 1;

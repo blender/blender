@@ -13,9 +13,10 @@ if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 endif()
 
 if(WIN32 AND MSVC)
-	set(CYCLES_SSE2_KERNEL_FLAGS "/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc")
-	set(CYCLES_SSE3_KERNEL_FLAGS "/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /EHsc")
+	set(CYCLES_SSE2_KERNEL_FLAGS "/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc /Ox /GS-")
+	# there is no /arch:SSE3, but intrinsics are available anyway
+	set(CYCLES_SSE3_KERNEL_FLAGS "/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc /Ox /GS-")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /EHsc /Ox /GS-")
 elseif(CMAKE_COMPILER_IS_GNUCC)
 	set(CYCLES_SSE2_KERNEL_FLAGS "-ffast-math -msse -msse2 -mfpmath=sse")
 	set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse")

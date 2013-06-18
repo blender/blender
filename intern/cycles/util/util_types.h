@@ -23,11 +23,6 @@
 
 #include <stdlib.h>
 
-	// Needed for _BistScanForward and _BitScanReverse on MSVC 2012 
-#	if defined(_MSC_VER) && _MSC_VER >= 1700
-#		include <intrin.h>
-#	endif
-
 #endif
 
 /* Qualifiers for kernel code shared by CPU and GPU */
@@ -509,26 +504,6 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m12
 {
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
-#endif
-
-#if defined(__KERNEL_SSE2__) && defined(_MSC_VER)
-
-/* count zeros from start or end of integer bits */
-
-__device_inline uint32_t __builtin_ctz(uint32_t i)
-{
-	unsigned long r = 0;
-	_BitScanForward(&r, i);
-	return (uint32_t)r;
-}
-
-__device_inline uint32_t __builtin_clz(uint32_t i)
-{
-	unsigned long r = 0;
-	_BitScanReverse(&r, i);
-	return (uint32_t)r;
-}
-
 #endif
 
 CCL_NAMESPACE_END
