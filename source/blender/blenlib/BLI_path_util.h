@@ -31,6 +31,8 @@
  *  \ingroup bli
  */
 
+#include "BLI_string.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -162,7 +164,7 @@ void BLI_path_rel(char *file, const char *relfile);
 bool BLI_path_is_rel(const char *path);
 
 /* path string comparisons: case-insensitive for Windows, case-sensitive otherwise */
-#ifdef WIN32
+#if defined(WIN32)
 #  define BLI_path_cmp BLI_strcasecmp
 #  define BLI_path_ncmp BLI_strncasecmp
 #else
