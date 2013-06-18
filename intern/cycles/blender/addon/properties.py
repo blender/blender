@@ -506,7 +506,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 )
         cls.use_transparent_shadow = BoolProperty(
                 name="Transparent Shadows",
-                description="Use transparent shadows for this material if it contains a Transparent BSDF"
+                description="Use transparent shadows for this material if it contains a Transparent BSDF, "
                             "disabling will render faster but not give accurate shadows",
                 default=True,
                 )
