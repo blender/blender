@@ -443,17 +443,24 @@ void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int max
 static int ui_but_float_precision(uiBut *but, double value)
 {
 	int prec;
+	const double pow10_neg[PRECISION_FLOAT_MAX + 1] = {1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
 
 	/* first check if prec is 0 and fallback to a simple default */
 	if ((prec = (int)but->a2) == -1) {
 		prec = (but->hardmax < 10.001f) ? 3 : 2;
 	}
 
+	BLI_assert(prec <= PRECISION_FLOAT_MAX);
+	BLI_assert(pow10_neg[prec] == pow(10, -prec));
+
 	/* check on the number of decimal places need to display
 	 * the number, this is so 0.00001 is not displayed as 0.00,
 	 * _but_, this is only for small values si 10.0001 will not get
 	 * the same treatment */
-	if (value != 0.0 && (value = ABS(value)) < pow(10, -prec)) {
+	value = ABS(value);
+	if ((value < pow10_neg[prec]) &&
+	    (value > (1.0 / PRECISION_FLOAT_MAX_POW)))
+	{
 		int value_i = (int)((value * PRECISION_FLOAT_MAX_POW) + 0.5);
 		if (value_i != 0) {
 			const int prec_span = 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
