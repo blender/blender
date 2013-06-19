@@ -1178,7 +1178,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 		if (!orcodm)
 			orcodm = create_orco_dm(scene, ob);
 
-		ndm = mti->applyModifier(md, ob, orcodm, app_flag);
+		ndm = modwrap_applyModifier(md, ob, orcodm, app_flag);
 
 		if (ndm) {
 			/* if the modifier returned a new dm, release the old one */

@@ -2085,7 +2085,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			if (mti->applyModifierEM)
 				ndm = modwrap_applyModifierEM(md, ob, em, dm, MOD_APPLY_USECACHE);
 			else
-				ndm = mti->applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
+				ndm = modwrap_applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
 
 			if (ndm) {
 				if (dm && dm != ndm)
