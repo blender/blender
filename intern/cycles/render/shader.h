@@ -62,7 +62,8 @@ public:
 	ShaderGraph *graph_bump;
 
 	/* sampling */
-	bool sample_as_light;
+	bool use_mis;
+	bool use_transparent_shadow;
 	bool homogeneous_volume;
 
 	/* synchronization */

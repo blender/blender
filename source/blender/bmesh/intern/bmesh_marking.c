@@ -498,6 +498,8 @@ static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
 	BMIter iter;
 	int tot = 0;
 
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
+
 	if (htype & BM_VERT) {
 		for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
@@ -803,6 +805,8 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 
 	int i;
 
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
+
 	if (hflag & BM_ELEM_SELECT) {
 		BM_select_history_clear(bm);
 	}
@@ -871,6 +875,8 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 	BMIter iter;
 	BMElem *ele;
 	int i;
+
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
 
 	if (hflag & BM_ELEM_SELECT) {
 		BM_select_history_clear(bm);

@@ -138,6 +138,25 @@ EnumPropertyItem clip_editor_mode_items[] = {
 };
 
 /* Actually populated dynamically trough a function, but helps for context-less access (e.g. doc, i18n...). */
+static EnumPropertyItem buttons_context_items[] = {
+	{BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene"},
+	{BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render"},
+	{BCONTEXT_RENDER_LAYER, "RENDER_LAYER", ICON_RENDERLAYERS, "Render Layers", "Render layers"},
+	{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
+	{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
+	{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Object constraints"},
+	{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifiers", "Object modifiers"},
+	{BCONTEXT_DATA, "DATA", ICON_NONE, "Data", "Object data"},
+	{BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
+	{BCONTEXT_BONE_CONSTRAINT, "BONE_CONSTRAINT", ICON_CONSTRAINT, "Bone Constraints", "Bone constraints"},
+	{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
+	{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
+	{BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle"},
+	{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* Actually populated dynamically trough a function, but helps for context-less access (e.g. doc, i18n...). */
 static EnumPropertyItem buttons_texture_context_items[] = {
 	{SB_TEXC_MATERIAL, "MATERIAL", ICON_MATERIAL, "", "Show material textures"},
 	{SB_TEXC_WORLD, "WORLD", ICON_WORLD, "", "Show world textures"},
@@ -829,6 +848,76 @@ static void rna_SpaceProperties_context_set(PointerRNA *ptr, int value)
 	
 	sbuts->mainb = value;
 	sbuts->mainbuser = value;
+}
+
+static EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *C, PointerRNA *ptr,
+                                                                   PropertyRNA *UNUSED(prop), int *free)
+{
+	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	if (sbuts->pathflag & (1 << BCONTEXT_RENDER)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_RENDER);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_RENDER_LAYER)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_RENDER_LAYER);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_SCENE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_SCENE);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_WORLD)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_WORLD);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_OBJECT)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_OBJECT);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_CONSTRAINT)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_CONSTRAINT);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_MODIFIER)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_MODIFIER);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_DATA)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_DATA);
+		(item + totitem - 1)->icon = sbuts->dataicon;
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_BONE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_BONE);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_BONE_CONSTRAINT)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_BONE_CONSTRAINT);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_MATERIAL)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_MATERIAL);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_TEXTURE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_TEXTURE);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_PARTICLE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PARTICLE);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_PHYSICS)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PHYSICS);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = 1;
+
+	return item;
 }
 
 static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
@@ -2068,24 +2157,6 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem buttons_context_items[] = {
-		{BCONTEXT_SCENE, "SCENE", ICON_SCENE, "Scene", "Scene"},
-		{BCONTEXT_RENDER, "RENDER", ICON_SCENE_DATA, "Render", "Render"},
-		{BCONTEXT_RENDER_LAYER, "RENDER_LAYER", ICON_RENDERLAYERS, "Render Layers", "Render Layers"},
-		{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
-		{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
-		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Constraints"},
-		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifiers", "Modifiers"},
-		{BCONTEXT_DATA, "DATA", 0, "Data", "Data"},
-		{BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
-		{BCONTEXT_BONE_CONSTRAINT, "BONE_CONSTRAINT", ICON_CONSTRAINT, "Bone Constraints", "Bone Constraints"},
-		{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
-		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
-		{BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle"},
-		{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
-		{0, NULL, 0, NULL, NULL}
-	};
-		
 	static EnumPropertyItem align_items[] = {
 		{BUT_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", ""},
 		{BUT_VERTICAL, "VERTICAL", 0, "Vertical", ""},
@@ -2099,7 +2170,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
 	RNA_def_property_enum_items(prop, buttons_context_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceProperties_context_set", NULL);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceProperties_context_set", "rna_SpaceProperties_context_itemf");
 	RNA_def_property_ui_text(prop, "Context", "Type of active data to display and edit");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 	

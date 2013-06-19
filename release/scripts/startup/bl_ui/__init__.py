@@ -68,6 +68,7 @@ _modules = [
     "space_nla",
     "space_node",
     "space_outliner",
+    "space_properties",
     "space_sequencer",
     "space_text",
     "space_time",

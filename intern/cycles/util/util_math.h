@@ -165,7 +165,7 @@ __device_inline float clamp(float a, float mn, float mx)
 
 __device_inline int float_to_int(float f)
 {
-#ifdef __KERNEL_SSE2__
+#if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
 	return _mm_cvtt_ss2si(_mm_load_ss(&f));
 #else
 	return (int)f;

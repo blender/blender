@@ -1166,6 +1166,26 @@ static bool selectbuffer_has_bones(const unsigned int *buffer, const unsigned in
 	return false;
 }
 
+/* utility function for mixed_bones_object_selectbuffer */
+static short selectbuffer_ret_hits_15(unsigned int *UNUSED(buffer), const short hits15)
+{
+	return hits15;
+}
+
+static short selectbuffer_ret_hits_9(unsigned int *buffer, const short hits15, const short hits9)
+{
+	const int offs = 4 * hits15;
+	memcpy(buffer, buffer + offs, 4 * offs);
+	return hits9;
+}
+
+static short selectbuffer_ret_hits_5(unsigned int *buffer, const short hits15, const short hits9, const short hits5)
+{
+	const int offs = 4 * hits15 + 4 * hits9;
+	memcpy(buffer, buffer + offs, 4 * offs);
+	return hits5;
+}
+
 /* we want a select buffer with bones, if there are... */
 /* so check three selection levels and compare */
 static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buffer, const int mval[2])
@@ -1177,48 +1197,39 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	
 	BLI_rcti_init(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
 	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
-	if (hits15 > 0) {
+	if (hits15 == 1) {
+		return selectbuffer_ret_hits_15(buffer, hits15);
+	}
+	else if (hits15 > 0) {
 		has_bones15 = selectbuffer_has_bones(buffer, hits15);
 
 		offs = 4 * hits15;
 		BLI_rcti_init(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
 		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
-		if (hits9 > 0) {
+		if (hits9 == 1) {
+			return selectbuffer_ret_hits_9(buffer, hits15, hits9);
+		}
+		else if (hits9 > 0) {
 			has_bones9 = selectbuffer_has_bones(buffer + offs, hits9);
 
 			offs += 4 * hits9;
 			BLI_rcti_init(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
 			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
-			if (hits5 > 0) {
+			if (hits5 == 1) {
+				return selectbuffer_ret_hits_5(buffer, hits15, hits9, hits5);
+			}
+			else if (hits5 > 0) {
 				has_bones5 = selectbuffer_has_bones(buffer + offs, hits5);
 			}
 		}
+
+		if      (has_bones5)  return selectbuffer_ret_hits_5(buffer,  hits15, hits9, hits5);
+		else if (has_bones9)  return selectbuffer_ret_hits_9(buffer,  hits15, hits9);
+		else if (has_bones15) return selectbuffer_ret_hits_15(buffer, hits15);
 		
-		if (has_bones5) {
-			offs = 4 * hits15 + 4 * hits9;
-			memcpy(buffer, buffer + offs, 4 * offs);
-			return hits5;
-		}
-		if (has_bones9) {
-			offs = 4 * hits15;
-			memcpy(buffer, buffer + offs, 4 * offs);
-			return hits9;
-		}
-		if (has_bones15) {
-			return hits15;
-		}
-		
-		if (hits5 > 0) {
-			offs = 4 * hits15 + 4 * hits9;
-			memcpy(buffer, buffer + offs, 4 * offs);
-			return hits5;
-		}
-		if (hits9 > 0) {
-			offs = 4 * hits15;
-			memcpy(buffer, buffer + offs, 4 * offs);
-			return hits9;
-		}
-		return hits15;
+		if      (hits5 > 0) return selectbuffer_ret_hits_5(buffer,  hits15, hits9, hits5);
+		else if (hits9 > 0) return selectbuffer_ret_hits_9(buffer,  hits15, hits9);
+		else                return selectbuffer_ret_hits_15(buffer, hits15);
 	}
 	
 	return 0;

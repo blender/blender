@@ -912,10 +912,13 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(mat, "diffuse_color", text="Viewport Color")
 
-        col = split.column()
+        col = split.column(align=True)
+        col.label()
         col.prop(mat, "pass_index")
-
-        layout.prop(cmat, "sample_as_light")
+        
+        col = layout.column()
+        col.prop(cmat, "sample_as_light")
+        col.prop(cmat, "use_transparent_shadow")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):

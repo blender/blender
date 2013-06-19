@@ -74,7 +74,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		assert(shader->graph);
 
-		if(shader->sample_as_light && shader->has_surface_emission)
+		if(shader->use_mis && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager,

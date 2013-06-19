@@ -552,9 +552,9 @@ void RegularBVH::pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int 
 {
 	int4 data[BVH_NODE_SIZE] =
 	{
-		make_int4(__float_as_int(b0.min.x), __float_as_int(b0.max.x), __float_as_int(b0.min.y), __float_as_int(b0.max.y)),
-		make_int4(__float_as_int(b1.min.x), __float_as_int(b1.max.x), __float_as_int(b1.min.y), __float_as_int(b1.max.y)),
-		make_int4(__float_as_int(b0.min.z), __float_as_int(b0.max.z), __float_as_int(b1.min.z), __float_as_int(b1.max.z)),
+		make_int4(__float_as_int(b0.min.x), __float_as_int(b1.min.x), __float_as_int(b0.max.x), __float_as_int(b1.max.x)),
+		make_int4(__float_as_int(b0.min.y), __float_as_int(b1.min.y), __float_as_int(b0.max.y), __float_as_int(b1.max.y)),
+		make_int4(__float_as_int(b0.min.z), __float_as_int(b1.min.z), __float_as_int(b0.max.z), __float_as_int(b1.max.z)),
 		make_int4(c0, c1, visibility0, visibility1)
 	};
 
@@ -579,6 +579,7 @@ void RegularBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
 	int nextNodeIdx = 0;
 
 	vector<BVHStackEntry> stack;
+	stack.reserve(BVHParams::MAX_DEPTH*2);
 	stack.push_back(BVHStackEntry(root, nextNodeIdx++));
 
 	while(stack.size()) {
@@ -776,6 +777,7 @@ void QBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
 	int nextNodeIdx = 0;
 
 	vector<BVHStackEntry> stack;
+	stack.reserve(BVHParams::MAX_DEPTH*2);
 	stack.push_back(BVHStackEntry(root, nextNodeIdx++));
 
 	while(stack.size()) {

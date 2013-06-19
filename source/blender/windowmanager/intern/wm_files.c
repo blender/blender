@@ -70,6 +70,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -362,6 +363,21 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 	}
 
 	return retval;
+}
+
+void WM_file_autoexec_init(const char *filepath)
+{
+	if (G.f & G_SCRIPT_OVERRIDE_PREF) {
+		return;
+	}
+
+	if (G.f & G_SCRIPT_AUTOEXEC) {
+		char path[FILE_MAX];
+		BLI_split_dir_part(filepath, path, sizeof(path));
+		if (BKE_autoexec_match(path)) {
+			G.f &= ~G_SCRIPT_AUTOEXEC;
+		}
+	}
 }
 
 void WM_file_read(bContext *C, const char *filepath, ReportList *reports)

@@ -135,8 +135,7 @@ bool ED_texture_context_check_others(const bContext *C)
 	return false;
 }
 
-/* Only change texture context if current one is invalid! */
-void buttons_check_texture_context(const bContext *C, SpaceButs *sbuts)
+static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -151,11 +150,27 @@ void buttons_check_texture_context(const bContext *C, SpaceButs *sbuts)
 		bool valid_particles = ED_texture_context_check_particles(C);
 		bool valid_others = ED_texture_context_check_others(C);
 
-		if (((sbuts->texture_context == SB_TEXC_WORLD) && !valid_world) ||
-			((sbuts->texture_context == SB_TEXC_MATERIAL) && !valid_material) ||
-			((sbuts->texture_context == SB_TEXC_LAMP) && !valid_lamp) ||
-			((sbuts->texture_context == SB_TEXC_PARTICLES) && !valid_particles) ||
-			((sbuts->texture_context == SB_TEXC_OTHER) && !valid_others))
+		if ((sbuts->mainb == BCONTEXT_WORLD) && valid_world) {
+			sbuts->texture_context = SB_TEXC_WORLD;
+		}
+		else if ((sbuts->mainb == BCONTEXT_MATERIAL) && valid_material) {
+			sbuts->texture_context = SB_TEXC_MATERIAL;
+		}
+		else if ((sbuts->mainb == BCONTEXT_DATA) && valid_lamp) {
+			sbuts->texture_context = SB_TEXC_LAMP;
+		}
+		else if ((sbuts->mainb == BCONTEXT_PARTICLE) && valid_particles) {
+			sbuts->texture_context = SB_TEXC_PARTICLES;
+		}
+		else if ((ELEM(sbuts->mainb, BCONTEXT_MODIFIER, BCONTEXT_PHYSICS)) && valid_others) {
+			sbuts->texture_context = SB_TEXC_OTHER;
+		}
+		/* Else, just be sure that current context is valid! */
+		else if (((sbuts->texture_context == SB_TEXC_WORLD) && !valid_world) ||
+		         ((sbuts->texture_context == SB_TEXC_MATERIAL) && !valid_material) ||
+		         ((sbuts->texture_context == SB_TEXC_LAMP) && !valid_lamp) ||
+		         ((sbuts->texture_context == SB_TEXC_PARTICLES) && !valid_particles) ||
+		         ((sbuts->texture_context == SB_TEXC_OTHER) && !valid_others))
 		{
 			if (valid_others) {
 				sbuts->texture_context = SB_TEXC_OTHER;
@@ -368,7 +383,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 	Scene *scene = CTX_data_scene(C);
 	ID *pinid = sbuts->pinid;
 
-	buttons_check_texture_context(C, sbuts);
+	set_texture_context(C, sbuts);
 
 	if (!(BKE_scene_use_new_shading_nodes(scene) || (sbuts->texture_context == SB_TEXC_OTHER))) {
 		if (ct) {

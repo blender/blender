@@ -562,12 +562,12 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 if(UNIX AND NOT APPLE)
 	macro(find_package_wrapper)
 		string(TOUPPER ${ARGV0} _NAME_UPPER)
-		if(${WITH_STATIC_LIBS})
+		if(WITH_STATIC_LIBS)
 			set(_cmake_find_library_suffixes_back ${CMAKE_FIND_LIBRARY_SUFFIXES})
 			set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 		endif()
 		find_package(${ARGV})
-		if(${WITH_STATIC_LIBS})
+		if(WITH_STATIC_LIBS)
 			set(CMAKE_FIND_LIBRARY_SUFFIXES ${_cmake_find_library_suffixes_back})
 			unset(_cmake_find_library_suffixes_back)
 		endif()
@@ -707,7 +707,7 @@ if(UNIX AND NOT APPLE)
 	if(WITH_BOOST)
 		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
-			if(${WITH_STATIC_LIBS})
+			if(WITH_STATIC_LIBS)
 				set(Boost_USE_STATIC_LIBS ON)
 			endif()
 			set(Boost_USE_MULTITHREADED ON)
@@ -1124,26 +1124,22 @@ elseif(WIN32)
 				${OPENCOLLADA}/include/opencollada/COLLADASaxFrameworkLoader
 				${OPENCOLLADA}/include/opencollada/GeneratedSaxParser
 			)
-			set_lib_path(OPENCOLLADA_LIBPATH "opencollada")
 
 			set(OPENCOLLADA_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADAFramework.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADABaseUtils.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/OpenCOLLADAStreamWriter.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/MathMLSolver.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/GeneratedSaxParser.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/xml.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/buffer.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/ftoa.lib
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/UTF.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils.lib
+				${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
+				${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
+				${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
+				${OPENCOLLADA}/lib/opencollada/xml.lib
+				${OPENCOLLADA}/lib/opencollada/buffer.lib
+				${OPENCOLLADA}/lib/opencollada/ftoa.lib
+				${OPENCOLLADA}/lib/opencollada/UTF.lib
 			)
 			set(PCRE_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/lib/opencollada/pcre.lib
+				${OPENCOLLADA}/lib/opencollada/pcre.lib
 			)
-			
-			unset(OPENCOLLADA_LIBPATH)
-			
 		endif()
 
 		if(WITH_CODEC_FFMPEG)
@@ -1172,7 +1168,7 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			set_lib_path(OPENEXR "openexr")
+			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
@@ -1199,18 +1195,11 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			# normally cached but not since we include them with blender
-			if(MSVC10)
-				set(PYTHON_VERSION 3.3) # CACHE STRING)
-			else()
-				set(PYTHON_VERSION 3.3) # CACHE STRING)
-			endif()
+			set(PYTHON_VERSION 3.3) # CACHE STRING)
 
-			set_lib_path(PYTHON "python")
 			string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 			# Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs
 			set(PYTHON_LIBRARY ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.lib)
-			# set(PYTHON_LIBRARY ${PYTHON}/lib/python${_PYTHON_VERSION_NO_DOTS}.lib) #CACHE FILEPATH
 			unset(_PYTHON_VERSION_NO_DOTS)
 
 			# Shared includes for both vc2008 and vc2010
@@ -1228,10 +1217,6 @@ elseif(WIN32)
 				set(BOOST_LIBPATH ${BOOST}/lib)
 				set(BOOST_POSTFIX "vc110-mt-s-1_53.lib")
 				set(BOOST_DEBUG_POSTFIX "vc110-mt-sgd-1_53.lib")
-			elseif(MSVC10)
-				set(BOOST_LIBPATH ${BOOST}/vc2010/lib)
-				set(BOOST_POSTFIX "vc100-mt-s-1_49.lib")
-				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_49.lib")
 			else()
 				set(BOOST_LIBPATH ${BOOST}/lib)
 				set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
@@ -2082,13 +2067,6 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 	set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556")
 	set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556")
 
-endif()
-
-# MSVC2010 fails to links C++ libs right
-if(MSVC10)
-	if(WITH_OPENCOLLADA)
-		message(WARNING "MSVC 2010 does not support OpenCollada, disabling WITH_OPENCOLLADA. To enable support use Use MSVC 2008")
-	endif()
 endif()
 
 # ensure python header is found since detection can fail, this could happen

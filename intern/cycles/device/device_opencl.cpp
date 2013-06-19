@@ -85,7 +85,7 @@ static string opencl_kernel_build_options(const string& platform, const string *
 	string build_options = " -cl-fast-relaxed-math ";
 
 	if(platform == "NVIDIA CUDA")
-		build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
+		build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=32 -cl-nv-verbose ";
 
 	else if(platform == "Apple")
 		build_options += "-D__KERNEL_OPENCL_APPLE__ -Wno-missing-prototypes ";

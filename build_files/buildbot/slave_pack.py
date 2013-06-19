@@ -99,6 +99,8 @@ if builder.find('scons') != -1:
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             if builder.find('mingw') != -1:
                 scons_options.append('BF_TOOLSET=mingw')
+            if builder.endswith('vc2012'):
+                scons_options.append('MSVS_VERSION=11.0')
 
         elif builder.find('mac') != -1:
             if builder.find('x86_64') != -1:

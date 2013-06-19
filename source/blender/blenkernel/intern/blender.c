@@ -416,6 +416,8 @@ void BKE_userdef_free(void)
 		MEM_freeN(addon);
 	}
 
+	BLI_freelistN(&U.autoexec_paths);
+
 	BLI_freelistN(&U.uistyles);
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);

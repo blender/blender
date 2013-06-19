@@ -239,7 +239,7 @@ def _addon_remove(module_name):
             addons.remove(addon)
 
 
-def enable(module_name, default_set=True, persistent=False):
+def enable(module_name, default_set=True, persistent=False, handle_error=None):
     """
     Enables an addon by name.
 
@@ -253,9 +253,10 @@ def enable(module_name, default_set=True, persistent=False):
     import sys
     from bpy_restrict_state import RestrictBlend
 
-    def handle_error():
-        import traceback
-        traceback.print_exc()
+    if handle_error is None:
+        def handle_error():
+            import traceback
+            traceback.print_exc()
 
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
@@ -322,7 +323,7 @@ def enable(module_name, default_set=True, persistent=False):
     return mod
 
 
-def disable(module_name, default_set=True):
+def disable(module_name, default_set=True, handle_error=None):
     """
     Disables an addon by name.
 
@@ -330,6 +331,12 @@ def disable(module_name, default_set=True):
     :type module_name: string
     """
     import sys
+
+    if handle_error is None:
+        def handle_error():
+            import traceback
+            traceback.print_exc()
+
     mod = sys.modules.get(module_name)
 
     # possible this addon is from a previous session and didn't load a
@@ -344,8 +351,7 @@ def disable(module_name, default_set=True):
         except:
             print("Exception in module unregister(): %r" %
                   getattr(mod, "__file__", module_name))
-            import traceback
-            traceback.print_exc()
+            handle_error()
     else:
         print("addon_utils.disable: %s not %s." %
               (module_name, "disabled" if mod is None else "loaded"))

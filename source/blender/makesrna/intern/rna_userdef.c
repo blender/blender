@@ -339,9 +339,9 @@ static bAddon *rna_userdef_addon_new(void)
 	return bext;
 }
 
-static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *bext_ptr)
+static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *path_cmp_ptr)
 {
-	bAddon *bext = bext_ptr->data;
+	bAddon *bext = path_cmp_ptr->data;
 	if (BLI_findindex(&U.addons, bext) == -1) {
 		BKE_report(reports, RPT_ERROR, "Addon is no longer valid");
 		return;
@@ -353,7 +353,26 @@ static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *bext_ptr)
 	}
 
 	BLI_freelinkN(&U.addons, bext);
-	RNA_POINTER_INVALIDATE(bext_ptr);
+	RNA_POINTER_INVALIDATE(path_cmp_ptr);
+}
+
+static bPathCompare *rna_userdef_pathcompare_new(void)
+{
+	bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
+	BLI_addtail(&U.autoexec_paths, path_cmp);
+	return path_cmp;
+}
+
+static void rna_userdef_pathcompare_remove(ReportList *reports, PointerRNA *path_cmp_ptr)
+{
+	bPathCompare *path_cmp = path_cmp_ptr->data;
+	if (BLI_findindex(&U.autoexec_paths, path_cmp) == -1) {
+		BKE_report(reports, RPT_ERROR, "Addon is no longer valid");
+		return;
+	}
+
+	BLI_freelinkN(&U.autoexec_paths, path_cmp);
+	RNA_POINTER_INVALIDATE(path_cmp_ptr);
 }
 
 static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -2733,6 +2752,25 @@ static void rna_def_userdef_addon(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Addon_preferences_get", NULL, NULL, NULL);
 }
 
+static void rna_def_userdef_pathcompare(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "PathCompare", NULL);
+	RNA_def_struct_sdna(srna, "bPathCompare");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Path Compare", "Match paths against this value");
+
+	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_ui_text(prop, "Path", "");
+	RNA_def_struct_name_property(srna, prop);
+
+	prop = RNA_def_property(srna, "use_glob", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_PATHCMP_GLOB);
+	RNA_def_property_ui_text(prop, "Use Wildcard", "Enable wildcard globbing");
+}
+
 static void rna_def_userdef_addon_pref(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -4027,6 +4065,32 @@ static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cpro
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
+static void rna_def_userdef_autoexec_path_collection(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "PathCompareCollection");
+	srna = RNA_def_struct(brna, "PathCompareCollection", NULL);
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Paths Compare", "Collection of paths");
+
+	func = RNA_def_function(srna, "new", "rna_userdef_pathcompare_new");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	RNA_def_function_ui_description(func, "Add a new addon");
+	/* return type */
+	parm = RNA_def_pointer(func, "pathcmp", "PathCompare", "", "");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_userdef_pathcompare_remove");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove path");
+	parm = RNA_def_pointer(func, "pathcmp", "PathCompare", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+}
+
 void RNA_def_userdef(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -4074,6 +4138,11 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Addon", "");
 	rna_def_userdef_addon_collection(brna, prop);
 
+	prop = RNA_def_property(srna, "autoexec_paths", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "autoexec_paths", NULL);
+	RNA_def_property_struct_type(prop, "PathCompare");
+	RNA_def_property_ui_text(prop, "Autoexec Paths", "");
+	rna_def_userdef_autoexec_path_collection(brna, prop);
 
 	/* nested structs */
 	prop = RNA_def_property(srna, "view", PROP_POINTER, PROP_NONE);
@@ -4113,6 +4182,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 	rna_def_userdef_system(brna);
 	rna_def_userdef_addon(brna);
 	rna_def_userdef_addon_pref(brna);
+	rna_def_userdef_pathcompare(brna);
 	
 }
 

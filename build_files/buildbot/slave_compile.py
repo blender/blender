@@ -143,6 +143,8 @@ else:
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             if builder.find('mingw') != -1:
                 scons_options.append('BF_TOOLSET=mingw')
+            if builder.endswith('vc2012'):
+                scons_options.append('MSVS_VERSION=11.0')
             scons_options.append('BF_NUMJOBS=1')
 
         elif builder.find('mac') != -1:
@@ -156,7 +158,10 @@ else:
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
 
         if builder.find('win') != -1:
-            dlls = ('msvcm90.dll', 'msvcp90.dll', 'msvcr90.dll', 'vcomp90.dll', 'Microsoft.VC90.CRT.manifest', 'Microsoft.VC90.OpenMP.manifest')
+            if builder.endswith('vc2012'):
+                dlls = ('msvcp110.dll', 'msvcr110.dll', 'vcomp110.dll')
+            else:
+                dlls = ('msvcm90.dll', 'msvcp90.dll', 'msvcr90.dll', 'vcomp90.dll', 'Microsoft.VC90.CRT.manifest', 'Microsoft.VC90.OpenMP.manifest')
             if builder.find('win64') == -1:
                 dlls_path = '..\\..\\..\\redist\\x86'
             else:

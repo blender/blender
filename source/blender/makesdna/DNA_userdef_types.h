@@ -360,6 +360,12 @@ typedef struct bAddon {
 	IDProperty *prop;  /* User-Defined Properties on this  Addon (for storing preferences) */
 } bAddon;
 
+typedef struct bPathCompare {
+	struct bPathCompare *next, *prev;
+	char path[768];  /* FILE_MAXDIR */
+	char flag, pad[7];
+} bPathCompare;
+
 typedef struct SolidLight {
 	int flag, pad;
 	float col[4], spec[4], vec[4];
@@ -412,6 +418,7 @@ typedef struct UserDef {
 	struct ListBase keymaps  DNA_DEPRECATED; /* deprecated in favor of user_keymaps */
 	struct ListBase user_keymaps;
 	struct ListBase addons;
+	struct ListBase autoexec_paths;
 	char keyconfigstr[64];
 	
 	short undosteps;
@@ -522,7 +529,12 @@ typedef enum eUserPref_Flag {
 	USER_TXT_TABSTOSPACES_DISABLE	= (1 << 25),
 	USER_TOOLTIPS_PYTHON    = (1 << 26),
 } eUserPref_Flag;
-	
+
+/* flag */
+typedef enum ePathCompare_Flag {
+	USER_PATHCMP_GLOB		= (1 << 0),
+} ePathCompare_Flag;
+
 /* helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra)  {                                        \
 	if ((U.flag & USER_NONEGFRAMES) && (cfra < 0))                            \

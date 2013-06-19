@@ -237,7 +237,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 	foreachScreenFace_userData *data = userData;
 	BMFace *efa = EDBM_face_at_index(data->vc.em, index);
 
-	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		float screen_co[2];
 		if (ED_view3d_project_float_object(data->vc.ar, cent, screen_co, data->clip_flag) == V3D_PROJ_RET_OK) {
 			data->func(data->userData, efa, screen_co, index);

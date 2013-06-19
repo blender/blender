@@ -263,9 +263,21 @@
 #define STACK_PUSH(stack, val)  (void)((stack)[(_##stack##_index)++] = val)
 #define STACK_PUSH_RET(stack)  ((void)stack, ((stack)[(_##stack##_index)++]))
 #define STACK_PUSH_RET_PTR(stack)  ((void)stack, &((stack)[(_##stack##_index)++]))
-#define STACK_POP(stack)         ((_##stack##_index) ? ((stack)[--(_##stack##_index)]) : NULL)
-#define STACK_POP_ELSE(stack, r) ((_##stack##_index) ? ((stack)[--(_##stack##_index)]) : r)
+#define STACK_POP(stack)         ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : NULL)
+#define STACK_POP_PTR(stack)     ((_##stack##_index) ? &((stack)[--(_##stack##_index)]) : NULL)
+#define STACK_POP_ELSE(stack, r) ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : r)
 #define STACK_FREE(stack)      ((void)stack)
+#ifdef __GNUC__
+#define STACK_SWAP(stack_a, stack_b) { \
+	SWAP(typeof(stack_a), stack_a, stack_b); \
+	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
+	} (void)0
+#else
+#define STACK_SWAP(stack_a, stack_b) { \
+	SWAP(void *, stack_a, stack_b); \
+	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
+	} (void)0
+#endif
 
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot) \

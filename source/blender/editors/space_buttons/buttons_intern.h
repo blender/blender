@@ -97,9 +97,6 @@ typedef struct ButsContextTexture {
 
 /* internal exports only */
 
-/* buttons_header.c */
-void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
-
 /* buttons_context.c */
 void buttons_context_compute(const struct bContext *C, struct SpaceButs *sbuts);
 int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
@@ -111,7 +108,6 @@ extern const char *buttons_context_dir[]; /* doc access */
 
 /* buttons_texture.c */
 void buttons_texture_context_compute(const struct bContext *C, struct SpaceButs *sbuts);
-void buttons_check_texture_context(const struct bContext *C, struct SpaceButs *sbuts);
 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);

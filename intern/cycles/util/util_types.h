@@ -69,16 +69,28 @@
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
 #include <pmmintrin.h> /* SSE 3 */
-#include <tmmintrin.h> /* SSE 3 */
+#include <tmmintrin.h> /* SSSE 3 */
 #include <smmintrin.h> /* SSE 4 */
 
+#ifndef __KERNEL_SSE2__
 #define __KERNEL_SSE2__
+#endif
+
+#ifndef __KERNEL_SSE3__
 #define __KERNEL_SSE3__
+#endif
+
+#ifndef __KERNEL_SSSE3__
+#define __KERNEL_SSSE3__
+#endif
+
+#ifndef __KERNEL_SSE4__
 #define __KERNEL_SSE4__
+#endif
 
 #else
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__KERNEL_SSSE3__)
 
 /* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
  * Since we can't avoid including <windows.h>, better only include that */
@@ -87,18 +99,26 @@
 #else
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
+
+#ifdef __KERNEL_SSE3__
+#include <pmmintrin.h> /* SSE 3 */
+#endif
+#ifdef __KERNEL_SSSE3__
+#include <tmmintrin.h> /* SSSE 3 */
+#endif
 #endif
 
+#ifndef __KERNEL_SSE2__
 #define __KERNEL_SSE2__
-
 #endif
 
 #endif
 
+#endif
+
+/* int8_t, uint16_t, and friends */
 #ifndef _WIN32
-
 #include <stdint.h>
-
 #endif
 
 #endif
@@ -469,6 +489,67 @@ __device_inline int4 make_int4(const float3& f)
 	return a;
 }
 
+#endif
+
+#ifdef __KERNEL_SSE2__
+
+/* SSE shuffle utility functions */
+
+#ifdef __KERNEL_SSSE3__
+
+/* faster version for SSSE3 */
+typedef __m128i shuffle_swap_t;
+
+__device_inline const shuffle_swap_t shuffle_swap_identity(void)
+{
+	return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+}
+
+__device_inline const shuffle_swap_t shuffle_swap_swap(void)
+{
+	return _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
+}
+
+__device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t& shuf)
+{
+	return _mm_castsi128_ps(_mm_shuffle_epi8(_mm_castps_si128(a), shuf));
+}
+
+#else
+
+/* somewhat slower version for SSE3 */
+typedef int shuffle_swap_t;
+
+__device_inline const shuffle_swap_t shuffle_swap_identity(void)
+{
+	return 0;
+}
+
+__device_inline const shuffle_swap_t shuffle_swap_swap(void)
+{
+	return 1;
+}
+
+__device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf)
+{
+	/* shuffle value must be a constant, so we need to branch */
+	if(shuf)
+		return _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 0, 3, 2));
+	else
+		return _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 1, 0));
+}
+
+#endif
+
+template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m128 shuffle(const __m128& a, const __m128& b)
+{
+	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
+}
+
+template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m128 shuffle(const __m128& b)
+{
+	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
+}
 #endif
 
 CCL_NAMESPACE_END

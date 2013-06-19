@@ -87,7 +87,7 @@ static SpaceLink *buttons_new(const bContext *UNUSED(C))
 	
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
-	
+
 	return (SpaceLink *)sbuts;
 }
 
@@ -200,22 +200,17 @@ static void buttons_keymap(struct wmKeyConfig *keyconf)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 {
-	/* clear */
-	UI_ThemeClearColor(ED_screen_area_active(C) ? TH_HEADER : TH_HEADERDESEL);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(&ar->v2d);
-	
-	buttons_header_buttons(C, ar);
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
 
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	/* Needed for RNA to get the good values! */
+	buttons_context_compute(C, sbuts);
+
+	ED_region_header(C, ar);
 }
 
 /* draw a certain button set only if properties area is currently

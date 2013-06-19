@@ -164,7 +164,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		foreach(uint sindex, mesh->used_shaders) {
 			Shader *shader = scene->shaders[sindex];
 
-			if(shader->sample_as_light && shader->has_surface_emission) {
+			if(shader->use_mis && shader->has_surface_emission) {
 				have_emission = true;
 				break;
 			}
@@ -175,7 +175,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
 				Shader *shader = scene->shaders[mesh->shader[i]];
 
-				if(shader->sample_as_light && shader->has_surface_emission)
+				if(shader->use_mis && shader->has_surface_emission)
 					num_triangles++;
 			}
 
@@ -184,7 +184,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			foreach(Mesh::Curve& curve, mesh->curves) {
 				Shader *shader = scene->shaders[curve.shader];
 
-				if(shader->sample_as_light && shader->has_surface_emission)
+				if(shader->use_mis && shader->has_surface_emission)
 					num_curve_segments += curve.num_segments();
 #endif
 		}
@@ -215,7 +215,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		foreach(uint sindex, mesh->used_shaders) {
 			Shader *shader = scene->shaders[sindex];
 
-			if(shader->sample_as_light && shader->has_surface_emission) {
+			if(shader->use_mis && shader->has_surface_emission) {
 				have_emission = true;
 				break;
 			}
@@ -247,7 +247,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
 				Shader *shader = scene->shaders[mesh->shader[i]];
 
-				if(shader->sample_as_light && shader->has_surface_emission) {
+				if(shader->use_mis && shader->has_surface_emission) {
 					distribution[offset].x = totarea;
 					distribution[offset].y = __int_as_float(i + mesh->tri_offset);
 					distribution[offset].z = __int_as_float(shader_id);
@@ -277,7 +277,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 				Shader *shader = scene->shaders[curve.shader];
 				int first_key = curve.first_key;
 
-				if(shader->sample_as_light && shader->has_surface_emission) {
+				if(shader->use_mis && shader->has_surface_emission) {
 					for(int j = 0; j < curve.num_segments(); j++) {
 						distribution[offset].x = totarea;
 						distribution[offset].y = __int_as_float(i + mesh->curve_offset); // XXX fix kernel code

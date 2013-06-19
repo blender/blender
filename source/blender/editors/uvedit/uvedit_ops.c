@@ -2113,7 +2113,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		hitlen = hit.efa->len;
 	}
 	else if (selectmode == UV_SELECT_ISLAND) {
-		uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
+		uv_find_nearest_edge(scene, ima, em, co, &hit);
 
 		if (hit.efa == NULL) {
 			return OPERATOR_CANCELLED;
@@ -2378,7 +2378,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 			RNA_float_get_array(op->ptr, "location", co);
 		}
 
-		uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
+		uv_find_nearest_edge(scene, ima, em, co, &hit);
 		hit_p = &hit;
 	}
 

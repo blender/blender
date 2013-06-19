@@ -955,7 +955,7 @@ static int operator_execute(bContext *C, wmOperator *op)
 }
 
 /* same as execute() but no return value */
-static int operator_check(bContext *C, wmOperator *op)
+static bool operator_check(bContext *C, wmOperator *op)
 {
 	extern FunctionRNA rna_Operator_check_func;
 
@@ -963,7 +963,7 @@ static int operator_check(bContext *C, wmOperator *op)
 	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
-	int result;
+	bool result;
 
 	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func = &rna_Operator_check_func; /* RNA_struct_find_function(&opr, "check"); */
@@ -973,7 +973,7 @@ static int operator_check(bContext *C, wmOperator *op)
 	op->type->ext.call(C, &opr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "result", &ret);
-	result = *(int *)ret;
+	result = (*(int *)ret) != 0;
 
 	RNA_parameter_list_free(&list);
 
