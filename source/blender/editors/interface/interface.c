@@ -453,7 +453,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 	 * the number, this is so 0.00001 is not displayed as 0.00,
 	 * _but_, this is only for small values si 10.0001 will not get
 	 * the same treatment */
-	if (value != 0.0 && (value = ABS(value)) < 0.1) {
+	if (value != 0.0 && (value = ABS(value)) < pow(10, -prec)) {
 		int value_i = (int)((value * PRECISION_FLOAT_MAX_POW) + 0.5);
 		if (value_i != 0) {
 			const int prec_span = 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
