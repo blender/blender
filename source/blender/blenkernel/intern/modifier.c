@@ -36,7 +36,7 @@
  *  \ingroup bke
  */
 
-
+#include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdarg.h>
@@ -60,6 +60,7 @@
 #include "BKE_cloth.h"
 #include "BKE_key.h"
 #include "BKE_multires.h"
+#include "BKE_DerivedMesh.h"
 
 /* may move these, only for modifier_path_relbase */
 #include "BKE_global.h" /* ugh, G.main->name only */
@@ -693,3 +694,65 @@ void modifier_path_init(char *path, int path_maxlen, const char *name)
 	                 G.relbase_valid ? "//" : BLI_temporary_dir(),
 	                 name);
 }
+
+
+/* wrapper around ModifierTypeInfo.applyModifier that ensures valid normals */
+
+struct DerivedMesh *modwrap_applyModifier(
+        ModifierData *md, Object *ob,
+        struct DerivedMesh *dm,
+        ModifierApplyFlag flag)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	return mti->applyModifier(md, ob, dm, flag);
+}
+
+struct DerivedMesh *modwrap_applyModifierEM(
+        ModifierData *md, Object *ob,
+        struct BMEditMesh *em,
+        DerivedMesh *dm,
+        ModifierApplyFlag flag)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	return mti->applyModifierEM(md, ob, em, dm, flag);
+}
+
+void modwrap_deformVerts(
+        ModifierData *md, Object *ob,
+        DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts,
+        ModifierApplyFlag flag)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(!dm || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
+	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	mti->deformVerts(md, ob, dm, vertexCos, numVerts, flag);
+}
+
+void modwrap_deformVertsEM(
+        ModifierData *md, Object *ob,
+        struct BMEditMesh *em, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(!dm || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
+
+	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		DM_ensure_normals(dm);
+	}
+	mti->deformVertsEM(md, ob, em, dm, vertexCos, numVerts);
+}
+/* end modifier callback wrappers */

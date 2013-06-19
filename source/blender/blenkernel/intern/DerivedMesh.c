@@ -845,69 +845,6 @@ DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
 	return dm;
 }
 
-/***/
-
-/* wrapper around ModifierTypeInfo.applyModifier that ensures valid normals */
-
-static DerivedMesh *modwrap_applyModifier(
-        ModifierData *md, Object *ob,
-        DerivedMesh *dm,
-        ModifierApplyFlag flag)
-{
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
-
-	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		DM_ensure_normals(dm);
-	}
-	return mti->applyModifier(md, ob, dm, flag);
-}
-
-static DerivedMesh *modwrap_applyModifierEM(
-        ModifierData *md, Object *ob,
-        BMEditMesh *em,
-        DerivedMesh *dm,
-        ModifierApplyFlag flag)
-{
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
-
-	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		DM_ensure_normals(dm);
-	}
-	return mti->applyModifierEM(md, ob, em, dm, flag);
-}
-
-static void modwrap_deformVerts(
-        ModifierData *md, Object *ob,
-        DerivedMesh *dm,
-        float (*vertexCos)[3], int numVerts,
-        ModifierApplyFlag flag)
-{
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(!dm || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
-
-	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		DM_ensure_normals(dm);
-	}
-	mti->deformVerts(md, ob, dm, vertexCos, numVerts, flag);
-}
-
-static void modwrap_deformVertsEM(
-        ModifierData *md, Object *ob,
-        BMEditMesh *em, DerivedMesh *dm,
-        float (*vertexCos)[3], int numVerts)
-{
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(!dm || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
-
-	if (dm && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		DM_ensure_normals(dm);
-	}
-	mti->deformVertsEM(md, ob, em, dm, vertexCos, numVerts);
-}
-/* end modifier callback wrappers */
-
 DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, 
                                               ModifierData *md, int build_shapekey_layers)
 {

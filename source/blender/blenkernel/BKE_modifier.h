@@ -391,5 +391,30 @@ void modifier_mdef_compact_influences(struct ModifierData *md);
 void        modifier_path_init(char *path, int path_maxlen, const char *name);
 const char *modifier_path_relbase(struct Object *ob);
 
+
+/* wrappers for modifier callbacks */
+
+struct DerivedMesh *modwrap_applyModifier(
+        ModifierData *md, struct Object *ob,
+        struct DerivedMesh *dm,
+        ModifierApplyFlag flag);
+
+struct DerivedMesh *modwrap_applyModifierEM(
+        ModifierData *md, struct Object *ob,
+        struct BMEditMesh *em,
+        struct DerivedMesh *dm,
+        ModifierApplyFlag flag);
+
+void modwrap_deformVerts(
+        ModifierData *md, struct Object *ob,
+        struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts,
+        ModifierApplyFlag flag);
+
+void modwrap_deformVertsEM(
+        ModifierData *md, struct Object *ob,
+        struct BMEditMesh *em, struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts);
+
 #endif
 
