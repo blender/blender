@@ -2145,7 +2145,7 @@ struct WPaintData {
 };
 
 /* ensure we have data on wpaint start, add if needed */
-static int wpaint_ensure_data(bContext *C, wmOperator *op)
+static bool wpaint_ensure_data(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -3390,6 +3390,10 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 		vert_cache = gesture->userdata;
 	}
 	else {
+		if (wpaint_ensure_data(C, op) == FALSE) {
+			return OPERATOR_CANCELLED;
+		}
+
 		data.is_init = true;
 		vert_cache = MEM_mallocN(sizeof(DMGradient_vertStore) * me->totvert, __func__);
 	}
