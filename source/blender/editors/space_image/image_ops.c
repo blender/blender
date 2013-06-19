@@ -1441,7 +1441,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 }
 
 
-static int image_save_as_check(bContext *UNUSED(C), wmOperator *op)
+static bool image_save_as_check(bContext *UNUSED(C), wmOperator *op)
 {
 	ImageFormatData *imf = op->customdata;
 	return WM_operator_filesel_ensure_ext_imtype(op, imf);

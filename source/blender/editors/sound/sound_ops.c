@@ -391,7 +391,7 @@ static const char *snd_ext_sound[] = {
 	NULL
 };
 
-static int sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
+static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 {
 	AUD_Container container = RNA_enum_get(op->ptr, "container");
 

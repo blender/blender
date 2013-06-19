@@ -867,8 +867,21 @@ class USERPREF_PT_file(Panel):
 
         colsplit = col.split(percentage=0.95)
         sub = colsplit.column()
-        sub.label(text="Author:")
-        sub.prop(system, "author", text="")
+
+        row = sub.split(percentage=0.3)
+        row.label(text="Auto Execution:")
+        row.prop(system, "use_scripts_auto_execute")
+
+        if system.use_scripts_auto_execute:
+            box = sub.box()
+            row = box.row()
+            row.label(text="Excluded Paths:")
+            row.operator("wm.userpref_autoexec_path_add", text="", icon='ZOOMIN', emboss=False)
+            for i, path_cmp in enumerate(userpref.autoexec_paths):
+                row = box.row()
+                row.prop(path_cmp, "path", text="")
+                row.prop(path_cmp, "use_glob", text="", icon='FILTER')
+                row.operator("wm.userpref_autoexec_path_remove", text="", icon='X', emboss=False).index = i
 
         col = split.column()
         col.label(text="Save & Load:")
@@ -896,9 +909,11 @@ class USERPREF_PT_file(Panel):
 
         col.separator()
 
-        col.label(text="Scripts:")
-        col.prop(system, "use_scripts_auto_execute")
+        col.label(text="Text Editor:")
         col.prop(system, "use_tabs_as_spaces")
+
+        col.label(text="Author:")
+        col.prop(system, "author", text="")
 
 
 from bl_ui.space_userpref_keymap import InputKeyMapPanel

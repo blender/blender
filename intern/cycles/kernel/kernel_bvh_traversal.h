@@ -80,7 +80,7 @@ __device bool BVH_FUNCTION_NAME
 	isect->u = 0.0f;
 	isect->v = 0.0f;
 
-#if defined(__KERNEL_SSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 	const __m128i shuffle_identity = _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 	const __m128i shuffle_swap = _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
 
@@ -111,10 +111,10 @@ __device bool BVH_FUNCTION_NAME
 			{
 				bool traverseChild0, traverseChild1;
 				int nodeAddrChild1;
-				float t = isect->t;
 
-#if !defined(__KERNEL_SSE3__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if !defined(__KERNEL_SSSE3__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				/* Intersect two child bounding boxes, non-SSE version */
+				float t = isect->t;
 
 				/* fetch node data */
 				float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+0);
@@ -166,8 +166,8 @@ __device bool BVH_FUNCTION_NAME
 				traverseChild1 = (c1max >= c1min);
 #endif
 
-#else // __KERNEL_SSE3__
-				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
+#else // __KERNEL_SSSE3__
+				/* Intersect two child bounding boxes, SSSE3 version adapted from Embree */
 
 				/* fetch node data */
 				__m128 *bvh_nodes = (__m128*)kg->__bvh_nodes.data + nodeAddr*BVH_NODE_SIZE;
@@ -190,14 +190,14 @@ __device bool BVH_FUNCTION_NAME
 				traverseChild0 = (_mm_movemask_ps(lrhit) & 1);
 				traverseChild1 = (_mm_movemask_ps(lrhit) & 2);
 #endif
-#endif // __KERNEL_SSE3__
+#endif // __KERNEL_SSSE3__
 
 				nodeAddr = __float_as_int(cnodes.x);
 				nodeAddrChild1 = __float_as_int(cnodes.y);
 
 				if(traverseChild0 && traverseChild1) {
 					/* both children were intersected, push the farther one */
-#if !defined(__KERNEL_SSE3__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if !defined(__KERNEL_SSSE3__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 					bool closestChild1 = (c1min < c0min);
 #else
 					union { __m128 m128; float v[4]; } uminmax;
@@ -282,7 +282,7 @@ __device bool BVH_FUNCTION_NAME
 								hit = bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 							/* shadow ray early termination */
-#if defined(__KERNEL_SSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 							if(hit) {
 								if(visibility == PATH_RAY_SHADOW_OPAQUE)
 									return true;
@@ -315,7 +315,7 @@ __device bool BVH_FUNCTION_NAME
 						bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
 #endif
 
-#if defined(__KERNEL_SSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 						Psplat[0] = _mm_set_ps1(P.x);
 						Psplat[1] = _mm_set_ps1(P.y);
 						Psplat[2] = _mm_set_ps1(P.z);
@@ -359,7 +359,7 @@ __device bool BVH_FUNCTION_NAME
 			bvh_instance_pop(kg, object, ray, &P, &idir, &isect->t, tmax);
 #endif
 
-#if defined(__KERNEL_SSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 			Psplat[0] = _mm_set_ps1(P.x);
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);

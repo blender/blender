@@ -970,7 +970,6 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					dm = tdm;
 
 					CDDM_apply_vert_coords(dm, vertCos);
-					CDDM_calc_normals_mapping(dm);
 				}
 			}
 			else {
@@ -983,8 +982,6 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				}
 
 				dm = CDDM_from_curve_displist(ob, dispbase);
-
-				CDDM_calc_normals_mapping(dm);
 			}
 
 			if (vertCos) {
@@ -995,7 +992,8 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 
 			if (useCache)
 				appf |= MOD_APPLY_USECACHE;
-			ndm = mti->applyModifier(md, ob, dm, appf);
+
+			ndm = modwrap_applyModifier(md, ob, dm, appf);
 
 			if (ndm) {
 				/* Modifier returned a new derived mesh */
@@ -1025,8 +1023,19 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	}
 
 	if (derivedFinal) {
-		if (dm)
-			DM_ensure_tessface(dm);  /* needed for drawing */
+		if (dm) {
+			/* see: mesh_calc_modifiers */
+			if (dm->getNumTessFaces(dm) == 0) {
+				dm->recalcTessellation(dm);
+			}
+			/* Even if tessellation is not needed, some modifiers might have modified CD layers
+			 * (like mloopcol or mloopuv), hence we have to update those. */
+			else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
+				DM_update_tessface_data(dm);
+			}
+
+			CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+		}
 		(*derivedFinal) = dm;
 	}
 

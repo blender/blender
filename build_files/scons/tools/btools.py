@@ -190,7 +190,7 @@ def validate_arguments(args, bc):
             'BF_BSC', 'BF_CONFIG',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
             'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-            'BF_UNIT_TEST', 'BF_BITNESS']
+            'BF_UNIT_TEST', 'BF_BITNESS', 'MSVS_VERSION']
 
     okdict = {}
 
@@ -686,6 +686,9 @@ def buildslave(target=None, source=None, env=None):
             platform = 'linux-' + glibc + '-i686'
     if platform == 'darwin':
         platform = 'OSX-' + env['MACOSX_DEPLOYMENT_TARGET'] + '-' + env['MACOSX_ARCHITECTURE']
+
+    if env['MSVC_VERSION'] == '11.0':
+        platform = env['OURPLATFORM'] + '11'
 
     branch = env['BUILDBOT_BRANCH']
 

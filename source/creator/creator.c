@@ -1262,6 +1262,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		 * a file - this should do everything a 'load file' does */
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
+		WM_file_autoexec_init(filename);
 		WM_file_read(C, filename, &reports);
 		BKE_reports_clear(&reports);
 	}

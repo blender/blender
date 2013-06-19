@@ -1574,8 +1574,15 @@ class WM_OT_addon_enable(Operator):
 
     def execute(self, context):
         import addon_utils
+        
+        err_str = ""
+        def err_cb():
+            import traceback
+            nonlocal err_str
+            err_str = traceback.format_exc()
+            print(err_str)
 
-        mod = addon_utils.enable(self.module)
+        mod = addon_utils.enable(self.module, handle_error=err_cb)
 
         if mod:
             info = addon_utils.module_bl_info(mod)
@@ -1590,6 +1597,10 @@ class WM_OT_addon_enable(Operator):
                                          info_ver)
             return {'FINISHED'}
         else:
+
+            if err_str:
+                self.report({'ERROR'}, err_str)
+
             return {'CANCELLED'}
 
 
@@ -1606,7 +1617,18 @@ class WM_OT_addon_disable(Operator):
     def execute(self, context):
         import addon_utils
 
-        addon_utils.disable(self.module)
+        err_str = ""
+        def err_cb():
+            import traceback
+            nonlocal err_str
+            err_str = traceback.format_exc()
+            print(err_str)
+
+        addon_utils.disable(self.module, handle_error=err_cb)
+
+        if err_str:
+            self.report({'ERROR'}, err_str)
+
         return {'FINISHED'}
 
 

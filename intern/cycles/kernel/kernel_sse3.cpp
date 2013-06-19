@@ -16,13 +16,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* Optimized CPU kernel entry points. This file is compiled with SSE3
+/* Optimized CPU kernel entry points. This file is compiled with SSE3/SSSE3
  * optimization flags and nearly all functions inlined, while kernel.cpp
  * is compiled without for other CPU's. */
 
 #ifdef WITH_OPTIMIZED_KERNEL
 
 #define __KERNEL_SSE3__
+#define __KERNEL_SSSE3__
 
 #include "kernel.h"
 #include "kernel_compat_cpu.h"
