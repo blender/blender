@@ -507,17 +507,20 @@ bool EDBM_index_arrays_check(BMEditMesh *em)
 
 BMVert *EDBM_vert_at_index(BMEditMesh *em, int index)
 {
-	return em->vert_index && index < em->bm->totvert ? em->vert_index[index] : NULL;
+	BLI_assert((index >= 0) && (index < em->bm->totvert));
+	return em->vert_index[index];
 }
 
 BMEdge *EDBM_edge_at_index(BMEditMesh *em, int index)
 {
-	return em->edge_index && index < em->bm->totedge ? em->edge_index[index] : NULL;
+	BLI_assert((index >= 0) && (index < em->bm->totedge));
+	return em->edge_index[index];
 }
 
 BMFace *EDBM_face_at_index(BMEditMesh *em, int index)
 {
-	return (em->face_index && index < em->bm->totface && index >= 0) ? em->face_index[index] : NULL;
+	BLI_assert((index >= 0) && (index < em->bm->totface));
+	return em->face_index[index];
 }
 
 void EDBM_selectmode_flush_ex(BMEditMesh *em, const short selectmode)
