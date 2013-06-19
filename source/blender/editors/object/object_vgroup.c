@@ -2170,7 +2170,7 @@ void ED_vgroup_mirror(Object *ob,
 				goto cleanup;
 			}
 
-			EDBM_verts_mirror_cache_begin(em, true, false);
+			EDBM_verts_mirror_cache_begin(em, 0, true, false);
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
