@@ -16,6 +16,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <iostream>
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -24,6 +26,11 @@
 #include "util_dynlib.h"
 #include "util_path.h"
 #include "util_string.h"
+
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
 
 /* function defininitions */
 
@@ -399,7 +406,15 @@ string cuCompilerPath()
 	const char *defaultpaths[] = {"C:/CUDA/bin", NULL};
 	const char *executable = "nvcc.exe";
 #else
-	const char *defaultpaths[] = {"/Developer/NVIDIA/CUDA-4.2/bin", "/usr/local/cuda-4.2/bin", "/usr/local/cuda/bin", NULL};
+	const char *defaultpaths[] = {
+		"/Developer/NVIDIA/CUDA-5.0/bin",
+		"/usr/local/cuda-5.0/bin",
+		"/usr/local/cuda/bin",
+		"/Developer/NVIDIA/CUDA-4.2/bin",
+		"/usr/local/cuda-4.2/bin", 
+		"/Developer/NVIDIA/CUDA-5.5/bin",
+		"/usr/local/cuda-5.5/bin",
+		NULL};
 	const char *executable = "nvcc";
 #endif
 
@@ -435,6 +450,47 @@ string cuCompilerPath()
 #endif
 
 	return "";
+}
+
+int cuCompilerVersion()
+{
+	string path = cuCompilerPath();
+	if(path == "")
+		return 0;
+	
+	/* get --version output */
+	FILE *pipe = popen((path + " --version").c_str(), "r");
+	if(!pipe) {
+		fprintf(stderr, "CUDA: failed to run compiler to retrieve version");
+		return 0;
+	}
+
+	char buf[128];
+	string output = "";
+
+	while(!feof(pipe))
+		if(fgets(buf, 128, pipe) != NULL)
+			output += buf;
+
+	pclose(pipe);
+
+	/* parse version number */
+	string marker = "Cuda compilation tools, release ";
+	size_t offset = output.find(marker);
+	if(offset == string::npos) {
+		fprintf(stderr, "CUDA: failed to find version number in:\n\n%s\n", output.c_str());
+		return 0;
+	}
+
+	string versionstr = output.substr(offset + marker.size(), string::npos);
+	int major, minor;
+
+	if(sscanf(versionstr.c_str(), "%d.%d", &major, &minor) < 2) {
+		fprintf(stderr, "CUDA: failed to parse version number from:\n\n%s\n", output.c_str());
+		return 0;
+	}
+
+	return 10*major + minor;
 }
 
 CCL_NAMESPACE_END

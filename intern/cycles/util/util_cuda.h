@@ -32,6 +32,7 @@ CCL_NAMESPACE_BEGIN
 bool cuLibraryInit();
 bool cuHavePrecompiledKernels();
 string cuCompilerPath();
+int cuCompilerVersion();
 
 CCL_NAMESPACE_END
 

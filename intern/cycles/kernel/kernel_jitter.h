@@ -137,7 +137,7 @@ __device_inline float cmj_randfloat(uint i, uint p)
 }
 
 #ifdef __CMJ__
-__device_noinline float cmj_sample_1D(int s, int N, int p)
+__device float cmj_sample_1D(int s, int N, int p)
 {
 	uint x = cmj_permute(s, N, p * 0x68bc21eb);
 	float jx = cmj_randfloat(s, p * 0x967a889b);
@@ -146,7 +146,7 @@ __device_noinline float cmj_sample_1D(int s, int N, int p)
 	return (x + jx)*invN;
 }
 
-__device_noinline void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
+__device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 {
 	int m = float_to_int(sqrtf(N));
 	int n = (N + m - 1)/m;
