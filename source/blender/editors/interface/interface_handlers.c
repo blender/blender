@@ -6581,7 +6581,8 @@ static void ui_mouse_motion_towards_reinit(uiPopupBlockHandle *menu, const int x
 	ui_mouse_motion_towards_init_ex(menu, xy, true);
 }
 
-static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, const int xy[2])
+static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, const int xy[2],
+                                          const bool use_wiggle_room)
 {
 	float p1[2], p2[2], p3[2], p4[2];
 	float oldp[2] = {menu->towards_xy[0], menu->towards_xy[1]};
@@ -6615,8 +6616,8 @@ static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *me
 	p4[1] = rect_px.ymax + margin;
 
 	/* allow for some wiggle room, if the user moves a few pixels away,
-	 * don't immediately quit */
-	{
+	 * don't immediately quit (only for top level menus) */
+	if (use_wiggle_room) {
 		const float cent[2] = {
 		    BLI_rctf_cent_x(&rect_px),
 		    BLI_rctf_cent_y(&rect_px)};
@@ -7130,7 +7131,7 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 					menu->menuretval = UI_RETURN_CANCEL | UI_RETURN_POPUP_OK;
 			}
 			else {
-				ui_mouse_motion_towards_check(block, menu, &event->x);
+				ui_mouse_motion_towards_check(block, menu, &event->x, (level == 0));
 
 				/* check mouse moving outside of the menu */
 				if (inside == 0 && (block->flag & UI_BLOCK_MOVEMOUSE_QUIT)) {
