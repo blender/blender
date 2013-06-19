@@ -369,7 +369,7 @@ struct VertSearchUserData {
 	int   index_tri;
 };
 
-static void bmbvh_find_vert_closest_cb(void *userdata, int index, const float *UNUSED(co), BVHTreeNearest *hit)
+static void bmbvh_find_vert_closest_cb(void *userdata, int index, const float co[3], BVHTreeNearest *hit)
 {
 	struct VertSearchUserData *bmcb_data = userdata;
 	const BMLoop **ltri = bmcb_data->looptris[index];
@@ -382,7 +382,7 @@ static void bmbvh_find_vert_closest_cb(void *userdata, int index, const float *U
 	bmbvh_tri_from_face(tri_cos, ltri, bmcb_data->cos_cage);
 
 	for (i = 0; i < 3; i++) {
-		dist = len_squared_v3v3(hit->co, tri_cos[i]);
+		dist = len_squared_v3v3(co, tri_cos[i]);
 		if (dist < hit->dist && dist < maxdist) {
 			copy_v3_v3(hit->co, tri_cos[i]);
 			/* XXX, normal ignores cage */
@@ -402,7 +402,6 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 
 	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
 
-	copy_v3_v3(hit.co, co);
 	hit.dist = maxdist_sq;
 	hit.index = -1;
 
@@ -411,7 +410,7 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 	bmcb_data.maxdist = maxdist_sq;
 
 	BLI_bvhtree_find_nearest(bmtree->tree, co, &hit, bmbvh_find_vert_closest_cb, &bmcb_data);
-	if (hit.dist != FLT_MAX && hit.index != -1) {
+	if (hit.index != -1) {
 		BMLoop **ltri = bmtree->em->looptris[hit.index];
 		return ltri[bmcb_data.index_tri]->v;
 	}
