@@ -304,7 +304,7 @@ typedef struct uiSearchItems uiSearchItems;
 typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
 typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origstr);
 typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
-typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
+typedef bool (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, const char *str, uiSearchItems *items);
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 
@@ -644,7 +644,7 @@ typedef struct AutoComplete AutoComplete;
 
 AutoComplete *autocomplete_begin(const char *startname, size_t maxlen);
 void autocomplete_do_name(AutoComplete *autocpl, const char *name);
-void autocomplete_end(AutoComplete *autocpl, char *autoname);
+bool autocomplete_end(AutoComplete *autocpl, char *autoname);
 
 /* Panels
  *

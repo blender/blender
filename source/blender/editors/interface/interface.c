@@ -3086,16 +3086,21 @@ void autocomplete_do_name(AutoComplete *autocpl, const char *name)
 	}
 }
 
-void autocomplete_end(AutoComplete *autocpl, char *autoname)
+bool autocomplete_end(AutoComplete *autocpl, char *autoname)
 {	
-	if (autocpl->truncate[0])
+	bool change = false;
+	if (autocpl->truncate[0]) {
 		BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
+		change = true;
+	}
 	else {
-		if (autoname != autocpl->startname) /* don't copy a string over its self */
+		if (autoname != autocpl->startname) {  /* don't copy a string over its self */
 			BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
+		}
 	}
 	MEM_freeN(autocpl->truncate);
 	MEM_freeN(autocpl);
+	return change;
 }
 
 static void ui_check_but_and_iconize(uiBut *but, int icon)
