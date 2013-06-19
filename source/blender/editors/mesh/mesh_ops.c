@@ -172,6 +172,7 @@ void ED_operatortypes_mesh(void)
 #endif
 
 	WM_operatortype_append(MESH_OT_symmetrize);
+	WM_operatortype_append(MESH_OT_symmetry_snap);
 
 #ifdef WITH_GAMEENGINE
 	WM_operatortype_append(MESH_OT_navmesh_make);

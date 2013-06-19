@@ -4258,6 +4258,132 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	                        "Direction", "Which sides to copy from and to");
 }
 
+static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
+{
+	const float eps = 0.00001f;
+	const float eps_sq = eps * eps;
+
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
+	int *index = MEM_mallocN(bm->totvert * sizeof(*index), __func__);
+	const bool is_topo = false;
+
+	const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float fac = RNA_float_get(op->ptr, "factor");
+	const bool use_center = RNA_boolean_get(op->ptr, "use_center");
+
+	/* stats */
+	int totmirr = 0, totfail = 0, totfound = 0;
+
+	/* axix */
+	const int axis_dir = RNA_enum_get(op->ptr, "direction");
+	int axis = axis_dir % 3;
+	bool axis_sign = axis != axis_dir;
+
+	/* vertex iter */
+	BMIter iter;
+	BMVert *v;
+	int i;
+
+	EDBM_verts_mirror_cache_begin_ex(em, axis, true, true, is_topo, thresh, index);
+
+	EDBM_index_arrays_ensure(em, BM_VERT);
+
+	BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+
+
+	BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+		if ((BM_elem_flag_test(v, BM_ELEM_SELECT) != false) &&
+		    (BM_elem_flag_test(v, BM_ELEM_TAG) == false))
+		{
+			int i_mirr = index[i];
+			if (i_mirr != -1) {
+
+				BMVert *v_mirr = EDBM_vert_at_index(em, index[i]);
+
+				if (v != v_mirr) {
+					float co[3], co_mirr[3];
+
+					if ((v->co[axis] > v->co[axis]) == axis_sign) {
+						SWAP(BMVert *, v, v_mirr);
+					}
+
+					copy_v3_v3(co_mirr, v_mirr->co);
+					co_mirr[axis] *= -1.0f;
+
+					if (len_squared_v3v3(v->co, co_mirr) > eps_sq) {
+						totmirr++;
+					}
+
+					interp_v3_v3v3(co, v->co, co_mirr, fac);
+
+					copy_v3_v3(v->co, co);
+
+					co[axis] *= -1.0f;
+					copy_v3_v3(v_mirr->co, co);
+
+					BM_elem_flag_enable(v, BM_ELEM_TAG);
+					BM_elem_flag_enable(v_mirr, BM_ELEM_TAG);
+					totfound++;
+				}
+				else {
+					if (use_center) {
+
+						if (fabsf(v->co[axis]) > eps) {
+							totmirr++;
+						}
+
+						v->co[axis] = 0.0f;
+					}
+					BM_elem_flag_enable(v, BM_ELEM_TAG);
+					totfound++;
+				}
+			}
+			else {
+				totfail++;
+			}
+		}
+	}
+
+
+	if (totfail) {
+		BKE_reportf(op->reports, RPT_WARNING, "%d already symmetrical, %d pairs mirrored, %d failed",
+		            totfound - totmirr, totmirr, totfail);
+	}
+	else {
+		BKE_reportf(op->reports, RPT_INFO, "%d already symmetrical, %d pairs mirrored",
+		            totfound - totmirr, totmirr);
+	}
+
+	/* no need to end cache, just free the array */
+	MEM_freeN(index);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Snap to Symmetry";
+	ot->description = "Snap vertex pairs to their mirrored locations";
+	ot->idname = "MESH_OT_symmetry_snap";
+
+	/* api callbacks */
+	ot->exec = mesh_symmetry_snap_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	ot->prop = RNA_def_enum(ot->srna, "direction", symmetrize_direction_items,
+	                        BMO_SYMMETRIZE_NEGATIVE_X,
+	                        "Direction", "Which sides to copy from and to");
+	RNA_def_float(ot->srna, "threshold", 0.05, 0.0, 10.0, "Threshold", "", 0.0001, 1.0);
+	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, "Factor", "", 0.0, 1.0);
+	RNA_def_boolean(ot->srna, "use_center", true, "Center", "Snap mid verts to the axis center");
+}
+
 #ifdef WITH_FREESTYLE
 
 static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)
