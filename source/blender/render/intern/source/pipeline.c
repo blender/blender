@@ -1406,6 +1406,16 @@ static void do_render_fields_3d(Render *re)
 	re->display_draw(re->ddh, re->result, NULL);
 }
 
+/* make sure disprect is not affected by the render border */
+static void render_result_disprect_to_full_resolution(Render *re)
+{
+	re->disprect.xmin = re->disprect.ymin = 0;
+	re->disprect.xmax = re->winx;
+	re->disprect.ymax = re->winy;
+	re->rectx = re->winx;
+	re->recty = re->winy;
+}
+
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
@@ -1438,13 +1448,8 @@ static void do_render_fields_blur_3d(Render *re)
 				/* sub-rect for merge call later on */
 				re->result->tilerect = re->disprect;
 				
-				/* this copying sequence could become function? */
 				/* weak is: it chances disprect from border */
-				re->disprect.xmin = re->disprect.ymin = 0;
-				re->disprect.xmax = re->winx;
-				re->disprect.ymax = re->winy;
-				re->rectx = re->winx;
-				re->recty = re->winy;
+				render_result_disprect_to_full_resolution(re);
 				
 				rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 				
@@ -1910,6 +1915,9 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		
 		render_result_free(re->result);
+		if ((re->r.mode & R_CROP) == 0) {
+			render_result_disprect_to_full_resolution(re);
+		}
 		re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 
 		BLI_rw_mutex_unlock(&re->resultmutex);
