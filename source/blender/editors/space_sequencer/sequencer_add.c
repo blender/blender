@@ -562,10 +562,14 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
+			/* Set seq_load.name, else all video/audio files get the same name! ugly! */
+			BLI_strncpy(seq_load.name, file_only, sizeof(seq_load.name));
+
 			seq = seq_load_func(C, ed->seqbasep, &seq_load);
 			if (seq) {
 				if (overlap == FALSE) {
-					if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
+					if (BKE_sequence_test_overlap(ed->seqbasep, seq))
+						BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 				}
 			}
 		}
