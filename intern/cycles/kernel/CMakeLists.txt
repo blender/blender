@@ -130,6 +130,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	string(REGEX REPLACE ".*release ([0-9]+)\\.([0-9]+).*" "\\2" CUDA_VERSION_MINOR ${NVCC_OUT})
 	set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
+	# warn for other versions
+	if(CUDA_VERSION MATCHES "50")
+	else()
+		message(WARNING "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, build may succeed but only CUDA 5.0 is officially supported")
+	endif()
+
 	# build for each arch
 	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_UTIL_HEADERS})
 	set(cuda_cubins)
@@ -138,12 +144,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		set(cuda_cubin kernel_${arch}.cubin)
 
 		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${CUDA_VERSION}")
-
-		# warn for other versions
-		if(CUDA_VERSION MATCHES "50")
-		else()
-			message(STATUS "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, build may succeed but only CUDA 5.0 is officially supported")
-		endif()
 
 		# build flags depending on CUDA version and arch
 		if(CUDA_VERSION LESS 50)
@@ -176,13 +176,17 @@ if(WITH_CYCLES_CUDA_BINARIES)
 			set(cuda_math_flags "--use_fast_math")
 		endif()
 		
-		add_custom_command(
-			OUTPUT ${cuda_cubin}
-			COMMAND ${CUDA_NVCC_EXECUTABLE} -arch=${arch} -m${CUDA_BITS} --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" ${cuda_arch_flags} ${cuda_version_flags} ${cuda_math_flags} -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC
-			DEPENDS ${cuda_sources})
+		if(CUDA_VERSION LESS 50 AND ${arch} MATCHES "sm_35")
+			message(WARNING "Can't build kernel for CUDA sm_35 architecture, skipping")
+		else()
+			add_custom_command(
+				OUTPUT ${cuda_cubin}
+				COMMAND ${CUDA_NVCC_EXECUTABLE} -arch=${arch} -m${CUDA_BITS} --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" ${cuda_arch_flags} ${cuda_version_flags} ${cuda_math_flags} -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC
+				DEPENDS ${cuda_sources})
 
-		delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
-		list(APPEND cuda_cubins ${cuda_cubin})
+			delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
+			list(APPEND cuda_cubins ${cuda_cubin})
+		endif()
 	endforeach()
 
 	add_custom_target(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})

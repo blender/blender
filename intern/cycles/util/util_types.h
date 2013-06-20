@@ -517,7 +517,7 @@ __device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t&
 
 #else
 
-/* somewhat slower version for SSE3 */
+/* somewhat slower version for SSE2 */
 typedef int shuffle_swap_t;
 
 __device_inline const shuffle_swap_t shuffle_swap_identity(void)

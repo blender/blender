@@ -88,6 +88,10 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
 
 		# build flags depending on CUDA version and arch
         if cuda_version < 50:
+            if arch == "sm_35":
+                print("Can't build kernel for CUDA sm_35 architecture, skipping")
+                continue
+
             # CUDA 4.x
             if arch.startswith("sm_1"):
                 # sm_1x
