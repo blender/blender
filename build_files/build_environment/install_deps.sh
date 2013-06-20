@@ -2285,7 +2285,7 @@ install_RPM() {
     read -p "Do you want to add this repo (Y/n)?"
     if [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" == "y" ]; then
       INFO "    Installing packman..."
-      sudo zypper ar -f http://packman.inode.at/suse/openSUSE_$_suse_rel/ packman
+      sudo zypper ar --refresh --name 'Packman Repository' http://ftp.gwdg.de/pub/linux/packman/suse/openSUSE_$_suse_rel/ ftp.gwdg.de-suse
       INFO "    Done."
     else
       INFO "    Skipping packman installation."
