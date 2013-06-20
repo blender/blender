@@ -63,8 +63,8 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	else
 		shader_manager = ShaderManager::create(this, SceneParams::SVM);
 
-	if (device_info_.type == DEVICE_CPU)
-		image_manager->set_extended_image_limits();
+	/* Extended Image limits for CPU and Kepler GPUs */
+	image_manager->set_extended_image_limits(device_info_);
 }
 
 Scene::~Scene()

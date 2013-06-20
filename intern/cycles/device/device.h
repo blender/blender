@@ -53,6 +53,7 @@ public:
 	string description;
 	string id;
 	int num;
+	int extended_images;
 	bool display_device;
 	bool advanced_shading;
 	bool pack_images;
@@ -63,6 +64,7 @@ public:
 		type = DEVICE_CPU;
 		id = "CPU";
 		num = 0;
+		extended_images = false;
 		display_device = false;
 		advanced_shading = true;
 		pack_images = false;

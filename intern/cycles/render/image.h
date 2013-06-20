@@ -19,6 +19,7 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
+#include "device.h"
 #include "device_memory.h"
 
 #include "util_string.h"
@@ -29,12 +30,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Normal Image amount */
 #define TEX_NUM_IMAGES			95
 #define TEX_IMAGE_BYTE_START	TEX_NUM_FLOAT_IMAGES
 
+/* Extended Image amount*/
 #define TEX_EXTENDED_NUM_FLOAT_IMAGES	5
-#define TEX_EXTENDED_NUM_IMAGES			512
 #define TEX_EXTENDED_IMAGE_BYTE_START	TEX_EXTENDED_NUM_FLOAT_IMAGES
+#define TEX_EXTENDED_NUM_IMAGES_CPU		512
+#define TEX_EXTENDED_NUM_IMAGES_GPU		145
 
 /* color to use when textures are not found */
 #define TEX_IMAGE_MISSING_R 1
@@ -60,7 +64,7 @@ public:
 
 	void set_osl_texture_system(void *texture_system);
 	void set_pack_images(bool pack_images_);
-	void set_extended_image_limits(void);
+	void set_extended_image_limits(const DeviceInfo& info);
 	bool set_animation_frame_update(int frame);
 
 	bool need_update;

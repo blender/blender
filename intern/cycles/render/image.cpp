@@ -61,11 +61,16 @@ void ImageManager::set_osl_texture_system(void *texture_system)
 	osl_texture_system = texture_system;
 }
 
-void ImageManager::set_extended_image_limits(void)
+void ImageManager::set_extended_image_limits(const DeviceInfo& info)
 {
-	tex_num_images = TEX_EXTENDED_NUM_IMAGES;
-	tex_num_float_images = TEX_EXTENDED_NUM_FLOAT_IMAGES;
-	tex_image_byte_start = TEX_EXTENDED_IMAGE_BYTE_START;
+	if(info.type == DEVICE_CPU) {
+		tex_num_images = TEX_EXTENDED_NUM_IMAGES_CPU;
+		tex_num_float_images = TEX_EXTENDED_NUM_FLOAT_IMAGES;
+		tex_image_byte_start = TEX_EXTENDED_IMAGE_BYTE_START;
+	}
+	else if ((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
+		tex_num_images = TEX_EXTENDED_NUM_IMAGES_GPU;
+	}
 }
 
 bool ImageManager::set_animation_frame_update(int frame)

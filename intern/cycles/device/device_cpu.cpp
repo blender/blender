@@ -340,6 +340,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.description = system_cpu_brand_string();
 	info.id = "CPU";
 	info.num = 0;
+	info.extended_images = true;
 	info.advanced_shading = true;
 	info.pack_images = false;
 
