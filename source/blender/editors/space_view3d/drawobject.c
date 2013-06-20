@@ -116,7 +116,7 @@ typedef struct drawDMVerts_userData {
 	float th_vertex_size;
 
 	/* for skin node drawing */
-	int has_vskin;
+	int cd_vskin_offset;
 	float imat[4][4];
 } drawDMVerts_userData;
 
@@ -154,6 +154,11 @@ typedef struct bbsObmodeMeshVerts_userData {
 	void *offset;
 	MVert *mvert;
 } bbsObmodeMeshVerts_userData;
+
+typedef struct drawDMLayer_userData {
+	BMEditMesh *em;
+	int cd_layer_offset;
+} drawDMLayer_userData;
 
 static void draw_bounding_volume(Scene *scene, Object *ob, char type);
 
@@ -2130,10 +2135,8 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->sel) {
 		/* skin nodes: draw a red circle around the root
 		 * node(s) */
-		if (data->has_vskin) {
-			const MVertSkin *vs = CustomData_bmesh_get(&data->em->bm->vdata,
-			                                           eve->head.data,
-			                                           CD_MVERT_SKIN);
+		if (data->cd_vskin_offset != -1) {
+			const MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, data->cd_vskin_offset);
 			if (vs->flag & MVERT_SKIN_ROOT) {
 				float radius = (vs->radius[0] + vs->radius[1]) * 0.5f;
 				bglEnd();
@@ -2183,7 +2186,7 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVer
 	data.th_vertex_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
 
 	/* For skin root drawing */
-	data.has_vskin = CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN);
+	data.cd_vskin_offset = CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN);
 	/* view-aligned matrix */
 	mul_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
 	invert_m4(data.imat);
@@ -2449,36 +2452,43 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 
 static DMDrawOption draw_dm_creases__setDrawOptions(void *userData, int index)
 {
-	BMEditMesh *em = userData;
-	BMEdge *eed = EDBM_edge_at_index(userData, index);
-	float *crease = eed ? (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE) : NULL;
+	drawDMLayer_userData *data = userData;
+	BMEditMesh *em = data->em;
+	BMEdge *eed = EDBM_edge_at_index(em, index);
 	
-	if (!crease)
-		return DM_DRAW_OPTION_SKIP;
-	
-	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *crease != 0.0f) {
-		UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_CREASE, *crease);
-		return DM_DRAW_OPTION_NORMAL;
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+		const float crease = BM_ELEM_CD_GET_FLOAT(eed, data->cd_layer_offset);
+		if (crease != 0.0f) {
+			UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_CREASE, crease);
+			return DM_DRAW_OPTION_NORMAL;
+		}
 	}
-	else {
-		return DM_DRAW_OPTION_SKIP;
-	}
+	return DM_DRAW_OPTION_SKIP;
 }
 static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
 {
-	glLineWidth(3.0);
-	dm->drawMappedEdges(dm, draw_dm_creases__setDrawOptions, em);
-	glLineWidth(1.0);
+	drawDMLayer_userData data;
+
+	data.em = em;
+	data.cd_layer_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
+
+	if (data.cd_layer_offset != -1) {
+		glLineWidth(3.0);
+		dm->drawMappedEdges(dm, draw_dm_creases__setDrawOptions, &data);
+		glLineWidth(1.0);
+	}
 }
 
 static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 {
-	BMEditMesh *em = userData;
-	BMEdge *eed = EDBM_edge_at_index(userData, index);
+	drawDMLayer_userData *data = userData;
+	BMEditMesh *em = data->em;
+	BMEdge *eed = EDBM_edge_at_index(em, index);
+
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-		const float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
-		if (*bweight != 0.0f) {
-			UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_SELECT, *bweight);
+		const float bweight = BM_ELEM_CD_GET_FLOAT(eed, data->cd_layer_offset);
+		if (bweight != 0.0f) {
+			UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_SELECT, bweight);
 			return DM_DRAW_OPTION_NORMAL;
 		}
 	}
@@ -2487,13 +2497,14 @@ static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 static void draw_dm_bweights__mapFunc(void *userData, int index, const float co[3],
                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
-	BMEditMesh *em = userData;
-	BMVert *eve = EDBM_vert_at_index(userData, index);
+	drawDMLayer_userData *data = userData;
+	BMEditMesh *em = data->em;
+	BMVert *eve = EDBM_vert_at_index(em, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		const float *bweight = (float *)CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_BWEIGHT);
-		if (*bweight != 0.0f) {
-			UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, *bweight);
+		const float bweight = BM_ELEM_CD_GET_FLOAT(eve, data->cd_layer_offset);
+		if (bweight != 0.0f) {
+			UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, bweight);
 			bglVertex3fv(co);
 		}
 	}
@@ -2503,17 +2514,27 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 	ToolSettings *ts = scene->toolsettings;
 
 	if (ts->selectmode & SCE_SELECT_VERTEX) {
-		if (CustomData_has_layer(&em->bm->vdata, CD_BWEIGHT)) {
+		drawDMLayer_userData data;
+
+		data.em = em;
+		data.cd_layer_offset = CustomData_get_offset(&em->bm->vdata, CD_BWEIGHT);
+
+		if (data.cd_layer_offset != -1) {
 			glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
 			bglBegin(GL_POINTS);
-			dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, em);
+			dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, &data);
 			bglEnd();
 		}
 	}
 	else {
-		if (CustomData_has_layer(&em->bm->edata, CD_BWEIGHT)) {
+		drawDMLayer_userData data;
+
+		data.em = em;
+		data.cd_layer_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
+
+		if (data.cd_layer_offset != -1) {
 			glLineWidth(3.0);
-			dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, em);
+			dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, &data);
 			glLineWidth(1.0);
 		}
 	}
@@ -3148,7 +3169,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		}
 #endif
 	
-		if (me->drawflag & ME_DRAWCREASES && CustomData_has_layer(&em->bm->edata, CD_CREASE)) {
+		if (me->drawflag & ME_DRAWCREASES) {
 			draw_dm_creases(em, cageDM);
 		}
 		if (me->drawflag & ME_DRAWBWEIGHTS) {

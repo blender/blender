@@ -1446,7 +1446,9 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 							else {
 								eve = EDBM_vert_at_index(em, index);
 								
-								if (eve && (BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
+								if ((BM_elem_flag_test(eve, BM_ELEM_HIDDEN) ||
+								     BM_elem_flag_test(eve, BM_ELEM_SELECT)))
+								{
 									test = 0;
 								}
 							}
