@@ -1501,7 +1501,8 @@ typedef struct Scene {
 /* toolsettings->proportional */
 #define PROP_EDIT_OFF			0
 #define PROP_EDIT_ON			1
-#define PROP_EDIT_CONNECTED	2
+#define PROP_EDIT_CONNECTED		2
+#define PROP_EDIT_PROJECTED		3
 
 /* toolsettings->weightuser */
 enum {

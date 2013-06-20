@@ -1736,12 +1736,15 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	/* convert flag to enum */
-	switch (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	switch (t->flag & T_PROP_EDIT_ALL) {
+		case T_PROP_EDIT:
+			proportional = PROP_EDIT_ON;
+			break;
 		case (T_PROP_EDIT | T_PROP_CONNECTED):
 			proportional = PROP_EDIT_CONNECTED;
 			break;
-		case T_PROP_EDIT:
-			proportional = PROP_EDIT_ON;
+		case (T_PROP_EDIT | T_PROP_PROJECTED):
+			proportional = PROP_EDIT_PROJECTED;
 			break;
 		default:
 			proportional = PROP_EDIT_OFF;
@@ -2945,7 +2948,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 		}
 	}
 
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 }
@@ -3143,7 +3146,7 @@ int Resize(TransInfo *t, const int mval[2])
 		/* vertices in the radius of the brush end */
 		/* outside the clipping area               */
 		/* XXX HACK - dg */
-		if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+		if (t->flag & T_PROP_EDIT_ALL) {
 			clipUVData(t);
 		}
 	}
@@ -3663,7 +3666,7 @@ int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 		                    RAD2DEGF(final), t->con.text, t->proptext);
 	}
 	
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
@@ -3764,7 +3767,7 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 		                    RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
 	}
 
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
@@ -3912,7 +3915,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		}
 	}
 
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 }
@@ -4019,7 +4022,7 @@ int Translation(TransInfo *t, const int UNUSED(mval[2]))
 		/* vertices in the radius of the brush end */
 		/* outside the clipping area               */
 		/* XXX HACK - dg */
-		if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+		if (t->flag & T_PROP_EDIT_ALL) {
 			clipUVData(t);
 		}
 	}

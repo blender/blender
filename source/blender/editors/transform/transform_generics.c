@@ -1023,6 +1023,20 @@ void resetTransRestrictions(TransInfo *t)
 	t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
+static int initTransInfo_edit_pet_to_flag(const int proportional)
+{
+	switch (proportional) {
+		case PROP_EDIT_ON:
+			return T_PROP_EDIT;
+		case PROP_EDIT_CONNECTED:
+			return T_PROP_EDIT | T_PROP_CONNECTED;
+		case PROP_EDIT_PROJECTED:
+			return T_PROP_EDIT | T_PROP_PROJECTED;
+		default:
+			return 0;
+	}
+}
+
 /* the *op can be NULL */
 int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
@@ -1245,24 +1259,14 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
 	if (op && (prop = RNA_struct_find_property(op->ptr, "proportional"))) {
 		if (RNA_property_is_set(op->ptr, prop)) {
-			switch (RNA_property_enum_get(op->ptr, prop)) {
-				case PROP_EDIT_CONNECTED:
-					t->flag |= T_PROP_CONNECTED;
-				case PROP_EDIT_ON:
-					t->flag |= T_PROP_EDIT;
-					break;
-			}
+			t->flag |= initTransInfo_edit_pet_to_flag(RNA_property_enum_get(op->ptr, prop));
 		}
 		else {
 			/* use settings from scene only if modal */
 			if (t->flag & T_MODAL) {
 				if ((t->options & CTX_NO_PET) == 0) {
-					if (t->obedit && ts->proportional != PROP_EDIT_OFF) {
-						t->flag |= T_PROP_EDIT;
-
-						if (ts->proportional == PROP_EDIT_CONNECTED) {
-							t->flag |= T_PROP_CONNECTED;
-						}
+					if (t->obedit) {
+						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional);
 					}
 					else if (t->options & CTX_MASK) {
 						if (ts->proportional_mask) {
