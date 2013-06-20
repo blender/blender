@@ -275,6 +275,8 @@ void ImageRender::Render()
 
 	m_scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 
+	m_scene->RenderFonts();
+
 	// restore the canvas area now that the render is completed
 	m_canvas->GetWindowArea() = area;
 }

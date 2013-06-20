@@ -54,7 +54,6 @@
 #include "MT_Transform.h"
 #include "SCA_IInputDevice.h"
 #include "KX_Camera.h"
-#include "KX_FontObject.h"
 #include "KX_Dome.h"
 #include "KX_Light.h"
 #include "KX_PythonInit.h"
@@ -340,7 +339,7 @@ void KX_KetsjiEngine::RenderDome()
 				// do the rendering
 				m_dome->RenderDomeFrame(scene,cam, i);
 				//render all the font objects for this scene
-				RenderFonts(scene);
+				scene->RenderFonts();
 			}
 			
 			list<class KX_Camera*>* cameras = scene->GetCameras();
@@ -358,7 +357,7 @@ void KX_KetsjiEngine::RenderDome()
 					// do the rendering
 					m_dome->RenderDomeFrame(scene, (*it),i);
 					//render all the font objects for this scene
-					RenderFonts(scene);
+					scene->RenderFonts();
 				}
 				
 				it++;
@@ -1339,21 +1338,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 
 	//render all the font objects for this scene
-	RenderFonts(scene);
+	scene->RenderFonts();
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
-}
-
-void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
-{
-	list<class KX_FontObject*>* fonts = scene->GetFonts();
-	
-	list<KX_FontObject*>::iterator it = fonts->begin();
-	while (it != fonts->end()) {
-		(*it)->DrawText();
-		++it;
-	}
 }
 
 /*
