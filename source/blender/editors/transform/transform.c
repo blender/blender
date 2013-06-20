@@ -2181,17 +2181,6 @@ int transformEnd(bContext *C, TransInfo *t)
 		/* send events out for redraws */
 		viewRedrawPost(C, t);
 
-		/*  Undo as last, certainly after special_trans_update! */
-
-		if (t->state == TRANS_CANCEL) {
-//			if (t->undostr) ED_undo_push(C, t->undostr);
-		}
-		else {
-//			if (t->undostr) ED_undo_push(C, t->undostr);
-//			else ED_undo_push(C, transform_to_undostr(t));
-		}
-		t->undostr = NULL;
-
 		viewRedrawForce(C, t);
 	}
 

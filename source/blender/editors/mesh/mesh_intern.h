@@ -170,6 +170,7 @@ void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
 void MESH_OT_wireframe(struct wmOperatorType *ot);
 void MESH_OT_convex_hull(struct wmOperatorType *ot);
 void MESH_OT_symmetrize(struct wmOperatorType *ot);
+void MESH_OT_symmetry_snap(struct wmOperatorType *ot);
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 void MESH_OT_sort_elements(struct wmOperatorType *ot);

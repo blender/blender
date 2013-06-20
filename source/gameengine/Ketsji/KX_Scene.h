@@ -381,10 +381,6 @@ public:
 	);
 
 	/** Font Routines */
-		
-		std::list<class KX_FontObject*>*
-	GetFonts(
-	);
 
 	/** Find a font in the scene by pointer. */
 		KX_FontObject*              
@@ -398,6 +394,10 @@ public:
 		KX_FontObject*
 	);
 
+	/** Render the fonts in this scene. */
+		void
+	RenderFonts(
+	);
 
 	/** Camera Routines */
 

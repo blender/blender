@@ -147,6 +147,8 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyLeftBracket           ] = KX_LEFTBRACKETKEY           ;
 	m_reverseKeyTranslateTable[GHOST_kKeyRightBracket          ] = KX_RIGHTBRACKETKEY          ;
 
+	m_reverseKeyTranslateTable[GHOST_kKeyOS                    ] = KX_OSKEY                    ;
+
 	// Modifier keys.
 	m_reverseKeyTranslateTable[GHOST_kKeyLeftControl           ] = KX_LEFTCTRLKEY              ;
 	m_reverseKeyTranslateTable[GHOST_kKeyRightControl          ] = KX_RIGHTCTRLKEY             ;

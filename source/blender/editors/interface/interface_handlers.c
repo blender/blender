@@ -1828,20 +1828,19 @@ static bool ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directi
 static bool ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	char *str;
-	/* TODO, should return false if it cant autocomp. */
-	bool changed = true;
+	bool change = true;
 
 	str = data->str;
 
 	if (data->searchbox)
-		ui_searchbox_autocomplete(C, data->searchbox, but, data->str);
+		change = ui_searchbox_autocomplete(C, data->searchbox, but, data->str);
 	else
-		but->autocomplete_func(C, str, but->autofunc_arg);
+		change = but->autocomplete_func(C, str, but->autofunc_arg);
 
 	but->pos = strlen(str);
 	but->selsta = but->selend = but->pos;
 
-	return changed;
+	return change;
 }
 
 /* mode for ui_textedit_copypaste() */

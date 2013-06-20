@@ -638,9 +638,10 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 	return match;
 }
 
-void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
+bool autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
+	bool change = false;
 
 	/* search if str matches the beginning of name */
 	if (str[0] && sfile->files) {
@@ -675,20 +676,25 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 			}
 			closedir(dir);
 
-			autocomplete_end(autocpl, str);
-			if (BLI_exists(str)) {
-				BLI_add_slash(str);
-			}
-			else {
-				BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
+			change = autocomplete_end(autocpl, str);
+			if (change) {
+				if (BLI_exists(str)) {
+					BLI_add_slash(str);
+				}
+				else {
+					BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
+				}
 			}
 		}
 	}
+
+	return change;
 }
 
-void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
+bool autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
+	bool change = false;
 
 	/* search if str matches the beginning of name */
 	if (str[0] && sfile->files) {
@@ -702,8 +708,9 @@ void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 				autocomplete_do_name(autocpl, file->relname);
 			}
 		}
-		autocomplete_end(autocpl, str);
+		change = autocomplete_end(autocpl, str);
 	}
+	return change;
 }
 
 void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile)

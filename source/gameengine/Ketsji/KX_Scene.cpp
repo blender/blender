@@ -40,6 +40,7 @@
 #include "MT_assert.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderMaterial.h"
+#include "KX_FontObject.h"
 #include "RAS_IPolygonMaterial.h"
 #include "ListValue.h"
 #include "SCA_LogicManager.h"
@@ -350,11 +351,6 @@ SCA_TimeEventManager* KX_Scene::GetTimeEventManager()
 list<class KX_Camera*>* KX_Scene::GetCameras()
 {
 	return &m_cameras;
-}
-
-list<class KX_FontObject*>* KX_Scene::GetFonts()
-{
-	return &m_fonts;
 }
 
 void KX_Scene::SetFramingType(RAS_FrameSettings & frame_settings)
@@ -1637,6 +1633,15 @@ void KX_Scene::RenderBuckets(const MT_Transform & cameratransform,
 {
 	m_bucketmanager->Renderbuckets(cameratransform,rasty,rendertools);
 	KX_BlenderMaterial::EndFrame();
+}
+
+void KX_Scene::RenderFonts()
+{
+	list<KX_FontObject*>::iterator it = m_fonts.begin();
+	while (it != m_fonts.end()) {
+		(*it)->DrawText();
+		++it;
+	}
 }
 
 void KX_Scene::UpdateObjectActivity(void) 

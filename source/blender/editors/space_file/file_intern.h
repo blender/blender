@@ -105,8 +105,8 @@ float file_string_width(const char *str);
 float file_font_pointsize(void);
 void file_change_dir(bContext *C, int checkdir);
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file);
-void autocomplete_directory(struct bContext *C, char *str, void *arg_v);
-void autocomplete_file(struct bContext *C, char *str, void *arg_v);
+bool autocomplete_directory(struct bContext *C, char *str, void *arg_v);
+bool autocomplete_file(struct bContext *C, char *str, void *arg_v);
 
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);

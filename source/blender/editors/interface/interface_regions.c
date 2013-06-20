@@ -1039,18 +1039,20 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 	ED_region_tag_redraw(ar);
 }
 
-void ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
+bool ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 {
 	uiSearchboxData *data = ar->regiondata;
+	bool changed = false;
 
 	if (str[0]) {
 		data->items.autocpl = autocomplete_begin(str, ui_get_but_string_max_length(but));
 
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
 
-		autocomplete_end(data->items.autocpl, str);
+		changed = autocomplete_end(data->items.autocpl, str);
 		data->items.autocpl = NULL;
 	}
+	return changed;
 }
 
 static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)

@@ -38,7 +38,12 @@ CCL_NAMESPACE_BEGIN
 /* ShaderData setup from incoming ray */
 
 #ifdef __OBJECT_MOTION__
-__device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
+#if defined(__KERNEL_CUDA_VERSION__) && __KERNEL_CUDA_VERSION__ <= 42
+__device_noinline
+#else
+__device
+#endif
+void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
 {
 	/* note that this is a separate non-inlined function to work around crash
 	 * on CUDA sm 2.0, otherwise kernel execution crashes (compiler bug?) */
@@ -53,7 +58,12 @@ __device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderD
 }
 #endif
 
-__device_noinline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
+#if defined(__KERNEL_CUDA_VERSION__) && __KERNEL_CUDA_VERSION__ <= 42
+__device_noinline
+#else
+__device
+#endif
+void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
 #ifdef __INSTANCING__
@@ -260,7 +270,12 @@ __device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData 
 
 /* ShaderData setup from position sampled on mesh */
 
-__device_noinline void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
+#if defined(__KERNEL_CUDA_VERSION__) && __KERNEL_CUDA_VERSION__ <= 42
+__device_noinline
+#else
+__device
+#endif
+void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
 	int shader, int object, int prim, float u, float v, float t, float time, int segment)
 {

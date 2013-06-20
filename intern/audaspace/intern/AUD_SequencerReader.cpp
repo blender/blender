@@ -112,7 +112,7 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 				try
 				{
 					handle = boost::shared_ptr<AUD_SequencerHandle>(new AUD_SequencerHandle(entry, m_device));
-					handles.push_front(handle);
+					handles.push_back(handle);
 				}
 				catch(AUD_Exception&)
 				{
@@ -143,7 +143,7 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 			try
 			{
 				handle = boost::shared_ptr<AUD_SequencerHandle>(new AUD_SequencerHandle(*eit, m_device));
-				handles.push_front(handle);
+				handles.push_back(handle);
 			}
 			catch(AUD_Exception&)
 			{

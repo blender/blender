@@ -567,7 +567,7 @@ static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int index)
 	BMEditMesh *em = data->em;
 	BMFace *efa = EDBM_face_at_index(em, index);
 
-	if (efa == NULL || BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return DM_DRAW_OPTION_SKIP;
 	}
 	else {

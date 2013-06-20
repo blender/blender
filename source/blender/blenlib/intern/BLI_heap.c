@@ -30,6 +30,7 @@
  *  \ingroup bli
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -206,6 +207,8 @@ HeapNode *BLI_heap_top(Heap *heap)
 void *BLI_heap_popmin(Heap *heap)
 {
 	void *ptr = heap->tree[0]->ptr;
+
+	BLI_assert(heap->size == 0);
 
 	heap->tree[0]->ptr = heap->freenodes;
 	heap->freenodes = heap->tree[0];

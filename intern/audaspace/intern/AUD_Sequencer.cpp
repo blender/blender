@@ -161,7 +161,7 @@ boost::shared_ptr<AUD_SequencerEntry> AUD_Sequencer::add(boost::shared_ptr<AUD_I
 
 	boost::shared_ptr<AUD_SequencerEntry> entry = boost::shared_ptr<AUD_SequencerEntry>(new AUD_SequencerEntry(sound, begin, end, skip, m_id++));
 
-	m_entries.push_front(entry);
+	m_entries.push_back(entry);
 	m_entry_status++;
 
 	return entry;

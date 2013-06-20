@@ -80,10 +80,10 @@ __device bool BVH_FUNCTION_NAME
 	isect->u = 0.0f;
 	isect->v = 0.0f;
 
-#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-	const __m128i shuffle_identity = _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-	const __m128i shuffle_swap = _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
-
+#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
+	const shuffle_swap_t shuf_swap = shuffle_swap_swap();
+	
 	const __m128i pn = _mm_set_epi32(0x80000000, 0x80000000, 0x00000000, 0x00000000);
 	__m128 Psplat[3], idirsplat[3];
 
@@ -97,9 +97,9 @@ __device bool BVH_FUNCTION_NAME
 
 	__m128 tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-	__m128i shufflex = (idir.x >= 0)? shuffle_identity: shuffle_swap;
-	__m128i shuffley = (idir.y >= 0)? shuffle_identity: shuffle_swap;
-	__m128i shufflez = (idir.z >= 0)? shuffle_identity: shuffle_swap;
+	shuffle_swap_t shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
+	shuffle_swap_t shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
+	shuffle_swap_t shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
 #endif
 
 	/* traversal loop */
@@ -112,7 +112,7 @@ __device bool BVH_FUNCTION_NAME
 				bool traverseChild0, traverseChild1;
 				int nodeAddrChild1;
 
-#if !defined(__KERNEL_SSSE3__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if !defined(__KERNEL_SSE2__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				/* Intersect two child bounding boxes, non-SSE version */
 				float t = isect->t;
 
@@ -166,20 +166,20 @@ __device bool BVH_FUNCTION_NAME
 				traverseChild1 = (c1max >= c1min);
 #endif
 
-#else // __KERNEL_SSSE3__
-				/* Intersect two child bounding boxes, SSSE3 version adapted from Embree */
+#else // __KERNEL_SSE2__
+				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
 
 				/* fetch node data */
 				__m128 *bvh_nodes = (__m128*)kg->__bvh_nodes.data + nodeAddr*BVH_NODE_SIZE;
 				float4 cnodes = ((float4*)bvh_nodes)[3];
 
 				/* intersect ray against child nodes */
-				const __m128 tminmaxx = _mm_mul_ps(_mm_sub_ps(shuffle8(bvh_nodes[0], shufflex), Psplat[0]), idirsplat[0]);
-				const __m128 tminmaxy = _mm_mul_ps(_mm_sub_ps(shuffle8(bvh_nodes[1], shuffley), Psplat[1]), idirsplat[1]);
-				const __m128 tminmaxz = _mm_mul_ps(_mm_sub_ps(shuffle8(bvh_nodes[2], shufflez), Psplat[2]), idirsplat[2]);
+				const __m128 tminmaxx = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[0], shufflex), Psplat[0]), idirsplat[0]);
+				const __m128 tminmaxy = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[1], shuffley), Psplat[1]), idirsplat[1]);
+				const __m128 tminmaxz = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[2], shufflez), Psplat[2]), idirsplat[2]);
 
 				const __m128 tminmax = _mm_xor_ps(_mm_max_ps(_mm_max_ps(tminmaxx, tminmaxy), _mm_max_ps(tminmaxz, tsplat)), _mm_castsi128_ps(pn));
-				const __m128 lrhit = _mm_cmple_ps(tminmax, shuffle8(tminmax, shuffle_swap));
+				const __m128 lrhit = _mm_cmple_ps(tminmax, shuffle_swap(tminmax, shuf_swap));
 
 				/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
@@ -190,14 +190,14 @@ __device bool BVH_FUNCTION_NAME
 				traverseChild0 = (_mm_movemask_ps(lrhit) & 1);
 				traverseChild1 = (_mm_movemask_ps(lrhit) & 2);
 #endif
-#endif // __KERNEL_SSSE3__
+#endif // __KERNEL_SSE2__
 
 				nodeAddr = __float_as_int(cnodes.x);
 				nodeAddrChild1 = __float_as_int(cnodes.y);
 
 				if(traverseChild0 && traverseChild1) {
 					/* both children were intersected, push the farther one */
-#if !defined(__KERNEL_SSSE3__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if !defined(__KERNEL_SSE2__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 					bool closestChild1 = (c1min < c0min);
 #else
 					union { __m128 m128; float v[4]; } uminmax;
@@ -244,6 +244,7 @@ __device bool BVH_FUNCTION_NAME
 					/* primitive intersection */
 					while(primAddr < primAddr2) {
 						bool hit;
+
 #if FEATURE(BVH_SUBSURFACE)
 						/* only primitives from the same object */
 						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
@@ -275,14 +276,17 @@ __device bool BVH_FUNCTION_NAME
 #if FEATURE(BVH_HAIR)
 							if(segment == ~0)
 #endif
+							{
 								hit = bvh_triangle_intersect_subsurface(kg, isect, P, idir, object, primAddr, tmax, &num_hits, subsurface_random);
+								(void)hit;
+							}
 
 						}
 #else
 								hit = bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 							/* shadow ray early termination */
-#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 							if(hit) {
 								if(visibility == PATH_RAY_SHADOW_OPAQUE)
 									return true;
@@ -315,7 +319,7 @@ __device bool BVH_FUNCTION_NAME
 						bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
 #endif
 
-#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 						Psplat[0] = _mm_set_ps1(P.x);
 						Psplat[1] = _mm_set_ps1(P.y);
 						Psplat[2] = _mm_set_ps1(P.z);
@@ -326,9 +330,9 @@ __device bool BVH_FUNCTION_NAME
 
 						tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-						shufflex = (idir.x >= 0)? shuffle_identity: shuffle_swap;
-						shuffley = (idir.y >= 0)? shuffle_identity: shuffle_swap;
-						shufflez = (idir.z >= 0)? shuffle_identity: shuffle_swap;
+						shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
+						shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
+						shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
 #endif
 
 						++stackPtr;
@@ -359,7 +363,7 @@ __device bool BVH_FUNCTION_NAME
 			bvh_instance_pop(kg, object, ray, &P, &idir, &isect->t, tmax);
 #endif
 
-#if defined(__KERNEL_SSSE3__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 			Psplat[0] = _mm_set_ps1(P.x);
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);
@@ -370,9 +374,9 @@ __device bool BVH_FUNCTION_NAME
 
 			tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-			shufflex = (idir.x >= 0)? shuffle_identity: shuffle_swap;
-			shuffley = (idir.y >= 0)? shuffle_identity: shuffle_swap;
-			shufflez = (idir.z >= 0)? shuffle_identity: shuffle_swap;
+			shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
+			shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
+			shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
 #endif
 
 			object = ~0;

@@ -628,6 +628,8 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
  */
 int BM_mesh_elem_count(BMesh *bm, const char htype)
 {
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
+
 	switch (htype) {
 		case BM_VERT: return bm->totvert;
 		case BM_EDGE: return bm->totedge;

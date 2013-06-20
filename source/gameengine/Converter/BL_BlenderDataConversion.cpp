@@ -358,8 +358,9 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[F17KEY			] = SCA_IInputDevice::KX_F17KEY;
 	m[F18KEY			] = SCA_IInputDevice::KX_F18KEY;
 	m[F19KEY			] = SCA_IInputDevice::KX_F19KEY;
-		
-		
+
+	m[OSKEY				] = SCA_IInputDevice::KX_OSKEY;
+
 	m[PAUSEKEY			] = SCA_IInputDevice::KX_PAUSEKEY;                  
 	m[INSERTKEY			] = SCA_IInputDevice::KX_INSERTKEY;                  
 	m[HOMEKEY			] = SCA_IInputDevice::KX_HOMEKEY;                  

@@ -1034,7 +1034,9 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				DM_update_tessface_data(dm);
 			}
 
-			CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+			if (dm->type == DM_TYPE_CDDM) {
+				CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+			}
 		}
 		(*derivedFinal) = dm;
 	}
@@ -1172,7 +1174,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 		if (!orcodm)
 			orcodm = create_orco_dm(scene, ob);
 
-		ndm = mti->applyModifier(md, ob, orcodm, app_flag);
+		ndm = modwrap_applyModifier(md, ob, orcodm, app_flag);
 
 		if (ndm) {
 			/* if the modifier returned a new dm, release the old one */

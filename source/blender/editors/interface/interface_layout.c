@@ -525,7 +525,7 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 		name = (!uiname || uiname[0]) ? item->name : "";
 		icon = item->icon;
 		value = item->value;
-		itemw = ui_text_icon_width(block->curlayout, name, icon, 0);
+		itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, 0);
 
 		if (icon && name[0] && !icon_only)
 			but = uiDefIconTextButR_prop(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
