@@ -2060,7 +2060,9 @@ static void draw_dm_face_centers__mapFunc(void *userData, int index, const float
 	BMFace *efa = EDBM_face_at_index(((void **)userData)[0], index);
 	const char sel = *(((char **)userData)[1]);
 	
-	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT) == sel) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) &&
+	    (BM_elem_flag_test(efa, BM_ELEM_SELECT) == sel))
+	{
 		bglVertex3fv(cent);
 	}
 }
@@ -2326,9 +2328,6 @@ static DMDrawOption draw_dm_edges_freestyle__setDrawOptions(void *userData, int 
 {
 	BMEdge *eed = EDBM_edge_at_index(userData, index);
 
-	if (!eed)
-		return DM_DRAW_OPTION_SKIP;
-
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && draw_dm_test_freestyle_edge_mark(userData, eed))
 		return DM_DRAW_OPTION_NORMAL;
 	else
@@ -2358,9 +2357,6 @@ static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 	BMFace *efa = EDBM_face_at_index(data->em, index);
 	unsigned char *col;
 	
-	if (!efa)
-		return DM_DRAW_OPTION_SKIP;
-	
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (efa == data->efa_act) {
 			glColor4ubv(data->cols[2]);
@@ -2385,6 +2381,7 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 {
 
 	drawDMFacesSel_userData *data = userData;
+	int i;
 	BMFace *efa;
 	BMFace *next_efa;
 
@@ -2393,8 +2390,13 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 	if (!data->orig_index_mf_to_mpoly)
 		return 0;
 
-	efa = EDBM_face_at_index(data->em, DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, index));
-	next_efa = EDBM_face_at_index(data->em, DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, next_index));
+	i = DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, index);
+	efa = (i != ORIGINDEX_NONE) ? EDBM_face_at_index(data->em, i) : NULL;
+	i = DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, next_index);
+	next_efa = (i != ORIGINDEX_NONE) ? EDBM_face_at_index(data->em, i) : NULL;
+
+	if (ELEM(NULL, efa, next_efa))
+		return 0;
 
 	if (efa == next_efa)
 		return 1;
@@ -2473,32 +2475,27 @@ static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 {
 	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_edge_at_index(userData, index);
-	float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
-
-	if (!bweight)
-		return DM_DRAW_OPTION_SKIP;
-	
-	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *bweight != 0.0f) {
-		UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_SELECT, *bweight);
-		return DM_DRAW_OPTION_NORMAL;
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+		const float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+		if (*bweight != 0.0f) {
+			UI_ThemeColorBlend(TH_WIRE_EDIT, TH_EDGE_SELECT, *bweight);
+			return DM_DRAW_OPTION_NORMAL;
+		}
 	}
-	else {
-		return DM_DRAW_OPTION_SKIP;
-	}
+	return DM_DRAW_OPTION_SKIP;
 }
 static void draw_dm_bweights__mapFunc(void *userData, int index, const float co[3],
                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	BMEditMesh *em = userData;
 	BMVert *eve = EDBM_vert_at_index(userData, index);
-	float *bweight = (float *)CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_BWEIGHT);
-	
-	if (!bweight)
-		return;
-	
-	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && *bweight != 0.0f) {
-		UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, *bweight);
-		bglVertex3fv(co);
+
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+		const float *bweight = (float *)CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_BWEIGHT);
+		if (*bweight != 0.0f) {
+			UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, *bweight);
+			bglVertex3fv(co);
+		}
 	}
 }
 static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
@@ -2506,15 +2503,19 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 	ToolSettings *ts = scene->toolsettings;
 
 	if (ts->selectmode & SCE_SELECT_VERTEX) {
-		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
-		bglBegin(GL_POINTS);
-		dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, em);
-		bglEnd();
+		if (CustomData_has_layer(&em->bm->vdata, CD_BWEIGHT)) {
+			glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
+			bglBegin(GL_POINTS);
+			dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, em);
+			bglEnd();
+		}
 	}
 	else {
-		glLineWidth(3.0);
-		dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, em);
-		glLineWidth(1.0);
+		if (CustomData_has_layer(&em->bm->edata, CD_BWEIGHT)) {
+			glLineWidth(3.0);
+			dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, em);
+			glLineWidth(1.0);
+		}
 	}
 }
 
@@ -2958,7 +2959,7 @@ static DMDrawOption draw_em_fancy__setFaceOpts(void *userData, int index)
 {
 	BMFace *efa = EDBM_face_at_index(userData, index);
 
-	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		GPU_enable_material(efa->mat_nr + 1, NULL);
 		return DM_DRAW_OPTION_NORMAL;
 	}
@@ -7274,7 +7275,7 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 {
 	BMFace *efa = EDBM_face_at_index(((void **)userData)[0], index);
 	
-	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (((void **)userData)[1]) {
 			WM_framebuffer_index_set(index + 1);
 		}

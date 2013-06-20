@@ -976,11 +976,11 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 			BMEditMesh *em = me->edit_btmesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			/* warning, this lookup is _not_ fast */
-			BMVert *eve;
 
-			EDBM_index_arrays_ensure(em, BM_VERT);
-
-			if ((cd_dvert_offset != -1) && (eve = EDBM_vert_at_index(em, vertnum))) {
+			if (cd_dvert_offset != -1) {
+				BMVert *eve;
+				EDBM_index_arrays_ensure(em, BM_VERT);
+				eve = EDBM_vert_at_index(em, vertnum);
 				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
 			else {
