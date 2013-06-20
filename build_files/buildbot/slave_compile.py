@@ -155,9 +155,9 @@ else:
 
             scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
 
-        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
-
         if builder.find('win') != -1:
+            if not os.path.exists(install_dir):
+                os.makedirs(install_dir)
             if builder.endswith('vc2012'):
                 dlls = ('msvcp110.dll', 'msvcr110.dll', 'vcomp110.dll')
             else:
@@ -168,5 +168,7 @@ else:
                 dlls_path = '..\\..\\..\\redist\\amd64'
             for dll in dlls:
                 shutil.copyfile(os.path.join(dlls_path, dll), os.path.join(install_dir, dll))
+
+        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
 
         sys.exit(retcode)
