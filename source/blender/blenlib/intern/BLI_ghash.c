@@ -44,6 +44,8 @@
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
+#  pragma GCC diagnostic error "-Wsign-compare"
+#  pragma GCC diagnostic error "-Wconversion"
 #endif
 
 const unsigned int hashsizes[] = {
@@ -152,7 +154,7 @@ bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 
 void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-	int i;
+	unsigned int i;
 
 	if (keyfreefp || valfreefp) {
 		for (i = 0; i < gh->nbuckets; i++) {
@@ -220,7 +222,7 @@ bool BLI_ghash_haskey(GHash *gh, const void *key)
 
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-	int i;
+	unsigned int i;
 
 	if (keyfreefp || valfreefp) {
 		for (i = 0; i < gh->nbuckets; i++) {
@@ -252,7 +254,7 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh)
 	GHashIterator *ghi = MEM_mallocN(sizeof(*ghi), "ghash iterator");
 	ghi->gh = gh;
 	ghi->curEntry = NULL;
-	ghi->curBucket = -1;
+	ghi->curBucket = (unsigned int)-1;
 	while (!ghi->curEntry) {
 		ghi->curBucket++;
 		if (ghi->curBucket == ghi->gh->nbuckets)
@@ -265,7 +267,7 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 {
 	ghi->gh = gh;
 	ghi->curEntry = NULL;
-	ghi->curBucket = -1;
+	ghi->curBucket = (unsigned int)-1;
 	while (!ghi->curEntry) {
 		ghi->curBucket++;
 		if (ghi->curBucket == ghi->gh->nbuckets)

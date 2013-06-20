@@ -41,6 +41,8 @@
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
+#  pragma GCC diagnostic error "-Wsign-compare"
+#  pragma GCC diagnostic error "-Wconversion"
 #endif
 
 /***/

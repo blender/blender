@@ -45,6 +45,8 @@
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
+#  pragma GCC diagnostic error "-Wsign-compare"
+#  pragma GCC diagnostic error "-Wconversion"
 #endif
 
 /* note: copied from BLO_blend_defs.h, don't use here because we're in BLI */
@@ -102,8 +104,8 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 	}
 
 	/* set the elem size */
-	if (esize < MEMPOOL_ELEM_SIZE_MIN) {
-		esize = MEMPOOL_ELEM_SIZE_MIN;
+	if (esize < (int)MEMPOOL_ELEM_SIZE_MIN) {
+		esize = (int)MEMPOOL_ELEM_SIZE_MIN;
 	}
 
 	if (flag & BLI_MEMPOOL_ALLOW_ITER) {
