@@ -1416,6 +1416,10 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 					xs = (float)x + R.samples->centLut[b & 15] + 0.5f;
 					ys = (float)y + R.samples->centLut[b >> 4] + 0.5f;
 				}
+				else if (R.i.curblur) {
+					xs= (float)x + R.mblur_jit[R.i.curblur-1][0] + 0.5f;
+					ys= (float)y + R.mblur_jit[R.i.curblur-1][1] + 0.5f;
+				}
 				else {
 					xs = (float)x + 0.5f;
 					ys = (float)y + 0.5f;
