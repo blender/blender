@@ -208,7 +208,7 @@ void *BLI_heap_popmin(Heap *heap)
 {
 	void *ptr = heap->tree[0]->ptr;
 
-	BLI_assert(heap->size == 0);
+	BLI_assert(heap->size != 0);
 
 	heap->tree[0]->ptr = heap->freenodes;
 	heap->freenodes = heap->tree[0];
