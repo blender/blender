@@ -238,6 +238,8 @@ public:
 		KX_F17KEY,
 		KX_F18KEY,
 		KX_F19KEY,
+
+		KX_OSKEY,
 		
 		KX_PAUSEKEY,
 		KX_INSERTKEY,

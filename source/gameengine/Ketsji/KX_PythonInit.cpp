@@ -2415,6 +2415,8 @@ PyObject *initGameKeys()
 	KX_MACRO_addTypesToDict(d, F17KEY, SCA_IInputDevice::KX_F17KEY);
 	KX_MACRO_addTypesToDict(d, F18KEY, SCA_IInputDevice::KX_F18KEY);
 	KX_MACRO_addTypesToDict(d, F19KEY, SCA_IInputDevice::KX_F19KEY);
+
+	KX_MACRO_addTypesToDict(d, OSKEY, SCA_IInputDevice::KX_OSKEY);
 		
 	KX_MACRO_addTypesToDict(d, PAUSEKEY,  SCA_IInputDevice::KX_PAUSEKEY);
 	KX_MACRO_addTypesToDict(d, INSERTKEY, SCA_IInputDevice::KX_INSERTKEY);
