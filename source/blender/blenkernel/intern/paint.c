@@ -189,6 +189,8 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 						return &ts->uvsculpt->paint;
 					else
 						return &ts->imapaint.paint;
+				default:
+					return &ts->imapaint.paint;
 			}
 		}
 		else {
@@ -238,6 +240,8 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 						return PAINT_SCULPT_UV;
 					else
 						return PAINT_TEXTURE_2D;
+				default:
+					return PAINT_TEXTURE_2D;
 			}
 		}
 		else {
