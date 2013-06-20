@@ -1823,16 +1823,19 @@ DerivedMesh *CDDM_from_curve(Object *ob)
 
 DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 {
+	Curve *cu = (Curve *) ob->data;
 	DerivedMesh *dm;
 	CDDerivedMesh *cddm;
 	MVert *allvert;
 	MEdge *alledge;
 	MLoop *allloop;
 	MPoly *allpoly;
+	MLoopUV *alluv = NULL;
 	int totvert, totedge, totloop, totpoly;
+	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
 
 	if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert, &alledge,
-	                                     &totedge, &allloop, &allpoly, NULL,
+	                                     &totedge, &allloop, &allpoly, (use_orco_uv) ? &alluv : NULL,
 	                                     &totloop, &totpoly) != 0)
 	{
 		/* Error initializing mdata. This often happens when curve is empty */
@@ -1849,6 +1852,12 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 	memcpy(cddm->medge, alledge, totedge * sizeof(MEdge));
 	memcpy(cddm->mloop, allloop, totloop * sizeof(MLoop));
 	memcpy(cddm->mpoly, allpoly, totpoly * sizeof(MPoly));
+
+	if (alluv) {
+		const char *uvname = "Orco";
+		CustomData_add_layer_named(&cddm->dm.polyData, CD_MTEXPOLY, CD_DEFAULT, NULL, totpoly, uvname);
+		CustomData_add_layer_named(&cddm->dm.loopData, CD_MLOOPUV, CD_ASSIGN, alluv, totloop, uvname);
+	}
 
 	MEM_freeN(allvert);
 	MEM_freeN(alledge);
