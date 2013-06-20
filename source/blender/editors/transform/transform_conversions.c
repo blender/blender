@@ -2038,7 +2038,7 @@ static void createTransEditVerts(TransInfo *t)
 	int cd_vert_bweight_offset = -1;
 
 	if (t->flag & T_MIRROR) {
-		EDBM_verts_mirror_cache_begin(em, 0, false, true);
+		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0);
 		mirror = 1;
 	}
 
