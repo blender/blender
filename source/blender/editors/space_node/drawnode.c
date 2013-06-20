@@ -735,6 +735,13 @@ static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_vect_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{ 
+	uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "convert_from", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "convert_to", 0, "", ICON_NONE);
+}
+
 static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -968,6 +975,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break; 
 		case SH_NODE_VECT_MATH: 
 			ntype->uifunc = node_shader_buts_vect_math;
+			break; 
+		case SH_NODE_VECT_TRANSFORM: 
+			ntype->uifunc = node_shader_buts_vect_transform;
 			break; 
 		case SH_NODE_GEOMETRY:
 			ntype->uifunc = node_shader_buts_geometry;

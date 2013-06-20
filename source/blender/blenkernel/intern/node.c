@@ -3419,6 +3419,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_curve_rgb();
 	register_node_type_sh_math();
 	register_node_type_sh_vect_math();
+	register_node_type_sh_vect_transform();
 	register_node_type_sh_squeeze();
 	register_node_type_sh_material_ext();
 	register_node_type_sh_invert();
