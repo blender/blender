@@ -30,8 +30,9 @@ color image_texture_lookup(string filename, string color_space, float u, float v
 			rgb = min(rgb, 1.0);
 	}
 
-	if (color_space == "sRGB")
+	if (color_space == "sRGB") {
 		rgb = color_srgb_to_scene_linear(rgb);
+	}
 
 	return rgb;
 }
@@ -45,6 +46,7 @@ shader node_image_texture(
 	string projection = "Flat",
 	float projection_blend = 0.0,
 	int is_float = 1,
+	int use_alpha = 1,
 	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
@@ -53,8 +55,6 @@ shader node_image_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 	
-	int use_alpha = isconnected(Alpha);
-
 	if (projection == "Flat") {
 		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha, use_alpha, is_float);
 	}

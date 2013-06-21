@@ -49,6 +49,7 @@ shader node_environment_texture(
 	string projection = "Equirectangular",
 	string color_space = "sRGB",
 	int is_float = 1,
+	int use_alpha = 1,
 	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
@@ -67,7 +68,7 @@ shader node_environment_texture(
 	/* todo: use environment for better texture filtering of equirectangular */
 	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "alpha", Alpha);
 
-	if (isconnected(Alpha)) {
+	if (use_alpha) {
 		Color = color_unpremultiply(Color, Alpha);
 
 		if (!is_float)
