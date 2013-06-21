@@ -65,28 +65,28 @@
 
 /*** declarations ***/
 
-#if !defined(MAKEFOURCC)
-#	define MAKEFOURCC(ch0, ch1, ch2, ch3) \
+#if !defined(DDS_MAKEFOURCC)
+#	define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
     (uint(uint8(ch0)) | (uint(uint8(ch1)) << 8) | \
     (uint(uint8(ch2)) << 16) | (uint(uint8(ch3)) << 24 ))
 #endif
 
-static const uint FOURCC_NVTT = MAKEFOURCC('N', 'V', 'T', 'T');
-static const uint FOURCC_DDS = MAKEFOURCC('D', 'D', 'S', ' ');
-static const uint FOURCC_DXT1 = MAKEFOURCC('D', 'X', 'T', '1');
-static const uint FOURCC_DXT2 = MAKEFOURCC('D', 'X', 'T', '2');
-static const uint FOURCC_DXT3 = MAKEFOURCC('D', 'X', 'T', '3');
-static const uint FOURCC_DXT4 = MAKEFOURCC('D', 'X', 'T', '4');
-static const uint FOURCC_DXT5 = MAKEFOURCC('D', 'X', 'T', '5');
-static const uint FOURCC_RXGB = MAKEFOURCC('R', 'X', 'G', 'B');
-static const uint FOURCC_ATI1 = MAKEFOURCC('A', 'T', 'I', '1');
-static const uint FOURCC_ATI2 = MAKEFOURCC('A', 'T', 'I', '2');
+static const uint FOURCC_NVTT = DDS_MAKEFOURCC('N', 'V', 'T', 'T');
+static const uint FOURCC_DDS = DDS_MAKEFOURCC('D', 'D', 'S', ' ');
+static const uint FOURCC_DXT1 = DDS_MAKEFOURCC('D', 'X', 'T', '1');
+static const uint FOURCC_DXT2 = DDS_MAKEFOURCC('D', 'X', 'T', '2');
+static const uint FOURCC_DXT3 = DDS_MAKEFOURCC('D', 'X', 'T', '3');
+static const uint FOURCC_DXT4 = DDS_MAKEFOURCC('D', 'X', 'T', '4');
+static const uint FOURCC_DXT5 = DDS_MAKEFOURCC('D', 'X', 'T', '5');
+static const uint FOURCC_RXGB = DDS_MAKEFOURCC('R', 'X', 'G', 'B');
+static const uint FOURCC_ATI1 = DDS_MAKEFOURCC('A', 'T', 'I', '1');
+static const uint FOURCC_ATI2 = DDS_MAKEFOURCC('A', 'T', 'I', '2');
 
-static const uint FOURCC_A2XY = MAKEFOURCC('A', '2', 'X', 'Y');
+static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
 	
-static const uint FOURCC_DX10 = MAKEFOURCC('D', 'X', '1', '0');
+static const uint FOURCC_DX10 = DDS_MAKEFOURCC('D', 'X', '1', '0');
 
-static const uint FOURCC_UVER = MAKEFOURCC('U', 'V', 'E', 'R');
+static const uint FOURCC_UVER = DDS_MAKEFOURCC('U', 'V', 'E', 'R');
 
 // 32 bit RGB formats.
 static const uint D3DFMT_R8G8B8 = 20;
@@ -672,7 +672,7 @@ void DDSHeader::setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3)
 {
 	// set fourcc pixel format.
 	this->pf.flags = DDPF_FOURCC;
-	this->pf.fourcc = MAKEFOURCC(c0, c1, c2, c3);
+	this->pf.fourcc = DDS_MAKEFOURCC(c0, c1, c2, c3);
 
 	this->pf.bitcount = 0;
 	this->pf.rmask = 0;
@@ -696,7 +696,7 @@ void DDSHeader::setFormatCode(uint32 code)
 
 void DDSHeader::setSwizzleCode(uint8 c0, uint8 c1, uint8 c2, uint8 c3)
 {
-	this->pf.bitcount = MAKEFOURCC(c0, c1, c2, c3);
+	this->pf.bitcount = DDS_MAKEFOURCC(c0, c1, c2, c3);
 }
 
 

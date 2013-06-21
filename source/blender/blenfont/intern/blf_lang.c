@@ -66,7 +66,7 @@ static void free_locales(void)
 			MEM_freeN((void *)locales_menu[idx].description); /* Also frees locales's relevant value! */
 		}
 
-		MEM_freeN(locales);
+		MEM_freeN((void *)locales);
 		locales = NULL;
 	}
 	if (locales_menu) {
