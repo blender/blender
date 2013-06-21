@@ -1636,7 +1636,10 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 
 void BKE_mesh_from_nurbs(Object *ob)
 {
-	BKE_mesh_from_nurbs_displist(ob, &ob->disp, false);
+	Curve *cu = (Curve *) ob->data;
+	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
+
+	BKE_mesh_from_nurbs_displist(ob, &ob->disp, use_orco_uv);
 }
 
 typedef struct EdgeLink {

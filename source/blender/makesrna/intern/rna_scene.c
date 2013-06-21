@@ -120,6 +120,8 @@ EnumPropertyItem proportional_falloff_curve_only_items[] = {
 EnumPropertyItem proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
 	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
+	{PROP_EDIT_PROJECTED, "PROJECTED", ICON_PROP_ON, "Projected (2D)",
+	                      "Proportional Editing using screen space locations"},
 	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected",
 	                      "Proportional Editing using connected geometry only"},
 	{0, NULL, 0, NULL, NULL}

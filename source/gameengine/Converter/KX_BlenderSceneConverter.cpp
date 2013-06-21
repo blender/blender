@@ -1261,7 +1261,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	{
 		KX_Scene* scene = scenes->at(scene_idx);
 		if (IS_TAGGED(scene->GetBlenderScene())) {
-			RemoveScene(scene); // XXX - not tested yet
+			m_ketsjiEngine->RemoveScene(scene->GetName());
 			scene_idx--;
 			numScenes--;
 		}

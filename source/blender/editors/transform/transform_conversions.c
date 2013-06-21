@@ -201,6 +201,17 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 	TransData *tob;
 	int a;
 
+	float _proj_vec[3];
+	const float *proj_vec = NULL;
+
+	if (t->flag & T_PROP_PROJECTED) {
+		if (t->spacetype == SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
+			RegionView3D *rv3d = t->ar->regiondata;
+			normalize_v3_v3(_proj_vec, rv3d->viewinv[2]);
+			proj_vec = _proj_vec;
+		}
+	}
+
 	for (a = 0, tob = t->data; a < t->total; a++, tob++) {
 
 		tob->rdist = 0.0f; // init, it was mallocced
@@ -216,6 +227,13 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 				if (td->flag & TD_SELECTED) {
 					sub_v3_v3v3(vec, tob->center, td->center);
 					mul_m3_v3(tob->mtx, vec);
+
+					if (proj_vec) {
+						float vec_p[3];
+						project_v3_v3v3(vec_p, vec, proj_vec);
+						sub_v3_v3(vec, vec_p);
+					}
+
 					dist = len_squared_v3(vec);
 					if ((tob->rdist == -1.0f) || (dist < (tob->rdist * tob->rdist))) {
 						tob->rdist = sqrtf(dist);
@@ -989,7 +1007,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	t->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
 
 	/* disable PET, its not usable in pose mode yet [#32444] */
-	t->flag &= ~(T_PROP_EDIT | T_PROP_CONNECTED);
+	t->flag &= ~T_PROP_EDIT_ALL;
 
 	/* init trans data */
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransPoseBone");
@@ -2013,14 +2031,14 @@ static void createTransEditVerts(TransInfo *t)
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	float *dists = NULL;
 	int count = 0, countsel = 0, a, totleft;
-	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) : 0;
+	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 	int mirror = 0;
 	char *selstate = NULL;
 	short selectmode = ts->selectmode;
 	int cd_vert_bweight_offset = -1;
 
 	if (t->flag & T_MIRROR) {
-		EDBM_verts_mirror_cache_begin(em, 0, false, true);
+		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0);
 		mirror = 1;
 	}
 
@@ -5827,7 +5845,7 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 	}
 
 	/* nodes dont support PET and probably never will */
-	t->flag &= ~(T_PROP_EDIT | T_PROP_CONNECTED);
+	t->flag &= ~T_PROP_EDIT_ALL;
 
 	/* set transform flags on nodes */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {

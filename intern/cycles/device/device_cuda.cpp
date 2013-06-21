@@ -304,7 +304,7 @@ public:
 			}
 		}
 		else {
-			/* CUDA 4.x */
+			/* CUDA 5.x */
 			if(major == 1) {
 				/* sm_1x */
 				arch_flags = "--maxrregcount=24 --opencc-options -OPT:Olimit=0 --use_fast_math";
