@@ -778,13 +778,30 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
-	int len = 0;
+	const bool is_pair = (bm->totvertsel == 2);
+	int len;
 	
-	if (!EDBM_op_init(em, &bmop, op, "connect_verts verts=%hv", BM_ELEM_SELECT)) {
-		return OPERATOR_CANCELLED;
+	if (is_pair) {
+		if (!EDBM_op_init(em, &bmop, op, "connect_vert_pair verts=%hv", BM_ELEM_SELECT)) {
+			return OPERATOR_CANCELLED;
+		}
 	}
+	else {
+		if (!EDBM_op_init(em, &bmop, op, "connect_verts verts=%hv", BM_ELEM_SELECT)) {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
 	BMO_op_exec(bm, &bmop);
 	len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
+
+	if (len) {
+		if (is_pair) {
+			/* new verts have been added, we have to select the edges, not just flush */
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+		}
+	}
+
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
 		return OPERATOR_CANCELLED;
 	}
