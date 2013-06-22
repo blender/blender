@@ -28,6 +28,8 @@
 
 /** \file blender/blenlib/intern/edgehash.c
  *  \ingroup bli
+ *
+ * \note Based on 'BLI_ghash.c', make sure these stay in sync.
  */
 
 
@@ -110,29 +112,27 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 
 	hash = EDGE_HASH(v0, v1) % eh->nbuckets;
 
+	e->next = eh->buckets[hash];
 	e->v0 = v0;
 	e->v1 = v1;
 	e->val = val;
-	e->next = eh->buckets[hash];
 	eh->buckets[hash] = e;
 
-	if (++eh->nentries > eh->nbuckets * 3) {
+	if (UNLIKELY(++eh->nentries > eh->nbuckets / 2)) {
 		EdgeEntry **old = eh->buckets;
-		unsigned int i, nold = eh->nbuckets;
+		const unsigned int nold = eh->nbuckets;
+		unsigned int i;
 
 		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
-		eh->buckets = MEM_mallocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-		memset(eh->buckets, 0, eh->nbuckets * sizeof(*eh->buckets));
+		eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
 
 		for (i = 0; i < nold; i++) {
-			for (e = old[i]; e; ) {
-				EdgeEntry *n = e->next;
-
+			EdgeEntry *e_next;
+			for (e = old[i]; e; e = e_next) {
+				e_next = e->next;
 				hash = EDGE_HASH(e->v0, e->v1) % eh->nbuckets;
 				e->next = eh->buckets[hash];
 				eh->buckets[hash] = e;
-
-				e = n;
 			}
 		}
 

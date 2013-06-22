@@ -28,6 +28,8 @@
 
 /** \file blender/blenlib/intern/BLI_ghash.c
  *  \ingroup bli
+ *
+ * \note edgehash.c is based on this, make sure they stay in sync.
  */
 
 #include <string.h>
@@ -90,22 +92,21 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 	e->val = val;
 	gh->buckets[hash] = e;
 
-	if (++gh->nentries > (float)gh->nbuckets / 2) {
+	if (UNLIKELY(++gh->nentries > gh->nbuckets / 2)) {
 		Entry **old = gh->buckets;
-		unsigned int i, nold = gh->nbuckets;
+		const unsigned nold = gh->nbuckets;
+		unsigned int i;
 
 		gh->nbuckets = hashsizes[++gh->cursize];
 		gh->buckets = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 
 		for (i = 0; i < nold; i++) {
-			for (e = old[i]; e; ) {
-				Entry *n = e->next;
-
+			Entry *e_next;
+			for (e = old[i]; e; e = e_next) {
+				e_next = e->next;
 				hash = gh->hashfp(e->key) % gh->nbuckets;
 				e->next = gh->buckets[hash];
 				gh->buckets[hash] = e;
-
-				e = n;
 			}
 		}
 
