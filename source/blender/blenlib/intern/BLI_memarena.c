@@ -35,6 +35,14 @@
 #include "BLI_memarena.h"
 #include "BLI_linklist.h"
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wsign-conversion"
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
+#    pragma GCC diagnostic error "-Wsign-compare"
+#    pragma GCC diagnostic error "-Wconversion"
+#  endif
+#endif
+
 struct MemArena {
 	unsigned char *curbuf;
 	int bufsize, cursize;
@@ -79,7 +87,7 @@ void BLI_memarena_free(MemArena *ma)
 }
 
 /* amt must be power of two */
-#define PADUP(num, amt) ((num + (amt - 1)) & ~(amt - 1))
+#define PADUP(num, amt) (((num) + ((amt) - 1)) & ~((amt) - 1))
 
 void *BLI_memarena_alloc(MemArena *ma, int size)
 {
@@ -99,15 +107,15 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 			ma->cursize = ma->bufsize;
 
 		if (ma->use_calloc)
-			ma->curbuf = MEM_callocN(ma->cursize, ma->name);
+			ma->curbuf = MEM_callocN((size_t)ma->cursize, ma->name);
 		else
-			ma->curbuf = MEM_mallocN(ma->cursize, ma->name);
+			ma->curbuf = MEM_mallocN((size_t)ma->cursize, ma->name);
 
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
 
 		/* align alloc'ed memory (needed if align > 8) */
 		tmp = (unsigned char *)PADUP( (intptr_t) ma->curbuf, ma->align);
-		ma->cursize -= (tmp - ma->curbuf);
+		ma->cursize -= (int)(tmp - ma->curbuf);
 		ma->curbuf = tmp;
 	}
 
@@ -117,4 +125,3 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 
 	return ptr;
 }
-

@@ -42,8 +42,11 @@
 #include "BLI_mempool.h"
 
 #ifdef __GNUC__
-#  pragma GCC diagnostic ignored "-Wstrict-overflow"
 #  pragma GCC diagnostic error "-Wsign-conversion"
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
+#    pragma GCC diagnostic error "-Wsign-compare"
+#    pragma GCC diagnostic error "-Wconversion"
+#  endif
 #endif
 
 /**************inlined code************/
@@ -265,4 +268,3 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 {
 	return (ehi->curEntry == NULL);
 }
-
