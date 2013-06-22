@@ -3606,7 +3606,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	float mat[3][3];
 	int i;
 	
-	vec_rot_to_mat3(mat, axis, angle);
+	axis_angle_normalized_to_mat3(mat, axis, angle);
 	
 	for (i = 0; i < t->total; i++, td++) {
 		
@@ -3618,10 +3618,10 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis, NULL);
-			vec_rot_to_mat3(mat, axis, angle * td->factor);
+			axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
 		}
 		else if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3(mat, axis, angle * td->factor);
+			axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
 		}
 		
 		ElementRotation(t, td, mat, t->around);
@@ -3702,14 +3702,14 @@ void initTrackball(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 }
 
-static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float angles[2])
+static void applyTrackball(TransInfo *t, const float axis1[3], const float axis2[3], float angles[2])
 {
 	TransData *td = t->data;
 	float mat[3][3], smat[3][3], totmat[3][3];
 	int i;
 
-	vec_rot_to_mat3(smat, axis1, angles[0]);
-	vec_rot_to_mat3(totmat, axis2, angles[1]);
+	axis_angle_normalized_to_mat3(smat, axis1, angles[0]);
+	axis_angle_normalized_to_mat3(totmat, axis2, angles[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3721,8 +3721,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			continue;
 
 		if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3(smat, axis1, td->factor * angles[0]);
-			vec_rot_to_mat3(totmat, axis2, td->factor * angles[1]);
+			axis_angle_normalized_to_mat3(smat, axis1, td->factor * angles[0]);
+			axis_angle_normalized_to_mat3(totmat, axis2, td->factor * angles[1]);
 
 			mul_m3_m3m3(mat, smat, totmat);
 		}
@@ -3771,8 +3771,8 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
-	vec_rot_to_mat3(smat, axis1, phi[0]);
-	vec_rot_to_mat3(totmat, axis2, phi[1]);
+	axis_angle_normalized_to_mat3(smat, axis1, phi[0]);
+	axis_angle_normalized_to_mat3(totmat, axis2, phi[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
