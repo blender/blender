@@ -162,7 +162,7 @@ float safe_noise(point p, int type)
 		f = noise(p);
 
 	/* can happen for big coordinates, things even out to 0.5 then anyway */
-	if(!isfinite(f))
+	if (!isfinite(f))
 		return 0.5;
 	
 	return f;
@@ -254,12 +254,12 @@ float noise_turbulence(point p, string basis, float details, int hard)
 		if (hard)
 			t = fabs(2.0 * t - 1.0);
 
-		float sum2 = sum + t*amp;
+		float sum2 = sum + t * amp;
 
 		sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
 		sum2 *= ((float)(1 << (n + 1)) / (float)((1 << (n + 2)) - 1));
 
-		return (1.0 - rmd)*sum + rmd*sum2;
+		return (1.0 - rmd) * sum + rmd * sum2;
 	}
 	else {
 		sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
