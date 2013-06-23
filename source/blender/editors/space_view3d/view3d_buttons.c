@@ -901,9 +901,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 		col = uiLayoutColumn(bcol, true);
-		box = uiLayoutBox(col); /* The list box */
+		//box = uiLayoutBox(col); /* The list box */
 
-		col = uiLayoutColumn(box, true);
+		//col = uiLayoutColumn(box, true);
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
 			if (vgroup_validmap[i]) {
@@ -912,7 +912,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					int x, xco = 0;
 					row = uiLayoutRow(col, true);
 
-					uiBlockSetEmboss(block, UI_EMBOSSN);
+					//uiBlockSetEmboss(block, UI_EMBOSSN);
 
 					/* The Weight Group Name */
 
@@ -956,7 +956,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		}
 		MEM_freeN((void *)vgroup_validmap);
 
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		//uiBlockSetEmboss(block, UI_EMBOSS);
 
 		yco -= 2;
 
