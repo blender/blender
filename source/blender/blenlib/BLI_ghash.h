@@ -60,7 +60,7 @@ typedef struct GHash {
 
 typedef struct GHashIterator {
 	GHash *gh;
-	int curBucket;
+	unsigned int curBucket;
 	struct Entry *curEntry;
 } GHashIterator;
 

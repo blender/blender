@@ -319,7 +319,6 @@ typedef struct TransInfo {
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
 
-	char		*undostr;		/* if set, uses this string for undo		*/
 	float		spacemtx[3][3];	/* orientation matrix of the current space	*/
 	char		spacename[64];	/* name of the current space, MAX_NAME		*/
 
@@ -395,6 +394,8 @@ typedef struct TransInfo {
 
 #define T_PROP_EDIT			(1 << 11)
 #define T_PROP_CONNECTED	(1 << 12)
+#define T_PROP_PROJECTED	(1 << 25)
+#define T_PROP_EDIT_ALL		(T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
 
 #define T_V3D_ALIGN			(1 << 14)
 	/* for 2d views like uv or ipo */

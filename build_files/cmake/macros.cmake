@@ -401,8 +401,14 @@ macro(TEST_SSE_SUPPORT
 		set(${_sse_flags} "-msse")
 		set(${_sse2_flags} "-msse2")
 	elseif(MSVC)
-		set(${_sse_flags} "/arch:SSE")
-		set(${_sse2_flags} "/arch:SSE2")
+		# x86_64 has this auto enabled
+		if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+			set(${_sse_flags} "")
+			set(${_sse2_flags} "")
+		else()
+			set(${_sse_flags} "/arch:SSE")
+			set(${_sse2_flags} "/arch:SSE2")
+		endif()
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 		set(${_sse_flags} "")  # icc defaults to -msse
 		set(${_sse2_flags} "-msse2")

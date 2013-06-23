@@ -113,7 +113,7 @@ const char *bl_locale_pgettext(const char *msgctxt, const char *msgid)
 			return r;
 		return msgid;
 	}
-	catch(std::exception const &e) {
+	catch(std::exception const &) {
 //		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
 		return msgid;
 	}

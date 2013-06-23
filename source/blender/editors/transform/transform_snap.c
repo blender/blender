@@ -1446,7 +1446,9 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 							else {
 								eve = EDBM_vert_at_index(em, index);
 								
-								if (eve && (BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
+								if ((BM_elem_flag_test(eve, BM_ELEM_HIDDEN) ||
+								     BM_elem_flag_test(eve, BM_ELEM_SELECT)))
+								{
 									test = 0;
 								}
 							}
@@ -1475,7 +1477,6 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 					}
 					
 					for (i = 0; i < totedge; i++) {
-						BMEdge *eed = NULL;
 						MEdge *e = edges + i;
 						
 						test = 1; /* reset for every vert */
@@ -1492,11 +1493,11 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 								test = 0;
 							}
 							else {
-								eed = EDBM_edge_at_index(em, index);
-								
-								if (eed && (BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
-								            BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-								            BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
+								BMEdge *eed = EDBM_edge_at_index(em, index);
+
+								if ((BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
+								     BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+								     BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
 								{
 									test = 0;
 								}

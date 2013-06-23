@@ -30,7 +30,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static void dump_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels)
+static void shade_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels)
 {
 	/* create input */
 	int width = res;
@@ -433,7 +433,7 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 	assert(res > 0);
 
 	vector<float3> pixels;
-	dump_background_pixels(device, dscene, res, pixels);
+	shade_background_pixels(device, dscene, res, pixels);
 
 	if(progress.get_cancel())
 		return;

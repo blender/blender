@@ -1040,7 +1040,9 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				DM_update_tessface_data(dm);
 			}
 
-			CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+			if (dm->type == DM_TYPE_CDDM) {
+				CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+			}
 		}
 		(*derivedFinal) = dm;
 	}

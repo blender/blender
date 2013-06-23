@@ -1800,7 +1800,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_uv_map", text="UV Unwrap...")
 
         layout.separator()
-        layout.operator("mesh.symmetrize")
+
         layout.operator("mesh.duplicate_move")
         layout.menu("VIEW3D_MT_edit_mesh_extrude")
         layout.menu("VIEW3D_MT_edit_mesh_delete")
@@ -1811,6 +1811,12 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_edit_mesh_edges")
         layout.menu("VIEW3D_MT_edit_mesh_faces")
         layout.menu("VIEW3D_MT_edit_mesh_normals")
+
+        layout.separator()
+
+        layout.operator("mesh.symmetrize")
+        layout.operator("mesh.symmetry_snap")
+        layout.operator_menu_enum("mesh.sort_elements", "type", text="Sort Elements...")
 
         layout.separator()
 
@@ -1869,6 +1875,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.shortest_path_select")
         layout.operator("mesh.sort_elements")
         layout.operator("mesh.symmetrize")
+        layout.operator("mesh.symmetry_snap")
 
 
 class VIEW3D_MT_edit_mesh_select_mode(Menu):
@@ -1937,7 +1944,6 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.bevel").vertex_only = True
         layout.operator("mesh.vertices_smooth")
         layout.operator("mesh.remove_doubles")
-        layout.operator("mesh.sort_elements", text="Sort Vertices").elements = {'VERT'}
 
         layout.operator("mesh.blend_from_shape")
 
@@ -1994,7 +2000,6 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.operator("mesh.bevel").vertex_only = False
         layout.operator("mesh.edge_split")
         layout.operator("mesh.bridge_edge_loops")
-        layout.operator("mesh.sort_elements", text="Sort Edges").elements = {'EDGE'}
 
         layout.separator()
 
@@ -2024,7 +2029,6 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.bevel").vertex_only = False
         layout.operator("mesh.solidify")
         layout.operator("mesh.wireframe")
-        layout.operator("mesh.sort_elements", text="Sort Faces").elements = {'FACE'}
 
         layout.separator()
 

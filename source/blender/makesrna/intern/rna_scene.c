@@ -120,6 +120,8 @@ EnumPropertyItem proportional_falloff_curve_only_items[] = {
 EnumPropertyItem proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
 	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
+	{PROP_EDIT_PROJECTED, "PROJECTED", ICON_PROP_ON, "Projected (2D)",
+	                      "Proportional Editing using screen space locations"},
 	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected",
 	                      "Proportional Editing using connected geometry only"},
 	{0, NULL, 0, NULL, NULL}
@@ -1638,6 +1640,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem vertex_group_select_items[] = {
+		{WT_VGROUP_ALL, "ALL", 0, "All", "All Vertex Groups"},
+		{WT_VGROUP_BONE_DEFORM, "BONE_DEFORM", 0, "Deform", "Vertex Groups assigned to Deform Bones"},
+		{WT_VGROUP_BONE_DEFORM_OFF, "OTHER_DEFORM", 0, "Other", "Vertex Groups assigned to non Deform Bones"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+
 	srna = RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
@@ -1666,10 +1676,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Mask Non-Group Vertices", "Display unweighted vertices (multi-paint overrides)");
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
+	prop = RNA_def_property(srna, "vertex_group_subset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "vgroupsubset");
+	RNA_def_property_enum_items(prop, vertex_group_select_items);
+	RNA_def_property_ui_text(prop, "Subset", "Filter Vertex groups for Display");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop = RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
-	RNA_def_property_ui_text(prop, "Vertex Paint", "");
+	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");	RNA_def_property_ui_text(prop, "Vertex Paint", "");
 
 	prop = RNA_def_property(srna, "weight_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "wpaint");

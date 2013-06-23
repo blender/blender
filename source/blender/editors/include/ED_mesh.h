@@ -76,9 +76,11 @@ struct MeshStatVis;
 
 
 /* editmesh_utils.c */
-void           EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em, const bool use_self, const bool use_select,
+void           EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em, const int axis,
+                                                const bool use_self, const bool use_select,
                                                 const bool is_topo, float maxdist, int *r_index);
-void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const bool use_self, const bool use_select);
+void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const int axis,
+                                             const bool use_self, const bool use_select);
 void           EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVert *v);
@@ -248,6 +250,7 @@ bool                 ED_vgroup_object_is_edit_mode(struct Object *ob);
 void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
+void                 ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
 
 
 /* mesh_data.c */

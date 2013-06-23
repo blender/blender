@@ -575,11 +575,11 @@ void RAS_OpenGLRasterizer::SetEye(const StereoEye eye)
 			break;
 		case RAS_STEREO_ANAGLYPH:
 			if (m_curreye == RAS_STEREO_LEFTEYE) {
-				glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
+				glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
 			}
 			else {
 				//glAccum(GL_LOAD, 1.0);
-				glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
+				glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
 				ClearDepthBuffer();
 			}
 			break;

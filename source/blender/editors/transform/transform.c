@@ -1736,12 +1736,15 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	/* convert flag to enum */
-	switch (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	switch (t->flag & T_PROP_EDIT_ALL) {
+		case T_PROP_EDIT:
+			proportional = PROP_EDIT_ON;
+			break;
 		case (T_PROP_EDIT | T_PROP_CONNECTED):
 			proportional = PROP_EDIT_CONNECTED;
 			break;
-		case T_PROP_EDIT:
-			proportional = PROP_EDIT_ON;
+		case (T_PROP_EDIT | T_PROP_PROJECTED):
+			proportional = PROP_EDIT_PROJECTED;
 			break;
 		default:
 			proportional = PROP_EDIT_OFF;
@@ -2180,17 +2183,6 @@ int transformEnd(bContext *C, TransInfo *t)
 
 		/* send events out for redraws */
 		viewRedrawPost(C, t);
-
-		/*  Undo as last, certainly after special_trans_update! */
-
-		if (t->state == TRANS_CANCEL) {
-//			if (t->undostr) ED_undo_push(C, t->undostr);
-		}
-		else {
-//			if (t->undostr) ED_undo_push(C, t->undostr);
-//			else ED_undo_push(C, transform_to_undostr(t));
-		}
-		t->undostr = NULL;
 
 		viewRedrawForce(C, t);
 	}
@@ -2956,7 +2948,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 		}
 	}
 
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 }
@@ -3154,7 +3146,7 @@ int Resize(TransInfo *t, const int mval[2])
 		/* vertices in the radius of the brush end */
 		/* outside the clipping area               */
 		/* XXX HACK - dg */
-		if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+		if (t->flag & T_PROP_EDIT_ALL) {
 			clipUVData(t);
 		}
 	}
@@ -3614,7 +3606,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	float mat[3][3];
 	int i;
 	
-	vec_rot_to_mat3(mat, axis, angle);
+	axis_angle_normalized_to_mat3(mat, axis, angle);
 	
 	for (i = 0; i < t->total; i++, td++) {
 		
@@ -3626,10 +3618,10 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis, NULL);
-			vec_rot_to_mat3(mat, axis, angle * td->factor);
+			axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
 		}
 		else if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3(mat, axis, angle * td->factor);
+			axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
 		}
 		
 		ElementRotation(t, td, mat, t->around);
@@ -3674,7 +3666,7 @@ int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 		                    RAD2DEGF(final), t->con.text, t->proptext);
 	}
 	
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
@@ -3710,14 +3702,14 @@ void initTrackball(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 }
 
-static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float angles[2])
+static void applyTrackball(TransInfo *t, const float axis1[3], const float axis2[3], float angles[2])
 {
 	TransData *td = t->data;
 	float mat[3][3], smat[3][3], totmat[3][3];
 	int i;
 
-	vec_rot_to_mat3(smat, axis1, angles[0]);
-	vec_rot_to_mat3(totmat, axis2, angles[1]);
+	axis_angle_normalized_to_mat3(smat, axis1, angles[0]);
+	axis_angle_normalized_to_mat3(totmat, axis2, angles[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3729,8 +3721,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			continue;
 
 		if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3(smat, axis1, td->factor * angles[0]);
-			vec_rot_to_mat3(totmat, axis2, td->factor * angles[1]);
+			axis_angle_normalized_to_mat3(smat, axis1, td->factor * angles[0]);
+			axis_angle_normalized_to_mat3(totmat, axis2, td->factor * angles[1]);
 
 			mul_m3_m3m3(mat, smat, totmat);
 		}
@@ -3775,12 +3767,12 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 		                    RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
 	}
 
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
-	vec_rot_to_mat3(smat, axis1, phi[0]);
-	vec_rot_to_mat3(totmat, axis2, phi[1]);
+	axis_angle_normalized_to_mat3(smat, axis1, phi[0]);
+	axis_angle_normalized_to_mat3(totmat, axis2, phi[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3923,7 +3915,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		}
 	}
 
-	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 }
@@ -4030,7 +4022,7 @@ int Translation(TransInfo *t, const int UNUSED(mval[2]))
 		/* vertices in the radius of the brush end */
 		/* outside the clipping area               */
 		/* XXX HACK - dg */
-		if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+		if (t->flag & T_PROP_EDIT_ALL) {
 			clipUVData(t);
 		}
 	}

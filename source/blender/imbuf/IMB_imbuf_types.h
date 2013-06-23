@@ -248,24 +248,24 @@ typedef struct ImBuf {
 
 /* dds */
 #ifdef WITH_DDS
-#ifndef MAKEFOURCC
-#define MAKEFOURCC(ch0, ch1, ch2, ch3)\
+#ifndef DDS_MAKEFOURCC
+#define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3)\
 	((unsigned long)(unsigned char)(ch0) | \
 	((unsigned long)(unsigned char)(ch1) << 8) | \
 	((unsigned long)(unsigned char)(ch2) << 16) | \
 	((unsigned long)(unsigned char)(ch3) << 24))
-#endif  /* MAKEFOURCC */
+#endif  /* DDS_MAKEFOURCC */
 
 /*
  * FOURCC codes for DX compressed-texture pixel formats
  */
 
-#define FOURCC_DDS   (MAKEFOURCC('D','D','S',' '))
-#define FOURCC_DXT1  (MAKEFOURCC('D','X','T','1'))
-#define FOURCC_DXT2  (MAKEFOURCC('D','X','T','2'))
-#define FOURCC_DXT3  (MAKEFOURCC('D','X','T','3'))
-#define FOURCC_DXT4  (MAKEFOURCC('D','X','T','4'))
-#define FOURCC_DXT5  (MAKEFOURCC('D','X','T','5'))
+#define FOURCC_DDS   (DDS_MAKEFOURCC('D','D','S',' '))
+#define FOURCC_DXT1  (DDS_MAKEFOURCC('D','X','T','1'))
+#define FOURCC_DXT2  (DDS_MAKEFOURCC('D','X','T','2'))
+#define FOURCC_DXT3  (DDS_MAKEFOURCC('D','X','T','3'))
+#define FOURCC_DXT4  (DDS_MAKEFOURCC('D','X','T','4'))
+#define FOURCC_DXT5  (DDS_MAKEFOURCC('D','X','T','5'))
 
 #endif  /* DDS */
 extern const char *imb_ext_image[];

@@ -106,13 +106,6 @@ void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 
 void single_axis_angle_to_mat3(float R[3][3], const char axis, const float angle);
 
-/****************************** Vector/Rotation ******************************/
-/* old axis angle code                                                       */
-/* TODO: the following calls should probably be deprecated sometime         */
-
-/* conversion */
-void vec_rot_to_mat3(float mat[3][3], const float vec[3], const float phi);
-
 /******************************** XYZ Eulers *********************************/
 
 void eul_to_quat(float quat[4], const float eul[3]);

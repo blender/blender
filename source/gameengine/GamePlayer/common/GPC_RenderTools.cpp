@@ -363,6 +363,8 @@ void GPC_RenderTools::RenderText3D(	int fontid,
 									double* mat,
 									float aspect)
 {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */
+
 	if (GLEW_ARB_multitexture) {
 		for (int i=0; i<MAXTEX; i++) {
 			glActiveTextureARB(GL_TEXTURE0_ARB+i);

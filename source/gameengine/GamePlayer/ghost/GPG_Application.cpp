@@ -554,12 +554,11 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		GameData *gm= &m_startScene->gm;
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
-		bool fixedFr = (gm->flag & GAME_ENABLE_ALL_FRAMES);
 
 		bool showPhysics = (gm->flag & GAME_SHOW_PHYSICS);
 		SYS_WriteCommandLineInt(syshandle, "show_physics", showPhysics);
 
-		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixedtime", fixedFr) != 0);
+		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixedtime", (gm->flag & GAME_ENABLE_ALL_FRAMES)) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", gm->flag & GAME_DISPLAY_LISTS) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
@@ -631,8 +630,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetCanvas(m_canvas);
 		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
-
-		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 
 		KX_KetsjiEngine::SetExitKey(ConvertKeyCode(gm->exitkey));
 #ifdef WITH_PYTHON

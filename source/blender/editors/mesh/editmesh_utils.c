@@ -1155,7 +1155,7 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
  * \param maxdist  Distance for close point test.
  * \param r_index  Optional array to write into, as an alternative to a customdata layer (length of total verts).
  */
-void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const bool use_self, const bool use_select,
+void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool use_self, const bool use_select,
                                       /* extra args */
                                       const bool is_topo, float maxdist, int *r_index)
 {
@@ -1212,7 +1212,9 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const bool use_self, const
 				v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
 			}
 			else {
-				float co[3] = {-v->co[0], v->co[1], v->co[2]};
+				float co[3];
+				copy_v3_v3(co, v->co);
+				co[axis] *= -1.0f;
 				v_mirr = BKE_bmbvh_find_vert_closest(tree, co, maxdist);
 			}
 
@@ -1239,14 +1241,16 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const bool use_self, const
 	}
 }
 
-void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const bool use_self, const bool use_select)
+void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const int axis,
+                                   const bool use_self, const bool use_select)
 {
 	Mesh *me = (Mesh *)em->ob->data;
 	bool is_topo;
 
 	is_topo = (me && (me->editflag & ME_EDIT_MIRROR_TOPO));
 
-	EDBM_verts_mirror_cache_begin_ex(em, use_self, use_select,
+	EDBM_verts_mirror_cache_begin_ex(em, axis,
+	                                 use_self, use_select,
 	                                 /* extra args */
 	                                 is_topo, BM_SEARCH_MAXDIST_MIRR, NULL);
 }

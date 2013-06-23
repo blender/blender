@@ -170,6 +170,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itw).second;
 		itw++;
 	}
+	m_worldinfos.clear();
 
 	vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator itp = m_polymaterials.begin();
 	while (itp != m_polymaterials.end()) {
@@ -177,6 +178,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itp).second;
 		itp++;
 	}
+	m_polymaterials.clear();
 
 	// delete after RAS_IPolyMaterial
 	vector<pair<KX_Scene*,BL_Material *> >::iterator itmat = m_materials.begin();
@@ -185,6 +187,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itmat).second;
 		itmat++;
 	}
+	m_materials.clear();
 
 
 	vector<pair<KX_Scene*,RAS_MeshObject*> >::iterator itm = m_meshobjects.begin();
@@ -192,6 +195,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itm).second;
 		itm++;
 	}
+	m_meshobjects.clear();
 
 #ifdef WITH_BULLET
 	KX_ClearBulletSharedShapes();
@@ -1257,7 +1261,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	{
 		KX_Scene* scene = scenes->at(scene_idx);
 		if (IS_TAGGED(scene->GetBlenderScene())) {
-			RemoveScene(scene); // XXX - not tested yet
+			m_ketsjiEngine->RemoveScene(scene->GetName());
 			scene_idx--;
 			numScenes--;
 		}

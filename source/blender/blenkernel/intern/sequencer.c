@@ -4171,6 +4171,8 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	BKE_sequence_calc_disp(scene, seq);
 
+	if (seq_load->name[0] == '\0')
+		BLI_strncpy(seq_load->name, se->name, sizeof(seq_load->name));
 
 	if (seq_load->flag & SEQ_LOAD_MOVIE_SOUND) {
 		int start_frame_back = seq_load->start_frame;
@@ -4181,9 +4183,6 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 		seq_load->start_frame = start_frame_back;
 		seq_load->channel--;
 	}
-
-	if (seq_load->name[0] == '\0')
-		BLI_strncpy(seq_load->name, se->name, sizeof(seq_load->name));
 
 	/* can be NULL */
 	seq_load_apply(scene, seq, seq_load);

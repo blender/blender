@@ -3824,6 +3824,10 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 				xs= (float)x + R.samples->centLut[b & 15] + 0.5f;
 				ys= (float)y + R.samples->centLut[b>>4] + 0.5f;
 			}
+			else if (R.i.curblur) {
+				xs= (float)x + R.mblur_jit[R.i.curblur-1][0] + 0.5f;
+				ys= (float)y + R.mblur_jit[R.i.curblur-1][1] + 0.5f;
+			}
 			else {
 				xs= (float)x + 0.5f;
 				ys= (float)y + 0.5f;

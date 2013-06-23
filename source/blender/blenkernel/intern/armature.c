@@ -1474,7 +1474,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 		theta = angle_normalized_v3v3(target, nor);
 
 		/* Make Bone matrix*/
-		vec_rot_to_mat3(bMatrix, axis, theta);
+		axis_angle_normalized_to_mat3(bMatrix, axis, theta);
 	}
 	else {
 		/* if nor is a multiple of target ... */
@@ -1490,7 +1490,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 	}
 
 	/* Make Roll matrix */
-	vec_rot_to_mat3(rMatrix, nor, roll);
+	axis_angle_normalized_to_mat3(rMatrix, nor, roll);
 
 	/* Combine and output result */
 	mul_m3_m3m3(mat, rMatrix, bMatrix);

@@ -65,6 +65,8 @@ float  defvert_find_weight(const struct MDeformVert *dvert, const int defgroup);
 float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup);
 
 void defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src);
+void defvert_copy_subset(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
+                         const bool *vgroup_subset, const int vgroup_tot);
 void defvert_copy_index(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const int defgroup);
 void defvert_sync(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const bool use_verify);
 void defvert_sync_mapped(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
@@ -73,6 +75,8 @@ void defvert_remap(struct MDeformVert *dvert, int *map, const int map_len);
 void defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_normalize(struct MDeformVert *dvert);
+void defvert_normalize_subset(struct MDeformVert *dvert,
+                              const bool *vgroup_subset, const int vgroup_tot);
 void defvert_normalize_lock_single(struct MDeformVert *dvert, const int def_nr_lock);
 void defvert_normalize_lock_map(struct MDeformVert *dvert, const bool *lock_flags, const int defbase_tot);
 

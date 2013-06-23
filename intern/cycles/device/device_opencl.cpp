@@ -318,6 +318,7 @@ public:
 	cl_program cpProgram;
 	cl_kernel ckPathTraceKernel;
 	cl_kernel ckFilmConvertKernel;
+	cl_kernel ckShaderKernel;
 	cl_int ciErr;
 
 	typedef map<string, device_vector<uchar>*> ConstMemMap;
@@ -427,6 +428,7 @@ public:
 		cpProgram = NULL;
 		ckPathTraceKernel = NULL;
 		ckFilmConvertKernel = NULL;
+		ckShaderKernel = NULL;
 		null_mem = 0;
 		device_initialized = false;
 
@@ -760,6 +762,10 @@ public:
 		if(opencl_error(ciErr))
 			return false;
 
+		ckShaderKernel = clCreateKernel(cpProgram, "kernel_ocl_shader", &ciErr);
+		if(opencl_error(ciErr))
+			return false;
+
 		return true;
 	}
 
@@ -1009,10 +1015,44 @@ public:
 		enqueue_kernel(ckFilmConvertKernel, d_w, d_h);
 	}
 
+	void shader(DeviceTask& task)
+	{
+		/* cast arguments to cl types */
+		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
+		cl_mem d_input = CL_MEM_PTR(task.shader_input);
+		cl_mem d_output = CL_MEM_PTR(task.shader_output);
+		cl_int d_shader_eval_type = task.shader_eval_type;
+		cl_int d_shader_x = task.shader_x;
+		cl_int d_shader_w = task.shader_w;
+
+		/* sample arguments */
+		cl_uint narg = 0;
+		ciErr = 0;
+
+		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_data), (void*)&d_data);
+		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_input), (void*)&d_input);
+		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_output), (void*)&d_output);
+
+#define KERNEL_TEX(type, ttype, name) \
+	ciErr |= set_kernel_arg_mem(ckShaderKernel, &narg, #name);
+#include "kernel_textures.h"
+
+		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type);
+		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x);
+		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w);
+
+		opencl_assert(ciErr);
+
+		enqueue_kernel(ckShaderKernel, task.shader_w, 1);
+	}
+
 	void thread_run(DeviceTask *task)
 	{
 		if(task->type == DeviceTask::TONEMAP) {
 			tonemap(*task, task->buffer, task->rgba);
+		}
+		else if(task->type == DeviceTask::SHADER) {
+			shader(*task);
 		}
 		else if(task->type == DeviceTask::PATH_TRACE) {
 			RenderTile tile;

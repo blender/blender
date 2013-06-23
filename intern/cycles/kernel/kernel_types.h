@@ -157,10 +157,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Shader Evaluation */
 
-enum ShaderEvalType {
+typedef enum ShaderEvalType {
 	SHADER_EVAL_DISPLACE,
 	SHADER_EVAL_BACKGROUND
-};
+} ShaderEvalType;
 
 /* Path Tracing
  * note we need to keep the u/v pairs at even values */

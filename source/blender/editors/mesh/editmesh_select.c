@@ -92,7 +92,7 @@ void EDBM_select_mirrored(BMEditMesh *em, bool extend,
 		}
 	}
 
-	EDBM_verts_mirror_cache_begin(em, true, true);
+	EDBM_verts_mirror_cache_begin(em, 0, true, true);
 
 	if (!extend)
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);

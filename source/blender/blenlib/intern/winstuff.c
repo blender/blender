@@ -41,7 +41,7 @@
 
 #define WIN32_SKIP_HKEY_PROTECTION      // need to use HKEY
 #include "BLI_winstuff.h"
-#include "BLI_utildefines.h"z
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 

@@ -52,6 +52,6 @@ surface node_bump(
 	
 	/* compute and output perturbed normal */
 	NormalOut = normalize(absdet * NormalIn - dist * sign(det) * surfgrad);
-	NormalOut = normalize(strength*NormalOut + (1.0 - strength)*NormalIn);
+	NormalOut = normalize(strength * NormalOut + (1.0 - strength) * NormalIn);
 }
 

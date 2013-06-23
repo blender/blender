@@ -232,7 +232,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         mesh = ob.data
 
         col = layout.column(align=True)
-        col.active = tool_settings.proportional_edit == 'DISABLED'
         col.prop(mesh, "use_mirror_x")
 
         row = col.row()

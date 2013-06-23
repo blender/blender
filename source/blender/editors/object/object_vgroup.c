@@ -411,6 +411,239 @@ bool ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	return true;
 }
 
+static MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
+{
+	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
+		Mesh *me = ob->data;
+		BMEditMesh *em = me->edit_btmesh;
+		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
+		if (cd_dvert_offset != -1) {
+			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
+
+			if (ese && ese->htype == BM_VERT) {
+				BMVert *eve = (BMVert *)ese->ele;
+				if (r_eve) *r_eve = eve;
+				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+			}
+		}
+	}
+
+	if (r_eve) *r_eve = NULL;
+	return NULL;
+}
+
+/* TODO, cache flip data to speedup calls within a loop. */
+static void mesh_defvert_mirror_update_internal(Object *ob,
+                                                MDeformVert *dvert_dst, MDeformVert *dvert_src,
+                                                const int def_nr)
+{
+	if (def_nr == -1) {
+		/* all vgroups, add groups where neded  */
+		int flip_map_len;
+		int *flip_map = defgroup_flip_map(ob, &flip_map_len, true);
+		defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);
+		MEM_freeN(flip_map);
+	}
+	else {
+		/* single vgroup */
+		MDeformWeight *dw = defvert_verify_index(dvert_dst, defgroup_flip_index(ob, def_nr, 1));
+		if (dw) {
+			dw->weight = defvert_find_weight(dvert_src, def_nr);
+		}
+	}
+}
+
+static MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
+{
+	Mesh *me = ob->data;
+	int index = BKE_mesh_mselect_active_get(me, ME_VSEL);
+	if (r_index) *r_index = index;
+	if (index == -1 || me->dvert == NULL) {
+		return NULL;
+	}
+	else {
+		return me->dvert + index;
+	}
+}
+
+static void ED_mesh_defvert_mirror_update_em(Object *ob, BMVert *eve, int def_nr, int vidx,
+                                             const int cd_dvert_offset)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	BMVert *eve_mirr;
+
+	eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, vidx);
+
+	if (eve_mirr && eve_mirr != eve) {
+		MDeformVert *dvert_src = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+		MDeformVert *dvert_dst = BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset);
+		mesh_defvert_mirror_update_internal(ob, dvert_dst, dvert_src, def_nr);
+	}
+}
+
+static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
+{
+	int vidx_mirr;
+	Mesh *me = ob->data;
+	if (vidx == -1)
+		return;
+
+	vidx_mirr = mesh_get_x_mirror_vert(ob, vidx);
+
+	if ((vidx_mirr) >= 0 && (vidx_mirr != vidx)) {
+		MDeformVert *dvert_src = &me->dvert[vidx];
+		MDeformVert *dvert_dst = &me->dvert[vidx_mirr];
+		mesh_defvert_mirror_update_internal(ob, dvert_dst, dvert_src, def_nr);
+	}
+}
+
+static MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
+{
+	if (ob->type == OB_MESH) {
+		if (ob->mode & OB_MODE_EDIT) {
+			return ED_mesh_active_dvert_get_em(ob, NULL);
+		}
+		else {
+			return ED_mesh_active_dvert_get_ob(ob, NULL);
+		}
+	}
+	else {
+		return NULL;
+	}
+}
+
+/**
+ * Use when adjusting the active vertex weight and apply to mirror vertices.
+ */
+void ED_vgroup_vert_active_mirror(Object *ob, int def_nr)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	MDeformVert *dvert_act;
+
+	if (me->editflag & ME_EDIT_MIRROR_X) {
+		if (em) {
+			BMVert *eve_act;
+			dvert_act = ED_mesh_active_dvert_get_em(ob, &eve_act);
+			if (dvert_act) {
+				const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+				ED_mesh_defvert_mirror_update_em(ob, eve_act, def_nr, -1, cd_dvert_offset);
+			}
+		}
+		else {
+			int v_act;
+			dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
+			if (dvert_act) {
+				ED_mesh_defvert_mirror_update_ob(ob, def_nr, v_act);
+			}
+		}
+	}
+}
+
+static void vgroup_remove_weight(Object *ob, const int def_nr)
+{
+	MDeformVert *dvert_act;
+	MDeformWeight *dw;
+
+	dvert_act = ED_mesh_active_dvert_get_only(ob);
+
+	dw = defvert_find_index(dvert_act, def_nr);
+	defvert_remove_group(dvert_act, dw);
+
+}
+
+static void vgroup_normalize_active(Object *ob, eVGroupSelect subset_type)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	BMVert *eve_act;
+	int v_act;
+	MDeformVert *dvert_act;
+	int subset_count, vgroup_tot;
+	const bool *vgroup_validmap;
+
+
+	if (em) {
+		dvert_act = ED_mesh_active_dvert_get_em(ob, &eve_act);
+	}
+	else {
+		dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
+	}
+
+	if (dvert_act == NULL) {
+		return;
+	}
+
+	vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	defvert_normalize_subset(dvert_act, vgroup_validmap, vgroup_tot);
+	MEM_freeN((void *)vgroup_validmap);
+
+	if (me->editflag & ME_EDIT_MIRROR_X) {
+		if (em) {
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+			ED_mesh_defvert_mirror_update_em(ob, eve_act, -1, -1, cd_dvert_offset);
+		}
+		else {
+			int v_act = BKE_mesh_mselect_active_get(me, ME_VSEL);
+			ED_mesh_defvert_mirror_update_ob(ob, -1, v_act);
+		}
+	}
+}
+
+static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	MDeformVert *dvert_act;
+	int i, vgroup_tot, subset_count;
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+
+
+	if (em) {
+		BMIter iter;
+		BMVert *eve, *eve_act;
+		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
+		dvert_act = ED_mesh_active_dvert_get_em(ob, &eve_act);
+		if (dvert_act == NULL) {
+			return;
+		}
+
+		BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve != eve_act) {
+				MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+				defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
+				if (me->editflag & ME_EDIT_MIRROR_X) {
+					ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
+				}
+			}
+		}
+	}
+	else {
+		MDeformVert *dv;
+		int v_act;
+
+		dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
+		if (dvert_act == NULL) {
+			return;
+		}
+
+		dv  = me->dvert;
+		for (i = 0; i < me->totvert; i++, dv++) {
+			if ((me->mvert[i].flag & SELECT) && dv != dvert_act) {
+				defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
+				if (me->editflag & ME_EDIT_MIRROR_X) {
+					ED_mesh_defvert_mirror_update_ob(ob, -1, i);
+				}
+			}
+		}
+	}
+
+	MEM_freeN((void *)vgroup_validmap);
+}
+
 /***********************Start weight transfer (WT)*********************************/
 
 typedef enum WT_VertexGroupMode {
@@ -470,8 +703,8 @@ static EnumPropertyItem WT_vertex_group_select_item[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem *rna_vertex_group_selection_itemf_helper(
-        bContext *C, PointerRNA *UNUSED(ptr),
+EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
+        const bContext *C, PointerRNA *UNUSED(ptr),
         PropertyRNA *UNUSED(prop), int *free, const unsigned int selection_mask)
 {
 	Object *ob;
@@ -505,13 +738,13 @@ static EnumPropertyItem *rna_vertex_group_selection_itemf_helper(
 static EnumPropertyItem *rna_vertex_group_with_single_itemf(bContext *C, PointerRNA *ptr,
                                                             PropertyRNA *prop, int *free)
 {
-	return rna_vertex_group_selection_itemf_helper(C, ptr, prop, free, WT_VGROUP_MASK_ALL);
+	return ED_object_vgroup_selection_itemf_helper(C, ptr, prop, free, WT_VGROUP_MASK_ALL);
 }
 
 static EnumPropertyItem *rna_vertex_group_select_itemf(bContext *C, PointerRNA *ptr,
                                                        PropertyRNA *prop, int *free)
 {
-	return rna_vertex_group_selection_itemf_helper(C, ptr, prop, free, WT_VGROUP_MASK_ALL & ~(1 << WT_VGROUP_ACTIVE));
+	return ED_object_vgroup_selection_itemf_helper(C, ptr, prop, free, WT_VGROUP_MASK_ALL & ~(1 << WT_VGROUP_ACTIVE));
 }
 
 static void vgroup_operator_subset_select_props(wmOperatorType *ot, bool use_active)
@@ -976,11 +1209,11 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 			BMEditMesh *em = me->edit_btmesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			/* warning, this lookup is _not_ fast */
-			BMVert *eve;
 
-			EDBM_index_arrays_ensure(em, BM_VERT);
-
-			if ((cd_dvert_offset != -1) && (eve = EDBM_vert_at_index(em, vertnum))) {
+			if (cd_dvert_offset != -1) {
+				BMVert *eve;
+				EDBM_index_arrays_ensure(em, BM_VERT);
+				eve = EDBM_vert_at_index(em, vertnum);
 				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
 			else {
@@ -1172,11 +1405,6 @@ bool *ED_vgroup_subset_from_select_type(Object *ob, eVGroupSelect subset_type, i
 	*r_vgroup_tot = BLI_countlist(&ob->defbase);
 
 	switch (subset_type) {
-		case WT_VGROUP_ALL:
-			vgroup_validmap = MEM_mallocN(*r_vgroup_tot * sizeof(*vgroup_validmap), __func__);
-			memset(vgroup_validmap, true, *r_vgroup_tot * sizeof(*vgroup_validmap));
-			*r_subset_count = *r_vgroup_tot;
-			break;
 		case WT_VGROUP_ACTIVE:
 		{
 			const int def_nr_active = ob->actdef - 1;
@@ -1191,18 +1419,42 @@ bool *ED_vgroup_subset_from_select_type(Object *ob, eVGroupSelect subset_type, i
 			}
 			break;
 		}
-		case WT_VGROUP_BONE_SELECT: {
+		case WT_VGROUP_BONE_SELECT:
+		{
 			vgroup_validmap = BKE_objdef_selected_get(ob, *r_vgroup_tot, r_subset_count);
 			break;
 		}
-		case WT_VGROUP_BONE_DEFORM: {
+		case WT_VGROUP_BONE_DEFORM:
+		{
 			int i;
 			vgroup_validmap = BKE_objdef_validmap_get(ob, *r_vgroup_tot);
 			*r_subset_count = 0;
 			for (i = 0; i < *r_vgroup_tot; i++) {
-				if (vgroup_validmap[i])
+				if (vgroup_validmap[i] == true) {
 					*r_subset_count += 1;
+				}
 			}
+			break;
+		}
+		case WT_VGROUP_BONE_DEFORM_OFF:
+		{
+			int i;
+			vgroup_validmap = BKE_objdef_validmap_get(ob, *r_vgroup_tot);
+			*r_subset_count = 0;
+			for (i = 0; i < *r_vgroup_tot; i++) {
+				vgroup_validmap[i] = !vgroup_validmap[i];
+				if (vgroup_validmap[i] == true) {
+					*r_subset_count += 1;
+				}
+			}
+			break;
+		}
+		case WT_VGROUP_ALL:
+		default:
+		{
+			vgroup_validmap = MEM_mallocN(*r_vgroup_tot * sizeof(*vgroup_validmap), __func__);
+			memset(vgroup_validmap, true, *r_vgroup_tot * sizeof(*vgroup_validmap));
+			*r_subset_count = *r_vgroup_tot;
 			break;
 		}
 	}
@@ -1616,7 +1868,8 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 	}
 }
 
-static void vgroup_levels_subset(Object *ob, bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count), 
+static void vgroup_levels_subset(Object *ob, const bool *vgroup_validmap, const int vgroup_tot,
+                                 const int UNUSED(subset_count),
                                  const float offset, const float gain)
 {
 	MDeformWeight *dw;
@@ -1746,7 +1999,9 @@ static void vgroup_lock_all(Object *ob, int action)
 	}
 }
 
-static void vgroup_invert_subset(Object *ob, bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count), const bool auto_assign, const bool auto_remove)
+static void vgroup_invert_subset(Object *ob,
+                                 const bool *vgroup_validmap, const int vgroup_tot,
+                                 const int UNUSED(subset_count), const bool auto_assign, const bool auto_remove)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
@@ -2170,7 +2425,7 @@ void ED_vgroup_mirror(Object *ob,
 				goto cleanup;
 			}
 
-			EDBM_verts_mirror_cache_begin(em, true, false);
+			EDBM_verts_mirror_cache_begin(em, 0, true, false);
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
@@ -3001,10 +3256,9 @@ static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	vgroup_levels_subset(ob, vgroup_validmap, vgroup_tot, subset_count, offset, gain);
-
-	MEM_freeN(vgroup_validmap);
+	MEM_freeN((void *)vgroup_validmap);
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3183,10 +3437,9 @@ static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	vgroup_invert_subset(ob, vgroup_validmap, vgroup_tot, subset_count, auto_assign, auto_remove);
-
-	MEM_freeN(vgroup_validmap);
+	MEM_freeN((void *)vgroup_validmap);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3291,10 +3544,9 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	vgroup_clean_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit, keep_single);
-
-	MEM_freeN(vgroup_validmap);
+	MEM_freeN((void *)vgroup_validmap);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3332,10 +3584,9 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 
 	int subset_count, vgroup_tot;
 
-	bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 	int remove_tot = vgroup_limit_total_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit);
-
-	MEM_freeN(vgroup_validmap);
+	MEM_freeN((void *)vgroup_validmap);
 
 	BKE_reportf(op->reports, remove_tot ? RPT_INFO : RPT_WARNING, "%d vertex weights limited", remove_tot);
 
@@ -3831,4 +4082,227 @@ void OBJECT_OT_vertex_group_move(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "direction", vgroup_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+}
+
+static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
+{
+	MDeformVert *dvert_act;
+
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	float weight_act;
+	int i;
+
+	if (em) {
+		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+		BMIter iter;
+		BMVert *eve, *eve_act;
+
+		dvert_act = ED_mesh_active_dvert_get_em(ob, &eve_act);
+		if (dvert_act == NULL) {
+			return;
+		}
+		weight_act = defvert_find_weight(dvert_act, def_nr);
+
+		BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && (eve != eve_act)) {
+				MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+				MDeformWeight *dw = defvert_find_index(dv, def_nr);
+				if (dw) {
+					dw->weight = weight_act;
+
+					if (me->editflag & ME_EDIT_MIRROR_X) {
+						ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
+					}
+				}
+			}
+		}
+
+		if (me->editflag & ME_EDIT_MIRROR_X) {
+			ED_mesh_defvert_mirror_update_em(ob, eve_act, -1, -1, cd_dvert_offset);
+		}
+	}
+	else {
+		MDeformVert *dv;
+		int v_act;
+
+		dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
+		if (dvert_act == NULL) {
+			return;
+		}
+		weight_act = defvert_find_weight(dvert_act, def_nr);
+
+		dv  = me->dvert;
+		for (i = 0; i < me->totvert; i++, dv++) {
+			if ((me->mvert[i].flag & SELECT) && (dv != dvert_act)) {
+				MDeformWeight *dw = defvert_find_index(dv, def_nr);
+				if (dw) {
+					dw->weight = weight_act;
+					if (me->editflag & ME_EDIT_MIRROR_X) {
+						ED_mesh_defvert_mirror_update_ob(ob, -1, i);
+					}
+				}
+			}
+		}
+
+		if (me->editflag & ME_EDIT_MIRROR_X) {
+			ED_mesh_defvert_mirror_update_ob(ob, -1, v_act);
+		}
+	}
+}
+
+static int vertex_weight_paste(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+	const int wg_index = RNA_int_get(op->ptr, "weight_group");
+	vgroup_copy_active_to_sel_single(ob, wg_index);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name = "Paste weight to Selected";
+	ot->idname = "OBJECT_OT_vertex_weight_paste";
+	ot->description = "Copy this group's weight to other selected verts";
+
+	prop = RNA_def_int(ot->srna, "weight_group",
+			-1, 0, 0, "Weight Index", "Index of source weight in active Weight Group", 0, 0);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_weight_paste;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_weight_delete(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+	const int wg_index = RNA_int_get(op->ptr, "weight_group");
+	vgroup_remove_weight(ob, wg_index);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name = "Delete Weight";
+	ot->idname = "OBJECT_OT_vertex_weight_delete";
+	ot->description = "Delete this weight from the vertex";
+
+	prop = RNA_def_int(ot->srna, "weight_group",
+			-1, 0, 0, "Weight Index", "Index of source weight in active Weight Group", 0, 0);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_weight_delete;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_weight_set_active(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+	const int wg_index = RNA_int_get(op->ptr, "weight_group");
+
+	if (wg_index != -1) {
+		ob->actdef = wg_index + 1;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name = "Set Active Group";
+	ot->idname = "OBJECT_OT_vertex_weight_set_active";
+	ot->description = "Set as active Vertex Group";
+
+	prop = RNA_def_int(ot->srna, "weight_group",
+			-1, 0, 0, "Weight Index", "Index of source weight in active Weight Group", 0, 0);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_weight_set_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_weight_normalize_active(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_context(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	eVGroupSelect subset_type = ts->vgroupsubset;
+
+	vgroup_normalize_active(ob, subset_type);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_weight_normalize_active(wmOperatorType *ot)
+{
+
+	ot->name = "Normalize Active";
+	ot->idname = "OBJECT_OT_vertex_weight_normalize_active";
+	ot->description = "Normalize Active Vert Weights";
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_weight_normalize_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_weight_copy(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_context(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	eVGroupSelect subset_type = ts->vgroupsubset;
+
+	vgroup_copy_active_to_sel(ob, subset_type);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_weight_copy(wmOperatorType *ot)
+{
+
+	ot->name = "Copy Active";
+	ot->idname = "OBJECT_OT_vertex_weight_copy";
+	ot->description = "Copy weights from Active to selected";
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_weight_copy;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

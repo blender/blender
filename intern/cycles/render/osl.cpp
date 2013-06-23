@@ -186,9 +186,6 @@ void OSLShaderManager::shading_system_init()
 		ss_shared = OSL::ShadingSystem::create(services_shared, ts_shared, &errhandler);
 		ss_shared->attribute("lockgeom", 1);
 		ss_shared->attribute("commonspace", "world");
-		ss_shared->attribute("optimize", 2);
-		//ss_shared->attribute("debug", 1);
-		//ss_shared->attribute("statistics:level", 1);
 		ss_shared->attribute("searchpath:shader", path_get("shader"));
 
 		/* our own ray types */

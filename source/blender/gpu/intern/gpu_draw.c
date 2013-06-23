@@ -1147,7 +1147,7 @@ void GPU_free_unused_buffers(void)
 		ima = node->link;
 
 		/* check in case it was freed in the meantime */
-		if (BLI_findindex(&G.main->image, ima) != -1)
+		if (G.main && BLI_findindex(&G.main->image, ima) != -1)
 			GPU_free_image(ima);
 	}
 

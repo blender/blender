@@ -304,7 +304,7 @@ public:
 			}
 		}
 		else {
-			/* CUDA 4.x */
+			/* CUDA 5.x */
 			if(major == 1) {
 				/* sm_1x */
 				arch_flags = "--maxrregcount=24 --opencc-options -OPT:Olimit=0 --use_fast_math";
@@ -704,7 +704,7 @@ public:
 
 		CUfunction cuDisplace;
 		CUdeviceptr d_input = cuda_device_ptr(task.shader_input);
-		CUdeviceptr d_offset = cuda_device_ptr(task.shader_output);
+		CUdeviceptr d_output = cuda_device_ptr(task.shader_output);
 
 		/* get kernel function */
 		cuda_assert(cuModuleGetFunction(&cuDisplace, cuModule, "kernel_cuda_shader"))
@@ -715,8 +715,8 @@ public:
 		cuda_assert(cuParamSetv(cuDisplace, offset, &d_input, sizeof(d_input)))
 		offset += sizeof(d_input);
 
-		cuda_assert(cuParamSetv(cuDisplace, offset, &d_offset, sizeof(d_offset)))
-		offset += sizeof(d_offset);
+		cuda_assert(cuParamSetv(cuDisplace, offset, &d_output, sizeof(d_output)))
+		offset += sizeof(d_output);
 
 		int shader_eval_type = task.shader_eval_type;
 		offset = align_up(offset, __alignof(shader_eval_type));

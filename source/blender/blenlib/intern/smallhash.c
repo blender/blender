@@ -44,8 +44,11 @@
 #define SMHASH_CELL_FREE    ((void *)0x7FFFFFFD)
 
 #ifdef __GNUC__
-#  pragma GCC diagnostic ignored "-Wstrict-overflow"
 #  pragma GCC diagnostic error "-Wsign-conversion"
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
+#    pragma GCC diagnostic error "-Wsign-compare"
+#    pragma GCC diagnostic error "-Wconversion"
+#  endif
 #endif
 
 /* typically this re-assigns 'h' */
@@ -59,7 +62,7 @@ extern unsigned int hashsizes[];
 
 void BLI_smallhash_init(SmallHash *hash)
 {
-	int i;
+	unsigned int i;
 
 	memset(hash, 0, sizeof(*hash));
 
@@ -90,7 +93,7 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 	if (hash->size < hash->used * 3) {
 		unsigned int newsize = hashsizes[++hash->curhash];
 		SmallHashEntry *tmp;
-		int i = 0;
+		unsigned int i = 0;
 
 		if (hash->table != hash->stacktable || newsize > SMSTACKSIZE) {
 			tmp = MEM_callocN(sizeof(*hash->table) * newsize, __func__);
