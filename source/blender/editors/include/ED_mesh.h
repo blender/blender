@@ -250,6 +250,7 @@ bool                 ED_vgroup_object_is_edit_mode(struct Object *ob);
 void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
+void                 ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
 
 
 /* mesh_data.c */
