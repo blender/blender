@@ -921,7 +921,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					                    xco, yco, (x = UI_UNIT_X * 5), UI_UNIT_Y, "");
 					but_ptr = uiButGetOperatorPtrRNA(but);
 					RNA_int_set(but_ptr, "weight_group", i);
-					uiButSetFlag(but, UI_TEXT_LEFT);
+					uiButSetFlag(but, UI_TEXT_RIGHT);
 					if (ob->actdef != i + 1) {
 						uiButSetFlag(but, UI_BUT_INACTIVE);
 					}
