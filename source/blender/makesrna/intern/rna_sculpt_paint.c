@@ -444,7 +444,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	/* weight paint only */
 	prop = RNA_def_property(srna, "use_group_restrict", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_ONLYVGROUP);
-	RNA_def_property_ui_text(prop, "Restrict", "Restrict painting to verts already apart of the vertex group");
+	RNA_def_property_ui_text(prop, "Restrict", "Restrict painting to vertices in the group");
 }
 
 static void rna_def_image_paint(BlenderRNA *brna)
