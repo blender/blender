@@ -4,7 +4,7 @@ import mathutils
 vec = mathutils.Vector((0.0, 0.0, 1.0))
 
 # unit length vector
-vec_a = vec.copy().normalize()
+vec_a = vec.normalized()
 
 vec_b = mathutils.Vector((0.0, 1.0, 2.0))
 
