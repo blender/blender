@@ -1659,12 +1659,15 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 	if (prop->flag & (PROP_IDPROPERTY | PROP_BUILTIN))
 		return;
 	
+	/* disabled for now to avoid msvc compiler error due to large file size */
+#if 0
 	if (prop->name && prop->description && prop->description[0] != '\0')
 		fprintf(f, "\t/* %s: %s */\n", prop->name, prop->description);
 	else if (prop->name)
 		fprintf(f, "\t/* %s */\n", prop->name);
 	else
 		fprintf(f, "\t/* */\n");
+#endif
 
 	switch (prop->type) {
 		case PROP_BOOLEAN:
@@ -1854,14 +1857,15 @@ static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *UNUSED(srn
 
 static void rna_def_struct_function_header_cpp(FILE *f, StructRNA *srna, FunctionDefRNA *dfunc)
 {
-	FunctionRNA *func = dfunc->func;
+	if (dfunc->call) {
+		/* disabled for now to avoid msvc compiler error due to large file size */
+#if 0
+		FunctionRNA *func = dfunc->func;
+		fprintf(f, "\n\t/* %s */\n", func->description);
+#endif
 
-	if (!dfunc->call)
-		return;
-
-	fprintf(f, "\n\t/* %s */\n", func->description);
-
-	rna_def_struct_function_prototype_cpp(f, srna, dfunc, NULL, 1);
+		rna_def_struct_function_prototype_cpp(f, srna, dfunc, NULL, 1);
+	}
 }
 
 static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
