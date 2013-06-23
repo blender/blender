@@ -111,7 +111,7 @@ static int state_isect_co_exact(const PathContext *pc,
                                 const float co[3])
 {
 	const float diff = mul_v1_m3v3((float (*)[3])pc->matrix, co) - pc->axis_sep;
-	return (fabsf(diff) < CONNECT_EPS);
+	return (fabsf(diff) <= CONNECT_EPS);
 }
 
 static float state_calc_co_pair_fac(const PathContext *pc,
