@@ -215,7 +215,12 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 #CUDA
 WITH_BF_CYCLES_CUDA_BINARIES = False
 #BF_CYCLES_CUDA_NVCC = "" # Path to the nvidia compiler
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35']
+
+# Workaround for ptxas.exe crash on VS2012 and cuda 5.5
+if VC_VERSION == '11.0':
+	BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30']
+else:
+	BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35']
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
