@@ -383,6 +383,8 @@ class IMAGE_HT_header(Header):
 
             if show_uvedit:
                 sub.menu("IMAGE_MT_select")
+            if show_maskedit:
+                sub.menu("MASK_MT_select")
 
             if ima and ima.is_dirty:
                 sub.menu("IMAGE_MT_image", text="Image*")
@@ -391,6 +393,8 @@ class IMAGE_HT_header(Header):
 
             if show_uvedit:
                 sub.menu("IMAGE_MT_uvs")
+            if show_maskedit:
+                sub.menu("MASK_MT_mask")
 
         layout.template_ID(sima, "image", new="image.new")
         if not show_render:
