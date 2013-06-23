@@ -3153,6 +3153,76 @@ void VectorMathNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_vector_math");
 }
 
+/* VectorTransform */
+
+VectorTransformNode::VectorTransformNode()
+: ShaderNode("vector_transform")
+{
+	type = ustring("Vector");
+	convert_from = ustring("World");
+	convert_to = ustring("Object");
+
+	add_input("Vector", SHADER_SOCKET_VECTOR);
+	add_output("Vector",  SHADER_SOCKET_VECTOR);
+}
+
+static ShaderEnum vector_transform_type_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Vector", NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
+	enm.insert("Point", NODE_VECTOR_TRANSFORM_TYPE_POINT);
+
+	return enm;
+}
+
+static ShaderEnum vector_transform_convert_from_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("World", NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD);
+	enm.insert("Object", NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT);
+	enm.insert("Camera", NODE_VECTOR_TRANSFORM_CONVERT_FROM_CAMERA);
+
+	return enm;
+}
+
+static ShaderEnum vector_transform_convert_to_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("World", NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD);
+	enm.insert("Object", NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT);
+	enm.insert("Camera", NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA);
+
+	return enm;
+}
+
+ShaderEnum VectorTransformNode::type_enum = vector_transform_type_init();
+ShaderEnum VectorTransformNode::convert_from_enum = vector_transform_convert_from_init();
+ShaderEnum VectorTransformNode::convert_to_enum = vector_transform_convert_to_init();
+
+void VectorTransformNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderOutput *vector_out = output("Vector");
+
+	compiler.stack_assign(vector_in);
+	compiler.stack_assign(vector_out);
+
+	compiler.add_node(NODE_VECTOR_TRANSFORM,
+		compiler.encode_uchar4(type_enum[type], convert_from_enum[convert_from], convert_to_enum[convert_to]),
+		compiler.encode_uchar4(vector_in->stack_offset, vector_out->stack_offset));
+}
+
+void VectorTransformNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter("type", type);
+	compiler.parameter("convert_from", convert_from);
+	compiler.parameter("convert_to", convert_to);
+	compiler.add(this, "node_vector_transform");
+}
+
 /* BumpNode */
 
 BumpNode::BumpNode()

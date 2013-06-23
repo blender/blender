@@ -250,6 +250,14 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		vmath->type = VectorMathNode::type_enum[b_vector_math_node.operation()];
 		node = vmath;
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeVectorTransform)) {
+		BL::ShaderNodeVectorTransform b_vector_transform_node(b_node);
+		VectorTransformNode *vtransform = new VectorTransformNode();
+		vtransform->type = VectorTransformNode::type_enum[b_vector_transform_node.type()];
+		vtransform->convert_from = VectorTransformNode::convert_from_enum[b_vector_transform_node.convert_from()];
+		vtransform->convert_to = VectorTransformNode::convert_to_enum[b_vector_transform_node.convert_to()];
+		node = vtransform;
+	}
 	else if (b_node.is_a(&RNA_ShaderNodeNormal)) {
 		BL::Node::outputs_iterator out_it;
 		b_node.outputs.begin(out_it);

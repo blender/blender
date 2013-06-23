@@ -64,6 +64,7 @@ set(SRC_OSL
 	node_value.osl
 	node_vector_curves.osl
 	node_vector_math.osl
+	node_vector_transform.osl
 	node_velvet_bsdf.osl
 	node_voronoi_texture.osl
 	node_ward_bsdf.osl
