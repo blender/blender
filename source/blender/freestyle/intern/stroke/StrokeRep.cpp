@@ -31,6 +31,8 @@
 #include "StrokeRenderer.h"
 #include "StrokeRep.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 namespace Freestyle {
@@ -109,7 +111,9 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 {
 	//computeParameterization();
 	if (iStrokeVertices.size() < 2) {
-		cerr << "Warning: strip has less than 2 vertices" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Warning: strip has less than 2 vertices" << endl;
+		}
 		return;
 	}
 	_vertices.reserve(2 * iStrokeVertices.size());
@@ -123,6 +127,7 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 
 	vector<StrokeVertex *>::const_iterator v, vend, v2, vPrev;
 	StrokeVertex *sv, *sv2, *svPrev;
+	int orientationErrors = 0;
 
 	//special case of first vertex
 	v = iStrokeVertices.begin();
@@ -138,11 +143,15 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	// check whether the orientation was user defined
 	if (sv->attribute().isAttributeAvailableVec2f("orientation")) {
 		Vec2r userDir = sv->attribute().getAttributeVec2f("orientation");
-		userDir.normalize();
-		real dp = userDir * orthDir;
-		if (dp < 0)
-		userDir = userDir * (-1.0f);
-		stripDir = userDir;
+		if (userDir.norm() > 1e-6) {
+			userDir.normalize();
+			real dp = userDir * orthDir;
+			if (dp < 0)
+				userDir = userDir * (-1.0f);
+			stripDir = userDir;
+		} else {
+			++orientationErrors;
+		}
 	}
 	const float *thickness = sv->attribute().getThickness();
 	_vertices.push_back(new StrokeVertexRep(sv->getPoint() + thickness[1] * stripDir));
@@ -192,11 +201,15 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 		Vec2r stripDir = orthDir;
 		if (sv->attribute().isAttributeAvailableVec2f("orientation")) {
 			Vec2r userDir = sv->attribute().getAttributeVec2f("orientation");
-			userDir.normalize();
-			real dp = userDir * orthDir;
-			if (dp < 0)
-				userDir = userDir * (-1.0f);
-			stripDir = userDir;
+			if (userDir.norm() > 1e-6) {
+				userDir.normalize();
+				real dp = userDir * orthDir;
+				if (dp < 0)
+					userDir = userDir * (-1.0f);
+				stripDir = userDir;
+			} else {
+				++orientationErrors;
+			}
 		}
 
 		//direction and orthogonal vector to the previous segment
@@ -207,11 +220,15 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 		Vec2r stripDirPrev = orthDirPrev;
 		if (svPrev->attribute().isAttributeAvailableVec2f("orientation")) {
 			Vec2r userDir = svPrev->attribute().getAttributeVec2f("orientation");
-			userDir.normalize();
-			real dp = userDir * orthDir;
-			if (dp < 0)
-				userDir = userDir * (-1.0f);
-			stripDirPrev = userDir;
+			if (userDir.norm() > 1e-6) {
+				userDir.normalize();
+				real dp = userDir * orthDir;
+				if (dp < 0)
+					userDir = userDir * (-1.0f);
+				stripDirPrev = userDir;
+			} else {
+				++orientationErrors;
+			}
 		}
 
 		const float *thickness = sv->attribute().getThickness();
@@ -279,11 +296,15 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	// check whether the orientation was user defined
 	if (sv->attribute().isAttributeAvailableVec2f("orientation")) {
 		Vec2r userDir = sv->attribute().getAttributeVec2f("orientation");
-		userDir.normalize();
-		real dp = userDir * orthDir;
-		if (dp < 0)
-			userDir = userDir * (-1.0f);
-		stripDirLast = userDir;
+		if (userDir.norm() > 1e-6) {
+			userDir.normalize();
+			real dp = userDir * orthDir;
+			if (dp < 0)
+				userDir = userDir * (-1.0f);
+			stripDirLast = userDir;
+		} else {
+			++orientationErrors;
+		}
 	}
 	const float *thicknessLast = sv->attribute().getThickness();
 	_vertices.push_back(new StrokeVertexRep(sv->getPoint() + thicknessLast[1] * stripDirLast));
@@ -322,8 +343,17 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	if (iStrokeVertices.size() < 3)
 		_averageThickness = 0.5 * (thicknessLast[1] + thicknessLast[0] + thickness[0] + thickness[1]);
 
-	if (i != 2 * (int)iStrokeVertices.size())
-		cerr << "Warning: problem with stripe size\n";
+	if (orientationErrors > 0) {
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Warning: " << orientationErrors <<" invalid zero-length orientation vector(s) found.\n";
+		}
+	}
+
+	if (i != 2 * (int)iStrokeVertices.size()) {
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Warning: problem with stripe size\n";
+		}
+	}
 
 	cleanUpSingularities (iStrokeVertices);
 }
@@ -338,7 +368,9 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 
 	for (k = 0; k < sizeStrip; k++) {
 		if (notValid(_vertices[k]->point2d())) {
-			cerr << "Warning: strip vertex " << k << " non valid" << endl;
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "Warning: strip vertex " << k << " non valid" << endl;
+			}
 			return;
 		}
 	}
@@ -437,7 +469,9 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 
 	for (k = 0; k < sizeStrip; k++) {
 		if (notValid(_vertices[k]->point2d())) {
-			cerr << "Warning: strip vertex " << k << " non valid after cleanup" << endl;
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "Warning: strip vertex " << k << " non valid after cleanup" << endl;
+			}
 			return;
 		}
 	}
