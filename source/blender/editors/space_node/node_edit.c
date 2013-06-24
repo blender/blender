@@ -222,7 +222,7 @@ static void compo_updatejob(void *cjv)
 		cj->need_sync = FALSE;
 	}
 
-	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, NULL);
 }
 
 static void compo_progressjob(void *cjv, float progress)
@@ -299,7 +299,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, cj, compo_freejob);
-	WM_jobs_timer(wm_job, 0.1, NC_SCENE, NC_SCENE | ND_COMPO_RESULT);
+	WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_COMPO_RESULT, NC_SCENE | ND_COMPO_RESULT);
 	WM_jobs_callbacks(wm_job, compo_startjob, compo_initjob, compo_updatejob, NULL);
 
 	WM_jobs_start(CTX_wm_manager(C), wm_job);

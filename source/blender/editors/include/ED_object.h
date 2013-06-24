@@ -69,6 +69,8 @@ struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
 
+enum eVGroupSelect;
+
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
 struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
