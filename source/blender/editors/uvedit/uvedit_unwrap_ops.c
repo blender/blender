@@ -205,7 +205,7 @@ void uvedit_get_aspect(Scene *scene, Object *ob, BMEditMesh *em, float *aspx, fl
 	BMFace *efa;
 	Image *ima;
 
-	efa = BM_active_face_get(em->bm, sloppy, selected);
+	efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
 
 	if (efa) {
 		if (BKE_scene_use_new_shading_nodes(scene)) {

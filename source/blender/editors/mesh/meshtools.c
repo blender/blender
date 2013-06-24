@@ -1368,14 +1368,13 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
 {
 	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
 		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
-		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+		BMesh *bm = me->edit_btmesh->bm;
+		const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
 		if (cd_dvert_offset != -1) {
-			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
+			BMVert *eve = BM_mesh_active_vert_get(bm);
 
-			if (ese && ese->htype == BM_VERT) {
-				BMVert *eve = (BMVert *)ese->ele;
+			if (eve) {
 				if (r_eve) *r_eve = eve;
 				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
