@@ -479,9 +479,9 @@ void BL_Action::Update(float curtime)
 
 			obj->SetActiveAction(NULL, 0, curtime);
 		}
-
-		m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 	}
+
+	m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 
 	if (m_done)
 		ClearControllerList();
