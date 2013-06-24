@@ -308,6 +308,8 @@ void node_socket_copy_default_value(bNodeSocket *to, bNodeSocket *from)
 			break;
 		}
 	}
+
+	to->flag |= (from->flag & SOCK_HIDE_VALUE);
 }
 
 static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree), bNodeSocket *stemp, bNode *UNUSED(node), bNodeSocket *sock, const char *UNUSED(data_path))

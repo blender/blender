@@ -861,35 +861,6 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 	}
 }
 
-/****************************** Vector/Rotation ******************************/
-/* TODO: the following calls should probably be deprecated sometime         */
-
-/* TODO, replace use of this function with axis_angle_to_mat3() */
-void vec_rot_to_mat3(float mat[3][3], const float vec[3], const float phi)
-{
-	/* rotation of phi radials around vec */
-	float vx, vx2, vy, vy2, vz, vz2, co, si;
-
-	vx = vec[0];
-	vy = vec[1];
-	vz = vec[2];
-	vx2 = vx * vx;
-	vy2 = vy * vy;
-	vz2 = vz * vz;
-	co = cosf(phi);
-	si = sinf(phi);
-
-	mat[0][0] = vx2 + co * (1.0f - vx2);
-	mat[0][1] = vx * vy * (1.0f - co) + vz * si;
-	mat[0][2] = vz * vx * (1.0f - co) - vy * si;
-	mat[1][0] = vx * vy * (1.0f - co) - vz * si;
-	mat[1][1] = vy2 + co * (1.0f - vy2);
-	mat[1][2] = vy * vz * (1.0f - co) + vx * si;
-	mat[2][0] = vz * vx * (1.0f - co) + vy * si;
-	mat[2][1] = vy * vz * (1.0f - co) - vx * si;
-	mat[2][2] = vz2 + co * (1.0f - vz2);
-}
-
 /******************************** XYZ Eulers *********************************/
 
 /* XYZ order */

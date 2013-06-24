@@ -2110,12 +2110,7 @@ static void createTransEditVerts(TransInfo *t)
 	}
 
 	/* check active */
-	if (em->bm->selected.last) {
-		BMEditSelection *ese = em->bm->selected.last;
-		if (ese->htype == BM_VERT) {
-			eve_act = (BMVert *)ese->ele;
-		}
-	}
+	eve_act = BM_mesh_active_vert_get(bm);
 
 	if (t->mode == TFM_BWEIGHT) {
 		BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(t->obedit), ME_CDFLAG_VERT_BWEIGHT);

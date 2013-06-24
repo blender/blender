@@ -249,7 +249,11 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 #endif
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
+#ifdef __CMJ__
 	int num_samples = kernel_data.integrator.aa_samples;
+#else
+	int num_samples = 0;
+#endif
 
 	path_state_init(&state);
 
@@ -765,7 +769,11 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 	float min_ray_pdf, float ray_pdf, PathState state,
 	int rng_offset, PathRadiance *L, __global float *buffer)
 {
+#ifdef __CMJ__
 	int aa_samples = kernel_data.integrator.aa_samples;
+#else
+	int aa_samples = 0;
+#endif
 
 #ifdef __AO__
 	/* ambient occlusion */
@@ -964,7 +972,11 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 	float ray_pdf = 0.0f;
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
+#ifdef __CMJ__
 	int aa_samples = kernel_data.integrator.aa_samples;
+#else
+	int aa_samples = 0;
+#endif
 
 	path_state_init(&state);
 
@@ -1141,7 +1153,11 @@ __device void kernel_path_trace(KernelGlobals *kg,
 
 	float filter_u;
 	float filter_v;
+#ifdef __CMJ__
 	int num_samples = kernel_data.integrator.aa_samples;
+#else
+	int num_samples = 0;
+#endif
 
 	path_rng_init(kg, rng_state, sample, num_samples, &rng, x, y, &filter_u, &filter_v);
 

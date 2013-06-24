@@ -45,8 +45,10 @@
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
-#  pragma GCC diagnostic error "-Wsign-compare"
-#  pragma GCC diagnostic error "-Wconversion"
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
+#    pragma GCC diagnostic error "-Wsign-compare"
+#    pragma GCC diagnostic error "-Wconversion"
+#  endif
 #endif
 
 /* note: copied from BLO_blend_defs.h, don't use here because we're in BLI */

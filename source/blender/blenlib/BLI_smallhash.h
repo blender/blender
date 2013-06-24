@@ -56,7 +56,7 @@ typedef struct SmallHash {
 
 typedef struct {
 	SmallHash *hash;
-	int i;
+	unsigned int i;
 } SmallHashIter;
 
 #ifdef __GNUC__

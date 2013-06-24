@@ -85,7 +85,7 @@
 
 #include "BKE_bpath.h"  /* own include */
 
-static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
+static bool checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
 	ReportList *reports = (ReportList *)userdata;
 
@@ -93,7 +93,7 @@ static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), co
 		BKE_reportf(reports, RPT_WARNING, "Path '%s' not found", path_src);
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* high level function */
@@ -111,14 +111,14 @@ typedef struct BPathRemap_Data {
 	int count_failed;
 } BPathRemap_Data;
 
-static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char *path_src)
+static bool makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
 	BPathRemap_Data *data = (BPathRemap_Data *)userdata;
 
 	data->count_tot++;
 
 	if (BLI_path_is_rel(path_src)) {
-		return FALSE; /* already relative */
+		return false; /* already relative */
 	}
 	else {
 		strcpy(path_dst, path_src);
@@ -130,7 +130,7 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 			BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made relative", path_src);
 			data->count_failed++;
 		}
-		return TRUE;
+		return true;
 	}
 }
 
@@ -153,26 +153,26 @@ void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *re
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
-static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char *path_src)
+static bool makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
 	BPathRemap_Data *data = (BPathRemap_Data *)userdata;
 
 	data->count_tot++;
 
-	if (BLI_path_is_rel(path_src) == FALSE) {
-		return FALSE; /* already absolute */
+	if (BLI_path_is_rel(path_src) == false) {
+		return false; /* already absolute */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_abs(path_dst, data->basedir);
-		if (BLI_path_is_rel(path_dst) == FALSE) {
+		if (BLI_path_is_rel(path_dst) == false) {
 			data->count_changed++;
 		}
 		else {
 			BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
 			data->count_failed++;
 		}
-		return TRUE;
+		return true;
 	}
 }
 
@@ -218,7 +218,7 @@ static int findFileRecursive(char *filename_new,
 	struct stat status;
 	char path[FILE_MAX];
 	int size;
-	int found = FALSE;
+	bool found = false;
 
 	dir = opendir(dirname);
 
@@ -230,7 +230,7 @@ static int findFileRecursive(char *filename_new,
 
 	while ((de = readdir(dir)) != NULL) {
 
-		if (strcmp(".", de->d_name) == 0 || strcmp("..", de->d_name) == 0)
+		if (STREQ(".", de->d_name) || STREQ("..", de->d_name))
 			continue;
 
 		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
@@ -239,13 +239,13 @@ static int findFileRecursive(char *filename_new,
 			continue;  /* cant stat, don't bother with this file, could print debug info here */
 
 		if (S_ISREG(status.st_mode)) { /* is file */
-			if (strncmp(filename, de->d_name, FILE_MAX) == 0) { /* name matches */
+			if (STREQLEN(filename, de->d_name, FILE_MAX)) { /* name matches */
 				/* open the file to read its size */
 				size = status.st_size;
 				if ((size > 0) && (size > *filesize)) { /* find the biggest file */
 					*filesize = size;
 					BLI_strncpy(filename_new, path, FILE_MAX);
-					found = TRUE;
+					found = true;
 				}
 			}
 		}
@@ -263,11 +263,12 @@ static int findFileRecursive(char *filename_new,
 
 typedef struct BPathFind_Data {
 	const char *basedir;
-	char searchdir[FILE_MAX];
+	const char *searchdir;
 	ReportList *reports;
+	bool find_all;
 } BPathFind_Data;
 
-static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char *path_src)
+static bool findMissingFiles_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
 	BPathFind_Data *data = (BPathFind_Data *)userdata;
 	char filename_new[FILE_MAX];
@@ -275,6 +276,12 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 	int filesize = -1;
 	int recur_depth = 0;
 	int found;
+
+	if (data->find_all == false) {
+		if (BLI_exists(path_src)) {
+			return false;
+		}
+	}
 
 	filename_new[0] = '\0';
 
@@ -286,32 +293,34 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 		BKE_reportf(data->reports, RPT_WARNING,
 		            "Could not open directory '%s'",
 		            BLI_path_basename(data->searchdir));
-		return FALSE;
+		return false;
 	}
-	else if (found == FALSE) {
+	else if (found == false) {
 		BKE_reportf(data->reports, RPT_WARNING,
 		            "Could not find '%s' in '%s'",
 		            BLI_path_basename((char *)path_src), data->searchdir);
-		return FALSE;
+		return false;
 	}
 	else {
 		BLI_strncpy(path_dst, filename_new, FILE_MAX);
-		return TRUE;
+		return true;
 	}
 }
 
-void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports)
+void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports,
+                                  const bool find_all)
 {
 	struct BPathFind_Data data = {NULL};
 
 	data.reports = reports;
-	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));
+	data.searchdir = searchpath;
+	data.find_all = find_all;
 
-	BKE_bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, findMissingFiles_visit_cb, BKE_BPATH_TRAVERSE_ABS, (void *)&data);
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
-static int rewrite_path_fixed(char *path, BPathVisitor visit_cb, const char *absbase, void *userdata)
+static bool rewrite_path_fixed(char *path, BPathVisitor visit_cb, const char *absbase, void *userdata)
 {
 	char path_src_buf[FILE_MAX];
 	const char *path_src;
@@ -328,18 +337,18 @@ static int rewrite_path_fixed(char *path, BPathVisitor visit_cb, const char *abs
 
 	if (visit_cb(userdata, path_dst, path_src)) {
 		BLI_strncpy(path, path_dst, FILE_MAX);
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 
-static int rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
-                                      char path_file[FILE_MAXFILE],
-                                      BPathVisitor visit_cb,
-                                      const char *absbase,
-                                      void *userdata)
+static bool rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
+                                       char path_file[FILE_MAXFILE],
+                                       BPathVisitor visit_cb,
+                                       const char *absbase,
+                                       void *userdata)
 {
 	char path_src[FILE_MAX];
 	char path_dst[FILE_MAX];
@@ -352,14 +361,14 @@ static int rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
 
 	if (visit_cb(userdata, path_dst, (const char *)path_src)) {
 		BLI_split_dirfile(path_dst, path_dir, path_file, FILE_MAXDIR, FILE_MAXFILE);
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 
-static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *absbase, void *userdata)
+static bool rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *absbase, void *userdata)
 {
 	char path_src_buf[FILE_MAX];
 	const char *path_src;
@@ -377,10 +386,10 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 	if (visit_cb(userdata, path_dst, path_src)) {
 		MEM_freeN((*path));
 		(*path) = BLI_strdup(path_dst);
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 
@@ -495,7 +504,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		{
 			VFont *vfont = (VFont *)id;
 			if (vfont->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-				if (BKE_vfont_is_builtin(vfont) == FALSE) {
+				if (BKE_vfont_is_builtin(vfont) == false) {
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
 			}
@@ -632,7 +641,7 @@ void BKE_bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag,
 
 /* Rewrites a relative path to be relative to the main file - unless the path is
  * absolute, in which case it is not altered. */
-int BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
+bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
 {
 	/* be sure there is low chance of the path being too short */
 	char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
@@ -642,7 +651,7 @@ int BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pat
 	if (BLI_path_is_rel(base_old)) {
 		printf("%s: error, old base path '%s' is not absolute.\n",
 		       __func__, base_old);
-		return FALSE;
+		return false;
 	}
 
 	/* Make referenced file absolute. This would be a side-effect of
@@ -655,11 +664,11 @@ int BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pat
 		BLI_cleanup_file(base_new, filepath);
 		BLI_path_rel(filepath, base_new);
 		BLI_strncpy(path_dst, filepath, FILE_MAX);
-		return TRUE;
+		return true;
 	}
 	else {
 		/* Path was not relative to begin with. */
-		return FALSE;
+		return false;
 	}
 }
 
@@ -674,7 +683,7 @@ struct PathStore {
 	struct PathStore *next, *prev;
 };
 
-static int bpath_list_append(void *userdata, char *UNUSED(path_dst), const char *path_src)
+static bool bpath_list_append(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
 	/* store the path and string in a single alloc */
 	ListBase *ls = userdata;
@@ -684,24 +693,24 @@ static int bpath_list_append(void *userdata, char *UNUSED(path_dst), const char 
 
 	memcpy(filepath, path_src, path_size);
 	BLI_addtail(ls, path_store);
-	return FALSE;
+	return false;
 }
 
-static int bpath_list_restore(void *userdata, char *path_dst, const char *path_src)
+static bool bpath_list_restore(void *userdata, char *path_dst, const char *path_src)
 {
 	/* assume ls->first wont be NULL because the number of paths can't change!
 	 * (if they do caller is wrong) */
 	ListBase *ls = userdata;
 	struct PathStore *path_store = ls->first;
 	const char *filepath = (char *)(path_store + 1);
-	int ret;
+	bool ret;
 
-	if (strcmp(path_src, filepath) == 0) {
-		ret = FALSE;
+	if (STREQ(path_src, filepath)) {
+		ret = false;
 	}
 	else {
 		BLI_strncpy(path_dst, filepath, FILE_MAX);
-		ret = TRUE;
+		ret = true;
 	}
 
 	BLI_freelinkN(ls, path_store);

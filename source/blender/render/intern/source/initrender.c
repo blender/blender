@@ -268,7 +268,7 @@ void make_sample_tables(Render *re)
 	SampleTables *st;
 	float flweight[32];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
-	int i, j, a;
+	int i, j, a, centmasksize;
 
 	/* optimization tables, only once */
 	if (firsttime) {
@@ -303,7 +303,8 @@ void make_sample_tables(Render *re)
 		if (a & 128) st->cmask[a]++;
 	}
 	
-	st->centmask = MEM_mallocN((1 << re->osa), "Initfilt3");
+	centmasksize = (1 << re->osa);
+	st->centmask = MEM_mallocN(centmasksize, "Initfilt3");
 	
 	for (a = 0; a < 16; a++) {
 		st->centLut[a] = -0.45f + ((float)a) / 16.0f;
@@ -425,7 +426,7 @@ void make_sample_tables(Render *re)
 		}
 	}
 
-	for (a = (1 << re->osa) - 1; a > 0; a--) {
+	for (a = centmasksize - 1; a > 0; a--) {
 		val = st->cmask[a & 255] + st->cmask[a >> 8];
 		i = 8 + (15.9f * (fpy1[a & 255] + fpy2[a >> 8]) / val);
 		CLAMP(i, 0, 15);

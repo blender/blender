@@ -1076,11 +1076,11 @@ typedef struct ToolSettings {
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char proportional_mask; /* proportional edit, object mode */
-	char pad4[1];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
 	char weightuser;
+	char vgroupsubset; /* subset selection filter in wpaint */
 
 	/* UV painting */
 	int use_uv_sculpt;
@@ -1510,6 +1510,24 @@ enum {
 	OB_DRAW_GROUPUSER_ACTIVE    = 1,
 	OB_DRAW_GROUPUSER_ALL       = 2
 };
+
+/* toolsettings->vgroupsubset */
+/* object_vgroup.c */
+typedef enum eVGroupSelect {
+	WT_VGROUP_ALL = 0,
+	WT_VGROUP_ACTIVE = 1,
+	WT_VGROUP_BONE_SELECT = 2,
+	WT_VGROUP_BONE_DEFORM = 3,
+	WT_VGROUP_BONE_DEFORM_OFF = 4
+} eVGroupSelect;
+
+#define WT_VGROUP_MASK_ALL \
+	((1 << WT_VGROUP_ACTIVE) | \
+	 (1 << WT_VGROUP_BONE_SELECT) | \
+	 (1 << WT_VGROUP_BONE_DEFORM) | \
+	 (1 << WT_VGROUP_BONE_DEFORM_OFF) | \
+	 (1 << WT_VGROUP_ALL))
+
 
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)

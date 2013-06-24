@@ -31,7 +31,7 @@ builder = sys.argv[1]
 # we run from build/ directory
 blender_dir = '../blender'
 
-if builder.find('cmake') != -1:
+if "cmake" in builder:
     # cmake
     retcode = subprocess.call(['ctest', '.' '--output-on-failure'])
     sys.exit(retcode)

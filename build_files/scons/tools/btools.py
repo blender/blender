@@ -674,10 +674,10 @@ def buildslave(target=None, source=None, env=None):
     if platform == 'linux':
         import platform
 
-        if env['BF_INSTALLDIR'].find('glibc27') != -1:
-            glibc="glibc27"
-        elif env['BF_INSTALLDIR'].find('glibc211') != -1:
-            glibc="glibc211"
+        if "glibc27" in env['BF_INSTALLDIR']:
+            glibc = "glibc27"
+        elif "glibc211" in env['BF_INSTALLDIR']:
+            glibc = "glibc211"
 
         bitness = platform.architecture()[0]
         if bitness == '64bit':

@@ -237,6 +237,8 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 
 void ImageTextureNode::compile(OSLCompiler& compiler)
 {
+	ShaderOutput *alpha_out = output("Alpha");
+
 	tex_mapping.compile(compiler);
 
 	if(is_float == -1)
@@ -250,6 +252,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	compiler.parameter("projection", projection);
 	compiler.parameter("projection_blend", projection_blend);
 	compiler.parameter("is_float", is_float);
+	compiler.parameter("use_alpha", !alpha_out->links.empty());
 	compiler.add(this, "node_image_texture");
 }
 
@@ -358,6 +361,8 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 
 void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 {
+	ShaderOutput *alpha_out = output("Alpha");
+
 	tex_mapping.compile(compiler);
 
 	if(is_float == -1)
@@ -370,6 +375,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 	else
 		compiler.parameter("color_space", "sRGB");
 	compiler.parameter("is_float", is_float);
+	compiler.parameter("use_alpha", !alpha_out->links.empty());
 	compiler.add(this, "node_environment_texture");
 }
 
@@ -1115,11 +1121,14 @@ void MappingNode::compile(OSLCompiler& compiler)
 
 /* Convert */
 
-ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_)
+ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_, bool autoconvert)
 : ShaderNode("convert")
 {
 	from = from_;
 	to = to_;
+
+	if(autoconvert)
+		special_type = SHADER_SPECIAL_TYPE_AUTOCONVERT;
 
 	assert(from != to);
 
@@ -1265,7 +1274,7 @@ void ProxyNode::compile(OSLCompiler& compiler)
 /* BSDF Closure */
 
 BsdfNode::BsdfNode(bool scattering_)
-: ShaderNode("subsurface_scattering"), scattering(scattering_)
+: ShaderNode("bsdf"), scattering(scattering_)
 {
 	closure = ccl::CLOSURE_BSSRDF_ID;
 

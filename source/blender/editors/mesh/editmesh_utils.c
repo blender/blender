@@ -1089,7 +1089,7 @@ MTexPoly *EDBM_mtexpoly_active_get(BMEditMesh *em, BMFace **r_act_efa, const boo
 	if (!EDBM_mtexpoly_check(em))
 		return NULL;
 	
-	efa = BM_active_face_get(em->bm, sloppy, selected);
+	efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
 
 	if (efa) {
 		if (r_act_efa) *r_act_efa = efa;

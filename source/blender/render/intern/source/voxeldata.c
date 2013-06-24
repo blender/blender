@@ -224,7 +224,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	return 1;
 }
 
-static void init_frame_smoke(VoxelData *vd, float cfra)
+static void init_frame_smoke(VoxelData *vd, int cfra)
 {
 #ifdef WITH_SMOKE
 	Object *ob;

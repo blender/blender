@@ -87,6 +87,10 @@
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
+#    pragma GCC diagnostic error "-Wsign-compare"
+#    pragma GCC diagnostic error "-Wconversion"
+#  endif
 #endif
 
 /* this is rather and annoying hack, use define to isolate it.
@@ -335,8 +339,8 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 	unsigned int *face = layer->face_array[face_index];
 	float (*cos)[3] = layer->face_coords;
 
-	const float xmin = layer->bounds.xmin + (bucket_size_x * bucket_x);
-	const float ymin = layer->bounds.ymin + (bucket_size_y * bucket_y);
+	const float xmin = layer->bounds.xmin + (bucket_size_x * (float)bucket_x);
+	const float ymin = layer->bounds.ymin + (bucket_size_y * (float)bucket_y);
 	const float xmax = xmin + bucket_size_x;
 	const float ymax = ymin + bucket_size_y;
 
@@ -417,21 +421,21 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 	const float bucket_dim_x = BLI_rctf_size_x(&layer->bounds);
 	const float bucket_dim_y = BLI_rctf_size_y(&layer->bounds);
 
-	layer->buckets_x = (bucket_dim_x / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
-	layer->buckets_y = (bucket_dim_y / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
+	layer->buckets_x = (unsigned int)((bucket_dim_x / pixel_size) / (float)BUCKET_PIXELS_PER_CELL);
+	layer->buckets_y = (unsigned int)((bucket_dim_y / pixel_size) / (float)BUCKET_PIXELS_PER_CELL);
 
 //		printf("bucket size %ux%u\n", layer->buckets_x, layer->buckets_y);
 
 	CLAMP(layer->buckets_x, 8, 512);
 	CLAMP(layer->buckets_y, 8, 512);
 
-	layer->buckets_xy_scalar[0] = (1.0f / (bucket_dim_x + FLT_EPSILON)) * layer->buckets_x;
-	layer->buckets_xy_scalar[1] = (1.0f / (bucket_dim_y + FLT_EPSILON)) * layer->buckets_y;
+	layer->buckets_xy_scalar[0] = (1.0f / (bucket_dim_x + FLT_EPSILON)) * (float)layer->buckets_x;
+	layer->buckets_xy_scalar[1] = (1.0f / (bucket_dim_y + FLT_EPSILON)) * (float)layer->buckets_y;
 
 	{
 		/* width and height of each bucket */
-		const float bucket_size_x = (bucket_dim_x + FLT_EPSILON) / layer->buckets_x;
-		const float bucket_size_y = (bucket_dim_y + FLT_EPSILON) / layer->buckets_y;
+		const float bucket_size_x = (bucket_dim_x + FLT_EPSILON) / (float)layer->buckets_x;
+		const float bucket_size_y = (bucket_dim_y + FLT_EPSILON) / (float)layer->buckets_y;
 		const float bucket_max_rad = (max_ff(bucket_size_x, bucket_size_y) * (float)M_SQRT2) + FLT_EPSILON;
 		const float bucket_max_rad_squared = bucket_max_rad * bucket_max_rad;
 
@@ -641,7 +645,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			if (tot_diff_point > 3) {
 				ScanFillVert *sf_vert_prev;
-				int j;
+				unsigned int j;
 
 				float co[3];
 				co[2] = 0.0f;
@@ -650,7 +654,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					if (width != height) {
 						float *fp;
 						float *ffp;
-						int i;
+						unsigned int i;
 						float asp;
 
 						if (width < height) {
@@ -846,15 +850,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							fp_turn = diff_feather_points[0];
 
 #define CALC_CAP_RESOL                                                                      \
-	clampis_uint((len_v2v2(fp_cent, fp_turn) / (pixel_size * SPLINE_RESOL_CAP_PER_PIXEL)),  \
-	             SPLINE_RESOL_CAP_MIN,                                                      \
-	             SPLINE_RESOL_CAP_MAX)
+	clampis_uint((unsigned int )(len_v2v2(fp_cent, fp_turn) /                               \
+	                             (pixel_size * SPLINE_RESOL_CAP_PER_PIXEL)),                \
+	             SPLINE_RESOL_CAP_MIN, SPLINE_RESOL_CAP_MAX)
 
 							{
 								const unsigned int vertex_total_cap = CALC_CAP_RESOL;
 
 								for (k = 1; k < vertex_total_cap; k++) {
-									const float angle = (float)k * (1.0f / vertex_total_cap) * (float)M_PI;
+									const float angle = (float)k * (1.0f / (float)vertex_total_cap) * (float)M_PI;
 									rotate_point_v2(co_feather, fp_turn, fp_cent, angle, asp_xy);
 
 									sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
@@ -874,7 +878,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 								const unsigned int vertex_total_cap = CALC_CAP_RESOL;
 
 								for (k = 1; k < vertex_total_cap; k++) {
-									const float angle = (float)k * (1.0f / vertex_total_cap) * (float)M_PI;
+									const float angle = (float)k * (1.0f / (float)vertex_total_cap) * (float)M_PI;
 									rotate_point_v2(co_feather, fp_turn, fp_cent, -angle, asp_xy);
 
 									sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);

@@ -125,9 +125,9 @@ __device_inline float path_rng_1D(KernelGlobals *kg, RNG *rng, int sample, int n
 	float shift;
 
 	if(dimension & 1)
-		shift = (*rng >> 16)/((float)0xFFFF);
+		shift = (*rng >> 16) * (1.0f/(float)0xFFFF);
 	else
-		shift = (*rng & 0xFFFF)/((float)0xFFFF);
+		shift = (*rng & 0xFFFF) * (1.0f/(float)0xFFFF);
 
 	return r + shift - floorf(r + shift);
 #endif

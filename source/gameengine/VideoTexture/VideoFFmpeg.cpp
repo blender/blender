@@ -584,7 +584,6 @@ void VideoFFmpeg::openCam (char *file, short camIdx)
 	AVInputFormat		*inputFormat;
 	AVDictionary		*formatParams = NULL;
 	char				filename[28], rateStr[20];
-	char                *p;
 
 #ifdef WIN32
 	// video capture on windows only through Video For Windows driver
@@ -608,6 +607,8 @@ void VideoFFmpeg::openCam (char *file, short camIdx)
 	//    /dev/ieee1394/1:ntsc
 	//    dv1394:secam
 	//    v4l:pal
+	char *p;
+
 	if (file && strstr(file, "1394") != NULL) 
 	{
 		// the user specifies a driver, check if it is v4l or d41394

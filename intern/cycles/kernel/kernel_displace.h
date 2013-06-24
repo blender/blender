@@ -18,7 +18,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *output, ShaderEvalType type, int i)
+__device void kernel_shader_evaluate(KernelGlobals *kg, __global uint4 *input, __global float4 *output, ShaderEvalType type, int i)
 {
 	ShaderData sd;
 	uint4 in = input[i];

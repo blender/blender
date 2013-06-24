@@ -792,7 +792,7 @@ const char *WM_key_event_string(short type)
 	return "";
 }
 
-int WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
+int WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, const int len)
 {
 	char buf[128];
 

@@ -50,8 +50,8 @@ color color_scene_linear_to_srgb(color c)
 
 color color_unpremultiply(color c, float alpha)
 {
-	if(alpha != 1.0 && alpha != 0.0)
-		return c/alpha;
+	if (alpha != 1.0 && alpha != 0.0)
+		return c / alpha;
 
 	return c;
 }

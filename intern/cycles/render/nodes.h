@@ -182,7 +182,7 @@ public:
 
 class ConvertNode : public ShaderNode {
 public:
-	ConvertNode(ShaderSocketType from, ShaderSocketType to);
+	ConvertNode(ShaderSocketType from, ShaderSocketType to, bool autoconvert = false);
 	SHADER_NODE_BASE_CLASS(ConvertNode)
 
 	ShaderSocketType from, to;

@@ -41,11 +41,14 @@
 #include "RAS_IPolygonMaterial.h"
 #include "GPC_Canvas.h"
 
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_image.h"
 
 extern "C" {
@@ -454,6 +457,7 @@ MakeScreenShot(
 	// create file path 
 	char path[FILE_MAX];
 	BLI_strncpy(path, filename, sizeof(path));
+	BLI_path_abs(path, G.main->name);
 	BKE_add_image_extension_from_type(path, im_format.imtype);
 
 	// create and save imbuf 
