@@ -164,7 +164,7 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
 		case EDGE_MODE_SELECT:
 			return BM_elem_flag_test(e, BM_ELEM_SELECT) ? true : false;
 		case EDGE_MODE_TAG_SEAM:
-			return BM_elem_flag_test(e, BM_ELEM_SEAM) ? false : true;
+			return BM_elem_flag_test(e, BM_ELEM_SEAM) ? true : false;
 		case EDGE_MODE_TAG_SHARP:
 			return BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? false : true;
 		case EDGE_MODE_TAG_CREASE:
