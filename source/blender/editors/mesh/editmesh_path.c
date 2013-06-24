@@ -255,6 +255,7 @@ static bool mouse_mesh_shortest_path_edge(ViewContext *vc)
 
 	e_dst = EDBM_edge_find_nearest(vc, &dist);
 	if (e_dst) {
+		const char edge_mode = vc->scene->toolsettings->edge_mode;
 		struct UserData user_data = {bm, vc->obedit->data, vc->scene};
 		LinkNode *path = NULL;
 		Mesh *me = vc->obedit->data;
@@ -296,16 +297,26 @@ static bool mouse_mesh_shortest_path_edge(ViewContext *vc)
 			edgetag_set_cb(e_dst, is_act, &user_data); /* switch the edge option */
 		}
 
+		if (edge_mode != EDGE_MODE_SELECT) {
+			/* simple rules - last edge is _always_ active and selected */
+			if (e_act)
+				BM_edge_select_set(bm, e_act, false);
+			BM_edge_select_set(bm, e_dst, true);
+			BM_select_history_store(bm, e_dst);
+		}
+
 		EDBM_selectmode_flush(em);
 
 		/* even if this is selected it may not be in the selection list */
-		if (edgetag_test_cb(e_dst, &user_data) == 0)
-			BM_select_history_remove(bm, e_dst);
-		else
-			BM_select_history_store(bm, e_dst);
+		if (edge_mode == EDGE_MODE_SELECT) {
+			if (edgetag_test_cb(e_dst, &user_data) == 0)
+				BM_select_history_remove(bm, e_dst);
+			else
+				BM_select_history_store(bm, e_dst);
+		}
 
 		/* force drawmode for mesh */
-		switch (vc->scene->toolsettings->edge_mode) {
+		switch (edge_mode) {
 
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
