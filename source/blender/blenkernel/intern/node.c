@@ -3546,33 +3546,39 @@ void init_nodesystem(void)
 
 void free_nodesystem(void) 
 {
-	NODE_TYPES_BEGIN(nt)
-		if (nt->ext.free) {
-			nt->ext.free(nt->ext.data);
-		}
-	NODE_TYPES_END
-	
-	NODE_SOCKET_TYPES_BEGIN(st)
-		if (st->ext_socket.free)
-			st->ext_socket.free(st->ext_socket.data);
-		if (st->ext_interface.free)
-			st->ext_interface.free(st->ext_interface.data);
-	NODE_SOCKET_TYPES_END
-	
-	NODE_TREE_TYPES_BEGIN(nt)
-		if (nt->ext.free) {
-			nt->ext.free(nt->ext.data);
-		}
-	NODE_TREE_TYPES_END
-	
-	BLI_ghash_free(nodetypes_hash, NULL, node_free_type);
-	nodetypes_hash = NULL;
-	
-	BLI_ghash_free(nodesockettypes_hash, NULL, node_free_socket_type);
-	nodesockettypes_hash = NULL;
-	
-	BLI_ghash_free(nodetreetypes_hash, NULL, ntree_free_type);
-	nodetreetypes_hash = NULL;
+	if (nodetypes_hash) {
+		NODE_TYPES_BEGIN(nt)
+			if (nt->ext.free) {
+				nt->ext.free(nt->ext.data);
+			}
+		NODE_TYPES_END
+
+		BLI_ghash_free(nodetypes_hash, NULL, node_free_type);
+		nodetypes_hash = NULL;
+	}
+
+	if (nodesockettypes_hash) {
+		NODE_SOCKET_TYPES_BEGIN(st)
+			if (st->ext_socket.free)
+				st->ext_socket.free(st->ext_socket.data);
+			if (st->ext_interface.free)
+				st->ext_interface.free(st->ext_interface.data);
+		NODE_SOCKET_TYPES_END
+
+		BLI_ghash_free(nodesockettypes_hash, NULL, node_free_socket_type);
+		nodesockettypes_hash = NULL;
+	}
+
+	if (nodetreetypes_hash) {
+		NODE_TREE_TYPES_BEGIN(nt)
+			if (nt->ext.free) {
+				nt->ext.free(nt->ext.data);
+			}
+		NODE_TREE_TYPES_END
+
+		BLI_ghash_free(nodetreetypes_hash, NULL, ntree_free_type);
+		nodetreetypes_hash = NULL;
+	}
 }
 
 /* called from BKE_scene_unlink, when deleting a scene goes over all scenes
