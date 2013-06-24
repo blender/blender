@@ -883,7 +883,6 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiLayout *col, *bcol;
 		uiLayout *row;
-		uiLayout *box;
 		uiBut *but;
 		bDeformGroup *dg;
 		unsigned int i;
@@ -901,9 +900,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 		col = uiLayoutColumn(bcol, true);
-		//box = uiLayoutBox(col); /* The list box */
 
-		//col = uiLayoutColumn(box, true);
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
 			if (vgroup_validmap[i]) {
@@ -911,8 +908,6 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 				if (dw) {
 					int x, xco = 0;
 					row = uiLayoutRow(col, true);
-
-					//uiBlockSetEmboss(block, UI_EMBOSSN);
 
 					/* The Weight Group Name */
 
@@ -930,8 +925,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					/* The weight group value */
 					/* To be reworked still */
 					but = uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, "",
-					          xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
-					          &dw->weight, 0.0, 1.0, 1, 3, "");
+					                xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
+					                &dw->weight, 0.0, 1.0, 1, 3, "");
 					uiButSetFlag(but, UI_TEXT_LEFT);
 					xco += x;
 
@@ -956,22 +951,20 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		}
 		MEM_freeN((void *)vgroup_validmap);
 
-		//uiBlockSetEmboss(block, UI_EMBOSS);
-
 		yco -= 2;
 
 		col = uiLayoutColumn(pa->layout, true);
 		row = uiLayoutRow(col, true);
 
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active", 1);
-		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize", 
-				0, yco,UI_UNIT_X * 5, UI_UNIT_Y,
-				TIP_("Normalize active vertex weights"));
+		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
+		                    0, yco,UI_UNIT_X * 5, UI_UNIT_Y,
+		                    TIP_("Normalize active vertex weights"));
 
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", 1);
-		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy", 
-				UI_UNIT_X * 5, yco,UI_UNIT_X * 5, UI_UNIT_Y, 
-				TIP_("Copy active vertex to other selected verts"));
+		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy",
+		                    UI_UNIT_X * 5, yco,UI_UNIT_X * 5, UI_UNIT_Y,
+		                    TIP_("Copy active vertex to other selected verts"));
 
 	}
 }
