@@ -65,7 +65,8 @@ void  BKE_bpath_list_free(void *ls_handle);
 
 /* creates a text file with missing files if there are any */
 void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
-void BKE_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports);
+void BKE_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports,
+                                  const bool find_all);
 void BKE_bpath_relative_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void BKE_bpath_absolute_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 

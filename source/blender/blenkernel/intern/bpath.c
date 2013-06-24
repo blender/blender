@@ -263,8 +263,9 @@ static int findFileRecursive(char *filename_new,
 
 typedef struct BPathFind_Data {
 	const char *basedir;
-	char searchdir[FILE_MAX];
+	const char *searchdir;
 	ReportList *reports;
+	bool find_all;
 } BPathFind_Data;
 
 static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char *path_src)
@@ -275,6 +276,12 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 	int filesize = -1;
 	int recur_depth = 0;
 	int found;
+
+	if (data->find_all == false) {
+		if (BLI_exists(path_src)) {
+			return false;
+		}
+	}
 
 	filename_new[0] = '\0';
 
@@ -300,14 +307,16 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 	}
 }
 
-void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports)
+void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports,
+                                  const bool find_all)
 {
 	struct BPathFind_Data data = {NULL};
 
 	data.reports = reports;
-	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));
+	data.searchdir = searchpath;
+	data.find_all = find_all;
 
-	BKE_bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, findMissingFiles_visit_cb, BKE_BPATH_TRAVERSE_ABS, (void *)&data);
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
