@@ -779,57 +779,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 #define B_VGRP_PNL_COPY_SINGLE    8192 /* or greater */
 #define B_VGRP_PNL_ACTIVE        16384 /* or greater */
 
-
-static MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
-{
-	Mesh *me = ob->data;
-	int index = BKE_mesh_mselect_active_get(me, ME_VSEL);
-	if (r_index) *r_index = index;
-	if (index == -1 || me->dvert == NULL) {
-		return NULL;
-	}
-	else {
-		return me->dvert + index;
-	}
-}
-
-static MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
-{
-	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
-		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-
-		if (cd_dvert_offset != -1) {
-			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
-
-			if (ese && ese->htype == BM_VERT) {
-				BMVert *eve = (BMVert *)ese->ele;
-				if (r_eve) *r_eve = eve;
-				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-			}
-		}
-	}
-
-	if (r_eve) *r_eve = NULL;
-	return NULL;
-}
-
-static MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
-{
-	if (ob->type == OB_MESH) {
-		if (ob->mode & OB_MODE_EDIT) {
-			return ED_mesh_active_dvert_get_em(ob, NULL);
-		}
-		else {
-			return ED_mesh_active_dvert_get_ob(ob, NULL);
-		}
-	}
-	else {
-		return NULL;
-	}
-}
-
 static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	if (event < B_VGRP_PNL_EDIT_SINGLE) {

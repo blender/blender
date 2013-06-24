@@ -411,28 +411,6 @@ bool ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	return true;
 }
 
-static MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
-{
-	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
-		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-
-		if (cd_dvert_offset != -1) {
-			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
-
-			if (ese && ese->htype == BM_VERT) {
-				BMVert *eve = (BMVert *)ese->ele;
-				if (r_eve) *r_eve = eve;
-				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-			}
-		}
-	}
-
-	if (r_eve) *r_eve = NULL;
-	return NULL;
-}
-
 /* TODO, cache flip data to speedup calls within a loop. */
 static void mesh_defvert_mirror_update_internal(Object *ob,
                                                 MDeformVert *dvert_dst, MDeformVert *dvert_src,
@@ -451,19 +429,6 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
 		if (dw) {
 			dw->weight = defvert_find_weight(dvert_src, def_nr);
 		}
-	}
-}
-
-static MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
-{
-	Mesh *me = ob->data;
-	int index = BKE_mesh_mselect_active_get(me, ME_VSEL);
-	if (r_index) *r_index = index;
-	if (index == -1 || me->dvert == NULL) {
-		return NULL;
-	}
-	else {
-		return me->dvert + index;
 	}
 }
 
@@ -496,21 +461,6 @@ static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 		MDeformVert *dvert_src = &me->dvert[vidx];
 		MDeformVert *dvert_dst = &me->dvert[vidx_mirr];
 		mesh_defvert_mirror_update_internal(ob, dvert_dst, dvert_src, def_nr);
-	}
-}
-
-static MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
-{
-	if (ob->type == OB_MESH) {
-		if (ob->mode & OB_MODE_EDIT) {
-			return ED_mesh_active_dvert_get_em(ob, NULL);
-		}
-		else {
-			return ED_mesh_active_dvert_get_ob(ob, NULL);
-		}
-	}
-	else {
-		return NULL;
 	}
 }
 
