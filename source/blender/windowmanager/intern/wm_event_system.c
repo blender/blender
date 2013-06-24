@@ -148,9 +148,15 @@ static int wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, vo
 void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference)
 {
 	ARegion *ar;
-	wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmNotifier *note;
+
+	if (wm_test_duplicate_notifier(wm, type, reference))
+		return;
+
+	note = MEM_callocN(sizeof(wmNotifier), "notifier");
 	
-	note->wm = CTX_wm_manager(C);
+	note->wm = wm;
 	BLI_addtail(&note->wm->queue, note);
 	
 	note->window = CTX_wm_window(C);
@@ -171,20 +177,22 @@ void WM_main_add_notifier(unsigned int type, void *reference)
 {
 	Main *bmain = G.main;
 	wmWindowManager *wm = bmain->wm.first;
+	wmNotifier *note;
 
-	if (wm && !wm_test_duplicate_notifier(wm, type, reference)) {
-		wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
-		
-		note->wm = wm;
-		BLI_addtail(&note->wm->queue, note);
-		
-		note->category = type & NOTE_CATEGORY;
-		note->data = type & NOTE_DATA;
-		note->subtype = type & NOTE_SUBTYPE;
-		note->action = type & NOTE_ACTION;
-		
-		note->reference = reference;
-	}
+	if (!wm || wm_test_duplicate_notifier(wm, type, reference))
+		return;
+
+	note = MEM_callocN(sizeof(wmNotifier), "notifier");
+	
+	note->wm = wm;
+	BLI_addtail(&note->wm->queue, note);
+	
+	note->category = type & NOTE_CATEGORY;
+	note->data = type & NOTE_DATA;
+	note->subtype = type & NOTE_SUBTYPE;
+	note->action = type & NOTE_ACTION;
+	
+	note->reference = reference;
 }
 
 /**
@@ -312,13 +320,13 @@ void wm_event_do_notifiers(bContext *C)
 				ED_screen_do_listen(C, note);
 
 				for (ar = win->screen->regionbase.first; ar; ar = ar->next) {
-					ED_region_do_listen(ar, note);
+					ED_region_do_listen(win->screen, NULL, ar, note);
 				}
 				
 				for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-					ED_area_do_listen(sa, note);
+					ED_area_do_listen(win->screen, sa, note);
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
-						ED_region_do_listen(ar, note);
+						ED_region_do_listen(win->screen, sa, ar, note);
 					}
 				}
 			}

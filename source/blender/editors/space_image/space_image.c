@@ -420,7 +420,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	}
 }
 
-static void image_listener(ScrArea *sa, wmNotifier *wmn)
+static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 	SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 	
@@ -731,7 +731,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 #endif
 }
 
-static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -765,7 +765,7 @@ static void image_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+static void image_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -821,7 +821,7 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
+static void image_scope_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -858,7 +858,7 @@ static void image_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void image_header_area_listener(ARegion *ar, wmNotifier *wmn)
+static void image_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {

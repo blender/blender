@@ -233,7 +233,7 @@ static void info_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void info_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	// SpaceInfo *sinfo = sa->spacedata.first;
 
@@ -248,7 +248,7 @@ static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-static void info_header_listener(ARegion *ar, wmNotifier *wmn)
+static void info_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {

@@ -269,7 +269,7 @@ static void action_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
+static void action_channel_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -307,7 +307,7 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void action_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -355,7 +355,7 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /* editor level listener */
-static void action_listener(ScrArea *sa, wmNotifier *wmn)
+static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
 	
@@ -448,7 +448,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
+static void action_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
