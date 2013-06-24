@@ -57,6 +57,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_lattice.h"
 #include "BKE_curve.h"
 
 #include "BLI_sys_types.h" // for intptr_t support
@@ -244,14 +245,14 @@ static bool object_shape_key_mirror(bContext *C, Object *ob,
 						int u_inv = (lt->pntsu - 1) - u;
 						float tvec[3];
 						if (u == u_inv) {
-							i1 = LT_INDEX(lt, u, v, w);
+							i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
 							fp1 = ((float *)kb->data) + i1 * 3;
 							fp1[0] = -fp1[0];
 							totmirr++;
 						}
 						else {
-							i1 = LT_INDEX(lt, u, v, w);
-							i2 = LT_INDEX(lt, u_inv, v, w);
+							i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
+							i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
 
 							fp1 = ((float *)kb->data) + i1 * 3;
 							fp2 = ((float *)kb->data) + i2 * 3;

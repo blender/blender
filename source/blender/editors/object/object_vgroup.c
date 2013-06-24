@@ -2477,8 +2477,8 @@ void ED_vgroup_mirror(Object *ob,
 					if (u != u_inv) {
 						BPoint *bp, *bp_mirr;
 
-						i1 = LT_INDEX(lt, u, v, w);
-						i2 = LT_INDEX(lt, u_inv, v, w);
+						i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
+						i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
 
 						bp = &lt->def[i1];
 						bp_mirr = &lt->def[i2];

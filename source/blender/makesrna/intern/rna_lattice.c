@@ -54,14 +54,14 @@ static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 {
 	Lattice *lt = (Lattice *)ptr->id.data;
 	BPoint *bp = (BPoint *)ptr->data;
-	int a = bp - lt->def;
-	int x = a % lt->pntsu;
-	int y = (a / lt->pntsu) % lt->pntsv;
-	int z = (a / (lt->pntsu * lt->pntsv));
+	int index = bp - lt->def;
+	int u, v, w;
 
-	values[0] = lt->fu + x * lt->du;
-	values[1] = lt->fv + y * lt->dv;
-	values[2] = lt->fw + z * lt->dw;
+	BKE_lattice_index_to_uvw(lt, index, &u, &v, &w);
+
+	values[0] = lt->fu + u * lt->du;
+	values[1] = lt->fv + v * lt->dv;
+	values[2] = lt->fw + w * lt->dw;
 }
 
 static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
