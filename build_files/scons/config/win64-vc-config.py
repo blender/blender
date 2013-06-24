@@ -3,13 +3,12 @@ import subprocess
 CL_OUT = subprocess.Popen(["cl.exe"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 CL_STDOUT, CL_STDERR = CL_OUT.communicate()
 
-if CL_STDERR.find("17.00.") == -1:
-    VC_VERSION = '9.0'
-    LCGDIR = '#../lib/win64'
-    
-else:
+if "17.00." in CL_STDERR:
     VC_VERSION = '11.0'
     LCGDIR = '#../lib/win64_vc11'
+else:
+    VC_VERSION = '9.0'
+    LCGDIR = '#../lib/win64'
 
 LIBDIR = '${LCGDIR}'
 
