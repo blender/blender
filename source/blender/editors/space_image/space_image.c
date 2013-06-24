@@ -376,15 +376,10 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	
 	/* check if we have to set the image from the editmesh */
 	if (ima && (ima->source == IMA_SRC_VIEWER && sima->mode == SI_MODE_MASK)) {
-		if (sima->lock == FALSE && G.moving) {
-			/* pass */
-		}
-		else {
-			if (scene->nodetree) {
-				Mask *mask = ED_space_image_get_mask(sima);
-				if (mask) {
-					ED_node_composite_job(C, scene->nodetree, scene);
-				}
+		if (scene->nodetree) {
+			Mask *mask = ED_space_image_get_mask(sima);
+			if (mask) {
+				ED_node_composite_job(C, scene->nodetree, scene);
 			}
 		}
 	}

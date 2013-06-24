@@ -5701,6 +5701,21 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #endif
 }
 
+int special_transform_moving(TransInfo *t)
+{
+	if (t->spacetype == SPACE_SEQ) {
+		return G_TRANSFORM_SEQ;
+	}
+	else if (t->obedit || ((t->flag & T_POSE) && (t->poseobj))) {
+		return G_TRANSFORM_EDIT;
+	}
+	else if (t->flag & (T_OBJECT | T_TEXTURE)) {
+		return G_TRANSFORM_OBJ;
+	}
+
+	return 0;
+}
+
 static void createTransObject(bContext *C, TransInfo *t)
 {
 	TransData *td = NULL;
