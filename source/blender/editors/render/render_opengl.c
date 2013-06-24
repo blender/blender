@@ -269,10 +269,17 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	 */
 
 	if (rect) {
+		int profile_to;
+		
+		if(BKE_scene_check_color_management_enabled(scene))
+			profile_to = IB_PROFILE_LINEAR_RGB;
+		else
+			profile_to = IB_PROFILE_SRGB;
+
 		/* sequencer has got trickier conversion happened above
 		 * also assume opengl's space matches byte buffer color space */
 		IMB_buffer_float_from_byte(rr->rectf, rect,
-		                           IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, true,
+		                           profile_to, IB_PROFILE_SRGB, true,
 		                           oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
 	}
 
