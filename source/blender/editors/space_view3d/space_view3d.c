@@ -380,11 +380,10 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	
 // XXX	BIF_view3d_previewrender_free(v3do);
 	
-	if (v3do->localvd) {
-		v3do->localvd = NULL;
-		v3do->properties_storage = NULL;
-		v3do->lay = v3dn->localvd->lay;
-		v3do->lay &= 0xFFFFFF;
+	if (v3dn->localvd) {
+		v3dn->localvd = NULL;
+		v3dn->properties_storage = NULL;
+		v3dn->lay = v3do->localvd->lay & 0xFFFFFF;
 	}
 
 	if (v3dn->drawtype == OB_RENDER)
