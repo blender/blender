@@ -37,6 +37,7 @@
 #include "BKE_object.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "BKE_action.h"
