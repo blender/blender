@@ -472,8 +472,10 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	const char *activename = panel->drawname[0] ? panel->drawname : panel->panelname;
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
-	if (panel->control & UI_PNL_CLOSE) pnl_icons = (panel->labelofs + 2 * PNL_ICON + 5) / block->aspect + 0.001f;
-	else pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
+	if (panel->control & UI_PNL_CLOSE)
+		pnl_icons = (panel->labelofs + 2 * PNL_ICON + 5) / block->aspect + 0.001f;
+	else
+		pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
 	
 	/* active tab */
 	/* draw text label */
@@ -514,7 +516,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	rcti headrect;
 	rctf itemrect;
 	int ofsx;
-	
+
 	if (panel->paneltab) return;
 	if (panel->type && (panel->type->flag & PNL_NO_HEADER)) return;
 
@@ -523,14 +525,14 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	headrect = *rect;
 	headrect.ymin = headrect.ymax;
 	headrect.ymax = headrect.ymin + floor(PNL_HEADER / block->aspect + 0.001f);
-	
+
 	{
 		float minx = rect->xmin;
 		float maxx = rect->xmax;
 		float y = headrect.ymax;
 
 		glEnable(GL_BLEND);
-		
+
 		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
 			UI_ThemeColor4(TH_PANEL_HEADER);
@@ -543,7 +545,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			/* draw embossed separator */
 			minx += 5.0f / block->aspect;
 			maxx -= 5.0f / block->aspect;
-			
+
 			glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 			fdrawline(minx, y, maxx, y);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
@@ -552,11 +554,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 
 		glDisable(GL_BLEND);
 	}
-	
+
 	/* horizontal title */
 	if (!(panel->flag & PNL_CLOSEDX)) {
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
-		
+
 		/* itemrect smaller */
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
 		itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
@@ -566,12 +568,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		rectf_scale(&itemrect, 0.7f);
 		ui_draw_panel_dragwidget(&itemrect);
 	}
-	
+
 	/* if the panel is minimized vertically:
 	 * (------)
 	 */
 	if (panel->flag & PNL_CLOSEDY) {
-		
 	}
 	else if (panel->flag & PNL_CLOSEDX) {
 		/* draw vertical title */
@@ -579,16 +580,15 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	}
 	/* an open panel */
 	else {
-		
 		/* in some occasions, draw a border */
 		if (panel->flag & PNL_SELECT) {
 			if (panel->control & UI_PNL_SOLID) uiSetRoundBox(UI_CNR_ALL);
 			else uiSetRoundBox(UI_CNR_NONE);
-			
+
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8);
 		}
-		
+
 		/* panel backdrop */
 		if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
 			/* draw with background color */
@@ -596,32 +596,31 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			UI_ThemeColor4(TH_PANEL_BACK);
 			glRecti(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
-		
+
 		if (panel->control & UI_PNL_SCALE)
 			ui_draw_panel_scalewidget(rect);
 	}
-	
+
 	/* draw optional close icon */
-	
+
 	ofsx = 6;
 	if (panel->control & UI_PNL_CLOSE) {
-		
-		UI_ThemeColor(TH_TEXT);
+		UI_ThemeColor(TH_TITLE);
 		ui_draw_x_icon(rect->xmin + 2 + ofsx, rect->ymax + 2);
 		ofsx = 22;
 	}
-	
+
 	/* draw collapse icon */
-	UI_ThemeColor(TH_TEXT);
-	
+	UI_ThemeColor(TH_TITLE);
+
 	/* itemrect smaller */
 	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
 	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&headrect);
 	itemrect.ymin = headrect.ymin;
 	itemrect.ymax = headrect.ymax;
-	
+
 	rectf_scale(&itemrect, 0.35f);
-	
+
 	if (panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_rect(&itemrect, 'h');
 	else if (panel->flag & PNL_CLOSEDX)
