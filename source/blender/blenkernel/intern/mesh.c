@@ -2733,8 +2733,14 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		}
 #endif /* USE_TESSFACE_SPEEDUP */
 		else {
+#define USE_TESSFACE_CALCNORMAL
+
 			int totfilltri;
 
+#ifdef USE_TESSFACE_CALCNORMAL
+			float normal[3];
+			zero_v3(normal);
+#endif
 			ml = mloop + mp->loopstart;
 			
 			BLI_scanfill_begin(&sf_ctx);
@@ -2745,16 +2751,25 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	
 				sf_vert->keyindex = mp->loopstart + j;
 	
-				if (sf_vert_last)
+				if (sf_vert_last) {
 					BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
+#ifdef USE_TESSFACE_CALCNORMAL
+					add_newell_cross_v3_v3v3(normal, sf_vert_last->co, sf_vert->co);
+#endif
+				}
 	
 				if (!sf_vert_first)
 					sf_vert_first = sf_vert;
 				sf_vert_last = sf_vert;
 			}
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
-			
+#ifdef USE_TESSFACE_CALCNORMAL
+			add_newell_cross_v3_v3v3(normal, sf_vert_last->co, sf_vert_first->co);
+			normalize_v3(normal);
+			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, normal);
+#else
 			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
+#endif
 			BLI_assert(totfilltri <= mp->totloop - 2);
 			(void)totfilltri;
 
@@ -2779,6 +2794,8 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			}
 	
 			BLI_scanfill_end(&sf_ctx);
+
+#undef USE_TESSFACE_CALCNORMAL
 		}
 	}
 
