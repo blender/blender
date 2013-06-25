@@ -877,6 +877,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					                xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
 					                &dw->weight, 0.0, 1.0, 1, 3, "");
 					uiButSetFlag(but, UI_TEXT_LEFT);
+					if (dg->flag & DG_LOCK_WEIGHT) {
+						uiButSetFlag(but, UI_BUT_DISABLED);
+					}
 					xco += x;
 
 					/* The weight group paste function */
