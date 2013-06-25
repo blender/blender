@@ -937,13 +937,13 @@ void GPU_paint_set_mipmap(int mipmap)
 static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
 {
 	if ((!GPU_non_power_of_two_support() && !is_power_of_2_resolution(ibuf->x, ibuf->y)) ||
-		is_over_resolution_limit(ibuf->x, ibuf->y))
+	    is_over_resolution_limit(ibuf->x, ibuf->y))
 	{
 		int x_limit = smaller_power_of_2_limit(ibuf->x);
 		int y_limit = smaller_power_of_2_limit(ibuf->y);
 
-		float xratio = x_limit/(float)ibuf->x;
-		float yratio = y_limit/(float)ibuf->y;
+		float xratio = x_limit / (float)ibuf->x;
+		float yratio = y_limit / (float)ibuf->y;
 
 		/* find new width, height and x,y gpu texture coordinates */
 
@@ -965,27 +965,27 @@ static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
-					GL_FLOAT, fscalerect);
+			                GL_FLOAT, fscalerect);
 
 			MEM_freeN(fscalerect);
 		}
 		/* byte images are not continuous in memory so do manual interpolation */
 		else {
-			unsigned char *scalerect= MEM_mallocN(rectw*recth*sizeof(*scalerect)*4, "scalerect");
+			unsigned char *scalerect = MEM_mallocN(rectw * recth * sizeof(*scalerect) * 4, "scalerect");
 			unsigned int *p = (unsigned int *)scalerect;
 			int i, j;
-			float inv_xratio = 1.0/xratio;
-			float inv_yratio = 1.0/yratio;
+			float inv_xratio = 1.0f / xratio;
+			float inv_yratio = 1.0f / yratio;
 			for (i = 0; i < rectw; i++) {
-				float u = (x + i)*inv_xratio;
+				float u = (x + i) * inv_xratio;
 				for (j = 0; j < recth; j++) {
-					float v = (y + j)*inv_yratio;
+					float v = (y + j) * inv_yratio;
 					bilinear_interpolation_color_wrap(ibuf, (unsigned char *)(p + i + j * (rectw)), NULL, u, v);
 				}
 			}
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
-					GL_UNSIGNED_BYTE, scalerect);
+			                GL_UNSIGNED_BYTE, scalerect);
 
 			MEM_freeN(scalerect);
 		}
