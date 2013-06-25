@@ -42,6 +42,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_string.h"
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -54,14 +55,14 @@ static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 {
 	Lattice *lt = (Lattice *)ptr->id.data;
 	BPoint *bp = (BPoint *)ptr->data;
-	int a = bp - lt->def;
-	int x = a % lt->pntsu;
-	int y = (a / lt->pntsu) % lt->pntsv;
-	int z = (a / (lt->pntsu * lt->pntsv));
+	int index = bp - lt->def;
+	int u, v, w;
 
-	values[0] = lt->fu + x * lt->du;
-	values[1] = lt->fv + y * lt->dv;
-	values[2] = lt->fw + z * lt->dw;
+	BKE_lattice_index_to_uvw(lt, index, &u, &v, &w);
+
+	values[0] = lt->fu + u * lt->du;
+	values[1] = lt->fv + v * lt->dv;
+	values[2] = lt->fw + w * lt->dw;
 }
 
 static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -94,6 +95,28 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
 static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
+
+	DAG_id_tag_update(id, 0);
+	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
+
+/* copy settings to editlattice,
+ * we could split this up differently (one update call per property)
+ * but for now thats overkill
+ */
+static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+	Lattice *lt = (Lattice *)ptr->id.data;
+
+	if (lt->editlatt) {
+		Lattice *lt_em = lt->editlatt->latt;
+		lt_em->typeu = lt->typeu;
+		lt_em->typev = lt->typev;
+		lt_em->typew = lt->typew;
+		lt_em->flag = lt->flag;
+		BLI_strncpy(lt_em->vgroup, lt->vgroup, sizeof(lt_em->vgroup));
+	}
 
 	DAG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -291,31 +314,31 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "typeu");
 	RNA_def_property_enum_items(prop, keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type U", "");
-	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
 	prop = RNA_def_property(srna, "interpolation_type_v", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typev");
 	RNA_def_property_enum_items(prop, keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type V", "");
-	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
 	prop = RNA_def_property(srna, "interpolation_type_w", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typew");
 	RNA_def_property_enum_items(prop, keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type W", "");
-	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
 	prop = RNA_def_property(srna, "use_outside", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LT_OUTSIDE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_use_outside_set");
 	RNA_def_property_ui_text(prop, "Outside", "Only draw, and take into account, the outer vertices");
-	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 	
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vgroup");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group to apply the influence of the lattice");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Lattice_vg_name_set");
-	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
 	prop = RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "key");

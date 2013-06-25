@@ -1047,12 +1047,6 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	Object *obedit = CTX_data_edit_object(C);
 	PropertyRNA *prop;
 	
-	/* moving: is shown in drawobject() (transform color) */
-//  TRANSFORM_FIX_ME
-//	if (obedit || (t->flag & T_POSE) ) G.moving = G_TRANSFORM_EDIT;
-//	else if (G.f & G_PARTICLEEDIT) G.moving = G_TRANSFORM_PARTICLE;
-//	else G.moving = G_TRANSFORM_OBJ;
-	
 	t->scene = sce;
 	t->sa = sa;
 	t->ar = ar;

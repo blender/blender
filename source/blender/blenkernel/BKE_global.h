@@ -192,8 +192,7 @@ enum {
 /* G.moving, signals drawing in (3d) window to denote transform */
 #define G_TRANSFORM_OBJ         1
 #define G_TRANSFORM_EDIT        2
-#define G_TRANSFORM_MANIP       4
-#define G_TRANSFORM_PARTICLE    8
+#define G_TRANSFORM_SEQ         4
 
 /* G.special1 */
 

@@ -119,11 +119,11 @@ void ED_node_tag_update_id(ID *id)
 		DAG_id_tag_update(id, 0);
 		
 		if (GS(id->name) == ID_MA)
-			WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, id);
+			WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
 		else if (GS(id->name) == ID_LA)
-			WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, id);
+			WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
 		else if (GS(id->name) == ID_WO)
-			WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, id);
+			WM_main_add_notifier(NC_WORLD | ND_WORLD, id);
 	}
 	else if (ntree->type == NTREE_COMPOSIT) {
 		WM_main_add_notifier(NC_SCENE | ND_NODES, id);

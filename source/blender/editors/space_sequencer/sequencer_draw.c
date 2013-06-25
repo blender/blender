@@ -403,7 +403,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 		glDisable(GL_BLEND);
 	}
 	
-	if (G.moving || (seq->flag & whichsel)) {
+	if ((G.moving & G_TRANSFORM_SEQ) || (seq->flag & whichsel)) {
 		const char col[4] = {255, 255, 255, 255};
 		if (direction == SEQ_LEFTHANDLE) {
 			BLI_snprintf(numstr, sizeof(numstr), "%d", seq->startdisp);
@@ -760,7 +760,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	}
 
 	get_seq_color3ubv(scene, seq, col);
-	if (G.moving && (seq->flag & SELECT)) {
+	if ((G.moving & G_TRANSFORM_SEQ) && (seq->flag & SELECT)) {
 		if (seq->flag & SEQ_OVERLAP) {
 			col[0] = 255; col[1] = col[2] = 40;
 		}

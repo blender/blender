@@ -1284,7 +1284,7 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 {
 	switch (event) {
 		case B_MATPRV:
-			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, arg);
+			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, arg);
 			break;
 	}
 }

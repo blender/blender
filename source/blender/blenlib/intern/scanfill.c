@@ -721,11 +721,8 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 									/* we continue searching and pick the one with sharpest corner */
 									
 									if (best_sc == NULL) {
+										/* even without holes we need to keep checking [#35861] */
 										best_sc = sc1;
-										/* only need to continue checking with holes */
-										if ((flag & BLI_SCANFILL_CALC_HOLES) == 0) {
-											break;
-										}
 									}
 									else {
 										float angle;

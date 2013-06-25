@@ -38,6 +38,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "BLF_translation.h"
 
 #include "DNA_object_types.h"
@@ -296,13 +298,38 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
 	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
-	spos += sprintf(spos, "%s | ", (scene->lay & 0xFF000000) ? IFACE_("Localview") : IFACE_("Single Layer"));
+	/* local view */
+	if(rs->localview)
+		spos += sprintf(spos, "%s | ", IFACE_("Local View"));
+
+	/* frame number */
 	spos += sprintf(spos, IFACE_("Frame:%d "), (scene->r.cfra));
 
+	/* previous and elapsed time */
+	BLI_timestr(rs->lastframetime, info_time_str, sizeof(info_time_str));
+
+	if (rs->infostr && rs->infostr[0]) {
+		if (rs->lastframetime != 0.0)
+			spos += sprintf(spos, IFACE_("| Last:%s "), info_time_str);
+		else
+			spos += sprintf(spos, "| ");
+
+		BLI_timestr(PIL_check_seconds_timer() - rs->starttime, info_time_str, sizeof(info_time_str));
+	}
+	else
+		spos += sprintf(spos, "| ");
+
+	spos += sprintf(spos, IFACE_("Time:%s "), info_time_str);
+
+	/* statistics */
 	if (rs->statstr) {
-		spos += sprintf(spos, "| %s ", rs->statstr);
+		if(rs->statstr[0])
+			spos += sprintf(spos, "| %s ", rs->statstr);
 	}
 	else {
+		if (rs->totvert || rs->totface || rs->tothalo || rs->totstrand || rs->totlamp)
+			spos += sprintf(spos, "| ");
+
 		if (rs->totvert) spos += sprintf(spos, IFACE_("Ve:%d "), rs->totvert);
 		if (rs->totface) spos += sprintf(spos, IFACE_("Fa:%d "), rs->totface);
 		if (rs->tothalo) spos += sprintf(spos, IFACE_("Ha:%d "), rs->tothalo);
@@ -310,10 +337,10 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		if (rs->totlamp) spos += sprintf(spos, IFACE_("La:%d "), rs->totlamp);
 
 		if (rs->mem_peak == 0.0f)
-			spos += sprintf(spos, IFACE_("Mem:%.2fM (%.2fM, Peak %.2fM) "),
+			spos += sprintf(spos, IFACE_("| Mem:%.2fM (%.2fM, Peak %.2fM) "),
 			                megs_used_memory, mmap_used_memory, megs_peak_memory);
 		else
-			spos += sprintf(spos, IFACE_("Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
+			spos += sprintf(spos, IFACE_("| Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
 
 		if (rs->curfield)
 			spos += sprintf(spos, IFACE_("Field %d "), rs->curfield);
@@ -321,12 +348,11 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 			spos += sprintf(spos, IFACE_("Blur %d "), rs->curblur);
 	}
 
-	BLI_timestr(rs->lastframetime, info_time_str, sizeof(info_time_str));
-	spos += sprintf(spos, IFACE_("Time:%s "), info_time_str);
-
+	/* full sample */
 	if (rs->curfsa)
 		spos += sprintf(spos, IFACE_("| Full Sample %d "), rs->curfsa);
 	
+	/* extra info */
 	if (rs->infostr && rs->infostr[0])
 		spos += sprintf(spos, "| %s ", rs->infostr);
 

@@ -461,7 +461,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 	BLI_ghash_free(definehash, NULL, NULL);
 }
 
-static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
+static int codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 {
 	GPUNode *node;
 	GPUInput *input;
@@ -516,6 +516,8 @@ static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 	}
 
 	BLI_dynstr_append(ds, "\n");
+
+	return builtins;
 }
 
 static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
@@ -564,8 +566,12 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 				codegen_convert_datatype(ds, input->link->output->type, input->type,
 					"tmp", input->link->output->id);
 			}
-			else if (input->source == GPU_SOURCE_BUILTIN)
-				BLI_dynstr_appendf(ds, "%s", GPU_builtin_name(input->builtin));
+			else if (input->source == GPU_SOURCE_BUILTIN) {
+				if(input->builtin == GPU_VIEW_NORMAL)
+					BLI_dynstr_append(ds, "facingnormal");
+				else
+					BLI_dynstr_append(ds, GPU_builtin_name(input->builtin));
+			}
 			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
 				if (input->dynamicvec)
 					BLI_dynstr_appendf(ds, "unf%d", input->id);
@@ -596,17 +602,22 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 {
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
+	int builtins;
 
 	/*BLI_dynstr_append(ds, FUNCTION_PROTOTYPES);*/
 
 	codegen_set_unique_ids(nodes);
-	codegen_print_uniforms_functions(ds, nodes);
+	builtins = codegen_print_uniforms_functions(ds, nodes);
 
 	//if (G.debug & G_DEBUG)
 	//	BLI_dynstr_appendf(ds, "/* %s */\n", name);
 
 	BLI_dynstr_append(ds, "void main(void)\n");
 	BLI_dynstr_append(ds, "{\n");
+
+	if(builtins & GPU_VIEW_NORMAL)
+		BLI_dynstr_append(ds, "\tvec3 facingnormal = (gl_FrontFacing)? varnormal: -varnormal;\n");
+		
 
 	codegen_declare_tmps(ds, nodes);
 	codegen_call_functions(ds, nodes, output);

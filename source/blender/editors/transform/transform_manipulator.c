@@ -1592,7 +1592,6 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 /* ********************************************* */
 
 /* main call, does calc centers & orientation too */
-/* uses global G.moving */
 static int drawflags = 0xFFFF;       // only for the calls below, belongs in scene...?
 
 void BIF_draw_manipulator(const bContext *C)
@@ -1605,9 +1604,7 @@ void BIF_draw_manipulator(const bContext *C)
 	int totsel;
 
 	if (!(v3d->twflag & V3D_USE_MANIPULATOR)) return;
-//	if (G.moving && (G.moving & G_TRANSFORM_MANIP)==0) return;
 
-//	if (G.moving==0) {
 	{
 		v3d->twflag &= ~V3D_DRAW_MANIPULATOR;
 
@@ -1654,11 +1651,13 @@ void BIF_draw_manipulator(const bContext *C)
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
 
 			if (G.debug_value == 3) {
-				if (G.moving) draw_manipulator_rotate_cyl(v3d, rv3d, 1, drawflags, v3d->twtype, MAN_MOVECOL);
-				else draw_manipulator_rotate_cyl(v3d, rv3d, 0, drawflags, v3d->twtype, MAN_RGB);
+				if (G.moving & (G_TRANSFORM_OBJ|G_TRANSFORM_EDIT))
+					draw_manipulator_rotate_cyl(v3d, rv3d, 1, drawflags, v3d->twtype, MAN_MOVECOL);
+				else
+					draw_manipulator_rotate_cyl(v3d, rv3d, 0, drawflags, v3d->twtype, MAN_RGB);
 			}
 			else
-				draw_manipulator_rotate(v3d, rv3d, 0 /* G.moving*/, drawflags, v3d->twtype);
+				draw_manipulator_rotate(v3d, rv3d, 0, drawflags, v3d->twtype);
 		}
 		if (v3d->twtype & V3D_MANIP_SCALE) {
 			draw_manipulator_scale(v3d, rv3d, 0, drawflags, v3d->twtype, MAN_RGB);

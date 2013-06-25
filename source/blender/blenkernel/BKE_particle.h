@@ -380,6 +380,8 @@ int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int 
 
 void reset_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, float dtime, float cfra);
 
+float psys_get_current_display_percentage(struct ParticleSystem *psys);
+
 /* psys_reset */
 #define PSYS_RESET_ALL          1
 #define PSYS_RESET_DEPSGRAPH    2

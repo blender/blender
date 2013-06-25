@@ -336,7 +336,7 @@ void uiStyleInit(void)
 	/* recover from uninitialized dpi */
 	if (U.dpi == 0)
 		U.dpi = 72;
-	CLAMP(U.dpi, 48, 128);
+	CLAMP(U.dpi, 48, 144);
 	
 	/* default builtin */
 	if (font == NULL) {

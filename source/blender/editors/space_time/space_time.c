@@ -397,7 +397,7 @@ static void time_refresh(const bContext *UNUSED(C), ScrArea *sa)
 }
 
 /* editor level listener */
-static void time_listener(ScrArea *sa, wmNotifier *wmn)
+static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 
 	/* mainly for updating cache display */
@@ -523,7 +523,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
-static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void time_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -563,7 +563,7 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
+static void time_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {

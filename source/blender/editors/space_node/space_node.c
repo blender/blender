@@ -377,7 +377,7 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 
 }
 
-static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
+static void node_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 	/* note, ED_area_tag_refresh will re-execute compositor */
 	SpaceNode *snode = sa->spacedata.first;
@@ -682,7 +682,7 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* used for header + main area */
-static void node_region_listener(ARegion *ar, wmNotifier *wmn)
+static void node_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {

@@ -709,8 +709,10 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	}
 }
 
-static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmNotifier *wmn)
 {
+	Scene *scene = sc->scene;
+	View3D *v3d = sa->spacedata.first;
 	
 	/* context changes */
 	switch (wmn->category) {
@@ -799,6 +801,12 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_MATERIAL:
 			switch (wmn->data) {
+				case ND_SHADING:
+				case ND_NODES:
+					if ((v3d->drawtype == OB_MATERIAL) ||
+					    (v3d->drawtype == OB_TEXTURE && scene->gm.matmode == GAME_MAT_GLSL))
+						ED_region_tag_redraw(ar);
+					break;
 				case ND_SHADING_DRAW:
 				case ND_SHADING_LINKS:
 					ED_region_tag_redraw(ar);
@@ -822,7 +830,9 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_LAMP:
 			switch (wmn->data) {
 				case ND_LIGHTING_DRAW:
-					ED_region_tag_redraw(ar);
+					if ((v3d->drawtype == OB_MATERIAL) ||
+					    (v3d->drawtype == OB_TEXTURE && (scene->gm.matmode == GAME_MAT_GLSL)))
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
@@ -907,7 +917,7 @@ static void view3d_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
+static void view3d_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -948,7 +958,7 @@ static void view3d_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+static void view3d_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1048,7 +1058,7 @@ static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
 }
 
-static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
+static void view3d_props_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1068,7 +1078,7 @@ static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /*area (not region) level listener*/
-static void space_view3d_listener(ScrArea *sa, struct wmNotifier *wmn)
+static void space_view3d_listener(bScreen *UNUSED(sc), ScrArea *sa, struct wmNotifier *wmn)
 {
 	View3D *v3d = sa->spacedata.first;
 

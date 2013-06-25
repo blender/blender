@@ -62,6 +62,19 @@
 
 #include "BKE_deform.h"
 
+int BKE_lattice_index_from_uvw(struct Lattice *lt,
+                               const int u, const int v, const int w)
+{
+	return (w * (lt->pntsu * lt->pntsv) + (v * lt->pntsu) + u);
+}
+
+void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index,
+                              int *r_u, int *r_v, int *r_w)
+{
+	*r_u = (index % lt->pntsu);
+	*r_v = (index / lt->pntsu) % lt->pntsv;
+	*r_w = (index / (lt->pntsu * lt->pntsv));
+}
 
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du)
 {
@@ -867,7 +880,7 @@ int object_deform_mball(Object *ob, ListBase *dispbase)
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
-	return &lt->def[LT_INDEX(lt, u, v, w)];
+	return &lt->def[BKE_lattice_index_from_uvw(lt, u, v, w)];
 }
 
 void outside_lattice(Lattice *lt)

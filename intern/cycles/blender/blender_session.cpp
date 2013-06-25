@@ -616,16 +616,22 @@ void BlenderSession::update_status_progress()
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
-	timestatus = string_printf("Mem: %.2fM, Peak: %.2fM | ", mem_used, mem_peak);
+	timestatus = string_printf("Mem:%.2fM, Peak:%.2fM", mem_used, mem_peak);
 
-	timestatus += b_scene.name();
-	if(b_rlay_name != "")
-		timestatus += ", "  + b_rlay_name;
-	timestatus += " | ";
+	if(background) {
+		timestatus += " | " + b_scene.name();
+		if(b_rlay_name != "")
+			timestatus += ", "  + b_rlay_name;
+	}
+	else {
+		timestatus += " | ";
 
-	BLI_timestr(total_time, time_str, sizeof(time_str));
-	timestatus += "Elapsed: " + string(time_str) + " | ";
+		BLI_timestr(total_time, time_str, sizeof(time_str));
+		timestatus += "Time:" + string(time_str);
+	}
 
+	if(status.size() > 0)
+		status = " | " + status;
 	if(substatus.size() > 0)
 		status += " | " + substatus;
 

@@ -35,6 +35,7 @@ extern "C"
 #include "DNA_armature_types.h"
 #include "DNA_material_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
