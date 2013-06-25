@@ -289,6 +289,16 @@ void key_curve_position_weights(float t, float data[4], int type)
 		data[2] = -0.5f        * t3  + 0.5f * t2   + 0.5f * t    + 0.16666666f;
 		data[3] =  0.16666666f * t3;
 	}
+	else if (type == KEY_CATMULL_ROM) {
+		t2 = t * t;
+		t3 = t2 * t;
+		fc = 0.5f;
+
+		data[0] = -fc          * t3  + 2.0f * fc          * t2 - fc * t;
+		data[1] =  (2.0f - fc) * t3  + (fc - 3.0f)        * t2 + 1.0f;
+		data[2] =  (fc - 2.0f) * t3  + (3.0f - 2.0f * fc) * t2 + fc * t;
+		data[3] =  fc          * t3  - fc * t2;
+	}
 }
 
 /* first derivative */
@@ -319,6 +329,15 @@ void key_curve_tangent_weights(float t, float data[4], int type)
 		data[2] = -1.5f * t2  + t         + 0.5f;
 		data[3] =  0.5f * t2;
 	}
+	else if (type == KEY_CATMULL_ROM) {
+		t2 = t * t;
+		fc = 0.5f;
+
+		data[0] = -3.0f * fc          * t2  + 4.0f * fc * t                  - fc;
+		data[1] =  3.0f * (2.0f - fc) * t2  + 2.0f * (fc - 3.0f) * t;
+		data[2] =  3.0f * (fc - 2.0f) * t2  + 2.0f * (3.0f - 2.0f * fc) * t  + fc;
+		data[3] =  3.0f * fc          * t2  - 2.0f * fc * t;
+	}
 }
 
 /* second derivative */
@@ -345,6 +364,14 @@ void key_curve_normal_weights(float t, float data[4], int type)
 		data[1] =  3.0f * t  - 2.0f;
 		data[2] = -3.0f * t  + 1.0f;
 		data[3] =  1.0f * t;
+	}
+	else if (type == KEY_CATMULL_ROM) {
+		fc = 0.5f;
+
+		data[0] = -6.0f * fc          * t  + 4.0f * fc;
+		data[1] =  6.0f * (2.0f - fc) * t  + 2.0f * (fc - 3.0f);
+		data[2] =  6.0f * (fc - 2.0f) * t  + 2.0f * (3.0f - 2.0f * fc);
+		data[3] =  6.0f * fc          * t  - 2.0f * fc;
 	}
 }
 

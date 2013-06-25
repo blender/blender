@@ -125,7 +125,8 @@ enum {
 enum {
 	KEY_LINEAR      = 0,
 	KEY_CARDINAL    = 1,
-	KEY_BSPLINE     = 2
+	KEY_BSPLINE     = 2,
+	KEY_CATMULL_ROM = 3,
 };
 
 /* KeyBlock->flag */
