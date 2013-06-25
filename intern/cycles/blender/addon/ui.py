@@ -20,7 +20,7 @@
 
 import bpy
 
-from bpy.types import Panel, Menu
+from bpy.types import Panel, Menu, Operator
 
 
 class CYCLES_MT_integrator_presets(Menu):
@@ -547,6 +547,26 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
             flow.prop(visibility, "shadow")
 
 
+class CYCLES_OT_use_shading_nodes(Operator):
+    """Enable nodes on a material, world or lamp"""
+    bl_idname = "cycles.use_shading_nodes"
+    bl_label = "Use Nodes"
+
+    @classmethod
+    def poll(cls, context):
+        return context.material or context.world or context.lamp
+
+    def execute(self, context):
+        if context.material:
+            context.material.use_nodes = True
+        elif context.world:
+            context.world.use_nodes = True
+        elif context.lamp:
+            context.lamp.use_nodes = True
+
+        return {'FINISHED'}
+
+
 def find_node(material, nodetype):
     if material and material.node_tree:
         ntree = material.node_tree
@@ -568,7 +588,7 @@ def find_node_input(node, name):
 
 def panel_node_draw(layout, id_data, output_type, input_name):
     if not id_data.use_nodes:
-        layout.prop(id_data, "use_nodes", icon='NODETREE')
+        layout.operator("cycles.use_shading_nodes", icon='NODETREE')
         return False
 
     ntree = id_data.node_tree
