@@ -1724,8 +1724,11 @@ ListBase *object_duplilist_ex(Scene *sce, Object *ob, bool update, bool for_rend
 	int persistent_id[MAX_DUPLI_RECUR] = {0};
 	int flag = 0;
 
-	if (update)     flag |= DUPLILIST_DO_UPDATE;
-	if (for_render) flag |= DUPLILIST_FOR_RENDER;
+	/* don't allow BKE_object_handle_update for viewport during render, can crash */
+	if (update && !(G.is_rendering && !for_render))
+		flag |= DUPLILIST_DO_UPDATE;
+	if (for_render)
+		flag |= DUPLILIST_FOR_RENDER;
 
 	duplilist->first = duplilist->last = NULL;
 	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, persistent_id, 0, 0, flag);
