@@ -1749,7 +1749,7 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 
 	/* add hotkey here, lower UI code can't detect it */
 	if (layout->root->block->flag & UI_BLOCK_LOOP) {
-		if (ot->prop &&
+		if (ot->prop && ot->invoke &&
 		    WM_key_event_operator_string(C, ot->idname, layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf)))
 		{
 			namestr += BLI_snprintf(namestr, sizeof(namestr_buf) - (namestr - namestr_buf), "|%s", keybuf);
