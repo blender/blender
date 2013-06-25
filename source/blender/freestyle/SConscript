@@ -78,11 +78,14 @@ sources = system_sources + image_sources + geometry_sources + scene_graph_source
           winged_edge_sources + view_map_sources + stroke_sources + \
           application_sources + interface_sources
 
-env.BlenderLib(libname="bf_freestyle", sources=sources, includes=Split(incs),
-               defines=defs, libtype=['core'], priority = [370]
-)
+if False: # gives link errors 'win' in env['OURPLATFORM']:
+    env.BlenderLib(libname="bf_freestyle_python", sources=python_sources, includes=Split(incs),
+                   defines=defs, libtype=['core'], priority = [369] # bf_python is 361
+    )
+else:
+    sources += python_sources
 
-env.BlenderLib(libname="bf_freestyle_python", sources=python_sources, includes=Split(incs),
-               defines=defs, libtype=['core'], priority = [369] # bf_python is 361
+env.BlenderLib(libname="bf_freestyle", sources=sources, includes=Split(incs),
+               defines=defs, libtype=['core'], priority = [370] # bf_python is 361
 )
 
