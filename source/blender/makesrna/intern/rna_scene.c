@@ -4520,7 +4520,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, display_mode_items);
 	RNA_def_property_ui_text(prop, "Display", "Select where rendered images will be displayed");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-	
+
+	prop = RNA_def_property(srna, "use_lock_interface", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_lock_interface", 1);
+	RNA_def_property_ui_text(prop, "Lock Interface", "Lock interface during rendering in favor of giving more memory to the renderer");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "pic");
 	RNA_def_property_ui_text(prop, "Output Path",

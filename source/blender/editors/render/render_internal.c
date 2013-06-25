@@ -273,6 +273,7 @@ typedef struct RenderJob {
 	short *do_update;
 	float *progress;
 	ReportList *reports;
+	bool interface_locked;
 } RenderJob;
 
 static void render_freejob(void *rjv)
@@ -497,6 +498,15 @@ static void render_endjob(void *rjv)
 
 		BKE_image_release_ibuf(ima, ibuf, lock);
 	}
+
+	/* Finally unlock the user interface (if it was locked). */
+	if (rj->interface_locked) {
+		/* Interface was locked, so window manager couldn't have been changed
+		 * and using one from Global will unlock exactly the same manager as
+		 * was locked before running the job.
+		 */
+		WM_set_locked_interface(G.main->wm.first, false);
+	}
 }
 
 /* called by render, check job 'stop' value or the global */
@@ -522,10 +532,14 @@ static int render_break(void *UNUSED(rjv))
 
 /* runs in thread, no cursor setting here works. careful with notifiers too (malloc conflicts) */
 /* maybe need a way to get job send notifer? */
-static void render_drawlock(void *UNUSED(rjv), int lock)
+static void render_drawlock(void *rjv, int lock)
 {
-	BKE_spacedata_draw_locks(lock);
-	
+	RenderJob *rj = rjv;
+
+	/* If interface is locked, renderer callback shall do nothing. */
+	if (!rj->interface_locked) {
+		BKE_spacedata_draw_locks(lock);
+	}
 }
 
 /* catch esc */
@@ -646,6 +660,23 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 		if (v3d->localvd)
 			rj->lay |= v3d->localvd->lay;
+	}
+
+	/* Lock the user interface depending on render settings. */
+	if (scene->r.use_lock_interface) {
+		WM_set_locked_interface(CTX_wm_manager(C), true);
+
+		/* Set flag interface need to be unlocked.
+		 *
+		 * This is so because we don't have copy of render settings
+		 * accessible from render job and copy is needed in case
+		 * of non-locked rendering, so we wouldn't try to unlock
+		 * anything if option was initially unset but then was
+		 * enabled during rendering.
+		 */
+		rj->interface_locked = true;
+
+		/* TODO(sergey): clean memory used by viewport? */
 	}
 
 	/* setup job */

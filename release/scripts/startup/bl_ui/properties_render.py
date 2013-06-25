@@ -70,6 +70,7 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
         row.operator("render.play_rendered_anim", text="Play", icon='PLAY')
 
         layout.prop(rd, "display_mode", text="Display")
+        layout.prop(rd, "use_lock_interface")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):

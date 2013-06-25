@@ -2093,6 +2093,21 @@ void wm_event_do_handlers(bContext *C)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
 
+	if (wm->is_interface_locked) {
+		/* If we're in locked interaction mode, skip all the events
+		 * from the queue and prevent them from being accumulated.
+		 * This is so no events are applied after interface is unlocked.
+		 */
+		for (win = wm->windows.first; win; win = win->next) {
+			wmEvent *event;
+			while ( (event = win->queue.first) ) {
+				BLI_remlink(&win->queue, event);
+				wm_event_free(event);
+			}
+		}
+		return;
+	}
+
 	/* update key configuration before handling events */
 	WM_keyconfig_update(wm);
 
@@ -3218,4 +3233,25 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 #if 0
 	WM_event_print(&event);
 #endif
+}
+
+void WM_set_locked_interface(wmWindowManager *wm, bool lock)
+{
+	/* This will prevent events from being handled while interface is locked
+	 *
+	 * Use a "local" flag for now, because currently no other areas could
+	 * benefit of locked interface anyway (aka using G.is_interface_locked
+	 * wouldn't be useful anywhere outside of window manager, so let's not
+	 * pollute global context with such an information for now).
+	 */
+	wm->is_interface_locked = lock ? 1 : 0;
+
+	/* This will prevent drawing regions which uses non-threadsafe data.
+	 * Currently it'll be just a 3D viewport.
+	 *
+	 * TODO(sergey): Make it different locked states, so different jobs
+	 *               could lock different areas of blender and allow
+	 *               interation with others?
+	 */
+	BKE_spacedata_draw_locks(lock);
 }
