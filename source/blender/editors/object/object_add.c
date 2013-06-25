@@ -1762,7 +1762,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 
 /* 
  * dupflag: a flag made from constants declared in DNA_userdef_types.h
- * The flag tells adduplicate() weather to copy data linked to the object, or to reference the existing data.
+ * The flag tells adduplicate() whether to copy data linked to the object, or to reference the existing data.
  * U.dupflag for default operations or you can construct a flag as python does
  * if the dupflag is 0 then no data will be copied (linked duplicate) */
 

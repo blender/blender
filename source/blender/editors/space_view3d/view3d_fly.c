@@ -345,7 +345,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 
 	fly->rv3d->rflag |= RV3D_NAVIGATING; /* so we draw the corner margins */
 
-	/* detect weather to start with Z locking */
+	/* detect whether to start with Z locking */
 	upvec[0] = 1.0f;
 	upvec[1] = 0.0f;
 	upvec[2] = 0.0f;

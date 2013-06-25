@@ -23,7 +23,7 @@
 /** \file blender/bmesh/operators/bmo_dupe.c
  *  \ingroup bmesh
  *
- * Duplicate, Split, Spint operators.
+ * Duplicate, Split, Split operators.
  */
 
 #include "MEM_guardedalloc.h"
