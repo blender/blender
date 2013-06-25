@@ -4121,8 +4121,8 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_vertex_weight_paste";
 	ot->description = "Copy this group's weight to other selected verts";
 
-	prop = RNA_def_int(ot->srna, "weight_group",
-			-1, 0, 0, "Weight Index", "Index of source weight in active Weight Group", 0, 0);
+	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
+	                   "Index of source weight in active Weight Group", -1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
 	/* api callbacks */
@@ -4153,8 +4153,8 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_vertex_weight_delete";
 	ot->description = "Delete this weight from the vertex";
 
-	prop = RNA_def_int(ot->srna, "weight_group",
-			-1, 0, 0, "Weight Index", "Index of source weight in active Weight Group", 0, 0);
+	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
+	                   "Index of source weight in active Weight Group", -1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
 	/* api callbacks */
@@ -4187,8 +4187,8 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_vertex_weight_set_active";
 	ot->description = "Set as active Vertex Group";
 
-	prop = RNA_def_int(ot->srna, "weight_group",
-			-1, 0, 0, "Weight Index", "Index of source weight in active Weight Group", 0, 0);
+	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
+	                   "Index of source weight in active Weight Group", -1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
 	/* api callbacks */
