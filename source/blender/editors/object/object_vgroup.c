@@ -4199,7 +4199,7 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_weight_normalize_active(bContext *C, wmOperator *UNUSED(op))
+static int vertex_weight_normalize_active_vertex(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -4213,16 +4213,16 @@ static int vertex_weight_normalize_active(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_vertex_weight_normalize_active(wmOperatorType *ot)
+void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)
 {
 
 	ot->name = "Normalize Active";
-	ot->idname = "OBJECT_OT_vertex_weight_normalize_active";
+	ot->idname = "OBJECT_OT_vertex_weight_normalize_active_vertex";
 	ot->description = "Normalize Active Vert Weights";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
-	ot->exec = vertex_weight_normalize_active;
+	ot->exec = vertex_weight_normalize_active_vertex;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

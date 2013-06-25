@@ -198,7 +198,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_weight_paste);
 	WM_operatortype_append(OBJECT_OT_vertex_weight_delete);
 	WM_operatortype_append(OBJECT_OT_vertex_weight_set_active);
-	WM_operatortype_append(OBJECT_OT_vertex_weight_normalize_active);
+	WM_operatortype_append(OBJECT_OT_vertex_weight_normalize_active_vertex);
 	WM_operatortype_append(OBJECT_OT_vertex_weight_copy);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);

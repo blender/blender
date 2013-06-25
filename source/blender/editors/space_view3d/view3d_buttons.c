@@ -910,7 +910,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		col = uiLayoutColumn(pa->layout, true);
 		row = uiLayoutRow(col, true);
 
-		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active", 1);
+		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", 1);
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
 		                    0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		                    TIP_("Normalize weights of active vertex (if affected groups are unlocked"));
