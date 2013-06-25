@@ -34,6 +34,7 @@
 #include "DNA_sensor_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_actuator_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
