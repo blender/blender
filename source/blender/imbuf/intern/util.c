@@ -164,7 +164,7 @@ static int IMB_ispic_name(const char *name)
 
 	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
 	
-	if (stat(name, &st) == -1)
+	if (BLI_stat(name, &st) == -1)
 		return FALSE;
 	if (((st.st_mode) & S_IFMT) != S_IFREG)
 		return FALSE;

@@ -319,7 +319,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 				}
 
 				if (img != NULL) {
-					stat(path, &info);
+					BLI_stat(path, &info);
 					BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
 					BLI_snprintf(cwidth, sizeof(cwidth), "%d", img->x);
 					BLI_snprintf(cheight, sizeof(cheight), "%d", img->y);
@@ -339,7 +339,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 					}
 					IMB_free_anim(anim);
 				}
-				stat(path, &info);
+				BLI_stat(path, &info);
 				BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
 			}
 			if (!img) return NULL;
