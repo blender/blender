@@ -907,12 +907,12 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active", 1);
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
-		                    0, yco,UI_UNIT_X * 5, UI_UNIT_Y,
+		                    0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		                    TIP_("Normalize active vertex weights"));
 
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", 1);
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy",
-		                    UI_UNIT_X * 5, yco,UI_UNIT_X * 5, UI_UNIT_Y,
+		                    UI_UNIT_X * 5, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		                    TIP_("Copy active vertex to other selected verts"));
 
 	}

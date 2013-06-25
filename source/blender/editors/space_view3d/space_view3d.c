@@ -805,7 +805,9 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 				case ND_NODES:
 					if ((v3d->drawtype == OB_MATERIAL) ||
 					    (v3d->drawtype == OB_TEXTURE && scene->gm.matmode == GAME_MAT_GLSL))
+					{
 						ED_region_tag_redraw(ar);
+					}
 					break;
 				case ND_SHADING_DRAW:
 				case ND_SHADING_LINKS:
@@ -832,7 +834,9 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 				case ND_LIGHTING_DRAW:
 					if ((v3d->drawtype == OB_MATERIAL) ||
 					    (v3d->drawtype == OB_TEXTURE && (scene->gm.matmode == GAME_MAT_GLSL)))
+					{
 						ED_region_tag_redraw(ar);
+					}
 					break;
 			}
 			break;

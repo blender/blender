@@ -271,7 +271,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	if (rect) {
 		int profile_to;
 		
-		if(BKE_scene_check_color_management_enabled(scene))
+		if (BKE_scene_check_color_management_enabled(scene))
 			profile_to = IB_PROFILE_LINEAR_RGB;
 		else
 			profile_to = IB_PROFILE_SRGB;

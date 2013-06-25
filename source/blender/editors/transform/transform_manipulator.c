@@ -1651,7 +1651,7 @@ void BIF_draw_manipulator(const bContext *C)
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
 
 			if (G.debug_value == 3) {
-				if (G.moving & (G_TRANSFORM_OBJ|G_TRANSFORM_EDIT))
+				if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT))
 					draw_manipulator_rotate_cyl(v3d, rv3d, 1, drawflags, v3d->twtype, MAN_MOVECOL);
 				else
 					draw_manipulator_rotate_cyl(v3d, rv3d, 0, drawflags, v3d->twtype, MAN_RGB);

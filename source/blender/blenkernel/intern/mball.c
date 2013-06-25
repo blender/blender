@@ -151,7 +151,7 @@ typedef struct process {        /* parameters, function, storage */
 
 	/* what happens here? floats, I think. */
 	/*  float (*function)(void);	 */	/* implicit surface function */
-	float (*function)(struct process*, float, float, float);
+	float (*function)(struct process *, float, float, float);
 	float size, delta;          /* cube size, normal delta */
 	int bounds;                 /* cube range within lattice */
 	CUBES *cubes;               /* active cubes */
@@ -2283,7 +2283,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 
 	if (process.totelem == 0) return;
 	if ((G.is_rendering == FALSE) && (mb->flag == MB_UPDATE_NEVER)) return;
-	if ((G.moving & (G_TRANSFORM_OBJ|G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) return;
+	if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) return;
 
 	process.thresh = mb->thresh;
 
@@ -2325,7 +2325,9 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	}
 	else {
 		width = mb->wiresize;
-		if ((G.moving & (G_TRANSFORM_OBJ|G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_HALFRES) width *= 2;
+		if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_HALFRES) {
+			width *= 2;
+		}
 	}
 	/* nr_cubes is just for safety, minimum is totsize */
 	nr_cubes = (int)(0.5f + totsize / width);

@@ -3889,7 +3889,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	 * But need to keep an eye on this if the function will be
 	 * used in other cases.
 	 */
-	#pragma omp parallel for if(tmpibuf->y > 128)
+	#pragma omp parallel for if (tmpibuf->y > 128)
 	for (j = 0; j < tmpibuf->y; j++) {
 		int i;
 		for (i = 0; i < tmpibuf->x; i++) {
