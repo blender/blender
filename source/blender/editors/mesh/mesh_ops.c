@@ -28,6 +28,8 @@
  *  \ingroup edmesh
  */
 
+#include "DNA_scene_types.h"
+
 #include "BLI_math.h"
 
 #include "RNA_access.h"
