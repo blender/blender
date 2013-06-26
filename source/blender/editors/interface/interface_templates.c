@@ -2478,14 +2478,14 @@ static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UN
 
 	/* Simplest one! */
 	switch (ui_list->layout_type) {
-	case UILST_LAYOUT_GRID:
-		uiItemL(layout, "", icon);
-		break;
-	case UILST_LAYOUT_DEFAULT:
-	case UILST_LAYOUT_COMPACT:
-	default:
-		uiItemL(layout, name, icon);
-		break;
+		case UILST_LAYOUT_GRID:
+			uiItemL(layout, "", icon);
+			break;
+		case UILST_LAYOUT_DEFAULT:
+		case UILST_LAYOUT_COMPACT:
+		default:
+			uiItemL(layout, name, icon);
+			break;
 	}
 
 	/* free name */
@@ -2599,46 +2599,134 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	ui_list->layout_type = layout_type;
 
 	switch (layout_type) {
-	case UILST_LAYOUT_DEFAULT:
-		/* default rows */
-		if (rows == 0)
-			rows = 5;
-		if (maxrows == 0)
-			maxrows = 5;
-		if (ui_list->list_grip_size != 0)
-			rows = ui_list->list_grip_size;
+		case UILST_LAYOUT_DEFAULT:
+			/* default rows */
+			if (rows == 0)
+				rows = 5;
+			if (maxrows == 0)
+				maxrows = 5;
+			if (ui_list->list_grip_size != 0)
+				rows = ui_list->list_grip_size;
 
-		/* layout */
-		box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
-		row = uiLayoutRow(box, FALSE);
-		col = uiLayoutColumn(row, TRUE);
+			/* layout */
+			box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
+			row = uiLayoutRow(box, FALSE);
+			col = uiLayoutColumn(row, TRUE);
 
-		/* init numbers */
-		RNA_property_int_range(active_dataptr, activeprop, &min, &max);
+			/* init numbers */
+			RNA_property_int_range(active_dataptr, activeprop, &min, &max);
 
-		if (prop)
-			len = RNA_property_collection_length(dataptr, prop);
-		items = CLAMPIS(len, rows, MAX2(rows, maxrows));
+			if (prop)
+				len = RNA_property_collection_length(dataptr, prop);
+			items = CLAMPIS(len, rows, MAX2(rows, maxrows));
 
-		/* if list length changes and active is out of view, scroll to it */
-		if ((ui_list->list_last_len != len) &&
-		    (activei < ui_list->list_scroll || activei >= ui_list->list_scroll + items))
-		{
-			ui_list->list_scroll = activei;
-		}
-
-		ui_list->list_scroll = min_ii(ui_list->list_scroll, len - items);
-		ui_list->list_scroll = max_ii(ui_list->list_scroll, 0);
-		ui_list->list_size = items;
-		ui_list->list_last_len = len;
-
-		if (dataptr->data && prop) {
-			/* create list items */
-			RNA_PROP_BEGIN (dataptr, itemptr, prop)
+			/* if list length changes and active is out of view, scroll to it */
+			if ((ui_list->list_last_len != len) &&
+			    (activei < ui_list->list_scroll || activei >= ui_list->list_scroll + items))
 			{
-				if (i >= ui_list->list_scroll && i < ui_list->list_scroll + items) {
-					subblock = uiLayoutGetBlock(col);
-					overlap = uiLayoutOverlap(col);
+				ui_list->list_scroll = activei;
+			}
+
+			ui_list->list_scroll = min_ii(ui_list->list_scroll, len - items);
+			ui_list->list_scroll = max_ii(ui_list->list_scroll, 0);
+			ui_list->list_size = items;
+			ui_list->list_last_len = len;
+
+			if (dataptr->data && prop) {
+				/* create list items */
+				RNA_PROP_BEGIN (dataptr, itemptr, prop)
+				{
+					if (i >= ui_list->list_scroll && i < ui_list->list_scroll + items) {
+						subblock = uiLayoutGetBlock(col);
+						overlap = uiLayoutOverlap(col);
+
+						uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
+
+						/* list item behind label & other buttons */
+						sub = uiLayoutRow(overlap, FALSE);
+
+						but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
+						                     active_dataptr, activeprop, 0, 0, i, 0, 0, "");
+						uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+
+						sub = uiLayoutRow(overlap, FALSE);
+
+						icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
+						if (icon == ICON_DOT)
+							icon = ICON_NONE;
+						draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+
+						/* If we are "drawing" active item, set all labels as active. */
+						if (i == activei) {
+							ui_layout_list_set_labels_active(sub);
+						}
+					}
+					i++;
+				}
+				RNA_PROP_END;
+			}
+
+			/* add dummy buttons to fill space */
+			while (i < ui_list->list_scroll + items) {
+				if (i >= ui_list->list_scroll)
+					uiItemL(col, "", ICON_NONE);
+				i++;
+			}
+
+			/* add scrollbar */
+			if (len > items) {
+				col = uiLayoutColumn(row, FALSE);
+				uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &ui_list->list_scroll,
+				          0, len - items, items, 0, "");
+			}
+			break;
+		case UILST_LAYOUT_COMPACT:
+			row = uiLayoutRow(layout, TRUE);
+
+			if (dataptr->data && prop) {
+				/* create list items */
+				RNA_PROP_BEGIN (dataptr, itemptr, prop)
+				{
+					found = (activei == i);
+
+					if (found) {
+						icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
+						if (icon == ICON_DOT)
+							icon = ICON_NONE;
+						draw_item(ui_list, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+					}
+
+					i++;
+				}
+				RNA_PROP_END;
+			}
+
+			/* if list is empty, add in dummy button */
+			if (i == 0)
+				uiItemL(row, "", ICON_NONE);
+
+			/* next/prev button */
+			BLI_snprintf(numstr, sizeof(numstr), "%d :", i);
+			but = uiDefIconTextButR_prop(block, NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
+			                             active_dataptr, activeprop, 0, 0, 0, 0, 0, "");
+			if (i == 0)
+				uiButSetFlag(but, UI_BUT_DISABLED);
+			break;
+		case UILST_LAYOUT_GRID:
+			box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
+			col = uiLayoutColumn(box, TRUE);
+			row = uiLayoutRow(col, FALSE);
+
+			if (dataptr->data && prop) {
+				/* create list items */
+				RNA_PROP_BEGIN (dataptr, itemptr, prop)
+				{
+					/* create button */
+					if (!(i % 9))
+						row = uiLayoutRow(col, FALSE);
+
+					subblock = uiLayoutGetBlock(row);
+					overlap = uiLayoutOverlap(row);
 
 					uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
 
@@ -2652,106 +2740,18 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					sub = uiLayoutRow(overlap, FALSE);
 
 					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
-					if (icon == ICON_DOT)
-						icon = ICON_NONE;
 					draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
 
 					/* If we are "drawing" active item, set all labels as active. */
 					if (i == activei) {
 						ui_layout_list_set_labels_active(sub);
 					}
+
+					i++;
 				}
-				i++;
+				RNA_PROP_END;
 			}
-			RNA_PROP_END;
-		}
-
-		/* add dummy buttons to fill space */
-		while (i < ui_list->list_scroll + items) {
-			if (i >= ui_list->list_scroll)
-				uiItemL(col, "", ICON_NONE);
-			i++;
-		}
-
-		/* add scrollbar */
-		if (len > items) {
-			col = uiLayoutColumn(row, FALSE);
-			uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &ui_list->list_scroll,
-			          0, len - items, items, 0, "");
-		}
-		break;
-	case UILST_LAYOUT_COMPACT:
-		row = uiLayoutRow(layout, TRUE);
-
-		if (dataptr->data && prop) {
-			/* create list items */
-			RNA_PROP_BEGIN (dataptr, itemptr, prop)
-			{
-				found = (activei == i);
-
-				if (found) {
-					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
-					if (icon == ICON_DOT)
-						icon = ICON_NONE;
-					draw_item(ui_list, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
-				}
-
-				i++;
-			}
-			RNA_PROP_END;
-		}
-
-		/* if list is empty, add in dummy button */
-		if (i == 0)
-			uiItemL(row, "", ICON_NONE);
-
-		/* next/prev button */
-		BLI_snprintf(numstr, sizeof(numstr), "%d :", i);
-		but = uiDefIconTextButR_prop(block, NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
-		                             active_dataptr, activeprop, 0, 0, 0, 0, 0, "");
-		if (i == 0)
-			uiButSetFlag(but, UI_BUT_DISABLED);
-		break;
-	case UILST_LAYOUT_GRID:
-		box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
-		col = uiLayoutColumn(box, TRUE);
-		row = uiLayoutRow(col, FALSE);
-
-		if (dataptr->data && prop) {
-			/* create list items */
-			RNA_PROP_BEGIN (dataptr, itemptr, prop)
-			{
-				/* create button */
-				if (!(i % 9))
-					row = uiLayoutRow(col, FALSE);
-
-				subblock = uiLayoutGetBlock(row);
-				overlap = uiLayoutOverlap(row);
-
-				uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
-
-				/* list item behind label & other buttons */
-				sub = uiLayoutRow(overlap, FALSE);
-
-				but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-				                     active_dataptr, activeprop, 0, 0, i, 0, 0, "");
-				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
-
-				sub = uiLayoutRow(overlap, FALSE);
-
-				icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
-				draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
-
-				/* If we are "drawing" active item, set all labels as active. */
-				if (i == activei) {
-					ui_layout_list_set_labels_active(sub);
-				}
-
-				i++;
-			}
-			RNA_PROP_END;
-		}
-		break;
+			break;
 	}
 }
 
