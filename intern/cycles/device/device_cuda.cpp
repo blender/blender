@@ -607,13 +607,8 @@ public:
 		cuda_assert(cuParamSetSize(cuPathTrace, offset))
 
 		/* launch kernel: todo find optimal size, cache config for fermi */
-#ifndef __APPLE__
 		int xthreads = 16;
 		int ythreads = 16;
-#else
-		int xthreads = 8;
-		int ythreads = 8;
-#endif
 		int xblocks = (rtile.w + xthreads - 1)/xthreads;
 		int yblocks = (rtile.h + ythreads - 1)/ythreads;
 
@@ -676,13 +671,8 @@ public:
 		cuda_assert(cuParamSetSize(cuFilmConvert, offset))
 
 		/* launch kernel: todo find optimal size, cache config for fermi */
-#ifndef __APPLE__
 		int xthreads = 16;
 		int ythreads = 16;
-#else
-		int xthreads = 8;
-		int ythreads = 8;
-#endif
 		int xblocks = (task.w + xthreads - 1)/xthreads;
 		int yblocks = (task.h + ythreads - 1)/ythreads;
 
@@ -730,11 +720,7 @@ public:
 		cuda_assert(cuParamSetSize(cuDisplace, offset))
 
 		/* launch kernel: todo find optimal size, cache config for fermi */
-#ifndef __APPLE__
 		int xthreads = 16;
-#else
-		int xthreads = 8;
-#endif
 		int xblocks = (task.shader_w + xthreads - 1)/xthreads;
 
 		cuda_assert(cuFuncSetCacheConfig(cuDisplace, CU_FUNC_CACHE_PREFER_L1))

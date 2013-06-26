@@ -108,7 +108,6 @@
 
 /* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_lookup(t, x, offset, size) kernel_tex_lookup_(kg->t, offset, size, x)
 #define kernel_tex_fetch(t, index) kg->t[index]
 
 /* define NULL */

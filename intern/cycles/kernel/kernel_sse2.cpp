@@ -22,7 +22,7 @@
 
 #ifdef WITH_OPTIMIZED_KERNEL
 
-//#define __KERNEL_SSE2__
+#define __KERNEL_SSE2__
 
 #include "kernel.h"
 #include "kernel_compat_cpu.h"
