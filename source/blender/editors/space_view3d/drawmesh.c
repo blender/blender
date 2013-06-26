@@ -89,6 +89,7 @@ typedef struct drawEMTFMapped_userData {
 } drawEMTFMapped_userData;
 
 typedef struct drawTFace_userData {
+	Mesh *me;
 	MFace *mf;
 	MTFace *tf;
 } drawTFace_userData;
@@ -538,7 +539,7 @@ static void update_tface_color_layer(DerivedMesh *dm)
 
 static DMDrawOption draw_tface_mapped__set_draw(void *userData, int index)
 {
-	Mesh *me = (Mesh *)userData;
+	Mesh *me = ((drawTFace_userData *)userData)->me;
 
 	/* array checked for NULL before calling */
 	MPoly *mpoly = &me->mpoly[index];
@@ -735,6 +736,7 @@ static int compareDrawOptions(void *userData, int cur_index, int next_index)
 	return 1;
 }
 
+
 static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
 {
 	drawEMTFMapped_userData *data = userData;
@@ -777,8 +779,14 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_facemask, GPU_enable_material, NULL, me,
 			                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
-		else
-			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, NULL, me);
+		else {
+			drawTFace_userData userData;
+
+			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
+			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+			userData.me = me;
+			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, compareDrawOptions, &userData);
+		}
 	}
 	else {
 		if (GPU_buffer_legacy(dm)) {
@@ -794,6 +802,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 
 			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+			userData.me = NULL;
 
 			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData);
 		}
