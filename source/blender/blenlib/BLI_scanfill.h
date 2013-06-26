@@ -115,7 +115,6 @@ void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
 /* These callbacks are needed to make the lib finction properly */
 void BLI_setErrorCallBack(void (*f)(const char *));
-void BLI_setInterruptCallBack(int (*f)(void));
 
 #ifdef __cplusplus
 }

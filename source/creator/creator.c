@@ -1693,6 +1693,4 @@ static void setCallbacks(void)
 	/* BLI_blenlib: */
 
 	BLI_setErrorCallBack(error_cb); /* */
-// XXX	BLI_setInterruptCallBack(blender_test_break);
-
 }
