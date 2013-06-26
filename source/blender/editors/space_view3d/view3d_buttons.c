@@ -914,7 +914,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
 		                    0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		                    TIP_("Normalize weights of active vertex (if affected groups are unlocked"));
-		if(locked) {
+		if (locked) {
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 
