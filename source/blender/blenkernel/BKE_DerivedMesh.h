@@ -615,10 +615,13 @@ void DM_interp_poly_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 /* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
 void vDM_ColorBand_store(const struct ColorBand *coba, const char alert_color[4]);
 
+/* UNUSED */
+#if 0
 /** Simple function to get me->totvert amount of vertices/normals,
  * correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
  * In use now by vertex/weight paint and particles */
 DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
+#endif
 
 /* */
 DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,

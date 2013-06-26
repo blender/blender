@@ -54,6 +54,7 @@ struct wmOperator;
 struct wmOperatorType;
 struct ImagePaintState;
 struct wmWindowManager;
+struct DMCoNo;
 enum PaintMode;
 
 /* paint_stroke.c */
@@ -114,6 +115,20 @@ void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 unsigned int vpaint_get_current_col(struct VPaint *vp);
+
+
+/* paint_vertex_proj.c */
+struct VertProjHandle;
+struct VertProjHandle *ED_vpaint_proj_handle_create(
+        struct Scene *scene, struct Object *ob,
+        struct DMCoNo **r_vcosnos);
+void  ED_vpaint_proj_handle_update(
+        struct VertProjHandle *vp_handle,
+        /* runtime vars */
+        struct ARegion *ar, const float mval_fl[2]);
+void  ED_vpaint_proj_handle_free(
+        struct VertProjHandle *vp_handle);
+
 
 /* paint_image.c */
 typedef struct ImagePaintPartialRedraw {
