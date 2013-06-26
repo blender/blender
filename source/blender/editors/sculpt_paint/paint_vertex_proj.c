@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
+ * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
  *
  *
@@ -187,8 +187,6 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 	}
 
 	dm->release(dm);
-
-	(void)mval_fl;
 }
 
 

@@ -55,7 +55,7 @@ bool  BM_face_point_inside_test(BMFace *f, const float co[3]);
 void  BM_face_triangulate(BMesh *bm, BMFace *f, BMFace **newfaces,
                           const bool use_beauty, const bool use_tag);
 
-void  BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
+void  BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len);
 
 void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]);
 void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]);

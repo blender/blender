@@ -1025,9 +1025,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
  * intersecting splits, only the first of the set of intersecting
  * splits survives
  */
-void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
+void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 {
-	BMIter iter;
 	BMLoop *l;
 	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-FLT_MAX, -FLT_MAX, 0.0f};
@@ -1036,12 +1035,9 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
 	
-	i = 0;
-	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l = BM_iter_step(&iter)) {
+	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		BM_elem_index_set(l, i); /* set_loop */
 		copy_v3_v3(projverts[i], l->v->co);
-		i++;
 	}
 	
 	for (i = 0; i < len; i++) {
