@@ -3437,10 +3437,10 @@ int BKE_mesh_edge_other_vert(const MEdge *e, int v)
 
 /* update the hide flag for edges and faces from the corresponding
  * flag in verts */
-void BKE_mesh_flush_hidden_from_verts(const MVert *mvert,
-                                      const MLoop *mloop,
-                                      MEdge *medge, int totedge,
-                                      MPoly *mpoly, int totpoly)
+void BKE_mesh_flush_hidden_from_verts_ex(const MVert *mvert,
+                                         const MLoop *mloop,
+                                         MEdge *medge, const int totedge,
+                                         MPoly *mpoly, const int totpoly)
 {
 	int i, j;
 	
@@ -3464,12 +3464,59 @@ void BKE_mesh_flush_hidden_from_verts(const MVert *mvert,
 		}
 	}
 }
+void BKE_mesh_flush_hidden_from_verts(Mesh *me)
+{
+	BKE_mesh_flush_hidden_from_verts_ex(me->mvert, me->mloop,
+	                                    me->medge, me->totedge,
+	                                    me->mpoly, me->totpoly);
+}
+
+void BKE_mesh_flush_hidden_from_polys_ex(MVert *mvert,
+                                         const MLoop *mloop,
+                                         MEdge *medge, const int UNUSED(totedge),
+                                         const MPoly *mpoly, const int totpoly)
+{
+	const MPoly *mp;
+	int i;
+
+	i = totpoly;
+	for (mp = mpoly; i--; mp++) {
+		if (mp->flag & ME_HIDE) {
+			const MLoop *ml;
+			int j;
+			j = mp->totloop;
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				mvert[ml->v].flag |= ME_HIDE;
+				medge[ml->e].flag |= ME_HIDE;
+			}
+		}
+	}
+
+	i = totpoly;
+	for (mp = mpoly; i--; mp++) {
+		if ((mp->flag & ME_HIDE) == 0) {
+			const MLoop *ml;
+			int j;
+			j = mp->totloop;
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				mvert[ml->v].flag &= ~ME_HIDE;
+				medge[ml->e].flag &= ~ME_HIDE;
+			}
+		}
+	}
+}
+void BKE_mesh_flush_hidden_from_polys(Mesh *me)
+{
+	BKE_mesh_flush_hidden_from_polys_ex(me->mvert, me->mloop,
+	                                    me->medge, me->totedge,
+	                                    me->mpoly, me->totpoly);
+}
 
 /**
  * simple poly -> vert/edge selection.
  */
 void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,       const int totvert,
-                                         MLoop *mloop,
+                                         const MLoop *mloop,
                                          MEdge *medge,       const int totedge,
                                          const MPoly *mpoly, const int totpoly)
 {
@@ -3493,7 +3540,7 @@ void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,       const int totvert,
 		/* assume if its selected its not hidden and none of its verts/edges are hidden
 		 * (a common assumption)*/
 		if (mp->flag & ME_FACE_SEL) {
-			MLoop *ml;
+			const MLoop *ml;
 			int j;
 			j = mp->totloop;
 			for (ml = &mloop[mp->loopstart]; j--; ml++) {
@@ -3512,7 +3559,7 @@ void BKE_mesh_flush_select_from_polys(Mesh *me)
 }
 
 void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(totvert),
-                                         MLoop *mloop,
+                                         const MLoop *mloop,
                                          MEdge *medge,       const int totedge,
                                          MPoly *mpoly,       const int totpoly)
 {
@@ -3538,7 +3585,7 @@ void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(to
 	for (mp = mpoly; i--; mp++) {
 		if ((mp->flag & ME_HIDE) == 0) {
 			int ok = TRUE;
-			MLoop *ml;
+			const MLoop *ml;
 			int j;
 			j = mp->totloop;
 			for (ml = &mloop[mp->loopstart]; j--; ml++) {

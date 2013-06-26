@@ -118,12 +118,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 				                         cddm->getVertArray(cddm),
 				                         mdisps);
 
-				BKE_mesh_flush_hidden_from_verts(cddm->getVertArray(cddm),
-				                                 cddm->getLoopArray(cddm),
-				                                 cddm->getEdgeArray(cddm),
-				                                 cddm->getNumEdges(cddm),
-				                                 cddm->getPolyArray(cddm),
-				                                 cddm->getNumPolys(cddm));
+				BKE_mesh_flush_hidden_from_verts_ex(cddm->getVertArray(cddm),
+				                                    cddm->getLoopArray(cddm),
+				                                    cddm->getEdgeArray(cddm),
+				                                    cddm->getNumEdges(cddm),
+				                                    cddm->getPolyArray(cddm),
+				                                    cddm->getNumPolys(cddm));
 			}
 			if (grid_paint_mask) {
 				float *paint_mask = CustomData_add_layer(&cddm->vertData,
