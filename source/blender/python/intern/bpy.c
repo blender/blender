@@ -90,7 +90,7 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 	return ret;
 }
 
-static int bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
+static bool bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
 	PyObject *list = (PyObject *)userdata;
 	PyObject *item = PyUnicode_DecodeFSDefault(path_src);

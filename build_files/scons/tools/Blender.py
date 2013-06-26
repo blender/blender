@@ -847,7 +847,7 @@ class BlenderEnvironment(SConsEnvironment):
 
         def list_substring(quickie, libname):
             for q in quickie:
-                if libname.find(q) != -1:
+                if q in libname:
                     return True
             return False
 

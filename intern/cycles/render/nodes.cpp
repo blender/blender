@@ -1121,11 +1121,14 @@ void MappingNode::compile(OSLCompiler& compiler)
 
 /* Convert */
 
-ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_)
+ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_, bool autoconvert)
 : ShaderNode("convert")
 {
 	from = from_;
 	to = to_;
+
+	if(autoconvert)
+		special_type = SHADER_SPECIAL_TYPE_AUTOCONVERT;
 
 	assert(from != to);
 
@@ -1271,7 +1274,7 @@ void ProxyNode::compile(OSLCompiler& compiler)
 /* BSDF Closure */
 
 BsdfNode::BsdfNode(bool scattering_)
-: ShaderNode("subsurface_scattering"), scattering(scattering_)
+: ShaderNode("bsdf"), scattering(scattering_)
 {
 	closure = ccl::CLOSURE_BSSRDF_ID;
 

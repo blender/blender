@@ -443,7 +443,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 
 	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE, FALSE); /* will be set to NULL if hidden */
-	activef = BM_active_face_get(bm, FALSE, FALSE);
+	activef = BM_mesh_active_face_get(bm, FALSE, FALSE);
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);

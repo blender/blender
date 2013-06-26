@@ -384,7 +384,7 @@ static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
+static void graph_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -438,7 +438,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /* editor level listener */
-static void graph_listener(ScrArea *sa, wmNotifier *wmn)
+static void graph_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
 	

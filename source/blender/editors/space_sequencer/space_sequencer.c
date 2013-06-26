@@ -318,7 +318,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sseqn;
 }
 
-static void sequencer_listener(ScrArea *sa, wmNotifier *wmn)
+static void sequencer_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -480,7 +480,7 @@ static void sequencer_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void sequencer_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -555,7 +555,7 @@ static void sequencer_preview_area_draw(const bContext *C, ARegion *ar)
 
 }
 
-static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
+static void sequencer_preview_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -612,7 +612,7 @@ static void sequencer_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+static void sequencer_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {

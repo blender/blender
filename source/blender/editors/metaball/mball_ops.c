@@ -28,6 +28,8 @@
  *  \ingroup edmeta
  */
 
+#include "DNA_scene_types.h"
+
 #include "BLI_utildefines.h"
 
 #include "RNA_access.h"

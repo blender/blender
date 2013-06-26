@@ -70,8 +70,11 @@ int BM_mesh_elem_hflag_count_enabled(BMesh *bm, const char htype, const char hfl
 int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hflag, const bool respecthide);
 
 /* edit selection stuff */
-void    BM_active_face_set(BMesh *bm, BMFace *f);
-BMFace *BM_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_selected);
+void    BM_mesh_active_face_set(BMesh *bm, BMFace *f);
+BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_selected);
+BMEdge *BM_mesh_active_edge_get(BMesh *bm);
+BMVert *BM_mesh_active_vert_get(BMesh *bm);
+BMElem *BM_mesh_active_elem_get(BMesh *bm);
 
 void    BM_editselection_center(BMEditSelection *ese, float r_center[3]);
 void    BM_editselection_normal(BMEditSelection *ese, float r_normal[3]);

@@ -138,12 +138,12 @@ static void userpref_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void userpref_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+static void userpref_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 }
 
-static void userpref_header_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+static void userpref_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 #if 0

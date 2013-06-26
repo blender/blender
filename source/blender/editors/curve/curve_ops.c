@@ -34,6 +34,7 @@
 
 
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"

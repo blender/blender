@@ -225,7 +225,7 @@ static void buttons_area_redraw(ScrArea *sa, short buttons)
 }
 
 /* reused! */
-static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
+static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
 	SpaceButs *sbuts = sa->spacedata.first;
 
@@ -295,6 +295,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 				case ND_SHADING_LINKS:
+				case ND_SHADING_PREVIEW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview = 1;
 					break;
@@ -318,6 +319,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 				case ND_SHADING_LINKS:
+				case ND_SHADING_PREVIEW:
 				case ND_NODES:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview = 1;

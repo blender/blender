@@ -779,57 +779,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 #define B_VGRP_PNL_COPY_SINGLE    8192 /* or greater */
 #define B_VGRP_PNL_ACTIVE        16384 /* or greater */
 
-
-static MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
-{
-	Mesh *me = ob->data;
-	int index = BKE_mesh_mselect_active_get(me, ME_VSEL);
-	if (r_index) *r_index = index;
-	if (index == -1 || me->dvert == NULL) {
-		return NULL;
-	}
-	else {
-		return me->dvert + index;
-	}
-}
-
-static MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
-{
-	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
-		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-
-		if (cd_dvert_offset != -1) {
-			BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
-
-			if (ese && ese->htype == BM_VERT) {
-				BMVert *eve = (BMVert *)ese->ele;
-				if (r_eve) *r_eve = eve;
-				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-			}
-		}
-	}
-
-	if (r_eve) *r_eve = NULL;
-	return NULL;
-}
-
-static MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
-{
-	if (ob->type == OB_MESH) {
-		if (ob->mode & OB_MODE_EDIT) {
-			return ED_mesh_active_dvert_get_em(ob, NULL);
-		}
-		else {
-			return ED_mesh_active_dvert_get_ob(ob, NULL);
-		}
-	}
-	else {
-		return NULL;
-	}
-}
-
 static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	if (event < B_VGRP_PNL_EDIT_SINGLE) {
@@ -883,7 +832,6 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiLayout *col, *bcol;
 		uiLayout *row;
-		uiLayout *box;
 		uiBut *but;
 		bDeformGroup *dg;
 		unsigned int i;
@@ -891,6 +839,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		const bool *vgroup_validmap;
 		eVGroupSelect subset_type = ts->vgroupsubset;
 		int yco = 0;
+		int locked = 0;
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
 
@@ -901,9 +850,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 		col = uiLayoutColumn(bcol, true);
-		box = uiLayoutBox(col); /* The list box */
 
-		col = uiLayoutColumn(box, true);
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
 			if (vgroup_validmap[i]) {
@@ -912,8 +859,6 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					int x, xco = 0;
 					row = uiLayoutRow(col, true);
 
-					uiBlockSetEmboss(block, UI_EMBOSSN);
-
 					/* The Weight Group Name */
 
 					ot = ot_weight_set_active;
@@ -921,7 +866,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					                    xco, yco, (x = UI_UNIT_X * 5), UI_UNIT_Y, "");
 					but_ptr = uiButGetOperatorPtrRNA(but);
 					RNA_int_set(but_ptr, "weight_group", i);
-					uiButSetFlag(but, UI_TEXT_LEFT);
+					uiButSetFlag(but, UI_TEXT_RIGHT);
 					if (ob->actdef != i + 1) {
 						uiButSetFlag(but, UI_BUT_INACTIVE);
 					}
@@ -930,9 +875,13 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					/* The weight group value */
 					/* To be reworked still */
 					but = uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, "",
-					          xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
-					          &dw->weight, 0.0, 1.0, 1, 3, "");
+					                xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
+					                &dw->weight, 0.0, 1.0, 1, 3, "");
 					uiButSetFlag(but, UI_TEXT_LEFT);
+					if (dg->flag & DG_LOCK_WEIGHT) {
+						uiButSetFlag(but, UI_BUT_DISABLED);
+						locked++;
+					}
 					xco += x;
 
 					/* The weight group paste function */
@@ -956,22 +905,23 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		}
 		MEM_freeN((void *)vgroup_validmap);
 
-		uiBlockSetEmboss(block, UI_EMBOSS);
-
 		yco -= 2;
 
 		col = uiLayoutColumn(pa->layout, true);
 		row = uiLayoutRow(col, true);
 
-		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active", 1);
-		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize", 
-				0, yco,UI_UNIT_X * 5, UI_UNIT_Y,
-				TIP_("Normalize active vertex weights"));
+		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", 1);
+		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
+		                    0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
+		                    TIP_("Normalize weights of active vertex (if affected groups are unlocked"));
+		if (locked) {
+			uiButSetFlag(but, UI_BUT_DISABLED);
+		}
 
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", 1);
-		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy", 
-				UI_UNIT_X * 5, yco,UI_UNIT_X * 5, UI_UNIT_Y, 
-				TIP_("Copy active vertex to other selected verts"));
+		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy",
+		                    UI_UNIT_X * 5, yco, UI_UNIT_X * 5, UI_UNIT_Y,
+		                    TIP_("Copy active vertex to other selected verts"));
 
 	}
 }

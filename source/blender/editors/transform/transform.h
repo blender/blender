@@ -604,6 +604,7 @@ int calc_manipulator_stats(const struct bContext *C);
 void createTransData(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void special_aftertrans_update(struct bContext *C, TransInfo *t);
+int  special_transform_moving(TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
 

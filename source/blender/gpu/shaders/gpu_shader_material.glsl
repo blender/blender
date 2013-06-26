@@ -147,7 +147,7 @@ void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 att
 	normal = -normalize(nor);	/* blender render normal is negated */
 	vcol_attribute(attvcol, vcol);
 	vcol_alpha = attvcol.a;
-	frontback = 1.0;
+	frontback = (gl_FrontFacing)? 1.0: 0.0;
 }
 
 void mapping(vec3 vec, mat4 mat, vec3 minvec, vec3 maxvec, float domin, float domax, out vec3 outvec)
@@ -2116,7 +2116,7 @@ void node_add_shader(vec4 shader1, vec4 shader2, out vec4 shader)
 void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 {
 	float eta = max(ior, 0.00001);
-	result = fresnel_dielectric(I, N, eta); //backfacing() ? 1.0/eta: eta);
+	result = fresnel_dielectric(I, N, (gl_FrontFacing)? eta: 1.0/eta);
 }
 
 /* geometry */
@@ -2139,7 +2139,7 @@ void node_geometry(vec3 I, vec3 N, mat4 toworld,
 	true_normal = N;
 	incoming = I;
 	parametric = vec3(0.0);
-	backfacing = 0.0;
+	backfacing = (gl_FrontFacing)? 0.0: 1.0;
 }
 
 void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,

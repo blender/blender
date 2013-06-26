@@ -178,7 +178,7 @@ static void script_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void script_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+static void script_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 	// XXX - Todo, need the ScriptSpace accessible to get the python script to run.

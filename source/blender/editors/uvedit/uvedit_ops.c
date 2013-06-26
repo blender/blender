@@ -2098,7 +2098,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		}
 		
 		/* make active */
-		BM_active_face_set(em->bm, hit.efa);
+		BM_mesh_active_face_set(em->bm, hit.efa);
 
 		/* mark all face vertices as being hit */
 

@@ -422,8 +422,10 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	const char *searchpath = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	BKE_bpath_missing_files_find(bmain, searchpath, op->reports);
+	const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", NULL, 0);
+	const bool find_all = RNA_boolean_get(op->ptr, "find_all");
+
+	BKE_bpath_missing_files_find(bmain, searchpath, op->reports, find_all);
 	MEM_freeN((void *)searchpath);
 
 	return OPERATOR_FINISHED;
@@ -451,8 +453,10 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
+	RNA_def_boolean(ot->srna, "find_all", false, "Find All", "Find all files in the search path (not just missing)");
+
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_DIRECTORY, FILE_DEFAULTDISPLAY);
 }
 
 /********************* report box operator *********************/

@@ -116,7 +116,7 @@ void ED_region_pixelspace(ARegion *ar)
 }
 
 /* only exported for WM */
-void ED_region_do_listen(ARegion *ar, wmNotifier *note)
+void ED_region_do_listen(bScreen *sc, ScrArea *sa, ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
 	switch (note->category) {
@@ -130,15 +130,15 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	}
 
 	if (ar->type && ar->type->listener)
-		ar->type->listener(ar, note);
+		ar->type->listener(sc, sa, ar, note);
 }
 
 /* only exported for WM */
-void ED_area_do_listen(ScrArea *sa, wmNotifier *note)
+void ED_area_do_listen(bScreen *sc, ScrArea *sa, wmNotifier *note)
 {
 	/* no generic notes? */
 	if (sa->type && sa->type->listener) {
-		sa->type->listener(sa, note);
+		sa->type->listener(sc, sa, note);
 	}
 }
 

@@ -170,11 +170,11 @@ static void clear_global(void)
 	G.main = NULL;
 }
 
-static int clean_paths_visit_cb(void *UNUSED(userdata), char *path_dst, const char *path_src)
+static bool clean_paths_visit_cb(void *UNUSED(userdata), char *path_dst, const char *path_src)
 {
 	strcpy(path_dst, path_src);
 	BLI_clean(path_dst);
-	return (strcmp(path_dst, path_src) == 0) ? FALSE : TRUE;
+	return !STREQ(path_dst, path_src);
 }
 
 /* make sure path names are correct for OS */

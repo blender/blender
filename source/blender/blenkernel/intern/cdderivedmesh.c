@@ -2232,7 +2232,10 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const short only_face_normals
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	float (*face_nors)[3] = NULL;
 
-	if (dm->numVertData == 0) return;
+	if (dm->numVertData == 0) {
+		cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
+		return;
+	}
 
 	/* now we skip calculating vertex normals for referenced layer,
 	 * no need to duplicate verts.

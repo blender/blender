@@ -734,6 +734,8 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 {
 	ParticleRenderData *data;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
+	float render_disp = psys_get_current_display_percentage(psys);
+	float disp;
 
 	data = psys->renderdata;
 	if (!data)
@@ -777,6 +779,20 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 
 	MEM_freeN(data);
 	psys->renderdata = NULL;
+
+	/* restore particle display percentage */
+	disp = psys_get_current_display_percentage(psys);
+
+	if (disp != render_disp) {
+		PARTICLE_P;
+
+		LOOP_PARTICLES {
+			if (PSYS_FRAND(p) > disp)
+				pa->flag |= PARS_NO_DISP;
+			else
+				pa->flag &= ~PARS_NO_DISP;
+		}
+	}
 }
 
 /* BMESH_TODO, for orig face data, we need to use MPoly */

@@ -99,7 +99,7 @@ public:
 	 *  \param copy
 	 *    If false, the data is not duplicated, and Canvas deals with the memory management of these
 	 *    _nbOrientations+1 images. If true, data is copied, and it's up to the caller to delete the images.
-	 *  \params iNbLevels
+	 *  \param iNbLevels
 	 *    The number of levels desired for each pyramid.
 	 *    If iNbLevels == 0, the complete pyramid is built.
 	 *  \param iSigma

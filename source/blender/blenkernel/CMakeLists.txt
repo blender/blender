@@ -137,7 +137,6 @@ set(SRC
 	intern/sca.c
 	intern/scene.c
 	intern/screen.c
-	intern/script.c
 	intern/seqcache.c
 	intern/seqeffects.c
 	intern/seqmodifier.c

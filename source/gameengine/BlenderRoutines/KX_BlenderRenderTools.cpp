@@ -207,7 +207,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 
 		KX_GameObject* gameobj = (KX_GameObject*)m_clientobject;
 		// get scaling of halo object
-		MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
+		MT_Vector3  size = gameobj->GetSGNode()->GetWorldScaling();
 		
 		bool screenaligned = (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED)!=0;//false; //either screen or axisaligned
 		if (screenaligned)

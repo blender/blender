@@ -41,12 +41,12 @@ struct ReportList;
 
 /* Function that does something with an ID's file path. Should return 1 if the
  * path has changed, and in that case, should write the result to pathOut. */
-typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
+typedef bool (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
 void BKE_bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
 void BKE_bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
 void BKE_bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
-int  BKE_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
+bool BKE_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
 /* Functions for temp backup/restore of paths, path count must NOT change */
 void *BKE_bpath_list_backup(struct Main *bmain, const int flag);
@@ -65,7 +65,8 @@ void  BKE_bpath_list_free(void *ls_handle);
 
 /* creates a text file with missing files if there are any */
 void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
-void BKE_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports);
+void BKE_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports,
+                                  const bool find_all);
 void BKE_bpath_relative_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void BKE_bpath_absolute_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 

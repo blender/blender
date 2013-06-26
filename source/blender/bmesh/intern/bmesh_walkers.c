@@ -40,7 +40,7 @@
  * - joeedh -
  * design notes:
  *
- * original desing: walkers directly emulation recursive functions.
+ * original design: walkers directly emulation recursive functions.
  * functions save their state onto a worklist, and also add new states
  * to implement recursive or looping behavior.  generally only one
  * state push per call with a specific state is desired.

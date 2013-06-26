@@ -94,7 +94,8 @@ typedef enum {
 	UI_WTYPE_BOX,
 	UI_WTYPE_SCROLL,
 	UI_WTYPE_LISTITEM,
-	UI_WTYPE_PROGRESSBAR
+	UI_WTYPE_PROGRESSBAR,
+	UI_WTYPE_LISTLABEL,
 } uiWidgetTypeEnum;
 
 /* menu scrolling */
@@ -563,6 +564,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but);
 int ui_but_can_align(uiBut *but);
 void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop);
 void ui_but_add_shortcut(uiBut *but, const char *key_str, const bool do_strip);
+void ui_layout_list_set_labels_active(uiLayout *layout);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

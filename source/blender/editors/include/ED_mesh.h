@@ -74,7 +74,6 @@ struct Object;
 struct rcti;
 struct MeshStatVis;
 
-
 /* editmesh_utils.c */
 void           EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em, const int axis,
                                                 const bool use_self, const bool use_select,
@@ -312,6 +311,11 @@ int           *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em)
 bool ED_mesh_pick_vert(struct bContext *C,      struct Object *ob, const int mval[2], unsigned int *index, int size, bool use_zbuf);
 bool ED_mesh_pick_face(struct bContext *C,      struct Object *ob, const int mval[2], unsigned int *index, int size);
 bool ED_mesh_pick_face_vert(struct bContext *C, struct Object *ob, const int mval[2], unsigned int *index, int size);
+
+
+struct MDeformVert *ED_mesh_active_dvert_get_em(struct Object *ob, struct BMVert **r_eve);
+struct MDeformVert *ED_mesh_active_dvert_get_ob(struct Object *ob, int *r_index);
+struct MDeformVert *ED_mesh_active_dvert_get_only(struct Object *ob);
 
 #define ED_MESH_PICK_DEFAULT_VERT_SIZE 50
 #define ED_MESH_PICK_DEFAULT_FACE_SIZE 3

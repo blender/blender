@@ -98,6 +98,42 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* for element checking */
 
+/**
+ * Currently this is only used for Python scripts
+ * which may fail to keep matching UV/TexFace layers.
+ *
+ * \note This should only perform any changes in exceptional cases,
+ * if we need this to be faster we could inline #BM_data_layer_add and only
+ * call #update_data_blocks once at the end.
+ */
+void BM_mesh_cd_validate(BMesh *bm)
+{
+	int totlayer_mtex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	int totlayer_uv = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+
+	if (LIKELY(totlayer_mtex == totlayer_uv)) {
+		/* pass */
+	}
+	else if (totlayer_mtex < totlayer_uv) {
+		const int uv_index_first = CustomData_get_layer_index(&bm->ldata, CD_MLOOPUV);
+		do {
+			const char *from_name =  bm->ldata.layers[uv_index_first + totlayer_mtex].name;
+			BM_data_layer_add_named(bm, &bm->pdata, CD_MTEXPOLY, from_name);
+			CustomData_set_layer_unique_name(&bm->pdata, totlayer_mtex);
+		} while (totlayer_uv != ++totlayer_mtex);
+	}
+	else if (totlayer_uv < totlayer_mtex) {
+		const int mtex_index_first = CustomData_get_layer_index(&bm->pdata, CD_MTEXPOLY);
+		do {
+			const char *from_name = bm->pdata.layers[mtex_index_first + totlayer_uv].name;
+			BM_data_layer_add_named(bm, &bm->ldata, CD_MLOOPUV, from_name);
+			CustomData_set_layer_unique_name(&bm->ldata, totlayer_uv);
+		} while (totlayer_mtex != ++totlayer_uv);
+	}
+
+	BLI_assert(totlayer_mtex == totlayer_uv);
+}
+
 void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
 {
 	const char cd_flag_all = BM_mesh_cd_flag_from_bmesh(bm) | cd_flag;

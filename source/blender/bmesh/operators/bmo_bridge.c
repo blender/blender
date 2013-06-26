@@ -363,7 +363,7 @@ static void bridge_loop_pair(BMesh *bm,
 		int i;
 
 		BMOperator op_sub;
-		/* when we have to bridge betweeen different sized edge-loops,
+		/* when we have to bridge between different sized edge-loops,
 		 * be clever and post-process for best results */
 
 

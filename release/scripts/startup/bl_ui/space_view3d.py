@@ -1317,8 +1317,8 @@ class VIEW3D_MT_vertex_group(Menu):
             if ob.vertex_groups.active:
                 layout.separator()
                 layout.operator("object.vertex_group_assign", text="Assign to Active Group").new = False
-                layout.operator("object.vertex_group_remove_from", text="Remove from Active Group").all = False
-                layout.operator("object.vertex_group_remove_from", text="Remove from All").all = True
+                layout.operator("object.vertex_group_remove_from", text="Remove from Active Group").use_all_groups = False
+                layout.operator("object.vertex_group_remove_from", text="Remove from All").use_all_groups = True
                 layout.separator()
 
         if ob.vertex_groups.active:

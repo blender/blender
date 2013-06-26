@@ -2110,12 +2110,7 @@ static void createTransEditVerts(TransInfo *t)
 	}
 
 	/* check active */
-	if (em->bm->selected.last) {
-		BMEditSelection *ese = em->bm->selected.last;
-		if (ese->htype == BM_VERT) {
-			eve_act = (BMVert *)ese->ele;
-		}
-	}
+	eve_act = BM_mesh_active_vert_get(bm);
 
 	if (t->mode == TFM_BWEIGHT) {
 		BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(t->obedit), ME_CDFLAG_VERT_BWEIGHT);
@@ -5704,6 +5699,21 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	if (resetslowpar)
 		reset_slowparents();
 #endif
+}
+
+int special_transform_moving(TransInfo *t)
+{
+	if (t->spacetype == SPACE_SEQ) {
+		return G_TRANSFORM_SEQ;
+	}
+	else if (t->obedit || ((t->flag & T_POSE) && (t->poseobj))) {
+		return G_TRANSFORM_EDIT;
+	}
+	else if (t->flag & (T_OBJECT | T_TEXTURE)) {
+		return G_TRANSFORM_OBJ;
+	}
+
+	return 0;
 }
 
 static void createTransObject(bContext *C, TransInfo *t)

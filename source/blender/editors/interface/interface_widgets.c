@@ -883,7 +883,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 	}
 	
 	/* extra feature allows more alpha blending */
-	if (but->type == LABEL && but->a1 == 1.0f) alpha *= but->a2;
+	if (ELEM(but->type, LABEL, LISTLABEL) && but->a1 == 1.0f)
+		alpha *= but->a2;
 	
 	glEnable(GL_BLEND);
 	
@@ -1729,19 +1730,6 @@ static void widget_state_numslider(uiWidgetType *wt, int state)
 		else if (state & UI_BUT_DRIVEN)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_driven, blend);
 	}
-}
-
-/* labels use theme colors for text */
-static void widget_state_label(uiWidgetType *wt, int state)
-{
-	/* call this for option button */
-	widget_state(wt, state);
-
-	if (state & UI_SELECT)
-		UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
-	else
-		UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
-	
 }
 
 /* labels use theme colors for text */
@@ -2980,9 +2968,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 		case UI_WTYPE_REGULAR:
 			break;
 
+		case UI_WTYPE_LISTLABEL:
+			wt.wcol_theme = &btheme->tui.wcol_list_item;
+			/* No break, we use usual label code too. */
 		case UI_WTYPE_LABEL:
 			wt.draw = NULL;
-			wt.state = widget_state_label;
 			break;
 			
 		case UI_WTYPE_TOGGLE:
@@ -3230,6 +3220,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				}
 				break;
 				
+			case LISTLABEL:
+				wt = widget_type(UI_WTYPE_LISTLABEL);
+				fstyle = &style->widgetlabel;
+				break;
+
 			case SEPR:
 				break;
 				

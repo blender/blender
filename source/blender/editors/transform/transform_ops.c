@@ -357,10 +357,10 @@ static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 
 		retval = initTransform(C, t, op, event, mode);
-		G.moving = 1;
 
 		/* store data */
 		if (retval) {
+			G.moving = special_transform_moving(t);
 			op->customdata = t;
 		}
 		else {

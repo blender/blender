@@ -2045,6 +2045,9 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	}
 	WM_file_read(C, path, op->reports);
 
+	/* for file open also popup for warnings, not only errors */
+	BKE_report_print_level_set(op->reports, RPT_WARNING);
+
 	return OPERATOR_FINISHED;
 }
 

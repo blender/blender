@@ -199,7 +199,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 		}
 
 		/* add automatic conversion node in case of type mismatch */
-		ShaderNode *convert = add(new ConvertNode(from->type, to->type));
+		ShaderNode *convert = add(new ConvertNode(from->type, to->type, true));
 
 		connect(from, convert->inputs[0]);
 		connect(convert->outputs[0], to);
@@ -341,6 +341,24 @@ void ShaderGraph::remove_unneeded_nodes()
 			}
 			else {
 				foreach(ShaderInput *to, links) {
+					/* remove any autoconvert nodes too if they lead to
+					 * sockets with an automatically set default value */
+					ShaderNode *tonode = to->parent;
+
+					if(tonode->special_type == SHADER_SPECIAL_TYPE_AUTOCONVERT) {
+						bool all_links_removed = true;
+
+						foreach(ShaderInput *autoin, tonode->outputs[0]->links) {
+							if(autoin->default_value == ShaderInput::NONE)
+								all_links_removed = false;
+							else
+								disconnect(autoin);
+						}
+
+						if(all_links_removed)
+							removed[tonode->id] = true;
+					}
+
 					disconnect(to);
 					
 					/* transfer the default input value to the target socket */
@@ -352,10 +370,10 @@ void ShaderGraph::remove_unneeded_nodes()
 			removed[proxy->id] = true;
 			any_node_removed = true;
 		}
-
-		/* remove useless mix closures nodes */
-		if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
+		else if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
 			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
+
+			/* remove useless mix closures nodes */
 			if(mix->outputs[0]->links.size() && mix->inputs[1]->link == mix->inputs[2]->link) {
 				ShaderOutput *output = mix->inputs[1]->link;
 				vector<ShaderInput*> inputs = mix->outputs[0]->links;
@@ -370,15 +388,11 @@ void ShaderGraph::remove_unneeded_nodes()
 						connect(output, input);
 				}
 			}
-		}
 		
-		/* remove unused mix closure input when factor is 0.0 or 1.0 */
-		if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
-			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
-			/* Check for closure links and make sure factor link is disconnected */
+			/* remove unused mix closure input when factor is 0.0 or 1.0 */
+			/* check for closure links and make sure factor link is disconnected */
 			if(mix->outputs[0]->links.size() && mix->inputs[1]->link && mix->inputs[2]->link && !mix->inputs[0]->link) {
-			
-				/* Factor 0.0 */
+				/* factor 0.0 */
 				if(mix->inputs[0]->value.x == 0.0f) {
 					ShaderOutput *output = mix->inputs[1]->link;
 					vector<ShaderInput*> inputs = mix->outputs[0]->links;
@@ -393,7 +407,7 @@ void ShaderGraph::remove_unneeded_nodes()
 							connect(output, input);
 					}
 				}
-				/* Factor 1.0 */
+				/* factor 1.0 */
 				else if(mix->inputs[0]->value.x == 1.0f) {
 					ShaderOutput *output = mix->inputs[2]->link;
 					vector<ShaderInput*> inputs = mix->outputs[0]->links;
