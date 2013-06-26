@@ -241,6 +241,9 @@ public:
 	{
 		cl_context context = get_something<cl_context>(platform, device, &Slot::context, slot_locker);
 
+		if(!context)
+			return NULL;
+
 		/* caller is going to release it when done with it, so retain it */
 		cl_int ciErr = clRetainContext(context);
 		assert(ciErr == CL_SUCCESS);
@@ -254,6 +257,9 @@ public:
 		thread_scoped_lock &slot_locker)
 	{
 		cl_program program = get_something<cl_program>(platform, device, &Slot::program, slot_locker);
+
+		if(!program)
+			return NULL;
 
 		/* caller is going to release it when done with it, so retain it */
 		cl_int ciErr = clRetainProgram(program);
