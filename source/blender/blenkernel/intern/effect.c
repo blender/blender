@@ -148,12 +148,6 @@ PartDeflect *object_add_collision_fields(int type)
 	return pd;
 }
 
-/* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
-
-typedef struct VeNoCo {
-	float co[3], no[3];
-} VeNoCo;
-
 /* ***************** PARTICLES ***************** */
 
 /* -------------------------- Effectors ------------------ */
