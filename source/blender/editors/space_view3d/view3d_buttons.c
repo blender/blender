@@ -839,13 +839,13 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		const bool *vgroup_validmap;
 		eVGroupSelect subset_type = ts->vgroupsubset;
 		int yco = 0;
-		int locked = 0;
+		int lock_count = 0;
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
 
 		bcol = uiLayoutColumn(pa->layout, true);
 		row = uiLayoutRow(bcol, true); /* The filter button row */
-
+		
 		RNA_pointer_create(NULL, &RNA_ToolSettings, ts, &tools_ptr);
 		uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
@@ -853,11 +853,14 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
+			bool locked = dg->flag & DG_LOCK_WEIGHT;
 			if (vgroup_validmap[i]) {
 				MDeformWeight *dw = defvert_find_index(dv, i);
 				if (dw) {
 					int x, xco = 0;
-					row = uiLayoutRow(col, true);
+					int icon;
+					uiLayout *split = uiLayoutSplit(col, 0.45, true);
+					row = uiLayoutRow(split, true);
 
 					/* The Weight Group Name */
 
@@ -872,15 +875,17 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					}
 					xco += x;
 					
+					row = uiLayoutRow(split, true);
+					uiLayoutSetEnabled(row, !locked);
+
 					/* The weight group value */
 					/* To be reworked still */
 					but = uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, "",
 					                xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
 					                &dw->weight, 0.0, 1.0, 1, 3, "");
 					uiButSetFlag(but, UI_TEXT_LEFT);
-					if (dg->flag & DG_LOCK_WEIGHT) {
-						uiButSetFlag(but, UI_BUT_DISABLED);
-						locked++;
+					if (locked) {
+						lock_count++;
 					}
 					xco += x;
 
@@ -889,14 +894,16 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					ot = ot_weight_paste;
 					WM_operator_properties_create_ptr(&op_ptr, ot);
 					RNA_int_set(&op_ptr, "weight_group", i);
-					uiItemFullO_ptr(row, ot, "", ICON_PASTEDOWN, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+					icon = (locked) ? ICON_BLANK1:ICON_PASTEDOWN;
+					uiItemFullO_ptr(row, ot, "", icon, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
 					/* The weight entry delete function */
 
 					ot = ot_weight_delete;
 					WM_operator_properties_create_ptr(&op_ptr, ot);
 					RNA_int_set(&op_ptr, "weight_group", i);
-					uiItemFullO_ptr(row, ot, "", ICON_X, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+					icon = (locked) ? ICON_LOCKED:ICON_X;
+					uiItemFullO_ptr(row, ot, "", icon, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
 					yco -= UI_UNIT_Y;
 					
@@ -914,14 +921,17 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
 		                    0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
 		                    TIP_("Normalize weights of active vertex (if affected groups are unlocked"));
-		if (locked) {
+		if (lock_count) {
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", 1);
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy",
 		                    UI_UNIT_X * 5, yco, UI_UNIT_X * 5, UI_UNIT_Y,
-		                    TIP_("Copy active vertex to other selected verts"));
+		                    TIP_("Copy active vertex to other selected verts (if affected groups are unlocked)"));
+		if (lock_count) {
+			uiButSetFlag(but, UI_BUT_DISABLED);
+		}
 
 	}
 }

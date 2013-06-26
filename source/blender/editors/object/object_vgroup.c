@@ -4101,11 +4101,33 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 	}
 }
 
+static bool check_vertex_group_accessible(wmOperator *op, Object *ob, int def_nr)
+{
+	bDeformGroup *dg = BLI_findlink(&ob->defbase, def_nr);
+
+	if (!dg) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid Weight Group Index");
+		return true;
+	}
+
+	if (dg->flag & DG_LOCK_WEIGHT) {
+		BKE_report(op->reports, RPT_ERROR, "Weight Group is locked");
+		return true;
+	}
+
+	return false;
+}
+
 static int vertex_weight_paste(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
-	const int wg_index = RNA_int_get(op->ptr, "weight_group");
-	vgroup_copy_active_to_sel_single(ob, wg_index);
+	const int def_nr = RNA_int_get(op->ptr, "weight_group");
+	if (!check_vertex_group_accessible(op, ob, def_nr)) {
+		return OPERATOR_CANCELLED;
+	}
+
+
+	vgroup_copy_active_to_sel_single(ob, def_nr);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -4119,7 +4141,7 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 
 	ot->name = "Paste weight to Selected";
 	ot->idname = "OBJECT_OT_vertex_weight_paste";
-	ot->description = "Copy this group's weight to other selected verts";
+	ot->description = "Copy this group's weight to other selected verts (disabled if vertex Group is locked)";
 
 	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
 	                   "Index of source weight in active Weight Group", -1, INT_MAX);
@@ -4136,8 +4158,12 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 static int vertex_weight_delete(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
-	const int wg_index = RNA_int_get(op->ptr, "weight_group");
-	vgroup_remove_weight(ob, wg_index);
+	const int def_nr = RNA_int_get(op->ptr, "weight_group");
+	if (check_vertex_group_accessible(op, ob, def_nr)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	vgroup_remove_weight(ob, def_nr);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -4151,7 +4177,7 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
 
 	ot->name = "Delete Weight";
 	ot->idname = "OBJECT_OT_vertex_weight_delete";
-	ot->description = "Delete this weight from the vertex";
+	ot->description = "Delete this weight from the vertex (disabled if vertex Group is locked)";
 
 	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
 	                   "Index of source weight in active Weight Group", -1, INT_MAX);
