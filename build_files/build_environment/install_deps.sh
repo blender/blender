@@ -1527,7 +1527,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=9
+  osl_magic=10
   _init_osl
 
   # Clean install if needed!
