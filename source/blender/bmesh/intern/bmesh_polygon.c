@@ -1027,11 +1027,13 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
  */
 void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 {
+	const int len2 = len * 2;
 	BMLoop *l;
 	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-FLT_MAX, -FLT_MAX, 0.0f};
+	float axis_mat[3][3];
 	float (*projverts)[3] = BLI_array_alloca(projverts, f->len);
-	float (*edgeverts)[3] = BLI_array_alloca(edgeverts, len * 2);
+	float (*edgeverts)[3] = BLI_array_alloca(edgeverts, len2);
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
 	
@@ -1053,8 +1055,15 @@ void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 	}
 	
 	calc_poly_normal(no, projverts, f->len);
-	poly_rotate_plane(no, projverts, f->len);
-	poly_rotate_plane(no, edgeverts, len * 2);
+	if (axis_dominant_v3_to_m3(axis_mat, no)) {
+		for (i = 0; i < f->len; i++) {
+			mul_m3_v3(axis_mat, projverts[i]);
+		}
+
+		for (i = 0; i < len2; i++) {
+			mul_m3_v3(axis_mat, edgeverts[i]);
+		}
+	}
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		p1 = projverts[i];
