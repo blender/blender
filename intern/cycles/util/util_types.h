@@ -108,6 +108,7 @@
 #endif
 #endif
 
+/* SSE2 is available on x64 and SSE3 CPUs, so enable here as well */
 #ifndef __KERNEL_SSE2__
 #define __KERNEL_SSE2__
 #endif
