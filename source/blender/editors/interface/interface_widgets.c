@@ -1735,18 +1735,16 @@ static void widget_state_numslider(uiWidgetType *wt, int state)
 /* labels use theme colors for text */
 static void widget_state_option_menu(uiWidgetType *wt, int state)
 {
+	bTheme *btheme = UI_GetTheme(); /* XXX */
 	
 	/* call this for option button */
 	widget_state(wt, state);
 	
 	/* if not selected we get theme from menu back */
 	if (state & UI_SELECT)
-		UI_GetThemeColor4ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
-	else {
-		bTheme *btheme = UI_GetTheme(); /* XXX */
-
+		copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text_sel);
+	else
 		copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text);
-	}
 }
 
 
