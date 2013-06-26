@@ -632,6 +632,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw = ui_tooltip_region_draw_cb;
 	type.free = ui_tooltip_region_free_cb;
+	type.regionid = RGN_TYPE_TEMPORARY;
 	ar->type = &type;
 	
 	/* set font, get bb */
@@ -1159,6 +1160,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw = ui_searchbox_region_draw_cb;
 	type.free = ui_searchbox_region_free_cb;
+	type.regionid = RGN_TYPE_TEMPORARY;
 	ar->type = &type;
 	
 	/* create searchbox data */
@@ -1669,6 +1671,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw = ui_block_region_draw;
+	type.regionid = RGN_TYPE_TEMPORARY;
 	ar->type = &type;
 
 	UI_add_region_handlers(&ar->handlers);
