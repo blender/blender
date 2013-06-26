@@ -125,8 +125,10 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_POPUP_MEMORY   (1 << 12)
 #define UI_BLOCK_CLIP_EVENTS    (1 << 13)  /* stop handling mouse events */
 
-/* XXX This comment is no more valid! */
+/* XXX This comment is no more valid! Maybe it is now bits 14-17? */
 /* block->flag bits 12-15 are identical to but->flag bits */
+
+#define UI_BLOCK_LIST_ITEM   (1 << 19)
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL     (1 << 0)   /* cancel all menus cascading */
@@ -251,7 +253,8 @@ typedef enum {
 	VECTORSCOPE   = (50 << 9),
 	PROGRESSBAR   = (51 << 9),
 	SEARCH_MENU_UNLINK   = (52 << 9),
-	NODESOCKET    = (53 << 9)
+	NODESOCKET    = (53 << 9),
+	LISTLABEL     = (54 << 9),
 } eButType;
 
 #define BUTTYPE     (63 << 9)

@@ -2640,6 +2640,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					subblock = uiLayoutGetBlock(col);
 					overlap = uiLayoutOverlap(col);
 
+					uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
+
 					/* list item behind label & other buttons */
 					sub = uiLayoutRow(overlap, FALSE);
 
@@ -2653,6 +2655,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					if (icon == ICON_DOT)
 						icon = ICON_NONE;
 					draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+
+					/* If we are "drawing" active item, set all labels as active. */
+					if (i == activei) {
+						ui_layout_list_set_labels_active(sub);
+					}
 				}
 				i++;
 			}
@@ -2721,6 +2728,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 				subblock = uiLayoutGetBlock(row);
 				overlap = uiLayoutOverlap(row);
 
+				uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
+
 				/* list item behind label & other buttons */
 				sub = uiLayoutRow(overlap, FALSE);
 
@@ -2732,6 +2741,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 				icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
 				draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+
+				/* If we are "drawing" active item, set all labels as active. */
+				if (i == activei) {
+					ui_layout_list_set_labels_active(sub);
+				}
 
 				i++;
 			}

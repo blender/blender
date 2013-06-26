@@ -1632,7 +1632,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 		but = uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else
 		but = uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-	
+
 	/* to compensate for string size padding in ui_text_icon_width,
 	 * make text aligned right if the layout is aligned right.
 	 */
@@ -1640,7 +1640,12 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 		but->flag &= ~UI_TEXT_LEFT;	/* default, needs to be unset */
 		but->flag |= UI_TEXT_RIGHT;
 	}
-	
+
+	/* Mark as a label inside a listbox. */
+	if (block->flag & UI_BLOCK_LIST_ITEM) {
+		but->type = LISTLABEL;
+	}
+
 	return but;
 }
 
@@ -2397,6 +2402,18 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)
 uiLayout *uiLayoutBox(uiLayout *layout)
 {
 	return (uiLayout *)ui_layout_box(layout, ROUNDBOX);
+}
+
+/* Check all buttons defined in this layout, and set labels as active/selected.
+ * Needed to handle correctly text colors of list items. */
+void ui_layout_list_set_labels_active(uiLayout *layout)
+{
+	uiButtonItem *bitem;
+	for (bitem = layout->items.first; bitem; bitem = bitem->item.next) {
+		if (bitem->item.type == ITEM_BUTTON && bitem->but->type == LISTLABEL) {
+			uiButSetFlag(bitem->but, UI_SELECT);
+		}
+	}
 }
 
 uiLayout *uiLayoutListBox(uiLayout *layout, uiList *ui_list, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr,
