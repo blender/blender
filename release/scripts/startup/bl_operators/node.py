@@ -18,9 +18,17 @@
 
 # <pep8-80 compliant>
 
-import bpy, nodeitems_utils
-from bpy.types import Operator, PropertyGroup
-from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty, StringProperty
+import bpy
+import nodeitems_utils
+from bpy.types import (Operator,
+                       PropertyGroup,
+                       )
+from bpy.props import (BoolProperty,
+                       CollectionProperty,
+                       EnumProperty,
+                       IntProperty,
+                       StringProperty,
+                       )
 
 
 class NodeSetting(PropertyGroup):
@@ -29,6 +37,7 @@ class NodeSetting(PropertyGroup):
             description="Python expression to be evaluated as the initial node setting",
             default="",
             )
+
 
 # Base class for node 'Add' operators
 class NodeAddOperator():
@@ -80,12 +89,12 @@ class NodeAddOperator():
         for setting in self.settings:
             # XXX catch exceptions here?
             value = eval(setting.value)
-                
+
             try:
                 setattr(node, setting.name, value)
             except AttributeError as e:
-                self.report({'ERROR_INVALID_INPUT'}, "Node has no attribute "+setting.name)
-                print (str(e))
+                self.report({'ERROR_INVALID_INPUT'}, "Node has no attribute " + setting.name)
+                print(str(e))
                 # Continue despite invalid attribute
 
         if space.use_hidden_preview:
@@ -198,7 +207,7 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
 
         # no need to keep
         self._enum_item_hack.clear()
-        
+
         if item:
             # apply settings from the node item
             for setting in item.settings.items():

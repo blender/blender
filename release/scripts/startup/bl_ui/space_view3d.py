@@ -238,8 +238,10 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
         layout.separator()
 
         obj = context.object
-        if     (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and
-                obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
+        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and
+            obj.data.draw_type in {'BBONE', 'ENVELOPE'}
+            ):
+
             layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
 
         if context.edit_object and context.edit_object.type == 'ARMATURE':
@@ -989,7 +991,7 @@ class VIEW3D_MT_object_specials(Menu):
                         props.data_path_item = "data.size_y"
                         props.header_text = "Lamp Size Y: %.3f"
 
-                elif lamp.type in  {'SPOT', 'POINT', 'SUN'}:
+                elif lamp.type in {'SPOT', 'POINT', 'SUN'}:
                     props = layout.operator("wm.context_modal_mouse", text="Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.shadow_soft_size"

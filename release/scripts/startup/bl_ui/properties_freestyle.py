@@ -47,7 +47,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render
 
         layout.active = rd.use_freestyle
@@ -55,7 +55,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
         row = layout.row()
         row.label(text="Line Thickness:")
         row.prop(rd, "line_thickness_mode", expand=True)
-        
+
         if (rd.line_thickness_mode == 'ABSOLUTE'):
             layout.prop(rd, "line_thickness")
 
@@ -65,7 +65,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
 
 
 # Render layer properties
-        
+
 class RenderLayerFreestyleButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -77,7 +77,7 @@ class RenderLayerFreestyleButtonsPanel():
         scene = context.scene
         rd = context.scene.render
         with_freestyle = bpy.app.build_options.freestyle
-        
+
         return (scene and with_freestyle and rd.use_freestyle
             and rd.layers.active and(scene.render.engine in cls.COMPAT_ENGINES))
 
@@ -119,28 +119,28 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render
         rl = rd.layers.active
         freestyle = rl.freestyle_settings
 
         layout.active = rl.use_freestyle
-        
+
         layout.prop(freestyle, "mode", text="Control mode")
         layout.label(text="Edge Detection Options:")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.prop(freestyle, "crease_angle")
         col.prop(freestyle, "use_culling")
         col.prop(freestyle, "use_advanced_options")
-        
+
         col = split.column()
         col.prop(freestyle, "use_smoothness")
         if freestyle.mode == 'SCRIPT':
             col.prop(freestyle, "use_material_boundaries")
-        
+
         # Advanced options are hidden by default to warn new users
         if freestyle.use_advanced_options:
             if freestyle.mode == 'SCRIPT':
@@ -184,7 +184,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render
         rl = rd.layers.active
         freestyle = rl.freestyle_settings
@@ -233,14 +233,14 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
                 row.prop(lineset, "edge_type_combination", expand=True)
 
                 split = col.split()
-                
+
                 sub = split.column()
                 self.draw_edge_type_buttons(sub, lineset, "silhouette")
                 self.draw_edge_type_buttons(sub, lineset, "border")
                 self.draw_edge_type_buttons(sub, lineset, "contour")
                 self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
                 self.draw_edge_type_buttons(sub, lineset, "ridge_valley")
-                
+
                 sub = split.column()
                 self.draw_edge_type_buttons(sub, lineset, "crease")
                 self.draw_edge_type_buttons(sub, lineset, "edge_mark")
@@ -518,7 +518,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render
         rl = rd.layers.active
         lineset = rl.freestyle_settings.linesets.active

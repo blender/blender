@@ -35,6 +35,7 @@ FLAG_MESSAGES = {
     FORBIDDEN: "Explicitly forbidden!",
 }
 
+
 def gen_menu_file(stats, settings):
     # Generate languages file used by Blender's i18n system.
     # First, match all entries in LANGUAGES to a lang in stats, if possible!
