@@ -3095,7 +3095,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Assign Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_assign";
-	ot->description = "Assign the selected vertices to the current (or a new) vertex group";
+	ot->description = "Assign the selected vertices to the active (or a new) vertex group";
 	
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_unlocked_poll;
