@@ -773,6 +773,7 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
         row.prop(light, "ao_factor", text="Factor")
         row.prop(light, "distance", text="Distance")
 
+
 class CyclesWorld_PT_mist(CyclesButtonsPanel, Panel):
     bl_label = "Mist Pass"
     bl_context = "world"
@@ -940,7 +941,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col = split.column(align=True)
         col.label()
         col.prop(mat, "pass_index")
-        
+
         col = layout.column()
         col.prop(cmat, "sample_as_light")
         col.prop(cmat, "use_transparent_shadow")
@@ -1166,7 +1167,7 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
 
             row = layout.row()
             row.prop(ccscene, "use_parents", text="Include parents")
-        
+
         row = layout.row()
         row.prop(ccscene, "minimum_width", text="Min Pixels")
         row.prop(ccscene, "maximum_width", text="Max Ext.")
@@ -1198,7 +1199,7 @@ class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
         row = layout.row()
         row.prop(cpsys, "root_width", text="Root")
         row.prop(cpsys, "tip_width", text="Tip")
-        
+
         row = layout.row()
         row.prop(cpsys, "radius_scale", text="Scaling")
         row.prop(cpsys, "use_closetip", text="Close tip")
