@@ -2392,16 +2392,18 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	EDBM_selectmode_flush(em);
 	ele = BM_mesh_active_elem_get(em->bm);
 
-	switch (ele->head.htype) {
-		case BM_VERT:
-			*r_eve = (BMVert *)ele;
-			return;
-		case BM_EDGE:
-			*r_eed = (BMEdge *)ele;
-			return;
-		case BM_FACE:
-			*r_efa = (BMFace *)ele;
-			return;
+	if (ele) {
+		switch (ele->head.htype) {
+			case BM_VERT:
+				*r_eve = (BMVert *)ele;
+				return;
+			case BM_EDGE:
+				*r_eed = (BMEdge *)ele;
+				return;
+			case BM_FACE:
+				*r_efa = (BMFace *)ele;
+				return;
+		}
 	}
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {

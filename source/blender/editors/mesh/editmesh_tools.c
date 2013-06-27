@@ -407,34 +407,6 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int edbm_collapse_edge_loop_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-	if (!EDBM_op_callf(em, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
-		return OPERATOR_CANCELLED;
-
-	EDBM_update_generic(em, true, true);
-
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edge_collapse_loop(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Edge Collapse Loop";
-	ot->description = "Collapse selected edge loops";
-	ot->idname = "MESH_OT_edge_collapse_loop";
-
-	/* api callbacks */
-	ot->exec = edbm_collapse_edge_loop_exec;
-	ot->poll = ED_operator_editmesh;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 static int edbm_add_edge_face__smooth_get(BMesh *bm)
 {
 	BMEdge *e;

@@ -180,7 +180,6 @@ void MESH_OT_colors_rotate(struct wmOperatorType *ot);
 void MESH_OT_colors_reverse(struct wmOperatorType *ot);
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_edge_collapse(struct wmOperatorType *ot);
-void MESH_OT_edge_collapse_loop(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(struct wmOperatorType *ot);
 void MESH_OT_split(struct wmOperatorType *ot);
