@@ -183,7 +183,7 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 				int mi = clamp(b_psys.settings().material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
 				int draw_step = background ? b_psys.settings().render_step() : b_psys.settings().draw_step();
-				int ren_step = (int)pow((float)2.0f,(float)draw_step);
+				int ren_step = (int)powf(2.0f, (float)draw_step);
 				int totparts = b_psys.particles.length();
 				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_psys.settings().draw_percentage() / 100.0f);
 				int totcurves = totchild;
