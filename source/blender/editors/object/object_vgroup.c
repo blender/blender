@@ -557,16 +557,14 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
 		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
 		dvert_act = ED_mesh_active_dvert_get_em(ob, &eve_act);
-		if (dvert_act == NULL) {
-			return;
-		}
-
-		BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve != eve_act) {
-				MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-				defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
-				if (me->editflag & ME_EDIT_MIRROR_X) {
-					ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
+		if (dvert_act) {
+			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve != eve_act) {
+					MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+					defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
+					if (me->editflag & ME_EDIT_MIRROR_X) {
+						ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
+					}
 				}
 			}
 		}
@@ -576,16 +574,14 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
 		int v_act;
 
 		dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
-		if (dvert_act == NULL) {
-			return;
-		}
-
-		dv  = me->dvert;
-		for (i = 0; i < me->totvert; i++, dv++) {
-			if ((me->mvert[i].flag & SELECT) && dv != dvert_act) {
-				defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
-				if (me->editflag & ME_EDIT_MIRROR_X) {
-					ED_mesh_defvert_mirror_update_ob(ob, -1, i);
+		if (dvert_act) {
+			dv  = me->dvert;
+			for (i = 0; i < me->totvert; i++, dv++) {
+				if ((me->mvert[i].flag & SELECT) && dv != dvert_act) {
+					defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
+					if (me->editflag & ME_EDIT_MIRROR_X) {
+						ED_mesh_defvert_mirror_update_ob(ob, -1, i);
+					}
 				}
 			}
 		}
