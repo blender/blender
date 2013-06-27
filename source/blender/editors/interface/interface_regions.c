@@ -1253,8 +1253,11 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		if (rect_i.ymin < 0) {
-			int newy1;
-			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->rect.ymax + ofsy, NULL, &newy1);
+			int newy1 = but->rect.ymax + ofsy;
+
+			if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax)
+				UI_view2d_to_region_no_clip(&butregion->v2d, 0, newy1, NULL, &newy1);
+
 			newy1 += butregion->winrct.ymin;
 
 			rect_i.ymax = BLI_rcti_size_y(&rect_i) + newy1;
