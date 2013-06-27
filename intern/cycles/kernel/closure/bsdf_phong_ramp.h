@@ -41,6 +41,8 @@ __device float3 bsdf_phong_ramp_get_color(const ShaderClosure *sc, const float3 
 	
 	float npos = pos * (float)(MAXCOLORS - 1);
 	int ipos = float_to_int(npos);
+	if (ipos < 0)
+		return colors[0];
 	if (ipos >= (MAXCOLORS - 1))
 		return colors[MAXCOLORS - 1];
 	float offset = npos - (float)ipos;
@@ -49,6 +51,8 @@ __device float3 bsdf_phong_ramp_get_color(const ShaderClosure *sc, const float3 
 
 __device int bsdf_phong_ramp_setup(ShaderClosure *sc)
 {
+	sc->data0 = max(sc->data0, 0.0f);
+	
 	sc->type = CLOSURE_BSDF_PHONG_RAMP_ID;
 	return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
 }
