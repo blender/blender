@@ -86,11 +86,12 @@ static IKPlugin ikplugin_tab[] = {
 
 static IKPlugin *get_plugin(bPose *pose)
 {
-	if (!pose || pose->iksolver < 0 || pose->iksolver > (sizeof(ikplugin_tab) / sizeof(IKPlugin) - 2))
+	if (!pose || pose->iksolver < 0 || pose->iksolver >= ((sizeof(ikplugin_tab) / sizeof(IKPlugin)) - 1))
 		return NULL;
 
 	return &ikplugin_tab[pose->iksolver];
 }
+
 
 /*----------------------------------------*/
 /* Plugin API							  */
