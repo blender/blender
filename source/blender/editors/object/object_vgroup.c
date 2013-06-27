@@ -4149,15 +4149,15 @@ static bool check_vertex_group_accessible(wmOperator *op, Object *ob, int def_nr
 
 	if (!dg) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid Weight Group Index");
-		return true;
+		return false;
 	}
 
 	if (dg->flag & DG_LOCK_WEIGHT) {
 		BKE_report(op->reports, RPT_ERROR, "Weight Group is locked");
-		return true;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 static int vertex_weight_paste_exec(bContext *C, wmOperator *op)
@@ -4202,7 +4202,7 @@ static int vertex_weight_delete_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_context(C);
 	const int def_nr = RNA_int_get(op->ptr, "weight_group");
 
-	if (check_vertex_group_accessible(op, ob, def_nr)) {
+	if (!check_vertex_group_accessible(op, ob, def_nr)) {
 		return OPERATOR_CANCELLED;
 	}
 
