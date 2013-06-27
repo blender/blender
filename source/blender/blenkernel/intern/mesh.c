@@ -2765,7 +2765,9 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
 #ifdef USE_TESSFACE_CALCNORMAL
 			add_newell_cross_v3_v3v3(normal, sf_vert_last->co, sf_vert_first->co);
-			normalize_v3(normal);
+			if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+				normal[2] = 1.0f;
+			}
 			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, normal);
 #else
 			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);

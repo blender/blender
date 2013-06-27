@@ -78,6 +78,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
 
     _frame_rate_args_prev = None
     _preset_class = None
+
     @staticmethod
     def _draw_framerate_label(*args):
         # avoids re-creating text string each draw
@@ -85,7 +86,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
             return RENDER_PT_dimensions._frame_rate_ret
 
         fps, fps_base, preset_label = args
-        
+
         if fps_base == 1.0:
             fps_rate = round(fps)
         else:

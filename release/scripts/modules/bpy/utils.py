@@ -507,7 +507,8 @@ def keyconfig_set(filepath, report=None):
             report({'ERROR'}, error_msg)
         print(error_msg)
 
-    kc_new = next(chain(iter(kc for kc in keyconfigs if kc not in keyconfigs_old), (None,)))
+    kc_new = next(chain(iter(kc for kc in keyconfigs
+                             if kc not in keyconfigs_old), (None,)))
     if kc_new is None:
         if report is not None:
             report({'ERROR'}, "Failed to load keymap %r" % filepath)

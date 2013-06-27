@@ -1363,7 +1363,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 	
 
 #ifdef SORT_UNIFORMS
-	mat.getValue(matr);
+	mat.getValue3x3(matr);
 	SetUniformfv(loc, BL_Uniform::UNI_MAT3, matr, (sizeof(float)*9), (transp!=0) );
 #else
 	SetUniform(loc,mat,(transp!=0));

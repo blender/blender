@@ -4,7 +4,7 @@ Intro
 
 .. warning::
    Most of this object should only be useful if you actually manipulate i18n stuff from Python.
-   If you are a regular addon, you should only bother about :const:`contexts` member, 
+   If you are a regular addon, you should only bother about :const:`contexts` member,
    and the :func:`register`/:func:`unregister` functions! The :func:`pgettext` family of functions
    should only be used in rare, specific cases (like e.g. complex "composited" UI strings...).
 

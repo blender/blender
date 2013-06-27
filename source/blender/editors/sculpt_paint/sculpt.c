@@ -1528,6 +1528,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
 	int thread_num;
+	BLI_bitmap *grid_hidden;
 	int *grid_indices, totgrid, gridsize, i, x, y;
 
 	sculpt_brush_test_init(ss, &test);
@@ -1537,6 +1538,8 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	BKE_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
 	                        NULL, &gridsize, &griddata, &gridadj);
 	BKE_pbvh_get_grid_key(ss->pbvh, &key);
+
+	grid_hidden = BKE_pbvh_grid_hidden(ss->pbvh);
 
 	thread_num = 0;
 #ifdef _OPENMP
@@ -1549,8 +1552,10 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	tmprow_mask = ss->cache->tmprow_mask[thread_num];
 
 	for (i = 0; i < totgrid; ++i) {
-		data = griddata[grid_indices[i]];
-		adj = &gridadj[grid_indices[i]];
+		int gi = grid_indices[i];
+		BLI_bitmap gh = grid_hidden[gi];
+		data = griddata[gi];
+		adj = &gridadj[gi];
 
 		if (smooth_mask)
 			memset(tmpgrid_mask, 0, sizeof(float) * gridsize * gridsize);
@@ -1610,6 +1615,11 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 				float *fno;
 				float *mask;
 				int index;
+
+				if (gh) {
+					if (BLI_BITMAP_GET(gh, y * gridsize + x))
+						continue;
+				}
 
 				if (x == 0 && adj->index[0] == -1)
 					continue;

@@ -643,7 +643,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             sub.prop(gs, "deactivation_angular_threshold", text="Angular Threshold")
             sub = col.row()
             sub.prop(gs, "deactivation_time", text="Time")
-            
+
             col = layout.column()
             col.prop(gs, "use_occlusion_culling", text="Occlusion Culling")
             sub = col.column()

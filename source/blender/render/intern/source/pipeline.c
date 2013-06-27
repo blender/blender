@@ -411,6 +411,7 @@ void RE_FreeRender(Render *re)
 	
 	/* main dbase can already be invalid now, some database-free code checks it */
 	re->main = NULL;
+	re->scene = NULL;
 	
 	RE_Database_Free(re);	/* view render can still have full database */
 	free_sample_tables(re);

@@ -316,7 +316,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	 */
 	y = (float) CHANNEL_FIRST;
 
-	BLF_size(fontid, 11.0f, U.dpi);
+	BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
 
 	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 		float yminc = (float) (y - CHANNEL_HEIGHT_HALF);

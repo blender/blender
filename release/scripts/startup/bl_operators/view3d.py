@@ -138,7 +138,7 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
         x = event.mouse_region_x
         y = event.mouse_region_y
 
-        if self.extend == False and self.toggle == False and self.deselect == False:
+        if self.extend is False and self.toggle is False and self.deselect is False:
             active_object = context.active_object
 
             if active_object:

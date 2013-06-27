@@ -41,6 +41,8 @@ __device float3 bsdf_diffuse_ramp_get_color(const ShaderClosure *sc, const float
 	
 	float npos = pos * (float)(MAXCOLORS - 1);
 	int ipos = float_to_int(npos);
+	if (ipos < 0)
+		return colors[0];
 	if (ipos >= (MAXCOLORS - 1))
 		return colors[MAXCOLORS - 1];
 	float offset = npos - (float)ipos;

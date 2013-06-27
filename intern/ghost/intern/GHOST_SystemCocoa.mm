@@ -549,7 +549,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 #pragma mark initialization/finalization
 
-const char *user_locale; // Global current user locale
+char GHOST_user_locale[128]; // Global current user locale
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
@@ -590,11 +590,13 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	m_ignoreWindowSizedMessages = false;
 	
 	//Get current locale
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
 	NSLocale * myNSLocale = (NSLocale *) myCFLocale;
 	[myNSLocale autorelease];
 	NSString *nsIdentifier = [myNSLocale localeIdentifier];
-	user_locale = [nsIdentifier UTF8String];	
+	strncpy(GHOST_user_locale, [nsIdentifier UTF8String], sizeof(GHOST_user_locale) - 1);
+	[pool drain];
 }
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()

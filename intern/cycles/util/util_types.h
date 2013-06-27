@@ -61,58 +61,49 @@
 
 #ifndef __KERNEL_GPU__
 
-/* not enabled, globally applying it just gives slowdown,
- * but useful for testing. */
-//#define __KERNEL_SSE__
-#ifdef __KERNEL_SSE__
-
-#include <xmmintrin.h> /* SSE 1 */
-#include <emmintrin.h> /* SSE 2 */
-#include <pmmintrin.h> /* SSE 3 */
-#include <tmmintrin.h> /* SSSE 3 */
-#include <smmintrin.h> /* SSE 4 */
-
+/* not enabled, globally applying it gives slowdown, only for testing. */
+#if 0
+#define __KERNEL_SSE__
 #ifndef __KERNEL_SSE2__
 #define __KERNEL_SSE2__
 #endif
-
 #ifndef __KERNEL_SSE3__
 #define __KERNEL_SSE3__
 #endif
-
 #ifndef __KERNEL_SSSE3__
 #define __KERNEL_SSSE3__
 #endif
-
 #ifndef __KERNEL_SSE4__
 #define __KERNEL_SSE4__
 #endif
+#endif
 
-#else
+/* SSE2 is always available on x86_64 CPUs, so auto enable */
+#if defined(__x86_64__) && !defined(__KERNEL_SSE2__)
+#define __KERNEL_SSE2__
+#endif
 
-#if defined(__x86_64__) || defined(__KERNEL_SSSE3__)
+/* SSE intrinsics headers */
+#ifndef FREE_WINDOWS64
 
-/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
- * Since we can't avoid including <windows.h>, better only include that */
-#ifdef FREE_WINDOWS64
-#include <windows.h>
-#else
+#ifdef __KERNEL_SSE2__
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
+#endif
 
 #ifdef __KERNEL_SSE3__
 #include <pmmintrin.h> /* SSE 3 */
 #endif
+
 #ifdef __KERNEL_SSSE3__
 #include <tmmintrin.h> /* SSSE 3 */
 #endif
-#endif
 
-#ifndef __KERNEL_SSE2__
-#define __KERNEL_SSE2__
-#endif
+#else
 
-#endif
+/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
+ * Since we can't avoid including <windows.h>, better only include that */
+#include <windows.h>
 
 #endif
 
@@ -550,30 +541,6 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m12
 {
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
-#endif
-
-#ifndef __KERNEL_GPU__
-
-static inline void *malloc_aligned(size_t size, size_t alignment)
-{
-	void *data = (void*)malloc(size + sizeof(void*) + alignment - 1);
-
-	union { void *ptr; size_t offset; } u;
-	u.ptr = (char*)data + sizeof(void*);
-	u.offset = (u.offset + alignment - 1) & ~(alignment - 1);
-	*(((void**)u.ptr) - 1) = data;
-
-	return u.ptr;
-}
-
-static inline void free_aligned(void *ptr)
-{
-	if(ptr) {
-		void *data = *(((void**)ptr) - 1);
-		free(data);
-	}
-}
-
 #endif
 
 CCL_NAMESPACE_END

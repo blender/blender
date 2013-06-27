@@ -1166,7 +1166,7 @@ __device float safe_powf(float a, float b)
 		return 1.0f;
 	if(a == 0.0f)
 		return 0.0f;
-	if(a < 0.0f && b != (int)b)
+	if(a < 0.0f && b != float_to_int(b))
 		return 0.0f;
 	
 	return compatible_powf(a, b);

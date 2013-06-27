@@ -47,6 +47,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
@@ -5143,7 +5144,6 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	BPoint *bp, *tempbp;
 	int a;
 	short sel = 0;
-	short *selbpoints;
 	
 	/* note that NURBS surface is a special case because we mimic */
 	/* the behavior of "select more" of mesh tools.	      */
@@ -5151,11 +5151,12 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	/* may not be optimal always (example: end of NURBS sphere)   */
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
+			BLI_bitmap selbpoints;
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
-			selbpoints = MEM_callocN(sizeof(short) * a - nu->pntsu, "selectlist");
+			selbpoints = BLI_BITMAP_NEW(a, "selectlist");
 			while (a > 0) {
-				if ((selbpoints[a] != 1) && (bp->hide == 0) && (bp->f1 & SELECT)) {
+				if ((!BLI_BITMAP_GET(selbpoints, a)) && (bp->hide == 0) && (bp->f1 & SELECT)) {
 					/* upper control point */
 					if (a % nu->pntsu != 0) {
 						tempbp = bp - 1;
@@ -5168,7 +5169,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 						tempbp = bp + nu->pntsu;
 						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, 1, VISIBLE);
 						/* make sure selected bpoint is discarded */
-						if (sel == 1) selbpoints[a - nu->pntsu] = 1;
+						if (sel == 1) BLI_BITMAP_SET(selbpoints, a - nu->pntsu);
 					}
 					
 					/* right control point */
@@ -5233,13 +5234,13 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	BezTriple *bezt;
 	int a;
 	short sel = 0, lastsel = false;
-	short *selbpoints;
 	
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
+			BLI_bitmap selbpoints;
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
-			selbpoints = MEM_callocN(sizeof(short) * a, "selectlist");
+			selbpoints = BLI_BITMAP_NEW(a, "selectlist");
 			while (a--) {
 				if ((bp->hide == 0) && (bp->f1 & SELECT)) {
 					sel = 0;
@@ -5251,7 +5252,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 					else {
 						bp--;
-						if ((selbpoints[a + 1] == 1) || ((bp->hide == 0) && (bp->f1 & SELECT))) sel++;
+						if (BLI_BITMAP_GET(selbpoints, a + 1) || ((bp->hide == 0) && (bp->f1 & SELECT))) sel++;
 						bp++;
 					}
 					
@@ -5269,7 +5270,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 					else {
 						bp -= nu->pntsu;
-						if ((selbpoints[a + nu->pntsu] == 1) || ((bp->hide == 0) && (bp->f1 & SELECT))) sel++;
+						if (BLI_BITMAP_GET(selbpoints, a + nu->pntsu) || ((bp->hide == 0) && (bp->f1 & SELECT))) sel++;
 						bp += nu->pntsu;
 					}
 
@@ -5284,7 +5285,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 
 					if (sel != 4) {
 						select_bpoint(bp, DESELECT, 1, VISIBLE); 
-						selbpoints[a] = 1;
+						BLI_BITMAP_SET(selbpoints, a);
 					}
 				}
 				else {

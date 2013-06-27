@@ -2432,6 +2432,8 @@ DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
 	return getEditDerivedBMesh(em, obedit, NULL);
 }
 
+/* UNUSED */
+#if 0
 
 /* ********* For those who don't grasp derived stuff! (ton) :) *************** */
 
@@ -2487,6 +2489,8 @@ DMCoNo *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 	dm->release(dm);
 	return vertexcosnos;
 }
+
+#endif
 
 /* ******************* GLSL ******************** */
 

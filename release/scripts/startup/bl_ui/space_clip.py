@@ -336,7 +336,8 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.prop(settings, "use_keyframe_selection")
 
         col = layout.column(align=True)
-        col.active = not settings.use_tripod_solver and not settings.use_keyframe_selection
+        col.active = (not settings.use_tripod_solver and
+                      not settings.use_keyframe_selection)
         col.prop(tracking_object, "keyframe_a")
         col.prop(tracking_object, "keyframe_b")
 
@@ -408,7 +409,7 @@ class CLIP_PT_tools_orientation(CLIP_PT_reconstruction_panel, Panel):
         layout.separator()
 
         col = layout.column()
-        row = col.row(align=True);
+        row = col.row(align=True)
         row.operator("clip.set_scale")
         row.operator("clip.apply_solution_scale", text="Apply Scale")
         col.prop(settings, "distance")
