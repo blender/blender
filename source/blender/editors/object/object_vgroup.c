@@ -2972,6 +2972,29 @@ static int vertex_group_vert_select_poll(bContext *C)
 	        vgroup_object_in_wpaint_vert_select(ob));
 }
 
+/* editmode _or_ weight paint vertex sel and active group unlocked */
+static int vertex_group_vert_select_unlocked_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+	ID *data = (ob) ? ob->data : NULL;
+
+	if (!(ob && !ob->id.lib && data && !data->lib))
+		return 0;
+
+	if (!(vgroup_object_in_edit_mode(ob) ||
+		vgroup_object_in_wpaint_vert_select(ob))) {
+		return 0;
+	}
+
+	if (ob->actdef != -1) {
+		bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef - 1);
+		if (dg) {
+			return !(dg->flag & DG_LOCK_WEIGHT);
+		}
+	}
+	return 0;
+}
+
 static int vertex_group_vert_select_mesh_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
@@ -3075,7 +3098,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	ot->description = "Assign the selected vertices to the current (or a new) vertex group";
 	
 	/* api callbacks */
-	ot->poll = vertex_group_vert_select_poll;
+	ot->poll = vertex_group_vert_select_unlocked_poll;
 	ot->exec = vertex_group_assign_exec;
 
 	/* flags */
@@ -3123,7 +3146,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->description = "Remove the selected vertices from active or all vertex group(s)";
 
 	/* api callbacks */
-	ot->poll = vertex_group_vert_select_poll;
+	ot->poll = vertex_group_vert_select_unlocked_poll;
 	ot->exec = vertex_group_remove_from_exec;
 
 	/* flags */
