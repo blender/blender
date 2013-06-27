@@ -923,7 +923,7 @@ Object *BKE_object_add(Main *bmain, Scene *scene, int type)
 	base = BKE_scene_base_add(scene, ob);
 	BKE_scene_base_deselect_all(scene);
 	BKE_scene_base_select(scene, base);
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	return ob;
 }
