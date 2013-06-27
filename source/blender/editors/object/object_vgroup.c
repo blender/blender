@@ -2953,7 +2953,7 @@ static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 }
 
 /* editmode _or_ weight paint vertex sel */
-static int vertex_group_poll_edit_or_wpaint_vert_select(bContext *C)
+static int vertex_group_vert_select_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -3052,7 +3052,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	ot->description = "Assign the selected vertices to the current (or a new) vertex group";
 	
 	/* api callbacks */
-	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->poll = vertex_group_vert_select_poll;
 	ot->exec = vertex_group_assign_exec;
 
 	/* flags */
@@ -3100,7 +3100,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->description = "Remove the selected vertices from active or all vertex group(s)";
 
 	/* api callbacks */
-	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->poll = vertex_group_vert_select_poll;
 	ot->exec = vertex_group_remove_from_exec;
 
 	/* flags */
@@ -3137,7 +3137,7 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 	ot->description = "Select all the vertices assigned to the active vertex group";
 
 	/* api callbacks */
-	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->poll = vertex_group_vert_select_poll;
 	ot->exec = vertex_group_select_exec;
 
 	/* flags */
@@ -3162,7 +3162,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 	ot->description = "Deselect all selected vertices assigned to the active vertex group";
 
 	/* api callbacks */
-	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->poll = vertex_group_vert_select_poll;
 	ot->exec = vertex_group_deselect_exec;
 
 	/* flags */
@@ -4118,7 +4118,7 @@ static bool check_vertex_group_accessible(wmOperator *op, Object *ob, int def_nr
 	return false;
 }
 
-static int vertex_weight_paste(bContext *C, wmOperator *op)
+static int vertex_weight_paste_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	const int def_nr = RNA_int_get(op->ptr, "weight_group");
@@ -4149,13 +4149,13 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
-	ot->exec = vertex_weight_paste;
+	ot->exec = vertex_weight_paste_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_weight_delete(bContext *C, wmOperator *op)
+static int vertex_weight_delete_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	const int def_nr = RNA_int_get(op->ptr, "weight_group");
@@ -4185,13 +4185,13 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
-	ot->exec = vertex_weight_delete;
+	ot->exec = vertex_weight_delete_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_weight_set_active(bContext *C, wmOperator *op)
+static int vertex_weight_set_active_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	const int wg_index = RNA_int_get(op->ptr, "weight_group");
@@ -4219,13 +4219,13 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
-	ot->exec = vertex_weight_set_active;
+	ot->exec = vertex_weight_set_active_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_weight_normalize_active_vertex(bContext *C, wmOperator *UNUSED(op))
+static int vertex_weight_normalize_active_vertex_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -4248,13 +4248,13 @@ void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
-	ot->exec = vertex_weight_normalize_active_vertex;
+	ot->exec = vertex_weight_normalize_active_vertex_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_weight_copy(bContext *C, wmOperator *UNUSED(op))
+static int vertex_weight_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -4277,7 +4277,7 @@ void OBJECT_OT_vertex_weight_copy(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
-	ot->exec = vertex_weight_copy;
+	ot->exec = vertex_weight_copy_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
