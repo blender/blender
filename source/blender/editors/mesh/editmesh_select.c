@@ -3188,6 +3188,8 @@ static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
+	EDBM_selectmode_flush(em);
+
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
