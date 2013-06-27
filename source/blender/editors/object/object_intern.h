@@ -226,7 +226,7 @@ void OBJECT_OT_vertex_group_move(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_paste(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_delete(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_set_active(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_weight_normalize_active(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_weight_normalize_active_vertex(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_copy(struct wmOperatorType *ot);
 
 /* object_shapekey.c */

@@ -42,6 +42,7 @@ class NodeCategory():
                         yield item
             self.items = items_gen
 
+
 class NodeItem():
     def __init__(self, nodetype, label=None, settings={}, poll=None):
         self.nodetype = nodetype
@@ -81,6 +82,7 @@ class NodeItemCustom():
 
 _node_categories = {}
 
+
 def register_node_categories(identifier, cat_list):
     if identifier in _node_categories:
         raise KeyError("Node categories list '%s' already registered" % identifier)
@@ -97,21 +99,21 @@ def register_node_categories(identifier, cat_list):
     menu_types = []
     panel_types = []
     for cat in cat_list:
-        menu_type = type("NODE_MT_category_"+cat.identifier, (bpy.types.Menu,), {
-            "bl_space_type" : 'NODE_EDITOR',
-            "bl_label" : cat.name,
-            "category" : cat,
-            "poll" : cat.poll,
-            "draw" : draw_node_item,
+        menu_type = type("NODE_MT_category_" + cat.identifier, (bpy.types.Menu,), {
+            "bl_space_type": 'NODE_EDITOR',
+            "bl_label": cat.name,
+            "category": cat,
+            "poll": cat.poll,
+            "draw": draw_node_item,
             })
-        panel_type = type("NODE_PT_category_"+cat.identifier, (bpy.types.Panel,), {
-            "bl_space_type" : 'NODE_EDITOR',
-            "bl_region_type" : 'TOOLS',
-            "bl_label" : cat.name,
-            "bl_options" : {'DEFAULT_CLOSED'},
-            "category" : cat,
-            "poll" : cat.poll,
-            "draw" : draw_node_item,
+        panel_type = type("NODE_PT_category_" + cat.identifier, (bpy.types.Panel,), {
+            "bl_space_type": 'NODE_EDITOR',
+            "bl_region_type": 'TOOLS',
+            "bl_label": cat.name,
+            "bl_options": {'DEFAULT_CLOSED'},
+            "category": cat,
+            "poll": cat.poll,
+            "draw": draw_node_item,
             })
 
         menu_types.append(menu_type)
@@ -166,4 +168,3 @@ def unregister_node_categories(identifier=None):
         for cat_types in _node_categories.values():
             unregister_node_cat_types(cat_types)
         _node_categories.clear()
-

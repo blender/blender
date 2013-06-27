@@ -34,6 +34,7 @@
 
 struct Mesh;
 
+void BM_mesh_cd_validate(BMesh *bm);
 void BM_mesh_cd_flag_ensure(BMesh *bm, struct Mesh *mesh, const char cd_flag);
 void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag);
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm);

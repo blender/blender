@@ -223,7 +223,7 @@ static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
 	return BLI_ghash_lookup(bp->vert_hash, bmv);
 }
 
-/* Return a good respresentative face (for materials, etc.) for faces
+/* Return a good representative face (for materials, etc.) for faces
  * created around/near BoundVert v */
 static BMFace *boundvert_rep_face(BoundVert *v)
 {
@@ -531,7 +531,7 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
  * Also find vd, which is in direction normal to parallelogram and 1 unit away
  * from the origin.
  * The quarter circle in first quadrant of unit square will be mapped to the
- * quadrant of a sheared ellipse in the parallelgram, using a matrix.
+ * quadrant of a sheared ellipse in the parallelogram, using a matrix.
  * The matrix mat is calculated to map:
  *    (0,1,0) -> va
  *    (1,1,0) -> vmid

@@ -229,7 +229,7 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.3.0"
+OSL_VERSION="1.3.2"
 OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
@@ -1527,7 +1527,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=9
+  osl_magic=10
   _init_osl
 
   # Clean install if needed!

@@ -22,6 +22,7 @@
 
 #ifdef WITH_OPTIMIZED_KERNEL
 
+#define __KERNEL_SSE2__
 #define __KERNEL_SSE3__
 #define __KERNEL_SSSE3__
 

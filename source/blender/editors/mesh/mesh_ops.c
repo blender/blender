@@ -119,7 +119,6 @@ void ED_operatortypes_mesh(void)
 
 	WM_operatortype_append(MESH_OT_delete);
 	WM_operatortype_append(MESH_OT_edge_collapse);
-	WM_operatortype_append(MESH_OT_edge_collapse_loop);
 
 	WM_operatortype_append(MESH_OT_separate);
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);

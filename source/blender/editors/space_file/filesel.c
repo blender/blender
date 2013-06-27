@@ -667,7 +667,7 @@ bool autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 					
 					BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
-					if (stat(path, &status) == 0) {
+					if (BLI_stat(path, &status) == 0) {
 						if (S_ISDIR(status.st_mode)) { /* is subdir */
 							autocomplete_do_name(autocpl, path);
 						}

@@ -520,7 +520,7 @@ const float *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store)
 #define NODE_AS_CO(n) ((BMVert *)((LinkData *)n)->data)->co
 
 /**
- * edges are assined to one vert -> the next.
+ * edges are assigned to one vert -> the next.
  */
 void BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr)
 {
@@ -612,7 +612,7 @@ bool BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 }
 
 /**
- * For open loops that are stright lines,
+ * For open loops that are straight lines,
  * calculating the normal as if it were a polygon is meaningless.
  *
  * Instead use an alignment vector and calculate the normal based on that.

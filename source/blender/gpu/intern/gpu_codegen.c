@@ -567,7 +567,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					"tmp", input->link->output->id);
 			}
 			else if (input->source == GPU_SOURCE_BUILTIN) {
-				if(input->builtin == GPU_VIEW_NORMAL)
+				if (input->builtin == GPU_VIEW_NORMAL)
 					BLI_dynstr_append(ds, "facingnormal");
 				else
 					BLI_dynstr_append(ds, GPU_builtin_name(input->builtin));
@@ -615,7 +615,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	BLI_dynstr_append(ds, "void main(void)\n");
 	BLI_dynstr_append(ds, "{\n");
 
-	if(builtins & GPU_VIEW_NORMAL)
+	if (builtins & GPU_VIEW_NORMAL)
 		BLI_dynstr_append(ds, "\tvec3 facingnormal = (gl_FrontFacing)? varnormal: -varnormal;\n");
 		
 

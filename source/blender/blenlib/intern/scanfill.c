@@ -45,7 +45,6 @@
 
 /* callbacks for errors and interrupts and some goo */
 static void (*BLI_localErrorCallBack)(const char *) = NULL;
-static int (*BLI_localInterruptCallBack)(void) = NULL;
 
 /**
  * Set a function taking a (char *) as argument to flag errors. If the
@@ -56,19 +55,6 @@ static int (*BLI_localInterruptCallBack)(void) = NULL;
 void BLI_setErrorCallBack(void (*f)(const char *))
 {
 	BLI_localErrorCallBack = f;
-}
-
-/**
- * Set a function to be able to interrupt the execution of processing
- * in this module. If the function returns true, the execution will
- * terminate gracefully. If the callback is not set, interruption is
- * not possible.
- * \param f The function to use as callback
- * \attention used in creator.c
- */
-void BLI_setInterruptCallBack(int (*f)(void))
-{
-	BLI_localInterruptCallBack = f;
 }
 
 /* just flush the error to /dev/null if the error handler is missing */

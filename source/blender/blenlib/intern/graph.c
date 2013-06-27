@@ -598,7 +598,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 
 	/* sort ring by arc length
 	 * using a rather bogus insertion sort
-	 * butrings will never get too big to matter
+	 * but rings will never get too big to matter
 	 * */
 	for (i = 0; i < total; i++) {
 		int j;

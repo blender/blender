@@ -18,9 +18,17 @@
 
 # <pep8-80 compliant>
 
-import bpy, nodeitems_utils
-from bpy.types import Operator, PropertyGroup
-from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty, StringProperty
+import bpy
+import nodeitems_utils
+from bpy.types import (Operator,
+                       PropertyGroup,
+                       )
+from bpy.props import (BoolProperty,
+                       CollectionProperty,
+                       EnumProperty,
+                       IntProperty,
+                       StringProperty,
+                       )
 
 
 class NodeSetting(PropertyGroup):
@@ -29,6 +37,7 @@ class NodeSetting(PropertyGroup):
             description="Python expression to be evaluated as the initial node setting",
             default="",
             )
+
 
 # Base class for node 'Add' operators
 class NodeAddOperator():
@@ -57,8 +66,12 @@ class NodeAddOperator():
 
         # convert mouse position to the View2D for later node placement
         if context.region.type == 'WINDOW':
+            # XXX, why use DPI for coords?
+            dpi_fac = context.user_preferences.system.dpi / 72.0
             space.cursor_location = v2d.region_to_view(event.mouse_region_x,
-                                                   event.mouse_region_y)
+                                                       event.mouse_region_y)
+            space.cursor_location /= dpi_fac
+
         else:
             space.cursor_location = tree.view_center
 
@@ -80,12 +93,12 @@ class NodeAddOperator():
         for setting in self.settings:
             # XXX catch exceptions here?
             value = eval(setting.value)
-                
+
             try:
                 setattr(node, setting.name, value)
             except AttributeError as e:
-                self.report({'ERROR_INVALID_INPUT'}, "Node has no attribute "+setting.name)
-                print (str(e))
+                self.report({'ERROR_INVALID_INPUT'}, "Node has no attribute " + setting.name)
+                print(str(e))
                 # Continue despite invalid attribute
 
         if space.use_hidden_preview:
@@ -198,7 +211,7 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
 
         # no need to keep
         self._enum_item_hack.clear()
-        
+
         if item:
             # apply settings from the node item
             for setting in item.settings.items():

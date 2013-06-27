@@ -88,7 +88,7 @@ void defvert_copy_subset(MDeformVert *dvert_dst, const MDeformVert *dvert_src,
                          const bool *vgroup_subset, const int vgroup_tot)
 {
 	int defgroup;
-	for (defgroup=0; defgroup < vgroup_tot; defgroup++) {
+	for (defgroup = 0; defgroup < vgroup_tot; defgroup++) {
 		if (vgroup_subset[defgroup]) {
 			defvert_copy_index(dvert_dst, dvert_src, defgroup);
 		}

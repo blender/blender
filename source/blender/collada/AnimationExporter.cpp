@@ -924,7 +924,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 	bPoseChannel *parchan = NULL;
 	bPoseChannel *pchan = NULL;
 
-	if (ob->type == OB_ARMATURE ) {
+	if (ob->type == OB_ARMATURE && bone) {
 		bPose *pose = ob->pose;
 		pchan = BKE_pose_channel_find_name(pose, bone->name);
 		if (!pchan)

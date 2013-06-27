@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/armature.c
+/** \file blender/blenkernel/intern/autoexec.c
  *  \ingroup bke
  *
  * Currently just checks if a blend file can be trusted to autoexec,

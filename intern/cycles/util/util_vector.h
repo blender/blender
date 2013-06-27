@@ -30,6 +30,26 @@ CCL_NAMESPACE_BEGIN
 
 using std::vector;
 
+static inline void *malloc_aligned(size_t size, size_t alignment)
+{
+	void *data = (void*)malloc(size + sizeof(void*) + alignment - 1);
+
+	union { void *ptr; size_t offset; } u;
+	u.ptr = (char*)data + sizeof(void*);
+	u.offset = (u.offset + alignment - 1) & ~(alignment - 1);
+	*(((void**)u.ptr) - 1) = data;
+
+	return u.ptr;
+}
+
+static inline void free_aligned(void *ptr)
+{
+	if(ptr) {
+		void *data = *(((void**)ptr) - 1);
+		free(data);
+	}
+}
+
 /* Array
  *
  * Simplified version of vector, serving multiple purposes:

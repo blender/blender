@@ -1661,7 +1661,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					if (win_prev == NULL)
 						CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
-					handler->op->reports->printlevel = RPT_WARNING;
+					BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
 					uiPupMenuReports(C, handler->op->reports);
 
 					/* XXX - copied from 'wm_operator_finished()' */

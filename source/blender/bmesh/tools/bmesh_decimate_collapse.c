@@ -116,7 +116,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
                                     const Quadric *vquadrics)
 {
-	/* compute an edge contration target for edge 'e'
+	/* compute an edge contraction target for edge 'e'
 	 * this is computed by summing it's vertices quadrics and
 	 * optimizing the result. */
 	Quadric q;
@@ -682,7 +682,7 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 
 /**
  * special, highly limited edge collapse function
- * intended for speed over flexibiliy.
+ * intended for speed over flexibility.
  * can only collapse edges connected to (1, 2) tris.
  *
  * Important - dont add vert/edge/face data on collapsing!

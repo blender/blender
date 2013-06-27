@@ -486,7 +486,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 	
 	fclose(fp);
 
-	if (stat(filepath, &st) == 0) {
+	if (BLI_stat(filepath, &st) == 0) {
 		text->mtime = st.st_mtime;
 	}
 	else {
@@ -3107,7 +3107,7 @@ int text_file_modified(Text *text)
 	if (!BLI_exists(file))
 		return 2;
 
-	result = stat(file, &st);
+	result = BLI_stat(file, &st);
 	
 	if (result == -1)
 		return -1;
@@ -3134,7 +3134,7 @@ static void text_ignore_modified(Text *text)
 
 	if (!BLI_exists(file)) return;
 
-	result = stat(file, &st);
+	result = BLI_stat(file, &st);
 	
 	if (result == -1 || (st.st_mode & S_IFMT) != S_IFREG)
 		return;

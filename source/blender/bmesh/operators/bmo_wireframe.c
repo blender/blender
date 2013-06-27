@@ -80,6 +80,7 @@ static void bm_vert_boundary_tangent(BMVert *v, float r_no[3], float r_no_face[3
 	}
 
 	if (e_a && e_b) {
+		/* note, with an incorrectly flushed selection this can crash */
 		l_a = bm_edge_tag_faceloop(e_a);
 		l_b = bm_edge_tag_faceloop(e_b);
 

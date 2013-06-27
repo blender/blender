@@ -299,7 +299,7 @@ static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	const char *p, *p2;
 	int i;
-	static const char *lastlorem;
+	static const char *lastlorem = NULL;
 	
 	if (lastlorem)
 		p = lastlorem;

@@ -95,13 +95,14 @@ static void calc_poly_normal(float normal[3], float verts[][3], int nverts)
  *
  * Same as #calc_poly_normal but operates directly on a bmesh face.
  */
-static void bm_face_calc_poly_normal(BMFace *f)
+static void bm_face_calc_poly_normal(BMFace *f, float n[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
 	float const *v_prev = l_first->prev->v->co;
 	float const *v_curr = l_first->v->co;
-	float n[3] = {0.0f};
+
+	zero_v3(n);
 
 	/* Newell's Method */
 	do {
@@ -113,8 +114,8 @@ static void bm_face_calc_poly_normal(BMFace *f)
 
 	} while (l_iter != l_first);
 
-	if (UNLIKELY(normalize_v3_v3(f->no, n) == 0.0f)) {
-		f->no[2] = 1.0f; /* other axis set to 0.0 */
+	if (UNLIKELY(normalize_v3(n) == 0.0f)) {
+		n[2] = 1.0f;
 	}
 }
 
@@ -458,20 +459,20 @@ void calc_poly_plane(float (*verts)[3], const int nverts)
  * the list that bridges a concave region of the face or intersects
  * any of the faces's edges.
  */
-static void scale_edge_v3f(float v1[3], float v2[3], const float fac)
+static void scale_edge_v2f(float v1[2], float v2[2], const float fac)
 {
-	float mid[3];
+	float mid[2];
 
-	mid_v3_v3v3(mid, v1, v2);
+	mid_v2_v2v2(mid, v1, v2);
 
-	sub_v3_v3v3(v1, v1, mid);
-	sub_v3_v3v3(v2, v2, mid);
+	sub_v2_v2v2(v1, v1, mid);
+	sub_v2_v2v2(v2, v2, mid);
 
-	mul_v3_fl(v1, fac);
-	mul_v3_fl(v2, fac);
+	mul_v2_fl(v1, fac);
+	mul_v2_fl(v2, fac);
 
-	add_v3_v3v3(v1, v1, mid);
-	add_v3_v3v3(v2, v2, mid);
+	add_v2_v2v2(v1, v1, mid);
+	add_v2_v2v2(v2, v2, mid);
 }
 
 /**
@@ -563,7 +564,7 @@ void BM_vert_normal_update_all(BMVert *v)
  * is passed in as well.
  */
 
-void BM_face_normal_update(BMFace *f)
+void BM_face_calc_normal(BMFace *f, float r_no[3])
 {
 	BMLoop *l;
 
@@ -576,7 +577,7 @@ void BM_face_normal_update(BMFace *f)
 			const float *co3 = (l = l->next)->v->co;
 			const float *co4 = (l->next)->v->co;
 
-			normal_quad_v3(f->no, co1, co2, co3, co4);
+			normal_quad_v3(r_no, co1, co2, co3, co4);
 			break;
 		}
 		case 3:
@@ -585,16 +586,21 @@ void BM_face_normal_update(BMFace *f)
 			const float *co2 = (l = l->next)->v->co;
 			const float *co3 = (l->next)->v->co;
 
-			normal_tri_v3(f->no, co1, co2, co3);
+			normal_tri_v3(r_no, co1, co2, co3);
 			break;
 		}
 		default:
 		{
-			bm_face_calc_poly_normal(f);
+			bm_face_calc_poly_normal(f, r_no);
 			break;
 		}
 	}
 }
+void BM_face_normal_update(BMFace *f)
+{
+	BM_face_calc_normal(f, f->no);
+}
+
 /* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
 void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
                                 float const (*vertexCos)[3])
@@ -1025,64 +1031,47 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
  * intersecting splits, only the first of the set of intersecting
  * splits survives
  */
-void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
+void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 {
-	BMIter iter;
+	const int len2 = len * 2;
 	BMLoop *l;
-	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
-	float out[3] = {-FLT_MAX, -FLT_MAX, 0.0f};
-	float (*projverts)[3] = BLI_array_alloca(projverts, f->len);
-	float (*edgeverts)[3] = BLI_array_alloca(edgeverts, len * 2);
+	float v1[2], v2[2], v3[2] /*, v4[3 */, no[3], mid[2], *p1, *p2, *p3, *p4;
+	float out[2] = {-FLT_MAX, -FLT_MAX};
+	float axis_mat[3][3];
+	float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
+	float (*edgeverts)[2] = BLI_array_alloca(edgeverts, len2);
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
-	
-	i = 0;
-	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l = BM_iter_step(&iter)) {
-		BM_elem_index_set(l, i); /* set_loop */
-		copy_v3_v3(projverts[i], l->v->co);
-		i++;
-	}
-	
-	for (i = 0; i < len; i++) {
-		copy_v3_v3(v1, loops[i][0]->v->co);
-		copy_v3_v3(v2, loops[i][1]->v->co);
 
-		scale_edge_v3f(v1, v2, fac2);
-		
-		copy_v3_v3(edgeverts[a], v1);
-		a++;
-		copy_v3_v3(edgeverts[a], v2);
-		a++;
-	}
-	
-	calc_poly_normal(no, projverts, f->len);
-	poly_rotate_plane(no, projverts, f->len);
-	poly_rotate_plane(no, edgeverts, len * 2);
+	/* TODO, the face normal may already be correct */
+	BM_face_calc_normal(f, no);
+
+	axis_dominant_v3_to_m3(axis_mat, no);
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
-		p1 = projverts[i];
-		out[0] = max_ff(out[0], p1[0]);
-		out[1] = max_ff(out[1], p1[1]);
-		/* out[2] = 0.0f; */ /* keep at zero */
+		BM_elem_index_set(l, i); /* set_loop */
+		mul_v2_m3v3(projverts[i], axis_mat, l->v->co);
 
-		p1[2] = 0.0f;
+		out[0] = max_ff(out[0], projverts[i][0]);
+		out[1] = max_ff(out[1], projverts[i][1]);
 	}
 	
 	/* ensure we are well outside the face bounds (value is arbitrary) */
 	add_v2_fl(out, 1.0f);
 
 	for (i = 0; i < len; i++) {
-		edgeverts[i * 2][2] = 0.0f;
-		edgeverts[i * 2 + 1][2] = 0.0f;
+		copy_v2_v2(edgeverts[a + 0], projverts[BM_elem_index_get(loops[i][0])]);
+		copy_v2_v2(edgeverts[a + 1], projverts[BM_elem_index_get(loops[i][1])]);
+		scale_edge_v2f(edgeverts[a + 0], edgeverts[a + 1], fac2);
+		a += 2;
 	}
 
 	/* do convexity test */
 	for (i = 0; i < len; i++) {
-		copy_v3_v3(v2, edgeverts[i * 2]);
-		copy_v3_v3(v3, edgeverts[i * 2 + 1]);
+		copy_v2_v2(v2, edgeverts[i * 2 + 0]);
+		copy_v2_v2(v3, edgeverts[i * 2 + 1]);
 
-		mid_v3_v3v3(mid, v2, v3);
+		mid_v2_v2v2(mid, v2, v3);
 		
 		clen = 0;
 		for (j = 0; j < f->len; j++) {
@@ -1090,10 +1079,10 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			p2 = projverts[(j + 1) % f->len];
 			
 #if 0
-			copy_v3_v3(v1, p1);
-			copy_v3_v3(v2, p2);
+			copy_v2_v2(v1, p1);
+			copy_v2_v2(v2, p2);
 
-			scale_edge_v3f(v1, v2, fac1);
+			scale_edge_v2f(v1, v2, fac1);
 			if (line_crosses_v2f(v1, v2, mid, out)) {
 				clen++;
 			}
@@ -1114,10 +1103,10 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		p1 = projverts[i];
 		p2 = projverts[(i + 1) % f->len];
 		
-		copy_v3_v3(v1, p1);
-		copy_v3_v3(v2, p2);
+		copy_v2_v2(v1, p1);
+		copy_v2_v2(v2, p2);
 
-		scale_edge_v3f(v1, v2, fac1);
+		scale_edge_v2f(v1, v2, fac1);
 
 		for (j = 0; j < len; j++) {
 			if (!loops[j][0]) {
@@ -1141,10 +1130,10 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 				p3 = edgeverts[j * 2];
 				p4 = edgeverts[j * 2 + 1];
 
-				copy_v3_v3(v1, p1);
-				copy_v3_v3(v2, p2);
+				copy_v2_v2(v1, p1);
+				copy_v2_v2(v2, p2);
 
-				scale_edge_v3f(v1, v2, fac1);
+				scale_edge_v2f(v1, v2, fac1);
 
 				if (line_crosses_v2f(v1, v2, p3, p4)) {
 					loops[i][0] = NULL;

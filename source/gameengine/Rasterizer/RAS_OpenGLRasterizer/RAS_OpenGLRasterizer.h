@@ -119,7 +119,7 @@ protected:
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
 
 	/**
-	 * Making use of a Strategy desing pattern for storage behavior.
+	 * Making use of a Strategy design pattern for storage behavior.
 	 * Examples of concrete strategies: Vertex Arrays, VBOs, Immediate Mode*/
 	int				m_storage_type;
 	RAS_IStorage*	m_storage;

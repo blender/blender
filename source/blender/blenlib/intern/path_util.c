@@ -1222,6 +1222,9 @@ const char *BLI_get_folder(int folder_id, const char *subfolder)
 			if (get_path_local(path, "python", subfolder, ver)) break;
 			if (get_path_system(path, "python", subfolder, "BLENDER_SYSTEM_PYTHON", ver)) break;
 			return NULL;
+
+		default:
+			BLI_assert(0);
 	}
 	
 	return path;
@@ -1248,6 +1251,8 @@ const char *BLI_get_user_folder_notest(int folder_id, const char *subfolder)
 		case BLENDER_USER_SCRIPTS:
 			get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver);
 			break;
+		default:
+			BLI_assert(0);
 	}
 	if ('\0' == path[0]) {
 		return NULL;

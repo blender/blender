@@ -73,7 +73,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 		float f_center[3];
 		BMVert *v_center = NULL;
 		BMLoop *l_iter, *l_first;
-		/* only interpolate the centeral loop from the face once,
+		/* only interpolate the central loop from the face once,
 		 * then copy to all others in the fan */
 		BMLoop *l_center_example;
 

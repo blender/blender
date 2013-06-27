@@ -932,6 +932,77 @@ void GPU_paint_set_mipmap(int mipmap)
 	}
 }
 
+
+/* check if image has been downscaled and do scaled partial update */
+static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
+{
+	if ((!GPU_non_power_of_two_support() && !is_power_of_2_resolution(ibuf->x, ibuf->y)) ||
+	    is_over_resolution_limit(ibuf->x, ibuf->y))
+	{
+		int x_limit = smaller_power_of_2_limit(ibuf->x);
+		int y_limit = smaller_power_of_2_limit(ibuf->y);
+
+		float xratio = x_limit / (float)ibuf->x;
+		float yratio = y_limit / (float)ibuf->y;
+
+		/* find new width, height and x,y gpu texture coordinates */
+
+		/* take ceiling because we will be losing 1 pixel due to rounding errors in x,y... */
+		int rectw = (int)ceil(xratio * w);
+		int recth = (int)ceil(yratio * h);
+
+		x *= xratio;
+		y *= yratio;
+
+		/* ...but take back if we are over the limit! */
+		if (rectw + x > x_limit) rectw--;
+		if (recth + y > y_limit) recth--;
+
+		/* float rectangles are already continuous in memory so we can use gluScaleImage */
+		if (frect) {
+			float *fscalerect = MEM_mallocN(rectw*recth*sizeof(*fscalerect)*4, "fscalerect");
+			gluScaleImage(GL_RGBA, w, h, GL_FLOAT, frect, rectw, recth, GL_FLOAT, fscalerect);
+
+			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
+			                GL_FLOAT, fscalerect);
+
+			MEM_freeN(fscalerect);
+		}
+		/* byte images are not continuous in memory so do manual interpolation */
+		else {
+			unsigned char *scalerect = MEM_mallocN(rectw * recth * sizeof(*scalerect) * 4, "scalerect");
+			unsigned int *p = (unsigned int *)scalerect;
+			int i, j;
+			float inv_xratio = 1.0f / xratio;
+			float inv_yratio = 1.0f / yratio;
+			for (i = 0; i < rectw; i++) {
+				float u = (x + i) * inv_xratio;
+				for (j = 0; j < recth; j++) {
+					float v = (y + j) * inv_yratio;
+					bilinear_interpolation_color_wrap(ibuf, (unsigned char *)(p + i + j * (rectw)), NULL, u, v);
+				}
+			}
+			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
+			                GL_UNSIGNED_BYTE, scalerect);
+
+			MEM_freeN(scalerect);
+		}
+
+		if (GPU_get_mipmap()) {
+			gpu_generate_mipmap(GL_TEXTURE_2D);
+		}
+		else {
+			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 {
 	ImBuf *ibuf;
@@ -959,6 +1030,15 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 			int is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA);
 			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
 
+			if (GPU_check_scaled_image(ibuf, ima, buffer, x, y, w, h)) {
+				MEM_freeN(buffer);
+				glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+				glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
+				glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
+				BKE_image_release_ibuf(ima, ibuf, NULL);
+				return;
+			}
+
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
 					GL_FLOAT, buffer);
@@ -977,7 +1057,15 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 			BKE_image_release_ibuf(ima, ibuf, NULL);
 			return;
 		}
-		
+
+		if (GPU_check_scaled_image(ibuf, ima, NULL, x, y, w, h)) {
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+			glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
+			glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
+			BKE_image_release_ibuf(ima, ibuf, NULL);
+			return;
+		}
+
 		glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, ibuf->x);

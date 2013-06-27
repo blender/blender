@@ -1180,6 +1180,7 @@ class WM_OT_keyconfig_activate(Operator):
         else:
             return {'CANCELLED'}
 
+
 class WM_OT_appconfig_default(Operator):
     bl_idname = "wm.appconfig_default"
     bl_label = "Default Application Configuration"
@@ -1574,8 +1575,9 @@ class WM_OT_addon_enable(Operator):
 
     def execute(self, context):
         import addon_utils
-        
+
         err_str = ""
+
         def err_cb():
             import traceback
             nonlocal err_str
@@ -1618,6 +1620,7 @@ class WM_OT_addon_disable(Operator):
         import addon_utils
 
         err_str = ""
+
         def err_cb():
             import traceback
             nonlocal err_str

@@ -154,7 +154,7 @@ typedef void *(*BMIter__step_cb) (void *);
 
 /* Iterator Structure */
 /* note: some of these vars are not used,
- * so they have beem commented to save stack space since this struct is used all over */
+ * so they have been commented to save stack space since this struct is used all over */
 typedef struct BMIter {
 	/* keep union first */
 	union {

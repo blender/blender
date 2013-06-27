@@ -136,10 +136,7 @@ static void rna_Lamp_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 	Lamp *la = ptr->id.data;
 
 	DAG_id_tag_update(&la->id, 0);
-	if (scene->gm.matmode == GAME_MAT_GLSL)
-		WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
-	else
-		WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
+	WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
 }
 
 static void rna_Lamp_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

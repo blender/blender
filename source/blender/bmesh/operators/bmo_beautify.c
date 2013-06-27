@@ -23,10 +23,10 @@
 /** \file blender/bmesh/operators/bmo_beautify.c
  *  \ingroup bmesh
  *
- * Beautify the mesh by rotating edes between triangles
+ * Beautify the mesh by rotating edges between triangles
  * to more attractive positions until no more rotations can be made.
  *
- * In princible this is very simple however there is the possability of
+ * In principle this is very simple however there is the possibility of
  * going into an eternal loop where edges keep rotating.
  * To avoid this - each edge stores a hash of it previous
  * states so as not to rotate back.

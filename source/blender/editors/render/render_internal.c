@@ -300,7 +300,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
 	/* local view */
-	if(rs->localview)
+	if (rs->localview)
 		spos += sprintf(spos, "%s | ", IFACE_("Local View"));
 
 	/* frame number */
@@ -324,8 +324,9 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 
 	/* statistics */
 	if (rs->statstr) {
-		if(rs->statstr[0])
+		if (rs->statstr[0]) {
 			spos += sprintf(spos, "| %s ", rs->statstr);
+		}
 	}
 	else {
 		if (rs->totvert || rs->totface || rs->tothalo || rs->totstrand || rs->totlamp)
@@ -469,7 +470,7 @@ static void render_endjob(void *rjv)
 
 	/* XXX render stability hack */
 	G.is_rendering = FALSE;
-	WM_main_add_notifier(NC_SCENE|ND_RENDER_RESULT, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, NULL);
 
 	/* Partial render result will always update display buffer
 	 * for first render layer only. This is nice because you'll

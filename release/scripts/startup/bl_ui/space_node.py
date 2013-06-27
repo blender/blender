@@ -131,7 +131,7 @@ class NODE_MT_view(Menu):
 
         layout.operator("node.properties", icon='MENU_PANEL')
         layout.operator("node.toolbar", icon='MENU_PANEL')
-        
+
         layout.separator()
 
         layout.operator("view2d.zoom_in")

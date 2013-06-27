@@ -157,6 +157,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.yasp = envre->r.xasp = 1;
 	
 	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
+	envre->main = re->main;
 	envre->scene = re->scene;    /* unsure about this... */
 	envre->scene_color_manage = re->scene_color_manage;
 	envre->lay = re->lay;

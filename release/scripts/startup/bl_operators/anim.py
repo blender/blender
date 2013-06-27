@@ -261,8 +261,8 @@ class ClearUselessActions(Operator):
 
         for action in bpy.data.actions:
             # if only user is "fake" user...
-            if     ((self.only_unused is False) or
-                    (action.use_fake_user and action.users == 1)):
+            if ((self.only_unused is False) or
+                (action.use_fake_user and action.users == 1)):
 
                 # if it has F-Curves, then it's a "action library"
                 # (i.e. walk, wave, jump, etc.)

@@ -254,6 +254,13 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 	uiDefAutoButsRNA(layout, &ptr, screenshot_draw_check_prop, '\0');
 }
 
+static int screenshot_poll(bContext *C)
+{
+	if (G.background)
+		return false;
+
+	return WM_operator_winactive(C);
+}
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
@@ -266,7 +273,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->exec = screenshot_exec;
 	ot->cancel = screenshot_cancel;
 	ot->ui = screenshot_draw;
-	ot->poll = WM_operator_winactive;
+	ot->poll = screenshot_poll;
 	
 	ot->flag = 0;
 	

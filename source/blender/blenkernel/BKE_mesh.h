@@ -138,18 +138,26 @@ int BKE_mesh_edge_other_vert(const struct MEdge *e, int v);
 
 /* update the hide flag for edges and polys from the corresponding
  * flag in verts */
-void BKE_mesh_flush_hidden_from_verts(const struct MVert *mvert,
-                                      const struct MLoop *mloop,
-                                      struct MEdge *medge, int totedge,
-                                      struct MPoly *mpoly, int totpoly);
+void BKE_mesh_flush_hidden_from_verts_ex(const struct MVert *mvert,
+                                         const struct MLoop *mloop,
+                                         struct MEdge *medge, const int totedge,
+                                         struct MPoly *mpoly, const int totpoly);
+void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
+
+void BKE_mesh_flush_hidden_from_polys_ex(struct MVert *mvert,
+                                         const struct MLoop *mloop,
+                                         struct MEdge *medge, int totedge,
+                                         const struct MPoly *mpoly, const int totpoly);
+void BKE_mesh_flush_hidden_from_polys(struct Mesh *me);
+
 
 void BKE_mesh_flush_select_from_polys_ex(struct MVert *mvert,       const int totvert,
-                                         struct MLoop *mloop,
+                                         const struct MLoop *mloop,
                                          struct MEdge *medge,       const int totedge,
                                          const struct MPoly *mpoly, const int totpoly);
 void BKE_mesh_flush_select_from_polys(struct Mesh *me);
 void BKE_mesh_flush_select_from_verts_ex(const struct MVert *mvert, const int totvert,
-                                         struct MLoop *mloop,
+                                         const struct MLoop *mloop,
                                          struct MEdge *medge,       const int totedge,
                                          struct MPoly *mpoly,       const int totpoly);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
