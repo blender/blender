@@ -77,7 +77,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		const Py_ssize_t seq_size = PySequence_Size(seq);
 		if (seq_size == -1) {
 			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
-			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			             error_prefix, dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
 		}
 		for (i = 0; i < seq_size; i++) {
@@ -104,9 +104,9 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			else if (PySequence_Size(item) != dimsize[dim + 1]) {
 				/* BLI_snprintf(error_str, error_str_size,
 				 *              "sequences of dimension %d should contain %d items",
-				 *              (int)dim + 1, (int)dimsize[dim + 1]); */
+				 *              dim + 1, dimsize[dim + 1]); */
 				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items",
-				             error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
+				             error_prefix, dim + 1, dimsize[dim + 1]);
 				ok = 0;
 			}
 			else if (validate_array_type(item, dim + 1, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1) {
@@ -125,7 +125,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		const int seq_size = PySequence_Size(seq);
 		if (seq_size == -1) {
 			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
-			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			             error_prefix, dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
 		}
 		for (i = 0; i < seq_size; i++) {
