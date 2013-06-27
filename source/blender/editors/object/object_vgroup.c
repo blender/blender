@@ -2941,6 +2941,13 @@ static int vertex_group_poll(bContext *C)
 	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
+static int vertex_group_mesh_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+	ID *data = (ob) ? ob->data : NULL;
+	return (ob && !ob->id.lib && ob->type == OB_MESH && data && !data->lib);
+}
+
 static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 {
 	Object *ob = ED_object_context(C);
@@ -2959,6 +2966,22 @@ static int vertex_group_vert_select_poll(bContext *C)
 	ID *data = (ob) ? ob->data : NULL;
 
 	if (!(ob && !ob->id.lib && data && !data->lib))
+		return 0;
+
+	return (vgroup_object_in_edit_mode(ob) ||
+	        vgroup_object_in_wpaint_vert_select(ob));
+}
+
+static int vertex_group_vert_select_mesh_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+	ID *data = (ob) ? ob->data : NULL;
+
+	if (!(ob && !ob->id.lib && data && !data->lib))
+		return 0;
+
+	/* only difference to #vertex_group_vert_select_poll */
+	if (ob->type != OB_MESH)
 		return 0;
 
 	return (vgroup_object_in_edit_mode(ob) ||
@@ -3336,7 +3359,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	                  "groups' weights (this tool may be slow for many vertices)";
 	
 	/* api callbacks */
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_mesh_poll;
 	ot->exec = vertex_group_fix_exec;
 	
 	/* flags */
@@ -4122,10 +4145,10 @@ static int vertex_weight_paste_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	const int def_nr = RNA_int_get(op->ptr, "weight_group");
+
 	if (!check_vertex_group_accessible(op, ob, def_nr)) {
 		return OPERATOR_CANCELLED;
 	}
-
 
 	vgroup_copy_active_to_sel_single(ob, def_nr);
 
@@ -4143,22 +4166,23 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_vertex_weight_paste";
 	ot->description = "Copy this group's weight to other selected verts (disabled if vertex Group is locked)";
 
-	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
-	                   "Index of source weight in active Weight Group", -1, INT_MAX);
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-
 	/* api callbacks */
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_vert_select_mesh_poll;
 	ot->exec = vertex_weight_paste_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
+	                   "Index of source weight in active Weight Group", -1, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static int vertex_weight_delete_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	const int def_nr = RNA_int_get(op->ptr, "weight_group");
+
 	if (check_vertex_group_accessible(op, ob, def_nr)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -4179,16 +4203,16 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_vertex_weight_delete";
 	ot->description = "Delete this weight from the vertex (disabled if vertex Group is locked)";
 
-	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
-	                   "Index of source weight in active Weight Group", -1, INT_MAX);
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-
 	/* api callbacks */
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_vert_select_mesh_poll;
 	ot->exec = vertex_weight_delete_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
+	                   "Index of source weight in active Weight Group", -1, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static int vertex_weight_set_active_exec(bContext *C, wmOperator *op)
@@ -4213,16 +4237,16 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_vertex_weight_set_active";
 	ot->description = "Set as active Vertex Group";
 
-	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
-	                   "Index of source weight in active Weight Group", -1, INT_MAX);
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-
 	/* api callbacks */
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_vert_select_mesh_poll;
 	ot->exec = vertex_weight_set_active_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
+	                   "Index of source weight in active Weight Group", -1, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static int vertex_weight_normalize_active_vertex_exec(bContext *C, wmOperator *UNUSED(op))
@@ -4247,7 +4271,7 @@ void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)
 	ot->description = "Normalize Active Vert Weights";
 
 	/* api callbacks */
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_vert_select_mesh_poll;
 	ot->exec = vertex_weight_normalize_active_vertex_exec;
 
 	/* flags */
@@ -4276,7 +4300,7 @@ void OBJECT_OT_vertex_weight_copy(wmOperatorType *ot)
 	ot->description = "Copy weights from Active to selected";
 
 	/* api callbacks */
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_vert_select_mesh_poll;
 	ot->exec = vertex_weight_copy_exec;
 
 	/* flags */
