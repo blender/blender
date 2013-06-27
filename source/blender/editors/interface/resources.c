@@ -898,6 +898,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
 	rgba_char_args_set(btheme->tseq.meta,   109, 145, 131, 255);
 	rgba_char_args_set(btheme->tseq.preview_back,   0, 0, 0, 255);
+	rgba_char_args_set(btheme->tseq.grid,   64, 64, 64, 255);
 
 	/* space image */
 	btheme->tima = btheme->tv3d;
