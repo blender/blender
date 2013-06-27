@@ -3021,7 +3021,7 @@ static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 			}
 			break;
 		default:
-			if (!ISTIMER(event->type)) {
+			if (!ISTIMER(event->type) && event->type != EVENT_NONE) {
 				WM_gesture_end(C, gesture);
 			}
 			break;
