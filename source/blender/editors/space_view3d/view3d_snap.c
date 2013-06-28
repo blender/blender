@@ -1089,6 +1089,30 @@ bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 	float centroid[3], vec[3], bmat[3][3];
 	int a;
 
+	/* metaballs are an exception */
+	if (obedit->type == OB_MBALL) {
+		const float scale = mat4_to_scale(obedit->obmat);
+		MetaBall *mb = obedit->data;
+		MetaElem *ml;
+		bool change = false;
+
+		for (ml = mb->elems.first; ml; ml = ml->next) {
+			if (ml->flag & SELECT) {
+				const float scale_mb = ml->rad * scale;
+				int i;
+				mul_v3_m4v3(centroid, obedit->obmat, &ml->x);
+				for (i = -1; i != 3; i += 2) {
+					copy_v3_v3(vec, centroid);
+					add_v3_fl(vec, scale_mb * i);
+					minmax_v3v3_v3(min, max, vec);
+				}
+				change = true;
+			}
+		}
+
+		return change;
+	}
+
 	tottrans = 0;
 	if (ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE))
 		make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS);
