@@ -46,6 +46,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 
 #include "BIF_gl.h"
 

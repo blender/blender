@@ -48,6 +48,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
+#include "BLI_threads.h"
 
 #include "BIF_gl.h"
 #include "BLF_api.h"
@@ -224,6 +225,19 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	if (g)
 		return g;
 
+	/* glyphs are dynamically created as needed by font rendering. this means that
+	 * to make font rendering thread safe we have to do locking here. note that this
+	 * must be a lock for the whole library and not just per font, because the font
+	 * renderer uses a shared buffer internally */
+	BLI_spin_lock(font->ft_lib_mutex);
+
+	/* search again after locking */
+	g = blf_glyph_search(font->glyph_cache, c);
+	if (g) {
+		BLI_spin_unlock(font->ft_lib_mutex);
+		return g;
+	}
+
 	if (font->flags & BLF_HINTING)
 		flags &= ~FT_LOAD_NO_HINTING;
 	
@@ -231,8 +245,11 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	else
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);  
-	if (err)
+
+	if (err) {
+		BLI_spin_unlock(font->ft_lib_mutex);
 		return NULL;
+	}
 
 	/* get the glyph. */
 	slot = font->face->glyph;
@@ -251,8 +268,10 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 		err = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 	}
 
-	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
+	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP) {
+		BLI_spin_unlock(font->ft_lib_mutex);
 		return NULL;
+	}
 
 	g = (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_add");
 	g->c = c;
@@ -289,6 +308,9 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 
 	key = blf_hash(g->c);
 	BLI_addhead(&(font->glyph_cache->bucket[key]), g);
+
+	BLI_spin_unlock(font->ft_lib_mutex);
+
 	return g;
 }
 
