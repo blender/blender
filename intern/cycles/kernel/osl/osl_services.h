@@ -45,7 +45,7 @@ public:
 	OSLRenderServices();
 	~OSLRenderServices();
 	
-	void thread_init(KernelGlobals *kernel_globals);
+	void thread_init(KernelGlobals *kernel_globals, OSL::TextureSystem *ts);
 
 	bool get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time);
 	bool get_inverse_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time);
@@ -148,6 +148,7 @@ public:
 
 private:
 	KernelGlobals *kernel_globals;
+	OSL::TextureSystem *osl_ts;
 };
 
 CCL_NAMESPACE_END

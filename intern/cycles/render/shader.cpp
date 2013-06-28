@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "background.h"
 #include "bssrdf.h"
 #include "device.h"
 #include "graph.h"
@@ -191,10 +192,10 @@ void ShaderManager::device_update_shaders_used(Scene *scene)
 	foreach(Shader *shader, scene->shaders)
 		shader->used = false;
 
+	scene->shaders[scene->background->shader]->used = true;
 	scene->shaders[scene->default_surface]->used = true;
 	scene->shaders[scene->default_light]->used = true;
 	scene->shaders[scene->default_background]->used = true;
-	scene->shaders[scene->default_holdout]->used = true;
 	scene->shaders[scene->default_empty]->used = true;
 
 	foreach(Mesh *mesh, scene->meshes)
@@ -325,22 +326,6 @@ void ShaderManager::add_default(Scene *scene)
 		shader->graph = graph;
 		scene->shaders.push_back(shader);
 		scene->default_background = scene->shaders.size() - 1;
-	}
-
-	/* default holdout */
-	{
-		graph = new ShaderGraph();
-
-		closure = graph->add(new HoldoutNode());
-		out = graph->output();
-
-		graph->connect(closure->output("Holdout"), out->input("Surface"));
-
-		shader = new Shader();
-		shader->name = "default_holdout";
-		shader->graph = graph;
-		scene->shaders.push_back(shader);
-		scene->default_holdout = scene->shaders.size() - 1;
 	}
 
 	/* default empty */

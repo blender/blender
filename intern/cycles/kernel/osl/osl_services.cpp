@@ -104,9 +104,10 @@ OSLRenderServices::~OSLRenderServices()
 {
 }
 
-void OSLRenderServices::thread_init(KernelGlobals *kernel_globals_)
+void OSLRenderServices::thread_init(KernelGlobals *kernel_globals_, OSL::TextureSystem *osl_ts_)
 {
 	kernel_globals = kernel_globals_;
+	osl_ts = osl_ts_;
 }
 
 bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time)
@@ -767,7 +768,7 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
                                 float s, float t, float dsdx, float dtdx,
                                 float dsdy, float dtdy, float *result)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl->ts;
+	OSL::TextureSystem *ts = osl_ts;
 	bool status = ts->texture(filename, options, s, t, dsdx, dtdx, dsdy, dtdy, result);
 
 	if(!status) {
@@ -789,7 +790,7 @@ bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
                                   const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
                                   const OSL::Vec3 &dPdz, float *result)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl->ts;
+	OSL::TextureSystem *ts = osl_ts;
 	bool status = ts->texture3d(filename, options, P, dPdx, dPdy, dPdz, result);
 
 	if(!status) {
@@ -811,7 +812,7 @@ bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
                                     OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
                                     const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl->ts;
+	OSL::TextureSystem *ts = osl_ts;
 	bool status = ts->environment(filename, options, R, dRdx, dRdy, result);
 
 	if(!status) {
@@ -832,7 +833,7 @@ bool OSLRenderServices::get_texture_info(ustring filename, int subimage,
                                          ustring dataname,
                                          TypeDesc datatype, void *data)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl->ts;
+	OSL::TextureSystem *ts = osl_ts;
 	return ts->get_texture_info(filename, subimage, dataname, datatype, data);
 }
 
