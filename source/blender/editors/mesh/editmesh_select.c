@@ -59,8 +59,9 @@
 
 #include "BIF_gl.h"
 
-#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "GPU_extensions.h"
 
@@ -76,10 +77,12 @@
 void EDBM_select_mirrored(BMEditMesh *em, bool extend,
                           int *r_totmirr, int *r_totfail)
 {
+	Mesh *me = (Mesh *)em->ob->data;
 	BMVert *v1, *v2;
 	BMIter iter;
 	int totmirr = 0;
 	int totfail = 0;
+	bool use_topology = (me && (me->editflag & ME_EDIT_MIRROR_TOPO));
 
 	*r_totmirr = *r_totfail = 0;
 
@@ -92,7 +95,7 @@ void EDBM_select_mirrored(BMEditMesh *em, bool extend,
 		}
 	}
 
-	EDBM_verts_mirror_cache_begin(em, 0, true, true);
+	EDBM_verts_mirror_cache_begin(em, 0, true, true, use_topology);
 
 	if (!extend)
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);

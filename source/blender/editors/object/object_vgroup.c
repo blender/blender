@@ -438,8 +438,9 @@ static void ED_mesh_defvert_mirror_update_em(Object *ob, BMVert *eve, int def_nr
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
 	BMVert *eve_mirr;
+	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-	eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, vidx);
+	eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, vidx, use_topology);
 
 	if (eve_mirr && eve_mirr != eve) {
 		MDeformVert *dvert_src = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
@@ -452,10 +453,12 @@ static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 {
 	int vidx_mirr;
 	Mesh *me = ob->data;
+	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+
 	if (vidx == -1)
 		return;
 
-	vidx_mirr = mesh_get_x_mirror_vert(ob, vidx);
+	vidx_mirr = mesh_get_x_mirror_vert(ob, vidx, use_topology);
 
 	if ((vidx_mirr) >= 0 && (vidx_mirr != vidx)) {
 		MDeformVert *dvert_src = &me->dvert[vidx];
@@ -2314,7 +2317,8 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 /* TODO, vgroup locking */
 /* TODO, face masking */
 void ED_vgroup_mirror(Object *ob,
-                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups,
+                      const bool mirror_weights, const bool flip_vgroups,
+                      const bool all_vgroups, const bool use_topology,
                       int *r_totmirr, int *r_totfail)
 {
 
@@ -2371,7 +2375,7 @@ void ED_vgroup_mirror(Object *ob,
 				goto cleanup;
 			}
 
-			EDBM_verts_mirror_cache_begin(em, 0, true, false);
+			EDBM_verts_mirror_cache_begin(em, 0, true, false, use_topology);
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
@@ -2420,7 +2424,7 @@ void ED_vgroup_mirror(Object *ob,
 
 			for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
 				if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
-					if ((vidx_mirr = mesh_get_x_mirror_vert(ob, vidx)) != -1) {
+					if ((vidx_mirr = mesh_get_x_mirror_vert(ob, vidx, use_topology)) != -1) {
 						if (vidx != vidx_mirr) {
 							mv_mirr = &me->mvert[vidx_mirr];
 							if ((mv_mirr->flag & ME_VERT_TMP_TAG) == 0) {
@@ -3623,6 +3627,7 @@ static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 	                 RNA_boolean_get(op->ptr, "mirror_weights"),
 	                 RNA_boolean_get(op->ptr, "flip_group_names"),
 	                 RNA_boolean_get(op->ptr, "all_groups"),
+	                 RNA_boolean_get(op->ptr, "use_topology"),
 	                 &totmirr, &totfail);
 
 	ED_mesh_report_mirror(op, totmirr, totfail);
@@ -3653,7 +3658,8 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror_weights", true, "Mirror Weights", "Mirror weights");
 	RNA_def_boolean(ot->srna, "flip_group_names", true, "Flip Group Names", "Flip vertex group names");
 	RNA_def_boolean(ot->srna, "all_groups", false, "All Groups", "Mirror all vertex groups weights");
-
+	RNA_def_boolean(ot->srna, "use_topology", 0, "Topology Mirror",
+	                "Use topology based mirroring (for when both sides of mesh have matching, unique topology)");
 }
 
 static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))

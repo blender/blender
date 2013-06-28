@@ -168,7 +168,7 @@ static bool ED_object_shape_key_remove(Main *bmain, Object *ob)
 }
 
 static bool object_shape_key_mirror(bContext *C, Object *ob,
-                                    int *r_totmirr, int *r_totfail)
+                                    int *r_totmirr, int *r_totfail, bool use_topology)
 {
 	KeyBlock *kb;
 	Key *key;
@@ -196,7 +196,7 @@ static bool object_shape_key_mirror(bContext *C, Object *ob,
 			mesh_octree_table(ob, NULL, NULL, 's');
 
 			for (i1 = 0, mv = me->mvert; i1 < me->totvert; i1++, mv++) {
-				i2 = mesh_get_x_mirror_vert(ob, i1);
+				i2 = mesh_get_x_mirror_vert(ob, i1, use_topology);
 				if (i2 == i1) {
 					fp1 = ((float *)kb->data) + i1 * 3;
 					fp1[0] = -fp1[0];
@@ -440,8 +440,9 @@ static int shape_key_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	int totmirr = 0, totfail = 0;
+	bool use_topology = RNA_boolean_get(op->ptr, "use_topology");
 
-	if (!object_shape_key_mirror(C, ob, &totmirr, &totfail))
+	if (!object_shape_key_mirror(C, ob, &totmirr, &totfail, use_topology))
 		return OPERATOR_CANCELLED;
 
 	ED_mesh_report_mirror(op, totmirr, totfail);
@@ -462,6 +463,10 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "use_topology", 0, "Topology Mirror",
+	                "Use topology based mirroring (for when both sides of mesh have matching, unique topology)");
 }
 
 

@@ -482,6 +482,7 @@ bool ED_wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	MDeformWeight *dw, *dw_prev;
 	int vgroup_active, vgroup_mirror = -1;
 	unsigned int index;
+	const bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	/* mutually exclusive, could be made into a */
 	const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
@@ -521,7 +522,7 @@ bool ED_wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 					dw->weight = paintweight;
 
 					if (me->editflag & ME_EDIT_MIRROR_X) {  /* x mirror painting */
-						int j = mesh_get_x_mirror_vert(ob, vidx);
+						int j = mesh_get_x_mirror_vert(ob, vidx, topology);
 						if (j >= 0) {
 							/* copy, not paint again */
 							if (vgroup_mirror != -1) {
@@ -1790,6 +1791,7 @@ static void do_weight_paint_vertex(
 {
 	Mesh *me = ob->data;
 	MDeformVert *dv = &me->dvert[index];
+	bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 	
 	MDeformWeight *dw, *dw_prev;
 
@@ -1818,7 +1820,7 @@ static void do_weight_paint_vertex(
 
 	/* from now on we can check if mirrors enabled if this var is -1 and not bother with the flag */
 	if (me->editflag & ME_EDIT_MIRROR_X) {
-		index_mirr = mesh_get_x_mirror_vert(ob, index);
+		index_mirr = mesh_get_x_mirror_vert(ob, index, topology);
 		vgroup_mirr = (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active;
 
 		/* another possible error - mirror group _and_ active group are the same (which is fine),

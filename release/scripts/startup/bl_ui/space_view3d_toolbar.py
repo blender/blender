@@ -1153,7 +1153,9 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         if obj.type == 'MESH':
             mesh = obj.data
             col.prop(mesh, "use_mirror_x")
-            col.prop(mesh, "use_mirror_topology")
+            row = col.row()
+            row.active = mesh.use_mirror_x
+            row.prop(mesh, "use_mirror_topology")
 
         col.prop(wpaint, "input_samples")
 

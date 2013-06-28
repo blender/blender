@@ -199,10 +199,11 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	bDeformGroup *dgroup;
 	float distance;
 	int i, iflip, j;
+	bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	/* for each vertex in the mesh */
 	for (i = 0; i < mesh->totvert; i++) {
-		iflip = (dgroupflip) ? mesh_get_x_mirror_vert(ob, i) : 0;
+		iflip = (dgroupflip) ? mesh_get_x_mirror_vert(ob, i, use_topology) : 0;
 		
 		/* for each skinnable bone */
 		for (j = 0; j < numbones; ++j) {

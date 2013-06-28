@@ -77,9 +77,9 @@ struct MeshStatVis;
 /* editmesh_utils.c */
 void           EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em, const int axis,
                                                 const bool use_self, const bool use_select,
-                                                const bool is_topo, float maxdist, int *r_index);
+                                                const bool use_topology, float maxdist, int *r_index);
 void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const int axis,
-                                             const bool use_self, const bool use_select);
+                                             const bool use_self, const bool use_select, const bool use_toplogy);
 void           EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVert *v);
@@ -241,7 +241,8 @@ void                 ED_vgroup_data_clamp_range(struct ID *id, const int total);
 bool                 ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
 bool                 ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
 void                 ED_vgroup_mirror(struct Object *ob,
-                                      const bool mirror_weights, const bool flip_vgroups, const bool all_vgroups,
+                                      const bool mirror_weights, const bool flip_vgroups,
+                                      const bool all_vgroups, const bool use_topology,
                                       int *r_totmirr, int *r_totfail);
 
 bool                 ED_vgroup_object_is_edit_mode(struct Object *ob);
@@ -304,8 +305,10 @@ int         mesh_mirrtopo_table(struct Object *ob, char mode);
 /* retrieves mirrored cache vert, or NULL if there isn't one.
  * note: calling this without ensuring the mirror cache state
  * is bad.*/
-int            mesh_get_x_mirror_vert(struct Object *ob, int index);
-struct BMVert *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, struct BMVert *eve, const float co[3], int index);
+int            mesh_get_x_mirror_vert(struct Object *ob, int index, const bool use_topology);
+struct BMVert *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em,
+                                           struct BMVert *eve, const float co[3],
+                                           int index, const bool use_topology);
 int           *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
 
 bool ED_mesh_pick_vert(struct bContext *C,      struct Object *ob, const int mval[2], unsigned int *index, int size, bool use_zbuf);
