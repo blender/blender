@@ -924,6 +924,19 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	shr->diff[1]= shi->g;
 	shr->diff[2]= shi->b;
 	shr->alpha= shi->alpha;
+
+	/* modulate by the object color */
+	if ((ma->shade_flag & MA_OBCOLOR) && shi->obr->ob) {
+		float obcol[4];
+
+		copy_v4_v4(obcol, shi->obr->ob->col);
+		CLAMP(obcol[3], 0.0f, 1.0f);
+
+		shr->diff[0] *= obcol[0];
+		shr->diff[1] *= obcol[1];
+		shr->diff[2] *= obcol[2];
+		if (shi->mode & MA_TRANSP) shr->alpha *= obcol[3];
+	}
 }
 
 /* ramp for at end of shade */
