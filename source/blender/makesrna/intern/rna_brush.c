@@ -667,7 +667,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vertexpaint_tool");
 	RNA_def_property_enum_items(prop, brush_vertex_tool_items);
-	RNA_def_property_ui_text(prop, "Vertex/Weight Paint Tool", "");
+	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode");
 	RNA_def_property_update(prop, 0, "rna_Brush_vertex_tool_update");
 	
 	prop = RNA_def_property(srna, "image_tool", PROP_ENUM, PROP_NONE);
