@@ -360,7 +360,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	ot->poll = space_image_main_area_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER | OPTYPE_ALLOW_LOCKED;
 	
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -575,7 +575,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->poll = space_image_main_area_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_ALLOW_LOCKED;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX,
@@ -638,6 +638,9 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke = image_view_ndof_invoke;
+
+	/* flags */
+	ot->flag = OPTYPE_ALLOW_LOCKED;
 }
 
 /********************** view all operator *********************/
@@ -693,6 +696,9 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = image_view_all_exec;
 	ot->poll = space_image_main_area_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_GRAB_POINTER;
 }
 
 /********************** view selected operator *********************/
@@ -755,6 +761,9 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = image_view_selected_exec;
 	ot->poll = image_view_selected_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_GRAB_POINTER;
 }
 
 /********************** view zoom in/out operator *********************/
@@ -796,6 +805,9 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 	ot->invoke = image_view_zoom_in_invoke;
 	ot->exec = image_view_zoom_in_exec;
 	ot->poll = space_image_main_area_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_ALLOW_LOCKED;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
@@ -839,6 +851,9 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 	ot->exec = image_view_zoom_out_exec;
 	ot->poll = space_image_main_area_poll;
 
+	/* flags */
+	ot->flag = OPTYPE_ALLOW_LOCKED;
+
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
 }
@@ -880,7 +895,10 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = image_view_zoom_ratio_exec;
 	ot->poll = space_image_main_area_poll;
-	
+
+	/* flags */
+	ot->flag = OPTYPE_ALLOW_LOCKED;
+
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);

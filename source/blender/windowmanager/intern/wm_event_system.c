@@ -1441,6 +1441,22 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 	}
 }
 
+/* Check whether operator is allowed to run in case interface is locked,
+ * If interface is unlocked, will always return truth.
+ */
+static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+
+	if (wm->is_interface_locked) {
+		if ((ot->flag & OPTYPE_ALLOW_LOCKED) == 0) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 /* bad hacking event system... better restore event type for checking of KM_CLICK for example */
 /* XXX modal maps could use different method (ton) */
 static void wm_event_modalmap_end(wmEvent *event)
@@ -1467,7 +1483,12 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperator *op = handler->op;
 		wmOperatorType *ot = op->type;
 
-		if (ot->modal) {
+		if (!wm_operator_check_locked_interface(C, ot)) {
+			/* Interface is locked and pperator is not allowed to run,
+			 * nothing to do in this case.
+			 */
+		}
+		else if (ot->modal) {
 			/* we set context to where modal handler came from */
 			wmWindowManager *wm = CTX_wm_manager(C);
 			ScrArea *area = CTX_wm_area(C);
@@ -1537,7 +1558,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot = WM_operatortype_find(event->keymap_idname, 0);
 
 		if (ot) {
-			retval = wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
+			if (wm_operator_check_locked_interface(C, ot)) {
+				retval = wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
+			}
 		}
 	}
 	/* Finished and pass through flag as handled */
@@ -1825,14 +1848,18 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				}
 			}
 			else if (handler->ui_handle) {
-				action |= wm_handler_ui_call(C, handler, event, always_pass);
+				if (!wm->is_interface_locked) {
+					action |= wm_handler_ui_call(C, handler, event, always_pass);
+				}
 			}
 			else if (handler->type == WM_HANDLER_FILESELECT) {
-				/* screen context changes here */
-				action |= wm_handler_fileselect_call(C, handlers, handler, event);
+				if (!wm->is_interface_locked) {
+					/* screen context changes here */
+					action |= wm_handler_fileselect_call(C, handlers, handler, event);
+				}
 			}
 			else if (handler->dropboxes) {
-				if (event->type == EVT_DROP) {
+				if (!wm->is_interface_locked && event->type == EVT_DROP) {
 					wmDropBox *drop = handler->dropboxes->first;
 					for (; drop; drop = drop->next) {
 						/* other drop custom types allowed */
@@ -2082,21 +2109,6 @@ void wm_event_do_handlers(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
-
-	if (wm->is_interface_locked) {
-		/* If we're in locked interaction mode, skip all the events
-		 * from the queue and prevent them from being accumulated.
-		 * This is so no events are applied after interface is unlocked.
-		 */
-		for (win = wm->windows.first; win; win = win->next) {
-			wmEvent *event;
-			while ( (event = win->queue.first) ) {
-				BLI_remlink(&win->queue, event);
-				wm_event_free(event);
-			}
-		}
-		return;
-	}
 
 	/* update key configuration before handling events */
 	WM_keyconfig_update(wm);
