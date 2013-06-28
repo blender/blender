@@ -511,7 +511,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	
 	ot->invoke = WM_operator_confirm;
 	ot->exec = screencast_exec;
-	ot->poll = WM_operator_winactive;
+	ot->poll = screenshot_poll;  /* shared poll */
 	
 	ot->flag = 0;
 	
