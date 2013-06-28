@@ -129,7 +129,7 @@ static int script_reload_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 #else
-	(void)C; /* unused */
+	(void)C, (void)op; /* unused */
 	return OPERATOR_CANCELLED;
 #endif
 }
