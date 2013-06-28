@@ -4563,7 +4563,7 @@ static int render_object_type(short type)
 	return OB_TYPE_SUPPORT_MATERIAL(type);
 }
 
-static void find_dupli_instances(Render *re, ObjectRen *obr)
+static void find_dupli_instances(Render *re, ObjectRen *obr, DupliObject *dob)
 {
 	ObjectInstanceRen *obi;
 	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
@@ -4588,6 +4588,12 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 			invert_m3_m3(obi->nmat, nmat);
 			transpose_m3(obi->nmat);
 
+			if (dob) {
+				copy_v3_v3(obi->dupliorco, dob->orco);
+				obi->dupliuv[0]= dob->uv[0];
+				obi->dupliuv[1]= dob->uv[1];
+			}
+
 			if (!first) {
 				re->totvert += obr->totvert;
 				re->totvlak += obr->totvlak;
@@ -4600,7 +4606,7 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 	}
 }
 
-static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRen *obr)
+static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRen *obr, DupliObject *dob)
 {
 	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
 
@@ -4617,6 +4623,12 @@ static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRe
 	copy_m3_m4(nmat, obi->mat);
 	invert_m3_m3(obi->nmat, nmat);
 	transpose_m3(obi->nmat);
+
+	if (dob) {
+		copy_v3_v3(obi->dupliorco, dob->orco);
+		obi->dupliuv[0]= dob->uv[0];
+		obi->dupliuv[1]= dob->uv[1];
+	}
 
 	re->totvert += obr->totvert;
 	re->totvlak += obr->totvlak;
@@ -4681,6 +4693,12 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 		obi->duplitexmat= BLI_memarena_alloc(re->memArena, sizeof(float)*4*4);
 		invert_m4_m4(imat, dob->mat);
 		mul_serie_m4(obi->duplitexmat, re->viewmat, dob->omat, imat, re->viewinv, 0, 0, 0, 0);
+	}
+
+	if (dob) {
+		copy_v3_v3(obi->dupliorco, dob->orco);
+		obi->dupliuv[0]= dob->uv[0];
+		obi->dupliuv[1]= dob->uv[1];
 	}
 }
 
@@ -4765,7 +4783,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			if (dob) set_dupli_tex_mat(re, obi, dob);
 		}
 		else
-			find_dupli_instances(re, obr);
+			find_dupli_instances(re, obr, dob);
 			
 		for (i=1; i<=ob->totcol; i++) {
 			Material* ma = give_render_material(re, ob, i);
@@ -4796,7 +4814,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 				if (dob) set_dupli_tex_mat(re, obi, dob);
 			}
 			else
-				find_dupli_instances(re, obr);
+				find_dupli_instances(re, obr, dob);
 		}
 	}
 }
@@ -5154,9 +5172,9 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 								 * created object, and possibly setup instances if this object
 								 * itself was duplicated. for the first case find_dupli_instances
 								 * will be called later. */
-								assign_dupligroup_dupli(re, obi, obr);
+								assign_dupligroup_dupli(re, obi, obr, dob);
 								if (obd->transflag & OB_RENDER_DUPLI)
-									find_dupli_instances(re, obr);
+									find_dupli_instances(re, obr, dob);
 							}
 						}
 
@@ -5176,9 +5194,9 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 									obi->dupliuv[1]= dob->uv[1];
 								}
 								else {
-									assign_dupligroup_dupli(re, obi, obr);
+									assign_dupligroup_dupli(re, obi, obr, dob);
 									if (obd->transflag & OB_RENDER_DUPLI)
-										find_dupli_instances(re, obr);
+										find_dupli_instances(re, obr, dob);
 								}
 							}
 						}
