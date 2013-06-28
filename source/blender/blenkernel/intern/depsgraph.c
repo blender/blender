@@ -2655,6 +2655,172 @@ void DAG_pose_sort(Object *ob)
 	ugly_hack_sorry = 1;
 }
 
+/* ******************* DAG FOR THREADED UPDATR ***************** */
+
+void DAG_get_independent_groups(Scene *scene, ListBase *groups)
+{
+#if defined __GNUC__ || defined __sun
+#  define PRINT(format, args ...) { if (dag_print_dependencies) printf(format, ##args); } (void)0
+#else
+#  define PRINT(format, ...) { if (dag_print_dependencies) printf(__VA_ARGS__); } (void)0
+#endif
+
+	DagNode *node, *rootnode;
+	DagNodeQueue *node_queue;
+	DagAdjList *itA;
+	bool skip = false;
+	Base *base;
+	ListBase *current_group = NULL;
+	bool has_group = false;
+	int root_count = 0;
+
+	PRINT("Independend groups of objects:\n");
+	PRINT("\nACHTUNG!!! Order of objects in groups is reversed in outout!\n");
+	PRINT("Don't ask why, just be aware of this.\n\n");
+
+	/* ** STEP 0: Some pre-initialization. ** */
+
+	rootnode = scene->theDag->DagNode.first;
+
+	node_queue = queue_create(DAGQUEUEALLOC);
+
+	/* Mark all objects as unhandled.
+	 * This flag is checked later to detect cycle dependencies.
+	 */
+	for (base = scene->base.first; base; base = base->next) {
+		base->object->id.flag |= LIB_DOIT;
+	}
+
+	/* ** STEP 1: Find all nodes which doesn't depend on other nodes ** */
+
+	/* Mark all nodes as not visited. */
+	for (node = scene->theDag->DagNode.first; node; node = node->next) {
+		node->color = DAG_WHITE;
+	}
+
+	/* Detect all the nodes which doesn't have parent. */
+	for (node = scene->theDag->DagNode.first; node; node = node->next) {
+		DagAdjList *itA;
+
+		if (node == rootnode) {
+			continue;
+		}
+
+		for (itA = node->child; itA; itA = itA->next) {
+			if (itA->node != node) {
+				itA->node->color = DAG_BLACK;
+			}
+		}
+	}
+
+	/* Always put root to a traverse queue. */
+	rootnode->color = DAG_GRAY;
+	push_stack(node_queue, rootnode);
+
+	/* Put all nodes which that depend on other nodes to a traverse queue.
+	 * Also mark this nodes as gray (since they're visited but not finished)
+	 * and mark all other nodes as white (they're not viisted).
+	 */
+	for (node = scene->theDag->DagNode.first; node; node = node->next) {
+		if (node == rootnode) {
+			continue;
+		}
+
+		if (node->color == DAG_WHITE) {
+			PRINT("Root node: %s\n", dag_node_name(node));
+
+			node->color = DAG_GRAY;
+			push_stack(node_queue, node);
+		}
+		else {
+			node->color = DAG_WHITE;
+		}
+	}
+
+	root_count = node_queue->count;
+
+	/* ** STEP 2: Traverse the graph and collect all the groups. ** */
+
+	while (node_queue->count) {
+		skip = false;
+		node = get_top_node_queue(node_queue);
+
+		itA = node->child;
+		while (itA != NULL) {
+			if (itA->node->color == DAG_WHITE) {
+				itA->node->color = DAG_GRAY;
+				push_stack(node_queue, itA->node);
+				skip = true;
+				break;
+			}
+			itA = itA->next;
+		}
+
+		if (!skip) {
+			if (node) {
+				node = pop_queue(node_queue);
+				if (node->ob == scene) {
+					/* Whatever Thom, we are done! */
+					break;
+				}
+
+				node->color = DAG_BLACK;
+
+				base = scene->base.first;
+				while (base && base->object != node->ob) {
+					base = base->next;
+				}
+
+				if (base) {
+					base->object->id.flag &= ~LIB_DOIT;
+
+					if (has_group == false) {
+						PRINT("- Next group\n");
+
+						if (groups) {
+							current_group = MEM_callocN(sizeof(ListBase), "DAG independent group");
+							BLI_addhead(groups, BLI_genericNodeN(current_group));
+						}
+
+						has_group = true;
+					}
+
+					PRINT("  %s\n", dag_node_name(node));
+
+					if (groups) {
+						BLI_addhead(current_group, BLI_genericNodeN(base));
+					}
+				}
+
+				if (node_queue->count < root_count) {
+					root_count--;
+					has_group = false;
+				}
+			}
+		}
+	}
+
+	/* Here we put all cyclic objects to separate groups */
+	for (base = scene->base.first; base; base = base->next) {
+		if (base->object->id.flag & LIB_DOIT) {
+			base->object->id.flag &= ~LIB_DOIT;
+
+			PRINT("- Next cyclic group\n");
+			PRINT("  %s\n", base->object->id.name + 2);
+
+			if (groups) {
+				current_group = MEM_callocN(sizeof(ListBase), "DAG independent group");
+				BLI_addtail(groups, BLI_genericNodeN(current_group));
+				BLI_addtail(current_group, BLI_genericNodeN(base));
+			}
+		}
+	}
+
+	queue_delete(node_queue);
+
+#undef PRINT
+}
+
 /* ************************ DAG DEBUGGING ********************* */
 
 void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
@@ -2674,3 +2840,11 @@ void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
 	dag_print_dependencies = 0;
 }
 
+void DAG_print_dependency_groups(Scene *scene)
+{
+	dag_print_dependencies = 1;
+
+	DAG_get_independent_groups(scene, NULL);
+
+	dag_print_dependencies = 0;
+}

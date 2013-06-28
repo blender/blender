@@ -4075,6 +4075,24 @@ static void WM_OT_dependency_relations(wmOperatorType *ot)
 	ot->exec = dependency_relations_exec;
 }
 
+static int dependency_groups_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+
+	DAG_print_dependency_groups(scene);
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_dependency_groups(wmOperatorType *ot)
+{
+	ot->name = "Dependency Groups";
+	ot->idname = "WM_OT_dependency_groups";
+	ot->description = "Print dependency graph groups to the console";
+
+	ot->exec = dependency_groups_exec;
+}
+
 /* ******************************************************* */
 
 static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
@@ -4167,6 +4185,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_dependency_relations);
+	WM_operatortype_append(WM_OT_dependency_groups);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_operator_defaults);
 	WM_operatortype_append(WM_OT_splash);

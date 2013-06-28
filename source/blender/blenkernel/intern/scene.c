@@ -1163,32 +1163,298 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
-static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
+#undef USE_THREADED_UPDATE
+
+/* Debugging only!
+ *
+ * Will enable some additional checks about whether threaded
+ * update went all fine or there's some mistake in code somewhere
+ * (like, missing object update or object being updated from two threads).
+ */
+#undef UPDATE_SANITY_CHECK
+
+typedef struct SceneUpdateThreadHandle {
+#ifdef UPDATE_SANITY_CHECK
+	int thread;
+#endif
+
+	/* Current scene and it's parent */
+	Scene *scene;
+	Scene *scene_parent;
+
+	/* Every thread handles several independent groups.
+	 * This is a current group.
+	 */
+	LinkData *current_group_link;
+
+	/* This is a first group which shouldn't be handled
+	 * (aka it's handled by another thread as as soon
+	 * as current thread reaches it thread shall stop).
+	 */
+	LinkData *barrier_group_link;
+
+	/* Current link to a base which wasn't updated yet. */
+	LinkData *current_base_link;
+} SceneUpdateThreadHandle;
+
+static Base *scene_update_thread_next_base(SceneUpdateThreadHandle *handle)
+{
+	Base *base = NULL;
+
+	/* If current base link became NULL, it means traversing current group
+	 * is finished and we need to go to a next group.
+	 */
+	if (handle->current_base_link == NULL) {
+		ListBase *current_bases;
+
+		handle->current_group_link = handle->current_group_link->next;
+
+		/* If we've reached barrier group, we need to stop current thread. */
+		if (handle->current_group_link == handle->barrier_group_link) {
+			return NULL;
+		}
+
+		current_bases = handle->current_group_link->data;
+		handle->current_base_link = current_bases->first;
+	}
+
+	if (handle->current_base_link) {
+		base = handle->current_base_link->data;
+		handle->current_base_link = handle->current_base_link->next;
+	}
+
+	return base;
+}
+
+static void scene_update_single_base(Scene *scene_parent, Scene *scene, Base *base)
+{
+	Object *object = base->object;
+
+	BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
+
+	if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
+		BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
+
+	/* always update layer, so that animating layers works (joshua july 2010) */
+	/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
+	 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
+	// base->lay = ob->lay;
+
+#ifdef UPDATE_SANITY_CHECK
+	base->object->id.flag &= ~LIB_DOIT;
+#endif
+}
+
+static void scene_update_all_bases(Scene *scene_parent, Scene *scene)
 {
 	Base *base;
-	
+
+	for (base = scene->base.first; base; base = base->next) {
+		scene_update_single_base(scene_parent, scene, base);
+	}
+}
+
+static void *scene_update_tagged_thread(void *handle_v)
+{
+	SceneUpdateThreadHandle *handle = handle_v;
+	Base *base;
+
+	while ((base = scene_update_thread_next_base(handle))) {
+#ifdef UPDATE_SANITY_CHECK
+		BLI_lock_thread(LOCK_CUSTOM1);
+		printf("Thread %d: updating %s\n", handle->thread, base->object->id.name + 2);
+
+		BLI_assert(base->object->id.flag & LIB_DOIT);
+#endif
+
+		scene_update_single_base(handle->scene_parent, handle->scene, base);
+
+#ifdef UPDATE_SANITY_CHECK
+		BLI_unlock_thread(LOCK_CUSTOM1);
+#endif
+	}
+
+	return NULL;
+}
+
+static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
+{
+	ListBase threads;
+	SceneUpdateThreadHandle *handles;
+	ListBase groups = {NULL, NULL};
+	LinkData *current_group_link;
+	int i, tot_thread = BLI_system_thread_count();
+	int tot_group, groups_per_thread, additional_group_threads;
+
+	/* XXX: Releasing DrawObject is not thread safe, but adding lock
+	 *      around it is gonna to harm even more. So for now let's
+	 *      free all caches from main thread.
+	 *
+	 * TODO(sergey): Making DrawObject thread-safe is a nice task on
+	 *               it's own and it'll also make it possible to remove
+	 *               this hack.
+	 */
+	{
+		Base *base;
+		for (base = scene->base.first; base; base = base->next) {
+			Object *ob = base->object;
+
+			if (ob->recalc & OB_RECALC_ALL) {
+				BKE_object_free_derived_caches(ob);
+			}
+		}
+	}
+
+	/* Get independent groups of bases. */
+	DAG_get_independent_groups(scene, &groups);
+
+	/* TODO(sergey): It could make sense to make DAG_get_independent_groups
+	 *               to return number of groups. */
+	tot_group = BLI_countlist(&groups);
+
+	/* We don't use more threads than we've got groups. */
+	tot_thread = min_ii(tot_group, tot_thread);
+	if (tot_thread > 1) {
+		BLI_init_threads(&threads, scene_update_tagged_thread, tot_thread);
+	}
+
+	handles = MEM_callocN(sizeof(SceneUpdateThreadHandle) * tot_thread,
+	                      "scene update object handles");
+
+#ifdef UPDATE_SANITY_CHECK
+	{
+		Base *base;
+		for (base = scene->base.first; base; base = base->next) {
+			base->object->id.flag |= LIB_DOIT;
+		}
+	}
+#endif
+
+	/* Every thread handles groups_per_thread groups of bases. */
+	current_group_link = groups.first;
+	groups_per_thread = tot_group / tot_thread;
+
+	/* Some threads will handle more groups,
+	 * This happens if devision of groups didn't give integer value
+	 * and in this case 'additional_group_threads' of threads will
+	 * handle one more extra group.
+	 */
+	additional_group_threads = tot_group - groups_per_thread * tot_thread;
+
+	/* Fill in thread handles. */
+	for (i = 0; i < tot_thread; i++) {
+		SceneUpdateThreadHandle *handle = &handles[i];
+		ListBase *current_bases = current_group_link->data;
+		int j, current_groups_per_thread = groups_per_thread;
+
+		if (i < additional_group_threads) {
+			current_groups_per_thread++;
+		}
+
+#ifdef  UPDATE_SANITY_CHECK
+		handle->thread = i;
+#endif
+
+		handle->scene = scene;
+		handle->scene_parent = scene_parent;
+		handle->current_group_link = current_group_link;
+		handle->current_base_link = current_bases->first;
+
+		/* Find the barried link, which will also be a start group link
+		 * for the next thread.
+		 *
+		 * If this is the last thread, we could skip iteration cycle here.
+		 */
+		if (i != tot_thread - 1) {
+			for (j = 0; j < current_groups_per_thread && current_group_link; j++) {
+				current_group_link = current_group_link->next;
+			}
+		}
+		else {
+			current_group_link = NULL;
+		}
+
+		handle->barrier_group_link = current_group_link;
+
+		if (tot_thread > 1) {
+			BLI_insert_thread(&threads, handle);
+		}
+	}
+
+	if (tot_thread > 1) {
+		BLI_end_threads(&threads);
+	}
+	else {
+		scene_update_tagged_thread(handles);
+	}
+
+	/* Free memory used by thread handles. */
+	MEM_freeN(handles);
+
+	/* Traverse groups and fee all the memory used by them. */
+	for (current_group_link = groups.first;
+	     current_group_link;
+	     current_group_link = current_group_link->next)
+	{
+		ListBase *current_bases = current_group_link->data;
+
+		BLI_freelistN(current_bases);
+		MEM_freeN(current_bases);
+	}
+	BLI_freelistN(&groups);
+
+#ifdef UPDATE_SANITY_CHECK
+	{
+		Base *base;
+		for (base = scene->base.first; base; base = base->next) {
+			BLI_assert((base->object->id.flag & LIB_DOIT) == 0);
+		}
+	}
+#endif
+}
+
+static void scene_update_objects(Scene *scene, Scene *scene_parent)
+{
+	Base *base;
+	int update_count = 0;
+
+	/* Optimization thing: don't do threads if no modifier
+	 * stack need to be evaluated.
+	 */
+	for (base = scene->base.first; base; base = base->next) {
+		Object *ob = base->object;
+
+		if (ob->recalc & OB_RECALC_ALL) {
+			update_count++;
+		}
+	}
+
+#ifndef USE_THREADED_UPDATE
+	if (true) {
+		scene_update_all_bases(scene_parent, scene);
+	}
+	else
+#endif
+	if (update_count > 1) {
+		scene_update_objects_threaded(scene, scene_parent);
+	}
+	else {
+		scene_update_all_bases(scene_parent, scene);
+	}
+}
+
+static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
+{
 	scene->customdata_mask = scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
-	
+
 	/* scene objects */
-	for (base = scene->base.first; base; base = base->next) {
-		Object *ob = base->object;
-		
-		BKE_object_handle_update_ex(scene_parent, ob, scene->rigidbody_world);
-		
-		if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
-			BKE_group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
-			
-		/* always update layer, so that animating layers works (joshua july 2010) */
-		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
-		 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
-		// base->lay = ob->lay;
-	}
-	
+	scene_update_objects(scene, scene_parent);
+
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);
 
