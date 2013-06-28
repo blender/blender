@@ -54,6 +54,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
+#include "BKE_mball.h"
 #include "BKE_object.h"
 #include "BKE_editmesh.h"
 #include "BKE_DerivedMesh.h"
@@ -1091,25 +1092,14 @@ bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 
 	/* metaballs are an exception */
 	if (obedit->type == OB_MBALL) {
-		const float scale = mat4_to_scale(obedit->obmat);
-		MetaBall *mb = obedit->data;
-		MetaElem *ml;
-		bool change = false;
+		float ob_min[3], ob_max[3];
+		bool change;
 
-		for (ml = mb->elems.first; ml; ml = ml->next) {
-			if (ml->flag & SELECT) {
-				const float scale_mb = ml->rad * scale;
-				int i;
-				mul_v3_m4v3(centroid, obedit->obmat, &ml->x);
-				for (i = -1; i != 3; i += 2) {
-					copy_v3_v3(vec, centroid);
-					add_v3_fl(vec, scale_mb * i);
-					minmax_v3v3_v3(min, max, vec);
-				}
-				change = true;
-			}
+		change = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->obmat, SELECT);
+		if (change) {
+			minmax_v3v3_v3(min, max, ob_min);
+			minmax_v3v3_v3(min, max, ob_max);
 		}
-
 		return change;
 	}
 
