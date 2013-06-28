@@ -726,8 +726,6 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
         # Weight Paint Mode #
         elif context.weight_paint_object and brush:
-            layout.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
-            layout.prop(toolsettings, "use_multipaint", text="Multi-Paint")
 
             col = layout.column()
 
@@ -745,6 +743,10 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             row = col.row(align=True)
 
             col.prop(brush, "vertex_tool", text="Blend")
+
+            col = layout.column()
+            col.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
+            col.prop(toolsettings, "use_multipaint", text="Multi-Paint")
 
         # Vertex Paint Mode #
         elif context.vertex_paint_object and brush:
