@@ -1743,7 +1743,15 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 	        /* comment this out to flood the console! (if you really want to test) */
 	        !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
+#  if defined __GNUC__ || defined __sun
+#    define PRINT(format, args ...) { if (do_debug_handler) printf(format, ##args); } (void)0
+#  else
+#    define PRINT(format, ...) { if (do_debug_handler) printf(__VA_ARGS__); } (void)0
+#  endif
+#else
+#  define PRINT(format, ...)
 #endif
+
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
 	int action = WM_HANDLER_CONTINUE;
@@ -1779,28 +1787,16 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
 				wmKeyMapItem *kmi;
 
-#ifndef NDEBUG
-				if (do_debug_handler) {
-					printf("%s:   checking '%s' ...", __func__, keymap->idname);
-				}
-#endif
+				PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
 
 				if (!keymap->poll || keymap->poll(C)) {
 
-#ifndef NDEBUG
-					if (do_debug_handler) {
-						printf("pass\n");
-					}
-#endif
+					PRINT("pass\n");
 
 					for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if (wm_eventmatch(event, kmi)) {
 
-#ifndef NDEBUG
-							if (do_debug_handler) {
-								printf("%s:     item matched '%s'\n", __func__, kmi->idname);
-							}
-#endif
+							PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
 							/* weak, but allows interactive callback to not use rawkey */
 							event->keymap_idname = kmi->idname;
@@ -1819,21 +1815,13 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
 										printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
 								
-#ifndef NDEBUG
-								if (do_debug_handler) {
-									printf("%s:       un-handled '%s'...", __func__, kmi->idname);
-								}
-#endif
+									PRINT("%s:       un-handled '%s'...", __func__, kmi->idname);
 							}
 						}
 					}
 				}
 				else {
-#ifndef NDEBUG
-					if (do_debug_handler) {
-						printf("fail\n");
-					}
-#endif
+					PRINT("fail\n");
 				}
 			}
 			else if (handler->ui_handle) {
@@ -1909,6 +1897,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 	if (action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL))
 		wm_cursor_arrow_move(CTX_wm_window(C), event);
+
+#undef PRINT
 
 	return action;
 }
