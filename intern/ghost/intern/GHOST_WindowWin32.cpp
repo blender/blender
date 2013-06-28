@@ -106,6 +106,11 @@ static int is_crappy_intel_card(void)
 	return is_crappy;
 }
 
+/* force NVidia Optimus to used dedicated graphics */
+extern "C" {
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
+
 GHOST_WindowWin32::GHOST_WindowWin32(
     GHOST_SystemWin32 *system,
     const STR_String& title,
