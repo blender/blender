@@ -138,7 +138,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row = uiLayoutRow(layout, FALSE);
 			block = uiLayoutGetBlock(row);
-			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0.5*UI_UNIT_X, 0, bwidth, UI_UNIT_Y,
+			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0.5f * UI_UNIT_X, 0, bwidth, UI_UNIT_Y,
 			                &data->poly_order, 1, 100, 0, 0,
 			                TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);

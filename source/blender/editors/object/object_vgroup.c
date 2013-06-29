@@ -2982,7 +2982,8 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 		return 0;
 
 	if (!(vgroup_object_in_edit_mode(ob) ||
-		vgroup_object_in_wpaint_vert_select(ob))) {
+	    vgroup_object_in_wpaint_vert_select(ob)))
+	{
 		return 0;
 	}
 

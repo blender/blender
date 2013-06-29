@@ -30,21 +30,19 @@
  *  \ingroup cmpnodes
  */
 
-
-
 #include "node_composite_util.h"
 
 
 /* ******************* Color Balance ********************************* */
 static bNodeSocketTemplate cmp_node_colorcorrection_in[] = {
-	{	SOCK_RGBA,1,N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Mask"),	1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	-1,0,""}
+	{	-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_colorcorrection_out[] = {
-	{	SOCK_RGBA,0,N_("Image")},
-	{	-1,0,""}
+	{	SOCK_RGBA, 0, N_("Image")},
+	{	-1, 0, ""}
 };
 
 static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
