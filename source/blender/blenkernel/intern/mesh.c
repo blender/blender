@@ -3938,7 +3938,10 @@ int BKE_mesh_mselect_active_get(Mesh *me, int type)
 {
 	BLI_assert(ELEM3(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-	if (me->totselect) {
+	/* XXX how can it be that sometimes me->mselect is NULL here ? 
+	   It happens, but its not clear why it happens! 
+	*/
+	if (me->totselect && me->mselect) {
 		if (me->mselect[me->totselect - 1].type == type) {
 			return me->mselect[me->totselect - 1].index;
 		}
