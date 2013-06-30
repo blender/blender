@@ -517,9 +517,9 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 		}
 	}
 
-	men->mselect = NULL;
 	men->edit_btmesh = NULL;
 
+	men->mselect = MEM_dupallocN(men->mselect);
 	men->bb = MEM_dupallocN(men->bb);
 	
 	men->key = BKE_key_copy(me->key);
@@ -3938,10 +3938,7 @@ int BKE_mesh_mselect_active_get(Mesh *me, int type)
 {
 	BLI_assert(ELEM3(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-	/* XXX how can it be that sometimes me->mselect is NULL here ? 
-	   It happens, but its not clear why it happens! 
-	*/
-	if (me->totselect && me->mselect) {
+	if (me->totselect) {
 		if (me->mselect[me->totselect - 1].type == type) {
 			return me->mselect[me->totselect - 1].index;
 		}
