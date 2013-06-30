@@ -1142,6 +1142,9 @@ EOF
   fi
 
   _with_built_openexr=true
+
+  # Just always run it, much simpler this way!
+  _need_openexr_ldconfig=true
 }
 
 #### Build OIIO ####
@@ -3134,6 +3137,9 @@ if [ $_need_boost_ldconfig == true ]; then
 fi
 if [ $_need_oiio_ldconfig == true ]; then
   sudo sh -c "echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
+fi
+if [ $_need_openexr_ldconfig == true ]; then
+  sudo sh -c "echo \"$INST/openexr/lib\" > /etc/ld.so.conf.d/openexr.conf"
 fi
 sudo /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
 INFO ""
