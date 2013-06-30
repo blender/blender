@@ -1891,15 +1891,21 @@ void GPU_state_init(void)
 /* debugging aid */
 static void gpu_get_print(const char *name, GLenum type)
 {
+	const unsigned char err_mark[4] = {0xff, 0xff, 0xff, 0xff};
+
 	float value[32];
 	int a;
-	
-	memset(value, 0, sizeof(value));
+
+	memset(value, 0xff, sizeof(value));
 	glGetFloatv(type, value);
 
 	printf("%s: ", name);
-	for (a = 0; a < 32; a++)
+	for (a = 0; a < 32; a++) {
+		if (memcmp(&value[a], err_mark, sizeof(value[a])) == 0) {
+			break;
+		}
 		printf("%.2f ", value[a]);
+	}
 	printf("\n");
 }
 
