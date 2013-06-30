@@ -63,6 +63,30 @@ void MixBaseOperation::executePixel(float output[4], float x, float y, PixelSamp
 	output[3] = inputColor1[3];
 }
 
+void MixBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+{
+	InputSocket *socket;
+	unsigned int tempPreferredResolution[2] = {0, 0};
+	unsigned int tempResolution[2];
+
+	socket = this->getInputSocket(1);
+	socket->determineResolution(tempResolution, tempPreferredResolution);
+	if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
+		this->setResolutionInputSocketIndex(1);
+	}
+	else {
+		socket = this->getInputSocket(2);
+		socket->determineResolution(tempResolution, tempPreferredResolution);
+		if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
+			this->setResolutionInputSocketIndex(2);
+		}
+		else {
+			this->setResolutionInputSocketIndex(0);
+		}
+	}
+	NodeOperation::determineResolution(resolution, preferredResolution);
+}
+
 void MixBaseOperation::deinitExecution()
 {
 	this->m_inputValueOperation = NULL;
