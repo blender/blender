@@ -2993,7 +2993,7 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 			return !(dg->flag & DG_LOCK_WEIGHT);
 		}
 	}
-	return 0;
+	return 1;
 }
 
 static int vertex_group_vert_select_mesh_poll(bContext *C)
@@ -3080,10 +3080,7 @@ static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = ED_object_context(C);
-
-	if (RNA_boolean_get(op->ptr, "new"))
-		ED_vgroup_add(ob);
-
+	
 	vgroup_assign_verts(ob, ts->vgroup_weight);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -3094,9 +3091,9 @@ static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Assign Vertex Group";
+	ot->name = "Assign to Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_assign";
-	ot->description = "Assign the selected vertices to the active (or a new) vertex group";
+	ot->description = "Assign the selected vertices to the active vertex group";
 	
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_unlocked_poll;
@@ -3107,9 +3104,35 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	 * isn't stored in local edit mode stack and toggling "new" property will
 	 * lead to creating plenty of new vertex groups (see [#29527], sergey) */
 	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
+}
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "new", 0, "New", "Assign vertex to new vertex group");
+/* NOTE: just a wrapper around vertex_group_assign_exec(), except we add these to a new group */
+static int vertex_group_assign_new_exec(bContext *C, wmOperator *op)
+{
+	/* create new group... */
+	Object *ob = ED_object_context(C);
+	ED_vgroup_add(ob);
+	
+	/* assign selection to new group */
+	return vertex_group_assign_exec(C, op);
+}
+
+void OBJECT_OT_vertex_group_assign_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Assign to New Group";
+	ot->idname = "OBJECT_OT_vertex_group_assign_new";
+	ot->description = "Assign the selected vertices to a new vertex group";
+	
+	/* api callbacks */
+	ot->poll = vertex_group_vert_select_poll;
+	ot->exec = vertex_group_assign_new_exec;
+	
+	/* flags */
+	/* redo operator will fail in this case because vertex group assignment
+	 * isn't stored in local edit mode stack and toggling "new" property will
+	 * lead to creating plenty of new vertex groups (see [#29527], sergey) */
+	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 }
 
 static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
