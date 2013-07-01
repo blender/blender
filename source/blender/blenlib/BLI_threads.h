@@ -100,6 +100,7 @@ ThreadMutex *BLI_mutex_alloc(void);
 void BLI_mutex_free(ThreadMutex *mutex);
 
 void BLI_mutex_lock(ThreadMutex *mutex);
+bool BLI_mutex_trylock(ThreadMutex *mutex);
 void BLI_mutex_unlock(ThreadMutex *mutex);
 
 /* Spin Lock */
@@ -169,6 +170,16 @@ int BLI_thread_queue_size(ThreadQueue *queue);
 
 void BLI_thread_queue_wait_finish(ThreadQueue *queue);
 void BLI_thread_queue_nowait(ThreadQueue *queue);
+
+/* Condition */
+
+typedef pthread_cond_t ThreadCondition;
+
+void BLI_condition_init(ThreadCondition *cond);
+void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex);
+void BLI_condition_notify_one(ThreadCondition *cond);
+void BLI_condition_notify_all(ThreadCondition *cond);
+void BLI_condition_end(ThreadCondition *cond);
 
 #ifdef __cplusplus
 }

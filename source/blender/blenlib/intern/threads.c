@@ -412,6 +412,11 @@ void BLI_mutex_unlock(ThreadMutex *mutex)
 	pthread_mutex_unlock(mutex);
 }
 
+bool BLI_mutex_trylock(ThreadMutex *mutex)
+{
+	return (pthread_mutex_trylock(mutex) == 0);
+}
+
 void BLI_mutex_end(ThreadMutex *mutex)
 {
 	pthread_mutex_destroy(mutex);
@@ -770,6 +775,32 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 		pthread_cond_wait(&queue->finish_cond, &queue->mutex);
 
 	pthread_mutex_unlock(&queue->mutex);
+}
+
+/* Condition */
+void BLI_condition_init(ThreadCondition *cond)
+{
+	pthread_cond_init(cond, NULL);
+}
+
+void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex)
+{
+	pthread_cond_wait(cond, mutex);
+}
+
+void BLI_condition_notify_one(ThreadCondition *cond)
+{
+	pthread_cond_signal(cond);
+}
+
+void BLI_condition_notify_all(ThreadCondition *cond)
+{
+	pthread_cond_broadcast(cond);
+}
+
+void BLI_condition_end(ThreadCondition *cond)
+{
+	pthread_cond_destroy(cond);
 }
 
 /* ************************************************ */
