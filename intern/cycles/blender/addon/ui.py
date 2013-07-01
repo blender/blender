@@ -51,6 +51,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         split = layout.split()
 
