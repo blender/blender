@@ -82,6 +82,8 @@ void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const int ax
                                              const bool use_self, const bool use_select, const bool use_toplogy);
 void           EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);
+struct BMEdge *EDBM_verts_mirror_get_edge(struct BMEditMesh *em, struct BMEdge *e);
+struct BMFace *EDBM_verts_mirror_get_face(struct BMEditMesh *em, struct BMFace *f);
 void           EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_verts_mirror_cache_end(struct BMEditMesh *em);
 
@@ -281,6 +283,8 @@ bool ED_mesh_color_remove_active(struct Mesh *me);
 bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);
 
 void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
+void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail,
+                              char selectmode);
 
 /* mesh backup */
 typedef struct BMBackup {

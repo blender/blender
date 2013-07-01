@@ -1244,12 +1244,30 @@ void ED_mesh_calc_tessface(Mesh *mesh)
 	}
 }
 
-void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
+void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail,
+                              char selectmode)
 {
-	if (totfail) {
-		BKE_reportf(op->reports, RPT_WARNING, "%d vertices mirrored, %d failed", totmirr, totfail);
+	const char *elem_type;
+
+	if (selectmode & SCE_SELECT_VERTEX) {
+		elem_type = "vertices";
+	}
+	else if (selectmode & SCE_SELECT_EDGE) {
+		elem_type = "edges";
 	}
 	else {
-		BKE_reportf(op->reports, RPT_INFO, "%d vertices mirrored", totmirr);
+		elem_type = "faces";
 	}
+
+	if (totfail) {
+		BKE_reportf(op->reports, RPT_WARNING, "%d %s mirrored, %d failed", totmirr, elem_type, totfail);
+	}
+	else {
+		BKE_reportf(op->reports, RPT_INFO, "%d %s mirrored", totmirr, elem_type);
+	}
+}
+
+void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
+{
+	ED_mesh_report_mirror_ex(op, totmirr, totfail, SCE_SELECT_VERTEX);
 }
