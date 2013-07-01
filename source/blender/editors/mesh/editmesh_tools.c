@@ -2739,7 +2739,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 void MESH_OT_fill_grid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Fill Grid";
+	ot->name = "Grid Fill";
 	ot->description = "Fill grid from two loops";
 	ot->idname = "MESH_OT_fill_grid";
 
