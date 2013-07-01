@@ -2775,7 +2775,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	}
 }
 
-static bool vgroup_object_in_edit_mode(Object *ob)
+bool ED_vgroup_object_in_edit_mode(Object *ob)
 {
 	if (ob->type == OB_MESH)
 		return (BKE_editmesh_from_object(ob) != NULL);
@@ -2785,7 +2785,7 @@ static bool vgroup_object_in_edit_mode(Object *ob)
 	return false;
 }
 
-static bool vgroup_object_in_wpaint_vert_select(Object *ob)
+bool ED_vgroup_object_in_wpaint_vert_select(Object *ob)
 {
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
@@ -2803,7 +2803,7 @@ static void vgroup_delete(Object *ob)
 	if (!dg)
 		return;
 
-	if (vgroup_object_in_edit_mode(ob))
+	if (ED_vgroup_object_in_edit_mode(ob))
 		vgroup_delete_edit_mode(ob, dg);
 	else
 		vgroup_delete_object_mode(ob, dg);
@@ -2956,7 +2956,7 @@ static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
-	return vgroup_object_in_edit_mode(ob);
+	return ED_vgroup_object_in_edit_mode(ob);
 }
 
 /* editmode _or_ weight paint vertex sel */
@@ -2968,8 +2968,8 @@ static int vertex_group_vert_select_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
-	return (vgroup_object_in_edit_mode(ob) ||
-	        vgroup_object_in_wpaint_vert_select(ob));
+	return (ED_vgroup_object_in_edit_mode(ob) ||
+	        ED_vgroup_object_in_wpaint_vert_select(ob));
 }
 
 /* editmode _or_ weight paint vertex sel and active group unlocked */
@@ -2981,8 +2981,8 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
-	if (!(vgroup_object_in_edit_mode(ob) ||
-	    vgroup_object_in_wpaint_vert_select(ob)))
+	if (!(ED_vgroup_object_in_edit_mode(ob) ||
+	    ED_vgroup_object_in_wpaint_vert_select(ob)))
 	{
 		return 0;
 	}
@@ -3008,8 +3008,8 @@ static int vertex_group_vert_select_mesh_poll(bContext *C)
 	if (ob->type != OB_MESH)
 		return 0;
 
-	return (vgroup_object_in_edit_mode(ob) ||
-	        vgroup_object_in_wpaint_vert_select(ob));
+	return (ED_vgroup_object_in_edit_mode(ob) ||
+	        ED_vgroup_object_in_wpaint_vert_select(ob));
 }
 
 static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3513,7 +3513,7 @@ static int vertex_group_blend_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return false;
 
-	if (vgroup_object_in_edit_mode(ob)) {
+	if (ED_vgroup_object_in_edit_mode(ob)) {
 		return true;
 	}
 	else if ((ob->type == OB_MESH) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
