@@ -3044,15 +3044,15 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 	if (check_object_draw_editweight(me, finalDM)) {
 		if (dt > OB_WIRE) {
-			draw_mesh_paint_weight_faces(me, finalDM, NULL, true);
+			draw_mesh_paint_weight_faces(finalDM, true, draw_em_fancy__setFaceOpts, me->edit_btmesh);
 
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);
 		}
 		else {
 			glEnable(GL_DEPTH_TEST);
-			draw_mesh_paint_weight_faces(me, finalDM, NULL, false);
-			draw_mesh_paint_weight_edges(rv3d, finalDM, true);
+			draw_mesh_paint_weight_faces(finalDM, false, draw_em_fancy__setFaceOpts, me->edit_btmesh);
+			draw_mesh_paint_weight_edges(rv3d, finalDM, true, draw_dm_edges__setDrawOptions, me->edit_btmesh);
 			glDisable(GL_DEPTH_TEST);
 		}
 	}

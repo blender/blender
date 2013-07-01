@@ -1004,7 +1004,8 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 }
 
 /* Vertex Paint and Weight Paint */
-void draw_mesh_paint_weight_faces(Mesh *me, DerivedMesh *dm, void *facemask, const bool use_light)
+void draw_mesh_paint_weight_faces(DerivedMesh *dm, const bool use_light,
+                                  void *facemask_cb, void *user_data)
 {
 	if (use_light) {
 		const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
@@ -1019,7 +1020,7 @@ void draw_mesh_paint_weight_faces(Mesh *me, DerivedMesh *dm, void *facemask, con
 		glEnable(GL_COLOR_MATERIAL);
 	}
 
-	dm->drawMappedFaces(dm, (DMSetDrawOptions)facemask, GPU_enable_material, NULL, me,
+	dm->drawMappedFaces(dm, (DMSetDrawOptions)facemask_cb, GPU_enable_material, NULL, user_data,
 	                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
 
 	if (use_light) {
@@ -1030,7 +1031,8 @@ void draw_mesh_paint_weight_faces(Mesh *me, DerivedMesh *dm, void *facemask, con
 	}
 }
 
-void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const bool use_depth)
+void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const bool use_depth,
+                                  void *edgemask_cb, void *user_data)
 {
 	/* weight paint in solid mode, special case. focus on making the weights clear
 	 * rather than the shading, this is also forced in wire view */
@@ -1048,7 +1050,7 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const boo
 	glEnable(GL_LINE_STIPPLE);
 	glLineStipple(1, 0xAAAA);
 
-	dm->drawEdges(dm, 1, 1);
+	dm->drawMappedEdges(dm, (DMSetDrawOptions)edgemask_cb, user_data);
 
 	if (use_depth) {
 		bglPolygonOffset(rv3d->dist, 0.0);
@@ -1078,7 +1080,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 			GPU_enable_material(0, NULL);
 		}
 
-		draw_mesh_paint_weight_faces(me, dm, facemask, use_light);
+		draw_mesh_paint_weight_faces(dm, use_light, facemask, me);
 	}
 	else if (ob->mode & OB_MODE_VERTEX_PAINT) {
 		if (me->mloopcol) {
@@ -1098,7 +1100,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 	}
 	else if ((use_light == false) || (ob->dtx & OB_DRAWWIRE)) {
 		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(ob->mode & OB_MODE_WEIGHT_PAINT);
-		draw_mesh_paint_weight_edges(rv3d, dm, use_depth);
+		draw_mesh_paint_weight_edges(rv3d, dm, use_depth, NULL, NULL);
 	}
 }
 
