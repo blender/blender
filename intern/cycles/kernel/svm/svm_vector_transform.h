@@ -18,6 +18,11 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* ToDo
+* if (object != ~0) null check?
+* differs from OSL when used for the world
+*/
+
 /* Vector Transform */
 
 __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
@@ -25,19 +30,72 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	uint itype, ifrom, ito;
 	uint vector_in, vector_out;
 	
-	float3 out = make_float3(0.0f, 0.0f, 0.0f);
-	
 	decode_node_uchar4(node.y, &itype, &ifrom, &ito, NULL);
 	decode_node_uchar4(node.z, &vector_in, &vector_out, NULL, NULL);
+	
+	float3 in = stack_load_float3(stack, vector_in);
 	
 	NodeVectorTransformType type = (NodeVectorTransformType)itype;
 	NodeVectorTransformConvertFrom from = (NodeVectorTransformConvertFrom)ifrom;
 	NodeVectorTransformConvertTo to = (NodeVectorTransformConvertTo)ito;
 	
-	float3 vec_in = stack_load_float3(stack, vector_in);
+	Transform tfm;
 	
-	if(stack_valid(vector_out))
-		stack_store_float3(stack, vector_out, out);
+	/* From world */
+	if(from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) {
+			tfm = kernel_data.cam.worldtocamera;
+			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+				in = transform_direction(&tfm, in);
+			else
+				in = transform_point(&tfm, in);
+		}
+		else if (to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT) {
+			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+				object_inverse_dir_transform(kg, sd, &in);
+			else
+				object_inverse_position_transform(kg, sd, &in);
+		}
+	}
+	
+	/* From camera */
+	else if (from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_CAMERA) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT) {
+			tfm = kernel_data.cam.cameratoworld;
+			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+				in = transform_direction(&tfm, in);
+			else
+				in = transform_point(&tfm, in);
+		}
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT) {
+			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+				object_inverse_dir_transform(kg, sd, &in);
+			else
+				object_inverse_position_transform(kg, sd, &in);
+		}
+	}
+	
+	/* From object */
+	else if(from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) {
+			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+				object_dir_transform(kg, sd, &in);
+			else
+				object_position_transform(kg, sd, &in);
+		}
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) {
+			tfm = kernel_data.cam.worldtocamera;
+			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+				in = transform_direction(&tfm, in);
+			else
+				in = transform_point(&tfm, in);
+		}
+	}
+	
+	/* Output */	
+	if(stack_valid(vector_out)) {
+			stack_store_float3(stack, vector_out, in);
+	}
 }
 
 CCL_NAMESPACE_END
