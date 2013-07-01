@@ -939,9 +939,9 @@ static int mesh_get_x_mirror_vert_topo(Object *ob, int index)
 	return mesh_topo_store.index_lookup[index];
 }
 
-int mesh_get_x_mirror_vert(Object *ob, int index)
+int mesh_get_x_mirror_vert(Object *ob, int index, const bool use_topology)
 {
-	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
+	if (use_topology) {
 		return mesh_get_x_mirror_vert_topo(ob, index);
 	}
 	else {
@@ -1001,9 +1001,9 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *e
 	return NULL;
 }	
 
-BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *eve, const float co[3], int index)
+BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *eve, const float co[3], int index, const bool use_topology)
 {
-	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
+	if (use_topology) {
 		return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
 	}
 	else {
@@ -1121,6 +1121,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 	MVert *mv, *mvert = me->mvert;
 	MFace mirrormf, *mf, *hashmf, *mface = me->mface;
 	GHash *fhash;
+	const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 	int *mirrorverts, *mirrorfaces;
 	int a;
 
@@ -1130,7 +1131,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 	mesh_octree_table(ob, em, NULL, 's');
 
 	for (a = 0, mv = mvert; a < me->totvert; a++, mv++)
-		mirrorverts[a] = mesh_get_x_mirror_vert(ob, a);
+		mirrorverts[a] = mesh_get_x_mirror_vert(ob, a, use_topology);
 
 	mesh_octree_table(ob, em, NULL, 'e');
 

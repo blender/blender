@@ -1059,9 +1059,9 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				
 
 				dx = (int)UI_GetStringWidth(te->name);
-				if (dx < 5*UI_UNIT_X) dx = 5*UI_UNIT_X;
+				if (dx < 5 * UI_UNIT_X) dx = 5 * UI_UNIT_X;
 				spx = te->xs + 1.8f * UI_UNIT_X;
-				if (spx + dx + 0.5f*UI_UNIT_X > ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax - spx - 0.5f*UI_UNIT_X;
+				if (spx + dx + 0.5f * UI_UNIT_X > ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax - spx - 0.5f * UI_UNIT_X;
 
 				bt = uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (int)te->ys, dx + UI_UNIT_X, UI_UNIT_Y - 1, (void *)te->name,
 				              1.0, (float)len, 0, 0, "");

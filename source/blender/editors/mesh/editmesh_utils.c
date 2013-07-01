@@ -1151,13 +1151,13 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
  * \param em  Editmesh.
  * \param use_self  Allow a vertex to point to its self (middle verts).
  * \param use_select  Restrict to selected verts.
- * \param is_topo  Use topology mirror.
+ * \param use_topology  Use topology mirror.
  * \param maxdist  Distance for close point test.
  * \param r_index  Optional array to write into, as an alternative to a customdata layer (length of total verts).
  */
 void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool use_self, const bool use_select,
                                       /* extra args */
-                                      const bool is_topo, float maxdist, int *r_index)
+                                      const bool use_topology, float maxdist, int *r_index)
 {
 	Mesh *me = (Mesh *)em->ob->data;
 	BMesh *bm = em->bm;
@@ -1188,7 +1188,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-	if (is_topo) {
+	if (use_topology) {
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
 	}
 	else {
@@ -1208,7 +1208,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 			BMVert *v_mirr;
 			int *idx = VERT_INTPTR(v, i);
 
-			if (is_topo) {
+			if (use_topology) {
 				v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
 			}
 			else {
@@ -1233,7 +1233,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 
 #undef VERT_INTPTR
 
-	if (is_topo) {
+	if (use_topology) {
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
 	}
 	else {
@@ -1242,17 +1242,13 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 }
 
 void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const int axis,
-                                   const bool use_self, const bool use_select)
+                                   const bool use_self, const bool use_select,
+                                   const bool use_topology)
 {
-	Mesh *me = (Mesh *)em->ob->data;
-	bool is_topo;
-
-	is_topo = (me && (me->editflag & ME_EDIT_MIRROR_TOPO));
-
 	EDBM_verts_mirror_cache_begin_ex(em, axis,
 	                                 use_self, use_select,
 	                                 /* extra args */
-	                                 is_topo, BM_SEARCH_MAXDIST_MIRR, NULL);
+	                                 use_topology, BM_SEARCH_MAXDIST_MIRR, NULL);
 }
 
 BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)

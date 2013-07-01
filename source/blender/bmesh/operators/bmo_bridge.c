@@ -371,6 +371,14 @@ static void bridge_loop_pair(BMesh *bm,
 		BMO_op_initf(bm, &op_sub, 0,
 		             "triangulate faces=%hf",
 		             BM_ELEM_TAG, true);
+		/* calc normals for input faces before executing */
+		{
+			BMOIter siter;
+			BMFace *f;
+			BMO_ITER (f, &siter, op_sub.slots_in, "faces", BM_FACE) {
+				BM_face_normal_update(f);
+			}
+		}
 		BMO_op_exec(bm, &op_sub);
 		BMO_slot_buffer_flag_enable(bm, op_sub.slots_out, "faces.out", BM_FACE, FACE_OUT);
 		BMO_slot_buffer_hflag_enable(bm, op_sub.slots_out, "faces.out", BM_FACE, BM_ELEM_TAG, false);

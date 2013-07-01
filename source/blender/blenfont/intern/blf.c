@@ -44,6 +44,7 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "BIF_gl.h"
 #include "BLF_api.h"

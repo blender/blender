@@ -214,7 +214,7 @@ static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2
 	int i;
 	
 	/* get view settings */
-	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
+	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	
 	/* set handle color */

@@ -1360,7 +1360,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			Scene *scene = CTX_data_scene(C);
 			RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
 			if (rr) {
-				RE_WriteRenderResult(op->reports, rr, simopts->filepath, simopts->im_format.quality);
+				RE_WriteRenderResult(op->reports, rr, simopts->filepath, simopts->im_format.exr_codec);
 				ok = TRUE;
 			}
 			else {

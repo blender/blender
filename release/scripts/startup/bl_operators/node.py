@@ -66,12 +66,8 @@ class NodeAddOperator():
 
         # convert mouse position to the View2D for later node placement
         if context.region.type == 'WINDOW':
-            # XXX, why use DPI for coords?
-            dpi_fac = context.user_preferences.system.dpi / 72.0
             space.cursor_location = v2d.region_to_view(event.mouse_region_x,
                                                        event.mouse_region_y)
-            space.cursor_location /= dpi_fac
-
         else:
             space.cursor_location = tree.view_center
 

@@ -599,13 +599,12 @@ static int actionzone_area_poll(bContext *C)
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
 	
-	if (sa && win) {
+	if (sa && win && win->eventstate) {
+		const int *xy = &win->eventstate->x;
 		AZone *az;
-		int x = win->eventstate->x;
-		int y = win->eventstate->y;
 		
 		for (az = sa->actionzones.first; az; az = az->next)
-			if (BLI_rcti_isect_pt(&az->rect, x, y))
+			if (BLI_rcti_isect_pt_v(&az->rect, xy))
 				return 1;
 	}
 	return 0;

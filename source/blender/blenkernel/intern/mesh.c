@@ -517,9 +517,9 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 		}
 	}
 
-	men->mselect = NULL;
 	men->edit_btmesh = NULL;
 
+	men->mselect = MEM_dupallocN(men->mselect);
 	men->bb = MEM_dupallocN(men->bb);
 	
 	men->key = BKE_key_copy(me->key);

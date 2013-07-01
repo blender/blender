@@ -4148,6 +4148,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->bb = NULL;
 	mesh->edit_btmesh = NULL;
 	
+	/* happens with old files */
+	if (mesh->mselect == NULL) {
+		mesh->totselect = 0;
+	}
+
 	/* Multires data */
 	mesh->mr= newdataadr(fd, mesh->mr);
 	if (mesh->mr) {

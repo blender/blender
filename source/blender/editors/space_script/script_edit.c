@@ -36,10 +36,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm_event_system.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -84,10 +86,41 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	RNA_def_string_file_path(ot->srna, "filepath", "", FILE_MAX, "Path", "");
 }
 
+#ifdef WITH_PYTHON
+static bool script_test_modal_operators(bContext *C)
+{
+	wmWindowManager *wm;
+	wmWindow *win;
 
-static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
+	wm = CTX_wm_manager(C);
+
+	for (win = wm->windows.first; win; win = win->next) {
+		wmEventHandler *handler;
+
+		for (handler = win->modalhandlers.first; handler; handler = handler->next) {
+			if (handler->op) {
+				wmOperatorType *ot = handler->op->type;
+				if (ot->ext.srna) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+#endif
+
+static int script_reload_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_PYTHON
+
+	/* clear running operators */
+	if (script_test_modal_operators(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't reload with running modal operators");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* TODO, this crashes on netrender and keying sets, need to look into why
 	 * disable for now unless running in debug mode */
 	WM_cursor_wait(1);
@@ -96,7 +129,7 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 #else
-	(void)C; /* unused */
+	(void)C, (void)op; /* unused */
 	return OPERATOR_CANCELLED;
 #endif
 }

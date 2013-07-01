@@ -111,7 +111,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA ptr;
-	short bwidth = width - 30; /* max button width */
+	short bwidth = width - 1.5 * UI_UNIT_X; /* max button width */
 	
 	/* init the RNA-pointer */
 	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
@@ -138,7 +138,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row = uiLayoutRow(layout, FALSE);
 			block = uiLayoutGetBlock(row);
-			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 10, 0, bwidth, 20,
+			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0.5f * UI_UNIT_X, 0, bwidth, UI_UNIT_Y,
 			                &data->poly_order, 1, 100, 0, 0,
 			                TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
@@ -147,11 +147,11 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* calculate maximum width of label for "x^n" labels */
 			if (data->arraysize > 2) {
 				BLI_snprintf(xval, sizeof(xval), "x^%u", data->arraysize);
-				maxXWidth = UI_GetStringWidth(xval) + 10; /* XXX: UI_GetStringWidth is not accurate */
+				maxXWidth = UI_GetStringWidth(xval) + 0.5 * UI_UNIT_X; /* XXX: UI_GetStringWidth is not accurate */
 			}
 			else {
 				/* basic size (just "x") */
-				maxXWidth = UI_GetStringWidth("x") + 10; 
+				maxXWidth = UI_GetStringWidth("x") + 0.5 * UI_UNIT_X;
 			}
 			
 			/* draw controls for each coefficient and a + sign at end of row */
@@ -162,12 +162,12 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			for (i = 0; (i < data->arraysize) && (cp); i++, cp++) {
 				/* To align with first line... */
 				if (i)
-					uiDefBut(block, LABEL, 1, "   ", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "   ", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				else
-					uiDefBut(block, LABEL, 1, "y =", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "y =", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficient */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, bwidth / 2, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, bwidth / 2, UI_UNIT_Y, cp, -UI_FLT_MAX, UI_FLT_MAX,
 				          10, 3, TIP_("Coefficient for polynomial"));
 				
 				/* 'x' param (and '+' if necessary) */
@@ -177,10 +177,10 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 					BLI_strncpy(xval, "x", sizeof(xval));
 				else
 					BLI_snprintf(xval, sizeof(xval), "x^%u", i);
-				uiDefBut(block, LABEL, 1, xval, 0, 0, maxXWidth, 20, NULL, 0.0, 0.0, 0, 0, TIP_("Power of x"));
+				uiDefBut(block, LABEL, 1, xval, 0, 0, maxXWidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, TIP_("Power of x"));
 				
 				if ( (i != (data->arraysize - 1)) || ((i == 0) && data->arraysize == 2) ) {
-					uiDefBut(block, LABEL, 1, "+", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "+", 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* next coefficient on a new row */
 					row = uiLayoutRow(layout, TRUE);
@@ -188,7 +188,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 				}
 				else {
 					/* For alignment in UI! */
-					uiDefBut(block, LABEL, 1, " ", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, " ", 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				}
 			}
 			break;
@@ -202,7 +202,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row = uiLayoutRow(layout, FALSE);
 			block = uiLayoutGetBlock(row);
-			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0, 0, width - 30, 19,
+			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0, 0, width - 1.5 * UI_UNIT_X, UI_UNIT_Y,
 			                &data->poly_order, 1, 100, 0, 0,
 			                TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
@@ -216,31 +216,31 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			for (i = 0; (i < data->poly_order) && (cp); i++, cp += 2) {
 				/* To align with first line */
 				if (i)
-					uiDefBut(block, LABEL, 1, "   ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "   ", 0, 0, 2.5 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				else
-					uiDefBut(block, LABEL, 1, "y =", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "y =", 0, 0, 2.5 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				/* opening bracket */
-				uiDefBut(block, LABEL, 1, "(", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "(", 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficients */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 5 * UI_UNIT_X, UI_UNIT_Y, cp, -UI_FLT_MAX, UI_FLT_MAX,
 				          10, 3, TIP_("Coefficient of x"));
 				
-				uiDefBut(block, LABEL, 1, "x +", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "x +", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp + 1, -UI_FLT_MAX, UI_FLT_MAX,
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 5 * UI_UNIT_X, UI_UNIT_Y, cp + 1, -UI_FLT_MAX, UI_FLT_MAX,
 				          10, 3, TIP_("Second coefficient"));
 				
 				/* closing bracket and multiplication sign */
 				if ( (i != (data->poly_order - 1)) || ((i == 0) && data->poly_order == 2) ) {
-					uiDefBut(block, LABEL, 1, ") \xc3\x97", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ") \xc3\x97", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* set up new row for the next pair of coefficients */
 					row = uiLayoutRow(layout, TRUE);
 					block = uiLayoutGetBlock(row);
 				}
 				else 
-					uiDefBut(block, LABEL, 1, ")  ", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ")  ", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 			}
 		}
 		break;
@@ -438,9 +438,9 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	row = uiLayoutRow(layout, FALSE);
 	block = uiLayoutGetBlock(row);
 		
-	uiDefBut(block, LABEL, 1, IFACE_("Control Points:"), 0, 0, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 1, IFACE_("Control Points:"), 0, 0, 7.5 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		
-	but = uiDefBut(block, BUT, B_FMODIFIER_REDRAW, IFACE_("Add Point"), 0, 0, 150, 19,
+	but = uiDefBut(block, BUT, B_FMODIFIER_REDRAW, IFACE_("Add Point"), 0, 0, 7.5 * UI_UNIT_X, UI_UNIT_Y,
 	               NULL, 0, 0, 0, 0, TIP_("Add a new control-point to the envelope on the current frame"));
 	uiButSetFunc(but, fmod_envelope_addpoint_cb, env, NULL);
 		
@@ -451,16 +451,16 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 		block = uiLayoutGetBlock(row);
 		
 		uiBlockBeginAlign(block);
-		but = uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Fra:"), 0, 0, 90, 20,
+		but = uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Fra:"), 0, 0, 4.5 * UI_UNIT_X, UI_UNIT_Y,
 		                &fed->time, -MAXFRAMEF, MAXFRAMEF, 10, 1, TIP_("Frame that envelope point occurs"));
 		uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Min:"), 0, 0, 100, 20,
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Min:"), 0, 0, 5 * UI_UNIT_X, UI_UNIT_Y,
 		          &fed->min, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, TIP_("Minimum bound of envelope at this point"));
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Max:"), 0, 0, 100, 20,
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Max:"), 0, 0, 5 * UI_UNIT_X, UI_UNIT_Y,
 		          &fed->max, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, TIP_("Maximum bound of envelope at this point"));
 
-		but = uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 18, 20,
+		but = uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 0.9 * UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete envelope control point"));
 		uiButSetFunc(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
 		uiBlockBeginAlign(block);

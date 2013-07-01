@@ -249,12 +249,12 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--frame-jump");
 	BLI_argsPrintArgDoc(ba, "--render-output");
 	BLI_argsPrintArgDoc(ba, "--engine");
+	BLI_argsPrintArgDoc(ba, "--threads");
 	
 	printf("\n");
 	printf("Format Options:\n");
 	BLI_argsPrintArgDoc(ba, "--render-format");
 	BLI_argsPrintArgDoc(ba, "--use-extension");
-	BLI_argsPrintArgDoc(ba, "--threads");
 
 	printf("\n");
 	printf("Animation Playback Options:\n");
@@ -266,26 +266,52 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--window-borderless");
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
 	BLI_argsPrintArgDoc(ba, "--start-console");
+	BLI_argsPrintArgDoc(ba, "--no-native-pixels");
+
 
 	printf("\n");
 	printf("Game Engine Specific Options:\n");
 	BLI_argsPrintArgDoc(ba, "-g");
 
 	printf("\n");
-	printf("Misc Options:\n");
-	BLI_argsPrintArgDoc(ba, "--debug");
-	BLI_argsPrintArgDoc(ba, "--debug-fpe");
-	BLI_argsPrintArgDoc(ba, "--disable-crash-handler");
+	printf("Python Options:\n");
+	BLI_argsPrintArgDoc(ba, "--enable-autoexec");
+	BLI_argsPrintArgDoc(ba, "--disable-autoexec");
 
+	printf("\n");
+
+	BLI_argsPrintArgDoc(ba, "--python");
+	BLI_argsPrintArgDoc(ba, "--python-text");
+	BLI_argsPrintArgDoc(ba, "--python-console");
+	BLI_argsPrintArgDoc(ba, "--addons");
+
+
+	printf("\n");
+	printf("Debug Options:\n");
+	BLI_argsPrintArgDoc(ba, "--debug");
+	BLI_argsPrintArgDoc(ba, "--debug-value");
+
+	printf("\n");
+	BLI_argsPrintArgDoc(ba, "--debug-events");
 #ifdef WITH_FFMPEG
 	BLI_argsPrintArgDoc(ba, "--debug-ffmpeg");
 #endif
-
+	BLI_argsPrintArgDoc(ba, "--debug-handlers");
 #ifdef WITH_LIBMV
 	BLI_argsPrintArgDoc(ba, "--debug-libmv");
 #endif
+	BLI_argsPrintArgDoc(ba, "--debug-jobs");
+	BLI_argsPrintArgDoc(ba, "--debug-python");
+
+	BLI_argsPrintArgDoc(ba, "--debug-wm");
+	BLI_argsPrintArgDoc(ba, "--debug-all");
 
 	printf("\n");
+	BLI_argsPrintArgDoc(ba, "--debug-fpe");
+	BLI_argsPrintArgDoc(ba, "--disable-crash-handler");
+
+	printf("\n");
+	printf("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--factory-startup");
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "--env-system-config");
@@ -301,18 +327,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("\n");
 
 	BLI_argsPrintArgDoc(ba, "--help");
-
-	printf("\n");
-
-	BLI_argsPrintArgDoc(ba, "--enable-autoexec");
-	BLI_argsPrintArgDoc(ba, "--disable-autoexec");
-
-	printf("\n");
-
-	BLI_argsPrintArgDoc(ba, "--python");
-	BLI_argsPrintArgDoc(ba, "--python-text");
-	BLI_argsPrintArgDoc(ba, "--python-console");
-	BLI_argsPrintArgDoc(ba, "--addons");
 
 #ifdef WIN32
 	BLI_argsPrintArgDoc(ba, "-R");

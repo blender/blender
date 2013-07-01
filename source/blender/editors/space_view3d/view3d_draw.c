@@ -592,7 +592,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
  * colors copied from transform_manipulator.c, we should keep these matching. */
 static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 {
-	const float k = U.rvisize;   /* axis size */
+	const float k = U.rvisize * U.pixelsize;   /* axis size */
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
 	float startx = k + 1.0f; /* axis center in screen coordinates, x=y */
 	float starty = k + 1.0f;

@@ -2038,7 +2038,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	clear_id_newpoins();
 	clear_sca_new_poins();  /* sensor/contr/act */
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
 		Base *basen = object_add_duplicate_internal(bmain, scene, base, dupflag);
 

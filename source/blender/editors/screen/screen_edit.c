@@ -1639,7 +1639,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 		if (sl->spacetype == SPACE_IMAGE) {
 			SpaceImage *sima = sa->spacedata.first;
 
-			if(sima->flag & (SI_PREVSPACE|SI_FULLWINDOW)) {
+			if (sima->flag & (SI_PREVSPACE | SI_FULLWINDOW)) {
 				sima->flag &= ~SI_PREVSPACE;
 				sima->flag &= ~SI_FULLWINDOW;
 				ED_screen_full_prevspace(C, sa);

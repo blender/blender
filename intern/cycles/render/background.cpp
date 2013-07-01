@@ -38,6 +38,7 @@ Background::Background()
 	use = true;
 
 	visibility = ~0;
+	shader = 0;
 
 	transparent = false;
 	need_update = true;
@@ -54,6 +55,11 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	device_free(device, dscene);
 
+	if(use)
+		shader = scene->default_background;
+	else
+		shader = scene->default_empty;
+
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
 
@@ -61,10 +67,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kbackground->ao_distance = ao_distance;
 
 	kbackground->transparent = transparent;
-	if(use)
-		kbackground->shader = scene->shader_manager->get_shader_id(scene->default_background);
-	else
-		kbackground->shader = scene->shader_manager->get_shader_id(scene->default_empty);
+	kbackground->shader = scene->shader_manager->get_shader_id(shader);
 
 	if(!(visibility & PATH_RAY_DIFFUSE))
 		kbackground->shader |= SHADER_EXCLUDE_DIFFUSE;

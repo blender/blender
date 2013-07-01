@@ -179,7 +179,7 @@ static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], con
 }
 
 /* this condition has been made more complex since editmode can draw textures */
-static bool check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
+static bool check_object_draw_texture(Scene *scene, View3D *v3d, const char drawtype)
 {
 	/* texture and material draw modes */
 	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID) {
@@ -198,6 +198,18 @@ static bool check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 		return true;
 	}
 	
+	return false;
+}
+
+static bool check_object_draw_editweight(Mesh *me, DerivedMesh *finalDM)
+{
+	if (me->drawflag & ME_DRAWEIGHT) {
+		/* editmesh handles its own weight drawing */
+		if (finalDM->type != DM_TYPE_EDITBMESH) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -3030,7 +3042,21 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	
 	EDBM_index_arrays_ensure(em, BM_VERT | BM_EDGE | BM_FACE);
 
-	if (dt > OB_WIRE) {
+	if (check_object_draw_editweight(me, finalDM)) {
+		if (dt > OB_WIRE) {
+			draw_mesh_paint_weight_faces(finalDM, true, draw_em_fancy__setFaceOpts, me->edit_btmesh);
+
+			bglPolygonOffset(rv3d->dist, 1.0);
+			glDepthMask(0);
+		}
+		else {
+			glEnable(GL_DEPTH_TEST);
+			draw_mesh_paint_weight_faces(finalDM, false, draw_em_fancy__setFaceOpts, me->edit_btmesh);
+			draw_mesh_paint_weight_edges(rv3d, finalDM, true, draw_dm_edges__setDrawOptions, me->edit_btmesh);
+			glDisable(GL_DEPTH_TEST);
+		}
+	}
+	else if (dt > OB_WIRE) {
 		if (check_object_draw_texture(scene, v3d, dt)) {
 			if (draw_glsl_material(scene, ob, v3d, dt)) {
 				glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
