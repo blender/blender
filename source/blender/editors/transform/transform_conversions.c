@@ -2023,6 +2023,7 @@ static void createTransEditVerts(TransInfo *t)
 	TransData *tob = NULL;
 	TransDataExtension *tx = NULL;
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
+	Mesh *me = t->obedit->data;
 	BMesh *bm = em->bm;
 	BMVert *eve;
 	BMIter iter;
@@ -2036,9 +2037,10 @@ static void createTransEditVerts(TransInfo *t)
 	char *selstate = NULL;
 	short selectmode = ts->selectmode;
 	int cd_vert_bweight_offset = -1;
+	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	if (t->flag & T_MIRROR) {
-		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0);
+		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
 		mirror = 1;
 	}
 

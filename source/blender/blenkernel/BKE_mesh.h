@@ -146,7 +146,7 @@ void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
 
 void BKE_mesh_flush_hidden_from_polys_ex(struct MVert *mvert,
                                          const struct MLoop *mloop,
-                                         struct MEdge *medge, int totedge,
+                                         struct MEdge *medge, const int totedge,
                                          const struct MPoly *mpoly, const int totpoly);
 void BKE_mesh_flush_hidden_from_polys(struct Mesh *me);
 

@@ -2375,8 +2375,44 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	freepolygonize(&process);
 }
 
+bool BKE_mball_minmax_ex(MetaBall *mb, float min[3], float max[3],
+                         float obmat[4][4], const short flag)
+{
+	const float scale = obmat ? mat4_to_scale(obmat) : 1.0f;
+	MetaElem *ml;
+	bool change = false;
+	float centroid[3], vec[3];
+
+	INIT_MINMAX(min, max);
+
+	for (ml = mb->elems.first; ml; ml = ml->next) {
+		if ((ml->flag & flag) == flag) {
+			const float scale_mb = (ml->rad * 0.5f) * scale;
+			int i;
+
+			if (obmat) {
+				mul_v3_m4v3(centroid, obmat, &ml->x);
+			}
+			else {
+				copy_v3_v3(centroid, &ml->x);
+			}
+
+			/* TODO, non circle shapes cubes etc, probably nobody notices - campbell */
+			for (i = -1; i != 3; i += 2) {
+				copy_v3_v3(vec, centroid);
+				add_v3_fl(vec, scale_mb * i);
+				minmax_v3v3_v3(min, max, vec);
+			}
+			change = true;
+		}
+	}
+
+	return change;
+}
+
+
 /* basic vertex data functions */
-int BKE_mball_minmax(MetaBall *mb, float min[3], float max[3])
+bool BKE_mball_minmax(MetaBall *mb, float min[3], float max[3])
 {
 	MetaElem *ml;
 
@@ -2389,7 +2425,7 @@ int BKE_mball_minmax(MetaBall *mb, float min[3], float max[3])
 	return (mb->elems.first != NULL);
 }
 
-int BKE_mball_center_median(MetaBall *mb, float r_cent[3])
+bool BKE_mball_center_median(MetaBall *mb, float r_cent[3])
 {
 	MetaElem *ml;
 	int total = 0;
@@ -2407,7 +2443,7 @@ int BKE_mball_center_median(MetaBall *mb, float r_cent[3])
 	return (total != 0);
 }
 
-int BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
+bool BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 {
 	float min[3], max[3];
 

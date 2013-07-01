@@ -27,9 +27,13 @@ import bpy
 import sys
 
 USE_ATTRSET = False
+USE_FILES = ""  # "/mango/"
 USE_RANDOM = False
+USE_RANDOM_SCREEN = False
 RANDOM_SEED = [1]  # so we can redo crashes
-RANDOM_RESET = 0.1  # 10% chance of resetting on each mew operator
+RANDOM_RESET = 0.1  # 10% chance of resetting on each new operator
+RANDOM_MULTIPLY = 10
+
 
 op_blacklist = (
     "script.reload",
@@ -50,8 +54,13 @@ op_blacklist = (
     "nla.bake",                # OK but slow
     "*.*_export",
     "*.*_import",
+    "ed.undo",
     "ed.undo_push",
+    "script.autoexec_warn_clear",
+    "screen.delete",           # already used for random screens
     "wm.blenderplayer_start",
+    "wm.recover_auto_save",
+    "wm.quit_blender",
     "wm.url_open",
     "wm.doc_view",
     "wm.doc_edit",
@@ -78,6 +87,33 @@ op_blacklist = (
     )
 
 
+def blend_list(mainpath):
+    import os
+    from os.path import join, splitext
+
+    def file_list(path, filename_check=None):
+        for dirpath, dirnames, filenames in os.walk(path):
+
+            # skip '.svn'
+            if dirpath.startswith("."):
+                continue
+
+            for filename in filenames:
+                filepath = join(dirpath, filename)
+                if filename_check is None or filename_check(filepath):
+                    yield filepath
+
+    def is_blend(filename):
+        ext = splitext(filename)[1]
+        return (ext in {".blend",})
+
+    return list(sorted(file_list(mainpath, is_blend)))
+
+if USE_FILES:
+    USE_FILES_LS = blend_list(USE_FILES)
+    # print(USE_FILES_LS)
+
+
 def filter_op_list(operators):
     from fnmatch import fnmatchcase
 
@@ -97,6 +133,18 @@ def reset_blend():
         # reduce range so any bake action doesnt take too long
         scene.frame_start = 1
         scene.frame_end = 5
+
+    if USE_RANDOM_SCREEN:
+        import random
+        for i in range(random.randint(0, len(bpy.data.screens))):
+            bpy.ops.screen.delete()
+        print("Scree IS", bpy.context.screen)
+
+
+def reset_file():
+    import random
+    f = USE_FILES_LS[random.randint(0, len(USE_FILES_LS) - 1)]
+    bpy.ops.wm.open_mainfile(filepath=f)
 
 
 if USE_ATTRSET:
@@ -167,12 +215,14 @@ if USE_ATTRSET:
 
     # main function
     _random_values = (
-        None, object,
-        1, 0.1, -1,
+        None, object, type,
+        1, 0.1, -1,  # float("nan"),
         "", "test", b"", b"test",
         (), [], {},
         (10,), (10, 20), (0, 0, 0),
-        {},
+        {0: "", 1: "hello", 2: "test"}, {"": 0, "hello": 1, "test": 2},
+        set(), {"", "test", "."}, {None, ..., type},
+        range(10), (" " * i for i in range(10)),
         )
 
     def attrset_data():
@@ -194,11 +244,6 @@ if USE_ATTRSET:
 def run_ops(operators, setup_func=None, reset=True):
     print("\ncontext:", setup_func.__name__)
 
-    if USE_RANDOM:
-        import random
-        if random.random() < (1.0 - RANDOM_RESET):
-            reset = False
-
     # first invoke
     for op_id, op in operators:
         if op.poll():
@@ -207,7 +252,18 @@ def run_ops(operators, setup_func=None, reset=True):
 
             # disable will get blender in a bad state and crash easy!
             if reset:
-                reset_blend()
+                reset_test = True
+                if USE_RANDOM:
+                    import random
+                    if random.random() < (1.0 - RANDOM_RESET):
+                        reset_test = False
+
+                if reset_test:
+                    if USE_FILES:
+                        reset_file()
+                    else:
+                        reset_blend()
+                del reset_test
 
             if USE_RANDOM:
                 # we can't be sure it will work
@@ -386,12 +442,17 @@ def main():
     if USE_RANDOM:
         import random
         random.seed(RANDOM_SEED[0])
+        operators = operators * RANDOM_MULTIPLY
         random.shuffle(operators)
 
     # 2 passes, first just run setup_func to make sure they are ok
     for operators_test in ((), operators):
         # Run the operator tests in different contexts
         run_ops(operators_test, setup_func=lambda: None)
+        
+        if USE_FILES:
+            continue
+
         run_ops(operators_test, setup_func=ctx_clear_scene)
         # object modes
         run_ops(operators_test, setup_func=ctx_object_empty)

@@ -923,7 +923,7 @@ Object *BKE_object_add(Main *bmain, Scene *scene, int type)
 	base = BKE_scene_base_add(scene, ob);
 	BKE_scene_base_deselect_all(scene);
 	BKE_scene_base_select(scene, base);
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	return ob;
 }
@@ -2313,7 +2313,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 	BoundBox bb;
 	float vec[3];
 	int a;
-	short change = FALSE;
+	bool change = false;
 	
 	switch (ob->type) {
 		case OB_CURVE:
@@ -2390,6 +2390,17 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 			}
 		}
 		break;
+		case OB_MBALL:
+		{
+			float ob_min[3], ob_max[3];
+
+			change = BKE_mball_minmax_ex(ob->data, ob_min, ob_max, ob->obmat, 0);
+			if (change) {
+				minmax_v3v3_v3(min_r, max_r, ob_min);
+				minmax_v3v3_v3(min_r, max_r, ob_max);
+			}
+			break;
+		}
 	}
 
 	if (change == FALSE) {

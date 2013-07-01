@@ -1455,9 +1455,8 @@ static void lib_id_recalc_data_tag(Main *bmain, ID *id)
 }
 
 /* node was checked to have lasttime != curtime and is if type ID_OB */
-static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
+static void flush_update_node(Main *bmain, DagNode *node, unsigned int layer, int curtime)
 {
-	Main *bmain = G.main;
 	DagAdjList *itA;
 	Object *ob, *obc;
 	int oldflag, changed = 0;
@@ -1541,7 +1540,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	/* we only go deeper if node not checked or something changed  */
 	for (itA = node->child; itA; itA = itA->next) {
 		if (changed || itA->node->lasttime != curtime)
-			flush_update_node(itA->node, layer, curtime);
+			flush_update_node(bmain, itA->node, layer, curtime);
 	}
 	
 }
@@ -1571,9 +1570,8 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 }
 
 /* node was checked to have lasttime != curtime, and is of type ID_OB */
-static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int reset)
+static void flush_pointcache_reset(Main *bmain, Scene *scene, DagNode *node, int curtime, int reset)
 {
-	Main *bmain = G.main;
 	DagAdjList *itA;
 	Object *ob;
 	
@@ -1590,10 +1588,10 @@ static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int
 						lib_id_recalc_data_tag(bmain, &ob->id);
 					}
 
-					flush_pointcache_reset(scene, itA->node, curtime, 1);
+					flush_pointcache_reset(bmain, scene, itA->node, curtime, 1);
 				}
 				else
-					flush_pointcache_reset(scene, itA->node, curtime, 0);
+					flush_pointcache_reset(bmain, scene, itA->node, curtime, 0);
 			}
 		}
 	}
@@ -1694,7 +1692,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 	lasttime = sce->theDag->time;
 	for (itA = firstnode->child; itA; itA = itA->next)
 		if (itA->node->lasttime != lasttime && itA->node->type == ID_OB)
-			flush_update_node(itA->node, lay, lasttime);
+			flush_update_node(bmain, itA->node, lay, lasttime);
 
 	/* if update is not due to time change, do pointcache clears */
 	if (!time) {
@@ -1710,10 +1708,10 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 						lib_id_recalc_data_tag(bmain, &ob->id);
 					}
 
-					flush_pointcache_reset(sce, itA->node, lasttime, 1);
+					flush_pointcache_reset(bmain, sce, itA->node, lasttime, 1);
 				}
 				else
-					flush_pointcache_reset(sce, itA->node, lasttime, 0);
+					flush_pointcache_reset(bmain, sce, itA->node, lasttime, 0);
 			}
 		}
 	}
@@ -1797,7 +1795,7 @@ static short animdata_use_time(AnimData *adt)
 	return 0;
 }
 
-static void dag_object_time_update_flags(Scene *scene, Object *ob)
+static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 {
 	if (ob->constraints.first) {
 		bConstraint *con;
@@ -1923,9 +1921,9 @@ static void dag_object_time_update_flags(Scene *scene, Object *ob)
 	}
 
 	if (ob->recalc & OB_RECALC_OB)
-		lib_id_recalc_tag(G.main, &ob->id);
+		lib_id_recalc_tag(bmain, &ob->id);
 	if (ob->recalc & OB_RECALC_DATA)
-		lib_id_recalc_data_tag(G.main, &ob->id);
+		lib_id_recalc_data_tag(bmain, &ob->id);
 
 }
 /* flag all objects that need recalc, for changes in time for example */
@@ -1949,7 +1947,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 			/* NOTE: "sce_iter" not "scene" so that rigidbodies in background scenes work 
 			 * (i.e. muting + rbw availability can be checked and tagged properly) [#33970] 
 			 */
-			dag_object_time_update_flags(sce_iter, ob);
+			dag_object_time_update_flags(bmain, sce_iter, ob);
 		}
 
 		/* handled in next loop */
@@ -1962,7 +1960,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 		for (group = bmain->group.first; group; group = group->id.next) {
 			if (group->id.flag & LIB_DOIT) {
 				for (go = group->gobject.first; go; go = go->next) {
-					dag_object_time_update_flags(scene, go->ob);
+					dag_object_time_update_flags(bmain, scene, go->ob);
 				}
 			}
 		}
@@ -1981,7 +1979,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 
 		/* hrmf... an exception to look at once, for invisible camera object we do it over */
 		if (scene->camera)
-			dag_object_time_update_flags(scene, scene->camera);
+			dag_object_time_update_flags(bmain, scene, scene->camera);
 	}
 
 	/* and store the info in groupobject */
@@ -2129,9 +2127,8 @@ static void dag_id_flush_update__isDependentTexture(void *userData, Object *UNUS
 	}
 }
 
-static void dag_id_flush_update(Scene *sce, ID *id)
+static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 {
-	Main *bmain = G.main;
 	Object *obt, *ob = NULL;
 	short idtype;
 
@@ -2279,7 +2276,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 			MovieClip *clip = BKE_object_movieclip_get(sce, sce->camera, 1);
 
 			if (clip)
-				dag_id_flush_update(sce, &clip->id);
+				dag_id_flush_update(bmain, sce, &clip->id);
 		}
 
 		/* update editors */
@@ -2314,7 +2311,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)) {
 					
 					for (dsl = listbase.first; dsl; dsl = dsl->next)
-						dag_id_flush_update(dsl->scene, id);
+						dag_id_flush_update(bmain, dsl->scene, id);
 					
 					do_flush = TRUE;
 				}

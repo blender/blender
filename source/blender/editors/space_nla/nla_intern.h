@@ -81,6 +81,8 @@ enum eNlaEdit_Snap_Mode {
 
 /* --- */
 
+bool nlaedit_disable_tweakmode(bAnimContext *ac);
+
 void NLA_OT_tweakmode_enter(wmOperatorType *ot);
 void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 

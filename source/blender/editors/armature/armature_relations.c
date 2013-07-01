@@ -468,8 +468,8 @@ static int separate_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	/* TODO: use context iterators for this? */
 	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
-		if (base->object == obedit) base->flag |= 1;
-		else base->flag &= ~1;
+		if (base->object == obedit) base->flag |= SELECT;
+		else base->flag &= ~SELECT;
 	}
 	CTX_DATA_END;
 	

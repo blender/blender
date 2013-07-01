@@ -909,6 +909,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
+	AnimData *adt;
 	FCurve *fcu;
 	int array_index_max = array_index + 1;
 	int ret = 0;
@@ -929,8 +930,6 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	
 	/* if no action is provided, keyframe to the default one attached to this ID-block */
 	if (act == NULL) {
-		AnimData *adt = BKE_animdata_from_id(id);
-		
 		/* get action to add F-Curve+keyframe to */
 		act = verify_adt_action(id, 1);
 		
@@ -940,10 +939,11 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 			            id->name, rna_path);
 			return 0;
 		}
-		
-		/* apply NLA-mapping to frame to use (if applicable) */
-		cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
+	
+	/* apply NLA-mapping to frame to use (if applicable) */
+	adt = BKE_animdata_from_id(id);
+	cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	
 	/* key entire array convenience method */
 	if (array_index == -1) {

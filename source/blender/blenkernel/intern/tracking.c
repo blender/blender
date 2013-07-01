@@ -2901,7 +2901,7 @@ typedef struct ReconstructProgressData {
 	int message_size;
 } ReconstructProgressData;
 
-/* Create mew libmv Tracks structure from blender's tracks list. */
+/* Create new libmv Tracks structure from blender's tracks list. */
 static struct libmv_Tracks *libmv_tracks_new(ListBase *tracksbase, int width, int height)
 {
 	int tracknr = 0;

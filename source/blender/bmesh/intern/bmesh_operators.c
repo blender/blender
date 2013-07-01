@@ -1371,6 +1371,12 @@ void *BMO_iter_new(BMOIter *iter,
 			return NULL;
 		}
 	}
+	else if (iter->slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF) {
+		BLI_assert(restrictmask & slot->slot_subtype.elem);
+	}
+	else {
+		BLI_assert(0);
+	}
 
 	return BMO_iter_step(iter);
 }

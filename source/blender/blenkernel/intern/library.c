@@ -1573,7 +1573,7 @@ void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
 			{
 				if (lib == NULL || id->lib == lib) {
 					if (id->lib) {
-						id_clear_lib_data(bmain, id); /* sets 'id->flag' */
+						id_make_local(id, false);
 
 						/* why sort alphabetically here but not in
 						 * id_clear_lib_data() ? - campbell */

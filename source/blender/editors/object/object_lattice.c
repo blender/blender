@@ -368,22 +368,6 @@ typedef enum eLattice_FlipAxes {
 	LATTICE_FLIP_W = 2
 } eLattice_FlipAxes;
 
-/* Helper macro for accessing item at index (u, v, w) 
- * < lt: (Lattice)
- * < U: (int) u-axis coordinate of point
- * < V: (int) v-axis coordinate of point
- * < W: (int) w-axis coordinate of point
- * < dimU: (int) number of points per row or number of columns (U-Axis)
- * < dimV: (int) number of rows (V-Axis)
- * > returns: (BPoint *) pointer to BPoint at this index
- */
-#define LATTICE_PT(lt, U, V, W, dimU, dimV)       \
-	( (lt)->def               +                   \
-	  ((dimU) * (dimV)) * (W) +                   \
-	  (dimU) * (V)            +                   \
-	  (U)                                         \
-	)
-	
 /* Flip midpoint value so that relative distances between midpoint and neighbour-pair is maintained
  * ! Assumes that uvw <=> xyz (i.e. axis-aligned index-axes with coordinate-axes)
  * - Helper for lattice_flip_exec()
@@ -394,7 +378,7 @@ static void lattice_flip_point_value(Lattice *lt, int u, int v, int w, float mid
 	float diff;
 	
 	/* just the point in the middle (unpaired) */
-	bp = LATTICE_PT(lt, u, v, w, lt->pntsu, lt->pntsv);
+	bp = &lt->def[BKE_lattice_index_from_uvw(lt, u, v, w)];
 	
 	/* flip over axis */
 	diff = mid - bp->vec[axis];
@@ -432,8 +416,8 @@ static void lattice_swap_point_pairs(Lattice *lt, int u, int v, int w, float mid
 	}
 	
 	/* get points to operate on */
-	bpA = LATTICE_PT(lt, u0, v0, w0, numU, numV);
-	bpB = LATTICE_PT(lt, u1, v1, w1, numU, numV);
+	bpA = &lt->def[BKE_lattice_index_from_uvw(lt, u0, v0, w0)];
+	bpB = &lt->def[BKE_lattice_index_from_uvw(lt, u1, v1, w1)];
 	
 	/* Swap all coordinates, so that flipped coordinates belong to
 	 * the indices on the correct side of the lattice.

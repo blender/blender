@@ -65,15 +65,21 @@
 int BKE_lattice_index_from_uvw(struct Lattice *lt,
                                const int u, const int v, const int w)
 {
-	return (w * (lt->pntsu * lt->pntsv) + (v * lt->pntsu) + u);
+	const int totu = lt->pntsu;
+	const int totv = lt->pntsv;
+
+	return (w * (totu * totv) + (v * totu) + u);
 }
 
 void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index,
                               int *r_u, int *r_v, int *r_w)
 {
-	*r_u = (index % lt->pntsu);
-	*r_v = (index / lt->pntsu) % lt->pntsv;
-	*r_w = (index / (lt->pntsu * lt->pntsv));
+	const int totu = lt->pntsu;
+	const int totv = lt->pntsv;
+
+	*r_u = (index % totu);
+	*r_v = (index / totu) % totv;
+	*r_w = (index / (totu * totv));
 }
 
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du)

@@ -778,7 +778,7 @@ static void emdm_pass_attrib_vertex_glsl(DMVertexAttribs *attribs, BMLoop *loop,
 	}
 	if (attribs->tottang) {
 		const float *tang = attribs->tang.array[i * 4 + index_in_face];
-		glVertexAttrib3fvARB(attribs->tang.gl_index, tang);
+		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
 	}
 }
 

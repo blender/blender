@@ -150,6 +150,10 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
                         struct Object *ob, struct DerivedMesh *dm, const int draw_flags);
 void draw_mesh_face_select(struct RegionView3D *rv3d, struct Mesh *me, struct DerivedMesh *dm);
+void draw_mesh_paint_weight_faces(struct DerivedMesh *dm, const bool do_light,
+                                  void *facemask_cb, void *user_data);
+void draw_mesh_paint_weight_edges(RegionView3D *rv3d, struct DerivedMesh *dm, const bool use_depth,
+                                  void *edgemask_cb, void *user_data);
 void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
                      struct Object *ob, struct DerivedMesh *dm, const int draw_flags);
 
