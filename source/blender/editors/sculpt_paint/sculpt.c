@@ -150,6 +150,7 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 {
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
+	VirtualModifierData virtualModifierData;
 
 	if (ob->sculpt && ob->sculpt->bm) {
 		/* can't combine multires and dynamic topology */
@@ -161,7 +162,7 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 		return NULL;
 	}
 
-	for (md = modifiers_getVirtualModifierList(ob); md; md = md->next) {
+	for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData); md; md = md->next) {
 		if (md->type == eModifierType_Multires) {
 			MultiresModifierData *mmd = (MultiresModifierData *)md;
 
@@ -180,8 +181,9 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
 	ModifierData *md;
+	VirtualModifierData virtualModifierData;
 
-	md = modifiers_getVirtualModifierList(ob);
+	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	/* exception for shape keys because we can edit those */
 	for (; md; md = md->next) {
@@ -198,6 +200,7 @@ static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 	ModifierData *md;
 	Mesh *me = (Mesh *)ob->data;
 	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	VirtualModifierData virtualModifierData;
 
 	if (mmd || ob->sculpt->bm)
 		return 0;
@@ -206,7 +209,7 @@ static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 	if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && me->key && ob->shapenr)
 		return 1;
 
-	md = modifiers_getVirtualModifierList(ob);
+	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	/* exception for shape keys because we can edit those */
 	for (; md; md = md->next) {

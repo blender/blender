@@ -307,6 +307,9 @@ typedef struct ModifierTypeInfo {
 	                       TexWalkFunc walk, void *userData);
 } ModifierTypeInfo;
 
+/* Initialize modifier's global data (type info and some common global storages). */
+void BKE_modifier_init(void);
+
 ModifierTypeInfo *modifierType_getInfo(ModifierType type);
 
 /* Modifier utility calls, do call through type pointer and return
@@ -380,7 +383,15 @@ struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene,
 struct ModifierData *modifiers_getLastPreview(struct Scene *scene,
                                               struct ModifierData *md,
                                               int required_mode);
-struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
+
+typedef struct VirtualModifierData {
+	ArmatureModifierData amd;
+	CurveModifierData cmd;
+	LatticeModifierData lmd;
+	ShapeKeyModifierData smd;
+} VirtualModifierData;
+
+struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob, struct VirtualModifierData *data);
 
 /* ensure modifier correctness when changing ob->data */
 void test_object_modifiers(struct Object *ob);

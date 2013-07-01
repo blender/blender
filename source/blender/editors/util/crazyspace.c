@@ -259,11 +259,12 @@ int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em
 	int i, a, numleft = 0, numVerts = 0;
 	int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
+	VirtualModifierData virtualModifierData;
 
 	modifiers_clearErrors(ob);
 
 	dm = NULL;
-	md = modifiers_getVirtualModifierList(ob);
+	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	/* compute the deformation matrices and coordinates for the first
 	 * modifiers with on cage editing that are enabled and support computing
@@ -313,6 +314,7 @@ int sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformma
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	int has_multires = mmd != NULL && mmd->sculptlvl > 0;
 	int numleft = 0;
+	VirtualModifierData virtualModifierData;
 
 	if (has_multires) {
 		*deformmats = NULL;
@@ -321,7 +323,7 @@ int sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformma
 	}
 
 	dm = NULL;
-	md = modifiers_getVirtualModifierList(ob);
+	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -374,7 +376,8 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 		float (*origVerts)[3] = MEM_dupallocN(deformedVerts);
 		float *quats = NULL;
 		int i, deformed = 0;
-		ModifierData *md = modifiers_getVirtualModifierList(ob);
+		VirtualModifierData virtualModifierData;
+		ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 		Mesh *me = (Mesh *)ob->data;
 
 		for (; md; md = md->next) {

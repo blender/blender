@@ -1,4 +1,5 @@
 /*
+
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1017,6 +1018,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	ModifierData *md, *vmd;
+	VirtualModifierData virtualModifierData;
 	int i, lastCageIndex, cageIndex;
 
 	/* verify we have valid data */
@@ -1039,7 +1041,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	cageIndex = modifiers_getCageIndex(scene, ob, &lastCageIndex, 0);
 
 	/* XXX virtual modifiers are not accesible for python */
-	vmd = modifiers_getVirtualModifierList(ob);
+	vmd = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	for (i = 0; vmd; i++, vmd = vmd->next) {
 		if (md == vmd)

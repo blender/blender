@@ -73,6 +73,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 	GHash *gh;
 	int i, step1 = 1;
 	//int defbase_tot = BLI_countlist(&ob->defbase);
+	VirtualModifierData virtualModifierData;
 
 	if (ob->defbase.first == NULL) {
 		return NULL;
@@ -88,7 +89,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 	BLI_assert(BLI_ghash_size(gh) == defbase_tot);
 
 	/* now loop through the armature modifiers and identify deform bones */
-	for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0), modifiers_getVirtualModifierList(ob) : md->next) {
+	for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0), modifiers_getVirtualModifierList(ob, &virtualModifierData) : md->next) {
 		if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual)))
 			continue;
 
