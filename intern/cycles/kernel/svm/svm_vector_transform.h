@@ -18,11 +18,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* ToDo
-* if (object != ~0) null check?
-* differs from OSL when used for the world
-*/
-
 /* Vector Transform */
 
 __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
@@ -40,6 +35,7 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	NodeVectorTransformConvertTo to = (NodeVectorTransformConvertTo)ito;
 	
 	Transform tfm;
+	int is_object = (sd->object != ~0);
 	
 	/* From world */
 	if(from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD) {
@@ -50,7 +46,7 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 			else
 				in = transform_point(&tfm, in);
 		}
-		else if (to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT) {
+		else if (to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT && is_object) {
 			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
 				object_inverse_dir_transform(kg, sd, &in);
 			else
@@ -67,7 +63,7 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 			else
 				in = transform_point(&tfm, in);
 		}
-		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT && is_object) {
 			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
 				object_inverse_dir_transform(kg, sd, &in);
 			else
@@ -77,7 +73,7 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	
 	/* From object */
 	else if(from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT) {
-		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) {
+		if((to == NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) && is_object) {
 			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
 				object_dir_transform(kg, sd, &in);
 			else
