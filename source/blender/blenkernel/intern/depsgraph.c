@@ -2652,170 +2652,121 @@ void DAG_pose_sort(Object *ob)
 	ugly_hack_sorry = 1;
 }
 
-/* ******************* DAG FOR THREADED UPDATR ***************** */
+/* ************************  DAG FOR THREADED UPDATE  ********************* */
 
-void DAG_get_independent_groups(Scene *scene, ListBase *groups)
+/* Initialize the DAG for threaded update.
+ *
+ * Sets up all the data needed for faster check whether DAG node is
+ * updatable already (whether all the dependencies are met).
+ */
+void DAG_threaded_update_begin(Scene *scene)
 {
-#if defined __GNUC__ || defined __sun
-#  define PRINT(format, args ...) { if (dag_print_dependencies) printf(format, ##args); } (void)0
-#else
-#  define PRINT(format, ...) { if (dag_print_dependencies) printf(__VA_ARGS__); } (void)0
-#endif
+	DagNode *node;
 
-	DagNode *node, *rootnode;
-	DagNodeQueue *node_queue;
-	DagAdjList *itA;
-	bool skip = false;
-	Base *base;
-	ListBase *current_group = NULL;
-	bool has_group = false;
-	int root_count = 0;
-
-	PRINT("Independend groups of objects:\n");
-	PRINT("\nACHTUNG!!! Order of objects in groups is reversed in outout!\n");
-	PRINT("Don't ask why, just be aware of this.\n\n");
-
-	/* ** STEP 0: Some pre-initialization. ** */
-
-	rootnode = scene->theDag->DagNode.first;
-
-	node_queue = queue_create(DAGQUEUEALLOC);
-
-	/* Mark all objects as unhandled.
-	 * This flag is checked later to detect cycle dependencies.
-	 */
-	for (base = scene->base.first; base; base = base->next) {
-		base->object->id.flag |= LIB_DOIT;
-	}
-
-	/* ** STEP 1: Find all nodes which doesn't depend on other nodes ** */
-
-	/* Mark all nodes as not visited. */
+	/* We reset valency to zero first... */
 	for (node = scene->theDag->DagNode.first; node; node = node->next) {
-		node->color = DAG_WHITE;
+		node->valency = 0;
 	}
 
-	/* Detect all the nodes which doesn't have parent. */
+	/* ... and then iterate over all the nodes and
+	 * increase valency for node childs.
+	 */
 	for (node = scene->theDag->DagNode.first; node; node = node->next) {
 		DagAdjList *itA;
 
-		if (node == rootnode) {
-			continue;
-		}
-
 		for (itA = node->child; itA; itA = itA->next) {
 			if (itA->node != node) {
-				itA->node->color = DAG_BLACK;
+				itA->node->valency++;
 			}
 		}
 	}
 
-	/* Always put root to a traverse queue. */
-	rootnode->color = DAG_GRAY;
-	push_stack(node_queue, rootnode);
-
-	/* Put all nodes which that depend on other nodes to a traverse queue.
-	 * Also mark this nodes as gray (since they're visited but not finished)
-	 * and mark all other nodes as white (they're not viisted).
+	/* A bit tricky, tasks are operating with nodes, which is much
+	 * easier from tracking dependnecies point of view, and also
+	 * makes it possible to do partial object objects.
+	 *
+	 * However, currently the only way we're performing update is
+	 * calling object_handle_update for objects which are ready,
+	 * which also updates object data.
+	 *
+	 * And for this we need to know whether node represents object
+	 * or not.
+	 *
+	 * And we mark all the nodes which represents objects as
+	 * white color, All other nodes are staying gray.
 	 */
 	for (node = scene->theDag->DagNode.first; node; node = node->next) {
-		if (node == rootnode) {
-			continue;
+		Base *base = scene->base.first;
+		node->color = DAG_GRAY;
+		while (base && base->object != node->ob) {
+			base = base->next;
 		}
-
-		if (node->color == DAG_WHITE) {
-			PRINT("Root node: %s\n", dag_node_name(node));
-
-			node->color = DAG_GRAY;
-			push_stack(node_queue, node);
-		}
-		else {
+		if (base) {
 			node->color = DAG_WHITE;
 		}
 	}
+}
 
-	root_count = node_queue->count;
+/* Call functor for every node in the graph which is ready for
+ * update (all it's dependencies are met). Quick check for this
+ * is valency == 0.
+ */
+void DAG_threaded_update_foreach_ready_node(Scene *scene,
+                                            void (*func)(void *node, void *user_data),
+                                            void *user_data)
+{
+	DagNode *node;
 
-	/* ** STEP 2: Traverse the graph and collect all the groups. ** */
-
-	while (node_queue->count) {
-		skip = false;
-		node = get_top_node_queue(node_queue);
-
-		itA = node->child;
-		while (itA != NULL) {
-			if (itA->node->color == DAG_WHITE) {
-				itA->node->color = DAG_GRAY;
-				push_stack(node_queue, itA->node);
-				skip = true;
-				break;
-			}
-			itA = itA->next;
+	for (node = scene->theDag->DagNode.first; node; node = node->next) {
+		if (node->valency == 0) {
+			func(node, user_data);
 		}
+	}
+}
 
-		if (!skip) {
-			if (node) {
-				node = pop_queue(node_queue);
-				if (node->ob == scene) {
-					/* Whatever Thom, we are done! */
-					break;
-				}
+/* Will return Object ID if node represents Object,
+ * and will return NULL otherwise.
+ */
+Object *DAG_threaded_update_get_node_object(void *node_v)
+{
+	DagNode *node = node_v;
 
-				node->color = DAG_BLACK;
+	if (node->color == DAG_WHITE) {
+		return node->ob;
+	}
 
-				base = scene->base.first;
-				while (base && base->object != node->ob) {
-					base = base->next;
-				}
+	return NULL;
+}
 
-				if (base) {
-					base->object->id.flag &= ~LIB_DOIT;
+/* Returns node name, used for debug output only, atm. */
+const char *DAG_threaded_update_get_node_name(void *node_v)
+{
+	DagNode *node = node_v;
 
-					if (has_group == false) {
-						PRINT("- Next group\n");
+	return dag_node_name(node);
+}
 
-						if (groups) {
-							current_group = MEM_callocN(sizeof(ListBase), "DAG independent group");
-							BLI_addhead(groups, BLI_genericNodeN(current_group));
-						}
+/* This function is called when handling node is done.
+ *
+ * This function updates valency for all childs and
+ * schedules them if they're ready.
+ */
+void DAG_threaded_update_handle_node_updated(void *node_v,
+                                             void (*func)(void *node, void *user_data),
+                                             void *user_data)
+{
+	DagNode *node = node_v;
+	DagAdjList *itA;
 
-						has_group = true;
-					}
+	for (itA = node->child; itA; itA = itA->next) {
+		if (itA->node != node) {
+			itA->node->valency--;
 
-					PRINT("  %s\n", dag_node_name(node));
-
-					if (groups) {
-						BLI_addhead(current_group, BLI_genericNodeN(base));
-					}
-				}
-
-				if (node_queue->count < root_count) {
-					root_count--;
-					has_group = false;
-				}
+			if (itA->node->valency == 0) {
+				func(itA->node, user_data);
 			}
 		}
 	}
-
-	/* Here we put all cyclic objects to separate groups */
-	for (base = scene->base.first; base; base = base->next) {
-		if (base->object->id.flag & LIB_DOIT) {
-			base->object->id.flag &= ~LIB_DOIT;
-
-			PRINT("- Next cyclic group\n");
-			PRINT("  %s\n", base->object->id.name + 2);
-
-			if (groups) {
-				current_group = MEM_callocN(sizeof(ListBase), "DAG independent group");
-				BLI_addtail(groups, BLI_genericNodeN(current_group));
-				BLI_addtail(current_group, BLI_genericNodeN(base));
-			}
-		}
-	}
-
-	queue_delete(node_queue);
-
-#undef PRINT
 }
 
 /* ************************ DAG DEBUGGING ********************* */
@@ -2834,14 +2785,5 @@ void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
 		DAG_scene_relations_rebuild(bmain, scene);
 	}
 	
-	dag_print_dependencies = 0;
-}
-
-void DAG_print_dependency_groups(Scene *scene)
-{
-	dag_print_dependencies = 1;
-
-	DAG_get_independent_groups(scene, NULL);
-
 	dag_print_dependencies = 0;
 }

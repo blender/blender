@@ -57,6 +57,7 @@
 #include "BLI_callbacks.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_task.h"
 
 #include "BLF_translation.h"
 
@@ -1165,71 +1166,15 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 
 #undef USE_THREADED_UPDATE
 
-/* Debugging only!
- *
- * Will enable some additional checks about whether threaded
- * update went all fine or there's some mistake in code somewhere
- * (like, missing object update or object being updated from two threads).
- */
-#undef UPDATE_SANITY_CHECK
-
-typedef struct SceneUpdateThreadHandle {
-#ifdef UPDATE_SANITY_CHECK
-	int thread;
-#endif
-
-	/* Current scene and it's parent */
+typedef struct ThreadedObjectUpdateState {
 	Scene *scene;
 	Scene *scene_parent;
+} ThreadedObjectUpdateState;
 
-	/* Every thread handles several independent groups.
-	 * This is a current group.
-	 */
-	LinkData *current_group_link;
+static void scene_update_object_add_task(void *node, void *user_data);
 
-	/* This is a first group which shouldn't be handled
-	 * (aka it's handled by another thread as as soon
-	 * as current thread reaches it thread shall stop).
-	 */
-	LinkData *barrier_group_link;
-
-	/* Current link to a base which wasn't updated yet. */
-	LinkData *current_base_link;
-} SceneUpdateThreadHandle;
-
-static Base *scene_update_thread_next_base(SceneUpdateThreadHandle *handle)
+static void scene_update_single_object(Scene *scene, Scene *scene_parent, Object *object)
 {
-	Base *base = NULL;
-
-	/* If current base link became NULL, it means traversing current group
-	 * is finished and we need to go to a next group.
-	 */
-	if (handle->current_base_link == NULL) {
-		ListBase *current_bases;
-
-		handle->current_group_link = handle->current_group_link->next;
-
-		/* If we've reached barrier group, we need to stop current thread. */
-		if (handle->current_group_link == handle->barrier_group_link) {
-			return NULL;
-		}
-
-		current_bases = handle->current_group_link->data;
-		handle->current_base_link = current_bases->first;
-	}
-
-	if (handle->current_base_link) {
-		base = handle->current_base_link->data;
-		handle->current_base_link = handle->current_base_link->next;
-	}
-
-	return base;
-}
-
-static void scene_update_single_base(Scene *scene_parent, Scene *scene, Base *base)
-{
-	Object *object = base->object;
-
 	BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
 
 	if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
@@ -1239,52 +1184,78 @@ static void scene_update_single_base(Scene *scene_parent, Scene *scene, Base *ba
 	/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
 	 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
 	// base->lay = ob->lay;
-
-#ifdef UPDATE_SANITY_CHECK
-	base->object->id.flag &= ~LIB_DOIT;
-#endif
 }
 
-static void scene_update_all_bases(Scene *scene_parent, Scene *scene)
+static void scene_update_single_base(Scene *scene, Scene *scene_parent, Base *base)
+{
+	Object *object = base->object;
+
+	scene_update_single_object(scene, scene_parent, object);
+}
+
+static void scene_update_all_bases(Scene *scene, Scene *scene_parent)
 {
 	Base *base;
 
 	for (base = scene->base.first; base; base = base->next) {
-		scene_update_single_base(scene_parent, scene, base);
+		scene_update_single_base(scene, scene_parent, base);
 	}
 }
 
-static void *scene_update_tagged_thread(void *handle_v)
+static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
 {
-	SceneUpdateThreadHandle *handle = handle_v;
-	Base *base;
+	ThreadedObjectUpdateState *state = (ThreadedObjectUpdateState *) BLI_task_pool_userdata(pool);
+	void *node = taskdata;
+	Object *object;
 
-	while ((base = scene_update_thread_next_base(handle))) {
-#ifdef UPDATE_SANITY_CHECK
-		BLI_lock_thread(LOCK_CUSTOM1);
-		printf("Thread %d: updating %s\n", handle->thread, base->object->id.name + 2);
+	(void) threadid;  /* Ignored when logging is disabled. */
 
-		BLI_assert(base->object->id.flag & LIB_DOIT);
-#endif
+	object = DAG_threaded_update_get_node_object(node);
 
-		scene_update_single_base(handle->scene_parent, handle->scene, base);
-
-#ifdef UPDATE_SANITY_CHECK
-		BLI_unlock_thread(LOCK_CUSTOM1);
-#endif
+	if (object) {
+		// printf("Thread %d: update object %s\n", threadid, object->id.name);
+		scene_update_single_object(state->scene, state->scene_parent, object);
+	}
+	else {
+		// printf("Threda %d: update node %s\n", threadid,
+		//        DAG_threaded_update_get_node_name(node));
 	}
 
-	return NULL;
+	BLI_lock_thread(LOCK_CUSTOM1);
+	/* Update will decrease child's valency and schedule child with zero valency. */
+	DAG_threaded_update_handle_node_updated(node,scene_update_object_add_task, pool);
+	BLI_unlock_thread(LOCK_CUSTOM1);
+}
+
+static void scene_update_object_add_task(void *node, void *user_data)
+{
+	TaskPool *task_pool = user_data;
+
+	BLI_task_pool_push(task_pool, scene_update_object_func, node, false, TASK_PRIORITY_LOW);
 }
 
 static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 {
-	ListBase threads;
-	SceneUpdateThreadHandle *handles;
-	ListBase groups = {NULL, NULL};
-	LinkData *current_group_link;
-	int i, tot_thread = BLI_system_thread_count();
-	int tot_group, groups_per_thread, additional_group_threads;
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
+	ThreadedObjectUpdateState state;
+	int tot_thread = BLI_system_thread_count();
+
+	if (tot_thread == 1) {
+		/* If only one thread is possible we don't bother self with
+		 * task pool, which would be an overhead in cas e of single
+		 * CPU core.
+		 */
+		scene_update_all_bases(scene, scene_parent);
+		return;
+	}
+
+	/* Ensure malloc will go go fine from threads,
+	 * this is needed because we could be in main thread here
+	 * and malloc could be non-threda safe at this point because
+	 * no other jobs are running.
+	 */
+	BLI_begin_threaded_malloc();
 
 	/* XXX: Releasing DrawObject is not thread safe, but adding lock
 	 *      around it is gonna to harm even more. So for now let's
@@ -1305,112 +1276,35 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 		}
 	}
 
-	/* Get independent groups of bases. */
-	DAG_get_independent_groups(scene, &groups);
+	state.scene = scene;
+	state.scene_parent = scene_parent;
 
-	/* TODO(sergey): It could make sense to make DAG_get_independent_groups
-	 *               to return number of groups. */
-	tot_group = BLI_countlist(&groups);
+	task_scheduler = BLI_task_scheduler_create(tot_thread);
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
 
-	/* We don't use more threads than we've got groups. */
-	tot_thread = min_ii(tot_group, tot_thread);
-	if (tot_thread > 1) {
-		BLI_init_threads(&threads, scene_update_tagged_thread, tot_thread);
-	}
-
-	handles = MEM_callocN(sizeof(SceneUpdateThreadHandle) * tot_thread,
-	                      "scene update object handles");
-
-#ifdef UPDATE_SANITY_CHECK
-	{
-		Base *base;
-		for (base = scene->base.first; base; base = base->next) {
-			base->object->id.flag |= LIB_DOIT;
-		}
-	}
-#endif
-
-	/* Every thread handles groups_per_thread groups of bases. */
-	current_group_link = groups.first;
-	groups_per_thread = tot_group / tot_thread;
-
-	/* Some threads will handle more groups,
-	 * This happens if devision of groups didn't give integer value
-	 * and in this case 'additional_group_threads' of threads will
-	 * handle one more extra group.
+	/* Initialize run-time data in the graph needed for traversing it
+	 * from multiple threads.
+	 *
+	 * This will mark DAG nodes as object/non-object and will calculate
+	 * "valency" of nodes (which is how many non-updated parents node
+	 * have, which helps a lot checking whether node could be scheduled
+	 * already or not).
 	 */
-	additional_group_threads = tot_group - groups_per_thread * tot_thread;
+	DAG_threaded_update_begin(scene);
 
-	/* Fill in thread handles. */
-	for (i = 0; i < tot_thread; i++) {
-		SceneUpdateThreadHandle *handle = &handles[i];
-		ListBase *current_bases = current_group_link->data;
-		int j, current_groups_per_thread = groups_per_thread;
+	/* Put all nodes which are already ready for schedule to the task pool.
+	 * usually its just a Scene node.
+	 */
+	DAG_threaded_update_foreach_ready_node(scene, scene_update_object_add_task, task_pool);
 
-		if (i < additional_group_threads) {
-			current_groups_per_thread++;
-		}
+	/* work and wait until tasks are done */
+	BLI_task_pool_work_and_wait(task_pool);
 
-#ifdef  UPDATE_SANITY_CHECK
-		handle->thread = i;
-#endif
+	/* free */
+	BLI_task_pool_free(task_pool);
+	BLI_task_scheduler_free(task_scheduler);
 
-		handle->scene = scene;
-		handle->scene_parent = scene_parent;
-		handle->current_group_link = current_group_link;
-		handle->current_base_link = current_bases->first;
-
-		/* Find the barried link, which will also be a start group link
-		 * for the next thread.
-		 *
-		 * If this is the last thread, we could skip iteration cycle here.
-		 */
-		if (i != tot_thread - 1) {
-			for (j = 0; j < current_groups_per_thread && current_group_link; j++) {
-				current_group_link = current_group_link->next;
-			}
-		}
-		else {
-			current_group_link = NULL;
-		}
-
-		handle->barrier_group_link = current_group_link;
-
-		if (tot_thread > 1) {
-			BLI_insert_thread(&threads, handle);
-		}
-	}
-
-	if (tot_thread > 1) {
-		BLI_end_threads(&threads);
-	}
-	else {
-		scene_update_tagged_thread(handles);
-	}
-
-	/* Free memory used by thread handles. */
-	MEM_freeN(handles);
-
-	/* Traverse groups and fee all the memory used by them. */
-	for (current_group_link = groups.first;
-	     current_group_link;
-	     current_group_link = current_group_link->next)
-	{
-		ListBase *current_bases = current_group_link->data;
-
-		BLI_freelistN(current_bases);
-		MEM_freeN(current_bases);
-	}
-	BLI_freelistN(&groups);
-
-#ifdef UPDATE_SANITY_CHECK
-	{
-		Base *base;
-		for (base = scene->base.first; base; base = base->next) {
-			BLI_assert((base->object->id.flag & LIB_DOIT) == 0);
-		}
-	}
-#endif
+	BLI_end_threaded_malloc();
 }
 
 static void scene_update_objects(Scene *scene, Scene *scene_parent)
@@ -1431,7 +1325,7 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 
 #ifndef USE_THREADED_UPDATE
 	if (true) {
-		scene_update_all_bases(scene_parent, scene);
+		scene_update_all_bases(scene, scene_parent);
 	}
 	else
 #endif
@@ -1439,7 +1333,7 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 		scene_update_objects_threaded(scene, scene_parent);
 	}
 	else {
-		scene_update_all_bases(scene_parent, scene);
+		scene_update_all_bases(scene, scene_parent);
 	}
 }
 

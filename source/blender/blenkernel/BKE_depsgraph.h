@@ -116,57 +116,27 @@ void DAG_pose_sort(struct Object *ob);
 void DAG_editors_update_cb(void (*id_func)(struct Main *bmain, struct ID *id),
                            void (*scene_func)(struct Main *bmain, struct Scene *scene, int updated));
 
-/* Threaded update: get groups of independent bases
- *
- * DAG_get_independent_groups goes over dependency graph and collects
- * groups of bases in a way that there's no dependencies between this
- * groups at all.
- *
- * Result is stored in a list called groups. This is a sliced list,
- * which means every element of list groups is a LinkData which data
- * represents list of bases in that group.
- *
- * List of bases uses LinkData as well, this is so because bases are
- * used from actual scene.
- *
- * Here's an example of groups storage. There're two groups, one of
- * them consists of two bases: base1 and base2, and base2 depends on
- * base1. Second group contains base3 which doesn't depend on base1
- * and base2.
- *
- *   groups
- *    |
- *    +- LinkData
- *    |      |
- *    |      +- BasesList
- *    |              |
- *    |              +- LinkData
- *    |              |      |
- *    |              |      + - base1
- *    |              |
- *    |              +- LinkData
- *    |                     |
- *    |                     + - base2
- *    |
- *    +- LinkData
- *           |
- *           +- BasesList
- *                   |
- *                   +- LinkData
- *                          |
- *                          + - base3
- *
- * Bases in every group are sorted in a dependency order, meaning
- * first base in group doesn't depend on any other objects, and
- * further bases depends on bases above.
- */
-void DAG_get_independent_groups(struct Scene *scene, struct ListBase *groups);
+/* ** Threaded update ** */
+
+/* Initialize the DAG for threaded update. */
+void DAG_threaded_update_begin(struct Scene *scene);
+
+/* Run a callback for every node which is ready for update. */
+void DAG_threaded_update_foreach_ready_node(struct Scene *scene,
+                                            void (*func)(void *node, void *user_data),
+                                            void *user_data);
+
+struct Object *DAG_threaded_update_get_node_object(void *node_v);
+
+const char *DAG_threaded_update_get_node_name(void *node_v);
+
+void DAG_threaded_update_handle_node_updated(void *node_v,
+                                             void (*func)(void *node, void *user_data),
+                                             void *user_data);
 
 /* Debugging: print dependency graph for scene or armature object to console */
 
 void DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Object *ob);
-
-void DAG_print_dependency_groups(struct Scene *scene);
 
 #ifdef __cplusplus
 }
