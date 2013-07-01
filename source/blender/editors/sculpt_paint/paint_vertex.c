@@ -2342,10 +2342,16 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* which faces are involved */
 	if (use_depth) {
 		if (wp->flag & VP_AREA) {
+			char editflag_prev = me->editflag;
+
 			/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
 			me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
+			if (use_vert_sel) {
+				/* Ugly x2, we need this so hidden faces don't draw */
+				me->editflag |= ME_EDIT_PAINT_FACE_SEL;
+			}
 			totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
-			me->editflag |= use_vert_sel ? ME_EDIT_PAINT_VERT_SEL : 0;
+			me->editflag = editflag_prev;
 		}
 		else {
 			indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
