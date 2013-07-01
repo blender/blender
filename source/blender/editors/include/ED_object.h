@@ -214,9 +214,6 @@ struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         int *free,
         const unsigned int selection_mask);
 
-bool ED_vgroup_object_in_edit_mode(struct Object *ob);
-bool ED_vgroup_object_in_wpaint_vert_select(struct Object *ob);
-
 #ifdef __cplusplus
 }
 #endif

@@ -798,8 +798,9 @@ static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
-	if (ob && (ED_vgroup_object_in_edit_mode(ob) ||
-	    ED_vgroup_object_in_wpaint_vert_select(ob))) {
+	if (ob && (BKE_object_is_in_editmode_vgroup(ob) ||
+	           BKE_object_is_in_wpaint_select_vert(ob)))
+	{
 		MDeformVert *dvert_act = ED_mesh_active_dvert_get_only(ob);
 		if (dvert_act) {
 			return (dvert_act->totweight != 0);
