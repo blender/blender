@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "background.h"
 #include "device.h"
 #include "integrator.h"
 #include "film.h"
@@ -568,8 +569,23 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[i*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
 		}
 		else if(light->type == LIGHT_BACKGROUND) {
+			uint visibility = scene->background->visibility;
+
 			shader_id &= ~SHADER_AREA_LIGHT;
 			shader_id |= SHADER_USE_MIS;
+
+			if(!(visibility & PATH_RAY_DIFFUSE)) {
+				shader_id |= SHADER_EXCLUDE_DIFFUSE;
+				use_light_visibility = true;
+			}
+			if(!(visibility & PATH_RAY_GLOSSY)) {
+				shader_id |= SHADER_EXCLUDE_GLOSSY;
+				use_light_visibility = true;
+			}
+			if(!(visibility & PATH_RAY_TRANSMIT)) {
+				shader_id |= SHADER_EXCLUDE_TRANSMIT;
+				use_light_visibility = true;
+			}
 
 			light_data[i*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), 0.0f, 0.0f, 0.0f);
 			light_data[i*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), 0.0f, 0.0f, 0.0f);
