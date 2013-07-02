@@ -770,14 +770,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 }
 #undef NBR_TRANSFORM_PROPERTIES
 
-
-#define B_VGRP_PNL_COPY 1
-#define B_VGRP_PNL_NORMALIZE 2
-#define B_VGRP_PNL_TOGGLE_USE_ALL 4
 #define B_VGRP_PNL_EDIT_SINGLE 8       /* or greater */
-#define B_VGRP_PNL_DELETE_SINGLE  4096 /* or greater */
-#define B_VGRP_PNL_COPY_SINGLE    8192 /* or greater */
-#define B_VGRP_PNL_ACTIVE        16384 /* or greater */
 
 static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 {
