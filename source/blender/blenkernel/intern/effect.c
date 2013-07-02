@@ -176,10 +176,10 @@ static void precalculate_effector(EffectorCache *eff)
 	if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type==OB_CURVE) {
 		Curve *cu= eff->ob->data;
 		if (cu->flag & CU_PATH) {
-			if (cu->path==NULL || cu->path->data==NULL)
+			if (eff->ob->path==NULL || eff->ob->path->data==NULL)
 				BKE_displist_make_curveTypes(eff->scene, eff->ob, 0);
 
-			if (cu->path && cu->path->data) {
+			if (eff->ob->path && eff->ob->path->data) {
 				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius, NULL);
 				mul_m4_v3(eff->ob->obmat, eff->guide_loc);
 				mul_mat3_m4_v3(eff->ob->obmat, eff->guide_dir);

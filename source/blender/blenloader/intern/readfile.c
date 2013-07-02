@@ -3391,10 +3391,8 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		if (cu->wordspace == 0.0f) cu->wordspace = 1.0f;
 	}
 
-	cu->bev.first = cu->bev.last = NULL;
 	cu->editnurb = NULL;
 	cu->lastsel = NULL;
-	cu->path = NULL;
 	cu->editfont = NULL;
 	
 	for (nu = cu->nurb.first; nu; nu = nu->next) {
@@ -5015,6 +5013,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->derivedFinal = NULL;
 	ob->gpulamp.first= ob->gpulamp.last = NULL;
 	link_list(fd, &ob->pc_ids);
+
+	/* Runtime curve data  */
+	ob->bev.first = ob->bev.last = NULL;
+	ob->path = NULL;
 
 	/* in case this value changes in future, clamp else we get undefined behavior */
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);

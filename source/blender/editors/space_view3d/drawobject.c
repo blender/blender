@@ -5554,7 +5554,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
 
 		UI_ThemeColor(TH_WIRE_EDIT);
-		for (bl = cu->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
+		for (bl = ob->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
 			BevPoint *bevp = (BevPoint *)(bl + 1);
 			int nr = bl->nr;
 			int skip = nu->resolu / 16;
@@ -5977,7 +5977,7 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	}
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type == OB_CURVE) {
 		Curve *cu = ob->data;
-		if ((cu->flag & CU_PATH) && cu->path && cu->path->data) {
+		if ((cu->flag & CU_PATH) && ob->path && ob->path->data) {
 			float mindist, guidevec1[4], guidevec2[3];
 
 			//if (has_ipo_code(ob->ipo, OB_PD_FSTR))

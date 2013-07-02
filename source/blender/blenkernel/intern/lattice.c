@@ -506,13 +506,12 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
  */
 static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
 {
-	Curve *cu = ob->data;
 	BevList *bl;
 	float ctime1;
 	int cycl = 0;
 	
 	/* test for cyclic */
-	bl = cu->bev.first;
+	bl = ob->bev.first;
 	if (!bl->nr) return 0;
 	if (bl->poly > -1) cycl = 1;
 
@@ -527,7 +526,7 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 	if (where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {
 		
 		if (cycl == 0) {
-			Path *path = cu->path;
+			Path *path = ob->path;
 			float dvec[3];
 			
 			if (ctime < 0.0f) {
@@ -565,9 +564,9 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 	const int is_neg_axis = (axis > 2);
 
 	/* to be sure, mostly after file load */
-	if (cu->path == NULL) {
+	if (par->path == NULL) {
 		BKE_displist_make_curveTypes(scene, par, 0);
-		if (cu->path == NULL) return 0;  // happens on append...
+		if (par->path == NULL) return 0;  // happens on append...
 	}
 	
 	/* options */
@@ -576,14 +575,14 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 		if (cu->flag & CU_STRETCH)
 			fac = (-co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
 		else
-			fac = -(co[index] - cd->dmax[index]) / (cu->path->totdist);
+			fac = -(co[index] - cd->dmax[index]) / (par->path->totdist);
 	}
 	else {
 		index = axis;
 		if (cu->flag & CU_STRETCH)
 			fac = (co[index] - cd->dmin[index]) / (cd->dmax[index] - cd->dmin[index]);
 		else
-			fac = +(co[index] - cd->dmin[index]) / (cu->path->totdist);
+			fac = +(co[index] - cd->dmin[index]) / (par->path->totdist);
 	}
 	
 	if (where_on_path_deform(par, fac, loc, dir, new_quat, &radius)) {  /* returns OK */

@@ -1207,9 +1207,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 	ThreadedObjectUpdateState *state = (ThreadedObjectUpdateState *) BLI_task_pool_userdata(pool);
 	void *node = taskdata;
-	Object *object;
-
-	object = DAG_threaded_update_get_node_object(node);
+	Object *object = DAG_threaded_update_get_node_object(node);
 
 	if (object) {
 		PRINT("Thread %d: update object %s\n", threadid, object->id.name);

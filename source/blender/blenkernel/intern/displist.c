@@ -1398,10 +1398,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		/* XXX: Temp workaround for depsgraph_mt branch. */
 		BLI_lock_thread(LOCK_CUSTOM1);
 
-		BLI_freelistN(&(cu->bev));
+		BLI_freelistN(&(ob->bev));
 
-		if (cu->path) free_path(cu->path);
-		cu->path = NULL;
+		if (ob->path) free_path(ob->path);
+		ob->path = NULL;
 
 		if (ob->type == OB_FONT)
 			BKE_vfont_to_curve(G.main, scene, ob, 0);
@@ -1420,7 +1420,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		}
 		else {
 			float widfac = cu->width - 1.0f;
-			BevList *bl = cu->bev.first;
+			BevList *bl = ob->bev.first;
 			Nurb *nu = nubase->first;
 
 			for (; bl && nu; bl = bl->next, nu = nu->next) {

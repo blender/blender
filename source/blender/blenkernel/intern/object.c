@@ -340,6 +340,11 @@ void BKE_object_free(Object *ob)
 	free_sculptsession(ob);
 
 	if (ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
+
+	/* Free runtime curves data. */
+	BLI_freelistN(&ob->bev);
+	if (ob->path)
+		free_path(ob->path);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -1273,7 +1278,11 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 	obn->pc_ids.first = obn->pc_ids.last = NULL;
 
 	obn->mpath = NULL;
-	
+
+	/* Copy runtime surve data. */
+	obn->bev.first = obn->bev.last = NULL;
+	obn->path = NULL;
+
 	return obn;
 }
 
@@ -1751,9 +1760,9 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	unit_m4(mat);
 	
 	cu = par->data;
-	if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+	if (par->path == NULL || par->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 		BKE_displist_make_curveTypes(scene, par, 0);
-	if (cu->path == NULL) return;
+	if (par->path == NULL) return;
 	
 	/* catch exceptions: feature for nla stride editing */
 	if (ob->ipoflag & OB_DISABLE_PATH) {
@@ -1784,7 +1793,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	
 	/* time calculus is correct, now apply distance offset */
 	if (cu->flag & CU_OFFS_PATHDIST) {
-		ctime += timeoffs / cu->path->totdist;
+		ctime += timeoffs / par->path->totdist;
 
 		/* restore */
 		SWAP(float, sf_orig, ob->sf);

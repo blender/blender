@@ -819,8 +819,8 @@ makebreak:
 		
 		cucu->flag |= (CU_PATH + CU_FOLLOW);
 		
-		if (cucu->path == NULL) BKE_displist_make_curveTypes(scene, cu->textoncurve, 0);
-		if (cucu->path) {
+		if (cu->textoncurve->path == NULL) BKE_displist_make_curveTypes(scene, cu->textoncurve, 0);
+		if (cu->textoncurve->path) {
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
 			float minx, maxx, miny, maxy;
 			float timeofs, sizefac;
@@ -845,7 +845,7 @@ makebreak:
 			/* we put the x-coordinaat exact at the curve, the y is rotated */
 			
 			/* length correction */
-			distfac = sizefac * cucu->path->totdist / (maxx - minx);
+			distfac = sizefac * cu->textoncurve->path->totdist / (maxx - minx);
 			timeofs = 0.0f;
 			
 			if (distfac > 1.0f) {

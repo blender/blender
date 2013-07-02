@@ -1164,10 +1164,10 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path == NULL || cu->path->data == NULL)
+		if (ct->tar->path == NULL || ct->tar->path->data == NULL)
 			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		
-		if (cu->path && cu->path->data) {
+		if (ct->tar->path && ct->tar->path->data) {
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
@@ -1934,10 +1934,8 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 	if (VALID_CONS_TARGET(ct)) {
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
-			Curve *cu = ct->tar->data;
-			
 			/* this check is to make sure curve objects get updated on file load correctly.*/
-			if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+			if (ct->tar->path == NULL || ct->tar->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		}
 		
@@ -3008,14 +3006,12 @@ static void clampto_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 static void clampto_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct)) {
-		Curve *cu = ct->tar->data;
-		
 		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
 		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path == NULL || cu->path->data == NULL)
+		if (ct->tar->path == NULL || ct->tar->path->data == NULL)
 			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 	}
 	
@@ -3033,7 +3029,6 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 	
 	/* only evaluate if there is a target and it is a curve */
 	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
-		Curve *cu = data->tar->data;
 		float obmat[4][4], ownLoc[3];
 		float curveMin[3], curveMax[3];
 		float targetMatrix[4][4] = MAT4_UNITY;
@@ -3046,7 +3041,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		BKE_object_minmax(ct->tar, curveMin, curveMax, TRUE);
 		
 		/* get targetmatrix */
-		if (cu->path && cu->path->data) {
+		if (data->tar->path && data->tar->path->data) {
 			float vec[4], dir[3], totmat[4][4];
 			float curvetime;
 			short clamp_axis;
@@ -3649,14 +3644,12 @@ static void splineik_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 static void splineik_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct)) {
-		Curve *cu = ct->tar->data;
-		
 		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
 		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path == NULL || cu->path->data == NULL)
+		if (ct->tar->path == NULL || ct->tar->path->data == NULL)
 			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 	}
 	

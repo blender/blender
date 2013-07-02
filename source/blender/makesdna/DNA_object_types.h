@@ -276,6 +276,9 @@ typedef struct Object {
 	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
 	float ima_ofs[2];		/* offset for image empties */
+
+	struct Path *path;
+	ListBase bev;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
