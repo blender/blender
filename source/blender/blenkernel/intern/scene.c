@@ -1296,8 +1296,15 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 
 	/* Put all nodes which are already ready for schedule to the task pool.
 	 * usually its just a Scene node.
+	 *
+	 * We do lock here so no tthreads will start updating nodes valency
+	 * while we're still fillign the queue in. Otherwise it's possible
+	 * to run into situations when the same task is adding twice to the
+	 * queue due to non-safe nature of function below.
 	 */
+	BLI_spin_lock(&state.lock);
 	DAG_threaded_update_foreach_ready_node(scene, scene_update_object_add_task, task_pool);
+	BLI_spin_unlock(&state.lock);
 
 	/* work and wait until tasks are done */
 	BLI_task_pool_work_and_wait(task_pool);
