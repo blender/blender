@@ -1164,8 +1164,6 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
-#undef USE_THREADED_UPDATE
-
 typedef struct ThreadedObjectUpdateState {
 	Scene *scene;
 	Scene *scene_parent;
@@ -1329,12 +1327,6 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 		}
 	}
 
-#ifndef USE_THREADED_UPDATE
-	if (true) {
-		scene_update_all_bases(scene, scene_parent);
-	}
-	else
-#endif
 	if (update_count > 1) {
 		scene_update_objects_threaded(scene, scene_parent);
 	}

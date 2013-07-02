@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_scanfill.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
@@ -1394,6 +1395,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		nubase = BKE_curve_nurbs_get(cu);
 
+		/* XXX: Temp workaround for depsgraph_mt branch. */
+		BLI_lock_thread(LOCK_CUSTOM1);
+
 		BLI_freelistN(&(cu->bev));
 
 		if (cu->path) free_path(cu->path);
@@ -1594,6 +1598,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (cu->bb == NULL) {
 			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 		}
+
+		/* XXX: Temp workaround for depsgraph_mt branch. */
+		BLI_unlock_thread(LOCK_CUSTOM1);
+
 		boundbox_dispbase(cu->bb, dispbase);
 
 		if (!forRender) {
