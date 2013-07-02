@@ -186,8 +186,10 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 	Task *task;
 
 	/* stop all waiting threads */
+	BLI_mutex_lock(&scheduler->queue_mutex);
 	scheduler->do_exit = true;
 	BLI_condition_notify_all(&scheduler->queue_cond);
+	BLI_mutex_unlock(&scheduler->queue_mutex);
 
 	/* delete threads */
 	if(scheduler->threads) {
