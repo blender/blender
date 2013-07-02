@@ -1204,27 +1204,29 @@ static void scene_update_all_bases(Scene *scene, Scene *scene_parent)
 
 static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
 {
+#define PRINT if (G.debug & G_DEBUG) printf
+
 	ThreadedObjectUpdateState *state = (ThreadedObjectUpdateState *) BLI_task_pool_userdata(pool);
 	void *node = taskdata;
 	Object *object;
 
-	(void) threadid;  /* Ignored when logging is disabled. */
-
 	object = DAG_threaded_update_get_node_object(node);
 
 	if (object) {
-		// printf("Thread %d: update object %s\n", threadid, object->id.name);
+		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
 		scene_update_single_object(state->scene, state->scene_parent, object);
 	}
 	else {
-		// printf("Threda %d: update node %s\n", threadid,
-		//        DAG_threaded_update_get_node_name(node));
+		PRINT("Threda %d: update node %s\n", threadid,
+		        DAG_threaded_update_get_node_name(node));
 	}
 
 	BLI_lock_thread(LOCK_CUSTOM1);
 	/* Update will decrease child's valency and schedule child with zero valency. */
 	DAG_threaded_update_handle_node_updated(node,scene_update_object_add_task, pool);
 	BLI_unlock_thread(LOCK_CUSTOM1);
+
+#undef PRINT
 }
 
 static void scene_update_object_add_task(void *node, void *user_data)
