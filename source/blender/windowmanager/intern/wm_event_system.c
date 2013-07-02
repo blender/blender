@@ -1768,11 +1768,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 	        /* comment this out to flood the console! (if you really want to test) */
 	        !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
-#  if defined __GNUC__ || defined __sun
-#    define PRINT(format, args ...) { if (do_debug_handler) printf(format, ##args); } (void)0
-#  else
-#    define PRINT(format, ...) { if (do_debug_handler) printf(__VA_ARGS__); } (void)0
-#  endif
+#    define PRINT if (do_debug_handler) printf
 #else
 #  define PRINT(format, ...)
 #endif
