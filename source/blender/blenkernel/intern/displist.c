@@ -1599,9 +1599,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 		}
 
-		/* XXX: Temp workaround for depsgraph_mt branch. */
-		BLI_unlock_thread(LOCK_CUSTOM1);
-
 		boundbox_dispbase(cu->bb, dispbase);
 
 		if (!forRender) {
@@ -1610,6 +1607,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		if (!forOrco)
 			curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, renderResolution, originalVerts, deformedVerts);
+
+		/* XXX: Temp workaround for depsgraph_mt branch. */
+		BLI_unlock_thread(LOCK_CUSTOM1);
 
 		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
 			curve_to_filledpoly(cu, nubase, dispbase);
