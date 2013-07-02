@@ -172,8 +172,9 @@ static void nla_keymap_channels(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
 
-	/* NLA-specific (different to standard channels keymap) -------------------------- */
-	/* selection */
+	/* keymappings here are NLA-specific (different to standard channels keymap) */
+	
+	/* selection --------------------------------------------------------------------- */
 	/* click-select */
 	// XXX for now, only leftmouse....
 	kmi = WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -181,7 +182,7 @@ static void nla_keymap_channels(wmKeyMap *keymap)
 	kmi = WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	
-	/* channel operations */
+	/* channel operations ------------------------------------------------------------ */
 	/* add tracks */
 	kmi = WM_keymap_add_item(keymap, "NLA_OT_tracks_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "above_selected", FALSE);
@@ -197,7 +198,7 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
 	
-	/* selection */
+	/* selection ------------------------------------------------ */
 	/* click select */
 	kmi = WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
@@ -233,20 +234,14 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	kmi = WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "axis_range", TRUE);
 	
-	/* view*/
+	/* view ---------------------------------------------------- */
 	/* auto-set range */
 	//WM_keymap_add_item(keymap, "NLA_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
-	/* editing */
-	/* tweakmode
-	 *	- enter and exit are separate operators with the same hotkey...
-	 *	  This works as they use different poll()'s
-	 */
-	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
-		
+	/* editing ------------------------------------------------ */
+	
 	/* add strips */
 	WM_keymap_add_item(keymap, "NLA_OT_actionclip_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_transition_add", TKEY, KM_PRESS, KM_SHIFT, 0);
@@ -301,11 +296,20 @@ void nla_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
-	/* keymap for all regions */
+	/* keymap for all regions ------------------------------------------- */
 	keymap = WM_keymap_find(keyconf, "NLA Generic", SPACE_NLA, 0);
+	
+	/* region management */
 	WM_keymap_add_item(keymap, "NLA_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
-	/* channels */
+	/* tweakmode
+	 *	- enter and exit are separate operators with the same hotkey...
+	 *	  This works as they use different poll()'s
+	 */
+	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
+	
+	/* channels ---------------------------------------------------------- */
 	/* Channels are not directly handled by the NLA Editor module, but are inherited from the Animation module. 
 	 * Most of the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as there
 	 * are many similarities with the other Animation Editors.
@@ -315,7 +319,7 @@ void nla_keymap(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "NLA Channels", SPACE_NLA, 0);
 	nla_keymap_channels(keymap);
 	
-	/* data */
+	/* data ------------------------------------------------------------- */
 	keymap = WM_keymap_find(keyconf, "NLA Editor", SPACE_NLA, 0);
 	nla_keymap_main(keyconf, keymap);
 }

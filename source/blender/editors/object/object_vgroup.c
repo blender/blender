@@ -2775,35 +2775,13 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	}
 }
 
-static bool vgroup_object_in_edit_mode(Object *ob)
-{
-	if (ob->type == OB_MESH)
-		return (BKE_editmesh_from_object(ob) != NULL);
-	else if (ob->type == OB_LATTICE)
-		return (((Lattice *)ob->data)->editlatt != NULL);
-	
-	return false;
-}
-
-static bool vgroup_object_in_wpaint_vert_select(Object *ob)
-{
-	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
-		return ( (ob->mode & OB_MODE_WEIGHT_PAINT) &&
-		         (me->edit_btmesh == NULL) &&
-		         (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX) );
-	}
-
-	return false;
-}
-
 static void vgroup_delete(Object *ob)
 {
 	bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef - 1);
 	if (!dg)
 		return;
 
-	if (vgroup_object_in_edit_mode(ob))
+	if (BKE_object_is_in_editmode_vgroup(ob))
 		vgroup_delete_edit_mode(ob, dg);
 	else
 		vgroup_delete_object_mode(ob, dg);
@@ -2956,7 +2934,7 @@ static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
-	return vgroup_object_in_edit_mode(ob);
+	return BKE_object_is_in_editmode_vgroup(ob);
 }
 
 /* editmode _or_ weight paint vertex sel */
@@ -2968,8 +2946,8 @@ static int vertex_group_vert_select_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
-	return (vgroup_object_in_edit_mode(ob) ||
-	        vgroup_object_in_wpaint_vert_select(ob));
+	return (BKE_object_is_in_editmode_vgroup(ob) ||
+	        BKE_object_is_in_wpaint_select_vert(ob));
 }
 
 /* editmode _or_ weight paint vertex sel and active group unlocked */
@@ -2981,8 +2959,8 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
-	if (!(vgroup_object_in_edit_mode(ob) ||
-	    vgroup_object_in_wpaint_vert_select(ob)))
+	if (!(BKE_object_is_in_editmode_vgroup(ob) ||
+	    BKE_object_is_in_wpaint_select_vert(ob)))
 	{
 		return 0;
 	}
@@ -2993,7 +2971,7 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 			return !(dg->flag & DG_LOCK_WEIGHT);
 		}
 	}
-	return 0;
+	return 1;
 }
 
 static int vertex_group_vert_select_mesh_poll(bContext *C)
@@ -3008,8 +2986,8 @@ static int vertex_group_vert_select_mesh_poll(bContext *C)
 	if (ob->type != OB_MESH)
 		return 0;
 
-	return (vgroup_object_in_edit_mode(ob) ||
-	        vgroup_object_in_wpaint_vert_select(ob));
+	return (BKE_object_is_in_editmode_vgroup(ob) ||
+	        BKE_object_is_in_wpaint_select_vert(ob));
 }
 
 static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3076,14 +3054,11 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove all vertex groups");
 }
 
-static int vertex_group_assign_exec(bContext *C, wmOperator *op)
+static int vertex_group_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = ED_object_context(C);
-
-	if (RNA_boolean_get(op->ptr, "new"))
-		ED_vgroup_add(ob);
-
+	
 	vgroup_assign_verts(ob, ts->vgroup_weight);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -3094,9 +3069,9 @@ static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Assign Vertex Group";
+	ot->name = "Assign to Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_assign";
-	ot->description = "Assign the selected vertices to the active (or a new) vertex group";
+	ot->description = "Assign the selected vertices to the active vertex group";
 	
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_unlocked_poll;
@@ -3107,9 +3082,35 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	 * isn't stored in local edit mode stack and toggling "new" property will
 	 * lead to creating plenty of new vertex groups (see [#29527], sergey) */
 	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
+}
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "new", 0, "New", "Assign vertex to new vertex group");
+/* NOTE: just a wrapper around vertex_group_assign_exec(), except we add these to a new group */
+static int vertex_group_assign_new_exec(bContext *C, wmOperator *op)
+{
+	/* create new group... */
+	Object *ob = ED_object_context(C);
+	ED_vgroup_add(ob);
+	
+	/* assign selection to new group */
+	return vertex_group_assign_exec(C, op);
+}
+
+void OBJECT_OT_vertex_group_assign_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Assign to New Group";
+	ot->idname = "OBJECT_OT_vertex_group_assign_new";
+	ot->description = "Assign the selected vertices to a new vertex group";
+	
+	/* api callbacks */
+	ot->poll = vertex_group_vert_select_poll;
+	ot->exec = vertex_group_assign_new_exec;
+	
+	/* flags */
+	/* redo operator will fail in this case because vertex group assignment
+	 * isn't stored in local edit mode stack and toggling "new" property will
+	 * lead to creating plenty of new vertex groups (see [#29527], sergey) */
+	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 }
 
 static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
@@ -3490,7 +3491,7 @@ static int vertex_group_blend_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return false;
 
-	if (vgroup_object_in_edit_mode(ob)) {
+	if (BKE_object_is_in_editmode_vgroup(ob)) {
 		return true;
 	}
 	else if ((ob->type == OB_MESH) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {

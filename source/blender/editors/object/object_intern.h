@@ -203,6 +203,7 @@ void CONSTRAINT_OT_followpath_path_animate(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_remove(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_assign(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_assign_new(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_remove_from(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);

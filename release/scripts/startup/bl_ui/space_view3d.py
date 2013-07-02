@@ -1312,13 +1312,13 @@ class VIEW3D_MT_vertex_group(Menu):
         layout = self.layout
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("object.vertex_group_assign", text="Assign to New Group").new = True
+        layout.operator("object.vertex_group_assign_new")
 
         ob = context.active_object
         if ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex):
             if ob.vertex_groups.active:
                 layout.separator()
-                layout.operator("object.vertex_group_assign", text="Assign to Active Group").new = False
+                layout.operator("object.vertex_group_assign", text="Assign to Active Group")
                 layout.operator("object.vertex_group_remove_from", text="Remove from Active Group").use_all_groups = False
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").use_all_groups = True
                 layout.separator()
@@ -1938,8 +1938,8 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.rip_move_fill")
         layout.operator("mesh.split")
         layout.operator_menu_enum("mesh.separate", "type")
-        layout.operator("mesh.vert_connect")
-        layout.operator("transform.vert_slide")
+        layout.operator("mesh.vert_connect", text="Connect")
+        layout.operator("transform.vert_slide", text="Slide")
 
         layout.separator()
 
