@@ -1480,14 +1480,16 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			if (ot->flag & OPTYPE_UNDO)
 				wm->op_undo_depth++;
 
+			/* warning, after this call all context data and 'event' may be freed. see check below */
 			retval = ot->modal(C, op, event);
 			OPERATOR_RETVAL_CHECK(retval);
-			wm_event_modalmap_end(event);
 			
 			/* when this is _not_ the case the modal modifier may have loaded
 			 * a new blend file (demo mode does this), so we have to assume
 			 * the event, operator etc have all been freed. - campbell */
 			if (CTX_wm_manager(C) == wm) {
+
+				wm_event_modalmap_end(event);
 
 				if (ot->flag & OPTYPE_UNDO)
 					wm->op_undo_depth--;
