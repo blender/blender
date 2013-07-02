@@ -1172,32 +1172,22 @@ typedef struct ThreadedObjectUpdateState {
 
 static void scene_update_object_add_task(void *node, void *user_data);
 
-static void scene_update_single_object(Scene *scene, Scene *scene_parent, Object *object)
-{
-	BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
-
-	if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
-		BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
-
-	/* always update layer, so that animating layers works (joshua july 2010) */
-	/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
-	 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
-	// base->lay = ob->lay;
-}
-
-static void scene_update_single_base(Scene *scene, Scene *scene_parent, Base *base)
-{
-	Object *object = base->object;
-
-	scene_update_single_object(scene, scene_parent, object);
-}
-
 static void scene_update_all_bases(Scene *scene, Scene *scene_parent)
 {
 	Base *base;
 
 	for (base = scene->base.first; base; base = base->next) {
-		scene_update_single_base(scene, scene_parent, base);
+		Object *object = base->object;
+
+		BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
+
+		if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
+			BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
+
+		/* always update layer, so that animating layers works (joshua july 2010) */
+		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
+		 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
+		// base->lay = ob->lay;
 	}
 }
 
@@ -1208,10 +1198,17 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 	ThreadedObjectUpdateState *state = (ThreadedObjectUpdateState *) BLI_task_pool_userdata(pool);
 	void *node = taskdata;
 	Object *object = DAG_threaded_update_get_node_object(node);
+	Scene *scene = state->scene;
+	Scene *scene_parent = state->scene_parent;
 
 	if (object) {
 		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
-		scene_update_single_object(state->scene, state->scene_parent, object);
+
+		/* We only update object itself here, dupli-group will be updated
+		 * separately from main thread because of we've got no idea about
+		 * dependnecies inside the group.
+		 */
+		BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
 	}
 	else {
 		PRINT("Threda %d: update node %s\n", threadid,
@@ -1314,6 +1311,32 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 	BLI_end_threaded_malloc();
 
 	BLI_spin_end(&state.lock);
+
+	/* XXX: Weak, very weak!
+	 *
+	 * We update dupligroups in single thread! :S
+	 *
+	 * This is because we've got absolutely no idea about dependencies
+	 * inside the group and we only know order of objects in which we
+	 * need to perform objects update.
+	 *
+	 * We even can not update different groups in different threads,
+	 * because groups could share the objects and detecting whether
+	 * object is updating in multiple threads is not so much easy.
+	 *
+	 * This is solvable with local group dependency graph or expanding
+	 * current dependency graph to be aware of dependencies inside
+	 * groups.
+	 */
+	{
+		Base *base;
+		for (base = scene->base.first; base; base = base->next) {
+			Object *object = base->object;
+
+			if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
+				BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
+		}
+	}
 }
 
 static void scene_update_objects(Scene *scene, Scene *scene_parent)
