@@ -304,7 +304,7 @@ static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3
 }
 
 static BMFace *bev_create_quad_tri_ex(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-									  BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4)
+                                      BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
 	BMFace *farr[4] = {f1, f2, f3, f4};
@@ -314,18 +314,18 @@ static BMFace *bev_create_quad_tri_ex(BMesh *bm, BMVert *v1, BMVert *v2, BMVert 
 
 /* Is Loop layer layer_index contiguous across shared vertex of l1 and l2? */
 static bool contig_ldata_across_loops(BMesh *bm, BMLoop *l1, BMLoop *l2,
-				      int layer_index)
+                                      int layer_index)
 {
 	const int offset = bm->ldata.layers[layer_index].offset;
 	const int type = bm->ldata.layers[layer_index].type;
 
 	return CustomData_data_equals(type,
-				      (char *)l1->head.data + offset,
-				      (char *)l2->head.data + offset);
+	                              (char *)l1->head.data + offset,
+	                              (char *)l2->head.data + offset);
 }
 
 /* Are all loop layers with have math (e.g., UVs) contiguous from face f1 to face f2 across edge e? */
-static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace* f1, BMFace *f2)
+static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f2)
 {
 	BMLoop *lef1, *lef2;
 	BMLoop *lv1f1, *lv1f2, *lv2f1, *lv2f2;
@@ -342,17 +342,21 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace* f1, BMFace *f
 	if (lef1->f == f2) {
 		SWAP(BMLoop *, lef1, lef2);
 	}
+
 	if (lef1->v == v1) {
 		lv1f1 = lef1;
 		lv2f1 = BM_face_other_edge_loop(f1, e, v2);
-	} else {
+	}
+	else {
 		lv2f1 = lef1;
 		lv1f1 = BM_face_other_edge_loop(f1, e, v1);
 	}
+
 	if (lef2->v == v1) {
 		lv1f2 = lef2;
 		lv2f2 = BM_face_other_edge_loop(f2, e, v2);
-	} else {
+	}
+	else {
 		lv2f2 = lef2;
 		lv1f2 = BM_face_other_edge_loop(f2, e, v1);
 	}
@@ -360,7 +364,8 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace* f1, BMFace *f
 	for (i = 0; i < bm->ldata.totlayer; i++) {
 		if (CustomData_layer_has_math(&bm->ldata, i) &&
 		    (!contig_ldata_across_loops(bm, lv1f1, lv1f2, i) ||
-		     !contig_ldata_across_loops(bm, lv2f1, lv2f2, i))) {
+		     !contig_ldata_across_loops(bm, lv2f1, lv2f2, i)))
+		{
 			return false;
 		}
 	}
@@ -406,7 +411,8 @@ static BMFace *bev_create_quad_straddle(BMesh *bm, BMVert *v1, BMVert *v2, BMVer
 
 /* Merge (using average) all the UV values for loops of v's faces.
  * Caller should ensure that no seams are violated by doing this. */
-static void bev_merge_uvs(BMesh *bm, BMVert *v) {
+static void bev_merge_uvs(BMesh *bm, BMVert *v)
+{
 	BMIter iter;
 	MLoopUV *luv;
 	BMLoop *l;
@@ -425,7 +431,7 @@ static void bev_merge_uvs(BMesh *bm, BMVert *v) {
 		n++;
 	}
 	if (n > 1) {
-		mul_v2_fl(uv, 1.0f/(float)n);
+		mul_v2_fl(uv, 1.0f / (float)n);
 		BM_ITER_ELEM(l, &iter, v, BM_LOOPS_OF_VERT) {
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			copy_v2_v2(luv->uv, uv);
@@ -1165,9 +1171,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					/* f23 is interp face for bmv2 and bmv3 */
 					f23 = f;
 					if (odd && k == ns2 && f2 && !v->any_seam)
-							f23 = f2;
+						f23 = f2;
 					bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
-								f, f23, f23, f);
+					                       f, f23, f23, f);
 				}
 			}
 			else if (v->prev->ebev && v->prev->prev->ebev) {
@@ -1187,9 +1193,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					}
 					f23 = f;
 					if (odd && k == ns2 && f2 && !v->any_seam)
-							f23 = f2;
+						f23 = f2;
 					bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
-								f, f23, f23, f);
+					                       f, f23, f23, f);
 				}
 			}
 		} while ((v = v->next) != vm->boundstart);
@@ -1681,7 +1687,7 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 				if (odd && k == ns2 && f2 && !v->any_seam)
 					f23 = f2;
 				bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
-							f, f23, f23, f);
+				                       f, f23, f23, f);
 			}
 		}
 	} while ((v = v->next) != vm->boundstart);
