@@ -1169,6 +1169,7 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 typedef struct ThreadedObjectUpdateState {
 	Scene *scene;
 	Scene *scene_parent;
+	SpinLock lock;
 } ThreadedObjectUpdateState;
 
 static void scene_update_object_add_task(void *node, void *user_data);
@@ -1221,10 +1222,10 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		        DAG_threaded_update_get_node_name(node));
 	}
 
-	BLI_lock_thread(LOCK_CUSTOM1);
+	BLI_spin_lock(&state->lock);
 	/* Update will decrease child's valency and schedule child with zero valency. */
 	DAG_threaded_update_handle_node_updated(node,scene_update_object_add_task, pool);
-	BLI_unlock_thread(LOCK_CUSTOM1);
+	BLI_spin_unlock(&state->lock);
 
 #undef PRINT
 }
@@ -1280,6 +1281,7 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 
 	state.scene = scene;
 	state.scene_parent = scene_parent;
+	BLI_spin_init(&state.lock);
 
 	task_scheduler = BLI_task_scheduler_create(tot_thread);
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
@@ -1307,6 +1309,8 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 	BLI_task_scheduler_free(task_scheduler);
 
 	BLI_end_threaded_malloc();
+
+	BLI_spin_end(&state.lock);
 }
 
 static void scene_update_objects(Scene *scene, Scene *scene_parent)
