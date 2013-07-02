@@ -62,8 +62,8 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
-static void boundbox_displist(Object *ob);
 static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase);
+static void boundbox_displist_object(Object *ob);
 
 void BKE_displist_elem_free(DispList *dl)
 {
@@ -721,9 +721,9 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 
 			object_deform_mball(ob, &ob->disp);
 		}
-	}
 
-	boundbox_displist(ob);
+		boundbox_displist_object(ob);
+	}
 }
 
 void BKE_displist_make_mball_forRender(Scene *scene, Object *ob, ListBase *dispbase)
@@ -1279,10 +1279,11 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 		}
 	}
 
-	/* make copy of 'undeformed" displist for texture space calculation
-	 * actually, it's not totally undeformed -- pre-tessellation modifiers are
-	 * already applied, thats how it worked for years, so keep for compatibility (sergey) */
-	BKE_displist_copy(&cu->disp, dispbase);
+	/* Calculate curve's boundig box from non-modified display list. */
+	if (cu->bb == NULL) {
+		cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+	}
+	boundbox_dispbase(cu->bb, dispbase);
 
 	if (!forRender) {
 		BKE_curve_texspace_calc(cu);
@@ -1589,10 +1590,11 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if ((cu->flag & CU_PATH) && !forOrco)
 			calc_curvepath(ob);
 
-		/* make copy of 'undeformed" displist for texture space calculation
-		 * actually, it's not totally undeformed -- pre-tessellation modifiers are
-		 * already applied, thats how it worked for years, so keep for compatibility (sergey) */
-		BKE_displist_copy(&cu->disp, dispbase);
+		/* Calculate curve's boundig box from non-modified display list. */
+		if (cu->bb == NULL) {
+			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+		}
+		boundbox_dispbase(cu->bb, dispbase);
 
 		if (!forRender) {
 			BKE_curve_texspace_calc(cu);
@@ -1609,7 +1611,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 {
-	Curve *cu = ob->data;
 	ListBase *dispbase;
 
 	/* The same check for duplis as in do_makeDispListCurveTypes.
@@ -1622,23 +1623,9 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 	dispbase = &(ob->disp);
 	BKE_displist_free(dispbase);
 
-	/* free displist used for textspace */
-	BKE_displist_free(&cu->disp);
-
 	do_makeDispListCurveTypes(scene, ob, dispbase, &ob->derivedFinal, 0, forOrco, 0);
 
-	if (ob->derivedFinal) {
-		DM_set_object_boundbox(ob, ob->derivedFinal);
-
-		/* always keep curve's  BB in sync with non-deformed displist */
-		if (cu->bb == NULL)
-			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-
-		boundbox_dispbase(cu->bb, &cu->disp);
-	}
-	else {
-		boundbox_displist(ob);
-	}
+	boundbox_displist_object(ob);
 }
 
 void BKE_displist_make_curveTypes_forRender(Scene *scene, Object *ob, ListBase *dispbase,
@@ -1702,21 +1689,22 @@ static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase)
 }
 
 /* this is confusing, there's also min_max_object, appplying the obmat... */
-static void boundbox_displist(Object *ob)
+static void boundbox_displist_object(Object *ob)
 {
 	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		Curve *cu = ob->data;
-
-		/* calculate curve's BB based on non-deformed displist */
-		if (cu->bb == NULL)
-			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-
-		boundbox_dispbase(cu->bb, &cu->disp);
+		/* Curver's BB is already calculated as a part of modifier stack,
+		 * here we only calculate object BB based on final display list.
+		 */
 
 		/* object's BB is calculated from final displist */
 		if (ob->bb == NULL)
 			ob->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 
-		boundbox_dispbase(ob->bb, &ob->disp);
+		if (ob->derivedFinal) {
+			DM_set_object_boundbox(ob, ob->derivedFinal);
+		}
+		else {
+			boundbox_dispbase(ob->bb, &ob->disp);
+		}
 	}
 }

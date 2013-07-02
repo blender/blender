@@ -146,7 +146,6 @@ void BKE_curve_free(Curve *cu)
 {
 	BKE_nurbList_free(&cu->nurb);
 	BLI_freelistN(&cu->bev);
-	BKE_displist_free(&cu->disp);
 	BKE_curve_editfont_free(cu);
 
 	BKE_curve_editNurb_free(cu);
@@ -228,7 +227,6 @@ Curve *BKE_curve_copy(Curve *cu)
 	cun->key = BKE_key_copy(cu->key);
 	if (cun->key) cun->key->from = (ID *)cun;
 
-	cun->disp.first = cun->disp.last = NULL;
 	cun->bev.first = cun->bev.last = NULL;
 	cun->path = NULL;
 
@@ -374,36 +372,14 @@ void BKE_curve_type_test(Object *ob)
 
 void BKE_curve_texspace_calc(Curve *cu)
 {
-	DispList *dl;
-	BoundBox *bb;
-	float *fp, min[3], max[3];
-	int tot, do_it = FALSE;
+	BoundBox *bb = cu->bb;
+	float min[3], max[3];
 
-	if (cu->bb == NULL)
-		cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-	bb = cu->bb;
-
-	INIT_MINMAX(min, max);
-
-	dl = cu->disp.first;
-	while (dl) {
-		tot = ELEM(dl->type, DL_INDEX3, DL_INDEX4) ? dl->nr : dl->nr * dl->parts;
-
-		if (tot) do_it = TRUE;
-		fp = dl->verts;
-		while (tot--) {
-			minmax_v3v3_v3(min, max, fp);
-			fp += 3;
-		}
-		dl = dl->next;
-	}
-
-	if (do_it == FALSE) {
-		min[0] = min[1] = min[2] = -1.0f;
-		max[0] = max[1] = max[2] = 1.0f;
-	}
-
-	BKE_boundbox_init_from_minmax(bb, min, max);
+	/* Curve's undeformed bounding box is calculated in displist.c,
+	 * as a part of display list calculation.
+	 */
+	copy_v3_v3(min, bb->vec[0]);
+	copy_v3_v3(max, bb->vec[6]);
 
 	if (cu->texflag & CU_AUTOSPACE) {
 		mid_v3_v3v3(cu->loc, min, max);
