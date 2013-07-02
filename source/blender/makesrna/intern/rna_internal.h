@@ -246,6 +246,7 @@ int rna_Action_id_poll(struct PointerRNA *ptr, struct PointerRNA value);
 int rna_Action_actedit_assign_poll(struct PointerRNA *ptr, struct PointerRNA value);
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
+char *rna_Node_ImageUser_path(struct PointerRNA *ptr);
 
 /* API functions */
 

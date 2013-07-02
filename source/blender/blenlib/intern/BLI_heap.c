@@ -15,19 +15,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: none of this file.
- *
  * Contributor(s): Brecht Van Lommel
  *
  * ***** END GPL LICENSE BLOCK *****
- * A heap / priority queue ADT.
  */
 
 /** \file blender/blenlib/intern/BLI_heap.c
  *  \ingroup bli
+ *
+ * A heap / priority queue ADT.
  */
 
 #include <stdlib.h>

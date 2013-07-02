@@ -230,7 +230,6 @@ set(SRC
 	BKE_sca.h
 	BKE_scene.h
 	BKE_screen.h
-	BKE_script.h
 	BKE_sequencer.h
 	BKE_shrinkwrap.h
 	BKE_sketch.h
