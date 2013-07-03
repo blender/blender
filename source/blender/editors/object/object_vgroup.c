@@ -3749,66 +3749,74 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = CTX_data_active_object(C);
-	Object *armobj = BKE_object_pose_armature_get(ob_act);
-	bDeformGroup *dg_src;
 	int fail = 0;
+	bool change = false;
 
-	WT_VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "WT_vertex_group_mode");
-	WT_Method method = RNA_enum_get(op->ptr, "WT_method");
-	WT_ReplaceMode replace_mode = RNA_enum_get(op->ptr, "WT_replace_mode");
+	WT_VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "group_select_mode");
+	WT_Method method = RNA_enum_get(op->ptr, "method");
+	WT_ReplaceMode replace_mode = RNA_enum_get(op->ptr, "replace_mode");
 
 	/* Macro to loop through selected objects and perform operation depending on function, option and method.*/
-	CTX_DATA_BEGIN (C, Object *, ob_slc, selected_editable_objects)
+	CTX_DATA_BEGIN (C, Object *, ob_src, selected_editable_objects)
 	{
+		if (ob_act != ob_src) {
 
-		if (ob_act != ob_slc && ob_slc->defbase.first) {
+			if (ob_src->defbase.first == NULL) {
+				BKE_reportf(op->reports, RPT_WARNING,
+				            "Skipping object '%s' it has no vertex groups", ob_src->id.name + 2);
+				continue;
+			}
+			else if (ob_src->type != OB_MESH) {
+				BKE_reportf(op->reports, RPT_WARNING,
+				            "Skipping object '%s' only copying from meshes is supported", ob_src->id.name + 2);
+				continue;
+			}
+
 			switch (vertex_group_mode) {
 
 				case WT_REPLACE_ACTIVE_VERTEX_GROUP:
-					if (!ed_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1),
-					                               scene, method, replace_mode, op))
-					{
+				{
+					bDeformGroup *dg_src;
+					dg_src = BLI_findlink(&ob_src->defbase, ob_src->actdef - 1);
+					if (ed_vgroup_transfer_weight(ob_act, ob_src, dg_src, scene, method, replace_mode, op)) {
+						change = true;
+					}
+					else {
 						fail++;
 					}
 					break;
-
+				}
 				case WT_REPLACE_ALL_VERTEX_GROUPS:
-					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (!ed_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method, replace_mode, op)) {
+				{
+					bDeformGroup *dg_src;
+					for (dg_src = ob_src->defbase.first; dg_src; dg_src = dg_src->next) {
+						if (ed_vgroup_transfer_weight(ob_act, ob_src, dg_src, scene, method, replace_mode, op)) {
+							change = true;
+						}
+						else {
 							fail++;
 						}
 					}
 					break;
-
+				}
 				default:
 					BLI_assert(0);
 					break;
 			}
 		}
 	}
-
-	/* Event notifiers for correct display of data.*/
-	DAG_id_tag_update(&ob_slc->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_slc);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob_slc->data);
-
 	CTX_DATA_END;
 
-	/* Ensure active Weight Group is set to active bone
-	 * when new groups have been added during Weight Transfer
-	 */
-	if (armobj && (armobj->mode & OB_MODE_POSE)) {
-		struct bArmature *arm = armobj->data;
-		if (arm->act_bone && (arm->act_bone->layer & arm->layer)) {
-			ob_act->actdef = defgroup_name_index(ob_act, arm->act_bone->name)+1;
-		}
-	}
+	if (change) {
+		/* Event notifiers for correct display of data.*/
+		DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob_act);
 
-	if (fail != 0) {
-		return OPERATOR_CANCELLED;
+		return OPERATOR_FINISHED;
 	}
 	else {
-		return OPERATOR_FINISHED;
+		BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
+		return OPERATOR_CANCELLED;
 	}
 }
 
@@ -3821,16 +3829,17 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->description = "Transfer weight paint to active from selected mesh";
 
 	/* API callbacks.*/
-	ot->poll = vertex_group_poll;
+	ot->poll = vertex_group_mesh_poll;
 	ot->exec = vertex_group_transfer_weight_exec;
 
 	/* Flags.*/
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* Properties.*/
-	ot->prop = RNA_def_enum(ot->srna, "WT_vertex_group_mode", WT_vertex_group_mode_item, 1, "Group", "");
-	ot->prop = RNA_def_enum(ot->srna, "WT_method", WT_method_item, 3, "Method", "");
-	ot->prop = RNA_def_enum(ot->srna, "WT_replace_mode", WT_replace_mode_item, 1, "Replace", "");
+	/* TODO, use vgroup_operator_subset_select_props for group_select_mode */
+	ot->prop = RNA_def_enum(ot->srna, "group_select_mode", WT_vertex_group_mode_item, WT_REPLACE_ACTIVE_VERTEX_GROUP, "Group", "");
+	ot->prop = RNA_def_enum(ot->srna, "method", WT_method_item, WT_BY_NEAREST_FACE, "Method", "");
+	ot->prop = RNA_def_enum(ot->srna, "replace_mode", WT_replace_mode_item, WT_REPLACE_ALL_WEIGHTS, "Replace", "");
 }
 
 static int set_active_group_exec(bContext *C, wmOperator *op)
