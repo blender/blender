@@ -421,23 +421,24 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 				continue;
 			}
 
-			if (psys->part->from == PART_FROM_VERT) {
-				if (pa->num < totelem && nodearray[pa->num])
-					pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
+			if (use_modifier_stack) {
+				if (pa->num < totelem)
+					pa->num_dmcache = DMCACHE_ISCHILD;
 				else
 					pa->num_dmcache = DMCACHE_NOTFOUND;
 			}
-			else { /* FROM_FACE/FROM_VOLUME */
-				/* Note that sometimes the pa->num is over the nodearray size, this is bad, maybe there is a better place to fix this,
-				 * but for now passing NULL is OK. every face will be searched for the particle so its slower - Campbell */
-				if (use_modifier_stack) {
+			else {
+				if (psys->part->from == PART_FROM_VERT) {
 					if (pa->num < totelem && nodearray[pa->num])
-						pa->num_dmcache = GET_INT_FROM_POINTER(nodearray[pa->num]->link);
+						pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
 					else
 						pa->num_dmcache = DMCACHE_NOTFOUND;
 				}
-				else
+				else { /* FROM_FACE/FROM_VOLUME */
+					/* Note that sometimes the pa->num is over the nodearray size, this is bad, maybe there is a better place to fix this,
+					 * but for now passing NULL is OK. every face will be searched for the particle so its slower - Campbell */
 					pa->num_dmcache= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, pa->num < totelem ? nodearray[pa->num] : NULL);
+				}
 			}
 		}
 

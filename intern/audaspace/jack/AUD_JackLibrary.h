@@ -22,7 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/jack/AUD_JacLibrary.cpp
+/** \file audaspace/jack/AUD_JackLibrary.cpp
  *  \ingroup audjack
  */
 

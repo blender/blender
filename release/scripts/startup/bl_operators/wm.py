@@ -27,8 +27,6 @@ from bpy.props import (StringProperty,
                        EnumProperty,
                        )
 
-from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
-
 from bpy.app.translations import pgettext_tip as tip_
 
 
@@ -1029,6 +1027,8 @@ class WM_OT_properties_edit(Operator):
             )
 
     def execute(self, context):
+        from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
+
         data_path = self.data_path
         value = self.value
         prop = self.property
@@ -1080,6 +1080,8 @@ class WM_OT_properties_edit(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        from rna_prop_ui import rna_idprop_ui_prop_get
+
         data_path = self.data_path
 
         if not data_path:
@@ -1109,6 +1111,8 @@ class WM_OT_properties_add(Operator):
     data_path = rna_path
 
     def execute(self, context):
+        from rna_prop_ui import rna_idprop_ui_prop_get
+
         data_path = self.data_path
         item = eval("context.%s" % data_path)
 
