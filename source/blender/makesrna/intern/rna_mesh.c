@@ -1556,6 +1556,13 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, ReportList *
 	return ptr;
 }
 
+
+static int rna_Mesh_is_editmode_get(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	return (me->edit_btmesh != NULL);
+}
+
 /* only to quiet warnings */
 static void UNUSED_FUNCTION(rna_mesh_unused)(void)
 {
@@ -3210,6 +3217,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Mesh_tot_face_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Selected Face Total", "Selected face count in editmode");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Mesh_is_editmode_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
 
 	/* pointers */
 	rna_def_animdata_common(srna);
