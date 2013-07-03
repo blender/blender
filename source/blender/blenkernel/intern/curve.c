@@ -1419,10 +1419,10 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 				dl = bevdisp.first;
 			}
 			else {
-				dl = cu->bevobj->disp.first;
+				dl = cu->bevobj->curve_cache ? cu->bevobj->curve_cache->disp.first : NULL;
 				if (dl == NULL) {
 					BKE_displist_make_curveTypes(scene, cu->bevobj, 0);
-					dl = cu->bevobj->disp.first;
+					dl = cu->bevobj->curve_cache->disp.first;
 				}
 			}
 
@@ -2263,14 +2263,14 @@ void BKE_curve_bevelList_make(Object *ob, bool for_render)
 	/* this function needs an object, because of tflag and upflag */
 	cu = ob->data;
 
-	bev = &ob->bev;
+	bev = &ob->curve_cache->bev;
 
 	/* do we need to calculate the radius for each point? */
 	/* do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 : 1; */
 
 	/* STEP 1: MAKE POLYS  */
 
-	BLI_freelistN(&(ob->bev));
+	BLI_freelistN(&(ob->curve_cache->bev));
 	if (cu->editnurb && ob->type != OB_FONT) {
 		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 		nu = nurbs->first;

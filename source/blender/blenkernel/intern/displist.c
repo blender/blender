@@ -668,10 +668,10 @@ static float displist_calc_taper(Scene *scene, Object *taperobj, float fac)
 	if (taperobj == NULL || taperobj->type != OB_CURVE)
 		return 1.0;
 
-	dl = taperobj->disp.first;
+	dl = taperobj->curve_cache ? taperobj->curve_cache->disp.first : NULL;
 	if (dl == NULL) {
 		BKE_displist_make_curveTypes(scene, taperobj, 0);
-		dl = taperobj->disp.first;
+		dl = taperobj->curve_cache->disp.first;
 	}
 	if (dl) {
 		float minx, dx, *fp;
@@ -713,14 +713,19 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 	if (!ob || ob->type != OB_MBALL)
 		return;
 
-	BKE_displist_free(&(ob->disp));
+	if (ob->curve_cache) {
+		BKE_displist_free(&(ob->curve_cache->disp));
+	}
+	else {
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
+	}
 
 	if (ob->type == OB_MBALL) {
 		if (ob == BKE_mball_basis_find(scene, ob)) {
-			BKE_mball_polygonize(scene, ob, &ob->disp, false);
+			BKE_mball_polygonize(scene, ob, &ob->curve_cache->disp, false);
 			BKE_mball_texspace_calc(ob);
 
-			object_deform_mball(ob, &ob->disp);
+			object_deform_mball(ob, &ob->curve_cache->disp);
 		}
 
 		boundbox_displist_object(ob);
@@ -1398,10 +1403,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		/* XXX: Temp workaround for depsgraph_mt branch. */
 		BLI_lock_thread(LOCK_CUSTOM1);
 
-		BLI_freelistN(&(ob->bev));
+		BLI_freelistN(&(ob->curve_cache->bev));
 
-		if (ob->path) free_path(ob->path);
-		ob->path = NULL;
+		if (ob->curve_cache->path) free_path(ob->curve_cache->path);
+		ob->curve_cache->path = NULL;
 
 		if (ob->type == OB_FONT)
 			BKE_vfont_to_curve(G.main, scene, ob, 0);
@@ -1420,7 +1425,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		}
 		else {
 			float widfac = cu->width - 1.0f;
-			BevList *bl = ob->bev.first;
+			BevList *bl = ob->curve_cache->bev.first;
 			Nurb *nu = nubase->first;
 
 			for (; bl && nu; bl = bl->next, nu = nu->next) {
@@ -1627,9 +1632,14 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT))
 		return;
 
-	BKE_displist_free(&(ob->disp));
-	dispbase = &(ob->disp);
-	BKE_displist_free(dispbase);
+	if (ob->curve_cache) {
+		BKE_displist_free(&(ob->curve_cache->disp));
+	}
+	else {
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
+	}
+
+	dispbase = &(ob->curve_cache->disp);
 
 	do_makeDispListCurveTypes(scene, ob, dispbase, &ob->derivedFinal, 0, forOrco, 0);
 
@@ -1712,7 +1722,7 @@ static void boundbox_displist_object(Object *ob)
 			DM_set_object_boundbox(ob, ob->derivedFinal);
 		}
 		else {
-			boundbox_dispbase(ob->bb, &ob->disp);
+			boundbox_dispbase(ob->bb, &ob->curve_cache->disp);
 		}
 	}
 }

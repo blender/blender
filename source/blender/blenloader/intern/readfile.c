@@ -4818,8 +4818,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 		ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
 	}
 	
-	ob->disp.first = ob->disp.last = NULL;
-	
 	ob->adt = newdataadr(fd, ob->adt);
 	direct_link_animdata(fd, ob->adt);
 	
@@ -5015,8 +5013,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	link_list(fd, &ob->pc_ids);
 
 	/* Runtime curve data  */
-	ob->bev.first = ob->bev.last = NULL;
-	ob->path = NULL;
+	ob->curve_cache = NULL;
 
 	/* in case this value changes in future, clamp else we get undefined behavior */
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);

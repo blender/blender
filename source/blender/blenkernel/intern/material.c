@@ -1275,7 +1275,9 @@ int object_remove_material_slot(Object *ob)
 	/* check indices from mesh */
 	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
 		data_delete_material_index_id((ID *)ob->data, actcol - 1);
-		BKE_displist_free(&ob->disp);
+		if (ob->curve_cache) {
+			BKE_displist_free(&ob->curve_cache->disp);
+		}
 	}
 
 	return TRUE;

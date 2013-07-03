@@ -1292,7 +1292,13 @@ int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
                             MEdge **alledge, int *totedge, MLoop **allloop, MPoly **allpoly,
                             int *totloop, int *totpoly)
 {
-	return BKE_mesh_nurbs_displist_to_mdata(ob, &ob->disp,
+	ListBase disp = {NULL};
+
+	if (ob->curve_cache) {
+		disp = ob->curve_cache->disp;
+	}
+
+	return BKE_mesh_nurbs_displist_to_mdata(ob, &disp,
 	                                        allvert, totvert,
 	                                        alledge, totedge,
 	                                        allloop, allpoly, NULL,
@@ -1638,8 +1644,13 @@ void BKE_mesh_from_nurbs(Object *ob)
 {
 	Curve *cu = (Curve *) ob->data;
 	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
+	ListBase disp = {NULL};
 
-	BKE_mesh_from_nurbs_displist(ob, &ob->disp, use_orco_uv);
+	if (ob->curve_cache) {
+		disp = ob->curve_cache->disp;
+	}
+
+	BKE_mesh_from_nurbs_displist(ob, &disp, use_orco_uv);
 }
 
 typedef struct EdgeLink {

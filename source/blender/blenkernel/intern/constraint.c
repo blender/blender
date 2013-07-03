@@ -69,6 +69,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
+#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"    /* for geometry targets */
@@ -449,7 +450,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 {
 	Lattice *lt = (Lattice *)ob->data;
 	
-	DispList *dl = BKE_displist_find(&ob->disp, DL_VERTS);
+	DispList *dl = ob->curve_cache ? BKE_displist_find(&ob->curve_cache->disp, DL_VERTS) : NULL;
 	float *co = dl ? dl->verts : NULL;
 	BPoint *bp = lt->def;
 	
@@ -1164,10 +1165,10 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ct->tar->path == NULL || ct->tar->path->data == NULL)
+		if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL)
 			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		
-		if (ct->tar->path && ct->tar->path->data) {
+		if (ct->tar->curve_cache->path && ct->tar->curve_cache->path->data) {
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
@@ -1935,7 +1936,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
 			/* this check is to make sure curve objects get updated on file load correctly.*/
-			if (ct->tar->path == NULL || ct->tar->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+			if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		}
 		
@@ -3011,7 +3012,7 @@ static void clampto_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bCo
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ct->tar->path == NULL || ct->tar->path->data == NULL)
+		if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL)
 			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 	}
 	
@@ -3041,7 +3042,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		BKE_object_minmax(ct->tar, curveMin, curveMax, TRUE);
 		
 		/* get targetmatrix */
-		if (data->tar->path && data->tar->path->data) {
+		if (data->tar->curve_cache &&  data->tar->curve_cache->path && data->tar->curve_cache->path->data) {
 			float vec[4], dir[3], totmat[4][4];
 			float curvetime;
 			short clamp_axis;
@@ -3649,7 +3650,7 @@ static void splineik_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bC
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ct->tar->path == NULL || ct->tar->path->data == NULL)
+		if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL)
 			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 	}
 	

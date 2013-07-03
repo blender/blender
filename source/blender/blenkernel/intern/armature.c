@@ -1821,11 +1821,11 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		 */
 
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ELEM(NULL, ikData->tar->path, ikData->tar->path->data)) {
+		if (ELEM3(NULL,  ikData->tar->curve_cache, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
 			BKE_displist_make_curveTypes(scene, ikData->tar, 0);
 			
 			/* path building may fail in EditMode after removing verts [#33268]*/
-			if (ELEM(NULL, ikData->tar->path, ikData->tar->path->data)) {
+			if (ELEM(NULL, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
 				/* BLI_assert(cu->path != NULL); */
 				return;
 			}
@@ -1901,7 +1901,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 
 		/* get the current length of the curve */
 		/* NOTE: this is assumed to be correct even after the curve was resized */
-		splineLen = ikData->tar->path->totdist;
+		splineLen = ikData->tar->curve_cache->path->totdist;
 
 		/* calculate the scale factor to multiply all the path values by so that the
 		 * bone chain retains its current length, such that

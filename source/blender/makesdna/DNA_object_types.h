@@ -130,7 +130,6 @@ typedef struct Object {
 	
 	ListBase constraintChannels  DNA_DEPRECATED; // XXX deprecated... old animation system
 	ListBase effect  DNA_DEPRECATED;             // XXX deprecated... keep for readfile
-	ListBase disp;      /* list of DispList, used by lattice, metaballs curve & surfaces */
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
 
@@ -277,8 +276,8 @@ typedef struct Object {
 
 	float ima_ofs[2];		/* offset for image empties */
 
-	struct Path *path;
-	ListBase bev;
+	/* Runtime valuated curve-specific data, not stored in the file */
+	struct CurveCache *curve_cache;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
