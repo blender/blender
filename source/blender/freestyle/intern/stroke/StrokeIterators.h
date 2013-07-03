@@ -88,7 +88,7 @@ public:
 
 	/*! operator=
 	 *  \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
-	 *  \code it2 = it1 \endcode, where \a it1 and \a it2 are 2 StrokeVertexIterator.
+	 *  \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
 	 *  Otherwise, incrementing \a it1 will also increment \a it2.
 	 */
 	StrokeVertexIterator& operator=(const StrokeVertexIterator& vi)
