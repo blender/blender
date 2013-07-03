@@ -1871,7 +1871,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 
 int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
-	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
+	BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == false);
@@ -1881,7 +1881,7 @@ int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 
 void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
 {
-	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
+	BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 	
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != false);
@@ -2124,13 +2124,13 @@ void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, i
 
 int RNA_property_int_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
-	IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+	IntPropertyRNA *iprop = (IntPropertyRNA *)rna_ensure_property(prop);
 	return iprop->defaultvalue;
 }
 
 void RNA_property_int_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
 {
-	IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+	IntPropertyRNA *iprop = (IntPropertyRNA *)rna_ensure_property(prop);
 	
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
 	BLI_assert(RNA_property_array_check(prop) != false);
@@ -2401,7 +2401,7 @@ void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 
 float RNA_property_float_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
-	FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
+	FloatPropertyRNA *fprop = (FloatPropertyRNA *)rna_ensure_property(prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
 	BLI_assert(RNA_property_array_check(prop) == false);
@@ -2411,7 +2411,7 @@ float RNA_property_float_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 
 void RNA_property_float_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, float *values)
 {
-	FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
+	FloatPropertyRNA *fprop = (FloatPropertyRNA *)rna_ensure_property(prop);
 	
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
 	BLI_assert(RNA_property_array_check(prop) != false);
@@ -2566,7 +2566,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 
 void RNA_property_string_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop, char *value)
 {
-	StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+	StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
@@ -2650,7 +2650,7 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 int RNA_property_enum_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
-	EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
+	EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_ENUM);
 

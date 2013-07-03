@@ -35,6 +35,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_array.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
@@ -1268,6 +1269,38 @@ BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)
 	}
 
 	return NULL;
+}
+
+BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
+{
+	BMVert *v1_mirr = EDBM_verts_mirror_get(em, e->v1);
+	if (v1_mirr) {
+		BMVert *v2_mirr = EDBM_verts_mirror_get(em, e->v2);
+		if (v2_mirr) {
+			return BM_edge_exists(v1_mirr, v2_mirr);
+		}
+	}
+
+	return NULL;
+}
+
+BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
+{
+	BMFace *f_mirr = NULL;
+	BMVert **v_mirr_arr = BLI_array_alloca(v_mirr_arr, f->len);
+
+	BMLoop *l_iter, *l_first;
+	unsigned int i = 0;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if ((v_mirr_arr[i++] = EDBM_verts_mirror_get(em, l_iter->v)) == NULL) {
+			return NULL;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	BM_face_exists(v_mirr_arr, f->len, &f_mirr);
+	return f_mirr;
 }
 
 void EDBM_verts_mirror_cache_clear(BMEditMesh *em, BMVert *v)

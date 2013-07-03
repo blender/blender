@@ -15,9 +15,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
  * Contributor(s): Blender Foundation, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -33,6 +30,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_bitmap.h"
 
 #include "BLF_translation.h"
 
@@ -47,6 +45,7 @@
 #include "BKE_mesh.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 
@@ -185,29 +184,22 @@ void paintface_reveal(Object *ob)
 
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
 
-static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
+static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, const bool select)
 {
-	EdgeHash *ehash, *seamhash;
 	MPoly *mp;
 	MLoop *ml;
-	MEdge *med;
-	char *linkflag;
-	int a, b, mark = 0;
+	int a, b;
 	bool do_it = true;
+	bool mark = false;
 
-	ehash = BLI_edgehash_new();
-	seamhash = BLI_edgehash_new();
-	linkflag = MEM_callocN(sizeof(char) * me->totpoly, "linkflaguv");
+	BLI_bitmap edge_tag = BLI_BITMAP_NEW(me->totedge, __func__);
+	BLI_bitmap poly_tag = BLI_BITMAP_NEW(me->totpoly, __func__);
 
-	for (med = me->medge, a = 0; a < me->totedge; a++, med++)
-		if (med->flag & ME_SEAM)
-			BLI_edgehash_insert(seamhash, med->v1, med->v2, NULL);
-
-	if (mode == 0 || mode == 1) {
+	if (index != (unsigned int)-1) {
 		/* only put face under cursor in array */
-		mp = ((MPoly *)me->mpoly) + index;
-		BKE_mesh_poly_edgehash_insert(ehash, mp, me->mloop + mp->loopstart);
-		linkflag[index] = 1;
+		mp = &me->mpoly[index];
+		BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
+		BLI_BITMAP_SET(poly_tag, index);
 	}
 	else {
 		/* fill array by selection */
@@ -217,8 +209,8 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 				/* pass */
 			}
 			else if (mp->flag & ME_FACE_SEL) {
-				BKE_mesh_poly_edgehash_insert(ehash, mp, me->mloop + mp->loopstart);
-				linkflag[a] = 1;
+				BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
+				BLI_BITMAP_SET(poly_tag, a);
 			}
 		}
 	}
@@ -232,75 +224,54 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 			if (mp->flag & ME_HIDE)
 				continue;
 
-			if (!linkflag[a]) {
-				MLoop *mnextl;
-				mark = 0;
+			if (!BLI_BITMAP_GET(poly_tag, a)) {
+				mark = false;
 
 				ml = me->mloop + mp->loopstart;
 				for (b = 0; b < mp->totloop; b++, ml++) {
-					mnextl = b < mp->totloop - 1 ? ml - 1 : me->mloop + mp->loopstart;
-					if (!BLI_edgehash_haskey(seamhash, ml->v, mnextl->v))
-						if (!BLI_edgehash_haskey(ehash, ml->v, mnextl->v))
-							mark = 1;
+					if ((me->medge[ml->e].flag & ME_SEAM) == 0) {
+						if (BLI_BITMAP_GET(edge_tag, ml->e)) {
+							mark = true;
+							break;
+						}
+					}
 				}
 
 				if (mark) {
-					linkflag[a] = 1;
-					BKE_mesh_poly_edgehash_insert(ehash, mp, me->mloop + mp->loopstart);
+					BLI_BITMAP_SET(poly_tag, a);
+					BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
 					do_it = true;
 				}
 			}
 		}
-
 	}
 
-	BLI_edgehash_free(ehash, NULL);
-	BLI_edgehash_free(seamhash, NULL);
+	MEM_freeN(edge_tag);
 
-	if (mode == 0 || mode == 2) {
-		for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++)
-			if (linkflag[a])
-				mp->flag |= ME_FACE_SEL;
-			else
-				mp->flag &= ~ME_FACE_SEL;
-	}
-	else if (mode == 1) {
-		for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++)
-			if (linkflag[a] && (mp->flag & ME_FACE_SEL))
-				break;
-
-		if (a < me->totpoly) {
-			for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++)
-				if (linkflag[a])
-					mp->flag &= ~ME_FACE_SEL;
-		}
-		else {
-			for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++)
-				if (linkflag[a])
-					mp->flag |= ME_FACE_SEL;
+	for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++) {
+		if (BLI_BITMAP_GET(poly_tag, a)) {
+			BKE_BIT_TEST_SET(mp->flag, select, ME_FACE_SEL);
 		}
 	}
 
-	MEM_freeN(linkflag);
+	MEM_freeN(poly_tag);
 }
 
-void paintface_select_linked(bContext *UNUSED(C), Object *ob, const int UNUSED(mval[2]), int mode)
+void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const bool select)
 {
 	Mesh *me;
-	unsigned int index = 0;
+	unsigned int index = (unsigned int)-1;
 
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return;
 
-	if (mode == 0 || mode == 1) {
-		/* XXX - Causes glitches, not sure why */
-#if 0
-		if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
+	if (mval) {
+		if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
 			return;
-#endif
+		}
 	}
 
-	select_linked_tfaces_with_seams(mode, me, index);
+	select_linked_tfaces_with_seams(me, index, select);
 
 	paintface_flush_flags(ob);
 }

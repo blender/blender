@@ -764,6 +764,24 @@ bool BKE_object_is_in_editmode(Object *ob)
 	return false;
 }
 
+bool BKE_object_is_in_editmode_vgroup(Object *ob)
+{
+	return (OB_TYPE_SUPPORT_VGROUP(ob->type) &&
+	        BKE_object_is_in_editmode(ob));
+}
+
+bool BKE_object_is_in_wpaint_select_vert(Object *ob)
+{
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		return ( (ob->mode & OB_MODE_WEIGHT_PAINT) &&
+		         (me->edit_btmesh == NULL) &&
+		         (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX) );
+	}
+
+	return false;
+}
+
 bool BKE_object_exists_check(Object *obtest)
 {
 	Object *ob;

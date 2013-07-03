@@ -290,7 +290,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumPolys(dm);
-	int i, j, j_next, seam;
+	int i, seam;
 	UvMapVert *v;
 	UvVertMap *vmap;
 	float limit[2];
@@ -339,6 +339,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	for (i = 0; i < totface; i++) {
 		MPoly *mp = &((MPoly *) mpoly)[i];
 		int nverts = mp->totloop;
+		int j, j_next;
 		CCGFace *origf = ccgSubSurf_getFace(origss, SET_INT_IN_POINTER(i));
 		/* unsigned int *fv = &mp->v1; */
 		MLoop *ml = mloop + mp->loopstart;
@@ -353,14 +354,14 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
 		for (j = 0, j_next = nverts - 1; j < nverts; j_next = j++) {
-			unsigned int v0 = GET_UINT_FROM_POINTER(fverts[j]);
-			unsigned int v1 = GET_UINT_FROM_POINTER(fverts[j_next]);
-			MVert *mv0 = mvert + (ml[j].v);
-			MVert *mv1 = mvert + (ml[j_next].v);
+			unsigned int v0 = GET_UINT_FROM_POINTER(fverts[j_next]);
+			unsigned int v1 = GET_UINT_FROM_POINTER(fverts[j]);
+			MVert *mv0 = mvert + (ml[j_next].v);
+			MVert *mv1 = mvert + (ml[j].v);
 
 			if (!BLI_edgehash_haskey(ehash, v0, v1)) {
-				CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j);
-				CCGEdgeHDL ehdl = SET_INT_IN_POINTER(mp->loopstart + j);
+				CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
+				CCGEdgeHDL ehdl = SET_INT_IN_POINTER(mp->loopstart + j_next);
 				float crease;
 
 				if ((mv0->flag & mv1->flag) & ME_VERT_MERGED)
@@ -368,7 +369,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 				else
 					crease = ccgSubSurf_getEdgeCrease(orige);
 
-				ccgSubSurf_syncEdge(ss, ehdl, fverts[j], fverts[j_next], crease, &e);
+				ccgSubSurf_syncEdge(ss, ehdl, fverts[j_next], fverts[j], crease, &e);
 				BLI_edgehash_insert(ehash, v0, v1, NULL);
 			}
 		}

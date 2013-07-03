@@ -69,10 +69,11 @@ typedef struct EdgeHalf {
 	BMFace *fnext;              /* face between this edge and next, if any */
 	struct BoundVert *leftv;    /* left boundary vert (looking along edge to end) */
 	struct BoundVert *rightv;   /* right boundary vert, if beveled */
-	short is_bev;               /* is this edge beveled? */
-	short is_rev;               /* is e->v2 the vertex at this end? */
 	int   seg;                  /* how many segments for the bevel */
 	float offset;               /* offset for this edge */
+	bool is_bev;                /* is this edge beveled? */
+	bool is_rev;                /* is e->v2 the vertex at this end? */
+	bool is_seam;               /* is e a seam for custom loopdata (e.g., UVs)? */
 //	int _pad;
 } EdgeHalf;
 
@@ -84,6 +85,7 @@ typedef struct BoundVert {
 	EdgeHalf *elast;
 	EdgeHalf *ebev;     /* beveled edge whose left side is attached here, if any */
 	int index;          /* used for vmesh indexing */
+	bool any_seam;      /* are any of the edges attached here seams? */
 //	int _pad;
 } BoundVert;
 
@@ -110,6 +112,7 @@ typedef struct BevVert {
 	int edgecount;          /* total number of edges around the vertex */
 	int selcount;           /* number of selected edges around the vertex */
 	float offset;           /* offset for this vertex, if vertex_only bevel */
+	bool any_seam;			/* any seams on attached edges? */
 	EdgeHalf *edges;        /* array of size edgecount; CCW order from vertex normal side */
 	VMesh *vmesh;           /* mesh structure for replacing vertex */
 } BevVert;
@@ -227,43 +230,29 @@ static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
  * created around/near BoundVert v */
 static BMFace *boundvert_rep_face(BoundVert *v)
 {
-	BMFace *fans = NULL;
-	BMFace *firstf = NULL;
-	BMEdge *e1, *e2;
-	BMFace *f1, *f2;
-	BMIter iter1, iter2;
-
 	BLI_assert(v->efirst != NULL && v->elast != NULL);
-	e1 = v->efirst->e;
-	e2 = v->elast->e;
-	BM_ITER_ELEM (f1, &iter1, e1, BM_FACES_OF_EDGE) {
-		if (!firstf)
-			firstf = f1;
-		BM_ITER_ELEM (f2, &iter2, e2, BM_FACES_OF_EDGE) {
-			if (f1 == f2) {
-				fans = f1;
-				break;
-			}
-		}
-	}
-	if (!fans)
-		fans = firstf;
-
-	return fans;
+	if (v->efirst->fnext == v->elast->fprev)
+		return v->efirst->fnext;
+	else if (v->efirst->fnext)
+		return v->efirst->fnext;
+	else
+		return v->elast->fprev;
 }
 
 /**
  * Make ngon from verts alone.
  * Make sure to properly copy face attributes and do custom data interpolation from
- * example face, facerep.
+ * corresponding elements of face_arr, if that is non-NULL, else from facerep.
  *
  * \note ALL face creation goes through this function, this is important to keep!
  */
-static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMFace *facerep)
+static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
+                               BMFace **face_arr, BMFace *facerep, bool do_interp)
 {
 	BMIter iter;
 	BMLoop *l;
-	BMFace *f;
+	BMFace *f, *interp_f;
+	int i;
 
 	if (totv == 3) {
 		f = BM_face_create_quad_tri_v(bm, vert_arr, 3, facerep, FALSE);
@@ -272,25 +261,30 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 		f = BM_face_create_quad_tri_v(bm, vert_arr, 4, facerep, FALSE);
 	}
 	else {
-		int i;
 		BMEdge **ee = BLI_array_alloca(ee, totv);
 
 		for (i = 0; i < totv; i++) {
 			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, BM_CREATE_NO_DOUBLE);
 		}
-#if 0
-		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, 0);
-#else
 		f = BM_face_create(bm, vert_arr, ee, totv, 0);
-#endif
 	}
-	if (facerep && f) {
-		int has_mdisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
-		BM_elem_attrs_copy(bm, bm, facerep, f);
-		BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
-			BM_loop_interp_from_face(bm, l, facerep, TRUE, TRUE);
-			if (has_mdisps)
-				BM_loop_interp_multires(bm, l, facerep);
+	if ((facerep || (face_arr && face_arr[0])) && f) {
+		BM_elem_attrs_copy(bm, bm, facerep ? facerep : face_arr[0], f);
+		if (do_interp) {
+			i = 0;
+			BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
+				if (face_arr) {
+					/* assume loops of created face are in same order as verts */
+					BLI_assert(l->v == vert_arr[i]);
+					interp_f = face_arr[i];
+				}
+				else {
+					interp_f = facerep;
+				}
+				if (interp_f)
+					BM_loop_interp_from_face(bm, l, interp_f, TRUE, TRUE);
+				i++;
+			}
 		}
 	}
 
@@ -304,10 +298,147 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 }
 
 static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                   BMFace *facerep)
+                                   BMFace *facerep, bool do_interp)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
-	return bev_create_ngon(bm, varr, v4 ? 4 : 3, facerep);
+	return bev_create_ngon(bm, varr, v4 ? 4 : 3, NULL, facerep, do_interp);
+}
+
+static BMFace *bev_create_quad_tri_ex(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+                                      BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4)
+{
+	BMVert *varr[4] = {v1, v2, v3, v4};
+	BMFace *farr[4] = {f1, f2, f3, f4};
+	return bev_create_ngon(bm, varr, v4 ? 4 : 3, farr, f1, true);
+}
+
+
+/* Is Loop layer layer_index contiguous across shared vertex of l1 and l2? */
+static bool contig_ldata_across_loops(BMesh *bm, BMLoop *l1, BMLoop *l2,
+                                      int layer_index)
+{
+	const int offset = bm->ldata.layers[layer_index].offset;
+	const int type = bm->ldata.layers[layer_index].type;
+
+	return CustomData_data_equals(type,
+	                              (char *)l1->head.data + offset,
+	                              (char *)l2->head.data + offset);
+}
+
+/* Are all loop layers with have math (e.g., UVs) contiguous from face f1 to face f2 across edge e? */
+static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f2)
+{
+	BMLoop *lef1, *lef2;
+	BMLoop *lv1f1, *lv1f2, *lv2f1, *lv2f2;
+	BMVert *v1, *v2;
+	int i;
+
+	if (bm->ldata.totlayer == 0)
+		return true;
+
+	v1 = e->v1;
+	v2 = e->v2;
+	if (!BM_edge_loop_pair(e, &lef1, &lef2))
+		return false;
+	if (lef1->f == f2) {
+		SWAP(BMLoop *, lef1, lef2);
+	}
+
+	if (lef1->v == v1) {
+		lv1f1 = lef1;
+		lv2f1 = BM_face_other_edge_loop(f1, e, v2);
+	}
+	else {
+		lv2f1 = lef1;
+		lv1f1 = BM_face_other_edge_loop(f1, e, v1);
+	}
+
+	if (lef2->v == v1) {
+		lv1f2 = lef2;
+		lv2f2 = BM_face_other_edge_loop(f2, e, v2);
+	}
+	else {
+		lv2f2 = lef2;
+		lv1f2 = BM_face_other_edge_loop(f2, e, v1);
+	}
+
+	for (i = 0; i < bm->ldata.totlayer; i++) {
+		if (CustomData_layer_has_math(&bm->ldata, i) &&
+		    (!contig_ldata_across_loops(bm, lv1f1, lv1f2, i) ||
+		     !contig_ldata_across_loops(bm, lv2f1, lv2f2, i)))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+/* Like bev_create_quad_tri, but when verts straddle an old edge.
+ *        e
+ *        |
+ *  v1+---|---+v4
+ *    |   |   |
+ *    |   |   |
+ *  v2+---|---+v3
+ *        |
+ *    f1  |  f2
+ *
+ * Most CustomData for loops can be interpolated in their respective
+ * faces' loops, but for UVs and other 'has_math_cd' layers, only
+ * do this if the UVs are continuous across the edge e, otherwise pick
+ * one side (f1, arbitrarily), and interpolate them all on that side.
+ * For face data, use f1 (arbitrarily) as face representative. */
+static BMFace *bev_create_quad_straddle(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+        BMFace *f1, BMFace *f2, bool is_seam)
+{
+	BMFace *f, *facerep;
+	BMLoop *l;
+	BMIter iter;
+
+	f = bev_create_quad_tri(bm, v1, v2, v3, v4, f1, false);
+
+	if (!f)
+		return NULL;
+
+	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
+		if (is_seam || l->v == v1 || l->v == v2)
+			facerep = f1;
+		else
+			facerep = f2;
+		if (facerep)
+			BM_loop_interp_from_face(bm, l, facerep, TRUE, TRUE);
+	}
+	return f;
+}
+
+/* Merge (using average) all the UV values for loops of v's faces.
+ * Caller should ensure that no seams are violated by doing this. */
+static void bev_merge_uvs(BMesh *bm, BMVert *v)
+{
+	BMIter iter;
+	MLoopUV *luv;
+	BMLoop *l;
+	float uv[2];
+	int n;
+	int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	if (cd_loop_uv_offset == -1)
+		return;
+
+	n = 0;
+	zero_v2(uv);
+	BM_ITER_ELEM(l, &iter, v, BM_LOOPS_OF_VERT) {
+		luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+		add_v2_v2(uv, luv->uv);
+		n++;
+	}
+	if (n > 1) {
+		mul_v2_fl(uv, 1.0f / (float)n);
+		BM_ITER_ELEM(l, &iter, v, BM_LOOPS_OF_VERT) {
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+			copy_v2_v2(luv->uv, uv);
+		}
+	}
 }
 
 /* Calculate coordinates of a point a distance d from v on e->e and return it in slideco */
@@ -641,6 +772,25 @@ static void snap_to_edge_profile(EdgeHalf *e, const float va[3], const float vb[
 	}
 }
 
+/* Set the any_seam property for a BevVert and all its BoundVerts */
+static void set_bound_vert_seams(BevVert *bv)
+{
+	BoundVert *v;
+	EdgeHalf *e;
+
+	bv->any_seam = false;
+	v = bv->vmesh->boundstart;
+	do {
+		v->any_seam = false;
+		for (e = v->efirst; e; e = e->next) {
+			v->any_seam |= e->is_seam;
+			if (e == v->elast)
+				break;
+		}
+		bv->any_seam |= v->any_seam;
+	} while ((v = v->next) != bv->vmesh->boundstart);
+}
+
 /* Make a circular list of BoundVerts for bv, each of which has the coordinates
  * of a vertex on the the boundary of the beveled vertex bv->v.
  * Also decide on the mesh pattern that will be used inside the boundary.
@@ -683,6 +833,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 		e->next->leftv = e->next->rightv = v;
 		/* could use M_POLY too, but tri-fan looks nicer)*/
 		vm->mesh_kind = M_TRI_FAN;
+		set_bound_vert_seams(bv);
 		return;
 	}
 
@@ -754,6 +905,8 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 		}
 	} while ((e = e->next) != efirst);
 
+	set_bound_vert_seams(bv);
+
 	BLI_assert(vm->count >= 2);
 	if (bp->vertex_only) {
 		vm->mesh_kind = bp->seg > 1 ? M_ADJ_SUBDIV : M_POLY;
@@ -783,19 +936,20 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
  * then make the BMVerts and the new faces. */
 static void bevel_build_rings(BMesh *bm, BevVert *bv)
 {
-	int k, ring, i, n, ns, ns2, nn;
+	int k, ring, i, n, ns, ns2, nn, odd;
 	VMesh *vm = bv->vmesh;
 	BoundVert *v, *vprev, *vnext;
 	NewVert *nv, *nvprev, *nvnext;
 	EdgeHalf *e1, *e2, *epipe;
 	BMVert *bmv, *bmv1, *bmv2, *bmv3, *bmv4;
-	BMFace *f;
+	BMFace *f, *f2, *f23;
 	float co[3], coa[3], cob[3], midco[3];
 	float va_pipe[3], vb_pipe[3];
 
 	n = vm->count;
 	ns = vm->seg;
 	ns2 = ns / 2;
+	odd = (ns % 2) != 0;
 	BLI_assert(n > 2 && ns > 1);
 
 	/* special case: two beveled edges are in line and share a face, making a "pipe" */
@@ -884,7 +1038,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			if (vprev->ebev) {
 				for (ring = 1; ring <= ns2; ring++) {
 					for (k = 1; k <= ns2; k++) {
-						if (ns % 2 == 0 && (k == ns2 || ring == ns2))
+						if (!odd && (k == ns2 || ring == ns2))
 							continue;  /* center line is special case: do after the rest are done */
 						nv = mesh_vert(vm, i, ring, k);
 						nvprev = mesh_vert(vm, vprev->index, k, ns - ring);
@@ -901,7 +1055,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				if (!vprev->prev->ebev) {
 					for (ring = 1; ring <= ns2; ring++) {
 						for (k = 1; k <= ns2; k++) {
-							if (ns % 2 == 0 && (k == ns2 || ring == ns2))
+							if (!odd && (k == ns2 || ring == ns2))
 								continue;
 							create_mesh_bmvert(bm, vm, vprev->index, ring, k, bv->v);
 						}
@@ -910,7 +1064,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				if (!vnext->ebev) {
 					for (ring = 1; ring <= ns2; ring++) {
 						for (k = ns - ns2; k < ns; k++) {
-							if (ns % 2 == 0 && (k == ns2 || ring == ns2))
+							if (!odd && (k == ns2 || ring == ns2))
 								continue;
 							create_mesh_bmvert(bm, vm, i, ring, k, bv->v);
 						}
@@ -920,7 +1074,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 		}
 	} while ((v = v->next) != vm->boundstart);
 
-	if (ns % 2 == 0) {
+	if (!odd) {
 		/* Do special case center lines.
 		 * This loop makes verts for (i, ns2, k) for 1 <= k <= ns-1, k!=ns2
 		 * and for (i, r, ns2) for 1 <= r <= ns2-1,
@@ -1006,8 +1160,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 		do {
 			i = v->index;
 			f = boundvert_rep_face(v);
+			f2 = boundvert_rep_face(v->next);
 			if (v->ebev && (v->prev->ebev || v->next->ebev)) {
-				for (k = 0; k < ns2 + (ns % 2); k++) {
+				for (k = 0; k < ns2 + odd; k++) {
 					bmv1 = mesh_vert(vm, i, ring, k)->v;
 					bmv2 = mesh_vert(vm, i, ring, k + 1)->v;
 					bmv3 = mesh_vert(vm, i, ring + 1, k + 1)->v;
@@ -1015,13 +1170,19 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
 					if (bmv3 == bmv4 || bmv1 == bmv4)
 						bmv4 = NULL;
-					bev_create_quad_tri(bm, bmv1, bmv2, bmv3, bmv4, f);
+					/* f23 is interp face for bmv2 and bmv3 */
+					f23 = f;
+					if (odd && k == ns2 && f2 && !v->any_seam)
+						f23 = f2;
+					bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
+					                       f, f23, f23, f);
 				}
 			}
 			else if (v->prev->ebev && v->prev->prev->ebev) {
 				/* finish off a sequence of beveled edges */
 				i = v->prev->index;
 				f = boundvert_rep_face(v->prev);
+				f2 = boundvert_rep_face(v);
 				for (k = ns2 + (ns % 2); k < ns; k++) {
 					bmv1 = mesh_vert(vm, i, ring, k)->v;
 					bmv2 = mesh_vert(vm, i, ring, k + 1)->v;
@@ -1032,30 +1193,54 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 						bmv3 = bmv4;
 						bmv4 = NULL;
 					}
-					bev_create_quad_tri(bm, bmv1, bmv2, bmv3, bmv4, f);
+					f23 = f;
+					if (odd && k == ns2 && f2 && !v->any_seam)
+						f23 = f2;
+					bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
+					                       f, f23, f23, f);
 				}
 			}
 		} while ((v = v->next) != vm->boundstart);
 	}
 
+	/* Fix UVs along center lines if even number of segments */
+	if (!odd) {
+		v = vm->boundstart;
+		do {
+			i = v->index;
+			f = boundvert_rep_face(v);
+			f2 = boundvert_rep_face(v->next);
+			if (!v->any_seam) {
+				for (ring = 1; ring < ns2; ring++)
+					bev_merge_uvs(bm, mesh_vert(vm, i, ring, ns2)->v);
+			}
+		} while ((v = v->next) != vm->boundstart);
+		if (!bv->any_seam)
+			bev_merge_uvs(bm, mesh_vert(vm, 0, ns2, ns2)->v);
+	}
+
 	/* Make center ngon if odd number of segments and fully beveled */
-	if (ns % 2 == 1 && vm->count == bv->selcount) {
+	if (odd && vm->count == bv->selcount) {
 		BMVert **vv = NULL;
+		BMFace **vf = NULL;
 		BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+		BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
 
 		v = vm->boundstart;
 		do {
 			i = v->index;
 			BLI_assert(v->ebev);
 			BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
+			BLI_array_append(vf, bv->any_seam ? f: boundvert_rep_face(v));
 		} while ((v = v->next) != vm->boundstart);
 		f = boundvert_rep_face(vm->boundstart);
-		bev_create_ngon(bm, vv, BLI_array_count(vv), f);
+		bev_create_ngon(bm, vv, BLI_array_count(vv), vf, f, true);
 
 		BLI_array_free(vv);
 	}
 
 	/* Make 'rest-of-vmesh' polygon if not fully beveled */
+	/* TODO: use interpolation face array here too */
 	if (vm->count > bv->selcount) {
 		int j;
 		BMVert **vv = NULL;
@@ -1108,7 +1293,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 		} while ((v = v->next) != vm->boundstart);
 		if (vv[0] == vv[j - 1])
 			j--;
-		bev_create_ngon(bm, vv, j, f);
+		bev_create_ngon(bm, vv, j, NULL, f, true);
 
 		BLI_array_free(vv);
 	}
@@ -1436,7 +1621,7 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 	float coa[3], cob[3], coc[3];
 	BoundVert *v;
 	BMVert *bmv1, *bmv2, *bmv3, *bmv4;
-	BMFace *f;
+	BMFace *f, *f2, *f23;
 	MemArena *mem_arena = bp->mem_arena;
 	const float fullness = 0.5f;
 
@@ -1488,6 +1673,7 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 	do {
 		i = v->index;
 		f = boundvert_rep_face(v);
+		f2 = boundvert_rep_face(v->next);
 		/* For odd ns, make polys with lower left corner at (i,j,k) for
 		 *    j in [0, ns2-1], k in [0, ns2].  And then the center ngon.
 		 * For even ns,
@@ -1499,7 +1685,11 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 				bmv3 = mesh_vert(vm, i, j + 1, k + 1)->v;
 				bmv4 = mesh_vert(vm, i, j + 1, k)->v;
 				BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
-				bev_create_quad_tri(bm, bmv1, bmv2, bmv3, bmv4, f);
+				f23 = f;
+				if (odd && k == ns2 && f2 && !v->any_seam)
+					f23 = f2;
+				bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
+				                       f, f23, f23, f);
 			}
 		}
 	} while ((v = v->next) != vm->boundstart);
@@ -1507,44 +1697,54 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 	/* center ngon */
 	if (odd) {
 		BMVert **vv = NULL;
+		BMFace **vf = NULL;
 		BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+		BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
 
 		v = vm->boundstart;
 		do {
 			i = v->index;
 			BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
+			BLI_array_append(vf, v->any_seam ? f : boundvert_rep_face(v));
 		} while ((v = v->next) != vm->boundstart);
 		f = boundvert_rep_face(vm->boundstart);
-		bev_create_ngon(bm, vv, BLI_array_count(vv), f);
+		bev_create_ngon(bm, vv, BLI_array_count(vv), vf, f, true);
 
 		BLI_array_free(vv);
 	}
 }
 
-static BMFace *bevel_build_poly_ex(BMesh *bm, BevVert *bv)
+static BMFace *bevel_build_poly(BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	int n, k;
 	VMesh *vm = bv->vmesh;
 	BoundVert *v;
+	BMFace *frep;
 	BMVert **vv = NULL;
+	BMFace **vf = NULL;
 	BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
 
+	frep = boundvert_rep_face(vm->boundstart);
 	v = vm->boundstart;
 	n = 0;
 	do {
 		/* accumulate vertices for vertex ngon */
+		/* also accumulate faces in which uv interpolation is to happen for each */
 		BLI_array_append(vv, v->nv.v);
+		BLI_array_append(vf, bv->any_seam ? frep : boundvert_rep_face(v));
 		n++;
 		if (v->ebev && v->ebev->seg > 1) {
 			for (k = 1; k < v->ebev->seg; k++) {
 				BLI_array_append(vv, mesh_vert(vm, v->index, 0, k)->v);
+				BLI_array_append(vf, bv->any_seam ? frep : boundvert_rep_face(v));
 				n++;
 			}
 		}
 	} while ((v = v->next) != vm->boundstart);
 	if (n > 2) {
-		f = bev_create_ngon(bm, vv, n, boundvert_rep_face(v));
+		f = bev_create_ngon(bm, vv, n, vf, boundvert_rep_face(v), true);
 	}
 	else {
 		f = NULL;
@@ -1553,17 +1753,12 @@ static BMFace *bevel_build_poly_ex(BMesh *bm, BevVert *bv)
 	return f;
 }
 
-static void bevel_build_poly(BMesh *bm, BevVert *bv)
-{
-	bevel_build_poly_ex(bm, bv);
-}
-
 static void bevel_build_trifan(BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	BLI_assert(next_bev(bv, NULL)->seg == 1 || bv->selcount == 1);
 
-	f = bevel_build_poly_ex(bm, bv);
+	f = bevel_build_poly(bm, bv);
 
 	if (f) {
 		/* we have a polygon which we know starts at the previous vertex, make it into a fan */
@@ -1598,7 +1793,7 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 	BMFace *f;
 	BLI_assert(bv->selcount == 2);
 
-	f = bevel_build_poly_ex(bm, bv);
+	f = bevel_build_poly(bm, bv);
 
 	if (f) {
 		/* we have a polygon which we know starts at this vertex, make it into strips */
@@ -1871,14 +2066,6 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 	}
 
-	/* do later when we loop over edges */
-#if 0
-	/* clear BEVEL_EDGE_TAG now that we are finished with it*/
-	for (i = 0; i < ntot; i++) {
-		BM_BEVEL_EDGE_TAG_DISABLE(bv->edges[i].e);
-	}
-#endif
-
 	/* if edge array doesn't go CCW around vertex from average normal side,
 	 * reverse the array, being careful to reverse face pointers too */
 	if (ntot > 1) {
@@ -1903,6 +2090,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		e->next = &bv->edges[(i + 1) % ntot];
 		e->prev = &bv->edges[(i + ntot - 1) % ntot];
 		BM_BEVEL_EDGE_TAG_DISABLE(e->e);
+		if (e->fprev && e->fnext)
+			e->is_seam = !contig_ldata_across_edge(bm, e->e, e->fprev, e->fnext);
+		else
+			e->is_seam = true;
 	}
 
 	build_boundary(bp, bv);
@@ -1922,7 +2113,9 @@ static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 	int do_rebuild = FALSE;
 	BMVert *bmv;
 	BMVert **vv = NULL;
+	BMVert **vv_fix = NULL;
 	BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(vv_fix, BM_DEFAULT_NGON_STACK_SIZE);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
@@ -1947,6 +2140,9 @@ static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 					for (k = 1; k < e->seg; k++) {
 						bmv = mesh_vert(vm, i, 0, k)->v;
 						BLI_array_append(vv, bmv);
+						/* may want to merge UVs of these later */
+						if (!e->is_seam)
+							BLI_array_append(vv_fix, bmv);
 					}
 				}
 				else if (bp->vertex_only && vm->mesh_kind == M_ADJ_SUBDIV && vm->seg > 1) {
@@ -1968,7 +2164,11 @@ static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 		}
 	}
 	if (do_rebuild) {
-		BMFace *f_new = bev_create_ngon(bm, vv, BLI_array_count(vv), f);
+		BMFace *f_new = bev_create_ngon(bm, vv, BLI_array_count(vv), NULL, f, true);
+
+		for (k = 0; k < BLI_array_count(vv_fix); k++) {
+			bev_merge_uvs(bm, vv_fix[k]);
+		}
 
 		/* don't select newly created boundary faces... */
 		if (f_new) {
@@ -2002,6 +2202,17 @@ static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *
 	}
 }
 
+static void bev_merge_end_uvs(BMesh *bm, BevVert *bv, EdgeHalf *e)
+{
+	VMesh *vm = bv->vmesh;
+	int i, k, nseg;
+
+	nseg = e->seg;
+	i = e->leftv->index;
+	for (k = 1; k < nseg; k++) {
+		bev_merge_uvs(bm, mesh_vert(vm, i, 0, k)->v);
+	}
+}
 
 /*
  * Build the polygons along the selected Edge
@@ -2013,7 +2224,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	VMesh *vm1, *vm2;
 	EdgeHalf *e1, *e2;
 	BMFace *f1, *f2, *f;
-	int k, nseg, i1, i2;
+	int k, nseg, i1, i2, odd, mid;
 
 	if (!BM_edge_is_manifold(bme))
 		return;
@@ -2044,11 +2255,11 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 
 	BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
 
-	f1 = boundvert_rep_face(e1->leftv);
-	f2 = boundvert_rep_face(e1->rightv);
+	f1 = e1->fprev;
+	f2 = e1->fnext;
 
 	if (nseg == 1) {
-		bev_create_quad_tri(bm, bmv1, bmv2, bmv3, bmv4, f1);
+		bev_create_quad_straddle(bm, bmv1, bmv2, bmv3, bmv4, f1, f2, e1->is_seam);
 	}
 	else {
 		i1 = e1->leftv->index;
@@ -2057,15 +2268,32 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 		vm2 = bv2->vmesh;
 		bmv1i = bmv1;
 		bmv2i = bmv2;
+		odd = nseg % 2;
+		mid = nseg / 2;
 		for (k = 1; k <= nseg; k++) {
 			bmv4i = mesh_vert(vm1, i1, 0, k)->v;
 			bmv3i = mesh_vert(vm2, i2, 0, nseg - k)->v;
-			f = (k <= nseg / 2 + (nseg % 2)) ? f1 : f2;
-			bev_create_quad_tri(bm, bmv1i, bmv2i, bmv3i, bmv4i, f);
+			if (odd && k == mid + 1) {
+				bev_create_quad_straddle(bm, bmv1i, bmv2i, bmv3i, bmv4i, f1, f2, e1->is_seam);
+			}
+			else {
+				f = (k <= mid) ? f1 : f2;
+				bev_create_quad_tri(bm, bmv1i, bmv2i, bmv3i, bmv4i, f, true);
+			}
 			bmv1i = bmv4i;
 			bmv2i = bmv3i;
 		}
+		if (!odd && !e1->is_seam) {
+			bev_merge_uvs(bm, mesh_vert(vm1, i1, 0, mid)->v);
+			bev_merge_uvs(bm, mesh_vert(vm2, i2, 0, mid)->v);
+		}
 	}
+
+	/* Fix UVs along end edge joints.  A nop unless other side built already. */
+	if (!e1->is_seam && bv1->vmesh->mesh_kind == M_NONE)
+		bev_merge_end_uvs(bm, bv1, e1);
+	if (!e2->is_seam && bv2->vmesh->mesh_kind == M_NONE)
+		bev_merge_end_uvs(bm, bv2, e2);
 }
 
 /*
@@ -2150,7 +2378,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
 		if (limit_offset)
 			bp.offset = bevel_limit_offset(bm, &bp);
 
-		/* The analysis of the input vertices and execution additional constructions */
+		/* Analyze input vertices and build vertex meshes */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bevel_vert_construct(bm, &bp, v);
@@ -2166,6 +2394,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
 			}
 		}
 
+		/* Rebuild face polygons around affected vertices */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bevel_rebuild_existing_polygons(bm, &bp, v);

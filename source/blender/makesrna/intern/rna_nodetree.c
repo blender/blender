@@ -1126,6 +1126,33 @@ static char *rna_Node_path(PointerRNA *ptr)
 	return BLI_sprintfN("nodes[\"%s\"]", name_esc);
 }
 
+char *rna_Node_ImageUser_path(PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node;
+	char name_esc[sizeof(node->name) * 2];
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+			NodeTexEnvironment *data = node->storage;
+			if (&data->iuser != ptr->data)
+				continue;
+		}
+		else if (node->type == SH_NODE_TEX_IMAGE) {
+			NodeTexImage *data = node->storage;
+			if (&data->iuser != ptr->data)
+				continue;
+		}
+		else
+			continue;
+
+		BLI_strescape(name_esc, node->name, sizeof(name_esc));
+		return BLI_sprintfN("nodes[\"%s\"].image_user", name_esc);
+	}
+
+	return NULL;
+}
+
 static int rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
 {
 	extern FunctionRNA rna_Node_poll_func;
