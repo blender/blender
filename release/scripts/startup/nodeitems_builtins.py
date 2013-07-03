@@ -227,6 +227,8 @@ shader_node_categories = [
         NodeItem("ShaderNodeVectorMath"),
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),
+        NodeItem("ShaderNodeSeparateHSV"),
+        NodeItem("ShaderNodeCombineHSV"),
         NodeItem("ShaderNodeWavelength"),
         NodeItem("ShaderNodeBlackbody"),
         ]),

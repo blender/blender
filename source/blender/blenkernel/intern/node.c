@@ -3427,6 +3427,8 @@ static void registerShaderNodes(void)
 	register_node_type_sh_invert();
 	register_node_type_sh_seprgb();
 	register_node_type_sh_combrgb();
+	register_node_type_sh_sephsv();
+	register_node_type_sh_combhsv();
 	register_node_type_sh_hue_sat();
 
 	register_node_type_sh_attribute();

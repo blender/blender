@@ -407,6 +407,11 @@ public:
 	SHADER_NODE_CLASS(CombineRGBNode)
 };
 
+class CombineHSVNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(CombineHSVNode)
+};
+
 class GammaNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GammaNode)
@@ -420,6 +425,11 @@ public:
 class SeparateRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateRGBNode)
+};
+
+class SeparateHSVNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(SeparateHSVNode)
 };
 
 class HSVNode : public ShaderNode {
