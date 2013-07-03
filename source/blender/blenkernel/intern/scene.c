@@ -1327,6 +1327,15 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 	 * This is solvable with local group dependency graph or expanding
 	 * current dependency graph to be aware of dependencies inside
 	 * groups.
+	 *
+	 * P.S. Objects from the dup_group are very much likely in scene's
+	 *      dependency graph and were alreayd updated in threaded tasks
+	 *      scheduler already.
+	 *
+	 *      So objects from the dupli_groups are likely don't have
+	 *      OB_RECALC_ALL flag here, but it seems they still do have
+	 *      non-zero recalc flags, and here we make sure things are
+	 *      100% by calling BKE_group_handle_recalc_and_update.
 	 */
 	{
 		Base *base;

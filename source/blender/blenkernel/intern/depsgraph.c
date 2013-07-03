@@ -2681,31 +2681,6 @@ void DAG_threaded_update_begin(Scene *scene)
 			}
 		}
 	}
-
-	/* A bit tricky, tasks are operating with nodes, which is much
-	 * easier from tracking dependnecies point of view, and also
-	 * makes it possible to do partial object objects.
-	 *
-	 * However, currently the only way we're performing update is
-	 * calling object_handle_update for objects which are ready,
-	 * which also updates object data.
-	 *
-	 * And for this we need to know whether node represents object
-	 * or not.
-	 *
-	 * And we mark all the nodes which represents objects as
-	 * white color, All other nodes are staying gray.
-	 */
-	for (node = scene->theDag->DagNode.first; node; node = node->next) {
-		Base *base = scene->base.first;
-		node->color = DAG_GRAY;
-		while (base && base->object != node->ob) {
-			base = base->next;
-		}
-		if (base) {
-			node->color = DAG_WHITE;
-		}
-	}
 }
 
 /* Call functor for every node in the graph which is ready for
@@ -2732,7 +2707,7 @@ Object *DAG_threaded_update_get_node_object(void *node_v)
 {
 	DagNode *node = node_v;
 
-	if (node->color == DAG_WHITE) {
+	if (node->type == ID_OB) {
 		return node->ob;
 	}
 
