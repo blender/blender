@@ -1295,7 +1295,10 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	keymap = WM_keymap_find(keyconf, "UV Sculpt", 0, 0);
 	keymap->poll = uv_sculpt_poll;

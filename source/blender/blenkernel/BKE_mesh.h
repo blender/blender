@@ -366,6 +366,7 @@ void BKE_mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData
                                      const int numTex, const int numCol, const int hasPCol, const int hasOrigSpace);
 
 void BKE_mesh_poly_edgehash_insert(struct EdgeHash *ehash, const struct MPoly *mp, const struct MLoop *mloop);
+void BKE_mesh_poly_edgebitmap_insert(unsigned int *edge_bitmap, const struct MPoly *mp, const struct MLoop *mloop);
 
 void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
 

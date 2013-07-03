@@ -48,6 +48,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_bitmap.h"
 #include "BLI_scanfill.h"
 #include "BLI_array.h"
 
@@ -3810,6 +3811,19 @@ void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *mp, const MLoop
 
 		ml = ml_next;
 		ml_next++;
+	}
+}
+
+void BKE_mesh_poly_edgebitmap_insert(unsigned int *edge_bitmap, const MPoly *mp, const MLoop *mloop)
+{
+	const MLoop *ml;
+	int i = mp->totloop;
+
+	ml = mloop;
+
+	while (i-- != 0) {
+		BLI_BITMAP_SET(edge_bitmap, ml->e);
+		ml++;
 	}
 }
 
