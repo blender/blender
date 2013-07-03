@@ -369,7 +369,6 @@ def reset_all(reload_scripts=False):
     Sets the addon state based on the user preferences.
     """
     import sys
-    import imp
 
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths_list = paths()
@@ -381,6 +380,7 @@ def reset_all(reload_scripts=False):
 
             # first check if reload is needed before changing state.
             if reload_scripts:
+                import imp
                 mod = sys.modules.get(mod_name)
                 if mod:
                     imp.reload(mod)
