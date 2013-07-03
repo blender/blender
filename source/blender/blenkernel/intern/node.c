@@ -2301,10 +2301,12 @@ static bNode *node_get_active_id_recursive(bNodeInstanceKey active_key, bNodeIns
 		for (node = ntree->nodes.first; node; node = node->next) {
 			if (node->type == NODE_GROUP) {
 				bNodeTree *group = (bNodeTree *)node->id;
-				bNodeInstanceKey group_key = BKE_node_instance_key(parent_key, ntree, node);
-				tnode = node_get_active_id_recursive(active_key, group_key, group, idtype);
-				if (tnode)
-					return tnode;
+				if (group) {
+					bNodeInstanceKey group_key = BKE_node_instance_key(parent_key, ntree, node);
+					tnode = node_get_active_id_recursive(active_key, group_key, group, idtype);
+					if (tnode)
+						return tnode;
+				}
 			}
 		}
 	}
