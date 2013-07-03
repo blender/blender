@@ -820,7 +820,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
 			 * tilts, which is passed through in the modifier stack.
 			 * this is also the reason curves do not use a virtual
 			 * shape key modifier yet. */
-			deformedVerts = BKE_curve_keyVertexCos_get(cu, nurb, keyVerts);
+			deformedVerts = BKE_curve_nurbs_keyVertexCos_get(nurb, keyVerts);
 			originalVerts = MEM_dupallocN(deformedVerts);
 			BLI_assert(BKE_nurbList_verts_count(nurb) == numVerts);
 		}
@@ -838,7 +838,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
 				continue;
 
 			if (!deformedVerts) {
-				deformedVerts = BKE_curve_vertexCos_get(cu, nurb, &numVerts);
+				deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
 				originalVerts = MEM_dupallocN(deformedVerts);
 			}
 
@@ -850,9 +850,9 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
 	}
 
 	if (deformedVerts)
-		BK_curve_vertexCos_apply(cu, nurb, deformedVerts);
+		BK_curve_nurbs_vertexCos_apply(nurb, deformedVerts);
 	if (keyVerts) /* these are not passed through modifier stack */
-		BKE_curve_keyVertexTilts_apply(cu, nurb, keyVerts);
+		BKE_curve_nurbs_keyVertexTilts_apply(nurb, keyVerts);
 
 	if (keyVerts)
 		MEM_freeN(keyVerts);
@@ -1051,7 +1051,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	}
 
 	if (deformedVerts) {
-		BK_curve_vertexCos_apply(ob->data, nurb, originalVerts);
+		BK_curve_nurbs_vertexCos_apply(nurb, originalVerts);
 		MEM_freeN(originalVerts);
 		MEM_freeN(deformedVerts);
 	}

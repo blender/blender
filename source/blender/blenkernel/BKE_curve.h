@@ -80,11 +80,11 @@ void BKE_curve_delete_material_index(struct Curve *cu, int index);
 
 ListBase *BKE_curve_nurbs_get(struct Curve *cu);
 
-float (*BKE_curve_vertexCos_get(struct Curve *cu, struct ListBase *lb, int *numVerts_r))[3];
-void BK_curve_vertexCos_apply(struct Curve *cu, struct ListBase *lb, float (*vertexCos)[3]);
+float (*BKE_curve_nurbs_vertexCos_get(struct ListBase *lb, int *numVerts_r))[3];
+void BK_curve_nurbs_vertexCos_apply(struct ListBase *lb, float (*vertexCos)[3]);
 
-float (*BKE_curve_keyVertexCos_get(struct Curve *cu, struct ListBase *lb, float *key))[3];
-void BKE_curve_keyVertexTilts_apply(struct Curve *cu, struct ListBase *lb, float *key);
+float (*BKE_curve_nurbs_keyVertexCos_get(struct ListBase *lb, float *key))[3];
+void BKE_curve_nurbs_keyVertexTilts_apply(struct ListBase *lb, float *key);
 
 void BKE_curve_editNurb_keyIndex_free(struct EditNurb *editnurb);
 void BKE_curve_editNurb_free(struct Curve *cu);
