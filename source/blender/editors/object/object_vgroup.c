@@ -67,6 +67,7 @@
 #include "BKE_object.h"
 #include "BKE_lattice.h"
 
+#include "DNA_armature_types.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -3748,6 +3749,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = CTX_data_active_object(C);
+	Object *armobj = BKE_object_pose_armature_get(ob_act);
 	bDeformGroup *dg_src;
 	int fail = 0;
 
@@ -3791,6 +3793,16 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob_slc->data);
 
 	CTX_DATA_END;
+
+	/* Ensure active Weight Group is set to active bone
+	 * when new groups have been added during Weight Transfer
+	 */
+	if (armobj && (armobj->mode & OB_MODE_POSE)) {
+		struct bArmature *arm = armobj->data;
+		if (arm->act_bone && (arm->act_bone->layer & arm->layer)) {
+			ob_act->actdef = defgroup_name_index(ob_act, arm->act_bone->name)+1;
+		}
+	}
 
 	if (fail != 0) {
 		return OPERATOR_CANCELLED;
