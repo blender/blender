@@ -936,10 +936,9 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyCon *rbc = ob->rigidbody_constraint;
 
-	if (rbw) {
-		/* remove from rigidbody world, free object won't do this */
-		if (rbw && rbw->physics_world && rbc->physics_constraint)
-			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+	/* remove from rigidbody world, free object won't do this */
+	if (rbw && rbw->physics_world && rbc->physics_constraint) {
+		RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
 	}
 	/* remove object's settings */
 	BKE_rigidbody_free_constraint(ob);
