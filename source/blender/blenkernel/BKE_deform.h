@@ -40,6 +40,7 @@ struct ListBase;
 struct bDeformGroup;
 struct MDeformVert;
 
+struct bDeformGroup *BKE_defgroup_new(struct Object *ob, const char *name);
 void                 defgroup_copy_list(struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup *defgroup_duplicate(struct bDeformGroup *ingroup);
 struct bDeformGroup *defgroup_find_name(struct Object *ob, const char *name);

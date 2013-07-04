@@ -125,13 +125,8 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 
 	if (!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
 		return NULL;
-	
-	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
 
-	BLI_strncpy(defgroup->name, name, sizeof(defgroup->name));
-
-	BLI_addtail(&ob->defbase, defgroup);
-	defgroup_unique_name(defgroup, ob);
+	defgroup = BKE_defgroup_new(ob, name);
 
 	ob->actdef = BLI_countlist(&ob->defbase);
 
@@ -756,12 +751,9 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 	const int use_vert_sel = vertex_group_use_vert_sel(ob_dst);
 
 	/* Ensure vertex group on target.*/
-	if (!defgroup_find_name(ob_dst, dg_src->name)) {
-		ED_vgroup_add_name(ob_dst, dg_src->name);
+	if ((dg_dst = defgroup_find_name(ob_dst, dg_src->name)) == NULL) {
+		dg_dst = BKE_defgroup_new(ob_dst, dg_src->name);
 	}
-
-	/* Get destination deformgroup.*/
-	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
 
 	/* Get meshes.*/
 	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH);
@@ -3811,7 +3803,6 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 		/* Event notifiers for correct display of data.*/
 		DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob_act);
-
 		return OPERATOR_FINISHED;
 	}
 	else {
