@@ -2910,13 +2910,13 @@ static int vertex_group_poll(bContext *C)
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
-	return (ob && !ob->id.lib 
-	        && data && !data->lib
-	        && OB_TYPE_SUPPORT_VGROUP(ob->type) 
-	        && BLI_countlist(&ob->defbase) > 0 );
+	return (ob && !ob->id.lib &&
+	        data && !data->lib &&
+	        OB_TYPE_SUPPORT_VGROUP(ob->type) &&
+	        ob->defbase.first);
 }
 
-static int vertex_group_can_add_poll(bContext *C)
+static int vertex_group_supported_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2928,13 +2928,13 @@ static int vertex_group_mesh_poll(bContext *C)
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
-	return (ob && !ob->id.lib
-	        && data && !data->lib
-	        && ob->type == OB_MESH
-	        && BLI_countlist(&ob->defbase) > 0 );
+	return (ob && !ob->id.lib &&
+	        data && !data->lib &&
+	        ob->type == OB_MESH &&
+	        ob->defbase.first);
 }
 
-static int vertex_group_mesh_can_add_poll(bContext *C)
+static int vertex_group_mesh_supported_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -3026,7 +3026,7 @@ void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 	ot->description = "Add a new vertex group to the active object";
 	
 	/* api callbacks */
-	ot->poll = vertex_group_can_add_poll;
+	ot->poll = vertex_group_supported_poll;
 	ot->exec = vertex_group_add_exec;
 
 	/* flags */
@@ -3843,7 +3843,7 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->description = "Transfer weight paint to active from selected mesh";
 
 	/* API callbacks.*/
-	ot->poll = vertex_group_mesh_can_add_poll;
+	ot->poll = vertex_group_mesh_supported_poll;
 	ot->exec = vertex_group_transfer_weight_exec;
 
 	/* Flags.*/
