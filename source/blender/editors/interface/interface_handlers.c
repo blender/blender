@@ -1905,14 +1905,10 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 	else if (ELEM(mode, UI_TEXTEDIT_COPY, UI_TEXTEDIT_CUT)) {
 		/* copy the contents to the copypaste buffer */
 		int sellen = but->selend - but->selsta;
-		char *buf = MEM_callocN(sizeof(char)*(sellen + 1), "ui_textedit_copypaste");
+		char *buf = MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste");
 
-		for (x = 0; x < sellen; x++)
-			buf[x] = str[but->selsta + x];
-		buf[sellen] = '\0';
-
+		BLI_strncpy(buf, str + but->selsta, sellen + 1);
 		WM_clipboard_text_set(buf, 0);
-
 		MEM_freeN(buf);
 		
 		/* for cut only, delete the selection afterwards */
