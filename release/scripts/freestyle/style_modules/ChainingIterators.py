@@ -24,6 +24,8 @@
 from freestyle import AdjacencyIterator, ChainingIterator, ExternalContourUP1D, Nature, TVertex
 from freestyle import ContextFunctions as CF
 
+import bpy
+
 ## the natural chaining iterator
 ## It follows the edges of same nature following the topology of
 ## objects with  preseance on silhouettes, then borders, 
@@ -212,7 +214,7 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 										visitNext = 1
 										break
 								if visitNext != 0:
-									break	 
+									break
 							count = count+1
 							winner = ve
 						it.increment()
@@ -238,14 +240,22 @@ class pySketchyChainingIterator(ChainingIterator):
 		self._timeStamp = CF.get_time_stamp()+self._nRounds
 	def traverse(self, iter):
 		winner = None
+		found = False
 		it = AdjacencyIterator(iter)
 		while not it.is_end:
 			ve = it.object
 			if ve.id == self.current_edge.id:
+				found = True
 				it.increment()
 				continue
 			winner = ve
 			it.increment()
+		if not found:
+			# This is a fatal error condition: self.current_edge must be found
+			# among the edges seen by the AdjacencyIterator [bug #35695].
+			if bpy.app.debug_freestyle:
+				print('pySketchyChainingIterator: current edge not found')
+			return None
 		if winner is None:
 			winner = self.current_edge
 		if winner.chaining_time_stamp == self._timeStamp:
