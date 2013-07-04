@@ -1284,7 +1284,7 @@ void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *
 {
 	float *buffer = (float *)data;
 	int index = (y * this->getWidth() + x);
-	copy_v4_v4(output, buffer + index);
+	output[0] = buffer[index];
 }
 
 void DoubleEdgeMaskOperation::deinitExecution()
