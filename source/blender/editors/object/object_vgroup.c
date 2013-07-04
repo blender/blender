@@ -3781,7 +3781,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	if (vertex_group_mode == WT_REPLACE_ACTIVE_VERTEX_GROUP) {
 		if (!dg_act) {
 			BKE_report(op->reports, RPT_WARNING, "Failed, active object has no active groups");
-			return OPERATOR_CANCELLED;
+			return OPERATOR_FINISHED; /* to get the chance to make changes in the redo panel*/
 		}
 	}
 
@@ -3868,7 +3868,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
 		}
 
-		return OPERATOR_CANCELLED;
+		return OPERATOR_FINISHED; /* to get the chance to make changes in the redo panel */
 	}
 }
 
