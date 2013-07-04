@@ -109,6 +109,22 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 	return (lt->editlatt) ? lt->editlatt->latt : lt;
 }
 
+bool ED_vgroup_sync_from_pose(Object *ob)
+{
+	Object *armobj = BKE_object_pose_armature_get(ob);
+	if (armobj && (armobj->mode & OB_MODE_POSE)) {
+		struct bArmature *arm = armobj->data;
+		if (arm->act_bone) {
+			int def_num = defgroup_name_index(ob, arm->act_bone->name);
+			if (def_num != -1) {
+				ob->actdef = def_num + 1;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool ED_vgroup_object_is_edit_mode(Object *ob)
 {
 	if (ob->type == OB_MESH)
@@ -3800,8 +3816,11 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 				continue;
 			}
 			else if (ob_src->type != OB_MESH) {
-				BKE_reportf(op->reports, RPT_WARNING,
-				            "Skipping object '%s' only copying from meshes is supported", ob_src->id.name + 2);
+				/* armatures can be in pose mode so ignore them */
+				if (ob_src->type != OB_ARMATURE) {
+					BKE_reportf(op->reports, RPT_WARNING,
+					            "Skipping object '%s' only copying from meshes is supported", ob_src->id.name + 2);
+				}
 				continue;
 			}
 
@@ -3853,6 +3872,9 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 		/* note!, dg_act may be realloc'd, only check its not NULL */
 		if (dg_act) {
 			ED_vgroup_select_by_name(ob_act, dg_act_name);
+		}
+		else {
+			ED_vgroup_sync_from_pose(ob_act);
 		}
 
 		/* Event notifiers for correct display of data.*/
