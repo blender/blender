@@ -3810,7 +3810,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 				case WT_REPLACE_ACTIVE_VERTEX_GROUP:
 				{
 					bDeformGroup *dg_src;
-					dg_src = BLI_findlink(&ob_src->defbase, ob_src->actdef - 1);
+					dg_src = defgroup_find_name(ob_src, dg_act_name);
+
+					if (dg_src == NULL) {
+						BKE_reportf(op->reports, RPT_WARNING,
+						            "Skipping object '%s' no group '%s' found", ob_src->id.name + 2, dg_act_name);
+						continue;
+					}
+
 					if (ed_vgroup_transfer_weight(ob_act, ob_src, dg_src, scene, method, replace_mode, op)) {
 						change = true;
 					}
@@ -3857,7 +3864,10 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
+		if (op->reports->list.first == NULL) {
+			BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
+		}
+
 		return OPERATOR_CANCELLED;
 	}
 }
