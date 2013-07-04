@@ -5247,6 +5247,9 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
+
+	if(re->r.scemode & R_VIEWPORT_PREVIEW)
+		re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	
 	/* scene needs to be set to get camera */
 	camera= RE_GetCamera(re);
