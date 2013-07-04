@@ -42,12 +42,14 @@ void WrapOperation::deinitExecution()
 
 inline float WrapOperation::getWrappedOriginalXPos(float x)
 {
+	if (this->getWidth() == 0) return 0;
 	while (x < 0) x += this->m_width;
 	return fmodf(x, this->getWidth());
 }
 
 inline float WrapOperation::getWrappedOriginalYPos(float y)
 {
+	if (this->getHeight() == 0) return 0;
 	while (y < 0) y += this->m_height;
 	return fmodf(y, this->getHeight());
 }

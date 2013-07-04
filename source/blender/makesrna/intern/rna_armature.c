@@ -472,6 +472,12 @@ static void rna_Armature_bones_next(CollectionPropertyIterator *iter)
 	iter->valid = (internal->link != NULL);
 }
 
+static int rna_Armature_is_editmode_get(PointerRNA *ptr)
+{
+	bArmature *arm = (bArmature *)ptr->id.data;
+	return (arm->edbo != NULL);
+}
+
 #else
 
 static int rna_matrix_dimsize_4x4[] = {4, 4};
@@ -1071,6 +1077,12 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 /* XXX deprecated ....... old animviz for armatures only */
+
+
+	prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Armature_is_editmode_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
 }
 
 void RNA_def_armature(BlenderRNA *brna)

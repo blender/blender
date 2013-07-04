@@ -1252,8 +1252,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				}
 				break;
 			}
-			case TSE_SCRIPT_BASE:
-				UI_icon_draw(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
 				UI_icon_draw(x, y, ICON_ARMATURE_DATA); break;
 			case TSE_POSE_CHANNEL:

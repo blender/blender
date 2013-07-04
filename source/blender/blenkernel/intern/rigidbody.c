@@ -914,12 +914,10 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 				if (obt && obt->rigidbody_constraint) {
 					rbc = obt->rigidbody_constraint;
 					if (rbc->ob1 == ob) {
-						rbc->ob1 = NULL;
-						rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
+						BKE_rigidbody_remove_constraint(scene, obt);
 					}
 					if (rbc->ob2 == ob) {
-						rbc->ob2 = NULL;
-						rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
+						BKE_rigidbody_remove_constraint(scene, obt);
 					}
 				}
 			}
@@ -938,10 +936,9 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyCon *rbc = ob->rigidbody_constraint;
 
-	if (rbw) {
-		/* remove from rigidbody world, free object won't do this */
-		if (rbw && rbw->physics_world && rbc->physics_constraint)
-			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+	/* remove from rigidbody world, free object won't do this */
+	if (rbw && rbw->physics_world && rbc->physics_constraint) {
+		RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
 	}
 	/* remove object's settings */
 	BKE_rigidbody_free_constraint(ob);

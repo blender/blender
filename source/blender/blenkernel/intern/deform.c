@@ -51,6 +51,22 @@
 
 #include "BKE_deform.h"  /* own include */
 
+bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
+{
+	bDeformGroup *defgroup;
+
+	BLI_assert(OB_TYPE_SUPPORT_VGROUP(ob->type));
+
+	defgroup = MEM_callocN(sizeof(bDeformGroup), __func__);
+
+	BLI_strncpy(defgroup->name, name, sizeof(defgroup->name));
+
+	BLI_addtail(&ob->defbase, defgroup);
+	defgroup_unique_name(defgroup, ob);
+
+	return defgroup;
+}
+
 void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;

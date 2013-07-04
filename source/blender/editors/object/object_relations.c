@@ -1476,11 +1476,13 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						break;
 					case MAKE_LINKS_ANIMDATA:
 						BKE_copy_animdata_id((ID *)ob_dst, (ID *)ob_src, FALSE);
-						if (obdata_id->lib) {
-							is_lib = true;
-							break;
+						if (ob_dst->data && ob_src->data) {
+							if (obdata_id->lib) {
+								is_lib = true;
+								break;
+							}
+							BKE_copy_animdata_id((ID *)ob_dst->data, (ID *)ob_src->data, FALSE);
 						}
-						BKE_copy_animdata_id((ID *)ob_dst->data, (ID *)ob_src->data, FALSE);
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						break;
 					case MAKE_LINKS_GROUP:
@@ -1499,6 +1501,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 								is_cycle = TRUE;
 							}
 						}
+						break;
 					}
 					case MAKE_LINKS_DUPLIGROUP:
 						ob_dst->dup_group = ob_src->dup_group;

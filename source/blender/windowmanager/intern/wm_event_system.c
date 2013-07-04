@@ -43,6 +43,7 @@
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
@@ -533,6 +534,56 @@ void WM_event_print(const wmEvent *event)
 
 #endif /* NDEBUG */
 
+static void wm_add_reports(const bContext *C, ReportList *reports)
+{
+	/* if the caller owns them, handle this */
+	if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
+
+		wmWindowManager *wm = CTX_wm_manager(C);
+		ReportList *wm_reports = CTX_wm_reports(C);
+		ReportTimerInfo *rti;
+
+		/* add reports to the global list, otherwise they are not seen */
+		BLI_movelisttolist(&wm_reports->list, &reports->list);
+		
+		/* After adding reports to the global list, reset the report timer. */
+		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
+		
+		/* Records time since last report was added */
+		wm_reports->reporttimer = WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
+		
+		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
+		wm_reports->reporttimer->customdata = rti;
+	}
+}
+
+void WM_report(const bContext *C, ReportType type, const char *message)
+{
+	ReportList reports;
+
+	BKE_reports_init(&reports, RPT_STORE);
+	BKE_report(&reports, type, message);
+
+	wm_add_reports(C, &reports);
+
+	BKE_reports_clear(&reports);
+}
+
+void WM_reportf(const bContext *C, ReportType type, const char *format, ...)
+{
+	DynStr *ds;
+	va_list args;
+
+	ds = BLI_dynstr_new();
+	va_start(args, format);
+	BLI_dynstr_vappendf(ds, format, args);
+	va_end(args);
+
+	WM_report(C, type, BLI_dynstr_get_cstring(ds));
+
+	BLI_dynstr_free(ds);
+}
+
 /* (caller_owns_reports == TRUE) when called from python */
 static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int caller_owns_reports)
 {
@@ -575,24 +626,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int cal
 	}
 
 	/* if the caller owns them, handle this */
-	if (op->reports->list.first && (op->reports->flag & RPT_OP_HOLD) == 0) {
-
-		wmWindowManager *wm = CTX_wm_manager(C);
-		ReportList *wm_reports = CTX_wm_reports(C);
-		ReportTimerInfo *rti;
-
-		/* add reports to the global list, otherwise they are not seen */
-		BLI_movelisttolist(&wm_reports->list, &op->reports->list);
-		
-		/* After adding reports to the global list, reset the report timer. */
-		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
-		
-		/* Records time since last report was added */
-		wm_reports->reporttimer = WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
-		
-		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
-		wm_reports->reporttimer->customdata = rti;
-	}
+	wm_add_reports(C, op->reports);
 }
 
 /* this function is mainly to check that the rules for freeing

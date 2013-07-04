@@ -380,11 +380,9 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 		flip_side_name(name, defgroup->name, FALSE);
 		mirrdef = defgroup_name_index(ob, name);
 		if (mirrdef == -1) {
-			int olddef = ob->actdef;  /* tsk, ED_vgroup_add sets the active defgroup */
-			if (ED_vgroup_add_name(ob, name)) {
+			if (BKE_defgroup_new(ob, name)) {
 				mirrdef = BLI_countlist(&ob->defbase) - 1;
 			}
-			ob->actdef = olddef;
 		}
 
 		/* curdef should never be NULL unless this is

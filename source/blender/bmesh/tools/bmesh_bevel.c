@@ -268,8 +268,8 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
 		}
 		f = BM_face_create(bm, vert_arr, ee, totv, 0);
 	}
-	if ((facerep || face_arr) && f) {
-		BM_elem_attrs_copy(bm, bm, facerep, f);
+	if ((facerep || (face_arr && face_arr[0])) && f) {
+		BM_elem_attrs_copy(bm, bm, facerep ? facerep : face_arr[0], f);
 		if (do_interp) {
 			i = 0;
 			BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
@@ -281,7 +281,8 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
 				else {
 					interp_f = facerep;
 				}
-				BM_loop_interp_from_face(bm, l, interp_f, TRUE, TRUE);
+				if (interp_f)
+					BM_loop_interp_from_face(bm, l, interp_f, TRUE, TRUE);
 				i++;
 			}
 		}
@@ -404,7 +405,8 @@ static BMFace *bev_create_quad_straddle(BMesh *bm, BMVert *v1, BMVert *v2, BMVer
 			facerep = f1;
 		else
 			facerep = f2;
-		BM_loop_interp_from_face(bm, l, facerep, TRUE, TRUE);
+		if (facerep)
+			BM_loop_interp_from_face(bm, l, facerep, TRUE, TRUE);
 	}
 	return f;
 }
