@@ -3911,7 +3911,7 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 
 	/* Properties.*/
 	/* TODO, use vgroup_operator_subset_select_props for group_select_mode */
-	ot->prop = RNA_def_enum(ot->srna, "group_select_mode", WT_vertex_group_mode_item, WT_REPLACE_ACTIVE_VERTEX_GROUP, "Group", "");
+	ot->prop = RNA_def_enum(ot->srna, "group_select_mode", WT_vertex_group_mode_item, WT_REPLACE_ALL_VERTEX_GROUPS, "Group", "");
 	ot->prop = RNA_def_enum(ot->srna, "method", WT_method_item, WT_BY_NEAREST_FACE, "Method", "");
 	ot->prop = RNA_def_enum(ot->srna, "replace_mode", WT_replace_mode_item, WT_REPLACE_ALL_WEIGHTS, "Replace", "");
 }
