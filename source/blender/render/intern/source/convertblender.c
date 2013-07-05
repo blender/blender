@@ -4149,10 +4149,15 @@ static void set_renderlayer_lightgroups(Render *re, Scene *sce)
 
 void init_render_world(Render *re)
 {
+	void *wrld_prev[2] = {
+	    re->wrld.aotables,
+	    re->wrld.aosphere,
+	};
+
 	int a;
 	
 	if (re->scene && re->scene->world) {
-		re->wrld= *(re->scene->world);
+		re->wrld = *(re->scene->world);
 
 		copy_v3_v3(re->grvec, re->viewmat[2]);
 		normalize_v3(re->grvec);
@@ -4181,6 +4186,10 @@ void init_render_world(Render *re)
 	
 	re->wrld.linfac= 1.0f + powf((2.0f*re->wrld.exp + 0.5f), -10);
 	re->wrld.logfac= logf((re->wrld.linfac-1.0f)/re->wrld.linfac) / re->wrld.range;
+
+	/* restore runtime vars, needed for viewport rendering [#36005] */
+	re->wrld.aotables = wrld_prev[0];
+	re->wrld.aosphere = wrld_prev[1];
 }
 
 
