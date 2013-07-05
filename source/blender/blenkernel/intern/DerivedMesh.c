@@ -1945,7 +1945,7 @@ int editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *d
 static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, DerivedMesh **cage_r,
                                      DerivedMesh **final_r,
                                      CustomDataMask dataMask)
-	{
+{
 	ModifierData *md, *previewmd = NULL;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask, previewmask = 0, append_mask = 0;

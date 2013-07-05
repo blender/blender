@@ -2094,8 +2094,7 @@ void init_userdef_do_versions(void)
 
 		if (U.ndof_sensitivity == 0.0f) {
 			U.ndof_sensitivity = 1.0f;
-			U.ndof_flag = NDOF_LOCK_HORIZON |
-						  NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
+			U.ndof_flag = (NDOF_LOCK_HORIZON | NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE);
 		}
 		
 		if (U.ndof_orbit_sensitivity == 0.0f) {

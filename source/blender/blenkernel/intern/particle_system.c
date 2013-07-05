@@ -4313,7 +4313,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				/* SPH_SOLVER_CLASSICAL */
 				/* Apply SPH forces using classical algorithm (due to Gingold
 				 * and Monaghan). Note that, unlike double-density relaxation,
-				 * this algorthim is separated into distinct loops. */
+				 * this algorithm is separated into distinct loops. */
 
 				#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
 				LOOP_DYNAMIC_PARTICLES {
