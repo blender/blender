@@ -721,17 +721,23 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed = (BMEdge *)ese->ele;
 
-		/* the plane is simple, it runs along the edge
-		 * however selecting different edges can swap the direction of the y axis.
-		 * this makes it less likely for the y axis of the manipulator
-		 * (running along the edge).. to flip less often.
-		 * at least its more predictable */
-		if (eed->v2->co[1] > eed->v1->co[1]) {  /* check which to do first */
-			sub_v3_v3v3(r_plane, eed->v2->co, eed->v1->co);
+		if (BM_edge_is_boundary(eed)) {
+			sub_v3_v3v3(r_plane, eed->l->v->co, eed->l->next->v->co);
 		}
 		else {
-			sub_v3_v3v3(r_plane, eed->v1->co, eed->v2->co);
+			/* the plane is simple, it runs along the edge
+			 * however selecting different edges can swap the direction of the y axis.
+			 * this makes it less likely for the y axis of the manipulator
+			 * (running along the edge).. to flip less often.
+			 * at least its more predictable */
+			if (eed->v2->co[1] > eed->v1->co[1]) {  /* check which to do first */
+				sub_v3_v3v3(r_plane, eed->v2->co, eed->v1->co);
+			}
+			else {
+				sub_v3_v3v3(r_plane, eed->v1->co, eed->v2->co);
+			}
 		}
+
 		normalize_v3(r_plane);
 	}
 	else if (ese->htype == BM_FACE) {
