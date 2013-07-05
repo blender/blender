@@ -1452,7 +1452,7 @@ bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3
 int isect_line_line_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3], float i1[3], float i2[3])
 {
 	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
-	float d;
+	float d, div;
 
 	sub_v3_v3v3(c, v3, v1);
 	sub_v3_v3v3(a, v2, v1);
@@ -1468,12 +1468,17 @@ int isect_line_line_v3(const float v1[3], const float v2[3], const float v3[3], 
 
 	cross_v3_v3v3(ab, a, b);
 	d = dot_v3v3(c, ab);
+	div = dot_v3v3(ab, ab);
 
+	/* test zero length line */
+	if (UNLIKELY(div == 0.0f)) {
+		return 0;
+	}
 	/* test if the two lines are coplanar */
-	if (d > -0.000001f && d < 0.000001f) {
+	else if (d > -0.000001f && d < 0.000001f) {
 		cross_v3_v3v3(cb, c, b);
 
-		mul_v3_fl(a, dot_v3v3(cb, ab) / dot_v3v3(ab, ab));
+		mul_v3_fl(a, dot_v3v3(cb, ab) / div);
 		add_v3_v3v3(i1, v1, a);
 		copy_v3_v3(i2, i1);
 
@@ -1518,7 +1523,7 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
                                float vi[3], float *r_lambda)
 {
 	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
-	float d;
+	float d, div;
 
 	sub_v3_v3v3(c, v3, v1);
 	sub_v3_v3v3(a, v2, v1);
@@ -1534,15 +1539,20 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
 
 	cross_v3_v3v3(ab, a, b);
 	d = dot_v3v3(c, ab);
+	div = dot_v3v3(ab, ab);
 
+	/* test zero length line */
+	if (UNLIKELY(div == 0.0f)) {
+		return 0;
+	}
 	/* test if the two lines are coplanar */
-	if (d > -0.000001f && d < 0.000001f) {
+	else if (d > -0.000001f && d < 0.000001f) {
 		float f1, f2;
 		cross_v3_v3v3(cb, c, b);
 		cross_v3_v3v3(ca, c, a);
 
-		f1 = dot_v3v3(cb, ab) / dot_v3v3(ab, ab);
-		f2 = dot_v3v3(ca, ab) / dot_v3v3(ab, ab);
+		f1 = dot_v3v3(cb, ab) / div;
+		f2 = dot_v3v3(ca, ab) / div;
 
 		if (f1 >= 0 && f1 <= 1 &&
 		    f2 >= 0 && f2 <= 1)
