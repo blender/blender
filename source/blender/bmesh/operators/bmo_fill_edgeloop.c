@@ -62,22 +62,19 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
 			if (BMO_elem_flag_test(bm, v, VERT_USED) == false) {
+				if (i == tote) {
+					goto cleanup;
+				}
+
 				BMO_elem_flag_enable(bm, v, VERT_USED);
 				verts[i++] = v;
-				if (i == tote) {
-					break;
-				}
 			}
-		}
-		if (i > tote) {
-			break;
 		}
 	}
 
 	/* we have a different number of verts to edges */
 	if (i != tote) {
-		MEM_freeN(verts);
-		return;
+		goto cleanup;
 	}
 
 	/* loop over connected flagged edges and fill in faces,  this is made slightly more
@@ -156,5 +153,6 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_OUT);
 	}
 
+cleanup:
 	MEM_freeN(verts);
 }
