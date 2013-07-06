@@ -4903,13 +4903,13 @@ void RE_Database_Free(Render *re)
 	if (re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
 		re->wrld.aosphere= NULL;
-		if (re->scene)
+		if (re->scene && re->scene->world)
 			re->scene->world->aosphere= NULL;
 	}
 	if (re->wrld.aotables) {
 		MEM_freeN(re->wrld.aotables);
 		re->wrld.aotables= NULL;
-		if (re->scene)
+		if (re->scene && re->scene->world)
 			re->scene->world->aotables= NULL;
 	}
 	if (re->r.mode & R_RAYTRACE)
