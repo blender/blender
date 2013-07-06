@@ -1698,7 +1698,7 @@ static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 	if (pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
 
 		DynamicPaintSurface *surface;
-		int update_normals = 0;
+		bool update_normals = false;
 
 		/* loop through surfaces */
 		for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
@@ -1881,19 +1881,21 @@ static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 							normal_short_to_float_v3(normal, mvert[i].no);
 							madd_v3_v3fl(mvert[i].co, normal, wPoint[i].height);
 						}
-						update_normals = 1;
+						update_normals = true;
 					}
 
 					/* displace */
 					if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
 						dynamicPaint_applySurfaceDisplace(surface, result);
-						update_normals = 1;
+						update_normals = true;
 					}
 				}
 			}
 		}
 
-		result->dirty |= DM_DIRTY_NORMALS;
+		if (update_normals) {
+			result->dirty |= DM_DIRTY_NORMALS;
+		}
 	}
 	/* make a copy of dm to use as brush data */
 	if (pmd->brush) {
