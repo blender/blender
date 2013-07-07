@@ -189,7 +189,10 @@ static void bridge_loop_pair(BMesh *bm,
 		            ((BMVert *)(((LinkData *)lb_b->first)->data))->co,
 		            ((BMVert *)(((LinkData *)lb_b->last)->data))->co);
 
-		/* this isnt totally reliable but works well in most cases */
+		/* make the directions point out from the normals, 'no' is used as a temp var */
+		cross_v3_v3v3(no, dir_a, el_dir); cross_v3_v3v3(dir_a, no, el_dir);
+		cross_v3_v3v3(no, dir_b, el_dir); cross_v3_v3v3(dir_b, no, el_dir);
+
 		if (dot_v3v3(dir_a, dir_b) < 0.0f) {
 			BM_edgeloop_flip(bm, el_store_b);
 		}

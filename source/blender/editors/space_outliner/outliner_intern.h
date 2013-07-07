@@ -77,7 +77,7 @@ typedef struct TreeElement {
 #define TSE_MODIFIER_BASE   9
 #define TSE_MODIFIER        10
 #define TSE_LINKED_OB       11
-#define TSE_SCRIPT_BASE     12
+// #define TSE_SCRIPT_BASE     12  // UNUSED
 #define TSE_POSE_BASE       13
 #define TSE_POSE_CHANNEL    14
 #define TSE_ANIM_DATA       15

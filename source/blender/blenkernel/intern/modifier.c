@@ -421,7 +421,7 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 {
 	ModifierData *tmp_md = NULL;
 
-	if (required_mode != eModifierMode_Realtime)
+	if ((required_mode & ~eModifierMode_Editmode) != eModifierMode_Realtime)
 		return tmp_md;
 
 	/* Find the latest modifier in stack generating preview. */

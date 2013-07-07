@@ -1852,7 +1852,6 @@ enum {
 
 static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const int mode)
 {
-	char buf[UI_MAX_DRAW_STR] = {0};
 	char *str, *p, *pbuf;
 	int x;
 	bool changed = false;
@@ -1868,6 +1867,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 		p = pbuf = WM_clipboard_text_get(0);
 
 		if (p && p[0]) {
+			char buf[UI_MAX_DRAW_STR] = {0};
 			unsigned int y;
 			buf_len = 0;
 			while (*p && *p != '\r' && *p != '\n' && buf_len < UI_MAX_DRAW_STR - 1) {
@@ -1904,14 +1904,12 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 	/* cut & copy */
 	else if (ELEM(mode, UI_TEXTEDIT_COPY, UI_TEXTEDIT_CUT)) {
 		/* copy the contents to the copypaste buffer */
-		for (x = but->selsta; x <= but->selend; x++) {
-			if (x == but->selend)
-				buf[x] = '\0';
-			else
-				buf[(x - but->selsta)] = str[x];
-		}
+		int sellen = but->selend - but->selsta;
+		char *buf = MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste");
 
+		BLI_strncpy(buf, str + but->selsta, sellen + 1);
 		WM_clipboard_text_set(buf, 0);
+		MEM_freeN(buf);
 		
 		/* for cut only, delete the selection afterwards */
 		if (mode == UI_TEXTEDIT_CUT) {

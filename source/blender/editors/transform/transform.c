@@ -1676,9 +1676,9 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 	 */
 	UI_ThemeColorShade(TH_TEXT_HI, -50);
 #ifdef WITH_INTERNATIONAL
-	BLF_draw_default(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
+	BLF_draw_default(xco, ar->winy - 17, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 #else
-	BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
+	BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 #endif
 	
 	/* autokey recording icon... */

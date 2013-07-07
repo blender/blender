@@ -1584,10 +1584,6 @@ int main(int argc, const char **argv)
 		/* this is properly initialized with user defs, but this is default */
 		/* call after loading the startup.blend so we can read U.tempdir */
 		BLI_init_temporary_dir(U.tempdir);
-
-#ifdef WITH_SDL
-		BLI_setenv("SDL_VIDEODRIVER", "dummy");
-#endif
 	}
 	else {
 #ifndef WITH_PYTHON_MODULE

@@ -234,6 +234,11 @@ static char *rna_LatticePoint_path(PointerRNA *ptr)
 	return BLI_strdup("");
 }
 
+static int rna_Lattice_is_editmode_get(PointerRNA *ptr)
+{
+	Lattice *lt = (Lattice *)ptr->id.data;
+	return (lt->editlatt != NULL);
+}
 
 #else
 
@@ -349,6 +354,11 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next",
 	                                  "rna_iterator_array_end", "rna_iterator_array_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Points", "Points of the lattice");
+
+	prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Lattice_is_editmode_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
 
 	/* pointers */
 	rna_def_animdata_common(srna);

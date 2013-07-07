@@ -1175,7 +1175,7 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggle the selection");
 }
 
-void WM_operator_properties_gesture_straightline(wmOperatorType *ot, bool cursor)
+void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 {
 	RNA_def_int(ot->srna, "xstart", 0, INT_MIN, INT_MAX, "X Start", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xend", 0, INT_MIN, INT_MAX, "X End", "", INT_MIN, INT_MAX);

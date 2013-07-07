@@ -219,7 +219,7 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 		/* do nothing */;
 	}
 	else if (ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE,
-	                TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS))
+	                TSE_DRIVER_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS))
 	{
 		BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
 	}

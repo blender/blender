@@ -683,6 +683,18 @@ static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA
 	rna_iterator_listbase_begin(iter, BKE_curve_nurbs_get(cu), NULL);
 }
 
+static int rna_Curve_is_editmode_get(PointerRNA *ptr)
+{
+	Curve *cu = (Curve *)ptr->id.data;
+	const short type = BKE_curve_type_get(cu);
+	if (type == OB_FONT) {
+		return (cu->editfont != NULL);
+	}
+	else {
+		return (cu->editnurb != NULL);
+	}
+}
+
 #else
 
 static void rna_def_bpoint(BlenderRNA *brna)
@@ -1485,6 +1497,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 1.0);
 	RNA_def_property_ui_text(prop, "End Bevel Factor", "Factor that defines to where beveling of spline happens (0=to the very beginning, 1=to the very end)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Curve_is_editmode_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)

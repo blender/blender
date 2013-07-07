@@ -233,6 +233,7 @@ void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 #define WEIGHT_ADD 2
 #define WEIGHT_SUBTRACT 3
 
+bool                 ED_vgroup_sync_from_pose(struct Object *ob);
 struct bDeformGroup *ED_vgroup_add(struct Object *ob);
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, const char *name);
 void                 ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup);

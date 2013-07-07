@@ -304,7 +304,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 		}
 
 		if (b_dupli_ob) {
-			object->dupli_generated = get_float3(b_dupli_ob.orco());
+			object->dupli_generated = 0.5f*get_float3(b_dupli_ob.orco()) - make_float3(0.5f, 0.5f, 0.5f);
 			object->dupli_uv = get_float2(b_dupli_ob.uv());
 		}
 		else {

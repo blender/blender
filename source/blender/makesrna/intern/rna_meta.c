@@ -158,6 +158,12 @@ static void rna_MetaBall_elements_clear(MetaBall *mb)
 	}
 }
 
+static int rna_Meta_is_editmode_get(PointerRNA *ptr)
+{
+	MetaBall *mb = ptr->id.data;
+	return (mb->editelems != NULL);
+}
+
 #else
 
 static void rna_def_metaelement(BlenderRNA *brna)
@@ -350,6 +356,11 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
 	RNA_def_property_collection_funcs(prop, 0, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
 	
+	prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Meta_is_editmode_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
+
 	/* anim */
 	rna_def_animdata_common(srna);
 

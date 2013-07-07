@@ -657,12 +657,12 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 static int object_armature_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	bool newob = false;
 	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
+	bool view_aligned = rv3d && (U.flag & USER_ADD_VIEWALIGNED);
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
@@ -681,8 +681,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* v3d and rv3d are allowed to be NULL */
-	add_primitive_bone(CTX_data_scene(C), v3d, rv3d);
+	add_primitive_bone(obedit, view_aligned);
 
 	/* userdef */
 	if (newob && !enter_editmode)
