@@ -32,7 +32,7 @@ from freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicat
     FalseBP1D, FalseUP1D, GuidingLinesShader, Interface0DIterator, Nature, Noise, Normal2DF0D, Operators, \
     PolygonalizationShader, QuantitativeInvisibilityF1D, QuantitativeInvisibilityUP1D, SamplingShader, \
     SpatialNoiseShader, StrokeAttribute, StrokeShader, TipRemoverShader, TrueBP1D, TrueUP1D, UnaryPredicate0D, \
-    UnaryPredicate1D, VertexOrientation2DF0D, WithinImageBoundaryUP1D
+    UnaryPredicate1D, VertexOrientation2DF0D, WithinImageBoundaryUP1D, ContextFunctions
 from Functions0D import CurveMaterialF0D
 from PredicatesU1D import pyNatureUP1D
 from logical_operators import AndUP1D, NotUP1D, OrUP1D
@@ -1046,17 +1046,7 @@ def process(layer_name, lineset_name):
             selection_criteria.append(upred)
     # prepare selection criteria by image border
     if lineset.select_by_image_border:
-        fac = scene.render.resolution_percentage / 100.0
-        w = scene.render.resolution_x * fac
-        h = scene.render.resolution_y * fac
-        if scene.render.use_border:
-            xmin = scene.render.border_min_x * w
-            xmax = scene.render.border_max_x * w
-            ymin = scene.render.border_min_y * h
-            ymax = scene.render.border_max_y * h
-        else:
-            xmin, xmax = 0.0, float(w)
-            ymin, ymax = 0.0, float(h)
+        xmin, ymin, xmax, ymax = ContextFunctions.get_border()
         upred = WithinImageBoundaryUP1D(xmin, ymin, xmax, ymax)
         selection_criteria.append(upred)
     # select feature edges

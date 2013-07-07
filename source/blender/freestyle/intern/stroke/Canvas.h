@@ -195,6 +195,7 @@ public:
 
 	virtual int width() const = 0;
 	virtual int height() const = 0;
+	virtual BBox<Vec2i> border() const = 0;
 	virtual BBox<Vec3r> scene3DBBox() const = 0;
 
 	inline const StrokeRenderer *renderer() const
