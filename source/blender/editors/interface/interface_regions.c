@@ -439,6 +439,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
 	uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
 	uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
+	uiStringInfo prop_keymap = {BUT_GET_PROP_KEYMAP, NULL};
 	uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
 	uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
 
@@ -448,7 +449,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	uiButGetStrInfo(C, but, &but_tip, &enum_label, &enum_tip, &op_keymap, &rna_struct, &rna_prop, NULL);
+	uiButGetStrInfo(C, but, &but_tip, &enum_label, &enum_tip, &op_keymap, &prop_keymap, &rna_struct, &rna_prop, NULL);
 
 	/* special case, enum rna buttons only have enum item description,
 	 * use general enum description too before the specific one */
@@ -477,6 +478,13 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* Op shortcut */
 	if (op_keymap.strinfo) {
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), op_keymap.strinfo);
+		data->color_id[data->totline] = UI_TIP_LC_NORMAL;
+		data->totline++;
+	}
+	
+	/* Property context-toggle shortcut */
+	if (prop_keymap.strinfo) {
+		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), prop_keymap.strinfo);
 		data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 		data->totline++;
 	}
@@ -614,6 +622,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		MEM_freeN(enum_tip.strinfo);
 	if (op_keymap.strinfo)
 		MEM_freeN(op_keymap.strinfo);
+	if (prop_keymap.strinfo)
+		MEM_freeN(prop_keymap.strinfo);
 	if (rna_struct.strinfo)
 		MEM_freeN(rna_struct.strinfo);
 	if (rna_prop.strinfo)
