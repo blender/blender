@@ -2223,6 +2223,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	BMVert *bmv1, *bmv2, *bmv3, *bmv4, *bmv1i, *bmv2i, *bmv3i, *bmv4i;
 	VMesh *vm1, *vm2;
 	EdgeHalf *e1, *e2;
+	BMEdge *bme1, *bme2;
 	BMFace *f1, *f2, *f;
 	int k, nseg, i1, i2, odd, mid;
 
@@ -2294,6 +2295,13 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 		bev_merge_end_uvs(bm, bv1, e1);
 	if (!e2->is_seam && bv2->vmesh->mesh_kind == M_NONE)
 		bev_merge_end_uvs(bm, bv2, e2);
+
+	/* Copy edge data to first and last edge */
+	bme1 = BM_edge_exists(bmv1, bmv2);
+	bme2 = BM_edge_exists(bmv3, bmv4);
+	BLI_assert(bme1 && bme2);
+	BM_elem_attrs_copy(bm, bm, bme, bme1);
+	BM_elem_attrs_copy(bm, bm, bme, bme2);
 }
 
 /*
