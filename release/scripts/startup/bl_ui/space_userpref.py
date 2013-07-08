@@ -1052,7 +1052,7 @@ class USERPREF_PT_input(Panel):
         row.separator()
 
     def draw(self, context):
-        from bl_ui.space_userpref_keymap import draw_keymaps
+        from rna_keymap_ui import draw_keymaps
 
         layout = self.layout
 
