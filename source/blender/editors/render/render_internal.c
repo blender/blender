@@ -733,6 +733,7 @@ typedef struct RenderPreview {
 	/* from wmJob */
 	void *owner;
 	short *stop, *do_update;
+	wmJob *job;
 	
 	Scene *scene;
 	ScrArea *sa;
@@ -913,8 +914,15 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		else lay = rp->v3d->lay;
 		
 		RE_SetView(re, rp->viewmat);
-		
+
+		/* copying blender data while main thread is locked, to avoid crashes */
+		WM_job_main_thread_lock_acquire(rp->job);
 		RE_Database_FromScene(re, rp->bmain, rp->scene, lay, 0);		// 0= dont use camera view
+		WM_job_main_thread_lock_release(rp->job);
+
+		/* do preprocessing like building raytree, shadows, volumes, SSS */
+		RE_Database_Preprocess(re);
+
 		// printf("dbase update\n");
 	}
 	else {
@@ -958,7 +966,8 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), CTX_wm_region(C), "Render Preview",
 	                     WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	rp = MEM_callocN(sizeof(RenderPreview), "render preview");
-	
+	rp->job = wm_job;
+
 	/* customdata for preview thread */
 	rp->scene = scene;
 	rp->engine = engine;

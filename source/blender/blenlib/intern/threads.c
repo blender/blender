@@ -508,6 +508,52 @@ void BLI_rw_mutex_free(ThreadRWMutex *mutex)
 	MEM_freeN(mutex);
 }
 
+/* Ticket Mutex Lock */
+
+struct TicketMutex {
+	pthread_cond_t cond;
+	pthread_mutex_t mutex;
+	unsigned int queue_head, queue_tail;
+};
+
+TicketMutex *BLI_ticket_mutex_alloc(void)
+{
+	TicketMutex *ticket = MEM_callocN(sizeof(TicketMutex), "TicketMutex");
+
+	pthread_cond_init(&ticket->cond, NULL);
+	pthread_mutex_init(&ticket->mutex, NULL);
+
+	return ticket;
+}
+
+void BLI_ticket_mutex_free(TicketMutex *ticket)
+{
+	pthread_mutex_destroy(&ticket->mutex);
+	pthread_cond_destroy(&ticket->cond);
+	MEM_freeN(ticket);
+}
+
+void BLI_ticket_mutex_lock(TicketMutex *ticket)
+{
+	unsigned int queue_me;
+
+	pthread_mutex_lock(&ticket->mutex);
+	queue_me = ticket->queue_tail++;
+
+	while (queue_me != ticket->queue_head)
+		pthread_cond_wait(&ticket->cond, &ticket->mutex);
+
+	pthread_mutex_unlock(&ticket->mutex);
+}
+
+void BLI_ticket_mutex_unlock(TicketMutex *ticket)
+{
+	pthread_mutex_lock(&ticket->mutex);
+	ticket->queue_head++;
+	pthread_cond_broadcast(&ticket->cond);
+	pthread_mutex_unlock(&ticket->mutex);
+}
+
 /* ************************************************ */
 
 typedef struct ThreadedWorker {
