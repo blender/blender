@@ -38,7 +38,6 @@
 
 #define FACE_VIS	1
 #define FACE_FLAG	2
-#define FACE_FLIP	8
 
 /*
  * put normal to the outside, and set the first direction flags in edges
@@ -54,7 +53,6 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 {
 	BMFace **fstack;
 	STACK_DECLARE(fstack);
-	const bool use_face_tag = BMO_slot_bool_get(op->slots_in, "use_face_tag");
 	const unsigned int tot_faces = BMO_slot_buffer_count(op->slots_in, "faces");
 	unsigned int tot_touch = 0;
 
@@ -96,11 +94,6 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 		/* make sure the starting face has the correct winding */
 		if (dot_v3v3(f_start_cent, f_start->no) < 0.0f) {
 			BM_face_normal_flip(bm, f_start);
-			BMO_elem_flag_toggle(bm, f_start, FACE_FLIP);
-
-			if (use_face_tag) {
-				BM_elem_flag_toggle(f_start, BM_ELEM_TAG);
-			}
 		}
 
 		/* now that we've found our starting face, make all connected faces
@@ -132,17 +125,6 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 
 						if (l_other->v == l->v) {
 							BM_face_normal_flip(bm, l_other->f);
-
-							BMO_elem_flag_toggle(bm, l_other->f, FACE_FLIP);
-							if (use_face_tag) {
-								BM_elem_flag_toggle(l_other->f, BM_ELEM_TAG);
-							}
-						}
-						else if (BM_elem_flag_test(l_other->f, BM_ELEM_TAG) || BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
-							if (use_face_tag) {
-								BM_elem_flag_disable(l->f, BM_ELEM_TAG);
-								BM_elem_flag_disable(l_other->f, BM_ELEM_TAG);
-							}
 						}
 
 						STACK_PUSH(fstack, l_other->f);
