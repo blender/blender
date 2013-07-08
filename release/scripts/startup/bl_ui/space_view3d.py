@@ -617,8 +617,8 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_less", text="Less")
         layout.operator("mesh.select_more", text="More")
+        layout.operator("mesh.select_less", text="Less")
 
         layout.separator()
 

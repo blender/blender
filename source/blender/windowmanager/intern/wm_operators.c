@@ -1880,6 +1880,7 @@ static void WM_OT_userpref_autoexec_path_add(wmOperatorType *ot)
 {
 	ot->name = "Add Autoexec Path";
 	ot->idname = "WM_OT_userpref_autoexec_path_add";
+	ot->description = "Add path to exclude from autoexecution";
 
 	ot->exec = wm_userpref_autoexec_add_exec;
 	ot->poll = WM_operator_winactive;
@@ -1901,6 +1902,7 @@ static void WM_OT_userpref_autoexec_path_remove(wmOperatorType *ot)
 {
 	ot->name = "Remove Autoexec Path";
 	ot->idname = "WM_OT_userpref_autoexec_path_remove";
+	ot->description = "Remove path to exclude from autoexecution";
 
 	ot->exec = wm_userpref_autoexec_remove_exec;
 	ot->poll = WM_operator_winactive;
