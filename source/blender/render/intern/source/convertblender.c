@@ -4863,7 +4863,11 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 void RE_Database_Free(Render *re)
 {
 	LampRen *lar;
-	
+
+	/* will crash if we try to free empty database */
+	if (!re->i.convertdone)
+		return;
+
 	/* statistics for debugging render memory usage */
 	if ((G.debug & G_DEBUG) && (G.is_rendering)) {
 		if ((re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
@@ -5399,8 +5403,10 @@ void RE_Database_Preprocess(Render *re)
 				volume_precache(re);
 	}
 	
-	if (re->test_break(re->tbh))
+	if (re->test_break(re->tbh)) {
+		re->i.convertdone = TRUE;
 		RE_Database_Free(re);
+	}
 	else
 		re->i.convertdone = TRUE;
 	
