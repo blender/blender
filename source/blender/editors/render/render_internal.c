@@ -982,8 +982,13 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 	if (engine->update_flag & RE_ENGINE_UPDATE_OTHER)
 		job_update_flag |= PR_UPDATE_MATERIAL;
 	
-	if (engine->update_flag & RE_ENGINE_UPDATE_DATABASE)
+	if (engine->update_flag & RE_ENGINE_UPDATE_DATABASE) {
 		job_update_flag |= PR_UPDATE_DATABASE;
+
+		/* load editmesh */
+		if (scene->obedit)
+			ED_object_editmode_load(scene->obedit);
+	}
 	
 	engine->update_flag = 0;
 	

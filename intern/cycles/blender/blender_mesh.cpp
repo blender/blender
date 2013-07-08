@@ -462,6 +462,9 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(render_layer.use_surfaces || render_layer.use_hair) {
+		if(preview)
+			b_ob.update_from_editmode();
+
 		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed);
 
 		if(b_mesh) {
