@@ -54,9 +54,14 @@ LIB_STROKE_EXPORT
 unsigned GetCanvasWidthCF();
 
 // GetCanvasHeight
-/*! Returns the canvas width */
+/*! Returns the canvas height */
 LIB_STROKE_EXPORT 
 unsigned GetCanvasHeightCF();
+
+// GetBorder
+/*! Returns the border */
+LIB_STROKE_EXPORT 
+BBox<Vec2i> GetBorderCF();
 
 // Load map
 /*! Loads an image map for further reading */

@@ -3020,7 +3020,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	BMEdge *eed_act = NULL;
 	BMVert *eve_act = NULL;
 	
-	if (cageDM)  BLI_assert(!(cageDM->dirty & DM_DIRTY_NORMALS));
+	// if (cageDM)  BLI_assert(!(cageDM->dirty & DM_DIRTY_NORMALS));
 	if (finalDM) BLI_assert(!(finalDM->dirty & DM_DIRTY_NORMALS));
 
 	if (em->bm->selected.last) {

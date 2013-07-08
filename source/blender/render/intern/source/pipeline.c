@@ -1676,6 +1676,9 @@ static void add_freestyle(Render *re, int render)
 	}
 
 	FRS_finish_stroke_rendering(re);
+
+	/* restore the global R value (invalidated by nested execution of the internal renderer) */
+	R = *re;
 }
 
 /* merges the results of Freestyle stroke rendering into a given render result */

@@ -1573,7 +1573,10 @@ void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
 			{
 				if (lib == NULL || id->lib == lib) {
 					if (id->lib) {
-						id_make_local(id, false);
+						/* for Make Local > All we should be calling id_make_local,
+						 * but doing that breaks append (see #36003 and #36006), we
+						 * we should make it work with all datablocks and id.us==0 */
+						id_clear_lib_data(bmain, id); /* sets 'id->flag' */
 
 						/* why sort alphabetically here but not in
 						 * id_clear_lib_data() ? - campbell */

@@ -51,6 +51,11 @@ unsigned GetCanvasHeightCF()
 	return Canvas::getInstance()->height();
 }
 
+BBox<Vec2i> GetBorderCF()
+{
+	return Canvas::getInstance()->border();
+}
+
 void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels, float iSigma)
 {
 	return Canvas::getInstance()->loadMap(iFileName, iMapName, iNbLevels, iSigma);

@@ -84,39 +84,25 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 	return bone;
 }
 
-/* v3d and rv3d are allowed to be NULL */
-void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+void add_primitive_bone(Object *obedit_arm, bool view_aligned)
 {
-	Object *obedit = scene->obedit; // XXX get from context
-	bArmature *arm = obedit->data;
-	float obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
-	EditBone    *bone;
+	bArmature *arm = obedit_arm->data;
+	EditBone *bone;
 
-	/* Get inverse point for head and orientation for tail */
-	invert_m4_m4(obedit->imat, obedit->obmat);
-	mul_v3_m4v3(curs, obedit->imat, give_cursor(scene, v3d));
-
-	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
-		copy_m3_m4(obmat, rv3d->viewmat);
-	else unit_m3(obmat);
-	
-	copy_m3_m4(viewmat, obedit->obmat);
-	mul_m3_m3m3(totmat, obmat, viewmat);
-	invert_m3_m3(imat, totmat);
-	
-	ED_armature_deselect_all(obedit, 0);
+	ED_armature_deselect_all(obedit_arm, 0);
 	
 	/* Create a bone */
 	bone = ED_armature_edit_bone_add(arm, "Bone");
 
 	arm->act_edbone = bone;
 
-	copy_v3_v3(bone->head, curs);
-	
-	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
-		add_v3_v3v3(bone->tail, bone->head, imat[1]);   // bone with unit length 1
+	zero_v3(bone->head);
+	zero_v3(bone->tail);
+
+	if (view_aligned)
+		bone->tail[1] = 1.0f;
 	else
-		add_v3_v3v3(bone->tail, bone->head, imat[2]);   // bone with unit length 1, pointing up Z
+		bone->tail[2] = 1.0f;
 }
 
 

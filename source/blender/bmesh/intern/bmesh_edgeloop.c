@@ -428,7 +428,7 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const boo
 		float len_best = FLT_MAX;
 
 		if (use_normals)
-			BLI_assert(fabsf(len_squared_v3(no) - 1.0f) < FLT_EPSILON);
+			BLI_ASSERT_UNIT_V3(no);
 
 		for (el_store = eloops->first; el_store; el_store = el_store->next) {
 			float len;

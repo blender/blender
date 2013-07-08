@@ -79,6 +79,26 @@ ContextFunctions_get_canvas_height(PyObject *self)
 	return PyLong_FromLong(ContextFunctions::GetCanvasHeightCF());
 }
 
+static char ContextFunctions_get_border___doc__[] =
+".. method:: get_border()\n"
+"\n"
+"   Returns the border.\n"
+"\n"
+"   :return: A tuple of 4 numbers (xmin, ymin, xmax, ymax).\n"
+"   :rtype: tuple\n";
+
+static PyObject *
+ContextFunctions_get_border(PyObject *self)
+{
+	BBox<Vec2i> border(ContextFunctions::GetBorderCF());
+	PyObject *v = PyTuple_New(4);
+	PyTuple_SET_ITEM(v, 0, PyLong_FromLong(border.getMin().x()));
+	PyTuple_SET_ITEM(v, 1, PyLong_FromLong(border.getMin().y()));
+	PyTuple_SET_ITEM(v, 2, PyLong_FromLong(border.getMax().x()));
+	PyTuple_SET_ITEM(v, 3, PyLong_FromLong(border.getMax().y()));
+	return v;
+}
+
 static char ContextFunctions_load_map___doc__[] =
 ".. function:: load_map(file_name, map_name, num_levels=4, sigma=1.0)\n"
 "\n"
@@ -232,6 +252,8 @@ static PyMethodDef module_functions[] = {
 	                     ContextFunctions_get_canvas_width___doc__},
 	{"get_canvas_height", (PyCFunction)ContextFunctions_get_canvas_height, METH_NOARGS,
 	                      ContextFunctions_get_canvas_height___doc__},
+	{"get_border", (PyCFunction)ContextFunctions_get_border, METH_NOARGS,
+	               ContextFunctions_get_border___doc__},
 	{"load_map", (PyCFunction)ContextFunctions_load_map, METH_VARARGS | METH_KEYWORDS,
 	             ContextFunctions_load_map___doc__},
 	{"read_map_pixel", (PyCFunction)ContextFunctions_read_map_pixel, METH_VARARGS | METH_KEYWORDS,

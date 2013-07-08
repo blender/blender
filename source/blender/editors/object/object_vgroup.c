@@ -109,6 +109,22 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 	return (lt->editlatt) ? lt->editlatt->latt : lt;
 }
 
+bool ED_vgroup_sync_from_pose(Object *ob)
+{
+	Object *armobj = BKE_object_pose_armature_get(ob);
+	if (armobj && (armobj->mode & OB_MODE_POSE)) {
+		struct bArmature *arm = armobj->data;
+		if (arm->act_bone) {
+			int def_num = defgroup_name_index(ob, arm->act_bone->name);
+			if (def_num != -1) {
+				ob->actdef = def_num + 1;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool ED_vgroup_object_is_edit_mode(Object *ob)
 {
 	if (ob->type == OB_MESH)
@@ -749,10 +765,12 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 	unsigned int f_index;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob_dst);
+	bool is_dg_dst_new = false;
 
 	/* Ensure vertex group on target.*/
 	if ((dg_dst = defgroup_find_name(ob_dst, dg_src->name)) == NULL) {
 		dg_dst = BKE_defgroup_new(ob_dst, dg_src->name);
+		is_dg_dst_new = true;
 	}
 
 	/* Get meshes.*/
@@ -804,7 +822,10 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 			if (ob_dst == ob_src || dv_tot_dst == 0 || dv_tot_dst != dv_tot_src ||
 			    dv_array_src == NULL || dv_array_dst == NULL)
 			{
-				ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
+				if (is_dg_dst_new) {
+					ED_vgroup_delete(ob_dst, dg_dst);
+				}
+
 				if (dv_array_src) MEM_freeN(dv_array_src);
 				if (dv_array_dst) MEM_freeN(dv_array_dst);
 				dmesh_src->release(dmesh_src);
@@ -901,18 +922,16 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 				project_v3_plane(tmp_co, normal, mv_src[mf->v1].co);
 
 				/* Interpolate weights over face.*/
-				f_index = mf->v4 ? 3 : 2;
-				if (f_index == 3) {
-					interp_weights_face_v3(tmp_weight, mv_src[mf->v1].co, mv_src[mf->v2].co,
-					                       mv_src[mf->v3].co, mv_src[mf->v4].co, tmp_co);
-				}
-				else {
-					interp_weights_face_v3(tmp_weight, mv_src[mf->v1].co, mv_src[mf->v2].co,
-					                       mv_src[mf->v3].co, NULL, tmp_co);
-				}
+				interp_weights_face_v3(tmp_weight,
+				                       mv_src[mf->v1].co,
+				                       mv_src[mf->v2].co,
+				                       mv_src[mf->v3].co,
+				                       mf->v4 ? mv_src[mf->v4].co : NULL,
+				                       tmp_co);
 
 				/* Get weights from face.*/
-				weight = 0;
+				f_index = mf->v4 ? 3 : 2;
+				weight = 0.0f;
 				do {
 					v_index = (&mf->v1)[f_index];
 					weight += tmp_weight[f_index] * defvert_find_weight(dv_array_src[v_index], index_src);
@@ -920,7 +939,7 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 
 				/* Copy weight that are not NULL including weight value 0. In relevant cases, existing weights are
 				 * overwritten prior to this. See the "Clear weights." step above.*/
-				if (weight > 0) {
+				if (weight > 0.0f) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(&dw_dst->weight, weight, replace_mode);
 				}
@@ -2910,13 +2929,13 @@ static int vertex_group_poll(bContext *C)
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
-	return (ob && !ob->id.lib 
-	        && data && !data->lib
-	        && OB_TYPE_SUPPORT_VGROUP(ob->type) 
-	        && BLI_countlist(&ob->defbase) > 0 );
+	return (ob && !ob->id.lib &&
+	        data && !data->lib &&
+	        OB_TYPE_SUPPORT_VGROUP(ob->type) &&
+	        ob->defbase.first);
 }
 
-static int vertex_group_can_add_poll(bContext *C)
+static int vertex_group_supported_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2928,13 +2947,13 @@ static int vertex_group_mesh_poll(bContext *C)
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
-	return (ob && !ob->id.lib
-	        && data && !data->lib
-	        && ob->type == OB_MESH
-	        && BLI_countlist(&ob->defbase) > 0 );
+	return (ob && !ob->id.lib &&
+	        data && !data->lib &&
+	        ob->type == OB_MESH &&
+	        ob->defbase.first);
 }
 
-static int vertex_group_mesh_can_add_poll(bContext *C)
+static int vertex_group_mesh_supported_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -3026,7 +3045,7 @@ void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 	ot->description = "Add a new vertex group to the active object";
 	
 	/* api callbacks */
-	ot->poll = vertex_group_can_add_poll;
+	ot->poll = vertex_group_supported_poll;
 	ot->exec = vertex_group_add_exec;
 
 	/* flags */
@@ -3764,12 +3783,27 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = CTX_data_active_object(C);
+
+	bDeformGroup *dg_act = BLI_findlink(&ob_act->defbase, (ob_act->actdef - 1));
+	char dg_act_name[MAX_VGROUP_NAME];  /* may be freed so copy */
+
 	int fail = 0;
 	bool change = false;
 
 	WT_VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "group_select_mode");
 	WT_Method method = RNA_enum_get(op->ptr, "method");
 	WT_ReplaceMode replace_mode = RNA_enum_get(op->ptr, "replace_mode");
+
+	if (vertex_group_mode == WT_REPLACE_ACTIVE_VERTEX_GROUP) {
+		if (!dg_act) {
+			BKE_report(op->reports, RPT_WARNING, "Failed, active object has no active groups");
+			return OPERATOR_FINISHED; /* to get the chance to make changes in the redo panel*/
+		}
+	}
+
+	if (dg_act) {
+		BLI_strncpy(dg_act_name, dg_act->name, sizeof(dg_act_name));
+	}
 
 	/* Macro to loop through selected objects and perform operation depending on function, option and method.*/
 	CTX_DATA_BEGIN (C, Object *, ob_src, selected_editable_objects)
@@ -3782,8 +3816,11 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 				continue;
 			}
 			else if (ob_src->type != OB_MESH) {
-				BKE_reportf(op->reports, RPT_WARNING,
-				            "Skipping object '%s' only copying from meshes is supported", ob_src->id.name + 2);
+				/* armatures can be in pose mode so ignore them */
+				if (ob_src->type != OB_ARMATURE) {
+					BKE_reportf(op->reports, RPT_WARNING,
+					            "Skipping object '%s' only copying from meshes is supported", ob_src->id.name + 2);
+				}
 				continue;
 			}
 
@@ -3792,7 +3829,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 				case WT_REPLACE_ACTIVE_VERTEX_GROUP:
 				{
 					bDeformGroup *dg_src;
-					dg_src = BLI_findlink(&ob_src->defbase, ob_src->actdef - 1);
+					dg_src = defgroup_find_name(ob_src, dg_act_name);
+
+					if (dg_src == NULL) {
+						BKE_reportf(op->reports, RPT_WARNING,
+						            "Skipping object '%s' no group '%s' found", ob_src->id.name + 2, dg_act_name);
+						continue;
+					}
+
 					if (ed_vgroup_transfer_weight(ob_act, ob_src, dg_src, scene, method, replace_mode, op)) {
 						change = true;
 					}
@@ -3823,14 +3867,30 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (change) {
+
+		/* possible the active vertex group changed because of adding/removing */
+		/* note!, dg_act may be realloc'd, only check its not NULL */
+		if (dg_act) {
+			ED_vgroup_select_by_name(ob_act, dg_act_name);
+		}
+		else {
+			ED_vgroup_sync_from_pose(ob_act);
+		}
+
 		/* Event notifiers for correct display of data.*/
+
+
 		DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_act);  /* for buttons */
 		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob_act);
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
-		return OPERATOR_CANCELLED;
+		if (op->reports->list.first == NULL) {
+			BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
+		}
+
+		return OPERATOR_FINISHED; /* to get the chance to make changes in the redo panel */
 	}
 }
 
@@ -3843,7 +3903,7 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->description = "Transfer weight paint to active from selected mesh";
 
 	/* API callbacks.*/
-	ot->poll = vertex_group_mesh_can_add_poll;
+	ot->poll = vertex_group_mesh_supported_poll;
 	ot->exec = vertex_group_transfer_weight_exec;
 
 	/* Flags.*/
@@ -3851,7 +3911,7 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 
 	/* Properties.*/
 	/* TODO, use vgroup_operator_subset_select_props for group_select_mode */
-	ot->prop = RNA_def_enum(ot->srna, "group_select_mode", WT_vertex_group_mode_item, WT_REPLACE_ACTIVE_VERTEX_GROUP, "Group", "");
+	ot->prop = RNA_def_enum(ot->srna, "group_select_mode", WT_vertex_group_mode_item, WT_REPLACE_ALL_VERTEX_GROUPS, "Group", "");
 	ot->prop = RNA_def_enum(ot->srna, "method", WT_method_item, WT_BY_NEAREST_FACE, "Method", "");
 	ot->prop = RNA_def_enum(ot->srna, "replace_mode", WT_replace_mode_item, WT_REPLACE_ALL_WEIGHTS, "Replace", "");
 }

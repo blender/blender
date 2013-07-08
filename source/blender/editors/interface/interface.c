@@ -901,6 +901,114 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 	return found;
 }
 
+static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but, char *buf, const size_t buf_len)
+{	
+	/* context toggle operator names to check... */
+	const char *ctx_toggle_opnames[] = {
+		"WM_OT_context_toggle",
+		"WM_OT_context_toggle_enum",
+		"WM_OT_context_cycle_int",
+		"WM_OT_context_cycle_enum",
+		"WM_OT_context_cycle_array",
+		"WM_OT_context_menu_enum",
+		NULL
+	};		
+	const size_t num_ops = sizeof(ctx_toggle_opnames) / sizeof(const char *);
+	
+	bool found = false;
+	
+	/* this version is only for finding hotkeys for properties (which get set via context using operators) */
+	if (but->rnaprop) {
+		/* to avoid massive slowdowns on property panels, for now, we only check the 
+		 * hotkeys for Editor / Scene settings...
+		 *
+		 * TODO: userpref settings?
+		 */
+		// TODO: value (for enum stuff)?
+		char *data_path = NULL;
+		
+		if (but->rnapoin.id.data) {
+			ID *id = but->rnapoin.id.data;
+			
+			if (GS(id->name) == ID_SCR) {
+				/* screen/editor property 
+				 * NOTE: in most cases, there is actually no info for backwards tracing 
+				 * how to get back to ID from the editor data we may be dealing with
+				 */
+				if (RNA_struct_is_a(but->rnapoin.type, &RNA_Space)) {
+					/* data should be directly on here... */
+					data_path = BLI_sprintfN("space_data.%s", RNA_property_identifier(but->rnaprop));
+				}
+				else {
+					/* special exceptions for common nested data in editors... */
+					if (RNA_struct_is_a(but->rnapoin.type, &RNA_DopeSheet)) {
+						/* dopesheet filtering options... */
+						data_path = BLI_sprintfN("space_data.dopesheet.%s", RNA_property_identifier(but->rnaprop));
+					}
+				}
+			}
+			else if (GS(id->name) == ID_SCE) {
+				if (RNA_struct_is_a(but->rnapoin.type, &RNA_ToolSettings)) {
+					/* toolsettings property 
+					 * NOTE: toolsettings is usually accessed directly (i.e. not through scene)
+					 */
+					data_path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
+				}
+				else {
+					/* scene property */
+					char *path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
+					
+					if (path) {
+						data_path = BLI_sprintfN("scene.%s", path);
+						MEM_freeN(path);
+					}
+					else {
+						printf("ERROR in %s(): Couldn't get path for scene property - %s\n", 
+						       __func__, RNA_property_identifier(but->rnaprop));
+					}
+				}
+			}
+			else {
+				//puts("other id");
+			}
+			
+			//printf("prop shortcut: '%s' (%s)\n", RNA_property_identifier(but->rnaprop), data_path);
+		}
+		
+		/* we have a datapath! */
+		if (data_path) {
+			size_t i;
+			
+			/* create a property to host the "datapath" property we're sending to the operators */
+			IDProperty *prop_path;
+			IDProperty *prop_path_value;
+			
+			IDPropertyTemplate val = {0};
+			prop_path = IDP_New(IDP_GROUP, &val, __func__);
+			prop_path_value = IDP_NewString(data_path, "data_path", strlen(data_path) + 1); /* len + 1, or else will be truncated */
+			IDP_AddToGroup(prop_path, prop_path_value);
+			
+			/* check each until one works... */
+			for (i = 0; (i < num_ops) && (ctx_toggle_opnames[i]); i++) {
+				//printf("\t%s\n", ctx_toggle_opnames[i]);
+				if (WM_key_event_operator_string(C, ctx_toggle_opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false,
+				                                 buf, buf_len))
+				{
+					found = true;
+					break;
+				}
+			}
+			
+			/* cleanup */
+			IDP_FreeProperty(prop_path);
+			MEM_freeN(prop_path);
+			MEM_freeN(data_path);
+		}
+	}
+	
+	return found;
+}
+
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
@@ -913,6 +1021,9 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	for (but = block->buttons.first; but; but = but->next) {
 
 		if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+			ui_but_add_shortcut(but, buf, FALSE);
+		}
+		else if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
 			ui_but_add_shortcut(but, buf, FALSE);
 		}
 	}
@@ -4009,6 +4120,13 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 				if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
 					tmp = BLI_strdup(buf);
 				}
+			}
+		}
+		else if (type == BUT_GET_PROP_KEYMAP) {
+			/* for properties that are bound to one of the context cycle, etc. keys... */
+			char buf[128];
+			if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
+				tmp = BLI_strdup(buf);
 			}
 		}
 

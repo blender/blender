@@ -2047,8 +2047,6 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 	DAG_id_tag_update(&me->id, 0);
 	
 	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-		Object *par;
-		
 		if (wp == NULL)
 			wp = scene->toolsettings->wpaint = new_vpaint(1);
 
@@ -2057,14 +2055,7 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
-		/* verify if active weight group is also active bone */
-		par = modifiers_isDeformedByArmature(ob);
-		if (par && (par->mode & OB_MODE_POSE)) {
-			bArmature *arm = par->data;
-
-			if (arm->act_bone)
-				ED_vgroup_select_by_name(ob, arm->act_bone->name);
-		}
+		ED_vgroup_sync_from_pose(ob);
 	}
 	else {
 		mesh_octree_table(NULL, NULL, NULL, 'e');

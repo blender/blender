@@ -471,24 +471,6 @@ class WM_OT_context_cycle_array(Operator):
         return operator_path_undo_return(context, data_path)
 
 
-class WM_MT_context_menu_enum(Menu):
-    bl_label = ""
-    data_path = ""  # BAD DESIGN, set from operator below.
-
-    def draw(self, context):
-        data_path = self.data_path
-        value = context_path_validate(context, data_path)
-        if value is Ellipsis:
-            return {'PASS_THROUGH'}
-        base_path, prop_string = data_path.rsplit(".", 1)
-        value_base = context_path_validate(context, base_path)
-        prop = value_base.bl_rna.properties[prop_string]
-
-        layout = self.layout
-        layout.label(prop.name, icon=prop.icon)
-        layout.prop(value_base, prop_string, expand=True)
-
-
 class WM_OT_context_menu_enum(Operator):
     bl_idname = "wm.context_menu_enum"
     bl_label = "Context Enum Menu"
@@ -497,8 +479,21 @@ class WM_OT_context_menu_enum(Operator):
 
     def execute(self, context):
         data_path = self.data_path
-        WM_MT_context_menu_enum.data_path = data_path
-        bpy.ops.wm.call_menu(name="WM_MT_context_menu_enum")
+        value = context_path_validate(context, data_path)
+
+        if value is Ellipsis:
+            return {'PASS_THROUGH'}
+
+        base_path, prop_string = data_path.rsplit(".", 1)
+        value_base = context_path_validate(context, base_path)
+        prop = value_base.bl_rna.properties[prop_string]
+
+        def draw_cb(self, context):
+            layout = self.layout
+            layout.prop(value_base, prop_string, expand=True)
+
+        context.window_manager.popup_menu(draw_func=draw_cb, title=prop.name, icon=prop.icon)
+
         return {'PASS_THROUGH'}
 
 
