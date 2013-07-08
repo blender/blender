@@ -282,125 +282,121 @@ void bmo_region_extend_exec(BMesh *bm, BMOperator *op)
 
 #define FACE_VIS	1
 #define FACE_FLAG	2
-// #define FACE_MARK	4  /* UNUSED */
 #define FACE_FLIP	8
 
-/* NOTE: these are the original recalc_face_normals comment in editmesh_mods.c,
- *       copied here for reference. */
-
-/* based at a select-connected to witness loose objects */
-
-/* count per edge the amount of faces
- * find the ultimate left, front, upper face (not manhattan dist!!)
- * also evaluate both triangle cases in quad, since these can be non-flat
- *
+/*
  * put normal to the outside, and set the first direction flags in edges
  *
  * then check the object, and set directions / direction-flags: but only for edges with 1 or 2 faces
  * this is in fact the 'select connected'
  *
- * in case (selected) faces were not done: start over with 'find the ultimate ...' */
-
-/* NOTE: this function uses recursion, which is a little unusual for a bmop
- *       function, but acceptable I think. */
+ * in case all faces were not done: start over with 'find the ultimate ...' */
 
 /* NOTE: BM_ELEM_TAG is used on faces to tell if they are flipped. */
 
 void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 {
-	BMIter liter, liter2;
-	BMOIter siter;
-	BMFace *f, *startf;
 	BMFace **fstack;
 	STACK_DECLARE(fstack);
-	BMLoop *l, *l2;
-	float maxx, maxx_test, cent[3];
-	const bool use_flip = BMO_slot_bool_get(op->slots_in, "use_face_tag");
-
-	startf = NULL;
-	maxx = -1.0e10;
+	const bool use_face_tag = BMO_slot_bool_get(op->slots_in, "use_face_tag");
+	const unsigned int tot_faces = BMO_slot_buffer_count(op->slots_in, "faces");
+	unsigned int tot_touch = 0;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_FLAG);
 
-	/* find a starting face */
-	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
+	fstack = MEM_mallocN(sizeof(*fstack) * tot_faces, __func__);
 
-		/* clear dirty flag */
-		BM_elem_flag_disable(f, BM_ELEM_TAG);
+	while (tot_touch != tot_faces) {
+		BMOIter siter;
+		float f_len_best = -FLT_MAX;
+		BMFace *f, *f_start = NULL;
+		float f_start_cent[3];
 
-		if (BMO_elem_flag_test(bm, f, FACE_VIS))
-			continue;
+		/* find a starting face */
+		BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
+			float f_cent[3];
+			float f_len_test;
 
-		if (!startf) startf = f;
+			/* clear dirty flag */
+			BM_elem_flag_disable(f, BM_ELEM_TAG);
 
-		BM_face_calc_center_bounds(f, cent);
+			if (BMO_elem_flag_test(bm, f, FACE_VIS))
+				continue;
 
-		if ((maxx_test = dot_v3v3(cent, cent)) > maxx) {
-			maxx = maxx_test;
-			startf = f;
+			if (!f_start) f_start = f;
+
+			BM_face_calc_center_bounds(f, f_cent);
+
+			if ((f_len_test = len_squared_v3(f_cent)) > f_len_best) {
+				f_len_best = f_len_test;
+				f_start = f;
+				copy_v3_v3(f_start_cent, f_cent);
+			}
 		}
-	}
 
-	if (!startf) return;
+		/* check sanity (while loop ensures) */
+		BLI_assert(f_start != NULL);
 
-	BM_face_calc_center_bounds(startf, cent);
+		/* make sure the starting face has the correct winding */
+		if (dot_v3v3(f_start_cent, f_start->no) < 0.0f) {
+			BM_face_normal_flip(bm, f_start);
+			BMO_elem_flag_toggle(bm, f_start, FACE_FLIP);
 
-	/* make sure the starting face has the correct winding */
-	if (dot_v3v3(cent, startf->no) < 0.0f) {
-		BM_face_normal_flip(bm, startf);
-		BMO_elem_flag_toggle(bm, startf, FACE_FLIP);
+			if (use_face_tag) {
+				BM_elem_flag_toggle(f_start, BM_ELEM_TAG);
+			}
+		}
 
-		if (use_flip)
-			BM_elem_flag_toggle(startf, BM_ELEM_TAG);
-	}
-	
-	/* now that we've found our starting face, make all connected faces
-	 * have the same winding.  this is done recursively, using a manual
-	 * stack (if we use simple function recursion, we'd end up overloading
-	 * the stack on large meshes). */
-	fstack = MEM_mallocN(sizeof(*fstack) * BMO_slot_buffer_count(op->slots_in, "faces"), __func__);
-	STACK_INIT(fstack);
-	STACK_PUSH(fstack, startf);
-	BMO_elem_flag_enable(bm, startf, FACE_VIS);
+		/* now that we've found our starting face, make all connected faces
+		 * have the same winding.  this is done recursively, using a manual
+		 * stack (if we use simple function recursion, we'd end up overloading
+		 * the stack on large meshes). */
+		STACK_INIT(fstack);
 
-	while ((f = STACK_POP(fstack))) {
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
-				if (!BMO_elem_flag_test(bm, l2->f, FACE_FLAG) || l2 == l)
+		STACK_PUSH(fstack, f_start);
+		BMO_elem_flag_enable(bm, f_start, FACE_VIS);
+		tot_touch++;
+
+		while ((f = STACK_POP(fstack))) {
+			BMIter liter;
+			BMLoop *l;
+
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				BMLoop *l_other = l->radial_next;
+
+				if ((l_other == l) || l_other->radial_next != l) {
 					continue;
+				}
 
-				if (!BMO_elem_flag_test(bm, l2->f, FACE_VIS)) {
-					BMO_elem_flag_enable(bm, l2->f, FACE_VIS);
+				if (BMO_elem_flag_test(bm, l_other->f, FACE_FLAG)) {
+					if (!BMO_elem_flag_test(bm, l_other->f, FACE_VIS)) {
+						BMO_elem_flag_enable(bm, l_other->f, FACE_VIS);
+						tot_touch++;
 
-					if (l2->v == l->v) {
-						BM_face_normal_flip(bm, l2->f);
-						
-						BMO_elem_flag_toggle(bm, l2->f, FACE_FLIP);
-						if (use_flip)
-							BM_elem_flag_toggle(l2->f, BM_ELEM_TAG);
-					}
-					else if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) || BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
-						if (use_flip) {
-							BM_elem_flag_disable(l->f, BM_ELEM_TAG);
-							BM_elem_flag_disable(l2->f, BM_ELEM_TAG);
+
+						if (l_other->v == l->v) {
+							BM_face_normal_flip(bm, l_other->f);
+
+							BMO_elem_flag_toggle(bm, l_other->f, FACE_FLIP);
+							if (use_face_tag) {
+								BM_elem_flag_toggle(l_other->f, BM_ELEM_TAG);
+							}
 						}
+						else if (BM_elem_flag_test(l_other->f, BM_ELEM_TAG) || BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
+							if (use_face_tag) {
+								BM_elem_flag_disable(l->f, BM_ELEM_TAG);
+								BM_elem_flag_disable(l_other->f, BM_ELEM_TAG);
+							}
+						}
+
+						STACK_PUSH(fstack, l_other->f);
 					}
-					
-					STACK_PUSH(fstack, l2->f);
 				}
 			}
 		}
 	}
 
 	MEM_freeN(fstack);
-
-	/* check if we have faces yet to do.  if so, recurse */
-	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
-		if (!BMO_elem_flag_test(bm, f, FACE_VIS)) {
-			bmo_recalc_face_normals_exec(bm, op);
-			break;
-		}
-	}
 }
 
 void bmo_smooth_vert_exec(BMesh *UNUSED(bm), BMOperator *op)
