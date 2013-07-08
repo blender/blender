@@ -223,7 +223,7 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 					float3 f = make_float3(in[0], in[1], in[2]);
 					float3 f_divide = make_float3(in_divide[0], in_divide[1], in_divide[2]);
 
-					f = safe_divide_color(f*exposure, f_divide);
+					f = safe_divide_even_color(f*exposure, f_divide);
 
 					pixels[0] = f.x;
 					pixels[1] = f.y;
