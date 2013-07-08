@@ -1268,6 +1268,15 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 
 			if (ob->recalc & OB_RECALC_ALL) {
 				BKE_object_free_derived_caches(ob);
+
+				if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP)) {
+					GroupObject *go;
+					for (go = ob->dup_group->gobject.first; go; go = go->next) {
+						if (go->ob && go->ob->recalc) {
+							BKE_object_free_derived_caches(go->ob);
+						}
+					}
+				}
 			}
 		}
 	}
