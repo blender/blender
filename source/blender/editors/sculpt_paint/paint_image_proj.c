@@ -2820,6 +2820,8 @@ static void project_paint_begin(ProjPaintState *ps)
 
 	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
 
+	bool reset_threads = false;
+
 	/* ---- end defines ---- */
 
 	if (ps->source == PROJ_SRC_VIEW)
@@ -3064,6 +3066,10 @@ static void project_paint_begin(ProjPaintState *ps)
 
 	/* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
 
+	if (ps->buckets_x > PROJ_BUCKET_RECT_MAX || ps->buckets_y > PROJ_BUCKET_RECT_MAX) {
+		reset_threads = true;
+	}
+
 	/* really high values could cause problems since it has to allocate a few
 	 * (ps->buckets_x*ps->buckets_y) sized arrays  */
 	CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
@@ -3088,6 +3094,11 @@ static void project_paint_begin(ProjPaintState *ps)
 	 * Only use threads for bigger brushes. */
 
 	ps->thread_tot = BKE_scene_num_threads(ps->scene);
+
+	/* workaround for #35057, disable threading if diameter is less than is possible for
+	 * optimum bucket number generation */
+	if (reset_threads)
+		ps->thread_tot = 1;
 
 	for (a = 0; a < ps->thread_tot; a++) {
 		ps->arena_mt[a] = BLI_memarena_new(1 << 16, "project paint arena");
