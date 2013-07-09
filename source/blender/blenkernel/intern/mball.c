@@ -486,14 +486,15 @@ void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 	MetaBall *active_mball = (MetaBall *)active_object->data;
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
-	
+	SceneBaseIter iter;
+
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name + 2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
-	if (F_ERROR == BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
+	if (F_ERROR == BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL))
 		return;
 	
-	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob != active_object) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
@@ -530,14 +531,15 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
 	Object *ob, *bob = basis;
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
+	SceneBaseIter iter;
 
 	BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
-	if (F_ERROR == BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
+	if (F_ERROR == BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL))
 		return NULL;
 
-	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob != bob) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
@@ -1656,7 +1658,8 @@ static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return 
 	//float max = 0.0f;
 	int a, obnr, zero_size = 0;
 	char obname[MAX_ID_NAME];
-	
+	SceneBaseIter iter;
+
 	copy_m4_m4(obmat, ob->obmat);   /* to cope with duplicators from BKE_scene_base_iter_next */
 	invert_m4_m4(obinv, ob->obmat);
 	a = 0;
@@ -1664,8 +1667,8 @@ static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return 
 	BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
 	
 	/* make main array */
-	BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL);
-	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &bob)) {
+	BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &bob)) {
 
 		if (bob->type == OB_MBALL) {
 			zero_size = 0;
@@ -2226,15 +2229,16 @@ static void mball_count(PROCESS *process, Scene *scene, Object *basis)
 	MetaElem *ml = NULL;
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
+	SceneBaseIter iter;
 
 	BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
 	process->totelem = 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
-	if (F_ERROR == BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
+	if (F_ERROR == BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL))
 		return;
 
-	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob == bob) {
 				MetaBall *mb = ob->data;

@@ -6385,6 +6385,15 @@ bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, bool i
 			return equals;
 		}
 
+		case PROP_POINTER:
+		{
+			if (!STREQ(RNA_property_identifier(prop), "rna_type")) {
+				PointerRNA propptr_a = RNA_property_pointer_get(a, prop);
+				PointerRNA propptr_b = RNA_property_pointer_get(b, prop);
+				return RNA_struct_equals(&propptr_a, &propptr_b, is_strict);
+			}
+		}
+
 		default:
 			break;
 	}

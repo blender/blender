@@ -847,19 +847,6 @@ int txt_utf8_column_to_offset(const char *str, int column)
 	return offset;
 }
 
-/* returns the real number of characters in string */
-/* not the same as BLI_strlen_utf8, which returns length for wide characters */
-static int txt_utf8_len(const char *src)
-{
-	int len;
-
-	for (len = 0; *src; len++) {
-		src += BLI_str_utf8_size(src);
-	}
-
-	return len;
-}
-
 void txt_move_up(Text *text, short sel)
 {
 	TextLine **linep;
@@ -2059,7 +2046,7 @@ void txt_do_undo(Text *text)
 				text->undo_pos--;
 			}
 			buf[i] = 0;
-			linep = txt_utf8_len(buf);
+			linep = BLI_strlen_utf8(buf);
 			MEM_freeN(buf);
 			
 			/* skip over the length that was stored again */

@@ -759,11 +759,13 @@ void RENDER_OT_render(wmOperatorType *ot)
 #define PR_UPDATE_VIEW				1
 #define PR_UPDATE_RENDERSIZE		2
 #define PR_UPDATE_MATERIAL			4
+#define PR_UPDATE_DATABASE			8
 
 typedef struct RenderPreview {
 	/* from wmJob */
 	void *owner;
 	short *stop, *do_update;
+	wmJob *job;
 	
 	Scene *scene;
 	ScrArea *sa;
@@ -774,8 +776,6 @@ typedef struct RenderPreview {
 	RenderEngine *engine;
 	
 	float viewmat[4][4];
-	
-	int keep_data;
 } RenderPreview;
 
 static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rcti *disprect)
@@ -876,7 +876,13 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	float clipsta, clipend, pixsize;
 	bool orth, restore = 0;
 	char name[32];
-		
+	int update_flag;
+
+	update_flag = rp->engine->job_update_flag;
+	rp->engine->job_update_flag = 0;
+
+	//printf("ma %d res %d view %d db %d\n", update_flag & PR_UPDATE_MATERIAL, update_flag & PR_UPDATE_RENDERSIZE, update_flag & PR_UPDATE_VIEW, update_flag & PR_UPDATE_DATABASE);
+
 	G.is_break = FALSE;
 	
 	if (false == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &pixsize, &orth))
@@ -891,13 +897,6 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	sprintf(name, "View3dPreview %p", (void *)rp->ar);
 	re = rp->engine->re = RE_GetRender(name);
 	
-	if (rp->engine->re == NULL) {
-		
-		re = rp->engine->re = RE_NewRender(name);
-		
-		rp->keep_data = 0;
-	}
-	
 	/* set this always, rp is different for each job */
 	RE_test_break_cb(re, rp, render_view3d_break);
 	RE_display_draw_cb(re, rp, render_view3d_draw_update);
@@ -905,7 +904,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	
 	rstats = RE_GetStats(re);
 
-	if (rp->keep_data == 0 || rstats->convertdone == 0 || (rp->keep_data & PR_UPDATE_RENDERSIZE)) {
+	if ((update_flag & (PR_UPDATE_RENDERSIZE|PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
 		/* no osa, blur, seq, layers, etc for preview render */
 		rdata = rp->scene->r;
 		rdata.mode &= ~(R_OSA | R_MBLUR | R_BORDER | R_PANORAMA);
@@ -931,11 +930,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 
 	RE_SetPixelSize(re, pixsize);
 	
-	/* database free can crash on a empty Render... */
-	if (rp->keep_data == 0 && rstats->convertdone)
-		RE_Database_Free(re);
-
-	if (rstats->convertdone == 0) {
+	if ((update_flag & PR_UPDATE_DATABASE) || rstats->convertdone == 0) {
 		unsigned int lay = rp->scene->lay;
 
 		/* allow localview render for objects with lights in normal layers */
@@ -944,8 +939,20 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		else lay = rp->v3d->lay;
 		
 		RE_SetView(re, rp->viewmat);
-		
+
+		/* copying blender data while main thread is locked, to avoid crashes */
+		WM_job_main_thread_lock_acquire(rp->job);
+		RE_Database_Free(re);
 		RE_Database_FromScene(re, rp->bmain, rp->scene, lay, 0);		// 0= dont use camera view
+		WM_job_main_thread_lock_release(rp->job);
+
+		/* do preprocessing like building raytree, shadows, volumes, SSS */
+		RE_Database_Preprocess(re);
+
+		/* conversion not completed, need to do it again */
+		if (!rstats->convertdone)
+			rp->engine->job_update_flag |= PR_UPDATE_DATABASE;
+
 		// printf("dbase update\n");
 	}
 	else {
@@ -963,8 +970,6 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		/* always rotate back */
 		if (restore)
 			RE_DataBase_IncrementalView(re, rp->viewmat, 1);
-
-		rp->engine->flag &= ~RE_ENGINE_DO_UPDATE;
 	}
 }
 
@@ -975,21 +980,99 @@ static void render_view3d_free(void *customdata)
 	MEM_freeN(rp);
 }
 
-static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_data)
+static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
+{
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
+	Render *re;
+	rctf viewplane;
+	rcti disprect;
+	float clipsta, clipend;
+	bool orth;
+	int job_update_flag = 0;
+	char name[32];
+	
+	/* ensure render engine exists */
+	re = engine->re;
+
+	if (!re) {
+		sprintf(name, "View3dPreview %p", (void *)ar);
+		re = engine->re = RE_GetRender(name);
+		if (!re)
+			re = engine->re = RE_NewRender(name);
+
+		engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
+	}
+
+	/* check update_flag */
+	if (engine->update_flag & RE_ENGINE_UPDATE_MA)
+		job_update_flag |= PR_UPDATE_MATERIAL;
+	
+	if (engine->update_flag & RE_ENGINE_UPDATE_OTHER)
+		job_update_flag |= PR_UPDATE_MATERIAL;
+	
+	if (engine->update_flag & RE_ENGINE_UPDATE_DATABASE) {
+		job_update_flag |= PR_UPDATE_DATABASE;
+
+		/* load editmesh */
+		if (scene->obedit)
+			ED_object_editmode_load(scene->obedit);
+	}
+	
+	engine->update_flag = 0;
+	
+	/* check if viewport changed */
+	if (engine->last_winx != ar->winx || engine->last_winy != ar->winy) {
+		engine->last_winx = ar->winx;
+		engine->last_winy = ar->winy;
+		job_update_flag |= PR_UPDATE_RENDERSIZE;
+	}
+
+	if (compare_m4m4(engine->last_viewmat, rv3d->viewmat, 0.00001f) == 0) {
+		copy_m4_m4(engine->last_viewmat, rv3d->viewmat);
+		job_update_flag |= PR_UPDATE_VIEW;
+	}
+	
+	render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, NULL, &orth);
+	
+	if (BLI_rctf_compare(&viewplane, &engine->last_viewplane, 0.00001f) == 0) {
+		engine->last_viewplane = viewplane;
+		job_update_flag |= PR_UPDATE_VIEW;
+	}
+	
+	render_view3d_disprect(scene, ar, v3d, rv3d, &disprect);
+	if (BLI_rcti_compare(&disprect, &engine->last_disprect) == 0) {
+		engine->last_disprect = disprect;
+		job_update_flag |= PR_UPDATE_RENDERSIZE;
+	}
+
+	/* any changes? go ahead and rerender */
+	if (job_update_flag) {
+		engine->job_update_flag |= job_update_flag;
+		return true;
+	}
+
+	return false;
+}
+
+static void render_view3d_do(RenderEngine *engine, const bContext *C)
 {
 	wmJob *wm_job;
 	RenderPreview *rp;
 	Scene *scene = CTX_data_scene(C);
 	
-	if (CTX_wm_window(C) == NULL) {
-		engine->flag |= RE_ENGINE_DO_UPDATE;
+	if (CTX_wm_window(C) == NULL)
 		return;
-	}
+	if (!render_view3d_flag_changed(engine, C))
+		return;
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), CTX_wm_region(C), "Render Preview",
 	                     WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	rp = MEM_callocN(sizeof(RenderPreview), "render preview");
-	
+	rp->job = wm_job;
+
 	/* customdata for preview thread */
 	rp->scene = scene;
 	rp->engine = engine;
@@ -998,7 +1081,6 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 	rp->v3d = rp->sa->spacedata.first;
 	rp->rv3d = CTX_wm_region_view3d(C);
 	rp->bmain = CTX_data_main(C);
-	rp->keep_data = keep_data;
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
 	
 	/* dont alloc in threads */
@@ -1013,80 +1095,33 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C, int keep_d
 	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	
 	engine->flag &= ~RE_ENGINE_DO_UPDATE;
-
 }
 
 /* callback for render engine , on changes */
-void render_view3d(RenderEngine *engine, const bContext *C)
+void render_view3d_update(RenderEngine *engine, const bContext *C)
 {	
-	render_view3d_do(engine, C, 0);
-}
+	/* this shouldn't be needed and causes too many database rebuilds, but we
+	 * aren't actually tracking updates for all relevent datablocks so this is
+	 * a catch-all for updates */
+	engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
 
-static int render_view3d_changed(RenderEngine *engine, const bContext *C)
-{
-	ARegion *ar = CTX_wm_region(C);
-	Render *re;
-	int update = 0;
-	char name[32];
-	
-	sprintf(name, "View3dPreview %p", (void *)ar);
-	re = RE_GetRender(name);
-
-	if (re) {
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-		View3D *v3d = CTX_wm_view3d(C);
-		Scene *scene = CTX_data_scene(C);
-		rctf viewplane, viewplane1;
-		rcti disprect, disprect1;
-		float mat[4][4];
-		float clipsta, clipend;
-		bool orth;
-
-		if (engine->update_flag & RE_ENGINE_UPDATE_MA)
-			update |= PR_UPDATE_MATERIAL;
-		
-		if (engine->update_flag & RE_ENGINE_UPDATE_OTHER)
-			update |= PR_UPDATE_MATERIAL;
-		
-		engine->update_flag = 0;
-		
-		if (engine->resolution_x != ar->winx || engine->resolution_y != ar->winy)
-			update |= PR_UPDATE_RENDERSIZE;
-
-		RE_GetView(re, mat);
-		if (compare_m4m4(mat, rv3d->viewmat, 0.00001f) == 0) {
-			update |= PR_UPDATE_VIEW;
-		}
-		
-		render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, NULL, &orth);
-		RE_GetViewPlane(re, &viewplane1, &disprect1);
-		
-		if (BLI_rctf_compare(&viewplane, &viewplane1, 0.00001f) == 0)
-			update |= PR_UPDATE_VIEW;
-		
-		render_view3d_disprect(scene, ar, v3d, rv3d, &disprect);
-		if (BLI_rcti_compare(&disprect, &disprect1) == 0)
-			update |= PR_UPDATE_RENDERSIZE;
-		
-		if (update)
-			engine->flag |= RE_ENGINE_DO_UPDATE;
-		//if (update)
-		//	printf("changed ma %d res %d view %d\n", update & PR_UPDATE_MATERIAL, update & PR_UPDATE_RENDERSIZE, update & PR_UPDATE_VIEW);
-	}
-	
-	return update;
+	render_view3d_do(engine, C);
 }
 
 void render_view3d_draw(RenderEngine *engine, const bContext *C)
 {
 	Render *re = engine->re;
 	RenderResult rres;
-	int keep_data = render_view3d_changed(engine, C);
+	char name[32];
 	
-	if (engine->flag & RE_ENGINE_DO_UPDATE)
-		render_view3d_do(engine, C, keep_data);
-
-	if (re == NULL) return;
+	render_view3d_do(engine, C);
+	
+	if (re == NULL) {
+		sprintf(name, "View3dPreview %p", (void *)CTX_wm_region(C));
+		re = RE_GetRender(name);
+	
+		if (re == NULL) return;
+	}
 	
 	RE_AcquireResultImage(re, &rres);
 	
@@ -1136,3 +1171,52 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 
 	RE_ReleaseResultImage(re);
 }
+
+void ED_viewport_render_kill_jobs(const bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	Main *bmain = CTX_data_main(C);
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+
+	if (!wm)
+		return;
+
+	/* kill all actively running jobs */
+	WM_jobs_kill(wm, NULL, render_view3d_startjob);
+
+	/* loop over 3D view render engines */
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			if (sa->spacetype != SPACE_VIEW3D)
+				continue;
+			
+			for (ar = sa->regionbase.first; ar; ar = ar->next) {
+				RegionView3D *rv3d;
+				
+				if (ar->regiontype != RGN_TYPE_WINDOW)
+					continue;
+				
+				rv3d = ar->regiondata;
+
+				if (rv3d->render_engine) {
+					/* free render database now before we change data, because
+					 * RE_Database_Free will also loop over blender data */
+					char name[32];
+					Render *re;
+
+					sprintf(name, "View3dPreview %p", (void *)ar);
+					re = RE_GetRender(name);
+
+					if (re)
+						RE_Database_Free(re);
+
+					/* tag render engine to update entire database */
+					rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
+				}
+			}
+		}
+	}
+}
+

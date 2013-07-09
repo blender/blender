@@ -3000,7 +3000,7 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 		return 0;
 	}
 
-	if (ob->actdef != -1) {
+	if (ob->actdef != 0) {
 		bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef - 1);
 		if (dg) {
 			return !(dg->flag & DG_LOCK_WEIGHT);

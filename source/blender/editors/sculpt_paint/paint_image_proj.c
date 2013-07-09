@@ -245,7 +245,8 @@ typedef struct ProjPaintState {
 	float normal_angle_inner;
 	float normal_angle_range;       /* difference between normal_angle and normal_angle_inner, for easy access */
 
-	short is_ortho;
+	bool do_face_sel;               /* quick access to (me->editflag & ME_EDIT_PAINT_FACE_SEL) */
+	bool is_ortho;
 	bool do_masking;              /* use masking during painting. Some operations such as airbrush may disable */
 	bool is_texbrush;              /* only to avoid running  */
 	bool is_maskbrush;            /* mask brush is applied before masking */
@@ -2809,21 +2810,27 @@ static void project_paint_begin(ProjPaintState *ps)
 	Image *tpage_last = NULL, *tpage;
 
 	/* Face vars */
+	MPoly *mpoly_orig;
 	MFace *mf;
 	MTFace *tf;
 
 	int a, i; /* generic looping vars */
 	int image_index = -1, face_index;
+	int *mpoly_origindex;
 	MVert *mv;
 
 	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
 
 	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
 
+	bool reset_threads = false;
+
 	/* ---- end defines ---- */
 
 	if (ps->source == PROJ_SRC_VIEW)
 		ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat);  /* faster clipping lookups */
+
+	ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);
 
 	/* paint onto the derived mesh */
 
@@ -2833,12 +2840,17 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
 		ps->dm_release = TRUE;
 	}
-	else if (ps->ob->derivedFinal && CustomData_has_layer(&ps->ob->derivedFinal->faceData, CD_MTFACE)) {
+	else if (ps->ob->derivedFinal &&
+	         CustomData_has_layer(&ps->ob->derivedFinal->faceData, CD_MTFACE) &&
+	         (ps->do_face_sel == false || CustomData_has_layer(&ps->ob->derivedFinal->polyData, CD_ORIGINDEX)))
+	{
 		ps->dm = ps->ob->derivedFinal;
 		ps->dm_release = FALSE;
 	}
 	else {
-		ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
+		ps->dm = mesh_get_derived_final(
+		             ps->scene, ps->ob,
+		             ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
 		ps->dm_release = TRUE;
 	}
 
@@ -2857,6 +2869,15 @@ static void project_paint_begin(ProjPaintState *ps)
 
 	ps->dm_totvert = ps->dm->getNumVerts(ps->dm);
 	ps->dm_totface = ps->dm->getNumTessFaces(ps->dm);
+
+	if (ps->do_face_sel) {
+		mpoly_orig = ((Mesh *)ps->ob->data)->mpoly;
+		mpoly_origindex = ps->dm->getPolyDataArray(ps->dm, CD_ORIGINDEX);
+	}
+	else {
+		mpoly_orig = NULL;
+		mpoly_origindex = NULL;
+	}
 
 	/* use clone mtface? */
 
@@ -3064,6 +3085,10 @@ static void project_paint_begin(ProjPaintState *ps)
 
 	/* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
 
+	if (ps->buckets_x > PROJ_BUCKET_RECT_MAX || ps->buckets_y > PROJ_BUCKET_RECT_MAX) {
+		reset_threads = true;
+	}
+
 	/* really high values could cause problems since it has to allocate a few
 	 * (ps->buckets_x*ps->buckets_y) sized arrays  */
 	CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
@@ -3088,6 +3113,11 @@ static void project_paint_begin(ProjPaintState *ps)
 	 * Only use threads for bigger brushes. */
 
 	ps->thread_tot = BKE_scene_num_threads(ps->scene);
+
+	/* workaround for #35057, disable threading if diameter is less than is possible for
+	 * optimum bucket number generation */
+	if (reset_threads)
+		ps->thread_tot = 1;
 
 	for (a = 0; a < ps->thread_tot; a++) {
 		ps->arena_mt[a] = BLI_memarena_new(1 << 16, "project paint arena");
@@ -3118,8 +3148,8 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 	}
 
-
 	for (face_index = 0, tf = ps->dm_mtface, mf = ps->dm_mface; face_index < ps->dm_totface; mf++, tf++, face_index++) {
+		bool is_face_sel;
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 		/* add face user if we have bleed enabled, set the UV seam flags later */
@@ -3134,10 +3164,21 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 #endif
 
-		tpage = project_paint_face_image(ps, ps->dm_mtface, face_index);
+		if (ps->do_face_sel) {
+			int orig_index;
+			if (mpoly_origindex && ((orig_index = mpoly_origindex[face_index])) != ORIGINDEX_NONE) {
+				MPoly *mp = mpoly_orig + orig_index;
+				is_face_sel = ((mp->flag & ME_FACE_SEL) != 0);
+			}
+			else {
+				is_face_sel = ((mf->flag & ME_FACE_SEL) != 0);
+			}
+		}
+		else {
+			is_face_sel = true;
+		}
 
-		if (tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) == 0 || mf->flag & ME_FACE_SEL)) {
-
+		if (is_face_sel && (tpage = project_paint_face_image(ps, ps->dm_mtface, face_index))) {
 			float *v1coSS, *v2coSS, *v3coSS, *v4coSS = NULL;
 
 			v1coSS = ps->screenCoords[mf->v1];

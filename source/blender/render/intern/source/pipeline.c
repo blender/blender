@@ -1142,10 +1142,13 @@ static void do_render_3d(Render *re)
 		re->draw_lock(re->dlh, 1);
 	
 	/* make render verts/faces/halos/lamps */
-	if (render_scene_needs_vector(re))
+	if (render_scene_needs_vector(re)) {
 		RE_Database_FromScene_Vectors(re, re->main, re->scene, re->lay);
-	else
+	}
+	else {
 		RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
+		RE_Database_Preprocess(re);
+	}
 	
 	/* clear UI drawing locks */
 	if (re->draw_lock)

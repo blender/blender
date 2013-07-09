@@ -70,6 +70,7 @@ struct Scene;
 /* RenderEngine.update_flag, used by internal now */
 #define RE_ENGINE_UPDATE_MA			1
 #define RE_ENGINE_UPDATE_OTHER		2
+#define RE_ENGINE_UPDATE_DATABASE	4
 
 extern ListBase R_engines;
 
@@ -97,7 +98,7 @@ typedef struct RenderEngine {
 	RenderEngineType *type;
 	void *py_instance;
 
-	int flag, update_flag;
+	int flag;
 	struct Object *camera_override;
 
 	int tile_x;
@@ -110,6 +111,15 @@ typedef struct RenderEngine {
 	int resolution_x, resolution_y;
 
 	struct ReportList *reports;
+
+	/* for blender internal only */
+	int update_flag;
+	int job_update_flag;
+
+	rctf last_viewplane;
+	rcti last_disprect;
+	float last_viewmat[4][4];
+	int last_winx, last_winy;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);

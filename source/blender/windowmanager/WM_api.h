@@ -404,6 +404,9 @@ void		WM_jobs_kill_type(struct wmWindowManager *wm, int job_type);
 
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
+void		WM_job_main_thread_lock_acquire(struct wmJob *job);
+void		WM_job_main_thread_lock_release(struct wmJob *job);
+
 			/* clipboard */
 char       *WM_clipboard_text_get(int selection);
 void        WM_clipboard_text_set(char *buf, int selection);

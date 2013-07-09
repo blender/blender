@@ -1758,6 +1758,119 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 	return vol;
 }
 
+
+/**
+ * TODO (as we need)
+ * - option to walk over faces by verts.
+ * - option to walk over non manifold edges.
+ *
+ * \param bm  the BMesh.
+ * \param r_groups_array  Array of ints to fill in, length of bm->totface.
+ * \param r_group_index  index, length pairs into \a r_groups_array, size of return value
+ * int pairs: (array_start, array_length).
+ * \return The number of groups found.
+ */
+int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
+                             void *user_data, bool (*filter_fn)(BMEdge *, void *user_data))
+{
+#ifdef DEBUG
+	int group_index_len = 1;
+#else
+	int group_index_len = 32;
+#endif
+
+	int (*group_index)[2] = MEM_mallocN(sizeof(*group_index) * group_index_len, __func__);
+
+	int *group_array = r_groups_array;
+	STACK_DECLARE(group_array);
+
+	int group_curr = 0;
+
+	const unsigned int tot_faces = bm->totface;
+	unsigned int tot_touch = 0;
+
+	BMFace **fstack;
+	STACK_DECLARE(fstack);
+
+	BMIter iter;
+	BMFace *f;
+	int i;
+
+	STACK_INIT(group_array);
+
+	/* init the array */
+	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+		BM_elem_index_set(f, i); /* set_inline */
+		BM_elem_flag_disable(f, BM_ELEM_TAG);
+	}
+	bm->elem_index_dirty &= ~BM_FACE;
+
+	/* detect groups */
+	fstack = MEM_mallocN(sizeof(*fstack) * tot_faces, __func__);
+
+	while (tot_touch != tot_faces) {
+		int *fg;
+		bool ok = false;
+
+		BLI_assert(tot_touch < tot_faces);
+
+		STACK_INIT(fstack);
+
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(f, BM_ELEM_TAG) == false) {
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+				STACK_PUSH(fstack, f);
+				ok = true;
+				break;
+			}
+		}
+
+		BLI_assert(ok == true);
+
+		/* manage arrays */
+		if (group_index_len == group_curr) {
+			group_index_len *= 2;
+			group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_index_len);
+		}
+
+		fg = group_index[group_curr];
+		fg[0] = STACK_SIZE(group_array);
+		fg[1] = 0;
+
+		while ((f = STACK_POP(fstack))) {
+			BMLoop *l_iter, *l_first;
+
+			/* add face */
+			STACK_PUSH(group_array, BM_elem_index_get(f));
+			tot_touch++;
+			fg[1]++;
+			/* done */
+
+			/* search for other faces */
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				BMLoop *l_other = l_iter->radial_next;
+				if ((l_other != l_iter) && filter_fn(l_iter->e, user_data)) {
+					if (BM_elem_flag_test(l_other->f, BM_ELEM_TAG) == false) {
+						BM_elem_flag_enable(l_other->f, BM_ELEM_TAG);
+						STACK_PUSH(fstack, l_other->f);
+					}
+				}
+			} while ((l_iter = l_iter->next) != l_first);
+		}
+
+		group_curr++;
+	}
+
+	MEM_freeN(fstack);
+
+	/* reduce alloc to required size */
+	group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);
+	*r_group_index = group_index;
+
+	return group_curr;
+}
+
 float bmesh_subd_falloff_calc(const int falloff, float val)
 {
 	switch (falloff) {

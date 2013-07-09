@@ -4007,8 +4007,9 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-
+		/* grr, need to return finished so the user can select different options */
+		//return OPERATOR_CANCELLED;
+		return OPERATOR_FINISHED;
 	}
 	else {
 		EDBM_update_generic(em, true, true);

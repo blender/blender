@@ -4863,7 +4863,11 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 void RE_Database_Free(Render *re)
 {
 	LampRen *lar;
-	
+
+	/* will crash if we try to free empty database */
+	if (!re->i.convertdone)
+		return;
+
 	/* statistics for debugging render memory usage */
 	if ((G.debug & G_DEBUG) && (G.is_rendering)) {
 		if ((re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
@@ -5321,13 +5325,9 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	database_init_objects(re, lay, 0, 0, 0, 0);
 	
 	if (!re->test_break(re->tbh)) {
-		int tothalo;
-
 		set_material_lightgroups(re);
 		for (sce= re->scene; sce; sce= sce->set)
 			set_renderlayer_lightgroups(re, sce);
-		
-		slurph_opt= 1;
 		
 		/* for now some clumsy copying still */
 		re->i.totvert= re->totvert;
@@ -5336,7 +5336,16 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		re->i.tothalo= re->tothalo;
 		re->i.totlamp= re->totlamp;
 		re->stats_draw(re->sdh, &re->i);
-		
+	}
+
+	slurph_opt= 1;
+}
+
+void RE_Database_Preprocess(Render *re)
+{
+	if (!re->test_break(re->tbh)) {
+		int tothalo;
+
 		/* don't sort stars */
 		tothalo= re->tothalo;
 		if (!re->test_break(re->tbh)) {
@@ -5392,11 +5401,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		if (!re->test_break(re->tbh))
 			if (re->r.mode & R_RAYTRACE)
 				volume_precache(re);
-		
 	}
 	
-	if (re->test_break(re->tbh))
+	if (re->test_break(re->tbh)) {
+		re->i.convertdone = TRUE;
 		RE_Database_Free(re);
+	}
 	else
 		re->i.convertdone = TRUE;
 	
@@ -5866,8 +5876,10 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	
-	if (!re->test_break(re->tbh))
+	if (!re->test_break(re->tbh)) {
 		RE_Database_FromScene(re, bmain, sce, lay, 1);
+		RE_Database_Preprocess(re);
+	}
 	
 	if (!re->test_break(re->tbh)) {
 		int vectorlay= get_vector_renderlayers(re->scene);
