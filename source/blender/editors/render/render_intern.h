@@ -83,7 +83,7 @@ void TEXTURE_OT_envmap_clear_all(struct wmOperatorType *ot);
 
 /* render_internal.c */
 void RENDER_OT_render(struct wmOperatorType *ot);
-void render_view3d(struct RenderEngine *engine, const struct bContext *C);
+void render_view3d_update(struct RenderEngine *engine, const struct bContext *C);
 void render_view3d_draw(struct RenderEngine *engine, const struct bContext *C);
 
 /* render_opengl.c uses this */

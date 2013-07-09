@@ -917,9 +917,6 @@ class USERPREF_PT_file(Panel):
         col.prop(system, "author", text="")
 
 
-from bl_ui.space_userpref_keymap import InputKeyMapPanel
-
-
 class USERPREF_MT_ndof_settings(Menu):
     # accessed from the window key-bindings in C (only)
     bl_label = "3D Mouse Settings"
@@ -960,9 +957,25 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 
 
-class USERPREF_PT_input(Panel, InputKeyMapPanel):
+class USERPREF_MT_keyconfigs(Menu):
+    bl_label = "KeyPresets"
+    preset_subdir = "keyconfig"
+    preset_operator = "wm.keyconfig_activate"
+
+    def draw(self, context):
+        props = self.layout.operator("wm.context_set_value", text="Blender (default)")
+        props.data_path = "window_manager.keyconfigs.active"
+        props.value = "context.window_manager.keyconfigs.default"
+
+        # now draw the presets
+        Menu.draw_preset(self, context)
+
+
+class USERPREF_PT_input(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
+    bl_region_type = 'WINDOW'
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -1039,6 +1052,8 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         row.separator()
 
     def draw(self, context):
+        from rna_keymap_ui import draw_keymaps
+
         layout = self.layout
 
         #import time
@@ -1055,7 +1070,7 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         self.draw_input_prefs(inputs, split)
 
         # Keymap Settings
-        self.draw_keymaps(context, split)
+        draw_keymaps(context, split)
 
         #print("runtime", time.time() - start)
 

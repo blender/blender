@@ -66,7 +66,7 @@ typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *)
 
 /* arr[3] = x, self->arraydim is 0, lvalue_dim is 1 */
 /* Ensures that a python sequence has expected number of items/sub-items and items are of desired type. */
-static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[],
+static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[], const bool is_dynamic,
                                ItemTypeCheckFunc check_item_type, const char *item_type_str, const char *error_prefix)
 {
 	Py_ssize_t i;
@@ -110,7 +110,9 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 				             error_prefix, dim + 1, dimsize[dim + 1], item_seq_size);
 				ok = 0;
 			}
-			else if (validate_array_type(item, dim + 1, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1) {
+			else if (validate_array_type(item, dim + 1, totdim, dimsize, is_dynamic,
+			                             check_item_type, item_type_str, error_prefix) == -1)
+			{
 				ok = 0;
 			}
 
@@ -129,7 +131,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			             error_prefix, dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
 		}
-		else if (seq_size != dimsize[dim]) {
+		else if ((seq_size != dimsize[dim]) && (is_dynamic == false)) {
 			PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items, not %d",
 			             error_prefix, dim, dimsize[dim], seq_size);
 			return -1;
@@ -315,8 +317,12 @@ static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop,
 
 
 	{
-		if (validate_array_type(rvalue, lvalue_dim, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1)
+		const int prop_flag = RNA_property_flag(prop);
+		if (validate_array_type(rvalue, lvalue_dim, totdim, dimsize, (prop_flag & PROP_DYNAMIC) != 0,
+		                        check_item_type, item_type_str, error_prefix) == -1)
+		{
 			return -1;
+		}
 
 		return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
 	}

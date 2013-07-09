@@ -1142,10 +1142,13 @@ static void do_render_3d(Render *re)
 		re->draw_lock(re->dlh, 1);
 	
 	/* make render verts/faces/halos/lamps */
-	if (render_scene_needs_vector(re))
+	if (render_scene_needs_vector(re)) {
 		RE_Database_FromScene_Vectors(re, re->main, re->scene, re->lay);
-	else
+	}
+	else {
 		RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
+		RE_Database_Preprocess(re);
+	}
 	
 	/* clear UI drawing locks */
 	if (re->draw_lock)
@@ -1676,6 +1679,9 @@ static void add_freestyle(Render *re, int render)
 	}
 
 	FRS_finish_stroke_rendering(re);
+
+	/* restore the global R value (invalidated by nested execution of the internal renderer) */
+	R = *re;
 }
 
 /* merges the results of Freestyle stroke rendering into a given render result */

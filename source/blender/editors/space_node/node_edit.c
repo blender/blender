@@ -577,9 +577,10 @@ void snode_set_context(const bContext *C)
 	if (!treetype ||
 	    (treetype->poll && !treetype->poll(C, treetype)))
 	{
-		/* invalid tree type, disable */
-		snode->tree_idname[0] = '\0';
-		ED_node_tree_start(snode, NULL, NULL, NULL);
+		/* invalid tree type, skip
+		 * NB: not resetting the node path here, invalid bNodeTreeType
+		 * may still be registered at a later point.
+		 */
 		return;
 	}
 	

@@ -539,7 +539,7 @@ void ED_render_internal_init(void)
 {
 	RenderEngineType *ret = RE_engines_find("BLENDER_RENDER");
 	
-	ret->view_update = render_view3d;
+	ret->view_update = render_view3d_update;
 	ret->view_draw = render_view3d_draw;
 	
 }
