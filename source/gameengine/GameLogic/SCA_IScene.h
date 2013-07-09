@@ -41,6 +41,8 @@
 #include "MEM_guardedalloc.h"
 #endif
 
+#define DEBUG_MAX_DISPLAY 100
+
 struct SCA_DebugProp
 {
 	class CValue*	m_obj;
@@ -65,9 +67,11 @@ public:
 	virtual void	ReplaceMesh(class CValue* gameobj,
 								void* meshobj, bool use_gfx, bool use_phys)=0;
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
+	void			RemoveAllDebugProperties();
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
-	void			RemoveAllDebugProperties();
+	void			RemoveObjectDebugProperties(class CValue* gameobj);
+
 	virtual void	Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, 
 									RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, 
 									int pass, STR_String& text) {}

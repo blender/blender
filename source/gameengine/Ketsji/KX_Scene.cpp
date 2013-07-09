@@ -59,6 +59,7 @@
 #include "SCA_JoystickManager.h"
 #include "KX_PyMath.h"
 #include "RAS_MeshObject.h"
+#include "SCA_IScene.h"
 
 #include "RAS_IRasterizer.h"
 #include "RAS_BucketManager.h"
@@ -73,6 +74,7 @@
 #include "SG_Tree.h"
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_property_types.h"
 
 #include "KX_SG_NodeRelationships.h"
 
@@ -438,6 +440,21 @@ void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 	m_isclearingZbuffer = isclearingZbuffer;
 }
 
+void KX_Scene::AddObjectDebugProperties(class KX_GameObject* gameobj)
+{
+	Object* blenderobject = gameobj->GetBlenderObject();
+	bProperty* prop = (bProperty*)blenderobject->prop.first;
+
+	while(prop) {
+		if (prop->flag & PROP_DEBUG)
+			AddDebugProperty(gameobj,STR_String(prop->name));
+		prop = prop->next;
+	}	
+
+	if (blenderobject->scaflag & OB_DEBUGSTATE)
+		AddDebugProperty(gameobj,STR_String("__state__"));
+}
+
 void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gameobj)
 {
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;
@@ -561,6 +578,8 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 // SCA_IObject::ReParentLogic(), make sure it preserves the order of the bricks.
 void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 {
+	/* add properties to debug list, for added objects and DupliGroups */
+	AddObjectDebugProperties(newobj);
 	// also relink the controller to sensors/actuators
 	SCA_ControllerList& controllers = newobj->GetControllers();
 	//SCA_SensorList&     sensors     = newobj->GetSensors();
@@ -971,6 +990,9 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	/* remove property to debug list */
+	RemoveObjectDebugProperties(newobj);
 
 	/* Invalidate the python reference, since the object may exist in script lists
 	 * its possible that it wont be automatically invalidated, so do it manually here,
@@ -1911,6 +1933,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)other->GetObjectList()->GetValue(i);
 		MergeScene_GameObject(gameobj, this, other);
+		AddObjectDebugProperties(gameobj); // add properties to debug list for LibLoad objects
 
 		gameobj->UpdateBuckets(false); /* only for active objects */
 	}
