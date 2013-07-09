@@ -1109,6 +1109,66 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *r_vert)
 		copy_v3_v3(r_vert->co, bmdm->vertexCos[index]);
 }
 
+static void emDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->em->bm;
+
+	if (UNLIKELY(index < 0 || index >= bm->totvert)) {
+		BLI_assert(!"error in emDM_getVertCo");
+		return;
+	}
+
+	if (bmdm->vertexCos) {
+		copy_v3_v3(r_co, bmdm->vertexCos[index]);
+	}
+	else {
+		BMVert *ev = bmdm->em->vert_index[index];  /* should be EDBM_vert_at_index() */
+		// ev = BM_vert_at_index(bm, index); /* warning, does list loop, _not_ ideal */
+		copy_v3_v3(r_co, ev->co);
+	}
+}
+
+static void emDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->em->bm;
+
+	if (UNLIKELY(index < 0 || index >= bm->totvert)) {
+		BLI_assert(!"error in emDM_getVertNo");
+		return;
+	}
+
+	if (bmdm->vertexNos) {
+		copy_v3_v3(r_no, bmdm->vertexNos[index]);
+	}
+	else {
+		BMVert *ev = bmdm->em->vert_index[index];  /* should be EDBM_vert_at_index() */
+		// ev = BM_vert_at_index(bm, index); /* warning, does list loop, _not_ ideal */
+		copy_v3_v3(r_no, ev->no);
+	}
+}
+
+static void emDM_getPolyNo(DerivedMesh *dm, int index, float r_no[3])
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->em->bm;
+
+	if (UNLIKELY(index < 0 || index >= bm->totface)) {
+		BLI_assert(!"error in emDM_getPolyNo");
+		return;
+	}
+
+	if (bmdm->polyNos) {
+		copy_v3_v3(r_no, bmdm->polyNos[index]);
+	}
+	else {
+		BMFace *efa = bmdm->em->face_index[index];  /* should be EDBM_vert_at_index() */
+		// efa = BM_face_at_index(bm, index); /* warning, does list loop, _not_ ideal */
+		copy_v3_v3(r_no, efa->no);
+	}
+}
+
 static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *r_edge)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
@@ -1456,6 +1516,9 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 	bmdm->dm.getNumPolys = emDM_getNumPolys;
 
 	bmdm->dm.getVert = emDM_getVert;
+	bmdm->dm.getVertCo = emDM_getVertCo;
+	bmdm->dm.getVertNo = emDM_getVertNo;
+	bmdm->dm.getPolyNo = emDM_getPolyNo;
 	bmdm->dm.getEdge = emDM_getEdge;
 	bmdm->dm.getTessFace = emDM_getTessFace;
 	bmdm->dm.copyVertArray = emDM_copyVertArray;
@@ -1487,6 +1550,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 	bmdm->dm.release = emDM_release;
 
 	bmdm->vertexCos = vertexCos;
+	bmdm->dm.deformedOnly = (vertexCos != NULL);
 
 	if (cd_dvert_offset != -1) {
 		BMIter iter;

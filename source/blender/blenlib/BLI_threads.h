@@ -193,13 +193,6 @@ void BLI_condition_notify_one(ThreadCondition *cond);
 void BLI_condition_notify_all(ThreadCondition *cond);
 void BLI_condition_end(ThreadCondition *cond);
 
-/* Thread Local Storage */
-#ifdef _MSC_VER
-#  define ThreadVariable  __declspec(thread)
-#else
-#  define ThreadVariable  __thread
-#endif
-
 #ifdef __cplusplus
 }
 #endif
