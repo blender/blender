@@ -1642,13 +1642,6 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 	}
 }
 
-static int amount_of_chars(char *str)
-{
-	// Since the data is saved as UTF-8 to the cu->str
-	// The cu->len is not same as the strlen(cu->str)
-	return strlen(str);
-}
-
 static void write_curves(WriteData *wd, ListBase *idbase)
 {
 	Curve *cu;
@@ -1666,8 +1659,12 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			if (cu->adt) write_animdata(wd, cu->adt);
 			
 			if (cu->vfont) {
-				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
-				writestruct(wd, DATA, "CharInfo", cu->len+1, cu->strinfo);
+				/* TODO, sort out 'cu->len', in editmode its character, object mode its bytes */
+				int len_bytes;
+				int len_chars = BLI_strlen_utf8_ex(cu->str, &len_bytes);
+
+				writedata(wd, DATA, len_bytes + 1, cu->str);
+				writestruct(wd, DATA, "CharInfo", len_chars + 1, cu->strinfo);
 				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);
 			}
 			else {

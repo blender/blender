@@ -245,24 +245,16 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 	return len;
 }
 
-/* this is very close to 'BLI_str_utf8_size' functionality, perhaps we should de-duplicate */
-/* size of UTF-8 character in bytes */
-static size_t strlen_utf8_char(const char *strc)
+size_t BLI_strlen_utf8_ex(const char *strc, int *r_len_bytes)
 {
-	if ((*strc & 0xe0) == 0xc0) {
-		if ((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
-			return 2;
-	}
-	else if ((*strc & 0xf0) == 0xe0) {
-		if ((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
-			return 3;
-	}
-	else if ((*strc & 0xf8) == 0xf0) {
-		if ((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
-			return 4;
-	}
+	size_t len;
+	const char *strc_orig = strc;
 
-	return 1;
+	for (len = 0; *strc; len++)
+		strc += BLI_str_utf8_size_safe(strc);
+
+	*r_len_bytes = (strc - strc_orig);
+	return len;
 }
 
 size_t BLI_strlen_utf8(const char *strc)
@@ -270,8 +262,22 @@ size_t BLI_strlen_utf8(const char *strc)
 	size_t len;
 
 	for (len = 0; *strc; len++)
-		strc += strlen_utf8_char(strc);
+		strc += BLI_str_utf8_size_safe(strc);
 
+	return len;
+}
+
+size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, int *r_len_bytes)
+{
+	size_t len;
+	const char *strc_orig = strc;
+	const char *strc_end = strc + maxlen;
+
+	for (len = 0; *strc && strc < strc_end; len++) {
+		strc += BLI_str_utf8_size_safe(strc);
+	}
+
+	*r_len_bytes = (strc - strc_orig);
 	return len;
 }
 
@@ -280,15 +286,13 @@ size_t BLI_strlen_utf8(const char *strc)
  * \param maxlen the string length (in bytes)
  * \return the unicode length (not in bytes!)
  */
-size_t BLI_strnlen_utf8(const char *start, const size_t maxlen)
+size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
 {
-	const char *strc = start;
-	const char *strc_end = start + maxlen;
-
 	size_t len;
+	const char *strc_end = strc + maxlen;
 
 	for (len = 0; *strc && strc < strc_end; len++) {
-		strc += strlen_utf8_char(strc);
+		strc += BLI_str_utf8_size_safe(strc);
 	}
 
 	return len;
