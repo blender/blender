@@ -182,13 +182,6 @@ int BLI_thread_queue_size(ThreadQueue *queue);
 void BLI_thread_queue_wait_finish(ThreadQueue *queue);
 void BLI_thread_queue_nowait(ThreadQueue *queue);
 
-/* Thread Local Storage */
-#ifdef _MSC_VER
-#  define ThreadVariable  __declspec(thread)
-#else
-#  define ThreadVariable  __thread
-#endif
-
 #ifdef __cplusplus
 }
 #endif

@@ -748,7 +748,7 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
  */
 int BKE_scene_base_iter_next(SceneBaseIter *iter, Scene **scene, int val, Base **base, Object **ob)
 {
-	static ThreadVariable int in_next_object = 0;
+	static int in_next_object = 0;
 	int run_again = 1;
 	
 	/* init */
