@@ -64,13 +64,11 @@ set(SRC
 	GPC_KeyboardDevice.cpp
 	GPC_MouseDevice.cpp
 	GPC_RenderTools.cpp
-	GPC_System.cpp
 
 	GPC_Canvas.h
 	GPC_KeyboardDevice.h
 	GPC_MouseDevice.h
 	GPC_RenderTools.h
-	GPC_System.h
 )
 
 add_definitions(-DGLEW_STATIC)

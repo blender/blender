@@ -37,11 +37,11 @@
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif  /* WIN32 */
 
-#include "GPC_System.h"
+#include "KX_ISystem.h"
 
 class GHOST_ISystem;
 
-class GPG_System : public GPC_System
+class GPG_System : public KX_ISystem
 {
 	GHOST_ISystem* m_system;
 
