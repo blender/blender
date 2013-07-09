@@ -460,17 +460,20 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), Point
 	if (ob->parent) {
 		Object *par = ob->parent;
 		
-		if (par->type == OB_CURVE)
+		if (par->type == OB_CURVE) {
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARCURVE);
-		else if (par->type == OB_LATTICE)
+		}
+		else if (par->type == OB_LATTICE) {
 			/* special hack: prevents this overriding others */
 			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[4], PARSKEL);
+		}
 		else if (par->type == OB_ARMATURE) {
 			/* special hack: prevents this being overrided */
 			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[3], PARSKEL);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARBONE);
 		}
-		else if (par->type == OB_MESH) {
+
+		if (ELEM4(par->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)) {
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT1);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT3);
 		}
