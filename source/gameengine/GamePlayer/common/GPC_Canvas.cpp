@@ -79,24 +79,6 @@ GPC_Canvas::~GPC_Canvas()
 }
 
 
-//  void GPC_Canvas::InitPostRenderingContext(void)
-//  {
-//  	glViewport(0, 0, m_width, m_height);
-//  	glMatrixMode(GL_PROJECTION);
-//  	glLoadIdentity();
-	
-//  	glOrtho(-2.0, 2.0, -2.0, 2.0, -20.0, 20.0);
-
-//  	glMatrixMode(GL_MODELVIEW);
-//  	glLoadIdentity();
-
-//  	glEnable(GL_DEPTH_TEST);
-
-//  	glDepthFunc(GL_LESS);
-
-//  	glShadeModel(GL_SMOOTH);
-//  }
-
 void GPC_Canvas::Resize(int width, int height)
 {
 	m_width = width;
@@ -107,10 +89,6 @@ void GPC_Canvas::Resize(int width, int height)
 	m_displayarea.m_y1 = 0;
 	m_displayarea.m_x2 = width;
 	m_displayarea.m_y2 = height;
-}
-
-void GPC_Canvas::EndFrame()
-{
 }
 
 
@@ -177,82 +155,6 @@ void GPC_Canvas::ClearBuffer(
 		ogltype |= GL_DEPTH_BUFFER_BIT;
 
 	::glClear(ogltype);
-}
-
-	void
-GPC_Canvas::
-PushRenderState(
-	CanvasRenderState & render_state
-) {
-#if 0
-
-	::glMatrixMode(GL_PROJECTION);
-	::glPushMatrix();
-	::glMatrixMode(GL_MODELVIEW);
-	::glPushMatrix();
-	::glMatrixMode(GL_TEXTURE);
-	::glPushMatrix();
-	// Save old OpenGL settings
-	::glGetIntegerv(GL_LIGHTING, (GLint*)&(render_state.oldLighting));
-	::glGetIntegerv(GL_DEPTH_TEST, (GLint*)&(render_state.oldDepthTest));
-	::glGetIntegerv(GL_FOG, (GLint*)&(render_state.oldFog));
-	::glGetIntegerv(GL_TEXTURE_2D, (GLint*)&(render_state.oldTexture2D));
-	::glGetIntegerv(GL_BLEND, (GLint*)&(render_state.oldBlend));
-	::glGetIntegerv(GL_BLEND_SRC, (GLint*)&(render_state.oldBlendSrc));
-	::glGetIntegerv(GL_BLEND_DST, (GLint*)&(render_state.oldBlendDst));
-	::glGetFloatv(GL_CURRENT_COLOR, render_state.oldColor);
-	::glGetIntegerv(GL_DEPTH_WRITEMASK,(GLint*)&(render_state.oldWriteMask));
-#else
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-#endif
-}
-
-	void
-GPC_Canvas::
-PopRenderState(
-	const CanvasRenderState & render_state
-) {
-#if 0
-	// Restore OpenGL settings
-	render_state.oldLighting ? ::glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-	render_state.oldDepthTest ? ::glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
-	render_state.oldFog ? ::glEnable(GL_FOG) : ::glDisable(GL_FOG);
-	render_state.oldTexture2D ? ::glEnable(GL_TEXTURE_2D) : glDisable(GL_TEXTURE_2D);
-	render_state.oldBlend ? glEnable(GL_BLEND) : ::glDisable(GL_BLEND);
-	::glBlendFunc((GLenum)render_state.oldBlendSrc, (GLenum)render_state.oldBlendDst);
-	render_state.oldWriteMask ? ::glEnable(GL_DEPTH_WRITEMASK) : glDisable(GL_DEPTH_WRITEMASK);
-
-	::glColor4fv(render_state.oldColor);
-	// Restore OpenGL matrices
-	::glMatrixMode(GL_TEXTURE);
-	::glPopMatrix();
-	::glMatrixMode(GL_PROJECTION);
-	::glPopMatrix();
-	::glMatrixMode(GL_MODELVIEW);
-	::glPopMatrix();
-
-#else
-
-	glPopAttrib();
-#endif
-}
-
-	void
-GPC_Canvas::
-SetOrthoProjection(
-) {
-	// Set up OpenGL matrices 
-	::glViewport(0, 0, m_width, m_height);
-	::glScissor(0, 0, m_width, m_height);
-	::glMatrixMode(GL_PROJECTION);
-	::glLoadIdentity();
-	::glOrtho(0, m_width, 0, m_height, -1, 1);
-	::glMatrixMode(GL_MODELVIEW);
-	::glLoadIdentity();
-	::glMatrixMode(GL_TEXTURE);
-	::glLoadIdentity();
 }
 
 	void

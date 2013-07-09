@@ -114,7 +114,7 @@ public:
 	 */
 		void 
 	EndFrame(
-	);
+	) {};
 	
 	void SetViewPort(int x1, int y1, int x2, int y2);
 	void UpdateViewPort(int x1, int y1, int x2, int y2);
@@ -140,37 +140,6 @@ public:
 	virtual void MakeScreenShot(const char* filename);
 
 	void ClearBuffer(int type);
-
-protected:
-
-	struct CanvasRenderState {
-		int oldLighting;
-		int oldDepthTest;
-		int oldFog;
-		int oldTexture2D;
-		int oldBlend;
-		int oldBlendSrc;
-		int oldBlendDst;
-		float oldColor[4];
-		int oldWriteMask;
-	};
-
-		void
-	PushRenderState(
-		CanvasRenderState & render_state
-	);
-		void
-	PopRenderState(
-		const CanvasRenderState & render_state
-	);
-
-	/** 
-	 * Set up an orthogonal viewing,model and texture matrix
-	 * for banners and progress bars.
-	 */
-		void
-	SetOrthoProjection(
-	);
 };
 
 #endif  /* __GPC_CANVAS_H__ */
