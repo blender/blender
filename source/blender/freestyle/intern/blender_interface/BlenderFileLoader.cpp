@@ -22,9 +22,9 @@
  *  \ingroup freestyle
  */
 
-#include <assert.h>
-
 #include "BlenderFileLoader.h"
+
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 
@@ -60,8 +60,23 @@ NodeGroup *BlenderFileLoader::Load()
 	_viewplane_right =  _re->viewplane.xmax;
 	_viewplane_bottom = _re->viewplane.ymin;
 	_viewplane_top =    _re->viewplane.ymax;
-	_z_near = -_re->clipsta;
-	_z_far =  -_re->clipend;
+
+	if ((_re->r.scemode & R_VIEWPORT_PREVIEW) && (_re->r.mode & R_ORTHO)) {
+		// Adjust clipping start/end and set up a Z offset when the viewport preview
+		// is used with the orthographic view.  In this case, _re->clipsta is negative,
+		// while Freestyle assumes that imported mesh data are in the camera coordinate
+		// system with the view point located at origin [bug #36009].
+		BLI_assert(_re->clipsta < 0.f);
+		_z_near = -0.001f;
+		_z_offset = _re->clipsta + _z_near;
+		_z_far = -_re->clipend + _z_offset;
+	}
+	else {
+		_z_near = -_re->clipsta;
+		_z_far = -_re->clipend;
+		_z_offset = 0.f;
+	}
+
 #if 0
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right
@@ -225,7 +240,7 @@ void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1
 			}
 		}
 	}
-	assert(k == 2 + numTris);
+	BLI_assert(k == 2 + numTris);
 }
 
 void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
@@ -378,6 +393,11 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			if (vlr->v4)
 				mul_m4_v3(obi->mat, v4);
 		}
+		v1[2] += _z_offset;
+		v2[2] += _z_offset;
+		v3[2] += _z_offset;
+		if (vlr->v4)
+			v4[2] += _z_offset;
 #if 0
 		print_v3("v1", v1);
 		print_v3("v2", v2);
@@ -472,6 +492,11 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			if (vlr->v4)
 				mul_m4_v3(obi->mat, v4);
 		}
+		v1[2] += _z_offset;
+		v2[2] += _z_offset;
+		v3[2] += _z_offset;
+		if (vlr->v4)
+			v4[2] += _z_offset;
 		if (_smooth && (vlr->flag & R_SMOOTH)) {
 			copy_v3_v3(n1, vlr->v1->n);
 			copy_v3_v3(n2, vlr->v2->n);

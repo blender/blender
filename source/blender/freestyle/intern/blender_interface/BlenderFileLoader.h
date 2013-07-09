@@ -122,6 +122,7 @@ protected:
 	float _viewplane_bottom;
 	float _viewplane_top;
 	float _z_near, _z_far;
+	float _z_offset;
 
 	RenderMonitor *_pRenderMonitor;
 
