@@ -1578,9 +1578,37 @@ void KX_Scene::AddAnimatedObject(CValue* gameobj)
 
 void KX_Scene::UpdateAnimations(double curtime)
 {
-	// Update any animations
-	for (int i=0; i<m_animatedlist->GetCount(); ++i)
-		((KX_GameObject*)m_animatedlist->GetValue(i))->UpdateActionManager(curtime);
+	KX_GameObject *gameobj;
+	bool needs_update;
+
+	for (int i=0; i<m_animatedlist->GetCount(); ++i) {
+		gameobj = (KX_GameObject*)m_animatedlist->GetValue(i);
+
+		// Non-armature updates are fast enough, so just update them
+		needs_update = gameobj->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE;
+
+		if (!needs_update) {
+			// If we got here, we're looking to update an armature, so check its children meshes
+			// to see if we need to bother with a more expensive pose update
+			CListValue *children = gameobj->GetChildren();
+			KX_GameObject *child;
+
+			// Check for meshes that haven't been culled
+			for (int j=0; j<children->GetCount(); ++j) {
+				child = (KX_GameObject*)children->GetValue(j);
+
+				if (child->GetMeshCount() > 0 && !child->GetCulled()) {
+					needs_update = true;
+					break;
+				}
+			}
+
+			children->Release();
+		}
+
+		if (needs_update)
+			gameobj->UpdateActionManager(curtime);
+	}
 }
 
 void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
