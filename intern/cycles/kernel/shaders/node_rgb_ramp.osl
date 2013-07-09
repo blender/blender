@@ -1,0 +1,47 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+#include "oslutil.h"
+
+shader node_rgb_ramp(
+	color ramp_color[RAMP_TABLE_SIZE] = {0.0},
+	float ramp_alpha[RAMP_TABLE_SIZE] = {0.0},
+	int ramp_interpolate = 1,
+
+	float Fac = 0.0,
+	output color Color = 0.0,
+	output float Alpha = 1.0)
+{
+	float f = clamp(Fac, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
+
+	/* clamp int as well in case of NaN */
+	int i = (int)f;
+	if (i < 0) i = 0;
+	if (i >= RAMP_TABLE_SIZE) i = RAMP_TABLE_SIZE - 1;
+	float t = f - (float)i;
+
+	Color = ramp_color[i];
+	Alpha = ramp_alpha[i];
+
+	if (ramp_interpolate && t > 0.0) {
+		Color = (1.0 - t) * Color + t * ramp_color[i + 1];
+		Alpha = (1.0 - t) * Alpha + t * ramp_alpha[i + 1];
+	}
+}
+

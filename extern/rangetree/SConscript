@@ -1,0 +1,9 @@
+2#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.cc')
+
+incs = '.'
+defs = ''
+
+env.BlenderLib ('extern_rangetree', sources, Split(incs), Split(defs), libtype=['extern'], priority=[100] )

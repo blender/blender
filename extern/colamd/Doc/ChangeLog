@@ -1,0 +1,129 @@
+May 31, 2007: version 2.7.0
+
+    * ported to 64-bit MATLAB
+
+    * subdirectories added (Source/, Include/, Lib/, Doc/, MATLAB/, Demo/)
+
+Dec 12, 2006, version 2.5.2
+
+    * minor MATLAB cleanup.  MATLAB functions renamed colamd2 and symamd2,
+	so that they do not conflict with the built-in versions.  Note that
+	the MATLAB built-in functions colamd and symamd are identical to
+	the colamd and symamd functions here.
+
+Aug 31, 2006: Version 2.5.1
+
+    * minor change to colamd.m and symamd.m, to use etree instead
+	of sparsfun.
+
+Apr. 30, 2006: Version 2.5
+
+    * colamd_recommended modified, to do more careful integer overflow
+	checking.  It now returns size_t, not int.  colamd_l_recommended
+	also returns size_t.  A zero is returned if an error occurs.  A
+	postive return value denotes success.  In v2.4 and earlier,
+	-1 was returned on error (an int or long).
+
+    * long replaced with UF_long integer, which is long except on WIN64.
+
+Nov 15, 2005:
+
+    * minor editting of comments; version number (2.4) unchanged.
+
+Changes from Version 2.3 to 2.4 (Aug 30, 2005)
+
+    * Makefile now relies on ../UFconfig/UFconfig.mk
+
+    * changed the dense row/col detection.  The meaning of the knobs
+	has thus changed.
+
+    * added an option to turn off aggressive absorption.  It was
+	always on in versions 2.3 and earlier.
+
+    * added a #define'd version number
+
+    * added a function pointer (colamd_printf) for COLAMD's printing.
+
+    * added a -DNPRINT option, to turn off printing at compile-time.
+
+    * added a check for integer overflow in colamd_recommended
+
+    * minor changes to allow for more simpler 100% test coverage
+
+    * bug fix.  If symamd v2.3 fails to allocate its copy of the input
+	matrix, then it erroneously frees a calloc'd workspace twice.
+	This bug has no effect on the MATLAB symamd mexFunction, since
+	mxCalloc terminates the mexFunction if it fails to allocate
+	memory.  Similarly, UMFPACK is not affected because it does not
+	use symamd.  The bug has no effect on the colamd ordering
+	routine in v2.3.
+
+Changes from Version 2.2 to 2.3 (Sept. 8, 2003)
+
+    * removed the call to the MATLAB spparms ('spumoni') function.
+	This can take a lot of time if you are ordering many small
+	matrices.  Only affects the MATLAB interface (colamdmex.c,
+	symamdmex.c, colamdtestmex.c, and symamdtestmex.c).  The
+	usage of the optional 2nd argument to the colamd and symamd
+	mexFunctions was changed accordingly.
+
+Changes from Version 2.1 to 2.2 (Sept. 23, 2002)
+
+    * extensive testing routines added (colamd_test.m, colamdtestmex.c,
+	and symamdtestmex.c), and the Makefile modified accordingly.
+
+    * a few typos in the comments corrected 
+
+    * use of the MATLAB "flops" command removed from colamd_demo, and an
+	m-file routine luflops.m added.
+
+    * an explicit typecast from unsigned to int added, for COLAMD_C and
+	COLAMD_R in colamd.h.
+
+    * #include <stdio.h> added to colamd_example.c
+
+
+Changes from Version 2.0 to 2.1 (May 4, 2001)
+
+    * TRUE and FALSE are predefined on some systems, so they are defined
+	    here only if not already defined.
+    
+    * web site changed
+
+    * UNIX Makefile modified, to handle the case if "." is not in your path.
+
+
+Changes from Version 1.0 to 2.0 (January 31, 2000)
+
+    No bugs were found in version 1.1.  These changes merely add new
+    functionality.
+
+    * added the COLAMD_RECOMMENDED (nnz, n_row, n_col) macro.
+
+    * moved the output statistics, from A, to a separate output argument.
+	    The arguments changed for the C-callable routines.
+
+    * added colamd_report and symamd_report.
+
+    * added a C-callable symamd routine.  Formerly, symamd was only
+	    available as a mexFunction from MATLAB.
+
+    * added error-checking to symamd.  Formerly, it assumed its input
+	    was error-free.
+
+    * added the optional stats and knobs arguments to the symamd mexFunction
+
+    * deleted colamd_help.  A help message is still available from
+	    "help colamd" and "help symamd" in MATLAB.
+
+    * deleted colamdtree.m and symamdtree.m.  Now, colamd.m and symamd.m
+	    also do the elimination tree post-ordering.  The Version 1.1
+	    colamd and symamd mexFunctions, which do not do the post-
+	    ordering, are now visible as colamdmex and symamdmex from
+	    MATLAB.  Essentialy, the post-ordering is now the default
+	    behavior of colamd.m and symamd.m, to match the behavior of
+	    colmmd and symmmd.  The post-ordering is only available in the
+	    MATLAB interface, not the C-callable interface.
+
+    * made a slight change to the dense row/column detection in symamd,
+	    to match the stated specifications.

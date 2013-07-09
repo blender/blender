@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+#
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Nathan Letwory.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+Import ('env')
+
+objs = []
+
+o = SConscript('intern/SConscript')
+objs += o
+
+incs = [
+    '.',
+    './intern',
+    '#/intern/guardedalloc',
+    '#/intern/memutil',
+    '#/extern/glew/include',
+    '#/intern/audaspace/intern',
+    '#/intern/cycles/blender',
+    '#/intern/smoke/extern',
+    '../blenfont',
+    '../blenkernel',
+    '../blenlib',
+    '../bmesh',
+    '../editors/include',
+    '../gpu',
+    '../ikplugin',
+    '../imbuf',
+    '../makesdna',
+    '../nodes',
+    '../render/extern/include',
+    '../windowmanager',
+    ]
+incs = ' '.join(incs)
+
+defs = []
+
+if env['WITH_BF_SMOKE']:
+    defs.append('WITH_SMOKE')
+
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
+    incs += ' #/intern/rigidbody'
+
+if env['WITH_BF_OPENEXR']:
+    defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_TIFF']:
+    defs.append('WITH_TIFF')
+
+if env['WITH_BF_OPENJPEG']:
+    defs.append('WITH_OPENJPEG')
+
+if env['WITH_BF_DDS']:
+    defs.append('WITH_DDS')
+
+if env['WITH_BF_CINEON']:
+    defs.append('WITH_CINEON')
+
+if env['WITH_BF_HDR']:
+    defs.append('WITH_HDR')
+
+if env['WITH_BF_FRAMESERVER']:
+    defs.append('WITH_FRAMESERVER')
+
+if env['WITH_BF_FFMPEG']:
+    defs.append('WITH_FFMPEG')
+    incs += ' ' + env['BF_FFMPEG_INC']
+
+if env['WITH_BF_QUICKTIME']:
+    defs.append('WITH_QUICKTIME')
+    incs += ' ../quicktime'
+
+if env['WITH_BF_GAMEENGINE']:
+    defs.append('WITH_GAMEENGINE')
+
+if env['BF_UNIT_TEST']:
+    defs.append('UNIT_TEST')
+
+if env['WITH_BF_PYTHON']:
+    defs.append('WITH_PYTHON')
+
+if env['WITH_BF_COLLADA']:
+    defs.append('WITH_COLLADA')
+
+if env['WITH_BF_OCEANSIM']:
+    defs.append('WITH_OCEANSIM')
+
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
+
+if env['WITH_BF_SDL']:
+    defs.append('WITH_SDL')
+
+if env['WITH_BF_OPENAL']:
+    defs.append('WITH_OPENAL')
+
+if env['WITH_BF_JACK']:
+    defs.append('WITH_JACK')
+
+if env['OURPLATFORM'] == 'linux':
+    cflags='-pthread'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../freestyle'
+    defs.append('WITH_FREESTYLE')
+
+rnalib = env.BlenderLib ( 'bf_rna', objs, Split(incs), defines=defs, libtype=['core','player'], priority = [165,20] )
+
+Return ('rnalib')

@@ -1,0 +1,61 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Janne Karhu
+ *                 Brecht Van Lommel
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+ 
+#ifndef __BLI_KDTREE_H__
+#define __BLI_KDTREE_H__
+
+/** \file BLI_kdtree.h
+ *  \ingroup bli
+ *  \brief A kd-tree for nearest neighbor search.
+ *  \author Janne Karhu
+ *  \author Brecht van Lommel
+ */
+
+struct KDTree;
+typedef struct KDTree KDTree;
+
+typedef struct KDTreeNearest {
+	int index;
+	float dist;
+	float co[3];
+} KDTreeNearest;
+
+/* Creates or free a kdtree */
+KDTree *BLI_kdtree_new(int maxsize);
+void BLI_kdtree_free(KDTree *tree);
+
+/* Construction: first insert points, then call balance. Normal is optional. */
+void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float nor[3]);
+void BLI_kdtree_balance(KDTree *tree);
+
+/* Find nearest returns index, and -1 if no node is found.
+ * Find n nearest returns number of points found, with results in nearest.
+ * Normal is optional, but if given will limit results to points in normal direction from co. */
+int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3], KDTreeNearest *nearest);
+int BLI_kdtree_find_n_nearest(KDTree *tree, int n, const float co[3], const float nor[3], KDTreeNearest *nearest);
+
+/* Range search returns number of points found, with results in nearest */
+/* Normal is optional, but if given will limit results to points in normal direction from co. */
+/* Remember to free nearest after use! */
+int BLI_kdtree_range_search(KDTree *tree, float range, const float co[3], const float nor[3], KDTreeNearest **nearest);
+#endif

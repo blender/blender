@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=Blender
+GenericName=3D modeller
+GenericName[es]=modelador 3D
+GenericName[de]=3D-Modellierer
+GenericName[fr]=modeleur 3D
+GenericName[ru]=Редактор 3D-моделей
+Comment=3D modeling, animation, rendering and post-production
+Comment[es]=modelado 3D, animación, renderizado y post-producción
+Comment[de]=3D-Modellierung, Animation, Rendering und Nachbearbeitung
+Exec=blender
+Icon=blender
+Terminal=false
+Type=Application
+Categories=Graphics;3DGraphics;
+MimeType=application/x-blender;

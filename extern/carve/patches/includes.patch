@@ -1,0 +1,84 @@
+diff -r c8cbec41cd35 include/carve/exact.hpp
+--- a/include/carve/exact.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/exact.hpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -21,7 +21,7 @@
+ 
+ #include <vector>
+ #include <numeric>
+-
++#include <algorithm>
+ 
+ 
+ namespace carve {
+diff -r c8cbec41cd35 include/carve/geom2d.hpp
+--- a/include/carve/geom2d.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/geom2d.hpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -25,6 +25,7 @@
+ #include <carve/geom.hpp>
+ 
+ #include <vector>
++#include <algorithm>
+ 
+ #include <math.h>
+ 
+diff -r c8cbec41cd35 include/carve/mesh_impl.hpp
+--- a/include/carve/mesh_impl.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/mesh_impl.hpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -24,6 +24,8 @@
+ #include <iostream>
+ #include <deque>
+ 
++#include <stddef.h>
++
+ namespace carve {
+   namespace mesh {
+ 
+diff -r c8cbec41cd35 include/carve/polyhedron_base.hpp
+--- a/include/carve/polyhedron_base.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/polyhedron_base.hpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -25,6 +25,8 @@
+ #include <carve/edge_decl.hpp>
+ #include <carve/face_decl.hpp>
+ 
++#include <stddef.h>
++
+ namespace carve {
+   namespace poly {
+ 
+diff -r c8cbec41cd35 include/carve/rtree.hpp
+--- a/include/carve/rtree.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/rtree.hpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -27,6 +27,10 @@
+ #include <cmath>
+ #include <limits>
+ 
++#if defined(HAVE_STDINT_H)
++# include <stdint.h>
++#endif
++
+ namespace carve {
+   namespace geom {
+ 
+diff -r c8cbec41cd35 include/carve/vector.hpp
+--- a/include/carve/vector.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/vector.hpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -24,6 +24,7 @@
+ #include <carve/geom3d.hpp>
+ 
+ #include <sstream>
++#include <algorithm>
+ 
+ #include <math.h>
+ 
+diff -r c8cbec41cd35 src/extrude.cpp
+--- a/src/extrude.cpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/src/extrude.cpp	Wed Jan 11 18:48:16 2012 +0600
+@@ -34,6 +34,8 @@
+ #include <cctype>
+ #include <stdexcept>
+ 
++#include <stdexcept>
++
+ template<unsigned ndim>
+ carve::geom::vector<ndim> lerp(
+     double t,

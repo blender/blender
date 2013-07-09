@@ -1,0 +1,16 @@
+Project: Google Flags
+URL: http://code.google.com/p/google-gflags/
+License: New BSD
+Upstream version: 2.0
+Local modifications:
+
+- Flattened the tree and only included files needed for libmv. This involved
+  changing some of the includes to point to the current directory instead of a
+  nested gflags directory.
+
+- Added a poor-man's version of upstream's port.cc/h to make gflags compile on
+  windows. This isn't sufficient but is a stopgap for now.
+
+- Added -fPIC flag, so shared libraries from Ceres could be linked against static glog
+
+  TODO(keir): Import and use gflags for Windows from upstream.

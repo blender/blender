@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+Import('env')
+
+defs = ['HAVE_SYS_TIME_H']
+sources = env.Glob('*.c')
+
+incs = '.'
+
+env.BlenderLib ( 'extern_xdnd', sources, Split(incs), defs, libtype=['extern','player'], priority=[10, 185])

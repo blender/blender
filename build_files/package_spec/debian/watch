@@ -1,0 +1,3 @@
+version=3
+opts=uversionmangle=s/[a-z]$/.$&/;s/[j-s]$/1$&/;s/[t-z]$/2$&/;tr/a-z/1-90-90-6/ \
+http://download.blender.org/source/blender-([0-9.]+[a-z]?)\.tar\.gz

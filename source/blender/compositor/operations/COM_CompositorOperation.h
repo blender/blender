@@ -1,0 +1,93 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor:
+ *		Jeroen Bakker
+ *		Monique Dewanchand
+ */
+
+#ifndef _COM_CompositorOperation_h
+#define _COM_CompositorOperation_h
+#include "COM_NodeOperation.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
+
+/**
+ * @brief Compositor output operation
+ */
+class CompositorOperation : public NodeOperation {
+private:
+	/**
+	 * @brief Scene name, used for getting the render output, includes 'SC' prefix.
+	 */
+	char m_sceneName[MAX_ID_NAME];
+
+	/**
+	 * @brief local reference to the scene
+	 */
+	const RenderData *m_rd;
+
+	/**
+	 * @brief reference to the output float buffer
+	 */
+	float *m_outputBuffer;
+
+	/**
+	 * @brief reference to the output depth float buffer
+	 */
+	float *m_depthBuffer;
+
+	/**
+	 * @brief local reference to the input image operation
+	 */
+	SocketReader *m_imageInput;
+
+	/**
+	 * @brief local reference to the input alpha operation
+	 */
+	SocketReader *m_alphaInput;
+
+	/**
+	 * @brief local reference to the depth operation
+	 */
+	SocketReader *m_depthInput;
+
+	/**
+	 * @brief Ignore any alpha input
+	 */
+	bool m_ignoreAlpha;
+
+	/**
+	 * @brief operation is active for calculating final compo result
+	 */
+	bool m_active;
+public:
+	CompositorOperation();
+	const bool isActiveCompositorOutput() const { return this->m_active; }
+	void executeRegion(rcti *rect, unsigned int tileNumber);
+	void setSceneName(const char *sceneName) { BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName)); }
+	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
+	bool isOutputOperation(bool rendering) const { return this->isActiveCompositorOutput(); }
+	void initExecution();
+	void deinitExecution();
+	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
+	void setActive(bool active) { this->m_active = active; }
+};
+#endif
+

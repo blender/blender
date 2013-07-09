@@ -1,0 +1,604 @@
+commit 2cd653e2952379da7daf56edcd9e71b0aa929f90
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Jun 1 16:20:35 2013 +0600
+
+    Pass vectors by a reference
+    
+    Saves couple of time which used to waste on copying objects,
+    also solves win32 compilation errors caused by alignment.
+
+commit f61b8198b9bddd8d2fa53feae7924aa23df48cbd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu May 30 18:00:03 2013 +0600
+
+    Code cleanup
+    
+    - Made some arguments passing to detector const.
+    - Remove unneeded include from track_region header.
+
+commit 61ac890908a397860cabc60207500039876532cc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon May 13 04:44:14 2013 +0600
+
+    Pass ApplyRadialDistortionCameraIntrinsics input arguments by reference
+    
+    This shall save some CPU time on calling copy constructor and give
+    some boost of bundle adjuster (where jet could take some time to
+    be passed by value).
+
+commit 4d005ff0771e0e28159be25f8da69d983641384f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon May 13 04:22:05 2013 +0600
+
+    Minor code style cleanup.
+
+commit f003b9e3031db4592c2d91b1ea2538c73b7e767d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sun May 12 22:34:54 2013 +0600
+
+    Cleanup in simple pipeline's bundler
+    
+    - Better match Google's code style conventions.
+    - Move evaluation part into own function, makes
+      bundling itself easier to follow.
+    - Made evaluation an optional parameter.
+    - Removed note about unsupported camera intrinsics
+      refining flags. Technically, all combinations
+      are possible.
+
+commit f0e68f69e5c5f0fd82334246d382e59f1eb20164
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sun May 12 22:19:31 2013 +0600
+
+    Remove check for zero focal length in BA cost functor
+    
+    This check is actually redundant, because empty intrinsics
+    will have focal length of 1.0, which means original comment
+    about BundleIntrinsics was not truth.
+    
+    It is possible that external user will send focal length of
+    zero to be refined, but blender prevents this from happening.
+
+commit 7ed5e4da65d2c0df63a08b1e1f4b4de1855f1bf0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat May 11 20:33:54 2013 +0600
+
+    Fix compilation error with msvc2012
+    
+    Using change from glog's upstream for this.
+
+commit 7e162266f96abc25d80e2352cd77f21ed93593b7
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat May 11 19:50:57 2013 +0600
+
+    Style cleanup, mainly pointed by Sameer in Ceres's codereview
+
+commit 42da053c6410b4f3fb13798c7e9c5f4a861b6825
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 10 18:30:40 2013 +0600
+
+    Keyframe selection improvements
+    
+    Added additional criteria, which ignores
+    keyframe pair if success intersection factor
+    is lower than current candidate pair factor.
+    
+    This solves issue with keyframe pair at which
+    most of the tracks are intersecting behind the
+    camera is accepted (because variance in this
+    case is really small),
+    
+    Also tweaked generalized inverse function,
+    which now doesn't scale epsilon by maximal
+    matrix element. This gave issues at really bad
+    candidates with unstable covariance. In this
+    case almost all eigen values getting zeroed
+    on inverse leading to small expected error.
+
+commit f3eb090f7240f86799099fe86ce9386eb2bd3007
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 10 17:59:40 2013 +0600
+
+    Keyframe selection code cleanup
+    
+    - Updated comments in code.
+    - Removed currently unused functions.
+      Actually, they'd better be moved to some generic
+      logging module, but we don't have it now so was
+      lazy to create one now. Could happen later using
+      code from git history
+    - Renamed function to match better to what's going
+      on in it.
+
+commit b917b48bd877eedd17dec907cacf0b27a36e717d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 10 17:44:49 2013 +0600
+
+    Optimization for reconstruction variance
+    
+    Achieved by replacing SVD-based pseudo-inverse with
+    an eigen solver pseudo inverse.
+    
+    New function works in the same way: it decomposes
+    matrix to V*D*V^-1, then inverts diagonal of D
+    and composes matrix back.
+    
+    The same way is used to deal with gauges - last
+    7 eigen values are getting zeroed.
+    
+    In own tests gives approx 2x boost, without
+    visible affect on selected keyframe quality.
+
+commit 041b4b54fff66311347a307a5922c2516c76ee44
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Mar 14 14:53:42 2013 +0600
+
+    Initial commit of reconstruction variance criteria
+    which is an addition for GRIC-based keyframe selection.
+    
+    Uses paper Keyframe Selection for Camera Motion and Structure
+    Estimation from Multiple Views,
+    ftp://ftp.tnt.uni-hannover.de/pub/papers/2004/ECCV2004-TTHBAW.pdf
+    as a basis.
+    
+    Currently implemented camera positions reconstructions,
+    bundle positions estimation and bundle adjustment step.
+    
+    Covariance matrix is estimating using generalized inverse
+    with 7 (by the number of gauge freedoms) zeroed eigen values
+    of J^T * J.
+    
+    Additional changes:
+    - Added utility function FundamentalToEssential to extract
+      E from F matrix, used by both final reconstruction pipeline
+      and reconstruction variance code.
+    
+    - Refactored bundler a bit, so now it's possible to return
+      different evaluation data, such as number of cameras and
+      points being minimized and also jacobian.
+    
+      Jacobian currently contains only camera and points columns,
+      no intrinsics there yet. It is also currently converting to
+      an Eigen dense matrix. A bit weak, but speed is nice for
+      tests.
+    
+      Columns in jacobian are ordered in the following way:
+      first columns are cameras (3 cols for rotation and 3 cols
+      for translation), then goes 3D point columns.
+    
+    - Switched F and H refining to normalized space. Apparently,
+      refining F in pixel space squeezes it a lot making it wrong.
+    
+    - EuclideanIntersect will not add point to reconstruction if
+      it happened to be behind the camera.
+    
+    - Cleaned style a bit.
+
+commit 94c4654f1145f86779bd0a7e8cda1fd2c751d27d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 10 13:27:21 2013 +0600
+
+    Left extra debugging print in reconstruction scale by accident.
+
+commit 3886b488575ec5e79debce7b9f2e9824f5297c0f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 10 12:23:03 2013 +0600
+
+    Add check for points behind camera in euclidan BA cost functor
+    
+    In cases keyframes are no so good, algebraic two frames construction
+    could produce result, for which more aggressive Ceres-based BA code
+    will fall to a solution for which points goes behind the camera,
+    which is not so nice.
+    
+    Seems in newer Ceres returning false from cost functor wouldn't
+    abort solution, but will restrict solver from moving points behind
+    the camera.
+    
+    Works fine in own tests, but requires more tests.
+
+commit a5699d7dbe126024673f51aaa570f9f244f8da2f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 24 22:06:38 2013 +0600
+
+    Forgot to add reconstruction scale to CMakeLists
+
+commit 2b7d2b44e6446bbcc23038f5dbb824feca888069
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 24 19:40:39 2013 +0600
+
+    Reconstructed scene scale ambiguity improvement
+    
+    Added a function EuclideanScaleToUnity() which is
+    aimed to solve scale ambiguity by scaling solution
+    in a way cameras centers variance in unity.
+    
+    Currently only available for euclidean pipeline,
+    projective one is not finished anyway.
+
+commit ed1f650576dc6f5b648a026a2861c54827b0f5c9
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 23 01:41:29 2013 +0600
+
+    Use epsilon in modal solver test
+    
+    Default epsilon for isApprox was too small,
+    leading to some false test failures.
+
+commit c44679a9a0fafdde6a0a22e7e5c8496fc9c93cd0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 23 01:35:56 2013 +0600
+
+    Update Ceres to current HEAD
+    
+    Brings optimization for DENSE_NORMAL_CHOLESKY and
+    also fixes threading issues with BLAS.
+
+commit 03cbc88ce7f51aa26ba503acea2e984bcb78873c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 15 05:35:33 2013 +0600
+
+    Fix for bundle adjusting with motion restricted
+    
+    Was a bug introduced in previous commit, which
+    was trying to set parameterization for non-existing
+    camera->t parameter block.
+    
+    Replaced with subset parameterization.
+    
+    Also added basic synthetic unit test for modal solver.
+
+commit c78a68f980e778d40ce836fa1d7471cb7264d4a0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 23:33:20 2013 +0600
+
+     Bundle adjustment improvements
+    
+    - Get rid of rotation matrix parameterization,
+      use angle-axis instead.
+    
+      Also Joined rotation and translation into
+      a single parameter block.
+    
+      This made minimization go significantly faster,
+      like 1.3x times in average.
+    
+    - Fix first camera when bundling. This is to
+      address orientation ambiguity.
+    
+      Reconstruction result could still vary in
+      size, but that's another issue to be addressed
+      later.
+    
+    Additional change:
+    
+    Split EuclideanBundleCommonIntrinsics into
+    smaller functions, so it's now a bit easier
+    to follow.
+
+commit 28c7566629c2cf5b03a787c9509856e87472eb2f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 23:31:57 2013 +0600
+
+    Update Ceres to current HEAD
+    
+    Brings up some noticeable speed improvements. In particular
+    the automatic differentiation and bundle adjustment solvers.
+
+commit efde9faa21e70b031d3cbcb2dcdcd38e597bf56e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 02:21:26 2013 +0600
+
+    Corrected path to gflags
+    
+    Currently tools/track.cc is not used, but let's
+    keep things a bit more up-to-date :)
+
+commit f8b5ea196fb00ab07d577e9738a60cdd1de16509
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 02:17:16 2013 +0600
+
+    Re-enable tests for multiview and image
+    
+    For as long code is in repo and used by some tools
+    better to have it covered by tests.
+    
+    Some of them are failing tho, but that's completely
+    different story to be addressed later.
+
+commit d2a7ee60a5845738f76b88bfc373eefc2cc8501a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 8 02:10:07 2013 +0600
+
+    Do not modify cache's CMAKE_CXX_FLAGS_RELEASE when configuring Ceres
+    
+    Otherwise you'll have infinite appending of Ceres-specific flags
+    on every saving of any CmakeLists.txt.
+
+commit 45edb507bf46194dd55b7fc46a7d90ee3853834d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sun Apr 7 21:53:23 2013 +0600
+
+    Fixed compilation with BUILD_TOOLS enabled
+    
+    This commit mainly reverts parts of following commits:
+        0eebc21db831211738acc938566bbc29d68d45db
+        d8109b7a4fede1660e0dbd73735f1a9e3fd79eec
+        e59595806c045916ab4ef15ef7047c1a728b2da9
+        2d6cd58ee1cd7c5073980f358c71b2898ad16b4c
+    
+    They declared  lots of stuff deprecated, but in
+    fact it's not deprecated just a bit different
+    usage pipeline. Anyway, deprecation shall not
+    happen spontaneously as a part of other changes.
+    And for sure shall not break anything.
+
+commit 7a9c83d3ccaa2f0015f88b9156d7662c46244b4a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 20:49:05 2013 +0600
+
+    Revert "Change libmv's bilinear sampling to assume the same"
+    
+    Revert changes to bilinear sampler which were originally
+    aimed to match blender's pixel center (where integer coord
+    is a left-bottom corner, x.5 coords are centers.
+    
+    The reason of revert is changing this assumption in only
+    sampler didn't work well and lead to wrong results of
+    BlurredImageAndDerivativesChannels for example.
+    
+    Discovered when was doing unit-tests for brute region tracker.
+    
+    This reverts commit daa354c0735b954b0cd7725626e9a3d67416d46b.
+
+commit 15f3bb00340933ce753a1a55e9cde9383352e259
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 18:37:37 2013 +0600
+
+    Added basic test for brute region tracker
+    
+    It is failing at this moment and this is caused because
+    of how SampleLinear works - seems it's assumption about
+    pixel center is not correct for internal sampling.
+
+commit 1146602972c07e99a9e4ab37d35ac83aec490e60
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 16:54:08 2013 +0600
+
+    Tweak to KLT region tracker test
+    
+    KLT is usually used to track relatively small
+    motions, and in this case motion almost equals
+    to half window size. This confuses math and
+    leads to not so much expected result.
+    
+    Further, not actually sure this is nice idea
+    to use KLT in such synthetic case.
+
+commit 1e22cbcac480863b6b5abc5c85f23dc70748933a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 16:40:59 2013 +0600
+
+    Pyramid tracker unit test fix
+    
+    Issue was caused by trackers modifying guessed
+    point location even in case of failure. So made
+    id so both level 0 and level 3 of pyramid are
+    starting from the same initial guessed location.
+    
+    Modifying locations in case tracker returns false
+    is not actually a bug - someone could still want
+    to use that location. False in this case  means
+    more like "returned location is not so much
+    accurate".
+
+commit 3ad5e0efa071f202ee7c2034d70dd97aa62b13aa
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 00:38:40 2013 +0600
+
+    Intersect unit test fix
+    
+    EuclideanIntersect is not aware of camera calibration
+    matrix yet and always assumes it to be an identity.
+    
+    So using non-identity matrix to construct sample case
+    leads to wrong projection results.
+    
+    For now made it so test case uses identity matrix for
+    calibration.
+    
+    Also fixed variable shadowing which lead to wrong
+    markers positions (were either zero or undefined).
+
+commit 3a153c2b65f38653a36c36975018f68d42d60670
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 6 00:12:12 2013 +0600
+
+    Camera intrinsics unit tests fixes
+    
+    - Existing test ApplyIsInvertibleSimple was not
+      doing right thing - distortion model used there
+      was ininvertible.
+    
+      Tweaked parameters in a way model is invertible now.
+    
+    - Added some own tests which tests;
+    
+      * Principal point always maps from pixel space to
+        zero normalized position.
+    
+      * Some basic tests to check whether individual
+        apply/invert works correct.
+
+commit e3b2bccba6145290738a6677c14f7369ec7a38cd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 4 02:59:58 2013 +0600
+
+    Suppress strict compiler warnings in glags/glog libraries
+
+commit 5fca459adcf0a3419fa9cd8d983dc2c952d02647
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 4 01:20:18 2013 +0600
+
+    Lint cleanup, mostly white space and line width.
+    
+    Also moved own includes to the top of files.
+    
+    Should be no functional changes :)
+
+commit 9a9dd458a622928b91dbd3c79900577923283838
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 29 00:20:29 2013 +0600
+
+    Fix for TransformTracks in uncalibrated pipeline
+    
+    Transformation matrix was completely ignored by
+    TransformTracks() and final marker coordinate
+    exactly matched it's source coordinates.
+    
+    Seems to be just a typo in vector usage: need to
+    use "b" (which is transformed one) instead of "a"
+    when converting projective coordinate to 2D space.
+
+commit d35766cc9901609e32f4d80faba715695bea3c40
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 29 00:19:11 2013 +0600
+
+    Revert part of e2eb58c4230f94ef0c72fb4005e5434088d52e80
+    
+    That commit included one change which shall have been
+    go as separate commit with more detailed description.
+
+commit e8d71b4e96fd78eb60773b6557d66da672e65753
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 20:37:05 2013 +0600
+
+    Silenced more warnings
+    
+    - Added includes of own header to fast implementation files.
+    
+    - Camera intrinsics wouldn't complain about unknown pragma when
+      building without OpenMP support.
+    
+    TODO: Make it a CMake option to build libmv with OpenMP support.
+    	  Currently multi-threaded intrinsics only available when
+          using custom CMake rules for bundled libmv version
+          (as it's done in Blender).
+
+commit ad442812654f270dc088394410fda1b81b8dc450
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 20:18:51 2013 +0600
+
+    Multithreaded camera intrinsics
+    
+    Implemented multithreaded buffer (un)distortion
+    for camera intrinsics using OpenMP.
+    
+    By default, (un)distortion is single-threaded,
+    but it is possible to as CameraIntrinsics to
+    use more threads by calling SetThreads method.
+
+commit c88b4881096174a16a9f9e6fc2c9dcad3e255b25
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 18:45:09 2013 +0600
+
+    Movie functions implementation from panography header
+    into own CC implementation file.
+    
+    Before this all panography functions were declared as
+    static, which is not so much useful from re-useability
+    point of view.
+
+commit 2d2faf9104bc035722cff6775e1b8e7c93143aba
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 18:37:36 2013 +0600
+
+    Build shared Ceres library only if BUILD_SHARED_LIBS is enabled
+
+commit daa3ddd3260ccaf2bf9c72eadb89213d91e549ec
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 18:21:52 2013 +0600
+
+    Update Ceres to upstream version 1.5.0
+
+commit cf5dc678878345ea3f221ce50cb2b9e539c2ab38
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 27 15:06:24 2013 +0600
+
+    Code cleanup: removed more deprecated FFmpeg API usage
+    
+    This time in qt-tracker application.
+
+commit e2eb58c4230f94ef0c72fb4005e5434088d52e80
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 17:19:51 2013 +0600
+
+    Code cleanup: silent unused variables warnings
+
+commit af89bb24667e39b7e655173ea807fdcfbeef4422
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 16:54:14 2013 +0600
+
+    Code cleanup: no need to declare empty body for ProgressUpdateCallback:invoke
+    
+    Make force this method to be overridden by derivative classes.
+    Also removed currently unneeded callbacks.cc.
+
+commit 0441d4ee06fad0219256a5704f931eec916a3868
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 16:37:27 2013 +0600
+
+    Code cleanup: silent type narrowing in qt-tracker
+
+commit cd4b61c976448d0fdedefb3ed4b21d70e078f94b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 16:26:39 2013 +0600
+
+    Changes to unit testing
+    
+    - Move ceres test binaries to ${LIBMV_TESTS_OUTPUT_DIR}/ceres,
+      so they don't mess with libmv's application binaries and
+      tests.
+    
+    - Removed ceres_ prefix from ceres unit tests, only use this
+      prefix for targets (targets need to be unique name).
+    
+    - Added unit tests data for ceres, otherwise system_test fails.
+    
+    - Restored "test" makefile target.
+
+commit cf704ada08acc8b26167e7bfb3e1e88fd278de23
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 15:01:15 2013 +0600
+
+    Code cleanup: use rw-rw-r-- mode for source files
+
+commit 64b31e3e43acb52aaf6f591b9d1c2449bf6ef3bd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 26 14:57:46 2013 +0600
+
+    Code cleanup: don't use deprecated FFmpeg API functions
+
+commit 2a3676499548ad5dba5a5c5eadf3bb71e640b612
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 5 17:40:52 2013 +0600
+
+    Switch from DENSE_NORMAL_CHOLESKY to DENSE_QR
+    
+    DENSE_QR is better behaved numerically and after recent
+    changes from Sameer there's no big difference in speed.
+
+commit bcb920df02133da5b7e55fbc74edb9222004eecc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Mar 5 17:15:43 2013 +0600
+
+    Update Ceres to 1.5RC3
+    
+    It brings optimization of DENSE_QR and DENSE_SCHUR solvers.
+
+commit 473996468a4e67e7c860169181a4ff31ce9b8c80
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:44:54 2013 +0600
+
+    Fixed incorrect order of arguments passing
+    to EXPECT_EQ in keyframe selection tests.

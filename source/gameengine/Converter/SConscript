@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+#
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Nathan Letwory.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+Import ('env')
+
+sources = env.Glob('*.cpp')
+defs = []
+
+incs = [
+    '.',
+    '#extern/Eigen3',
+    '#intern/container',
+    '#intern/guardedalloc',
+    '#intern/string',
+    '#source/blender',
+    '#intern/audaspace/intern',
+    '#intern/moto/include',
+    '#source/blender/blenkernel',
+    '#source/blender/blenlib',
+    '#source/blender/blenloader',
+    '#source/blender/gpu',
+    '#source/blender/ikplugin',
+    '#source/blender/imbuf',
+    '#source/blender/makesdna',
+    '#source/blender/makesrna',
+    '#source/blender/misc',
+    '#source/blender/windowmanager',
+    '#source/gameengine/BlenderRoutines',
+    '#source/gameengine/Converter',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Ketsji',
+    '#source/gameengine/Network',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/SceneGraph',
+    '#extern/recastnavigation/Detour/Include',
+    '#source/blender/editors/include',
+    '#source/gameengine/Ketsji/KXNetwork',
+    '#source/gameengine/Network/LoopBackNetwork',
+    '#source/gameengine/Physics/Bullet',
+    '#source/gameengine/Physics/Dummy',
+    '#source/gameengine/Physics/common',
+    '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+    ]
+incs = ' '.join(incs)
+
+incs += ' ' + env['BF_BULLET_INC']
+incs += ' ' + env['BF_BOOST_INC']
+
+if env['BF_DEBUG']:
+    if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc', 'win64-vc', 'win64-mingw'):
+        defs.append('_DEBUG')
+        
+if env['WITH_BF_PYTHON']:
+    incs += ' ' + env['BF_PYTHON_INC']
+    defs.append('WITH_PYTHON')
+
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
+env.BlenderLib ( 'ge_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])

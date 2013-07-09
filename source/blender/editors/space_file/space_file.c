@@ -1,0 +1,666 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * All rights reserved.
+ *
+ * 
+ * Contributor(s): Blender Foundation
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/editors/space_file/space_file.c
+ *  \ingroup spfile
+ */
+
+#include <string.h>
+#include <stdio.h>
+
+#include "MEM_guardedalloc.h"
+
+#include "BIF_gl.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
+
+#include "BLO_readfile.h"
+
+#include "BKE_context.h"
+#include "BKE_screen.h"
+#include "BKE_global.h"
+
+#include "RNA_access.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_fileselect.h"
+
+#include "IMB_imbuf_types.h"
+#include "IMB_thumbs.h"
+
+#include "UI_resources.h"
+#include "UI_view2d.h"
+
+
+#include "file_intern.h"    // own include
+#include "fsmenu.h"
+#include "filelist.h"
+
+/* ******************** default callbacks for file space ***************** */
+
+static SpaceLink *file_new(const bContext *UNUSED(C))
+{
+	ARegion *ar;
+	SpaceFile *sfile;
+	
+	sfile = MEM_callocN(sizeof(SpaceFile), "initfile");
+	sfile->spacetype = SPACE_FILE;
+
+	/* header */
+	ar = MEM_callocN(sizeof(ARegion), "header for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype = RGN_TYPE_HEADER;
+	ar->alignment = RGN_ALIGN_TOP;
+
+	/* channel list region */
+	ar = MEM_callocN(sizeof(ARegion), "channel area for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype = RGN_TYPE_CHANNELS;
+	ar->alignment = RGN_ALIGN_LEFT;
+
+	/* ui list region */
+	ar = MEM_callocN(sizeof(ARegion), "ui area for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype = RGN_TYPE_UI;
+	ar->alignment = RGN_ALIGN_TOP;
+
+	/* main area */
+	ar = MEM_callocN(sizeof(ARegion), "main area for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype = RGN_TYPE_WINDOW;
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+	ar->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+	ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
+	ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
+
+	return (SpaceLink *)sfile;
+}
+
+/* not spacelink itself */
+static void file_free(SpaceLink *sl)
+{	
+	SpaceFile *sfile = (SpaceFile *) sl;
+	
+	if (sfile->files) {
+		// XXXXX would need to do thumbnails_stop here, but no context available
+		filelist_freelib(sfile->files);
+		filelist_free(sfile->files);
+		MEM_freeN(sfile->files);
+		sfile->files = NULL;
+	}
+
+	if (sfile->folders_prev) {
+		folderlist_free(sfile->folders_prev);
+		MEM_freeN(sfile->folders_prev);
+		sfile->folders_prev = NULL;
+	}
+
+	if (sfile->folders_next) {
+		folderlist_free(sfile->folders_next);
+		MEM_freeN(sfile->folders_next);
+		sfile->folders_next = NULL;
+	}
+
+	if (sfile->params) {
+		MEM_freeN(sfile->params);
+		sfile->params = NULL;
+	}
+
+	if (sfile->layout) {
+		MEM_freeN(sfile->layout);
+		sfile->layout = NULL;
+	}
+}
+
+
+/* spacetype; init callback, area size changes, screen set, etc */
+static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
+{
+	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
+	//printf("file_init\n");
+
+	/* refresh system directory list */
+	fsmenu_refresh_system_category(fsmenu_get());
+
+	if (sfile->layout) sfile->layout->dirty = TRUE;
+}
+
+static void file_exit(wmWindowManager *wm, ScrArea *sa)
+{
+	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
+
+	ED_fileselect_exit(wm, sfile);
+}
+
+static SpaceLink *file_duplicate(SpaceLink *sl)
+{
+	SpaceFile *sfileo = (SpaceFile *)sl;
+	SpaceFile *sfilen = MEM_dupallocN(sl);
+	
+	/* clear or remove stuff from old */
+	sfilen->op = NULL; /* file window doesn't own operators */
+
+	if (sfileo->params) {
+		sfilen->files = filelist_new(sfileo->params->type);
+		sfilen->params = MEM_dupallocN(sfileo->params);
+		filelist_setdir(sfilen->files, sfilen->params->dir);
+	}
+
+	if (sfileo->folders_prev)
+		sfilen->folders_prev = folderlist_duplicate(sfileo->folders_prev);
+
+	if (sfileo->folders_next)
+		sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
+	
+	if (sfileo->layout) {
+		sfilen->layout = MEM_dupallocN(sfileo->layout);
+	}
+	return (SpaceLink *)sfilen;
+}
+
+static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	SpaceFile *sfile = CTX_wm_space_file(C);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+
+	if (!sfile->folders_prev)
+		sfile->folders_prev = folderlist_new();
+	if (!sfile->files) {
+		sfile->files = filelist_new(params->type);
+		filelist_setdir(sfile->files, params->dir);
+		params->active_file = -1; // added this so it opens nicer (ton)
+	}
+	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
+	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);
+	filelist_setfilter_types(sfile->files, params->filter_glob);
+
+	if (filelist_empty(sfile->files)) {
+		thumbnails_stop(wm, sfile->files);
+		filelist_readdir(sfile->files);
+		if (params->sort != FILE_SORT_NONE) {
+			filelist_sort(sfile->files, params->sort);
+		}
+		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
+		if (params->display == FILE_IMGDISPLAY) {
+			thumbnails_start(sfile->files, C);
+		}
+	}
+	else {
+		if (params->sort != FILE_SORT_NONE) {
+			thumbnails_stop(wm, sfile->files);
+			filelist_sort(sfile->files, params->sort);
+			if (params->display == FILE_IMGDISPLAY) {
+				thumbnails_start(sfile->files, C);
+			}
+		}
+		else {
+			if (params->display == FILE_IMGDISPLAY) {
+				if (!thumbnails_running(wm, sfile->files)) {
+					thumbnails_start(sfile->files, C);
+				}
+			}
+			else {
+				/* stop any running thumbnail jobs if we're not 
+				 * displaying them - speedup for NFS */
+				thumbnails_stop(wm, sfile->files);
+			}
+			filelist_filter(sfile->files);
+		}
+	}
+	
+	if (params->renamefile[0] != '\0') {
+		int idx = filelist_find(sfile->files, params->renamefile);
+		if (idx >= 0) {
+			struct direntry *file = filelist_file(sfile->files, idx);
+			if (file) {
+				file->selflag |= EDITING_FILE;
+			}
+		}
+		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
+		params->renamefile[0] = '\0';
+	}
+	if (sfile->layout) sfile->layout->dirty = TRUE;
+
+}
+
+static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
+{
+	/* SpaceFile *sfile = (SpaceFile *)sa->spacedata.first; */
+
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SPACE:
+			switch (wmn->data) {
+				case ND_SPACE_FILE_LIST:
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+				case ND_SPACE_FILE_PARAMS:
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
+	}
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+	
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+	
+	/* own keymaps */
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void file_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SPACE:
+			switch (wmn->data) {
+				case ND_SPACE_FILE_LIST:
+					ED_region_tag_redraw(ar);
+					break;
+				case ND_SPACE_FILE_PARAMS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
+}
+
+static void file_main_area_draw(const bContext *C, ARegion *ar)
+{
+	/* draw entirely, view changes should be handled here */
+	SpaceFile *sfile = CTX_wm_space_file(C);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout = NULL;
+
+	View2D *v2d = &ar->v2d;
+	View2DScrollers *scrollers;
+	float col[3];
+
+	/* Needed, because filelist is not initialized on loading */
+	if (!sfile->files || filelist_empty(sfile->files))
+		file_refresh(C, NULL);
+
+	layout = ED_fileselect_get_layout(sfile, ar);
+
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* Allow dynamically sliders to be set, saves notifiers etc. */
+	if (layout && (layout->flag == FILE_LAYOUT_VER)) {
+		v2d->scroll = V2D_SCROLL_RIGHT;
+		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		v2d->keepofs |= V2D_LOCKOFS_X;
+	}
+	else {
+		v2d->scroll = V2D_SCROLL_BOTTOM;
+		v2d->keepofs &= ~V2D_LOCKOFS_X;
+		v2d->keepofs |= V2D_LOCKOFS_Y;
+		
+		/* XXX this happens on scaling down Screen (like from startup.blend) */
+		/* view2d has no type specific for filewindow case, which doesnt scroll vertically */
+		if (v2d->cur.ymax < 0) {
+			v2d->cur.ymin -= v2d->cur.ymax;
+			v2d->cur.ymax = 0;
+		}
+	}
+	/* v2d has initialized flag, so this call will only set the mask correct */
+	UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+
+	/* sets tile/border settings in sfile */
+	file_calc_previews(C, ar);
+
+	/* set view */
+	UI_view2d_view_ortho(v2d);
+	
+	/* on first read, find active file */
+	if (params->active_file == -1) {
+		wmEvent *event = CTX_wm_window(C)->eventstate;
+		file_highlight_set(sfile, ar, event->x, event->y);
+	}
+	
+	file_draw_list(C, ar);
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+
+}
+
+static void file_operatortypes(void)
+{
+	WM_operatortype_append(FILE_OT_select);
+	WM_operatortype_append(FILE_OT_select_all_toggle);
+	WM_operatortype_append(FILE_OT_select_border);
+	WM_operatortype_append(FILE_OT_select_bookmark);
+	WM_operatortype_append(FILE_OT_highlight);
+	WM_operatortype_append(FILE_OT_execute);
+	WM_operatortype_append(FILE_OT_cancel);
+	WM_operatortype_append(FILE_OT_parent);
+	WM_operatortype_append(FILE_OT_previous);
+	WM_operatortype_append(FILE_OT_next);
+	WM_operatortype_append(FILE_OT_refresh);
+	WM_operatortype_append(FILE_OT_bookmark_toggle);
+	WM_operatortype_append(FILE_OT_bookmark_add);
+	WM_operatortype_append(FILE_OT_delete_bookmark);
+	WM_operatortype_append(FILE_OT_reset_recent);
+	WM_operatortype_append(FILE_OT_hidedot);
+	WM_operatortype_append(FILE_OT_filenum);
+	WM_operatortype_append(FILE_OT_directory_new);
+	WM_operatortype_append(FILE_OT_delete);
+	WM_operatortype_append(FILE_OT_rename);
+	WM_operatortype_append(FILE_OT_smoothscroll);
+	WM_operatortype_append(FILE_OT_directory);
+}
+
+/* NOTE: do not add .blend file reading on this level */
+static void file_keymap(struct wmKeyConfig *keyconf)
+{
+	wmKeyMapItem *kmi;
+	/* keys for all areas */
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "File Browser", SPACE_FILE, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_bookmark_add", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_previous", BACKSPACEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_next", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
+
+	/* keys for main area */
+	keymap = WM_keymap_find(keyconf, "File Browser Main", SPACE_FILE, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_execute", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
+	RNA_boolean_set(kmi->ptr, "need_active", TRUE);
+
+	/* left mouse selects and opens */
+	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "fill", TRUE);
+
+	/* right mouse selects without opening */
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_CLICK, 0, 0);
+	RNA_boolean_set(kmi->ptr, "open", FALSE);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_CLICK, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "open", FALSE);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_CLICK, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "fill", TRUE);
+	RNA_boolean_set(kmi->ptr, "open", FALSE);
+
+	/* front and back mouse folder navigation */
+	WM_keymap_add_item(keymap, "FILE_OT_previous", BUTTON4MOUSE, KM_CLICK, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_next", BUTTON5MOUSE, KM_CLICK, 0, 0);
+
+	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_refresh", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select_border", EVT_TWEAK_L, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, KM_ANY, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", 1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", 10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", 100);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", -1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", -10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", -100);
+	
+	
+	/* keys for button area (top) */
+	keymap = WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", 1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", 10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", 100);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", -1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", -10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", -100);
+}
+
+
+static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+
+	ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+	ED_region_panels_init(wm, ar);
+
+	/* own keymaps */
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void file_channel_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_panels(C, ar, 1, NULL, -1);
+}
+
+static void file_channel_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *wmn)
+{
+	/* context changes */
+	switch (wmn->category) {
+		
+	}
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+	
+	ED_region_header_init(ar);
+	
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void file_header_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_header(C, ar);
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void file_ui_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+
+	/* own keymap */
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void file_ui_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* scrolling here is just annoying, disable it */
+	ar->v2d.cur.ymax = BLI_rctf_size_y(&ar->v2d.cur);
+	ar->v2d.cur.ymin = 0;
+
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(&ar->v2d);
+
+
+	file_draw_buttons(C, ar);
+
+	UI_view2d_view_restore(C);
+}
+
+static void file_ui_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SPACE:
+			switch (wmn->data) {
+				case ND_SPACE_FILE_LIST:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
+}
+
+/* only called once, from space/spacetypes.c */
+void ED_spacetype_file(void)
+{
+	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype file");
+	ARegionType *art;
+	
+	st->spaceid = SPACE_FILE;
+	strncpy(st->name, "File", BKE_ST_MAXNAME);
+	
+	st->new = file_new;
+	st->free = file_free;
+	st->init = file_init;
+	st->exit = file_exit;
+	st->duplicate = file_duplicate;
+	st->refresh = file_refresh;
+	st->listener = file_listener;
+	st->operatortypes = file_operatortypes;
+	st->keymap = file_keymap;
+	
+	/* regions: main window */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art->regionid = RGN_TYPE_WINDOW;
+	art->init = file_main_area_init;
+	art->draw = file_main_area_draw;
+	art->listener = file_main_area_listener;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+	BLI_addhead(&st->regiontypes, art);
+	
+	/* regions: header */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art->regionid = RGN_TYPE_HEADER;
+	art->prefsizey = HEADERY;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
+	art->init = file_header_area_init;
+	art->draw = file_header_area_draw;
+	// art->listener = file_header_area_listener;
+	BLI_addhead(&st->regiontypes, art);
+	
+	/* regions: ui */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art->regionid = RGN_TYPE_UI;
+	art->prefsizey = 60;
+	art->keymapflag = ED_KEYMAP_UI;
+	art->listener = file_ui_area_listener;
+	art->init = file_ui_area_init;
+	art->draw = file_ui_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: channels (directories) */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art->regionid = RGN_TYPE_CHANNELS;
+	art->prefsizex = 240;
+	art->keymapflag = ED_KEYMAP_UI;
+	art->listener = file_channel_area_listener;
+	art->init = file_channel_area_init;
+	art->draw = file_channel_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	file_panels_register(art);
+
+	BKE_spacetype_register(st);
+
+}
+
+void ED_file_init(void)
+{
+	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+	
+	fsmenu_read_system(fsmenu_get(), TRUE);
+
+	if (cfgdir) {
+		char name[FILE_MAX];
+		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
+		fsmenu_read_bookmarks(fsmenu_get(), name);
+	}
+	
+	if (G.background == FALSE) {
+		filelist_init_icons();
+	}
+
+	IMB_thumb_makedirs();
+}
+
+void ED_file_exit(void)
+{
+	fsmenu_free(fsmenu_get());
+
+	if (G.background == FALSE) {
+		filelist_free_icons();
+	}
+}

@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+Import('env')
+
+sources = env.Glob('Recast/Source/*.cpp') + env.Glob('Detour/Source/*.cpp')
+sources += ['recast-capi.cpp']
+
+incs = 'Recast/Include Detour/Include'
+
+env.BlenderLib ( 'extern_recastnavigation', sources, Split(incs), [],
+                 libtype=['extern','player'],
+                 priority=[10,185])

@@ -1,0 +1,70 @@
+# Maintainer: Campbell Barton <ideasman42 at gmail dot com>
+
+# custom blender vars
+blender_srcdir=$(dirname $startdir)"/../.."
+# value may be formatted: 35042:35051M
+blender_revision=$(svnversion $blender_srcdir | cut -d: -f2 | awk '{print $3}')
+blender_version=$(grep "BLENDER_VERSION\s" $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
+blender_version=$(expr $blender_version / 100).$(expr $blender_version % 100)  # 256 -> 2.56
+blender_version_char=$(sed -ne 's/.*BLENDER_VERSION_CHAR.*\([a-z]\)$/\1/p' $blender_srcdir/source/blender/blenkernel/BKE_blender.h)
+# blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
+
+# map the version a -> 1
+# not to be confused with blender's internal subversions
+if [ "$blender_version_char" ]; then
+    blender_version_full=${blender_version}.$(expr index abcdefghijklmnopqrstuvwxyz $blender_version_char)
+else
+	blender_version_full=${blender_version}
+fi
+
+blender_ver_string=$blender_version+svn$blender_version_full
+
+pkgname=blender-snapshot
+pkgver=$blender_ver_string
+pkgrel=1
+pkgdesc="A fully integrated 3D graphics creation suite"
+arch=('i686' 'x86_64')
+url="www.blender.org"
+license=('GPL')
+groups=()
+depends=('libjpeg' 'libpng' 'openjpeg' 'libtiff' 'openexr'  'python>=3.2' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'ffmpeg')
+makedepends=('cmake' 'svn')
+optdepends=()
+provides=()
+conflicts=('blender')
+replaces=('blender')
+backup=()
+options=()
+install=blender.install
+# use current svn to make the package.
+# source=(http://download.blender.org/source/$pkgname-$pkgver.tar.gz)
+# md5sums=('27edb80c82c25252d43d6a01980d953a') #generate with 'makepkg -g'
+source=()
+md5sums=()
+noextract=()
+
+build() {
+  mkdir -p $srcdir/build
+  cd $srcdir/build
+  cmake $blender_srcdir \
+    -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
+    -DWITH_INSTALL_PORTABLE:BOOL=OFF \
+    -DWITH_PYTHON_INSTALL:BOOL=OFF \
+    -DWITH_OPENCOLLADA:BOOL=OFF \
+	-DPYTHON_VERSION:STRING=3.2 \
+	-DPYTHON_LIBPATH:STRING=/usr/lib \
+	-DPYTHON_LIBRARY:STRING=python3.2mu \
+	-DPYTHON_INCLUDE_DIRS:STRING=/usr/include/python3.2mu
+
+  make $MAKEFLAGS
+}
+
+package() {
+  cd $srcdir/build
+  make DESTDIR="$pkgdir" install
+  python -m compileall \
+	$pkgdir/usr/share/blender/$blender_version/scripts/startup \
+	$pkgdir/usr/share/blender/$blender_version/scripts/modules \
+	$pkgdir/usr/share/blender/$blender_version/scripts/addons
+}

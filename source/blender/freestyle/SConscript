@@ -1,0 +1,91 @@
+#!/usr/bin/python
+import sys
+Import ('env')
+
+sources = []
+
+incs = [
+    '#/intern/guardedalloc',
+    '#/extern/glew/include',
+    '../blenkernel',
+    '../blenlib',
+    '../freestyle',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../python',
+    '../python/intern',
+    '../render/extern/include',
+    '../render/intern/include',
+    env['BF_PYTHON_INC'],
+    env['BF_PNG_INC'],
+    ]
+incs = ' '.join(incs)
+
+defs = ['WITH_FREESTYLE']
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
+########################################################
+#   folders sources
+########################################################
+
+#   system
+prefix = 'intern/system'
+system_sources = env.Glob(prefix + '/*.cpp')
+
+#   image
+prefix = 'intern/image'
+image_sources = env.Glob(prefix + '/*.cpp')
+
+#   geometry
+prefix = 'intern/geometry'
+geometry_sources = env.Glob(prefix + '/*.cpp')
+
+#   scene_graph
+prefix = 'intern/scene_graph'
+scene_graph_sources = env.Glob(prefix + '/*.cpp')
+
+#   winged_edge
+prefix = 'intern/winged_edge'
+winged_edge_sources = env.Glob(prefix + '/*.cpp')
+
+#   view_map
+prefix = 'intern/view_map'
+view_map_sources = env.Glob(prefix + '/*.cpp')
+
+#   stroke
+prefix = 'intern/stroke'
+stroke_sources = env.Glob(prefix + '/*.cpp')
+
+#   application
+prefix = 'intern/application'
+application_sources = env.Glob(prefix + '/*.cpp')
+
+#   blender_interface
+prefix = 'intern/blender_interface'
+interface_sources = env.Glob(prefix + '/*.cpp')
+
+#   Python
+prefix = 'intern/python'
+python_sources = env.Glob(prefix + '/*.cpp') + \
+                 env.Glob(prefix + '/*/*.cpp') + \
+                 env.Glob(prefix + '/*/*/*.cpp') + \
+                 env.Glob(prefix + '/*/*/*/*.cpp')
+
+sources = system_sources + image_sources + geometry_sources + scene_graph_sources + \
+          winged_edge_sources + view_map_sources + stroke_sources + \
+          application_sources + interface_sources
+
+if False: # gives link errors 'win' in env['OURPLATFORM']:
+    env.BlenderLib(libname="bf_freestyle_python", sources=python_sources, includes=Split(incs),
+                   defines=defs, libtype=['core'], priority = [369] # bf_python is 361
+    )
+else:
+    sources += python_sources
+
+env.BlenderLib(libname="bf_freestyle", sources=sources, includes=Split(incs),
+               defines=defs, libtype=['core'], priority = [370] # bf_python is 361
+)
+

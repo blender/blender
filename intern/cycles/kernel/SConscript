@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+#
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2011, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Nathan Letwory.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+import re
+import subprocess
+import sys
+import os
+import Blender as B
+
+def normpath(path):
+    return os.path.abspath(os.path.normpath(path))
+
+Import ('env')
+
+kernel_binaries = []
+
+#Bitness
+if B.bitness == 32:
+    bits = 32
+else:
+    bits = 64
+
+if env['WITH_BF_CYCLES_CUDA_BINARIES']:
+    kernel = env.Clone()
+
+    # cuda info
+    nvcc = env['BF_CYCLES_CUDA_NVCC']
+    cuda_archs = env['BF_CYCLES_CUDA_BINARIES_ARCH']
+
+    # build directory
+    root_build_dir = normpath(env['BF_BUILDDIR'])
+    build_dir = os.path.join(root_build_dir, 'intern/cycles/kernel')
+
+    # source directories and files
+    source_dir = Dir('.').srcnode().path
+    kernel_file = os.path.join(source_dir, "kernel.cu")
+    util_dir = os.path.join(source_dir, "../util")
+    svm_dir = os.path.join(source_dir, "../svm")
+    closure_dir = os.path.join(source_dir, "../closure")
+
+    # get CUDA version
+    nvcc_pipe = subprocess.Popen([nvcc, "--version"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    output, erroroutput = nvcc_pipe.communicate()
+    cuda_major_minor = re.findall(r'release (\d+).(\d+)', output)[0]
+    cuda_version = int(cuda_major_minor[0])*10 + int(cuda_major_minor[1])
+
+    if cuda_version != 50:
+        print("CUDA version %d.%d detected, build may succeed but only CUDA 5.0 is officially supported." % (cuda_version/10, cuda_version%10))
+
+    # nvcc flags
+    nvcc_flags = "-m%s" % (bits)
+    nvcc_flags += " --cubin --ptxas-options=\"-v\""
+    nvcc_flags += " -D__KERNEL_CUDA_VERSION__=%d" % (cuda_version)
+    nvcc_flags += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC"
+    nvcc_flags += " -I \"%s\" -I \"%s\" -I \"%s\"" % (util_dir, svm_dir, closure_dir)
+
+    # dependencies
+    dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h') + kernel.Glob('closure/*.h')
+    last_cubin_file = None
+
+    # add command for each cuda architecture
+    for arch in cuda_archs:
+        cubin_file = os.path.join(build_dir, "kernel_%s.cubin" % arch)
+
+		# build flags depending on CUDA version and arch
+        if cuda_version < 50:
+            if arch == "sm_35":
+                print("Can't build kernel for CUDA sm_35 architecture, skipping")
+                continue
+
+            # CUDA 4.x
+            if arch.startswith("sm_1"):
+                # sm_1x
+                cuda_arch_flags = "--maxrregcount=24 --opencc-options -OPT:Olimit=0"
+            elif arch.startswith("sm_2"):
+                # sm_2x
+                cuda_arch_flags = "--maxrregcount=24"
+            else:
+                # sm_3x
+                cuda_arch_flags = "--maxrregcount=32"
+        else:
+            # CUDA 5.x
+            if arch.startswith("sm_1"):
+                # sm_1x
+                cuda_arch_flags = "--maxrregcount=24 --opencc-options -OPT:Olimit=0 --use_fast_math"
+            elif arch.startswith("sm_2"):
+                # sm_2x
+                cuda_arch_flags = "--maxrregcount=32 --use_fast_math"
+            else:
+                # sm_3x
+                cuda_arch_flags = "--maxrregcount=32 --use_fast_math"
+
+        command = "\"%s\" -arch=%s %s %s \"%s\" -o \"%s\"" % (nvcc, arch, nvcc_flags, cuda_arch_flags, kernel_file, cubin_file)
+
+        kernel.Command(cubin_file, 'kernel.cu', command)
+        kernel.Depends(cubin_file, dependencies)
+
+        kernel_binaries.append(cubin_file)
+        
+        if not env['WITH_BF_CYCLES_CUDA_THREADED_COMPILE']:
+            # trick to compile one kernel at a time to reduce memory usage
+            if last_cubin_file:
+                kernel.Depends(cubin_file, last_cubin_file)
+            last_cubin_file = cubin_file
+
+Return('kernel_binaries')
+

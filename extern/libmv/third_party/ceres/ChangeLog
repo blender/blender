@@ -1,0 +1,717 @@
+commit 36f4cd23b24391106e9f3c15b0f9bbcaafc47b20
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 21 09:42:26 2013 -0700
+
+    Disable threads completely if OpenMP is not present.
+    
+    This reduces the penalty paid by Mutex lock and unlock operations
+    in single threaded mode.
+    
+    Change-Id: I185380bde73fe87e901fc434d152d6c366ff1d5d
+
+commit 24fb32b42683cf711a6683e3cff3540b16bb5019
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Apr 20 09:02:06 2013 -0700
+
+    Add whole program optimization for Clang.
+    
+    Also reorder the way CERES_CXX_FLAGS is being used for clarity.
+    
+    Change-Id: I2bbb90e770d30dd18ecae72939ea03b7fa11e6ae
+
+commit 2b7497025096a681d7f0351081f83293398d62ef
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 19:52:58 2013 -0700
+
+    Fix a bounds error in the pre-ordering code.
+    
+    Change-Id: I33c968bb075b60ad50374593302e08f42aeacf25
+
+commit 9189f4ea4bb2d71ea7f6b9d9bd3290415aee323d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 17:09:49 2013 -0700
+
+    Enable pre-ordering for SPARSE_NORMAL_CHOLESKY.
+    
+    Sparse Cholesky factorization algorithms use a fill-reducing
+    ordering to permute the columns of the Jacobian matrix. There
+    are two ways of doing this.
+    
+    1. Compute the Jacobian matrix in some order and then have the
+       factorization algorithm permute the columns of the Jacobian.
+    
+    2. Compute the Jacobian with its columns already permuted.
+    
+    The first option incurs a significant memory penalty. The
+    factorization algorithm has to make a copy of the permuted
+    Jacobian matrix.
+    
+    Starting with this change Ceres pre-permutes the columns of the
+    Jacobian matrix and generally speaking, there is no performance
+    penalty for doing so.
+    
+    In some rare cases, it is worth using a more complicated
+    reordering algorithm which has slightly better runtime
+    performance at the expense of an extra copy of the Jacobian
+    matrix. Setting Solver::Options::use_postordering to true
+    enables this tradeoff.
+    
+    This change also removes Solver::Options::use_block_amd
+    as an option. All matrices are ordered using their block
+    structure. The ability to order them by their scalar
+    sparsity structure has been removed.
+    
+    Here is what performance on looks like on some BAL problems.
+    
+    Memory
+    ======
+                                         HEAD         pre-ordering
+    16-22106                      137957376.0          113516544.0
+    49-7776                        56688640.0           46628864.0
+    245-198739                   1718005760.0         1383550976.0
+    257-65132                     387715072.0          319512576.0
+    356-226730                   2014826496.0         1626087424.0
+    744-543562                   4903358464.0         3957878784.0
+    1024-110968                   968626176.0          822071296.0
+    
+    Time
+    ====
+                                         HEAD         pre-ordering
+    16-22106                              3.8                  3.7
+    49-7776                               1.9                  1.8
+    245-198739                           82.6                 81.9
+    257-65132                            14.0                 13.4
+    356-226730                           98.8                 95.8
+    744-543562                          325.2                301.6
+    1024-110968                          42.1                 37.1
+    
+    Change-Id: I6b2e25f3fed7310f88905386a7898ac94d37467e
+
+commit f7ed22efc3afee36aae71a4f7949b3d327b87f11
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 14:24:48 2013 -0700
+
+    Add the ability to order the Program using AMD.
+    
+    This will allow CHOLMOD to compute the sparse
+    Cholesky factorization of J'J without making
+    a permuted copy of it.
+    
+    Change-Id: I25d0e18f5957ab7fdce15c543234bb2f09db482e
+
+commit c8f07905d76d9ac6fb8d7b9b02e180aa2fa0ab32
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 08:01:04 2013 -0700
+
+    Refactor SolverImpl::CreateReducedProgram.
+    
+    Break up CreateReducedProgram into smaller functions in
+    preparation for more sophisticated ordering strategies.
+    
+    Change-Id: Ic3897522574fde770646d747fe383f5dbd7a6619
+
+commit 2560b17b7cdda1de28c18049c95e6c3188dbde93
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 19 08:19:11 2013 -0700
+
+    SuiteSparse cleanup.
+    
+    1. CreateSparseMatrixTransposeView now returns a struct instead
+    of a pointer.
+    
+    2. Add AnalyzeCholeskyWithNaturalOrdering.
+    
+    Change-Id: If27a5502949c3994edd95be0d25ec7a0d1fa1ae1
+
+commit 7823cf23c765450b79f11ac31fc8a16f875c0d84
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Apr 18 16:13:56 2013 -0700
+
+    Fix a typo in problem.h
+    
+    Thanks as usual to William Rucklidge.
+    
+    Change-Id: If6e8628841ee7fa8978ec56918a80d60b4ff660e
+
+commit 3d9546963d7c8c5f5dfb12a2df745f4996fd2ec5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Apr 18 14:54:55 2013 -0700
+
+    Add the ability to query the Problem about parameter blocks.
+    
+    Change-Id: Ieda1aefa28e7a1d18fe6c8d1665882e4d9c274f2
+
+commit 69ebad42ebfc212339a22c6f06a12ec5a3368098
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Apr 17 15:38:00 2013 -0700
+
+    Change Minimizer::Options::min_trust_region_radius to double.
+    
+    This was accidentally an int, which was setting the minimum
+    trust region radius to zero and effectively disabling a convergence
+    test based on it.
+    
+    (Thanks to Sergey Sharybin for providing a reproduction for this)
+    
+    Change-Id: Id0b9e246bcfee074954a5dc6a3a2342adab56c16
+
+commit e6707b2411b9a823b6c748f9f9d0b22225d767bb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 16 15:44:23 2013 -0700
+
+    Lint fixes from William Rucklidge.
+    
+    Change-Id: I57a6383bb875b24083cd9b7049333292d26f718c
+
+commit c7e69beb52c2c47182eaf8295025a668d0eefd80
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 16 09:39:16 2013 -0700
+
+    Add a missing mutex lock in the SchurEliminator. This
+    was lost somewhere along in the BLAS based refactoring.
+    
+    Change-Id: I90b94fa9c3a8ea1b900a18f76ef6a7d0dbf24318
+
+commit faa72ace9abea24877173158bfec451d5b46597e
+Author: Joydeep Biswas <joydeep.biswas@gmail.com>
+Date:   Mon Apr 15 17:34:43 2013 -0400
+
+    Update to compile with stricter gcc checks.
+    
+    Change-Id: Iecb37cbe7201a4d4f42b21b427fa1d35d0183b1b
+
+commit 487250eb27256a41d38c5037bdac9a09a3160edb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 5 14:20:37 2013 -0700
+
+    Minor cleanups.
+    
+    1. Further BLAS and heap allocation cleanups in  schur_eliminator_impl.h
+    2. Modularize blas.h using macros.
+    3. Lint cleanups from William Rucklidge.
+    4. Small changes to jet.h
+    5. ResidualBlock now uses blas.h
+    
+    Performance improvements:
+    
+    For static and dynamic sized blocks, the peformance is not changed much.
+    
+    -use_quaternions -ordering user -linear_solver sparse_schur
+    
+                                            master         change
+    problem: 16-22106
+    gcc                                        3.4            3.3
+    clang                                      2.8            2.7
+    
+    problem: 49-7776
+    gcc                                        1.7            1.7
+    clang                                      1.4            1.4
+    
+    problem: 245-198739
+    gcc                                       80.1           79.6
+    clang                                     80.6           76.2
+    
+    problem: 257-65132
+    gcc                                       12.2           12.0
+    clang                                     10.4           10.2
+    
+    problem: 356-226730
+    gcc                                       99.0           96.8
+    clang                                     88.9           88.3
+    
+    problem: 744-543562
+    gcc                                      361.5          356.2
+    clang                                    352.7          343.5
+    
+    problem: 1024-110968
+    gcc                                       45.9           45.6
+    clang                                     42.6           42.1
+    
+    However, performance when using local parameterizations is
+    significantly improved due to residual_block.cc using blas.h
+    
+    -use_quaternions -use_local_parameterization -ordering user -linear_solver sparse_schur
+    
+                                            master         change
+    problem: 16-22106
+    gcc                                        3.6            3.3
+    clang                                      3.5            2.8
+    
+    problem: 49-7776
+    gcc                                        1.8            1.6
+    clang                                      1.7            1.4
+    
+    problem: 245-198739
+    gcc                                       79.7           76.1
+    clang                                     79.7           73.0
+    
+    problem: 257-65132
+    gcc                                       12.8           11.9
+    clang                                     12.3            9.8
+    
+    problem: 356-226730
+    gcc                                      101.9           93.5
+    clang                                    105.0           86.8
+    
+    problem: 744-543562
+    gcc                                      367.9          350.5
+    clang                                    355.3          323.1
+    
+    problem: 1024-110968
+    gcc                                       43.0           40.3
+    clang                                     41.0           37.5
+    
+    Change-Id: I6dcf7476ddaa77cb116558d112a9cf1e832f5fc9
+
+commit eeedd3a59281eb27025d7f9aa944d9aff0666590
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 10 23:58:32 2013 +0600
+
+    Autodiff local parameterization class
+    
+    This class is used to create local parameterization
+    with Jacobians computed via automatic differentiation.
+    
+    To get an auto differentiated local parameterization,
+    class with a templated operator() (a functor) that
+    computes
+    
+     plus_delta = Plus(x, delta);
+    
+    shall be defined.
+    
+    Then given such functor, the auto differentiated local
+    parameterization can be constructed as
+    
+     LocalParameterization* local_parameterization =
+       new AutoDiffLocalParameterization<PlusFunctor, 4, 3>;
+                                                      |  |
+                           Global Size ---------------+  |
+                           Local Size -------------------+
+    
+    See autodiff_local_parameterization.h for more information
+    and usage example.
+    
+    Initial implementation by Keir Mierle, finished by self
+    and integrated into Ceres and covered with unit tests
+    by Sameer Agarwal.
+    
+    Change-Id: I1b3e48ae89f81e0cf1f51416c5696e18223f4b21
+
+commit d8d541674da5f3ba7a15c4003fa18577479f8f8c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 10 11:13:27 2013 +0600
+
+    Do not modify cached CMAKE_CXX_FLAGS_RELEASE
+    
+    Adding compiler's flags and force updating cached value
+    of release C++ flags lead to appending special compiler
+    flags on every edit of any CMakeList.txt.
+    
+    For compile result this is harmless, but was annoying
+    slight modification of CMakeList.txt triggered full
+    project rebuild.
+    
+    Now modified C++ flags are used for the whole subtree
+    starting from the project root, but this doesn't lead
+    to flags modified in cache.
+    
+    Change-Id: Ieb32bd7f96d5a09632f0b2b5325f6567be8cb5a8
+
+commit c290df85a40a8dd117b5eccc515bf22b0d9b1945
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 7 09:17:47 2013 -0700
+
+    Typo fix.
+    
+    (Thanks to Pieree Moulon for reporting this)
+    
+    Change-Id: I536724ab4b7e9c97768d5197aa86b41f37a04d38
+
+commit dc3a27fa60ba7c6b152660afd5abe1c8b608dec3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Apr 6 19:32:47 2013 -0700
+
+    Fix MatrixVectorMultiply and incorrect DCHECKS.
+    
+    (Thanks to Serget Sharybin for reporting this)
+    
+    Change-Id: I6bbc41667308fc2932871cf25ad07b431f70801f
+
+commit 585607171f20d591033dfea43b6dd22fea755a6c
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Sun Apr 7 01:24:13 2013 +0200
+
+    <iterator> needed for back_insert_iterator
+    
+    Adding this header was required to make Ceres compile with VS2010.
+    
+    Change-Id: I000c860da4fd385d625e70695564225bdfd433c7
+
+commit 520d35ef22dbcb05e344451c03ae64304e524a06
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Apr 4 08:16:02 2013 -0700
+
+    Further BLAS improvements.
+    
+    1. Switch to Eigen's implementation when all dimensions are fixed.
+    2. Use lazyProduct for eigen matrix-vector product. This brings
+       eigen's performance on iterative_schur closer to what it used
+       to be before the last commit. There is however still an
+       improvement to be had by using the naive implementation when
+       the matrix and vector have dynamic dimensions.
+    
+    BENCHMARK
+                                          HEAD                                       CHANGE
+    
+    problem-16-22106-pre.txt
+    gcc-eigen       sparse_schur         0.859    gcc-eigen       sparse_schur        0.853
+    clang-eigen     sparse_schur         0.848    clang-eigen     sparse_schur        0.850
+    gcc-blas        sparse_schur         0.956    gcc-blas        sparse_schur        0.865
+    clang-blas      sparse_schur         0.954    clang-blas      sparse_schur        0.858
+    gcc-eigen       iterative_schur      4.656    gcc-eigen       iterative_schur     3.271
+    clang-eigen     iterative_schur      4.664    clang-eigen     iterative_schur     3.307
+    gcc-blas        iterative_schur      2.598    gcc-blas        iterative_schur     2.620
+    clang-blas      iterative_schur      2.554    clang-blas      iterative_schur     2.567
+    
+    problem-49-7776-pre.txt
+    gcc-eigen       sparse_schur         0.477    gcc-eigen       sparse_schur        0.472
+    clang-eigen     sparse_schur         0.475    clang-eigen     sparse_schur        0.479
+    gcc-blas        sparse_schur         0.521    gcc-blas        sparse_schur        0.469
+    clang-blas      sparse_schur         0.508    clang-blas      sparse_schur        0.471
+    gcc-eigen       iterative_schur      3.172    gcc-eigen       iterative_schur     2.088
+    clang-eigen     iterative_schur      3.161    clang-eigen     iterative_schur     2.079
+    gcc-blas        iterative_schur      1.701    gcc-blas        iterative_schur     1.720
+    clang-blas      iterative_schur      1.708    clang-blas      iterative_schur     1.694
+    
+    problem-245-198739-pre.txt
+    gcc-eigen       sparse_schur        28.092    gcc-eigen       sparse_schur       28.233
+    clang-eigen     sparse_schur        28.148    clang-eigen     sparse_schur       28.400
+    gcc-blas        sparse_schur        30.919    gcc-blas        sparse_schur       28.110
+    clang-blas      sparse_schur        31.001    clang-blas      sparse_schur       28.407
+    gcc-eigen       iterative_schur     63.095    gcc-eigen       iterative_schur    43.694
+    clang-eigen     iterative_schur     63.412    clang-eigen     iterative_schur    43.473
+    gcc-blas        iterative_schur     33.353    gcc-blas        iterative_schur    33.321
+    clang-blas      iterative_schur     33.276    clang-blas      iterative_schur    33.278
+    
+    problem-257-65132-pre.txt
+    gcc-eigen       sparse_schur         3.687    gcc-eigen       sparse_schur        3.629
+    clang-eigen     sparse_schur         3.669    clang-eigen     sparse_schur        3.652
+    gcc-blas        sparse_schur         3.947    gcc-blas        sparse_schur        3.673
+    clang-blas      sparse_schur         3.952    clang-blas      sparse_schur        3.678
+    gcc-eigen       iterative_schur    121.512    gcc-eigen       iterative_schur    76.833
+    clang-eigen     iterative_schur    123.547    clang-eigen     iterative_schur    78.763
+    gcc-blas        iterative_schur     68.334    gcc-blas        iterative_schur    68.612
+    clang-blas      iterative_schur     67.793    clang-blas      iterative_schur    68.266
+    
+    Notes:
+    
+    1. Naive BLAS was a bit worse than eigen on fixed sized matrices. We did not see this
+       before because of the different inlining thresholds. Fixing this boosted eigen's
+       performance. Also the disparity between gcc and clang has gone away.
+    
+    2. SPARSE_SCHUR performance remains the same, since it is only testing static sized
+       matrices.
+    
+    3. ITERATIVE_SCHUR performance goes up substantially due to the lazyProduct change,
+       but even there, since most of the products are dynamic sized, the naive implementation
+       wins handily.
+    
+    Change-Id: Idc17f35b9c68aaebb1b2e131adf3af8374a85a4c
+
+commit 25ac54807eedf16fd6c34efc390901ee549a7d14
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Apr 3 18:51:27 2013 -0700
+
+    Speed up Jets.
+    
+    Change-Id: I101bac1b1a1cf72ca49ffcf843b73c0ef5a6dfcb
+
+commit 3d6eceb45cf27024865908f0c10a5c2b0f8719cf
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 2 21:45:48 2013 -0700
+
+    Replace more instances of Eigen GEMV with Ceres BLAS.
+    
+    With this ITERATIVE_SCHUR with JACOBI preconditioner went down from
+    280 seconds to 150 seconds on problem-744-543562-pre.txt.
+    
+    Change-Id: I4f319c1108421e8d59f58654a4c0576ad65df609
+
+commit 296fa9b1279ee1900c8ae32d70e97cd10fc0b46b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 2 09:44:15 2013 -0700
+
+    Replace Eigen block operations with small GEMM and GEMV loops.
+    
+    1. Add Matrix-Matrix and Matrix-Vector multiply functions.
+    2. Replace Eigen usage in SchurEliminator with these custom
+       matrix operations.
+    3. Save on some memory allocations in ChunkOuterProduct.
+    4. Replace LDLT with LLT.
+    
+    As a result on problem-16-22106-pre.txt, the linear solver time
+    goes down from 1.2s to 0.64s.
+    
+    Change-Id: I2daa667960e0a1e8834489965a30be31f37fd87f
+
+commit 222ca20e8facf706582fe696b7f41247391eac12
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Apr 1 09:11:07 2013 -0700
+
+    SuiteSparse cleanup.
+    
+    1. Silence CHOLMOD's indefiniteness warnings.
+    2. Add a comment about how the error handling in suitesparse.cc
+       needs to be improved.
+    3. Move the analysis logging into suitesparse.cc and out of the
+       three callsites.
+    
+    Change-Id: Idd396b8ea4bf59fc1ffc7f9fcbbc7b38ed71643c
+
+commit b7ba93459b7f584eedb1a9f42f3d06bccabd33dc
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Tue Feb 19 12:52:58 2013 +0100
+
+    Enable larger tuple sizes for Visual Studio 2012.
+    
+    Visual Studio 2012 does not have variadic templates and implements
+    tuples differently. By default, only sizes up to 5 are supported,
+    which conflicts with Gtest.
+    
+    Change-Id: Ieb8d59e4329863cbfa2729d8a76db0714c08d259
+
+commit 564a83fcc690ac8383bf52a782c45757ae7fa2ad
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Mar 26 11:11:43 2013 -0700
+
+    Lint cleanup from William Rucklidge.
+    
+    Change-Id: I8d4a0aa3e264775d20e99a6b5265f3023de92560
+
+commit cbe64827becbbaab5b435a71bf00353b4ddd026b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 25 17:39:53 2013 -0700
+
+    Update documentation
+    
+    Change-Id: Iea3c4b5409e593b1fb070a491ba8a479db32ca58
+
+commit 802639c89603c9541e624766349d1989a1f641c0
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Mon Mar 25 20:53:45 2013 -0700
+
+    ceresproblem label was incorrect
+    
+    Change-Id: I3e210375adba4fa50ff3c25398b20a65d241cb35
+
+commit 6bcb8d9c304a3b218f8788018dfdfe368bb7d60c
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Mon Mar 25 16:40:26 2013 -0700
+
+    Compiling against static or shared library
+    
+    Change-Id: I3fb35e9a49f90b8894f59dde49c90a7c2dd74b0a
+
+commit 619cfe692020c078275b68eac2167232fafdfffb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 25 14:03:41 2013 -0700
+
+    Update version history
+    
+    Change-Id: I1d036efad1507efd19d8581f147b38170b1f0543
+
+commit 6ae34757850a5fa8213e0d1a540d9d75d6840a08
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Sun Mar 24 22:30:52 2013 -0700
+
+    Added documentation regarding the use of Ceres with cmake (once installed)
+    Commets about the flag ``BUILD_DOCUMENTATION=ON``
+    
+    Change-Id: I8814927e60af190c8043bfc36e77fe76bfe6f562
+
+commit f46de9e697eb5b8756084615e29ded48600a4d39
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Mar 21 15:31:35 2013 +0600
+
+    Silent no previous declaration warning for FindParameterBlockOrDie
+    
+    Use anonymous namespace for this. Also move some surrounding static
+    function to this anonymous namespace.
+    
+    Change-Id: Ie235eb7936976563a9db115ec13c59e6e6869b96
+
+commit 16636efeffacdd69d075a60ea8a94d98fd81c6fd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Mar 21 15:12:01 2013 +0600
+
+    Compilation fix for msvc2010
+    
+    Usage of back_inserter requires <iterator> header when using msvc2010
+    
+    Change-Id: I92ee1649795ce0468ce337fc414eb0ca6e90c51e
+
+commit ac0d416991274ed67fe85371f09b07f706a6db9a
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Wed Mar 20 18:32:14 2013 -0700
+
+    google-glog link wasn't working, 'http://' twice
+    
+    Change-Id: I9cd96d3609f9b1ba31cd480fef1702972be86741
+
+commit 55b6c966c4f697cb5d11982201733aa3bce7a5a7
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Wed Mar 20 17:44:04 2013 -0700
+
+    * Fixed the location of the Ceres doc (once installed with 'make install')
+    * Doing 'make ceres_docs' can be used to create the documentation (if the BUILD_DOCUMENTATION=ON)
+    * Included the copyright boilerplate for FindSphinx.cmake
+    
+    Change-Id: Iea21eba9e68384b4fe72c85fa88c76b0ba8a7a1d
+
+commit a986912555b304a47dd0c2a02892046fde15d091
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Mar 20 11:50:34 2013 -0700
+
+    Update version history
+    
+    Change-Id: I238279719219a26d0d1bb32e0610f41007d3dcef
+
+commit 16dbf11626c52c013f1dca6375f993a554e31d51
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Mon Mar 11 14:44:02 2013 -0700
+
+    Added CeresConfig.cmake based on this example:
+        https://projects.kde.org/projects/kde/kdeexamples/repository/revisions/master/show/buildsystem/HowToInstallALibrary
+    
+    Change-Id: I130cac5d43d9fbbf359abc04d3691e25c4e2bb63
+
+commit 015d57f173fab7ea040ee01474101e208ff72be6
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Tue Mar 19 14:05:14 2013 -0700
+
+    Avoiding the Warning: "deprecated conversion from string constant to char*"
+    
+    Change-Id: Ifa47f9b0724f79c5c695828628c89818ddefd844
+
+commit c51b11c1046366035e7da95e4d8a78100ef3f153
+Author: Pablo Speciale <pablo.speciale@gmail.com>
+Date:   Tue Mar 12 00:56:56 2013 -0700
+
+    Sphinx and CMake, based on this example:
+       http://ericscottbarr.com/blog/2012/03/sphinx-and-cmake-beautiful-documentation-for-c-projects/
+    
+    The 'docs/CMakeLists.txt' file was deleted in this commit: 0abfb8f46f534b05413bb4d64b960d6fd0a9befb
+    
+    Thanks to Arnaud Gelas, he has passed some links:
+       https://github.com/InsightSoftwareConsortium/ITKExamples/blob/master/CMake/FindSphinx.cmake
+       https://github.com/InsightSoftwareConsortium/ITKExamples/blob/master/CMakeLists.txt#L120-L154
+    
+    Change-Id: Ic65e7f8ec5280d1e71a897a144417a21761c5553
+
+commit 793a339335d8d52279efb49bcd704d196646efb5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Mar 13 12:14:00 2013 -0700
+
+    Make Android.mk play better with the external consraints
+    
+    Change-Id: Ia0a1037d97c032a4ba1a9acbf4e04c192d12ee61
+
+commit 700d50d8074f0273b305fe6d9f795f1dcb988048
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Mar 12 16:12:42 2013 -0700
+
+    Lint cleanup from William Rucklidge
+    
+    Change-Id: Iacbf77246109f687708696eee7fb6144d23e7ec5
+
+commit 8140f0fc979f5728f37cfb68362f31e7e37b46bb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Mar 12 09:45:08 2013 -0700
+
+    Modularize the build.
+    
+    1. Add -DLINE_SEARCH_MINIMIZER to CMake to make the line search
+       minimizer optional.
+    2. Better handling of -DSUITESPARSE/-DCXSPARSE in top level cmake
+       file.
+    3. Disable code which will never be used if SuiteSparse and/or
+       CXSparse is not available.
+    4. Update build docs.
+    5. Update jni/Android.mk
+    6. Minor lint cleanup from William Rucklidge.
+    
+    Change-Id: If60460a858000df82faed7a6bb056dd2bfdde562
+
+commit c59c1e44727c62d43523b672c1c132865cd25784
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 11 17:28:38 2013 -0700
+
+    Propagate ifdefs correctly to improve build efficiency.
+    
+    With -DRESTRICT_SCHUR_SPECIALIZATIONS, now the various
+    specializations are empty, decreasing build time and
+    reducing the size of the static library.
+    
+    Change-Id: I8ec431279741a9a83516a4167c54a364c4608143
+
+commit 32874b861fc54b33aa4272e8c81bb001aa1e1e60
+Author: Yuliy Schwartzburg <syx818@gmail.com>
+Date:   Fri Mar 8 11:30:44 2013 +0100
+
+    Fix CMake "LIB_SUFFIX" for non-linux installations
+    
+    Change-Id: Ieb8a2825a4378b388149e7934ecc7b96ba5a29fa
+
+commit 58b8c68f29c2c15edbc5f77102796df661020312
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Mar 9 17:17:43 2013 -0800
+
+    Clean up rotation.h
+    
+    Change-Id: I3370c9883728cda068c9650a2c2a50641fd8299c
+
+commit 020d8e1e48f341f3b990ac449998d36aaca2771f
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Mar 6 16:19:26 2013 -0800
+
+    Better error reporting in the modeling API.
+    
+    More informative error when user passes an
+    unknown parameter block to Problem methods.
+    
+    Change-Id: I517360e4b0b55814904ca3e664877d76ad3f59e8
+
+commit 5e7ce8a950cf5794c63817827ce66a3a4e66e7b6
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Mar 6 11:38:41 2013 -0800
+
+    Fix Problem::Evaluate documentation
+    
+    Change-Id: I8c70a24743cff2d9cface99ef0f5d34c78f769c6
+
+commit 0a4f5f8f7428148f21183e743d091d2079406604
+Author: Taylor Braun-Jones <taylor@braun-jones.org>
+Date:   Wed Mar 6 00:00:32 2013 -0500
+
+    Fix operator() signature in several sections of the documentation
+    
+    Change-Id: I73f9d150a738f7b136fbc1f98fc60b0f306bd7f9
+
+commit 2c648dbc43025927301684fc82d95ccf6b6c21bc
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Mar 5 15:20:15 2013 -0800
+
+    Make examples independent of ceres internals.
+    
+    Change-Id: I6b6913e067a86fea713646218c8da1439d349d74
+
+commit e7148795c3f2ce1f6625a7c81545707a6cbde3eb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 4 10:17:30 2013 -0800
+
+    Fix a memory leak in CXSparse::SolveCholesky.
+    
+    Thanks to Alexander Mordvintsev for reporting this.
+    
+    Change-Id: I5c6be4d3d28f062e83a1ad41cb8089c19362a005

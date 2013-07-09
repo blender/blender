@@ -1,0 +1,34 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.cpp')
+
+defs = [ 'GLEW_STATIC' ]
+
+incs = [
+    '.',
+    '#intern/container',
+    '#intern/guardedalloc',
+    '#intern/string',
+    '#extern/glew/include',
+    '#intern/moto/include',
+    '#source/blender/blenkernel',
+    '#source/blender/blenlib',
+    '#source/blender/gpu',
+    '#source/blender/makesdna',
+    '#source/gameengine/BlenderRoutines',
+    '#source/gameengine/Rasterizer',
+    '#source/gameengine/SceneGraph',
+    '#source/blender/gameengine/Ketsji',
+    env['BF_OPENGL_INC'],
+    ]
+incs = ' '.join(incs)
+
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
+if env['WITH_BF_PYTHON']:
+    incs += ' ' + env['BF_PYTHON_INC']
+    defs.append('WITH_PYTHON')
+
+env.BlenderLib ( 'ge_oglrasterizer', Split(sources), Split(incs), defines = defs, libtype=['core','player'], priority=[350,75], cxx_compileflags=env['BGE_CXXFLAGS'])

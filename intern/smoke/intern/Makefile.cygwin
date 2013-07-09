@@ -1,0 +1,23 @@
+CC         = g++
+LDFLAGS    = -lz -lpng
+CFLAGS     =  -O3 -Wno-unused -c -Wall -I./ -D_WIN32
+EXECUTABLE = FLUID_3D
+
+SOURCES    = main.cpp FLUID_3D.cpp FLUID_3D_SOLVERS.cpp FLUID_3D_STATIC.cpp SPHERE.cpp WTURBULENCE.cpp
+OBJECTS    = $(SOURCES:.cpp=.o)
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+SPHERE.o: SPHERE.h
+FLUID_3D.o: FLUID_3D.h FLUID_3D.cpp
+FLUID_3D_SOLVERS.o: FLUID_3D.h FLUID_3D_SOLVERS.cpp
+main.o: FLUID_3D.h FLUID_3D.cpp FLUID_3D_SOLVERS.cpp
+
+clean:
+	rm -f *.o $(EXECUTABLE_LOADER) $(EXECUTABLE)

@@ -1,0 +1,35 @@
+CC         = g++
+
+# uncomment the other two OPENMP_... lines, if your gcc supports OpenMP
+#OPENMP_FLAGS = -fopenmp   -DPARALLEL=1 -I/opt/gcc-4.3/usr/local/include
+#OPENMPLD_FLAGS = -fopenmp  -lgomp -I/opt/gcc-4.3/usr/local/lib
+OPENMP_FLAGS = 
+OPENMPLD_FLAGS = 
+
+# assumes MacPorts libpng installation
+PNG_INCLUDE =  -I/opt/local/include  
+PNG_LIBS =  -I/opt/local/lib  
+
+LDFLAGS    =  $(PNG_LIBS)-lz -lpng $(OPENMPLD_FLAGS)
+CFLAGS     =  -c -Wall -I./ $(PNG_INCLUDE) $(OPENMP_FLAGS) -O3 -Wno-unused
+EXECUTABLE = FLUID_3D
+
+SOURCES    = main.cpp FLUID_3D.cpp FLUID_3D_SOLVERS.cpp FLUID_3D_STATIC.cpp SPHERE.cpp WTURBULENCE.cpp
+OBJECTS    = $(SOURCES:.cpp=.o)
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+SPHERE.o: SPHERE.h
+FLUID_3D.o: FLUID_3D.h FLUID_3D.cpp
+FLUID_3D_SOLVERS.o: FLUID_3D.h FLUID_3D_SOLVERS.cpp
+main.o: FLUID_3D.h FLUID_3D.cpp FLUID_3D_SOLVERS.cpp
+
+clean:
+	rm -f *.o $(EXECUTABLE_LOADER) $(EXECUTABLE)
+

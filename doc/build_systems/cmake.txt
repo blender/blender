@@ -1,0 +1,104 @@
+
+    Blender CMake build system
+    ============================
+
+    Contents
+    ---------------
+
+    1. Introduction
+    2. Obtaining CMake
+    3. Building Blender
+    4. Generic Setup
+    5. Configuring the build after SVN updates
+
+    1. Introduction
+    ---------------
+
+    This document describes general usage of the new CMake scripts. The
+    inner workings will be described in blender-cmake-dev.txt (TODO).
+
+    2. Obtaining CMake
+    ------------------
+
+    CMake for can either be downloaded using your favorite package manager 
+    or is also available from the CMake website at http://www.cmake.org 
+    The website also contains some documentation on CMake usage but I found
+    the man page alone pretty helpful. 
+
+    3. Building Blender
+    -------------------
+
+    Building Blender requires obtaining a compiler, library dependencies,
+    and correct setup depending on the system. For details on how to set
+    up a build on various operating systems, see the wiki documentation:
+
+    http://wiki.blender.org/index.php/Dev:Doc/Building_Blender
+
+    4. Generic Setup
+    ----------------
+
+    CMake allows one to generate the build project files and binary objects
+    outside the source tree which can be pretty handy in working and experimenting
+    with different Blender configurations (Audio/NoAudio, GameEngine/NoGameEngine etc.)
+    while maintaining a clean source tree. It also makes it possible to generate files
+    for different build systems on the same source tree. This also has benefits for 
+    general SVN management for the developer as patches and submit logs are much cleaner.
+
+    Create a directory outside the blender source tree where you would like to build
+    Blender (from now on called $BLENDERBUILD). On the commandline you can then run
+    the cmake command to generate your initial build files. First just run 'cmake' which
+    will inform you what the available generators are. Thn you can run 
+    'cmake -G generator $BLENDERSOURCE' to generate the build files. Here is an example 
+    of all this for Xcode:
+
+        % mkdir $BLENDERBUILD
+        % cd $BLENDERBUILD
+        % cmake
+
+        ...
+        ...
+        --version [file]            = Show program name/version banner and exit.
+
+        Generators
+
+        The following generators are available on this platform:
+          KDevelop3                   = Generates KDevelop 3 project files.
+          Unix Makefiles              = Generates standard UNIX makefiles.
+          Xcode                       = Generate XCode project files.
+
+
+
+        % cmake -G Xcode $BLENDERSOURCE
+        ...
+        ...
+        -- Configuring blender
+        -- Configuring blenderplayer
+        -- Configuring done
+        -- Generating done
+        -- Build files have been written to: $BLENDERBUILD 
+
+    This will generate the build files with default values. Specific features can
+    be enabled or disabled by running the ccmake "GUI" from $BLENDERBUILD as follows:
+
+        % ccmake $BLENDERSOURCE
+
+    A number of options appear which can be changed depending on your needs and
+    available dependencies (e.g. setting WITH_OPENEXR to OFF will disable support
+    for OpenEXR). It will also allow you to override default and detected paths 
+    (e.g. Python directories) and compile and link flags. When you are satisfied
+    used ccmake to re-configure the build files and exit.
+
+    It is also possible to use the commandline of 'cmake' to override certain
+    of these settings. 
+
+    5. Configuring the build after SVN updates
+    ------------------------------------------
+
+    The $BLENDERBUILD directory maintains a file called CMakeCache.txt which 
+    remembers the initial run's settings for subsequent generation runs. After
+    SVN updates that contain changes to the build system, rebuilding Blender will
+    automatically invoke CMake to regenerate the CMakeCache.txt and other files
+    as needed.
+
+    /Jacques Beaurain (jbinto)
+

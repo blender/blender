@@ -1,0 +1,9 @@
+Project: FAST (FAST Corner Detection)
+URL: http://mi.eng.cam.ac.uk/~er258/work/fast-C-src/
+License: BSD
+Upstream version: 2.1, released 12-Jan-2009
+
+Local modifications:
+- Created CMakeLists.txt for CMake build.
+- Update CMakeLists to be sure that the library is a compatible with C++ linkage.
+- Update CMakeLists to not include fast.h to compile fast library with VS2005.

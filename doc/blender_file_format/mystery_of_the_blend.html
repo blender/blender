@@ -1,0 +1,835 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="mystery_of_the_blend.css" media="screen, print">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <title>The mystery of the blend</title>
+</head>
+
+<body>
+<div class="title">The mystery of the blend</div>
+<div class="subtitle">The blender file-format explained</div>
+<div class="contact">
+<label>Author</label> Jeroen Bakker<br>
+<label>Email</label> <a href="mailto:j.bakker@atmind.nl">j.bakker@atmind.nl</a><br>
+<label>Website</label> <a href="http://www.atmind.nl/blender/">http://www.atmind.nl/blender</a><br>
+<label>Version</label> 06-10-2010<br>
+</div>
+
+<a name="introduction" href="#introduction" ><h2>Introduction</h2></a>
+</a>
+
+<p>In this article I will describe the
+ blend-file-format with a request to tool-makers to support blend-file. 
+   
+</p>
+<p>First I'll describe how Blender works with blend-files. You'll notice
+ why the blend-file-format is not that well documented, as from 
+Blender's perspective this is not needed.
+We look at the global file-structure of a blend-file (the file-header 
+and file-blocks).
+After this is explained, we go deeper to the core of the blend-file, the
+ DNA-structures. They hold the blue-prints of the blend-file and the key
+ asset of understanding blend-files.
+When that's done we can use these DNA-structures to read information 
+from elsewhere in the blend-file.
+
+</p>
+<p>
+In this article we'll be using the default blend-file from Blender 2.54,
+ with the goal to read the output resolution from the Scene. 
+The article is written to be programming language independent and I've 
+setup a web-site for support.
+</p>
+
+<a name="loading-and-saving-in-blender" href="#loading-and-saving-in-blender">
+<h2>Loading and saving in Blender</h2>
+</a>
+
+<p>
+Loading and saving in Blender is very fast and Blender is known to 
+have excellent downward and upward compatibility. Ton Roosendaal 
+demonstrated that in December 2008 by loading a 1.0 blend-file using 
+Blender 2.48a [ref: <a href="http://www.blendernation.com/2008/12/01/blender-dna-rna-and-backward-compatibility/">http://www.blendernation.com/2008/12/01/blender-dna-rna-and-backward-compatibility/</a>].
+</p>
+
+<p>
+Saving complex scenes in Blender is done within seconds. Blender 
+achieves this by saving data in memory to disk without any 
+transformations or translations. Blender only adds file-block-headers to
+ this data. A file-block-header contains clues on how to interpret the 
+data. After the data, all internally Blender structures are stored. 
+These structures will act as blue-prints when Blender loads the file. 
+Blend-files can be different when stored on different hardware platforms
+ or Blender releases. There is no effort taken to make blend-files 
+binary the same. Blender creates the blend-files in this manner since 
+release 1.0. Backward and upwards compatibility is not implemented when 
+saving the file, this is done during loading.
+</p>
+
+<p>
+When Blender loads a blend-file, the DNA-structures are read first. 
+Blender creates a catalog of these DNA-structures. Blender uses this 
+catalog together with the data in the file, the internal Blender 
+structures of the Blender release you're using and a lot of 
+transformation and translation logic to implement the backward and 
+upward compatibility. In the source code of blender there is actually 
+logic which can transform and translate every structure used by a 
+Blender release to the one of the release you're using [ref: <a href="http://download.blender.org/source/blender-2.48a.tar.gz">http://download.blender.org/source/blender-2.48a.tar.gz</a>
+ <a href="https://svn.blender.org/svnroot/bf-blender/tags/blender-2.48-release/source/blender/blenloader/intern/readfile.c">blender/blenloader/intern/readfile.c</a> lines 
+4946-7960]. The more difference between releases the more logic is 
+executed. 
+</p>
+
+<p>
+The blend-file-format is not well documented, as it does not differ from
+ internally used structures and the file can really explain itself.
+</p>
+
+<a name="global-file-structure" href="#global-file-structure">
+<h2>Global file-structure</h2>
+</a>
+
+<p>
+This section explains how the global file-structure can be read.
+</p>
+
+<ul>
+<li>A blend-file always start with the <b>file-header</b></li>
+<li>After the file-header, follows a list of <b>file-blocks</b> (the default blend file of Blender 2.48 contains more than 400 of these file-blocks).</li>
+<li>Each file-block has a <b>file-block header</b> and <b>file-block data</b></li>
+<li>At the end of the blend-file there is a section called "<a href="#structure-DNA" style="font-weight:bold">Structure DNA</a>", which lists all the internal structures of the Blender release the file was created in</li>
+<li>The blend-file ends with a file-block called 'ENDB'</li>
+</ul>
+
+<!-- file scheme -->
+<div class="box-solid" style="width:20%; margin-left:35%; font-size:0.8em;">
+
+    <p class="code"><b>File.blend</b></p>
+
+    <div class="box"><p class="code">File-header</p></div>
+
+    <div class="box-solid"><p class="code">File-block</p>
+        <div class="box"><p class="code">Header</p></div>
+        <div class="box"><p class="code">Data</p></div>
+    </div>
+    
+    <div class="box" style="border-style:dashed"><p class="code">File-block</p></div>
+    <div class="box" style="border-style:dashed"><p class="code">File-block</p></div>
+
+    <div class="box-solid"><p class="code">File-block 'Structure DNA'</p>
+        <div class="box"><p class="code">Header ('DNA1')</p></div>
+        <div class="box-solid">
+            <p class="code">Data ('SDNA')</p>
+            <div class="box">
+                <p class="code">Names ('NAME')</p>
+            </div>
+            <div class="box">
+                <p class="code">Types ('TYPE')</p>
+            </div>
+            <div class="box">
+                <p class="code">Lengths ('TLEN')</p>
+            </div>
+            <div class="box">
+                <p class="code">Structures ('STRC')</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="box-solid"><p class="code">File-Block 'ENDB'</p></div>
+
+</div><!-- end of file scheme -->
+
+<a name="file-header" href="#file-header">
+<h3>File-Header</h3>
+</a>
+
+<p>
+The first 12 bytes of every blend-file is the file-header. The 
+file-header has information on Blender (version-number) and the PC the 
+blend-file was saved on (pointer-size and endianness). This is required 
+as all data inside the blend-file is ordered in that  way, because no  
+translation or transformation  is done during saving. 
+The next table describes the information in the file-header.
+</p>
+
+<table>
+<caption>File-header</caption>
+<thead>
+<tr><th>reference</th>
+    <th>structure</th>
+    <th>type</th>
+    <th>offset</th>
+    <th>size</th></tr>
+</thead>
+<tbody>
+<tr><td>identifier</td>
+    <td>char[7]</td>
+    <td>File identifier (always 'BLENDER')</td>
+    <td>0</td>
+    <td>7</td></tr>
+<tr><td>pointer-size</td>
+    <td>char</td>
+    <td>Size of a pointer; all pointers in the file are stored in this format. '_' means 4 bytes or 32 bit and '-' means 8 bytes or 64 bits.</td>
+    <td>7</td>
+    <td>1</td></tr>
+<tr><td>endianness</td>
+    <td>char</td>
+    <td>Type of byte ordering used; 'v' means little endian and 'V' means big endian.</td>
+    <td>8</td>
+    <td>1</td></tr>
+<tr><td>version-number</td>
+    <td>char[3]</td>
+    <td>Version of Blender the file was created in; '254' means version 2.54</td>
+    <td>9</td>
+    <td>3</td></tr>
+</tbody>
+</table>
+
+<p>
+<a href="http://en.wikipedia.org/wiki/Endianness">Endianness</a> addresses the way values are ordered in a sequence of bytes(see the <a href="#example-endianess">example</a> below):
+</p>
+
+<ul>
+    <li>in a big endian ordering, the largest part of the value is placed on the first byte and 
+    the lowest part of the value is placed on the last byte,</li>
+    <li>in a little endian ordering, largest part of the value is placed on the last byte
+    and the smallest part of the value is placed on the first byte.</li>
+</ul>
+
+<p> 
+Nowadays, little-endian is the most commonly used.
+</p>
+
+<a name="example-endianess"></a>
+<div class="box">
+<p onclick="location.href='#example-endianess'" class="box-title">
+Endianess Example
+</p>
+<p>
+Writing the integer <code class="evidence">0x4A3B2C1Dh</code>, will be ordered:
+<ul>
+<li>in big endian as <code class="evidence">0x4Ah</code>, <code class="evidence">0x3Bh</code>, <code class="evidence">0x2Ch</code>, <code class="evidence">0x1Dh</code></li>
+<li>in little endian as <code class="evidence">0x1Dh</code>, <code class="evidence">0x2Ch</code>, <code class="evidence">0x3Bh</code>, <code class="evidence">0x4Ah</code></li>
+</ul>
+</p>
+</div>
+
+<p>
+Blender supports little-endian and big-endian.<br>
+This means that when the endianness 
+is different between the blend-file and the PC your using, Blender changes it to the byte ordering 
+of your PC.
+</p>
+
+<a name="example-file-header"></a>
+<div class="box">
+<p onclick="location.href='#example-file-header'" class="box-title">
+File-header Example
+</p>
+
+<p>
+This hex-dump describes a file-header created with <code>blender</code> <code>2.54.0</code> on <code>little-endian</code> hardware with a <code>32 bits</code> pointer length.
+<code class="block">                               <span class="descr">pointer-size  version-number
+                                     |             |</span>
+0000 0000: [42 4C 45 4E 44 45 52]  [5F]  [76]  [32 35 34]        BLENDER_v254  <span class="descr">
+                      |                   |
+                  identifier          endianness</span></code>
+</p>
+</div>
+
+<a name="file-blocks" href="#file-blocks"><h3>File-blocks</h3></a>
+
+<p>
+File-blocks contain a "<a href="#file-block-header">file-block header</a>" and "file-block data". 
+</p>
+
+<a name="file-block-header" href="#file-block-header"><h3>File-block headers</h3></a>
+
+<p>
+The file-block-header describes:
+</p>
+
+<ul>
+<li>the type of information stored in the 
+file-block</li>
+<li>the total length of the data</li>
+<li>the old memory 
+pointer at the moment the data was written to disk</li>
+<li>the number of items of this information</li>
+</ul>
+
+<p>
+As we can see below, depending on the pointer-size stored in the file-header, a file-block-header 
+can be 20 or 24 bytes long, hence it is always aligned at 4 bytes.
+</p>
+
+<table>
+<caption>File-block-header</caption>
+<thead>
+<tr>
+<th>reference</th>
+    <th>structure</th>
+    <th>type</th>
+    <th>offset</th>
+    <th>size</th></tr></thead>
+<tbody>
+<tr><td>code</td>
+    <td>char[4]</td>
+    <td>File-block identifier</td>
+    <td>0</td>
+    <td>4</td></tr>
+<tr><td>size</td>
+    <td>integer</td>
+    <td>Total length of the data after the file-block-header</td>
+    <td>4</td>
+    <td>4</td></tr>
+<tr><td>old memory address</td>
+    <td>void*</td>
+    <td>Memory address the structure was located when written to disk</td>
+    <td>8</td>
+    <td>pointer-size (4/8)</td></tr>
+<tr><td>SDNA index</td>
+    <td>integer</td>
+    <td>Index of the SDNA structure</td>
+    <td>8+pointer-size</td>
+    <td>4</td></tr>
+<tr><td>count</td>
+    <td>integer</td>
+    <td>Number of structure located in this file-block</td>
+    <td>12+pointer-size</td>
+    <td>4</td></tr>
+</tbody>
+</table>
+
+<p>
+The above table describes how a file-block-header is structured:
+</p>
+
+<ul>
+<li><code>Code</code> describes different types of file-blocks. The code determines with what logic the data must be read. <br>  
+These codes also allows fast finding of data like Library, Scenes, Object or Materials as they all have a specific code. </li>
+<li><code>Size</code> contains the total length of data after the file-block-header. 
+After the data a new file-block starts. The last file-block in the file 
+has code 'ENDB'.</li>
+<li><code>Old memory address</code> contains the memory address when the structure 
+was last stored. When loading the file the structures can be placed on 
+different memory addresses. Blender updates pointers to these structures
+ to the new memory addresses.</li>
+<li><code>SDNA index</code> contains the index in the DNA structures to be used when 
+reading this file-block-data. <br>
+More information about this subject will be explained in the <a href="#reading-scene-information">Reading scene information section</a>.</li>
+<li><code>Count</code> tells how many elements of the specific SDNA structure can be found in the data.</li> 
+</ul>
+
+<a name="example-file-block-header"></a>
+<div class="box">
+<p onclick="location.href='#example-file-block-header'" class="box-title">
+Example
+</p>
+<p>
+This hex-dump describes a File-block (= <span class="header">File-block header</span> + <span class="data">File-block data</span>) created with <code>blender</code> <code>2.54</code> on <code>little-endian</code> hardware with a <code>32 bits</code> pointer length.<br>
+<code class="block"><span class="descr">             file-block 
+           identifier='SC'  data size=1404  old pointer   SDNA index=150
+                 |              |              |              |</span>
+0000 4420: <span class="header">[53 43 00 00]  [7C 05 00 00]  [68 34 FB 0B]  [96 00 00 00]</span>    SC.. `... ./.. .... 
+0000 4430: <span class="header">[01 00 00 00]</span>  <span class="data">[xx xx xx xx    xx xx xx xx    xx xx xx xx</span>     .... xxxx xxxx xxxx<span class="descr">
+                 |              |
+              count=1      file-block data (next 1404 bytes)</span>
+</code>
+</p>
+
+<ul>
+<li>The code <code>'SC'+0x00h</code> identifies that it is a Scene. </li>
+<li>Size of the data is 1404 bytes (0x0000057Ch = 0x7Ch + 0x05h * 256 = 124 + 1280)</li>
+<li>The old pointer is 0x0BFB3468h</li>
+<li>The SDNA index is 150 (0x00000096h = 6 + 9 * 16 = 6 + 144)</li>
+<li>The section contains a single scene (count = 1).</li>
+</ul>
+
+<p>
+Before we can interpret the data of this file-block we first have to read the DNA structures in the file. 
+The section "<a href="#structure-DNA">Structure DNA</a>" will show how to do that. 
+</p>
+</div>
+
+<a name="structure-DNA" href="#structure-DNA"><h2>Structure DNA</h2></a>
+
+<a name="DNA1-file-block" href="#DNA1-file-block"><h3>The DNA1 file-block</h3></a>
+
+<p>
+Structure DNA is stored in a file-block with code 'DNA1'. It can be just before the 'ENDB' file-block.
+</p>
+
+<p>
+The 'DNA1' file-block contains all internal structures of the Blender release the 
+file was created in. <br>
+These structure can be described as C-structures: they can hold fields, arrays and 
+pointers to other structures, just like a normal C-structure.
+
+<p>
+<code class="block">struct SceneRenderLayer {
+    struct SceneRenderLayer *next, *prev;
+    char name[32];
+    struct Material *mat_override;
+    struct Group *light_override;
+    unsigned int lay;
+    unsigned int lay_zmask;
+    int layflag;
+    int pad;
+    int passflag;
+    int pass_xor;
+};
+</code>
+</p>
+
+<p>
+For example,a blend-file created with Blender 2.54 the 'DNA1' file-block is 57796 bytes long and contains 398 structures.
+</p>
+
+<a name="DNA1-file-block-header" href="#DNA1-file-block-header"><h3>DNA1 file-block-header</h3></a>
+
+<p>
+The DNA1 file-block header follows the same rules of any other file-block, see the example below.
+</p>
+
+<a name="example-DNA1-file-block-header"></a>
+<div class="box">
+<p onclick="location.href='#example-DNA1-file-block-header'" class="box-title">
+Example
+</p>
+<p>
+This hex-dump describes the file-block 'DNA1' header created with <code>blender</code> <code>2.54.0</code> on <code>little-endian</code> hardware with a <code>32 bits</code> pointer length.<br>
+<code class="block"><span class="descr">      (file-block 
+       identifier='DNA1') data size=57796   old pointer   SDNA index=0
+                  |              |              |              |</span>
+0004 B060   <span class="header">[44 4E 41 31]  [C4 E1 00 00]  [C8 00 84 0B]  [00 00 00 00]</span>  DNA1............
+0004 B070   <span class="header">[01 00 00 00]</span>  <span class="fade">[53 44 4E 41    4E 41 4D 45    CB 0B 00 00</span>   ....<span class="fade">SDNANAME....</span><span class="descr">
+                  |              |
+              count=1    'DNA1' file-block data (next 57796 bytes)</span>
+</code>
+</p>
+</div>
+
+<a name="DNA1-file-block-data" href="#DNA1-file-block-data"><h3>DNA1 file-block data</h3></a>
+<p>
+The next section describes how this information is ordered in the <b>data</b> of the 'DNA1' file-block.
+</p>
+
+<table>
+<caption>Structure of the DNA file-block-data</caption>
+<thead>
+    <tr><th colspan="2">repeat condition</th>
+    <th>name</th>
+    <th>type</th>
+    <th>length</th>
+    <th>description</th></tr>
+</thead>
+<tbody>
+<tr><td></td>
+    <td></td>
+    <td>identifier</td>
+    <td>char[4]</td>
+    <td>4</td>
+    <td>'SDNA'</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>name identifier</td>
+    <td>char[4]</td>
+    <td>4</td>
+    <td>'NAME'</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>#names</td>
+    <td>integer</td>
+    <td>4</td>
+    <td>Number of names follows</td></tr>
+<tr><td>for(#names)</td>
+    <td></td>
+    <td>name</td>
+    <td>char[]</td>
+    <td>?</td>
+    <td>Zero terminating string of name, also contains pointer and simple array definitions (e.g. '*vertex[3]\0')</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>type identifier</td>
+    <td>char[4]</td>
+    <td>4</td>
+    <td>'TYPE' this field is aligned at 4 bytes</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>#types</td>
+    <td>integer</td>
+    <td>4</td>
+    <td>Number of types follows</td></tr>
+<tr><td>for(#types)</td>
+    <td></td>
+    <td>type</td>
+    <td>char[]</td>
+    <td>?</td>
+    <td>Zero terminating string of type (e.g. 'int\0')</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>length identifier</td>
+    <td>char[4]</td>
+    <td>4</td>
+    <td>'TLEN' this field is aligned at 4 bytes</td></tr>
+<tr><td>for(#types)</td>
+    <td></td>
+    <td>length</td>
+    <td>short</td>
+    <td>2</td>
+    <td>Length in bytes of type (e.g. 4)</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>structure identifier</td>
+    <td>char[4]</td>
+    <td>4</td>
+    <td>'STRC' this field is aligned at 4 bytes</td></tr>
+<tr><td></td>
+    <td></td>
+    <td>#structures</td>
+    <td>integer</td>
+    <td>4</td>
+    <td>Number of structures follows</td></tr>
+<tr><td>for(#structures)</td>
+    <td></td>
+    <td>structure type</td>
+    <td>short</td>
+    <td>2</td>
+    <td>Index in types containing the name of the structure</td></tr>
+<tr><td>..</td>
+    <td></td>
+    <td>#fields</td>
+    <td>short</td>
+    <td>2</td>
+    <td>Number of fields in this structure</td></tr>
+<tr><td>..</td>
+    <td>for(#field)</td>
+    <td>field type</td>
+    <td>short</td>
+    <td>2</td>
+    <td>Index in type</td></tr>
+<tr><td>for end</td>
+    <td>for end</td>
+    <td>field name</td>
+    <td>short</td>
+    <td>2</td>
+    <td>Index in name</td></tr>
+</tbody>
+</table>
+
+<p>
+As you can see, the structures are stored in 4 arrays: names, types, 
+lengths and structures. Every structure also contains an array of 
+fields. A field is the combination of a type and a name. From this 
+information a catalog of all structures can be constructed. 
+The names are stored as how a C-developer defines them. This means that 
+the name also defines pointers and arrays.
+(When a name starts with '*' it is used as a pointer. when the name 
+contains for example '[3]' it is used as a array of 3 long.)
+In the types you'll find simple-types (like: 'integer', 'char', 
+'float'), but also complex-types like 'Scene' and 'MetaBall'. 
+'TLEN' part describes the length of the types. A 'char' is 1 byte, an 
+'integer' is 4 bytes and a 'Scene' is 1376 bytes long.
+</p>
+
+<div class="box">
+<p class="box-title">
+Note
+</p>
+<p>
+All identifiers, are arrays of 4 chars, hence they are all aligned at 4 bytes.
+</p>
+</div>
+
+<a name="example-DNA1-file-block-data"></a>
+<div class="box">
+<p onclick="location.href='#example-DNA1-file-block-data'" class="box-title">
+Example
+</p>
+<p>
+Created with <code>blender</code> <code>2.54.0</code> on <code>little-endian</code> hardware with a <code>32 bits</code> pointer length.
+</p>
+
+<a name="DNA1-data-array-names" href="#DNA1-data-array-names"><h4>The names array</h4></a>
+<p>
+The first names are: *next, *prev, *data, *first, *last, x, y, xmin, xmax, ymin, ymax, *pointer, group, val, val2, type, subtype, flag, name[32], ...
+<code class="block"><span class="descr">    file-block-data identifier='SDNA'  array-id='NAME'     number of names=3019
+                                |              |             |</span>
+0004 B070    <span class="fade">01 00  00 00 [53 44  4E 41]</span><span class="data">[4E  41 4D 45] [CB 0B 00  00]</span>  <span class="fade">....SDNA</span>NAME....
+0004 B080   <span class="data">[2A 6E  65 78  74 00][2A 70  72  65 76 00] [2A 64 61  74</span>   *next.*prev.*dat<span class="descr">
+                      |                    |                   | 
+                  '*next\0'            '*prev\0'            '*dat'</span><span class="fade">
+                                  ....
+                                  .... (3019 names)</span>
+</code>
+</p>
+
+<div class="box">
+<p class="box-title">
+Note
+</p>
+<p>
+While reading the DNA you'll will come across some strange 
+names like '(*doit)()'. These are method pointers and Blender updates 
+them to the correct methods.
+</p>
+</div>
+
+<a name="DNA1-data-array-types" href="#DNA1-data-array-types"><h4>The types array</h4></a>
+<p>
+The first types are: char, uchar, short, ushort, int, long, ulong, float, double, void, Link, LinkData, ListBase, vec2s, vec2f, ...
+<code class="block"><span class="descr">                                                      array-id='TYPE'
+                                                            |</span>
+0005 2440    <span class="fade">6F 6C 64 5B   34 5D 5B 34 5D 00 00 00</span>   [54 59 50  45]  <span class="fade">old[4][4]...</span>TYPE
+0005 2450   [C9 01 00 00] [63 68 61 72 00]  [75 63 68 61 72 00][73   ....char.uchar.s<span class="descr">
+                  |                |                 |           |
+       number of types=457     'char\0'          'uchar\0'      's'</span><span class="fade">
+                                  ....
+                                  .... (457 types)</span>
+</code>
+</p>
+
+<a name="DNA1-data-array-lengths" href="#DNA1-data-array-lengths"><h4>The lengths array</h4></a>
+<p>
+<code class="block"><span class="descr">                                                 char    uchar    ushort   short
+                                 array-id       length   length   length   length
+                                   'TLEN'          1        1        2        2</span>
+0005 3AA0    <span class="fade">45 00    00 00</span>   [54 4C    45 4E]  [01 00]  [01 00]  [02 00]  [02 00]  <span class="fade">E...</span>TLEN........
+                                  <span class="fade">....</span>
+0005 3AC0   [08 00]  [04 00]  [08 00]  [10 00]  [10 00]  [14 00]  [4C 00]  [34 00]  ............L.4.<span class="descr">
+               8        4        8       
+           ListBase   vec2s    vec2f    ... etc
+           length     len      length   </span><span class="fade">
+                                  ....
+                                  .... (457 lengths, same as number of types)</span>
+</code>
+</p>
+
+<a name="DNA1-data-array-structures" href="#DNA1-data-array-structures"><h4>The structures array</h4></a>
+<p>
+<code class="block"><span class="descr">                                                                 array-id='STRC'
+                                                                        |</span>
+0005 3E30    <span class="fade">40 00 38 00   60 00   00 00     00 00     00 00</span>    [53 54     52 43]  <span class="fade">@.8.`.......</span>STRC
+0005 3E40   [8E 01 00 00] [0A 00] [02 00]   [0A 00]   [00 00]   [0A 00]   [01 00]  ................<span class="descr">
+                 398         10      2         10        0         10        0  
+              number of    index    fields    index     index     index     index
+             structures   in <a href="#DNA1-data-array-types">types</a>           in <a href="#DNA1-data-array-types">types</a>  in <a href="#DNA1-data-array-names">names</a>  in <a href="#DNA1-data-array-types">types</a>   in <a href="#DNA1-data-array-names">names</a></span><span class="fade">
+                          '                  '----------------'  '-----------------'                                    '
+                          '                      field 0                field 1    '
+                          '--------------------------------------------------------'
+                                             structure 0
+                                  ....
+                                  .... (398 structures, each one describeing own type, and type/name for each field)</span>
+</code>
+</p>
+</div>
+
+<p>
+The DNA structures inside a Blender 2.48 blend-file can be found at <a href="http://www.atmind.nl/blender/blender-sdna.html">http://www.atmind.nl/blender/blender-sdna.html</a>.
+
+If we understand the DNA part of the file it is now possible to read 
+information from other parts file-blocks. The next section will tell us 
+how.
+</p>
+
+<a name="reading-scene-information" href="#reading-scene-information"><h2>Reading scene information</h2></a>
+
+<p>
+Let us look at <a href="#example-file-block-header">the file-block header we have seen earlier</a>:<br>
+</p>
+<ul>
+<li>the file-block identifier is <code>'SC'+0x00h</code></li>
+<li>the SDNA index is 150</li>
+<li>the file-block size is 1404 bytes</li>
+</ul>
+<p>
+Now note that:
+<ul>
+<li>the structure at index 150 in the DNA is a structure of type 'Scene' (counting from 0).</li>
+<li>the associated type ('Scene') in the DNA has the length of 1404 bytes.</li>
+</ul>
+</p>
+
+<p> 
+We can map the Scene structure on the data of the file-blocks. 
+But before we can do that, we have to flatten the Scene-structure.
+
+<code class="block">struct Scene {
+    ID id;              <span class="descr">// 52 bytes long (ID is different a structure)</span>
+    AnimData *adt;      <span class="descr">// 4 bytes long (pointer to an AnimData structure)</span>
+    Object *camera;     <span class="descr">// 4 bytes long (pointer to an Object structure)</span>
+    World *world;       <span class="descr">// 4 bytes long (pointer to an Object structure)</span>
+    ...
+    float cursor[3];    <span class="descr">// 12 bytes long (array of 3 floats)</span>
+    ...
+};
+</code>
+
+The first field in the Scene-structure is of type 'ID' with the name 'id'.
+Inside the list of DNA structures there is a structure defined for type 'ID' (structure index 17).
+ 
+<code class="block">struct ID {
+    void *next, *prev;
+    struct ID *newid;
+    struct Library *lib;
+    char name[24];
+    short us;
+    short flag;
+    int icon_id;
+    IDProperty *properties;
+};
+</code>
+
+The first field in this structure has type 'void' and name '*next'. <br>
+Looking in the structure list there is no structure defined for type 'void': it is a simple type and therefore the data should be read. 
+The name '*next' describes a pointer.
+As we see, the first 4 bytes of the data can be mapped to 'id.next'.
+</p>
+
+<p>
+Using this method we'll map a structure to its data. If we want to 
+read a specific field we know at which offset in the data it is located 
+and how much space it takes.<br>
+The next table shows the output of this flattening process for some 
+parts of the Scene-structure. Not all rows are described in the table as
+ there is a lot of information in a Scene-structure.
+</p>
+
+<table>
+<caption>Flattened SDNA structure 150: Scene</caption>
+<thead>
+<tr><th>reference</th>
+    <th>structure</th>
+    <th>type</th><th>name</th>
+    <th>offset</th><th>size</th>
+    <th>description</th></tr>
+</thead>
+<tbody>
+<tr><td>id.next</td><td><a href="#struct:ID">ID</a></td>
+    <td>void</td><td>*next</td>
+    <td>0</td>
+    <td>4</td>
+    <td>Refers to the next scene</td></tr>
+<tr><td>id.prev</td><td><a href="#struct:ID">ID</a></td>
+    <td>void</td><td>*prev</td>
+    <td>4</td>
+    <td>4</td>
+    <td>Refers to the previous scene</td></tr>
+<tr><td>id.newid</td><td><a href="#struct:ID">ID</a></td>
+    <td>ID</td><td>*newid</td>
+    <td>8</td>
+    <td>4</td>
+    <td></td></tr>
+<tr><td>id.lib</td><td><a href="#struct:ID">ID</a></td>
+    <td>Library</td><td>*lib</td>
+    <td>12</td>
+    <td>4</td>
+    <td></td></tr>
+<tr><td>id.name</td><td><a href="#struct:ID">ID</a></td>
+    <td>char</td><td>name[24]</td>
+    <td>16</td>
+    <td>24</td>
+    <td>'SC'+the name of the scene as displayed in Blender</td></tr>
+<tr><td>id.us</td><td><a href="#struct:ID">ID</a></td>
+    <td>short</td><td>us</td>
+    <td>40</td>
+    <td>2</td>
+    <td></td></tr>
+<tr><td>id.flag</td><td><a href="#struct:ID">ID</a></td>
+    <td>short</td><td>flag</td><td>42</td><td>2</td>
+    <td></td></tr>
+<tr><td>id.icon_id</td><td><a href="#struct:ID">ID</a></td>
+    <td>int</td><td>icon_id</td><td>44</td>
+    <td>4</td>
+    <td></td></tr>
+<tr><td>id.properties</td><td><a href="#struct:ID">ID</a></td>
+    <td>IDProperty</td><td>*properties</td>
+    <td>48</td>
+    <td>4</td>
+    <td></td></tr>
+<tr><td>adt</td><td>Scene</td><td>AnimData</td>
+    <td>*adt</td>
+    <td>52</td>
+    <td>4</td>
+    <td></td></tr>
+<tr><td>camera</td><td>Scene</td>
+    <td>Object</td>
+    <td>*camera</td>
+    <td>56</td>
+    <td>4</td>
+    <td>Pointer to the current camera</td></tr>
+<tr><td>world</td><td>Scene</td>
+    <td>World</td>
+    <td>*world</td>
+    <td>60</td>
+    <td>4</td>
+    <td>Pointer to the current world</td></tr>
+
+<tr><td class="skip" colspan="7">Skipped rows</td></tr>
+
+<tr><td>r.xsch</td><td><a href="#struct:RenderData">RenderData</a>
+    </td><td>short</td><td>xsch</td><td>382</td><td>2</td>
+    <td>X-resolution of the output when rendered at 100%</td></tr>
+<tr><td>r.ysch</td><td><a href="#struct:RenderData">RenderData</a>
+    </td><td>short</td><td>ysch</td><td>384</td><td>2</td>
+    <td>Y-resolution of the output when rendered at 100%</td></tr>
+<tr><td>r.xparts</td><td><a href="#struct:RenderData">RenderData</a>
+    </td><td>short</td><td>xparts</td><td>386</td><td>2</td>
+    <td>Number of x-part used by the renderer</td></tr>
+<tr><td>r.yparts</td><td><a href="#struct:RenderData">RenderData</a>
+    </td><td>short</td><td>yparts</td><td>388</td><td>2</td>
+    <td>Number of x-part used by the renderer</td></tr>
+
+<tr><td class="skip" colspan="7">Skipped rows</td></tr>
+
+<tr><td>gpd</td><td>Scene</td><td>bGPdata</td><td>*gpd</td><td>1376</td><td>4</td>
+    <td></td></tr>
+<tr><td>physics_settings.gravity</td><td><a href="#struct:PhysicsSettings">PhysicsSettings</a>
+    </td><td>float</td><td>gravity[3]</td><td>1380</td><td>12</td>
+    <td></td></tr>
+<tr><td>physics_settings.flag</td><td><a href="#struct:PhysicsSettings">PhysicsSettings</a>
+    </td><td>int</td><td>flag</td><td>1392</td><td>4</td>
+    <td></td></tr>
+<tr><td>physics_settings.quick_cache_step</td><td><a href="#struct:PhysicsSettings">PhysicsSettings</a>
+    </td><td>int</td><td>quick_cache_step</td><td>1396</td><td>4</td>
+    <td></td></tr>
+<tr><td>physics_settings.rt</td><td><a href="#struct:PhysicsSettings">PhysicsSettings</a>
+    </td><td>int</td><td>rt</td><td>1400</td><td>4</td>
+    <td></td></tr>
+</tbody>
+</table>
+
+<p>
+We can now read the X and Y resolution of the Scene:
+<ul>
+<li>the X-resolution is located on offset 382 of the file-block-data and must be read as a 
+short.</li>
+<li>the Y-resolution is located on offset 384 and is also a short</li>
+</ul>
+</p>
+
+<div class="box">
+<p class="box-title">
+Note
+</p>
+<p>
+An array of chars can mean 2 things. The field contains readable 
+text or it contains an array of flags (not humanly readable).
+</p>
+</div>
+
+<div class="box">
+<p class="box-title">
+Note
+</p>
+<p>
+A file-block containing a list refers to the DNA structure and has a count larger
+than 1. For example Vertexes and Faces are stored in this way.
+</p>
+</div>
+
+</body>
+</html>
+

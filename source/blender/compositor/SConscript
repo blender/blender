@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+#
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2011, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Jeroen Bakker, Monique Dewanchand, Blender Developers Fund.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+Import ('env')
+defs = ['GLEW_STATIC']
+
+sources_intern = env.Glob('intern/*.cpp')
+sources_nodes = env.Glob('nodes/*.cpp')
+sources_operations = env.Glob('operations/*.cpp')
+
+incs = [
+    '.',
+    'intern',
+    'nodes',
+    'operations',
+    '#/intern/opencl',
+    '../blenkernel',
+    '../blenlib',
+    '../imbuf',
+    '../makesdna',
+    '../makesrna',
+    '../nodes',
+    '../nodes/composite',
+    '../nodes/intern',
+    '../render/extern/include',
+    '../render/intern/include',
+    '../windowmanager',
+    '../../../intern/guardedalloc',
+
+    # data files
+    env['DATA_HEADERS'],
+    ]
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs.append(env['BF_PTHREADS_INC'])
+
+if False: # gives link errors 'win' in env['OURPLATFORM']:
+    # split into 3 modules to work around command length limit on Windows
+    env.BlenderLib('bf_composite_intern', sources_intern, incs, defines=defs, libtype=['core'], priority=[166])
+    env.BlenderLib('bf_composite_nodes', sources_nodes, incs, defines=defs, libtype=['core'], priority=[165])
+    env.BlenderLib('bf_composite_operations', sources_operations, incs, defines=defs, libtype=['core'], priority=[164])
+else:
+    sources = sources_intern + sources_nodes + sources_operations
+    env.BlenderLib('bf_composite', sources, incs, defines=defs, libtype=['core'], priority=[164])
+
+

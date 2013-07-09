@@ -1,0 +1,9 @@
+
+shader wavelength_to_rgb(
+	float Wavelength = 500.0,
+	output color Color = 0.8)
+{   
+	/* Wavelength to RGB */
+	Color = wavelength_color(Wavelength);
+}
+

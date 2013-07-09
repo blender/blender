@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+#
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Nathan Letwory.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+Import ('env')
+
+
+SConscript(['datafiles/SConscript',
+            'space_api/SConscript',
+            'util/SConscript',
+            'interface/SConscript',
+            'io/SConscript',
+            'animation/SConscript',
+            'armature/SConscript',
+            'mask/SConscript',
+            'mesh/SConscript',
+            'metaball/SConscript',
+            'object/SConscript',
+            'curve/SConscript',
+            'gpencil/SConscript',
+            'physics/SConscript',
+            'render/SConscript',
+            'sound/SConscript',
+            'space_buttons/SConscript',
+            'space_clip/SConscript',
+            'space_file/SConscript',
+            'space_image/SConscript',
+            'space_info/SConscript',
+            'space_graph/SConscript',
+            'space_node/SConscript',
+            'space_outliner/SConscript',
+            'space_time/SConscript',
+            'space_view3d/SConscript',
+            'space_action/SConscript',
+            'space_nla/SConscript',
+            'space_script/SConscript',
+            'space_text/SConscript',
+            'space_sequencer/SConscript',
+            'space_logic/SConscript',
+            'space_console/SConscript',
+            'space_userpref/SConscript',
+            'transform/SConscript',
+            'screen/SConscript',
+            'sculpt_paint/SConscript',
+            'uvedit/SConscript'])

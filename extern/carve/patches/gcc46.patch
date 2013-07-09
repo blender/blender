@@ -1,0 +1,11 @@
+diff -r 525472fb477a include/carve/polyline_iter.hpp
+--- a/include/carve/polyline_iter.hpp	Sun Jan 15 23:07:40 2012 -0500
++++ b/include/carve/polyline_iter.hpp	Wed Jan 18 00:41:13 2012 +0600
+@@ -20,6 +20,7 @@
+ #include <list>
+ #include <iterator>
+ #include <limits>
++#include <cstddef>
+ 
+ #include <carve/polyline_decl.hpp>
+ 

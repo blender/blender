@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+#
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2011, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Nathan Letwory.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+Import('env')
+
+defs = []
+incs = []
+cxxflags = Split(env['CXXFLAGS'])
+
+sources = env.Glob('*.cpp')
+
+incs.extend('. .. ../svm ../../render ../../util ../../device'.split())
+incs.append(env['BF_OIIO_INC'])
+incs.append(env['BF_BOOST_INC'])
+incs.append(env['BF_OSL_INC'])
+incs.append(env['BF_OPENEXR_INC'].split())
+
+defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
+defs.append('CCL_NAMESPACE_END=}')
+defs.append('WITH_OSL')
+
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+    cxxflags.append('-DBOOST_NO_RTTI -DBOOST_NO_TYPEID /fp:fast'.split())
+    incs.append(env['BF_PTHREADS_INC'])
+    defs.append('OSL_STATIC_LIBRARY')
+else:
+    cxxflags.append('-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID -ffast-math'.split())
+
+env.BlenderLib ('cycles_kernel_osl', sources, incs, defs, libtype=['intern'], priority=[10], cxx_compileflags=cxxflags)

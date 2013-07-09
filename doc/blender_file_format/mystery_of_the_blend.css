@@ -1,0 +1,204 @@
+@CHARSET "ISO-8859-1";
+
+table {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #000000;
+	border-collapse: collapse;
+	width: 94%;
+	margin: 10px 3%;
+}
+
+DIV.title {
+	font-size: 30px;
+	font-weight: bold;
+	text-align: center
+}
+
+DIV.subtitle {
+	font-size: large;
+	text-align: center
+}
+
+DIV.contact {
+	margin:30px 3%;	
+}
+
+@media print {
+	DIV.contact {
+		margin-top: 300px;
+	}
+	DIV.title {
+		margin-top: 400px;
+	}
+}
+
+label {
+	font-weight: bold;
+	width: 100px;
+	float: left;
+}
+
+label:after {
+	content: ":";
+}
+
+TH {
+	background-color: #000000;
+	color: #ffffff;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+TR {
+}
+
+TD {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #a0a0a0;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+BODY {
+	font-family: verdana;
+	font-size: small;
+}
+
+H1 {
+	page-break-before: always;
+}
+
+H1, H2, H3, H4 {
+	margin-top: 30px;
+	margin-right: 3%;
+	padding: 3px 3%;
+	color: #404040;
+	cursor: pointer;
+}
+
+H1, H2 {
+	background-color: #D3D3D3;
+}
+
+H3, H4 {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+H1:hover, H2:hover, H3:hover, H4:hover {
+	background-color: #EBEBEB;
+}
+
+CODE.evidence {
+	font-size:larger
+}
+
+CODE.block {
+	color: #000000;
+	background-color: #DDDC75;
+	margin: 10px 0;
+	padding: 5px;
+	border-width: 1px;
+	border-style: dotted;
+	border-color: #000000;
+	white-space: pre;
+	display: block;
+	font-size: 2 em;
+}
+
+ul {
+	margin: 10px 3%;
+}
+
+li {
+	margin: 0 -15px;
+}
+
+ul.multicolumn {
+	list-style: none;
+	float: left;
+	padding-right: 0px;
+	margin-right: 0px;
+}
+
+li.multicolumn {
+	float: left;
+	width: 200px;
+	margin-right: 0px;
+}
+
+@media screen {
+	p {
+		margin: 10px 3%;
+		line-height: 130%;
+	}
+}
+
+span.fade {
+	color: gray;
+}
+
+span.header {
+	color: green;
+}
+
+span.header-greyed {
+	color: #4CBE4B;
+}
+
+span.data {
+	color: blue;
+}
+
+span.data-greyed {
+	color: #5D99C4;
+}
+
+span.descr {
+	color: red;
+}
+
+div.box {
+	margin: 15px 3%;
+	border-style: dotted;
+	border-width: 1px;
+}
+
+div.box-solid {
+	margin: 15px 3%;
+	border-style: solid;
+	border-width: 1px;
+}
+
+p.box-title {
+	font-style: italic;
+	font-size: 110%;
+	cursor: pointer;
+}
+
+p.box-title:hover {
+	background-color: #EBEBEB;
+}
+
+p.code {
+	font-family: "Courier New", Courier, monospace;
+}
+
+a {
+	color: #a000a0;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #a000a0;
+	text-decoration: underline;
+}
+
+td.skip {
+	color: #808080;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	text-align: center;
+}

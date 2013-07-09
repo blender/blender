@@ -1,0 +1,42 @@
+#!/usr/bin/python
+# $Id: SConscript $
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# The Original Code is Copyright (C) 2010, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Joshua Leung
+#
+# ***** END GPL LICENSE BLOCK *****
+
+Import('env')
+
+# XXX: we need a contingency plan for when not compiling with Bullet,
+# since this module will always get included... 
+# This problem will also apply to other engines at a later date too...
+sources = env.Glob('*.cpp')
+
+incs = [
+    '.',
+    '../../extern/bullet2/src',
+    ]
+
+env.BlenderLib('bf_intern_rigidbody', sources=sources,
+               includes=incs, defines=[],
+               libtype=['core', 'player'], priority=[180, 30])

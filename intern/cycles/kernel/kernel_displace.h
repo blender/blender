@@ -1,0 +1,72 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+CCL_NAMESPACE_BEGIN
+
+__device void kernel_shader_evaluate(KernelGlobals *kg, __global uint4 *input, __global float4 *output, ShaderEvalType type, int i)
+{
+	ShaderData sd;
+	uint4 in = input[i];
+	float3 out;
+
+	if(type == SHADER_EVAL_DISPLACE) {
+		/* setup shader data */
+		int object = in.x;
+		int prim = in.y;
+		float u = __uint_as_float(in.z);
+		float v = __uint_as_float(in.w);
+
+		shader_setup_from_displace(kg, &sd, object, prim, u, v);
+
+		/* evaluate */
+		float3 P = sd.P;
+		shader_eval_displacement(kg, &sd, SHADER_CONTEXT_MAIN);
+		out = sd.P - P;
+	}
+	else { // SHADER_EVAL_BACKGROUND
+		/* setup ray */
+		Ray ray;
+		float u = __uint_as_float(in.x);
+		float v = __uint_as_float(in.y);
+
+		ray.P = make_float3(0.0f, 0.0f, 0.0f);
+		ray.D = equirectangular_to_direction(u, v);
+		ray.t = 0.0f;
+#ifdef __CAMERA_MOTION__
+		ray.time = 0.5f;
+#endif
+
+#ifdef __RAY_DIFFERENTIALS__
+		ray.dD = differential3_zero();
+		ray.dP = differential3_zero();
+#endif
+
+		/* setup shader data */
+		shader_setup_from_background(kg, &sd, &ray);
+
+		/* evaluate */
+		int flag = 0; /* we can't know which type of BSDF this is for */
+		out = shader_eval_background(kg, &sd, flag, SHADER_CONTEXT_MAIN);
+	}
+	
+	/* write output */
+	output[i] = make_float4(out.x, out.y, out.z, 0.0f);
+}
+
+CCL_NAMESPACE_END
+

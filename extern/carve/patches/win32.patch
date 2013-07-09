@@ -1,0 +1,29 @@
+diff -r 47dfdaff1dd5 include/carve/win32.h
+--- a/include/carve/win32.h	Thu Jan 12 15:49:04 2012 -0500
++++ b/include/carve/win32.h	Fri Jan 13 03:15:51 2012 +0600
+@@ -32,14 +32,19 @@
+ 
+ #  if _MSC_VER < 1600
+ // stdint.h is not available before VS2010
+-typedef char int8_t;
+-typedef short int16_t;
+-typedef long int32_t;
++#if defined(_WIN32) && !defined(__MINGW32__)
++/* The __intXX are built-in types of the visual complier! So we don't
++   need to include anything else here.
++   This typedefs should be in sync with types from MEM_sys_types.h */
+ 
+-typedef unsigned char uint8_t;
+-typedef unsigned short uint16_t;
+-typedef unsigned long uint32_t;
++typedef signed __int8  int8_t;
++typedef signed __int16 int16_t;
++typedef signed __int32 int32_t;
+ 
++typedef unsigned __int8  uint8_t;
++typedef unsigned __int16 uint16_t;
++typedef unsigned __int32 uint32_t;
++#endif
+ typedef __int64 int64_t;
+ typedef unsigned __int64 uint64_t;
+ #  else

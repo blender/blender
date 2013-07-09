@@ -1,0 +1,3 @@
+## The symbols will be treated as if they were marked as __private_extern__
+## (aka visibility=hidden) and will not be global in the output file
+*boost*

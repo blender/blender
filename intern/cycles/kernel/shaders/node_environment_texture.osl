@@ -1,0 +1,81 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+#include "node_color.h"
+
+vector environment_texture_direction_to_equirectangular(vector dir)
+{
+	float u = -atan2(dir[1], dir[0]) / (2.0 * M_PI) + 0.5;
+	float v = atan2(dir[2], hypot(dir[0], dir[1])) / M_PI + 0.5;
+
+	return vector(u, v, 0.0);
+}
+
+vector environment_texture_direction_to_mirrorball(vector dir)
+{
+	dir[1] -= 1.0;
+
+	float div = 2.0 * sqrt(max(-0.5 * dir[1], 0.0));
+	if (div > 0.0)
+		dir /= div;
+
+	float u = 0.5 * (dir[0] + 1.0);
+	float v = 0.5 * (dir[2] + 1.0);
+
+	return vector(u, v, 0.0);
+}
+
+shader node_environment_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	vector Vector = P,
+	string filename = "",
+	string projection = "Equirectangular",
+	string color_space = "sRGB",
+	int is_float = 1,
+	int use_alpha = 1,
+	output color Color = 0.0,
+	output float Alpha = 1.0)
+{
+	vector p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+	
+	p = normalize(p);
+
+	if (projection == "Equirectangular")
+		p = environment_texture_direction_to_equirectangular(p);
+	else
+		p = environment_texture_direction_to_mirrorball(p);
+
+	/* todo: use environment for better texture filtering of equirectangular */
+	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "alpha", Alpha);
+
+	if (use_alpha) {
+		Color = color_unpremultiply(Color, Alpha);
+
+		if (!is_float)
+			Color = min(Color, 1.0);
+	}
+
+	if (color_space == "sRGB")
+		Color = color_srgb_to_scene_linear(Color);
+}
+

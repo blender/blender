@@ -1,0 +1,44 @@
+#!/usr/bin/python
+
+Import('env')
+
+SConscript(['glew/SConscript'])
+SConscript(['colamd/SConscript'])
+SConscript(['rangetree/SConscript'])
+SConscript(['wcwidth/SConscript'])
+SConscript(['libmv/SConscript'])
+
+if env['WITH_BF_GAMEENGINE']:
+    SConscript(['recastnavigation/SConscript'])
+
+# now only available in a branch
+'''
+if env['WITH_BF_ELTOPO']:
+    SConscript(['eltopo/SConscript'])
+'''
+
+if env['WITH_BF_BULLET']:
+    SConscript(['bullet2/src/SConscript'])
+
+if env['WITH_BF_OPENJPEG'] and env['BF_OPENJPEG_LIB'] == '':
+    SConscript(['libopenjpeg/SConscript'])
+
+if env['WITH_BF_REDCODE'] and env['BF_REDCODE_LIB'] == '':
+    SConscript(['libredcode/SConscript'])
+
+if env['WITH_BF_BINRELOC']:
+    SConscript(['binreloc/SConscript']);
+
+if env['WITH_BF_LZO']:
+    SConscript(['lzo/SConscript'])
+
+if env['WITH_BF_LZMA']:
+    SConscript(['lzma/SConscript'])
+
+if env['WITH_BF_BOOLEAN']:
+    SConscript(['carve/SConscript'])
+
+if env['WITH_GHOST_XDND']:
+    # FreeBSD doesn't seems to support XDND protocol
+    if env['OURPLATFORM'] in ('linux', 'openbsd3', 'sunos5', 'aix4', 'aix5'):
+        SConscript(['xdnd/SConscript'])

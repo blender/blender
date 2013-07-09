@@ -1,0 +1,82 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_normal_map(
+	normal NormalIn = N,
+	float Strength = 1.0,
+	color Color = color(0.5, 0.5, 1.0),
+	string space = "Tangent",
+	string attr_name = "geom:tangent",
+	string attr_sign_name = "geom:tangent_sign",
+	output normal Normal = NormalIn)
+{
+	color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
+
+	if (space == "Tangent") {
+		vector tangent;
+		vector ninterp;
+		float tangent_sign;
+		float is_smooth;
+
+		getattribute("geom:is_smooth", is_smooth);
+		if (!is_smooth)
+			ninterp = normalize(transform("world", "object", Ng));
+
+		// get _unnormalized_ interpolated normal and tangent
+		if (getattribute(attr_name, tangent) &&
+		    getattribute(attr_sign_name, tangent_sign) &&
+		    (!is_smooth || getattribute("geom:N", ninterp)))
+		{
+			// apply normal map
+			vector B = tangent_sign * cross(ninterp, tangent);
+			Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);
+
+			// transform to world space
+			Normal = normalize(transform("object", "world", Normal));
+		}
+		else {
+			Normal = normal(0, 0, 0);
+		}
+	}
+	else if (space == "Object") {
+		Normal = normalize(transform("object", "world", vector(mcolor)));
+	}
+	else if (space == "World") {
+		Normal = normalize(vector(mcolor));
+	}
+	else if (space == "Blender Object") {
+		/* strange blender convention */
+		mcolor[1] = -mcolor[1];
+		mcolor[2] = -mcolor[2];
+	
+		Normal = normalize(transform("object", "world", vector(mcolor)));
+	}
+	else if (space == "Blender World") {
+		/* strange blender convention */
+		mcolor[1] = -mcolor[1];
+		mcolor[2] = -mcolor[2];
+	
+		Normal = normalize(vector(mcolor));
+	}
+	
+	if (Strength != 1.0)
+		Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
+}
+

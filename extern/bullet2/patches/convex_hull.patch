@@ -1,0 +1,127 @@
+Index: extern/bullet2/src/Bullet-C-Api.h
+===================================================================
+--- extern/bullet2/src/Bullet-C-Api.h	(revision 51556)
++++ extern/bullet2/src/Bullet-C-Api.h	(working copy)
+@@ -167,6 +167,16 @@ extern "C" {
+ 	// needed for source/blender/blenkernel/intern/collision.c
+ 	double plNearestPoints(float p1[3], float p2[3], float p3[3], float q1[3], float q2[3], float q3[3], float *pa, float *pb, float normal[3]);
+ 
++
++	/* Convex Hull */
++	PL_DECLARE_HANDLE(plConvexHull);
++	plConvexHull plConvexHullCompute(float (*coords)[3], int count);
++	int plConvexHullNumVertices(plConvexHull hull);
++	int plConvexHullNumFaces(plConvexHull hull);
++	void plConvexHullGetVertex(plConvexHull hull, int n, float coords[3], int *original_index);
++	int plConvexHullGetFaceSize(plConvexHull hull, int n);
++	void plConvexHullGetFaceVertices(plConvexHull hull, int n, int *vertices);
++
+ #ifdef __cplusplus
+ }
+ #endif
+Index: extern/bullet2/src/BulletDynamics/Dynamics/Bullet-C-API.cpp
+===================================================================
+--- extern/bullet2/src/BulletDynamics/Dynamics/Bullet-C-API.cpp	(revision 51556)
++++ extern/bullet2/src/BulletDynamics/Dynamics/Bullet-C-API.cpp	(working copy)
+@@ -23,7 +23,7 @@ subject to the following restrictions:
+ #include "Bullet-C-Api.h"
+ #include "btBulletDynamicsCommon.h"
+ #include "LinearMath/btAlignedAllocator.h"
+-
++#include "LinearMath/btConvexHullComputer.h"
+ 
+ 
+ #include "LinearMath/btVector3.h"
+@@ -403,3 +403,60 @@ double plNearestPoints(float p1[3], float p2[3], float p3[3], float q1[3], float
+ 	return -1.0f;	
+ }
+ 
++// Convex hull
++plConvexHull plConvexHullCompute(float (*coords)[3], int count)
++{
++	btConvexHullComputer *computer = new btConvexHullComputer;
++	computer->compute(reinterpret_cast< float* >(coords),
++					  sizeof(*coords), count, 0, 0);
++	return reinterpret_cast<plConvexHull>(computer);
++}
++
++int plConvexHullNumVertices(plConvexHull hull)
++{
++	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
++	return computer->vertices.size();
++}
++
++int plConvexHullNumFaces(plConvexHull hull)
++{
++	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
++	return computer->faces.size();
++}
++
++void plConvexHullGetVertex(plConvexHull hull, int n, float coords[3],
++						   int *original_index)
++{
++	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
++	const btVector3 &v(computer->vertices[n]);
++	coords[0] = v[0];
++	coords[1] = v[1];
++	coords[2] = v[2];
++	(*original_index) = computer->original_vertex_index[n];
++}
++
++int plConvexHullGetFaceSize(plConvexHull hull, int n)
++{
++	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
++	const btConvexHullComputer::Edge *e_orig, *e;
++	int count;
++
++	for (e_orig = &computer->edges[computer->faces[n]], e = e_orig, count = 0;
++		 count == 0 || e != e_orig;
++		 e = e->getNextEdgeOfFace(), count++);
++	return count;
++}
++
++void plConvexHullGetFaceVertices(plConvexHull hull, int n, int *vertices)
++{
++	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
++	const btConvexHullComputer::Edge *e_orig, *e;
++	int count;
++
++	for (e_orig = &computer->edges[computer->faces[n]], e = e_orig, count = 0;
++		 count == 0 || e != e_orig;
++		 e = e->getNextEdgeOfFace(), count++)
++	{
++		vertices[count] = e->getTargetVertex();
++	}
++}
+Index: extern/bullet2/src/LinearMath/btConvexHullComputer.cpp
+===================================================================
+--- extern/bullet2/src/LinearMath/btConvexHullComputer.cpp	(revision 51556)
++++ extern/bullet2/src/LinearMath/btConvexHullComputer.cpp	(working copy)
+@@ -2661,6 +2661,7 @@ btScalar btConvexHullComputer::compute(const void* coords, bool doubleCoords, in
+ 	}
+ 
+ 	vertices.resize(0);
++	original_vertex_index.resize(0);
+ 	edges.resize(0);
+ 	faces.resize(0);
+ 
+@@ -2671,6 +2672,7 @@ btScalar btConvexHullComputer::compute(const void* coords, bool doubleCoords, in
+ 	{
+ 		btConvexHullInternal::Vertex* v = oldVertices[copied];
+ 		vertices.push_back(hull.getCoordinates(v));
++		original_vertex_index.push_back(v->point.index);
+ 		btConvexHullInternal::Edge* firstEdge = v->edges;
+ 		if (firstEdge)
+ 		{
+Index: extern/bullet2/src/LinearMath/btConvexHullComputer.h
+===================================================================
+--- extern/bullet2/src/LinearMath/btConvexHullComputer.h	(revision 51556)
++++ extern/bullet2/src/LinearMath/btConvexHullComputer.h	(working copy)
+@@ -67,6 +67,7 @@ class btConvexHullComputer
+ 
+ 		// Vertices of the output hull
+ 		btAlignedObjectArray<btVector3> vertices;
++		btAlignedObjectArray<int> original_vertex_index;
+ 
+ 		// Edges of the output hull
+ 		btAlignedObjectArray<Edge> edges;
