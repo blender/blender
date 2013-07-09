@@ -323,6 +323,7 @@ struct DerivedMesh {
 
 	/** Get smooth vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
+	void (*getPolyNo)(DerivedMesh *dm, int index, float no_r[3]);
 
 	/** Get a map of vertices to faces
 	 */
