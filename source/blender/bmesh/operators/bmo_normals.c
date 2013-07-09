@@ -56,7 +56,7 @@ static bool bmo_recalc_normal_edge_filter_cb(BMEdge *e, void *UNUSED(user_data))
  */
 static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int faces_len, const short oflag)
 {
-	float cent[3];
+	float cent[3], tvec[3];
 	float (*faces_center)[3] = MEM_mallocN(sizeof(*faces_center) * faces_len, __func__);
 	const float cent_fac = 1.0f / (float)faces_len;
 	int i, f_start_index;
@@ -91,7 +91,8 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	}
 
 	/* make sure the starting face has the correct winding */
-	if (dot_v3v3(faces_center[f_start_index], faces[f_start_index]->no) < 0.0f) {
+	sub_v3_v3v3(tvec, faces_center[f_start_index], cent);
+	if (dot_v3v3(tvec, faces[f_start_index]->no) < 0.0f) {
 		BMO_elem_flag_enable(bm, faces[f_start_index], FACE_FLIP);
 	}
 
