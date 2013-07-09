@@ -166,7 +166,10 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 
 		for (j = 0; j < fg_len; j++) {
 			faces_grp[j] = faces_arr[groups_array[fg_sta + j]];
-			is_calc |= BMO_elem_flag_test_bool(bm, faces_grp[j], FACE_FLAG);
+
+			if (is_calc == false) {
+				is_calc = BMO_elem_flag_test_bool(bm, faces_grp[j], FACE_FLAG);
+			}
 		}
 
 		if (is_calc) {

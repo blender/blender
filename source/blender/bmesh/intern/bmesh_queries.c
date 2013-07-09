@@ -1761,7 +1761,7 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 
 /**
  * TODO (as we need)
- * - option to walk over edges.
+ * - option to walk over faces by verts.
  * - option to walk over non manifold edges.
  *
  * \param bm  the BMesh.

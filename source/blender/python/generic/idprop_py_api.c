@@ -1531,7 +1531,7 @@ void IDP_spit(IDProperty *prop)
 		ret_str = PyObject_Repr(ret_dict);
 		Py_DECREF(ret_dict);
 
-		printf("IDProperty: %s\n", _PyUnicode_AsString(ret_str));
+		printf("IDProperty(%p): %s\n", prop, _PyUnicode_AsString(ret_str));
 
 		Py_DECREF(ret_str);
 
