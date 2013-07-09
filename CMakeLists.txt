@@ -538,9 +538,6 @@ set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
 
 
-# disabled for now, not supported
-# option(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
-
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix:
 #   cmake ../blender \
@@ -1872,16 +1869,6 @@ endif()
 if(WITH_IMAGE_REDCODE)
 	set(REDCODE ${CMAKE_SOURCE_DIR}/extern)
 	set(REDCODE_INC ${REDCODE})
-endif()
-
-#-----------------------------------------------------------------------------
-# Blender WebPlugin
-
-if(WITH_WEBPLUGIN)
-	set(GECKO_DIR "${CMAKE_SOURCE_DIR}/../gecko-sdk/" CACHE PATH "Gecko SDK path")
-	set(WEBPLUGIN_SANDBOX_MODE "apparmor" CACHE STRING "WEB Plugin sandbox mode, can be apparmor, privsep, none")
-
-	set(WITH_PLAYER ON)
 endif()
 
 
