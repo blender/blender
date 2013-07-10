@@ -1646,6 +1646,14 @@ BLI_INLINE void copy_v3_fl3(float v[3], float x, float y, float z)
 	v[2] = z;
 }
 
+/* TODO(sergey): Perhaps it could be general utility function in mathutils. */
+static bool has_zero_axis_m4(float matrix[4][4])
+{
+	return len_squared_v3(matrix[0]) < FLT_EPSILON ||
+	       len_squared_v3(matrix[1]) < FLT_EPSILON ||
+	       len_squared_v3(matrix[2]) < FLT_EPSILON;
+}
+
 static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return totsize */
 {
 	Scene *sce_iter = scene;
@@ -1694,13 +1702,13 @@ static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return 
 
 			/* when metaball object has zero scale, then MetaElem to this MetaBall
 			 * will not be put to mainb array */
-			if (bob->size[0] == 0.0f || bob->size[1] == 0.0f || bob->size[2] == 0.0f) {
+			if (has_zero_axis_m4(bob->obmat)) {
 				zero_size = 1;
 			}
 			else if (bob->parent) {
 				struct Object *pob = bob->parent;
 				while (pob) {
-					if (pob->size[0] == 0.0f || pob->size[1] == 0.0f || pob->size[2] == 0.0f) {
+					if (has_zero_axis_m4(pob->obmat)) {
 						zero_size = 1;
 						break;
 					}
