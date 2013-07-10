@@ -347,8 +347,9 @@ void ShaderGraph::remove_unneeded_nodes()
 
 					if(tonode->special_type == SHADER_SPECIAL_TYPE_AUTOCONVERT) {
 						bool all_links_removed = true;
+						vector<ShaderInput*> links = tonode->outputs[0]->links;
 
-						foreach(ShaderInput *autoin, tonode->outputs[0]->links) {
+						foreach(ShaderInput *autoin, links) {
 							if(autoin->default_value == ShaderInput::NONE)
 								all_links_removed = false;
 							else
