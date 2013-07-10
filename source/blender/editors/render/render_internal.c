@@ -1141,7 +1141,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	RE_ReleaseResultImage(re);
 }
 
-void ED_viewport_render_kill_jobs(const bContext *C)
+void ED_viewport_render_kill_jobs(const bContext *C, bool free_database)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Main *bmain = CTX_data_main(C);
@@ -1172,17 +1172,23 @@ void ED_viewport_render_kill_jobs(const bContext *C)
 				if (rv3d->render_engine) {
 					/* free render database now before we change data, because
 					 * RE_Database_Free will also loop over blender data */
-					char name[32];
-					Render *re;
+					if (free_database) {
+						char name[32];
+						Render *re;
 
-					sprintf(name, "View3dPreview %p", (void *)ar);
-					re = RE_GetRender(name);
+						sprintf(name, "View3dPreview %p", (void *)ar);
+						re = RE_GetRender(name);
 
-					if (re)
-						RE_Database_Free(re);
+						if (re)
+							RE_Database_Free(re);
 
-					/* tag render engine to update entire database */
-					rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
+						/* tag render engine to update entire database */
+						rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
+					}
+					else {
+						/* quick shader update */
+						rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_MA;
+					}
 				}
 			}
 		}
