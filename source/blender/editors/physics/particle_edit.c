@@ -1722,13 +1722,17 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, bool 
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
 				    key_test_depth(&data, co, screen_co))
 				{
-					if (select && !(key->flag & PEK_SELECT)) {
-						key->flag |= PEK_SELECT;
-						point->flag |= PEP_EDIT_RECALC;
+					if (select) {
+						if (!(key->flag & PEK_SELECT)) {
+							key->flag |= PEK_SELECT;
+							point->flag |= PEP_EDIT_RECALC;
+						}
 					}
-					else if (key->flag & PEK_SELECT) {
-						key->flag &= ~PEK_SELECT;
-						point->flag |= PEP_EDIT_RECALC;
+					else {
+						if (key->flag & PEK_SELECT) {
+							key->flag &= ~PEK_SELECT;
+							point->flag |= PEP_EDIT_RECALC;
+						}
 					}
 				}
 			}
@@ -1742,13 +1746,17 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, bool 
 			    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
 			    key_test_depth(&data, co, screen_co))
 			{
-				if (select && !(key->flag & PEK_SELECT)) {
-					key->flag |= PEK_SELECT;
-					point->flag |= PEP_EDIT_RECALC;
+				if (select) {
+					if (!(key->flag & PEK_SELECT)) {
+						key->flag |= PEK_SELECT;
+						point->flag |= PEP_EDIT_RECALC;
+					}
 				}
-				else if (key->flag & PEK_SELECT) {
-					key->flag &= ~PEK_SELECT;
-					point->flag |= PEP_EDIT_RECALC;
+				else {
+					if (key->flag & PEK_SELECT) {
+						key->flag &= ~PEK_SELECT;
+						point->flag |= PEP_EDIT_RECALC;
+					}
 				}
 			}
 		}
