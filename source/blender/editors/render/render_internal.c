@@ -904,7 +904,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	
 	rstats = RE_GetStats(re);
 
-	if ((update_flag & (PR_UPDATE_RENDERSIZE|PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
+	if ((update_flag & (PR_UPDATE_RENDERSIZE | PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
 		/* no osa, blur, seq, layers, etc for preview render */
 		rdata = rp->scene->r;
 		rdata.mode &= ~(R_OSA | R_MBLUR | R_BORDER | R_PANORAMA);
