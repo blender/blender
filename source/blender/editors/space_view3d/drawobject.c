@@ -2700,9 +2700,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 	const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
 	float clip_planes[4][4];
 	/* allow for displaying shape keys and deform mods */
-	DerivedMesh *dm = ((em->derivedFinal != NULL) &&
-	                   (em->derivedFinal->type == DM_TYPE_EDITBMESH) &&
-	                   (em->derivedFinal->deformedOnly != false)) ? em->derivedFinal : NULL;
+	DerivedMesh *dm = EDBM_mesh_deform_dm_get(em);
 	BMIter iter;
 	int i;
 

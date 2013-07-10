@@ -875,6 +875,10 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
 			ARegion *ar_prev;
 
+			/* call here because regular mouse-up event wont run,
+			 * typically 'button_activate_exit()' handles this */
+			ui_apply_autokey(C, but);
+
 			drag_info->is_set = ui_is_but_push(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
@@ -6419,7 +6423,6 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 {
 	uiBut *but = ui_list_find_mouse_over(ar, event->x, event->y);
 	int retval = WM_UI_HANDLER_CONTINUE;
-	int value, min, max;
 	int type = event->type, val = event->val;
 
 	if (but) {
@@ -6442,8 +6445,11 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 				if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
 					((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
 				{
+					const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+					int value, min, max;
+
 					/* activate up/down the list */
-					value = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+					value = value_orig;
 
 					if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
 						value--;
@@ -6460,9 +6466,13 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 					RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
 					value = CLAMPIS(value, min, max);
 
-					RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
-					RNA_property_update(C, &but->rnapoin, but->rnaprop);
-					ED_region_tag_redraw(ar);
+					if (value != value_orig) {
+						RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
+						RNA_property_update(C, &but->rnapoin, but->rnaprop);
+
+						ui_apply_undo(but);
+						ED_region_tag_redraw(ar);
+					}
 
 					retval = WM_UI_HANDLER_BREAK;
 				}

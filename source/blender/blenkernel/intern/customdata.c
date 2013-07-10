@@ -2073,6 +2073,8 @@ void *CustomData_get(const CustomData *data, int index, int type)
 	int offset;
 	int layer_index;
 	
+	BLI_assert(index >= 0);
+
 	/* get the layer index of the active layer of type */
 	layer_index = CustomData_get_active_layer_index(data, type);
 	if (layer_index < 0) return NULL;
@@ -2087,6 +2089,8 @@ void *CustomData_get_n(const CustomData *data, int type, int index, int n)
 {
 	int layer_index;
 	int offset;
+
+	BLI_assert(index >= 0 && n >= 0);
 
 	/* get the layer index of the first layer of type */
 	layer_index = data->typemap[type];

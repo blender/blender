@@ -95,6 +95,7 @@ void EDBM_selectmode_to_scene(struct bContext *C);
 void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob);
 void EDBM_mesh_free(struct BMEditMesh *em);
 void EDBM_mesh_load(struct Object *ob);
+struct DerivedMesh *EDBM_mesh_deform_dm_get(struct BMEditMesh *em);
 
 void           EDBM_index_arrays_ensure(struct BMEditMesh *em, const char htype);
 void           EDBM_index_arrays_init(struct BMEditMesh *em, const char htype);

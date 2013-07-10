@@ -2429,6 +2429,11 @@ uiLayout *uiLayoutListBox(uiLayout *layout, uiList *ui_list, PointerRNA *ptr, Pr
 	but->rnapoin = *actptr;
 	but->rnaprop = actprop;
 
+	/* only for the undo string */
+	if (but->flag & UI_BUT_UNDO) {
+		but->tip = RNA_property_description(actprop);
+	}
+
 	return (uiLayout *)box;
 }
 

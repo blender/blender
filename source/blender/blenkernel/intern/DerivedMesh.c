@@ -656,21 +656,25 @@ void DM_add_poly_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 
 void *DM_get_vert_data(DerivedMesh *dm, int index, int type)
 {
+	BLI_assert(index >= 0 && index < dm->getNumVerts(dm));
 	return CustomData_get(&dm->vertData, index, type);
 }
 
 void *DM_get_edge_data(DerivedMesh *dm, int index, int type)
 {
+	BLI_assert(index >= 0 && index < dm->getNumEdges(dm));
 	return CustomData_get(&dm->edgeData, index, type);
 }
 
 void *DM_get_tessface_data(DerivedMesh *dm, int index, int type)
 {
+	BLI_assert(index >= 0 && index < dm->getNumTessFaces(dm));
 	return CustomData_get(&dm->faceData, index, type);
 }
 
 void *DM_get_poly_data(DerivedMesh *dm, int index, int type)
 {
+	BLI_assert(index >= 0 && index < dm->getNumPolys(dm));
 	return CustomData_get(&dm->polyData, index, type);
 }
 

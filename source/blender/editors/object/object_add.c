@@ -342,7 +342,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 		else if (RNA_struct_property_is_set(op->ptr, "view_align"))
 			*is_view_aligned = RNA_boolean_get(op->ptr, "view_align");
 		else {
-			*is_view_aligned = U.flag & USER_ADD_VIEWALIGNED;
+			*is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
 			RNA_boolean_set(op->ptr, "view_align", *is_view_aligned);
 		}
 

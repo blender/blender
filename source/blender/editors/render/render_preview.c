@@ -1180,5 +1180,7 @@ void ED_preview_kill_jobs(const struct bContext *C)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	if (wm)
 		WM_jobs_kill(wm, NULL, common_preview_startjob);
+	
+	ED_viewport_render_kill_jobs(C, false);
 }
 
