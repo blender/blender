@@ -42,6 +42,7 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_DerivedMesh.h"
 
 #include "BIF_gl.h"
 
@@ -155,9 +156,30 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 	}
 }
 
+static void edgering_vcos_get(DerivedMesh *dm, BMVert *v[2][2], float r_cos[2][2][3])
+{
+	if (dm) {
+		int j, k;
+		for (j = 0; j < 2; j++) {
+			for (k = 0; k < 2; k++) {
+				dm->getVertCo(dm, BM_elem_index_get(v[j][k]), r_cos[j][k]);
+			}
+		}
+	}
+	else {
+		int j, k;
+		for (j = 0; j < 2; j++) {
+			for (k = 0; k < 2; k++) {
+				copy_v3_v3(r_cos[j][k], v[j][k]->co);
+			}
+		}
+	}
+}
+
 static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 {
 	BMEditMesh *em = lcd->em;
+	DerivedMesh *dm = EDBM_mesh_deform_dm_get(em);
 	BMEdge *eed_start = lcd->eed;
 	BMEdge *eed, *eed_last;
 	BMVert *v[2][2], *v_last;
@@ -195,6 +217,10 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 		return;
 	}
 
+	if (dm) {
+		EDBM_index_arrays_ensure(lcd->em, BM_VERT);
+	}
+
 	BMW_init(&walker, em->bm, BMW_EDGERING,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_FLAG_TEST_HIDDEN,
@@ -222,8 +248,12 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 
 			for (i = 1; i <= previewlines; i++) {
 				const float fac = (i / ((float)previewlines + 1));
-				interp_v3_v3v3(edges[tot][0], v[0][0]->co, v[0][1]->co, fac);
-				interp_v3_v3v3(edges[tot][1], v[1][0]->co, v[1][1]->co, fac);
+				float v_cos[2][2][3];
+
+				edgering_vcos_get(dm, v, v_cos);
+
+				interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
+				interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
 				tot++;
 			}
 		}
@@ -244,13 +274,16 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 
 		for (i = 1; i <= previewlines; i++) {
 			const float fac = (i / ((float)previewlines + 1));
+			float v_cos[2][2][3];
 
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {
 				continue;
 			}
 
-			interp_v3_v3v3(edges[tot][0], v[0][0]->co, v[0][1]->co, fac);
-			interp_v3_v3v3(edges[tot][1], v[1][0]->co, v[1][1]->co, fac);
+			edgering_vcos_get(dm, v, v_cos);
+
+			interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
+			interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
 			tot++;
 		}
 	}
