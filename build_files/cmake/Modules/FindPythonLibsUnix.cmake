@@ -2,9 +2,11 @@
 # Find the native Python includes and library
 #
 # Note:, This is not _yet_ intended to be a general python module for other
-#  projects to use since its hard coded to python 3.2 as blender only supports
-#  a single python version.
-#  This is for blender/unix python only.
+#  projects to use since its hard coded to fixed Python version
+#  as Blender only supports a single Python version at the moment.
+#
+# Note:
+#  this is for Blender/Unix Python only.
 #
 # This module defines
 #  PYTHON_VERSION
