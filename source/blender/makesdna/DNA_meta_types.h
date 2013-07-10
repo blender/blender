@@ -65,8 +65,6 @@ typedef struct MetaBall {
 	ID id;
 	struct AnimData *adt;
 	
-	struct BoundBox *bb;
-
 	ListBase elems;
 	ListBase disp;
 	ListBase *editelems;		/* not saved in files, note we use pointer for editmode check */
