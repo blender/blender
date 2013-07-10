@@ -1207,16 +1207,19 @@ void mat4_to_size(float size[3], float mat[4][4])
 float mat3_to_scale(float mat[3][3])
 {
 	/* unit length vector */
-	float unit_vec[3] = {0.577350269189626f, 0.577350269189626f, 0.577350269189626f};
+	float unit_vec[3];
+	copy_v3_fl(unit_vec, 0.577350269189626f);
 	mul_m3_v3(mat, unit_vec);
 	return len_v3(unit_vec);
 }
 
 float mat4_to_scale(float mat[4][4])
 {
-	float tmat[3][3];
-	copy_m3_m4(tmat, mat);
-	return mat3_to_scale(tmat);
+	/* unit length vector */
+	float unit_vec[3];
+	copy_v3_fl(unit_vec, 0.577350269189626f);
+	mul_mat3_m4_v3(mat, unit_vec);
+	return len_v3(unit_vec);
 }
 
 void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
