@@ -2660,6 +2660,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 						if (i == activei) {
 							ui_layout_list_set_labels_active(sub);
 						}
+
+						uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
 					}
 					i++;
 				}
@@ -2746,6 +2748,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					if (i == activei) {
 						ui_layout_list_set_labels_active(sub);
 					}
+
+					uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
 
 					i++;
 				}
