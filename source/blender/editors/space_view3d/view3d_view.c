@@ -622,7 +622,7 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], const BoundB
 	int a, flag = -1, fl;
 
 	if (bb == NULL) return true;
-	if (bb->flag & OB_BB_DISABLED) return true;
+	if (bb->flag & BOUNDBOX_DISABLED) return true;
 
 	mul_m4_m4m4(mat, rv3d->persmat, obmat);
 

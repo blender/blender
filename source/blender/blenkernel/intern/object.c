@@ -262,8 +262,7 @@ void BKE_object_free_derived_caches(Object *ob)
 		Mesh *me = ob->data;
 
 		if (me->bb) {
-			MEM_freeN(me->bb);
-			me->bb = NULL;
+			me->bb->flag |= BOUNDBOX_INVALID;
 		}
 	}
 
@@ -2362,8 +2361,6 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		case OB_FONT:
 		case OB_SURF:
 		{
-			Curve *cu = ob->data;
-
 			/* Use the object bounding box so that modifier output
 			 * gets taken into account */
 			bb = *(ob->bb);

@@ -100,7 +100,10 @@ typedef struct BoundBox {
 } BoundBox;
 
 /* boundbox flag */
-#define OB_BB_DISABLED	1
+enum {
+	BOUNDBOX_DISABLED = (1 << 0),
+	BOUNDBOX_INVALID  = (1 << 1),
+};
 
 typedef struct Object {
 	ID id;
