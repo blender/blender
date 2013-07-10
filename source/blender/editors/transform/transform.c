@@ -5014,6 +5014,17 @@ static bool createEdgeSlideVerts(TransInfo *t)
 		rv3d = t->ar ? t->ar->regiondata : NULL;
 	}
 
+	if ((t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) &&
+	    /* don't do this at all for non-basis shape keys, too easy to
+		 * accidentally break uv maps or vertex colors then */
+	    (bm->shapenr <= 1))
+	{
+		sld->use_origfaces = true;
+	}
+	else {
+		sld->use_origfaces = false;
+	}
+
 	sld->is_proportional = true;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = FALSE;
@@ -5027,8 +5038,11 @@ static bool createEdgeSlideVerts(TransInfo *t)
 	}
 	
 	BLI_smallhash_init(&sld->vhash);
-	BLI_smallhash_init(&sld->origfaces);
 	BLI_smallhash_init(&table);
+
+	if (sld->use_origfaces) {
+		BLI_smallhash_init(&sld->origfaces);
+	}
 	
 	/*ensure valid selection*/
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -5371,21 +5385,24 @@ static bool createEdgeSlideVerts(TransInfo *t)
 		BMFace *f;
 		BMLoop *l;
 		
-		BM_ITER_ELEM (f, &fiter, sv_array->v, BM_FACES_OF_VERT) {
-			
-			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
-				BMFace *copyf = BM_face_copy(bm, f, true, true);
-				
-				BM_face_select_set(bm, copyf, false);
-				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
-				BM_ITER_ELEM (l, &liter, copyf, BM_LOOPS_OF_FACE) {
-					BM_vert_select_set(bm, l->v, false);
-					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
-					BM_edge_select_set(bm, l->e, false);
-					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
-				}
 
-				BLI_smallhash_insert(&sld->origfaces, (uintptr_t)f, copyf);
+		if (sld->use_origfaces) {
+			BM_ITER_ELEM (f, &fiter, sv_array->v, BM_FACES_OF_VERT) {
+
+				if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
+					BMFace *copyf = BM_face_copy(bm, f, true, true);
+
+					BM_face_select_set(bm, copyf, false);
+					BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
+					BM_ITER_ELEM (l, &liter, copyf, BM_LOOPS_OF_FACE) {
+						BM_vert_select_set(bm, l->v, false);
+						BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
+						BM_edge_select_set(bm, l->e, false);
+						BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+					}
+
+					BLI_smallhash_insert(&sld->origfaces, (uintptr_t)f, copyf);
+				}
 			}
 		}
 
@@ -5429,8 +5446,10 @@ static bool createEdgeSlideVerts(TransInfo *t)
 	MEM_freeN(loop_dir);
 	MEM_freeN(loop_maxdist);
 
-	/* arrays are dirty from copying faces: EDBM_index_arrays_free */
-	EDBM_update_generic(em, false, true);
+	if (sld->use_origfaces) {
+		/* arrays are dirty from copying faces: EDBM_index_arrays_free */
+		EDBM_update_generic(em, false, true);
+	}
 
 	return true;
 }
@@ -5442,17 +5461,10 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 	BMEditMesh *em = sld->em;
 	int i;
 
-	if (!em)
+	if (sld->use_origfaces == false) {
 		return;
-	
-	if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
-		return;
+	}
 
-	/* don't do this at all for non-basis shape keys, too easy to
-	 * accidentally break uv maps or vertex colors then */
-	if (em->bm->shapenr > 1)
-		return;
-	
 	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMLoop *l;
@@ -5605,7 +5617,7 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 
 void freeEdgeSlideTempFaces(EdgeSlideData *sld)
 {
-	if (sld->origfaces_init) {
+	if (sld->origfaces_init && sld->use_origfaces) {
 		SmallHashIter hiter;
 		BMFace *copyf;
 
@@ -5616,11 +5628,11 @@ void freeEdgeSlideTempFaces(EdgeSlideData *sld)
 
 		BLI_smallhash_release(&sld->origfaces);
 
-		sld->origfaces_init = false;
-
 		/* arrays are dirty from removing faces: EDBM_index_arrays_free */
 		EDBM_update_generic(sld->em, FALSE, TRUE);
 	}
+
+	sld->origfaces_init = false;
 }
 
 

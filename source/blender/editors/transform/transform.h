@@ -208,6 +208,7 @@ typedef struct EdgeSlideData {
 	struct BMEditMesh *em;
 
 	/* flag that is set when origfaces is initialized */
+	bool use_origfaces;
 	bool origfaces_init;
 
 	float perc;
