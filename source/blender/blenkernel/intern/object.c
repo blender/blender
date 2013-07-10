@@ -2366,13 +2366,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 
 			/* Use the object bounding box so that modifier output
 			 * gets taken into account */
-			if (ob->bb)
-				bb = *(ob->bb);
-			else {
-				if (cu->bb == NULL)
-					BKE_curve_texspace_calc(cu);
-				bb = *(cu->bb);
-			}
+			bb = *(ob->bb);
 
 			for (a = 0; a < 8; a++) {
 				mul_m4_v3(ob->obmat, bb.vec[a]);
