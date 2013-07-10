@@ -875,6 +875,10 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
 			ARegion *ar_prev;
 
+			/* call here because regular mouse-up event wont run,
+			 * typically 'button_activate_exit()' handles this */
+			ui_apply_autokey(C, but);
+
 			drag_info->is_set = ui_is_but_push(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
