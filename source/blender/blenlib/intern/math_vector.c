@@ -546,8 +546,8 @@ void print_vn(const char *str, const float v[], const int n)
 {
 	int i = 0;
 	printf("%s[%d]:", str, n);
-	while (i++ < n) {
-		printf(" %.3f", v[i]);
+	while (i < n) {
+		printf(" %.3f", v[i++]);
 	}
 	printf("\n");
 }
