@@ -890,6 +890,24 @@ static BMFace *bm_mesh_copy_new_face(BMesh *bm_new, BMesh *bm_old,
 	return f_new;
 }
 
+void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTemplate *allocsize)
+{
+	if (allocsize == NULL) {
+		allocsize = &bm_mesh_allocsize_default;
+	}
+
+	CustomData_copy(&bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_src->edata, &bm_dst->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
+	CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
+	CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
+	CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
+}
+
+
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
 	BMesh *bm_new;
@@ -908,15 +926,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	/* allocate a bmesh */
 	bm_new = BM_mesh_create(&allocsize);
 
-	CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm_old->pdata, &bm_new->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
-
-	CustomData_bmesh_init_pool(&bm_new->vdata, allocsize.totvert, BM_VERT);
-	CustomData_bmesh_init_pool(&bm_new->edata, allocsize.totedge, BM_EDGE);
-	CustomData_bmesh_init_pool(&bm_new->ldata, allocsize.totloop, BM_LOOP);
-	CustomData_bmesh_init_pool(&bm_new->pdata, allocsize.totface, BM_FACE);
+	BM_mesh_copy_init_customdata(bm_new, bm_old, &allocsize);
 
 	vtable = MEM_mallocN(sizeof(BMVert *) * bm_old->totvert, "BM_mesh_copy vtable");
 	etable = MEM_mallocN(sizeof(BMEdge *) * bm_old->totedge, "BM_mesh_copy etable");

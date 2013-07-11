@@ -429,32 +429,32 @@ static void bm_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
 	disp[1] = (mat[0][0] * b[1] - b[0] * mat[1][0]) / d;
 }
 
-static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
+static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *l_dst, BMFace *f_src)
 {
-	MDisps *mdisps;
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	MDisps *md_dst;
 	float d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
 	int ix, res;
 	float axis_x[3], axis_y[3];
+
+	if (cd_loop_mdisp_offset == -1)
+		return;
 	
 	/* ignore 2-edged faces */
-	if (UNLIKELY(target->f->len < 3))
+	if (UNLIKELY(l_dst->f->len < 3))
 		return;
+
+	md_dst = BM_ELEM_CD_GET_VOID_P(l_dst, cd_loop_mdisp_offset);
+	compute_mdisp_quad(l_dst, v1, v2, v3, v4, e1, e2);
 	
-	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
-		return;
-	
-	mdisps = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
-	compute_mdisp_quad(target, v1, v2, v3, v4, e1, e2);
-	
-	/* if no disps data allocate a new grid, the size of the first grid in source. */
-	if (!mdisps->totdisp) {
-		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, BM_FACE_FIRST_LOOP(source)->head.data, CD_MDISPS);
+	/* if no disps data allocate a new grid, the size of the first grid in f_src. */
+	if (!md_dst->totdisp) {
+		MDisps *md_src = BM_ELEM_CD_GET_VOID_P(BM_FACE_FIRST_LOOP(f_src), cd_loop_mdisp_offset);
 		
-		mdisps->totdisp = md2->totdisp;
-		mdisps->level = md2->level;
-		if (mdisps->totdisp) {
-			mdisps->disps = MEM_callocN(sizeof(float) * 3 * mdisps->totdisp,
-			                            "mdisp->disps in bmesh_loop_intern_mdisps");
+		md_dst->totdisp = md_src->totdisp;
+		md_dst->level = md_src->level;
+		if (md_dst->totdisp) {
+			md_dst->disps = MEM_callocN(sizeof(float) * 3 * md_dst->totdisp, __func__);
 		}
 		else {
 			return;
@@ -463,7 +463,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	
 	mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
 
-	res = (int)sqrt(mdisps->totdisp);
+	res = (int)sqrt(md_dst->totdisp);
 	d = 1.0f / (float)(res - 1);
 #pragma omp parallel for if (res > 3)
 	for (ix = 0; ix < res; ix++) {
@@ -487,18 +487,17 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			mul_v3_fl(co, x);
 			add_v3_v3(co, co1);
 			
-			l_iter = l_first = BM_FACE_FIRST_LOOP(source);
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
 			do {
 				float x2, y2;
-				MDisps *md1, *md2;
+				MDisps *md_src;
 				float src_axis_x[3], src_axis_y[3];
 
-				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
-				md2 = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
+				md_src = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_mdisp_offset);
 				
-				if (mdisp_in_mdispquad(target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
-					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
-					bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md1->disps[iy * res + ix]);
+				if (mdisp_in_mdispquad(l_dst, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
+					old_mdisps_bilinear(md_dst->disps[iy * res + ix], md_src->disps, res, (float)x2, (float)y2);
+					bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md_dst->disps[iy * res + ix]);
 
 					break;
 				}
@@ -513,16 +512,17 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
  */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 {
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	BMLoop *l;
 	BMIter liter;
 	
-	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
+	if (cd_loop_mdisp_offset == -1)
 		return;
 	
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		MDisps *mdp = CustomData_bmesh_get(&bm->ldata, l->prev->head.data, CD_MDISPS);
-		MDisps *mdl = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
-		MDisps *mdn = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MDISPS);
+		MDisps *mdp = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_mdisp_offset);
+		MDisps *mdl = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+		MDisps *mdn = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_mdisp_offset);
 		float co1[3];
 		int sides;
 		int y;
@@ -551,7 +551,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	}
 	
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		MDisps *mdl1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
+		MDisps *mdl1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
 		MDisps *mdl2;
 		float co1[3], co2[3], co[3];
 		int sides;
@@ -575,9 +575,9 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 			continue;
 
 		if (l->radial_next->v == l->v)
-			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->head.data, CD_MDISPS);
+			mdl2 = BM_ELEM_CD_GET_VOID_P(l->radial_next, cd_loop_mdisp_offset);
 		else
-			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->next->head.data, CD_MDISPS);
+			mdl2 = BM_ELEM_CD_GET_VOID_P(l->radial_next->next, cd_loop_mdisp_offset);
 
 		sides = (int)sqrt(mdl1->totdisp);
 		for (y = 0; y < sides; y++) {
@@ -663,9 +663,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	}
 
 	if (do_multires) {
-		if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-			bm_loop_interp_mdisps(bm, target, source);
-		}
+		bm_loop_interp_mdisps(bm, target, source);
 	}
 }
 
