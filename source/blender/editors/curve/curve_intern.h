@@ -124,5 +124,7 @@ void CURVE_OT_vertex_add(struct wmOperatorType *ot);
 void CURVE_OT_extrude(struct wmOperatorType *ot);
 void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
 
+void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
+
 #endif /* ED_UTIL_INTERN_H */
 

@@ -140,6 +140,8 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
         row.column().prop(curve, "texspace_location", text="Location")
         row.column().prop(curve, "texspace_size", text="Size")
 
+        layout.operator("curve.match_texture_space")
+
 
 class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
     bl_label = "Geometry"
