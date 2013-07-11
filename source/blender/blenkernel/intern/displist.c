@@ -62,7 +62,6 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
-static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase);
 static void boundbox_displist_object(Object *ob);
 
 void BKE_displist_elem_free(DispList *dl)
@@ -1634,15 +1633,12 @@ float *BKE_displist_make_orco(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	return orco;
 }
 
-static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase)
+void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 {
-	float min[3], max[3];
 	DispList *dl;
 	float *vert;
 	int a, tot = 0;
 	int doit = 0;
-
-	INIT_MINMAX(min, max);
 
 	for (dl = dispbase->first; dl; dl = dl->next) {
 		tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
@@ -1658,8 +1654,6 @@ static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase)
 		zero_v3(min);
 		zero_v3(max);
 	}
-
-	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
 /* this is confusing, there's also min_max_object, appplying the obmat... */
@@ -1678,7 +1672,11 @@ static void boundbox_displist_object(Object *ob)
 			DM_set_object_boundbox(ob, ob->derivedFinal);
 		}
 		else {
-			boundbox_dispbase(ob->bb, &ob->curve_cache->disp);
+			float min[3], max[3];
+
+			INIT_MINMAX(min, max);
+			BKE_displist_minmax(&ob->curve_cache->disp, min, max);
+			BKE_boundbox_init_from_minmax(ob->bb, min, max);
 		}
 	}
 }

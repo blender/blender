@@ -28,6 +28,8 @@
 #ifndef __BKE_DISPLIST_H__
 #define __BKE_DISPLIST_H__
 
+struct ListBase;
+
 /** \file BKE_displist.h
  *  \ingroup bke
  *  \brief display list (or rather multi purpose list) stuff.
@@ -101,5 +103,7 @@ float BKE_displist_calc_taper(struct Scene *scene, struct Object *taperobj, int 
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
 float *BKE_displist_make_orco(struct Scene *scene, struct Object *ob, struct DerivedMesh *derivedFinal, int forRender, int renderResolution);
+
+void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
 
 #endif

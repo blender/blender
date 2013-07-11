@@ -7160,9 +7160,7 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Object *object = CTX_data_active_object(C);
 	Curve *curve = (Curve *) object->data;
-	DispList *dl;
 	float min[3], max[3], size[3], loc[3];
-	bool do_it = false;
 	int a;
 
 	if (ELEM(NULL, object->curve_cache, object->curve_cache->disp.first)) {
@@ -7170,28 +7168,7 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	INIT_MINMAX(min, max);
-
-	dl = object->curve_cache->disp.first;
-	while (dl) {
-		int tot = ELEM(dl->type, DL_INDEX3, DL_INDEX4) ? dl->nr : dl->nr * dl->parts;
-		float *fp;
-
-		if (tot) {
-			do_it = true;
-		}
-
-		fp = dl->verts;
-		while (tot--) {
-			minmax_v3v3_v3(min, max, fp);
-			fp += 3;
-		}
-		dl = dl->next;
-	}
-
-	if (do_it == false) {
-		min[0] = min[1] = min[2] = -1.0f;
-		max[0] = max[1] = max[2] = 1.0f;
-	}
+	BKE_displist_minmax(&object->curve_cache->disp, min, max);
 
 	mid_v3_v3v3(loc, min, max);
 
