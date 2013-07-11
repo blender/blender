@@ -640,8 +640,6 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	/* convert the 3d coords into 2d for projection */
 	axis_dominant_v3_to_m3(axis_mat, source->no);
 
-	BM_elem_attrs_copy(bm, bm, source, target->f);
-
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
