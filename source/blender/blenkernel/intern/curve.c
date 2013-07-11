@@ -364,38 +364,79 @@ void BKE_curve_type_test(Object *ob)
 		BKE_curve_curve_dimension_update((Curve *)ob->data);
 }
 
+void BKE_curve_boundbox_calc(Curve *cu, float r_loc[3], float r_size[3])
+{
+	BoundBox *bb;
+	float min[3], max[3];
+	float mloc[3], msize[3];
+
+	if (cu->bb == NULL) cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+	bb = cu->bb;
+
+	if (!r_loc) r_loc = mloc;
+	if (!r_size) r_size = msize;
+
+	INIT_MINMAX(min, max);
+	/* TODO(sergey): makecode aware of radius and bevel somehow.. */
+	if (!BKE_curve_minmax(cu, true, min, max)) {
+		min[0] = min[1] = min[2] = -1.0f;
+		max[0] = max[1] = max[2] = 1.0f;
+	}
+
+	mid_v3_v3v3(r_loc, min, max);
+
+	r_size[0] = (max[0] - min[0]) / 2.0f;
+	r_size[1] = (max[1] - min[1]) / 2.0f;
+	r_size[2] = (max[2] - min[2]) / 2.0f;
+
+	BKE_boundbox_init_from_minmax(bb, min, max);
+
+	bb->flag &= ~BOUNDBOX_INVALID;
+}
+
+BoundBox *BKE_curve_boundbox_get(Object *ob)
+{
+	Curve *cu = ob->data;
+
+	if (ob->bb)
+		return ob->bb;
+
+	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_INVALID)) {
+		BKE_curve_texspace_calc(cu);
+	}
+
+	return cu->bb;
+}
+
 void BKE_curve_texspace_calc(Curve *cu)
 {
-	BoundBox *bb = cu->bb;
-	float min[3], max[3];
+	float loc[3], size[3];
+	int a;
 
-	/* Curve's undeformed bounding box is calculated in displist.c,
-	 * as a part of display list calculation.
-	 */
-	copy_v3_v3(min, bb->vec[0]);
-	copy_v3_v3(max, bb->vec[6]);
+	BKE_curve_boundbox_calc(cu, loc, size);
 
 	if (cu->texflag & CU_AUTOSPACE) {
-		mid_v3_v3v3(cu->loc, min, max);
-		cu->size[0] = (max[0] - min[0]) / 2.0f;
-		cu->size[1] = (max[1] - min[1]) / 2.0f;
-		cu->size[2] = (max[2] - min[2]) / 2.0f;
+		for (a = 0; a < 3; a++) {
+			if (size[a] == 0.0f) size[a] = 1.0f;
+			else if (size[a] > 0.0f && size[a] < 0.00001f) size[a] = 0.00001f;
+			else if (size[a] < 0.0f && size[a] > -0.00001f) size[a] = -0.00001f;
+		}
 
+		copy_v3_v3(cu->loc, loc);
+		copy_v3_v3(cu->size, size);
 		zero_v3(cu->rot);
-
-		if (cu->size[0] == 0.0f) cu->size[0] = 1.0f;
-		else if (cu->size[0] > 0.0f && cu->size[0] < 0.00001f) cu->size[0] = 0.00001f;
-		else if (cu->size[0] < 0.0f && cu->size[0] > -0.00001f) cu->size[0] = -0.00001f;
-
-		if (cu->size[1] == 0.0f) cu->size[1] = 1.0f;
-		else if (cu->size[1] > 0.0f && cu->size[1] < 0.00001f) cu->size[1] = 0.00001f;
-		else if (cu->size[1] < 0.0f && cu->size[1] > -0.00001f) cu->size[1] = -0.00001f;
-
-		if (cu->size[2] == 0.0f) cu->size[2] = 1.0f;
-		else if (cu->size[2] > 0.0f && cu->size[2] < 0.00001f) cu->size[2] = 0.00001f;
-		else if (cu->size[2] < 0.0f && cu->size[2] > -0.00001f) cu->size[2] = -0.00001f;
-
 	}
+}
+
+void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
+{
+	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_INVALID)) {
+		BKE_curve_texspace_calc(cu);
+	}
+
+	if (r_loc) copy_v3_v3(r_loc,  cu->loc);
+	if (r_rot) copy_v3_v3(r_rot,  cu->rot);
+	if (r_size) copy_v3_v3(r_size, cu->size);
 }
 
 int BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
@@ -584,18 +625,34 @@ void BKE_nurb_test2D(Nurb *nu)
 	}
 }
 
-void BKE_nurb_minmax(Nurb *nu, float min[3], float max[3])
+/* if use_radius is truth, minmax will take points' radius into account,
+ * which will make boundbox closer to bevelled curve.
+ */
+void BKE_nurb_minmax(Nurb *nu, bool use_radius, float min[3], float max[3])
 {
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
+	float point[3];
 
 	if (nu->type == CU_BEZIER) {
 		a = nu->pntsu;
 		bezt = nu->bezt;
 		while (a--) {
+			if (use_radius) {
+				float radius_vector[3];
+				radius_vector[0] = radius_vector[1] = radius_vector[2] = bezt->radius;
+
+				add_v3_v3v3(point, bezt->vec[1], radius_vector);
+				minmax_v3v3_v3(min, max, point);
+
+				sub_v3_v3v3(point, bezt->vec[1], radius_vector);
+				minmax_v3v3_v3(min, max, point);
+			}
+			else {
+				minmax_v3v3_v3(min, max, bezt->vec[1]);
+			}
 			minmax_v3v3_v3(min, max, bezt->vec[0]);
-			minmax_v3v3_v3(min, max, bezt->vec[1]);
 			minmax_v3v3_v3(min, max, bezt->vec[2]);
 			bezt++;
 		}
@@ -604,7 +661,20 @@ void BKE_nurb_minmax(Nurb *nu, float min[3], float max[3])
 		a = nu->pntsu * nu->pntsv;
 		bp = nu->bp;
 		while (a--) {
-			minmax_v3v3_v3(min, max, bp->vec);
+			if (nu->pntsv == 1 && use_radius) {
+				float radius_vector[3];
+				radius_vector[0] = radius_vector[1] = radius_vector[2] = bp->radius;
+
+				add_v3_v3v3(point, bp->vec, radius_vector);
+				minmax_v3v3_v3(min, max, point);
+
+				sub_v3_v3v3(point, bp->vec, radius_vector);
+				minmax_v3v3_v3(min, max, point);
+			}
+			else {
+				/* Surfaces doesn't use bevel, so no need to take radius into account. */
+				minmax_v3v3_v3(min, max, bp->vec);
+			}
 			bp++;
 		}
 	}
@@ -3513,13 +3583,13 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
 
 
 /* basic vertex data functions */
-bool BKE_curve_minmax(Curve *cu, float min[3], float max[3])
+bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 {
 	ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
 	Nurb *nu;
 
 	for (nu = nurb_lb->first; nu; nu = nu->next)
-		BKE_nurb_minmax(nu, min, max);
+		BKE_nurb_minmax(nu, use_radius, min, max);
 
 	return (nurb_lb->first != NULL);
 }
@@ -3566,7 +3636,7 @@ bool BKE_curve_center_bounds(Curve *cu, float cent[3])
 {
 	float min[3], max[3];
 	INIT_MINMAX(min, max);
-	if (BKE_curve_minmax(cu, min, max)) {
+	if (BKE_curve_minmax(cu, false, min, max)) {
 		mid_v3_v3v3(cent, min, max);
 		return true;
 	}

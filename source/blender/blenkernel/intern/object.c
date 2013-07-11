@@ -265,6 +265,13 @@ void BKE_object_free_derived_caches(Object *ob)
 			me->bb->flag |= BOUNDBOX_INVALID;
 		}
 	}
+	else if (ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
+		Curve *cu = ob->data;
+
+		if (cu->bb) {
+			cu->bb->flag |= BOUNDBOX_INVALID;
+		}
+	}
 
 	if (ob->bb) {
 		MEM_freeN(ob->bb);
@@ -2292,7 +2299,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 		bb = BKE_mesh_boundbox_get(ob);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		bb = ob->bb ? ob->bb : ((Curve *)ob->data)->bb;
+		bb = BKE_curve_boundbox_get(ob);
 	}
 	else if (ob->type == OB_MBALL) {
 		bb = ob->bb;
@@ -2361,9 +2368,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		case OB_FONT:
 		case OB_SURF:
 		{
-			/* Use the object bounding box so that modifier output
-			 * gets taken into account */
-			bb = *(ob->bb);
+			bb = *BKE_curve_boundbox_get(ob);
 
 			for (a = 0; a < 8; a++) {
 				mul_m4_v3(ob->obmat, bb.vec[a]);

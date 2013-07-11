@@ -1417,8 +1417,9 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 									space = size[0] / size[1];
 								}
 								else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
-									Curve *cu = ob->data;
-									space = cu->size[0] / cu->size[1];
+									float size[3];
+									BKE_curve_texspace_get(ob->data, NULL, NULL, size);
+									space = size[0] / size[1];
 								}
 							
 								x = ibuf->x / space;

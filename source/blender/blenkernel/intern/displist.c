@@ -1269,17 +1269,6 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 		}
 	}
 
-	/* Calculate curve's boundig box from non-modified display list. */
-	/* TODO(sergey): not thread-safe. */
-	if (cu->bb == NULL) {
-		cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-	}
-	boundbox_dispbase(cu->bb, dispbase);
-
-	if (!forRender) {
-		BKE_curve_texspace_calc(cu);
-	}
-
 	if (!forOrco) {
 		curve_calc_modifiers_post(scene, ob, &nubase, dispbase, derivedFinal,
 		                          forRender, renderResolution);
@@ -1579,18 +1568,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if ((cu->flag & CU_PATH) && !forOrco)
 			calc_curvepath(ob, &nubase);
 
-		/* Calculate curve's boundig box from non-modified display list. */
-		/* TODO(sergey): not thread-safe. */
-		if (cu->bb == NULL) {
-			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-		}
-
-		boundbox_dispbase(cu->bb, dispbase);
-
-		if (!forRender) {
-			BKE_curve_texspace_calc(cu);
-		}
-
 		if (!forOrco)
 			curve_calc_modifiers_post(scene, ob, &nubase, dispbase, derivedFinal, forRender, renderResolution);
 
@@ -1612,10 +1589,9 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT))
 		return;
 
-	if (ob->curve_cache) {
-		BKE_displist_free(&(ob->curve_cache->disp));
-	}
-	else {
+	BKE_object_free_derived_caches(ob);
+
+	if (!ob->curve_cache) {
 		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
 	}
 

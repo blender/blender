@@ -70,9 +70,13 @@ void BKE_curve_make_local(struct Curve *cu);
 short BKE_curve_type_get(struct Curve *cu);
 void BKE_curve_type_test(struct Object *ob);
 void BKE_curve_curve_dimension_update(struct Curve *cu);
-void BKE_curve_texspace_calc(struct Curve *cu);
 
-bool BKE_curve_minmax(struct Curve *cu, float min[3], float max[3]);
+void BKE_curve_boundbox_calc(struct Curve *cu, float r_loc[3], float r_size[3]);
+struct BoundBox *BKE_curve_boundbox_get(struct Object *ob);
+void BKE_curve_texspace_calc(struct Curve *cu);
+void BKE_curve_texspace_get(struct Curve *cu, float r_loc[3], float r_rot[3], float r_size[3]);
+
+bool BKE_curve_minmax(struct Curve *cu, bool use_radius, float min[3], float max[3]);
 bool BKE_curve_center_median(struct Curve *cu, float cent[3]);
 bool BKE_curve_center_bounds(struct Curve *cu, float cent[3]);
 void BKE_curve_translate(struct Curve *cu, float offset[3], int do_keys);
@@ -115,7 +119,7 @@ void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(struct Nurb *nu);
 
 void BKE_nurb_test2D(struct Nurb *nu);
-void BKE_nurb_minmax(struct Nurb *nu, float min[3], float max[3]);
+void BKE_nurb_minmax(struct Nurb *nu, bool use_radius, float min[3], float max[3]);
 
 void BKE_nurb_makeFaces(struct Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv);
 void BKE_nurb_makeCurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride);

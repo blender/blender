@@ -6222,7 +6222,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		bb = BKE_mesh_boundbox_get(ob);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		bb = ob->bb ? ob->bb : ( (Curve *)ob->data)->bb;
+		bb = BKE_curve_boundbox_get(ob);
 	}
 	else if (ob->type == OB_MBALL) {
 		if (BKE_mball_is_basis(ob)) {
@@ -6257,9 +6257,7 @@ static void drawtexspace(Object *ob)
 		BKE_mesh_texspace_get(ob->data, loc, NULL, size);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		Curve *cu = ob->data;
-		copy_v3_v3(size, cu->size);
-		copy_v3_v3(loc, cu->loc);
+		BKE_curve_texspace_get(ob->data, loc, NULL, size);
 	}
 	else if (ob->type == OB_MBALL) {
 		MetaBall *mb = ob->data;
