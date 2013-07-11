@@ -27,6 +27,8 @@
  *  \ingroup bmesh
  */
 
+struct BMAllocTemplate;
+
 BMFace *BM_face_create_quad_tri_v(BMesh *bm,
                                   BMVert **verts, int len,
                                   const BMFace *example, const bool no_double);
@@ -50,6 +52,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type);
 
 void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target);
 
+void   BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
 
 char  BM_face_flag_from_mflag(const char  mflag);
