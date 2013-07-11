@@ -216,6 +216,11 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge*>& newVi
 		// update new View Vertex:
 		vva->AddOutgoingViewEdge(newVEdge);
 		vva->AddIncomingViewEdge(ioEdge);
+
+		NonTVertex *vvb = dynamic_cast<NonTVertex*>(newVEdge->B());
+		if (vvb)
+			vvb->Replace(ioEdge, newVEdge);
+
 		// update ViewShape
 		//vshape->AddEdge(newVEdge);
 		// update SShape
