@@ -5148,6 +5148,11 @@ static void def_cmp_zcombine(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Take Alpha channel into account when doing the Z operation");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_antialias_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", 0);
+	RNA_def_property_ui_text(prop, "Anti-Alias Z", "Anti-alias the z-buffer to try to avoid artifacts, mostly useful for Blender renders");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_ycc(StructRNA *srna)
