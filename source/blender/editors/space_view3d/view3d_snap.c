@@ -74,8 +74,6 @@
 
 #include "view3d_intern.h"
 
-extern float originmat[3][3];   /* XXX object.c */
-
 /* ************************************************** */
 /* ********************* old transform stuff ******** */
 /* *********** will get replaced with new transform * */
@@ -628,7 +626,8 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				vec[2] = -ob->obmat[3][2] + gridf * floorf(0.5f + ob->obmat[3][2] / gridf);
 				
 				if (ob->parent) {
-					BKE_object_where_is_calc(scene, ob);
+					float originmat[3][3];
+					BKE_object_where_is_calc_ex(scene, NULL, ob, originmat);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
@@ -751,7 +750,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				vec[2] = -ob->obmat[3][2] + curs[2];
 				
 				if (ob->parent) {
-					BKE_object_where_is_calc(scene, ob);
+					float originmat[3][3];
+					BKE_object_where_is_calc_ex(scene, NULL, ob, originmat);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
