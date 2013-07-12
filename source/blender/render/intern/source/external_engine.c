@@ -158,9 +158,6 @@ void RE_engine_free(RenderEngine *engine)
 		BLI_end_threaded_malloc();
 	}
 
-	if (engine->text)
-		MEM_freeN(engine->text);
-
 	MEM_freeN(engine);
 }
 
@@ -307,17 +304,14 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	}
 
 	/* set engine text */
-	if (engine->text) {
-		MEM_freeN(engine->text);
-		engine->text = NULL;
-	}
+	engine->text[0] = '\0';
 
 	if (stats && stats[0] && info && info[0])
-		engine->text = BLI_sprintfN("%s | %s", stats, info);
+		BLI_snprintf(engine->text, sizeof(engine->text), "%s | %s", stats, info);
 	else if (info && info[0])
-		engine->text = BLI_strdup(info);
+		BLI_strncpy(engine->text, info, sizeof(engine->text));
 	else if (stats && stats[0])
-		engine->text = BLI_strdup(stats);
+		BLI_strncpy(engine->text, info, sizeof(engine->text));
 }
 
 void RE_engine_update_progress(RenderEngine *engine, float progress)

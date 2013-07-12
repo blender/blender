@@ -650,7 +650,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 			rj->lay = v3d->lay;
 			rj->v3d_override = true;
 		}
-		else if (camera_override != scene->camera)
+		else if (camera_override && camera_override != scene->camera)
 			rj->v3d_override = true;
 
 		if (v3d->localvd)
@@ -1060,9 +1060,8 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp->bmain = CTX_data_main(C);
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
 	
-	/* dont alloc in threads */
-	if (engine->text == NULL)
-		engine->text = MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
+	/* clear info text */
+	engine->text[0] = '\0';
 	
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, rp, render_view3d_free);
