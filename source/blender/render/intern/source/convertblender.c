@@ -6081,4 +6081,6 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		if (re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 			if (re->r.mode & R_SHADOW)
 				make_occ_tree(re);
+
+	re->i.convertdone = true;
 }
