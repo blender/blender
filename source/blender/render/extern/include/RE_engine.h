@@ -57,6 +57,7 @@ struct Scene;
 #define RE_USE_POSTPROCESS		8
 #define RE_USE_SHADING_NODES	16
 #define RE_USE_EXCLUDE_LAYERS	32
+#define RE_USE_SAVE_BUFFERS		64
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION		1

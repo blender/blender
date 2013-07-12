@@ -62,6 +62,7 @@
 #include "mesh_intern.h"  /* own include */
 
 #define SUBD_SMOOTH_MAX 4.0f
+#define SUBD_CUTS_MAX 500
 
 /* ringsel operator */
 
@@ -578,6 +579,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				break;
 			if (event->alt == 0) {
 				cuts++;
+				cuts = CLAMPIS(cuts, 0, SUBD_CUTS_MAX);
 				RNA_int_set(op->ptr, "number_cuts", cuts);
 				ringsel_find_edge(lcd, cuts);
 				show_cuts = true;
@@ -631,7 +633,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 			/* allow zero so you can backspace and type in a value
 			 * otherwise 1 as minimum would make more sense */
-			cuts = CLAMPIS(value, 0, 130);
+			cuts = CLAMPIS(value, 0, SUBD_CUTS_MAX);
 			
 			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);

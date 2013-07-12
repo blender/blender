@@ -588,6 +588,60 @@ void ED_armature_to_edit(Object *ob)
 /* *************************************************************** */
 /* Undo for Armature EditMode*/
 
+/* free's bones and their properties */
+
+static void ED_armature_ebone_listbase_free(ListBase *lb)
+{
+	EditBone *ebone, *ebone_next;
+
+	for (ebone = lb->first; ebone; ebone = ebone_next) {
+		ebone_next = ebone->next;
+
+		if (ebone->prop) {
+			IDP_FreeProperty(ebone->prop);
+			MEM_freeN(ebone->prop);
+		}
+
+		MEM_freeN(ebone);
+	}
+
+	lb->first = NULL;
+	lb->last = NULL;
+}
+
+static void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
+{
+	EditBone *ebone_src;
+	EditBone *ebone_dst;
+
+	BLI_assert(lb_dst->first == NULL);
+
+	for (ebone_src = lb_src->first; ebone_src; ebone_src = ebone_src->next) {
+		ebone_dst = MEM_dupallocN(ebone_src);
+		if (ebone_dst->prop) {
+			ebone_dst->prop = IDP_CopyProperty(ebone_dst->prop);
+		}
+		ebone_src->temp = ebone_dst;
+		BLI_addtail(lb_dst, ebone_dst);
+	}
+
+	/* set pointers */
+	for (ebone_dst = lb_dst->first; ebone_dst; ebone_dst = ebone_dst->next) {
+		if (ebone_dst->parent) {
+			ebone_dst->parent = ebone_dst->parent->temp;
+		}
+	}
+}
+
+static void ED_armature_ebone_listbase_temp_clear(ListBase *lb)
+{
+	EditBone *ebone;
+	/* be sure they don't hang ever */
+	for (ebone = lb->first; ebone; ebone = ebone->next) {
+		ebone->temp = NULL;
+	}
+}
+
 typedef struct UndoArmature {
 	EditBone *act_edbone;
 	ListBase lb;
@@ -597,60 +651,40 @@ static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
 {
 	UndoArmature *uarm = uarmv;
 	bArmature *arm = armv;
-	EditBone *ebo, *newebo;
+	EditBone *ebone;
 	
-	BLI_freelistN(arm->edbo);
-	
-	/* copy  */
-	for (ebo = uarm->lb.first; ebo; ebo = ebo->next) {
-		newebo = MEM_dupallocN(ebo);
-		ebo->temp = newebo;
-		BLI_addtail(arm->edbo, newebo);
-	}
+	ED_armature_ebone_listbase_free(arm->edbo);
+	ED_armature_ebone_listbase_copy(arm->edbo, &uarm->lb);
 	
 	/* active bone */
 	if (uarm->act_edbone) {
-		ebo = uarm->act_edbone;
-		arm->act_edbone = ebo->temp;
+		ebone = uarm->act_edbone;
+		arm->act_edbone = ebone->temp;
 	}
-	else
+	else {
 		arm->act_edbone = NULL;
+	}
 
-	/* set pointers */
-	for (newebo = arm->edbo->first; newebo; newebo = newebo->next) {
-		if (newebo->parent) newebo->parent = newebo->parent->temp;
-	}
-	/* be sure they don't hang ever */
-	for (newebo = arm->edbo->first; newebo; newebo = newebo->next) {
-		newebo->temp = NULL;
-	}
+	ED_armature_ebone_listbase_temp_clear(arm->edbo);
 }
 
 static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
 {
 	bArmature *arm = armv;
 	UndoArmature *uarm;
-	EditBone *ebo, *newebo;
+	EditBone *ebone;
 	
 	uarm = MEM_callocN(sizeof(UndoArmature), "listbase undo");
 	
-	/* copy */
-	for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
-		newebo = MEM_dupallocN(ebo);
-		ebo->temp = newebo;
-		BLI_addtail(&uarm->lb, newebo);
-	}
+	ED_armature_ebone_listbase_copy(&uarm->lb, arm->edbo);
 	
 	/* active bone */
 	if (arm->act_edbone) {
-		ebo = arm->act_edbone;
-		uarm->act_edbone = ebo->temp;
+		ebone = arm->act_edbone;
+		uarm->act_edbone = ebone->temp;
 	}
 
-	/* set pointers */
-	for (newebo = uarm->lb.first; newebo; newebo = newebo->next) {
-		if (newebo->parent) newebo->parent = newebo->parent->temp;
-	}
+	ED_armature_ebone_listbase_temp_clear(&uarm->lb);
 	
 	return uarm;
 }
@@ -659,7 +693,8 @@ static void free_undoBones(void *uarmv)
 {
 	UndoArmature *uarm = uarmv;
 	
-	BLI_freelistN(&uarm->lb);
+	ED_armature_ebone_listbase_free(&uarm->lb);
+
 	MEM_freeN(uarm);
 }
 

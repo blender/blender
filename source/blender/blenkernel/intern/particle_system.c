@@ -1823,35 +1823,75 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 		unit_qt(state->rot);
 
 		if (part->rotmode) {
+			bool use_global_space;
+
 			/* create vector into which rotation is aligned */
 			switch (part->rotmode) {
 				case PART_ROT_NOR:
 					copy_v3_v3(rot_vec, nor);
+					use_global_space = false;
 					break;
 				case PART_ROT_VEL:
 					copy_v3_v3(rot_vec, vel);
+					use_global_space = true;
 					break;
 				case PART_ROT_GLOB_X:
 				case PART_ROT_GLOB_Y:
 				case PART_ROT_GLOB_Z:
 					rot_vec[part->rotmode - PART_ROT_GLOB_X] = 1.0f;
+					use_global_space = true;
 					break;
 				case PART_ROT_OB_X:
 				case PART_ROT_OB_Y:
 				case PART_ROT_OB_Z:
 					copy_v3_v3(rot_vec, ob->obmat[part->rotmode - PART_ROT_OB_X]);
+					use_global_space = false;
+					break;
+				default:
+					use_global_space = true;
 					break;
 			}
 			
 			/* create rotation quat */
 			negate_v3(rot_vec);
-			vec_to_quat( q2,rot_vec, OB_POSX, OB_POSZ);
 
-			/* randomize rotation quat */
-			if (part->randrotfac!=0.0f)
-				interp_qt_qtqt(rot, q2, r_rot, part->randrotfac);
-			else
-				copy_qt_qt(rot,q2);
+			if (use_global_space) {
+				/* calculate rotation in global-space */
+				vec_to_quat(q2, rot_vec, OB_POSX, OB_POSZ);
+
+				/* randomize rotation quat */
+				if (part->randrotfac != 0.0f) {
+					interp_qt_qtqt(rot, q2, r_rot, part->randrotfac);
+				}
+				else {
+					copy_qt_qt(rot, q2);
+				}
+			}
+			else {
+				/* calculate rotation in local-space */
+				float q_obmat[4];
+				float q_imat[4];
+				float tvec[3];
+
+				mat4_to_quat(q_obmat, ob->obmat);
+				invert_qt_qt(q_imat, q_obmat);
+
+				copy_v3_v3(tvec, rot_vec);
+				mul_qt_v3(q_imat, tvec);
+				normalize_v3(tvec);
+				vec_to_quat(q2, tvec, OB_POSX, OB_POSZ);
+
+				/* randomize rotation quat */
+				if (part->randrotfac != 0.0f) {
+					mul_qt_qtqt(r_rot, r_rot, q_imat);
+					interp_qt_qtqt(rot, q2, r_rot, part->randrotfac);
+				}
+				else {
+					copy_qt_qt(rot, q2);
+				}
+
+				mul_qt_qtqt(rot, q_obmat, rot);
+			}
 
 			/* rotation phase */
 			phasefac = part->phasefac;
