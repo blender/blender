@@ -121,9 +121,6 @@
 
 #include "GPU_material.h"
 
-/* Local function protos */
-float originmat[3][3];  /* after BKE_object_where_is_calc(), can be used in other functions (bad!) */
-
 void BKE_object_workob_clear(Object *workob)
 {
 	memset(workob, 0, sizeof(Object));
@@ -2021,7 +2018,11 @@ static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 	}
 }
 
-static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4][4], float slowmat[4][4], int simul)
+/**
+ * \param r_originmat  Optional matrix that stores the space the object is in (without its own matrix applied)
+ */
+static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4][4], float slowmat[4][4],
+                            float r_originmat[3][3], const bool simul)
 {
 	float totmat[4][4];
 	float tmat[4][4];
@@ -2086,8 +2087,10 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4
 
 	}
 	else {
-		/* external usable originmat */
-		copy_m3_m4(originmat, tmat);
+		if (r_originmat) {
+			/* usable originmat */
+			copy_m3_m4(r_originmat, tmat);
+		}
 		
 		/* origin, for help line */
 		if ((ob->partype & PARTYPE) == PARSKEL) {
@@ -2121,7 +2124,7 @@ static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[
 
 /* note, scene is the active scene while actual_scene is the scene the object resides in */
 void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
-                                      RigidBodyWorld *rbw)
+                                      RigidBodyWorld *rbw, float r_originmat[3][3])
 {
 	if (ob == NULL) return;
 	
@@ -2133,7 +2136,7 @@ void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
 		float slowmat[4][4] = MAT4_UNITY;
 		
 		/* calculate parent matrix */
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, r_originmat, false);
 		
 		/* "slow parent" is definitely not threadsafe, and may also give bad results jumping around 
 		 * An old-fashioned hack which probably doesn't really cut it anymore
@@ -2168,7 +2171,7 @@ void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
 
 void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 {
-	BKE_object_where_is_calc_time_ex(scene, ob, ctime, NULL);
+	BKE_object_where_is_calc_time_ex(scene, ob, ctime, NULL, NULL);
 }
 
 /* get object transformation matrix without recalculating dependencies and
@@ -2182,7 +2185,7 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 	if (ob->parent) {
 		Object *par = ob->parent;
 		
-		solve_parenting(scene, ob, par, obmat, slowmat, 1);
+		solve_parenting(scene, ob, par, obmat, slowmat, NULL, true);
 		
 		if (ob->partype & PARSLOW)
 			where_is_object_parslow(ob, obmat, slowmat);
@@ -2192,13 +2195,13 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 	}
 }
 
-void BKE_object_where_is_calc_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob)
+void BKE_object_where_is_calc_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob, float r_originmat[3][3])
 {
-	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), rbw);
+	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), rbw, r_originmat);
 }
 void BKE_object_where_is_calc(Scene *scene, Object *ob)
 {
-	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), NULL);
+	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), NULL, NULL);
 }
 
 /* was written for the old game engine (until 2.04) */
@@ -2216,7 +2219,7 @@ void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
 	if (ob->parent) {
 		par = ob->parent;
 		
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, 1);
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, NULL, true);
 		
 		if (ob->partype & PARSLOW) {
 			fac1 = (float)(1.0 / (1.0 + fabs(ob->sf)));
@@ -2678,7 +2681,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 					copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
-				BKE_object_where_is_calc_ex(scene, rbw, ob);
+				BKE_object_where_is_calc_ex(scene, rbw, ob, NULL);
 		}
 		
 		if (ob->recalc & OB_RECALC_DATA) {
