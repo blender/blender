@@ -324,21 +324,26 @@ float dist_to_plane_v3(const float p[3], const float plane_co[3], const float pl
 	return line_point_factor_v3(p, plane_co, plane_co_other);
 }
 
-/* distance v1 to line-piece v2-v3 in 3D */
-float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float v3[3])
+/* distance v1 to line-piece l1-l2 in 3D */
+float dist_squared_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3])
 {
 	float closest[3];
 
-	closest_to_line_segment_v3(closest, v1, v2, v3);
+	closest_to_line_segment_v3(closest, p, l1, l2);
 
-	return len_v3v3(closest, v1);
+	return len_squared_v3v3(closest, p);
 }
 
-float dist_to_line_v3(const float v1[3], const float v2[3], const float v3[3])
+float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3])
+{
+	return sqrtf(dist_squared_to_line_segment_v3(p, l1, l2));
+}
+
+float dist_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
 {
 	float closest[3];
 
-	closest_to_line_v3(closest, v1, v2, v3);
+	closest_to_line_v3(closest, v1, l1, l2);
 
 	return len_v3v3(closest, v1);
 }
@@ -2598,57 +2603,62 @@ static float mean_value_half_tan_v2(const float v1[2], const float v2[2], const 
 
 void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[3])
 {
-	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	const float eps = 0.00001f;  /* take care, low values cause [#36105] */
-	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
-	int i, i_next, i_curr;
+	const float eps_sq = eps * eps;
+	float *v_curr, *v_next;
+	float ht_prev, ht;  /* half tangents */
+	float totweight = 0.0f;
+	int i = 0;
 	bool vert_interp = false;
 	bool edge_interp = false;
 
-	totweight = 0.0f;
+	v_curr = v[0];
+	v_next = v[1];
 
-	for (i = 0; i < n; i++) {
-		i_curr = i;
-		i_next = (i == n - 1) ? 0 : i + 1;
+	ht_prev = mean_value_half_tan_v3(co, v[n - 1], v_curr);
 
-		vmid = v[i];
-		vprev = (i == 0) ? v[n - 1] : v[i - 1];
-		vnext = v[i_next];
-
-		len = len_v3v3(co, vmid);
+	while (i < n) {
+		const float len_sq = len_squared_v3v3(co, v_curr);
 
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
 		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
-		if (len < eps) {
+		if (len_sq < eps_sq) {
 			vert_interp = true;
 			break;
 		}
-		else if (dist_to_line_segment_v3(co, vmid, vnext) < eps) {
+		else if (dist_squared_to_line_segment_v3(co, v_curr, v_next) < eps_sq) {
 			edge_interp = true;
 			break;
 		}
 
-		t1 = mean_value_half_tan_v3(co, vprev, vmid);
-		t2 = mean_value_half_tan_v3(co, vmid, vnext);
-
-		w[i] = (t1 + t2) / len;
+		ht = mean_value_half_tan_v3(co, v_curr, v_next);
+		w[i] = (ht_prev + ht) / sqrtf(len_sq);
 		totweight += w[i];
+
+		/* step */
+		i++;
+		v_curr = v_next;
+		v_next = v[(i + 1) % n];
+
+		ht_prev = ht;
 	}
 
 	if (vert_interp) {
+		const int i_curr = i;
 		for (i = 0; i < n; i++)
 			w[i] = 0.0;
 		w[i_curr] = 1.0f;
 	}
 	else if (edge_interp) {
-		float len_curr = len_v3v3(co, vmid);
-		float len_next = len_v3v3(co, vnext);
+		const int i_curr = i;
+		float len_curr = len_v3v3(co, v_curr);
+		float len_next = len_v3v3(co, v_next);
 		float edge_len = len_curr + len_next;
 		for (i = 0; i < n; i++)
 			w[i] = 0.0;
 
 		w[i_curr] = len_next / edge_len;
-		w[i_next] = len_curr / edge_len;
+		w[(i_curr + 1) % n] = len_curr / edge_len;
 	}
 	else {
 		if (totweight != 0.0f) {
@@ -2662,57 +2672,62 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 
 void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[2])
 {
-	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	const float eps = 0.00001f;  /* take care, low values cause [#36105] */
-	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
-	int i, i_next, i_curr;
+	const float eps_sq = eps * eps;
+	float *v_curr, *v_next;
+	float ht_prev, ht;  /* half tangents */
+	float totweight = 0.0f;
+	int i = 0;
 	bool vert_interp = false;
 	bool edge_interp = false;
 
-	totweight = 0.0f;
+	v_curr = v[0];
+	v_next = v[1];
 
-	for (i = 0; i < n; i++) {
-		i_curr = i;
-		i_next = (i == n - 1) ? 0 : i + 1;
+	ht_prev = mean_value_half_tan_v2(co, v[n - 1], v_curr);
 
-		vmid = v[i];
-		vprev = (i == 0) ? v[n - 1] : v[i - 1];
-		vnext = v[i_next];
-
-		len = len_v2v2(co, vmid);
+	while (i < n) {
+		const float len_sq = len_squared_v2v2(co, v_curr);
 
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
 		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
-		if (len < eps) {
+		if (len_sq < eps_sq) {
 			vert_interp = true;
 			break;
 		}
-		else if (dist_to_line_segment_v2(co, vmid, vnext) < eps) {
+		else if (dist_squared_to_line_segment_v2(co, v_curr, v_next) < eps_sq) {
 			edge_interp = true;
 			break;
 		}
 
-		t1 = mean_value_half_tan_v2(co, vprev, vmid);
-		t2 = mean_value_half_tan_v2(co, vmid, vnext);
-
-		w[i] = (t1 + t2) / len;
+		ht = mean_value_half_tan_v2(co, v_curr, v_next);
+		w[i] = (ht_prev + ht) / sqrtf(len_sq);
 		totweight += w[i];
+
+		/* step */
+		i++;
+		v_curr = v_next;
+		v_next = v[(i + 1) % n];
+
+		ht_prev = ht;
 	}
 
 	if (vert_interp) {
+		const int i_curr = i;
 		for (i = 0; i < n; i++)
 			w[i] = 0.0;
 		w[i_curr] = 1.0f;
 	}
 	else if (edge_interp) {
-		float len_curr = len_v2v2(co, vmid);
-		float len_next = len_v2v2(co, vnext);
+		const int i_curr = i;
+		float len_curr = len_v2v2(co, v_curr);
+		float len_next = len_v2v2(co, v_next);
 		float edge_len = len_curr + len_next;
 		for (i = 0; i < n; i++)
 			w[i] = 0.0;
 
 		w[i_curr] = len_next / edge_len;
-		w[i_next] = len_curr / edge_len;
+		w[(i_curr + 1) % n] = len_curr / edge_len;
 	}
 	else {
 		if (totweight != 0.0f) {

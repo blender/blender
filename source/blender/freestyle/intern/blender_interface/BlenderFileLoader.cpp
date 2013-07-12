@@ -308,6 +308,9 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 // zero otherwise.
 int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3[3])
 {
+	const float eps = 1.0e-6;
+	const float eps_sq = eps * eps;
+
 #if 0
 	float area = area_tri_v3(v1, v2, v3);
 	bool verbose = (area < 1.0e-6);
@@ -321,9 +324,9 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
 #endif
 		return 1;
 	}
-	if (dist_to_line_segment_v3(v1, v2, v3) < 1.0e-6 ||
-	    dist_to_line_segment_v3(v2, v1, v3) < 1.0e-6 ||
-	    dist_to_line_segment_v3(v3, v1, v2) < 1.0e-6)
+	if (dist_squared_to_line_segment_v3(v1, v2, v3) < eps_sq ||
+	    dist_squared_to_line_segment_v3(v2, v1, v3) < eps_sq ||
+	    dist_squared_to_line_segment_v3(v3, v1, v2) < eps_sq)
 	{
 #if 0
 		if (verbose && G.debug & G_DEBUG_FREESTYLE) {
