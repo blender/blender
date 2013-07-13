@@ -790,6 +790,7 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[2]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
 		case 1:
 			if (dot_v3v3(mat[1], mat[0]) < 1) {
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
@@ -812,6 +813,7 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			}
+			break;
 		case 2:
 			if (dot_v3v3(mat[2], mat[0]) < 1) {
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
@@ -834,6 +836,8 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+		default:
+			BLI_assert(0);
 	}
 	mul_v3_fl(mat[0], size[0]);
 	mul_v3_fl(mat[1], size[1]);
@@ -868,8 +872,8 @@ void orthogonalize_m4(float mat[4][4], int axis)
 				normalize_v3(mat[2]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
 		case 1:
-			normalize_v3(mat[0]);
 			if (dot_v3v3(mat[1], mat[0]) < 1) {
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 				normalize_v3(mat[2]);
@@ -891,6 +895,7 @@ void orthogonalize_m4(float mat[4][4], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			}
+			break;
 		case 2:
 			if (dot_v3v3(mat[2], mat[0]) < 1) {
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
@@ -913,6 +918,9 @@ void orthogonalize_m4(float mat[4][4], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
+		default:
+			BLI_assert(0);
 	}
 	mul_v3_fl(mat[0], size[0]);
 	mul_v3_fl(mat[1], size[1]);
