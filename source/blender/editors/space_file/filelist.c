@@ -847,7 +847,7 @@ static void filelist_setfiletypes(struct FileList *filelist)
 		}
 		file->flags = file_extension_type(file->relname);
 		
-		if (filelist->filter_glob &&
+		if (filelist->filter_glob[0] &&
 		    BLI_testextensie_glob(file->relname, filelist->filter_glob))
 		{
 			file->flags = OPERATORFILE;

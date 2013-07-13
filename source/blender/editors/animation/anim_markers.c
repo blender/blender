@@ -401,7 +401,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glDisable(GL_BLEND);
 	
 	/* and the marker name too, shifted slightly to the top-right */
-	if (marker->name && marker->name[0]) {
+	if (marker->name[0]) {
 		float x, y;
 
 		/* minimal y coordinate which wouldn't be occluded by scroll */
