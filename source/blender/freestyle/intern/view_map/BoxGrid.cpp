@@ -129,6 +129,10 @@ void BoxGrid::assignCells (OccluderSource& source, GridDensityProvider& density,
 	_cellsY = density.cellsY();
 	_cellOrigin[0] = density.cellOrigin(0);
 	_cellOrigin[1] = density.cellOrigin(1);
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Using " << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
+		cout << "Cell origin: " << _cellOrigin[0] << ", " << _cellOrigin[1] << endl;
+	}
 
 	// Now allocate the cell table and fill it with default (empty) cells
 	_cells.resize(_cellsX * _cellsY);
