@@ -440,7 +440,7 @@ static void *moviecache_getprioritydata(void *key_v)
 	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *) key_v;
 	MovieClipCachePriorityData *priority_data;
 
-	priority_data = MEM_callocN(sizeof(priority_data), "movie cache clip priority data");
+	priority_data = MEM_callocN(sizeof(*priority_data), "movie cache clip priority data");
 	priority_data->framenr = key->framenr;
 
 	return priority_data;

@@ -242,7 +242,7 @@ static DerivedMesh *applyModifier(
 	unsigned int *new_edge_arr = NULL;
 	STACK_DECLARE(new_edge_arr);
 
-	unsigned int *old_vert_arr = MEM_callocN(sizeof(old_vert_arr) * (size_t)numVerts, "old_vert_arr in solidify");
+	unsigned int *old_vert_arr = MEM_callocN(sizeof(*old_vert_arr) * (size_t)numVerts, "old_vert_arr in solidify");
 
 	unsigned int *edge_users = NULL;
 	char *edge_order = NULL;
