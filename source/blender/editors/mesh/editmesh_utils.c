@@ -174,7 +174,6 @@ void EDBM_stats_update(BMEditMesh *em)
 DerivedMesh *EDBM_mesh_deform_dm_get(BMEditMesh *em)
 {
 	return ((em->derivedFinal != NULL) &&
-	        (em->derivedFinal) &&
 	        (em->derivedFinal->type == DM_TYPE_EDITBMESH) &&
 	        (em->derivedFinal->deformedOnly != false)) ? em->derivedFinal : NULL;
 }

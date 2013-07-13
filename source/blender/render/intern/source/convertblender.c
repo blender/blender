@@ -3478,9 +3478,14 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				ma= give_render_material(re, ob, a1+1);
 				
 				/* test for 100% transparent */
-				ok= 1;
-				if (ma->alpha==0.0f && ma->spectra==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP) && (ma->mode & (MA_RAYTRANSP | MA_RAYMIRROR))==0 ) {
-					ok= 0;
+				ok = 1;
+				if ((ma->alpha == 0.0f) &&
+				    (ma->spectra == 0.0f) &&
+				    (ma->filter == 0.0f) &&
+				    (ma->mode & MA_TRANSP) &&
+				    (ma->mode & (MA_RAYTRANSP | MA_RAYMIRROR)) == 0)
+				{
+					ok = 0;
 					/* texture on transparency? */
 					for (a=0; a<MAX_MTEX; a++) {
 						if (ma->mtex[a] && ma->mtex[a]->tex) {
