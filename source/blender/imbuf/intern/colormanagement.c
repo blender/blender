@@ -2448,11 +2448,7 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 		item.name = colorspace->name;
 		item.identifier = colorspace->name;
 		item.icon = 0;
-
-		if (colorspace->description)
-			item.description = colorspace->description;
-		else
-			item.description = "";
+		item.description = colorspace->description;
 
 		RNA_enum_item_add(items, totitem, &item);
 	}

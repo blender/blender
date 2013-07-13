@@ -95,15 +95,16 @@ void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], bool use_compat)
 void BKE_object_to_mat3(struct Object *ob, float mat[3][3]);
 void BKE_object_to_mat4(struct Object *ob, float mat[4][4]);
 void BKE_object_apply_mat4(struct Object *ob, float mat[4][4], const bool use_compat, const bool use_parent);
+void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4]);
 
 bool BKE_object_pose_context_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
 
 void BKE_object_where_is_calc(struct Scene *scene, struct Object *ob);
-void BKE_object_where_is_calc_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob);
+void BKE_object_where_is_calc_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob, float r_originmat[3][3]);
 void BKE_object_where_is_calc_time(struct Scene *scene, struct Object *ob, float ctime);
 void BKE_object_where_is_calc_time_ex(struct Scene *scene, struct Object *ob, float ctime,
-                                      struct RigidBodyWorld *rbw);
+                                      struct RigidBodyWorld *rbw, float r_originmat[3][3]);
 void BKE_object_where_is_calc_simul(struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 

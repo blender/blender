@@ -53,33 +53,34 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
 				pixels++;
 		
 				switch (this->m_setting) {
-					case 1:
+					case 1:  /* rgb combined */
 					{
 						float value = rgb_to_bw(&buffer[offset]);
 						sum += (value - mean) * (value - mean);
 						break;
 					}
-					case 2:
+					case 2:  /* red */
 					{
 						float value = buffer[offset];
 						sum += value;
 						sum += (value - mean) * (value - mean);
 						break;
 					}
-					case 3:
+					case 3:  /* green */
 					{
 						float value = buffer[offset + 1];
 						sum += value;
 						sum += (value - mean) * (value - mean);
 						break;
 					}
-					case 4:
+					case 4:  /* blue */
 					{
 						float value = buffer[offset + 2];
 						sum += value;
 						sum += (value - mean) * (value - mean);
+						break;
 					}
-					case 5:
+					case 5:  /* luminance */
 					{
 						float yuv[3];
 						rgb_to_yuv(buffer[offset], buffer[offset + 1], buffer[offset + 2], &yuv[0], &yuv[1], &yuv[2]);

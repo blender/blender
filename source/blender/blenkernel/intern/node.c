@@ -349,9 +349,6 @@ static void free_dynamic_typeinfo(bNodeType *ntype)
 		if (ntype->outputs) {
 			MEM_freeN(ntype->outputs);
 		}
-		if (ntype->ui_name) {
-			MEM_freeN((void *)ntype->ui_name);
-		}
 	}
 }
 

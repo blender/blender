@@ -532,6 +532,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 	int level;
 	short spp;
 	int ib_depth;
+	int found;
 
 	/* check whether or not we have a TIFF file */
 	if (size < IMB_TIFF_NCB) {
@@ -575,10 +576,11 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 		if (spp == 4) {
 			unsigned short extra, *extraSampleTypes;
 
-			TIFFGetField(image, TIFFTAG_EXTRASAMPLES, &extra, &extraSampleTypes);
+			found = TIFFGetField(image, TIFFTAG_EXTRASAMPLES, &extra, &extraSampleTypes);
 
-			if (extraSampleTypes[0] == EXTRASAMPLE_ASSOCALPHA)
+			if (found && (extraSampleTypes[0] == EXTRASAMPLE_ASSOCALPHA)) {
 				ibuf->flags |= IB_alphamode_premul;
+			}
 		}
 	}
 

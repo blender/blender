@@ -211,21 +211,23 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         subsub.enabled = not rd.use_border
         subsub.prop(rd, "use_save_buffers")
 
-        col = split.column()
+        col = split.column(align=True)
 
-        sub = col.column(align=True)
-        sub.label(text="Acceleration structure:")
-        sub.prop(cscene, "debug_bvh_type", text="")
-        sub.prop(cscene, "debug_use_spatial_splits")
-        sub.prop(cscene, "use_cache")
+        col.label(text="Viewport:")
+        col.prop(cscene, "debug_bvh_type", text="")
+        col.separator()
+        col.prop(cscene, "preview_start_resolution")
 
-        sub = col.column(align=True)
-        sub.label(text="Viewport:")
-        sub.prop(cscene, "preview_start_resolution")
+        col.separator()
 
-        sub = col.column(align=True)
-        sub.label(text="Final Render:")
-        sub.prop(rd, "use_persistent_data", text="Persistent Images")
+        col.label(text="Final Render:")
+        col.prop(cscene, "use_cache")
+        col.prop(rd, "use_persistent_data", text="Persistent Images")
+
+        col.separator()
+
+        col.label(text="Acceleration structure:")   
+        col.prop(cscene, "debug_use_spatial_splits")
 
 
 class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):

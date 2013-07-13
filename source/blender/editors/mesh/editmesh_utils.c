@@ -171,6 +171,13 @@ void EDBM_stats_update(BMEditMesh *em)
 	}
 }
 
+DerivedMesh *EDBM_mesh_deform_dm_get(BMEditMesh *em)
+{
+	return ((em->derivedFinal != NULL) &&
+	        (em->derivedFinal->type == DM_TYPE_EDITBMESH) &&
+	        (em->derivedFinal->deformedOnly != false)) ? em->derivedFinal : NULL;
+}
+
 bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *fmt, ...)
 {
 	BMesh *bm = em->bm;

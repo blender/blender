@@ -875,6 +875,10 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
 			ARegion *ar_prev;
 
+			/* call here because regular mouse-up event wont run,
+			 * typically 'button_activate_exit()' handles this */
+			ui_apply_autokey(C, but);
+
 			drag_info->is_set = ui_is_but_push(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
@@ -1297,9 +1301,14 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
 			if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 				ID *id = (ID *)wmd->poin;
 				
-				if (but->poin == NULL && but->rnapoin.data == NULL) {}
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				BLI_strncpy(data->str, id->name + 2, data->maxlen);
+
+				if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+					but->changed = true;
+					ui_searchbox_update(C, data->searchbox, but, true);
+				}
+
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}
@@ -1420,6 +1429,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 			if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 				/* else uiSearchboxData.active member is not updated [#26856] */
+				but->changed = true;
 				ui_searchbox_update(C, data->searchbox, but, true);
 			}
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3711,7 +3721,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx,
 
 			break;
 		default:
-			assert(!"invalid hsv type");
+			BLI_assert(0);
 	}
 
 	hsv_to_rgb_v(hsv, rgb);
@@ -3781,6 +3791,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 			hsv[2] += ndof->rx * sensitivity;
 			
 			CLAMP(hsv[2], but->softmin, but->softmax);
+			break;
 		default:
 			assert(!"invalid hsv type");
 	}
@@ -6413,7 +6424,6 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 {
 	uiBut *but = ui_list_find_mouse_over(ar, event->x, event->y);
 	int retval = WM_UI_HANDLER_CONTINUE;
-	int value, min, max;
 	int type = event->type, val = event->val;
 
 	if (but) {
@@ -6436,8 +6446,11 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 				if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
 					((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
 				{
+					const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+					int value, min, max;
+
 					/* activate up/down the list */
-					value = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+					value = value_orig;
 
 					if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
 						value--;
@@ -6454,9 +6467,13 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 					RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
 					value = CLAMPIS(value, min, max);
 
-					RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
-					RNA_property_update(C, &but->rnapoin, but->rnaprop);
-					ED_region_tag_redraw(ar);
+					if (value != value_orig) {
+						RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
+						RNA_property_update(C, &but->rnapoin, but->rnaprop);
+
+						ui_apply_undo(but);
+						ED_region_tag_redraw(ar);
+					}
 
 					retval = WM_UI_HANDLER_BREAK;
 				}

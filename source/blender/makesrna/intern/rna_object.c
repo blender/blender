@@ -44,7 +44,7 @@
 #include "BKE_paint.h"
 #include "BKE_editmesh.h"
 #include "BKE_group.h" /* needed for BKE_group_object_exists() */
-
+#include "BKE_object.h" /* Needed for BKE_object_matrix_local_get() */
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -216,15 +216,7 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
-
-	if (ob->parent) {
-		float invmat[4][4]; /* for inverse of parent's matrix */
-		invert_m4_m4(invmat, ob->parent->obmat);
-		mul_m4_m4m4((float(*)[4])values, invmat, ob->obmat);
-	}
-	else {
-		copy_m4_m4((float(*)[4])values, ob->obmat);
-	}
+	BKE_object_matrix_local_get(ob, (float(*)[4])values);
 }
 
 static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
@@ -460,17 +452,20 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), Point
 	if (ob->parent) {
 		Object *par = ob->parent;
 		
-		if (par->type == OB_CURVE)
+		if (par->type == OB_CURVE) {
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARCURVE);
-		else if (par->type == OB_LATTICE)
+		}
+		else if (par->type == OB_LATTICE) {
 			/* special hack: prevents this overriding others */
 			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[4], PARSKEL);
+		}
 		else if (par->type == OB_ARMATURE) {
 			/* special hack: prevents this being overrided */
 			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[3], PARSKEL);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARBONE);
 		}
-		else if (par->type == OB_MESH) {
+
+		if (ELEM4(par->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)) {
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT1);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT3);
 		}

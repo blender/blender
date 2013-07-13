@@ -6100,7 +6100,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 
 /************** join operator, to be used externally? ****************/
 /* TODO: shape keys - as with meshes */
-int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
+int join_curve_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -6112,6 +6112,22 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase tempbase;
 	float imat[4][4], cmat[4][4];
 	int a;
+	bool ok = false;
+
+	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	{
+		if (base->object == ob) {
+			ok = true;
+			break;
+		}
+	}
+	CTX_DATA_END;
+
+	/* that way the active object is always selected */
+	if (ok == false) {
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a selected curve");
+		return OPERATOR_CANCELLED;
+	}
 
 	tempbase.first = tempbase.last = NULL;
 	

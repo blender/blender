@@ -79,10 +79,10 @@ void ArbitraryGridDensityProvider::initialize(const real proscenium[4])
 	// Make sure the grid exceeds the proscenium by a small amount
 	float safetyZone = 0.1f;
 	if (_cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone)) {
-		_cellsX = prosceniumWidth * (1.0 + safetyZone) / _cellSize;
+		_cellsX = ceil(prosceniumWidth * (1.0 + safetyZone) / _cellSize);
 	}
 	if (_cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone)) {
-		_cellsY = prosceniumHeight * (1.0 + safetyZone) / _cellSize;
+		_cellsY = ceil(prosceniumHeight * (1.0 + safetyZone) / _cellSize);
 	}
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;

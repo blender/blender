@@ -2718,8 +2718,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	re = RE_GetRender(iuser->scene->id.name);
 
 	channels = 4;
-	layer = (iuser) ? iuser->layer : 0;
-	pass = (iuser) ? iuser->pass : 0;
+	layer = iuser->layer;
+	pass = iuser->pass;
 
 	if (from_render) {
 		RE_AcquireResultImage(re, &rres);

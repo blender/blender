@@ -144,11 +144,13 @@ static void bridge_loop_pair(BMesh *bm,
                              struct BMEdgeLoopStore *el_store_b,
                              const bool use_merge, const float merge_factor)
 {
+	const float eps = 0.00001f;
 	LinkData *el_a_first, *el_b_first;
 	const bool is_closed = BM_edgeloop_is_closed(el_store_a) && BM_edgeloop_is_closed(el_store_b);
 	int el_store_a_len, el_store_b_len;
 	bool el_store_b_free = false;
 	float el_dir[3];
+	float dot_a, dot_b;
 	const bool use_edgeout = true;
 
 	el_store_a_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_a);
@@ -202,9 +204,22 @@ static void bridge_loop_pair(BMesh *bm,
 		BM_edgeloop_calc_normal_aligned(bm, el_store_b, no);
 	}
 
-	if ((dot_v3v3(BM_edgeloop_normal_get(el_store_a), el_dir) < 0.0f) !=
-		(dot_v3v3(BM_edgeloop_normal_get(el_store_b), el_dir) < 0.0f))
+	dot_a = dot_v3v3(BM_edgeloop_normal_get(el_store_a), el_dir);
+	dot_b = dot_v3v3(BM_edgeloop_normal_get(el_store_b), el_dir);
+
+	if (UNLIKELY((len_squared_v3(el_dir) < eps) ||
+	             ((fabsf(dot_a) < eps) && (fabsf(dot_b) < eps))))
 	{
+		/* in this case there is no depth between the two loops,
+		 * eg: 2x 2d circles, one scaled smaller,
+		 * in this case 'el_dir' cant be used, just ensure we have matching flipping. */
+		if (dot_v3v3(BM_edgeloop_normal_get(el_store_a),
+		             BM_edgeloop_normal_get(el_store_b)) < 0.0f)
+		{
+			BM_edgeloop_flip(bm, el_store_b);
+		}
+	}
+	else if ((dot_a < 0.0f) != (dot_b < 0.0f)) {
 		BM_edgeloop_flip(bm, el_store_b);
 	}
 

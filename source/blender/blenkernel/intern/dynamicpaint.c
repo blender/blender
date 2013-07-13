@@ -1942,6 +1942,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 		/* loop through surfaces */
 		for (; surface; surface = surface->next) {
 			int current_frame = (int)scene->r.cfra;
+			bool no_surface_data;
 
 			/* free bake data if not required anymore */
 			surface_freeUnusedData(surface);
@@ -1951,12 +1952,13 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 			if (!(surface->flags & MOD_DPAINT_ACTIVE)) continue;
 
 			/* make sure surface is valid */
+			no_surface_data = surface->data == NULL;
 			if (!dynamicPaint_checkSurfaceData(surface)) continue;
 
 			/* limit frame range */
 			CLAMP(current_frame, surface->start_frame, surface->end_frame);
 
-			if (current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
+			if (no_surface_data || current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
 				PointCache *cache = surface->pointcache;
 				PTCacheID pid;
 				surface->current_frame = current_frame;

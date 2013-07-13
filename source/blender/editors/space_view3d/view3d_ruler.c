@@ -967,6 +967,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					WM_clipboard_text_set((void *) numstr, false);
 				}
 			}
+			break;
 		}
 		case RIGHTCTRLKEY:
 		case LEFTCTRLKEY:

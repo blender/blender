@@ -684,12 +684,9 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 		}
 	}
 
-	/* sort baselist */
-	DAG_scene_relations_rebuild(bmain, scene);
-	
-	/* ensure dags are built for sets */
+	/* sort baselist for scene and sets */
 	for (sce = scene; sce; sce = sce->set)
-		DAG_scene_relations_update(bmain, sce);
+		DAG_scene_relations_rebuild(bmain, sce);
 
 	/* copy layers and flags from bases to objects */
 	for (base = scene->base.first; base; base = base->next) {
@@ -746,17 +743,16 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 /* used by metaballs
  * doesn't return the original duplicated object, only dupli's
  */
-int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
+int BKE_scene_base_iter_next(SceneBaseIter *iter, Scene **scene, int val, Base **base, Object **ob)
 {
-	static ListBase *duplilist = NULL;
-	static DupliObject *dupob;
-	static int fase = F_START, in_next_object = 0;
+	static int in_next_object = 0;
 	int run_again = 1;
 	
 	/* init */
 	if (val == 0) {
-		fase = F_START;
-		dupob = NULL;
+		iter->fase = F_START;
+		iter->dupob = NULL;
+		iter->duplilist = NULL;
 		
 		/* XXX particle systems with metas+dupligroups call this recursively */
 		/* see bug #18725 */
@@ -774,11 +770,11 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 			run_again = 0;
 
 			/* the first base */
-			if (fase == F_START) {
+			if (iter->fase == F_START) {
 				*base = (*scene)->base.first;
 				if (*base) {
 					*ob = (*base)->object;
-					fase = F_SCENE;
+					iter->fase = F_SCENE;
 				}
 				else {
 					/* exception: empty scene */
@@ -787,20 +783,20 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 						if ((*scene)->base.first) {
 							*base = (*scene)->base.first;
 							*ob = (*base)->object;
-							fase = F_SCENE;
+							iter->fase = F_SCENE;
 							break;
 						}
 					}
 				}
 			}
 			else {
-				if (*base && fase != F_DUPLI) {
+				if (*base && iter->fase != F_DUPLI) {
 					*base = (*base)->next;
 					if (*base) {
 						*ob = (*base)->object;
 					}
 					else {
-						if (fase == F_SCENE) {
+						if (iter->fase == F_SCENE) {
 							/* (*scene) is finished, now do the set */
 							while ((*scene)->set) {
 								(*scene) = (*scene)->set;
@@ -816,45 +812,45 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 			}
 			
 			if (*base == NULL) {
-				fase = F_START;
+				iter->fase = F_START;
 			}
 			else {
-				if (fase != F_DUPLI) {
+				if (iter->fase != F_DUPLI) {
 					if ( (*base)->object->transflag & OB_DUPLI) {
 						/* groups cannot be duplicated for mballs yet, 
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							duplilist = object_duplilist((*scene), (*base)->object, FALSE);
+							iter->duplilist = object_duplilist((*scene), (*base)->object, FALSE);
 							
-							dupob = duplilist->first;
+							iter->dupob = iter->duplilist->first;
 
-							if (!dupob)
-								free_object_duplilist(duplilist);
+							if (!iter->dupob)
+								free_object_duplilist(iter->duplilist);
 						}
 					}
 				}
 				/* handle dupli's */
-				if (dupob) {
+				if (iter->dupob) {
 					
-					copy_m4_m4(dupob->ob->obmat, dupob->mat);
+					copy_m4_m4(iter->dupob->ob->obmat, iter->dupob->mat);
 					
 					(*base)->flag |= OB_FROMDUPLI;
-					*ob = dupob->ob;
-					fase = F_DUPLI;
+					*ob = iter->dupob->ob;
+					iter->fase = F_DUPLI;
 					
-					dupob = dupob->next;
+					iter->dupob = iter->dupob->next;
 				}
-				else if (fase == F_DUPLI) {
-					fase = F_SCENE;
+				else if (iter->fase == F_DUPLI) {
+					iter->fase = F_SCENE;
 					(*base)->flag &= ~OB_FROMDUPLI;
 					
-					for (dupob = duplilist->first; dupob; dupob = dupob->next) {
-						copy_m4_m4(dupob->ob->obmat, dupob->omat);
+					for (iter->dupob = iter->duplilist->first; iter->dupob; iter->dupob = iter->dupob->next) {
+						copy_m4_m4(iter->dupob->ob->obmat, iter->dupob->omat);
 					}
 					
-					free_object_duplilist(duplilist);
-					duplilist = NULL;
+					free_object_duplilist(iter->duplilist);
+					iter->duplilist = NULL;
 					run_again = 1;
 				}
 			}
@@ -870,7 +866,7 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 	/* reset recursion test */
 	in_next_object = 0;
 	
-	return fase;
+	return iter->fase;
 }
 
 Object *BKE_scene_camera_find(Scene *sc)

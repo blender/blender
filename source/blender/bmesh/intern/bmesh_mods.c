@@ -345,7 +345,7 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 
 	/* do we have a multires layer? */
 	if (has_mdisp) {
-		f_tmp = BM_face_copy(bm, f, false, false);
+		f_tmp = BM_face_copy(bm, bm, f, false, false);
 	}
 	
 #ifdef USE_BMESH_HOLES
@@ -414,7 +414,7 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
 
 	BLI_assert(v1 != v2);
 
-	f_tmp = BM_face_copy(bm, f, true, true);
+	f_tmp = BM_face_copy(bm, bm, f, true, true);
 
 	if (!r_l)
 		r_l = &l_dummy;
@@ -662,7 +662,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 		/* flag existing faces so we can differentiate oldfaces from new faces */
 		for (i = 0; i < BLI_array_count(oldfaces); i++) {
 			BM_ELEM_API_FLAG_ENABLE(oldfaces[i], _FLAG_OVERLAP);
-			oldfaces[i] = BM_face_copy(bm, oldfaces[i], true, true);
+			oldfaces[i] = BM_face_copy(bm, bm, oldfaces[i], true, true);
 			BM_ELEM_API_FLAG_DISABLE(oldfaces[i], _FLAG_OVERLAP);
 		}
 	}

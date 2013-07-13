@@ -266,6 +266,7 @@ typedef struct RenderJob {
 	SceneRenderLayer *srl;
 	struct Object *camera_override;
 	int lay;
+	bool v3d_override;
 	short anim, write_still;
 	Image *image;
 	ImageUser iuser;
@@ -283,7 +284,7 @@ static void render_freejob(void *rjv)
 }
 
 /* str is IMA_MAX_RENDER_TEXT in size */
-static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
+static void make_renderinfo_string(RenderStats *rs, Scene *scene, bool v3d_override, char *str)
 {
 	char info_time_str[32]; // used to be extern to header_info.c
 	uintptr_t mem_in_use, mmap_in_use, peak_memory;
@@ -300,7 +301,9 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 
 	/* local view */
 	if (rs->localview)
-		spos += sprintf(spos, "%s | ", IFACE_("Local View"));
+		spos += sprintf(spos, "%s | ", IFACE_("3D Local View"));
+	else if (v3d_override)
+		spos += sprintf(spos, "%s | ", IFACE_("3D View"));
 
 	/* frame number */
 	spos += sprintf(spos, IFACE_("Frame:%d "), (scene->r.cfra));
@@ -376,7 +379,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 		if (rr->text == NULL)
 			rr->text = MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
 
-		make_renderinfo_string(rs, rj->scene, rr->text);
+		make_renderinfo_string(rs, rj->scene, rj->v3d_override, rr->text);
 	}
 
 	RE_ReleaseResult(rj->re);
@@ -643,7 +646,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->reports = op->reports;
 
 	if (v3d) {
-		rj->lay = v3d->lay;
+		if (rj->lay != v3d->lay) {
+			rj->lay = v3d->lay;
+			rj->v3d_override = true;
+		}
+		else if (camera_override && camera_override != scene->camera)
+			rj->v3d_override = true;
 
 		if (v3d->localvd)
 			rj->lay |= v3d->localvd->lay;
@@ -826,7 +834,7 @@ static void render_view3d_renderinfo_cb(void *rjp, RenderStats *rs)
 	if (rp->rv3d->render_engine == NULL)
 		*rp->stop = 1;
 	else if (rp->engine->text) {
-		make_renderinfo_string(rs, rp->scene, rp->engine->text);
+		make_renderinfo_string(rs, rp->scene, false, rp->engine->text);
 	
 		/* make jobs timer to send notifier */
 		*(rp->do_update) = TRUE;
@@ -873,7 +881,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	
 	rstats = RE_GetStats(re);
 
-	if ((update_flag & (PR_UPDATE_RENDERSIZE|PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
+	if ((update_flag & (PR_UPDATE_RENDERSIZE | PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
 		/* no osa, blur, seq, layers, etc for preview render */
 		rdata = rp->scene->r;
 		rdata.mode &= ~(R_OSA | R_MBLUR | R_BORDER | R_PANORAMA);
@@ -1052,9 +1060,8 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp->bmain = CTX_data_main(C);
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
 	
-	/* dont alloc in threads */
-	if (engine->text == NULL)
-		engine->text = MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
+	/* clear info text */
+	engine->text[0] = '\0';
 	
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, rp, render_view3d_free);
@@ -1141,7 +1148,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	RE_ReleaseResultImage(re);
 }
 
-void ED_viewport_render_kill_jobs(const bContext *C)
+void ED_viewport_render_kill_jobs(const bContext *C, bool free_database)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Main *bmain = CTX_data_main(C);
@@ -1172,17 +1179,23 @@ void ED_viewport_render_kill_jobs(const bContext *C)
 				if (rv3d->render_engine) {
 					/* free render database now before we change data, because
 					 * RE_Database_Free will also loop over blender data */
-					char name[32];
-					Render *re;
+					if (free_database) {
+						char name[32];
+						Render *re;
 
-					sprintf(name, "View3dPreview %p", (void *)ar);
-					re = RE_GetRender(name);
+						sprintf(name, "View3dPreview %p", (void *)ar);
+						re = RE_GetRender(name);
 
-					if (re)
-						RE_Database_Free(re);
+						if (re)
+							RE_Database_Free(re);
 
-					/* tag render engine to update entire database */
-					rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
+						/* tag render engine to update entire database */
+						rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
+					}
+					else {
+						/* quick shader update */
+						rv3d->render_engine->update_flag |= RE_ENGINE_UPDATE_MA;
+					}
 				}
 			}
 		}

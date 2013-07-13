@@ -52,7 +52,7 @@ void ED_render_engine_changed(struct Main *bmain);
 void ED_render_engine_area_exit(struct ScrArea *sa);
 void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated);
 
-void ED_viewport_render_kill_jobs(const struct bContext *C);
+void ED_viewport_render_kill_jobs(const struct bContext *C, bool free_database);
 
 /* render_preview.c */
 

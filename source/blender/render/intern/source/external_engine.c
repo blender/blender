@@ -158,9 +158,6 @@ void RE_engine_free(RenderEngine *engine)
 		BLI_end_threaded_malloc();
 	}
 
-	if (engine->text)
-		MEM_freeN(engine->text);
-
 	MEM_freeN(engine);
 }
 
@@ -253,8 +250,14 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 		/* for exr tile render, detect tiles that are done */
 		RenderPart *pa = get_part_from_result(re, result);
 
-		if (pa)
+		if (pa) {
 			pa->status = PART_STATUS_READY;
+		}
+		else if (re->result->do_exr_tile) {
+			/* if written result does not match any tile and we are using save
+			 * buffers, we are going to get openexr save errors */
+			fprintf(stderr, "RenderEngine.end_result: dimensions do not match any OpenEXR tile.\n");
+		}
 
 		if (re->result->do_exr_tile)
 			render_result_exr_file_merge(re->result, result);
@@ -301,17 +304,14 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	}
 
 	/* set engine text */
-	if (engine->text) {
-		MEM_freeN(engine->text);
-		engine->text = NULL;
-	}
+	engine->text[0] = '\0';
 
 	if (stats && stats[0] && info && info[0])
-		engine->text = BLI_sprintfN("%s | %s", stats, info);
+		BLI_snprintf(engine->text, sizeof(engine->text), "%s | %s", stats, info);
 	else if (info && info[0])
-		engine->text = BLI_strdup(info);
+		BLI_strncpy(engine->text, info, sizeof(engine->text));
 	else if (stats && stats[0])
-		engine->text = BLI_strdup(stats);
+		BLI_strncpy(engine->text, info, sizeof(engine->text));
 }
 
 void RE_engine_update_progress(RenderEngine *engine, float progress)
@@ -438,12 +438,13 @@ int RE_engine_render(Render *re, int do_all)
 	/* create render result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if (re->result == NULL || !(re->r.scemode & R_BUTS_PREVIEW)) {
-		int savebuffers;
+		int savebuffers = RR_USE_MEM;
 
 		if (re->result)
 			render_result_free(re->result);
 
-		savebuffers = (re->r.scemode & R_EXR_TILE_FILE) ? RR_USE_EXR : RR_USE_MEM;
+		if ((type->flag & RE_USE_SAVE_BUFFERS) && (re->r.scemode & R_EXR_TILE_FILE))
+			savebuffers = RR_USE_EXR;
 		re->result = render_result_new(re, &re->disprect, 0, savebuffers, RR_ALL_LAYERS);
 	}
 	BLI_rw_mutex_unlock(&re->resultmutex);

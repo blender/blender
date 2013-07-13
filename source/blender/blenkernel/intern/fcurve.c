@@ -1697,7 +1697,7 @@ static float evaluate_driver(ChannelDriver *driver, const float evaltime)
 				
 				/* perform operations on the total if appropriate */
 				if (driver->type == DRIVER_TYPE_AVERAGE)
-					driver->curval = (value / (float)tot);
+					driver->curval = tot ? (value / (float)tot) : 0.0f;
 				else
 					driver->curval = value;
 			}

@@ -265,6 +265,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
                                    bool *enter_editmode, unsigned int *layer, bool *is_view_aligned)
 {
 	View3D *v3d = CTX_wm_view3d(C);
+	unsigned int _layer;
 
 	/* Switch to Edit mode? */
 	if (RNA_struct_find_property(op->ptr, "enter_editmode")) { /* optional */
@@ -283,7 +284,6 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 	/* Get layers! */
 	{
 		int a, layer_values[20];
-		unsigned int _layer;
 		if (!layer)
 			layer = &_layer;
 
@@ -342,7 +342,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 		else if (RNA_struct_property_is_set(op->ptr, "view_align"))
 			*is_view_aligned = RNA_boolean_get(op->ptr, "view_align");
 		else {
-			*is_view_aligned = U.flag & USER_ADD_VIEWALIGNED;
+			*is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
 			RNA_boolean_set(op->ptr, "view_align", *is_view_aligned);
 		}
 

@@ -2167,6 +2167,15 @@ static void ui_set_but_soft_range(uiBut *but)
 		but->softmin = softmin;
 		but->softmax = softmax;
 	}
+	else if (but->poin && (but->pointype & UI_BUT_POIN_TYPES)) {
+		float value = ui_get_but_val(but);
+		CLAMP(value, but->hardmin, but->hardmax);
+		but->softmin = min_ff(but->softmin, value);
+		but->softmax = max_ff(but->softmax, value);
+	}
+	else {
+		BLI_assert(0);
+	}
 }
 
 /* ******************* Free ********************/
@@ -2368,8 +2377,12 @@ void ui_check_but(uiBut *but)
 	ui_check_but_select(but, &value);
 	
 	/* only update soft range while not editing */
-	if (but->rnaprop && !(but->editval || but->editstr || but->editvec)) {
-		ui_set_but_soft_range(but);
+	if (!(but->editval || but->editstr || but->editvec)) {
+		if ((but->rnaprop != NULL) ||
+		    (but->poin && (but->pointype & UI_BUT_POIN_TYPES)))
+		{
+			ui_set_but_soft_range(but);
+		}
 	}
 
 	/* test for min and max, icon sliders, etc */
@@ -2757,13 +2770,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	uiBut *but;
 	int slen;
 
-	BLI_assert(width >= 0);
-	BLI_assert(height >= 0);
+	BLI_assert(width >= 0 && height >= 0);
 	
 	/* we could do some more error checks here */
 	if ((type & BUTTYPE) == LABEL) {
-		if ((poin != NULL || min != 0.0f || max != 0.0f || (a1 == 0.0f && a2 != 0.0f) || (a1 != 0.0f && a1 != 1.0f)))
-			printf("blah\n");
 		BLI_assert((poin != NULL || min != 0.0f || max != 0.0f || (a1 == 0.0f && a2 != 0.0f) || (a1 != 0.0f && a1 != 1.0f)) == FALSE);
 	}
 
@@ -2851,7 +2861,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	/* keep track of UI_interface.h */
-	if      (ELEM9(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR /* , FTPREVIEW */)) {}
+	if      (ELEM8(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, BUTM, SCROLL, SEPR)) {}
 	else if (but->type >= SEARCH_MENU) {}
 	else but->flag |= UI_BUT_UNDO;
 
@@ -4132,6 +4142,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 
 		si->strinfo = tmp;
 	}
+	va_end(args);
 
 	if (free_items && items)
 		MEM_freeN(items);
