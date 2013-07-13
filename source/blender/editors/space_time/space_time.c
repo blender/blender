@@ -403,6 +403,7 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 	/* mainly for updating cache display */
 	switch (wmn->category) {
 		case NC_OBJECT:
+		{
 			switch (wmn->data) {
 				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
@@ -414,7 +415,9 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		}
 		case NC_SCENE:
+		{
 			switch (wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
@@ -435,18 +438,26 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				}
 				break;
 			}
+			break;
+		}
 		case NC_SPACE:
+		{
 			switch (wmn->data) {
 				case ND_SPACE_CHANGED:
 					ED_area_tag_refresh(sa);
 					break;
 			}
+			break;
+		}
 		case NC_WM:
+		{
 			switch (wmn->data) {
 				case ND_FILEREAD:
 					ED_area_tag_refresh(sa);
 					break;
 			}
+			break;
+		}
 	}
 }
 
@@ -568,11 +579,13 @@ static void time_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCREEN:
+		{
 			if (wmn->data == ND_ANIMPLAY)
 				ED_region_tag_redraw(ar);
 			break;
-
+		}
 		case NC_SCENE:
+		{
 			switch (wmn->data) {
 				case ND_OB_SELECT:
 				case ND_FRAME:
@@ -582,11 +595,14 @@ static void time_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 					ED_region_tag_redraw(ar);
 					break;
 			}
-
+			break;
+		}
 		case NC_SPACE:
+		{
 			if (wmn->data == ND_SPACE_TIME)
 				ED_region_tag_redraw(ar);
 			break;
+		}
 	}
 }
 
