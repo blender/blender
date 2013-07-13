@@ -4142,6 +4142,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 
 		si->strinfo = tmp;
 	}
+	va_end(args);
 
 	if (free_items && items)
 		MEM_freeN(items);
