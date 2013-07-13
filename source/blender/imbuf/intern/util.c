@@ -158,9 +158,13 @@ const char *imb_ext_audio[] = {
 
 static int IMB_ispic_name(const char *name)
 {
+	/* increased from 32 to 64 because of the bitmaps header size */
+#define HEADER_SIZE 64
+
+	unsigned char buf[HEADER_SIZE];
 	ImFileType *type;
 	struct stat st;
-	int fp, buf[10];
+	int fp;
 
 	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
 	
@@ -172,7 +176,8 @@ static int IMB_ispic_name(const char *name)
 	if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) < 0)
 		return FALSE;
 
-	if (read(fp, buf, 32) != 32) {
+	memset(buf, 0, sizeof(buf));
+	if (read(fp, buf, HEADER_SIZE) <= 0) {
 		close(fp);
 		return FALSE;
 	}
@@ -180,14 +185,18 @@ static int IMB_ispic_name(const char *name)
 	close(fp);
 
 	/* XXX move this exception */
-	if ((BIG_LONG(buf[0]) & 0xfffffff0) == 0xffd8ffe0)
+	if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0)
 		return JPG;
 
-	for (type = IMB_FILE_TYPES; type->is_a; type++)
-		if (type->is_a((uchar *)buf))
+	for (type = IMB_FILE_TYPES; type->is_a; type++) {
+		if (type->is_a(buf)) {
 			return type->filetype;
+		}
+	}
 
 	return FALSE;
+
+#undef HEADER_SIZE
 }
 
 int IMB_ispic(const char *filename)
