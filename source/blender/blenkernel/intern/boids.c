@@ -981,6 +981,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 			rule = BLI_findlink(&state->rules, rand % BLI_countlist(&state->rules));
 
 			apply_boid_rule(bbd, rule, &val, pa, -1.0);
+			break;
 		}
 		case eBoidRulesetType_Average:
 		{

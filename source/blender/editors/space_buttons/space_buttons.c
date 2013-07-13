@@ -292,6 +292,7 @@ static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
 					buttons_area_redraw(sa, BCONTEXT_DATA);
 					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
+					break;
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 				case ND_SHADING_LINKS:
