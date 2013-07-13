@@ -183,7 +183,7 @@ static LineStyleModifier *new_modifier(int type, size_t size)
 
 	m = (LineStyleModifier *)MEM_callocN(size, "line style modifier");
 	m->type = type;
-	strcpy(m->name, modifier_name[type]);
+	BLI_strncpy(m->name, modifier_name[type], sizeof(m->name));
 	m->influence = 1.0f;
 	m->flags = LS_MODIFIER_ENABLED | LS_MODIFIER_EXPANDED;
 
