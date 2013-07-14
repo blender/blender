@@ -1887,6 +1887,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	static EnumPropertyItem rot_mode_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{PART_ROT_NOR, "NOR", 0, "Normal", ""},
+		{PART_ROT_NOR_TAN, "NOR_TAN", 0, "Normal-Tangent", ""},
 		{PART_ROT_VEL, "VEL", 0, "Velocity / Hair", ""},
 		{PART_ROT_GLOB_X, "GLOB_X", 0, "Global X", ""},
 		{PART_ROT_GLOB_Y, "GLOB_Y", 0, "Global Y", ""},

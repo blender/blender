@@ -1670,7 +1670,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 	const bool use_boids = ((part->phystype == PART_PHYS_BOIDS) &&
 	                        (pa->boid != NULL));
 	const bool use_tangents = ((use_boids == false) &&
-	                           ((part->tanfac != 0.0f) || (part->rotmode == PART_ROT_NOR)));
+	                           ((part->tanfac != 0.0f) || (part->rotmode == PART_ROT_NOR_TAN)));
 
 	int p = pa - psys->particles;
 
@@ -1833,6 +1833,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 			/* create vector into which rotation is aligned */
 			switch (part->rotmode) {
 				case PART_ROT_NOR:
+				case PART_ROT_NOR_TAN:
 					copy_v3_v3(rot_vec, nor);
 					use_global_space = false;
 					break;
@@ -1881,7 +1882,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 				invert_qt_qt(q_imat, q_obmat);
 
 
-				if (part->rotmode != PART_ROT_NOR) {
+				if (part->rotmode != PART_ROT_NOR_TAN) {
 					float rot_vec_local[3];
 
 					/* rot_vec */
@@ -1893,7 +1894,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 					vec_to_quat(q2, rot_vec_local, OB_POSX, OB_POSZ);
 				}
 				else {
-					/* (part->rotmode == PART_ROT_NOR) */
+					/* (part->rotmode == PART_ROT_NOR_TAN) */
 					float tmat[3][3];
 
 					/* note: utan_local is not taken from 'utan', we calculate from rot_vec/vtan */
