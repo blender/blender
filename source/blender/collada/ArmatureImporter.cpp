@@ -517,7 +517,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 // root - if this joint is the top joint in hierarchy, if a joint
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
-void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce)
+void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent)
 {
 	joint_by_uid[node->getUniqueId()] = node;
 	if (root) {
