@@ -115,7 +115,7 @@ static TransformOrientation *createViewSpace(bContext *C, ReportList *UNUSED(rep
 		View3D *v3d = CTX_wm_view3d(C);
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			/* If an object is used as camera, then this space is the same as object space! */
-			strncpy(name, v3d->camera->id.name + 2, MAX_NAME);
+			BLI_strncpy(name, v3d->camera->id.name + 2, MAX_NAME);
 		}
 		else {
 			strcpy(name, "Custom View");
@@ -141,7 +141,7 @@ static TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(r
 
 	/* use object name if no name is given */
 	if (name[0] == 0) {
-		strncpy(name, ob->id.name + 2, MAX_ID_NAME - 2);
+		BLI_strncpy(name, ob->id.name + 2, MAX_ID_NAME - 2);
 	}
 
 	return addMatrixSpace(C, mat, name, overwrite);
@@ -306,7 +306,7 @@ TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 	if (ts == NULL) {
 		ts = MEM_callocN(sizeof(TransformOrientation), "UserTransSpace from matrix");
 		BLI_addtail(transform_spaces, ts);
-		strncpy(ts->name, name, sizeof(ts->name));
+		BLI_strncpy(ts->name, name, sizeof(ts->name));
 	}
 
 	/* copy matrix into transform space */

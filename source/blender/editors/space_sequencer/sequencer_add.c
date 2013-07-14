@@ -761,7 +761,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_sort(scene);
 
 	/* last active name */
-	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR - 1);
+	BLI_strncpy(ed->act_imagedir, strip->dir, sizeof(ed->act_imagedir));
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq))
