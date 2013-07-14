@@ -3238,8 +3238,8 @@ VectorTransformNode::VectorTransformNode()
 : ShaderNode("vector_transform")
 {
 	type = ustring("Vector");
-	convert_from = ustring("World");
-	convert_to = ustring("Object");
+	convert_from = ustring("world");
+	convert_to = ustring("object");
 
 	add_input("Vector", SHADER_SOCKET_VECTOR);
 	add_output("Vector",  SHADER_SOCKET_VECTOR);
@@ -3259,9 +3259,9 @@ static ShaderEnum vector_transform_convert_from_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("World", NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD);
-	enm.insert("Object", NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT);
-	enm.insert("Camera", NODE_VECTOR_TRANSFORM_CONVERT_FROM_CAMERA);
+	enm.insert("world", NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD);
+	enm.insert("object", NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT);
+	enm.insert("camera", NODE_VECTOR_TRANSFORM_CONVERT_FROM_CAMERA);
 
 	return enm;
 }
@@ -3270,9 +3270,9 @@ static ShaderEnum vector_transform_convert_to_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("World", NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD);
-	enm.insert("Object", NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT);
-	enm.insert("Camera", NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA);
+	enm.insert("world", NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD);
+	enm.insert("object", NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT);
+	enm.insert("camera", NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA);
 
 	return enm;
 }

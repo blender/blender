@@ -25,26 +25,12 @@ shader node_vector_transform(
 	vector VectorIn = vector(0.0, 0.0, 0.0),
 	output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-	/* OSL uses lower case variable names here */
-	string from = "world";
-	string to = "object";
-	
-	if (convert_from == "Object")
-		from = "object";
-	else if (convert_from == "Camera")
-		from = "camera";
-		
-	if (convert_to == "World")
-		to = "world";
-	else if (convert_to == "Camera")
-		to = "camera";
-	
 	if (type == "Vector") {
-		VectorOut = transform(from, to, VectorIn);
+		VectorOut = transform(convert_from, convert_to, VectorIn);
 	}
 	else if (type == "Point") {
 		point Point = point(VectorIn[0], VectorIn[1], VectorIn[2]);
-		VectorOut = transform(from, to, Point);
+		VectorOut = transform(convert_from, convert_to, Point);
 	}
 }
 
