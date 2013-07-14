@@ -97,40 +97,27 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 
 	add_transform(node, loc, rot, scale);
 #endif
+
 	UnitConverter converter;
-	
-	/* Using parentinv should allow use of existing curves */
-	if (ob->parent) {
-		// If parentinv is identity don't add it.
-		bool add_parinv = false;
+	double d_obmat[4][4];
+	float  f_obmat[4][4];
 
-		for (int i = 0; i < 16; ++i) {
-			float f = (i % 4 == i / 4) ? 1.0f : 0.0f;
-			add_parinv |= (ob->parentinv[i % 4][i / 4] != f);
-		}
-
-		if (add_parinv) {
-			double dmat[4][4];
-			converter.mat4_to_dae_double(dmat, ob->parentinv);
-			node.addMatrix("parentinverse", dmat);
-		}
-	}
-
-	double d_obmat[4][4];	
-	converter.mat4_to_dae_double(d_obmat, ob->obmat);
+	/* Export the local Matrix (relative to the object parent) */
+	BKE_object_matrix_local_get(ob, f_obmat);
+	converter.mat4_to_dae_double(d_obmat, f_obmat);
 
 	switch (transformation_type) {
 		case BC_TRANSFORMATION_TYPE_MATRIX     : {
 			node.addMatrix("transform",d_obmat);
 			break;
 		}
-		case BC_TRANSFORMATION_TYPE_TRANSROTLOC: {
-			add_transform(node, ob->loc, ob->rot, ob->size); 
-			break;
-		}
 		case BC_TRANSFORMATION_TYPE_BOTH       : {
 			node.addMatrix("transform",d_obmat);
-			add_transform(node, ob->loc, ob->rot, ob->size);
+		}
+		case BC_TRANSFORMATION_TYPE_TRANSROTLOC: {
+			float loc[3], rot[3], scale[3];
+			TransformBase::decompose(f_obmat, loc, rot, NULL, scale);
+			add_transform(node, loc, rot, scale); 
 			break;
 		}
 	}

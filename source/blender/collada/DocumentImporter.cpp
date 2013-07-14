@@ -601,11 +601,16 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			anim_importer.read_node_transform(node, ob);  // overwrites location set earlier
 
 		if (!is_joint) {
-			// if par was given make this object child of the previous
-			if (par && ob)
-				bc_set_parent(ob, par, mContext);
+			if (par && ob) {
+				ob->parent = par;
+				ob->partype = PAROBJECT;
+				ob->parsubstr[0] = 0;
+
+				//bc_set_parent(ob, par, mContext, false);
+			}
 		}
 	}
+
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
 
@@ -624,7 +629,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 }
 
 /** When this method is called, the writer must write the entire visual scene.
- * \return The writer should return true, if writing succeeded, false otherwise.*/
+ *  Return The writer should return true, if writing succeeded, false otherwise. */
 bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScene)
 {
 	if (mImportStage != General)
