@@ -2495,6 +2495,7 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
 {
 	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
 	int *indices = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
+	int *i_pt = indices;
 
 	int i;
 
@@ -2506,8 +2507,8 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
 
 	/* Assign indices mem */
 	for (i = 0; i < totvert; i++) {
-		map[i].indices = indices;
-		indices += map[i].count;
+		map[i].indices = i_pt;
+		i_pt += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
 		map[i].count = 0;
