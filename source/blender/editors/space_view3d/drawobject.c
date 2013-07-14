@@ -3049,24 +3049,38 @@ static void draw_em_indices(BMEditMesh *em)
 
 static DMDrawOption draw_em_fancy__setFaceOpts(void *userData, int index)
 {
-	BMFace *efa = EDBM_face_at_index(userData, index);
+	BMEditMesh *em = userData;
+	BMFace *efa;
 
+	if (UNLIKELY(index >= em->bm->totface))
+		return DM_DRAW_OPTION_NORMAL;
+
+	efa = EDBM_face_at_index(em, index);
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		GPU_enable_material(efa->mat_nr + 1, NULL);
 		return DM_DRAW_OPTION_NORMAL;
 	}
-	else
+	else {
 		return DM_DRAW_OPTION_SKIP;
+	}
 }
 
 static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 {
-	BMFace *efa = EDBM_face_at_index(userData, index);
+	BMEditMesh *em = userData;
+	BMFace *efa;
 
-	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
-		return DM_DRAW_OPTION_SKIP;
-	else
+	if (UNLIKELY(index >= em->bm->totface))
 		return DM_DRAW_OPTION_NORMAL;
+
+	efa = EDBM_face_at_index(em, index);
+
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+		return DM_DRAW_OPTION_NORMAL;
+	}
+	else {
+		return DM_DRAW_OPTION_SKIP;
+	}
 }
 
 static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
