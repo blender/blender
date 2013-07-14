@@ -359,12 +359,15 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			case PASS_BACKGROUND:
 				kfilm->pass_background = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
+				break;
 			case PASS_AO:
 				kfilm->pass_ao = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
+				break;
 			case PASS_SHADOW:
 				kfilm->pass_shadow = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
+				break;
 			case PASS_NONE:
 				break;
 		}
