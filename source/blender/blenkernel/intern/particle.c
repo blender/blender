@@ -4510,7 +4510,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 			num = DMCACHE_NOTFOUND;
 		}
 
-		if (mtface && num != DMCACHE_NOTFOUND) {
+		if (mtface && !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
 			mface = psmd->dm->getTessFaceData(psmd->dm, num, CD_MFACE);
 			mtface += num;
 			psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
