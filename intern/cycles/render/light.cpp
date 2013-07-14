@@ -53,7 +53,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	}
 
 	/* compute on device */
-	float4 *d_output_data = d_output.resize(width*height);
+	d_output.resize(width*height);
 	memset((void*)d_output.data_pointer, 0, d_output.memory_size());
 
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
@@ -82,7 +82,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	device->mem_free(d_input);
 	device->mem_free(d_output);
 
-	d_output_data = reinterpret_cast<float4*>(d_output.data_pointer);
+	float4 *d_output_data = reinterpret_cast<float4*>(d_output.data_pointer);
 
 	pixels.resize(width*height);
 

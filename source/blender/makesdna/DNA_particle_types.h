@@ -473,6 +473,7 @@ typedef struct ParticleSystem {
 #define PART_ROT_OB_X		6
 #define PART_ROT_OB_Y		7
 #define PART_ROT_OB_Z		8
+#define PART_ROT_NOR_TAN	9
 
 /* part->avemode */
 #define PART_AVE_VELOCITY	1

@@ -140,7 +140,7 @@ public:
 	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce);
 	~ArmatureImporter();
 
-	void add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce);
+	void add_joint(COLLADAFW::Node *node, bool root, Object *parent);
 
 #if 0
 	void add_root_joint(COLLADAFW::Node *node);

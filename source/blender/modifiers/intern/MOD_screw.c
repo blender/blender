@@ -646,7 +646,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					else {
 						/* only 1 edge connected - same as above except
 						 * don't need to average edge direction */
-						if (vc->e && vc->e[0]->v2 == i) {
+						if (vc->e[0]->v2 == i) {
 							sub_v3_v3v3(tmp_vec1, mvert_new[i].co, mvert_new[vc->v[0]].co);
 						}
 						else {
