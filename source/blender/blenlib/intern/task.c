@@ -76,7 +76,7 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 	pool->done += done;
 
 	BLI_assert(pool->num >= 0);
-	if(pool->num == 0)
+	if (pool->num == 0)
 		BLI_condition_notify_all(&pool->num_cond);
 
 	BLI_mutex_unlock(&pool->num_mutex);
@@ -96,10 +96,10 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 {
 	BLI_mutex_lock(&scheduler->queue_mutex);
 
-	while(!scheduler->queue.first && !scheduler->do_exit)
+	while (!scheduler->queue.first && !scheduler->do_exit)
 		BLI_condition_wait(&scheduler->queue_cond, &scheduler->queue_mutex);
 
-	if(!scheduler->queue.first) {
+	if (!scheduler->queue.first) {
 		BLI_mutex_unlock(&scheduler->queue_mutex);
 		BLI_assert(scheduler->do_exit);
 		return false;
@@ -115,13 +115,13 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 
 static void *task_scheduler_thread_run(void *thread_p)
 {
-	TaskThread *thread = (TaskThread*)thread_p;
+	TaskThread *thread = (TaskThread *) thread_p;
 	TaskScheduler *scheduler = thread->scheduler;
 	int thread_id = thread->id;
 	Task *task;
 
 	/* keep popping off tasks */
-	while(task_scheduler_thread_wait_pop(scheduler, &task)) {
+	while (task_scheduler_thread_wait_pop(scheduler, &task)) {
 		/* run task */
 		task->run(task->pool, task->taskdata, thread_id);
 
@@ -129,7 +129,7 @@ static void *task_scheduler_thread_run(void *thread_p)
 		task_pool_num_decrease(task->pool, 1);
 
 		/* delete task */
-		if(task->free_taskdata)
+		if (task->free_taskdata)
 			MEM_freeN(task->taskdata);
 		MEM_freeN(task);
 	}
@@ -151,7 +151,7 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 	BLI_mutex_init(&scheduler->queue_mutex);
 	BLI_condition_init(&scheduler->queue_cond);
 
-	if(num_threads == 0) {
+	if (num_threads == 0) {
 		/* automatic number of threads will be main thread + num cores */
 		num_threads = BLI_system_thread_count();
 	}
@@ -160,18 +160,18 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 	num_threads -= 1;
 
 	/* launch threads that will be waiting for work */
-	if(num_threads > 0) {
+	if (num_threads > 0) {
 		int i;
 
 		scheduler->num_threads = num_threads;
-		scheduler->threads = MEM_callocN(sizeof(pthread_t)*num_threads, "TaskScheduler threads");
+		scheduler->threads = MEM_callocN(sizeof(pthread_t) * num_threads, "TaskScheduler threads");
 
-		for(i = 0; i < num_threads; i++) {
+		for (i = 0; i < num_threads; i++) {
 			TaskThread *thread = MEM_callocN(sizeof(TaskThread), "TaskThread");
 			thread->scheduler = scheduler;
-			thread->id = i+1;
+			thread->id = i + 1;
 
-			if(pthread_create(&scheduler->threads[i], NULL, task_scheduler_thread_run, thread) != 0) {
+			if (pthread_create(&scheduler->threads[i], NULL, task_scheduler_thread_run, thread) != 0) {
 				fprintf(stderr, "TaskScheduler failed to launch thread %d/%d\n", i, num_threads);
 				MEM_freeN(thread);
 			}
@@ -192,11 +192,11 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 	BLI_mutex_unlock(&scheduler->queue_mutex);
 
 	/* delete threads */
-	if(scheduler->threads) {
+	if (scheduler->threads) {
 		int i;
 
-		for(i = 0; i < scheduler->num_threads; i++) {
-			if(pthread_join(scheduler->threads[i], NULL) != 0)
+		for (i = 0; i < scheduler->num_threads; i++) {
+			if (pthread_join(scheduler->threads[i], NULL) != 0)
 				fprintf(stderr, "TaskScheduler failed to join thread %d/%d\n", i, scheduler->num_threads);
 		}
 
@@ -204,9 +204,10 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 	}
 
 	/* delete leftover tasks */
-	for(task = scheduler->queue.first; task; task = task->next)
-		if(task->free_taskdata)
+	for (task = scheduler->queue.first; task; task = task->next) {
+		if (task->free_taskdata)
 			MEM_freeN(task->taskdata);
+	}
 	BLI_freelistN(&scheduler->queue);
 
 	/* delete mutex/condition */
@@ -228,7 +229,7 @@ static void task_scheduler_push(TaskScheduler *scheduler, Task *task, TaskPriori
 	/* add task to queue */
 	BLI_mutex_lock(&scheduler->queue_mutex);
 
-	if(priority == TASK_PRIORITY_HIGH)
+	if (priority == TASK_PRIORITY_HIGH)
 		BLI_addhead(&scheduler->queue, task);
 	else
 		BLI_addtail(&scheduler->queue, task);
@@ -245,11 +246,11 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 	BLI_mutex_lock(&scheduler->queue_mutex);
 
 	/* free all tasks from this pool from the queue */
-	for(task = scheduler->queue.first; task; task = nexttask) {
+	for (task = scheduler->queue.first; task; task = nexttask) {
 		nexttask = task->next;
 
-		if(task->pool == pool) {
-			if(task->free_taskdata)
+		if (task->pool == pool) {
+			if (task->free_taskdata)
 				MEM_freeN(task->taskdata);
 			BLI_freelinkN(&scheduler->queue, task);
 
@@ -313,7 +314,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 
 	BLI_mutex_lock(&pool->num_mutex);
 
-	while(pool->num != 0) {
+	while (pool->num != 0) {
 		Task *task, *work_task = NULL;
 		bool found_task = false;
 
@@ -324,8 +325,8 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		/* find task from this pool. if we get a task from another pool,
 		 * we can get into deadlock */
 
-		for(task = scheduler->queue.first; task; task = task->next) {
-			if(task->pool == pool) {
+		for (task = scheduler->queue.first; task; task = task->next) {
+			if (task->pool == pool) {
 				work_task = task;
 				found_task = true;
 				BLI_remlink(&scheduler->queue, task);
@@ -336,12 +337,12 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		BLI_mutex_unlock(&scheduler->queue_mutex);
 
 		/* if found task, do it, otherwise wait until other tasks are done */
-		if(found_task) {
+		if (found_task) {
 			/* run task */
 			work_task->run(pool, work_task->taskdata, 0);
 
 			/* delete task */
-			if(work_task->free_taskdata)
+			if (work_task->free_taskdata)
 				MEM_freeN(work_task->taskdata);
 			MEM_freeN(work_task);
 
@@ -350,10 +351,10 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		}
 
 		BLI_mutex_lock(&pool->num_mutex);
-		if(pool->num == 0)
+		if (pool->num == 0)
 			break;
 
-		if(!found_task)
+		if (!found_task)
 			BLI_condition_wait(&pool->num_cond, &pool->num_mutex);
 	}
 
@@ -368,7 +369,7 @@ void BLI_task_pool_cancel(TaskPool *pool)
 
 	/* wait until all entries are cleared */
 	BLI_mutex_lock(&pool->num_mutex);
-	while(pool->num)
+	while (pool->num)
 		BLI_condition_wait(&pool->num_cond, &pool->num_mutex);
 	BLI_mutex_unlock(&pool->num_mutex);
 
