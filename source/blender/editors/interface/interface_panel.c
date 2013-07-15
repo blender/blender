@@ -255,7 +255,7 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 		pa->sizey = 0;
 	}
 
-	BLI_strncpy(pa->drawname, drawname, UI_MAX_NAME_STR);
+	BLI_strncpy(pa->drawname, drawname, sizeof(pa->drawname));
 
 	/* if a new panel is added, we insert it right after the panel
 	 * that was last added. this way new panels are inserted in the
