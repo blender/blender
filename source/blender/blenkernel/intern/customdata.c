@@ -1729,16 +1729,16 @@ bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 	data->totlayer--;
 
 	/* if layer was last of type in array, set new active layer */
-	if ((index >= data->totlayer) || (data->layers[index].type != type)) {
-		i = CustomData_get_layer_index__notypemap(data, type);
-		
-		if (i >= 0)
-			for (; i < data->totlayer && data->layers[i].type == type; i++) {
-				data->layers[i].active--;
-				data->layers[i].active_rnd--;
-				data->layers[i].active_clone--;
-				data->layers[i].active_mask--;
-			}
+	i = CustomData_get_layer_index__notypemap(data, type);
+
+	if (i != -1) {
+		CustomDataLayer *layer;
+		for (layer = &data->layers[i]; i < data->totlayer && layer->type == type; i++, layer++) {
+			if (layer->active >= index)			layer->active--;
+			if (layer->active_rnd >= index)		layer->active_rnd--;
+			if (layer->active_clone >= index)	layer->active_clone--;
+			if (layer->active_mask >= index)	layer->active_mask--;
+		}
 	}
 
 	if (data->totlayer <= data->maxlayer - CUSTOMDATA_GROW)
